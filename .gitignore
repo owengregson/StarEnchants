@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────────────────────────
+#  StarEnchants .gitignore
+# ─────────────────────────────────────────────────────────────────────────
+
+# Build output
+build/
+out/
+bin/
+*.class
+.gradle/
+
+# Jars (built artifacts & libraries) — but keep the Gradle wrapper jar
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Reverse-engineering workspace — local only.
+# Contains decompiled third-party plugins (EliteEnchantments / EliteArmor /
+# AdvancedEnchantments), their extracted resources, and our analysis notes.
+# Never committed: third-party copyrighted code + large binaries.
+/deobf/
+
+# Local test servers / run directories
+/run/
+/server/
+world/
+world_nether/
+world_the_end/
+logs/
+*.log
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+.factorypath
+*.code-workspace
+
+# Claude Code — keep committed project skills, ignore local/session settings
+.claude/settings.local.json
+.claude/*.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tmp
+*.bak
+local.properties
