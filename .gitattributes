@@ -1,0 +1,20 @@
+# Normalize line endings to LF on commit; check out native.
+* text=auto eol=lf
+
+# Windows-only scripts stay CRLF.
+*.bat        text eol=crlf
+
+# Unix scripts / Gradle wrapper stay LF.
+gradlew      text eol=lf
+*.sh         text eol=lf
+
+# Binary assets — never diff/merge as text.
+*.jar        binary
+*.png        binary
+*.jpg        binary
+*.zip        binary
+*.gz         binary
+
+# Mark generated/vendored paths so language stats + diffs stay clean.
+deobf/**     -diff -merge linguist-vendored
+gradle/wrapper/gradle-wrapper.jar binary linguist-vendored
