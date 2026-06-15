@@ -1,0 +1,41 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: input
+    id: mc-version
+    attributes:
+      label: Minecraft version
+      placeholder: e.g. 1.21.4
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Server platform
+      options: [Paper, Folia, Other]
+    validations:
+      required: true
+  - type: input
+    id: se-version
+    attributes:
+      label: StarEnchants version
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you expect, and what happened instead? Include steps to reproduce.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      render: shell
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant config (the enchant / armor set / effect definition involved)
+      render: yaml
