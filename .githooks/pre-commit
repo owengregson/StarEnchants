@@ -1,0 +1,24 @@
+#!/bin/sh
+# StarEnchants — block the reverse-engineering workspace and large binaries.
+
+staged=$(git diff --cached --name-only --diff-filter=AM)
+status=0
+
+# Defense in depth: deobf/ is gitignored, but never let it be force-added.
+if printf '%s\n' "$staged" | grep -Eq '^deobf/'; then
+  echo "✗ Refusing to commit files under deobf/ (reverse-engineering workspace)." >&2
+  status=1
+fi
+
+# Reject large blobs (>2MB) — built jars and binaries don't belong in git.
+for f in $staged; do
+  [ -f "$f" ] || continue
+  size=$(wc -c < "$f" 2>/dev/null | tr -d ' ')
+  [ -n "$size" ] || continue
+  if [ "$size" -gt 2097152 ]; then
+    echo "✗ $f is $((size / 1024))KB (>2MB). Large binaries don't belong in git." >&2
+    status=1
+  fi
+done
+
+exit $status
