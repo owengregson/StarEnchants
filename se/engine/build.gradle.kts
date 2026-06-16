@@ -12,6 +12,13 @@ dependencies {
     // CompiledEffect/Condition flyweights (brings :schema transitively).
     api(project(":compile"))
 
+    // The affinity-routed Sink dispatcher (engine/sink) is "the only code that knows about
+    // threads" (docs/architecture.md §3.6): it routes intents through platform.sched.Scheduling
+    // and resolves interned handle ids to live objects through platform.resolve.RuntimeHandles.
+    // api (not implementation) because RuntimeHandles appears on DispatchSink's public surface.
+    // Acyclic: platform → compile, engine → {compile, platform}; platform never depends on engine.
+    api(project(":platform"))
+
     // Tests touch Bukkit SPI types (Sink/EffectCtx signatures), so paper-api is
     // on the test classpath too.
     testImplementation(libs.paper.api.floor)
