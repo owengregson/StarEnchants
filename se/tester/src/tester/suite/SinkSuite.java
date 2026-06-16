@@ -44,6 +44,7 @@ public final class SinkSuite implements Harness.Scenario {
         h.expect("sink.entity.potion.handle");
         h.expect("sink.entity.disarm.crossThread");
         h.expect("sink.region.block.handle");
+        h.expect("sink.wait.deferred");
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -112,6 +113,40 @@ public final class SinkSuite implements Harness.Scenario {
                             throw new IllegalStateException(
                                     "block change intent did not apply; expected " + expected + " got " + actual);
                         }
+                    }));
+
+                    // WAIT (§3.6) end to end through the real Sink: a delay(10) region intent must NOT apply on
+                    // flush, only after its tick count elapses. Drives DispatchPlan's delayed dispatch over the
+                    // real Scheduling.onRegionLater on this server (the Folia region delayed scheduler included).
+                    Location waitAt = at.clone().add(2, 3, 0); // distinct from blockAt; air on the flat spawn
+                    DispatchSink waitSink = new DispatchSink(handles);
+                    waitSink.delay(10);
+                    waitSink.blockChange(waitAt, glowstoneId);
+                    waitSink.flush();
+
+                    java.util.concurrent.atomic.AtomicBoolean appliedEarly =
+                            new java.util.concurrent.atomic.AtomicBoolean();
+                    java.util.concurrent.atomic.AtomicInteger probeRan =
+                            new java.util.concurrent.atomic.AtomicInteger();
+                    Scheduling.onRegionLater(waitAt, 4L, () -> { // before the WAIT:10 elapses — must still be pending
+                        probeRan.incrementAndGet();
+                        appliedEarly.set(waitAt.getBlock().getType() == handles.material(glowstoneId));
+                    });
+                    // Check well clear of the WAIT:10 (+30, not +16) so a multi-tick stall coalescing the probe,
+                    // the deferred mutation, and the check into one catch-up burst can't reorder them.
+                    Scheduling.onRegionLater(waitAt, 30L, () -> h.guard("sink.wait.deferred", () -> {
+                        Material expected = handles.material(glowstoneId);
+                        if (probeRan.get() == 0) {
+                            throw new IllegalStateException("the +4 probe never ran — cannot trust the not-early check");
+                        }
+                        if (appliedEarly.get()) {
+                            throw new IllegalStateException("WAIT:10 region intent applied before its delay elapsed");
+                        }
+                        if (waitAt.getBlock().getType() != expected) {
+                            throw new IllegalStateException("WAIT:10 region intent never applied; got "
+                                    + waitAt.getBlock().getType());
+                        }
+                        waitAt.getBlock().setType(Material.AIR); // tidy up the test block
                     }));
                 });
             });

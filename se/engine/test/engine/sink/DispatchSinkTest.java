@@ -7,6 +7,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -99,6 +100,7 @@ class DispatchSinkTest {
     void deferredTeleportRoutesThroughTheEntityScheduler() {
         Entity target = mock(Entity.class);
         Location to = mock(Location.class);
+        when(to.clone()).thenReturn(to); // the sink clones the destination (it can outlive the tick under WAIT)
 
         DispatchSink sink = new DispatchSink(handles);
         sink.teleport(target, to);

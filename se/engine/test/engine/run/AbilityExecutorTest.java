@@ -20,6 +20,7 @@ import engine.selector.SelectorRegistry;
 import engine.selector.kind.SelfSelector;
 import engine.selector.kind.VictimSelector;
 import engine.sink.DispatchSink;
+import engine.sink.RecordingSchedulerBackend;
 import engine.sink.SyncSchedulerBackend;
 import engine.stores.CooldownStore;
 import java.util.UUID;
@@ -196,6 +197,35 @@ class AbilityExecutorTest {
 
         assertEquals(1, activated); // only id 0 is valid
         verify(victim).setFireTicks(60);
+    }
+
+    /**
+     * WAIT (§3.6): an effect with accumulated {@code cumulativeWaitTicks} is routed by the executor into
+     * the sink's delay tier, so it neither runs in the gate pass nor on flush — only when its timer fires.
+     * Proves the executor→sink wiring (the deferral mechanism itself is pinned in {@code DispatchSinkWaitTest}).
+     */
+    @Test
+    void waitDefersTheEffectUntilItsTimerFires() {
+        RecordingSchedulerBackend recording = new RecordingSchedulerBackend();
+        Scheduling.install(recording);
+        LivingEntity victim = mock(LivingEntity.class);
+        CompiledEffect delayed = new CompiledEffect("IGNITE", Args.empty().with("duration", 60L),
+                new CompiledSelector("VICTIM", Args.empty()), 40, Affinity.TARGET_ENTITY);
+        Ability ability = new Ability(0, 0, SourceKind.ENCHANT, 1 << TRIGGER, 1, 100.0, 0, 0, 0L, null,
+                new CompiledEffect[] {delayed}, 0, Affinity.TARGET_ENTITY, -1, -1, -1, -1, 0);
+        DispatchSink sink = new DispatchSink(handles);
+
+        int activated = executor.run(new Ability[] {ability}, new int[] {0}, activation(),
+                context(null, victim), sink, KEYS);
+        sink.flush();
+
+        assertEquals(1, activated);
+        verifyNoInteractions(victim);                          // WAIT:40 — nothing yet
+        assertEquals(1, recording.delayed.size(), "one delayed batch scheduled");
+        assertEquals(40L, recording.delayed.get(0).delayTicks());
+
+        recording.runDelayed();
+        verify(victim).setFireTicks(60);                       // ignites after the delay
     }
 
     // ── fixtures ─────────────────────────────────────────────────────────────────────────────────
