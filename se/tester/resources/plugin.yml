@@ -1,0 +1,9 @@
+name: StarEnchantsTester
+version: '${version}'
+main: tester.SeTesterPlugin
+api-version: '1.17'
+# Region-thread safe: the harness schedules every world/entity touch through the
+# platform Scheduling abstraction, so it boots on Folia as well as Paper.
+folia-supported: true
+description: Live Paper+Folia in-server matrix harness for StarEnchants.
+authors: [StarEnchants]
