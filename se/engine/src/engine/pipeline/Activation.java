@@ -6,6 +6,7 @@ import engine.interact.SuppressionSet;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
+import org.bukkit.Location;
 
 /**
  * The per-event context one ability is evaluated against by the {@link ActivationPipeline}
@@ -29,6 +30,7 @@ public final class Activation {
     private final DoubleSupplier chanceRoll;
     private final UUID activeGem;
     private final SoulLedger.Balance gemBalance;
+    private final Location location;
 
     private Activation(Builder b) {
         this.actor = Objects.requireNonNull(b.actor, "actor");
@@ -40,6 +42,7 @@ public final class Activation {
         this.chanceRoll = b.chanceRoll;
         this.activeGem = b.activeGem;
         this.gemBalance = b.gemBalance;
+        this.location = b.location;
     }
 
     /**
@@ -94,6 +97,16 @@ public final class Activation {
     }
 
     /**
+     * Where this activation lands — the captured firing location (gate 2 protection/region). Captured
+     * on the firing thread (the event's own region on Folia), so the protection {@code Guard} may read
+     * it and query the owning region safely. {@code null} for a non-positional activation (or in tests),
+     * which the protection guard treats as "allow" (nothing to check).
+     */
+    public Location location() {
+        return location;
+    }
+
+    /**
      * Builds an {@link Activation}. Sensible defaults keep tests and non-combat triggers
      * terse: an empty {@link FactBuffer} and {@link SuppressionSet}, a chance roll that
      * always returns {@code 0.0} (so any positive chance passes — production must install
@@ -110,6 +123,7 @@ public final class Activation {
         private DoubleSupplier chanceRoll = () -> 0.0;
         private UUID activeGem;
         private SoulLedger.Balance gemBalance;
+        private Location location;
 
         private Builder(UUID actor, int worldId, int triggerId, long nowTicks) {
             this.actor = actor;
@@ -137,6 +151,12 @@ public final class Activation {
         public Builder soulMode(UUID gemId, SoulLedger.Balance balance) {
             this.activeGem = Objects.requireNonNull(gemId, "gemId");
             this.gemBalance = Objects.requireNonNull(balance, "balance");
+            return this;
+        }
+
+        /** The firing location for the protection gate (gate 2); {@code null} for a non-positional event. */
+        public Builder location(Location location) {
+            this.location = location;
             return this;
         }
 

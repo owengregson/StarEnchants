@@ -12,6 +12,10 @@ dependencies {
     compileOnly(libs.paper.api.floor)
 
     testImplementation(libs.paper.api.floor)
+
+    // The ProtectionService tests mock Bukkit Player/Location/World to exercise the
+    // composed gate-2 check without a server (docs/architecture.md §1.3, §3.3).
+    testImplementation(libs.mockito.core)
 }
 
 // Version + Folia ABSORPTION. Boot-time resolvers (Material/Sound/Particle/

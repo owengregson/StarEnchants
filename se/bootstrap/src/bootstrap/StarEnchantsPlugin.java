@@ -45,6 +45,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
@@ -54,6 +55,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.content.ContentReloader;
 import platform.item.ItemGroups;
+import platform.protect.ProtectionProviders;
+import platform.protect.ProtectionService;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -122,11 +125,30 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulService soulService = new SoulService(souls, new SoulModeStore(),
                 new SoulCodec(ItemKeys.of(this).soul()));
 
+        // Protection / region gate (gate 2): compose the available land-plugin bridges (WorldGuard, …);
+        // a server with none allows everything. The guard reads the firing location captured on the
+        // Activation and resolves the live actor — both on the firing region thread, so querying the
+        // owning region is Folia-safe. A missing actor/location is permissive (nothing to check).
+        ProtectionService protection = new ProtectionService(
+                ProtectionProviders.discover(System.getLogger("StarEnchants.Protection")), tick::get);
+        if (protection.providerCount() > 0) {
+            getLogger().info("protection gate active with " + protection.providerCount() + " provider(s)");
+        }
+        ActivationPipeline.Guard protectionGuard = (ability, activation) -> {
+            Location where = activation.location();
+            if (where == null) {
+                return true;
+            }
+            Player actor = getServer().getPlayer(activation.actor());
+            return actor == null || protection.allows(actor, where);
+        };
+
         // Runtime executor + combat dispatch (the soul binder arms gate 10 from an actor's active gem).
         // The activation listener fires the public EnchantActivateEvent for each proc — Bukkit-aware
         // here, so the engine itself stays event-API-free (it only calls the callback).
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), souls), areaScan(), this::fireActivation);
+                new ActivationPipeline(new CooldownStore(), souls, protectionGuard, ActivationPipeline.Guard.ALLOW),
+                areaScan(), this::fireActivation);
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::get,
                 soulService::bindingFor);
