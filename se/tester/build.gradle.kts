@@ -16,6 +16,11 @@ dependencies {
     // The runtime under test: the Sink dispatcher + effect/pipeline core (brings :platform/:compile
     // /:schema transitively, but they are listed explicitly above for clarity of the fat-jar contents).
     implementation(project(":engine"))
+
+    // Netty for the fake-player harness's clientless connection channel (the one genuinely risky NMS
+    // edge — written in real code, not reflection). compileOnly: the server bundles netty at runtime,
+    // so it is NOT shaded; any 4.1.x compiles against the stable Channel/EmbeddedChannel API.
+    compileOnly("io.netty:netty-transport:4.1.100.Final")
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder.
