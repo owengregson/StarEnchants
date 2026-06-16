@@ -11,6 +11,7 @@ import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ResolverSuite;
+import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
 
 /**
@@ -47,7 +48,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new CapabilitiesSuite(this, caps))
                 .add(new SchedulingSuite(this))
                 .add(new ItemCodecSuite(this))
-                .add(new ResolverSuite());
+                .add(new ResolverSuite())
+                .add(new RuntimeHandlesSuite());
 
         getServer().getPluginManager().registerEvents(this, this);
     }
