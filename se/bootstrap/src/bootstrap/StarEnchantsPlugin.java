@@ -125,22 +125,18 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulService soulService = new SoulService(souls, new SoulModeStore(),
                 new SoulCodec(ItemKeys.of(this).soul()));
 
-        // Protection / region gate (gate 2): compose the available land-plugin bridges (WorldGuard, …);
-        // a server with none allows everything. The guard reads the firing location captured on the
-        // Activation and resolves the live actor — both on the firing region thread, so querying the
-        // owning region is Folia-safe. A missing actor/location is permissive (nothing to check).
+        // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
+        // ServicesManager; a server with none allows everything. The guard passes the firing location
+        // (captured on the Activation, owned by the firing region) and the actor's UUID — no live-Player
+        // lookup, so no cross-region read on Folia. A missing location is permissive (nothing to check).
         ProtectionService protection = new ProtectionService(
-                ProtectionProviders.discover(System.getLogger("StarEnchants.Protection")), tick::get);
+                ProtectionProviders.discover(getServer(), System.getLogger("StarEnchants.Protection")));
         if (protection.providerCount() > 0) {
             getLogger().info("protection gate active with " + protection.providerCount() + " provider(s)");
         }
         ActivationPipeline.Guard protectionGuard = (ability, activation) -> {
             Location where = activation.location();
-            if (where == null) {
-                return true;
-            }
-            Player actor = getServer().getPlayer(activation.actor());
-            return actor == null || protection.allows(actor, where);
+            return where == null || protection.allows(activation.actor(), where);
         };
 
         // Runtime executor + combat dispatch (the soul binder arms gate 10 from an actor's active gem).

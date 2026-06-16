@@ -29,7 +29,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -117,14 +116,14 @@ public final class ProtectionSuite implements Harness.Scenario {
         int protX = protectedAt.getBlockX();
         int protZ = protectedAt.getBlockZ();
 
-        AtomicReference<Player> attackerRef = new AtomicReference<>();
         ProtectionProvider denyProtectedBlock = (actor, where) ->
                 !(where.getBlockX() == protX && where.getBlockZ() == protZ);
-        ProtectionService protection = new ProtectionService(List.of(denyProtectedBlock), tick::get);
+        ProtectionService protection = new ProtectionService(List.of(denyProtectedBlock));
+        // Identical shape to the bootstrap's gate-2 guard (UUID-based, reads the firing location) — so
+        // this exercises the real composition-root wiring, not a test-only shortcut.
         ActivationPipeline.Guard guard = (ability, activation) -> {
             Location where = activation.location();
-            // Use the captured fake attacker (getPlayer indirection is bootstrap glue, not the seam here).
-            return where == null || protection.allows(attackerRef.get(), where);
+            return where == null || protection.allows(activation.actor(), where);
         };
 
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
@@ -155,7 +154,6 @@ public final class ProtectionSuite implements Harness.Scenario {
                     h.fail("protection.blockedInProtectedRegion", "spawn: " + t);
                     return;
                 }
-                attackerRef.set(attacker);
                 int attackId = triggers.idOf("ATTACK").orElseThrow();
                 Scheduling.onEntity(attacker, () -> {
                     attacker.getInventory().setItemInMainHand(sword);
