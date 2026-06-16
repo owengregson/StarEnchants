@@ -1,10 +1,14 @@
 package bootstrap;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import platform.content.ContentReloader;
 import platform.content.ReloadResult;
+import platform.sched.Scheduling;
 import schema.diag.Diagnostic;
 
 /**
@@ -37,18 +41,32 @@ public final class SeCommand implements CommandExecutor {
         return true;
     }
 
+    /**
+     * Report the result. The reloader's callback fires on the GLOBAL thread; a {@link Player} sender is
+     * region-owned, so its messages are routed to its own thread (Folia-correct). Console is fine inline.
+     */
     private static void report(CommandSender sender, ReloadResult result) {
-        if (result.errorCount() == 0) {
-            sender.sendMessage("§aStarEnchants: " + (result.dryRun() ? "would load " : "loaded ")
-                    + result.abilityCount() + " abilities (generation " + result.generation() + ").");
-            return;
+        List<String> lines = format(result);
+        if (sender instanceof Player player) {
+            Scheduling.onEntity(player, () -> lines.forEach(player::sendMessage));
+        } else {
+            lines.forEach(sender::sendMessage);
         }
-        sender.sendMessage("§cStarEnchants: " + result.errorCount()
-                + " error(s) — kept the previous content:");
+    }
+
+    private static List<String> format(ReloadResult result) {
+        List<String> lines = new ArrayList<>();
+        if (result.errorCount() == 0) {
+            lines.add("§aStarEnchants: " + (result.dryRun() ? "would load " : "loaded ")
+                    + result.abilityCount() + " abilities (generation " + result.generation() + ").");
+            return lines;
+        }
+        lines.add("§cStarEnchants: " + result.errorCount() + " error(s) — kept the previous content:");
         for (Diagnostic diagnostic : result.diagnostics()) {
             if (diagnostic.blocking()) {
-                sender.sendMessage("§c  " + diagnostic);
+                lines.add("§c  " + diagnostic);
             }
         }
+        return lines;
     }
 }

@@ -56,9 +56,8 @@ class ContentReloaderTest {
 
     @Test
     void reloadPublishesACleanBuild(@TempDir Path root) throws IOException {
-        Compiler compiler = compiler();
-        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler, 0)); // empty initially
-        ContentReloader reloader = new ContentReloader(holder, compiler, root, 0);
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0)); // empty initially
+        ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);
         write(root, "enchants/spark.yml", GOOD);
 
         ReloadResult[] result = new ReloadResult[1];
@@ -72,9 +71,8 @@ class ContentReloaderTest {
     @Test
     void reloadKeepsOldContentOnAFatalBuild(@TempDir Path root) throws IOException {
         write(root, "enchants/good.yml", GOOD);
-        Compiler compiler = compiler();
-        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler, 0));
-        ContentReloader reloader = new ContentReloader(holder, compiler, root, 0);
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
+        ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);
         assertNotNull(holder.snapshot().byStableKey("enchants/good/1"));
 
         write(root, "enchants/bad.yml", "trigger: ATTACK\n"); // no levels -> blocking diagnostic
@@ -89,9 +87,8 @@ class ContentReloaderTest {
 
     @Test
     void dryRunNeverPublishes(@TempDir Path root) throws IOException {
-        Compiler compiler = compiler();
-        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler, 0)); // empty
-        ContentReloader reloader = new ContentReloader(holder, compiler, root, 0);
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0)); // empty
+        ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);
         write(root, "enchants/spark.yml", GOOD);
 
         ReloadResult[] result = new ReloadResult[1];
