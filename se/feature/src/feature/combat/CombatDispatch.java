@@ -3,20 +3,17 @@ package feature.combat;
 import compile.load.ContentHolder;
 import compile.model.Ability;
 import compile.model.Snapshot;
-import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.sink.DispatchSink;
 import feature.soul.SoulBinding;
-import item.worn.WornState;
+import feature.trigger.TriggerRunner;
 import item.worn.WornStateStore;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -40,14 +37,11 @@ import platform.resolve.RuntimeHandles;
  */
 public final class CombatDispatch {
 
-    private final AbilityExecutor executor;
+    private final TriggerRunner runner;
     private final RuntimeHandles handles;
     private final ContentHolder content;
-    private final WornStateStore worn;
     private final int attackTriggerId;
     private final int defenseTriggerId;
-    private final LongSupplier nowTicks;
-    private final Function<Player, Optional<SoulBinding>> soulBinder;
 
     /** Combat dispatch with NO soul system (the soul gate is never armed). */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
@@ -61,14 +55,11 @@ public final class CombatDispatch {
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
-        this.executor = Objects.requireNonNull(executor, "executor");
+        this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks);
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
-        this.worn = Objects.requireNonNull(worn, "worn");
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
-        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
-        this.soulBinder = Objects.requireNonNull(soulBinder, "soulBinder");
     }
 
     /** Dispatch one entity-on-entity hit: run attacker + defender abilities and fold the result. */
@@ -85,20 +76,19 @@ public final class CombatDispatch {
         LivingEntity victim = victimEntity instanceof LivingEntity living ? living : null;
         LivingEntity attacker = damager instanceof LivingEntity living ? living : null;
         Location at = victimEntity.getLocation();
-        int worldId = worldId(snapshot, victimEntity.getWorld());
-        long now = nowTicks.getAsLong();
+        int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         DispatchSink sink = new DispatchSink(handles);
 
         // Attack side: the player damager's ATTACK abilities act on the victim (self = the attacker).
         if (damager instanceof Player attackerPlayer) {
-            runPass(abilities, snapshot, sink, worldId, now, attackTriggerId, true,
-                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at));
+            runner.run(abilities, snapshot.generation(), worldId, attackTriggerId, true,
+                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at), sink);
         }
         // Defense side: the player victim's DEFENSE abilities retaliate against the attacker.
         if (victimEntity instanceof Player defenderPlayer) {
-            runPass(abilities, snapshot, sink, worldId, now, defenseTriggerId, false,
-                    defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at));
+            runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
+                    defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at), sink);
         }
 
         // Fold every damage contribution onto the event ONCE (§6.1); honour a cancel; flush deferred work.
@@ -107,35 +97,5 @@ public final class CombatDispatch {
             event.setCancelled(true);
         }
         sink.flush();
-    }
-
-    private void runPass(Ability[] abilities, Snapshot snapshot, DispatchSink sink, int worldId, long now,
-                         int triggerId, boolean attackSide, Player actor, ActivationContext context) {
-        WornState wornState = worn.get(actor.getUniqueId());
-        if (wornState == null || wornState.gen() != snapshot.generation()) {
-            return; // not resolved yet (or stale across a reload) — this side contributes nothing
-        }
-        // Heroic flat stats are a PASSIVE source — not chance/trigger-gated — so they contribute once
-        // per side regardless of whether any ability fires: the attacker's flat damage on the attack
-        // side, the defender's flat reduction on the defense side (§6.1). A zero stat is a no-op fold.
-        if (attackSide) {
-            sink.addFlatDamage(wornState.heroic().flatDamage());
-        } else {
-            sink.addFlatReduction(wornState.heroic().flatReduction());
-        }
-        int[] candidates = wornState.byTrigger(triggerId);
-        if (candidates.length == 0) {
-            return;
-        }
-        Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
-                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0));
-        // Arm the soul gate from the actor's active gem (if any): a soul-cost ability spends from it.
-        soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
-        executor.run(abilities, candidates, builder.build(), context, sink);
-    }
-
-    private static int worldId(Snapshot snapshot, World world) {
-        // A world named in no blacklist interns to -1; Ability.blockedInWorld(-1) is false (never blocked).
-        return world == null ? -1 : snapshot.interners().worlds().idOf(world.getName());
     }
 }

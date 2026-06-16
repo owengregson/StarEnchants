@@ -21,6 +21,8 @@ import feature.combat.CombatListener;
 import feature.combat.EquipListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulService;
+import feature.trigger.TriggerDispatch;
+import feature.trigger.TriggerListeners;
 import item.codec.CombatCodec;
 import item.codec.ItemKeys;
 import item.codec.SoulCodec;
@@ -122,10 +124,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::get,
                 soulService::bindingFor);
+        // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
+        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
+                tick::get, soulService::bindingFor);
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
         getServer().getPluginManager().registerEvents(new SoulListener(soulService, SOULS_PER_KILL), this);
+        getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
 
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).
