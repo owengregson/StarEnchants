@@ -50,6 +50,13 @@ public final class BuiltinEffects {
                 .register(new ExplodeEffect())
                 .register(new SpawnTntEffect())
                 .register(new FireballEffect())
+                // Movement + durability + vitals.
+                .register(new ThrowEffect())
+                .register(new FlyEffect())
+                .register(new HealthEffect())
+                .register(new DamageArmorEffect())
+                .register(new AddDurabilityEffect())
+                .register(new AddDurabilityItemEffect())
                 .build();
     }
 }

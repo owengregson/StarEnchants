@@ -74,6 +74,18 @@ public interface Sink {
     /** Knock {@code target} back, away from {@code from}, with the given strength. */
     void knockback(Entity target, Location from, double strength);
 
+    /** Grant a player temporary flight for {@code durationTicks} ({@code < 0} = until cleared). */
+    void setFlight(Player target, int durationTicks);
+
+    /** Add to the target's maximum health (tracked + restored on unequip by the dispatcher). */
+    void addMaxHealth(LivingEntity target, double amount);
+
+    /** Damage the durability of the target's worn armor. */
+    void damageArmor(LivingEntity target, int amount);
+
+    /** Restore durability to the player's worn armor; {@code amount < 0} fully repairs it. */
+    void repairArmor(Player target, int amount);
+
     void potion(LivingEntity target, int potionEffectId, int amplifier, int durationTicks);
 
     void removePotion(LivingEntity target, int potionEffectId);
