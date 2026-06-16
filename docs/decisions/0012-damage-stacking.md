@@ -14,14 +14,22 @@ unpredictable numbers. The unified engine folds all sources in one pass
 
 ## Decision
 
-**Fully additive within each side, no multiplicative stacking across sources:**
+**Fully additive within each side, no multiplicative stacking across sources.**
+Percentage bonuses fold multiplicatively against the base; flat bonuses (heroic
+flat stats) are placed for predictability — added/subtracted in absolute terms so
+an advertised "+5" or "−3" delivers that amount rather than a percent-scaled
+surprise:
 
 ```
-final = base × (1 + Σ outgoing%) × (1 − Σ reduction%)
+final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)
 ```
 
-All outgoing bonuses sum into one factor; all reductions sum into a parallel
-factor. The damage accumulator has additive buckets only.
+All outgoing percentages sum into one factor; all reductions sum into a parallel
+factor (no cross-source compounding). Flat **damage** is added after the outgoing
+multiplier — so it is not inflated by the attacker's own percent buffs — but is
+still subject to the defender's reduction, like any incoming damage. Flat
+**reduction** is subtracted last, absorbing exactly the advertised amount. The
+damage accumulator has additive buckets only (two percent, two flat).
 
 ## Consequences
 

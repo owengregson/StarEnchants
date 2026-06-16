@@ -532,11 +532,13 @@ Damage-mutating effects **never call `event.setDamage`**. They contribute deltas
 accumulator (one additive outgoing bucket; a parallel additive defense/reduction bucket — **no
 multiplicative buckets**). After the gate walk over attacker `combatAttack[]` + victim `combatDefense[]`,
 **one fold** computes the final damage with the approved **fully-additive** policy (ADR-0012):
-`final = base × (1 + Σ outgoing%) × (1 − Σ reduction%)` — all same-side sources summed, **no
-multiplicative stacking across sources** — and writes the event **once**. Order-independent by
-construction; heroic flat stats + set DAMAGE/REDUCTION + crystal + weapon all feed the same additive
-accumulator — no special-casing (fixes the catalog's worst combat bug: registration-order multiplicative
-compounding). `DAMAGE_INCREASE` is
+`final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)` — all
+same-side percentages summed, **no multiplicative stacking across sources** — and writes the event
+**once**. Order-independent by construction; heroic flat stats + set DAMAGE/REDUCTION + crystal + weapon
+all feed the same additive accumulator — no special-casing (fixes the catalog's worst combat bug:
+registration-order multiplicative compounding). Flat **damage** is added after the outgoing multiplier
+(not inflated by the attacker's own buffs) but is still reduced by the defender; flat **reduction** is
+subtracted last, absorbing its advertised amount — so flat stats stay predictable (ADR-0012). `DAMAGE_INCREASE` is
 equation-capable, so the accumulator stores **compiled expression closures**, not constants — the "one
 pass" holds but evaluates per-hit expressions (`[ax]`/`[crit:correct]` caught this; many proposals glossed
 it).
