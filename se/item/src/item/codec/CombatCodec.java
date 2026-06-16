@@ -44,10 +44,19 @@ public final class CombatCodec {
 
     /** Decode the combat state on {@code stack}, or {@link CombatState#EMPTY} if it has none. */
     public CombatState read(ItemStack stack) {
+        return decode(readBlob(stack));
+    }
+
+    /**
+     * The raw stored combat blob on {@code stack}, or {@code null} if it carries none. This is the
+     * {@code ItemView} cache key — the full content, read without paying the decode (§5.2). Reading
+     * the blob still clones the copy-on-write meta, but the parse it feeds is what the cache elides.
+     */
+    public String readBlob(ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) {
-            return CombatState.EMPTY;
+            return null;
         }
-        return read(stack.getItemMeta().getPersistentDataContainer());
+        return readBlob(stack.getItemMeta().getPersistentDataContainer());
     }
 
     /** Write {@code state} onto {@code stack} (clearing the entry when empty). */
@@ -64,7 +73,22 @@ public final class CombatCodec {
 
     /** Decode the combat state from a container, or {@link CombatState#EMPTY} if absent. */
     public CombatState read(PersistentDataContainer pdc) {
-        return decodeBlob(pdc.get(combatKey, PersistentDataType.STRING));
+        return decode(readBlob(pdc));
+    }
+
+    /** The raw stored combat blob in {@code pdc}, or {@code null} if absent (the cache key). */
+    public String readBlob(PersistentDataContainer pdc) {
+        return pdc.get(combatKey, PersistentDataType.STRING);
+    }
+
+    /** Parse a raw combat blob to a {@link CombatState}; {@code null}/blank/unknown-version → EMPTY. */
+    public CombatState decode(String blob) {
+        return decodeBlob(blob);
+    }
+
+    /** Serialise {@code state} to its compact stable-key blob, or {@code null} for an empty state. */
+    public String encode(CombatState state) {
+        return (state == null || state.isEmpty()) ? null : encodeBlob(state);
     }
 
     /** Encode {@code state} into a container; an empty state removes the entry entirely. */

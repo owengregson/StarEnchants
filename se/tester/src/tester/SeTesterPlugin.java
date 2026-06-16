@@ -10,6 +10,7 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.ItemCodecSuite;
+import tester.suite.ItemViewSuite;
 import tester.suite.ResolverSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
@@ -49,6 +50,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new CapabilitiesSuite(this, caps))
                 .add(new SchedulingSuite(this))
                 .add(new ItemCodecSuite(this))
+                .add(new ItemViewSuite(this))
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this));
