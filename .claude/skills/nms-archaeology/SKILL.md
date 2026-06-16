@@ -10,8 +10,11 @@ files, already on disk and (1.20.5+) Mojang-mapped. Read them; do not trust
 memory or the wiki.
 
 ```bash
-# A live matrix server's classes (Mojang-mapped from 1.20.5):
-jar=run/paper-<version>/versions/<version>/paper-<version>.jar
+# Server classes for a version (Mojang-mapped from 1.20.5+). Two sources:
+#   the local reference cache (always available; scripts/fetch-reference.sh):
+jar=$(find reference/servers/paper/<version> \( -path '*/versions/*.jar' -o -name 'patched_*.jar' \) | head -1)
+#   or a live matrix run: run/paper-<version>/versions/<version>/paper-<version>.jar
+# (Folia: reference/servers/folia/<version>/...) — see the reference-cache skill.
 
 # 1. List a class's DECLARED members (superclass members need their own javap —
 #    a "missing" member is often inherited):
