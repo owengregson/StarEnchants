@@ -33,4 +33,42 @@ public final class D {
     public static ParamType enumOf(String... values) {
         return ParamType.of(ParamType.Kind.ENUM).allowing(values);
     }
+
+    // ── Version-volatile handles: authored as a token, resolved to an interned id
+    //    at compile time so the runtime never sees a renamed constant (§9). ──
+
+    /** A material/item name (e.g. {@code DIAMOND_SWORD}). */
+    public static ParamType material() {
+        return ParamType.handle(HandleCategory.MATERIAL);
+    }
+
+    /** A sound name. */
+    public static ParamType sound() {
+        return ParamType.handle(HandleCategory.SOUND);
+    }
+
+    /** A potion-effect name (e.g. {@code STRENGTH}). */
+    public static ParamType potionEffect() {
+        return ParamType.handle(HandleCategory.POTION_EFFECT);
+    }
+
+    /** A particle name. */
+    public static ParamType particle() {
+        return ParamType.handle(HandleCategory.PARTICLE);
+    }
+
+    /** An entity-type name (e.g. {@code ZOMBIE}). */
+    public static ParamType entityType() {
+        return ParamType.handle(HandleCategory.ENTITY_TYPE);
+    }
+
+    /** An attribute name (e.g. {@code MAX_HEALTH}). */
+    public static ParamType attribute() {
+        return ParamType.handle(HandleCategory.ATTRIBUTE);
+    }
+
+    /** An enchantment name. */
+    public static ParamType enchantment() {
+        return ParamType.handle(HandleCategory.ENCHANTMENT);
+    }
 }

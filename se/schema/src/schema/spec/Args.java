@@ -63,6 +63,18 @@ public final class Args {
         return Optional.ofNullable(values.get(name));
     }
 
+    /**
+     * A copy of this bag with {@code name} set to {@code value}, leaving this
+     * instance unchanged. The compiler's resolve stage uses it to rewrite a handle
+     * argument from its authored token to the interned int it resolved to
+     * (docs/architecture.md §9), preserving immutability.
+     */
+    public Args with(String name, Object value) {
+        Map<String, Object> copy = new LinkedHashMap<>(values);
+        copy.put(name, value);
+        return new Args(copy);
+    }
+
     /** An immutable view of every parsed value, in declaration order. */
     public Map<String, Object> asMap() {
         return Collections.unmodifiableMap(values);

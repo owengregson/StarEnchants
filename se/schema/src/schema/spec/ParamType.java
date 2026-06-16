@@ -29,7 +29,9 @@ public final class ParamType {
     public enum Kind {
         DOUBLE, INT, BOOL, STRING, ENUM,
         /** A non-negative integer count of ticks (a typed INT for durations). */
-        TICKS
+        TICKS,
+        /** A version-volatile referent (material/sound/potion/…) resolved to an interned id. */
+        HANDLE
     }
 
     private final Kind kind;
@@ -38,21 +40,28 @@ public final class ParamType {
     private final Double max;
     private final String defaultRaw;
     private final List<String> allowed; // ENUM only; canonical spellings
+    private final HandleCategory handleCategory; // HANDLE only
 
     private ParamType(Kind kind, boolean required, Double min, Double max,
-                      String defaultRaw, List<String> allowed) {
+                      String defaultRaw, List<String> allowed, HandleCategory handleCategory) {
         this.kind = kind;
         this.required = required;
         this.min = min;
         this.max = max;
         this.defaultRaw = defaultRaw;
         this.allowed = allowed;
+        this.handleCategory = handleCategory;
     }
 
     static ParamType of(Kind kind) {
         // Required by default; a TICKS value is implicitly floored at 0.
         Double lo = kind == Kind.TICKS ? 0.0 : null;
-        return new ParamType(kind, true, lo, null, null, null);
+        return new ParamType(kind, true, lo, null, null, null, null);
+    }
+
+    /** A version-volatile {@code HANDLE} of the given category, resolved at compile time (§9). */
+    static ParamType handle(HandleCategory category) {
+        return new ParamType(Kind.HANDLE, true, null, null, null, null, category);
     }
 
     private ParamType with(Boolean req, Double mn, Double mx, String def, List<String> al) {
@@ -61,7 +70,8 @@ public final class ParamType {
                 mn != null ? mn : min,
                 mx != null ? mx : max,
                 def != null ? def : defaultRaw,
-                al != null ? al : allowed);
+                al != null ? al : allowed,
+                handleCategory);
     }
 
     /** Lower bound (inclusive) for numeric kinds. */
@@ -107,6 +117,11 @@ public final class ParamType {
         return kind;
     }
 
+    /** The handle category for a {@code HANDLE} type, else {@code null}. */
+    public HandleCategory handleCategory() {
+        return handleCategory;
+    }
+
     public boolean isRequired() {
         return required;
     }
@@ -142,7 +157,20 @@ public final class ParamType {
             case BOOL -> parseBool(raw, source, diags);
             case ENUM -> parseEnum(raw, source, diags);
             case STRING -> Optional.of(raw);
+            case HANDLE -> parseHandle(raw, source, diags);
         };
+    }
+
+    private Optional<Object> parseHandle(String raw, Source source, Diagnostics diags) {
+        String t = raw.trim();
+        if (t.isEmpty()) {
+            diags.error("E_TYPE", "expected a " + handleCategory.label() + " name but got an empty token", source);
+            return Optional.empty();
+        }
+        // The token survives lowering verbatim; the resolve stage interns it to a
+        // platform handle id (docs/architecture.md §9). Unknown tokens are caught
+        // there (warn-and-skip), not here.
+        return Optional.of(t);
     }
 
     private Optional<Object> parseDouble(String raw, Source source, Diagnostics diags) {
@@ -230,6 +258,7 @@ public final class ParamType {
             case BOOL -> "bool";
             case STRING -> "string";
             case ENUM -> "enum";
+            case HANDLE -> handleCategory.label();
         });
         if (kind == Kind.ENUM) {
             sb.append('{').append(String.join("|", allowed())).append('}');
