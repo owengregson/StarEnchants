@@ -3,10 +3,16 @@ package bootstrap;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import feature.soul.SoulService;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+import migrate.Migrator;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -33,12 +39,15 @@ public final class SeCommand implements CommandExecutor {
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
     private final SoulService souls;
+    private final Path migrationTarget;
 
-    SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls) {
+    SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
+              Path migrationTarget) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
         this.souls = souls;
+        this.migrationTarget = migrationTarget;
     }
 
     @Override
@@ -53,6 +62,7 @@ public final class SeCommand implements CommandExecutor {
             case "crystal" -> applyHeld(sender, args, true);
             case "gem" -> stampGem(sender);
             case "soulmode" -> toggleSoulMode(sender);
+            case "migrate" -> migrate(sender, args);
             default -> usage(sender);
         }
         return true;
@@ -92,6 +102,64 @@ public final class SeCommand implements CommandExecutor {
             reloader.dryRun(result -> report(sender, result));
         } else {
             reloader.reload(result -> report(sender, result));
+        }
+    }
+
+    /** {@code /se migrate <ee|ea> <sourcePath>} — import legacy configs into the migrated/ folder for review. */
+    private void migrate(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sender.sendMessage("§eUsage: /se migrate <ee|ea> <sourcePath>");
+            sender.sendMessage("§7  ee §8— path to EliteEnchantments' enchantments.yml");
+            sender.sendMessage("§7  ea §8— path to EliteArmor's armor/ directory");
+            return;
+        }
+        String format = args[1].toLowerCase(Locale.ROOT);
+        Path source = Path.of(args[2]);
+        sender.sendMessage("§7StarEnchants: migrating " + format + " from §f" + source + "§7…");
+        // File I/O runs off the command thread; results route back to the sender's thread.
+        Scheduling.async(() -> {
+            try {
+                Migrator.Result result = switch (format) {
+                    case "ee" -> Migrator.eliteEnchantments(Files.readString(source, StandardCharsets.UTF_8));
+                    case "ea" -> migrateArmorDir(source);
+                    default -> null;
+                };
+                if (result == null) {
+                    tell(sender, "§cUnknown format '" + format + "' — use §fee§c or §fea§c.");
+                    return;
+                }
+                int written = result.writeTo(migrationTarget);
+                int skipped = result.files().size() - written;
+                tell(sender, "§aMigrated " + result.files().size() + " file(s): §f" + written + "§a written, §f"
+                        + skipped + "§a already present; §f" + result.diagnostics().size() + "§a review note(s).");
+                tell(sender, "§7Review the §f# TODO §7markers in §f" + migrationTarget + "§7, then move files into content/.");
+            } catch (IOException e) {
+                tell(sender, "§cMigration failed reading §f" + source + "§c: " + e.getMessage());
+            }
+        });
+    }
+
+    /** Migrate every {@code *.yml} in an EliteArmor armour directory, merging the per-set results. */
+    private static Migrator.Result migrateArmorDir(Path dir) throws IOException {
+        java.util.Map<String, String> files = new java.util.LinkedHashMap<>();
+        schema.diag.Diagnostics diagnostics = new schema.diag.Diagnostics();
+        try (Stream<Path> entries = Files.list(dir)) {
+            for (Path file : entries.filter(p -> p.toString().endsWith(".yml")).sorted().toList()) {
+                String id = file.getFileName().toString().replaceFirst("\\.yml$", "");
+                Migrator.Result one = Migrator.eliteArmorSet(id, Files.readString(file, StandardCharsets.UTF_8));
+                files.putAll(one.files());
+                diagnostics.merge(one.diagnostics());
+            }
+        }
+        return new Migrator.Result(files, diagnostics);
+    }
+
+    /** Message the sender, routing a {@link Player} to its own region thread (Folia-correct). */
+    private static void tell(CommandSender sender, String message) {
+        if (sender instanceof Player player) {
+            Scheduling.onEntity(player, () -> player.sendMessage(message));
+        } else {
+            sender.sendMessage(message);
         }
     }
 
@@ -143,6 +211,7 @@ public final class SeCommand implements CommandExecutor {
         sender.sendMessage("§e  /se crystal <key> §7— apply a crystal to the held item");
         sender.sendMessage("§e  /se gem §7— stamp a soul gem onto the held item");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
+        sender.sendMessage("§e  /se migrate <ee|ea> <path> §7— import legacy EliteEnchantments/EliteArmor configs");
     }
 
     /**

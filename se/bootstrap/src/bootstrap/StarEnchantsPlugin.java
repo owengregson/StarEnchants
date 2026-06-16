@@ -179,7 +179,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         PluginCommand command = getCommand("se");
         if (command != null) {
             command.setExecutor(new SeCommand(reloader, enchanter,
-                    player -> worn.refresh(player, content.snapshot()), soulService));
+                    player -> worn.refresh(player, content.snapshot()), soulService,
+                    getDataFolder().toPath().resolve("migrated")));
         }
     }
 
