@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
+import tester.suite.ApplySuite;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.CombatSuite;
 import tester.suite.ContentLoaderSuite;
@@ -58,6 +59,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new ItemCodecSuite(this))
                 .add(new ItemViewSuite(this))
                 .add(new RenderSuite())
+                .add(new ApplySuite(this))
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))

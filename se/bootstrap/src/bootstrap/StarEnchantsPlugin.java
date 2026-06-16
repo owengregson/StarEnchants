@@ -14,11 +14,14 @@ import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
+import feature.apply.ItemEnchanter;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
 import item.codec.CombatCodec;
 import item.codec.ItemKeys;
+import item.render.LoreRenderer;
+import item.render.LoreStyle;
 import item.view.ItemViewCache;
 import item.worn.WornResolver;
 import item.worn.WornStateStore;
@@ -35,6 +38,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.content.ContentReloader;
+import platform.item.ItemGroups;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -94,6 +98,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 triggers.attackTriggers(), triggers.defenseTriggers());
         WornStateStore worn = new WornStateStore(wornResolver::resolve);
 
+        // Cold apply path: render lore from state (the display lookup reads the CURRENT library, so a
+        // reload re-renders against new content) + the validating enchant/crystal apply service.
+        LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key));
+        ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard());
+
         // Runtime executor + combat dispatch.
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), new SoulLedger()), areaScan());
@@ -114,7 +123,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         PluginCommand command = getCommand("se");
         if (command != null) {
-            command.setExecutor(new SeCommand(reloader));
+            command.setExecutor(new SeCommand(reloader, enchanter,
+                    player -> worn.refresh(player, content.snapshot())));
         }
     }
 
