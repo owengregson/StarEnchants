@@ -60,7 +60,11 @@ final class RegistrySupport {
                         registryLookup("PARTICLE_TYPE", key(canonicalName)),
                         enumValueOf("org.bukkit.Particle", canonicalName));
                 case SOUND -> firstNonNull(
-                        enumValueOf("org.bukkit.Sound", canonicalName),
+                        enumValueOf("org.bukkit.Sound", canonicalName),  // enum era (≤1.21.2)
+                        staticField("org.bukkit.Sound", canonicalName),  // interface-with-constants era (1.21.3+/26.1.x)
+                        // Last-ditch registry lookup. NOTE: this naive '_'→'.' is WRONG for names with
+                        // multi-word segments (entity.lightning_bolt.thunder), so it only catches the
+                        // single-segment cases the static-field path missed; the field path is the real fix.
                         registryLookup("SOUNDS", key(canonicalName).replace('_', '.')));
             };
         } catch (Throwable failedProbe) {
@@ -117,6 +121,23 @@ final class RegistrySupport {
             return valueOf.invoke(null, name);
         } catch (Throwable notFound) {
             return null; // unknown name (InvocationTargetException) or not an enum here
+        }
+    }
+
+    /**
+     * Reflective public static field by name — the cross-era resolution for a type that was an enum
+     * and became a registry-backed <em>interface</em> with the same named constants (Bukkit's
+     * {@code Sound} at 1.21.3+). It correctly resolves a name with multi-word segments
+     * ({@code ENTITY_LIGHTNING_BOLT_THUNDER}) where a naive {@code '_'}&rarr;{@code '.'} registry key
+     * would mangle the boundary, because the interface itself holds the constant under its enum-style
+     * name. Returns {@code null} if there is no such static field on this version.
+     */
+    private static Object staticField(String className, String name) {
+        try {
+            java.lang.reflect.Field field = Class.forName(className).getField(name);
+            return java.lang.reflect.Modifier.isStatic(field.getModifiers()) ? field.get(null) : null;
+        } catch (Throwable notFound) {
+            return null;
         }
     }
 
