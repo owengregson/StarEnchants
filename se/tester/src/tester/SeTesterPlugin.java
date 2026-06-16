@@ -9,6 +9,7 @@ import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
+import tester.suite.CombatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.ItemCodecSuite;
@@ -64,6 +65,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         // (1.17.1–1.19.4) its NMS reflection does not yet apply, so it self-defers (a follow-up).
         if (caps.mojangMapped()) {
             harness.add(new FakePlayerSuite(this));
+            harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
         }
 
         getServer().getPluginManager().registerEvents(this, this);

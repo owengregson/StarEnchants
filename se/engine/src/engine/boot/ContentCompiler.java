@@ -2,6 +2,7 @@ package engine.boot;
 
 import compile.Compiler;
 import compile.cond.VarResolver;
+import compile.resolve.PlatformResolvers;
 import engine.condition.BuiltinVars;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.BuiltinEffects;
@@ -29,8 +30,19 @@ public final class ContentCompiler {
     private ContentCompiler() {
     }
 
-    /** A compiler wired with every built-in kind + the live Bukkit-backed handle resolver. */
+    /** A compiler wired with every built-in kind + a fresh live Bukkit-backed handle resolver. */
     public static Compiler production() {
+        return production(new RegistryResolvers());
+    }
+
+    /**
+     * A compiler wired with every built-in kind, using the GIVEN handle {@code resolvers}. The
+     * bootstrap passes a retained {@code RegistryResolvers} and builds the runtime {@code RuntimeHandles}
+     * from the SAME instance, so the §9 round-trip pairs — a handle token interned at compile time
+     * resolves back to its object at runtime (a fresh resolver would not know the interned ids).
+     * Reusing one compiler across reloads is safe because the reload path is single-flight.
+     */
+    public static Compiler production(PlatformResolvers resolvers) {
         EffectRegistry effects = BuiltinEffects.registry();
         SelectorRegistry selectors = BuiltinSelectors.registry();
         TriggerRegistry triggers = BuiltinTriggers.registry();
@@ -42,6 +54,6 @@ public final class ContentCompiler {
                 effects.defaultSelectorOf(),
                 vars,
                 triggers.names(),
-                new RegistryResolvers());
+                resolvers);
     }
 }

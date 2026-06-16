@@ -8,7 +8,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import compile.model.Affinity;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -20,12 +19,12 @@ import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 
 /**
- * Mock-host tests for the {@link DispatchSink} routing policy (docs/architecture.md §3.6), with no
- * server: a {@link SyncSchedulerBackend} runs deferred batches inline and mocked entities record
- * the emitted mutations. These pin the version-agnostic policy — inline-vs-deferred, per-entity
- * batching + order, and the inline-feedback fold/cancel read-back. The handle-using intents (potion,
- * sound, spawn, …) and the genuine cross-region hop are pinned LIVE on the Paper+Folia matrix, where
- * a real {@link RuntimeHandles} resolves ids and a real scheduler crosses threads.
+ * Mock-host tests for the {@link DispatchSink} (docs/architecture.md §3.6), with no server: a
+ * {@link SyncSchedulerBackend} runs deferred batches inline and mocked entities record the emitted
+ * mutations. They pin the policy — the damage-fold + cancel feedback is synchronous, every world
+ * mutation is deferred to the flush and routed to its owning thread (NEVER inlined on the firing
+ * thread, since the target may be a different entity/region), and the per-entity batch preserves
+ * emission order. The handle-using intents + the genuine cross-region hop are pinned LIVE.
  */
 class DispatchSinkTest {
 
@@ -33,8 +32,6 @@ class DispatchSinkTest {
 
     @BeforeEach
     void setUp() {
-        // Resolution is never exercised here (handle-free intents only), so a resolver with no live
-        // registry behind it is fine; construction touches no Bukkit API.
         handles = new RuntimeHandles(new RegistryResolvers());
         Scheduling.install(new SyncSchedulerBackend());
     }
@@ -44,10 +41,10 @@ class DispatchSinkTest {
         DispatchSink sink = new DispatchSink(handles);
         sink.addOutgoingDamage(1.0);   // +100%
         sink.addFlatDamage(5.0);       // +5 flat, after the multiplier
-        sink.addDamageReduction(0.5);  // −50% incoming
-        sink.addFlatReduction(2.0);    // −2 flat, last
+        sink.addDamageReduction(0.5);  // -50% incoming
+        sink.addFlatReduction(2.0);    // -2 flat, last
 
-        // (10 × (1 + 1.0) + 5) × (1 − 0.5) − 2 = (25) × 0.5 − 2 = 10.5
+        // (10 x (1 + 1.0) + 5) x (1 - 0.5) - 2 = 25 x 0.5 - 2 = 10.5
         assertEquals(10.5, sink.fold().apply(10.0), 1e-9);
     }
 
@@ -60,25 +57,12 @@ class DispatchSinkTest {
     }
 
     @Test
-    void contextLocalAppliesInlineWithoutFlush() {
+    void worldMutationsAreDeferredUntilFlush() {
         LivingEntity target = mock(LivingEntity.class);
 
         DispatchSink sink = new DispatchSink(handles);
-        sink.affinity(Affinity.CONTEXT_LOCAL);
         sink.ignite(target, 60);
-
-        // Zero-hop: a CONTEXT_LOCAL mutation runs immediately on the firing thread — before flush.
-        verify(target).setFireTicks(60);
-    }
-
-    @Test
-    void deferredIntentWaitsForFlush() {
-        LivingEntity target = mock(LivingEntity.class);
-
-        DispatchSink sink = new DispatchSink(handles);
-        sink.affinity(Affinity.TARGET_ENTITY);
-        sink.ignite(target, 60);
-        verifyNoInteractions(target); // captured, not yet applied
+        verifyNoInteractions(target); // captured, never applied inline on the firing thread
 
         sink.flush();
         verify(target).setFireTicks(60);
@@ -89,7 +73,6 @@ class DispatchSinkTest {
         LivingEntity target = mock(LivingEntity.class);
 
         DispatchSink sink = new DispatchSink(handles);
-        sink.affinity(Affinity.TARGET_ENTITY);
         sink.ignite(target, 60);
         sink.extinguish(target);
         verifyNoInteractions(target);
@@ -105,7 +88,6 @@ class DispatchSinkTest {
         LivingEntity target = mock(LivingEntity.class);
 
         DispatchSink sink = new DispatchSink(handles);
-        sink.affinity(Affinity.AOE); // any wider-than-local affinity defers
         sink.damage(target, 7.5);
         verifyNoInteractions(target);
 
@@ -119,7 +101,6 @@ class DispatchSinkTest {
         Location to = mock(Location.class);
 
         DispatchSink sink = new DispatchSink(handles);
-        sink.affinity(Affinity.TARGET_ENTITY);
         sink.teleport(target, to);
         verifyNoInteractions(target);
 
@@ -132,7 +113,6 @@ class DispatchSinkTest {
         LivingEntity target = mock(LivingEntity.class);
 
         DispatchSink sink = new DispatchSink(handles);
-        sink.affinity(Affinity.TARGET_ENTITY);
         sink.ignite(target, 40);
 
         sink.flush();

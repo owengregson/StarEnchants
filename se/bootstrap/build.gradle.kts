@@ -8,8 +8,9 @@ dependencies {
     // Floor API: the plugin loads on 1.17.1 → 26.1.x; the server provides it.
     compileOnly(libs.paper.api.floor)
 
-    // The composition root depends on every runtime layer. engine brings :compile/:schema/:platform
-    // transitively; they are listed explicitly for clarity of the fat-jar contents.
+    // The composition root depends on every runtime layer. feature brings :engine/:item (and thus
+    // :compile/:schema/:platform) transitively; they are listed explicitly for clarity of fat-jar contents.
+    implementation(project(":feature"))
     implementation(project(":engine"))
     implementation(project(":item"))
     implementation(project(":platform"))
