@@ -21,6 +21,7 @@ import tester.suite.RenderSuite;
 import tester.suite.ResolverSuite;
 import tester.suite.SetSuite;
 import tester.suite.SoulSuite;
+import tester.suite.TriggerSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
 import tester.suite.SinkSuite;
@@ -78,6 +79,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
             harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
             harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
             harness.add(new SoulSuite(this)); // soul-cost enchant spends from the gem in soul mode
+            harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
         }
 
         getServer().getPluginManager().registerEvents(this, this);
