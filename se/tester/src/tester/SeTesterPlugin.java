@@ -14,6 +14,7 @@ import tester.suite.ContentLoaderSuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
+import tester.suite.RenderSuite;
 import tester.suite.ResolverSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
@@ -55,6 +56,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new SchedulingSuite(this))
                 .add(new ItemCodecSuite(this))
                 .add(new ItemViewSuite(this))
+                .add(new RenderSuite())
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))
