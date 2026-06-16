@@ -23,6 +23,8 @@ import feature.apply.ItemEnchanter;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
+import feature.menu.EnchantMenu;
+import feature.menu.MenuListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulService;
 import feature.trigger.TriggerDispatch;
@@ -176,11 +178,17 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             }
         });
 
+        // Enchant-application GUI: clicking an enchant icon applies it to the held item (the visual /se
+        // enchant). Opens on the player's thread; the click listener cancels item movement + applies inline.
+        EnchantMenu menu = new EnchantMenu(content, enchanter,
+                player -> worn.refresh(player, content.snapshot()));
+        getServer().getPluginManager().registerEvents(new MenuListener(menu), this);
+
         PluginCommand command = getCommand("se");
         if (command != null) {
             command.setExecutor(new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
-                    getDataFolder().toPath().resolve("migrated")));
+                    getDataFolder().toPath().resolve("migrated"), menu));
         }
     }
 
