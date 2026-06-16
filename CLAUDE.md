@@ -21,6 +21,12 @@ relevant one BEFORE working in its area:
 | `nms-archaeology` | a version misbehaves — read the server, don't guess |
 | `live-server-testing` | the real Paper/Folia integration suites |
 | `matrix-gate` | running/verifying the test gate |
+| `reference-cache` | needing cached per-version Paper/Folia jars or docs |
+| `effect-engine` | the runtime: systems, pipeline/gate order, kinds, Ability, Sink, Affinity |
+| `item-data-model` | item state, PDC codec, ItemView cache, component stores, WornState, render |
+| `feature-interaction-rules` | features interact — damage stacking, suppression, souls, slots, crystals, omni |
+| `config-and-migration` | config/DSL/ParamSpec, the compiler, diagnostics, reload, the migrator |
+| `performance-hot-paths` | combat/item hot path, Affinity, Sink/cache/interning, the lint/JMH gate |
 
 Decision rationale lives in `docs/decisions/` (ADRs). Domain vocabulary is in
 `docs/glossary.md`. The dev loop is in `docs/development.md`.
