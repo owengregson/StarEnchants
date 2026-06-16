@@ -27,6 +27,24 @@ subprojects {
             withSourcesJar()
         }
 
+        // Flat source roots. The Maven default buries every file under
+        // `src/main/java/com/starenchants/<module>/…` — five fixed segments before
+        // a single line of module code. The module already lives at `se/<module>/`
+        // and the package is `com.starenchants.<module>`, so `src/main/java` adds no
+        // information, only depth. We collapse it: production code lives in `src/`,
+        // tests in `test/`, resources alongside. A file then reads
+        // `se/schema/src/com/starenchants/schema/…` — the package, and nothing else.
+        extensions.configure<SourceSetContainer> {
+            named("main") {
+                java.setSrcDirs(listOf("src"))
+                resources.setSrcDirs(listOf("resources"))
+            }
+            named("test") {
+                java.setSrcDirs(listOf("test"))
+                resources.setSrcDirs(listOf("test-resources"))
+            }
+        }
+
         dependencies {
             add("testImplementation", platform("org.junit:junit-bom:5.11.3"))
             add("testImplementation", "org.junit.jupiter:junit-jupiter")
