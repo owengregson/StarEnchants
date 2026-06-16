@@ -1,5 +1,6 @@
 package compile;
 
+import compile.cond.VarResolver;
 import compile.def.AbilityDef;
 import compile.model.Affinity;
 import compile.model.Snapshot;
@@ -72,6 +73,29 @@ public final class Compiler {
     public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
                               SpecRegistry selectors, Function<String, String> defaultSelectorOf) {
         return of(registry, affinityOf, selectors, defaultSelectorOf, PlatformResolvers.none());
+    }
+
+    /**
+     * The full production wiring: effect specs + affinities, selector specs + declared
+     * default targets, the condition variable vocabulary, and version-volatile handle
+     * resolvers. This is what the engine boot injects (effect/selector registries'
+     * spec views, the var vocabulary, and {@code se-platform}'s resolvers).
+     */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                              VarResolver vars, PlatformResolvers resolvers) {
+        return new Compiler(
+                new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars),
+                new DefaultResolveStage(registry, resolvers),
+                new DefaultEraseStage(),
+                new DefaultSnapshotStage());
+    }
+
+    /** Full selector + condition-variable support; no handles are resolvable. */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                              VarResolver vars) {
+        return of(registry, affinityOf, selectors, defaultSelectorOf, vars, PlatformResolvers.none());
     }
 
     /**
