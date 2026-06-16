@@ -14,6 +14,7 @@ import tester.suite.CatalogSuite;
 import tester.suite.CombatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.CrystalSuite;
+import tester.suite.EconomySuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.HeroicSuite;
 import tester.suite.ItemCodecSuite;
@@ -79,6 +80,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
             harness.add(new FakePlayerSuite(this));
             harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
             harness.add(new ProtectionSuite(this)); // gate-2 protection blocks/allows a hit by location
+            harness.add(new EconomySuite(this)); // GIVE_MONEY deposits via a discovered economy provider
             harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
             harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
             harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage

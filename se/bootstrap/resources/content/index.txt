@@ -11,6 +11,7 @@ enchants/blink-step.yml
 enchants/bloodspoils.yml
 enchants/bloodthirst.yml
 enchants/bonebreaker.yml
+enchants/bounty.yml
 enchants/bulwark.yml
 enchants/cleanse.yml
 enchants/cleave.yml
@@ -54,6 +55,7 @@ enchants/soul-reaper.yml
 enchants/stoneskin.yml
 enchants/sunder.yml
 enchants/sustenance.yml
+enchants/tax.yml
 enchants/thornmail.yml
 enchants/thunderstrike.yml
 enchants/vampiric.yml

@@ -16,6 +16,7 @@ import java.util.function.LongSupplier;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 
 /**
@@ -34,6 +35,7 @@ public final class TriggerDispatch {
     private final TriggerRunner runner;
     private final RuntimeHandles handles;
     private final ContentHolder content;
+    private final EconomyService economy;
     private final IntPredicate attackTrigger;
 
     public final int mine;
@@ -44,12 +46,21 @@ public final class TriggerDispatch {
     public final int interactLeft;
     public final int interactRight;
 
+    /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
     public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder) {
+        this(executor, handles, content, worn, triggers, nowTicks, soulBinder, EconomyService.NONE);
+    }
+
+    /** Trigger dispatch with an economy: GIVE_MONEY/TAKE_MONEY on MINE/KILL/… deposit/withdraw via the sink. */
+    public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+                           WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
+                           Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy) {
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks);
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
+        this.economy = Objects.requireNonNull(economy, "economy");
         this.attackTrigger = triggers.attackTriggers();
         this.mine = triggers.idOf("MINE").orElse(-1);
         this.kill = triggers.idOf("KILL").orElse(-1);
@@ -70,7 +81,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles);
+        DispatchSink sink = new DispatchSink(handles, economy);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         if (cancellable != null && sink.cancelled()) {
@@ -89,7 +100,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles);
+        DispatchSink sink = new DispatchSink(handles, economy);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         event.setDamage(sink.fold().apply(event.getDamage()));

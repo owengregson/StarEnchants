@@ -49,6 +49,8 @@ public final class BuiltinEffects {
                 .register(new FeedEffect())
                 .register(new RepairEffect())
                 .register(new GiveExpEffect())
+                .register(new GiveMoneyEffect())
+                .register(new TakeMoneyEffect())
                 .register(new KnockbackEffect())
                 .register(new DisarmEffect())
                 // World / spawn intents.
