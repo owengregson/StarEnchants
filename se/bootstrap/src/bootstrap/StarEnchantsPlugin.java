@@ -146,7 +146,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         } catch (Throwable failure) {
             getLogger().severe("content load failed; enabling with no content: " + failure);
             Diagnostics diagnostics = new Diagnostics();
-            return new Library(compiler.compile(List.of(), 0, diagnostics), List.of(), diagnostics.all());
+            return new Library(compiler.compile(List.of(), 0, diagnostics), List.of(), List.of(), diagnostics.all());
         }
     }
 
