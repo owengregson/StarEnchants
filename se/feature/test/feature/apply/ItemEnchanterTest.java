@@ -68,6 +68,23 @@ class ItemEnchanterTest {
     }
 
     @Test
+    void enchantSlotsCapNewEnchantsButAllowReapply(@TempDir Path root) throws IOException {
+        ItemEnchanter e = over(LibraryLoader.load(root, compiler(), 1)); // catalog is irrelevant to slot math
+
+        // Six is the v1 capacity: an item already holding six distinct enchants has no free slot.
+        java.util.Map<String, Integer> six = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < 6; i++) {
+            six.put("enchants/e" + i, 1);
+        }
+        item.codec.CombatState full = new item.codec.CombatState(six, java.util.List.of());
+        assertFalse(e.checkSlots(full, "enchants/new").ok(), "no free slot for a seventh enchant");
+        assertTrue(e.checkSlots(full, "enchants/e0").ok(), "re-applying an existing enchant needs no new slot");
+
+        item.codec.CombatState room = new item.codec.CombatState(java.util.Map.of("enchants/e0", 1), java.util.List.of());
+        assertTrue(e.checkSlots(room, "enchants/new").ok(), "a near-empty item has free slots");
+    }
+
+    @Test
     void validatesCrystalKeyAndAppliesTo(@TempDir Path root) throws IOException {
         write(root, "crystals/jolt.yml", """
             display: "&bJolt"

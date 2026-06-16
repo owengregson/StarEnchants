@@ -4,6 +4,7 @@ import compile.load.ContentHolder;
 import compile.load.CrystalDef;
 import compile.load.EnchantDef;
 import compile.model.Snapshot;
+import engine.interact.SlotLedger;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.render.LoreRenderer;
@@ -30,6 +31,9 @@ public final class ItemEnchanter {
 
     /** A sanity cap on crystals per item — they stack (§6.5), but unbounded growth bloats PDC. */
     private static final int MAX_CRYSTALS = 16;
+
+    /** The v1 enchant-slot capacity for every item (per-group bases + purchasable slots come later, §6.4). */
+    private static final int BASE_SLOTS = 6;
 
     private final CombatCodec codec;
     private final LoreRenderer lore;
@@ -63,6 +67,23 @@ public final class ItemEnchanter {
         return ApplyResult.ok("§a" + def.display());
     }
 
+    /**
+     * Validate (without mutating) that {@code baseKey} fits in {@code current}'s enchant slots
+     * (§6.4): a NEW enchant needs a free slot; re-applying one already present (a level change) does
+     * not. Pure — testable with a hand-built {@link CombatState}. The slot capacity is a v1 constant
+     * ({@code BASE_SLOTS}); per-item-group bases and purchasable "added" slots are a later cycle, but
+     * the {@link SlotLedger} arithmetic is the same.
+     */
+    public ApplyResult checkSlots(CombatState current, String baseKey) {
+        if (current.enchants().containsKey(baseKey)) {
+            return ApplyResult.ok(""); // re-applying an existing enchant consumes no new slot
+        }
+        SlotLedger slots = new SlotLedger(BASE_SLOTS, 0, current.enchants().size());
+        return slots.canApply(1)
+                ? ApplyResult.ok("")
+                : ApplyResult.fail("§cThis item has no free enchant slots (" + slots.max() + " max).");
+    }
+
     /** Validate (without mutating) that crystal {@code baseKey} may sit on {@code material}. */
     public ApplyResult checkCrystal(Material material, String baseKey) {
         CrystalDef def = crystal(baseKey);
@@ -88,6 +109,10 @@ public final class ItemEnchanter {
             return check;
         }
         CombatState current = codec.read(stack);
+        ApplyResult slots = checkSlots(current, baseKey);
+        if (!slots.ok()) {
+            return slots;
+        }
         Map<String, Integer> enchants = new LinkedHashMap<>(current.enchants());
         enchants.put(baseKey, level);
         CombatState next = new CombatState(enchants, current.crystals(),
