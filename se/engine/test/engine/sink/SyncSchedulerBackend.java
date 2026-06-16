@@ -11,7 +11,7 @@ import platform.sched.TaskHandle;
  * the deferred batches apply inline against mocked entities. Delays are ignored (run now), which is
  * the right model for a single-threaded test — there is no second thread to hop to.
  */
-final class SyncSchedulerBackend implements SchedulerBackend {
+public final class SyncSchedulerBackend implements SchedulerBackend {
 
     @Override
     public void onEntity(Entity entity, Runnable task) {
