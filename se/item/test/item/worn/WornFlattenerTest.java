@@ -21,7 +21,7 @@ class WornFlattenerTest {
 
     private static Ability ab(int id, int triggerMask) {
         return new Ability(id, 0, SourceKind.ENCHANT, triggerMask, 1, 100.0, 0, 0, 0L,
-                null, new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1);
+                null, new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
     }
 
     private static WornState flatten(int[] activeIds, Ability[] abilities) {

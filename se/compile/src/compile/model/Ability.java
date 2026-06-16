@@ -31,6 +31,7 @@ package compile.model;
  * @param cdScopeGroup   interned cooldown-scope id (group scope), or {@code -1}
  * @param cdScopeType    interned cooldown-scope id (type scope), or {@code -1}
  * @param suppressKey    interned key (enchant id | group id | type) by which a {@code DISABLE_*} cancels this ability (§6.2), or {@code -1}
+ * @param setPieces      for a {@link SourceKind#SET} bonus, the worn-piece count that completes the set (§6.6); {@code 0} for every non-set source
  */
 public record Ability(
         int id,
@@ -49,7 +50,8 @@ public record Ability(
         int cdScopeEnchant,
         int cdScopeGroup,
         int cdScopeType,
-        int suppressKey) {
+        int suppressKey,
+        int setPieces) {
 
     /** @return {@code true} if this ability fires on the interned trigger id {@code triggerId}. */
     public boolean firesOn(int triggerId) {

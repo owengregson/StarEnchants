@@ -48,7 +48,7 @@ class ResolveStageTest {
         }
         return new AbilityDef(SourceKind.ENCHANT, "ench/x", 1, 1, 100.0, 0, 0,
                 List.of("ATTACK"), List.of(), null, effects,
-                null, null, null, null, 0, SRC);
+                null, null, null, null, 0, SRC, 0);
     }
 
     private static LoweredAbility lower(SpecRegistry reg, AbilityDef def, Diagnostics d) {

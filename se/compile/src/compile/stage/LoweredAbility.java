@@ -34,6 +34,7 @@ import java.util.List;
  * @param repeatTicks    repeating-trigger period; {@code 0} = none
  * @param affinity       affinity folded MAX over {@link #effects} (CONTEXT_LOCAL if none)
  * @param source         authored origin, for diagnostics
+ * @param setPieces      worn-piece count that completes a {@link SourceKind#SET} bonus; {@code 0} otherwise
  */
 public record LoweredAbility(
         SourceKind sourceKind,
@@ -53,7 +54,8 @@ public record LoweredAbility(
         String cdScopeType,
         int repeatTicks,
         Affinity affinity,
-        Source source) {
+        Source source,
+        int setPieces) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);

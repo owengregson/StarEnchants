@@ -36,6 +36,8 @@ import java.util.List;
  * @param cdScopeType     cooldown-scope name (type scope), or {@code null}
  * @param repeatTicks     period for a repeating-trigger ability; {@code 0} = none
  * @param source          where this ability was authored, for diagnostics
+ * @param setPieces       for a {@link SourceKind#SET} bonus, the worn-piece count that completes the
+ *                        set; {@code 0} for every non-set source
  */
 public record AbilityDef(
         SourceKind sourceKind,
@@ -54,7 +56,8 @@ public record AbilityDef(
         String cdScopeGroup,
         String cdScopeType,
         int repeatTicks,
-        Source source) {
+        Source source,
+        int setPieces) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);

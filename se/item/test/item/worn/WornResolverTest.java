@@ -34,7 +34,7 @@ class WornResolverTest {
 
     private static Ability ability(int id, int triggerMask) {
         return new Ability(id, 0, SourceKind.ENCHANT, triggerMask, 1, 100.0, 0, 0, 0L, null,
-                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1);
+                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
     }
 
     private static WornResolver resolver() {
@@ -66,6 +66,47 @@ class WornResolverTest {
         CombatState b = new CombatState(Map.of("enchants/lifesteal", 3), List.of());
         WornState worn = resolver().resolveFrom(List.of(a, b), KEYS, ABILITIES, 1);
         assertEquals(2, worn.byTrigger(0).length); // lifesteal on two pieces → id 0 twice
+    }
+
+    // A SET bonus: id 0, fires on DEFENSE (trigger 1), completes at 3 worn pieces (setPieces=3).
+    private static final StableKeyIndex SET_KEYS = new StableKeyIndex(List.of("sets/yeti"));
+    private static final Ability[] SET_ABILITIES = {
+        new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null,
+                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3)
+    };
+
+    @Test
+    void setBonusActivatesAtThresholdAndStaysOffBelowIt() {
+        CombatState piece = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+
+        WornState below = resolver().resolveFrom(List.of(piece, piece), SET_KEYS, SET_ABILITIES, 1);
+        assertEquals(0, below.byTrigger(1).length, "2 of 3 pieces — bonus must not fire");
+        assertEquals(false, below.isSetActive(0));
+
+        WornState met = resolver().resolveFrom(List.of(piece, piece, piece), SET_KEYS, SET_ABILITIES, 1);
+        assertArrayEquals(new int[] {0}, met.byTrigger(1), "3 pieces — bonus fires on DEFENSE");
+        assertEquals(true, met.isSetActive(0));
+        assertEquals(0, met.byTrigger(0).length, "bonus does not fire on ATTACK");
+    }
+
+    @Test
+    void omniPieceCompletesAPartiallyWornSet() {
+        CombatState piece = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+        CombatState omni = new CombatState(Map.of(), List.of(), null, true);
+
+        // 2 real + 1 omni = 3 → the set completes (§6.6).
+        WornState worn = resolver().resolveFrom(List.of(piece, piece, omni), SET_KEYS, SET_ABILITIES, 1);
+        assertEquals(true, worn.isSetActive(0));
+        assertArrayEquals(new int[] {0}, worn.byTrigger(1));
+    }
+
+    @Test
+    void omniAloneCannotConjureASet() {
+        // Omni pieces with NO real piece of the set must not complete it (§6.6).
+        CombatState omni = new CombatState(Map.of(), List.of(), null, true);
+        WornState worn = resolver().resolveFrom(List.of(omni, omni, omni), SET_KEYS, SET_ABILITIES, 1);
+        assertEquals(false, worn.isSetActive(0));
+        assertEquals(0, worn.byTrigger(1).length);
     }
 
     private static int[] sorted(int[] values) {

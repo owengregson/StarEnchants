@@ -10,7 +10,7 @@ class AbilityTest {
 
     private static Ability withWorldBlacklist(long worldBlacklist) {
         return new Ability(0, 0, SourceKind.ENCHANT, 0, 0, 0.0, 0, 0, worldBlacklist, null,
-                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1);
+                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
     }
 
     @Test

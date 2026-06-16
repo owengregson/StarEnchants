@@ -15,11 +15,12 @@ import schema.diag.Diagnostic;
  * library live (transactional reload, §10).
  */
 public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalDef> crystals,
-                      List<Diagnostic> diagnostics) {
+                      List<SetDef> sets, List<Diagnostic> diagnostics) {
 
     public Library {
         catalog = List.copyOf(catalog);
         crystals = List.copyOf(crystals);
+        sets = List.copyOf(sets);
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -40,6 +41,11 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
             }
         }
         for (CrystalDef def : crystals) {
+            if (def.key().equals(baseKey)) {
+                return def.display();
+            }
+        }
+        for (SetDef def : sets) {
             if (def.key().equals(baseKey)) {
                 return def.display();
             }

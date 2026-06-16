@@ -41,7 +41,8 @@ class ContentCompilerTest {
                 null,
                 null,
                 0,
-                Source.ofFile("test.yml"));
+                Source.ofFile("test.yml"),
+                0);
 
         Diagnostics diags = new Diagnostics();
         Snapshot snapshot = ContentCompiler.production().compile(List.of(def), 1, diags);

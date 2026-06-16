@@ -81,7 +81,7 @@ class AbilityExecutorTest {
         LivingEntity victim = mock(LivingEntity.class);
         Ability onOtherTrigger = new Ability(0, 0, SourceKind.ENCHANT, 1 << 5, 1, 100.0, 0, 0, 0L, null,
                 new CompiledEffect[] {igniteEffect("VICTIM", 60, Affinity.TARGET_ENTITY)},
-                0, Affinity.TARGET_ENTITY, -1, -1, -1, -1);
+                0, Affinity.TARGET_ENTITY, -1, -1, -1, -1, 0);
         DispatchSink sink = new DispatchSink(handles);
 
         int activated = executor.run(new Ability[] {onOtherTrigger}, new int[] {0}, activation(),
@@ -125,7 +125,7 @@ class AbilityExecutorTest {
                 new CompiledSelector("VICTIM", Args.empty()), 0, Affinity.TARGET_ENTITY);
         CompiledEffect good = igniteEffect("VICTIM", 60, Affinity.TARGET_ENTITY);
         Ability ability = new Ability(0, 0, SourceKind.ENCHANT, 1 << TRIGGER, 1, 100.0, 0, 0, 0L, null,
-                new CompiledEffect[] {missing, good}, 0, Affinity.TARGET_ENTITY, -1, -1, -1, -1);
+                new CompiledEffect[] {missing, good}, 0, Affinity.TARGET_ENTITY, -1, -1, -1, -1, 0);
         DispatchSink sink = new DispatchSink(handles);
 
         int activated = executor.run(new Ability[] {ability}, new int[] {0}, activation(),
@@ -163,7 +163,7 @@ class AbilityExecutorTest {
     private static Ability ignite(String selectorHead, int duration, Affinity affinity) {
         return new Ability(0, 0, SourceKind.ENCHANT, 1 << TRIGGER, 1, 100.0, 0, 0, 0L, null,
                 new CompiledEffect[] {igniteEffect(selectorHead, duration, affinity)},
-                0, affinity, -1, -1, -1, -1);
+                0, affinity, -1, -1, -1, -1, 0);
     }
 
     private static CompiledEffect igniteEffect(String selectorHead, int duration, Affinity affinity) {

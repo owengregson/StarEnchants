@@ -25,9 +25,12 @@ import org.bukkit.inventory.ItemStack;
  * walks. An unknown key (an item enchanted under content no longer present) resolves to {@code -1} and
  * is skipped — never a crash. Multiplicity is preserved (an enchant on two pieces contributes twice).
  *
- * <p>Sets / weapon set / heroic are not yet encoded on the item (the codec carries enchants + crystals
- * today), so those sources resolve as empty for now and join when the codec encodes them. Trigger
- * metadata (count + attack/defense predicates) is injected so {@code se-item} stays free of an
+ * <p>Armour sets are resolved here too: each piece's {@code setKey}/{@code omni} flag (§6.6) feeds
+ * {@link SetResolver}, whose active-set {@code BitSet} both joins {@link WornState#activeSets()} and
+ * contributes each completed set's bonus ability id into the same union (a set's dense ability id is
+ * its set id; its completion threshold is that ability's {@code setPieces}). Heroic flat stats are
+ * not yet encoded on the item, so that source resolves as {@code NONE} for now. Trigger metadata
+ * (count + attack/defense predicates) is injected so {@code se-item} stays free of an
  * {@code se-engine} dependency; the caller passes the current published {@link Snapshot}, so the
  * resolution is always against live content (reload-correct).
  *
@@ -88,6 +91,8 @@ public final class WornResolver {
     WornState resolveFrom(List<CombatState> combats, StableKeyIndex keys, Ability[] abilities, int generation) {
         List<Integer> mergedIds = new ArrayList<>();
         List<Integer> crystalIds = new ArrayList<>();
+        List<Integer> wornSetIds = new ArrayList<>();
+        int omniCount = 0;
         for (CombatState combat : combats) {
             for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
                 int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
@@ -102,9 +107,22 @@ public final class WornResolver {
                     crystalIds.add(id);  // ...and are tracked as the dedicated crystal source (§5.5)
                 }
             }
+            // Set membership: an omni piece is a wildcard (counts toward any partially-worn set, §6.6);
+            // a normal piece contributes its set's bonus ability id (the set's dense id is its "set id").
+            if (combat.omni()) {
+                omniCount++;
+            } else if (combat.setKey() != null) {
+                wornSetIds.add(keys.idOf(combat.setKey())); // -1 for unknown content → SetResolver ignores it
+            }
+        }
+        // A set's bonus ability id is its set id; its completion threshold is that ability's setPieces.
+        BitSet activeSets = SetResolver.activeSets(toIntArray(wornSetIds), omniCount,
+                setId -> setId >= 0 && setId < abilities.length ? abilities[setId].setPieces() : 0);
+        for (int setId = activeSets.nextSetBit(0); setId >= 0; setId = activeSets.nextSetBit(setId + 1)) {
+            mergedIds.add(setId); // an active set's bonus fires on triggers like any other source
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), abilities, triggerCount,
-                new BitSet(), toIntArray(crystalIds), HeroicStat.NONE, attackTrigger, defenseTrigger);
+                activeSets, toIntArray(crystalIds), HeroicStat.NONE, attackTrigger, defenseTrigger);
     }
 
     private static int[] toIntArray(List<Integer> values) {

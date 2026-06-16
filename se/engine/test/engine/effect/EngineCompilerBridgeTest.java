@@ -35,7 +35,7 @@ class EngineCompilerBridgeTest {
                 List.of("ATTACK"), List.of(), null,
                 List.of(EffectLine.parse("DAMAGE:6", Source.of("enchants.yml", 1, 1)),
                         EffectLine.parse("HEAL:3", Source.of("enchants.yml", 2, 1))),
-                null, null, null, null, 0, Source.ofFile("enchants.yml"));
+                null, null, null, null, 0, Source.ofFile("enchants.yml"), 0);
 
         Diagnostics d = new Diagnostics();
         Snapshot snap = compiler.compile(List.of(def), 1, d);

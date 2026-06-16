@@ -36,7 +36,7 @@ class SelectorBridgeTest {
         return new AbilityDef(SourceKind.ENCHANT, stableKey, 1, 1, 100.0, 0, 0,
                 List.of("ATTACK"), List.of(), null,
                 List.of(EffectLine.parse(effectLine, Source.of("enchants.yml", 1, 1))),
-                null, null, null, null, 0, Source.ofFile("enchants.yml"));
+                null, null, null, null, 0, Source.ofFile("enchants.yml"), 0);
     }
 
     @Test

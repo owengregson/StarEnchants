@@ -142,7 +142,8 @@ public final class DefaultLowerStage implements LowerStage {
                 def.cdScopeType(),
                 def.repeatTicks(),
                 ability,
-                def.source());
+                def.source(),
+                def.setPieces());
     }
 
     /**

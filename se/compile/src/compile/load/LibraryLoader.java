@@ -27,7 +27,7 @@ import schema.diag.Source;
  * never throws on content, only on a genuine I/O failure walking the tree. The caller inspects
  * {@link Library#hasErrors()} before publishing (transactional reload, §10).
  *
- * <p>This cycle reads {@code enchants/} and {@code crystals/}; {@code sets/}/{@code weapons/}/
+ * <p>This cycle reads {@code enchants/}, {@code crystals/}, and {@code sets/}; {@code weapons/}/
  * {@code heroic/} register their own readers when those sources are authored (ADR-0014).
  */
 public final class LibraryLoader {
@@ -49,6 +49,7 @@ public final class LibraryLoader {
         Diagnostics diags = new Diagnostics();
         List<EnchantDef> catalog = new ArrayList<>();
         List<CrystalDef> crystals = new ArrayList<>();
+        List<SetDef> sets = new ArrayList<>();
         List<AbilityDef> defs = new ArrayList<>();
         int[] nextDefId = {0};
 
@@ -84,9 +85,24 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
+        for (Path file : sourceFiles(contentRoot, "sets")) {
+            String baseKey = baseKeyOf(contentRoot, file, diags);
+            if (baseKey == null) {
+                continue;
+            }
+            YamlNode root = composeOf(contentRoot, file, diags);
+            if (root == null) {
+                continue;
+            }
+            SetDefReader.Parsed parsed = SetDefReader.read(baseKey, root, () -> nextDefId[0]++, diags);
+            if (parsed.def() != null) {
+                sets.add(parsed.def());
+            }
+            defs.addAll(parsed.abilities());
+        }
 
         Snapshot snapshot = compiler.compile(defs, generation, diags);
-        return new Library(snapshot, catalog, crystals, diags.all());
+        return new Library(snapshot, catalog, crystals, sets, diags.all());
     }
 
     /** The content files under {@code contentRoot/<dir>} in deterministic order, or empty if absent. */

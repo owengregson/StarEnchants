@@ -76,7 +76,8 @@ final class CrystalDefReader {
                 group,          // cdScopeGroup (may be null)
                 null,           // cdScopeType: deferred
                 repeatTicks,
-                fileSource);
+                fileSource,
+                0);             // setPieces: crystals are not sets
 
         CrystalDef def = new CrystalDef(baseKey, display,
                 description == null ? "" : description, appliesTo, fileSource);

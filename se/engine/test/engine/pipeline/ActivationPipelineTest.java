@@ -48,7 +48,7 @@ class ActivationPipelineTest {
         Ability build() {
             return new Ability(0, 0, SourceKind.ENCHANT, triggerMask, level, baseChance,
                     cooldownTicks, soulCost, worldBlacklist, condition, new CompiledEffect[0],
-                    0, Affinity.CONTEXT_LOCAL, cdEnchant, cdGroup, cdType, suppressKey);
+                    0, Affinity.CONTEXT_LOCAL, cdEnchant, cdGroup, cdType, suppressKey, 0);
         }
     }
 
