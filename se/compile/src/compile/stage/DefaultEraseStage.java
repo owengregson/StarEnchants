@@ -1,0 +1,130 @@
+package compile.stage;
+
+import compile.model.Ability;
+import compile.model.CompiledEffect;
+import compile.model.Interner;
+import compile.model.Interners;
+import compile.model.SourceMap;
+import compile.model.StableKeyIndex;
+import schema.diag.Diagnostics;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * The default {@link EraseStage} (docs/architecture.md §4.1). It walks the lowered
+ * abilities once, in id-assignment order, interning every world/trigger/suppression/
+ * cooldown-scope name (§8) and bit-packing worlds and triggers into the
+ * {@code worldBlacklist} long and {@code triggerMask} int that the hot path gates on
+ * (§3.3). The dense id of a kept ability is its position in the output array, so the
+ * {@link ErasedContent} invariant {@code abilities[i].id() == i} holds (§5.3); the
+ * parallel stable-key list feeds the {@link StableKeyIndex} and the {@code defId}
+ * &rarr; origin entries feed the {@link SourceMap}, the last record of authored
+ * positions (§10).
+ *
+ * <p>Never throws. A duplicate stable key drops the duplicate and reports
+ * {@code E_DUP_KEY}; a trigger past bit 31 ({@code E_TRIGGER_OVERFLOW}) or a world
+ * past bit 63 ({@code E_WORLD_OVERFLOW}) skips only that one bit — the ability is
+ * otherwise erased intact — keeping the whole snapshot loadable from broken content.
+ */
+public final class DefaultEraseStage implements EraseStage {
+
+    /** The {@code triggerMask} is an {@code int}, so trigger ids must fit in {@code [0,32)}. */
+    private static final int TRIGGER_BITS = 32;
+
+    /** The {@code worldBlacklist} is a {@code long}, so world ids must fit in {@code [0,64)}. */
+    private static final int WORLD_BITS = 64;
+
+    @Override
+    public ErasedContent erase(List<LoweredAbility> lowered, Diagnostics diags) {
+        Interner worlds = new Interner();
+        Interner triggers = new Interner();
+        Interner suppress = new Interner();
+        Interner cooldownScopes = new Interner();
+
+        Set<String> seenKeys = new HashSet<>();
+        List<Ability> abilities = new ArrayList<>();
+        List<String> keysByDenseId = new ArrayList<>();
+        Map<Integer, SourceMap.Entry> sourceEntries = new LinkedHashMap<>();
+
+        for (LoweredAbility la : lowered) {
+            if (!seenKeys.add(la.stableKey())) {
+                diags.error(
+                        "E_DUP_KEY",
+                        "duplicate stable key '" + la.stableKey() + "' — the second definition is dropped",
+                        la.source(),
+                        "make every ability's stable key unique across all sources");
+                continue;
+            }
+
+            int id = abilities.size();
+
+            int triggerMask = 0;
+            for (String trigger : la.triggers()) {
+                int tid = triggers.intern(trigger);
+                if (tid >= TRIGGER_BITS) {
+                    diags.error(
+                            "E_TRIGGER_OVERFLOW",
+                            "trigger '" + trigger + "' is the " + (tid + 1) + "th distinct trigger; "
+                                    + "only " + TRIGGER_BITS + " fit in the trigger mask — this trigger is skipped",
+                            la.source(),
+                            "reduce the number of distinct trigger names across all content");
+                    continue;
+                }
+                triggerMask |= (1 << tid);
+            }
+
+            long worldBlacklist = 0L;
+            for (String world : la.worldBlacklist()) {
+                int wid = worlds.intern(world);
+                if (wid >= WORLD_BITS) {
+                    diags.error(
+                            "E_WORLD_OVERFLOW",
+                            "world '" + world + "' is the " + (wid + 1) + "th distinct blacklisted world; "
+                                    + "only " + WORLD_BITS + " fit in the world bitset — this world is skipped",
+                            la.source(),
+                            "reduce the number of distinct blacklisted world names across all content");
+                    continue;
+                }
+                worldBlacklist |= (1L << wid);
+            }
+
+            int suppressKey = la.suppressKey() == null ? -1 : suppress.intern(la.suppressKey());
+            int cdScopeEnchant = la.cdScopeEnchant() == null ? -1 : cooldownScopes.intern(la.cdScopeEnchant());
+            int cdScopeGroup = la.cdScopeGroup() == null ? -1 : cooldownScopes.intern(la.cdScopeGroup());
+            int cdScopeType = la.cdScopeType() == null ? -1 : cooldownScopes.intern(la.cdScopeType());
+
+            Ability ability = new Ability(
+                    id,
+                    la.defId(),
+                    la.sourceKind(),
+                    triggerMask,
+                    la.level(),
+                    la.baseChance(),
+                    la.cooldownTicks(),
+                    la.soulCost(),
+                    worldBlacklist,
+                    la.condition(),
+                    la.effects().toArray(new CompiledEffect[0]),
+                    la.repeatTicks(),
+                    la.affinity(),
+                    cdScopeEnchant,
+                    cdScopeGroup,
+                    cdScopeType,
+                    suppressKey);
+
+            abilities.add(ability);
+            keysByDenseId.add(la.stableKey());
+            sourceEntries.put(la.defId(), new SourceMap.Entry(la.sourceKind(), la.stableKey(), la.source()));
+        }
+
+        StableKeyIndex stableKeyIndex = new StableKeyIndex(keysByDenseId);
+        SourceMap sourceMap = new SourceMap(sourceEntries);
+        Interners interners = new Interners(worlds, triggers, suppress, cooldownScopes);
+
+        return new ErasedContent(abilities.toArray(new Ability[0]), interners, stableKeyIndex, sourceMap);
+    }
+}
