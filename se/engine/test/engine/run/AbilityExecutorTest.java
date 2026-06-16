@@ -45,9 +45,10 @@ class AbilityExecutorTest {
 
     private static final UUID ACTOR = UUID.randomUUID();
     private static final int TRIGGER = 0;
-    // This test only ever activates ability id 0; the index maps that dense id to a stable key so the
-    // executor can resolve it for the ActivationListener (the §13 api seam).
-    private static final StableKeyIndex KEYS = new StableKeyIndex(java.util.List.of("enchants/test"));
+    // This test only ever activates ability id 0; the index maps that dense id to its compiled per-level
+    // stable key, which the executor reduces to the BASE key (enchants/test) for the ActivationListener
+    // since the fixtures build level-1 abilities (the §13 api seam).
+    private static final StableKeyIndex KEYS = new StableKeyIndex(java.util.List.of("enchants/test/1"));
 
     private RuntimeHandles handles;
     private AbilityExecutor executor;
@@ -122,12 +123,13 @@ class AbilityExecutorTest {
     }
 
     /**
-     * The activation listener is invoked once per ACTIVATED ability (the public-event seam, §13), and
-     * the executor resolves the ability's stable key against the run's own index — so the listener is
-     * handed the right key, never a dense id re-resolved against a possibly-swapped live snapshot.
+     * The activation listener is invoked once per ACTIVATED ability (the public-event seam, §13) with the
+     * BASE content key: the executor resolves the ability's compiled per-level key against the run's own
+     * index, then strips the {@code /<level>} suffix — so a level-1 {@code enchants/test/1} surfaces as
+     * {@code enchants/test}, never a dense id re-resolved against a possibly-swapped live snapshot.
      */
     @Test
-    void notifiesTheActivationListenerWithTheResolvedStableKey() {
+    void notifiesTheActivationListenerWithTheBaseStableKey() {
         Player actor = mock(Player.class);
         java.util.List<String> seen = new java.util.ArrayList<>();
         ActivationListener listener = (key, ability, ctx) -> seen.add(key);
@@ -140,7 +142,7 @@ class AbilityExecutorTest {
 
         observed.run(abilities, new int[] {0}, activation(), context(actor, null), sink, KEYS);
 
-        assertEquals(java.util.List.of("enchants/test"), seen); // ability id 0 → its stable key
+        assertEquals(java.util.List.of("enchants/test"), seen); // per-level enchants/test/1 → base enchants/test
     }
 
     /** A dense id with no entry in the run's index resolves to a {@code null} key, never a crash (§5.3). */
