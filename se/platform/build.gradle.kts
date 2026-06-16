@@ -3,9 +3,15 @@ plugins {
 }
 
 dependencies {
-    // Activated as implementation reaches this leaf:
-    // compileOnly(libs.paper.api.floor)
-    // api(project(":schema")) // implements the PlatformResolvers facade
+    // The PlatformResolvers facade this leaf implements lives in :compile.resolve
+    // (brings :schema transitively for HandleCategory).
+    api(project(":compile"))
+
+    // Floor API (Registry/Material/… land with the Bukkit-backed resolver); the pure
+    // resolution core needs none of it. compileOnly — the server provides it.
+    compileOnly(libs.paper.api.floor)
+
+    testImplementation(libs.paper.api.floor)
 }
 
 // Version + Folia ABSORPTION. Boot-time resolvers (Material/Sound/Particle/
