@@ -45,6 +45,20 @@ scripts/          developer helper scripts
                   (Gradle multi-module source tree lands with the project scaffold)
 ```
 
+## Getting started
+
+```bash
+git clone https://github.com/owengregson/StarEnchants.git
+cd StarEnchants
+scripts/setup-dev.sh          # prereqs + git hooks + build (idempotent; --help for flags)
+```
+
+`setup-dev.sh` takes a fresh clone — or a coding agent — to a workable state and
+is safe to re-run. The Paper/Folia server-jar cache (`reference/`) and the
+reverse-engineering workspace (`deobf/`) are local-only and gitignored;
+regenerate them with `scripts/setup-dev.sh --with-reference` / `--full`. See
+[docs/development.md](docs/development.md).
+
 ## Contributing & development
 
 - Workflow, branching model, and commit conventions: [CONTRIBUTING.md](CONTRIBUTING.md)
