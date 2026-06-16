@@ -3,10 +3,16 @@ plugins {
 }
 
 dependencies {
-    // Activated as implementation reaches this module:
-    // compileOnly(libs.paper.api.floor)
-    // api(project(":compile"))
-    // api(project(":platform"))
+    // Floor API only (PDC/ItemStack land with the codec); compileOnly — the server
+    // provides it. Pure WornState resolution needs none of it yet.
+    compileOnly(libs.paper.api.floor)
+
+    // The compiled world: Ability (for trigger masks during worn-state flattening),
+    // the Snapshot's stable-key map (for the codec later). Brings :schema transitively.
+    api(project(":compile"))
+
+    testImplementation(libs.paper.api.floor)
+    testImplementation(libs.mockito.core)
 }
 
 // The item-data service + render. ONE compact record codec over PDC (stable
