@@ -132,10 +132,6 @@ public final class AbilityExecutor {
 
     private void runEffects(Ability ability, ActivationContext context, DispatchSink sink) {
         for (CompiledEffect effect : ability.effects()) {
-            // NOTE: effect.cumulativeWaitTicks() (WAIT, §3.6) is not yet honored — every effect runs
-            // in this pass. Honoring it needs the dispatcher to support delayed batches (a deferred
-            // flush on the region/entity timer), which the DispatchSink does not model yet; wiring
-            // WAIT is a follow-up that lands with that sink capability.
             try {
                 EffectKind kind = effects.lookup(effect.head()).orElse(null);
                 if (kind == null) {
@@ -144,6 +140,10 @@ public final class AbilityExecutor {
                 }
                 List<LivingEntity> targets = resolveTargets(effect, context);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets), ability.level());
+                // WAIT (§3.6): route this effect's world-mutation intents into its accumulated delay tier so
+                // they dispatch that many ticks after the hit. Targets are still resolved now, on the firing
+                // thread; the sink defers only the mutation (and keeps inline feedback — fold/cancel — instant).
+                sink.delay(effect.cumulativeWaitTicks());
                 kind.run(ctx, sink);
             } catch (Throwable failed) {
                 LOG.log(Level.WARNING, "effect " + effect.head() + " failed during execution", failed);

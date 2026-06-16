@@ -45,6 +45,7 @@ public final class SchedulingSuite implements Harness.Scenario {
         h.expect("sched.region");
         h.expect("sched.entity");
         h.expect("sched.entityLater");
+        h.expect("sched.globalLater");
         h.expect("sched.repeating");
         h.expect("sched.async");
 
@@ -52,6 +53,10 @@ public final class SchedulingSuite implements Harness.Scenario {
             // World time is global-owned state; touching it here must not throw.
             world.getFullTime();
         }));
+
+        // A delayed GLOBAL task must fire and may touch global-owned state — the primitive WAIT uses for
+        // deferred global/economy effects (the Folia global-region delayed scheduler, untested elsewhere).
+        Scheduling.onGlobalLater(2L, () -> h.guard("sched.globalLater", world::getFullTime));
 
         Scheduling.onRegion(at, () -> h.guard("sched.region", () ->
                 world.getBlockAt(at).getType()));

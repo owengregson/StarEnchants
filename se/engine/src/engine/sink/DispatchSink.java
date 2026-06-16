@@ -77,6 +77,7 @@ public final class DispatchSink implements Sink {
 
     private boolean cancelled;
     private boolean flushed;
+    private int delayTicks;
 
     /** A sink with no economy — money intents are no-ops (the default for tests and economy-free paths). */
     public DispatchSink(RuntimeHandles handles) {
@@ -109,15 +110,30 @@ public final class DispatchSink implements Sink {
         plan.flush();
     }
 
+    /**
+     * Set the {@code WAIT} delay (in ticks) applied to the world-mutation intents of subsequent
+     * effects, until changed again (§3.6). The {@link engine.run.AbilityExecutor} calls this with each
+     * effect's accumulated {@code WAIT} before running it, so the effect's intents dispatch that many
+     * ticks after the hit — resolved now (on the firing thread), mutated later (on the owner's thread).
+     *
+     * <p>Only world mutations honour the delay. Inline feedback — the damage {@link #fold()} and
+     * {@link #cancelEvent()} — feeds back into the firing Bukkit event, which no longer exists once a
+     * delayed tier fires; a {@code WAIT} before a damage-arbiter contribution is therefore a no-op on
+     * the delay (the contribution still applies to the original hit). Negative values clamp to 0.
+     */
+    public void delay(int ticks) {
+        this.delayTicks = Math.max(0, ticks);
+    }
+
     private void entityOp(Entity target, Runnable op) {
         if (target != null) {
-            plan.onEntity(target, op); // always the entity's own thread — never inline (may be cross-region)
+            plan.onEntity(target, op, delayTicks); // always the entity's own thread — never inline (may be cross-region)
         }
     }
 
     private void regionOp(Location at, Runnable op) {
         if (at != null) {
-            plan.onRegion(at, op); // always the location's region thread — never inline
+            plan.onRegion(at, op, delayTicks); // always the location's region thread — never inline
         }
     }
 
@@ -125,7 +141,7 @@ public final class DispatchSink implements Sink {
         // Global work (e.g. console commands) always routes to the global region thread, never
         // inline on a firing region thread — even under a CONTEXT_LOCAL ability — so Folia's
         // global-region invariants hold. flush() always runs after the gate walk, so it is not lost.
-        plan.onGlobal(op);
+        plan.onGlobal(op, delayTicks);
     }
 
     // ── Damage arbiter: contribute deltas, never setDamage (§6.1) ────────────────────────────────
@@ -199,11 +215,13 @@ public final class DispatchSink implements Sink {
 
     @Override
     public void knockback(Entity target, Location from, double strength) {
-        // `from` is the activator's location, captured by the effect on the firing thread — an
-        // immutable snapshot, never a live cross-region entity read. We read `target.getLocation()`
-        // here, which is correct because this body runs on the target's own thread (entityOp).
+        // `from` is the activator's location on the firing thread. Clone it: a WAIT tier can defer this
+        // closure to a LATER tick, so the captured origin must be an owned snapshot, not a Location the
+        // caller might mutate/reuse in the meantime. We read `target.getLocation()` inside the body,
+        // which is correct because the body runs on the target's own thread (entityOp).
+        Location origin = from.clone();
         entityOp(target, () -> {
-            Vector delta = target.getLocation().toVector().subtract(from.toVector());
+            Vector delta = target.getLocation().toVector().subtract(origin.toVector());
             Vector direction = delta.lengthSquared() > 1.0e-6 ? delta.normalize() : new Vector(0, 1, 0);
             target.setVelocity(target.getVelocity().add(direction.multiply(strength)));
         });
@@ -318,7 +336,10 @@ public final class DispatchSink implements Sink {
     @Override
     public void teleport(Entity target, Location to) {
         // Teleports are async on Folia; teleportAsync is correct on Paper too and present on the floor API.
-        entityOp(target, () -> target.teleportAsync(to));
+        // Clone the destination: a WAIT tier can defer this to a later tick, so the captured target must
+        // be an owned snapshot the caller cannot mutate before the hop lands.
+        Location dest = to.clone();
+        entityOp(target, () -> target.teleportAsync(dest));
     }
 
     // ── World / block intents ────────────────────────────────────────────────────────────────────
