@@ -11,8 +11,10 @@ import compile.model.Ability;
  *
  * <p>The {@code enchantKey} is resolved by the executor against the SAME snapshot whose
  * {@code abilities[]} produced the activated ability (never re-read from a live holder that a
- * concurrent reload could have swapped), so it always names the ability that actually fired. It is
- * {@code null} only if the snapshot exposed no stable-key index for the run — a defensive case the
+ * concurrent reload could have swapped), so it always names the ability that actually fired. It is the
+ * BASE content key (e.g. {@code enchants/venom}) — the compiled per-level key {@code enchants/venom/1}
+ * has its {@code /<level>} stripped, with the level carried separately on {@link Ability#level()}. It
+ * is {@code null} only if the snapshot exposed no stable-key index for the run — a defensive case the
  * implementation should skip rather than propagate.
  */
 @FunctionalInterface
@@ -24,8 +26,9 @@ public interface ActivationListener {
     /**
      * Called once for {@code ability} when it activates in {@code context}.
      *
-     * @param enchantKey the activated ability's stable content key (e.g. {@code enchants/venom}),
-     *                   resolved against the run's own snapshot; {@code null} only defensively
+     * @param enchantKey the activated ability's BASE stable content key (e.g. {@code enchants/venom},
+     *                   {@code crystals/jolt}), resolved against the run's own snapshot; {@code null}
+     *                   only defensively
      */
     void onActivate(String enchantKey, Ability ability, ActivationContext context);
 }

@@ -97,19 +97,37 @@ public final class AbilityExecutor {
 
     /**
      * Notify the activation listener, isolating any failure so a misbehaving observer never aborts the
-     * hit. The stable key is resolved against {@code stableKeys} (the run's own snapshot index) so it
-     * pairs with the dense id {@code abilities[]} produced — never a live holder a reload could swap.
+     * hit. The key is resolved against {@code stableKeys} (the run's own snapshot index) so it pairs
+     * with the dense id {@code abilities[]} produced — never a live holder a reload could swap — and is
+     * reduced to the ability's BASE content key (e.g. {@code enchants/venom}) for the public seam: the
+     * compiled per-level key {@code enchants/venom/1} is an internal accelerator, while the level is
+     * carried separately on {@link Ability#level()}. Level-less sources (crystals/sets) are base-keyed
+     * already, so they pass through unchanged.
      */
     private void notifyActivation(Ability ability, ActivationContext context, StableKeyIndex stableKeys) {
         if (listener == ActivationListener.NONE) {
             return; // no observer wired — skip the key resolution entirely (hot-path no-op)
         }
         try {
-            String key = stableKeys == null ? null : stableKeys.keyOf(ability.id());
-            listener.onActivate(key, ability, context);
+            String full = stableKeys == null ? null : stableKeys.keyOf(ability.id());
+            listener.onActivate(baseKey(full, ability.level()), ability, context);
         } catch (Throwable failed) {
             LOG.log(Level.WARNING, "activation listener failed for ability " + ability.id(), failed);
         }
+    }
+
+    /**
+     * The base content key for the public seam: an enchant's compiled stable key is {@code <base>/<level>}
+     * (e.g. {@code enchants/venom/1}), so strip the trailing {@code /<level>} to recover the identity an
+     * item/config names ({@code enchants/venom}). Sources with no level ({@code level <= 0} — crystals,
+     * sets) are already base-keyed and returned as-is.
+     */
+    private static String baseKey(String stableKey, int level) {
+        if (stableKey == null || level <= 0) {
+            return stableKey;
+        }
+        String suffix = "/" + level;
+        return stableKey.endsWith(suffix) ? stableKey.substring(0, stableKey.length() - suffix.length()) : stableKey;
     }
 
     private void runEffects(Ability ability, ActivationContext context, DispatchSink sink) {
