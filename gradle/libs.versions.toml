@@ -1,0 +1,23 @@
+# Version catalog — single source of truth for dependency coordinates.
+# Bukkit/Folia API coordinates are listed here for the modules that will need
+# them as implementation reaches each edge; the pure modules (se-schema,
+# se-compile) depend on nothing but JUnit. See docs/architecture.md §11.
+
+[versions]
+# Floor API: the whole version-agnostic core compiles against paper-api 1.17.1
+# and emits Java 17 class files (docs/architecture.md §1.1, §11).
+java-floor = "17"
+paper-floor = "1.17.1-R0.1-SNAPSHOT"
+# A newer API for the compat-modern edge (behind a Capabilities probe).
+paper-modern = "1.21.4-R0.1-SNAPSHOT"
+# Folia scheduler API for the compat-folia edge.
+folia = "1.21.4-R0.1-SNAPSHOT"
+junit = "5.11.3"
+
+[libraries]
+paper-api-floor = { module = "io.papermc.paper:paper-api", version.ref = "paper-floor" }
+paper-api-modern = { module = "io.papermc.paper:paper-api", version.ref = "paper-modern" }
+folia-api = { module = "dev.folia:folia-api", version.ref = "folia" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
