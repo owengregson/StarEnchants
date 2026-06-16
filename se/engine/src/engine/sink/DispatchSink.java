@@ -1,6 +1,5 @@
 package engine.sink;
 
-import compile.model.Affinity;
 import engine.interact.DamageFold;
 import java.util.Objects;
 import net.md_5.bungee.api.ChatMessageType;
@@ -43,11 +42,14 @@ import schema.spec.HandleCategory;
  *       feed back into the very Bukkit event being processed, so they are accumulated synchronously
  *       on the firing thread and read back by the trigger listener (which folds {@link #fold()}
  *       onto the event once and honours {@link #cancelled()}); they never schedule.</li>
- *   <li><strong>World mutations</strong> — everything else. Under a {@link Affinity#CONTEXT_LOCAL}
- *       ability these apply <em>inline</em> (true zero hop on Paper <em>and</em> Folia: the event
- *       handler already runs on the firing region thread, and CONTEXT_LOCAL asserts the target is
- *       that firing context). Under any wider affinity they are captured into the {@link DispatchPlan}
- *       and flushed batched per owning thread after the gate walk.</li>
+ *   <li><strong>World mutations</strong> — everything else. Each is captured into the
+ *       {@link DispatchPlan} and routed to the thread that owns its target (the entity's region, the
+ *       location's region, or the global thread), flushed batched after the gate walk. A mutation is
+ *       NEVER run inline on the firing thread: the target is frequently a <em>different</em> entity or
+ *       region than the firing one — a defender retaliating against its attacker, an AoE bystander —
+ *       and inlining such a mutation would be a cross-region wrong-thread access on Folia. So the
+ *       owning thread (via {@code Scheduling}, which is inline-on-the-main-thread on Paper) is the
+ *       only safe routing; the declared affinity is advisory, not a licence to skip the hop.</li>
  * </ul>
  *
  * <p>Version-volatile referents arrive as interned handle ids and are resolved to live Bukkit
@@ -58,11 +60,10 @@ import schema.spec.HandleCategory;
  * an unknown token against the same {@code RegistrySupport} lookup — so an interned id failing to
  * resolve at runtime is a can't-happen on a stable server, not a config error worth re-logging.
  *
- * <p>Lifecycle: one instance per event. {@link #affinity(Affinity)} is set to each candidate
- * ability's folded affinity before its effects run; {@link #fold()} and {@link #cancelled()}
- * accumulate across all of the event's abilities; {@link #flush()} is called once, last.
- * Not thread-safe by design — it is filled and flushed on the single firing thread (§6); the
- * batches it schedules run later on their own threads over immutable captured primitives.
+ * <p>Lifecycle: one instance per event. {@link #fold()} and {@link #cancelled()} accumulate across
+ * all of the event's abilities; {@link #flush()} is called once, last. Not thread-safe by design —
+ * it is filled and flushed on the single firing thread (§6); the batches it schedules run later on
+ * their own threads over immutable captured primitives.
  */
 public final class DispatchSink implements Sink {
 
@@ -70,8 +71,6 @@ public final class DispatchSink implements Sink {
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold = new DamageFold();
 
-    /** The current ability's folded affinity; defaults to a deferred mode so nothing inlines by accident. */
-    private Affinity affinity = Affinity.TARGET_ENTITY;
     private boolean cancelled;
     private boolean flushed;
 
@@ -79,16 +78,7 @@ public final class DispatchSink implements Sink {
         this.handles = Objects.requireNonNull(handles, "handles");
     }
 
-    // ── Control surface (called by the firing system, never by an effect) ────────────────────────
-
-    /**
-     * Set the folded affinity of the ability whose effects are about to run (§3.6).
-     * {@link Affinity#CONTEXT_LOCAL} makes that ability's world mutations apply inline; any wider
-     * value defers them to the batched flush.
-     */
-    public void affinity(Affinity affinity) {
-        this.affinity = Objects.requireNonNull(affinity, "affinity");
-    }
+    // ── Read-backs (called by the firing system, never by an effect) ─────────────────────────────
 
     /** The damage arbiter for this event; the trigger listener folds it onto the event once (§6.1). */
     public DamageFold fold() {
@@ -109,29 +99,15 @@ public final class DispatchSink implements Sink {
         plan.flush();
     }
 
-    private boolean inline() {
-        return affinity == Affinity.CONTEXT_LOCAL;
-    }
-
     private void entityOp(Entity target, Runnable op) {
-        if (target == null) {
-            return;
-        }
-        if (inline()) {
-            op.run();
-        } else {
-            plan.onEntity(target, op);
+        if (target != null) {
+            plan.onEntity(target, op); // always the entity's own thread — never inline (may be cross-region)
         }
     }
 
     private void regionOp(Location at, Runnable op) {
-        if (at == null) {
-            return;
-        }
-        if (inline()) {
-            op.run();
-        } else {
-            plan.onRegion(at, op);
+        if (at != null) {
+            plan.onRegion(at, op); // always the location's region thread — never inline
         }
     }
 

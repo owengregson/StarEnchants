@@ -94,7 +94,6 @@ public final class AbilityExecutor {
                 }
                 List<LivingEntity> targets = resolveTargets(effect, context);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets), ability.level());
-                sink.affinity(effect.affinity());
                 kind.run(ctx, sink);
             } catch (Throwable failed) {
                 LOG.log(Level.WARNING, "effect " + effect.head() + " failed during execution", failed);

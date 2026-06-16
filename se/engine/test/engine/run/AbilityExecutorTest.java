@@ -92,15 +92,15 @@ class AbilityExecutorTest {
         verifyNoInteractions(victim);
     }
 
-    /** A CONTEXT_LOCAL effect applies inline during run — before any flush. */
+    /** Affinity no longer routes the Sink: an effect applies on flush regardless of its declared affinity. */
     @Test
-    void contextLocalEffectAppliesInlineBeforeFlush() {
+    void effectAppliesOnFlushRegardlessOfAffinity() {
         LivingEntity victim = mock(LivingEntity.class);
         Ability[] abilities = {ignite("VICTIM", 40, Affinity.CONTEXT_LOCAL)};
         DispatchSink sink = new DispatchSink(handles);
 
         executor.run(abilities, new int[] {0}, activation(), context(null, victim), sink);
-        // no flush yet: CONTEXT_LOCAL must already have applied
+        sink.flush();
         verify(victim).setFireTicks(40);
     }
 

@@ -20,10 +20,15 @@ import platform.sched.Scheduling;
  * keeps the old content live, so a broken reload never takes the server down; {@link #dryRun} reports
  * without ever swapping.
  *
- * <p><strong>A fresh compiler per build.</strong> Each build constructs its own {@link Compiler} via
- * the injected factory, so the compiler's interner state is clean per build — never shared between
- * concurrent builds (which would corrupt its unsynchronized maps) and never accumulated across
- * sequential reloads (which would make ids a non-deterministic function of reload history).
+ * <p><strong>The compiler comes from an injected factory.</strong> A build's per-snapshot interners
+ * (worlds/triggers/suppress/cooldown-scopes) are rebuilt fresh inside the compile regardless of the
+ * compiler instance, so they are always a clean function of that build's content. The bootstrap
+ * supplies a CONSTANT compiler (the same instance each build) on purpose: its handle resolver is the
+ * one the runtime {@code RuntimeHandles} pairs with, so a token interned at compile time resolves back
+ * to its object at runtime (§9) — a fresh resolver per build would break that round-trip. Reusing it
+ * is safe because of single-flight (below): only the append-only handle interner is shared, never
+ * mutated concurrently. (A factory returning a fresh compiler per call is also valid for callers that
+ * do not need runtime handle resolution.)
  *
  * <p><strong>Single-flight.</strong> Only one reload runs at a time; a concurrent {@code /se reload}
  * is rejected with {@link ReloadResult#busy()}, so two builds can never race or publish out of order.
