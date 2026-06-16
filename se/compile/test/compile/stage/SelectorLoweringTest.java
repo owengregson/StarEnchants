@@ -41,7 +41,7 @@ class SelectorLoweringTest {
     private static AbilityDef def(EffectLine... effects) {
         return new AbilityDef(SourceKind.ENCHANT, "test/sel", 1, 1, 100.0, 0, 0,
                 List.of("ATTACK"), List.of(), null, List.of(effects),
-                null, null, null, null, 0, SRC);
+                null, null, null, null, 0, SRC, 0);
     }
 
     @Test

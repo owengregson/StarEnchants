@@ -66,7 +66,8 @@ class EraseStageTest {
                 cdScopeType,
                 0,
                 Affinity.CONTEXT_LOCAL,
-                source);
+                source,
+                0);
     }
 
     /** A minimal fixture: a stable key + defId, no names. */
@@ -231,7 +232,8 @@ class EraseStageTest {
                 null,
                 10,
                 Affinity.CONTEXT_LOCAL,
-                Source.UNKNOWN);
+                Source.UNKNOWN,
+                0);
 
         Diagnostics d = new Diagnostics();
         ErasedContent erased = STAGE.erase(List.of(la), d);

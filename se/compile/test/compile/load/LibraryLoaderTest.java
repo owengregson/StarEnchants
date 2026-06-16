@@ -94,6 +94,39 @@ class LibraryLoaderTest {
     }
 
     @Test
+    void loadsSetsAsSetTaggedAbilitiesCarryingThePieceThreshold(@TempDir Path root) throws IOException {
+        write(root, "sets/yeti.yml", """
+            display: "&bYeti"
+            pieces: 4
+            trigger: DEFENSE
+            effects: ["HEAL:1"]
+            """);
+
+        Library lib = LibraryLoader.load(root, compiler(), 8);
+
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+        compile.model.Ability bonus = lib.snapshot().byStableKey("sets/yeti");
+        assertNotNull(bonus);
+        assertEquals(compile.model.SourceKind.SET, bonus.sourceKind());
+        assertEquals(4, bonus.setPieces()); // the completion threshold is erased onto the ability
+        assertEquals(1, lib.sets().size());
+        assertEquals("sets/yeti", lib.sets().get(0).key());
+        assertEquals(4, lib.sets().get(0).pieces());
+        assertEquals("&bYeti", lib.displayNameOf("sets/yeti"));
+    }
+
+    @Test
+    void aSetWithNoPieceCountIsABlockingError(@TempDir Path root) throws IOException {
+        write(root, "sets/broken.yml", """
+            display: "Broken"
+            trigger: DEFENSE
+            effects: ["HEAL:1"]
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 9);
+        assertTrue(lib.hasErrors());
+    }
+
+    @Test
     void aMalformedFileIsReportedButValidContentStillLoads(@TempDir Path root) throws IOException {
         write(root, "enchants/good.yml", """
             trigger: ATTACK

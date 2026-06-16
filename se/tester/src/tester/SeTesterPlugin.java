@@ -18,6 +18,7 @@ import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
 import tester.suite.RenderSuite;
 import tester.suite.ResolverSuite;
+import tester.suite.SetSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
 import tester.suite.SinkSuite;
@@ -72,6 +73,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
             harness.add(new FakePlayerSuite(this));
             harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
             harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
+            harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
         }
 
         getServer().getPluginManager().registerEvents(this, this);

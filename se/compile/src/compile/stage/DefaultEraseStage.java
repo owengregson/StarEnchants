@@ -159,7 +159,8 @@ public final class DefaultEraseStage implements EraseStage {
                     cdScopeEnchant,
                     cdScopeGroup,
                     cdScopeType,
-                    suppressKey);
+                    suppressKey,
+                    la.setPieces());
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());

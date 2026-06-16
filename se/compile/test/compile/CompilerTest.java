@@ -50,7 +50,7 @@ class CompilerTest {
             List<String> triggers, List<String> worlds, String condition, List<EffectLine> effects) {
         return new AbilityDef(kind, key, defId, level, chance, cooldown, 0,
                 triggers, worlds, condition, effects, null, null, null, null, 0,
-                Source.ofFile("content.yml"));
+                Source.ofFile("content.yml"), 0);
     }
 
     /** The full content library, including a deliberate duplicate stable key. */

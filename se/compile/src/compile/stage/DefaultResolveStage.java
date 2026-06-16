@@ -47,7 +47,8 @@ public final class DefaultResolveStage implements ResolveStage {
                 ability.baseChance(), ability.cooldownTicks(), ability.soulCost(),
                 ability.triggers(), ability.worldBlacklist(), ability.condition(),
                 out, ability.suppressKey(), ability.cdScopeEnchant(), ability.cdScopeGroup(),
-                ability.cdScopeType(), ability.repeatTicks(), ability.affinity(), ability.source());
+                ability.cdScopeType(), ability.repeatTicks(), ability.affinity(), ability.source(),
+                ability.setPieces());
     }
 
     /** @return the effect with handle args resolved, or {@code null} if a handle was unknown. */

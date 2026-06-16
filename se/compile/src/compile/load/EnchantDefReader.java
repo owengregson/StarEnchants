@@ -100,7 +100,8 @@ final class EnchantDefReader {
                     group,                    // cdScopeGroup (may be null)
                     null,                     // cdScopeType: deferred
                     repeatTicks,
-                    levelSource));
+                    levelSource,
+                    0));                      // setPieces: enchants are not sets
         }
 
         int maxLevel = ContentParse.optInt(root, "max-level", maxDeclared, diags);
