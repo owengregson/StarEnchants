@@ -17,7 +17,10 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0007](0007-modernize-freely.md) | Modernize freely; adopt AE engine-level improvements only | Accepted |
 | [0008](0008-cross-version-and-folia.md) | Cross-version resolvers + Folia scheduling abstraction | Accepted |
 | [0009](0009-git-workflow.md) | Git workflow: feature branch → PR → rebase-merge | Accepted |
-| [0010](0010-architecture-derivation.md) | Concrete architecture is self-derived via a design workshop | Proposed |
+| [0010](0010-architecture-derivation.md) | Concrete architecture is self-derived via a design workshop | Accepted |
+| [0011](0011-engine-architecture.md) | Content-compiler + data-oriented runtime (see `docs/architecture.md`) | Accepted |
+| [0012](0012-damage-stacking.md) | Damage stacking is fully additive | Accepted |
+| [0013](0013-command-surface.md) | Single `/se` command root (drop `/ee`, `/ea`) | Accepted |
 
 ## Process
 

@@ -18,3 +18,6 @@ versioning: [Semantic Versioning](https://semver.org/).
   per-version Paper/Folia server jars for javap via the PaperMC Fill v3 API,
   1.17.1 → 26.1.2) and a `reference-cache` skill describing the cache + the
   cached Paper/Folia docs (cache itself is local-only / gitignored).
+- Approved architecture: `docs/architecture.md` (content-compiler + data-oriented
+  runtime, derived via a multi-lens design workshop) and ADRs 0011 (architecture),
+  0012 (fully-additive damage), 0013 (single `/se` command root).
