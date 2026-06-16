@@ -3,13 +3,16 @@ package compile;
 import compile.def.AbilityDef;
 import compile.model.Affinity;
 import compile.model.Snapshot;
+import compile.resolve.PlatformResolvers;
 import compile.stage.DefaultEraseStage;
 import compile.stage.DefaultLowerStage;
+import compile.stage.DefaultResolveStage;
 import compile.stage.DefaultSnapshotStage;
 import compile.stage.EraseStage;
 import compile.stage.LowerStage;
 import compile.stage.LoweredAbility;
 import compile.stage.ErasedContent;
+import compile.stage.ResolveStage;
 import compile.stage.SnapshotStage;
 import schema.diag.Diagnostics;
 import java.util.ArrayList;
@@ -36,31 +39,42 @@ import java.util.function.Function;
 public final class Compiler {
 
     private final LowerStage lower;
+    private final ResolveStage resolve;
     private final EraseStage erase;
     private final SnapshotStage snapshot;
 
-    public Compiler(LowerStage lower, EraseStage erase, SnapshotStage snapshot) {
+    public Compiler(LowerStage lower, ResolveStage resolve, EraseStage erase, SnapshotStage snapshot) {
         this.lower = Objects.requireNonNull(lower, "lower");
+        this.resolve = Objects.requireNonNull(resolve, "resolve");
         this.erase = Objects.requireNonNull(erase, "erase");
         this.snapshot = Objects.requireNonNull(snapshot, "snapshot");
     }
 
     /**
-     * A compiler wired with the default stages, resolving each effect's affinity
+     * A compiler wired with the default stages: each effect's affinity resolved
      * through {@code affinityOf} (head &rarr; declared {@link Affinity}; {@code null}
-     * &rarr; {@code CONTEXT_LOCAL}).
+     * &rarr; {@code CONTEXT_LOCAL}) and version-volatile handles resolved through
+     * {@code resolvers}.
      */
-    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf) {
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              PlatformResolvers resolvers) {
         return new Compiler(
                 new DefaultLowerStage(registry, affinityOf),
+                new DefaultResolveStage(registry, resolvers),
                 new DefaultEraseStage(),
                 new DefaultSnapshotStage());
     }
 
-    /** A compiler wired with the default stages; every effect defaults to {@code CONTEXT_LOCAL}. */
+    /** Default stages with the given affinity lookup; no handles are resolvable. */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf) {
+        return of(registry, affinityOf, PlatformResolvers.none());
+    }
+
+    /** Default stages; every effect defaults to {@code CONTEXT_LOCAL} and no handles resolve. */
     public static Compiler of(SpecRegistry registry) {
         return new Compiler(
                 new DefaultLowerStage(registry),
+                new DefaultResolveStage(registry, PlatformResolvers.none()),
                 new DefaultEraseStage(),
                 new DefaultSnapshotStage());
     }
@@ -78,7 +92,7 @@ public final class Compiler {
         Objects.requireNonNull(diags, "diags");
         List<LoweredAbility> lowered = new ArrayList<>(defs.size());
         for (AbilityDef def : defs) {
-            lowered.add(lower.lower(def, diags));
+            lowered.add(resolve.resolve(lower.lower(def, diags), diags));
         }
         ErasedContent erased = erase.erase(lowered, diags);
         return snapshot.assemble(erased, diags, generation);

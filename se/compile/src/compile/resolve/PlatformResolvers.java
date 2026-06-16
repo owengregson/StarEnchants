@@ -28,9 +28,28 @@ public interface PlatformResolvers {
 
     OptionalInt potionEffect(String token);
 
+    OptionalInt particle(String token);
+
     OptionalInt enchantment(String token);
 
     OptionalInt entityType(String token);
 
     OptionalInt attribute(String token);
+
+    /**
+     * A resolver that knows no tokens — every lookup is empty. Used where a compile
+     * has no version-volatile handles to resolve (so the resolve stage is a no-op),
+     * and as a convenient base in tests.
+     */
+    static PlatformResolvers none() {
+        return new PlatformResolvers() {
+            @Override public OptionalInt material(String token) { return OptionalInt.empty(); }
+            @Override public OptionalInt sound(String token) { return OptionalInt.empty(); }
+            @Override public OptionalInt potionEffect(String token) { return OptionalInt.empty(); }
+            @Override public OptionalInt particle(String token) { return OptionalInt.empty(); }
+            @Override public OptionalInt enchantment(String token) { return OptionalInt.empty(); }
+            @Override public OptionalInt entityType(String token) { return OptionalInt.empty(); }
+            @Override public OptionalInt attribute(String token) { return OptionalInt.empty(); }
+        };
+    }
 }
