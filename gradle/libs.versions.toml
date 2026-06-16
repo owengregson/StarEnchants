@@ -10,8 +10,12 @@ java-floor = "17"
 paper-floor = "1.17.1-R0.1-SNAPSHOT"
 # A newer API for the compat-modern edge (behind a Capabilities probe).
 paper-modern = "1.21.4-R0.1-SNAPSHOT"
-# Folia scheduler API for the compat-folia edge.
-folia = "1.21.4-R0.1-SNAPSHOT"
+# Folia scheduler API for the compat-folia edge. Pinned to 1.19.4 — the FLOOR Folia
+# release where the threaded-regions scheduler API was introduced and the last that
+# is Java-17 bytecode (1.21.4's API jar requires JVM 21). The scheduler signatures are
+# stable across the range, so the compat-folia classes compiled here load on every
+# newer Folia (docs/architecture.md §9; folia-scheduling skill).
+folia = "1.19.4-R0.1-SNAPSHOT"
 junit = "5.11.3"
 # Mock-host testing for Bukkit-facing kinds (effects/conditions verified against a
 # mocked Sink + entities) — the testability practice the design adopts (§1.3).
