@@ -14,3 +14,7 @@ versioning: [Semantic Versioning](https://semver.org/).
 - Project structure: ADR decision log, glossary, root agent guide (CLAUDE.md),
   Code of Conduct, Security policy, docs index, Dependabot, release-notes
   config, and a markdown/workflow lint CI.
+- Developer reference cache: `scripts/fetch-reference.sh` (downloads + extracts
+  per-version Paper/Folia server jars for javap via the PaperMC Fill v3 API,
+  1.17.1 → 26.1.2) and a `reference-cache` skill describing the cache + the
+  cached Paper/Folia docs (cache itself is local-only / gitignored).
