@@ -9,7 +9,10 @@ authors: [StarEnchants]
 commands:
   se:
     description: StarEnchants admin command.
-    usage: /se reload [--dry-run]
+    usage: |-
+      /se reload [--dry-run] — rebuild content
+      /se enchant <key> [level] — apply an enchant to the held item
+      /se crystal <key> — apply a crystal to the held item
     permission: starenchants.admin
 permissions:
   starenchants.admin:
