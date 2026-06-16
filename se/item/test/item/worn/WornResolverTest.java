@@ -9,6 +9,7 @@ import compile.model.CompiledEffect;
 import compile.model.SourceKind;
 import compile.model.StableKeyIndex;
 import item.codec.CombatState;
+import item.codec.HeroicStat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,16 @@ class WornResolverTest {
         WornState worn = resolver().resolveFrom(List.of(piece, piece, omni), SET_KEYS, SET_ABILITIES, 1);
         assertEquals(true, worn.isSetActive(0));
         assertArrayEquals(new int[] {0}, worn.byTrigger(1));
+    }
+
+    @Test
+    void heroicStatsSumAcrossPieces() {
+        CombatState a = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(2.0, 1.0, 0.0));
+        CombatState b = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(3.0, 4.0, 5.0));
+        WornState worn = resolver().resolveFrom(List.of(a, b), KEYS, ABILITIES, 1);
+        assertEquals(5.0, worn.heroic().flatDamage());
+        assertEquals(5.0, worn.heroic().flatReduction());
+        assertEquals(5.0, worn.heroic().durability());
     }
 
     @Test

@@ -23,11 +23,13 @@ import java.util.Map;
  * @param crystals applied crystal stable keys, in order; never {@code null}
  * @param setKey   the armour-set this piece belongs to (stable key), or {@code null} for none
  * @param omni     whether this is an omni wildcard set piece (§6.6)
+ * @param heroic   the heroic flat stats this piece carries (§6); {@link HeroicStat#NONE} for none
  */
-public record CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni) {
+public record CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
+                          HeroicStat heroic) {
 
     /** An item with no StarEnchants combat state. */
-    public static final CombatState EMPTY = new CombatState(Map.of(), List.of(), null, false);
+    public static final CombatState EMPTY = new CombatState(Map.of(), List.of(), null, false, HeroicStat.NONE);
 
     public CombatState {
         // Defensive, order-PRESERVING copies → the record is immutable and the encoded blob (and thus
@@ -36,15 +38,21 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         enchants = Collections.unmodifiableMap(new LinkedHashMap<>(enchants));
         crystals = List.copyOf(crystals);
         setKey = (setKey == null || setKey.isBlank()) ? null : setKey;
+        heroic = heroic == null ? HeroicStat.NONE : heroic;
     }
 
-    /** Back-compat constructor for state with no set membership (enchants + crystals only). */
+    /** Back-compat constructor for state with no set membership or heroic stats (enchants + crystals only). */
     public CombatState(Map<String, Integer> enchants, List<String> crystals) {
-        this(enchants, crystals, null, false);
+        this(enchants, crystals, null, false, HeroicStat.NONE);
+    }
+
+    /** Constructor for state with set membership but no heroic stats. */
+    public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni) {
+        this(enchants, crystals, setKey, omni, HeroicStat.NONE);
     }
 
     /** Whether this item carries no combat state at all (the common miss-path case). */
     public boolean isEmpty() {
-        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && !omni;
+        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && !omni && heroic.isZero();
     }
 }

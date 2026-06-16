@@ -4,6 +4,7 @@ import compile.model.Ability;
 import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
 import item.codec.CombatState;
+import item.codec.HeroicStat;
 import item.view.ItemView;
 import item.view.ItemViewCache;
 import java.util.ArrayList;
@@ -93,7 +94,9 @@ public final class WornResolver {
         List<Integer> crystalIds = new ArrayList<>();
         List<Integer> wornSetIds = new ArrayList<>();
         int omniCount = 0;
+        HeroicStat heroic = HeroicStat.NONE;
         for (CombatState combat : combats) {
+            heroic = heroic.plus(combat.heroic()); // heroic flat stats sum across every worn piece (§6)
             for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
                 int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
                 if (id >= 0) {
@@ -122,7 +125,7 @@ public final class WornResolver {
             mergedIds.add(setId); // an active set's bonus fires on triggers like any other source
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), abilities, triggerCount,
-                activeSets, toIntArray(crystalIds), HeroicStat.NONE, attackTrigger, defenseTrigger);
+                activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger);
     }
 
     private static int[] toIntArray(List<Integer> values) {
