@@ -41,7 +41,7 @@ public final class ItemCodecSuite implements Harness.Scenario {
         Map<String, Integer> ench = new LinkedHashMap<>();
         ench.put("fire-aspect", 3);
         ench.put("soul_harvest", 5);
-        CombatState state = new CombatState(ench, List.of("crit-crystal", "vampire-crystal"));
+        CombatState state = new CombatState(ench, List.of("crit-crystal", "vampire-crystal"), "sets/yeti", true);
 
         h.guard("item.codec.roundtrip", () -> {
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
@@ -76,6 +76,12 @@ public final class ItemCodecSuite implements Harness.Scenario {
         }
         if (!expected.crystals().equals(actual.crystals())) {
             throw new IllegalStateException("crystals mismatch: " + expected.crystals() + " != " + actual.crystals());
+        }
+        if (!java.util.Objects.equals(expected.setKey(), actual.setKey())) {
+            throw new IllegalStateException("setKey mismatch: " + expected.setKey() + " != " + actual.setKey());
+        }
+        if (expected.omni() != actual.omni()) {
+            throw new IllegalStateException("omni mismatch: " + expected.omni() + " != " + actual.omni());
         }
     }
 }
