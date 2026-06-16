@@ -23,11 +23,13 @@ import org.bukkit.entity.Player;
  *
  * <p><strong>Mojang-mapped range only (Paper/Folia 1.20.6 → 26.1.x).</strong> All NMS/CraftBukkit
  * access is reflective because the harness compiles against the paper-api floor; the construction
- * signatures are identical across this range (the static {@code ClientInformation.createDefault} and
- * {@code CommonListenerCookie.createInitial} factories absorb the only ctor-arity changes), so there
- * is nothing to branch on. The spigot-mapped floor (1.17.1–1.19.4) is obfuscated and is a separate
- * follow-up. Only netty is referenced directly (a {@code compileOnly} dep, provided by the server) so
- * the one genuinely risky edge — the fake channel — is plain code, not reflection.
+ * signatures are near-identical across this range (the static {@code ClientInformation.createDefault}
+ * and {@code CommonListenerCookie.createInitial} factories absorb the ctor-arity changes), with ONE
+ * branch: Folia 1.20.6 regionized the join, so {@code placeNewPlayer} there is a 6-arg variant taking
+ * the spawn {@code Location} up front — the spawn step tries the 3-arg form and falls back to it. The
+ * spigot-mapped floor (1.17.1–1.19.4) is obfuscated and is a separate follow-up (ADR 0015). Only netty
+ * is referenced directly (a {@code compileOnly} dep, provided by the server) so the one genuinely risky
+ * edge — the fake channel — is plain code, not reflection.
  *
  * <p><strong>Threading:</strong> {@link #spawn} registers the player server-wide, so it MUST be
  * called on the world's owning thread — the main thread on Paper, the global region on Folia (route
@@ -75,8 +77,19 @@ public final class FakePlayers {
                     .invoke(null, profile, false);
             Class<?> connectionClass = Class.forName("net.minecraft.network.Connection");
             Class<?> serverPlayerClass = Class.forName("net.minecraft.server.level.ServerPlayer");
-            method(playerList.getClass(), "placeNewPlayer", connectionClass, serverPlayerClass, cookieClass)
-                    .invoke(playerList, connection, serverPlayer, cookie);
+            try {
+                // Paper 1.20.5+ and Folia 1.21+: placeNewPlayer(Connection, ServerPlayer, CommonListenerCookie).
+                method(playerList.getClass(), "placeNewPlayer", connectionClass, serverPlayerClass, cookieClass)
+                        .invoke(playerList, connection, serverPlayer, cookie);
+            } catch (NoSuchMethodException regionizedJoin) {
+                // Folia 1.20.6 regionized the join into a 6-arg variant that takes the spawn location up
+                // front (the region the player joins is decided from it): placeNewPlayer(Connection,
+                // ServerPlayer, CommonListenerCookie, Optional<CompoundTag> savedData, String, Location).
+                method(playerList.getClass(), "placeNewPlayer", connectionClass, serverPlayerClass, cookieClass,
+                        java.util.Optional.class, String.class, org.bukkit.Location.class)
+                        .invoke(playerList, connection, serverPlayer, cookie,
+                                java.util.Optional.empty(), name, world.getSpawnLocation());
+            }
             return null;
         });
 
