@@ -9,6 +9,7 @@ import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
+import tester.suite.ContentLoaderSuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
@@ -55,7 +56,13 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))
-                .add(new FakePlayerSuite(this));
+                .add(new ContentLoaderSuite(this));
+
+        // The fake-player harness is mojang-mapped only (1.20.5+); on the spigot-mapped floor
+        // (1.17.1–1.19.4) its NMS reflection does not yet apply, so it self-defers (a follow-up).
+        if (caps.mojangMapped()) {
+            harness.add(new FakePlayerSuite(this));
+        }
 
         getServer().getPluginManager().registerEvents(this, this);
     }
