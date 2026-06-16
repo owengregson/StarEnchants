@@ -12,9 +12,9 @@ dependencies {
     // is shaded in too so the Folia backend is present to load on a threaded-regions server.
     implementation(project(":platform"))
     implementation(project(":compat-folia"))
-    // Activated as the harness grows to cover the runtime + item data:
+    implementation(project(":item"))
+    // Activated as the harness grows to cover the runtime:
     // implementation(project(":engine"))
-    // implementation(project(":item"))
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder.

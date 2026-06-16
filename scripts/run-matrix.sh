@@ -122,10 +122,13 @@ run_one() { # run_one <platform> <version> <port>
 
   local run; run="$(mktemp -d "/tmp/se-matrix.$platform-$version.XXXXXX")"
   RUN_LOG="$run/boot.log"
-  # Symlink the immutable cached artifacts; only mutable state lands in the run dir.
-  ln -s "$cache/versions"  "$run/versions"  2>/dev/null
-  ln -s "$cache/libraries" "$run/libraries" 2>/dev/null
-  ln -s "$cache/cache"     "$run/cache"     2>/dev/null
+  # Symlink the immutable cached artifacts; only mutable state lands in the run dir. The modern
+  # paperclip extracts versions/ + libraries/; the old 1.17-era paperclip uses only cache/ — so
+  # link whichever dirs this version actually has (a dangling link would confuse paperclip).
+  local d
+  for d in versions libraries cache; do
+    [ -d "$cache/$d" ] && ln -s "$cache/$d" "$run/$d"
+  done
   cp "$paperclip" "$run/paperclip.jar"
   mkdir -p "$run/plugins"
   cp "$TESTER_JAR" "$run/plugins/"
