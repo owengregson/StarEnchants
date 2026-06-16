@@ -34,6 +34,22 @@ class SoulLedgerTest {
     }
 
     @Test
+    void peekDoesNotSeedAndReportsAbsenceVersusZero() {
+        SoulLedger ledger = new SoulLedger();
+        UUID gem = UUID.randomUUID();
+        // Untouched → empty (NOT zero), and peeking must not seed the authority.
+        assertTrue(ledger.peek(gem).isEmpty());
+        // After a touch, peek reports the live authority without re-seeding.
+        ledger.deposit(gem, new IntBalance(0), 7);
+        assertEquals(7, ledger.peek(gem).getAsInt());
+        // A zero balance is distinguishable from absence.
+        ledger.tryConsume(gem, new IntBalance(7), 7);
+        assertEquals(0, ledger.peek(gem).getAsInt());
+        ledger.forget(gem);
+        assertTrue(ledger.peek(gem).isEmpty());
+    }
+
+    @Test
     void consumeDebitsWhenAffordable() {
         SoulLedger ledger = new SoulLedger();
         IntBalance gem = new IntBalance(10);

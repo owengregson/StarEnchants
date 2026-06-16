@@ -7,10 +7,13 @@ import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.sink.DispatchSink;
+import feature.soul.SoulBinding;
 import item.worn.WornState;
 import item.worn.WornStateStore;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import java.util.function.LongSupplier;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -44,10 +47,20 @@ public final class CombatDispatch {
     private final int attackTriggerId;
     private final int defenseTriggerId;
     private final LongSupplier nowTicks;
+    private final Function<Player, Optional<SoulBinding>> soulBinder;
 
+    /** Combat dispatch with NO soul system (the soul gate is never armed). */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks) {
+        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, nowTicks,
+                actor -> Optional.empty());
+    }
+
+    /** Combat dispatch with a soul binder: an actor in soul mode arms gate 10 from their active gem. */
+    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
+                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
         this.executor = Objects.requireNonNull(executor, "executor");
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
@@ -55,6 +68,7 @@ public final class CombatDispatch {
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.soulBinder = Objects.requireNonNull(soulBinder, "soulBinder");
     }
 
     /** Dispatch one entity-on-entity hit: run attacker + defender abilities and fold the result. */
@@ -113,10 +127,11 @@ public final class CombatDispatch {
         if (candidates.length == 0) {
             return;
         }
-        Activation activation = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
-                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0))
-                .build();
-        executor.run(abilities, candidates, activation, context, sink);
+        Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
+                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0));
+        // Arm the soul gate from the actor's active gem (if any): a soul-cost ability spends from it.
+        soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
+        executor.run(abilities, candidates, builder.build(), context, sink);
     }
 
     private static int worldId(Snapshot snapshot, World world) {

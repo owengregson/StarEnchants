@@ -12,14 +12,18 @@ import engine.run.AbilityExecutor;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
+import engine.stores.SoulModeStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.apply.ItemEnchanter;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
+import feature.soul.SoulListener;
+import feature.soul.SoulService;
 import item.codec.CombatCodec;
 import item.codec.ItemKeys;
+import item.codec.SoulCodec;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
 import item.view.ItemViewCache;
@@ -58,6 +62,9 @@ import schema.diag.Diagnostics;
  * reusing one compiler across reloads is safe because the reload is single-flight.
  */
 public final class StarEnchantsPlugin extends JavaPlugin {
+
+    /** Souls granted to the killer's active gem per kill (a v1 constant; config-driven later). */
+    private static final int SOULS_PER_KILL = 1;
 
     private static final List<String> DEFAULT_CONTENT = List.of(
             "content/enchants/lifesteal.yml",
@@ -103,14 +110,22 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key));
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard());
 
-        // Runtime executor + combat dispatch.
+        // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
+        // gain-on-kill see the same in-memory authority.
+        SoulLedger souls = new SoulLedger();
+        SoulService soulService = new SoulService(souls, new SoulModeStore(),
+                new SoulCodec(ItemKeys.of(this).soul()));
+
+        // Runtime executor + combat dispatch (the soul binder arms gate 10 from an actor's active gem).
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), new SoulLedger()), areaScan());
+                new ActivationPipeline(new CooldownStore(), souls), areaScan());
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
-                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::get);
+                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::get,
+                soulService::bindingFor);
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
+        getServer().getPluginManager().registerEvents(new SoulListener(soulService, SOULS_PER_KILL), this);
 
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).
@@ -124,7 +139,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         PluginCommand command = getCommand("se");
         if (command != null) {
             command.setExecutor(new SeCommand(reloader, enchanter,
-                    player -> worn.refresh(player, content.snapshot())));
+                    player -> worn.refresh(player, content.snapshot()), soulService));
         }
     }
 

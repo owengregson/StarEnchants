@@ -13,18 +13,29 @@ import org.bukkit.plugin.Plugin;
 public final class ItemKeys {
 
     private final NamespacedKey combat;
+    private final NamespacedKey soul;
 
-    private ItemKeys(NamespacedKey combat) {
+    private ItemKeys(NamespacedKey combat, NamespacedKey soul) {
         this.combat = combat;
+        this.soul = soul;
     }
 
     /** Build the key set under {@code plugin}'s namespace. */
     public static ItemKeys of(Plugin plugin) {
-        return new ItemKeys(new NamespacedKey(plugin, "combat"));
+        return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"));
     }
 
     /** The single key the combat-state blob is stored under (§5.1). */
     public NamespacedKey combat() {
         return combat;
+    }
+
+    /**
+     * The key the soul-gem state lives under — DELIBERATELY separate from {@link #combat()}: souls
+     * change on every spend/gain, and folding them into the combat blob would thrash the content-hash
+     * {@code ItemView} cache and force a lore re-render on each hit (§5.1, §5.2).
+     */
+    public NamespacedKey soul() {
+        return soul;
     }
 }
