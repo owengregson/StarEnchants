@@ -48,6 +48,8 @@ logs/
 # Claude Code — keep committed project skills, ignore local/session settings
 .claude/settings.local.json
 .claude/*.local.json
+# Harness-managed agent worktrees (transient; point back into this repo)
+.claude/worktrees/
 
 # OS
 .DS_Store
