@@ -56,25 +56,38 @@ public final class SchedulingSuite implements Harness.Scenario {
         Scheduling.onRegion(at, () -> h.guard("sched.region", () ->
                 world.getBlockAt(at).getType()));
 
-        // Entity-owned: spawn on the region that owns the location, then schedule ON the entity.
-        Scheduling.onRegion(at, () -> {
-            ArmorStand stand = (ArmorStand) world.spawnEntity(at, EntityType.ARMOR_STAND);
-            stand.setInvisible(true);
-            stand.setGravity(false);
+        // Entity-owned: the common case (anything done TO an entity). With no players online,
+        // newer servers (26.1.x) cull a freshly-spawned entity within a couple of ticks once its
+        // chunk stops entity-ticking, so the delayed-task check would race culling rather than test
+        // scheduling. We force-load the chunk to keep it ticking — but on Folia force-load modifies
+        // a GLOBAL set ("Cannot modify force loaded chunks off of the global region"), so it must
+        // run on the global thread. So: force-load on global, THEN spawn on the location's region,
+        // THEN schedule on the entity — each step on its correct owning thread.
+        int cx = at.getBlockX() >> 4;
+        int cz = at.getBlockZ() >> 4;
+        Scheduling.onGlobal(() -> {
+            world.setChunkForceLoaded(cx, cz, true);
+            Scheduling.onRegion(at, () -> {
+                ArmorStand stand = (ArmorStand) world.spawnEntity(at, EntityType.ARMOR_STAND);
+                stand.setInvisible(true);
+                stand.setGravity(false);
+                stand.setPersistent(true);
 
-            Scheduling.onEntity(stand, () -> h.guard("sched.entity", () -> {
-                // Mutating the entity from its own scheduler is the region-correct path.
-                stand.setCustomName("se-harness");
-                stand.setCustomNameVisible(false);
-            }));
+                Scheduling.onEntity(stand, () -> h.guard("sched.entity", () -> {
+                    // Mutating the entity from its own scheduler is the region-correct path.
+                    stand.setCustomName("se-harness");
+                    stand.setCustomNameVisible(false);
+                }));
 
-            Scheduling.onEntityLater(stand, 2L, () -> {
-                h.guard("sched.entityLater", () -> {
-                    if (!stand.isValid()) {
-                        throw new IllegalStateException("entity invalid before delayed task ran");
-                    }
+                Scheduling.onEntityLater(stand, 2L, () -> {
+                    h.guard("sched.entityLater", () -> {
+                        if (!stand.isValid()) {
+                            throw new IllegalStateException("entity invalid before delayed task ran");
+                        }
+                    });
+                    stand.remove();
+                    Scheduling.onGlobal(() -> world.setChunkForceLoaded(cx, cz, false));
                 });
-                stand.remove();
             });
         });
 

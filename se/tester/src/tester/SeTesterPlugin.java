@@ -1,11 +1,15 @@
 package tester;
 
 import java.nio.file.Path;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
+import tester.suite.ItemCodecSuite;
 import tester.suite.SchedulingSuite;
 
 /**
@@ -15,14 +19,18 @@ import tester.suite.SchedulingSuite;
  * fresh {@code test-results.txt} (PASS/FAIL), and shuts the server down. The runner then reads that
  * file and fails the gate on anything but a fresh PASS.
  *
- * <p>It deliberately self-tests the {@code platform} layer directly (no separate StarEnchants
- * plugin yet) — Scheduling/Capabilities are the foundation every later layer rides on, so they are
- * the first thing the matrix must prove on both Paper and Folia.
+ * <p>Suites start on {@link ServerLoadEvent}, not in {@code onEnable}: a fully-initialised server
+ * is the only stable footing for scenarios that spawn entities or expect a delayed task to fire
+ * (mid-startup the world is still loading — a freshly-spawned entity may not survive a few ticks,
+ * which is exactly the flake the matrix surfaced on the slow-booting ceiling build).
  */
-public final class SeTesterPlugin extends JavaPlugin {
+public final class SeTesterPlugin extends JavaPlugin implements Listener {
 
     /** Game-tick budget before unresolved checks are failed (20 s at 20 tps). */
     private static final long DEADLINE_TICKS = 400L;
+
+    private Harness harness;
+    private boolean started;
 
     @Override
     public void onEnable() {
@@ -34,9 +42,22 @@ public final class SeTesterPlugin extends JavaPlugin {
         // The server's working directory is the matrix run dir; results land there.
         Path serverRoot = Path.of(System.getProperty("user.dir", "."));
 
-        Harness harness = new Harness(this, serverRoot, DEADLINE_TICKS)
+        harness = new Harness(this, serverRoot, DEADLINE_TICKS)
                 .add(new CapabilitiesSuite(this, caps))
-                .add(new SchedulingSuite(this));
+                .add(new SchedulingSuite(this))
+                .add(new ItemCodecSuite(this));
+
+        getServer().getPluginManager().registerEvents(this, this);
+    }
+
+    /** Begin the suites once the server is fully loaded (fires once per startup). */
+    @EventHandler
+    public void onServerLoad(ServerLoadEvent event) {
+        if (started) {
+            return;
+        }
+        started = true;
+        getLogger().info("[tester] server loaded (" + event.getType() + ") — starting suites");
         harness.start();
     }
 }
