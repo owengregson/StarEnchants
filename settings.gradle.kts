@@ -27,6 +27,7 @@ listOf(
     "platform",      // boot-time resolvers, Scheduling, capabilities, protection/economy SPIs
     "migrate",       // legacy NBT reader + EE/EA/AE config importer
     "api",           // public surface: events + the registration SPI + read-only queries
+    "bootstrap",     // the StarEnchants JavaPlugin: composition root, content load, /se reload
     // Newer-than-floor edges, behind a Capabilities probe.
     "compat-folia",  // Folia region/entity/global schedulers
     "compat-modern", // profile/head API, component commands, Brigadier, BlockData sends

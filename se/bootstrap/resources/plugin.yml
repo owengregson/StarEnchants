@@ -1,0 +1,17 @@
+name: StarEnchants
+version: '${version}'
+main: bootstrap.StarEnchantsPlugin
+api-version: '1.17'
+# Folia-correct: all entity/world/timer work goes through the platform Scheduling abstraction.
+folia-supported: true
+description: One unified, cross-version (1.17.1–26.1.x) Paper/Folia enchantments + armor engine.
+authors: [StarEnchants]
+commands:
+  se:
+    description: StarEnchants admin command.
+    usage: /se reload [--dry-run]
+    permission: starenchants.admin
+permissions:
+  starenchants.admin:
+    description: Administer StarEnchants (reload content).
+    default: op
