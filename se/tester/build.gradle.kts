@@ -13,8 +13,9 @@ dependencies {
     implementation(project(":platform"))
     implementation(project(":compat-folia"))
     implementation(project(":item"))
-    // Activated as the harness grows to cover the runtime:
-    // implementation(project(":engine"))
+    // The runtime under test: the Sink dispatcher + effect/pipeline core (brings :platform/:compile
+    // /:schema transitively, but they are listed explicitly above for clarity of the fat-jar contents).
+    implementation(project(":engine"))
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder.

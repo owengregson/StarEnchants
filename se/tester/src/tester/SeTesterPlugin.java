@@ -13,6 +13,7 @@ import tester.suite.ItemCodecSuite;
 import tester.suite.ResolverSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
+import tester.suite.SinkSuite;
 
 /**
  * The live matrix harness plugin (docs/architecture.md §11; live-server-testing, matrix-gate
@@ -49,7 +50,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new SchedulingSuite(this))
                 .add(new ItemCodecSuite(this))
                 .add(new ResolverSuite())
-                .add(new RuntimeHandlesSuite());
+                .add(new RuntimeHandlesSuite())
+                .add(new SinkSuite(this));
 
         getServer().getPluginManager().registerEvents(this, this);
     }

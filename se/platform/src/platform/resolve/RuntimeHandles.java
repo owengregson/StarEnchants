@@ -37,6 +37,19 @@ public final class RuntimeHandles {
         }
     }
 
+    /**
+     * The live object an already-alias-resolved canonical {@code name} denotes in {@code category},
+     * or {@code null} if it does not resolve on this version. The name-keyed companion to
+     * {@link #resolve(HandleCategory, int)} for the handful of referents the {@code Sink} dispatcher
+     * needs by their well-known name rather than an interned id (e.g. the implicit max-health
+     * attribute behind {@code addMaxHealth}). It funnels through the same single version-adaptive
+     * {@link RegistrySupport} lookup, so there is still exactly one cross-version resolution body.
+     * Not cached: the dispatcher calls it for cold, non-hot-path intents only.
+     */
+    public Object resolveByName(HandleCategory category, String name) {
+        return RegistrySupport.lookup(category, name);
+    }
+
     /** The live object for an interned handle id in {@code category}, or {@code null} if unresolved. */
     public Object resolve(HandleCategory category, int id) {
         Map<Integer, Object> categoryCache = cache.get(category);
