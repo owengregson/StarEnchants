@@ -9,6 +9,7 @@ import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
+import tester.suite.FakePlayerSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
 import tester.suite.ResolverSuite;
@@ -53,7 +54,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new ItemViewSuite(this))
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
-                .add(new SinkSuite(this));
+                .add(new SinkSuite(this))
+                .add(new FakePlayerSuite(this));
 
         getServer().getPluginManager().registerEvents(this, this);
     }
