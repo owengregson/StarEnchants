@@ -24,8 +24,10 @@ import org.bukkit.persistence.PersistentDataType;
  *
  * <p>Format: {@code v1 US <label> US <payload> US <label> US <payload> …} where {@code US} is the
  * unit separator and each list payload joins entries with the record separator {@code RS}. Labels:
- * {@code e} = enchants ({@code key:level} per entry), {@code c} = crystals ({@code key}). Unknown
- * labels are ignored so a newer field never breaks an older reader.
+ * {@code e} = enchants ({@code key:level} per entry), {@code c} = crystals ({@code key}),
+ * {@code s} = armour-set key, {@code o} = omni flag ({@code 1}). Unknown labels are ignored so a
+ * newer field never breaks an older reader (and an older blob lacking {@code s}/{@code o} decodes to
+ * no set / not-omni).
  */
 public final class CombatCodec {
 
@@ -124,6 +126,13 @@ public final class CombatCodec {
             crys.append(state.crystals().get(i));
         }
         sb.append(US).append('c').append(US).append(crys);
+
+        if (state.setKey() != null) {
+            sb.append(US).append('s').append(US).append(state.setKey());
+        }
+        if (state.omni()) {
+            sb.append(US).append('o').append(US).append('1');
+        }
         return sb.toString();
     }
 
@@ -138,6 +147,8 @@ public final class CombatCodec {
         }
         Map<String, Integer> enchants = new LinkedHashMap<>();
         java.util.List<String> crystals = new java.util.ArrayList<>();
+        String setKey = null;
+        boolean omni = false;
         // Sections come in (label, payload) pairs after the version token.
         for (int i = 1; i + 1 < tokens.length; i += 2) {
             String label = tokens[i];
@@ -146,10 +157,14 @@ public final class CombatCodec {
                 parseEnchants(payload, enchants);
             } else if ("c".equals(label)) {
                 parseCrystals(payload, crystals);
+            } else if ("s".equals(label)) {
+                setKey = payload.isEmpty() ? null : payload;
+            } else if ("o".equals(label)) {
+                omni = "1".equals(payload);
             }
             // any other label is a newer field this reader does not know — ignore it
         }
-        return new CombatState(enchants, crystals);
+        return new CombatState(enchants, crystals, setKey, omni);
     }
 
     private static void parseEnchants(String payload, Map<String, Integer> into) {

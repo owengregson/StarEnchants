@@ -63,6 +63,31 @@ class CombatCodecTest {
     }
 
     @Test
+    void roundTripsSetMembershipAndOmniFlag() {
+        CombatState withSet = new CombatState(Map.of("guard", 2), List.of(), "sets/yeti", false);
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(withSet));
+        assertEquals("sets/yeti", back.setKey());
+        assertEquals(false, back.omni());
+        assertEquals(Map.of("guard", 2), back.enchants());
+
+        CombatState omniPiece = new CombatState(Map.of(), List.of(), "sets/yeti", true);
+        CombatState backOmni = CombatCodec.decodeBlob(CombatCodec.encodeBlob(omniPiece));
+        assertEquals("sets/yeti", backOmni.setKey());
+        assertTrue(backOmni.omni());
+
+        // An item with only a set key (no enchants/crystals) is NOT empty — it must persist.
+        assertTrue(!new CombatState(Map.of(), List.of(), "sets/yeti", false).isEmpty());
+    }
+
+    @Test
+    void legacyBlobWithoutSetSectionsDecodesToNoSet() {
+        // An old v1 blob (no s/o labels) → setKey null, omni false (forward-compatible).
+        CombatState back = CombatCodec.decodeBlob("v1efire:2c");
+        assertEquals(null, back.setKey());
+        assertEquals(false, back.omni());
+    }
+
+    @Test
     void malformedEntriesAreSkippedNotThrown() {
         // Hand-built blob with a missing level, a non-numeric level, and a good entry.
         String blob = "v1\u001Fe\u001Fbad\u001Egood:4\u001Ealsobad:x\u001Fc\u001F";
