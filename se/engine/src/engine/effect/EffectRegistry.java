@@ -3,8 +3,10 @@ package engine.effect;
 import compile.MapSpecRegistry;
 import compile.SpecRegistry;
 import compile.model.Affinity;
+import engine.spec.TargetSpec;
 import schema.spec.ParamSpec;
 import java.util.Collection;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -72,6 +74,24 @@ public final class EffectRegistry {
         return head -> {
             EffectKind k = byHead.get(head.toUpperCase(Locale.ROOT));
             return k == null ? null : k.spec().affinity();
+        };
+    }
+
+    /**
+     * A head &rarr; declared default-selector head lookup for the compiler's selector
+     * lowering: an effect's first declared target slot's selector type (e.g.
+     * {@code AOE}), or {@code null} when the effect declares no target — in which case
+     * the compiler defaults the effect to {@code SELF}. Inline selectors on the
+     * authored line override this (§3.5, §7).
+     */
+    public Function<String, String> defaultSelectorOf() {
+        return head -> {
+            EffectKind k = byHead.get(head.toUpperCase(Locale.ROOT));
+            if (k == null) {
+                return null;
+            }
+            List<TargetSpec> targets = k.spec().targets();
+            return targets.isEmpty() ? null : targets.get(0).selectorType();
         };
     }
 
