@@ -33,8 +33,19 @@ public interface Sink {
     /** Add a damage-reduction percentage to the additive defense bucket. */
     void addDamageReduction(double percent);
 
-    /** Add a flat amount to the damage fold (heroic flat stats, §6.1). */
+    /**
+     * Add a flat damage bonus to the attack side of the fold (heroic flat damage, §6.1).
+     * Delivered after the outgoing multiplier, so it is not inflated by the attacker's
+     * own percent buffs.
+     */
     void addFlatDamage(double amount);
+
+    /**
+     * Add a flat damage <em>reduction</em> to the defense side of the fold (heroic flat
+     * reduction, §6.1). Subtracted last, so it absorbs exactly this amount regardless of
+     * percent context.
+     */
+    void addFlatReduction(double amount);
 
     // ── Entity intents (interned handle ids for version-volatile referents) ──
 
