@@ -1,0 +1,13 @@
+# Bulwark — soften incoming blows. A DEFENSE enchant that contributes to the additive
+# defense bucket the damage arbiter folds (§6.1) via REDUCE_DAMAGE; the percentage scales
+# with level and the top tier also grants the wearer a short Resistance buff. REDUCE_DAMAGE
+# has no target (it softens the incoming hit); POTION defaults to @Self (the wearer).
+display: "&9Bulwark"
+description: "Shrug off incoming blows."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: defense
+levels:
+  1: { chance: 30, effects: ["REDUCE_DAMAGE:10"] }
+  2: { chance: 40, effects: ["REDUCE_DAMAGE:18"] }
+  3: { chance: 55, effects: ["REDUCE_DAMAGE:25", "POTION:DAMAGE_RESISTANCE:0:40:@Self"] }

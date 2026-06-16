@@ -1,0 +1,10 @@
+# Jolt Crystal — a flat, levelless socket bonus (§6.5). On an ATTACK it calls a bolt onto the foe via
+# LIGHTNING, which targets @Victim by default; the damage argument is the bolt's bonus damage. A
+# cooldown keeps the strike occasional rather than every swing.
+display: "&eJolt Crystal"
+description: "Strike your foe with a jolt of lightning."
+trigger: ATTACK
+applies-to: [SWORD, AXE, TRIDENT]
+chance: 35
+cooldown: 40
+effects: ["LIGHTNING:3", "SOUND:ENTITY_GENERIC_EXPLODE:1:1"]

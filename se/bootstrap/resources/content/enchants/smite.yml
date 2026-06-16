@@ -1,0 +1,10 @@
+# Smite — call down holy fire, dealing bonus damage and searing the foe.
+display: "&fSmite"
+description: "Smite the enemy you strike with holy fire."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 25, effects: ["FLAT_DAMAGE:2", "PARTICLE:WITCH:8"] }
+  2: { chance: 35, effects: ["FLAT_DAMAGE:3", "IGNITE:40:@Victim"] }
+  3: { chance: 45, cooldown: 0, effects: ["FLAT_DAMAGE:4", "IGNITE:60:@Victim", "PARTICLE:WITCH:14", "MESSAGE:&fHoly fire smites your foe!"] }

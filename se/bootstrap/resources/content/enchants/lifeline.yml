@@ -1,0 +1,13 @@
+# Lifeline — a guaranteed burst of healing when a blow leaves you near death. A DEFENSE
+# enchant gated by a condition on the wearer's health (%actor.health% is a registered numeric
+# fact, §3.4): it only fires when the wearer is at or below the level's health threshold, then
+# HEALs (default @Self) and grants Absorption hearts to buy a moment to recover.
+display: "&dLifeline"
+description: "A burst of healing when death is near."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: defense
+levels:
+  1: { chance: 100, cooldown: 600, condition: "%actor.health% <= 6", effects: ["HEAL:6:@Self"] }
+  2: { chance: 100, cooldown: 500, condition: "%actor.health% <= 7", effects: ["HEAL:8:@Self", "POTION:ABSORPTION:0:120:@Self"] }
+  3: { chance: 100, cooldown: 400, condition: "%actor.health% <= 8", effects: ["HEAL:10:@Self", "POTION:ABSORPTION:1:160:@Self"] }

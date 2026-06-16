@@ -15,6 +15,12 @@ dependencies {
     implementation(project(":item"))
     implementation(project(":platform"))
     implementation(project(":compat-folia"))
+
+    // The catalog-validation test compiles resources/content/ through the real LibraryLoader +
+    // BuiltinEffects registry; the effect kinds reference Bukkit types and YAML is parsed, both
+    // server-provided at runtime (compileOnly) — so the test supplies them.
+    testImplementation(libs.paper.api.floor)
+    testImplementation("org.yaml:snakeyaml:2.2")
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder.

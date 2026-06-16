@@ -1,0 +1,10 @@
+# Wither Touch — afflict the foe with decay on hit. WITHER debuff appended :@Victim.
+display: "&0Wither Touch"
+description: "Wither the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 20, effects: ["POTION:WITHER:0:60:@Victim", "PARTICLE:SOUL:6"] }
+  2: { chance: 28, effects: ["POTION:WITHER:0:80:@Victim", "PARTICLE:SOUL:10"] }
+  3: { chance: 36, cooldown: 0, effects: ["POTION:WITHER:1:100:@Victim", "PARTICLE:SOUL:14", "MESSAGE:&0Decay spreads from your touch!"] }

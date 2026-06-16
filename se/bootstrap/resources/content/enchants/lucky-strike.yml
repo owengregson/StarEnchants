@@ -1,0 +1,10 @@
+# Lucky Strike — a rare swing of the pick rewards the fortunate miner.
+display: "&eLucky Strike"
+description: "A rare lucky break showers you with rewards."
+trigger: MINE
+applies-to: [PICKAXE, SHOVEL, AXE, HOE]
+group: mining
+levels:
+  1: { chance: 5, cooldown: 200, effects: ["GIVE_EXP:8", "PARTICLE:HAPPY_VILLAGER:8", "SOUND:ENTITY_PLAYER_LEVELUP:1:1", "ACTIONBAR:&eLucky Strike!"] }
+  2: { chance: 8, cooldown: 200, effects: ["GIVE_EXP:14", "PARTICLE:HAPPY_VILLAGER:12", "SOUND:ENTITY_PLAYER_LEVELUP:1:2", "ACTIONBAR:&eLucky Strike!"] }
+  3: { chance: 12, cooldown: 200, effects: ["GIVE_EXP:22", "PARTICLE:HAPPY_VILLAGER:16", "SOUND:ENTITY_PLAYER_LEVELUP:1:2", "TITLE:&6Lucky Strike!:&eFortune favours you:10:40:10"] }

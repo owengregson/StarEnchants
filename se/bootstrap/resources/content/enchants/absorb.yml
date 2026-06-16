@@ -1,0 +1,12 @@
+# Absorb — soak the next blows behind a buffer of extra hearts. A DEFENSE enchant that grants
+# the wearer the Absorption potion effect (a version-volatile handle resolved at compile time,
+# §9). POTION defaults to @Self, so the buffer hearts land on the wearer.
+display: "&eAbsorb"
+description: "Soak blows behind extra hearts."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: defense
+levels:
+  1: { chance: 30, effects: ["POTION:ABSORPTION:0:80:@Self"] }
+  2: { chance: 40, effects: ["POTION:ABSORPTION:1:120:@Self"] }
+  3: { chance: 50, effects: ["POTION:ABSORPTION:2:160:@Self"] }

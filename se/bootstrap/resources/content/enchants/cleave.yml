@@ -1,0 +1,10 @@
+# Cleave — your strike spills out into nearby enemies. DAMAGE over an @Aoe target set.
+display: "&cCleave"
+description: "Strike all foes around your target."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 25, effects: ["DAMAGE:2:@Aoe{r=3}"] }
+  2: { chance: 35, effects: ["DAMAGE:3:@Aoe{r=4}"] }
+  3: { chance: 45, cooldown: 0, effects: ["DAMAGE:4:@Aoe{r=4}", "PARTICLE:CRIT:12", "MESSAGE:&cCleave!"] }

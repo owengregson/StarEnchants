@@ -25,12 +25,17 @@ dependencies {
     compileOnly("io.netty:netty-transport:4.1.100.Final")
 }
 
-// Stamp the build version into plugin.yml's ${version} placeholder.
+// Stamp the build version into plugin.yml's ${version} placeholder, and bundle the bootstrap's
+// shipped content catalog (incl. index.txt) so CatalogSuite can validate it live with the REAL
+// cross-version resolver on each matrix server (catching handle-name typos a unit test cannot).
 tasks.named<ProcessResources>("processResources") {
     val pluginVersion = project.version.toString()
     inputs.property("version", pluginVersion)
     filesMatching("plugin.yml") {
         expand("version" to pluginVersion)
+    }
+    from(rootProject.file("se/bootstrap/resources/content")) {
+        into("content")
     }
 }
 

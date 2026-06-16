@@ -1,0 +1,10 @@
+# Cripple — slow the legs of whoever you strike. SLOWNESS debuff appended :@Victim.
+display: "&7Cripple"
+description: "Slow the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 30, effects: ["POTION:SLOWNESS:0:60:@Victim"] }
+  2: { chance: 40, effects: ["POTION:SLOWNESS:1:80:@Victim"] }
+  3: { chance: 50, cooldown: 0, effects: ["POTION:SLOWNESS:2:100:@Victim", "MESSAGE:&7Their legs buckle!"] }

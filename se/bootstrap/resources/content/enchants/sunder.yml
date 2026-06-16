@@ -1,0 +1,10 @@
+# Sunder — rend the foe's armour apart with a heavy blow. DAMAGE_ARMOR defaults to @Victim.
+display: "&6Sunder"
+description: "Rend the armour of the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 30, effects: ["DAMAGE_ARMOR:1:@Victim"] }
+  2: { chance: 40, effects: ["DAMAGE_ARMOR:2:@Victim", "ADD_DAMAGE:10"] }
+  3: { chance: 50, cooldown: 0, effects: ["DAMAGE_ARMOR:3:@Victim", "ADD_DAMAGE:20", "SOUND:BLOCK_ANVIL_LAND:1:1", "MESSAGE:&6Their armour is sundered!"] }

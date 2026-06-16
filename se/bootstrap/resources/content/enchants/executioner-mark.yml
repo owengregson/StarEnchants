@@ -1,0 +1,10 @@
+# Executioner's Mark — brand the slain with a final, devastating blast.
+display: "&cExecutioner's Mark"
+description: "Mark your kills for a deadly finishing blast."
+trigger: KILL
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 20, cooldown: 100, effects: ["LIGHTNING:0", "PARTICLE:FLAME:10"] }
+  2: { chance: 30, cooldown: 100, effects: ["LIGHTNING:0", "EXPLODE:1:false", "PARTICLE:FLAME:14"] }
+  3: { chance: 40, cooldown: 100, effects: ["LIGHTNING:0", "EXPLODE:2:false", "PARTICLE:FLAME:18", "SOUND:BLOCK_ANVIL_LAND:1:1", "TITLE:&cExecuted!::10:40:10"] }

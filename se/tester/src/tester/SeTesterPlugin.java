@@ -10,6 +10,7 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.ApplySuite;
 import tester.suite.CapabilitiesSuite;
+import tester.suite.CatalogSuite;
 import tester.suite.CombatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.CrystalSuite;
@@ -64,6 +65,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new ItemViewSuite(this))
                 .add(new RenderSuite())
                 .add(new ApplySuite(this))
+                .add(new CatalogSuite(this))
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))

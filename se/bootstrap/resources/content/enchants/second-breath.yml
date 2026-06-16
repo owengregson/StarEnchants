@@ -1,0 +1,10 @@
+# Second Breath — break stone underwater and your lungs are refilled with air.
+display: "&3Second Breath"
+description: "Refill your air as you mine."
+trigger: MINE
+applies-to: [PICKAXE, SHOVEL]
+group: mining
+levels:
+  1: { chance: 40, effects: ["FILL_OXYGEN"] }
+  2: { chance: 60, effects: ["FILL_OXYGEN", "PARTICLE:CLOUD:4"] }
+  3: { chance: 80, effects: ["FILL_OXYGEN", "PARTICLE:CLOUD:6", "POTION:NIGHT_VISION:0:200"] }

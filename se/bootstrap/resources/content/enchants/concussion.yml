@@ -1,0 +1,10 @@
+# Concussion — daze the foe with nausea and knock them reeling backward.
+display: "&eConcussion"
+description: "Daze and stagger the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 20, effects: ["POTION:NAUSEA:0:80:@Victim", "KNOCKBACK:1"] }
+  2: { chance: 28, effects: ["POTION:NAUSEA:0:120:@Victim", "KNOCKBACK:2"] }
+  3: { chance: 36, cooldown: 0, effects: ["POTION:NAUSEA:0:160:@Victim", "KNOCKBACK:3", "MESSAGE:&eThe world spins for your foe!"] }
