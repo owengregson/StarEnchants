@@ -72,7 +72,7 @@ public final class TriggerDispatch {
         Snapshot snapshot = content.snapshot();
         DispatchSink sink = new DispatchSink(handles);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
-                attackTrigger.test(triggerId), actor, context, sink);
+                attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         if (cancellable != null && sink.cancelled()) {
             cancellable.setCancelled(true);
         }
@@ -91,7 +91,7 @@ public final class TriggerDispatch {
         Snapshot snapshot = content.snapshot();
         DispatchSink sink = new DispatchSink(handles);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
-                attackTrigger.test(triggerId), actor, context, sink);
+                attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         event.setDamage(sink.fold().apply(event.getDamage()));
         if (sink.cancelled()) {
             event.setCancelled(true);

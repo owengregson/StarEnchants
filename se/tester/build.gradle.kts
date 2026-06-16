@@ -18,6 +18,8 @@ dependencies {
     implementation(project(":engine"))
     // The combat feature shell (CombatDispatch/CombatListener) for the end-to-end combat suite.
     implementation(project(":feature"))
+    // The public api (EnchantActivateEvent) for the end-to-end event check.
+    implementation(project(":api"))
 
     // Netty for the fake-player harness's clientless connection channel (the one genuinely risky NMS
     // edge — written in real code, not reflection). compileOnly: the server bundles netty at runtime,

@@ -10,6 +10,7 @@ import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.SourceKind;
+import compile.model.StableKeyIndex;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.IgniteEffect;
 import engine.interact.SoulLedger;
@@ -44,6 +45,9 @@ class AbilityExecutorTest {
 
     private static final UUID ACTOR = UUID.randomUUID();
     private static final int TRIGGER = 0;
+    // This test only ever activates ability id 0; the index maps that dense id to a stable key so the
+    // executor can resolve it for the ActivationListener (the §13 api seam).
+    private static final StableKeyIndex KEYS = new StableKeyIndex(java.util.List.of("enchants/test"));
 
     private RuntimeHandles handles;
     private AbilityExecutor executor;
@@ -68,7 +72,7 @@ class AbilityExecutorTest {
         Ability[] abilities = {ignite("VICTIM", 60, Affinity.TARGET_ENTITY)};
         DispatchSink sink = new DispatchSink(handles);
 
-        int activated = executor.run(abilities, new int[] {0}, activation(), context(null, victim), sink);
+        int activated = executor.run(abilities, new int[] {0}, activation(), context(null, victim), sink, KEYS);
         sink.flush();
 
         assertEquals(1, activated);
@@ -85,7 +89,7 @@ class AbilityExecutorTest {
         DispatchSink sink = new DispatchSink(handles);
 
         int activated = executor.run(new Ability[] {onOtherTrigger}, new int[] {0}, activation(),
-                context(null, victim), sink);
+                context(null, victim), sink, KEYS);
         sink.flush();
 
         assertEquals(0, activated);
@@ -99,7 +103,7 @@ class AbilityExecutorTest {
         Ability[] abilities = {ignite("VICTIM", 40, Affinity.CONTEXT_LOCAL)};
         DispatchSink sink = new DispatchSink(handles);
 
-        executor.run(abilities, new int[] {0}, activation(), context(null, victim), sink);
+        executor.run(abilities, new int[] {0}, activation(), context(null, victim), sink, KEYS);
         sink.flush();
         verify(victim).setFireTicks(40);
     }
@@ -111,10 +115,52 @@ class AbilityExecutorTest {
         Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
         DispatchSink sink = new DispatchSink(handles);
 
-        executor.run(abilities, new int[] {0}, activation(), context(actor, null), sink);
+        executor.run(abilities, new int[] {0}, activation(), context(actor, null), sink, KEYS);
         sink.flush();
 
         verify(actor).setFireTicks(80);
+    }
+
+    /**
+     * The activation listener is invoked once per ACTIVATED ability (the public-event seam, §13), and
+     * the executor resolves the ability's stable key against the run's own index — so the listener is
+     * handed the right key, never a dense id re-resolved against a possibly-swapped live snapshot.
+     */
+    @Test
+    void notifiesTheActivationListenerWithTheResolvedStableKey() {
+        Player actor = mock(Player.class);
+        java.util.List<String> seen = new java.util.ArrayList<>();
+        ActivationListener listener = (key, ability, ctx) -> seen.add(key);
+        AbilityExecutor observed = new AbilityExecutor(
+                EffectRegistry.builder().register(new IgniteEffect()).build(),
+                SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
+                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE, listener);
+        Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
+        DispatchSink sink = new DispatchSink(handles);
+
+        observed.run(abilities, new int[] {0}, activation(), context(actor, null), sink, KEYS);
+
+        assertEquals(java.util.List.of("enchants/test"), seen); // ability id 0 → its stable key
+    }
+
+    /** A dense id with no entry in the run's index resolves to a {@code null} key, never a crash (§5.3). */
+    @Test
+    void resolvesNullKeyWhenTheIndexDoesNotCoverTheAbilityId() {
+        Player actor = mock(Player.class);
+        java.util.List<String> seen = new java.util.ArrayList<>();
+        ActivationListener listener = (key, ability, ctx) -> seen.add(key);
+        AbilityExecutor observed = new AbilityExecutor(
+                EffectRegistry.builder().register(new IgniteEffect()).build(),
+                SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
+                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE, listener);
+        Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
+        DispatchSink sink = new DispatchSink(handles);
+
+        // An empty index (e.g. resolving an id from a different/reloaded snapshot) → null, not IOOBE.
+        observed.run(abilities, new int[] {0}, activation(), context(actor, null), sink,
+                new StableKeyIndex(java.util.List.of()));
+
+        assertEquals(java.util.Collections.singletonList(null), seen);
     }
 
     /** A bad effect head is skipped; the good effect on the same ability still runs (per-effect isolation). */
@@ -129,7 +175,7 @@ class AbilityExecutorTest {
         DispatchSink sink = new DispatchSink(handles);
 
         int activated = executor.run(new Ability[] {ability}, new int[] {0}, activation(),
-                context(null, victim), sink);
+                context(null, victim), sink, KEYS);
         sink.flush();
 
         assertEquals(1, activated);
@@ -143,7 +189,7 @@ class AbilityExecutorTest {
         Ability[] abilities = {ignite("VICTIM", 60, Affinity.TARGET_ENTITY)};
         DispatchSink sink = new DispatchSink(handles);
 
-        int activated = executor.run(abilities, new int[] {-1, 7, 0}, activation(), context(null, victim), sink);
+        int activated = executor.run(abilities, new int[] {-1, 7, 0}, activation(), context(null, victim), sink, KEYS);
         sink.flush();
 
         assertEquals(1, activated); // only id 0 is valid

@@ -8,7 +8,11 @@ import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
 import engine.interact.SoulLedger;
 import engine.pipeline.ActivationPipeline;
+import api.event.EnchantActivateEvent;
+import api.event.StarEnchantsReloadEvent;
+import compile.model.Ability;
 import engine.run.AbilityExecutor;
+import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
@@ -119,8 +123,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 new SoulCodec(ItemKeys.of(this).soul()));
 
         // Runtime executor + combat dispatch (the soul binder arms gate 10 from an actor's active gem).
+        // The activation listener fires the public EnchantActivateEvent for each proc — Bukkit-aware
+        // here, so the engine itself stays event-API-free (it only calls the callback).
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), souls), areaScan());
+                new ActivationPipeline(new CooldownStore(), souls), areaScan(), this::fireActivation);
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::get,
                 soulService::bindingFor);
@@ -137,6 +143,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // every online player against the new snapshot (on each player's own thread).
         reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
             itemViews.reload(published.snapshot().generation());
+            getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
+                    published.snapshot().generation(), published.snapshot().abilityCount()));
             for (Player player : getServer().getOnlinePlayers()) {
                 Scheduling.onEntity(player, () -> worn.refresh(player, published.snapshot()));
             }
@@ -168,6 +176,24 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             }
             return out;
         };
+    }
+
+    /**
+     * The {@code ActivationListener} the executor calls per proc — fires the public
+     * {@link EnchantActivateEvent} naming the activated ability's stable key. Runs on the firing
+     * thread (the player's region on Folia), which is the correct thread to dispatch the event from.
+     *
+     * <p>The {@code key} is resolved by the executor against the SAME snapshot whose abilities fired
+     * (not re-read here from the live holder, which a concurrent {@code /se reload} could have swapped
+     * — that would mis-name or drop the event). A {@code null} key is the defensive "couldn't resolve"
+     * case: skip rather than fire an unattributable event.
+     */
+    private void fireActivation(String key, Ability ability, ActivationContext context) {
+        Player actor = context.actor();
+        if (actor == null || key == null) {
+            return; // synthetic/non-player activation, or an unresolvable key — nothing to fire
+        }
+        getServer().getPluginManager().callEvent(new EnchantActivateEvent(actor, key, ability.level()));
     }
 
     /** The initial load, guaranteed not to throw out of onEnable — a content I/O fault boots empty. */

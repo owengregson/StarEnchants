@@ -2,6 +2,7 @@ package engine.run;
 
 import compile.model.Ability;
 import compile.model.CompiledEffect;
+import compile.model.StableKeyIndex;
 import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
 import engine.effect.EffectRegistry;
@@ -42,26 +43,39 @@ public final class AbilityExecutor {
     private final SelectorRegistry selectors;
     private final ActivationPipeline pipeline;
     private final AreaScan areaScan;
+    private final ActivationListener listener;
 
+    /** An executor with no activation observer (the listener is {@link ActivationListener#NONE}). */
     public AbilityExecutor(EffectRegistry effects, SelectorRegistry selectors,
                            ActivationPipeline pipeline, AreaScan areaScan) {
+        this(effects, selectors, pipeline, areaScan, ActivationListener.NONE);
+    }
+
+    /** An executor that notifies {@code listener} once per ability that activates (e.g. to fire the public event). */
+    public AbilityExecutor(EffectRegistry effects, SelectorRegistry selectors,
+                           ActivationPipeline pipeline, AreaScan areaScan, ActivationListener listener) {
         this.effects = Objects.requireNonNull(effects, "effects");
         this.selectors = Objects.requireNonNull(selectors, "selectors");
         this.pipeline = Objects.requireNonNull(pipeline, "pipeline");
         this.areaScan = Objects.requireNonNull(areaScan, "areaScan");
+        this.listener = Objects.requireNonNull(listener, "listener");
     }
 
     /**
      * Evaluate each candidate ability against {@code activation} and run the effects of every
      * ACTIVATED one into {@code sink}. {@code candidateIds} are dense ids indexing {@code abilities}
-     * (typically {@code WornState.byTrigger(triggerId)}). Does NOT flush — the caller flushes the
-     * sink once after this returns (and after any other passes into the same sink, e.g. the
+     * (typically {@code WornState.byTrigger(triggerId)}). {@code stableKeys} is THIS snapshot's
+     * key index — the one whose {@code abilities[]} is being walked — used to resolve each activated
+     * ability's stable key for the {@link ActivationListener}; it must pair with {@code abilities}, so
+     * the key always names the ability that fired even if a reload concurrently swaps the live snapshot.
+     * May be {@code null} when no listener is wired (resolution is skipped). Does NOT flush — the caller
+     * flushes the sink once after this returns (and after any other passes into the same sink, e.g. the
      * attacker- and defender-side abilities of one hit).
      *
      * @return the number of abilities that activated
      */
     public int run(Ability[] abilities, int[] candidateIds, Activation activation,
-                   ActivationContext context, DispatchSink sink) {
+                   ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys) {
         int activated = 0;
         for (int id : candidateIds) {
             if (id < 0 || id >= abilities.length) {
@@ -72,12 +86,30 @@ public final class AbilityExecutor {
                 if (pipeline.evaluate(ability, activation).activated()) {
                     runEffects(ability, context, sink);
                     activated++;
+                    notifyActivation(ability, context, stableKeys);
                 }
             } catch (Throwable failed) {
                 LOG.log(Level.WARNING, "ability " + id + " failed during execution", failed);
             }
         }
         return activated;
+    }
+
+    /**
+     * Notify the activation listener, isolating any failure so a misbehaving observer never aborts the
+     * hit. The stable key is resolved against {@code stableKeys} (the run's own snapshot index) so it
+     * pairs with the dense id {@code abilities[]} produced — never a live holder a reload could swap.
+     */
+    private void notifyActivation(Ability ability, ActivationContext context, StableKeyIndex stableKeys) {
+        if (listener == ActivationListener.NONE) {
+            return; // no observer wired — skip the key resolution entirely (hot-path no-op)
+        }
+        try {
+            String key = stableKeys == null ? null : stableKeys.keyOf(ability.id());
+            listener.onActivate(key, ability, context);
+        } catch (Throwable failed) {
+            LOG.log(Level.WARNING, "activation listener failed for ability " + ability.id(), failed);
+        }
     }
 
     private void runEffects(Ability ability, ActivationContext context, DispatchSink sink) {
