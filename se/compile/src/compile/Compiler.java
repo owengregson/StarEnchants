@@ -99,6 +99,31 @@ public final class Compiler {
     }
 
     /**
+     * The complete production wiring including the canonical trigger vocabulary: content
+     * trigger names are interned to the registry's id order and an unknown trigger is a
+     * diagnostic, so a compiled {@code triggerMask} bit means the same trigger the runtime
+     * routes (§3.7).
+     */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                              VarResolver vars, List<String> canonicalTriggers,
+                              PlatformResolvers resolvers) {
+        return new Compiler(
+                new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars),
+                new DefaultResolveStage(registry, resolvers),
+                new DefaultEraseStage(canonicalTriggers),
+                new DefaultSnapshotStage());
+    }
+
+    /** Full wiring with the trigger vocabulary; no handles are resolvable. */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                              VarResolver vars, List<String> canonicalTriggers) {
+        return of(registry, affinityOf, selectors, defaultSelectorOf, vars, canonicalTriggers,
+                PlatformResolvers.none());
+    }
+
+    /**
      * A compiler wired with the default stages: each effect's affinity resolved
      * through {@code affinityOf} (head &rarr; declared {@link Affinity}; {@code null}
      * &rarr; {@code CONTEXT_LOCAL}) and version-volatile handles resolved through

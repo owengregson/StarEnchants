@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +30,13 @@ import java.util.Set;
  * {@code E_DUP_KEY}; a trigger past bit 31 ({@code E_TRIGGER_OVERFLOW}) or a world
  * past bit 63 ({@code E_WORLD_OVERFLOW}) skips only that one bit — the ability is
  * otherwise erased intact — keeping the whole snapshot loadable from broken content.
+ *
+ * <p>When constructed with a <em>canonical trigger vocabulary</em>
+ * ({@link #DefaultEraseStage(List)}), trigger names are matched case-insensitively
+ * against it: the interner is pre-seeded so every {@code triggerMask} bit means the same
+ * trigger the runtime routes (§3.7), and a name outside the vocabulary is reported
+ * ({@code E_UNKNOWN_TRIGGER}) and skipped rather than silently interned. With no
+ * vocabulary the stage interns trigger names ad-hoc (used by lower-level tests).
  */
 public final class DefaultEraseStage implements EraseStage {
 
@@ -38,12 +46,40 @@ public final class DefaultEraseStage implements EraseStage {
     /** The {@code worldBlacklist} is a {@code long}, so world ids must fit in {@code [0,64)}. */
     private static final int WORLD_BITS = 64;
 
+    private final List<String> canonicalTriggers;
+
+    /** Ad-hoc mode: trigger names are interned as encountered, with no vocabulary check. */
+    public DefaultEraseStage() {
+        this(List.of());
+    }
+
+    /**
+     * Canonical mode (when {@code canonicalTriggers} is non-empty): trigger names are
+     * matched case-insensitively against this vocabulary, interned to its id order, and
+     * an unknown name is a diagnostic.
+     */
+    public DefaultEraseStage(List<String> canonicalTriggers) {
+        this.canonicalTriggers = List.copyOf(canonicalTriggers);
+    }
+
     @Override
     public ErasedContent erase(List<LoweredAbility> lowered, Diagnostics diags) {
         Interner worlds = new Interner();
         Interner triggers = new Interner();
         Interner suppress = new Interner();
         Interner cooldownScopes = new Interner();
+
+        // Pre-seed the canonical trigger ids (in order) so a triggerMask bit means the
+        // same trigger the runtime routes; track the vocabulary for unknown-name checks.
+        boolean canonicalMode = !canonicalTriggers.isEmpty();
+        Set<String> knownTriggers = new HashSet<>();
+        if (canonicalMode) {
+            for (String trigger : canonicalTriggers) {
+                String up = trigger.toUpperCase(Locale.ROOT);
+                triggers.intern(up);
+                knownTriggers.add(up);
+            }
+        }
 
         Set<String> seenKeys = new HashSet<>();
         List<Ability> abilities = new ArrayList<>();
@@ -64,7 +100,16 @@ public final class DefaultEraseStage implements EraseStage {
 
             int triggerMask = 0;
             for (String trigger : la.triggers()) {
-                int tid = triggers.intern(trigger);
+                String name = canonicalMode ? trigger.toUpperCase(Locale.ROOT) : trigger;
+                if (canonicalMode && !knownTriggers.contains(name)) {
+                    diags.error(
+                            "E_UNKNOWN_TRIGGER",
+                            "unknown trigger '" + trigger + "'",
+                            la.source(),
+                            "run /se triggers to list available triggers");
+                    continue;
+                }
+                int tid = triggers.intern(name);
                 if (tid >= TRIGGER_BITS) {
                     diags.error(
                             "E_TRIGGER_OVERFLOW",
