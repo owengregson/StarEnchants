@@ -4,11 +4,14 @@ import compile.LineCompiler;
 import compile.MapSpecRegistry;
 import compile.SelectorCompiler;
 import compile.SpecRegistry;
+import compile.cond.ConditionCompiler;
+import compile.cond.VarResolver;
 import compile.def.AbilityDef;
 import compile.model.Affinity;
 import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
+import compile.model.cond.Cond;
 import schema.diag.Diagnostics;
 import schema.grammar.EffectLine;
 import schema.grammar.expr.Expr;
@@ -46,6 +49,7 @@ public final class DefaultLowerStage implements LowerStage {
     private final Function<String, Affinity> affinityOf;
     private final SelectorCompiler selectorCompiler;
     private final Function<String, String> defaultSelectorOf;
+    private final ConditionCompiler conditionCompiler;
 
     /**
      * @param registry          the spec registry resolving effect heads to {@code ParamSpec}s
@@ -54,14 +58,24 @@ public final class DefaultLowerStage implements LowerStage {
      * @param selectors         the spec registry resolving selector heads to {@code ParamSpec}s
      * @param defaultSelectorOf maps an effect head to the selector head it targets by
      *                          default; a {@code null} result means {@code SELF}
+     * @param vars              the condition variable vocabulary (name &rarr; slot+type);
+     *                          unknown variables become PlaceholderAPI tokens
      */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
-                             SpecRegistry selectors, Function<String, String> defaultSelectorOf) {
+                             SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                             VarResolver vars) {
         Objects.requireNonNull(registry, "registry");
         this.affinityOf = Objects.requireNonNull(affinityOf, "affinityOf");
         this.selectorCompiler = new SelectorCompiler(Objects.requireNonNull(selectors, "selectors"));
         this.defaultSelectorOf = Objects.requireNonNull(defaultSelectorOf, "defaultSelectorOf");
+        this.conditionCompiler = new ConditionCompiler(Objects.requireNonNull(vars, "vars"));
         this.lineCompiler = new LineCompiler(registry);
+    }
+
+    /** Convenience: selector support, but the empty variable vocabulary. */
+    public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                             SpecRegistry selectors, Function<String, String> defaultSelectorOf) {
+        this(registry, affinityOf, selectors, defaultSelectorOf, VarResolver.none());
     }
 
     /**
@@ -69,7 +83,7 @@ public final class DefaultLowerStage implements LowerStage {
      * effect targets {@code SELF}. Used by tests and the bare {@code Compiler.of}.
      */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf) {
-        this(registry, affinityOf, MapSpecRegistry.of(), head -> null);
+        this(registry, affinityOf, MapSpecRegistry.of(), head -> null, VarResolver.none());
     }
 
     /** Convenience: every effect's affinity defaults to {@link Affinity#CONTEXT_LOCAL}. */
@@ -164,17 +178,23 @@ public final class DefaultLowerStage implements LowerStage {
     }
 
     /**
-     * Parse the raw condition into a {@link CompiledCondition}, or {@code null} when
-     * the condition is blank/absent ("always true") or when parsing failed (the
-     * {@link ExprParser} already recorded the diagnostic).
+     * Parse and lower the raw condition into a typed {@link CompiledCondition}, or
+     * {@code null} when the condition is blank/absent ("always true") or when parsing
+     * or lowering failed (the diagnostic was already recorded). Two passes: the
+     * {@link ExprParser} produces the untyped {@link Expr}; the {@link ConditionCompiler}
+     * resolves variables to {@code FactBuffer} slots and type-checks it (§3.4).
      */
-    private static CompiledCondition lowerCondition(AbilityDef def, Diagnostics diags) {
+    private CompiledCondition lowerCondition(AbilityDef def, Diagnostics diags) {
         String expr = def.conditionExpr();
         if (expr == null || expr.isBlank()) {
             return null;
         }
         Optional<Expr> parsed = ExprParser.parse(expr, def.source(), diags);
-        return parsed.map(ast -> new CompiledCondition(ast, def.source())).orElse(null);
+        if (parsed.isEmpty()) {
+            return null; // ExprParser already diagnosed the syntax error
+        }
+        Optional<Cond> lowered = conditionCompiler.compile(parsed.get(), diags);
+        return lowered.map(root -> new CompiledCondition(root, def.source())).orElse(null);
     }
 
     /**

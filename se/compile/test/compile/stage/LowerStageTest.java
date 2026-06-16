@@ -9,17 +9,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.MapSpecRegistry;
 import compile.SpecRegistry;
+import compile.cond.VarBinding;
+import compile.cond.VarKind;
+import compile.cond.VarResolver;
 import compile.def.AbilityDef;
 import compile.model.Affinity;
 import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.SourceKind;
+import compile.model.cond.Cond;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
-import schema.grammar.expr.Expr;
-import schema.grammar.expr.ExprParser;
 import schema.spec.D;
 import schema.spec.ParamSpec;
 import java.util.List;
@@ -173,20 +175,25 @@ class LowerStageTest {
     }
 
     @Test
-    void validConditionLowersToCompiledConditionMatchingParsedAst() {
+    void validConditionLowersToATypedCompiledCondition() {
         Diagnostics d = new Diagnostics();
-        String raw = "%victim.health% < 5 && !%blocking%";
-        LoweredAbility lowered = new DefaultLowerStage(registry())
-                .lower(def(raw, line("DAMAGE:1")), d);
+        VarResolver vars = (scope, name) -> {
+            String key = scope == null ? name : scope + "." + name;
+            return switch (key) {
+                case "victim.health" -> Optional.of(new VarBinding(VarKind.NUM, 0));
+                case "blocking" -> Optional.of(new VarBinding(VarKind.BOOL, 0));
+                default -> Optional.empty();
+            };
+        };
+        DefaultLowerStage stage = new DefaultLowerStage(registry(), head -> Affinity.CONTEXT_LOCAL,
+                MapSpecRegistry.of(), head -> null, vars);
+        LoweredAbility lowered = stage.lower(def("%victim.health% < 5 && !%blocking%", line("DAMAGE:1")), d);
 
         assertFalse(d.hasErrors());
         CompiledCondition condition = lowered.condition();
         assertNotNull(condition);
-
-        Optional<Expr> expected = ExprParser.parse(raw, SRC, new Diagnostics());
-        assertTrue(expected.isPresent());
-        assertEquals(expected.get(), condition.ast());
         assertEquals(SRC, condition.source());
+        assertTrue(condition.root() instanceof Cond.And); // top-level && lowered to a typed node
     }
 
     @Test
