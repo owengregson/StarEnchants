@@ -17,6 +17,7 @@ import tester.suite.ResolverSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
 import tester.suite.SinkSuite;
+import tester.suite.WornResolverSuite;
 
 /**
  * The live matrix harness plugin (docs/architecture.md §11; live-server-testing, matrix-gate
@@ -56,7 +57,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))
-                .add(new ContentLoaderSuite(this));
+                .add(new ContentLoaderSuite(this))
+                .add(new WornResolverSuite(this));
 
         // The fake-player harness is mojang-mapped only (1.20.5+); on the spigot-mapped floor
         // (1.17.1–1.19.4) its NMS reflection does not yet apply, so it self-defers (a follow-up).
