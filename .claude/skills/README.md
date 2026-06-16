@@ -10,7 +10,7 @@ the relevant skill BEFORE working in its area.**
 > to construct it. The one practice deliberately adopted from elsewhere is
 > real-server (Paper + Folia) testing.
 
-## Available now — platform reality & testing
+## Platform reality & testing
 
 | Skill | Use when… |
 | --- | --- |
@@ -21,19 +21,17 @@ the relevant skill BEFORE working in its area.**
 | `nms-archaeology` | a version behaves unexpectedly — read the server with javap, don't guess |
 | `live-server-testing` | writing/debugging the real-server integration suites |
 | `matrix-gate` | running or verifying the Paper+Folia test gate |
+| `reference-cache` | needing cached per-version Paper/Folia jars or docs (fetch/decompile) |
 
-## Deferred — authored after the unique design is approved
+## Architecture — the self-derived engine
 
-These encode StarEnchants' own architecture, so they are written once the design
-is locked (to avoid baking in anything borrowed):
+These encode StarEnchants' own approved architecture (`docs/architecture.md`);
+check the relevant one before working in that area of the engine.
 
-- `effect-engine` — the unified effect/condition/trigger registry; adding an
-  effect/condition/type/set-effect; target (PLAYER/TARGET) resolution; DSL.
-- `item-data-model` — the single item-state layer (PDC keys for
-  enchants/souls/slots/crystals/set-identity), lore/format rendering, transmog.
-- `feature-interaction-rules` — precedence/stacking/suppression among features
-  (damage & reduction stacking, disable-enchant, soul gating, slots, omni).
-- `config-and-migration` — unified schema + atomic snapshots; the AE / EE+EA
-  importers.
-- `performance-hot-paths` — perf budget & caching for combat/passive/item-data
-  hot paths.
+| Skill | Use when… |
+| --- | --- |
+| `effect-engine` | the runtime: systems, the activation pipeline/gate order, effect/condition/trigger/selector kinds, the Ability record, the Sink, Affinity |
+| `item-data-model` | item state, the PDC codec, the ItemView content-hash cache, component stores, the WornState resolver, lore rendering, migration |
+| `feature-interaction-rules` | two+ features interact — damage/reduction stacking, DISABLE_* suppression, souls, slots, crystals, omni, enchant stamping |
+| `config-and-migration` | config/YAML, the DSL & ParamSpec, the compiler, diagnostics, transactional reload, validateContent, the EE/EA/AE migrator |
+| `performance-hot-paths` | code on the combat/item hot path, declaring an Affinity, the Sink/cache/interning, or the ArchUnit/JMH lint gate |
