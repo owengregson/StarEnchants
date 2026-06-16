@@ -20,6 +20,8 @@
 #  scheduler/Capabilities path, for instance, only needs ONE Paper + ONE Folia.
 #
 #  Env:
+#    SE_NO_BUILD=1      skip the ./gradlew build (use ONLY right after a fresh build;
+#                       otherwise the matrix may test a STALE tester fat jar). Same as --no-build.
 #    SE_WATCHDOG_SECS   per-server hard timeout (default 180)
 #    SE_KEEP_RUNDIR=1   keep the per-server run dir for inspection (default: clean)
 #    SE_BASE_PORT       first server port (default 25700; +1 per target)
@@ -32,6 +34,7 @@ cd "$REPO_ROOT"
 WATCHDOG_SECS="${SE_WATCHDOG_SECS:-180}"
 BASE_PORT="${SE_BASE_PORT:-25700}"
 KEEP_RUNDIR="${SE_KEEP_RUNDIR:-0}"
+NO_BUILD="${SE_NO_BUILD:-0}"
 FLIP="$(grep -E '^se.toolchain.flip=' gradle.properties 2>/dev/null | cut -d= -f2)"
 FLIP="${FLIP:-1.20.5}"
 
@@ -65,8 +68,9 @@ while [ $# -gt 0 ]; do
               add_all "$(read_csv_prop se.matrix.folia)" folia ;;
     --paper)  shift; TARGETS+=("paper:$1") ;;
     --folia)  shift; TARGETS+=("folia:$1") ;;
+    --no-build) NO_BUILD=1 ;;
     paper:*|folia:*) TARGETS+=("$1") ;;
-    -h|--help) sed -n '2,40p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,/^set /p' "$0" | sed '$d'; exit 0 ;;
     *) err "unknown argument: $1 (try --help)"; exit 2 ;;
   esac
   shift
@@ -76,10 +80,25 @@ if [ "${#TARGETS[@]}" -eq 0 ]; then
   exit 2
 fi
 
-# ── Locate the tester jar (built by gradle) ──────────────────────────────────
+# ── Build first — rebundle the tester fat jar (matrix-stale-jar-trap) ─────────
+# The tester jar is a FAT jar bundling engine/platform/item/feature/compile/schema. `find`-ing an
+# existing jar without rebuilding silently tests OLD code → a false PASS/FAIL. So rebuild by default:
+# `./gradlew build` recompiles, runs the unit gate, and re-runs :tester:jar (rebundling the fat jar).
+# Set SE_NO_BUILD=1 / pass --no-build ONLY when you have just built in this session (to save time).
+if [ "$NO_BUILD" = "1" ]; then
+  warn "SE_NO_BUILD set — skipping ./gradlew build; the tester jar may be STALE (stale-jar trap)"
+else
+  log "building (./gradlew build) — rebundles the tester fat jar so the matrix tests fresh code"
+  if ! ./gradlew build; then
+    err "gradle build failed — refusing to boot any server against a stale/broken jar"
+    exit 1
+  fi
+fi
+
+# ── Locate the tester jar (built by gradle, above) ───────────────────────────
 TESTER_JAR="$(find "$REPO_ROOT/se/tester/build/libs" -name 'tester-*.jar' ! -name '*-sources.jar' 2>/dev/null | head -1)"
 if [ -z "$TESTER_JAR" ]; then
-  err "tester jar not found — run: ./gradlew :tester:jar"
+  err "tester jar not found — run ./gradlew :tester:jar (or drop --no-build / unset SE_NO_BUILD so this script builds it)"
   exit 2
 fi
 log "tester jar: ${TESTER_JAR#$REPO_ROOT/}"
@@ -219,5 +238,10 @@ if [ "$overall" -eq 0 ]; then
   printf '\n%sMATRIX PASS%s — all %d target(s) fresh-PASS\n' "$C_GREEN$C_BOLD" "$C_RESET" "${#TARGETS[@]}"
 else
   printf '\n%sMATRIX FAIL%s — at least one target did not fresh-PASS\n' "$C_RED$C_BOLD" "$C_RESET"
+fi
+# Honesty: a build-skip means this verdict could be testing a STALE jar — say so next to the banner
+# so an inherited SE_NO_BUILD (or a forgotten --no-build) can never quietly defeat the trap this guards.
+if [ "$NO_BUILD" = "1" ]; then
+  printf '%s  ⚠ build was SKIPPED (SE_NO_BUILD/--no-build) — verdict assumes the tester jar is already fresh%s\n' "$C_YELLOW" "$C_RESET"
 fi
 exit "$overall"
