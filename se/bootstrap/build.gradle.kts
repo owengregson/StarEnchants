@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":platform"))
     implementation(project(":compat-folia"))
     implementation(project(":api")) // public events fired at activation/reload points
+    implementation(project(":migrate")) // /se migrate imports legacy EE/EA configs
 
     // The catalog-validation test compiles resources/content/ through the real LibraryLoader +
     // BuiltinEffects registry; the effect kinds reference Bukkit types and YAML is parsed, both
