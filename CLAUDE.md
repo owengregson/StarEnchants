@@ -44,6 +44,11 @@ Decision rationale lives in `docs/decisions/` (ADRs). Domain vocabulary is in
 - **Atomic config** — compiled, immutable snapshot swapped by reference.
 - **Version-agnostic core, version-specific edges** behind resolvers/capabilities.
 - **Adding a feature is local** — one interface + one registration.
+- **Flat source layout** — modules live at `se/<module>/`; sources in `src/`,
+  tests in `test/` (no `src/main/java`); each module's package is a **single
+  segment = its name** (`schema`, `engine`, …), never `com.starenchants.*`.
+  Shaded third-party deps are relocated under their own root so the short roots
+  never collide.
 
 ## Workflow
 

@@ -27,13 +27,14 @@ subprojects {
             withSourcesJar()
         }
 
-        // Flat source roots. The Maven default buries every file under
-        // `src/main/java/com/starenchants/<module>/…` — five fixed segments before
-        // a single line of module code. The module already lives at `se/<module>/`
-        // and the package is `com.starenchants.<module>`, so `src/main/java` adds no
-        // information, only depth. We collapse it: production code lives in `src/`,
-        // tests in `test/`, resources alongside. A file then reads
-        // `se/schema/src/com/starenchants/schema/…` — the package, and nothing else.
+        // Flat source roots. Production code lives in `src/`, tests in `test/`,
+        // resources alongside — not the Maven `src/main/java` / `src/test/java`,
+        // whose build-convention segments carried no information, only depth.
+        // Combined with single-segment packages (each module's package is just its
+        // name — `schema`, `engine`, … — set in the files, not `com.starenchants.<m>`),
+        // a file reads `se/schema/src/schema/diag/Severity.java`: the module, the
+        // package, nothing else. (Shaded third-party deps must be relocated under
+        // their own root so these short package roots never collide — §11.)
         extensions.configure<SourceSetContainer> {
             named("main") {
                 java.setSrcDirs(listOf("src"))
