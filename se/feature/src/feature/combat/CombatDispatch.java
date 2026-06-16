@@ -19,6 +19,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 
 /**
@@ -40,10 +41,11 @@ public final class CombatDispatch {
     private final TriggerRunner runner;
     private final RuntimeHandles handles;
     private final ContentHolder content;
+    private final EconomyService economy;
     private final int attackTriggerId;
     private final int defenseTriggerId;
 
-    /** Combat dispatch with NO soul system (the soul gate is never armed). */
+    /** Combat dispatch with NO soul system (the soul gate is never armed) and no economy. */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks) {
@@ -51,13 +53,23 @@ public final class CombatDispatch {
                 actor -> Optional.empty());
     }
 
-    /** Combat dispatch with a soul binder: an actor in soul mode arms gate 10 from their active gem. */
+    /** Combat dispatch with a soul binder (no economy): an actor in soul mode arms gate 10 from their gem. */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
+        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, nowTicks, soulBinder,
+                EconomyService.NONE);
+    }
+
+    /** Full combat dispatch: soul binder + economy (money effects deposit/withdraw through the sink). */
+    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
+                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
+                          EconomyService economy) {
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks);
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
+        this.economy = Objects.requireNonNull(economy, "economy");
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
     }
@@ -78,7 +90,7 @@ public final class CombatDispatch {
         Location at = victimEntity.getLocation();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
-        DispatchSink sink = new DispatchSink(handles);
+        DispatchSink sink = new DispatchSink(handles, economy);
 
         // Attack side: the player damager's ATTACK abilities act on the victim (self = the attacker).
         if (damager instanceof Player attackerPlayer) {

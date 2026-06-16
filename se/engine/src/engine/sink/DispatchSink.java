@@ -27,6 +27,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import java.util.UUID;
+import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import schema.spec.HandleCategory;
@@ -69,14 +71,21 @@ import schema.spec.HandleCategory;
 public final class DispatchSink implements Sink {
 
     private final RuntimeHandles handles;
+    private final EconomyService economy;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold = new DamageFold();
 
     private boolean cancelled;
     private boolean flushed;
 
+    /** A sink with no economy — money intents are no-ops (the default for tests and economy-free paths). */
     public DispatchSink(RuntimeHandles handles) {
+        this(handles, EconomyService.NONE);
+    }
+
+    public DispatchSink(RuntimeHandles handles, EconomyService economy) {
         this.handles = Objects.requireNonNull(handles, "handles");
+        this.economy = Objects.requireNonNull(economy, "economy");
     }
 
     // ── Read-backs (called by the firing system, never by an effect) ─────────────────────────────
@@ -424,6 +433,28 @@ public final class DispatchSink implements Sink {
     @Override
     public void consoleCommand(String command) {
         globalOp(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
+    }
+
+    // ── Economy intents ──────────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void giveMoney(Player target, double amount) {
+        if (target == null) {
+            return;
+        }
+        // Capture the UUID on the firing thread (immutable, thread-safe); the economy call runs on the
+        // global thread — never touching the live player object off its region.
+        UUID id = target.getUniqueId();
+        globalOp(() -> economy.deposit(id, amount));
+    }
+
+    @Override
+    public void takeMoney(Player target, double amount) {
+        if (target == null) {
+            return;
+        }
+        UUID id = target.getUniqueId();
+        globalOp(() -> economy.withdraw(id, amount));
     }
 
     // ── Event control ──────────────────────────────────────────────────────────────────────────

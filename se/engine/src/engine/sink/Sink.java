@@ -137,6 +137,14 @@ public interface Sink {
 
     void consoleCommand(String command);
 
+    // ── Economy intents (routed to the global thread; a no-op without an economy provider) ──
+
+    /** Deposit {@code amount} into the player's account (GIVE_MONEY). */
+    void giveMoney(Player target, double amount);
+
+    /** Withdraw up to {@code amount} from the player's account (TAKE_MONEY); best-effort if unaffordable. */
+    void takeMoney(Player target, double amount);
+
     // ── Event control ──
 
     /** Cancel the Bukkit event that triggered this activation. */

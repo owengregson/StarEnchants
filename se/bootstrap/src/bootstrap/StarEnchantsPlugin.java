@@ -54,6 +54,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.content.ContentReloader;
+import platform.economy.EconomyService;
 import platform.item.ItemGroups;
 import platform.protect.ProtectionProviders;
 import platform.protect.ProtectionService;
@@ -145,12 +146,19 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), souls, protectionGuard, ActivationPipeline.Guard.ALLOW),
                 areaScan(), this::fireActivation);
+        // Economy bridge (gate-free): GIVE_MONEY/TAKE_MONEY effects deposit/withdraw through the sink,
+        // routed to the global thread. Wraps the EconomyProvider registered via the ServicesManager;
+        // absent ⇒ money effects are no-ops.
+        EconomyService economy = EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"));
+        if (economy.present()) {
+            getLogger().info("economy provider active");
+        }
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::get,
-                soulService::bindingFor);
+                soulService::bindingFor, economy);
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
-                tick::get, soulService::bindingFor);
+                tick::get, soulService::bindingFor, economy);
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
