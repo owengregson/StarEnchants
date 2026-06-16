@@ -1,0 +1,39 @@
+package engine.effect.kind;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import engine.effect.EffectCtx;
+import engine.sink.Sink;
+import org.bukkit.entity.LivingEntity;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds typed
+ * args + resolved targets, and a mocked {@link Sink} records the emitted intents — so
+ * the effect's behavior is verified with no server. The {@code effect} handle arrives
+ * as the interned id the compiler resolved it to (§9), read here via
+ * {@code ctx.integer}.
+ */
+class PotionEffectTest {
+
+    @Test
+    void emitsOnePotionIntentPerResolvedTarget() {
+        LivingEntity self = mock(LivingEntity.class);
+
+        EffectCtx ctx = mock(EffectCtx.class);
+        when(ctx.integer("effect")).thenReturn(7);
+        when(ctx.integer("amplifier")).thenReturn(1);
+        when(ctx.integer("duration")).thenReturn(100);
+        when(ctx.targets("who")).thenReturn(List.of(self));
+
+        Sink sink = mock(Sink.class);
+        new PotionEffect().run(ctx, sink);
+
+        verify(sink).potion(self, 7, 1, 100);
+        verifyNoMoreInteractions(sink);
+    }
+}
