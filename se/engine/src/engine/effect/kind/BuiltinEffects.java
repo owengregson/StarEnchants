@@ -17,8 +17,21 @@ public final class BuiltinEffects {
     /** A registry of all built-in effect kinds. */
     public static EffectRegistry registry() {
         return EffectRegistry.builder()
+                // Damage arbiter contributions + direct damage (§6.1).
                 .register(new DamageEffect())
+                .register(new FlatDamageEffect())
+                .register(new AddDamageEffect())
+                .register(new ReduceDamageEffect())
+                // Entity intents.
                 .register(new HealEffect())
+                .register(new IgniteEffect())
+                .register(new LightningEffect())
+                .register(new LaunchEffect())
+                // Player feedback + event control.
+                .register(new MessageEffect())
+                .register(new ActionBarEffect())
+                .register(new RunCommandEffect())
+                .register(new CancelEffect())
                 .build();
     }
 }
