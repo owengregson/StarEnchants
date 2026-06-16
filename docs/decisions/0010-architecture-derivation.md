@@ -1,6 +1,6 @@
 # ADR 0010: The concrete architecture is self-derived, not borrowed
 
-- **Status:** Proposed (derivation in progress)
+- **Status:** Accepted — workshop complete; outcome adopted in ADR 0011
 - **Date:** 2026-06-15
 - **Deciders:** owengregson
 
