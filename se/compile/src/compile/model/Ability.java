@@ -58,6 +58,8 @@ public record Ability(
 
     /** @return {@code true} if this ability is blocked in the interned world id {@code worldId}. */
     public boolean blockedInWorld(int worldId) {
-        return (worldBlacklist & (1L << worldId)) != 0;
+        // A world named in no blacklist interns to -1 at runtime — it is blocked by no ability.
+        // Guarding it also avoids the undefined {@code 1L << -1} (which Java masks to bit 63).
+        return worldId >= 0 && (worldBlacklist & (1L << worldId)) != 0;
     }
 }
