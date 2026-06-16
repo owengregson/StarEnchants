@@ -16,6 +16,7 @@ public final class FakeResolvers implements PlatformResolvers {
     private final Map<String, Integer> materials;
     private final Map<String, Integer> sounds;
     private final Map<String, Integer> potions;
+    private final Map<String, Integer> particles;
     private final Map<String, Integer> enchants;
     private final Map<String, Integer> entities;
     private final Map<String, Integer> attributes;
@@ -24,6 +25,7 @@ public final class FakeResolvers implements PlatformResolvers {
         this.materials = b.materials;
         this.sounds = b.sounds;
         this.potions = b.potions;
+        this.particles = b.particles;
         this.enchants = b.enchants;
         this.entities = b.entities;
         this.attributes = b.attributes;
@@ -46,6 +48,11 @@ public final class FakeResolvers implements PlatformResolvers {
     @Override
     public OptionalInt potionEffect(String token) {
         return get(potions, token);
+    }
+
+    @Override
+    public OptionalInt particle(String token) {
+        return get(particles, token);
     }
 
     @Override
@@ -73,6 +80,7 @@ public final class FakeResolvers implements PlatformResolvers {
         private final Map<String, Integer> materials = new HashMap<>();
         private final Map<String, Integer> sounds = new HashMap<>();
         private final Map<String, Integer> potions = new HashMap<>();
+        private final Map<String, Integer> particles = new HashMap<>();
         private final Map<String, Integer> enchants = new HashMap<>();
         private final Map<String, Integer> entities = new HashMap<>();
         private final Map<String, Integer> attributes = new HashMap<>();
@@ -89,6 +97,11 @@ public final class FakeResolvers implements PlatformResolvers {
 
         public Builder potionEffect(String token, int id) {
             potions.put(token.toUpperCase(Locale.ROOT), id);
+            return this;
+        }
+
+        public Builder particle(String token, int id) {
+            particles.put(token.toUpperCase(Locale.ROOT), id);
             return this;
         }
 
