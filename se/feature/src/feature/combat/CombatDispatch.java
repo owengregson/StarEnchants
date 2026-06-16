@@ -83,12 +83,14 @@ public final class CombatDispatch {
         // Attack side: the player damager's ATTACK abilities act on the victim (self = the attacker).
         if (damager instanceof Player attackerPlayer) {
             runner.run(abilities, snapshot.generation(), worldId, attackTriggerId, true,
-                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at), sink);
+                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at), sink,
+                    snapshot.stableKeys());
         }
         // Defense side: the player victim's DEFENSE abilities retaliate against the attacker.
         if (victimEntity instanceof Player defenderPlayer) {
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
-                    defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at), sink);
+                    defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at), sink,
+                    snapshot.stableKeys());
         }
 
         // Fold every damage contribution onto the event ONCE (§6.1); honour a cancel; flush deferred work.

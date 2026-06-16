@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":item"))
     implementation(project(":platform"))
     implementation(project(":compat-folia"))
+    implementation(project(":api")) // public events fired at activation/reload points
 
     // The catalog-validation test compiles resources/content/ through the real LibraryLoader +
     // BuiltinEffects registry; the effect kinds reference Bukkit types and YAML is parsed, both

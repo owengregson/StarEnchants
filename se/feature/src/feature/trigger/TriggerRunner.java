@@ -2,6 +2,7 @@ package feature.trigger;
 
 import compile.model.Ability;
 import compile.model.Snapshot;
+import compile.model.StableKeyIndex;
 import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
@@ -45,10 +46,12 @@ public final class TriggerRunner {
     /**
      * Run {@code actor}'s {@code triggerId} abilities into {@code sink}. {@code attackSide} selects
      * which passive heroic flat stat contributes (damage vs reduction); on a non-damage event the
-     * fold is simply never read, so the contribution is a harmless no-op there.
+     * fold is simply never read, so the contribution is a harmless no-op there. {@code stableKeys} is
+     * the SAME snapshot's key index as {@code abilities} (pass {@code snapshot.stableKeys()}), used by
+     * the executor to name an activated ability for the {@code ActivationListener}.
      */
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
-                    Player actor, ActivationContext context, DispatchSink sink) {
+                    Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != generation) {
             return; // not resolved yet (or stale across a reload) — this actor contributes nothing
@@ -65,7 +68,7 @@ public final class TriggerRunner {
         Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, nowTicks.getAsLong())
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0));
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
-        executor.run(abilities, candidates, builder.build(), context, sink);
+        executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
     }
 
     /** The interned world id for {@code world} (−1 if named in no blacklist; {@code Ability} never blocks on −1). */

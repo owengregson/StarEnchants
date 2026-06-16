@@ -1,5 +1,6 @@
 package tester.suite;
 
+import api.event.EnchantActivateEvent;
 import compile.Compiler;
 import compile.load.ContentHolder;
 import compile.load.Library;
@@ -29,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -76,6 +78,7 @@ public final class CombatSuite implements Harness.Scenario {
     @Override
     public void accept(Harness h) {
         h.expect("combat.enchantFiresOnHit");
+        h.expect("combat.enchantActivateEventFired");
 
         // Wire the runtime with a retained resolver so the runtime handle round-trip pairs.
         RegistryResolvers resolvers = new RegistryResolvers();
@@ -108,8 +111,22 @@ public final class CombatSuite implements Harness.Scenario {
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornStateStore worn = new WornStateStore(
                 new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
+        // A probe receives the public EnchantActivateEvent; the executor's activation listener fires it
+        // per proc (the §13 api seam) exactly as the composition root does — resolving the stable key
+        // against the live snapshot. Firing happens on the firing thread (the entity's region on Folia),
+        // so this also proves the event survives a region-thread dispatch.
+        EventProbe probe = new EventProbe();
+        plugin.getServer().getPluginManager().registerEvents(probe, plugin);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE);
+                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE,
+                (key, ability, ctx) -> {
+                    Player actor = ctx.actor();
+                    if (actor == null || key == null) {
+                        return;
+                    }
+                    plugin.getServer().getPluginManager().callEvent(
+                            new EnchantActivateEvent(actor, key, ability.level()));
+                });
         AtomicLong tick = new AtomicLong();
         CombatDispatch dispatch = new CombatDispatch(executor, handles, holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
@@ -160,6 +177,21 @@ public final class CombatSuite implements Harness.Scenario {
                                         + " but victim not poisoned — EDBE/dispatch issue");
                             }
                         });
+                        // The proc fired EnchantActivateEvent synchronously during victim.damage(...),
+                        // so by this delayed tick the probe has already received it (one proc → one event).
+                        h.guard("combat.enchantActivateEventFired", () -> {
+                            if (probe.count() != 1) {
+                                throw new IllegalStateException("expected exactly 1 EnchantActivateEvent, got "
+                                        + probe.count());
+                            }
+                            if (!"enchants/venom".equals(probe.lastKey())) {
+                                throw new IllegalStateException("event carried wrong key: " + probe.lastKey());
+                            }
+                            if (probe.lastLevel() != 1) {
+                                throw new IllegalStateException("event carried wrong level: " + probe.lastLevel());
+                            }
+                        });
+                        org.bukkit.event.HandlerList.unregisterAll(probe);
                         victim.remove();
                         FakePlayers.despawn(attacker);
                     });
@@ -172,5 +204,35 @@ public final class CombatSuite implements Harness.Scenario {
         Path file = root.resolve(relative);
         Files.createDirectories(file.getParent());
         Files.writeString(file, yaml, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * A Bukkit listener that records {@link EnchantActivateEvent} deliveries — proves the public api event
+     * actually reaches a registered handler end-to-end. Fields are concurrent/volatile because on Folia the
+     * event fires on the activating entity's region thread, which may differ from the asserting thread.
+     */
+    private static final class EventProbe implements org.bukkit.event.Listener {
+        private final AtomicInteger count = new AtomicInteger();
+        private volatile String lastKey;
+        private volatile int lastLevel = -1;
+
+        @org.bukkit.event.EventHandler
+        public void onActivate(EnchantActivateEvent event) {
+            lastKey = event.getEnchantKey();
+            lastLevel = event.getLevel();
+            count.incrementAndGet();
+        }
+
+        int count() {
+            return count.get();
+        }
+
+        String lastKey() {
+            return lastKey;
+        }
+
+        int lastLevel() {
+            return lastLevel;
+        }
     }
 }

@@ -39,9 +39,15 @@ public final class StableKeyIndex {
         return id == null ? -1 : id;
     }
 
-    /** The stable key assigned to dense id {@code id}. */
+    /**
+     * The stable key assigned to dense id {@code id}, or {@code null} if {@code id} is out of this
+     * index's range. Symmetric with {@link #idOf} ("unknown, never a crash"): a dense id resolved
+     * against a DIFFERENT (e.g. reloaded) snapshot may fall outside this one's range, so callers that
+     * might cross a snapshot boundary get {@code null} rather than an {@link IndexOutOfBoundsException}.
+     * Callers resolving an id produced by THIS snapshot's {@code abilities[]} always get a non-null key.
+     */
     public String keyOf(int id) {
-        return keysByDenseId.get(id);
+        return id < 0 || id >= keysByDenseId.size() ? null : keysByDenseId.get(id);
     }
 
     /** The number of indexed abilities. */
