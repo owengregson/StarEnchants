@@ -38,6 +38,18 @@ public final class BuiltinEffects {
                 .register(new SoundEffect())
                 .register(new ParticleEffect())
                 .register(new SpawnEffect())
+                // Entity-state intents.
+                .register(new KillEffect())
+                .register(new ExtinguishEffect())
+                .register(new FillOxygenEffect())
+                .register(new FeedEffect())
+                .register(new RepairEffect())
+                .register(new GiveExpEffect())
+                .register(new KnockbackEffect())
+                // World / spawn intents.
+                .register(new ExplodeEffect())
+                .register(new SpawnTntEffect())
+                .register(new FireballEffect())
                 .build();
     }
 }

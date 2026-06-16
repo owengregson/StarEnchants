@@ -53,6 +53,27 @@ public interface Sink {
 
     void heal(LivingEntity target, double amount);
 
+    /** Instantly kill the target. */
+    void kill(LivingEntity target);
+
+    /** Clear the target's fire ticks. */
+    void extinguish(LivingEntity target);
+
+    /** Restore the target's air/oxygen to full. */
+    void fillAir(LivingEntity target);
+
+    /** Restore food points to a player (clamped to the vanilla maximum). */
+    void feed(Player target, int foodPoints);
+
+    /** Repair the player's held item; {@code amount < 0} fully repairs it. */
+    void repairHand(Player target, int amount);
+
+    /** Grant experience points to a player. */
+    void giveExp(Player target, int amount);
+
+    /** Knock {@code target} back, away from {@code from}, with the given strength. */
+    void knockback(Entity target, Location from, double strength);
+
     void potion(LivingEntity target, int potionEffectId, int amplifier, int durationTicks);
 
     void removePotion(LivingEntity target, int potionEffectId);
@@ -71,6 +92,15 @@ public interface Sink {
     void lightning(Location at);
 
     void spawn(Location at, int entityTypeId);
+
+    /** Spawn primed TNT at a location. */
+    void spawnTnt(Location at, int count);
+
+    /** Spawn an explosion at a location, optionally breaking blocks. */
+    void explode(Location at, double power, boolean breakBlocks);
+
+    /** Launch a fireball from a player, with the given explosion yield. */
+    void fireball(Player shooter, double yield);
 
     void blockChange(Location at, int blockDataId);
 
