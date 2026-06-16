@@ -20,6 +20,7 @@ public final class BuiltinEffects {
                 // Damage arbiter contributions + direct damage (§6.1).
                 .register(new DamageEffect())
                 .register(new FlatDamageEffect())
+                .register(new FlatReduceEffect())
                 .register(new AddDamageEffect())
                 .register(new ReduceDamageEffect())
                 // Entity intents.
@@ -30,14 +31,17 @@ public final class BuiltinEffects {
                 // Player feedback + event control.
                 .register(new MessageEffect())
                 .register(new ActionBarEffect())
+                .register(new TitleEffect())
                 .register(new RunCommandEffect())
                 .register(new CancelEffect())
                 // Handle-using kinds (resolved tokens, §9).
                 .register(new PotionEffect())
                 .register(new RemovePotionEffect())
+                .register(new CureEffect())
                 .register(new SoundEffect())
                 .register(new ParticleEffect())
                 .register(new SpawnEffect())
+                .register(new StrikeEffect())
                 // Entity-state intents.
                 .register(new KillEffect())
                 .register(new ExtinguishEffect())
@@ -46,6 +50,7 @@ public final class BuiltinEffects {
                 .register(new RepairEffect())
                 .register(new GiveExpEffect())
                 .register(new KnockbackEffect())
+                .register(new DisarmEffect())
                 // World / spawn intents.
                 .register(new ExplodeEffect())
                 .register(new SpawnTntEffect())
