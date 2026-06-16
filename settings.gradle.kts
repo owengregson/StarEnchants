@@ -3,6 +3,13 @@
 // with version/Folia edges as leaves and one universal shaded jar.
 // See docs/architecture.md §2 for the rationale behind each boundary.
 
+plugins {
+    // Auto-provision the Java 17 floor toolchain (and the 21 used by the matrix)
+    // on any machine or CI runner that lacks it, so a single installed JDK is
+    // enough to build. See docs/architecture.md §11.
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+}
+
 rootProject.name = "starenchants"
 
 // Every module lives under se/; the leaf name drops the se- prefix (the parent
