@@ -21,6 +21,8 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0011](0011-engine-architecture.md) | Content-compiler + data-oriented runtime (see `docs/architecture.md`) | Accepted |
 | [0012](0012-damage-stacking.md) | Damage stacking is fully additive | Accepted |
 | [0013](0013-command-surface.md) | Single `/se` command root (drop `/ee`, `/ea`) | Accepted |
+| [0014](0014-content-loader-and-reload.md) | Content loader + transactional reload | Accepted |
+| [0015](0015-spigot-floor-fakeplayer-deferred.md) | Spigot-floor fake-player deferred; floor covered by non-fake suites | Accepted |
 
 ## Process
 
