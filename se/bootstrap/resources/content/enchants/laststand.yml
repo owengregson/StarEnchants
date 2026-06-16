@@ -1,0 +1,13 @@
+# Last Stand — dig in when the end is near. A DEFENSE enchant gated on the wearer's health
+# (%actor.health%, a registered numeric fact §3.4): when a blow drops the wearer to the level's
+# threshold it softens the hit (REDUCE_DAMAGE, additive defense bucket §6.1) and buffs the wearer
+# with Resistance and Absorption (POTION defaults to @Self).
+display: "&4Last Stand"
+description: "Dig in when the end is near."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: defense
+levels:
+  1: { chance: 100, cooldown: 400, condition: "%actor.health% <= 6", effects: ["REDUCE_DAMAGE:40", "POTION:DAMAGE_RESISTANCE:0:80:@Self"] }
+  2: { chance: 100, cooldown: 360, condition: "%actor.health% <= 7", effects: ["REDUCE_DAMAGE:55", "POTION:DAMAGE_RESISTANCE:1:100:@Self", "POTION:ABSORPTION:0:120:@Self"] }
+  3: { chance: 100, cooldown: 320, condition: "%actor.health% <= 8", effects: ["REDUCE_DAMAGE:70", "POTION:DAMAGE_RESISTANCE:1:140:@Self", "POTION:ABSORPTION:1:160:@Self"] }

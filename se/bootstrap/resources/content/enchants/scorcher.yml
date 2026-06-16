@@ -1,0 +1,10 @@
+# Scorcher — wreathe your strike in fire, igniting and searing the victim.
+display: "&6Scorcher"
+description: "Set the enemy ablaze on hit."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 25, effects: ["IGNITE:60:@Victim", "PARTICLE:FLAME:8"] }
+  2: { chance: 35, effects: ["IGNITE:100:@Victim", "PARTICLE:FLAME:14"] }
+  3: { chance: 45, cooldown: 0, effects: ["IGNITE:160:@Victim", "PARTICLE:LAVA:18", "MESSAGE:&6Burn!"] }

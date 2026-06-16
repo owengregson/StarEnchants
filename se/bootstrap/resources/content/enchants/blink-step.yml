@@ -1,0 +1,12 @@
+# Blink Step — right-click to dash forward, launching yourself with a burst of speed. LAUNCH adds
+# a velocity vector to the @Self target (defaults to the activator); paired with a short Speed buff
+# so the dash carries momentum. An activated INTERACT_RIGHT ability behind a cooldown (§3.7).
+display: "&dBlink Step"
+description: "Dash forward in a burst of motion."
+trigger: INTERACT_RIGHT
+applies-to: [SWORD, BOOTS]
+group: utility
+levels:
+  1: { chance: 100, cooldown: 200, effects: ["LAUNCH:0:0.4:0", "POTION:SPEED:1:40:@Self", "SOUND:ENTITY_PLAYER_LEVELUP:1:2", "PARTICLE:PORTAL:20"] }
+  2: { chance: 100, cooldown: 160, effects: ["LAUNCH:0:0.6:0", "POTION:SPEED:2:60:@Self", "SOUND:ENTITY_PLAYER_LEVELUP:1:2", "PARTICLE:PORTAL:30"] }
+  3: { chance: 100, cooldown: 120, effects: ["LAUNCH:0:0.8:0", "POTION:SPEED:2:80:@Self", "POTION:JUMP:1:80:@Self", "SOUND:ENTITY_PLAYER_LEVELUP:1:2", "PARTICLE:PORTAL:40"] }

@@ -1,0 +1,12 @@
+# Lightning Rod — right-click to call a bolt down on the nearest foe. LIGHTNING targets @Nearest{r=...}
+# (a held-item activation has no victim, so we pick the closest entity); the bolt's damage scales by
+# level. An activated INTERACT_RIGHT ability behind a cooldown (§3.7); thunder sells the strike.
+display: "&eLightning Rod"
+description: "Call a bolt down on the nearest foe."
+trigger: INTERACT_RIGHT
+applies-to: [WEAPON, TRIDENT]
+group: utility
+levels:
+  1: { chance: 100, cooldown: 220, effects: ["LIGHTNING:3:@Nearest{r=5}", "SOUND:ENTITY_GENERIC_EXPLODE:1:1", "PARTICLE:CRIT:15"] }
+  2: { chance: 100, cooldown: 190, effects: ["LIGHTNING:5:@Nearest{r=6}", "SOUND:ENTITY_GENERIC_EXPLODE:1:1", "PARTICLE:CRIT:20"] }
+  3: { chance: 100, cooldown: 160, effects: ["LIGHTNING:7:@Nearest{r=7}", "SOUND:ENTITY_GENERIC_EXPLODE:1:1", "PARTICLE:CRIT:30", "MESSAGE:&eThe storm obeys you!"] }

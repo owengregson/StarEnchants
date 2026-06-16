@@ -1,0 +1,13 @@
+# Molten Immunity — walk away from the lava unscathed. A FIRE enchant (fires on fire/lava
+# damage): it EXTINGUISHes the wearer, soaks the burn (REDUCE_DAMAGE / FLAT_REDUCE feed the
+# additive defense fold §6.1) and grants Fire Resistance. The top tier cancels the hit outright
+# (CANCEL — used sparingly, here behind a high tier and a cooldown). All self-effects are @Self.
+display: "&cMolten Immunity"
+description: "Walk away from the lava unscathed."
+trigger: FIRE
+applies-to: [ARMOR]
+group: defense
+levels:
+  1: { chance: 40, effects: ["EXTINGUISH:@Self", "REDUCE_DAMAGE:30", "POTION:FIRE_RESISTANCE:0:80:@Self"] }
+  2: { chance: 55, effects: ["EXTINGUISH:@Self", "REDUCE_DAMAGE:50", "FLAT_REDUCE:2", "POTION:FIRE_RESISTANCE:0:140:@Self"] }
+  3: { chance: 70, cooldown: 200, effects: ["EXTINGUISH:@Self", "CANCEL", "POTION:FIRE_RESISTANCE:0:200:@Self"] }

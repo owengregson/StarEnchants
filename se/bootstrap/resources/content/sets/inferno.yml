@@ -1,0 +1,11 @@
+# Inferno — a full-set (pieces:4) armour bonus (§6.6). On DEFENSE the completed set retaliates: it
+# ignites the @Attacker (IGNITE — an attacker exists only on DEFENSE) and grants @Self Fire Resistance
+# so your own flames never bite back. Levelless: trigger/chance/effects live at the file top.
+display: "&cInferno"
+description: "Burn attackers and shrug off fire when the full set is worn."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+pieces: 4
+chance: 45
+cooldown: 100
+effects: ["IGNITE:80:@Attacker", "POTION:FIRE_RESISTANCE:0:100:@Self", "PARTICLE:FLAME:12"]

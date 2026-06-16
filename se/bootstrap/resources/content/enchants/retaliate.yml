@@ -1,0 +1,12 @@
+# Retaliate — strike back at whoever hit you. A DEFENSE enchant that deals reflected DAMAGE
+# to the attacker. DAMAGE defaults to @Victim, so on a defender-side trigger it explicitly
+# names @Attacker — the entity that just hit the wearer.
+display: "&cRetaliate"
+description: "Strike back at whoever hits you."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: defense
+levels:
+  1: { chance: 30, effects: ["DAMAGE:3:@Attacker"] }
+  2: { chance: 40, effects: ["DAMAGE:5:@Attacker"] }
+  3: { chance: 50, effects: ["DAMAGE:7:@Attacker", "KNOCKBACK:0.8:@Attacker"] }

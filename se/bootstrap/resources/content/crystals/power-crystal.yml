@@ -1,0 +1,9 @@
+# Power Crystal — a flat, levelless socket bonus (§6.5). On an ATTACK it feeds the additive damage
+# arbiter via ADD_DAMAGE (a percentage bonus, CONTEXT_LOCAL — folded on the firing thread, never a
+# direct entity touch). No levels block: a crystal's trigger/chance/effects live at the file top.
+display: "&cPower Crystal"
+description: "Adds raw striking power to your blows."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+chance: 100
+effects: ["ADD_DAMAGE:15"]

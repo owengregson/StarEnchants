@@ -31,6 +31,11 @@ import item.render.LoreStyle;
 import item.view.ItemViewCache;
 import item.worn.WornResolver;
 import item.worn.WornStateStore;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -67,11 +72,6 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
     /** Souls granted to the killer's active gem per kill (a v1 constant; config-driven later). */
     private static final int SOULS_PER_KILL = 1;
-
-    private static final List<String> DEFAULT_CONTENT = List.of(
-            "content/enchants/lifesteal.yml",
-            "content/enchants/scorch.yml",
-            "content/enchants/fortify.yml");
 
     private ContentHolder content;
     private ContentReloader reloader;
@@ -182,17 +182,34 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
     }
 
+    /** Extract the bundled content catalog to the data folder on first boot, driven by content/index.txt. */
     private void saveDefaultContent() {
         Path dataFolder = getDataFolder().toPath();
-        for (String resource : DEFAULT_CONTENT) {
+        for (String relative : shippedContentPaths()) {
+            String resource = "content/" + relative;
             if (Files.exists(dataFolder.resolve(resource))) {
-                continue;
+                continue; // never overwrite an operator's edited copy
             }
             try {
                 saveResource(resource, false);
             } catch (RuntimeException missing) {
                 getLogger().warning("could not save default content '" + resource + "': " + missing.getMessage());
             }
+        }
+    }
+
+    /** The content paths to extract, read from the bundled {@code content/index.txt} manifest. */
+    private List<String> shippedContentPaths() {
+        InputStream in = getResource("content/index.txt");
+        if (in == null) {
+            getLogger().warning("content/index.txt missing from the jar — no default content extracted");
+            return List.of();
+        }
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            return reader.lines().map(String::trim).filter(line -> !line.isEmpty() && !line.startsWith("#")).toList();
+        } catch (IOException e) {
+            getLogger().warning("could not read content/index.txt: " + e.getMessage());
+            return List.of();
         }
     }
 

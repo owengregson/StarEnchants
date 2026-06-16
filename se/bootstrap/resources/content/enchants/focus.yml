@@ -1,0 +1,12 @@
+# Focus — right-click to enter a focused state, sharpening reflexes with Haste and Night Vision and,
+# at the top tier, Strength. All POTION buffs target @Self (the default). An activated INTERACT_RIGHT
+# ability behind a cooldown (§3.7); the pling and enchant-table particles signal the trance.
+display: "&3Focus"
+description: "Enter a focused combat trance."
+trigger: INTERACT_RIGHT
+applies-to: [WEAPON, TOOL]
+group: utility
+levels:
+  1: { chance: 100, cooldown: 240, effects: ["POTION:HASTE:0:160:@Self", "POTION:NIGHT_VISION:0:160:@Self", "SOUND:ENTITY_PLAYER_LEVELUP:1:1", "PARTICLE:WITCH:15"] }
+  2: { chance: 100, cooldown: 210, effects: ["POTION:HASTE:1:200:@Self", "POTION:NIGHT_VISION:0:200:@Self", "SOUND:ENTITY_PLAYER_LEVELUP:1:1", "PARTICLE:WITCH:25"] }
+  3: { chance: 100, cooldown: 180, effects: ["POTION:HASTE:2:240:@Self", "POTION:NIGHT_VISION:0:240:@Self", "POTION:STRENGTH:0:240:@Self", "SOUND:ENTITY_PLAYER_LEVELUP:1:1", "PARTICLE:WITCH:35"] }
