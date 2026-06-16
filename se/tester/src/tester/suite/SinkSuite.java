@@ -7,6 +7,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 import platform.resolve.RegistryResolvers;
@@ -24,6 +26,7 @@ import tester.harness.Harness;
  * <ul>
  *   <li>{@code sink.entity.ignite.crossThread} — a handle-free entity intent crosses to the stand's region.</li>
  *   <li>{@code sink.entity.potion.handle} — the §9 round-trip THROUGH the Sink: token→id→live type→applied.</li>
+ *   <li>{@code sink.entity.disarm.crossThread} — a disarm intent clears the stand's main hand cross-region.</li>
  *   <li>{@code sink.region.block.handle} — a Material-handle region intent changes a block on its region.</li>
  * </ul>
  */
@@ -39,6 +42,7 @@ public final class SinkSuite implements Harness.Scenario {
     public void accept(Harness h) {
         h.expect("sink.entity.ignite.crossThread");
         h.expect("sink.entity.potion.handle");
+        h.expect("sink.entity.disarm.crossThread");
         h.expect("sink.region.block.handle");
 
         World world = plugin.getServer().getWorlds().get(0);
@@ -53,6 +57,12 @@ public final class SinkSuite implements Harness.Scenario {
             world.setChunkForceLoaded(cx, cz, true);
             Scheduling.onRegion(at, () -> {
                 ArmorStand victim = spawnStand(world, at);
+                EntityEquipment equipment = victim.getEquipment();
+                if (equipment == null) {
+                    h.fail("sink.entity.disarm.crossThread", "armor stand has no equipment on this version");
+                    return;
+                }
+                equipment.setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
 
                 // Emit + flush from GLOBAL (a different thread than the victim's region on Folia) — the
                 // Sink must hop each intent to its owning thread.
@@ -64,6 +74,7 @@ public final class SinkSuite implements Harness.Scenario {
                     DispatchSink sink = new DispatchSink(handles);
                     sink.ignite(victim, 80);
                     sink.potion(victim, slowId, 0, 80);
+                    sink.disarm(victim);
                     sink.blockChange(blockAt, glowstoneId);
                     sink.flush();
 
@@ -82,6 +93,13 @@ public final class SinkSuite implements Harness.Scenario {
                             }
                             if (!victim.hasPotionEffect(type)) {
                                 throw new IllegalStateException("potion handle intent did not apply to the victim");
+                            }
+                        });
+                        h.guard("sink.entity.disarm.crossThread", () -> {
+                            ItemStack held = equipment.getItemInMainHand();
+                            if (held != null && !held.getType().isAir()) {
+                                throw new IllegalStateException(
+                                        "cross-thread disarm did not clear the main hand; held=" + held.getType());
                             }
                         });
                         victim.remove();

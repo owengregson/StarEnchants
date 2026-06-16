@@ -1,6 +1,7 @@
 package engine.sink;
 
 import engine.interact.DamageFold;
+import java.util.List;
 import java.util.Objects;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -253,6 +254,38 @@ public final class DispatchSink implements Sink {
     }
 
     @Override
+    public void cure(LivingEntity target) {
+        // Snapshot the active types first: removePotionEffect mutates the live collection, so
+        // iterating it directly while removing would be a concurrent-modification hazard.
+        entityOp(target, () -> {
+            for (PotionEffect active : List.copyOf(target.getActivePotionEffects())) {
+                target.removePotionEffect(active.getType());
+            }
+        });
+    }
+
+    @Override
+    public void disarm(LivingEntity target) {
+        // Runs on the target's own thread (entityOp), so reading its equipment + dropping at its
+        // location is region-correct — never a cross-region read.
+        entityOp(target, () -> {
+            EntityEquipment equipment = target.getEquipment();
+            if (equipment == null) {
+                return;
+            }
+            ItemStack held = equipment.getItemInMainHand();
+            if (held == null || held.getType().isAir()) {
+                return;
+            }
+            equipment.setItemInMainHand(null);
+            World world = target.getWorld();
+            if (world != null) {
+                world.dropItemNaturally(target.getLocation(), held);
+            }
+        });
+    }
+
+    @Override
     public void ignite(Entity target, int durationTicks) {
         entityOp(target, () -> target.setFireTicks(Math.max(0, durationTicks)));
     }
@@ -378,6 +411,14 @@ public final class DispatchSink implements Sink {
         // The Spigot chat API is the one action-bar path stable across the whole 1.17.1 → 26.1.x range.
         entityOp(target, () -> target.spigot().sendMessage(
                 ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message)));
+    }
+
+    @Override
+    @SuppressWarnings("deprecation") // sendTitle(String, String, int, int, int): deprecated-not-removed across the whole range.
+    public void title(Player target, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        // The 5-arg String sendTitle is the one title path stable across the whole 1.17.1 → 26.1.x range
+        // (the Adventure Title API is not present on the spigot-mapped floor's bundled api).
+        entityOp(target, () -> target.sendTitle(title, subtitle, fadeIn, stay, fadeOut));
     }
 
     @Override

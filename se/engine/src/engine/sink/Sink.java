@@ -90,6 +90,12 @@ public interface Sink {
 
     void removePotion(LivingEntity target, int potionEffectId);
 
+    /** Clear every active potion effect from the target (a full cleanse). */
+    void cure(LivingEntity target);
+
+    /** Drop the target's held (main-hand) item into the world, clearing the slot. */
+    void disarm(LivingEntity target);
+
     void ignite(Entity target, int durationTicks);
 
     void lightningAndDamage(LivingEntity target, double amount);
@@ -125,6 +131,9 @@ public interface Sink {
     void message(Player target, String message);
 
     void actionBar(Player target, String message);
+
+    /** Show a title + subtitle to a player with the given fade-in / stay / fade-out timings (ticks). */
+    void title(Player target, String title, String subtitle, int fadeIn, int stay, int fadeOut);
 
     void consoleCommand(String command);
 
