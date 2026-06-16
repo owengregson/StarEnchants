@@ -2,6 +2,7 @@ package bootstrap;
 
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
+import feature.soul.SoulService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -31,11 +32,13 @@ public final class SeCommand implements CommandExecutor {
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
+    private final SoulService souls;
 
-    SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn) {
+    SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
+        this.souls = souls;
     }
 
     @Override
@@ -48,9 +51,38 @@ public final class SeCommand implements CommandExecutor {
             case "reload" -> reload(sender, args);
             case "enchant" -> applyHeld(sender, args, false);
             case "crystal" -> applyHeld(sender, args, true);
+            case "gem" -> stampGem(sender);
+            case "soulmode" -> toggleSoulMode(sender);
             default -> usage(sender);
         }
         return true;
+    }
+
+    /** Stamp a fresh soul gem onto the sender's held item (on the sender's own thread). */
+    private void stampGem(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        Scheduling.onEntity(player, () -> player.sendMessage(souls.stampGem(player)
+                ? "§aSoul gem stamped onto your held item. §7Toggle it with /se soulmode."
+                : "§cHold an item first."));
+    }
+
+    /** Toggle soul mode based on the gem in the sender's hand (on the sender's own thread). */
+    private void toggleSoulMode(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            switch (souls.toggle(player)) {
+                case ENABLED -> player.sendMessage("§aSoul mode §lON§a — soul-cost abilities now spend souls.");
+                case DISABLED -> player.sendMessage("§7Soul mode §lOFF§7.");
+                case NO_GEM -> player.sendMessage("§cHold a soul gem first (/se gem).");
+                default -> { }
+            }
+        });
     }
 
     private void reload(CommandSender sender, String[] args) {
@@ -109,6 +141,8 @@ public final class SeCommand implements CommandExecutor {
         sender.sendMessage("§e  /se reload [--dry-run] §7— rebuild content");
         sender.sendMessage("§e  /se enchant <key> [level] §7— apply an enchant to the held item");
         sender.sendMessage("§e  /se crystal <key> §7— apply a crystal to the held item");
+        sender.sendMessage("§e  /se gem §7— stamp a soul gem onto the held item");
+        sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
     }
 
     /**

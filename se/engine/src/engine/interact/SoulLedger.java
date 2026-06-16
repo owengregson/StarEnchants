@@ -1,6 +1,7 @@
 package engine.interact;
 
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -100,6 +101,17 @@ public final class SoulLedger {
         synchronized (stripeFor(gemId)) {
             return currentLocked(gemId, balance);
         }
+    }
+
+    /**
+     * The current authority for {@code gemId} WITHOUT seeding it — empty if the gem has never been
+     * touched (or has been forgotten). Unlike {@link #balance}, a peek never primes the authority
+     * from a {@code Balance}, so a caller flushing the durable copy can tell "no authoritative value"
+     * apart from "zero souls" and never accidentally seeds a stale/zero count.
+     */
+    public OptionalInt peek(UUID gemId) {
+        Integer value = authoritative.get(gemId);
+        return value == null ? OptionalInt.empty() : OptionalInt.of(value);
     }
 
     /** Drop the in-memory authority for one gem (call when the gem is destroyed or goes inactive). */
