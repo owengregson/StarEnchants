@@ -32,6 +32,12 @@ public final class BuiltinEffects {
                 .register(new ActionBarEffect())
                 .register(new RunCommandEffect())
                 .register(new CancelEffect())
+                // Handle-using kinds (resolved tokens, §9).
+                .register(new PotionEffect())
+                .register(new RemovePotionEffect())
+                .register(new SoundEffect())
+                .register(new ParticleEffect())
+                .register(new SpawnEffect())
                 .build();
     }
 }
