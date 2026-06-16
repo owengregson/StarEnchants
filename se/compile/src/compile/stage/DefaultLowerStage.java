@@ -1,6 +1,8 @@
 package compile.stage;
 
 import compile.LineCompiler;
+import compile.MapSpecRegistry;
+import compile.SelectorCompiler;
 import compile.SpecRegistry;
 import compile.def.AbilityDef;
 import compile.model.Affinity;
@@ -42,16 +44,32 @@ public final class DefaultLowerStage implements LowerStage {
 
     private final LineCompiler lineCompiler;
     private final Function<String, Affinity> affinityOf;
+    private final SelectorCompiler selectorCompiler;
+    private final Function<String, String> defaultSelectorOf;
 
     /**
-     * @param registry   the spec registry resolving effect heads to {@code ParamSpec}s
-     * @param affinityOf maps an effect head to its declared {@link Affinity};
-     *                   a {@code null} result is treated as {@link Affinity#CONTEXT_LOCAL}
+     * @param registry          the spec registry resolving effect heads to {@code ParamSpec}s
+     * @param affinityOf        maps an effect head to its declared {@link Affinity};
+     *                          a {@code null} result is treated as {@link Affinity#CONTEXT_LOCAL}
+     * @param selectors         the spec registry resolving selector heads to {@code ParamSpec}s
+     * @param defaultSelectorOf maps an effect head to the selector head it targets by
+     *                          default; a {@code null} result means {@code SELF}
      */
-    public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf) {
+    public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                             SpecRegistry selectors, Function<String, String> defaultSelectorOf) {
         Objects.requireNonNull(registry, "registry");
         this.affinityOf = Objects.requireNonNull(affinityOf, "affinityOf");
+        this.selectorCompiler = new SelectorCompiler(Objects.requireNonNull(selectors, "selectors"));
+        this.defaultSelectorOf = Objects.requireNonNull(defaultSelectorOf, "defaultSelectorOf");
         this.lineCompiler = new LineCompiler(registry);
+    }
+
+    /**
+     * Convenience: the given affinity lookup, but no selectors are resolvable — every
+     * effect targets {@code SELF}. Used by tests and the bare {@code Compiler.of}.
+     */
+    public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf) {
+        this(registry, affinityOf, MapSpecRegistry.of(), head -> null);
     }
 
     /** Convenience: every effect's affinity defaults to {@link Affinity#CONTEXT_LOCAL}. */
@@ -80,8 +98,9 @@ public final class DefaultLowerStage implements LowerStage {
                 continue; // unknown head — LineCompiler already diagnosed it
             }
             compile.CompiledLine cl = compiled.get();
+            CompiledSelector selector = resolveSelector(line, cl.head(), diags);
             out.add(new CompiledEffect(
-                    cl.head(), cl.args(), CompiledSelector.SELF, waitAccum, affinityOf(cl.head())));
+                    cl.head(), cl.args(), selector, waitAccum, affinityOf(cl.head())));
         }
 
         CompiledCondition condition = lowerCondition(def, diags);
@@ -156,6 +175,20 @@ public final class DefaultLowerStage implements LowerStage {
         }
         Optional<Expr> parsed = ExprParser.parse(expr, def.source(), diags);
         return parsed.map(ast -> new CompiledCondition(ast, def.source())).orElse(null);
+    }
+
+    /**
+     * The target selector for an effect line: the author's inline {@code @Head{...}}
+     * selector if present, otherwise the effect kind's declared default target
+     * (falling back to {@code SELF}). Faults fall back to {@code SELF} after a
+     * diagnostic (§3.5, §7).
+     */
+    private CompiledSelector resolveSelector(EffectLine line, String effectHead, Diagnostics diags) {
+        Optional<String> inline = line.selectorToken();
+        if (inline.isPresent()) {
+            return selectorCompiler.compileInline(inline.get(), line.selectorSource(), diags);
+        }
+        return selectorCompiler.defaultFor(defaultSelectorOf.apply(effectHead), line.source(), diags);
     }
 
     /** The declared affinity for {@code head}, defaulting to {@link Affinity#CONTEXT_LOCAL}. */

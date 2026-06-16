@@ -51,10 +51,35 @@ public final class Compiler {
     }
 
     /**
+     * A compiler wired with the default stages and full selector support: each
+     * effect's affinity resolved through {@code affinityOf}, its target through the
+     * {@code selectors} spec registry and {@code defaultSelectorOf} (head &rarr;
+     * declared default selector head; {@code null} &rarr; {@code SELF}), and
+     * version-volatile handles resolved through {@code resolvers}. This is the factory
+     * the engine boot wires, injecting the effect and selector registries' spec views.
+     */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                              PlatformResolvers resolvers) {
+        return new Compiler(
+                new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf),
+                new DefaultResolveStage(registry, resolvers),
+                new DefaultEraseStage(),
+                new DefaultSnapshotStage());
+    }
+
+    /** Default stages with full selector support; no handles are resolvable. */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf) {
+        return of(registry, affinityOf, selectors, defaultSelectorOf, PlatformResolvers.none());
+    }
+
+    /**
      * A compiler wired with the default stages: each effect's affinity resolved
      * through {@code affinityOf} (head &rarr; declared {@link Affinity}; {@code null}
      * &rarr; {@code CONTEXT_LOCAL}) and version-volatile handles resolved through
-     * {@code resolvers}.
+     * {@code resolvers}. No selectors are resolvable — every effect targets
+     * {@code SELF}; use the selector-aware overload to enable {@code @Head{...}}.
      */
     public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
                               PlatformResolvers resolvers) {
