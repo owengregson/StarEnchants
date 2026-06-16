@@ -1,5 +1,8 @@
 package bootstrap;
 
+import compile.load.ContentHolder;
+import compile.load.CrystalDef;
+import compile.load.EnchantDef;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import feature.menu.EnchantMenu;
@@ -17,6 +20,7 @@ import migrate.Migrator;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.content.ContentReloader;
@@ -34,7 +38,11 @@ import schema.diag.Diagnostic;
  * message back on the PLAYER's own thread (Folia-correct — {@code /se} runs on the command thread,
  * not the player's region thread).
  */
-public final class SeCommand implements CommandExecutor {
+public final class SeCommand implements CommandExecutor, TabCompleter {
+
+    /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
+    static final List<String> SUBCOMMANDS =
+            List.of("reload", "enchant", "crystal", "gem", "soulmode", "migrate", "menu");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -42,15 +50,17 @@ public final class SeCommand implements CommandExecutor {
     private final SoulService souls;
     private final Path migrationTarget;
     private final EnchantMenu menu;
+    private final ContentHolder content;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
-              Path migrationTarget, EnchantMenu menu) {
+              Path migrationTarget, EnchantMenu menu, ContentHolder content) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
         this.souls = souls;
         this.migrationTarget = migrationTarget;
         this.menu = menu;
+        this.content = content;
     }
 
     @Override
@@ -70,6 +80,46 @@ public final class SeCommand implements CommandExecutor {
             default -> usage(sender);
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return complete(args,
+                content.library().catalog().stream().map(EnchantDef::key).toList(),
+                content.library().crystals().stream().map(CrystalDef::key).toList());
+    }
+
+    /**
+     * Pure tab-completion: the subcommand at {@code args[0]}, then context-sensitive completions for the
+     * first argument (enchant/crystal keys from the live content, {@code ee}/{@code ea} for migrate,
+     * {@code --dry-run} for reload). Extracted from Bukkit so it is unit-tested without a server.
+     */
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys) {
+        if (args.length <= 1) {
+            return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
+        }
+        if (args.length == 2) {
+            return switch (args[0].toLowerCase(Locale.ROOT)) {
+                case "enchant" -> filter(enchantKeys, args[1]);
+                case "crystal" -> filter(crystalKeys, args[1]);
+                case "migrate" -> filter(List.of("ee", "ea"), args[1]);
+                case "reload" -> filter(List.of("--dry-run"), args[1]);
+                default -> List.of();
+            };
+        }
+        return List.of();
+    }
+
+    /** The candidates that start with {@code prefix} (case-insensitive), in order. */
+    private static List<String> filter(List<String> candidates, String prefix) {
+        String lower = prefix.toLowerCase(Locale.ROOT);
+        List<String> out = new ArrayList<>();
+        for (String candidate : candidates) {
+            if (candidate.toLowerCase(Locale.ROOT).startsWith(lower)) {
+                out.add(candidate);
+            }
+        }
+        return out;
     }
 
     /** Stamp a fresh soul gem onto the sender's held item (on the sender's own thread). */
