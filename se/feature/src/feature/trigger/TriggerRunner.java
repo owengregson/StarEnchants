@@ -66,7 +66,8 @@ public final class TriggerRunner {
             return;
         }
         Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, nowTicks.getAsLong())
-                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0));
+                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0))
+                .location(context.location()); // captured on the firing thread → safe for the gate-2 guard
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
         executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
     }
