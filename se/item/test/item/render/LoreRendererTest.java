@@ -1,17 +1,14 @@
 package item.render;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import compile.load.EnchantDef;
 import item.codec.CombatState;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
-import schema.diag.Source;
 
 /**
  * The pure line-building of {@link LoreRenderer} — verified with no server. The display-name
@@ -67,14 +64,5 @@ class LoreRendererTest {
     @Test
     void isEmptyForAnItemWithNoCombatState() {
         assertTrue(new LoreRenderer(LoreStyle.DEFAULT, NAMES).lines(CombatState.EMPTY).isEmpty());
-    }
-
-    @Test
-    void displayNamesLooksUpByKeyAndMissesToNull() {
-        Function<String, String> names = LoreRenderer.displayNames(List.of(
-                new EnchantDef("enchants/venom", "&2Venom", "poison on hit", List.of("SWORDS"), 4, Source.UNKNOWN)));
-
-        assertEquals("&2Venom", names.apply("enchants/venom"));
-        assertNull(names.apply("enchants/missing"));
     }
 }

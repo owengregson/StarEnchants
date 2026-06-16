@@ -3,6 +3,7 @@ package compile.load;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.Compiler;
@@ -60,6 +61,36 @@ class LibraryLoaderTest {
         assertNotNull(lib.snapshot().byStableKey("enchants/lifesteal/2"));
         assertNotNull(lib.snapshot().byStableKey("enchants/herald/1"));
         assertEquals(2, lib.catalog().size());
+    }
+
+    @Test
+    void loadsCrystalsAsLevellessAbilitiesKeyedByTheirBaseKey(@TempDir Path root) throws IOException {
+        write(root, "enchants/lifesteal.yml", """
+            display: "Lifesteal"
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: ["HEAL:2"] }
+            """);
+        write(root, "crystals/jolt.yml", """
+            display: "&bJolt"
+            description: "a zap on hit"
+            trigger: ATTACK
+            chance: 100
+            effects: ["MESSAGE:zap"]
+            """);
+
+        Library lib = LibraryLoader.load(root, compiler(), 7);
+
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+        // The crystal's stable key is the base key itself — no /level suffix (WornResolver looks it up directly).
+        assertNotNull(lib.snapshot().byStableKey("crystals/jolt"));
+        assertEquals(0, lib.snapshot().byStableKey("crystals/jolt").level());
+        assertNotNull(lib.snapshot().byStableKey("enchants/lifesteal/1"));
+        assertEquals(1, lib.crystals().size());
+        assertEquals("crystals/jolt", lib.crystals().get(0).key());
+        assertEquals("&bJolt", lib.displayNameOf("crystals/jolt"));
+        assertEquals("Lifesteal", lib.displayNameOf("enchants/lifesteal"));
+        assertNull(lib.displayNameOf("crystals/missing"));
     }
 
     @Test

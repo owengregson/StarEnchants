@@ -27,7 +27,7 @@ import schema.diag.Source;
  * never throws on content, only on a genuine I/O failure walking the tree. The caller inspects
  * {@link Library#hasErrors()} before publishing (transactional reload, §10).
  *
- * <p>This cycle reads {@code enchants/} only; {@code sets/}/{@code weapons/}/{@code crystals/}/
+ * <p>This cycle reads {@code enchants/} and {@code crystals/}; {@code sets/}/{@code weapons/}/
  * {@code heroic/} register their own readers when those sources are authored (ADR-0014).
  */
 public final class LibraryLoader {
@@ -48,33 +48,69 @@ public final class LibraryLoader {
     public static Library load(Path contentRoot, Compiler compiler, int generation) {
         Diagnostics diags = new Diagnostics();
         List<EnchantDef> catalog = new ArrayList<>();
+        List<CrystalDef> crystals = new ArrayList<>();
         List<AbilityDef> defs = new ArrayList<>();
         int[] nextDefId = {0};
 
-        Path enchantsDir = contentRoot.resolve("enchants");
-        if (Files.isDirectory(enchantsDir)) {
-            for (Path file : listContentFiles(contentRoot, enchantsDir)) {
-                String label = relativePath(contentRoot, file);   // e.g. enchants/lifesteal.yml
-                String baseKey = stripExtension(label);            // e.g. enchants/lifesteal
-                if (baseKey.isEmpty() || baseKey.endsWith("/")) {
-                    diags.error("load.key", "content file has no name stem: " + label, Source.ofFile(label));
-                    continue;
-                }
-                String yaml = readFile(file, label, diags);
-                if (yaml == null) {
-                    continue;
-                }
-                YamlNode root = YamlNode.compose(label, yaml, diags);
-                EnchantDefReader.Parsed parsed = EnchantDefReader.read(baseKey, root, () -> nextDefId[0]++, diags);
-                if (parsed.def() != null) {
-                    catalog.add(parsed.def());
-                }
-                defs.addAll(parsed.abilities());
+        // Enchants (per-level abilities) then crystals (one ability each). Each source directory is
+        // walked the same way; the reader chosen per directory decides the def + metadata shape.
+        for (Path file : sourceFiles(contentRoot, "enchants")) {
+            String baseKey = baseKeyOf(contentRoot, file, diags);
+            if (baseKey == null) {
+                continue; // no name stem (already reported) — don't waste a read/parse on it
             }
+            YamlNode root = composeOf(contentRoot, file, diags);
+            if (root == null) {
+                continue;
+            }
+            EnchantDefReader.Parsed parsed = EnchantDefReader.read(baseKey, root, () -> nextDefId[0]++, diags);
+            if (parsed.def() != null) {
+                catalog.add(parsed.def());
+            }
+            defs.addAll(parsed.abilities());
+        }
+        for (Path file : sourceFiles(contentRoot, "crystals")) {
+            String baseKey = baseKeyOf(contentRoot, file, diags);
+            if (baseKey == null) {
+                continue;
+            }
+            YamlNode root = composeOf(contentRoot, file, diags);
+            if (root == null) {
+                continue;
+            }
+            CrystalDefReader.Parsed parsed = CrystalDefReader.read(baseKey, root, () -> nextDefId[0]++, diags);
+            if (parsed.def() != null) {
+                crystals.add(parsed.def());
+            }
+            defs.addAll(parsed.abilities());
         }
 
         Snapshot snapshot = compiler.compile(defs, generation, diags);
-        return new Library(snapshot, catalog, diags.all());
+        return new Library(snapshot, catalog, crystals, diags.all());
+    }
+
+    /** The content files under {@code contentRoot/<dir>} in deterministic order, or empty if absent. */
+    private static List<Path> sourceFiles(Path contentRoot, String dir) {
+        Path sourceDir = contentRoot.resolve(dir);
+        return Files.isDirectory(sourceDir) ? listContentFiles(contentRoot, sourceDir) : List.of();
+    }
+
+    /** The path-derived base key for a content file, or {@code null} (with a diagnostic) if it has none. */
+    private static String baseKeyOf(Path contentRoot, Path file, Diagnostics diags) {
+        String label = relativePath(contentRoot, file);   // e.g. enchants/lifesteal.yml
+        String baseKey = stripExtension(label);            // e.g. enchants/lifesteal
+        if (baseKey.isEmpty() || baseKey.endsWith("/")) {
+            diags.error("load.key", "content file has no name stem: " + label, Source.ofFile(label));
+            return null;
+        }
+        return baseKey;
+    }
+
+    /** Read + compose a content file into a {@link YamlNode}, or {@code null} (with a diagnostic) on I/O fault. */
+    private static YamlNode composeOf(Path contentRoot, Path file, Diagnostics diags) {
+        String label = relativePath(contentRoot, file);
+        String yaml = readFile(file, label, diags);
+        return yaml == null ? null : YamlNode.compose(label, yaml, diags);
     }
 
     /** The path under {@code contentRoot}, slash-normalised so keys/labels are stable cross-OS. */

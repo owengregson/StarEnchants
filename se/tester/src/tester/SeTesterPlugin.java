@@ -11,6 +11,7 @@ import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.CombatSuite;
 import tester.suite.ContentLoaderSuite;
+import tester.suite.CrystalSuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
@@ -68,6 +69,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         if (caps.mojangMapped()) {
             harness.add(new FakePlayerSuite(this));
             harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
+            harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
         }
 
         getServer().getPluginManager().registerEvents(this, this);

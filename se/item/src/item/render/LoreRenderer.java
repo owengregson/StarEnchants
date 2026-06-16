@@ -1,9 +1,7 @@
 package item.render;
 
-import compile.load.EnchantDef;
 import item.codec.CombatState;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,10 +17,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  * style's {@code unknownLabel} and is skipped, never crashing the render (§5.3).
  *
  * <p>The display-name lookup is injected as a {@code base key -> display} function, so the
- * line-building ({@link #lines}) is pure and unit-testable with no server or {@code Library};
- * {@link #displayNames(List)} builds that function from a loaded catalog for the wiring. Only
- * {@link #apply} touches Bukkit, through the legacy {@code setLore(List<String>)} that is stable
- * across the whole 1.17.1 → 26.1.x range.
+ * line-building ({@link #lines}) is pure and unit-testable with no server or {@code Library}; the
+ * wiring passes {@code Library::displayNameOf} (which covers enchants AND crystals) as that
+ * function. Only {@link #apply} touches Bukkit, through the legacy {@code setLore(List<String>)}
+ * that is stable across the whole 1.17.1 → 26.1.x range.
  */
 public final class LoreRenderer {
 
@@ -73,17 +71,5 @@ public final class LoreRenderer {
     private String nameOr(String key) {
         String display = displayNameOf.apply(key);
         return display != null ? display : style.unknownLabel();
-    }
-
-    /**
-     * A {@code base key -> display name} lookup over a loaded catalog (returns {@code null} for a
-     * key the catalog does not define, which the renderer shows as the unknown label).
-     */
-    public static Function<String, String> displayNames(List<EnchantDef> catalog) {
-        Map<String, String> byKey = new HashMap<>();
-        for (EnchantDef def : catalog) {
-            byKey.put(def.key(), def.display());
-        }
-        return byKey::get;
     }
 }

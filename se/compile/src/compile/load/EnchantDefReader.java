@@ -37,11 +37,11 @@ final class EnchantDefReader {
             return new Parsed(null, List.of());
         }
 
-        String display = blankToNull(root.string("display"));
+        String display = ContentParse.blankToNull(root.string("display"));
         if (display == null) {
             display = baseKey; // non-fatal: default the display name to the key (absent OR blank)
         }
-        String description = blankToNull(root.string("description"));
+        String description = ContentParse.blankToNull(root.string("description"));
         List<String> appliesTo = root.stringList("applies-to");
         List<String> triggers = root.stringList("trigger");
         if (triggers.isEmpty()) {
@@ -49,8 +49,8 @@ final class EnchantDefReader {
                     root.sourceOf("trigger"));
         }
         List<String> disabledWorlds = root.stringList("disabled-worlds");
-        String group = blankToNull(root.string("group"));
-        int repeatTicks = optInt(root, "repeat", 0, diags);
+        String group = ContentParse.blankToNull(root.string("group"));
+        int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
 
         List<AbilityDef> abilities = new ArrayList<>();
         List<YamlNode.Entry> levels = root.entries("levels");
@@ -60,7 +60,7 @@ final class EnchantDefReader {
         }
         int maxDeclared = 0;
         for (YamlNode.Entry entry : levels) {
-            Integer level = parseInt(entry.key());
+            Integer level = ContentParse.parseInt(entry.key());
             Source levelSource = entry.value().source();
             if (level == null || level < 1) {
                 diags.error("load.enchant.level",
@@ -75,11 +75,13 @@ final class EnchantDefReader {
             }
             maxDeclared = Math.max(maxDeclared, level);
 
-            double chance = clampChance(optDouble(lvl, "chance", 100.0, diags), lvl.sourceOf("chance"), diags);
-            int cooldown = optInt(lvl, "cooldown", 0, diags);
-            int soulCost = optInt(lvl, "soul-cost", 0, diags);
-            String condition = blankToNull(lvl.string("condition"));
-            List<EffectLine> effects = effectLines(lvl, baseKey, level, diags);
+            double chance = ContentParse.clampChance(
+                    ContentParse.optDouble(lvl, "chance", 100.0, diags), lvl.sourceOf("chance"), diags);
+            int cooldown = ContentParse.optInt(lvl, "cooldown", 0, diags);
+            int soulCost = ContentParse.optInt(lvl, "soul-cost", 0, diags);
+            String condition = ContentParse.blankToNull(lvl.string("condition"));
+            List<EffectLine> effects = ContentParse.effectLines(
+                    lvl, "level " + level + " of '" + baseKey + "'", diags);
 
             abilities.add(new AbilityDef(
                     SourceKind.ENCHANT,
@@ -101,71 +103,9 @@ final class EnchantDefReader {
                     levelSource));
         }
 
-        int maxLevel = optInt(root, "max-level", maxDeclared, diags);
+        int maxLevel = ContentParse.optInt(root, "max-level", maxDeclared, diags);
         EnchantDef def = new EnchantDef(baseKey, display,
                 description == null ? "" : description, appliesTo, maxLevel, fileSource);
         return new Parsed(def, abilities);
-    }
-
-    private static List<EffectLine> effectLines(YamlNode lvl, String baseKey, int level, Diagnostics diags) {
-        List<String> raw = lvl.stringList("effects");
-        Source source = lvl.sourceOf("effects");
-        if (raw.isEmpty()) {
-            diags.warning("load.enchant.effects",
-                    "level " + level + " of '" + baseKey + "' declares no effects", source);
-        }
-        List<EffectLine> out = new ArrayList<>(raw.size());
-        for (String line : raw) {
-            out.add(EffectLine.parse(line, source));
-        }
-        return out;
-    }
-
-    private static double clampChance(double chance, Source source, Diagnostics diags) {
-        // NaN slips past a naive range check (NaN < 0 and NaN > 100 are both false), so guard it
-        // explicitly — a NaN activation chance must never reach the runtime.
-        if (Double.isNaN(chance) || chance < 0.0 || chance > 100.0) {
-            diags.error("load.chance", "chance must be a number in [0,100], got " + chance, source);
-            return Double.isNaN(chance) ? 0.0 : Math.max(0.0, Math.min(100.0, chance));
-        }
-        return chance;
-    }
-
-    private static int optInt(YamlNode node, String key, int fallback, Diagnostics diags) {
-        String raw = node.string(key);
-        if (raw == null) {
-            return fallback;
-        }
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.error("load.int", "'" + key + "' must be an integer, got '" + raw + "'", node.sourceOf(key));
-            return fallback;
-        }
-    }
-
-    private static double optDouble(YamlNode node, String key, double fallback, Diagnostics diags) {
-        String raw = node.string(key);
-        if (raw == null) {
-            return fallback;
-        }
-        try {
-            return Double.parseDouble(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.error("load.double", "'" + key + "' must be a number, got '" + raw + "'", node.sourceOf(key));
-            return fallback;
-        }
-    }
-
-    private static Integer parseInt(String raw) {
-        try {
-            return Integer.valueOf(raw.trim());
-        } catch (NumberFormatException bad) {
-            return null;
-        }
-    }
-
-    private static String blankToNull(String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 }
