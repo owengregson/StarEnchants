@@ -77,7 +77,8 @@ public final class ContentLoaderSuite implements Harness.Scenario {
         });
 
         ContentHolder holder = new ContentHolder(initial);
-        ContentReloader reloader = new ContentReloader(holder, compiler, root, 0);
+        // A fresh compiler per build (clean interners) — never reuse the initial-load compiler.
+        ContentReloader reloader = new ContentReloader(holder, ContentCompiler::production, root, 0);
         try {
             write(root, "enchants/bolt.yml", BOLT);
         } catch (IOException e) {

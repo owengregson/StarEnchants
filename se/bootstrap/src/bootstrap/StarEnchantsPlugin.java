@@ -1,6 +1,5 @@
 package bootstrap;
 
-import compile.Compiler;
 import compile.load.ContentHolder;
 import compile.load.Library;
 import compile.load.LibraryLoader;
@@ -14,6 +13,7 @@ import platform.caps.Capabilities;
 import platform.content.ContentReloader;
 import platform.sched.Scheduling;
 import schema.diag.Diagnostic;
+import schema.diag.Diagnostics;
 
 /**
  * The StarEnchants plugin — the composition root (ADR-0014). On enable it probes capabilities,
@@ -46,15 +46,31 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         saveDefaultContent();
         Path contentRoot = getDataFolder().toPath().resolve("content");
 
-        Compiler compiler = ContentCompiler.production();
-        Library initial = LibraryLoader.load(contentRoot, compiler, 0);
+        // Boot is seed-with-what-compiles (NOT transactional like reload): the compiler always returns
+        // a usable snapshot with bad abilities dropped to diagnostics, so a partial edit still enables
+        // with the valid content live. A genuine I/O fault is caught so the plugin never fails to enable.
+        Library initial = loadInitial(contentRoot);
         content = new ContentHolder(initial);
-        reloader = new ContentReloader(content, compiler, contentRoot, 0);
+        // A FRESH compiler per build (ContentCompiler::production) keeps each reload's interner state
+        // clean — never shared between builds, never accumulated across reloads.
+        reloader = new ContentReloader(content, ContentCompiler::production, contentRoot, 0);
         logLoad(initial);
 
         PluginCommand command = getCommand("se");
         if (command != null) {
             command.setExecutor(new SeCommand(reloader));
+        }
+    }
+
+    /** The initial load, guaranteed not to throw out of onEnable — a content I/O fault boots empty. */
+    private Library loadInitial(Path contentRoot) {
+        try {
+            return LibraryLoader.load(contentRoot, ContentCompiler.production(), 0);
+        } catch (Throwable failure) {
+            getLogger().severe("content load failed; enabling with no content: " + failure);
+            Diagnostics diagnostics = new Diagnostics();
+            return new Library(ContentCompiler.production().compile(List.of(), 0, diagnostics),
+                    List.of(), diagnostics.all());
         }
     }
 
