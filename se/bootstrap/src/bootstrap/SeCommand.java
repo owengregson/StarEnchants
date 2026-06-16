@@ -2,6 +2,7 @@ package bootstrap;
 
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
+import feature.menu.EnchantMenu;
 import feature.soul.SoulService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -40,14 +41,16 @@ public final class SeCommand implements CommandExecutor {
     private final Consumer<Player> refreshWorn;
     private final SoulService souls;
     private final Path migrationTarget;
+    private final EnchantMenu menu;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
-              Path migrationTarget) {
+              Path migrationTarget, EnchantMenu menu) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
         this.souls = souls;
         this.migrationTarget = migrationTarget;
+        this.menu = menu;
     }
 
     @Override
@@ -63,6 +66,7 @@ public final class SeCommand implements CommandExecutor {
             case "gem" -> stampGem(sender);
             case "soulmode" -> toggleSoulMode(sender);
             case "migrate" -> migrate(sender, args);
+            case "menu" -> openMenu(sender);
             default -> usage(sender);
         }
         return true;
@@ -103,6 +107,15 @@ public final class SeCommand implements CommandExecutor {
         } else {
             reloader.reload(result -> report(sender, result));
         }
+    }
+
+    /** {@code /se menu} — open the enchant-application menu (on the player's own region thread). */
+    private void openMenu(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        menu.open(player);
     }
 
     /** {@code /se migrate <ee|ea> <sourcePath>} — import legacy configs into the migrated/ folder for review. */
@@ -209,6 +222,7 @@ public final class SeCommand implements CommandExecutor {
         sender.sendMessage("§e  /se reload [--dry-run] §7— rebuild content");
         sender.sendMessage("§e  /se enchant <key> [level] §7— apply an enchant to the held item");
         sender.sendMessage("§e  /se crystal <key> §7— apply a crystal to the held item");
+        sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— stamp a soul gem onto the held item");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
         sender.sendMessage("§e  /se migrate <ee|ea> <path> §7— import legacy EliteEnchantments/EliteArmor configs");
