@@ -10,6 +10,7 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.ItemCodecSuite;
+import tester.suite.ResolverSuite;
 import tester.suite.SchedulingSuite;
 
 /**
@@ -45,7 +46,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness = new Harness(this, serverRoot, DEADLINE_TICKS)
                 .add(new CapabilitiesSuite(this, caps))
                 .add(new SchedulingSuite(this))
-                .add(new ItemCodecSuite(this));
+                .add(new ItemCodecSuite(this))
+                .add(new ResolverSuite());
 
         getServer().getPluginManager().registerEvents(this, this);
     }
