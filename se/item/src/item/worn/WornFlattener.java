@@ -1,6 +1,7 @@
 package item.worn;
 
 import compile.model.Ability;
+import item.codec.HeroicStat;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;

@@ -1,5 +1,6 @@
 package item.worn;
 
+import item.codec.HeroicStat;
 import java.util.BitSet;
 
 /**

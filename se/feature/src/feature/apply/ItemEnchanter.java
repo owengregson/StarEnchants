@@ -90,7 +90,8 @@ public final class ItemEnchanter {
         CombatState current = codec.read(stack);
         Map<String, Integer> enchants = new LinkedHashMap<>(current.enchants());
         enchants.put(baseKey, level);
-        CombatState next = new CombatState(enchants, current.crystals(), current.setKey(), current.omni());
+        CombatState next = new CombatState(enchants, current.crystals(),
+                current.setKey(), current.omni(), current.heroic());
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(check.message() + " §7applied (level " + level + ").");
@@ -111,7 +112,8 @@ public final class ItemEnchanter {
         }
         List<String> crystals = new ArrayList<>(current.crystals());
         crystals.add(baseKey); // crystals stack — a list, never collapsed (§6.5)
-        CombatState next = new CombatState(current.enchants(), crystals, current.setKey(), current.omni());
+        CombatState next = new CombatState(current.enchants(), crystals,
+                current.setKey(), current.omni(), current.heroic());
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(check.message() + " §7crystal applied.");

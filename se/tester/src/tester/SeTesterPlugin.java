@@ -14,6 +14,7 @@ import tester.suite.CombatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.CrystalSuite;
 import tester.suite.FakePlayerSuite;
+import tester.suite.HeroicSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
 import tester.suite.RenderSuite;
@@ -74,6 +75,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
             harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
             harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
             harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
+            harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
         }
 
         getServer().getPluginManager().registerEvents(this, this);

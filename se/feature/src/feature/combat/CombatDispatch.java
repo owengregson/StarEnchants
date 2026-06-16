@@ -78,12 +78,12 @@ public final class CombatDispatch {
 
         // Attack side: the player damager's ATTACK abilities act on the victim (self = the attacker).
         if (damager instanceof Player attackerPlayer) {
-            runPass(abilities, snapshot, sink, worldId, now, attackTriggerId,
+            runPass(abilities, snapshot, sink, worldId, now, attackTriggerId, true,
                     attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at));
         }
         // Defense side: the player victim's DEFENSE abilities retaliate against the attacker.
         if (victimEntity instanceof Player defenderPlayer) {
-            runPass(abilities, snapshot, sink, worldId, now, defenseTriggerId,
+            runPass(abilities, snapshot, sink, worldId, now, defenseTriggerId, false,
                     defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at));
         }
 
@@ -96,10 +96,18 @@ public final class CombatDispatch {
     }
 
     private void runPass(Ability[] abilities, Snapshot snapshot, DispatchSink sink, int worldId, long now,
-                         int triggerId, Player actor, ActivationContext context) {
+                         int triggerId, boolean attackSide, Player actor, ActivationContext context) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != snapshot.generation()) {
             return; // not resolved yet (or stale across a reload) — this side contributes nothing
+        }
+        // Heroic flat stats are a PASSIVE source — not chance/trigger-gated — so they contribute once
+        // per side regardless of whether any ability fires: the attacker's flat damage on the attack
+        // side, the defender's flat reduction on the defense side (§6.1). A zero stat is a no-op fold.
+        if (attackSide) {
+            sink.addFlatDamage(wornState.heroic().flatDamage());
+        } else {
+            sink.addFlatReduction(wornState.heroic().flatReduction());
         }
         int[] candidates = wornState.byTrigger(triggerId);
         if (candidates.length == 0) {

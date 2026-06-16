@@ -80,6 +80,17 @@ class CombatCodecTest {
     }
 
     @Test
+    void roundTripsHeroicStats() {
+        CombatState s = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(3.5, 2.0, 100.0));
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(s));
+        assertEquals(3.5, back.heroic().flatDamage());
+        assertEquals(2.0, back.heroic().flatReduction());
+        assertEquals(100.0, back.heroic().durability());
+        // A heroic-only item (no enchants/crystals/set) is NOT empty — it must persist.
+        assertTrue(!new CombatState(Map.of(), List.of(), null, false, new HeroicStat(1, 0, 0)).isEmpty());
+    }
+
+    @Test
     void legacyBlobWithoutSetSectionsDecodesToNoSet() {
         // An old v1 blob (no s/o labels) → setKey null, omni false (forward-compatible).
         CombatState back = CombatCodec.decodeBlob("v1efire:2c");

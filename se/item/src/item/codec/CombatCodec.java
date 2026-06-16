@@ -25,9 +25,10 @@ import org.bukkit.persistence.PersistentDataType;
  * <p>Format: {@code v1 US <label> US <payload> US <label> US <payload> …} where {@code US} is the
  * unit separator and each list payload joins entries with the record separator {@code RS}. Labels:
  * {@code e} = enchants ({@code key:level} per entry), {@code c} = crystals ({@code key}),
- * {@code s} = armour-set key, {@code o} = omni flag ({@code 1}). Unknown labels are ignored so a
- * newer field never breaks an older reader (and an older blob lacking {@code s}/{@code o} decodes to
- * no set / not-omni).
+ * {@code s} = armour-set key, {@code o} = omni flag ({@code 1}), {@code h} = heroic flat stats
+ * ({@code damage:reduction:durability}). Unknown labels are ignored so a newer field never breaks an
+ * older reader (and an older blob lacking {@code s}/{@code o}/{@code h} decodes to no set / not-omni /
+ * no heroic).
  */
 public final class CombatCodec {
 
@@ -133,6 +134,13 @@ public final class CombatCodec {
         if (state.omni()) {
             sb.append(US).append('o').append(US).append('1');
         }
+        HeroicStat heroic = state.heroic();
+        if (!heroic.isZero()) {
+            sb.append(US).append('h').append(US)
+                    .append(heroic.flatDamage()).append(KV)
+                    .append(heroic.flatReduction()).append(KV)
+                    .append(heroic.durability());
+        }
         return sb.toString();
     }
 
@@ -149,6 +157,7 @@ public final class CombatCodec {
         java.util.List<String> crystals = new java.util.ArrayList<>();
         String setKey = null;
         boolean omni = false;
+        HeroicStat heroic = HeroicStat.NONE;
         // Sections come in (label, payload) pairs after the version token.
         for (int i = 1; i + 1 < tokens.length; i += 2) {
             String label = tokens[i];
@@ -161,10 +170,26 @@ public final class CombatCodec {
                 setKey = payload.isEmpty() ? null : payload;
             } else if ("o".equals(label)) {
                 omni = "1".equals(payload);
+            } else if ("h".equals(label)) {
+                heroic = parseHeroic(payload);
             }
             // any other label is a newer field this reader does not know — ignore it
         }
-        return new CombatState(enchants, crystals, setKey, omni);
+        return new CombatState(enchants, crystals, setKey, omni, heroic);
+    }
+
+    /** Parse a {@code damage:reduction:durability} heroic payload; a malformed field yields {@code NONE}. */
+    private static HeroicStat parseHeroic(String payload) {
+        String[] parts = payload.split(java.util.regex.Pattern.quote(String.valueOf(KV)), -1);
+        if (parts.length != 3) {
+            return HeroicStat.NONE; // malformed → no heroic, never throw
+        }
+        try {
+            return new HeroicStat(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]),
+                    Double.parseDouble(parts[2]));
+        } catch (NumberFormatException bad) {
+            return HeroicStat.NONE;
+        }
     }
 
     private static void parseEnchants(String payload, Map<String, Integer> into) {

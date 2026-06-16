@@ -8,6 +8,7 @@ import compile.model.Ability;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import compile.model.SourceKind;
+import item.codec.HeroicStat;
 import java.util.BitSet;
 import java.util.function.IntPredicate;
 import org.junit.jupiter.api.Test;
