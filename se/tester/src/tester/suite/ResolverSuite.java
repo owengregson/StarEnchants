@@ -44,6 +44,11 @@ public final class ResolverSuite implements Harness.Scenario {
         check(h, "resolve.particle.HAPPY_VILLAGER", r.particle("HAPPY_VILLAGER"));
 
         check(h, "resolve.sound.ENTITY_PLAYER_LEVELUP", r.sound("ENTITY_PLAYER_LEVELUP"));
+        // A sound whose name has MULTI-WORD segments (lightning_bolt, ender_dragon): a naive '_'→'.'
+        // registry key mangles the boundary, so on 26.1.x (Sound registry-backed) it only resolves via
+        // the static-field path — this pins that fix across the enum→interface transition.
+        check(h, "resolve.sound.ENTITY_LIGHTNING_BOLT_THUNDER", r.sound("ENTITY_LIGHTNING_BOLT_THUNDER"));
+        check(h, "resolve.sound.ENTITY_ENDER_DRAGON_GROWL", r.sound("ENTITY_ENDER_DRAGON_GROWL"));
 
         // The runtime's id→handle reverse lookup must map a resolved id back to a real name.
         h.expect("resolve.reverseLookup");
