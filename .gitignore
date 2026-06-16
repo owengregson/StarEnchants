@@ -19,6 +19,11 @@ bin/
 # Never committed: third-party copyrighted code + large binaries.
 /deobf/
 
+# Local reference cache — per-version Paper/Folia server jars (for javap) and
+# cached Paper/Folia developer docs. Large + third-party; populate locally with
+# scripts/fetch-reference.sh. See the reference-cache skill.
+/reference/
+
 # Local test servers / run directories
 /run/
 /server/
