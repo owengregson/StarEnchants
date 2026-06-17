@@ -4,11 +4,11 @@ import compile.load.ContentHolder;
 import compile.load.ItemDef;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
+import item.mint.ItemFactory;
 import item.codec.CarrierCodec;
 import item.codec.CarrierData;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 import org.bukkit.ChatColor;
@@ -316,7 +316,6 @@ public final class CarrierService {
     }
 
     private static Material material(String token) {
-        Material m = token == null ? null : Material.getMaterial(token.toUpperCase(Locale.ROOT));
-        return m != null ? m : Material.PAPER;
+        return ItemFactory.material(token, Material.PAPER); // cross-version resolve lives in one place
     }
 }

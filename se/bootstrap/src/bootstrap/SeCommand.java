@@ -79,7 +79,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "reload" -> reload(sender, args);
             case "enchant" -> applyHeld(sender, args, false);
             case "crystal" -> applyHeld(sender, args, true);
-            case "gem" -> stampGem(sender);
+            case "gem" -> giveGem(sender);
             case "book" -> giveBook(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "migrate" -> migrate(sender, args);
@@ -129,15 +129,19 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return out;
     }
 
-    /** Stamp a fresh soul gem onto the sender's held item (on the sender's own thread). */
-    private void stampGem(CommandSender sender) {
+    /** Mint a DISTINCT soul gem from the configured likeness and give it to the sender (on their thread). */
+    private void giveGem(CommandSender sender) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("§cThat command can only be run by a player.");
             return;
         }
-        Scheduling.onEntity(player, () -> player.sendMessage(souls.stampGem(player)
-                ? "§aSoul gem stamped onto your held item. §7Toggle it with /se soulmode."
-                : "§cHold an item first."));
+        Scheduling.onEntity(player, () -> {
+            ItemStack gem = souls.mintGem();
+            // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
+            player.getInventory().addItem(gem).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage("§aSoul gem minted. §7Right-click it (or /se soulmode) to toggle soul mode.");
+        });
     }
 
     /** Toggle soul mode based on the gem in the sender's hand (on the sender's own thread). */
@@ -323,7 +327,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se enchant <key> [level] §7— apply an enchant to the held item");
         sender.sendMessage("§e  /se crystal <key> §7— apply a crystal to the held item");
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
-        sender.sendMessage("§e  /se gem §7— stamp a soul gem onto the held item");
+        sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
         sender.sendMessage("§e  /se migrate <ee|ea|ae> <path> §7— import legacy EE/EA/AdvancedEnchantments configs");
     }

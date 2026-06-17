@@ -3,16 +3,21 @@ package feature.soul;
 import compile.load.SoulGemConfig;
 import engine.interact.SoulLedger;
 import engine.stores.SoulModeStore;
+import item.mint.ItemFactory;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.function.Supplier;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import platform.sched.Scheduling;
 
 /**
@@ -75,17 +80,57 @@ public final class SoulService {
     }
 
     /**
-     * Stamp a fresh soul gem (a new identity, 0 souls) onto {@code player}'s held item. MUST run on
-     * the player's own thread. Returns {@code false} if no item is held.
+     * Mint a fresh soul gem ITEM from the configured likeness (a new identity, 0 souls) — a DISTINCT
+     * configured item (material / name / lore), NOT a stamp onto held gear (docs/v3-directives.md §D).
+     * Pure construction (no entity read), so it is Folia-safe to call from any thread; the caller GIVES
+     * the stack on the player's own thread.
      */
-    public boolean stampGem(Player player) {
-        ItemStack held = player.getInventory().getItemInMainHand();
-        if (held == null || held.getType().isAir()) {
-            return false;
+    public ItemStack mintGem() {
+        SoulGemConfig cfg = config.get();
+        SoulData data = SoulData.fresh(UUID.randomUUID());
+        ItemStack gem = ItemFactory.build(
+                ItemFactory.material(cfg.material(), Material.EMERALD),
+                cfg.name(),
+                renderGemLore(cfg, data.souls()));
+        codec.write(gem, data);
+        return gem;
+    }
+
+    /** Whether {@code stack} is a soul gem (carries {@link SoulData}). */
+    public boolean isGem(ItemStack stack) {
+        return codec.read(stack) != null;
+    }
+
+    /**
+     * Render the gem's lore from config + the current soul count — {@code {AMOUNT}} → the count,
+     * {@code {SOUL-COLOR}} → a count-tiered {@code &}-colour. Lore is rendered from state, never parsed
+     * back (item-data-model §4.2). Pure (no Bukkit) — {@link ItemFactory} colours the returned lines.
+     */
+    static List<String> renderGemLore(SoulGemConfig cfg, int souls) {
+        String amount = Integer.toString(souls);
+        String soulColor = soulColor(souls);
+        List<String> out = new ArrayList<>(cfg.lore().size());
+        for (String line : cfg.lore()) {
+            out.add(line.replace("{AMOUNT}", amount).replace("{SOUL-COLOR}", soulColor));
         }
-        codec.write(held, SoulData.fresh(UUID.randomUUID()));
-        player.getInventory().setItemInMainHand(held);
-        return true;
+        return out;
+    }
+
+    /** A count-tiered soul {@code &}-colour for the {@code {SOUL-COLOR}} lore placeholder. */
+    static String soulColor(int souls) {
+        if (souls >= 1024) {
+            return "&d"; // light purple
+        }
+        if (souls >= 256) {
+            return "&b"; // aqua
+        }
+        if (souls >= 64) {
+            return "&a"; // green
+        }
+        if (souls >= 1) {
+            return "&f"; // white
+        }
+        return "&7"; // grey (empty)
     }
 
     /** Deposit the configured {@code souls-per-kill} into {@code killer}'s active gem (no-op if soul mode is off). */
@@ -174,8 +219,25 @@ public final class SoulService {
         ItemStack held = player.getInventory().getItemInMainHand();
         SoulData gem = codec.read(held);
         if (gem != null && gem.gemId().equals(gemId)) {
-            codec.write(held, gem.withSouls(authority.getAsInt()));
+            int next = authority.getAsInt();
+            codec.write(held, gem.withSouls(next));
+            reRenderGemLore(held, next); // keep the displayed {AMOUNT}/{SOUL-COLOR} in sync with the count
             player.getInventory().setItemInMainHand(held);
         }
+    }
+
+    /**
+     * Re-render the held gem's lore (name unchanged) from config + the new count. Must run on the
+     * holder's own thread. A null meta (impossible for a real gem) is a no-op.
+     */
+    @SuppressWarnings("deprecation") // setLore(List): the floor-stable item-meta path
+    private void reRenderGemLore(ItemStack gem, int souls) {
+        ItemMeta meta = gem.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+        List<String> lore = renderGemLore(config.get(), souls);
+        meta.setLore(lore.isEmpty() ? null : lore.stream().map(ItemFactory::color).toList());
+        gem.setItemMeta(meta);
     }
 }
