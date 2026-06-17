@@ -1,0 +1,11 @@
+name: StarEnchants-WorldGuard
+version: '${version}'
+main: addonworldguard.WorldGuardAddon
+api-version: '1.17'
+author: StarEnchants
+description: Bridges WorldGuard's BUILD flag to the StarEnchants protection SPI.
+# WorldGuard must be present (this add-on does nothing without it) and must load first.
+depend: [WorldGuard]
+# Enable BEFORE StarEnchants so the provider is registered when StarEnchants runs its boot-time provider
+# discovery; loadbefore also grants this plugin's classloader access to StarEnchants' ProtectionProvider.
+loadbefore: [StarEnchants]
