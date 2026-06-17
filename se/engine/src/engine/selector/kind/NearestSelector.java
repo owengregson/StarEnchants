@@ -13,13 +13,18 @@ import java.util.List;
  * the activation centre, excluding the activator (docs/architecture.md §7). Returns at
  * most one target; an empty list when nothing is in range. The radius defaults to
  * {@code 5} so the no-argument form is a valid default target.
+ *
+ * <p>An optional {@code filter} restricts the candidates
+ * ({@code ALL}/{@code PLAYERS}/{@code MONSTERS}/{@code MOBS}; default {@code ALL}), so
+ * {@code @Nearest{filter=PLAYERS}} is the "nearest player" selector (v3.1 §A).
  */
 public final class NearestSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("NEAREST")
             .param("r", D.DOUBLE.min(0).def(5), "search radius in blocks")
-            .doc("The single nearest living entity within r blocks, except the activator.")
-            .example("@Nearest{r=5}")
+            .param("filter", D.enumOf("ALL", "PLAYERS", "MONSTERS", "MOBS").def("ALL"), "which entities to consider")
+            .doc("The single nearest living entity within r blocks (optionally filtered), except the activator.")
+            .example("@Nearest{r=5, filter=PLAYERS}")
             .build();
 
     @Override
@@ -33,10 +38,11 @@ public final class NearestSelector implements SelectorKind {
         if (center == null) {
             return List.of();
         }
+        Targets.Filter filter = Targets.of(ctx);
         LivingEntity nearest = null;
         double best = Double.MAX_VALUE;
         for (LivingEntity e : ctx.nearbyLiving(center, ctx.dbl("r"))) {
-            if (e.equals(ctx.actor())) {
+            if (e.equals(ctx.actor()) || !filter.accepts(e)) {
                 continue;
             }
             double d = e.getLocation().distanceSquared(center);
