@@ -265,7 +265,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             ItemStack held = player.getInventory().getItemInMainHand();
             ApplyResult result = crystal
                     ? enchanter.applyCrystal(held, key)
-                    : enchanter.applyEnchant(held, key, appliedLevel);
+                    // /se enchant is admin force-give → bypass the §G requires/blacklist relationship gates.
+                    : enchanter.applyEnchant(held, key, appliedLevel, false);
             if (result.ok()) {
                 player.getInventory().setItemInMainHand(held); // write the mutated copy back
                 // Re-resolve the cached WornState: mutating the held item in place fires no equip event,

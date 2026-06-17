@@ -36,7 +36,8 @@ final class EnchantDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
-            "repeat", "scale", "max-level", "levels", "effects", "chance", "cooldown", "soul-cost", "condition");
+            "repeat", "scale", "max-level", "levels", "effects", "chance", "cooldown", "soul-cost", "condition",
+            "requires", "blacklist", "removes-required");
     private static final Set<String> LEVEL_KEYS = Set.of(
             "chance", "cooldown", "soul-cost", "condition", "effects", "effects+");
 
@@ -79,6 +80,15 @@ final class EnchantDefReader {
         }
         List<String> disabledWorlds = root.stringList("disabled-worlds");
         String group = ContentParse.blankToNull(root.string("group"));
+        // Apply-time enchant relationships (§G) — pure metadata, evaluated by ItemEnchanter at apply.
+        List<String> requires = root.stringList("requires");
+        List<String> blacklist = root.stringList("blacklist");
+        boolean removesRequired = "true".equalsIgnoreCase(root.string("removes-required"));
+        if (removesRequired && requires.isEmpty()) {
+            diags.warning("load.enchant.relationships",
+                    "enchant '" + baseKey + "' sets removes-required but declares no 'requires'",
+                    root.sourceOf("removes-required"));
+        }
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
         ScaleEnv scale = ScaleEnv.read(root, diags);
         boolean templated = root.has("effects") || root.has("scale");
@@ -148,7 +158,8 @@ final class EnchantDefReader {
         }
 
         EnchantDef def = new EnchantDef(baseKey, display, description == null ? "" : description,
-                tier, appliesTo, Math.max(maxLevel, levelSet.isEmpty() ? 0 : levelSet.last()), fileSource);
+                tier, appliesTo, Math.max(maxLevel, levelSet.isEmpty() ? 0 : levelSet.last()),
+                requires, blacklist, removesRequired, fileSource);
         return new Parsed(def, abilities);
     }
 
