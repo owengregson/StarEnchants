@@ -88,7 +88,10 @@ public final class FakePlayerSuite implements Harness.Scenario {
                         player.getHealth();
                     });
                     FakePlayers.despawn(player);
-                    Scheduling.onGlobal(() -> world.setChunkForceLoaded(cx, cz, false));
+                    // Deliberately do NOT setChunkForceLoaded(cx, cz, false): the spawn chunk is a SHARED
+                    // resource that the other combat suites (which launch on the same tick) also force-load,
+                    // and force-loading is a boolean flag, not a refcount — clearing it here would unload the
+                    // chunk out from under a suite still mid-flight. The run shuts the server down anyway.
                 });
             });
         });

@@ -79,20 +79,19 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new CarrierSuite(this))
                 .add(new WornResolverSuite(this));
 
-        // The fake-player harness is mojang-mapped only (1.20.5+); on the spigot-mapped floor
-        // (1.17.1–1.19.4) its NMS reflection does not yet apply, so it self-defers (a follow-up).
-        if (caps.mojangMapped()) {
-            harness.add(new FakePlayerSuite(this));
-            harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
-            harness.add(new ProtectionSuite(this)); // gate-2 protection blocks/allows a hit by location
-            harness.add(new EconomySuite(this)); // GIVE_MONEY deposits via a discovered economy provider
-            harness.add(new MenuSuite(this)); // the enchant-apply GUI applies on click, end-to-end
-            harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
-            harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
-            harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
-            harness.add(new SoulSuite(this)); // soul-cost enchant spends from the gem in soul mode
-            harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
-        }
+        // The fake-player harness now spans the whole range — mojang-mapped (1.20.5+) and the spigot-mapped
+        // floor (1.17.1–1.19.4) via FakePlayers' two paths (ADR 0018) — so the combat-path suites run
+        // floor-wide; they no longer self-defer behind Capabilities.mojangMapped().
+        harness.add(new FakePlayerSuite(this));
+        harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
+        harness.add(new ProtectionSuite(this)); // gate-2 protection blocks/allows a hit by location
+        harness.add(new EconomySuite(this)); // GIVE_MONEY deposits via a discovered economy provider
+        harness.add(new MenuSuite(this)); // the enchant-apply GUI applies on click, end-to-end
+        harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
+        harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
+        harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
+        harness.add(new SoulSuite(this)); // soul-cost enchant spends from the gem in soul mode
+        harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
 
         getServer().getPluginManager().registerEvents(this, this);
     }

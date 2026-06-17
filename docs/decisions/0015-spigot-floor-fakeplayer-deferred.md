@@ -1,6 +1,7 @@
 # ADR 0015: Spigot-floor fake-player harness deferred; v1 floor coverage is the non-fake suites
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0018](0018-spigot-floor-fakeplayer.md) — the deferred follow-up
+  (a spigot-mapped fake-player path) is now implemented and the combat suites run floor-wide.
 - **Date:** 2026-06-16
 - **Deciders:** project owner + engine work
 
