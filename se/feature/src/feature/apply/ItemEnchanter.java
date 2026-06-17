@@ -35,11 +35,15 @@ public final class ItemEnchanter {
     /** The default base enchant-slot capacity (docs/v3-directives.md §H; was 6, now 9 by default). */
     public static final int DEFAULT_BASE_SLOTS = 9;
 
+    /** The default per-item crystal-slot capacity (§E; the master config supplies it later). */
+    public static final int DEFAULT_CRYSTAL_SLOTS = 1;
+
     private final CombatCodec codec;
     private final LoreRenderer lore;
     private final ContentHolder content;
     private final platform.item.ItemGroups groups;
     private final int baseSlots;
+    private final int crystalSlots;
 
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups) {
@@ -49,11 +53,18 @@ public final class ItemEnchanter {
     /** As above, with a configurable base enchant-slot count (§H; the master config supplies it). */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, int baseSlots) {
+        this(codec, lore, content, groups, baseSlots, DEFAULT_CRYSTAL_SLOTS);
+    }
+
+    /** As above, with configurable enchant AND crystal slot counts (§H/§E; the master config supplies them). */
+    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
+                         platform.item.ItemGroups groups, int baseSlots, int crystalSlots) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
         this.groups = Objects.requireNonNull(groups, "groups");
         this.baseSlots = Math.max(0, baseSlots);
+        this.crystalSlots = Math.max(0, crystalSlots);
     }
 
     /** Validate (without mutating) that enchant {@code baseKey} at {@code level} may sit on {@code material}. */
@@ -231,26 +242,82 @@ public final class ItemEnchanter {
         return def != null ? def.display() : baseKey;
     }
 
-    /** Append crystal {@code baseKey} to {@code stack} in place (crystals stack); re-renders the lore. */
+    /**
+     * Validate (without mutating) that a crystal item carrying {@code keys} (one for a single, two for a
+     * multi-crystal, §E) may be applied to {@code gear}: a single item target, every component eligible
+     * for the material, and a free crystal slot ({@code crystalSlots}, a SEPARATE ledger from enchants).
+     * The crystal drag-apply pre-checks this BEFORE its success roll so a violation never wastes the gem.
+     */
+    public ApplyResult checkCrystalEntry(ItemStack gear, List<String> keys) {
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ApplyResult.fail("§cApply the crystal onto an item.");
+        }
+        if (gear.getAmount() > 1) {
+            return ApplyResult.fail("§cApply the crystal to a single item — split the stack first.");
+        }
+        if (keys.isEmpty()) {
+            return ApplyResult.fail("§cThat is not a crystal.");
+        }
+        String label = "";
+        for (String key : keys) {
+            ApplyResult c = checkCrystal(gear.getType(), key);
+            if (!c.ok()) {
+                return c;
+            }
+            label = label.isEmpty() ? c.message() : label + " §7+ " + c.message();
+        }
+        CombatState current = codec.read(gear);
+        if (current.crystals().size() >= crystalSlots) {
+            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalSlots + " max).");
+        }
+        return ApplyResult.ok(label);
+    }
+
+    /** Append crystal {@code baseKey} to {@code stack} in place (a single crystal); re-renders the lore. */
     public ApplyResult applyCrystal(ItemStack stack, String baseKey) {
+        return applyCrystal(stack, baseKey, true);
+    }
+
+    /** As {@link #applyCrystal(ItemStack, String)}; {@code enforceSlots=false} is the admin force path. */
+    public ApplyResult applyCrystal(ItemStack stack, String baseKey, boolean enforceSlots) {
+        return applyCrystalEntry(stack, List.of(baseKey), enforceSlots);
+    }
+
+    /**
+     * Append a crystal ENTRY (its 1–2 component {@code keys}) to {@code stack} as ONE crystal-slot entry
+     * (encoded {@code "a+b"} for a multi-crystal, §E); re-renders the lore. When {@code enforceSlots} the
+     * per-item crystal-slot limit applies (player paths); the admin force path skips it. Crystals stack as
+     * an order-preserving list, never collapsed (§6.5).
+     */
+    public ApplyResult applyCrystalEntry(ItemStack stack, List<String> keys, boolean enforceSlots) {
         if (stack == null || stack.getType() == Material.AIR) {
             return ApplyResult.fail("§cHold an item first.");
         }
-        ApplyResult check = checkCrystal(stack.getType(), baseKey);
-        if (!check.ok()) {
-            return check;
+        if (keys.isEmpty()) {
+            return ApplyResult.fail("§cThat is not a crystal.");
+        }
+        String label = "";
+        for (String key : keys) {
+            ApplyResult check = checkCrystal(stack.getType(), key);
+            if (!check.ok()) {
+                return check;
+            }
+            label = label.isEmpty() ? check.message() : label + " §7+ " + check.message();
         }
         CombatState current = codec.read(stack);
+        if (enforceSlots && current.crystals().size() >= crystalSlots) {
+            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalSlots + " max).");
+        }
         if (current.crystals().size() >= MAX_CRYSTALS) {
             return ApplyResult.fail("§cThis item already holds the maximum " + MAX_CRYSTALS + " crystals.");
         }
         List<String> crystals = new ArrayList<>(current.crystals());
-        crystals.add(baseKey); // crystals stack — a list, never collapsed (§6.5)
+        crystals.add(String.join(item.codec.CrystalItemData.DELIMITER, keys)); // ONE entry = ONE slot
         CombatState next = new CombatState(current.enchants(), crystals,
                 current.setKey(), current.omni(), current.heroic());
         codec.write(stack, next);
         lore.apply(stack, next);
-        return ApplyResult.ok(check.message() + " §7crystal applied.");
+        return ApplyResult.ok(label + " §7crystal applied.");
     }
 
     private EnchantDef enchant(String baseKey) {

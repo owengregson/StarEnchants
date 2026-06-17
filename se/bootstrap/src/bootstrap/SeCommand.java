@@ -53,11 +53,12 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final ContentHolder content;
     private final java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs;
     private final feature.carrier.CarrierService carriers;
+    private final feature.crystal.CrystalService crystals;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, EnchantMenu menu, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
-              feature.carrier.CarrierService carriers) {
+              feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -67,6 +68,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.content = content;
         this.migrateSpecs = migrateSpecs;
         this.carriers = carriers;
+        this.crystals = crystals;
     }
 
     @Override
@@ -77,8 +79,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> reload(sender, args);
-            case "enchant" -> applyHeld(sender, args, false);
-            case "crystal" -> applyHeld(sender, args, true);
+            case "enchant" -> applyHeld(sender, args);
+            case "crystal" -> giveCrystal(sender, args);
             case "gem" -> giveGem(sender);
             case "book" -> giveBook(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
@@ -240,19 +242,19 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /** Apply an enchant/crystal to the sender's held item, on the sender's own thread (Folia-correct). */
-    private void applyHeld(CommandSender sender, String[] args, boolean crystal) {
+    /** Apply an enchant to the sender's held item (admin force-give), on the sender's own thread. */
+    private void applyHeld(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("§cThat command can only be run by a player.");
             return;
         }
         if (args.length < 2) {
-            sender.sendMessage(crystal ? "§eUsage: /se crystal <key>" : "§eUsage: /se enchant <key> [level]");
+            sender.sendMessage("§eUsage: /se enchant <key> [level]");
             return;
         }
-        String key = normalize(args[1], crystal ? "crystals/" : "enchants/");
+        String key = normalize(args[1], "enchants/");
         int level = 1;
-        if (!crystal && args.length >= 3) {
+        if (args.length >= 3) {
             try {
                 level = Integer.parseInt(args[2]);
             } catch (NumberFormatException bad) {
@@ -263,17 +265,39 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         int appliedLevel = level;
         Scheduling.onEntity(player, () -> {
             ItemStack held = player.getInventory().getItemInMainHand();
-            ApplyResult result = crystal
-                    ? enchanter.applyCrystal(held, key)
-                    // /se enchant is admin force-give → bypass the §G requires/blacklist relationship gates.
-                    : enchanter.applyEnchant(held, key, appliedLevel, false);
+            // /se enchant is admin force-give → bypass the §G requires/blacklist relationship gates.
+            ApplyResult result = enchanter.applyEnchant(held, key, appliedLevel, false);
             if (result.ok()) {
                 player.getInventory().setItemInMainHand(held); // write the mutated copy back
                 // Re-resolve the cached WornState: mutating the held item in place fires no equip event,
-                // so without this the new enchant/crystal is in PDC + lore but inert until a re-equip.
+                // so without this the new enchant is in PDC + lore but inert until a re-equip.
                 refreshWorn.accept(player);
             }
             player.sendMessage(result.message());
+        });
+    }
+
+    /** {@code /se crystal <key>} — mint a physical crystal item and give it (drag it onto gear to apply). */
+    private void giveCrystal(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§eUsage: /se crystal <key> §7— a crystal you drag onto gear to apply");
+            return;
+        }
+        String key = normalize(args[1], "crystals/");
+        if (content.library().crystals().stream().noneMatch(d -> d.key().equals(key))) {
+            player.sendMessage("§cNo such crystal: §f" + key);
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            ItemStack crystal = crystals.mint(java.util.List.of(key));
+            // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
+            player.getInventory().addItem(crystal).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage("§aMinted a crystal: §f" + key + "§a. §7Drag it onto gear to apply.");
         });
     }
 
@@ -326,7 +350,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§eStarEnchants commands:");
         sender.sendMessage("§e  /se reload [--dry-run] §7— rebuild content");
         sender.sendMessage("§e  /se enchant <key> [level] §7— apply an enchant to the held item");
-        sender.sendMessage("§e  /se crystal <key> §7— apply a crystal to the held item");
+        sender.sendMessage("§e  /se crystal <key> §7— mint a crystal item (drag it onto gear to apply)");
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");

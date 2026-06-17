@@ -43,8 +43,17 @@ public final class LoreRenderer {
             String level = style.roman() ? Numerals.roman(enchant.getValue()) : Integer.toString(enchant.getValue());
             out.add(Colors.translate(style.enchantColor() + name + " " + style.levelColor() + level));
         }
-        for (String crystal : state.crystals()) {
-            out.add(Colors.translate(style.crystalColor() + nameOr(crystal)));
+        for (String crystalEntry : state.crystals()) {
+            // One line per crystal slot; a multi-crystal entry ("a+b", §E) lists both component names.
+            List<String> components = item.codec.CrystalItemData.componentsOf(crystalEntry);
+            StringBuilder label = new StringBuilder();
+            for (String component : components) {
+                if (label.length() > 0) {
+                    label.append(" + ");
+                }
+                label.append(nameOr(component));
+            }
+            out.add(Colors.translate(style.crystalColor() + label));
         }
         return out;
     }
