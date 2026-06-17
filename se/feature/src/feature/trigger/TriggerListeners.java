@@ -11,7 +11,13 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemBreakEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 
 /**
@@ -37,13 +43,51 @@ public final class TriggerListeners implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onKill(EntityDeathEvent event) {
-        Player killer = event.getEntity().getKiller();
+    public void onDeath(EntityDeathEvent event) {
+        LivingEntity dead = event.getEntity();
+        Player killer = dead.getKiller();
+        // KILL fires for the killer's worn gear; the victim and its location are region-safe here.
         if (killer != null) {
-            // The victim is dying; reading its location is region-safe (the death fires on its region).
             dispatch.fire(killer, dispatch.kill,
-                    new ActivationContext(killer, event.getEntity(), null, event.getEntity().getLocation()), null);
+                    new ActivationContext(killer, dead, null, dead.getLocation()), null);
         }
+        // DEATH fires for the dying player's own worn gear (the killer, if any, is the victim/context).
+        if (dead instanceof Player dying) {
+            dispatch.fire(dying, dispatch.death,
+                    new ActivationContext(dying, killer, killer, dying.getLocation()), null);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBowFire(EntityShootBowEvent event) {
+        if (event.getEntity() instanceof Player shooter) {
+            dispatch.fire(shooter, dispatch.bowFire, self(shooter), event);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onFish(PlayerFishEvent event) {
+        // Fire only on a successful catch (a fish or a reeled-in entity), not every bite/cast state.
+        if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH
+                || event.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
+            dispatch.fire(event.getPlayer(), dispatch.fishing, self(event.getPlayer()), event);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onConsume(PlayerItemConsumeEvent event) {
+        dispatch.fire(event.getPlayer(), dispatch.eat, self(event.getPlayer()), event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemDamage(PlayerItemDamageEvent event) {
+        dispatch.fire(event.getPlayer(), dispatch.itemDamage, self(event.getPlayer()), event);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemBreak(PlayerItemBreakEvent event) {
+        // PlayerItemBreakEvent is not cancellable — the item is already gone.
+        dispatch.fire(event.getPlayer(), dispatch.breakItem, self(event.getPlayer()), null);
     }
 
     @EventHandler(priority = EventPriority.HIGH)

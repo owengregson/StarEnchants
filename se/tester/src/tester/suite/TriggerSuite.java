@@ -36,6 +36,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
@@ -46,11 +47,13 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * A NON-combat trigger, proven live (docs/architecture.md §3.3): the MINE trigger fires through
- * {@link TriggerListeners}/{@link TriggerDispatch} when a player breaks a block, landing the held
- * tool's MINE-enchant effect. Proves the whole non-combat path — Bukkit event → WornState.byTrigger
- * → executor → Sink → world — that {@code CombatDispatch} (ATTACK/DEFENSE only) does not exercise.
- * A synthetic {@code BlockBreakEvent} drives the registered listener. Mojang-mapped only (fake player).
+ * Non-combat triggers, proven live (docs/architecture.md §3.3): the MINE trigger fires when a player
+ * breaks a block, and the v3.2 BREAK trigger fires when a held item breaks — each landing the item's
+ * trigger-enchant effect through {@link TriggerListeners}/{@link TriggerDispatch}. Proves the whole
+ * non-combat path (Bukkit event → WornState.byTrigger → executor → Sink → world) that
+ * {@code CombatDispatch} does not exercise, and that a newly-wired listener actually fires. Synthetic
+ * {@code BlockBreakEvent}/{@code PlayerItemBreakEvent}s drive the registered listeners — the same path a
+ * real event takes. Mojang- and spigot-mapped alike (needs the fake player).
  */
 public final class TriggerSuite implements Harness.Scenario {
 
@@ -62,6 +65,14 @@ public final class TriggerSuite implements Harness.Scenario {
               1: { chance: 100, effects: ["POTION:REGENERATION:0:80:@Self"] }
             """;
 
+    private static final String BACKLASH = """
+            display: Backlash
+            applies-to: [SWORD]
+            trigger: BREAK
+            levels:
+              1: { chance: 100, effects: ["POTION:SPEED:0:80:@Self"] }
+            """;
+
     private final Plugin plugin;
 
     public TriggerSuite(Plugin plugin) {
@@ -71,6 +82,7 @@ public final class TriggerSuite implements Harness.Scenario {
     @Override
     public void accept(Harness h) {
         h.expect("trigger.mineFiresOnBlockBreak");
+        h.expect("trigger.breakFiresOnItemBreak");
 
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
@@ -78,17 +90,20 @@ public final class TriggerSuite implements Harness.Scenario {
 
         Library library;
         PotionEffectType regen;
+        PotionEffectType speed;
         try {
             Path root = Files.createTempDirectory("se-trigger-suite");
             write(root, "enchants/excavate.yml", EXCAVATE);
+            write(root, "enchants/backlash.yml", BACKLASH);
             library = LibraryLoader.load(root, compiler, 0);
             if (library.hasErrors()) {
-                h.fail("trigger.mineFiresOnBlockBreak", "excavate failed to compile: " + library.diagnostics());
+                h.fail("trigger.mineFiresOnBlockBreak", "enchants failed to compile: " + library.diagnostics());
                 return;
             }
             regen = (PotionEffectType) handles.resolveByName(schema.spec.HandleCategory.POTION_EFFECT, "REGENERATION");
-            if (regen == null) {
-                h.fail("trigger.mineFiresOnBlockBreak", "REGENERATION did not resolve on this version");
+            speed = (PotionEffectType) handles.resolveByName(schema.spec.HandleCategory.POTION_EFFECT, "SPEED");
+            if (regen == null || speed == null) {
+                h.fail("trigger.mineFiresOnBlockBreak", "REGENERATION/SPEED did not resolve on this version");
                 return;
             }
         } catch (IOException e) {
@@ -111,6 +126,8 @@ public final class TriggerSuite implements Harness.Scenario {
 
         ItemStack pick = new ItemStack(Material.DIAMOND_PICKAXE);
         codec.write(pick, new CombatState(Map.of("enchants/excavate", 1), List.of()));
+        ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+        codec.write(sword, new CombatState(Map.of("enchants/backlash", 1), List.of()));
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -140,7 +157,18 @@ public final class TriggerSuite implements Harness.Scenario {
                                 throw new IllegalStateException("MINE enchant did not fire on block break");
                             }
                         });
-                        FakePlayers.despawn(miner);
+                        // Now the BREAK trigger: hold the Backlash sword, re-resolve, and break it.
+                        miner.getInventory().setItemInMainHand(sword);
+                        worn.refresh(miner, library.snapshot());
+                        plugin.getServer().getPluginManager().callEvent(new PlayerItemBreakEvent(miner, sword));
+                        Scheduling.onEntityLater(miner, 10L, () -> {
+                            h.guard("trigger.breakFiresOnItemBreak", () -> {
+                                if (!miner.hasPotionEffect(speed)) {
+                                    throw new IllegalStateException("BREAK enchant did not fire on item break");
+                                }
+                            });
+                            FakePlayers.despawn(miner);
+                        });
                     });
                 });
             });
