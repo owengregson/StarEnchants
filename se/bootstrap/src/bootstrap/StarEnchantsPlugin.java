@@ -20,6 +20,8 @@ import engine.stores.SoulModeStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.apply.ItemEnchanter;
+import feature.carrier.CarrierListener;
+import feature.carrier.CarrierService;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
@@ -29,6 +31,7 @@ import feature.soul.SoulListener;
 import feature.soul.SoulService;
 import feature.trigger.TriggerDispatch;
 import feature.trigger.TriggerListeners;
+import item.codec.CarrierCodec;
 import item.codec.CombatCodec;
 import item.codec.ItemKeys;
 import item.codec.SoulCodec;
@@ -122,6 +125,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key));
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard());
 
+        // Carrier economy (ADR-0016): mint + apply books/scrolls onto gear. Cold path — the carrier PDC is
+        // separate from the combat blob, so it never decodes on the hot path. Random for the success roll.
+        CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of(this).carrier(), ItemKeys.of(this).guarded());
+        CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random());
+
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
@@ -169,6 +177,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
         getServer().getPluginManager().registerEvents(new SoulListener(soulService, SOULS_PER_KILL), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
+        getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
 
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).
@@ -192,7 +201,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             SeCommand seCommand = new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menu, content,
-                    head -> migrateSpecs.lookup(head).orElse(null));
+                    head -> migrateSpecs.lookup(head).orElse(null), carriers);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }

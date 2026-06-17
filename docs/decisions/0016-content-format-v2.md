@@ -114,8 +114,10 @@ A carrier item (book/scroll/dust/gem) is a new `ItemDef` — pure PDC/presentati
 never compiled to an `AbilityDef`, never on the combat hot path. `kind:` drives the allowed
 sub-schema (a `book`/`tome` grants an enchant/crystal/set; a `scroll` carries a role; a
 `dust` carries a modifier), so the shapes don't overload one ambiguous `grants:` map. The
-loader walks `items/`, builds `List<ItemDef>` on the `Library`, and the def is **inert until
-the carrier application feature ships** (it is the forward-compat home for that work).
+loader walks `items/`, builds `List<ItemDef>` on the `Library`, and the def drives the carrier
+application economy (`feature.carrier` — mint a carrier item, drag it onto gear to apply its grant
+with a success/destroy roll; guard scrolls spare a failed apply). Dust (success-bonus combining) is
+the one deferred carrier kind.
 
 ### 5. Misc
 
