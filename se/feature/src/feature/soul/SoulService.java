@@ -1,5 +1,6 @@
 package feature.soul;
 
+import compile.load.SoulGemConfig;
 import engine.interact.SoulLedger;
 import engine.stores.SoulModeStore;
 import item.codec.SoulCodec;
@@ -8,6 +9,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
+import java.util.function.Supplier;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.sched.Scheduling;
@@ -29,11 +32,13 @@ public final class SoulService {
     private final SoulLedger ledger;
     private final SoulModeStore modes;
     private final SoulCodec codec;
+    private final Supplier<SoulGemConfig> config;
 
-    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec) {
+    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
         this.ledger = Objects.requireNonNull(ledger, "ledger");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
+        this.config = Objects.requireNonNull(config, "config");
     }
 
     /** The result of {@link #toggle}, for the command to relay. */
@@ -53,11 +58,20 @@ public final class SoulService {
         if (modes.active(id).filter(active -> active.equals(gem.gemId())).isPresent()) {
             modes.deactivate(id);
             ledger.forget(gem.gemId());
+            message(player, config.get().messageDeactivate());
             return Toggle.DISABLED;
         }
         modes.activate(id, gem.gemId());
         seed(gem); // prime the authority from the durable count on this (player) thread
+        message(player, config.get().messageActivate());
         return Toggle.ENABLED;
+    }
+
+    /** Send a configured soul-gem message (legacy {@code &} colour codes translated), unless blank. */
+    private static void message(Player player, String raw) {
+        if (raw != null && !raw.isBlank()) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', raw));
+        }
     }
 
     /**
@@ -74,8 +88,12 @@ public final class SoulService {
         return true;
     }
 
-    /** Deposit souls into {@code killer}'s active gem on a kill (no-op if soul mode is off). */
-    public void onKill(Player killer, int amount) {
+    /** Deposit the configured {@code souls-per-kill} into {@code killer}'s active gem (no-op if soul mode is off). */
+    public void onKill(Player killer) {
+        int amount = config.get().soulsPerKill();
+        if (amount <= 0) {
+            return;
+        }
         modes.active(killer.getUniqueId()).ifPresent(gemId -> {
             // Only deposit onto a SEEDED authority: an active gem is always seeded (toggle-on seeds it
             // on the player's thread), so a peek-miss here would mean a broken invariant — skip rather
