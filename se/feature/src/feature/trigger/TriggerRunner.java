@@ -6,6 +6,7 @@ import compile.model.StableKeyIndex;
 import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
+import engine.run.FactPopulator;
 import engine.sink.DispatchSink;
 import feature.soul.SoulBinding;
 import item.worn.WornState;
@@ -34,13 +35,23 @@ public final class TriggerRunner {
     private final WornStateStore worn;
     private final Function<Player, Optional<SoulBinding>> soulBinder;
     private final LongSupplier nowTicks;
+    private final FactPopulator factPopulator;
 
+    /** A runner populating conditions from the built-in variable vocabulary (the production default). */
     public TriggerRunner(AbilityExecutor executor, WornStateStore worn,
                          Function<Player, Optional<SoulBinding>> soulBinder, LongSupplier nowTicks) {
+        this(executor, worn, soulBinder, nowTicks, FactPopulator.builtin());
+    }
+
+    /** A runner with an explicit {@link FactPopulator} (whose vocabulary must pair with the compiler's resolver). */
+    public TriggerRunner(AbilityExecutor executor, WornStateStore worn,
+                         Function<Player, Optional<SoulBinding>> soulBinder, LongSupplier nowTicks,
+                         FactPopulator factPopulator) {
         this.executor = Objects.requireNonNull(executor, "executor");
         this.worn = Objects.requireNonNull(worn, "worn");
         this.soulBinder = Objects.requireNonNull(soulBinder, "soulBinder");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.factPopulator = Objects.requireNonNull(factPopulator, "factPopulator");
     }
 
     /**
@@ -67,6 +78,7 @@ public final class TriggerRunner {
         }
         Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, nowTicks.getAsLong())
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0))
+                .facts(factPopulator.populate(context)) // gate-7 condition facts, read on the firing thread
                 .location(context.location()); // captured on the firing thread → safe for the gate-2 guard
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
         executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
