@@ -45,6 +45,12 @@ public final class TriggerDispatch {
     public final int interact;
     public final int interactLeft;
     public final int interactRight;
+    public final int death;
+    public final int bowFire;
+    public final int fishing;
+    public final int eat;
+    public final int itemDamage;
+    public final int breakItem;
 
     /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
     public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
@@ -69,6 +75,12 @@ public final class TriggerDispatch {
         this.interact = triggers.idOf("INTERACT").orElse(-1);
         this.interactLeft = triggers.idOf("INTERACT_LEFT").orElse(-1);
         this.interactRight = triggers.idOf("INTERACT_RIGHT").orElse(-1);
+        this.death = triggers.idOf("DEATH").orElse(-1);
+        this.bowFire = triggers.idOf("BOW_FIRE").orElse(-1);
+        this.fishing = triggers.idOf("FISHING").orElse(-1);
+        this.eat = triggers.idOf("EAT").orElse(-1);
+        this.itemDamage = triggers.idOf("ITEM_DAMAGE").orElse(-1);
+        this.breakItem = triggers.idOf("BREAK").orElse(-1);
     }
 
     /**
