@@ -1,8 +1,0 @@
-# Master Success Dust — a stronger success-bonus dust (ADR-0019). Same mechanic as Success Dust with a
-# larger flat bonus; multiple dusts stack onto one book up to the 100% effective-success cap.
-display: "&bMaster Success Dust"
-description: "Combine onto an enchant book for a large success boost."
-tier: rare
-kind: dust
-material: REDSTONE
-grants: { success-bonus: 35 }

@@ -17,6 +17,7 @@ import tester.suite.ConditionSuite;
 import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.CrystalSuite;
+import tester.suite.EconomyItemsSuite;
 import tester.suite.EconomySuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.HeroicSuite;
@@ -32,6 +33,7 @@ import tester.suite.TeleportSuite;
 import tester.suite.TriggerSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
+import tester.suite.ScrollPlayerSuite;
 import tester.suite.SinkSuite;
 import tester.suite.WornResolverSuite;
 
@@ -79,6 +81,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new ContentLoaderSuite(this))
                 .add(new ContentFormatSuite(this))
                 .add(new CarrierSuite(this))
+                .add(new EconomyItemsSuite(this)) // §I slot/black/randomizer/unopened/transmog over real ItemStacks
                 .add(new WornResolverSuite(this));
 
         // The fake-player harness now spans the whole range — mojang-mapped (1.20.5+) and the spigot-mapped
@@ -94,6 +97,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
         harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
         harness.add(new SoulSuite(this)); // soul-cost enchant spends from the gem in soul mode
+        harness.add(new ScrollPlayerSuite(this)); // §I holy death-save + nametag rename on a real player inventory
         harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
         harness.add(new TeleportSuite(this)); // TELEPORT effect → teleportAsync, first user of that intent
 

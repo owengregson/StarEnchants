@@ -64,7 +64,6 @@ enchants/uncommon/thornmail.yml
 enchants/uncommon/vampiric.yml
 enchants/uncommon/venom.yml
 items/book/executioner-book.yml
-items/dust/master-success-dust.yml
 items/dust/success-dust.yml
 items/scroll/protect-scroll.yml
 sets/epic/berserker.yml
