@@ -13,6 +13,7 @@ import tester.suite.CapabilitiesSuite;
 import tester.suite.CarrierSuite;
 import tester.suite.CatalogSuite;
 import tester.suite.CombatSuite;
+import tester.suite.ConditionSuite;
 import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.CrystalSuite;
@@ -84,6 +85,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         // floor-wide; they no longer self-defer behind Capabilities.mojangMapped().
         harness.add(new FakePlayerSuite(this));
         harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
+        harness.add(new ConditionSuite(this)); // %victim.health% condition gate fires/blocks (populated FactBuffer)
         harness.add(new ProtectionSuite(this)); // gate-2 protection blocks/allows a hit by location
         harness.add(new EconomySuite(this)); // GIVE_MONEY deposits via a discovered economy provider
         harness.add(new MenuSuite(this)); // the enchant-apply GUI applies on click, end-to-end

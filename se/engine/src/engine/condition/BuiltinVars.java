@@ -10,6 +10,14 @@ package engine.condition;
  * <p>Variables are written {@code %scope.name%} in conditions; {@code actor} and
  * {@code victim} are the two combat sides, and a bare name (e.g. {@code %sneaking%})
  * refers to the activator.
+ *
+ * <p>This factory is the single source of truth for the slot assignment: the compiler
+ * lowers conditions against {@link #vocabulary()}{@code .asResolver()} and the runtime
+ * {@code engine.run.FactPopulator} reads the same {@link #vocabulary()}, so a compiled
+ * condition's slot and the populated buffer agree by construction. The populator sources
+ * {@code actor.health}, {@code victim.health}, and the three flags today; {@code damage}
+ * and {@code combo} are declared but not yet sourced at runtime (they read 0 until a
+ * later increment wires their context) — no shipped content depends on them.
  */
 public final class BuiltinVars {
 
