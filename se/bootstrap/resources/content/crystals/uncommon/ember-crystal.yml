@@ -1,0 +1,11 @@
+# Ember Crystal — a flat, levelless socket bonus (§6.5). On an ATTACK it sets the foe alight via
+# IGNITE, which targets @Victim by default (the entity you hit). The duration is in ticks (20 = 1s),
+# so 60 is three seconds of burn.
+display: "&6Ember Crystal"
+description: "Ignite the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+chance: 60
+effects:
+  - { IGNITE: { duration: 60 } }
+  - { PARTICLE: { particle: FLAME, count: 8 } }

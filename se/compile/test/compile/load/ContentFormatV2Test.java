@@ -188,6 +188,27 @@ class ContentFormatV2Test {
     }
 
     @Test
+    void conditionScalesAsAPerLevelMap(@TempDir Path root) throws IOException {
+        write(root, "enchants/gated.yml", """
+            trigger: DEFENSE
+            max-level: 3
+            condition: { 1: "%actor.health% <= 4", 2: "%actor.health% <= 5", 3: "%actor.health% <= 6" }
+            effects:
+              - { HEAL: { amount: 2 } }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+        // Every level must get a (non-null) condition — i.e. the per-level condition MAP was read, not
+        // silently dropped (the bug this guards). Per-level VALUE correctness is proven end-to-end by the
+        // catalog equivalence gate (CatalogEquivalenceTest, e.g. guardian-angel's scaling health gate).
+        org.junit.jupiter.api.Assertions.assertNotNull(
+                lib.snapshot().byStableKey("enchants/gated/1").condition(), "level 1 condition");
+        org.junit.jupiter.api.Assertions.assertNotNull(
+                lib.snapshot().byStableKey("enchants/gated/3").condition(), "level 3 condition");
+    }
+
+    @Test
     void levelEffectsPlusAppendsToTheTemplatedList(@TempDir Path root) throws IOException {
         write(root, "enchants/capstone.yml", """
             trigger: ATTACK
@@ -206,6 +227,25 @@ class ContentFormatV2Test {
         compile.model.CompiledEffect[] l3 = lib.snapshot().byStableKey("enchants/capstone/3").effects();
         assertEquals(2, l3.length);
         assertEquals("MESSAGE", l3[1].head());
+    }
+
+    @Test
+    void levelMapValueMayReferenceAScaleToken(@TempDir Path root) throws IOException {
+        // A knob written as a per-level map may itself reference a $token (substituted at that level).
+        write(root, "enchants/tok.yml", """
+            trigger: ATTACK
+            max-level: 2
+            scale:
+              big: { 1: 100, 2: 50 }
+            cooldown: { 1: $big, 2: 10 }
+            effects:
+              - { HEAL: { amount: 1 } }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+        assertEquals(100, lib.snapshot().byStableKey("enchants/tok/1").cooldownTicks());
+        assertEquals(10, lib.snapshot().byStableKey("enchants/tok/2").cooldownTicks());
     }
 
     @Test

@@ -1,9 +1,0 @@
-# Vampire Crystal — a flat, levelless socket bonus (§6.5). On an ATTACK it drains life back to the
-# wielder via HEAL (which targets @Self by default), so each landed blow tops you up. A modest chance
-# keeps the lifesteal from being guaranteed every swing.
-display: "&4Vampire Crystal"
-description: "Drain life back to yourself on a hit."
-trigger: ATTACK
-applies-to: [SWORD, AXE]
-chance: 50
-effects: ["HEAL:2", "PARTICLE:WITCH:6"]

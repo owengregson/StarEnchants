@@ -1,0 +1,8 @@
+# Power Crystal — a flat, levelless socket bonus.
+display: "&cPower Crystal"
+description: "Adds raw striking power to your blows."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+chance: 100
+effects:
+  - { ADD_DAMAGE: { percent: 15 } }

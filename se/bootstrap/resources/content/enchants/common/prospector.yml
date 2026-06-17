@@ -1,0 +1,18 @@
+# Prospector — strike the earth and turn up bonus experience as you mine.
+display: "&eProspector"
+description: "Unearth bonus XP from the blocks you break."
+trigger: MINE
+applies-to: [PICKAXE, SHOVEL]
+group: mining
+max-level: 3
+chance: { 1: 30, 2: 40, 3: 50 }
+scale:
+  xp: { 1: 2, 2: 4, 3: 7 }
+  parts: { from: 4, step: 2 }
+effects:
+  - { GIVE_EXP: { amount: $xp } }
+  - { PARTICLE: { particle: HAPPY_VILLAGER, count: $parts } }
+levels:
+  3:
+    effects+:
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }

@@ -1,0 +1,14 @@
+# Phantom — a partial-set (pieces:2) armour bonus (§6.6). On DEFENSE, once two pieces are worn, it
+# slips you out of sight: Invisibility and Speed on @Self (POTION's default target) to escape a fight.
+# Levelless: trigger/chance/effects live at the file top.
+display: "&5Phantom"
+description: "Vanish and flee when struck while wearing the set."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+pieces: 2
+chance: 30
+cooldown: 140
+effects:
+  - { POTION: { effect: INVISIBILITY, amplifier: 0, duration: 80, who: "@Self" } }
+  - { POTION: { effect: SPEED, amplifier: 1, duration: 80, who: "@Self" } }
+  - { PARTICLE: { particle: PORTAL, count: 15 } }

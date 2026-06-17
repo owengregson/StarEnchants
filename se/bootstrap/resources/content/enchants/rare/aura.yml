@@ -1,0 +1,31 @@
+# Aura — right-click to radiate a protective aura around yourself.
+display: "&bAura"
+description: "Radiate a protective aura around yourself."
+trigger: INTERACT_RIGHT
+applies-to: [CHESTPLATE, WEAPON]
+group: utility
+levels:
+  1:
+    chance: 100
+    cooldown: 240
+    effects:
+      - { POTION: { effect: ABSORPTION, amplifier: 0, duration: 120, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { PARTICLE: { particle: WITCH, count: 20 } }
+  2:
+    chance: 100
+    cooldown: 220
+    effects:
+      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 140, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 0, duration: 120, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { PARTICLE: { particle: WITCH, count: 30 } }
+  3:
+    chance: 100
+    cooldown: 200
+    effects:
+      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 160, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 1, duration: 140, who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, amplifier: 0, duration: 160, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { PARTICLE: { particle: WITCH, count: 40 } }

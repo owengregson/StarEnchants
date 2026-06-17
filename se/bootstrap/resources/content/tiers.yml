@@ -1,0 +1,12 @@
+# Rarity tiers (ADR-0016 §2). The single source of tier ordering + presentation; each enchant/crystal/set
+# is filed under a tier subfolder (e.g. enchants/mythic/…). The tier is metadata only — it sets lore
+# colour, glint, and GUI sort weight, and is NEVER part of an item's stable key, so re-tiering a file
+# (moving it between folders) never changes the PDC identity of already-enchanted gear.
+default-tier: common
+tiers:
+  common:    { color: "&7",   weight: 10, glint: false }
+  uncommon:  { color: "&a",   weight: 20, glint: false }
+  rare:      { color: "&b",   weight: 30, glint: false }
+  epic:      { color: "&d",   weight: 40, glint: true  }
+  legendary: { color: "&6",   weight: 50, glint: true  }
+  mythic:    { color: "&c&l", weight: 60, glint: true  }

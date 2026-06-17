@@ -1,0 +1,9 @@
+# Swift Crystal — a flat, levelless socket bonus.
+display: "&bSwift Crystal"
+description: "Surge with Speed when you are struck."
+trigger: DEFENSE
+applies-to: [BOOTS, LEGGINGS]
+chance: 100
+cooldown: 60
+effects:
+  - { POTION: { effect: SPEED, amplifier: 0, duration: 60, who: "@Self" } }

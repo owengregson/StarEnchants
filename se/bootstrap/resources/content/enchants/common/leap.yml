@@ -1,0 +1,31 @@
+# Leap — right-click to spring high into the air. LAUNCH supplies an upward velocity vector on the
+# @Self target (its default); a brief Jump Boost softens the landing and a Cloud puff marks the
+# take-off. An activated INTERACT_RIGHT ability behind a cooldown (§3.7).
+display: "&bLeap"
+description: "Spring high into the air."
+trigger: INTERACT_RIGHT
+applies-to: [BOOTS, WEAPON]
+group: utility
+max-level: 3
+chance: 100
+cooldown: { 1: 180, 2: 150, 3: 120 }
+scale:
+  launchY: { 1: 0.9, 2: 1.2, 3: 1.5 }
+  jumpAmp: { 1: 1, 2: 2, 3: 2 }
+  jumpDur: { 1: 60, 2: 60, 3: 80 }
+  cloud: { 1: 15, 2: 20, 3: 30 }
+effects:
+  - { LAUNCH: { x: 0, y: $launchY, z: 0 } }
+  - { POTION: { effect: JUMP, amplifier: $jumpAmp, duration: $jumpDur, who: "@Self" } }
+  - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+  - { PARTICLE: { particle: CLOUD, count: $cloud } }
+levels:
+  3:
+    # Level 3 inserts SPEED between JUMP and SOUND (mid-sequence), which an append (effects+) can't do,
+    # so it replaces the whole list in the original order — still driven by the scale tokens.
+    effects:
+      - { LAUNCH: { x: 0, y: $launchY, z: 0 } }
+      - { POTION: { effect: JUMP, amplifier: $jumpAmp, duration: $jumpDur, who: "@Self" } }
+      - { POTION: { effect: SPEED, amplifier: 0, duration: 80, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: CLOUD, count: $cloud } }

@@ -1,0 +1,22 @@
+# Headhunter — claim the experience of every foe you fell.
+display: "&5Headhunter"
+description: "Reap bonus XP from your kills."
+trigger: KILL
+applies-to: [SWORD, AXE]
+group: combat
+chance: 100
+levels:
+  1:
+    effects:
+      - { GIVE_EXP: { amount: 5 } }
+      - { MESSAGE: { text: "&5You claim your trophy." } }
+  2:
+    effects:
+      - { GIVE_EXP: { amount: 10 } }
+      - { MESSAGE: { text: "&5You claim your trophy." } }
+  3:
+    effects:
+      - { GIVE_EXP: { amount: 18 } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 8 } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&5You claim your trophy." } }

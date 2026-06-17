@@ -1,0 +1,37 @@
+# Second Wind — right-click to catch your breath: heal up and shed any fire. HEAL and EXTINGUISH
+# act on @Self (their default target); CURE clears negative effects at the top tier. An activated
+# INTERACT_RIGHT ability behind a long cooldown so the burst heal stays a clutch tool (§3.7).
+display: "&aSecond Wind"
+description: "Catch your breath and recover."
+trigger: INTERACT_RIGHT
+applies-to: [WEAPON]
+group: utility
+max-level: 3
+levels:
+  1:
+    chance: 100
+    cooldown: 300
+    effects:
+      - { HEAL: { amount: 4 } }
+      - { EXTINGUISH: {} }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { PARTICLE: { particle: HEART, count: 6 } }
+  2:
+    chance: 100
+    cooldown: 260
+    effects:
+      - { HEAL: { amount: 6 } }
+      - { EXTINGUISH: {} }
+      - { POTION: { effect: REGENERATION, amplifier: 0, duration: 80, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { PARTICLE: { particle: HEART, count: 8 } }
+  3:
+    chance: 100
+    cooldown: 220
+    effects:
+      - { HEAL: { amount: 8 } }
+      - { EXTINGUISH: {} }
+      - { CURE: {} }
+      - { POTION: { effect: REGENERATION, amplifier: 1, duration: 120, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { PARTICLE: { particle: HEART, count: 12 } }

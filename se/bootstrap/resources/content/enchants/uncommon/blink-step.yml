@@ -1,0 +1,32 @@
+# Blink Step — right-click to dash forward in a burst of motion.
+display: "&dBlink Step"
+description: "Dash forward in a burst of motion."
+trigger: INTERACT_RIGHT
+applies-to: [SWORD, BOOTS]
+group: utility
+levels:
+  1:
+    chance: 100
+    cooldown: 200
+    effects:
+      - { LAUNCH: { x: 0, y: 0.4, z: 0 } }
+      - { POTION: { effect: SPEED, amplifier: 1, duration: 40, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: PORTAL, count: 20 } }
+  2:
+    chance: 100
+    cooldown: 160
+    effects:
+      - { LAUNCH: { x: 0, y: 0.6, z: 0 } }
+      - { POTION: { effect: SPEED, amplifier: 2, duration: 60, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: PORTAL, count: 30 } }
+  3:
+    chance: 100
+    cooldown: 120
+    effects:
+      - { LAUNCH: { x: 0, y: 0.8, z: 0 } }
+      - { POTION: { effect: SPEED, amplifier: 2, duration: 80, who: "@Self" } }
+      - { POTION: { effect: JUMP, amplifier: 1, duration: 80, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: PORTAL, count: 40 } }
