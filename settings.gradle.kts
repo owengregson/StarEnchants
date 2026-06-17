@@ -33,6 +33,9 @@ listOf(
     "compat-modern", // profile/head API, component commands, Brigadier, BlockData sends
     // Live Paper + Folia in-server matrix harness.
     "tester",
+    // Optional add-ons — SEPARATE plugin jars that register a first-party SPI provider via the
+    // ServicesManager; never bundled into the core jar (docs/decisions/0017).
+    "addon-worldguard", // a ProtectionProvider bridging WorldGuard's BUILD flag
 ).forEach { name ->
     include(name)
     project(":$name").projectDir = file("se/$name")
