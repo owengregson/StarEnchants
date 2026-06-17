@@ -38,11 +38,19 @@ class VarVocabularyTest {
     @Test
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
-        assertEquals(4, v.numberSlots()); // actor.health, victim.health, damage, combo
-        assertEquals(3, v.flagSlots());   // sneaking, blocking, flying
-        assertEquals(0, v.stringSlots());
+        // 9 numeric (actor/victim health+maxhealth, actor food/level/totalexp, damage, combo),
+        // 9 flags (actor sneaking/blocking/flying/sprinting/swimming/gliding + victim pose),
+        // 4 string (actor world/gamemode/helditem, victim type).
+        assertEquals(9, v.numberSlots());
+        assertEquals(9, v.flagSlots());
+        assertEquals(4, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
+        assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
         assertEquals(VarKind.BOOL, v.lookup(null, "blocking").orElseThrow().kind());
+        assertEquals(VarKind.BOOL, v.lookup("victim", "sneaking").orElseThrow().kind());
+        assertEquals(VarKind.STR, v.lookup("actor", "world").orElseThrow().kind());
+        assertEquals(VarKind.STR, v.lookup("victim", "type").orElseThrow().kind());
+        assertTrue(v.flagSlots() <= FactBuffer.MAX_FLAGS); // still within the single-long flag space
     }
 
     @Test
