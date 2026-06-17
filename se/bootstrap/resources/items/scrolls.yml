@@ -25,3 +25,39 @@ randomizer:
   max-percent: 100
   message-success: "&aThe book's success chance was rerolled to &f{PERCENT}%&a."
   message-not-book: "&cThe randomizer only works on an enchant book."
+
+# Transmog scroll — drag onto enchanted gear to reorder its enchant display + append a name suffix.
+# (Godly/manual transmog is the reorder GUI, a later wave.)
+transmog:
+  material: PURPLE_DYE
+  name: "&5Transmog Scroll"
+  lore:
+    - "&7Drag onto enchanted gear to"
+    - "&7reorder its enchant display."
+  name-suffix: " &8(Transmogged)"
+  message-success: "&aReordered the enchant display."
+  message-no-enchants: "&cThat item has no enchants to transmog."
+
+# Holy / death scroll — carry it (incl. off-hand) to keep your items + levels on a death (one use).
+# Respects the keepInventory gamerule (then it is neither needed nor spent).
+holy:
+  material: TOTEM_OF_UNDYING
+  name: "&fHoly Scroll"
+  lore:
+    - "&7Keep your items if you die"
+    - "&7while carrying this (one use)."
+  save-chance: 100
+  message-saved: "&fThe holy scroll shattered — your items were spared."
+
+# Item nametag — drag onto gear, then type the new name in chat. Blacklisted words are rejected.
+nametag:
+  material: NAME_TAG
+  name: "&bItem Nametag"
+  lore:
+    - "&7Drag onto gear, then type the"
+    - "&7new name in chat."
+  blacklist: []
+  message-prompt: "&7Type the new item name in chat (or 'cancel')."
+  message-renamed: "&aRenamed your item."
+  message-blacklisted: "&cThat name contains a blacklisted word."
+  message-cancelled: "&7Rename cancelled."

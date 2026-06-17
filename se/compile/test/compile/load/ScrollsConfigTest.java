@@ -14,6 +14,16 @@ class ScrollsConfigTest {
         ScrollsConfig d = ScrollsConfig.defaults();
         assertTrue(d.black().successChance() >= 0 && d.black().successChance() <= 100);
         assertTrue(d.randomizer().minPercent() <= d.randomizer().maxPercent());
+        // The survival/cosmetic scrolls are present with sane bounds.
+        assertTrue(d.holy().saveChance() >= 0 && d.holy().saveChance() <= 100);
+        assertTrue(d.transmog().nameSuffix() != null);
+        assertTrue(d.nametag().blacklist() != null);
+    }
+
+    @Test
+    void holySaveChanceIsClamped() {
+        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250, "saved");
+        assertEquals(100, h.saveChance(), "save chance clamped to 100");
     }
 
     @Test
