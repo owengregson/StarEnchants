@@ -42,7 +42,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
-            List.of("reload", "enchant", "crystal", "heroic", "gem", "book", "soulmode", "migrate", "menu");
+            List.of("reload", "enchant", "crystal", "heroic", "orb", "slotgem", "gem", "book", "soulmode",
+                    "migrate", "menu");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -55,12 +56,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.carrier.CarrierService carriers;
     private final feature.crystal.CrystalService crystals;
     private final feature.heroic.HeroicService heroics;
+    private final feature.slot.SlotService slots;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, EnchantMenu menu, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
               feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
-              feature.heroic.HeroicService heroics) {
+              feature.heroic.HeroicService heroics, feature.slot.SlotService slots) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -72,6 +74,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.carriers = carriers;
         this.crystals = crystals;
         this.heroics = heroics;
+        this.slots = slots;
     }
 
     @Override
@@ -85,6 +88,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "enchant" -> applyHeld(sender, args);
             case "crystal" -> giveCrystal(sender, args);
             case "heroic" -> giveHeroic(sender);
+            case "orb" -> giveSlotItem(sender, true);
+            case "slotgem" -> giveSlotItem(sender, false);
             case "gem" -> giveGem(sender);
             case "book" -> giveBook(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
@@ -319,6 +324,21 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
+    /** {@code /se orb} / {@code /se slotgem} — mint a slot expander (+N) / slot gem (+1) and give it. */
+    private void giveSlotItem(CommandSender sender, boolean orb) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            ItemStack item = orb ? slots.mintOrb() : slots.mintGem();
+            player.getInventory().addItem(item).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage("§5Minted a " + (orb ? "slot expander" : "slot gem")
+                    + ". §7Drag it onto gear to add enchant slots.");
+        });
+    }
+
     /** {@code /se book <enchant> [level]} — mint an enchant book carrier and give it to the sender. */
     private void giveBook(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -370,6 +390,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se enchant <key> [level] §7— apply an enchant to the held item");
         sender.sendMessage("§e  /se crystal <key> §7— mint a crystal item (drag it onto gear to apply)");
         sender.sendMessage("§e  /se heroic §7— mint a heroic upgrade (drag it onto armour/weapon)");
+        sender.sendMessage("§e  /se orb §7— mint a slot expander (drag onto gear for +N slots)");
+        sender.sendMessage("§e  /se slotgem §7— mint a slot gem (drag onto gear for +1 slot)");
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");

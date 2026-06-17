@@ -3,3 +3,4 @@
 soul-gem.yml
 crystal.yml
 heroic.yml
+slots.yml

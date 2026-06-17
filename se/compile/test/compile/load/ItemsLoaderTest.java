@@ -58,6 +58,33 @@ class ItemsLoaderTest {
     }
 
     @Test
+    void parsesASlotsConfig(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("slots.yml"), """
+                type: slots
+                orb-material: ENDER_PEARL
+                orb-name: "&5Expander +{AMOUNT}"
+                orb-lore:
+                  - "&7+{AMOUNT} slots"
+                orb-amount: 5
+                gem-material: QUARTZ
+                gem-name: "&dGem"
+                hard-cap: 20
+                message-apply: "now {SLOTS}"
+                message-at-cap: "maxed"
+                """);
+
+        SlotConfig slots = ItemsLoader.load(dir).slots().orElseThrow();
+        assertEquals("ENDER_PEARL", slots.orbMaterial());
+        assertEquals(5, slots.orbAmount());
+        assertEquals(List.of("&7+{AMOUNT} slots"), slots.orbLore());
+        assertEquals("QUARTZ", slots.gemMaterial());
+        assertEquals(20, slots.hardCap());
+        assertEquals("now {SLOTS}", slots.messageApply());
+        // Omitted gem-lore falls back to the default.
+        assertEquals(SlotConfig.defaults().gemLore(), slots.gemLore());
+    }
+
+    @Test
     void aMissingTypeIsABlockingError(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("mystery.yml"), "material: STONE\n");
 

@@ -79,7 +79,8 @@ public final class HeroicService {
         ItemStack upgraded = withUpgradedMaterial(gear, cfg);
         CombatState current = combat.read(upgraded);
         CombatState next = new CombatState(current.enchants(), current.crystals(), current.setKey(),
-                current.omni(), new HeroicStat(cfg.percentDamage(), cfg.percentReduction(), cfg.durability()));
+                current.omni(), new HeroicStat(cfg.percentDamage(), cfg.percentReduction(), cfg.durability()),
+                current.added());
         combat.write(upgraded, next);
         lore.apply(upgraded, next); // re-render: enchants/crystals + the HEROIC marker, from state
         return HeroicResult.committed(upgraded, color(cfg.messageSuccess()));

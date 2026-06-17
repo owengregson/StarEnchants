@@ -18,22 +18,25 @@ public final class ItemKeys {
     private final NamespacedKey guarded;
     private final NamespacedKey crystalItem;
     private final NamespacedKey heroicUpgrade;
+    private final NamespacedKey slotItem;
 
     private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded,
-                     NamespacedKey crystalItem, NamespacedKey heroicUpgrade) {
+                     NamespacedKey crystalItem, NamespacedKey heroicUpgrade, NamespacedKey slotItem) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
         this.guarded = guarded;
         this.crystalItem = crystalItem;
         this.heroicUpgrade = heroicUpgrade;
+        this.slotItem = slotItem;
     }
 
     /** Build the key set under {@code plugin}'s namespace. */
     public static ItemKeys of(Plugin plugin) {
         return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
                 new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"),
-                new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "heroicupgrade"));
+                new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "heroicupgrade"),
+                new NamespacedKey(plugin, "slotitem"));
     }
 
     /** The single key the combat-state blob is stored under (§5.1). */
@@ -82,5 +85,15 @@ public final class ItemKeys {
      */
     public NamespacedKey heroicUpgrade() {
         return heroicUpgrade;
+    }
+
+    /**
+     * The key that marks an item as a SLOT EXPANDER / SLOT GEM (docs/v3-directives.md §H) — a one-shot
+     * consumable dragged onto gear to raise its enchant-slot count, storing the {@code +N} it grants.
+     * An identity marker, off the combat hot path (the granted slots persist in the combat blob's
+     * {@code added} field, not here).
+     */
+    public NamespacedKey slotItem() {
+        return slotItem;
     }
 }

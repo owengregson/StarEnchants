@@ -89,9 +89,9 @@ public final class ItemEnchanter {
     /**
      * Validate (without mutating) that {@code baseKey} fits in {@code current}'s enchant slots
      * (§H): a NEW enchant needs a free slot; re-applying one already present (a level change) does
-     * not. Pure — testable with a hand-built {@link CombatState}. Base capacity is the configured
-     * {@code baseSlots}; per-item purchasable "added" slots are a later cycle, but the
-     * {@link SlotLedger} arithmetic is the same. This base form is unaware of {@code removes-required}
+     * not. Pure — testable with a hand-built {@link CombatState}. Capacity is the configured
+     * {@code baseSlots} plus any purchased {@code added} slots persisted on the item (slot expander /
+     * gem, §H). This base form is unaware of {@code removes-required}
      * (the admin/force path); player paths use {@link #checkApplicable} which nets out removed
      * prerequisites.
      */
@@ -105,7 +105,7 @@ public final class ItemEnchanter {
         if (current.enchants().containsKey(baseKey)) {
             return ApplyResult.ok(""); // re-applying an existing enchant consumes no new slot
         }
-        SlotLedger slots = new SlotLedger(baseSlots, 0, current.enchants().size());
+        SlotLedger slots = new SlotLedger(baseSlots, current.added(), current.enchants().size());
         return slots.canApply(1 - Math.max(0, freed)) // net cost; ≤0 always fits (the upgrade supersedes)
                 ? ApplyResult.ok("")
                 : ApplyResult.fail("§cThis item has no free enchant slots (" + slots.max() + " max).");
@@ -216,7 +216,7 @@ public final class ItemEnchanter {
         }
         enchants.put(baseKey, level);
         CombatState next = new CombatState(enchants, current.crystals(),
-                current.setKey(), current.omni(), current.heroic());
+                current.setKey(), current.omni(), current.heroic(), current.added());
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(check.message() + " §7applied (level " + level + ").");
@@ -314,7 +314,7 @@ public final class ItemEnchanter {
         List<String> crystals = new ArrayList<>(current.crystals());
         crystals.add(String.join(item.codec.CrystalItemData.DELIMITER, keys)); // ONE entry = ONE slot
         CombatState next = new CombatState(current.enchants(), crystals,
-                current.setKey(), current.omni(), current.heroic());
+                current.setKey(), current.omni(), current.heroic(), current.added());
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(label + " §7crystal applied.");
