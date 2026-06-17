@@ -42,7 +42,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
-            List.of("reload", "enchant", "crystal", "gem", "book", "soulmode", "migrate", "menu");
+            List.of("reload", "enchant", "crystal", "heroic", "gem", "book", "soulmode", "migrate", "menu");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -54,11 +54,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs;
     private final feature.carrier.CarrierService carriers;
     private final feature.crystal.CrystalService crystals;
+    private final feature.heroic.HeroicService heroics;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, EnchantMenu menu, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
-              feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals) {
+              feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
+              feature.heroic.HeroicService heroics) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -69,6 +71,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.migrateSpecs = migrateSpecs;
         this.carriers = carriers;
         this.crystals = crystals;
+        this.heroics = heroics;
     }
 
     @Override
@@ -81,6 +84,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "reload" -> reload(sender, args);
             case "enchant" -> applyHeld(sender, args);
             case "crystal" -> giveCrystal(sender, args);
+            case "heroic" -> giveHeroic(sender);
             case "gem" -> giveGem(sender);
             case "book" -> giveBook(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
@@ -301,6 +305,20 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
+    /** {@code /se heroic} — mint a heroic upgrade item and give it (drag it onto armour/weapon to attempt). */
+    private void giveHeroic(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            ItemStack upgrade = heroics.mint();
+            player.getInventory().addItem(upgrade).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage("§6Minted a heroic upgrade. §7Drag it onto armour or a weapon to attempt.");
+        });
+    }
+
     /** {@code /se book <enchant> [level]} — mint an enchant book carrier and give it to the sender. */
     private void giveBook(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -351,6 +369,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se reload [--dry-run] §7— rebuild content");
         sender.sendMessage("§e  /se enchant <key> [level] §7— apply an enchant to the held item");
         sender.sendMessage("§e  /se crystal <key> §7— mint a crystal item (drag it onto gear to apply)");
+        sender.sendMessage("§e  /se heroic §7— mint a heroic upgrade (drag it onto armour/weapon)");
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");

@@ -55,6 +55,9 @@ public final class LoreRenderer {
             }
             out.add(Colors.translate(style.crystalColor() + label));
         }
+        if (!state.heroic().isZero()) {
+            out.add(Colors.translate("&6&lHEROIC")); // the §F "heroic piece" marker, rendered from state
+        }
         return out;
     }
 
