@@ -75,6 +75,24 @@ class MigratorTest {
                     - 'STEAL_MONEY:100 @Victim'
             """;
 
+    /** An AE enchant with a per-level {@code conditions:} list: one mappable allow-gate + one unmappable. */
+    private static final String AE_COND = """
+            sneakstrike:
+              display: 'Sneak Strike'
+              type: ATTACK
+              group: ELITE
+              applies:
+                - ALL_SWORD
+              levels:
+                '1':
+                  conditions:
+                    - '%player is sneaking% = true : %allow%'
+                    - '%block type% contains ORE : %allow%'
+                  chance: 50
+                  effects:
+                    - 'DAMAGE:4 @Victim'
+            """;
+
     private static final String EE = """
             Enchants:
               venomstrike:
@@ -210,15 +228,91 @@ class MigratorTest {
 
     @Test
     void translatesVerifiedAeEffectsFaithfully() {
-        // The real modern AE form: capital-@ space-separated targets.
+        // The real modern AE form: capital-@ space-separated targets. On an ATTACK enchant (the default
+        // direction here) AE @Attacker is the WIELDER → StarEnchants @Self (NOT @Attacker, which is empty
+        // on the attack side); AE @Victim is the foe → @Victim.
         assertEquals("DAMAGE:4:@Victim", Mappings.aeEffect("DAMAGE:4 @Victim").se());
-        assertEquals("POTION:POISON:0:60:@Attacker", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se());
+        assertEquals("POTION:POISON:0:60:@Self", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se());
         assertEquals("HEAL:2:@Self", Mappings.aeEffect("ADD_HEALTH:2 @Self").se()); // AE add-health → HEAL
         assertEquals("DAMAGE:6:@Victim", Mappings.aeEffect("DAMAGE:6:@Victim").se()); // colon-attached selector
         // Legacy %victim% form still maps; large money values survive (not int-capped).
         assertEquals("GIVE_MONEY:5000000000:@Self", Mappings.aeEffect("ADD_MONEY:5000000000 @Self").se());
         assertFalse(Mappings.aeEffect("STEAL_MONEY:100 @Victim").mapped(), "no verified equivalent → TODO");
-        assertFalse(Mappings.aeEffect("DAMAGE:4 @Aoe{r=5}").mapped(), "an arg-bearing AE area selector → TODO");
+    }
+
+    @Test
+    void translatesAdditionalVerifiedAeEffects() {
+        assertEquals("FEED:4:@Self", Mappings.aeEffect("ADD_FOOD:4 @Self").se());       // AE add-food → FEED
+        assertEquals("GIVE_EXP:30", Mappings.aeEffect("EXP:30").se());                   // AE EXP → GIVE_EXP
+        assertEquals("IGNITE:60:@Victim", Mappings.aeEffect("BURN:3 @Victim").se());     // BURN seconds → IGNITE ticks (x20)
+        assertEquals("REPAIR", Mappings.aeEffect("REPAIR").se());
+        assertEquals("KILL:@Victim", Mappings.aeEffect("KILL @Victim").se());
+        assertEquals("EXTINGUISH:@Self", Mappings.aeEffect("EXTINGUISH @Self").se());
+        assertEquals("DISARM:@Victim", Mappings.aeEffect("DISARM @Victim").se());
+        assertEquals("LIGHTNING:@Victim", Mappings.aeEffect("LIGHTNING @Victim").se());  // visual lightning (no damage)
+        assertEquals("RUN_COMMAND:eco give %player% 100",
+                Mappings.aeEffect("CONSOLE_COMMAND:eco give %player% 100").se());
+        // Not faithfully mappable → TODO, never silently wrong.
+        assertFalse(Mappings.aeEffect("LIGHTNING:true @Victim").mapped(), "real-damage lightning → TODO");
+        assertFalse(Mappings.aeEffect("PLAYER_COMMAND:spawn").mapped(), "run-as-player command → TODO");
+        assertFalse(Mappings.aeEffect("CONSOLE_COMMAND:title %p% times 5:10:5").mapped(), "colon command body → TODO");
+    }
+
+    @Test
+    void aeAreaAndMiningSelectorsAreNotMapped() {
+        // StarEnchants @Aoe differs from AE's (default radius 4 vs 1, no entity cap vs AE's always-20), and
+        // @Nearest is any-living not player-only, so these area/mining selectors are TODO'd, not retargeted.
+        assertFalse(Mappings.aeEffect("DAMAGE:4 @Aoe{r=5}").mapped(), "AoE has no faithful @Aoe equivalent → TODO");
+        assertFalse(Mappings.aeEffect("DAMAGE:4 @Aoe").mapped(), "bare AoE (radius differs) → TODO");
+        assertFalse(Mappings.aeEffect("DAMAGE:4 @NearestPlayer{r=5}").mapped(), "player-only nearest → TODO");
+    }
+
+    @Test
+    void aeSelectorsAreTriggerDirectionAware() {
+        // ATTACK direction: AE @Attacker = the wielder → @Self; AE @Victim = the foe → @Victim.
+        assertEquals("HEAL:4:@Self", Mappings.aeEffect("ADD_HEALTH:4 @Attacker", false).se());
+        assertEquals("DAMAGE:4:@Victim", Mappings.aeEffect("DAMAGE:4 @Victim", false).se());
+        // DEFENSE direction: AE @Victim = the wielder → @Self; AE @Attacker = the foe → @Attacker.
+        assertEquals("HEAL:4:@Self", Mappings.aeEffect("ADD_HEALTH:4 @Victim", true).se());
+        assertEquals("DAMAGE:4:@Attacker", Mappings.aeEffect("DAMAGE:4 @Attacker", true).se());
+    }
+
+    @Test
+    void aeMessageWithAnEmbeddedSelectorIsNotRetargeted() {
+        // A non-selector "@word" is text and maps to the actor; a real @selector target → TODO (recipient differs).
+        assertEquals("MESSAGE:contact @admin", Mappings.aeEffect("MESSAGE:contact @admin").se());
+        assertFalse(Mappings.aeEffect("MESSAGE:Visit @Self now").mapped(), "an embedded @selector → TODO");
+        assertFalse(Mappings.aeEffect("MESSAGE:hello @Victim").mapped(), "a trailing target selector → TODO");
+    }
+
+    @Test
+    void translatesAeConditionsToAllowGates() {
+        assertEquals("!(%victim.health% > 5)", Mappings.aeCondition("%victim health% > 5 : %stop%").expr());
+        assertEquals("%sneaking% == true", Mappings.aeCondition("%player is sneaking% = true : %allow%").expr());
+        assertEquals("%combo% > 0 && %combo% < 5",
+                Mappings.aeCondition("%combo% > 0 && %combo% < 5 : %continue%").expr());
+        // No StarEnchants equivalent → TODO, never a silently-wrong gate.
+        assertFalse(Mappings.aeCondition("%block type% contains ORE : %allow%").mapped(), "contains operator → TODO");
+        assertFalse(Mappings.aeCondition("%victim health% > 5 : +50 %chance%").mapped(), "chance modifier → TODO");
+        assertFalse(Mappings.aeCondition("%victim food% > 5 : %allow%").mapped(), "no 'food' fact → TODO");
+        assertFalse(Mappings.aeCondition("%victim health% > 5").mapped(), "missing ' : <result>' → TODO");
+    }
+
+    @Test
+    void migratesAeConditionsToACompilableAllowGate(@TempDir Path dir) throws IOException {
+        Migrator.Result result = Migrator.advancedEnchantments(AE_COND, SPECS);
+        String yml = result.files().get("enchants/sneakstrike.yml");
+        // The mappable line becomes a StarEnchants allow-gate; the unmappable one is a TODO, not dropped.
+        assertTrue(yml.contains("condition: \"%sneaking% == true\""),
+                () -> "expected a mapped allow-gate condition, got:\n" + yml);
+        assertTrue(yml.contains("# TODO condition (port manually):"),
+                () -> "expected a TODO for the unmappable contains-condition, got:\n" + yml);
+        // And the mapped condition compiles clean through the real loader (the gate is valid Expr).
+        Library library = compile(result.files(), dir);
+        String blocking = library.diagnostics().stream().filter(Diagnostic::blocking)
+                .map(Diagnostic::toString).collect(Collectors.joining("\n  "));
+        assertFalse(library.hasErrors(), () -> "migrated AE condition output should compile clean:\n  " + blocking);
+        assertEquals(1, library.snapshot().abilityCount());
     }
 
     @Test
