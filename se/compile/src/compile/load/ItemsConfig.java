@@ -16,20 +16,22 @@ import schema.diag.Diagnostic;
  *
  * @param soulGem     the soul-gem config, or empty if none is configured (the runtime falls back to {@link SoulGemConfig#defaults()})
  * @param crystal     the crystal-item config, or empty if none is configured (falls back to {@link CrystalConfig#defaults()})
+ * @param heroic      the heroic upgrade config, or empty if none is configured (falls back to {@link HeroicConfig#defaults()})
  * @param diagnostics every diagnostic raised loading the folder
  */
 public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfig> crystal,
-                          List<Diagnostic> diagnostics) {
+                          Optional<HeroicConfig> heroic, List<Diagnostic> diagnostics) {
 
     public ItemsConfig {
         Objects.requireNonNull(soulGem, "soulGem");
         Objects.requireNonNull(crystal, "crystal");
+        Objects.requireNonNull(heroic, "heroic");
         diagnostics = List.copyOf(diagnostics);
     }
 
     /** An empty config (no item files present) — the runtime uses each item's built-in defaults. */
     public static ItemsConfig empty() {
-        return new ItemsConfig(Optional.empty(), Optional.empty(), List.of());
+        return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), List.of());
     }
 
     /** The soul-gem config, or its built-in default when none is configured. */
@@ -40,6 +42,11 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
     /** The crystal-item config, or its built-in default when none is configured. */
     public CrystalConfig crystalOrDefault() {
         return crystal.orElseGet(CrystalConfig::defaults);
+    }
+
+    /** The heroic upgrade config, or its built-in default when none is configured. */
+    public HeroicConfig heroicOrDefault() {
+        return heroic.orElseGet(HeroicConfig::defaults);
     }
 
     /** Whether any blocking diagnostic was raised loading the folder. */

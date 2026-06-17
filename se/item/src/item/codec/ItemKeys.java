@@ -17,21 +17,23 @@ public final class ItemKeys {
     private final NamespacedKey carrier;
     private final NamespacedKey guarded;
     private final NamespacedKey crystalItem;
+    private final NamespacedKey heroicUpgrade;
 
     private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded,
-                     NamespacedKey crystalItem) {
+                     NamespacedKey crystalItem, NamespacedKey heroicUpgrade) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
         this.guarded = guarded;
         this.crystalItem = crystalItem;
+        this.heroicUpgrade = heroicUpgrade;
     }
 
     /** Build the key set under {@code plugin}'s namespace. */
     public static ItemKeys of(Plugin plugin) {
         return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
                 new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"),
-                new NamespacedKey(plugin, "crystalitem"));
+                new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "heroicupgrade"));
     }
 
     /** The single key the combat-state blob is stored under (§5.1). */
@@ -72,5 +74,13 @@ public final class ItemKeys {
      */
     public NamespacedKey crystalItem() {
         return crystalItem;
+    }
+
+    /**
+     * The key that marks an item as a HEROIC UPGRADE (docs/v3-directives.md §F) — a one-shot consumable
+     * dragged onto armour/weapon to attempt a heroic upgrade. An identity marker, off the combat hot path.
+     */
+    public NamespacedKey heroicUpgrade() {
+        return heroicUpgrade;
     }
 }

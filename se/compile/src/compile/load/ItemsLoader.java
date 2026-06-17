@@ -5,8 +5,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import schema.diag.Diagnostics;
@@ -30,6 +32,7 @@ public final class ItemsLoader {
         Diagnostics diags = new Diagnostics();
         Optional<SoulGemConfig> soulGem = Optional.empty();
         Optional<CrystalConfig> crystal = Optional.empty();
+        Optional<HeroicConfig> heroic = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -70,10 +73,54 @@ public final class ItemsLoader {
                         crystal = Optional.of(readCrystal(root, diags));
                     }
                 }
+                case "heroic" -> {
+                    if (heroic.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one heroic config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        heroic = Optional.of(readHeroic(root, diags));
+                    }
+                }
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
-        return new ItemsConfig(soulGem, crystal, diags.all());
+        return new ItemsConfig(soulGem, crystal, heroic, diags.all());
+    }
+
+    private static HeroicConfig readHeroic(YamlNode root, Diagnostics diags) {
+        HeroicConfig d = HeroicConfig.defaults();
+        Map<String, String> upgrades = new LinkedHashMap<>();
+        for (YamlNode.Entry e : root.entries("material-upgrades")) {
+            String to = e.value().scalar();
+            if (to != null && !to.isBlank()) {
+                upgrades.put(e.key().toUpperCase(Locale.ROOT), to.trim().toUpperCase(Locale.ROOT));
+            }
+        }
+        return new HeroicConfig(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("success-min"), d.successMin(), root, diags),
+                parseInt(root.string("success-max"), d.successMax(), root, diags),
+                parseDouble(root.string("percent-damage"), d.percentDamage(), root, diags),
+                parseDouble(root.string("percent-reduction"), d.percentReduction(), root, diags),
+                parseDouble(root.string("durability"), d.durability(), root, diags),
+                upgrades.isEmpty() ? d.materialUpgrades() : upgrades,
+                orDefault(root.string("reduction-scope"), d.reductionScope()),
+                orDefault(root.string("message-success"), d.messageSuccess()),
+                orDefault(root.string("message-fail"), d.messageFail()));
+    }
+
+    private static double parseDouble(String raw, double fallback, YamlNode root, Diagnostics diags) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Double.parseDouble(raw.trim());
+        } catch (NumberFormatException e) {
+            diags.warning("W_ITEM_NUM", "invalid number '" + raw + "', using " + fallback, root.source());
+            return fallback;
+        }
     }
 
     private static CrystalConfig readCrystal(YamlNode root, Diagnostics diags) {
