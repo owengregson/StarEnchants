@@ -32,20 +32,28 @@ public final class ItemEnchanter {
     /** A sanity cap on crystals per item — they stack (§6.5), but unbounded growth bloats PDC. */
     private static final int MAX_CRYSTALS = 16;
 
-    /** The v1 enchant-slot capacity for every item (per-group bases + purchasable slots come later, §6.4). */
-    private static final int BASE_SLOTS = 6;
+    /** The default base enchant-slot capacity (docs/v3-directives.md §H; was 6, now 9 by default). */
+    public static final int DEFAULT_BASE_SLOTS = 9;
 
     private final CombatCodec codec;
     private final LoreRenderer lore;
     private final ContentHolder content;
     private final platform.item.ItemGroups groups;
+    private final int baseSlots;
 
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups) {
+        this(codec, lore, content, groups, DEFAULT_BASE_SLOTS);
+    }
+
+    /** As above, with a configurable base enchant-slot count (§H; the master config supplies it). */
+    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
+                         platform.item.ItemGroups groups, int baseSlots) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
         this.groups = Objects.requireNonNull(groups, "groups");
+        this.baseSlots = Math.max(0, baseSlots);
     }
 
     /** Validate (without mutating) that enchant {@code baseKey} at {@code level} may sit on {@code material}. */
@@ -69,19 +77,76 @@ public final class ItemEnchanter {
 
     /**
      * Validate (without mutating) that {@code baseKey} fits in {@code current}'s enchant slots
-     * (§6.4): a NEW enchant needs a free slot; re-applying one already present (a level change) does
-     * not. Pure — testable with a hand-built {@link CombatState}. The slot capacity is a v1 constant
-     * ({@code BASE_SLOTS}); per-item-group bases and purchasable "added" slots are a later cycle, but
-     * the {@link SlotLedger} arithmetic is the same.
+     * (§H): a NEW enchant needs a free slot; re-applying one already present (a level change) does
+     * not. Pure — testable with a hand-built {@link CombatState}. Base capacity is the configured
+     * {@code baseSlots}; per-item purchasable "added" slots are a later cycle, but the
+     * {@link SlotLedger} arithmetic is the same. This base form is unaware of {@code removes-required}
+     * (the admin/force path); player paths use {@link #checkApplicable} which nets out removed
+     * prerequisites.
      */
     public ApplyResult checkSlots(CombatState current, String baseKey) {
+        return checkSlots(current, baseKey, 0);
+    }
+
+    /** As {@link #checkSlots(CombatState, String)} but a NEW enchant that frees {@code freed} prerequisites
+     * (a {@code removes-required} upgrade) costs {@code 1 - freed} net slots — never below zero. */
+    private ApplyResult checkSlots(CombatState current, String baseKey, int freed) {
         if (current.enchants().containsKey(baseKey)) {
             return ApplyResult.ok(""); // re-applying an existing enchant consumes no new slot
         }
-        SlotLedger slots = new SlotLedger(BASE_SLOTS, 0, current.enchants().size());
-        return slots.canApply(1)
+        SlotLedger slots = new SlotLedger(baseSlots, 0, current.enchants().size());
+        return slots.canApply(1 - Math.max(0, freed)) // net cost; ≤0 always fits (the upgrade supersedes)
                 ? ApplyResult.ok("")
                 : ApplyResult.fail("§cThis item has no free enchant slots (" + slots.max() + " max).");
+    }
+
+    /**
+     * Validate (without mutating) the apply-time enchant relationships (§G) for putting {@code def} at
+     * {@code level} onto {@code current}: every {@code requires} prerequisite must be present at a level
+     * &ge; {@code level}, and no {@code blacklist} pairing may hold (checked <em>bidirectionally</em> —
+     * either {@code def} blacklists a present enchant, or a present enchant blacklists {@code def}). Pure.
+     */
+    public ApplyResult checkRelationships(CombatState current, EnchantDef def, int level) {
+        Map<String, Integer> present = current.enchants();
+        for (String req : def.requires()) {
+            Integer have = present.get(req);
+            if (have == null) {
+                return ApplyResult.fail("§cRequires §f" + displayOf(req) + " §cfirst.");
+            }
+            if (have < level) {
+                return ApplyResult.fail("§cRequires §f" + displayOf(req) + " §cat level " + level + " or higher.");
+            }
+        }
+        for (String other : present.keySet()) {
+            if (other.equals(def.key())) {
+                continue;
+            }
+            EnchantDef otherDef = enchant(other);
+            if (def.blacklist().contains(other) || (otherDef != null && otherDef.blacklist().contains(def.key()))) {
+                return ApplyResult.fail("§c" + def.display() + " §ccannot be combined with §f" + displayOf(other) + "§c.");
+            }
+        }
+        return ApplyResult.ok("");
+    }
+
+    /**
+     * Full player-facing apply eligibility for enchant {@code baseKey} at {@code level} onto {@code target}
+     * — material/level/applies-to + relationships (§G) + slots (§H, netting out removed prerequisites).
+     * The carrier/menu pre-check this BEFORE consuming a book so a violation never wastes the carrier.
+     */
+    public ApplyResult checkApplicable(ItemStack target, String baseKey, int level) {
+        ApplyResult eligible = checkEnchant(target.getType(), baseKey, level);
+        if (!eligible.ok()) {
+            return eligible;
+        }
+        EnchantDef def = enchant(baseKey); // non-null: checkEnchant passed
+        CombatState current = codec.read(target);
+        ApplyResult rel = checkRelationships(current, def, level);
+        if (!rel.ok()) {
+            return rel;
+        }
+        ApplyResult slots = checkSlots(current, baseKey, freedBy(def, current));
+        return slots.ok() ? eligible : slots;
     }
 
     /** Validate (without mutating) that crystal {@code baseKey} may sit on {@code material}. */
@@ -99,8 +164,21 @@ public final class ItemEnchanter {
         return ApplyResult.ok("§a" + def.display());
     }
 
-    /** Apply enchant {@code baseKey} at {@code level} to {@code stack} in place; re-renders the lore. */
+    /**
+     * Apply enchant {@code baseKey} at {@code level} to {@code stack} in place, enforcing the apply-time
+     * relationships (§G) — the player path (book/menu). Re-renders the lore.
+     */
     public ApplyResult applyEnchant(ItemStack stack, String baseKey, int level) {
+        return applyEnchant(stack, baseKey, level, true);
+    }
+
+    /**
+     * Apply enchant {@code baseKey} at {@code level} to {@code stack} in place; re-renders the lore. When
+     * {@code enforceRelationships} is {@code true} (player paths) the §G {@code requires}/{@code blacklist}
+     * gates apply and a {@code removes-required} upgrade strips its prerequisites on success; when
+     * {@code false} (admin force-give) those gates are skipped and the enchant is applied verbatim.
+     */
+    public ApplyResult applyEnchant(ItemStack stack, String baseKey, int level, boolean enforceRelationships) {
         if (stack == null || stack.getType() == Material.AIR) {
             return ApplyResult.fail("§cHold an item first.");
         }
@@ -108,18 +186,49 @@ public final class ItemEnchanter {
         if (!check.ok()) {
             return check;
         }
+        EnchantDef def = enchant(baseKey); // non-null: checkEnchant passed
         CombatState current = codec.read(stack);
-        ApplyResult slots = checkSlots(current, baseKey);
+        if (enforceRelationships) {
+            ApplyResult rel = checkRelationships(current, def, level);
+            if (!rel.ok()) {
+                return rel;
+            }
+        }
+        int freed = enforceRelationships ? freedBy(def, current) : 0;
+        ApplyResult slots = checkSlots(current, baseKey, freed);
         if (!slots.ok()) {
             return slots;
         }
         Map<String, Integer> enchants = new LinkedHashMap<>(current.enchants());
+        if (enforceRelationships && def.removesRequired()) {
+            def.requires().forEach(enchants::remove); // the superior enchant supersedes its prerequisites
+        }
         enchants.put(baseKey, level);
         CombatState next = new CombatState(enchants, current.crystals(),
                 current.setKey(), current.omni(), current.heroic());
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(check.message() + " §7applied (level " + level + ").");
+    }
+
+    /** How many of {@code def}'s prerequisites a successful apply would free (0 unless removes-required). */
+    private static int freedBy(EnchantDef def, CombatState current) {
+        if (!def.removesRequired()) {
+            return 0;
+        }
+        int freed = 0;
+        for (String req : def.requires()) {
+            if (current.enchants().containsKey(req)) {
+                freed++;
+            }
+        }
+        return freed;
+    }
+
+    /** The display name of an enchant base key, or the key itself if it has no def. */
+    private String displayOf(String baseKey) {
+        EnchantDef def = enchant(baseKey);
+        return def != null ? def.display() : baseKey;
     }
 
     /** Append crystal {@code baseKey} to {@code stack} in place (crystals stack); re-renders the lore. */

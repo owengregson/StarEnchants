@@ -104,7 +104,7 @@ public final class CarrierService {
         boolean crystal = grant.startsWith("crystals/");
         ApplyResult check = crystal
                 ? enchanter.checkCrystal(target.getType(), grant)
-                : enchanter.checkEnchant(target.getType(), grant, data.grantLevel());
+                : enchanter.checkApplicable(target, grant, data.grantLevel()); // §G/§H gate before consuming
         if (!check.ok()) {
             return CarrierResult.noop(check.message()); // ineligible target → don't waste the carrier
         }

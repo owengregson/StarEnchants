@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.Compiler;
 import compile.MapSpecRegistry;
 import compile.load.ContentHolder;
+import compile.load.EnchantDef;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import item.codec.CombatCodec;
@@ -71,17 +72,69 @@ class ItemEnchanterTest {
     void enchantSlotsCapNewEnchantsButAllowReapply(@TempDir Path root) throws IOException {
         ItemEnchanter e = over(LibraryLoader.load(root, compiler(), 1)); // catalog is irrelevant to slot math
 
-        // Six is the v1 capacity: an item already holding six distinct enchants has no free slot.
-        java.util.Map<String, Integer> six = new java.util.LinkedHashMap<>();
-        for (int i = 0; i < 6; i++) {
-            six.put("enchants/e" + i, 1);
+        // Nine is the default capacity (§H): an item already holding nine distinct enchants has no free slot.
+        java.util.Map<String, Integer> nine = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < ItemEnchanter.DEFAULT_BASE_SLOTS; i++) {
+            nine.put("enchants/e" + i, 1);
         }
-        item.codec.CombatState full = new item.codec.CombatState(six, java.util.List.of());
-        assertFalse(e.checkSlots(full, "enchants/new").ok(), "no free slot for a seventh enchant");
+        item.codec.CombatState full = new item.codec.CombatState(nine, java.util.List.of());
+        assertFalse(e.checkSlots(full, "enchants/new").ok(), "no free slot for a tenth enchant");
         assertTrue(e.checkSlots(full, "enchants/e0").ok(), "re-applying an existing enchant needs no new slot");
 
         item.codec.CombatState room = new item.codec.CombatState(java.util.Map.of("enchants/e0", 1), java.util.List.of());
         assertTrue(e.checkSlots(room, "enchants/new").ok(), "a near-empty item has free slots");
+    }
+
+    @Test
+    void enforcesEnchantRelationships(@TempDir Path root) throws IOException {
+        // base must exist for the upgrade's requires to resolve to a display name; the upgrade requires it
+        // at level ≥ the applied level and removes it on success (net-zero slots); poison blacklists base.
+        write(root, "enchants/base.yml", """
+            display: "&7Base"
+            applies-to: [SWORD]
+            trigger: ATTACK
+            blacklist: [enchants/poison]
+            levels:
+              1: { chance: 100, effects: ["HEAL:1"] }
+              2: { chance: 100, effects: ["HEAL:1"] }
+            """);
+        write(root, "enchants/upgrade.yml", """
+            display: "&6Upgrade"
+            applies-to: [SWORD]
+            trigger: ATTACK
+            requires: [enchants/base]
+            removes-required: true
+            levels:
+              1: { chance: 100, effects: ["HEAL:1"] }
+            """);
+        write(root, "enchants/poison.yml", """
+            display: "&2Poison"
+            applies-to: [SWORD]
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: ["HEAL:1"] }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        ItemEnchanter e = over(lib);
+        EnchantDef upgrade = defOf(lib, "enchants/upgrade");
+        EnchantDef base = defOf(lib, "enchants/base");
+        EnchantDef poison = defOf(lib, "enchants/poison");
+
+        // requires: absent prerequisite blocks; present-but-too-low blocks; present at ≥ level allows.
+        item.codec.CombatState none = new item.codec.CombatState(java.util.Map.of(), java.util.List.of());
+        assertFalse(e.checkRelationships(none, upgrade, 1).ok(), "missing prerequisite blocks");
+        item.codec.CombatState withBase1 = new item.codec.CombatState(java.util.Map.of("enchants/base", 1), java.util.List.of());
+        assertTrue(e.checkRelationships(withBase1, upgrade, 1).ok(), "prerequisite at equal level allows");
+        assertFalse(e.checkRelationships(withBase1, upgrade, 2).ok(), "prerequisite below applied level blocks");
+
+        // blacklist is bidirectional: base↔poison cannot coexist either way round.
+        item.codec.CombatState withPoison = new item.codec.CombatState(java.util.Map.of("enchants/poison", 1), java.util.List.of());
+        assertFalse(e.checkRelationships(withPoison, base, 1).ok(), "base blacklists poison (forward)");
+        assertFalse(e.checkRelationships(withBase1, poison, 1).ok(), "poison blocked while base present (reverse)");
+    }
+
+    private static EnchantDef defOf(Library lib, String key) {
+        return lib.catalog().stream().filter(d -> d.key().equals(key)).findFirst().orElseThrow();
     }
 
     @Test
