@@ -19,9 +19,12 @@ public final class ItemKeys {
     private final NamespacedKey crystalItem;
     private final NamespacedKey heroicUpgrade;
     private final NamespacedKey slotItem;
+    private final NamespacedKey scroll;
+    private final NamespacedKey unopened;
 
     private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded,
-                     NamespacedKey crystalItem, NamespacedKey heroicUpgrade, NamespacedKey slotItem) {
+                     NamespacedKey crystalItem, NamespacedKey heroicUpgrade, NamespacedKey slotItem,
+                     NamespacedKey scroll, NamespacedKey unopened) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -29,6 +32,8 @@ public final class ItemKeys {
         this.crystalItem = crystalItem;
         this.heroicUpgrade = heroicUpgrade;
         this.slotItem = slotItem;
+        this.scroll = scroll;
+        this.unopened = unopened;
     }
 
     /** Build the key set under {@code plugin}'s namespace. */
@@ -36,7 +41,8 @@ public final class ItemKeys {
         return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
                 new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"),
                 new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "heroicupgrade"),
-                new NamespacedKey(plugin, "slotitem"));
+                new NamespacedKey(plugin, "slotitem"), new NamespacedKey(plugin, "scroll"),
+                new NamespacedKey(plugin, "unopened"));
     }
 
     /** The single key the combat-state blob is stored under (§5.1). */
@@ -95,5 +101,23 @@ public final class ItemKeys {
      */
     public NamespacedKey slotItem() {
         return slotItem;
+    }
+
+    /**
+     * The key that tags a SCROLL by kind (docs/v3-directives.md §I) — a string marker shared by the
+     * scroll family (black / randomizer / and later transmog / holy / nametag). An identity marker, off
+     * the combat hot path; the scroll's mechanics come from the scrolls config, not the item.
+     */
+    public NamespacedKey scroll() {
+        return scroll;
+    }
+
+    /**
+     * The key that marks an UNOPENED / RANDOMIZED book (docs/v3-directives.md §I) and stores the tier it
+     * is scoped to — right-clicking it yields a concrete enchant book of a random enchant from that tier.
+     * An identity marker, off the combat hot path.
+     */
+    public NamespacedKey unopened() {
+        return unopened;
     }
 }

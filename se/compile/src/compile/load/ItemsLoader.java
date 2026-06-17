@@ -34,6 +34,8 @@ public final class ItemsLoader {
         Optional<CrystalConfig> crystal = Optional.empty();
         Optional<HeroicConfig> heroic = Optional.empty();
         Optional<SlotConfig> slots = Optional.empty();
+        Optional<ScrollsConfig> scrolls = Optional.empty();
+        Optional<UnopenedBookConfig> unopenedBook = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -90,10 +92,63 @@ public final class ItemsLoader {
                         slots = Optional.of(readSlots(root, diags));
                     }
                 }
+                case "scrolls", "scroll" -> {
+                    if (scrolls.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one scrolls config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        scrolls = Optional.of(readScrolls(root, diags));
+                    }
+                }
+                case "unopened-book", "unopened", "mystery-book" -> {
+                    if (unopenedBook.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one unopened-book config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        unopenedBook = Optional.of(readUnopenedBook(root, diags));
+                    }
+                }
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
-        return new ItemsConfig(soulGem, crystal, heroic, slots, diags.all());
+        return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, diags.all());
+    }
+
+    private static ScrollsConfig readScrolls(YamlNode root, Diagnostics diags) {
+        ScrollsConfig d = ScrollsConfig.defaults();
+        YamlNode black = root.child("black");
+        YamlNode rand = root.child("randomizer");
+        ScrollsConfig.Black bd = d.black();
+        ScrollsConfig.Randomizer rd = d.randomizer();
+        return new ScrollsConfig(
+                new ScrollsConfig.Black(
+                        orDefault(black.string("material"), bd.material()),
+                        orDefault(black.string("name"), bd.name()),
+                        black.has("lore") ? black.stringList("lore") : bd.lore(),
+                        parseInt(black.string("success-chance"), bd.successChance(), root, diags),
+                        orDefault(black.string("message-success"), bd.messageSuccess()),
+                        orDefault(black.string("message-fail"), bd.messageFail()),
+                        orDefault(black.string("message-no-enchants"), bd.messageNoEnchants())),
+                new ScrollsConfig.Randomizer(
+                        orDefault(rand.string("material"), rd.material()),
+                        orDefault(rand.string("name"), rd.name()),
+                        rand.has("lore") ? rand.stringList("lore") : rd.lore(),
+                        parseInt(rand.string("min-percent"), rd.minPercent(), root, diags),
+                        parseInt(rand.string("max-percent"), rd.maxPercent(), root, diags),
+                        orDefault(rand.string("message-success"), rd.messageSuccess()),
+                        orDefault(rand.string("message-not-book"), rd.messageNotBook())));
+    }
+
+    private static UnopenedBookConfig readUnopenedBook(YamlNode root, Diagnostics diags) {
+        UnopenedBookConfig d = UnopenedBookConfig.defaults();
+        return new UnopenedBookConfig(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("min-success"), d.minSuccess(), root, diags),
+                parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
+                orDefault(root.string("message-open"), d.messageOpen()),
+                orDefault(root.string("message-empty-tier"), d.messageEmptyTier()));
     }
 
     private static SlotConfig readSlots(YamlNode root, Diagnostics diags) {

@@ -31,7 +31,11 @@ import feature.crystal.CrystalListener;
 import feature.crystal.CrystalService;
 import feature.heroic.HeroicListener;
 import feature.heroic.HeroicService;
+import feature.book.UnopenedBookListener;
+import feature.book.UnopenedBookService;
 import feature.menu.EnchantMenu;
+import feature.scroll.ScrollListener;
+import feature.scroll.ScrollService;
 import feature.slot.SlotListener;
 import feature.slot.SlotService;
 import feature.menu.MenuListener;
@@ -45,7 +49,9 @@ import item.codec.CombatCodec;
 import item.codec.CrystalItemCodec;
 import item.codec.HeroicUpgradeCodec;
 import item.codec.ItemKeys;
+import item.codec.ScrollCodec;
 import item.codec.SlotItemCodec;
+import item.codec.UnopenedBookCodec;
 import item.codec.SoulCodec;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
@@ -165,6 +171,19 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(), ItemEnchanter.DEFAULT_BASE_SLOTS);
 
+        // Book-economy scrolls (§I): black scroll extracts an enchant from gear into a book; randomizer
+        // scroll rerolls a book's success. Reuse the combat codec + lore (gear) and CarrierService (mint
+        // the extracted book / reroll book success). Distinct 'scroll' PDC tag, off the combat hot path.
+        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of(this).scroll());
+        ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
+                () -> items.config().scrollsOrDefault(), new java.util.Random());
+
+        // Unopened/randomized book (§I): right-click yields a concrete enchant book of a random enchant
+        // from its tier, at a random level + success. Mints through CarrierService's explicit-success book.
+        UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of(this).unopened());
+        UnopenedBookService unopenedBooks = new UnopenedBookService(unopenedCodec, carriers, content,
+                () -> items.config().unopenedBookOrDefault(), new java.util.Random());
+
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
@@ -218,6 +237,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);
         getServer().getPluginManager().registerEvents(new SlotListener(slots), this);
+        getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
+        getServer().getPluginManager().registerEvents(new UnopenedBookListener(unopenedBooks), this);
         // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events.
         getServer().getPluginManager().registerEvents(
                 new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
@@ -246,7 +267,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             SeCommand seCommand = new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menu, content,
-                    head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots);
+                    head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
+                    scrolls, unopenedBooks);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }
@@ -346,6 +368,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 + ", crystal=" + config.crystal().isPresent()
                 + ", heroic=" + config.heroic().isPresent()
                 + ", slots=" + config.slots().isPresent()
+                + ", scrolls=" + config.scrolls().isPresent()
+                + ", unopened-book=" + config.unopenedBook().isPresent()
                 + ", " + config.diagnostics().size() + " diagnostic(s), " + errors + " error(s)");
         for (Diagnostic diagnostic : config.diagnostics()) {
             getLogger().warning("  " + diagnostic);

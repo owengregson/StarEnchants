@@ -85,6 +85,52 @@ class ItemsLoaderTest {
     }
 
     @Test
+    void parsesAScrollsConfigWithNestedSections(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("scrolls.yml"), """
+                type: scrolls
+                black:
+                  material: COAL
+                  name: "&8Void Scroll"
+                  success-chance: 50
+                  message-success: "got {ENCHANT}"
+                randomizer:
+                  material: GLOWSTONE_DUST
+                  min-percent: 10
+                  max-percent: 90
+                """);
+
+        ScrollsConfig scrolls = ItemsLoader.load(dir).scrolls().orElseThrow();
+        assertEquals("COAL", scrolls.black().material());
+        assertEquals("&8Void Scroll", scrolls.black().name());
+        assertEquals(50, scrolls.black().successChance());
+        assertEquals("got {ENCHANT}", scrolls.black().messageSuccess());
+        // Omitted black lore falls back to the default.
+        assertEquals(ScrollsConfig.defaults().black().lore(), scrolls.black().lore());
+        assertEquals("GLOWSTONE_DUST", scrolls.randomizer().material());
+        assertEquals(10, scrolls.randomizer().minPercent());
+        assertEquals(90, scrolls.randomizer().maxPercent());
+        // Omitted randomizer name falls back to the default.
+        assertEquals(ScrollsConfig.defaults().randomizer().name(), scrolls.randomizer().name());
+    }
+
+    @Test
+    void parsesAnUnopenedBookConfig(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("unopened-book.yml"), """
+                type: unopened-book
+                material: KNOWLEDGE_BOOK
+                name: "&d{TIER} crate"
+                min-success: 40
+                max-success: 60
+                """);
+
+        UnopenedBookConfig book = ItemsLoader.load(dir).unopenedBook().orElseThrow();
+        assertEquals("KNOWLEDGE_BOOK", book.material());
+        assertEquals("&d{TIER} crate", book.name());
+        assertEquals(40, book.minSuccess());
+        assertEquals(60, book.maxSuccess());
+    }
+
+    @Test
     void aMissingTypeIsABlockingError(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("mystery.yml"), "material: STONE\n");
 

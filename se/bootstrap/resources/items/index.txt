@@ -4,3 +4,5 @@ soul-gem.yml
 crystal.yml
 heroic.yml
 slots.yml
+scrolls.yml
+unopened-book.yml

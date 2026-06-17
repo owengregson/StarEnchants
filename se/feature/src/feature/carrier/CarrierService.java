@@ -109,7 +109,7 @@ public final class CarrierService {
             return CarrierResult.noop(check.message()); // ineligible target → don't waste the carrier
         }
 
-        int base = def != null ? clampPercent(def.apply().successChance()) : 100;
+        int base = baseSuccessOf(data, def); // an unopened-book output / randomizer reroll overrides the def base
         int successChance = effectiveSuccess(base, data.successBonus()); // dust-accumulated bonus (ADR-0019)
         boolean destroyOnFail = def != null && def.apply().destroyOnFail();
         consume(carrier); // a use is spent whether the roll succeeds or fails
@@ -153,6 +153,52 @@ public final class CarrierService {
     }
 
     /**
+     * Mint an ad-hoc enchant BOOK that applies at an explicit {@code successChance} (§I) — used by the
+     * unopened/randomized book, which yields a concrete book of a random enchant with a random level and
+     * success. Like {@link #mintBook(String, int)} but the book carries a base-success override, so its
+     * apply rolls against {@code successChance} rather than always succeeding.
+     */
+    @SuppressWarnings("deprecation") // setDisplayName/setLore(String/List): the floor-stable item-meta path
+    public ItemStack mintBook(String enchantKey, int level, int successChance) {
+        int chance = clampPercent(successChance);
+        ItemStack stack = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            String name = content.library().displayNameOf(enchantKey);
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
+                    (name != null ? name : enchantKey) + " &7Book"));
+            meta.setLore(List.of(
+                    ChatColor.translateAlternateColorCodes('&', "&7Drag onto an item to apply &flevel " + level + "&7."),
+                    ChatColor.translateAlternateColorCodes('&', "&7Success chance: &f" + chance + "%")));
+            stack.setItemMeta(meta);
+        }
+        codec.write(stack, new CarrierData("book", enchantKey, level, 0, chance));
+        return stack;
+    }
+
+    /**
+     * Reroll the success chance of an enchant {@code book} to {@code targetPercent} (§I randomizer scroll) —
+     * sets an explicit base-success override and clears any accumulated dust bonus, then re-renders the
+     * book's lore from state. A no-op (not a content-granting book) leaves the stack untouched.
+     */
+    public CarrierResult rerollSuccess(ItemStack book, int targetPercent) {
+        CarrierData data = codec.read(book);
+        if (data == null || !data.grants()) {
+            return CarrierResult.noop("§cThe randomizer only works on an enchant book.");
+        }
+        ItemDef def = itemDef(data.itemKey());
+        if (!isContentCarrier(def)) {
+            return CarrierResult.noop("§cThe randomizer only works on an enchant book.");
+        }
+        CarrierData updated = data.withBaseSuccess(clampPercent(targetPercent));
+        codec.write(book, updated);
+        if (def != null) {
+            reRenderLore(book, def, updated);
+        }
+        return CarrierResult.consumed("§aThe book's success chance is now §f" + clampPercent(targetPercent) + "%§a.");
+    }
+
+    /**
      * Whether {@code cursor} is a dust that would LEGALLY combine onto {@code target} — i.e. the cursor is
      * a bonus-carrying dust and the target is a content-granting book/tome/gem. The interaction layer
      * claims the otherwise-forbidden carrier-onto-carrier gesture only when this holds (ADR-0019), so a
@@ -189,7 +235,7 @@ public final class CarrierService {
         if (bookData == null || !bookData.grants() || !isContentCarrier(bookDef)) {
             return CarrierResult.noop("§cDust can only boost an enchant book.");
         }
-        int base = bookDef != null ? clampPercent(bookDef.apply().successChance()) : 100;
+        int base = baseSuccessOf(bookData, bookDef);
         if (effectiveSuccess(base, bookData.successBonus()) >= 100) {
             return CarrierResult.noop("§7That book is already at 100% success.");
         }
@@ -235,7 +281,7 @@ public final class CarrierService {
         if (def != null && isDust(def)) {
             lore.add(color("&7Combine onto an enchant book: &a+" + dustBonus(def) + "%&7 success."));
         } else if (data.grants() && isContentCarrier(def)) {
-            int base = def != null ? clampPercent(def.apply().successChance()) : 100;
+            int base = baseSuccessOf(data, def);
             lore.add(color("&7Success chance: &f" + effectiveSuccess(base, data.successBonus()) + "%"));
         }
         return lore;
@@ -267,6 +313,18 @@ public final class CarrierService {
     /** A base success chance plus an accumulated bonus, clamped to {@code [0, 100]}. */
     private static int effectiveSuccess(int base, int bonus) {
         return Math.max(0, Math.min(100, base + Math.max(0, bonus)));
+    }
+
+    /**
+     * The base success chance for a carrier: its explicit {@link CarrierData#baseSuccess()} override (§I —
+     * an unopened-book output or a randomizer reroll) when present, else the def's authored chance, else
+     * {@code 100} (an ad-hoc {@code /se book} always succeeds). The bonus is added on top by callers.
+     */
+    private static int baseSuccessOf(CarrierData data, ItemDef def) {
+        if (data.hasBaseSuccess()) {
+            return data.baseSuccess();
+        }
+        return def != null ? clampPercent(def.apply().successChance()) : 100;
     }
 
     private static String color(String raw) {

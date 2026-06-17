@@ -18,10 +18,13 @@ import schema.diag.Diagnostic;
  * @param crystal     the crystal-item config, or empty if none is configured (falls back to {@link CrystalConfig#defaults()})
  * @param heroic      the heroic upgrade config, or empty if none is configured (falls back to {@link HeroicConfig#defaults()})
  * @param slots       the slot expander/gem config, or empty if none is configured (falls back to {@link SlotConfig#defaults()})
+ * @param scrolls     the scroll-family config, or empty if none is configured (falls back to {@link ScrollsConfig#defaults()})
+ * @param unopenedBook the unopened/randomized book config, or empty if none (falls back to {@link UnopenedBookConfig#defaults()})
  * @param diagnostics every diagnostic raised loading the folder
  */
 public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfig> crystal,
                           Optional<HeroicConfig> heroic, Optional<SlotConfig> slots,
+                          Optional<ScrollsConfig> scrolls, Optional<UnopenedBookConfig> unopenedBook,
                           List<Diagnostic> diagnostics) {
 
     public ItemsConfig {
@@ -29,12 +32,15 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
         Objects.requireNonNull(crystal, "crystal");
         Objects.requireNonNull(heroic, "heroic");
         Objects.requireNonNull(slots, "slots");
+        Objects.requireNonNull(scrolls, "scrolls");
+        Objects.requireNonNull(unopenedBook, "unopenedBook");
         diagnostics = List.copyOf(diagnostics);
     }
 
     /** An empty config (no item files present) — the runtime uses each item's built-in defaults. */
     public static ItemsConfig empty() {
-        return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), List.of());
+        return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), List.of());
     }
 
     /** The soul-gem config, or its built-in default when none is configured. */
@@ -55,6 +61,16 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
     /** The slot expander/gem config, or its built-in default when none is configured. */
     public SlotConfig slotsOrDefault() {
         return slots.orElseGet(SlotConfig::defaults);
+    }
+
+    /** The scroll-family config, or its built-in default when none is configured. */
+    public ScrollsConfig scrollsOrDefault() {
+        return scrolls.orElseGet(ScrollsConfig::defaults);
+    }
+
+    /** The unopened/randomized book config, or its built-in default when none is configured. */
+    public UnopenedBookConfig unopenedBookOrDefault() {
+        return unopenedBook.orElseGet(UnopenedBookConfig::defaults);
     }
 
     /** Whether any blocking diagnostic was raised loading the folder. */
