@@ -29,6 +29,7 @@ import feature.combat.CombatListener;
 import feature.combat.EquipListener;
 import feature.menu.EnchantMenu;
 import feature.menu.MenuListener;
+import feature.soul.SoulInteractListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulService;
 import feature.trigger.TriggerDispatch;
@@ -182,6 +183,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
         getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
+        getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
 
