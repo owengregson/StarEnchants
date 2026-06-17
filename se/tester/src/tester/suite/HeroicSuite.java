@@ -44,16 +44,18 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Heroic flat stats, proven live end-to-end (docs/architecture.md §6, §6.1): an item carries a
- * passive {@code HeroicStat} that is summed across worn/held pieces at equip time and folded into the
- * damage arbiter UNCONDITIONALLY (no chance/trigger gate). Here a fake-player attacker holds a weapon
- * with a large heroic flat-damage stat and NO enchants; the hit on a cow is amplified far beyond the
- * base, observable as a health delta. This exercises the whole heroic path: stamp HeroicStat into PDC
- * → equip → WornResolver sums → CombatDispatch contributes to the fold. Mojang-mapped only.
+ * Heroic percent stats, proven live end-to-end (docs/architecture.md §6, §6.1; §F/ADR-0021): an item
+ * carries a passive {@code HeroicStat} percent that is summed across worn/held pieces at equip time and
+ * applied as the bounded MULTIPLICATIVE stage on top of the additive damage fold, UNCONDITIONALLY (no
+ * chance/trigger gate). Here a fake-player attacker holds a weapon with a large heroic outgoing-damage
+ * percent and NO enchants; the hit on a cow is amplified by ×(1+percent), observable as a health delta.
+ * Exercises the whole heroic path: stamp HeroicStat into PDC → equip → WornResolver sums → CombatDispatch
+ * contributes to the fold's heroic stage. Mojang-mapped only.
  */
 public final class HeroicSuite implements Harness.Scenario {
 
-    private static final double HEROIC_DAMAGE = 6.0;
+    /** +200% outgoing — base 1.0 × (1 + 2.0) = 3.0 dealt (below the fold's ×4 heroic cap). */
+    private static final double HEROIC_PERCENT = 2.0;
 
     private final Plugin plugin;
 
@@ -63,7 +65,7 @@ public final class HeroicSuite implements Harness.Scenario {
 
     @Override
     public void accept(Harness h) {
-        h.expect("heroic.flatDamageAmplifiesHit");
+        h.expect("heroic.percentDamageAmplifiesHit");
 
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
@@ -75,7 +77,7 @@ public final class HeroicSuite implements Harness.Scenario {
             Path root = Files.createTempDirectory("se-heroic-suite");
             library = LibraryLoader.load(root, compiler, 0);
         } catch (IOException e) {
-            h.fail("heroic.flatDamageAmplifiesHit", e.toString());
+            h.fail("heroic.percentDamageAmplifiesHit", e.toString());
             return;
         }
 
@@ -93,7 +95,7 @@ public final class HeroicSuite implements Harness.Scenario {
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-        codec.write(sword, new CombatState(Map.of(), List.of(), null, false, new HeroicStat(HEROIC_DAMAGE, 0.0, 0.0)));
+        codec.write(sword, new CombatState(Map.of(), List.of(), null, false, new HeroicStat(HEROIC_PERCENT, 0.0, 0.0)));
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -109,29 +111,30 @@ public final class HeroicSuite implements Harness.Scenario {
                     attacker = FakePlayers.spawn(world, "se_heroic_atk");
                     victim = (LivingEntity) world.spawnEntity(at, EntityType.COW);
                 } catch (Throwable t) {
-                    h.fail("heroic.flatDamageAmplifiesHit", "victim/attacker spawn: " + t);
+                    h.fail("heroic.percentDamageAmplifiesHit", "victim/attacker spawn: " + t);
                     return;
                 }
                 Scheduling.onEntity(attacker, () -> {
                     attacker.getInventory().setItemInMainHand(sword);
                     worn.refresh(attacker, library.snapshot());
                     double before = victim.getHealth();
-                    victim.damage(1.0, attacker); // base 1.0; heroic adds HEROIC_DAMAGE → ~7 total
+                    victim.damage(1.0, attacker); // base 1.0; heroic ×(1+HEROIC_PERCENT) → ~3.0 total
                     Scheduling.onEntityLater(victim, 10L, () -> {
-                        h.guard("heroic.flatDamageAmplifiesHit", () -> {
+                        h.guard("heroic.percentDamageAmplifiesHit", () -> {
                             double dealt = before - victim.getHealth();
-                            // Base hit is 1.0; +6 heroic flat → ~7 dealt (a cow has no armour/resistance).
-                            // Require the delta to clearly exceed the base AND not exceed base+heroic by
-                            // more than a small slack — catching both "heroic never applied" (~1) and
-                            // "heroic double-applied" (~13, which would kill the 10-HP cow → delta 10).
+                            // Base hit is 1.0; the heroic stage multiplies by (1 + 2.0) = 3.0 → ~3.0 dealt
+                            // (a cow has no armour/resistance). Require the delta near the expected value —
+                            // catching both "heroic never applied" (~1.0) and "heroic double-applied"
+                            // (1.0 × 3.0 × 3.0 = ~9, which would near-kill the 10-HP cow).
                             double base = 1.0;
-                            if (dealt < HEROIC_DAMAGE) {
-                                throw new IllegalStateException("heroic flat damage did not amplify the hit; dealt="
-                                        + dealt + " (expected ~" + (base + HEROIC_DAMAGE) + ")");
+                            double expected = base * (1.0 + HEROIC_PERCENT);
+                            if (dealt < expected - 0.5) {
+                                throw new IllegalStateException("heroic percent damage did not amplify the hit; dealt="
+                                        + dealt + " (expected ~" + expected + ")");
                             }
-                            if (dealt > base + HEROIC_DAMAGE + 0.5) {
-                                throw new IllegalStateException("heroic flat damage was over-applied; dealt="
-                                        + dealt + " (expected ~" + (base + HEROIC_DAMAGE) + ")");
+                            if (dealt > expected + 0.5) {
+                                throw new IllegalStateException("heroic percent damage was over-applied; dealt="
+                                        + dealt + " (expected ~" + expected + ")");
                             }
                         });
                         victim.remove();

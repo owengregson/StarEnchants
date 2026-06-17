@@ -137,8 +137,8 @@ public final class CombatCodec {
         HeroicStat heroic = state.heroic();
         if (!heroic.isZero()) {
             sb.append(US).append('h').append(US)
-                    .append(heroic.flatDamage()).append(KV)
-                    .append(heroic.flatReduction()).append(KV)
+                    .append(heroic.percentDamage()).append(KV)
+                    .append(heroic.percentReduction()).append(KV)
                     .append(heroic.durability());
         }
         return sb.toString();
