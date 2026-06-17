@@ -2,6 +2,8 @@ package bootstrap;
 
 import compile.Compiler;
 import compile.load.ContentHolder;
+import compile.load.ItemsHolder;
+import compile.load.ItemsLoader;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import engine.boot.ContentCompiler;
@@ -100,8 +102,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         AtomicLong tick = new AtomicLong();
         Scheduling.repeatingGlobal(0L, 1L, tick::incrementAndGet);
 
-        saveDefaultContent();
+        saveDefaults();
         Path contentRoot = getDataFolder().toPath().resolve("content");
+        Path itemsRoot = getDataFolder().toPath().resolve("items");
 
         // One retained resolver pairs compile-time interning with runtime resolution (§9).
         RegistryResolvers resolvers = new RegistryResolvers();
@@ -111,6 +114,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         Library initial = loadInitial(compiler, contentRoot);
         content = new ContentHolder(initial);
         logLoad(initial);
+
+        // Item likeness/config (soul gem, …) — a parallel immutable snapshot of the top-level items/ folder,
+        // published alongside content in the same /se reload transaction (the onPublished hook below).
+        ItemsHolder items = new ItemsHolder(ItemsLoader.load(itemsRoot));
+        logItems(items.config());
 
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
         CombatCodec codec = new CombatCodec(ItemKeys.of(this).combat());
@@ -183,6 +191,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).
         reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
+            // Republish the items/ config in the same global-thread reload step as the content swap.
+            items.publish(ItemsLoader.load(itemsRoot));
             itemViews.reload(published.snapshot().generation());
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
@@ -258,34 +268,50 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
     }
 
-    /** Extract the bundled content catalog to the data folder on first boot, driven by content/index.txt. */
-    private void saveDefaultContent() {
+    /** Extract the bundled default trees to the data folder on first boot ({@code content/} + {@code items/}). */
+    private void saveDefaults() {
+        saveDefaultTree("content");
+        saveDefaultTree("items");
+    }
+
+    /** Extract one bundled tree, driven by {@code <root>/index.txt}; never overwrites an operator's edits. */
+    private void saveDefaultTree(String root) {
         Path dataFolder = getDataFolder().toPath();
-        for (String relative : shippedContentPaths()) {
-            String resource = "content/" + relative;
+        for (String relative : shippedPaths(root)) {
+            String resource = root + "/" + relative;
             if (Files.exists(dataFolder.resolve(resource))) {
                 continue; // never overwrite an operator's edited copy
             }
             try {
                 saveResource(resource, false);
             } catch (RuntimeException missing) {
-                getLogger().warning("could not save default content '" + resource + "': " + missing.getMessage());
+                getLogger().warning("could not save default '" + resource + "': " + missing.getMessage());
             }
         }
     }
 
-    /** The content paths to extract, read from the bundled {@code content/index.txt} manifest. */
-    private List<String> shippedContentPaths() {
-        InputStream in = getResource("content/index.txt");
+    /** The paths to extract for {@code root}, read from the bundled {@code <root>/index.txt} manifest. */
+    private List<String> shippedPaths(String root) {
+        InputStream in = getResource(root + "/index.txt");
         if (in == null) {
-            getLogger().warning("content/index.txt missing from the jar — no default content extracted");
+            getLogger().warning(root + "/index.txt missing from the jar — no defaults extracted for " + root);
             return List.of();
         }
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             return reader.lines().map(String::trim).filter(line -> !line.isEmpty() && !line.startsWith("#")).toList();
         } catch (IOException e) {
-            getLogger().warning("could not read content/index.txt: " + e.getMessage());
+            getLogger().warning("could not read " + root + "/index.txt: " + e.getMessage());
             return List.of();
+        }
+    }
+
+    /** Log the items/ config load result (count of configured items + any diagnostics). */
+    private void logItems(compile.load.ItemsConfig config) {
+        long errors = config.diagnostics().stream().filter(Diagnostic::blocking).count();
+        getLogger().info("items config loaded: soul-gem=" + config.soulGem().isPresent()
+                + ", " + config.diagnostics().size() + " diagnostic(s), " + errors + " error(s)");
+        for (Diagnostic diagnostic : config.diagnostics()) {
+            getLogger().warning("  " + diagnostic);
         }
     }
 

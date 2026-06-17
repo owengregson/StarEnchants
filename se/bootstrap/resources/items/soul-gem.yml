@@ -1,0 +1,13 @@
+# The soul gem — a DISTINCT item you right-click to toggle soul mode on/off. It collects souls on
+# kills (souls-per-kill) and powers soul-cost enchants while soul mode is active. Everything below is
+# configurable; reload with /se reload.
+type: soul-gem
+material: EMERALD
+name: "&aSoul Gem"
+lore:
+  - "&7Souls: &a{AMOUNT}"
+  - "&7Right-click to toggle soul mode."
+souls-per-kill: 1
+message-activate: "&aSoul mode &lON&a."
+message-deactivate: "&7Soul mode &lOFF&7."
+message-soul-use: "&7Souls remaining: &a{AMOUNT}"
