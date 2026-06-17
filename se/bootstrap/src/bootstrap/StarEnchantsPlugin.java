@@ -44,6 +44,7 @@ import feature.slot.SlotListener;
 import feature.slot.SlotService;
 import feature.menu.MenuListener;
 import feature.soul.SoulInteractListener;
+import feature.soul.SoulInventoryListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulService;
 import feature.trigger.TriggerDispatch;
@@ -242,6 +243,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
         getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
+        getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);

@@ -3,9 +3,9 @@ package feature.soul;
 import compile.load.SoulGemConfig;
 import engine.interact.SoulLedger;
 import engine.stores.SoulModeStore;
-import item.mint.ItemFactory;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
+import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -17,12 +17,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.sched.Scheduling;
 
 /**
- * The soul gameplay loop (docs/architecture.md §6.3) — the binding between the durable on-item
- * {@link SoulData} and the in-memory {@link SoulLedger} authority, made Folia-correct.
+ * The soul gameplay loop (docs/architecture.md §6.3, docs/v3-directives.md §D) — the binding between the
+ * durable on-item {@link SoulData} and the in-memory {@link SoulLedger} authority, made Folia-correct.
  *
  * <p><strong>The threading discipline.</strong> The ledger's in-memory authority is the live truth
  * during a session; the gem's PDC is the durable backing. The authority is seeded ONCE when a player
@@ -31,6 +32,14 @@ import platform.sched.Scheduling;
  * authority synchronously under the ledger's stripe lock (any thread), and the durable PDC write is
  * DEFERRED to the gem-holder's own entity thread (combat fires on the victim's region, but the gem is
  * the attacker's — writing it inline would be a cross-region mutation on Folia).
+ *
+ * <p><strong>Deposit on any kill.</strong> Souls now accrue on EVERY kill regardless of soul-mode state
+ * (a new mechanic — no original had per-kill deposit): {@link #onKill} defers to the killer's own thread,
+ * locates the gem they carry (main hand first, then the rest of the inventory), and credits it — through
+ * the ledger when that gem is the seeded active one, else straight to its PDC. Spending stays gated by
+ * soul mode (the pipeline's gate 10 / {@code REMOVE_SOULS}). {@link #combine} sums two gems into a fresh
+ * one and {@link #split} carves a count off the held gem into a new one — both reconciling the ledger and
+ * any active mode whose gem identity they retire.
  */
 public final class SoulService {
 
@@ -49,12 +58,22 @@ public final class SoulService {
     /** The result of {@link #toggle}, for the command to relay. */
     public enum Toggle { NO_GEM, ENABLED, DISABLED }
 
+    /** The outcome of {@link #split}, for the command to relay. */
+    public record SplitResult(Status status, int moved, int remaining) {
+        public enum Status { OK, NO_GEM, BAD_AMOUNT, TOO_MANY }
+
+        public boolean ok() {
+            return status == Status.OK;
+        }
+    }
+
     /**
      * Toggle soul mode for {@code player} based on the gem in their main hand. MUST run on the
      * player's own thread (reads the held item). Enabling seeds the ledger authority with the gem's
      * stored count so no later read crosses a region.
      */
     public Toggle toggle(Player player) {
+        SoulGemConfig cfg = config.get();
         SoulData gem = codec.read(player.getInventory().getItemInMainHand());
         if (gem == null) {
             return Toggle.NO_GEM;
@@ -63,12 +82,14 @@ public final class SoulService {
         if (modes.active(id).filter(active -> active.equals(gem.gemId())).isPresent()) {
             modes.deactivate(id);
             ledger.forget(gem.gemId());
-            message(player, config.get().messageDeactivate());
+            message(player, cfg.messageDeactivate());
+            playSound(player, cfg.soundDeactivate());
             return Toggle.DISABLED;
         }
         modes.activate(id, gem.gemId());
         seed(gem); // prime the authority from the durable count on this (player) thread
-        message(player, config.get().messageActivate());
+        message(player, cfg.messageActivate());
+        playSound(player, cfg.soundActivate());
         return Toggle.ENABLED;
     }
 
@@ -80,14 +101,31 @@ public final class SoulService {
     }
 
     /**
+     * Play a gem sound for {@code player} at their location, iff sounds are enabled and the token is set.
+     * Uses the cross-version {@code playSound(Location, String, …)} overload — a namespaced sound key
+     * works on every version in the range, so no {@code Sound} resolver is needed (the constant/interface
+     * break at 1.21.3 never enters the picture). Must run on the player's own thread.
+     */
+    private void playSound(Player player, String token) {
+        SoulGemConfig cfg = config.get();
+        if (cfg.sounds() && token != null && !token.isBlank()) {
+            player.playSound(player.getLocation(), token, 1.0f, 1.0f);
+        }
+    }
+
+    /**
      * Mint a fresh soul gem ITEM from the configured likeness (a new identity, 0 souls) — a DISTINCT
      * configured item (material / name / lore), NOT a stamp onto held gear (docs/v3-directives.md §D).
      * Pure construction (no entity read), so it is Folia-safe to call from any thread; the caller GIVES
      * the stack on the player's own thread.
      */
     public ItemStack mintGem() {
+        return mintGemStack(SoulData.fresh(UUID.randomUUID()));
+    }
+
+    /** Build a gem ITEM carrying exactly {@code data} (identity + count) from the configured likeness. */
+    private ItemStack mintGemStack(SoulData data) {
         SoulGemConfig cfg = config.get();
-        SoulData data = SoulData.fresh(UUID.randomUUID());
         ItemStack gem = ItemFactory.build(
                 ItemFactory.material(cfg.material(), Material.EMERALD),
                 cfg.name(),
@@ -103,12 +141,13 @@ public final class SoulService {
 
     /**
      * Render the gem's lore from config + the current soul count — {@code {AMOUNT}} → the count,
-     * {@code {SOUL-COLOR}} → a count-tiered {@code &}-colour. Lore is rendered from state, never parsed
-     * back (item-data-model §4.2). Pure (no Bukkit) — {@link ItemFactory} colours the returned lines.
+     * {@code {SOUL-COLOR}} → the configured count-tiered {@code &}-colour ({@link SoulGemConfig#colorFor}).
+     * Lore is rendered from state, never parsed back (item-data-model §4.2). Pure (no Bukkit) —
+     * {@link ItemFactory} colours the returned lines.
      */
     static List<String> renderGemLore(SoulGemConfig cfg, int souls) {
         String amount = Integer.toString(souls);
-        String soulColor = soulColor(souls);
+        String soulColor = cfg.colorFor(souls);
         List<String> out = new ArrayList<>(cfg.lore().size());
         for (String line : cfg.lore()) {
             out.add(line.replace("{AMOUNT}", amount).replace("{SOUL-COLOR}", soulColor));
@@ -116,37 +155,96 @@ public final class SoulService {
         return out;
     }
 
-    /** A count-tiered soul {@code &}-colour for the {@code {SOUL-COLOR}} lore placeholder. */
-    static String soulColor(int souls) {
-        if (souls >= 1024) {
-            return "&d"; // light purple
-        }
-        if (souls >= 256) {
-            return "&b"; // aqua
-        }
-        if (souls >= 64) {
-            return "&a"; // green
-        }
-        if (souls >= 1) {
-            return "&f"; // white
-        }
-        return "&7"; // grey (empty)
-    }
-
-    /** Deposit the configured {@code souls-per-kill} into {@code killer}'s active gem (no-op if soul mode is off). */
-    public void onKill(Player killer) {
-        int amount = config.get().soulsPerKill();
+    /**
+     * Deposit souls into {@code killer}'s carried gem for a kill of {@code victimType} (per-mob amount,
+     * else the flat per-kill amount) — on ANY kill, regardless of soul mode (docs/v3-directives.md §D).
+     * Defers to the killer's own thread (a death fires on the victim's region) where reading their
+     * inventory is region-safe; a no-op if the configured amount is ≤ 0 or they carry no gem.
+     */
+    public void onKill(Player killer, org.bukkit.entity.EntityType victimType) {
+        int amount = config.get().soulsFor(victimType == null ? null : victimType.name());
         if (amount <= 0) {
             return;
         }
-        modes.active(killer.getUniqueId()).ifPresent(gemId -> {
-            // Only deposit onto a SEEDED authority: an active gem is always seeded (toggle-on seeds it
-            // on the player's thread), so a peek-miss here would mean a broken invariant — skip rather
-            // than let deposit seed the authority from the 0-returning deferred balance and wipe it.
-            if (ledger.peek(gemId).isPresent()) {
-                ledger.deposit(gemId, deferredBalance(killer, gemId), amount);
-            }
-        });
+        Scheduling.onEntity(killer, () -> creditKill(killer, amount));
+    }
+
+    /** Credit {@code amount} to the killer's carried gem. MUST run on the killer's own thread. */
+    private void creditKill(Player killer, int amount) {
+        PlayerInventory inv = killer.getInventory();
+        int slot = locateGemSlot(inv);
+        if (slot < 0) {
+            return; // the killer carries no gem
+        }
+        SoulData data = codec.read(inv.getItem(slot));
+        if (data == null) {
+            return;
+        }
+        UUID gemId = data.gemId();
+        if (ledger.peek(gemId).isPresent()) {
+            // The seeded active gem — credit through the ledger so the live authority stays correct;
+            // the write-through persists the new count to this slot (we are on the killer's thread).
+            ledger.deposit(gemId, slotBalance(killer, slot, gemId), amount);
+        } else {
+            writeGem(inv, slot, data.withSouls(data.souls() + amount));
+        }
+    }
+
+    /**
+     * Combine two gems into a fresh gem carrying the SUM of their souls (docs/v3-directives.md §D) —
+     * the authoritative count for a seeded (active) source, else its durable count. Both source
+     * identities are retired (forgotten from the ledger; soul mode silently turns off if it pointed at
+     * one), so the new gem's identity is the only survivor. Returns the new gem, or {@code null} if
+     * either stack is not a gem. MUST run on {@code player}'s own thread (mutates state + plays a sound).
+     */
+    public ItemStack combine(Player player, ItemStack a, ItemStack b) {
+        SoulData da = codec.read(a);
+        SoulData db = codec.read(b);
+        if (da == null || db == null) {
+            return null;
+        }
+        long sum = (long) authoritativeSouls(da.gemId(), da.souls()) + authoritativeSouls(db.gemId(), db.souls());
+        int total = (int) Math.min(Integer.MAX_VALUE, sum);
+        retire(player, da.gemId());
+        retire(player, db.gemId());
+        ItemStack gem = mintGemStack(new SoulData(UUID.randomUUID(), total));
+        playSound(player, config.get().soundCombine());
+        return gem;
+    }
+
+    /**
+     * Split {@code amount} souls off the gem in {@code player}'s main hand into a NEW gem (never
+     * auto-split — only via {@code /se split}). The held gem keeps the remainder; the new gem (a fresh
+     * identity) is given to the player (overflow dropped). Routes the debit through the ledger when the
+     * held gem is the seeded active one, so the live authority stays correct. MUST run on {@code player}'s
+     * own thread.
+     */
+    public SplitResult split(Player player, int amount) {
+        if (amount <= 0) {
+            return new SplitResult(SplitResult.Status.BAD_AMOUNT, amount, 0);
+        }
+        PlayerInventory inv = player.getInventory();
+        int held = inv.getHeldItemSlot();
+        SoulData data = codec.read(inv.getItem(held));
+        if (data == null) {
+            return new SplitResult(SplitResult.Status.NO_GEM, amount, 0);
+        }
+        UUID gemId = data.gemId();
+        OptionalInt seeded = ledger.peek(gemId);
+        int have = seeded.isPresent() ? seeded.getAsInt() : data.souls();
+        if (amount >= have) {
+            return new SplitResult(SplitResult.Status.TOO_MANY, amount, have); // never split everything away
+        }
+        int remain = have - amount;
+        if (seeded.isPresent()) {
+            ledger.tryConsume(gemId, slotBalance(player, held, gemId), amount); // debit + persist remainder
+        } else {
+            writeGem(inv, held, data.withSouls(remain));
+        }
+        ItemStack fresh = mintGemStack(new SoulData(UUID.randomUUID(), amount));
+        inv.addItem(fresh).values()
+                .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+        return new SplitResult(SplitResult.Status.OK, amount, remain);
     }
 
     /** The soul binding for {@code actor}'s active gem, or empty if soul mode is off for them. */
@@ -170,6 +268,66 @@ public final class SoulService {
         modes.clear(id);
     }
 
+    /** The authoritative count for {@code gemId} (the live ledger value when seeded, else {@code durable}). */
+    private int authoritativeSouls(UUID gemId, int durable) {
+        return ledger.peek(gemId).orElse(durable);
+    }
+
+    /** Retire a gem identity being destroyed: drop any soul mode pointing at it, forget its authority. */
+    private void retire(Player player, UUID gemId) {
+        if (modes.active(player.getUniqueId()).filter(gemId::equals).isPresent()) {
+            modes.deactivate(player.getUniqueId()); // its identity is gone; spending can't continue against it
+        }
+        ledger.forget(gemId);
+    }
+
+    /** The main-hand gem slot if it holds one, else the first inventory slot carrying a gem, else {@code -1}. */
+    private int locateGemSlot(PlayerInventory inv) {
+        int held = inv.getHeldItemSlot();
+        if (codec.read(inv.getItem(held)) != null) {
+            return held;
+        }
+        ItemStack[] contents = inv.getContents();
+        for (int i = 0; i < contents.length; i++) {
+            if (codec.read(contents[i]) != null) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** Write {@code data} onto the gem at {@code slot} and re-render its lore. Caller is on the holder's thread. */
+    private void writeGem(PlayerInventory inv, int slot, SoulData data) {
+        ItemStack stack = inv.getItem(slot);
+        if (codec.read(stack) == null) {
+            return; // the gem moved out from under us — skip rather than stamp the wrong item
+        }
+        codec.write(stack, data);
+        reRenderGemLore(stack, data.souls());
+        inv.setItem(slot, stack);
+    }
+
+    /** A ledger {@link SoulLedger.Balance} that write-throughs to the gem at a known inventory slot. */
+    private SoulLedger.Balance slotBalance(Player holder, int slot, UUID gemId) {
+        return new SoulLedger.Balance() {
+            @Override
+            public int souls() {
+                return 0; // peek is present whenever this is used; never the seed source
+            }
+
+            @Override
+            public void setSouls(int next) {
+                ItemStack stack = holder.getInventory().getItem(slot);
+                SoulData cur = codec.read(stack);
+                if (cur != null && cur.gemId().equals(gemId)) {
+                    codec.write(stack, cur.withSouls(next));
+                    reRenderGemLore(stack, next);
+                    holder.getInventory().setItem(slot, stack);
+                }
+            }
+        };
+    }
+
     /** Seed the ledger authority from a gem's durable count (caller is on the gem-holder's thread). */
     private void seed(SoulData gem) {
         ledger.balance(gem.gemId(), new SoulLedger.Balance() {
@@ -189,7 +347,8 @@ public final class SoulService {
      * A balance whose writes DEFER to {@code player}'s own thread. Its {@code souls()} is never the
      * seed source (the authority is pre-seeded at toggle-on), so it returns 0 defensively. On a debit
      * it schedules a flush of the LIVE authority (not the captured snapshot) to the gem on the
-     * player's thread — so concurrent/out-of-order deferred writes all converge to the same truth.
+     * player's thread — so concurrent/out-of-order deferred writes all converge to the same truth — and
+     * sends the configured soul-use message with the remaining count.
      */
     private SoulLedger.Balance deferredBalance(Player player, UUID gemId) {
         return new SoulLedger.Balance() {
@@ -200,7 +359,13 @@ public final class SoulService {
 
             @Override
             public void setSouls(int next) {
-                Scheduling.onEntity(player, () -> persist(player, gemId));
+                Scheduling.onEntity(player, () -> {
+                    persist(player, gemId);
+                    String raw = config.get().messageSoulUse();
+                    if (raw != null && !raw.isBlank()) {
+                        message(player, raw.replace("{AMOUNT}", Integer.toString(next)));
+                    }
+                });
             }
         };
     }
