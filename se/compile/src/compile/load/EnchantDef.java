@@ -12,6 +12,7 @@ import schema.diag.Source;
  * @param key        the path-derived base key (e.g. {@code enchants/lifesteal})
  * @param display    the display name (colour codes intact), for lore/name render
  * @param description a short description for {@code /se docs} + lore; never {@code null} (empty if absent)
+ * @param tier       the rarity tier (ADR-0016) for lore colour/glint/GUI sort; may be {@code null}
  * @param appliesTo  the item target groups this enchant may sit on (named groups, not raw materials)
  * @param maxLevel   the highest level offered (defaults to the highest declared level)
  * @param source     where this enchant was authored
@@ -20,6 +21,7 @@ public record EnchantDef(
         String key,
         String display,
         String description,
+        String tier,
         List<String> appliesTo,
         int maxLevel,
         Source source) {

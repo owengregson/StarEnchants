@@ -3,6 +3,7 @@ package compile.load;
 import compile.def.AbilityDef;
 import compile.model.SourceKind;
 import java.util.List;
+import java.util.Set;
 import java.util.function.IntSupplier;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
@@ -10,17 +11,19 @@ import schema.grammar.EffectLine;
 
 /**
  * Reads one authored crystal file (a composed {@link YamlNode} mapping) into its metadata
- * {@link CrystalDef} plus exactly ONE {@link AbilityDef} (docs/architecture.md §6.5; ADR-0014).
- * A crystal has no levels — its trigger / chance / cooldown / effects live at the top of the file
- * — and its stable key is the path-derived base key itself (e.g. {@code crystals/jolt}), the key an
- * item stores in its crystal list. {@code WornResolver} looks that key up directly, so it must NOT
- * carry a {@code /level} suffix (unlike enchants).
+ * {@link CrystalDef} plus exactly ONE {@link AbilityDef} (docs/architecture.md §6.5; ADR-0014,
+ * ADR-0016). A crystal has no levels — its trigger / chance / cooldown / effects live at the top of
+ * the file — and its stable key is the path-derived base key itself (e.g. {@code crystals/jolt}), the
+ * key an item stores in its crystal list; it must NOT carry a {@code /level} suffix.
  *
- * <p>Every fault is a {@code file:line:col} diagnostic; a bad field is warned-and-skipped, never
- * thrown. A missing trigger is a blocking diagnostic (the load stays non-publishable) but the
- * reader still parses the rest for reporting.
+ * <p>Effects may be terse strings or verbose {@code HEAD: { … }} maps (ADR-0016). Every fault is a
+ * {@code file:line:col} diagnostic; a bad field is warned-and-skipped, never thrown.
  */
 final class CrystalDefReader {
+
+    private static final Set<String> ROOT_KEYS = Set.of(
+            "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
+            "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
 
     private CrystalDefReader() {
     }
@@ -29,19 +32,26 @@ final class CrystalDefReader {
     record Parsed(CrystalDef def, List<AbilityDef> abilities) {
     }
 
-    /** Parse one crystal. {@code baseKey} is the path-derived key, e.g. {@code crystals/jolt}. */
+    /** Test/convenience entry: no folder-derived tier. */
     static Parsed read(String baseKey, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
+        return read(baseKey, null, root, nextDefId, diags);
+    }
+
+    /** Parse one crystal. {@code baseKey} is the path-derived key, e.g. {@code crystals/jolt}. */
+    static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {
             diags.error("load.crystal", "crystal file '" + baseKey + "' must be a YAML mapping", fileSource);
             return new Parsed(null, List.of());
         }
+        ContentParse.warnUnknownKeys(root, ROOT_KEYS, diags);
 
         String display = ContentParse.blankToNull(root.string("display"));
         if (display == null) {
-            display = baseKey; // non-fatal: default the display name to the key (absent OR blank)
+            display = baseKey;
         }
-        String description = ContentParse.blankToNull(root.string("description"));
+        String description = ContentParse.descriptionOf(root);
+        String tier = ContentParse.resolveTier(folderTier, root, diags);
         List<String> appliesTo = root.stringList("applies-to");
         List<String> triggers = root.stringList("trigger");
         if (triggers.isEmpty()) {
@@ -52,18 +62,20 @@ final class CrystalDefReader {
         String group = ContentParse.blankToNull(root.string("group"));
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
 
-        double chance = ContentParse.clampChance(
-                ContentParse.optDouble(root, "chance", 100.0, diags), root.sourceOf("chance"), diags);
-        int cooldown = ContentParse.optInt(root, "cooldown", 0, diags);
-        int soulCost = ContentParse.optInt(root, "soul-cost", 0, diags);
+        double chance = ContentParse.resolveChance(root, "chance", 0, ScaleEnv.EMPTY, diags);
+        int cooldown = ContentParse.resolveInt(root, "cooldown", 0, 0, ScaleEnv.EMPTY, diags);
+        int soulCost = ContentParse.resolveInt(root, "soul-cost", 0, 0, ScaleEnv.EMPTY, diags);
         String condition = ContentParse.blankToNull(root.string("condition"));
-        List<EffectLine> effects = ContentParse.effectLines(root, "crystal '" + baseKey + "'", diags);
+        List<EffectLine> effects = ContentParse.effectItems(root, "effects", 0, ScaleEnv.EMPTY, diags);
+        if (effects.isEmpty()) {
+            diags.warning("load.effects", "crystal '" + baseKey + "' declares no effects", root.sourceOf("effects"));
+        }
 
         AbilityDef ability = new AbilityDef(
                 SourceKind.CRYSTAL,
-                baseKey,        // the crystal's stable key IS the stored key — no /level suffix
+                baseKey,
                 nextDefId.getAsInt(),
-                0,              // level: crystals are levelless (non-enchant source)
+                0,
                 chance,
                 cooldown,
                 soulCost,
@@ -71,16 +83,16 @@ final class CrystalDefReader {
                 disabledWorlds,
                 condition,
                 effects,
-                baseKey,        // suppressKey: DISABLE_* cancels by the crystal identity
-                baseKey,        // cdScopeEnchant: per-crystal cooldown scope
-                group,          // cdScopeGroup (may be null)
-                null,           // cdScopeType: deferred
+                baseKey,
+                baseKey,
+                group,
+                null,
                 repeatTicks,
                 fileSource,
-                0);             // setPieces: crystals are not sets
+                0);
 
-        CrystalDef def = new CrystalDef(baseKey, display,
-                description == null ? "" : description, appliesTo, fileSource);
+        CrystalDef def = new CrystalDef(baseKey, display, description == null ? "" : description,
+                tier, appliesTo, fileSource);
         return new Parsed(def, List.of(ability));
     }
 }

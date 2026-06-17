@@ -23,6 +23,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0013](0013-command-surface.md) | Single `/se` command root (drop `/ee`, `/ea`) | Accepted |
 | [0014](0014-content-loader-and-reload.md) | Content loader + transactional reload | Accepted |
 | [0015](0015-spigot-floor-fakeplayer-deferred.md) | Spigot-floor fake-player deferred; floor covered by non-fake suites | Accepted |
+| [0016](0016-content-format-v2.md) | Content format v2 — verbose effects, scaling, tier folders, item defs (superset of v1) | Accepted |
 
 ## Process
 

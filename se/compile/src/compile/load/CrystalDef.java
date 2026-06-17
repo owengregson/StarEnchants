@@ -13,6 +13,7 @@ import schema.diag.Source;
  * @param key        the path-derived base key (e.g. {@code crystals/jolt}) — the key stored on items
  * @param display    the display name (colour codes intact), for lore/name render
  * @param description a short description for {@code /se docs} + lore; never {@code null} (empty if absent)
+ * @param tier       the rarity tier (ADR-0016) for lore colour/glint/GUI sort; may be {@code null}
  * @param appliesTo  the item target groups this crystal may sit on (named groups, not raw materials)
  * @param source     where this crystal was authored
  */
@@ -20,6 +21,7 @@ public record CrystalDef(
         String key,
         String display,
         String description,
+        String tier,
         List<String> appliesTo,
         Source source) {
 
