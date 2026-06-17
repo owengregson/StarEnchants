@@ -1,0 +1,10 @@
+# Jolt Crystal — a flat, levelless socket bonus.
+display: "&eJolt Crystal"
+description: "Strike your foe with a jolt of lightning."
+trigger: ATTACK
+applies-to: [SWORD, AXE, TRIDENT]
+chance: 35
+cooldown: 40
+effects:
+  - { LIGHTNING: { damage: 3 } }
+  - { SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }

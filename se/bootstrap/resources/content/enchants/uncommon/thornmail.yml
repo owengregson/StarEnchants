@@ -1,0 +1,18 @@
+# Thornmail — wrap yourself in spikes that bite back. A DEFENSE enchant that reflects DAMAGE
+# onto the attacker. DAMAGE defaults to @Victim, so on this defender-side trigger it explicitly
+# names @Attacker. The top tier also sets the attacker alight (IGNITE → @Attacker).
+display: "&2Thornmail"
+description: "Spikes that bite back at your attacker."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: defense
+max-level: 3
+chance: { 1: 35, 2: 45, 3: 55 }
+scale:
+  thorns: { from: 2, step: 2 }
+effects:
+  - { DAMAGE: { amount: $thorns, who: "@Attacker" } }
+levels:
+  3:
+    effects+:
+      - { IGNITE: { duration: 40, who: "@Attacker" } }

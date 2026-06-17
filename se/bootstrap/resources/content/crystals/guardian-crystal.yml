@@ -1,9 +1,0 @@
-# Guardian Crystal — a flat, levelless socket bonus (§6.5). On DEFENSE it feeds the reduction arbiter
-# via REDUCE_DAMAGE (a percentage cut, CONTEXT_LOCAL — folded on the firing thread). REDUCE_DAMAGE's
-# percent is capped at 100 by its ParamSpec, so 20 is a safe one-fifth mitigation.
-display: "&7Guardian Crystal"
-description: "Blunt a portion of incoming damage."
-trigger: DEFENSE
-applies-to: [CHESTPLATE, HELMET, LEGGINGS, BOOTS]
-chance: 100
-effects: ["REDUCE_DAMAGE:20"]

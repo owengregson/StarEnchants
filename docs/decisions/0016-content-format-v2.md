@@ -95,8 +95,8 @@ scale token is one of:
 - a **linear** form (integer-exact, no rounding): `bolts: { from: 2, step: 2 }`
   → level *L* = `from + (L-1)*step`
 
-`$token` resolves in any knob (`chance`/`cooldown`/`soul-cost`) and any **numeric** effect
-arg, per level, **at compile time**; the resolved literal then range-checks through the
+`$token` resolves in any knob (`chance`/`cooldown`/`soul-cost`/`condition`) and any **numeric**
+effect arg, per level, **at compile time**; the resolved literal then range-checks through the
 normal `ParamSpec` path (a scale yielding an out-of-range value is a load-time error, not a
 runtime surprise). A knob may also carry an inline level-map directly
 (`chance: { 1: 15, 2: 22, 3: 30 }`). A level-map missing a level clamps to its last entry

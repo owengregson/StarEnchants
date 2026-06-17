@@ -1,0 +1,12 @@
+# Titan — a full-set (pieces:4) armour bonus (§6.6). On DEFENSE the completed set hardens you: it
+# feeds the reduction arbiter via REDUCE_DAMAGE (capped at 100 by ParamSpec, CONTEXT_LOCAL) and
+# layers Resistance on @Self. Levelless: trigger/chance/effects sit at the file top.
+display: "&8Titan"
+description: "Harden against blows when the full set is worn."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+pieces: 4
+chance: 100
+effects:
+  - { REDUCE_DAMAGE: { percent: 15 } }
+  - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 0, duration: 80, who: "@Self" } }

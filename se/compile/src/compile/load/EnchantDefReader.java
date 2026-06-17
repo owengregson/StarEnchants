@@ -122,7 +122,8 @@ final class EnchantDefReader {
             double chance = ContentParse.resolveChance(knobNode(lvl, root, "chance"), "chance", level, scale, diags);
             int cooldown = ContentParse.resolveInt(knobNode(lvl, root, "cooldown"), "cooldown", 0, level, scale, diags);
             int soulCost = ContentParse.resolveInt(knobNode(lvl, root, "soul-cost"), "soul-cost", 0, level, scale, diags);
-            String condition = ContentParse.blankToNull(knobNode(lvl, root, "condition").string("condition"));
+            String condition = ContentParse.blankToNull(
+                    ContentParse.resolveString(knobNode(lvl, root, "condition"), "condition", level, scale, diags));
             List<EffectLine> effects = effectsFor(baseKey, level, lvl, root, templated, scale, diags);
 
             abilities.add(new AbilityDef(

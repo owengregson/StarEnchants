@@ -62,6 +62,11 @@ subprojects {
             testLogging {
                 events("passed", "skipped", "failed")
             }
+            // Forward opt-in `se.*` test knobs to the forked test JVM (e.g. the one-off catalog
+            // migration-equivalence gate: -Dse.equiv.old=… -Dse.equiv.new=…). Inert when unset.
+            System.getProperties().stringPropertyNames()
+                .filter { it.startsWith("se.") }
+                .forEach { systemProperty(it, System.getProperty(it)) }
         }
     }
 }

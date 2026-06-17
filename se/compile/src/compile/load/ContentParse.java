@@ -285,6 +285,15 @@ final class ContentParse {
         }
     }
 
+    /**
+     * A string-valued knob that may be a scalar (with {@code $token} substituted) OR an inline per-level
+     * map ({@code condition: { 1: "…", 2: "…" }}), resolved at {@code level}; {@code null} when absent.
+     * Lets {@code condition} scale per level like the numeric knobs.
+     */
+    static String resolveString(YamlNode node, String key, int level, ScaleEnv scale, Diagnostics diags) {
+        return knobValue(node, key, level, scale, diags);
+    }
+
     /** The raw value of a knob at {@code level}: a scalar (with {@code $token} substituted) or an inline level-map. */
     private static String knobValue(YamlNode node, String key, int level, ScaleEnv scale, Diagnostics diags) {
         if (!node.has(key)) {
@@ -308,6 +317,9 @@ final class ContentParse {
             return null;
         }
         Map.Entry<Integer, String> floor = byLevel.floorEntry(level);
-        return floor != null ? floor.getValue() : byLevel.firstEntry().getValue();
+        String value = floor != null ? floor.getValue() : byLevel.firstEntry().getValue();
+        // Substitute $token in the chosen level-map value too (consistent with the scalar branch) — so a
+        // condition/knob level-map may reference scale tokens, resolved at the level being queried.
+        return substitute(value, level, scale, node.sourceOf(key), diags);
     }
 }

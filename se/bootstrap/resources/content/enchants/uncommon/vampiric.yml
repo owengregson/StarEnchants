@@ -1,0 +1,25 @@
+# Vampiric — drain life from your foe, healing and shielding yourself. HEAL/POTION default @Self.
+display: "&5Vampiric"
+description: "Drain life from the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 25
+    effects:
+      - { HEAL: { amount: 2 } }
+      - { PARTICLE: { particle: WITCH, count: 6 } }
+  2:
+    chance: 35
+    effects:
+      - { HEAL: { amount: 3 } }
+      - { POTION: { effect: ABSORPTION, amplifier: 0, duration: 60 } }
+  3:
+    chance: 45
+    cooldown: 0
+    effects:
+      - { HEAL: { amount: 4 } }
+      - { POTION: { effect: ABSORPTION, amplifier: 0, duration: 100 } }
+      - { PARTICLE: { particle: WITCH, count: 10 } }
+      - { MESSAGE: { text: "&5You drain their life!" } }

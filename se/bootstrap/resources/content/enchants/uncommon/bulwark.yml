@@ -1,0 +1,16 @@
+# Bulwark — soften incoming blows.
+display: "&9Bulwark"
+description: "Shrug off incoming blows."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: defense
+max-level: 3
+chance: { 1: 30, 2: 40, 3: 55 }
+scale:
+  reduce: { 1: 10, 2: 18, 3: 25 }
+effects:
+  - { REDUCE_DAMAGE: { percent: $reduce } }
+levels:
+  3:
+    effects+:
+      - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 0, duration: 40, who: "@Self" } }
