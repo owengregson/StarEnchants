@@ -60,6 +60,9 @@ public final class SchemaWriter {
             if (level.condition() != null) {
                 b.append("    condition: ").append(q(level.condition())).append('\n');
             }
+            for (String todo : level.conditionTodos()) {
+                b.append("    # TODO condition (port manually): ").append(todo).append('\n');
+            }
             appendEffects(b, level.effects(), "    ", specs); // nested under "  <level>:"
         }
         return b.toString();
