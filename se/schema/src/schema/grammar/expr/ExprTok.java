@@ -53,6 +53,10 @@ public record ExprTok(ExprTok.Kind kind, String text, int col) {
         GT,
         /** {@code >=} */
         GE,
+        /** {@code contains} — the string membership operator (pipe-OR alternatives). */
+        CONTAINS,
+        /** {@code matchesregex} — the string regular-expression match operator. */
+        MATCHES_REGEX,
         /** End of input — a sentinel the parser stops on; {@link ExprTok#text} is empty. */
         EOF
     }

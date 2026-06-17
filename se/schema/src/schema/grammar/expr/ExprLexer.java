@@ -215,7 +215,16 @@ public final class ExprLexer {
         while (pos < src.length() && isIdentPart(src.charAt(pos))) {
             pos++;
         }
-        return new ExprTok(ExprTok.Kind.IDENT, src.substring(start, pos), startCol);
+        String text = src.substring(start, pos);
+        // The two string operators are reserved words (case-insensitive), recognised here so the parser
+        // sees them as operators rather than bare identifiers; everything else is an ordinary identifier.
+        if (text.equalsIgnoreCase("contains")) {
+            return new ExprTok(ExprTok.Kind.CONTAINS, text, startCol);
+        }
+        if (text.equalsIgnoreCase("matchesregex")) {
+            return new ExprTok(ExprTok.Kind.MATCHES_REGEX, text, startCol);
+        }
+        return new ExprTok(ExprTok.Kind.IDENT, text, startCol);
     }
 
     private static boolean isNumberStart(char c) {

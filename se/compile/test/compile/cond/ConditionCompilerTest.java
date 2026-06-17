@@ -58,6 +58,52 @@ class ConditionCompilerTest {
     }
 
     @Test
+    void containsLowersToStrContains() {
+        Diagnostics d = new Diagnostics();
+        Cond c = lower("%name% contains \"a|b\"", d);
+        assertFalse(d.hasErrors());
+        Cond.StrContains sc = assertInstanceOf(Cond.StrContains.class, c);
+        assertEquals(new StrExpr.Var(0), sc.left()); // name → string slot 0
+        assertEquals(new StrExpr.Lit("a|b"), sc.right());
+    }
+
+    @Test
+    void containsAcceptsPlaceholderOperands() {
+        Diagnostics d = new Diagnostics();
+        Cond c = lower("%some_papi% contains \"x\"", d); // unknown var → PlaceholderAPI passthrough
+        assertFalse(d.hasErrors());
+        assertInstanceOf(Cond.StrContains.class, c);
+    }
+
+    @Test
+    void matchesRegexCompilesItsLiteralPatternAtLoad() {
+        Diagnostics d = new Diagnostics();
+        Cond c = lower("%name% matchesregex \"[a-z]+\"", d);
+        assertFalse(d.hasErrors());
+        Cond.Regex r = assertInstanceOf(Cond.Regex.class, c);
+        assertEquals(new StrExpr.Var(0), r.left());
+        assertTrue(r.pattern().matcher("abc").matches());
+    }
+
+    @Test
+    void matchesRegexRejectsANonLiteralPattern() {
+        Diagnostics d = lowerExpectingError("%name% matchesregex %name%");
+        assertEquals("E_COND_TYPE", d.all().get(0).code());
+    }
+
+    @Test
+    void matchesRegexRejectsAnInvalidPattern() {
+        Diagnostics d = lowerExpectingError("%name% matchesregex \"[\"");
+        assertEquals("E_COND_TYPE", d.all().get(0).code());
+    }
+
+    @Test
+    void stringOperatorRejectsANumericOperand() {
+        Diagnostics d = lowerExpectingError("%damage% contains \"x\""); // damage is numeric
+        assertEquals("E_COND_TYPE", d.all().get(0).code());
+    }
+
+    @Test
     void numericVariableComparedToVariable() {
         Diagnostics d = new Diagnostics();
         Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%damage% >= %actor.health%", d));

@@ -42,6 +42,9 @@ class ExprParserTest {
         if (e instanceof Expr.Compare c) {
             return "(" + c.op().symbol() + " " + sexpr(c.left()) + " " + sexpr(c.right()) + ")";
         }
+        if (e instanceof Expr.StringMatch m) {
+            return "(" + m.op().symbol() + " " + sexpr(m.left()) + " " + sexpr(m.right()) + ")";
+        }
         if (e instanceof Expr.VarRef v) {
             return v.scope() == null ? "%" + v.name() + "%" : "%" + v.scope() + "." + v.name() + "%";
         }
@@ -55,6 +58,29 @@ class ExprParserTest {
             return "\"" + sl.value() + "\"";
         }
         throw new AssertionError("unhandled node: " + e);
+    }
+
+    // ----- string operators -----
+
+    @Test
+    void stringContainsOperatorParsesAtComparisonPrecedence() {
+        assertEquals("(contains %name% \"a|b\")", sexpr(parseOk("%name% contains \"a|b\"")));
+        // && binds looser than the string operator, so each side is its own match.
+        assertEquals("(&& (contains %a% \"x\") (matchesregex %b% \"y\"))",
+                sexpr(parseOk("%a% contains \"x\" && %b% matchesregex \"y\"")));
+    }
+
+    @Test
+    void matchesRegexOperatorParses() {
+        assertEquals("(matchesregex %name% \"[a-z]+\")", sexpr(parseOk("%name% matchesregex \"[a-z]+\"")));
+    }
+
+    @Test
+    void stringOperatorsAreNonAssociative() {
+        Diagnostics diags = new Diagnostics();
+        ExprParser.parse("%a% contains \"x\" contains \"y\"", SRC, diags);
+        assertTrue(diags.hasErrors());
+        assertEquals("E_PARSE", diags.all().get(0).code());
     }
 
     // ----- literals & variables -----
