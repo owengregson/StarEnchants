@@ -3,6 +3,7 @@ package compile.load;
 import compile.def.AbilityDef;
 import compile.model.SourceKind;
 import java.util.List;
+import java.util.Set;
 import java.util.function.IntSupplier;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
@@ -11,16 +12,19 @@ import schema.grammar.EffectLine;
 /**
  * Reads one authored armour-set file (a composed {@link YamlNode} mapping) into its metadata
  * {@link SetDef} plus exactly ONE {@link AbilityDef} — the set bonus (docs/architecture.md §6.6;
- * ADR-0014). Like a crystal, a set bonus has no levels and its stable key is the path-derived base
- * key itself (e.g. {@code sets/yeti}); unlike a crystal it carries a {@code pieces:} threshold, which
- * is erased onto the ability's {@code setPieces} so the resolver knows how many worn pieces complete
- * the set. An item is stamped with this base key in its {@code CombatState.setKey} to join the set.
+ * ADR-0014, ADR-0016). Like a crystal, a set bonus has no levels and its stable key is the
+ * path-derived base key itself (e.g. {@code sets/yeti}); unlike a crystal it carries a {@code pieces:}
+ * threshold erased onto the ability's {@code setPieces}.
  *
- * <p>Every fault is a {@code file:line:col} diagnostic; a missing trigger or a non-positive piece
- * count is a blocking diagnostic (the load stays non-publishable), but the reader still parses the
- * rest for reporting.
+ * <p>Effects may be terse strings or verbose {@code HEAD: { … }} maps (ADR-0016). Every fault is a
+ * {@code file:line:col} diagnostic; a missing trigger or a non-positive piece count is blocking, but
+ * the reader still parses the rest for reporting.
  */
 final class SetDefReader {
+
+    private static final Set<String> ROOT_KEYS = Set.of(
+            "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
+            "repeat", "pieces", "chance", "cooldown", "soul-cost", "condition", "effects");
 
     private SetDefReader() {
     }
@@ -29,19 +33,26 @@ final class SetDefReader {
     record Parsed(SetDef def, List<AbilityDef> abilities) {
     }
 
-    /** Parse one set. {@code baseKey} is the path-derived key, e.g. {@code sets/yeti}. */
+    /** Test/convenience entry: no folder-derived tier. */
     static Parsed read(String baseKey, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
+        return read(baseKey, null, root, nextDefId, diags);
+    }
+
+    /** Parse one set. {@code baseKey} is the path-derived key, e.g. {@code sets/yeti}. */
+    static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {
             diags.error("load.set", "set file '" + baseKey + "' must be a YAML mapping", fileSource);
             return new Parsed(null, List.of());
         }
+        ContentParse.warnUnknownKeys(root, ROOT_KEYS, diags);
 
         String display = ContentParse.blankToNull(root.string("display"));
         if (display == null) {
             display = baseKey;
         }
-        String description = ContentParse.blankToNull(root.string("description"));
+        String description = ContentParse.descriptionOf(root);
+        String tier = ContentParse.resolveTier(folderTier, root, diags);
         List<String> appliesTo = root.stringList("applies-to");
         List<String> triggers = root.stringList("trigger");
         if (triggers.isEmpty()) {
@@ -57,18 +68,20 @@ final class SetDefReader {
         String group = ContentParse.blankToNull(root.string("group"));
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
 
-        double chance = ContentParse.clampChance(
-                ContentParse.optDouble(root, "chance", 100.0, diags), root.sourceOf("chance"), diags);
-        int cooldown = ContentParse.optInt(root, "cooldown", 0, diags);
-        int soulCost = ContentParse.optInt(root, "soul-cost", 0, diags);
+        double chance = ContentParse.resolveChance(root, "chance", 0, ScaleEnv.EMPTY, diags);
+        int cooldown = ContentParse.resolveInt(root, "cooldown", 0, 0, ScaleEnv.EMPTY, diags);
+        int soulCost = ContentParse.resolveInt(root, "soul-cost", 0, 0, ScaleEnv.EMPTY, diags);
         String condition = ContentParse.blankToNull(root.string("condition"));
-        List<EffectLine> effects = ContentParse.effectLines(root, "set '" + baseKey + "'", diags);
+        List<EffectLine> effects = ContentParse.effectItems(root, "effects", 0, ScaleEnv.EMPTY, diags);
+        if (effects.isEmpty()) {
+            diags.warning("load.effects", "set '" + baseKey + "' declares no effects", root.sourceOf("effects"));
+        }
 
         AbilityDef ability = new AbilityDef(
                 SourceKind.SET,
-                baseKey,        // the set's stable key IS the stamped key — no /level suffix
+                baseKey,
                 nextDefId.getAsInt(),
-                0,              // level: sets are levelless
+                0,
                 chance,
                 cooldown,
                 soulCost,
@@ -76,16 +89,16 @@ final class SetDefReader {
                 disabledWorlds,
                 condition,
                 effects,
-                baseKey,        // suppressKey: DISABLE_* cancels by the set identity
-                baseKey,        // cdScopeEnchant: per-set cooldown scope
-                group,          // cdScopeGroup (may be null)
-                null,           // cdScopeType: deferred
+                baseKey,
+                baseKey,
+                group,
+                null,
                 repeatTicks,
                 fileSource,
-                Math.max(0, pieces)); // setPieces: the completion threshold the resolver gates on
+                Math.max(0, pieces));
 
         SetDef def = new SetDef(baseKey, display, description == null ? "" : description,
-                Math.max(0, pieces), appliesTo, fileSource);
+                tier, Math.max(0, pieces), appliesTo, fileSource);
         return new Parsed(def, List.of(ability));
     }
 }

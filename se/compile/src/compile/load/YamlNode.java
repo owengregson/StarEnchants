@@ -115,6 +115,53 @@ final class YamlNode {
         return out;
     }
 
+    /** This node's OWN {@code (key, child)} entries when it is a mapping (e.g. a verbose effect's body). */
+    List<Entry> entries() {
+        List<Entry> out = new ArrayList<>();
+        if (node instanceof MappingNode mapping) {
+            for (NodeTuple tuple : mapping.getValue()) {
+                if (tuple.getKeyNode() instanceof ScalarNode k) {
+                    out.add(new Entry(k.getValue(), new YamlNode(file, tuple.getValueNode())));
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * The items of the sequence under {@code key}, each wrapped — so a caller can tell a scalar item
+     * (a terse {@code "HEAD:arg"} effect) from a mapping item (a verbose {@code HEAD: {…}} effect). A
+     * lone non-sequence value is returned as a one-element list (a single effect written without a
+     * leading {@code -}), matching {@link #stringList}'s tolerance.
+     */
+    List<YamlNode> items(String key) {
+        List<YamlNode> out = new ArrayList<>();
+        Node value = fields.get(key);
+        if (value instanceof SequenceNode sequence) {
+            for (Node item : sequence.getValue()) {
+                out.add(new YamlNode(file, item));
+            }
+        } else if (value != null) {
+            out.add(new YamlNode(file, value));
+        }
+        return out;
+    }
+
+    /** The child node under {@code key} (an absent node if missing) — for reading a nested sub-mapping. */
+    YamlNode child(String key) {
+        return new YamlNode(file, fields.get(key));
+    }
+
+    /** Whether this node is a scalar (a leaf value, not a mapping/sequence). */
+    boolean isScalar() {
+        return node instanceof ScalarNode;
+    }
+
+    /** This node's scalar text, or {@code null} if it is not a scalar. */
+    String scalar() {
+        return node instanceof ScalarNode scalar ? scalar.getValue() : null;
+    }
+
     record Entry(String key, YamlNode value) {
     }
 

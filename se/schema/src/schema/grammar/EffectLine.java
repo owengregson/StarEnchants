@@ -3,6 +3,7 @@ package schema.grammar;
 import schema.diag.Source;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -26,7 +27,13 @@ import java.util.Optional;
  * present the compiler uses the effect kind's declared default target
  * (docs/architecture.md §3.5, §7).
  */
-public record EffectLine(String head, int headCol, List<Tok> args, Tok selector, Source source) {
+public record EffectLine(String head, int headCol, List<Tok> args, Tok selector, Source source,
+                         Map<String, String> named) {
+
+    public EffectLine {
+        args = List.copyOf(args);
+        named = named == null ? null : Map.copyOf(named);
+    }
 
     /**
      * Parse a raw line into head + argument tokens, peeling a trailing inline
@@ -42,7 +49,24 @@ public record EffectLine(String head, int headCol, List<Tok> args, Tok selector,
         if (!rest.isEmpty() && rest.get(rest.size() - 1).trimmed().startsWith("@")) {
             selector = rest.remove(rest.size() - 1);
         }
-        return new EffectLine(headTok.trimmed(), headTok.col(), List.copyOf(rest), selector, source);
+        return new EffectLine(headTok.trimmed(), headTok.col(), List.copyOf(rest), selector, source, null);
+    }
+
+    /**
+     * Build a verbose effect line (ADR-0016): the {@code named} param values (in any order) plus an
+     * optional explicit selector token (the {@code who:} value, e.g. {@code "@Attacker"}). The selector
+     * is set directly, never re-detected from an {@code @}-prefixed argument, and the values are NOT
+     * joined on {@code :} — so colon- or {@code @}-bearing string arguments survive intact.
+     */
+    public static EffectLine verbose(String head, int headCol, Map<String, String> named,
+                                     String selectorToken, Source source) {
+        Tok selector = selectorToken == null ? null : new Tok(selectorToken, headCol);
+        return new EffectLine(head, headCol, List.of(), selector, source, named);
+    }
+
+    /** Whether this line carries verbose (named) arguments rather than terse positional ones. */
+    public boolean isVerbose() {
+        return named != null;
     }
 
     /** The trimmed text of each argument, ready to feed {@code ParamSpec.parse}. */

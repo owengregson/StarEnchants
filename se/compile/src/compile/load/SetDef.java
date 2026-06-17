@@ -14,6 +14,7 @@ import schema.diag.Source;
  * @param key        the path-derived base key (e.g. {@code sets/yeti}) — the key stamped on member items
  * @param display    the display name (colour codes intact), for lore/name render
  * @param description a short description for {@code /se docs} + lore; never {@code null} (empty if absent)
+ * @param tier       the rarity tier (ADR-0016) for lore colour/glint/GUI sort; may be {@code null}
  * @param pieces     the number of worn pieces that completes the set ({@code >= 1})
  * @param appliesTo  the item target groups this set's pieces may sit on
  * @param source     where this set was authored
@@ -22,6 +23,7 @@ public record SetDef(
         String key,
         String display,
         String description,
+        String tier,
         int pieces,
         List<String> appliesTo,
         Source source) {

@@ -12,6 +12,7 @@ import tester.suite.ApplySuite;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.CatalogSuite;
 import tester.suite.CombatSuite;
+import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.CrystalSuite;
 import tester.suite.EconomySuite;
@@ -73,6 +74,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))
                 .add(new ContentLoaderSuite(this))
+                .add(new ContentFormatSuite(this))
                 .add(new WornResolverSuite(this));
 
         // The fake-player harness is mojang-mapped only (1.20.5+); on the spigot-mapped floor
