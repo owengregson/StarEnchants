@@ -146,12 +146,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage("§cThat command can only be run by a player.");
             return;
         }
+        // The ENABLED/DISABLED feedback is sent by SoulService from the soul-gem config; only the
+        // no-gem hint is the command's to relay.
         Scheduling.onEntity(player, () -> {
-            switch (souls.toggle(player)) {
-                case ENABLED -> player.sendMessage("§aSoul mode §lON§a — soul-cost abilities now spend souls.");
-                case DISABLED -> player.sendMessage("§7Soul mode §lOFF§7.");
-                case NO_GEM -> player.sendMessage("§cHold a soul gem first (/se gem).");
-                default -> { }
+            if (souls.toggle(player) == SoulService.Toggle.NO_GEM) {
+                player.sendMessage("§cHold a soul gem first (/se gem).");
             }
         });
     }

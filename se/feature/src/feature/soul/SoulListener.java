@@ -17,18 +17,16 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public final class SoulListener implements Listener {
 
     private final SoulService souls;
-    private final int soulsPerKill;
 
-    public SoulListener(SoulService souls, int soulsPerKill) {
+    public SoulListener(SoulService souls) {
         this.souls = Objects.requireNonNull(souls, "souls");
-        this.soulsPerKill = soulsPerKill;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDeath(EntityDeathEvent event) {
         Player killer = event.getEntity().getKiller();
         if (killer != null) {
-            souls.onKill(killer, soulsPerKill);
+            souls.onKill(killer); // amount comes from the soul-gem config
         }
     }
 

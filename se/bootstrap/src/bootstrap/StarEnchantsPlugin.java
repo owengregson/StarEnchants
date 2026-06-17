@@ -85,9 +85,6 @@ import schema.diag.Diagnostics;
  */
 public final class StarEnchantsPlugin extends JavaPlugin {
 
-    /** Souls granted to the killer's active gem per kill (a v1 constant; config-driven later). */
-    private static final int SOULS_PER_KILL = 1;
-
     private ContentHolder content;
     private ContentReloader reloader;
 
@@ -142,7 +139,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
         SoulService soulService = new SoulService(souls, new SoulModeStore(),
-                new SoulCodec(ItemKeys.of(this).soul()));
+                new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault());
 
         // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
         // ServicesManager; a server with none allows everything. The guard passes the firing location
@@ -184,7 +181,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
-        getServer().getPluginManager().registerEvents(new SoulListener(soulService, SOULS_PER_KILL), this);
+        getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
 

@@ -116,7 +116,8 @@ public final class SoulSuite implements Harness.Scenario {
 
         // ONE ledger shared by the pipeline (gate 10) and the soul service (seed/spend).
         SoulLedger ledger = new SoulLedger();
-        SoulService soulService = new SoulService(ledger, new SoulModeStore(), soulCodec);
+        SoulService soulService = new SoulService(ledger, new SoulModeStore(), soulCodec,
+                compile.load.SoulGemConfig::defaults);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), ledger), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();
