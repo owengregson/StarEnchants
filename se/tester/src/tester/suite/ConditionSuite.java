@@ -73,11 +73,12 @@ public final class ConditionSuite implements Harness.Scenario {
               1: { chance: 100, condition: "%victim.health% >= 8", effects: ["POTION:POISON:0:80:@Victim"] }
             """;
 
+    // Gates on a numeric ACTOR fact AND a string VICTIM fact, so one hit proves both slot kinds populate.
     private static final String ACTOR_GATE = """
             display: ActorGate
             trigger: ATTACK
             levels:
-              1: { chance: 100, condition: "%actor.health% >= 10", effects: ["POTION:POISON:0:80:@Victim"] }
+              1: { chance: 100, condition: "%actor.health% >= 10 && %victim.type% == \\"COW\\"", effects: ["POTION:POISON:0:80:@Victim"] }
             """;
 
     private final Plugin plugin;
@@ -90,7 +91,7 @@ public final class ConditionSuite implements Harness.Scenario {
     public void accept(Harness h) {
         h.expect("condition.firesWhenMet");
         h.expect("condition.blockedWhenUnmet");
-        h.expect("condition.actorHealthFires");
+        h.expect("condition.actorAndVictimFactsFire");
 
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
@@ -204,10 +205,11 @@ public final class ConditionSuite implements Harness.Scenario {
                     worn.refresh(actorAttacker, library.snapshot());
                     cowActor.damage(1.0, actorAttacker);
                     Scheduling.onEntityLater(cowActor, 10L, () -> {
-                        h.guard("condition.actorHealthFires", () -> {
+                        h.guard("condition.actorAndVictimFactsFire", () -> {
                             if (!cowActor.hasPotionEffect(poison)) {
                                 throw new IllegalStateException(
-                                        "actor.health condition did not fire — the actor.health slot was not populated");
+                                        "'%actor.health% >= 10 && %victim.type% == COW' did not fire — a numeric "
+                                                + "actor fact or the string victim fact was not populated");
                             }
                         });
                         cowActor.remove();
