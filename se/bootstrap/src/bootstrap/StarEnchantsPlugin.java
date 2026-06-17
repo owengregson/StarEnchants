@@ -145,9 +145,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Runtime executor + combat dispatch (the soul binder arms gate 10 from an actor's active gem).
         // The activation listener fires the public EnchantActivateEvent for each proc — Bukkit-aware
         // here, so the engine itself stays event-API-free (it only calls the callback).
-        AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
+        engine.effect.EffectRegistry effects = BuiltinEffects.registry();
+        AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), souls, protectionGuard, ActivationPipeline.Guard.ALLOW),
                 areaScan(), this::fireActivation);
+        // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
+        compile.SpecRegistry migrateSpecs = effects.specRegistry();
         // Economy bridge (gate-free): GIVE_MONEY/TAKE_MONEY effects deposit/withdraw through the sink,
         // routed to the global thread. Wraps the EconomyProvider registered via the ServicesManager;
         // absent ⇒ money effects are no-ops.
@@ -188,7 +191,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (command != null) {
             SeCommand seCommand = new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
-                    getDataFolder().toPath().resolve("migrated"), menu, content);
+                    getDataFolder().toPath().resolve("migrated"), menu, content,
+                    head -> migrateSpecs.lookup(head).orElse(null));
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }

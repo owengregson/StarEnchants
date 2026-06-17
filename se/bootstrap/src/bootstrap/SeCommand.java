@@ -51,9 +51,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final Path migrationTarget;
     private final EnchantMenu menu;
     private final ContentHolder content;
+    private final java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
-              Path migrationTarget, EnchantMenu menu, ContentHolder content) {
+              Path migrationTarget, EnchantMenu menu, ContentHolder content,
+              java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -61,6 +63,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.migrationTarget = migrationTarget;
         this.menu = menu;
         this.content = content;
+        this.migrateSpecs = migrateSpecs;
     }
 
     @Override
@@ -102,7 +105,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "enchant" -> filter(enchantKeys, args[1]);
                 case "crystal" -> filter(crystalKeys, args[1]);
-                case "migrate" -> filter(List.of("ee", "ea"), args[1]);
+                case "migrate" -> filter(List.of("ee", "ea", "ae"), args[1]);
                 case "reload" -> filter(List.of("--dry-run"), args[1]);
                 default -> List.of();
             };
@@ -168,27 +171,30 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         menu.open(player);
     }
 
-    /** {@code /se migrate <ee|ea> <sourcePath>} — import legacy configs into the migrated/ folder for review. */
+    /** {@code /se migrate <ee|ea|ae> <sourcePath>} — import legacy configs into the migrated/ folder for review. */
     private void migrate(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage("§eUsage: /se migrate <ee|ea> <sourcePath>");
+            sender.sendMessage("§eUsage: /se migrate <ee|ea|ae> <sourcePath>");
             sender.sendMessage("§7  ee §8— path to EliteEnchantments' enchantments.yml");
             sender.sendMessage("§7  ea §8— path to EliteArmor's armor/ directory");
+            sender.sendMessage("§7  ae §8— path to AdvancedEnchantments' enchantments.yml");
             return;
         }
         String format = args[1].toLowerCase(Locale.ROOT);
         Path source = Path.of(args[2]);
         sender.sendMessage("§7StarEnchants: migrating " + format + " from §f" + source + "§7…");
-        // File I/O runs off the command thread; results route back to the sender's thread.
+        // File I/O runs off the command thread; results route back to the sender's thread. Effects are
+        // written in the verbose v2 form via the live effect-spec lookup (migrateSpecs).
         Scheduling.async(() -> {
             try {
                 Migrator.Result result = switch (format) {
-                    case "ee" -> Migrator.eliteEnchantments(Files.readString(source, StandardCharsets.UTF_8));
-                    case "ea" -> migrateArmorDir(source);
+                    case "ee" -> Migrator.eliteEnchantments(Files.readString(source, StandardCharsets.UTF_8), migrateSpecs);
+                    case "ea" -> migrateArmorDir(source, migrateSpecs);
+                    case "ae" -> Migrator.advancedEnchantments(Files.readString(source, StandardCharsets.UTF_8), migrateSpecs);
                     default -> null;
                 };
                 if (result == null) {
-                    tell(sender, "§cUnknown format '" + format + "' — use §fee§c or §fea§c.");
+                    tell(sender, "§cUnknown format '" + format + "' — use §fee§c, §fea§c or §fae§c.");
                     return;
                 }
                 int written = result.writeTo(migrationTarget);
@@ -203,13 +209,14 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /** Migrate every {@code *.yml} in an EliteArmor armour directory, merging the per-set results. */
-    private static Migrator.Result migrateArmorDir(Path dir) throws IOException {
+    private static Migrator.Result migrateArmorDir(Path dir,
+            java.util.function.Function<String, schema.spec.ParamSpec> specs) throws IOException {
         java.util.Map<String, String> files = new java.util.LinkedHashMap<>();
         schema.diag.Diagnostics diagnostics = new schema.diag.Diagnostics();
         try (Stream<Path> entries = Files.list(dir)) {
             for (Path file : entries.filter(p -> p.toString().endsWith(".yml")).sorted().toList()) {
                 String id = file.getFileName().toString().replaceFirst("\\.yml$", "");
-                Migrator.Result one = Migrator.eliteArmorSet(id, Files.readString(file, StandardCharsets.UTF_8));
+                Migrator.Result one = Migrator.eliteArmorSet(id, Files.readString(file, StandardCharsets.UTF_8), specs);
                 files.putAll(one.files());
                 diagnostics.merge(one.diagnostics());
             }
@@ -275,7 +282,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— stamp a soul gem onto the held item");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
-        sender.sendMessage("§e  /se migrate <ee|ea> <path> §7— import legacy EliteEnchantments/EliteArmor configs");
+        sender.sendMessage("§e  /se migrate <ee|ea|ae> <path> §7— import legacy EE/EA/AdvancedEnchantments configs");
     }
 
     /**

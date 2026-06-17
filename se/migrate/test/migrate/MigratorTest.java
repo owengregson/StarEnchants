@@ -5,20 +5,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.Compiler;
+import compile.SpecRegistry;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import compile.resolve.PlatformResolvers;
 import engine.boot.ContentCompiler;
+import engine.effect.kind.BuiltinEffects;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import schema.diag.Diagnostic;
+import schema.spec.ParamSpec;
 
 /**
  * The importer's contract (docs/architecture.md §10): the structure migrates and the verified core
@@ -38,6 +42,38 @@ class MigratorTest {
         @Override public OptionalInt entityType(String token) { return OptionalInt.of(0); }
         @Override public OptionalInt attribute(String token) { return OptionalInt.of(0); }
     };
+
+    /** The real effect-head → ParamSpec lookup (engine vocabulary) used to emit verbose v2 effects. */
+    private static final Function<String, ParamSpec> SPECS;
+    static {
+        SpecRegistry reg = BuiltinEffects.registry().specRegistry();
+        SPECS = head -> reg.lookup(head).orElse(null);
+    }
+
+    /** An AdvancedEnchantments enchantments.yml fixture — the REAL modern form: enchants at the document
+     *  root, a compound {@code type}, and {@code @Victim}/{@code @Self} (capital-@) space-separated targets. */
+    private static final String AE = """
+            venomaura:
+              display: '%group-color%Venom Aura'
+              description: 'Poison the foe you strike.'
+              applies-to: 'Swords'
+              type: ATTACK;ATTACK_MOB
+              group: ULTIMATE
+              applies:
+                - ALL_SWORD
+              levels:
+                '1':
+                  chance: 25
+                  effects:
+                    - 'DAMAGE:4 @Victim'
+                    - 'POTION:POISON:0:60 @Victim'
+                    - 'MESSAGE:&aVenom courses through them'
+                '2':
+                  chance: 40
+                  effects:
+                    - 'ADD_HEALTH:2 @Self'
+                    - 'STEAL_MONEY:100 @Victim'
+            """;
 
     private static final String EE = """
             Enchants:
@@ -154,6 +190,56 @@ class MigratorTest {
         int second = result.writeTo(dir);
         assertEquals(0, second, "existing file is not clobbered");
         assertEquals("edited", Files.readString(dir.resolve("enchants/venomstrike.yml")));
+    }
+
+    @Test
+    void migratesAdvancedEnchantmentsToCompilableContent(@TempDir Path dir) throws IOException {
+        Migrator.Result result = Migrator.advancedEnchantments(AE, SPECS);
+        Library library = compile(result.files(), dir);
+
+        String blocking = library.diagnostics().stream().filter(Diagnostic::blocking)
+                .map(Diagnostic::toString).collect(Collectors.joining("\n  "));
+        assertFalse(library.hasErrors(), () -> "migrated AE output should compile clean:\n  " + blocking);
+        assertEquals(2, library.snapshot().abilityCount(), "two levels ⇒ two compiled abilities");
+        // STEAL_MONEY has no verified equivalent → flagged, not silently dropped.
+        String venom = result.files().get("enchants/venomaura.yml");
+        assertTrue(venom.contains("# TODO port manually: STEAL_MONEY:100 @Victim"),
+                "expected a TODO for the unmapped AE effect");
+        assertFalse(result.diagnostics().hasErrors(), "an unmapped AE effect is a warning, never an error");
+    }
+
+    @Test
+    void translatesVerifiedAeEffectsFaithfully() {
+        // The real modern AE form: capital-@ space-separated targets.
+        assertEquals("DAMAGE:4:@Victim", Mappings.aeEffect("DAMAGE:4 @Victim").se());
+        assertEquals("POTION:POISON:0:60:@Attacker", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se());
+        assertEquals("HEAL:2:@Self", Mappings.aeEffect("ADD_HEALTH:2 @Self").se()); // AE add-health → HEAL
+        assertEquals("DAMAGE:6:@Victim", Mappings.aeEffect("DAMAGE:6:@Victim").se()); // colon-attached selector
+        // Legacy %victim% form still maps; large money values survive (not int-capped).
+        assertEquals("GIVE_MONEY:5000000000:@Self", Mappings.aeEffect("ADD_MONEY:5000000000 @Self").se());
+        assertFalse(Mappings.aeEffect("STEAL_MONEY:100 @Victim").mapped(), "no verified equivalent → TODO");
+        assertFalse(Mappings.aeEffect("DAMAGE:4 @Aoe{r=5}").mapped(), "an arg-bearing AE area selector → TODO");
+    }
+
+    @Test
+    void aeCompoundTypeMapsToTheFirstRecognisedTrigger() {
+        assertEquals("ATTACK", Mappings.aeTrigger("ATTACK;ATTACK_MOB;SHOOT;SHOOT_MOB"));
+        assertEquals("DEFENSE", Mappings.aeTrigger("DEFENSE;DEFENSE_MOB;DEFENSE_PROJECTILE"));
+        assertEquals("MINE", Mappings.aeTrigger("EXPLOSION;MINING")); // EXPLOSION has no v1 trigger → first RECOGNISED (MINING) wins
+        org.junit.jupiter.api.Assertions.assertNull(Mappings.aeTrigger("ELYTRA_FLY;EXPLOSION"), "no v1 trigger → null");
+    }
+
+    @Test
+    void emitsVerboseV2EffectsWhenSpecsSupplied(@TempDir Path dir) throws IOException {
+        Migrator.Result result = Migrator.eliteEnchantments(EE, SPECS);
+        String venom = result.files().get("enchants/venomstrike.yml");
+        // The mapped DAMAGE:6:@Victim is written in the verbose v2 form, not as a terse string.
+        assertTrue(venom.contains("{ DAMAGE: { amount: 6, who: \"@Victim\" } }"),
+                () -> "expected verbose v2 DAMAGE effect, got:\n" + venom);
+        // And the verbose output still compiles clean through the real loader.
+        Library library = compile(result.files(), dir);
+        assertFalse(library.hasErrors(), "verbose migrated output should compile clean");
+        assertEquals(2, library.snapshot().abilityCount());
     }
 
     /** Write the migrated files under {@code dir} (preserving relative paths) and compile them. */
