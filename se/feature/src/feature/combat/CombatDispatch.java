@@ -14,10 +14,12 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import org.bukkit.Location;
+import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Trident;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
@@ -44,26 +46,42 @@ public final class CombatDispatch {
     private final EconomyService economy;
     private final int attackTriggerId;
     private final int defenseTriggerId;
+    private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
+    private final int tridentTriggerId; // −1 ⇒ no distinct trident trigger; trident hits fall back to ATTACK
 
     /** Combat dispatch with NO soul system (the soul gate is never armed) and no economy. */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks) {
-        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, nowTicks,
-                actor -> Optional.empty());
+        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks,
+                actor -> Optional.empty(), EconomyService.NONE);
     }
 
     /** Combat dispatch with a soul binder (no economy): an actor in soul mode arms gate 10 from their gem. */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
-        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, nowTicks, soulBinder,
+        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
                 EconomyService.NONE);
     }
 
-    /** Full combat dispatch: soul binder + economy (money effects deposit/withdraw through the sink). */
+    /** Combat dispatch with a soul binder + economy but no distinct BOW/TRIDENT triggers (arrow hits fire ATTACK). */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
+                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
+                          EconomyService economy) {
+        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
+                economy);
+    }
+
+    /**
+     * Full combat dispatch: distinct BOW/TRIDENT attacker triggers + soul binder + economy. A bow-arrow
+     * hit fires {@code bowTriggerId} and a thrown-trident hit fires {@code tridentTriggerId} (the EE model
+     * where ATTACK is melee-only); either id at {@code -1} falls those hits back to {@code attackTriggerId}.
+     */
+    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
+                          int bowTriggerId, int tridentTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy) {
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks);
@@ -72,16 +90,20 @@ public final class CombatDispatch {
         this.economy = Objects.requireNonNull(economy, "economy");
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
+        this.bowTriggerId = bowTriggerId;
+        this.tridentTriggerId = tridentTriggerId;
     }
 
     /** Dispatch one entity-on-entity hit: run attacker + defender abilities and fold the result. */
     public void onDamage(EntityDamageByEntityEvent event) {
         Snapshot snapshot = content.snapshot();
         Ability[] abilities = snapshot.abilities();
-        Entity damager = event.getDamager();
+        Entity rawDamager = event.getDamager();
         // A projectile (bow/trident/snowball) attributes the hit to its shooter for ability purposes;
         // reading the projectile's shooter reference is safe (the projectile is in the firing region).
-        if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter) {
+        // The RAW damager type still decides which attacker trigger fires (melee=ATTACK, arrow=BOW, …).
+        Entity damager = rawDamager;
+        if (rawDamager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter) {
             damager = shooter;
         }
         Entity victimEntity = event.getEntity();
@@ -92,9 +114,11 @@ public final class CombatDispatch {
 
         DispatchSink sink = new DispatchSink(handles, economy);
 
-        // Attack side: the player damager's ATTACK abilities act on the victim (self = the attacker).
+        // Attack side: the player damager's abilities act on the victim (self = the attacker). The trigger
+        // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.
         if (damager instanceof Player attackerPlayer) {
-            runner.run(abilities, snapshot.generation(), worldId, attackTriggerId, true,
+            int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
+            runner.run(abilities, snapshot.generation(), worldId, attackId, true,
                     attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at), sink,
                     snapshot.stableKeys());
         }
@@ -111,5 +135,23 @@ public final class CombatDispatch {
             event.setCancelled(true);
         }
         sink.flush();
+    }
+
+    /**
+     * The attacker-side trigger for a hit, by the RAW damager type: a thrown trident fires
+     * {@code tridentId}, a bow/crossbow arrow (any {@link AbstractArrow} that is not a trident) fires
+     * {@code bowId}, and everything else (melee, or any projectile with no distinct trigger) fires
+     * {@code attackId}. A {@code bowId}/{@code tridentId} of {@code -1} means "no distinct trigger" and
+     * also falls back to {@code attackId}. {@link Trident} extends {@link AbstractArrow}, so it is tested
+     * first.
+     */
+    static int attackTrigger(Entity rawDamager, int attackId, int bowId, int tridentId) {
+        if (rawDamager instanceof Trident && tridentId >= 0) {
+            return tridentId;
+        }
+        if (rawDamager instanceof AbstractArrow && bowId >= 0) {
+            return bowId;
+        }
+        return attackId;
     }
 }

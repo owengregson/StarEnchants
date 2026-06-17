@@ -167,7 +167,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             getLogger().info("economy provider active");
         }
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
-                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::get,
+                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
+                triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
                 soulService::bindingFor, economy);
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
