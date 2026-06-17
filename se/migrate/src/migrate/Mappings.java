@@ -151,8 +151,205 @@ public final class Mappings {
         }
     }
 
+    // ── AdvancedEnchantments (AE) ─────────────────────────────────────────────────────────────────
+    // AE differs from EE: its `type` vocabulary is larger, `applies` uses ALL_<TYPE> material groups,
+    // and effects are "HEAD:args %target%" / "HEAD:args @Selector{…}" (a SPACE-separated target, not a
+    // trailing :TARGET). We map the confident overlap and TODO the rest (AE's rich effect/selector DSL).
+
+    /**
+     * AE enchant {@code type} segment → StarEnchants trigger (mapped only to triggers that exist in
+     * {@code BuiltinTriggers}; unknown → absent). AE folds player/mob/projectile variants into one
+     * enchant ({@code ATTACK}, {@code ATTACK_MOB}, …); they collapse to the same StarEnchants trigger.
+     */
+    private static final Map<String, String> AE_TRIGGERS = Map.ofEntries(
+            Map.entry("ATTACK", "ATTACK"),
+            Map.entry("ATTACK_MOB", "ATTACK"),
+            Map.entry("DEFENSE", "DEFENSE"),
+            Map.entry("DEFENSE_MOB", "DEFENSE"),
+            Map.entry("DEFENSE_PROJECTILE", "DEFENSE"),
+            Map.entry("KILL", "KILL"),
+            Map.entry("KILL_PLAYER", "KILL"),
+            Map.entry("KILL_MOB", "KILL"),
+            Map.entry("MINING", "MINE"),
+            Map.entry("MINE", "MINE"),
+            Map.entry("BREAK_BLOCK", "MINE"),
+            Map.entry("SHOOT", "BOW"),
+            Map.entry("SHOOT_MOB", "BOW"),
+            Map.entry("SHOOT_BOW", "BOW"),
+            Map.entry("BOW", "BOW"),
+            Map.entry("ARROW_HIT", "BOW"),
+            Map.entry("DEATH", "DEATH"),
+            Map.entry("PASSIVE_DEATH", "DEATH"),
+            Map.entry("EFFECT_STATIC", "PASSIVE"),
+            Map.entry("STATIC", "PASSIVE"),
+            Map.entry("PASSIVE", "PASSIVE"),
+            Map.entry("BITE_HOOK", "FISHING"),
+            Map.entry("HOOK_ENTITY", "FISHING"),
+            Map.entry("CATCH_FISH", "FISHING"),
+            Map.entry("FISHING", "FISHING"),
+            Map.entry("FALL_DAMAGE", "FALL"),
+            Map.entry("FALL", "FALL"),
+            Map.entry("EAT", "EAT"),
+            Map.entry("RIGHT_CLICK", "INTERACT_RIGHT"),
+            Map.entry("LEFT_CLICK", "INTERACT_LEFT"),
+            Map.entry("INTERACT", "INTERACT"),
+            Map.entry("HELD", "HELD"));
+
+    /**
+     * Map an AE enchant type to a StarEnchants trigger, or {@code null} if none of its segments has a v1
+     * equivalent. AE types can be compound ({@code "ATTACK;ATTACK_MOB;SHOOT"}); we take the first
+     * recognised segment (StarEnchants fires one trigger per ability — the operator adds the rest).
+     */
+    public static String aeTrigger(String legacyType) {
+        if (legacyType == null) {
+            return null;
+        }
+        for (String segment : legacyType.split(";")) {
+            String mapped = AE_TRIGGERS.get(segment.trim().toUpperCase(java.util.Locale.ROOT));
+            if (mapped != null) {
+                return mapped;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Map AE {@code applies} material tokens to StarEnchants {@code applies-to} groups. AE uses
+     * {@code ALL_<TYPE>} (e.g. {@code ALL_SWORD}, {@code ALL_HOE}, {@code ALL_ARMOR}); we translate the
+     * group forms we recognise and drop the rest (the writer flags an empty applies-to for review).
+     */
+    public static List<String> aeAppliesTo(List<String> applies) {
+        java.util.LinkedHashSet<String> out = new java.util.LinkedHashSet<>();
+        for (String raw : applies) {
+            String token = raw == null ? "" : raw.trim().toUpperCase(java.util.Locale.ROOT);
+            String group = token.startsWith("ALL_") ? token.substring(4) : token;
+            switch (group) {
+                case "SWORD", "SWORDS" -> out.add("SWORD");
+                case "AXE", "AXES" -> out.add("AXE");
+                case "PICKAXE", "PICKAXES" -> out.add("PICKAXE");
+                case "HOE", "HOES", "SHOVEL", "SPADE", "TOOL", "TOOLS" -> out.add("TOOL");
+                case "BOW", "BOWS" -> out.add("BOW");
+                case "HELMET", "HELMETS" -> out.add("HELMET");
+                case "CHESTPLATE", "CHESTPLATES" -> out.add("CHESTPLATE");
+                case "LEGGINGS" -> out.add("LEGGINGS");
+                case "BOOTS" -> out.add("BOOTS");
+                case "ARMOR", "ARMOUR" -> {
+                    out.add("HELMET");
+                    out.add("CHESTPLATE");
+                    out.add("LEGGINGS");
+                    out.add("BOOTS");
+                }
+                case "WEAPON", "WEAPONS" -> out.add("WEAPON");
+                default -> { /* an unrecognised/material-specific token — left for manual review */ }
+            }
+        }
+        return List.copyOf(out);
+    }
+
+    /**
+     * Translate one AE effect token to a {@link MigratedEffect}. AE writes the target as a trailing
+     * space-separated {@code %victim%}/{@code %attacker%}/{@code %player%} (or an {@code @Selector{…}});
+     * we peel it, convert it to a StarEnchants {@code @Selector}, and translate the confident effect
+     * overlap ({@code DAMAGE}, {@code ADD_HEALTH}/{@code HEAL}, {@code POTION}, {@code MESSAGE},
+     * {@code ACTIONBAR}, money) faithfully. Everything else (and any non-trivial AE selector) is a TODO.
+     */
+    public static MigratedEffect aeEffect(String legacyToken) {
+        String token = legacyToken == null ? "" : legacyToken.trim();
+        String body = token;
+        String aeTarget = null;
+        // AE's modern form is "HEAD:args @Selector"; peel a trailing SPACE-separated selector, but only
+        // when the tail is genuinely a selector ('%word%' or '@Word' / '@Word{…}') — never a fragment of
+        // an inline tag like '%allow%</condition>'.
+        int sp = token.lastIndexOf(' ');
+        if (sp >= 0) {
+            String tail = token.substring(sp + 1).trim();
+            if (tail.matches("%\\w+%") || tail.matches("@\\w+(\\{[^}]*})?")) {
+                aeTarget = tail;
+                body = token.substring(0, sp).trim();
+            }
+        }
+        // Also accept a colon-attached trailing selector ("HEAD:arg:@Victim") — peel its last segment.
+        if (aeTarget == null) {
+            int lastColon = body.lastIndexOf(':');
+            if (lastColon >= 0 && body.startsWith("@", lastColon + 1)) {
+                aeTarget = body.substring(lastColon + 1).trim();
+                body = body.substring(0, lastColon).trim();
+            }
+        }
+        String selector = aeSelector(aeTarget);
+        if (aeTarget != null && selector == null) {
+            return MigratedEffect.todo(token,
+                    "AE selector '" + aeTarget + "' has no v1 equivalent — port the target by hand");
+        }
+        String suffix = selector == null ? "" : ":" + selector;
+
+        String[] parts = body.split(":");
+        String head = parts.length == 0 ? "" : parts[0].trim().toUpperCase(java.util.Locale.ROOT);
+        try {
+            return switch (head) {
+                case "DAMAGE" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "DAMAGE:" + intArg(parts[1]) + suffix, "")
+                        : MigratedEffect.todo(token, "unexpected DAMAGE arg shape");
+                case "ADD_HEALTH", "HEAL" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "HEAL:" + intArg(parts[1]) + suffix, "AE add-health → HEAL")
+                        : MigratedEffect.todo(token, "unexpected heal arg shape");
+                case "POTION" -> parts.length >= 4
+                        ? MigratedEffect.mapped(token, "POTION:" + parts[1].trim() + ":" + intArg(parts[2])
+                                + ":" + intArg(parts[3]) + suffix, "")
+                        : MigratedEffect.todo(token, "unexpected POTION arg shape (effect:amplifier:duration)");
+                case "MESSAGE" -> {
+                    String msg = body.substring(body.indexOf(':') + 1);
+                    yield msg.indexOf(':') >= 0
+                            ? MigratedEffect.todo(token, "message body contains ':' which the parser splits on — port manually")
+                            : MigratedEffect.mapped(token, "MESSAGE:" + msg, "AE target dropped — messages the actor");
+                }
+                case "ACTIONBAR" -> {
+                    String msg = body.substring(body.indexOf(':') + 1);
+                    yield msg.indexOf(':') >= 0
+                            ? MigratedEffect.todo(token, "actionbar body contains ':' — port manually")
+                            : MigratedEffect.mapped(token, "ACTIONBAR:" + msg, "AE target dropped — actionbars the actor");
+                }
+                case "ADD_MONEY", "GIVE_MONEY" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "GIVE_MONEY:" + numArg(parts[1]) + suffix, "AE add-money → GIVE_MONEY")
+                        : MigratedEffect.todo(token, "unexpected money arg shape");
+                case "REMOVE_MONEY", "TAKE_MONEY" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "TAKE_MONEY:" + numArg(parts[1]) + suffix, "AE remove-money → TAKE_MONEY")
+                        : MigratedEffect.todo(token, "unexpected money arg shape");
+                default -> MigratedEffect.todo(token,
+                        "no verified StarEnchants equivalent for AE effect '" + head + "' — port this effect manually");
+            };
+        } catch (NumberFormatException badNumber) {
+            return MigratedEffect.todo(token, "could not parse a numeric argument: " + badNumber.getMessage());
+        }
+    }
+
+    /**
+     * Convert an AE target token to a StarEnchants selector, or {@code null} for an unmappable one. AE
+     * targets the foe with a capital-{@code @} selector ({@code @Victim}/{@code @Attacker}/{@code @Self})
+     * in modern configs (and {@code %victim%} in legacy ones); both forms map 1:1. AE's area/mining
+     * selectors with args ({@code @Aoe{…}}, {@code @Tunnel{…}}, {@code @Block}, …) have different
+     * semantics and are NOT auto-mapped — the operator ports the target by hand.
+     */
+    private static String aeSelector(String aeTarget) {
+        if (aeTarget == null) {
+            return null; // no explicit target → the effect keeps its StarEnchants default
+        }
+        return switch (aeTarget.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "@victim", "%victim%", "%target%" -> "@Victim";
+            case "@attacker", "%attacker%" -> "@Attacker";
+            case "@self", "%player%", "%self%" -> "@Self";
+            default -> null; // an AE @Selector{…} with args / a mining selector / unknown placeholder
+        };
+    }
+
     private static int intArg(String s) {
         return Integer.parseInt(s.trim());
+    }
+
+    /** Validate a numeric arg (large money values + decimals, beyond int range) and return it verbatim. */
+    private static String numArg(String s) {
+        Double.parseDouble(s.trim()); // validate only — throws NumberFormatException → caught as a TODO
+        return s.trim();
     }
 
     /**

@@ -3,23 +3,27 @@ package migrate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import migrate.model.MigratedEffect;
 import migrate.model.MigratedEnchant;
 import migrate.model.MigratedLevel;
 import migrate.model.MigratedSet;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
+import schema.spec.ParamSpec;
 
 /**
- * The EE/EA importer entry point (docs/architecture.md §10). Reads a legacy plugin's configs, maps them
- * to the unified vocabulary, and produces StarEnchants YAML keyed by output path — plus a
- * {@link Diagnostics} log of everything that needs manual attention (an unmapped trigger/applies, an
- * effect with no equivalent). The migration NEVER fails on an unmappable construct: it migrates the
- * structure and flags the gaps as warnings, so the operator gets a reviewable, mostly-complete tree.
+ * The legacy-plugin importer entry point (docs/architecture.md §10). Reads a legacy plugin's configs,
+ * maps them to the unified vocabulary, and produces StarEnchants content-format-v2 YAML keyed by output
+ * path — plus a {@link Diagnostics} log of everything that needs manual attention (an unmapped
+ * trigger/applies, an effect with no equivalent). The migration NEVER fails on an unmappable construct:
+ * it migrates the structure and flags the gaps as warnings, so the operator gets a reviewable,
+ * mostly-complete tree.
  *
- * <p>v1 ships the EliteEnchantments and EliteArmor readers (the two plugins StarEnchants merges); the
- * model + {@link Mappings} + {@link SchemaWriter} are reader-agnostic, so an AdvancedEnchantments reader
- * is a single additional source class.
+ * <p>Readers: EliteEnchantments, EliteArmor, and AdvancedEnchantments. Each entry point has an overload
+ * taking an effect-spec lookup ({@code specs}: head → {@link ParamSpec}); when supplied, effects are
+ * written in the v2 <strong>verbose</strong> form so migrated configs are stored in the unified v2
+ * format (ADR-0016). Without it, effects fall back to the terse string (still valid v2).
  */
 public final class Migrator {
 
@@ -56,12 +60,56 @@ public final class Migrator {
     private Migrator() {
     }
 
-    /** Migrate an EliteEnchantments {@code enchantments.yml} into one {@code enchants/<id>.yml} per enchant. */
+    /** Migrate EliteEnchantments {@code enchantments.yml} into {@code enchants/<id>.yml} (terse effects). */
     public static Result eliteEnchantments(String enchantmentsYaml) {
+        return eliteEnchantments(enchantmentsYaml, null);
+    }
+
+    /** Migrate EliteEnchantments {@code enchantments.yml}; effects verbose when {@code specs} is supplied. */
+    public static Result eliteEnchantments(String enchantmentsYaml, Function<String, ParamSpec> specs) {
+        return migrateEnchants(EliteEnchantmentsReader.read(enchantmentsYaml), "EliteEnchantments",
+                "EliteEnchantments/enchantments.yml#", specs);
+    }
+
+    /** Migrate an AdvancedEnchantments {@code enchantments.yml} into {@code enchants/<id>.yml} (terse). */
+    public static Result advancedEnchantments(String enchantmentsYaml) {
+        return advancedEnchantments(enchantmentsYaml, null);
+    }
+
+    /** Migrate AdvancedEnchantments {@code enchantments.yml}; effects verbose when {@code specs} is supplied. */
+    public static Result advancedEnchantments(String enchantmentsYaml, Function<String, ParamSpec> specs) {
+        return migrateEnchants(AdvancedEnchantmentsReader.read(enchantmentsYaml), "AdvancedEnchantments",
+                "AdvancedEnchantments/enchantments.yml#", specs);
+    }
+
+    /** Migrate one EliteArmor set file into a {@code sets/<id>.yml} (terse effects). */
+    public static Result eliteArmorSet(String id, String setYaml) {
+        return eliteArmorSet(id, setYaml, null);
+    }
+
+    /** Migrate one EliteArmor set file; effects verbose when {@code specs} is supplied. */
+    public static Result eliteArmorSet(String id, String setYaml, Function<String, ParamSpec> specs) {
         Map<String, String> files = new LinkedHashMap<>();
         Diagnostics diagnostics = new Diagnostics();
-        for (MigratedEnchant enchant : EliteEnchantmentsReader.read(enchantmentsYaml)) {
-            Source source = Source.ofFile("EliteEnchantments/enchantments.yml#" + enchant.id());
+        Source source = Source.ofFile("EliteArmor/" + id + ".yml");
+        if (!SAFE_ID.matcher(id).matches()) {
+            diagnostics.warning("migrate.id", "skipped set with unsafe id '" + id
+                    + "' (only letters/digits/_/- allowed)", source);
+            return new Result(files, diagnostics);
+        }
+        MigratedSet set = EliteArmorReader.read(id, setYaml);
+        warnUnmappedEffects(set.id(), set.effects(), diagnostics, source);
+        files.put("sets/" + set.id() + ".yml", SchemaWriter.set(set, specs));
+        return new Result(files, diagnostics);
+    }
+
+    /** The shared enchant migration: id-safety + structural warnings + per-enchant YAML, for any reader. */
+    private static Result migrateEnchants(List<MigratedEnchant> enchants, String origin, String sourcePrefix,
+                                          Function<String, ParamSpec> specs) {
+        Map<String, String> files = new LinkedHashMap<>();
+        Diagnostics diagnostics = new Diagnostics();
+        for (MigratedEnchant enchant : enchants) {
+            Source source = Source.ofFile(sourcePrefix + enchant.id());
             if (!SAFE_ID.matcher(enchant.id()).matches()) {
                 diagnostics.warning("migrate.id", "skipped enchant with unsafe id '" + enchant.id()
                         + "' (only letters/digits/_/- allowed)", source);
@@ -76,24 +124,8 @@ public final class Migrator {
                         + enchant.legacyApplies() + "' was not recognised — set applies-to manually", source);
             }
             warnUnmappedEffects(enchant.id(), enchantLevelsEffects(enchant), diagnostics, source);
-            files.put("enchants/" + enchant.id() + ".yml", SchemaWriter.enchant(enchant));
+            files.put("enchants/" + enchant.id() + ".yml", SchemaWriter.enchant(enchant, origin, specs));
         }
-        return new Result(files, diagnostics);
-    }
-
-    /** Migrate one EliteArmor set file into a {@code sets/<id>.yml}. */
-    public static Result eliteArmorSet(String id, String setYaml) {
-        Map<String, String> files = new LinkedHashMap<>();
-        Diagnostics diagnostics = new Diagnostics();
-        Source source = Source.ofFile("EliteArmor/" + id + ".yml");
-        if (!SAFE_ID.matcher(id).matches()) {
-            diagnostics.warning("migrate.id", "skipped set with unsafe id '" + id
-                    + "' (only letters/digits/_/- allowed)", source);
-            return new Result(files, diagnostics);
-        }
-        MigratedSet set = EliteArmorReader.read(id, setYaml);
-        warnUnmappedEffects(set.id(), set.effects(), diagnostics, source);
-        files.put("sets/" + set.id() + ".yml", SchemaWriter.set(set));
         return new Result(files, diagnostics);
     }
 

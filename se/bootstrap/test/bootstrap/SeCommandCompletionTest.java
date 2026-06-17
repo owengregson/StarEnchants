@@ -38,7 +38,7 @@ class SeCommandCompletionTest {
 
     @Test
     void migrateAndReloadHaveFixedFirstArgumentCompletions() {
-        assertEquals(List.of("ee", "ea"), SeCommand.complete(new String[] {"migrate", ""}, ENCHANTS, CRYSTALS));
+        assertEquals(List.of("ee", "ea", "ae"), SeCommand.complete(new String[] {"migrate", ""}, ENCHANTS, CRYSTALS));
         assertEquals(List.of("--dry-run"), SeCommand.complete(new String[] {"reload", "--"}, ENCHANTS, CRYSTALS));
     }
 
