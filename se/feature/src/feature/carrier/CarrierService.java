@@ -25,8 +25,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  * live {@link ItemDef} (looked up each apply, so a reload is honoured) — never decoded on the combat hot
  * path. The apply roll is the only non-determinism, injected as a {@link Random} for testability.
  *
- * <p>Dust (success-bonus combining) is a documented follow-up; an unsupported carrier kind is a no-op
- * with a message, never a silent loss.
+ * <p>Dust (success-bonus combining, ADR-0019) is the one carrier→carrier interaction: dragging a dust
+ * onto a content book raises that book's stored {@code successBonus} (clamped so its effective success
+ * can never exceed 100%), so a later book→gear apply rolls against {@code clamp(success-chance + bonus)}.
+ * Any genuinely unsupported carrier kind remains a no-op with a message, never a silent loss.
  */
 public final class CarrierService {
 
@@ -46,21 +48,17 @@ public final class CarrierService {
     @SuppressWarnings("deprecation") // setDisplayName/setLore(String/List): the floor-stable item-meta path
     public ItemStack mint(ItemDef def) {
         ItemStack stack = new ItemStack(material(def.material()));
+        CarrierData data = new CarrierData(def.key(), grantKeyOf(def), grantLevelOf(def));
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', def.display()));
-            List<String> lore = new ArrayList<>();
-            if (!def.description().isBlank()) {
-                for (String line : def.description().split("\n")) {
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&7" + line));
-                }
-            }
+            meta.setDisplayName(color(def.display()));
+            List<String> lore = renderLore(def, data);
             if (!lore.isEmpty()) {
                 meta.setLore(lore);
             }
             stack.setItemMeta(meta);
         }
-        codec.write(stack, new CarrierData(def.key(), grantKeyOf(def), grantLevelOf(def)));
+        codec.write(stack, data);
         return stack;
     }
 
@@ -86,6 +84,10 @@ public final class CarrierService {
         // (always succeeds, never destroys). The grant itself always comes from the carrier's PDC.
         ItemDef def = itemDef(data.itemKey());
 
+        // Dust combines onto a book — the one carrier-onto-carrier interaction (ADR-0019).
+        if (def != null && isDust(def)) {
+            return applyDust(carrier, target, def);
+        }
         if (def != null && isProtectScroll(def)) {
             if (codec.isGuarded(target)) {
                 return CarrierResult.noop("§7That item is already protected.");
@@ -107,7 +109,8 @@ public final class CarrierService {
             return CarrierResult.noop(check.message()); // ineligible target → don't waste the carrier
         }
 
-        int successChance = def != null ? clampPercent(def.apply().successChance()) : 100;
+        int base = def != null ? clampPercent(def.apply().successChance()) : 100;
+        int successChance = effectiveSuccess(base, data.successBonus()); // dust-accumulated bonus (ADR-0019)
         boolean destroyOnFail = def != null && def.apply().destroyOnFail();
         consume(carrier); // a use is spent whether the roll succeeds or fails
         if (random.nextInt(100) < successChance) {
@@ -147,6 +150,127 @@ public final class CarrierService {
         // itemKey "book" resolves to no ItemDef → applyTo uses default mechanics.
         codec.write(stack, new CarrierData("book", enchantKey, level));
         return stack;
+    }
+
+    /**
+     * Whether {@code cursor} is a dust that would LEGALLY combine onto {@code target} — i.e. the cursor is
+     * a bonus-carrying dust and the target is a content-granting book/tome/gem. The interaction layer
+     * claims the otherwise-forbidden carrier-onto-carrier gesture only when this holds (ADR-0019), so a
+     * dust dropped onto a scroll / another dust / a non-content carrier falls through to the vanilla click
+     * instead of becoming a dead, cancelled no-op.
+     */
+    public boolean canCombineDust(ItemStack cursor, ItemStack target) {
+        CarrierData cursorData = codec.read(cursor);
+        if (cursorData == null) {
+            return false;
+        }
+        ItemDef cursorDef = itemDef(cursorData.itemKey());
+        if (cursorDef == null || !isDust(cursorDef) || dustBonus(cursorDef) <= 0) {
+            return false;
+        }
+        CarrierData targetData = codec.read(target);
+        if (targetData == null || !targetData.grants()) {
+            return false;
+        }
+        return isContentCarrier(itemDef(targetData.itemKey()));
+    }
+
+    /**
+     * Combine the {@code dust} onto a {@code book} — the one carrier-onto-carrier interaction (ADR-0019).
+     * Raises the book's stored success bonus by the dust's {@code grants.success-bonus}, clamped so the
+     * book's effective success can never exceed 100%, re-renders the book's lore from state, and consumes
+     * the dust. A no-op (target not a content book, dust confers nothing, or the book is already at 100%)
+     * leaves both stacks untouched.
+     */
+    private CarrierResult applyDust(ItemStack dust, ItemStack book, ItemDef dustDef) {
+        CarrierData bookData = codec.read(book);
+        ItemDef bookDef = bookData == null ? null : itemDef(bookData.itemKey());
+        // A dust only boosts a content-granting book/tome/gem — never another dust, a scroll, or plain gear.
+        if (bookData == null || !bookData.grants() || !isContentCarrier(bookDef)) {
+            return CarrierResult.noop("§cDust can only boost an enchant book.");
+        }
+        int base = bookDef != null ? clampPercent(bookDef.apply().successChance()) : 100;
+        if (effectiveSuccess(base, bookData.successBonus()) >= 100) {
+            return CarrierResult.noop("§7That book is already at 100% success.");
+        }
+        int bonus = dustBonus(dustDef);
+        if (bonus <= 0) {
+            return CarrierResult.noop("§cThis dust confers no success bonus.");
+        }
+        int newBonus = Math.max(0, Math.min(bookData.successBonus() + bonus, 100 - base)); // base + bonus ≤ 100
+        CarrierData updated = bookData.withSuccessBonus(newBonus);
+        codec.write(book, updated);
+        if (bookDef != null) {
+            reRenderLore(book, bookDef, updated);
+        }
+        consume(dust);
+        return CarrierResult.consumed("§aThe book's success chance is now §f"
+                + effectiveSuccess(base, newBonus) + "%§a.");
+    }
+
+    /** Re-render a carrier's lore from its def + current state (lore is rendered from state, never parsed). */
+    @SuppressWarnings("deprecation") // setLore(List): the floor-stable item-meta path
+    private void reRenderLore(ItemStack stack, ItemDef def, CarrierData data) {
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+        List<String> lore = renderLore(def, data);
+        meta.setLore(lore.isEmpty() ? null : lore);
+        stack.setItemMeta(meta);
+    }
+
+    /**
+     * Build a carrier's lore deterministically from its def + on-item state — never parsed back. A dust
+     * advertises the success bonus it confers; a content book/tome/gem shows its current effective success
+     * chance (so combining a dust has a visible effect).
+     */
+    private List<String> renderLore(ItemDef def, CarrierData data) {
+        List<String> lore = new ArrayList<>();
+        if (def != null && !def.description().isBlank()) {
+            for (String line : def.description().split("\n")) {
+                lore.add(color("&7" + line));
+            }
+        }
+        if (def != null && isDust(def)) {
+            lore.add(color("&7Combine onto an enchant book: &a+" + dustBonus(def) + "%&7 success."));
+        } else if (data.grants() && isContentCarrier(def)) {
+            int base = def != null ? clampPercent(def.apply().successChance()) : 100;
+            lore.add(color("&7Success chance: &f" + effectiveSuccess(base, data.successBonus()) + "%"));
+        }
+        return lore;
+    }
+
+    /** Whether {@code def} is a success-bonus dust (ADR-0019). */
+    static boolean isDust(ItemDef def) {
+        return "dust".equals(def.kind());
+    }
+
+    /** Whether {@code def} confers content (book/tome/gem) — the only carriers a dust can boost. A null def
+     * is an ad-hoc {@code /se book}, which is content-granting by construction. */
+    private static boolean isContentCarrier(ItemDef def) {
+        if (def == null) {
+            return true;
+        }
+        return switch (def.kind() == null ? "" : def.kind()) {
+            case "book", "tome", "gem" -> true;
+            default -> false;
+        };
+    }
+
+    /** The success-chance bonus a dust confers, or 0 if it carries none. */
+    private static int dustBonus(ItemDef def) {
+        ItemDef.Grant g = def.grant();
+        return g == null || g.successBonus() == null ? 0 : Math.max(0, g.successBonus());
+    }
+
+    /** A base success chance plus an accumulated bonus, clamped to {@code [0, 100]}. */
+    private static int effectiveSuccess(int base, int bonus) {
+        return Math.max(0, Math.min(100, base + Math.max(0, bonus)));
+    }
+
+    private static String color(String raw) {
+        return ChatColor.translateAlternateColorCodes('&', raw);
     }
 
     /** Whether {@code def} is a protect scroll (stamps the guard marker rather than granting content). */
