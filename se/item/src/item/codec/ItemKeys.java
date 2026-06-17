@@ -14,15 +14,20 @@ public final class ItemKeys {
 
     private final NamespacedKey combat;
     private final NamespacedKey soul;
+    private final NamespacedKey carrier;
+    private final NamespacedKey guarded;
 
-    private ItemKeys(NamespacedKey combat, NamespacedKey soul) {
+    private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded) {
         this.combat = combat;
         this.soul = soul;
+        this.carrier = carrier;
+        this.guarded = guarded;
     }
 
     /** Build the key set under {@code plugin}'s namespace. */
     public static ItemKeys of(Plugin plugin) {
-        return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"));
+        return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
+                new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"));
     }
 
     /** The single key the combat-state blob is stored under (§5.1). */
@@ -37,5 +42,22 @@ public final class ItemKeys {
      */
     public NamespacedKey soul() {
         return soul;
+    }
+
+    /**
+     * The key that marks an item as an identity/economy CARRIER (a book/scroll/dust/gem that applies an
+     * enchant to OTHER gear) — separate from {@link #combat()} so a carrier never decodes on the combat
+     * hot path (ADR-0016; item-data-model "two records: combat vs identity").
+     */
+    public NamespacedKey carrier() {
+        return carrier;
+    }
+
+    /**
+     * The key that flags GEAR as protected by a guard scroll — consumed on a failed carrier apply to
+     * spare the item from destruction (the white-scroll economy). Separate from the combat blob.
+     */
+    public NamespacedKey guarded() {
+        return guarded;
     }
 }

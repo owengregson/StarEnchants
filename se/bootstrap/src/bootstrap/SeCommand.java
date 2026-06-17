@@ -42,7 +42,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
-            List.of("reload", "enchant", "crystal", "gem", "soulmode", "migrate", "menu");
+            List.of("reload", "enchant", "crystal", "gem", "book", "soulmode", "migrate", "menu");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -52,10 +52,12 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final EnchantMenu menu;
     private final ContentHolder content;
     private final java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs;
+    private final feature.carrier.CarrierService carriers;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, EnchantMenu menu, ContentHolder content,
-              java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs) {
+              java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
+              feature.carrier.CarrierService carriers) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -64,6 +66,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.menu = menu;
         this.content = content;
         this.migrateSpecs = migrateSpecs;
+        this.carriers = carriers;
     }
 
     @Override
@@ -77,6 +80,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "enchant" -> applyHeld(sender, args, false);
             case "crystal" -> applyHeld(sender, args, true);
             case "gem" -> stampGem(sender);
+            case "book" -> giveBook(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "migrate" -> migrate(sender, args);
             case "menu" -> openMenu(sender);
@@ -103,7 +107,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2) {
             return switch (args[0].toLowerCase(Locale.ROOT)) {
-                case "enchant" -> filter(enchantKeys, args[1]);
+                case "enchant", "book" -> filter(enchantKeys, args[1]);
                 case "crystal" -> filter(crystalKeys, args[1]);
                 case "migrate" -> filter(List.of("ee", "ea", "ae"), args[1]);
                 case "reload" -> filter(List.of("--dry-run"), args[1]);
@@ -266,6 +270,46 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 refreshWorn.accept(player);
             }
             player.sendMessage(result.message());
+        });
+    }
+
+    /** {@code /se book <enchant> [level]} — mint an enchant book carrier and give it to the sender. */
+    private void giveBook(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§eUsage: /se book <enchant> [level] §7— a book you drag onto gear to apply it");
+            return;
+        }
+        String key = normalize(args[1], "enchants/");
+        EnchantDef def = content.library().catalog().stream()
+                .filter(d -> d.key().equals(key)).findFirst().orElse(null);
+        if (def == null) {
+            player.sendMessage("§cNo such enchant: §f" + key);
+            return;
+        }
+        int level = 1;
+        if (args.length >= 3) {
+            try {
+                level = Integer.parseInt(args[2]);
+            } catch (NumberFormatException bad) {
+                sender.sendMessage("§cLevel must be a number, got §f" + args[2]);
+                return;
+            }
+        }
+        if (level < 1 || level > def.maxLevel()) {
+            player.sendMessage("§cLevel must be 1–" + def.maxLevel() + " for §f" + key);
+            return;
+        }
+        int bookLevel = level;
+        Scheduling.onEntity(player, () -> {
+            org.bukkit.inventory.ItemStack book = carriers.mintBook(key, bookLevel);
+            // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
+            player.getInventory().addItem(book).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage("§aMinted an enchant book for §f" + key + " §7(level " + bookLevel + ")§a.");
         });
     }
 
