@@ -31,9 +31,10 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class ScrollService {
 
-    /** Scroll kinds handled by this service (the book-economy scrolls). */
+    /** Scroll kinds handled by this service (drag-onto-target scrolls). */
     public static final String BLACK = "BLACK";
     public static final String RANDOMIZER = "RANDOMIZER";
+    public static final String TRANSMOG = "TRANSMOG";
 
     private final ScrollCodec scrolls;
     private final CombatCodec combat;
@@ -54,10 +55,10 @@ public final class ScrollService {
         this.random = Objects.requireNonNull(random, "random");
     }
 
-    /** Whether {@code stack} is a scroll handled by this service (black / randomizer). */
+    /** Whether {@code stack} is a drag-onto-target scroll handled by this service (black / randomizer / transmog). */
     public boolean isScroll(ItemStack stack) {
         String kind = scrolls.kind(stack);
-        return BLACK.equals(kind) || RANDOMIZER.equals(kind);
+        return BLACK.equals(kind) || RANDOMIZER.equals(kind) || TRANSMOG.equals(kind);
     }
 
     /** Mint a black scroll (extract one enchant from gear into a book). */
@@ -78,6 +79,15 @@ public final class ScrollService {
         return stack;
     }
 
+    /** Mint a transmog scroll (reorder an item's enchant lore + append a name suffix). */
+    public ItemStack mintTransmog() {
+        ScrollsConfig.Transmog cfg = config.get().transmog();
+        ItemStack stack = ItemFactory.build(
+                ItemFactory.material(cfg.material(), Material.PURPLE_DYE), cfg.name(), cfg.lore());
+        scrolls.mark(stack, TRANSMOG);
+        return stack;
+    }
+
     /**
      * Handle a scroll-on-target gesture: dispatch by the cursor scroll's kind. A kind this service does not
      * handle leaves both stacks untouched (the listener falls through).
@@ -90,7 +100,59 @@ public final class ScrollService {
         if (RANDOMIZER.equals(kind)) {
             return applyRandomizer(cursor, target);
         }
+        if (TRANSMOG.equals(kind)) {
+            return applyTransmog(cursor, target);
+        }
         return ScrollResult.unchanged(null); // not a scroll this service owns (defensive)
+    }
+
+    /** Transmog scroll: reorder {@code gear}'s enchant display order and append the configured name suffix. */
+    @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
+    private ScrollResult applyTransmog(ItemStack cursor, ItemStack gear) {
+        ScrollsConfig.Transmog cfg = config.get().transmog();
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ScrollResult.unchanged("§cApply the transmog scroll onto enchanted gear.");
+        }
+        if (gear.getAmount() > 1) {
+            return ScrollResult.unchanged("§cApply to a single item — split the stack first.");
+        }
+        CombatState current = combat.read(gear);
+        if (current.enchants().isEmpty()) {
+            return ScrollResult.unchanged(color(cfg.messageNoEnchants()));
+        }
+        // Reorder the enchant display (cosmetic — combat behaviour is order-independent). One line per slot.
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(current.enchants().entrySet());
+        java.util.Collections.shuffle(entries, random);
+        Map<String, Integer> reordered = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> e : entries) {
+            reordered.put(e.getKey(), e.getValue());
+        }
+        CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
+                current.omni(), current.heroic(), current.added());
+        combat.write(gear, next);
+        lore.apply(gear, next); // re-render the enchant lore in the new order
+        appendNameSuffix(gear, cfg.nameSuffix()); // the applied-name suffix
+        consume(cursor);
+        return ScrollResult.committed(gear, null, color(cfg.messageSuccess()));
+    }
+
+    /** Append {@code suffix} to {@code gear}'s display name when it has one and is not already suffixed. */
+    @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
+    private static void appendNameSuffix(ItemStack gear, String suffix) {
+        String translated = ItemFactory.color(suffix);
+        if (translated.isEmpty()) {
+            return;
+        }
+        org.bukkit.inventory.meta.ItemMeta meta = gear.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) {
+            return; // no custom name to append to — leave the vanilla name untouched (cross-version-safe)
+        }
+        String name = meta.getDisplayName();
+        if (name.endsWith(translated)) {
+            return; // already transmogged — don't stack suffixes
+        }
+        meta.setDisplayName(name + translated);
+        gear.setItemMeta(meta);
     }
 
     /** Black scroll: extract one random enchant from {@code gear} into a book (success roll). */

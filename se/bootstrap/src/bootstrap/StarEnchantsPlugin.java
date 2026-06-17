@@ -34,6 +34,10 @@ import feature.heroic.HeroicService;
 import feature.book.UnopenedBookListener;
 import feature.book.UnopenedBookService;
 import feature.menu.EnchantMenu;
+import feature.scroll.HolyScrollListener;
+import feature.scroll.HolyScrollService;
+import feature.scroll.NametagListener;
+import feature.scroll.NametagService;
 import feature.scroll.ScrollListener;
 import feature.scroll.ScrollService;
 import feature.slot.SlotListener;
@@ -184,6 +188,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         UnopenedBookService unopenedBooks = new UnopenedBookService(unopenedCodec, carriers, content,
                 () -> items.config().unopenedBookOrDefault(), new java.util.Random());
 
+        // Survival + cosmetic scrolls (§I): holy scroll keeps items on a death (PlayerDeathEvent scan);
+        // item nametag renames gear via a chat-capture flow. Both share the 'scroll' PDC tag + scrolls config.
+        HolyScrollService holyScrolls = new HolyScrollService(scrollCodec,
+                () -> items.config().scrollsOrDefault(), new java.util.Random());
+        NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault());
+
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
@@ -239,6 +249,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SlotListener(slots), this);
         getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
         getServer().getPluginManager().registerEvents(new UnopenedBookListener(unopenedBooks), this);
+        getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls), this);
+        getServer().getPluginManager().registerEvents(new NametagListener(nametags), this);
         // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events.
         getServer().getPluginManager().registerEvents(
                 new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
@@ -268,7 +280,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menu, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
-                    scrolls, unopenedBooks);
+                    scrolls, unopenedBooks, holyScrolls, nametags);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }

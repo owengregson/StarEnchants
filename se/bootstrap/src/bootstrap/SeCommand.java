@@ -43,7 +43,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
             List.of("reload", "enchant", "crystal", "heroic", "orb", "slotgem", "gem", "book", "blackscroll",
-                    "randomizer", "unopened", "soulmode", "migrate", "menu");
+                    "randomizer", "transmog", "holy", "nametag", "unopened", "soulmode", "migrate", "menu");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -59,13 +59,16 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.slot.SlotService slots;
     private final feature.scroll.ScrollService scrolls;
     private final feature.book.UnopenedBookService unopenedBooks;
+    private final feature.scroll.HolyScrollService holyScrolls;
+    private final feature.scroll.NametagService nametags;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, EnchantMenu menu, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
               feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
-              feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks) {
+              feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
+              feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -80,6 +83,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.slots = slots;
         this.scrolls = scrolls;
         this.unopenedBooks = unopenedBooks;
+        this.holyScrolls = holyScrolls;
+        this.nametags = nametags;
     }
 
     @Override
@@ -99,6 +104,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "book" -> giveBook(sender, args);
             case "blackscroll" -> giveScroll(sender, true);
             case "randomizer" -> giveScroll(sender, false);
+            case "transmog" -> giveSimpleItem(sender, scrolls.mintTransmog(), "§5Minted a transmog scroll. §7Drag it onto enchanted gear.");
+            case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), "§fMinted a holy scroll. §7Carry it to survive a death once.");
+            case "nametag" -> giveSimpleItem(sender, nametags.mint(), "§bMinted an item nametag. §7Drag it onto gear, then type the new name.");
             case "unopened" -> giveUnopened(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "migrate" -> migrate(sender, args);
@@ -355,6 +363,19 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
+    /** Give a pre-minted item to the sender on their own thread (overflow drops at feet), with a message. */
+    private void giveSimpleItem(CommandSender sender, ItemStack item, String message) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            player.getInventory().addItem(item).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage(message);
+        });
+    }
+
     /** {@code /se blackscroll} / {@code /se randomizer} — mint a book-economy scroll and give it. */
     private void giveScroll(CommandSender sender, boolean black) {
         if (!(sender instanceof Player player)) {
@@ -449,6 +470,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se slotgem §7— mint a slot gem (drag onto gear for +1 slot)");
         sender.sendMessage("§e  /se blackscroll §7— mint a black scroll (extract an enchant into a book)");
         sender.sendMessage("§e  /se randomizer §7— mint a randomizer scroll (reroll a book's success)");
+        sender.sendMessage("§e  /se transmog §7— mint a transmog scroll (reorder enchant lore)");
+        sender.sendMessage("§e  /se holy §7— mint a holy scroll (survive a death once)");
+        sender.sendMessage("§e  /se nametag §7— mint an item nametag (rename gear via chat)");
         sender.sendMessage("§e  /se unopened <tier> §7— mint an unopened book (right-click to reveal)");
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");

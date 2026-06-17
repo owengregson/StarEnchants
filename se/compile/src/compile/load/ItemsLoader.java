@@ -118,8 +118,14 @@ public final class ItemsLoader {
         ScrollsConfig d = ScrollsConfig.defaults();
         YamlNode black = root.child("black");
         YamlNode rand = root.child("randomizer");
+        YamlNode trans = root.child("transmog");
+        YamlNode holy = root.child("holy");
+        YamlNode tag = root.child("nametag");
         ScrollsConfig.Black bd = d.black();
         ScrollsConfig.Randomizer rd = d.randomizer();
+        ScrollsConfig.Transmog td = d.transmog();
+        ScrollsConfig.Holy hd = d.holy();
+        ScrollsConfig.Nametag nd = d.nametag();
         return new ScrollsConfig(
                 new ScrollsConfig.Black(
                         orDefault(black.string("material"), bd.material()),
@@ -136,7 +142,29 @@ public final class ItemsLoader {
                         parseInt(rand.string("min-percent"), rd.minPercent(), root, diags),
                         parseInt(rand.string("max-percent"), rd.maxPercent(), root, diags),
                         orDefault(rand.string("message-success"), rd.messageSuccess()),
-                        orDefault(rand.string("message-not-book"), rd.messageNotBook())));
+                        orDefault(rand.string("message-not-book"), rd.messageNotBook())),
+                new ScrollsConfig.Transmog(
+                        orDefault(trans.string("material"), td.material()),
+                        orDefault(trans.string("name"), td.name()),
+                        trans.has("lore") ? trans.stringList("lore") : td.lore(),
+                        orDefault(trans.string("name-suffix"), td.nameSuffix()),
+                        orDefault(trans.string("message-success"), td.messageSuccess()),
+                        orDefault(trans.string("message-no-enchants"), td.messageNoEnchants())),
+                new ScrollsConfig.Holy(
+                        orDefault(holy.string("material"), hd.material()),
+                        orDefault(holy.string("name"), hd.name()),
+                        holy.has("lore") ? holy.stringList("lore") : hd.lore(),
+                        parseInt(holy.string("save-chance"), hd.saveChance(), root, diags),
+                        orDefault(holy.string("message-saved"), hd.messageSaved())),
+                new ScrollsConfig.Nametag(
+                        orDefault(tag.string("material"), nd.material()),
+                        orDefault(tag.string("name"), nd.name()),
+                        tag.has("lore") ? tag.stringList("lore") : nd.lore(),
+                        tag.has("blacklist") ? tag.stringList("blacklist") : nd.blacklist(),
+                        orDefault(tag.string("message-prompt"), nd.messagePrompt()),
+                        orDefault(tag.string("message-renamed"), nd.messageRenamed()),
+                        orDefault(tag.string("message-blacklisted"), nd.messageBlacklisted()),
+                        orDefault(tag.string("message-cancelled"), nd.messageCancelled())));
     }
 
     private static UnopenedBookConfig readUnopenedBook(YamlNode root, Diagnostics diags) {

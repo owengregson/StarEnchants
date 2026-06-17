@@ -7,20 +7,23 @@ import java.util.Objects;
  * The configurable likeness + mechanics of the SCROLL family (docs/v3-directives.md §I), loaded from the
  * top-level {@code items/scrolls.yml}. One file groups the scroll family (each a one-shot consumable whose
  * behaviour is decided by its kind) rather than a config-per-scroll, since they share the same item-data
- * marker ({@code ScrollCodec}) and gesture surface. Immutable; lives in the {@link ItemsConfig} snapshot
- * the runtime reads and {@code /se reload} swaps.
- *
- * <p>This wave carries the two book-economy scrolls; transmog / holy / nametag extend it later as further
- * nested sub-records.
+ * marker ({@code ScrollCodec}). Immutable; lives in the {@link ItemsConfig} snapshot the runtime reads and
+ * {@code /se reload} swaps.
  *
  * @param black      the black scroll (extract one enchant from gear into a book)
  * @param randomizer the randomizer scroll (reroll a book's success chance)
+ * @param transmog   the transmog scroll (reorder an item's enchant lore + name suffix)
+ * @param holy       the holy/death scroll (survive a death once)
+ * @param nametag    the item nametag (rename gear via chat)
  */
-public record ScrollsConfig(Black black, Randomizer randomizer) {
+public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmog, Holy holy, Nametag nametag) {
 
     public ScrollsConfig {
         Objects.requireNonNull(black, "black");
         Objects.requireNonNull(randomizer, "randomizer");
+        Objects.requireNonNull(transmog, "transmog");
+        Objects.requireNonNull(holy, "holy");
+        Objects.requireNonNull(nametag, "nametag");
     }
 
     /**
@@ -54,6 +57,51 @@ public record ScrollsConfig(Black black, Randomizer randomizer) {
         }
     }
 
+    /**
+     * The transmog scroll: dragged onto enchanted gear, it reorders the item's enchant lore (cosmetic — the
+     * combat behaviour is order-independent) and appends a configurable {@code nameSuffix} to the item name.
+     * Godly (manual) transmog is the reorder GUI (§K), a later wave.
+     */
+    public record Transmog(String material, String name, List<String> lore, String nameSuffix,
+                           String messageSuccess, String messageNoEnchants) {
+        public Transmog {
+            Objects.requireNonNull(material, "material");
+            Objects.requireNonNull(name, "name");
+            Objects.requireNonNull(nameSuffix, "nameSuffix");
+            lore = List.copyOf(lore);
+        }
+    }
+
+    /**
+     * The holy / death scroll: held in the inventory (incl. off-hand), on a death with a {@link #saveChance}
+     * roll it keeps the player's items + levels (consumed on the saved death). Respects an existing
+     * keepInventory gamerule (then it is neither needed nor spent).
+     */
+    public record Holy(String material, String name, List<String> lore, int saveChance, String messageSaved) {
+        public Holy {
+            Objects.requireNonNull(material, "material");
+            Objects.requireNonNull(name, "name");
+            lore = List.copyOf(lore);
+            saveChance = Math.max(0, Math.min(100, saveChance));
+        }
+    }
+
+    /**
+     * The item nametag: dragged onto gear, it prompts the player to type a new name in chat; the name is
+     * rejected if it contains a blacklisted word. {@code blacklist} entries are matched case-insensitively
+     * as substrings of the (colour-stripped) name.
+     */
+    public record Nametag(String material, String name, List<String> lore, List<String> blacklist,
+                          String messagePrompt, String messageRenamed, String messageBlacklisted,
+                          String messageCancelled) {
+        public Nametag {
+            Objects.requireNonNull(material, "material");
+            Objects.requireNonNull(name, "name");
+            lore = List.copyOf(lore);
+            blacklist = List.copyOf(blacklist);
+        }
+    }
+
     /** The built-in scroll likenesses used when {@code items/scrolls.yml} is absent or omits fields. */
     public static ScrollsConfig defaults() {
         return new ScrollsConfig(
@@ -72,6 +120,28 @@ public record ScrollsConfig(Black black, Randomizer randomizer) {
                         25,
                         100,
                         "&aThe book's success chance was rerolled to &f{PERCENT}%&a.",
-                        "&cThe randomizer only works on an enchant book."));
+                        "&cThe randomizer only works on an enchant book."),
+                new Transmog(
+                        "PURPLE_DYE",
+                        "&5Transmog Scroll",
+                        List.of("&7Drag onto enchanted gear to", "&7reorder its enchant display."),
+                        " &8(Transmogged)",
+                        "&aReordered the enchant display.",
+                        "&cThat item has no enchants to transmog."),
+                new Holy(
+                        "TOTEM_OF_UNDYING",
+                        "&fHoly Scroll",
+                        List.of("&7Keep your items if you die", "&7while carrying this (one use)."),
+                        100,
+                        "&fThe holy scroll shattered — your items were spared."),
+                new Nametag(
+                        "NAME_TAG",
+                        "&bItem Nametag",
+                        List.of("&7Drag onto gear, then type the", "&7new name in chat."),
+                        List.of(),
+                        "&7Type the new item name in chat (or 'cancel').",
+                        "&aRenamed your item.",
+                        "&cThat name contains a blacklisted word.",
+                        "&7Rename cancelled."));
     }
 }
