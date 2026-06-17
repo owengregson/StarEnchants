@@ -197,6 +197,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
+        // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events.
+        getServer().getPluginManager().registerEvents(
+                new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
 
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).

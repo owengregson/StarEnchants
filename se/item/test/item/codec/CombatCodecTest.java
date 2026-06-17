@@ -81,11 +81,11 @@ class CombatCodecTest {
 
     @Test
     void roundTripsHeroicStats() {
-        CombatState s = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(3.5, 2.0, 100.0));
+        CombatState s = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.35, 0.2, 0.5));
         CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(s));
-        assertEquals(3.5, back.heroic().flatDamage());
-        assertEquals(2.0, back.heroic().flatReduction());
-        assertEquals(100.0, back.heroic().durability());
+        assertEquals(0.35, back.heroic().percentDamage());
+        assertEquals(0.2, back.heroic().percentReduction());
+        assertEquals(0.5, back.heroic().durability());
         // A heroic-only item (no enchants/crystals/set) is NOT empty — it must persist.
         assertTrue(!new CombatState(Map.of(), List.of(), null, false, new HeroicStat(1, 0, 0)).isEmpty());
     }

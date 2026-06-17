@@ -112,17 +112,62 @@ class DamageFoldTest {
     }
 
     @Test
+    void heroicOutgoingIsAMultiplicativeStageOnTopOfTheFold() {
+        // folded = 10 × 1.2 = 12; heroic ×(1 + 0.5) = ×1.5 → 18 (multiplicative, NOT summed into the fold).
+        DamageFold f = new DamageFold();
+        f.addOutgoing(0.20);
+        f.addHeroicOutgoing(0.50);
+        assertEquals(18.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void heroicReductionMultipliesAfterTheFold() {
+        // folded = 10; heroic ×(1 − 0.25) = ×0.75 → 7.5
+        DamageFold f = new DamageFold();
+        f.addHeroicReduction(0.25);
+        assertEquals(7.5, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void heroicCompoundsRatherThanSums() {
+        // +100% outgoing in the fold = ×2 → 20; heroic +100% = ×2 again → 40 (compounds, the §F exception).
+        DamageFold f = new DamageFold();
+        f.addOutgoing(1.0);
+        f.addHeroicOutgoing(1.0);
+        assertEquals(40.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void heroicOutgoingIsBoundedAtQuadruple() {
+        // +500% heroic would be ×6, but the stage is clamped to ×4 → 40, not 60.
+        DamageFold f = new DamageFold();
+        f.addHeroicOutgoing(5.0);
+        assertEquals(40.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void heroicReductionBeyondHundredPercentClampsToZero() {
+        DamageFold f = new DamageFold();
+        f.addHeroicReduction(1.5);
+        assertEquals(0.0, f.apply(10.0), EPS);
+    }
+
+    @Test
     void resetClearsEveryBucket() {
         DamageFold f = new DamageFold();
         f.addFlatDamage(5.0);
         f.addFlatReduction(2.0);
         f.addOutgoing(0.5);
         f.addReduction(0.5);
+        f.addHeroicOutgoing(0.5);
+        f.addHeroicReduction(0.5);
         f.reset();
         assertEquals(10.0, f.apply(10.0), EPS);
         assertEquals(0.0, f.flatDamage(), EPS);
         assertEquals(0.0, f.flatReduction(), EPS);
         assertEquals(0.0, f.outgoingPercent(), EPS);
         assertEquals(0.0, f.reductionPercent(), EPS);
+        assertEquals(0.0, f.heroicOutgoing(), EPS);
+        assertEquals(0.0, f.heroicReduction(), EPS);
     }
 }

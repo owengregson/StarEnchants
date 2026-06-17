@@ -115,12 +115,12 @@ class WornResolverTest {
 
     @Test
     void heroicStatsSumAcrossPieces() {
-        CombatState a = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(2.0, 1.0, 0.0));
-        CombatState b = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(3.0, 4.0, 5.0));
+        CombatState a = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.20, 0.10, 0.0));
+        CombatState b = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.30, 0.40, 0.50));
         WornState worn = resolver().resolveFrom(List.of(a, b), KEYS, ABILITIES, 1);
-        assertEquals(5.0, worn.heroic().flatDamage());
-        assertEquals(5.0, worn.heroic().flatReduction());
-        assertEquals(5.0, worn.heroic().durability());
+        assertEquals(0.50, worn.heroic().percentDamage(), 1e-9);
+        assertEquals(0.50, worn.heroic().percentReduction(), 1e-9);
+        assertEquals(0.50, worn.heroic().durability(), 1e-9);
     }
 
     @Test

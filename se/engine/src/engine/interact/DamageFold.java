@@ -13,7 +13,12 @@ package engine.interact;
  * multiplicative compounding that was the catalog's worst combat bug cannot occur. The
  * full fold, with the flat terms made explicit:
  *
- * <pre>final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)</pre>
+ * <pre>folded = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)
+ *final  = max(0, folded × clamp(1 + Σ heroicOut%, 0, 4) × clamp(1 − Σ heroicRed%, 0, 1))</pre>
+ *
+ * <p>Heroic (§F, ADR-0021) is a DISTINCT bounded <em>multiplicative</em> stage layered on top of the
+ * additive fold — it compounds the folded result rather than summing into it, so heroic is the one
+ * deliberate exception to ADR-0012's no-compounding rule (and it is bounded, so it cannot run away).
  *
  * <p>The flat terms are placed for <em>predictability</em> (ADR-0012's goal): a flat
  * <em>damage</em> bonus (heroic offensive flat stat) is added to the attacker's output
@@ -33,10 +38,15 @@ package engine.interact;
  */
 public final class DamageFold {
 
+    /** The heroic multiplicative stage is bounded: it can at most QUADRUPLE outgoing damage (§F/ADR-0021). */
+    private static final double MAX_HEROIC_OUTGOING_FACTOR = 4.0;
+
     private double flatDamage;
     private double flatReduction;
     private double outgoingPercent;
     private double reductionPercent;
+    private double heroicOutgoing;
+    private double heroicReduction;
 
     /** Contribute an outgoing-damage bonus, e.g. {@code 0.25} for +25% (may be negative). */
     public void addOutgoing(double percent) {
@@ -60,17 +70,40 @@ public final class DamageFold {
     /**
      * Contribute a flat reduction subtracted from the final incoming damage (after the
      * reduction multiplier). Absorbs exactly the advertised amount regardless of percent
-     * context (heroic flat reduction, §6.1).
+     * context (a flat-reduction effect, §6.1).
      */
     public void addFlatReduction(double amount) {
         flatReduction += amount;
     }
 
-    /** Fold {@code base} with every accumulated contribution into the final damage (never negative). */
+    /**
+     * Contribute the attacker's heroic outgoing-damage percent (e.g. {@code 0.10} for +10%), applied
+     * as a distinct bounded MULTIPLICATIVE stage AFTER the additive fold (§F, ADR-0021). Distinct from
+     * {@link #addOutgoing} (which sums into the additive fold) — heroic compounds the folded result.
+     */
+    public void addHeroicOutgoing(double percent) {
+        heroicOutgoing += percent;
+    }
+
+    /** Contribute the defender's heroic damage-reduction percent (e.g. {@code 0.10} for −10%), §F. */
+    public void addHeroicReduction(double percent) {
+        heroicReduction += percent;
+    }
+
+    /**
+     * Fold {@code base} with every accumulated contribution into the final damage (never negative).
+     * The additive fold (ADR-0012) runs first and is order-independent; then the heroic percents apply
+     * as a separate bounded multiplicative stage (§F): {@code ×clamp(1+ΣheroicOut) ×clamp(1−ΣheroicRed)}.
+     * The outgoing factor is clamped to {@code [0, 4]} and the reduction factor to {@code [0, 1]}, so
+     * heroic cannot quadruple-and-then-some nor invert damage.
+     */
     public double apply(double base) {
         double outgoing = base * Math.max(0.0, 1.0 + outgoingPercent) + flatDamage;
         double mitigated = outgoing * Math.max(0.0, 1.0 - reductionPercent) - flatReduction;
-        return Math.max(0.0, mitigated);
+        double folded = Math.max(0.0, mitigated);
+        double heroicOut = Math.min(MAX_HEROIC_OUTGOING_FACTOR, Math.max(0.0, 1.0 + heroicOutgoing));
+        double heroicRed = Math.max(0.0, Math.min(1.0, 1.0 - heroicReduction));
+        return Math.max(0.0, folded * heroicOut * heroicRed);
     }
 
     /** Reset every bucket for reuse on the next event. */
@@ -79,6 +112,8 @@ public final class DamageFold {
         flatReduction = 0.0;
         outgoingPercent = 0.0;
         reductionPercent = 0.0;
+        heroicOutgoing = 0.0;
+        heroicReduction = 0.0;
     }
 
     /** The summed outgoing-damage fraction (for diagnostics / display). */
@@ -99,5 +134,15 @@ public final class DamageFold {
     /** The summed flat reduction (for diagnostics / display). */
     public double flatReduction() {
         return flatReduction;
+    }
+
+    /** The summed heroic outgoing-damage fraction (for diagnostics / display). */
+    public double heroicOutgoing() {
+        return heroicOutgoing;
+    }
+
+    /** The summed heroic reduction fraction (for diagnostics / display). */
+    public double heroicReduction() {
+        return heroicReduction;
     }
 }

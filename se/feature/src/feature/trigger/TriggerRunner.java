@@ -23,8 +23,8 @@ import org.bukkit.entity.Player;
  * The single "run one trigger pass for one actor into a {@link DispatchSink}" primitive shared by
  * every trigger dispatcher (docs/architecture.md §3.3) — combat ({@code CombatDispatch}) and the
  * non-combat event listeners ({@code TriggerDispatch}) alike. It reads the actor's PRE-RESOLVED
- * {@link WornState} (the safe cross-region read, §3.4), contributes the actor's passive heroic flat
- * stat to the fold, walks the trigger's candidate abilities through the {@link AbilityExecutor} into
+ * {@link WornState} (the safe cross-region read, §3.4), contributes the actor's passive heroic percent
+ * stat to the fold (§F), walks the trigger's candidate abilities through the {@link AbilityExecutor} into
  * the caller's sink, and arms the soul gate from the actor's active gem. The caller owns the sink's
  * lifecycle (fold-onto-event / cancel / flush), since how a sink's read-backs apply differs per
  * event (a combat hit folds damage; a block-break only cancels + flushes).
@@ -56,8 +56,8 @@ public final class TriggerRunner {
 
     /**
      * Run {@code actor}'s {@code triggerId} abilities into {@code sink}. {@code attackSide} selects
-     * which passive heroic flat stat contributes (damage vs reduction); on a non-damage event the
-     * fold is simply never read, so the contribution is a harmless no-op there. {@code stableKeys} is
+     * which passive heroic percent stat contributes (outgoing damage vs reduction, §F); on a non-damage
+     * event the fold is simply never read, so the contribution is a harmless no-op there. {@code stableKeys} is
      * the SAME snapshot's key index as {@code abilities} (pass {@code snapshot.stableKeys()}), used by
      * the executor to name an activated ability for the {@code ActivationListener}.
      */
@@ -68,9 +68,9 @@ public final class TriggerRunner {
             return; // not resolved yet (or stale across a reload) — this actor contributes nothing
         }
         if (attackSide) {
-            sink.addFlatDamage(wornState.heroic().flatDamage());
+            sink.addHeroicOutgoing(wornState.heroic().percentDamage()); // §F multiplicative stage
         } else {
-            sink.addFlatReduction(wornState.heroic().flatReduction());
+            sink.addHeroicReduction(wornState.heroic().percentReduction());
         }
         int[] candidates = wornState.byTrigger(triggerId);
         if (candidates.length == 0) {

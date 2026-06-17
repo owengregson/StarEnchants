@@ -166,6 +166,16 @@ public final class DispatchSink implements Sink {
         fold.addFlatReduction(amount);
     }
 
+    @Override
+    public void addHeroicOutgoing(double percent) {
+        fold.addHeroicOutgoing(percent);
+    }
+
+    @Override
+    public void addHeroicReduction(double percent) {
+        fold.addHeroicReduction(percent);
+    }
+
     // ── Entity intents ───────────────────────────────────────────────────────────────────────────
 
     @Override
