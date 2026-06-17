@@ -28,6 +28,7 @@ public final class BuiltinEffects {
                 .register(new IgniteEffect())
                 .register(new LightningEffect())
                 .register(new LaunchEffect())
+                .register(new TeleportEffect())
                 // Player feedback + event control.
                 .register(new MessageEffect())
                 .register(new ActionBarEffect())

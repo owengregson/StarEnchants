@@ -28,6 +28,7 @@ import tester.suite.RenderSuite;
 import tester.suite.ResolverSuite;
 import tester.suite.SetSuite;
 import tester.suite.SoulSuite;
+import tester.suite.TeleportSuite;
 import tester.suite.TriggerSuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
@@ -94,6 +95,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
         harness.add(new SoulSuite(this)); // soul-cost enchant spends from the gem in soul mode
         harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
+        harness.add(new TeleportSuite(this)); // TELEPORT effect → teleportAsync, first user of that intent
 
         getServer().getPluginManager().registerEvents(this, this);
     }
