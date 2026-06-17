@@ -78,6 +78,28 @@ class ConditionEvaluatorTest {
     }
 
     @Test
+    void containsIsCaseInsensitiveSubstringWithPipeOr() {
+        FactBuffer f = new FactBuffer(0, 0, 1);
+        f.setString(0, "Diamond Sword");
+        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("sword")), f)); // case-insensitive
+        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("axe|sword")), f)); // pipe-OR, 2nd hits
+        assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("axe|bow")), f));
+        f.setString(0, null);
+        assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("x")), f)); // null haystack → false
+    }
+
+    @Test
+    void regexIsAFullMatch() {
+        FactBuffer f = new FactBuffer(0, 0, 1);
+        f.setString(0, "abc123");
+        assertTrue(pass(new Cond.Regex(new StrExpr.Var(0), java.util.regex.Pattern.compile("[a-z]+[0-9]+")), f));
+        // .matches() is anchored: a pattern matching only a prefix does not match the whole string.
+        assertFalse(pass(new Cond.Regex(new StrExpr.Var(0), java.util.regex.Pattern.compile("[0-9]+")), f));
+        f.setString(0, null);
+        assertFalse(pass(new Cond.Regex(new StrExpr.Var(0), java.util.regex.Pattern.compile(".*")), f)); // null → false
+    }
+
+    @Test
     void papiNumericResolvedThroughTheBuffer() {
         Cond c = new Cond.NumCmp(new NumExpr.Papi("level"), Cmp.GT, new NumExpr.Lit(10));
         FactBuffer f = new FactBuffer(0, 0, 0);

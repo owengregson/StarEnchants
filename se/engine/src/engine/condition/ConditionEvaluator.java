@@ -57,6 +57,13 @@ public final class ConditionEvaluator {
         if (node instanceof Cond.BoolCmp c) {
             return c.equal() == (test(c.left(), f) == test(c.right(), f));
         }
+        if (node instanceof Cond.StrContains c) {
+            return containsAny(str(c.left(), f), str(c.right(), f));
+        }
+        if (node instanceof Cond.Regex c) {
+            String value = str(c.left(), f);
+            return value != null && c.pattern().matcher(value).matches();
+        }
         if (node instanceof Cond.BoolVar v) {
             return f.flag(v.slot());
         }
@@ -108,6 +115,24 @@ public final class ConditionEvaluator {
 
     private static boolean equalsStr(String a, String b) {
         return a == null ? b == null : a.equalsIgnoreCase(b);
+    }
+
+    /**
+     * {@code contains} membership: true if {@code haystack} contains any {@code |}-separated alternative
+     * in {@code needles} (case-insensitive). A {@code null} operand or only-empty alternatives is false
+     * (fail-closed on missing data, matching the numeric/placeholder semantics).
+     */
+    private static boolean containsAny(String haystack, String needles) {
+        if (haystack == null || needles == null) {
+            return false;
+        }
+        String hay = haystack.toLowerCase(java.util.Locale.ROOT);
+        for (String alternative : needles.split("\\|")) {
+            if (!alternative.isEmpty() && hay.contains(alternative.toLowerCase(java.util.Locale.ROOT))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Read a placeholder result as a boolean; absent/unrecognised is {@code false} (fail-closed). */

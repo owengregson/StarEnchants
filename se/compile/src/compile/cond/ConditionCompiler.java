@@ -7,9 +7,12 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.expr.Cmp;
 import schema.grammar.expr.Expr;
+import schema.grammar.expr.StrOp;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Lowers an untyped condition {@link Expr} into the typed, slot-resolved
@@ -61,6 +64,9 @@ public final class ConditionCompiler {
         }
         if (e instanceof Expr.Compare c) {
             return compare(c, diags);
+        }
+        if (e instanceof Expr.StringMatch m) {
+            return stringMatch(m, diags);
         }
         if (e instanceof Expr.BoolLit b) {
             return Optional.of(new Cond.BoolLit(b.value()));
@@ -139,6 +145,33 @@ public final class ConditionCompiler {
         return Optional.of(new Cond.StrCmp(strOf(l), eq, strOf(r)));
     }
 
+    /** Lower a string-domain match ({@code contains}/{@code matchesregex}); both operands must be string-valued. */
+    private Optional<Cond> stringMatch(Expr.StringMatch m, Diagnostics diags) {
+        Operand l = operand(m.left(), diags);
+        Operand r = operand(m.right(), diags);
+        if (l == null || r == null) {
+            return Optional.empty();
+        }
+        if (!isStringish(l) || !isStringish(r)) {
+            return typeError(diags, m.source(), m.op().symbol() + " needs string operands",
+                    "compare strings, e.g. %name% " + m.op().symbol() + " \"a\"");
+        }
+        if (m.op() == StrOp.CONTAINS) {
+            return Optional.of(new Cond.StrContains(strOf(l), strOf(r)));
+        }
+        // matchesregex: the pattern is a literal so a bad regex is caught at load, not per evaluation.
+        if (!(m.right() instanceof Expr.StringLit literal)) {
+            return typeError(diags, m.source(), "matchesregex needs a literal pattern",
+                    "e.g. %name% matchesregex \"[a-z]+\"");
+        }
+        try {
+            return Optional.of(new Cond.Regex(strOf(l), Pattern.compile(literal.value())));
+        } catch (PatternSyntaxException bad) {
+            return typeError(diags, m.source(), "invalid regex pattern: " + bad.getMessage(),
+                    "fix the regular-expression syntax");
+        }
+    }
+
     /** Lower an expression as a comparison operand (atom, parenthesised boolean, or nested compare). */
     private Operand operand(Expr e, Diagnostics diags) {
         if (e instanceof Expr.NumberLit n) {
@@ -193,6 +226,11 @@ public final class ConditionCompiler {
     /** A boolean operand or a placeholder coercible to one. */
     private static boolean isBoolish(Operand o) {
         return o.kind == OpKind.BOOL || o.kind == OpKind.DYN;
+    }
+
+    /** A string operand or a placeholder coercible to one (the operands {@code contains}/{@code matchesregex} accept). */
+    private static boolean isStringish(Operand o) {
+        return o.kind == OpKind.STR || o.kind == OpKind.DYN;
     }
 
     private static Cond boolOf(Operand o) {

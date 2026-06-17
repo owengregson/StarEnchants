@@ -1,5 +1,6 @@
 package compile.model.cond;
 
+import java.util.regex.Pattern;
 import schema.grammar.expr.Cmp;
 
 /**
@@ -17,6 +18,7 @@ import schema.grammar.expr.Cmp;
 public sealed interface Cond
         permits Cond.And, Cond.Or, Cond.Not,
                 Cond.NumCmp, Cond.StrCmp, Cond.BoolCmp,
+                Cond.StrContains, Cond.Regex,
                 Cond.BoolVar, Cond.BoolLit, Cond.BoolPapi {
 
     /** Short-circuiting logical AND. */
@@ -36,6 +38,20 @@ public sealed interface Cond
 
     /** A boolean (in)equality test; {@code equal} is {@code true} for {@code ==}, {@code false} for {@code !=}. */
     record BoolCmp(Cond left, boolean equal, Cond right) implements Cond {}
+
+    /**
+     * A {@code contains} membership test: true if {@code left} contains any of the {@code |}-separated
+     * alternatives in {@code right} (case-insensitive). Both operands are string-valued; {@code right}
+     * is typically a literal but may be a variable/placeholder, split on {@code |} at evaluation time.
+     */
+    record StrContains(StrExpr left, StrExpr right) implements Cond {}
+
+    /**
+     * A {@code matchesregex} full-match test: true if {@code left} fully matches {@code pattern}. The
+     * pattern is a literal compiled once at load (so a bad regex is a load-time diagnostic, never a
+     * per-evaluation cost or a syntax surprise at runtime).
+     */
+    record Regex(StrExpr left, Pattern pattern) implements Cond {}
 
     /** A boolean variable resolved to its dense {@code FactBuffer} flag slot. */
     record BoolVar(int slot) implements Cond {}

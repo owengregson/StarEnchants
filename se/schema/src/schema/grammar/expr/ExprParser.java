@@ -104,16 +104,20 @@ public final class ExprParser {
      */
     private Expr parseComparison() {
         Expr left = parseUnary();
-        Cmp op = comparatorAt(peek());
-        if (op == null) {
+        Cmp cmpOp = comparatorAt(peek());
+        StrOp strOp = strOpAt(peek());
+        if (cmpOp == null && strOp == null) {
             return left;
         }
         ExprTok opTok = peek();
         advance();
         Expr right = parseUnary();
-        Expr cmp = new Expr.Compare(left, op, right, left.source());
+        Expr cmp = cmpOp != null
+                ? new Expr.Compare(left, cmpOp, right, left.source())
+                : new Expr.StringMatch(left, strOp, right, left.source());
 
-        if (comparatorAt(peek()) != null) {
+        // Non-associative: a second comparator or string operator is a chain error.
+        if (isComparisonOp(peek())) {
             ExprTok chainTok = peek();
             diags.error("E_PARSE",
                     "comparators cannot be chained ('" + chainTok.text() + "' after '"
@@ -121,7 +125,7 @@ public final class ExprParser {
                     lineSource.atColumn(chainTok.col()),
                     "split it, e.g. 'a < b && b < c'");
             // Consume the rest of the chain so the caller's loop terminates.
-            while (comparatorAt(peek()) != null) {
+            while (isComparisonOp(peek())) {
                 advance();
                 parseUnary();
             }
@@ -236,9 +240,22 @@ public final class ExprParser {
         };
     }
 
+    private static StrOp strOpAt(ExprTok t) {
+        return switch (t.kind()) {
+            case CONTAINS -> StrOp.CONTAINS;
+            case MATCHES_REGEX -> StrOp.MATCHES_REGEX;
+            default -> null;
+        };
+    }
+
+    /** A comparison-precedence operator: a relational comparator or a string operator. */
+    private static boolean isComparisonOp(ExprTok t) {
+        return comparatorAt(t) != null || strOpAt(t) != null;
+    }
+
     private static boolean isOperatorLike(ExprTok t) {
         return switch (t.kind()) {
-            case AND, OR, BANG, COMMA, EQ, NE, LT, LE, GT, GE -> true;
+            case AND, OR, BANG, COMMA, EQ, NE, LT, LE, GT, GE, CONTAINS, MATCHES_REGEX -> true;
             default -> false;
         };
     }

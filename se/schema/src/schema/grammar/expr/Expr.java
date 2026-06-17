@@ -31,7 +31,7 @@ import schema.diag.Source;
  * later stage rejects, e.g., an unknown variable or a type mismatch.
  */
 public sealed interface Expr
-        permits Expr.Or, Expr.And, Expr.Not, Expr.Compare,
+        permits Expr.Or, Expr.And, Expr.Not, Expr.Compare, Expr.StringMatch,
                 Expr.VarRef, Expr.NumberLit, Expr.BoolLit, Expr.StringLit {
 
     /** The source position of this node's first character, for diagnostics. */
@@ -62,6 +62,14 @@ public sealed interface Expr
      * at the start of the left operand.
      */
     record Compare(Expr left, Cmp op, Expr right, Source source) implements Expr {}
+
+    /**
+     * A string-domain match {@code left op right} (e.g. {@code %name% contains "a|b"} or
+     * {@code %name% matchesregex "[a-z]+"}). Like {@link Compare} it sits at comparison precedence and
+     * is non-associative. Typing (both operands must be string-valued; a {@code matchesregex} pattern
+     * must be a literal) is se-compile's job; {@code source} points at the start of the left operand.
+     */
+    record StringMatch(Expr left, StrOp op, Expr right, Source source) implements Expr {}
 
     /**
      * A {@code %scope.name%} variable reference. The {@code scope} is optional: a

@@ -93,6 +93,17 @@ class ExprLexerTest {
     }
 
     @Test
+    void tokenizesStringOperatorsAsReservedWords() {
+        assertEquals(List.of(ExprTok.Kind.CONTAINS, ExprTok.Kind.MATCHES_REGEX, ExprTok.Kind.EOF),
+                kinds(lexOk("contains matchesregex")));
+        // Reserved words are recognised case-insensitively.
+        assertEquals(List.of(ExprTok.Kind.CONTAINS, ExprTok.Kind.MATCHES_REGEX, ExprTok.Kind.EOF),
+                kinds(lexOk("CONTAINS MatchesRegex")));
+        // A word that merely starts with an operator's text is still an ordinary identifier.
+        assertEquals(ExprTok.Kind.IDENT, lexOk("containsx").get(0).kind());
+    }
+
+    @Test
     void tracksColumnsOneBasedOnTheLine() {
         // index 0 -> col 1; "%a%" starts at 0, "<" at 4, "5" at 6
         List<ExprTok> t = lexOk("%a% < 5");
