@@ -48,8 +48,14 @@ public final class CarrierListener implements Listener {
             return; // the cursor is not a carrier — leave the click alone
         }
         ItemStack target = event.getCurrentItem();
-        if (target == null || target.getType() == Material.AIR || codec.read(target) != null) {
-            return; // no target, or a carrier-on-carrier — ignore
+        if (target == null || target.getType() == Material.AIR) {
+            return; // no target
+        }
+        // A carrier-onto-carrier gesture is only meaningful for dust onto a content book (ADR-0019); any
+        // other carrier dropped onto a carrier (a book onto a book, a dust onto a scroll/dust) is left to
+        // the vanilla click rather than swallowed as a dead, cancelled no-op.
+        if (codec.read(target) != null && !service.canCombineDust(cursor, target)) {
+            return;
         }
 
         event.setCancelled(true); // we own this interaction now
