@@ -91,6 +91,23 @@ class CombatCodecTest {
     }
 
     @Test
+    void roundTripsPurchasedSlots() {
+        // §H: an item's purchased slot count survives the blob round-trip.
+        CombatState s = new CombatState(Map.of("sharpness", 1), List.of()).withAdded(4);
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(s));
+        assertEquals(4, back.added());
+        assertEquals(Map.of("sharpness", 1), back.enchants());
+
+        // A slot-only item (extra slots, no enchants/crystals/set/heroic) is NOT empty — it must persist.
+        CombatState slotOnly = CombatState.EMPTY.withAdded(2);
+        assertTrue(!slotOnly.isEmpty());
+        assertEquals(2, CombatCodec.decodeBlob(CombatCodec.encodeBlob(slotOnly)).added());
+
+        // Zero added slots emit no 'a' section (back-compat: an old item decodes to added 0).
+        assertEquals(0, CombatCodec.decodeBlob(CombatCodec.encodeBlob(state(Map.of("x", 1), List.of()))).added());
+    }
+
+    @Test
     void legacyBlobWithoutSetSectionsDecodesToNoSet() {
         // An old v1 blob (no s/o labels) → setKey null, omni false (forward-compatible).
         CombatState back = CombatCodec.decodeBlob("v1efire:2c");

@@ -1,0 +1,22 @@
+# Slot items (docs/v3-directives.md §H) — raise a piece's enchant-slot count.
+# The upgrade orb grants +orb-amount per use; the slot gem grants +1. Both are clamped to one shared
+# universal maximum TOTAL slots (base + added) defined by hard-cap. {AMOUNT} renders the orb's +N;
+# {SLOTS} in message-apply renders the item's new total slot count.
+type: slots
+
+orb-material: ENDER_EYE
+orb-name: "&5Slot Expander &7(+{AMOUNT})"
+orb-lore:
+  - "&7Drag onto gear to add &f{AMOUNT}&7 enchant slots."
+orb-amount: 3
+
+gem-material: AMETHYST_SHARD
+gem-name: "&dSlot Gem"
+gem-lore:
+  - "&7Drag onto gear to add &f1&7 enchant slot."
+
+# Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots: later).
+hard-cap: 15
+
+message-apply: "&aSlots increased — this item now has &f{SLOTS}&a total."
+message-at-cap: "&cThat item is already at the maximum slots."

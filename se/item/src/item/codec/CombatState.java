@@ -24,12 +24,15 @@ import java.util.Map;
  * @param setKey   the armour-set this piece belongs to (stable key), or {@code null} for none
  * @param omni     whether this is an omni wildcard set piece (§6.6)
  * @param heroic   the heroic flat stats this piece carries (§6); {@link HeroicStat#NONE} for none
+ * @param added    extra enchant slots purchased onto this item (slot expander / gem, §H); never negative.
+ *                 Persisted so a slot increase survives — it feeds the {@code SlotLedger} at apply time
+ *                 (docs/v3-directives.md §H: "persist per-item slot count to PDC").
  */
 public record CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
-                          HeroicStat heroic) {
+                          HeroicStat heroic, int added) {
 
     /** An item with no StarEnchants combat state. */
-    public static final CombatState EMPTY = new CombatState(Map.of(), List.of(), null, false, HeroicStat.NONE);
+    public static final CombatState EMPTY = new CombatState(Map.of(), List.of(), null, false, HeroicStat.NONE, 0);
 
     public CombatState {
         // Defensive, order-PRESERVING copies → the record is immutable and the encoded blob (and thus
@@ -39,20 +42,32 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         crystals = List.copyOf(crystals);
         setKey = (setKey == null || setKey.isBlank()) ? null : setKey;
         heroic = heroic == null ? HeroicStat.NONE : heroic;
+        added = Math.max(0, added);
     }
 
     /** Back-compat constructor for state with no set membership or heroic stats (enchants + crystals only). */
     public CombatState(Map<String, Integer> enchants, List<String> crystals) {
-        this(enchants, crystals, null, false, HeroicStat.NONE);
+        this(enchants, crystals, null, false, HeroicStat.NONE, 0);
     }
 
     /** Constructor for state with set membership but no heroic stats. */
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni) {
-        this(enchants, crystals, setKey, omni, HeroicStat.NONE);
+        this(enchants, crystals, setKey, omni, HeroicStat.NONE, 0);
+    }
+
+    /** Constructor for state with set + heroic but no purchased slots (the common pre-§H case). */
+    public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
+                       HeroicStat heroic) {
+        this(enchants, crystals, setKey, omni, heroic, 0);
+    }
+
+    /** This state with {@code added} purchased enchant slots (slot expander / gem, §H). */
+    public CombatState withAdded(int added) {
+        return new CombatState(enchants, crystals, setKey, omni, heroic, added);
     }
 
     /** Whether this item carries no combat state at all (the common miss-path case). */
     public boolean isEmpty() {
-        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && !omni && heroic.isZero();
+        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && !omni && heroic.isZero() && added == 0;
     }
 }

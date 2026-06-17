@@ -26,9 +26,9 @@ import org.bukkit.persistence.PersistentDataType;
  * unit separator and each list payload joins entries with the record separator {@code RS}. Labels:
  * {@code e} = enchants ({@code key:level} per entry), {@code c} = crystals ({@code key}),
  * {@code s} = armour-set key, {@code o} = omni flag ({@code 1}), {@code h} = heroic flat stats
- * ({@code damage:reduction:durability}). Unknown labels are ignored so a newer field never breaks an
- * older reader (and an older blob lacking {@code s}/{@code o}/{@code h} decodes to no set / not-omni /
- * no heroic).
+ * ({@code damage:reduction:durability}), {@code a} = purchased slot count (§H). Unknown labels are
+ * ignored so a newer field never breaks an older reader (and an older blob lacking
+ * {@code s}/{@code o}/{@code h}/{@code a} decodes to no set / not-omni / no heroic / no added slots).
  */
 public final class CombatCodec {
 
@@ -141,6 +141,9 @@ public final class CombatCodec {
                     .append(heroic.percentReduction()).append(KV)
                     .append(heroic.durability());
         }
+        if (state.added() > 0) {
+            sb.append(US).append('a').append(US).append(state.added());
+        }
         return sb.toString();
     }
 
@@ -158,6 +161,7 @@ public final class CombatCodec {
         String setKey = null;
         boolean omni = false;
         HeroicStat heroic = HeroicStat.NONE;
+        int added = 0;
         // Sections come in (label, payload) pairs after the version token.
         for (int i = 1; i + 1 < tokens.length; i += 2) {
             String label = tokens[i];
@@ -172,10 +176,21 @@ public final class CombatCodec {
                 omni = "1".equals(payload);
             } else if ("h".equals(label)) {
                 heroic = parseHeroic(payload);
+            } else if ("a".equals(label)) {
+                added = parseAdded(payload);
             }
             // any other label is a newer field this reader does not know — ignore it
         }
-        return new CombatState(enchants, crystals, setKey, omni, heroic);
+        return new CombatState(enchants, crystals, setKey, omni, heroic, added);
+    }
+
+    /** Parse the purchased-slot count (§H); a malformed/negative value yields {@code 0}, never throws. */
+    private static int parseAdded(String payload) {
+        try {
+            return Math.max(0, Integer.parseInt(payload.trim()));
+        } catch (NumberFormatException bad) {
+            return 0;
+        }
     }
 
     /** Parse a {@code damage:reduction:durability} heroic payload; a malformed field yields {@code NONE}. */

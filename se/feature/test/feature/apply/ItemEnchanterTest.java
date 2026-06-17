@@ -86,6 +86,20 @@ class ItemEnchanterTest {
     }
 
     @Test
+    void purchasedSlotsRaiseCapacity(@TempDir Path root) throws IOException {
+        ItemEnchanter e = over(LibraryLoader.load(root, compiler(), 1));
+
+        // Nine distinct enchants fill the base-9 capacity — but a purchased slot (§H added) makes room.
+        java.util.Map<String, Integer> nine = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < ItemEnchanter.DEFAULT_BASE_SLOTS; i++) {
+            nine.put("enchants/e" + i, 1);
+        }
+        item.codec.CombatState full = new item.codec.CombatState(nine, java.util.List.of());
+        assertFalse(e.checkSlots(full, "enchants/new").ok(), "no free slot at base capacity");
+        assertTrue(e.checkSlots(full.withAdded(1), "enchants/new").ok(), "a purchased slot makes room");
+    }
+
+    @Test
     void enforcesEnchantRelationships(@TempDir Path root) throws IOException {
         // base must exist for the upgrade's requires to resolve to a display name; the upgrade requires it
         // at level ≥ the applied level and removes it on success (net-zero slots); poison blacklists base.

@@ -32,6 +32,8 @@ import feature.crystal.CrystalService;
 import feature.heroic.HeroicListener;
 import feature.heroic.HeroicService;
 import feature.menu.EnchantMenu;
+import feature.slot.SlotListener;
+import feature.slot.SlotService;
 import feature.menu.MenuListener;
 import feature.soul.SoulInteractListener;
 import feature.soul.SoulListener;
@@ -43,6 +45,7 @@ import item.codec.CombatCodec;
 import item.codec.CrystalItemCodec;
 import item.codec.HeroicUpgradeCodec;
 import item.codec.ItemKeys;
+import item.codec.SlotItemCodec;
 import item.codec.SoulCodec;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
@@ -155,6 +158,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
                 () -> items.config().heroicOrDefault(), new java.util.Random());
 
+        // Slot economy (§H): mint + drag-apply the upgrade orb (+N) / slot gem (+1) onto gear, raising its
+        // persisted CombatState.added slot count (clamped to the config's universal hard cap). baseSlots
+        // matches the ItemEnchanter default so the cap is computed against the same base capacity.
+        SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of(this).slotItem());
+        SlotService slots = new SlotService(slotItemCodec, codec, lore,
+                () -> items.config().slotsOrDefault(), ItemEnchanter.DEFAULT_BASE_SLOTS);
+
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
@@ -207,6 +217,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);
+        getServer().getPluginManager().registerEvents(new SlotListener(slots), this);
         // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events.
         getServer().getPluginManager().registerEvents(
                 new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
@@ -235,7 +246,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             SeCommand seCommand = new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menu, content,
-                    head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics);
+                    head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }
@@ -334,6 +345,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getLogger().info("items config loaded: soul-gem=" + config.soulGem().isPresent()
                 + ", crystal=" + config.crystal().isPresent()
                 + ", heroic=" + config.heroic().isPresent()
+                + ", slots=" + config.slots().isPresent()
                 + ", " + config.diagnostics().size() + " diagnostic(s), " + errors + " error(s)");
         for (Diagnostic diagnostic : config.diagnostics()) {
             getLogger().warning("  " + diagnostic);

@@ -33,6 +33,7 @@ public final class ItemsLoader {
         Optional<SoulGemConfig> soulGem = Optional.empty();
         Optional<CrystalConfig> crystal = Optional.empty();
         Optional<HeroicConfig> heroic = Optional.empty();
+        Optional<SlotConfig> slots = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -81,10 +82,33 @@ public final class ItemsLoader {
                         heroic = Optional.of(readHeroic(root, diags));
                     }
                 }
+                case "slots", "slot", "slot-expander" -> {
+                    if (slots.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one slots config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        slots = Optional.of(readSlots(root, diags));
+                    }
+                }
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
-        return new ItemsConfig(soulGem, crystal, heroic, diags.all());
+        return new ItemsConfig(soulGem, crystal, heroic, slots, diags.all());
+    }
+
+    private static SlotConfig readSlots(YamlNode root, Diagnostics diags) {
+        SlotConfig d = SlotConfig.defaults();
+        return new SlotConfig(
+                orDefault(root.string("orb-material"), d.orbMaterial()),
+                orDefault(root.string("orb-name"), d.orbName()),
+                root.has("orb-lore") ? root.stringList("orb-lore") : d.orbLore(),
+                parseInt(root.string("orb-amount"), d.orbAmount(), root, diags),
+                orDefault(root.string("gem-material"), d.gemMaterial()),
+                orDefault(root.string("gem-name"), d.gemName()),
+                root.has("gem-lore") ? root.stringList("gem-lore") : d.gemLore(),
+                parseInt(root.string("hard-cap"), d.hardCap(), root, diags),
+                orDefault(root.string("message-apply"), d.messageApply()),
+                orDefault(root.string("message-at-cap"), d.messageAtCap()));
     }
 
     private static HeroicConfig readHeroic(YamlNode root, Diagnostics diags) {
