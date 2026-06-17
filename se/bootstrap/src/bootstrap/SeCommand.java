@@ -42,8 +42,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
-            List.of("reload", "enchant", "crystal", "heroic", "orb", "slotgem", "gem", "book", "soulmode",
-                    "migrate", "menu");
+            List.of("reload", "enchant", "crystal", "heroic", "orb", "slotgem", "gem", "book", "blackscroll",
+                    "randomizer", "unopened", "soulmode", "migrate", "menu");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -57,12 +57,15 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.crystal.CrystalService crystals;
     private final feature.heroic.HeroicService heroics;
     private final feature.slot.SlotService slots;
+    private final feature.scroll.ScrollService scrolls;
+    private final feature.book.UnopenedBookService unopenedBooks;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, EnchantMenu menu, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
               feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
-              feature.heroic.HeroicService heroics, feature.slot.SlotService slots) {
+              feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
+              feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -75,6 +78,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.crystals = crystals;
         this.heroics = heroics;
         this.slots = slots;
+        this.scrolls = scrolls;
+        this.unopenedBooks = unopenedBooks;
     }
 
     @Override
@@ -92,6 +97,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "slotgem" -> giveSlotItem(sender, false);
             case "gem" -> giveGem(sender);
             case "book" -> giveBook(sender, args);
+            case "blackscroll" -> giveScroll(sender, true);
+            case "randomizer" -> giveScroll(sender, false);
+            case "unopened" -> giveUnopened(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "migrate" -> migrate(sender, args);
             case "menu" -> openMenu(sender);
@@ -104,15 +112,22 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         return complete(args,
                 content.library().catalog().stream().map(EnchantDef::key).toList(),
-                content.library().crystals().stream().map(CrystalDef::key).toList());
+                content.library().crystals().stream().map(CrystalDef::key).toList(),
+                content.library().tiers().tiers().stream().map(t -> t.name()).toList());
+    }
+
+    /** As {@link #complete(String[], List, List, List)} with no tier completions (legacy 3-arg form). */
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys) {
+        return complete(args, enchantKeys, crystalKeys, List.of());
     }
 
     /**
      * Pure tab-completion: the subcommand at {@code args[0]}, then context-sensitive completions for the
-     * first argument (enchant/crystal keys from the live content, {@code ee}/{@code ea} for migrate,
+     * first argument (enchant/crystal keys + tiers from the live content, {@code ee}/{@code ea} for migrate,
      * {@code --dry-run} for reload). Extracted from Bukkit so it is unit-tested without a server.
      */
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys) {
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
+                                 List<String> tierNames) {
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }
@@ -120,6 +135,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return switch (args[0].toLowerCase(Locale.ROOT)) {
                 case "enchant", "book" -> filter(enchantKeys, args[1]);
                 case "crystal" -> filter(crystalKeys, args[1]);
+                case "unopened" -> filter(tierNames, args[1]);
                 case "migrate" -> filter(List.of("ee", "ea", "ae"), args[1]);
                 case "reload" -> filter(List.of("--dry-run"), args[1]);
                 default -> List.of();
@@ -339,6 +355,45 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
+    /** {@code /se blackscroll} / {@code /se randomizer} — mint a book-economy scroll and give it. */
+    private void giveScroll(CommandSender sender, boolean black) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            ItemStack scroll = black ? scrolls.mintBlack() : scrolls.mintRandomizer();
+            player.getInventory().addItem(scroll).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage(black
+                    ? "§8Minted a black scroll. §7Drag it onto enchanted gear to extract an enchant."
+                    : "§eMinted a randomizer scroll. §7Drag it onto an enchant book to reroll its success.");
+        });
+    }
+
+    /** {@code /se unopened <tier>} — mint a tier-scoped unopened book (right-click it to reveal a book). */
+    private void giveUnopened(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§eUsage: /se unopened <tier> §7— right-click it to reveal a random book");
+            return;
+        }
+        String tier = args[1];
+        if (!content.library().tiers().isTier(tier)) {
+            player.sendMessage("§cNo such tier: §f" + tier);
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            ItemStack book = unopenedBooks.mint(tier);
+            player.getInventory().addItem(book).values()
+                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            player.sendMessage("§bMinted an unopened §f" + tier + " §bbook. §7Right-click it to reveal a random enchant book.");
+        });
+    }
+
     /** {@code /se book <enchant> [level]} — mint an enchant book carrier and give it to the sender. */
     private void giveBook(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -392,6 +447,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se heroic §7— mint a heroic upgrade (drag it onto armour/weapon)");
         sender.sendMessage("§e  /se orb §7— mint a slot expander (drag onto gear for +N slots)");
         sender.sendMessage("§e  /se slotgem §7— mint a slot gem (drag onto gear for +1 slot)");
+        sender.sendMessage("§e  /se blackscroll §7— mint a black scroll (extract an enchant into a book)");
+        sender.sendMessage("§e  /se randomizer §7— mint a randomizer scroll (reroll a book's success)");
+        sender.sendMessage("§e  /se unopened <tier> §7— mint an unopened book (right-click to reveal)");
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");

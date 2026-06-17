@@ -9,11 +9,14 @@ import org.bukkit.persistence.PersistentDataType;
 /**
  * Reads/writes a {@link CarrierData} on an item (ADR-0016), stored as one PDC {@code STRING} under
  * {@link ItemKeys#carrier()} — SEPARATE from the {@link CombatCodec} blob so a carrier never decodes on
- * the combat hot path. Format {@code <itemKey>:<grantKey>:<grantLevel>[:<successBonus>]}; content keys
- * contain {@code /} but never {@code ':'}, so the colons split the fields cleanly. The 4th field (a
- * dust-accumulated success bonus, ADR-0019) is OMITTED when zero, so every pre-dust item encodes
- * byte-for-byte as before and an old 3-field payload decodes with {@code successBonus = 0} (no
- * migration). Also flags/clears the "guarded" protection marker on GEAR ({@link ItemKeys#guarded()}).
+ * the combat hot path. Format {@code <itemKey>:<grantKey>:<grantLevel>[:<successBonus>[:<baseSuccess>]]};
+ * content keys contain {@code /} but never {@code ':'}, so the colons split the fields cleanly. The 4th
+ * field (a dust-accumulated success bonus, ADR-0019) is OMITTED when zero, and the 5th (an explicit
+ * base-success override, §I) is OMITTED when {@code -1} — so every pre-dust item still encodes
+ * byte-for-byte as the original 3-field format, and an old 3/4-field payload decodes with
+ * {@code successBonus = 0 / baseSuccess = -1} (no migration). A 5-field payload always carries the 4th
+ * (a placeholder {@code 0} when the bonus is zero) since the fields are positional. Also flags/clears
+ * the "guarded" protection marker on GEAR ({@link ItemKeys#guarded()}).
  * A null/malformed entry decodes to {@code null} (not a carrier), never an exception.
  */
 public final class CarrierCodec {
@@ -75,8 +78,12 @@ public final class CarrierCodec {
 
     static String encode(CarrierData data) {
         String base = data.itemKey() + ":" + data.grantKey() + ":" + data.grantLevel();
-        // Omit the success-bonus field when zero so a freshly-minted carrier (and every pre-dust item)
-        // encodes byte-for-byte as the original 3-field format — no version churn for the common case.
+        // An explicit base-success override (§I) forces the full 5-field form (the 4th field is positional,
+        // so a zero bonus is written as a placeholder). Otherwise omit the success-bonus field when zero so
+        // a freshly-minted carrier (and every pre-dust item) encodes byte-for-byte as the 3-field format.
+        if (data.hasBaseSuccess()) {
+            return base + ":" + data.successBonus() + ":" + data.baseSuccess();
+        }
         return data.successBonus() > 0 ? base + ":" + data.successBonus() : base;
     }
 
@@ -85,15 +92,16 @@ public final class CarrierCodec {
             return null;
         }
         String[] parts = raw.split(":", -1); // -1: keep a trailing/empty grantKey segment
-        if ((parts.length != 3 && parts.length != 4) || parts[0].isEmpty()) {
+        if (parts.length < 3 || parts.length > 5 || parts[0].isEmpty()) {
             return null;
         }
         try {
             int level = Integer.parseInt(parts[2]);
-            int successBonus = parts.length == 4 ? Integer.parseInt(parts[3]) : 0; // legacy 3-field → 0
-            return new CarrierData(parts[0], parts[1], level, successBonus);
+            int successBonus = parts.length >= 4 ? Integer.parseInt(parts[3]) : 0; // legacy 3-field → 0
+            int baseSuccess = parts.length == 5 ? Integer.parseInt(parts[4]) : -1; // pre-§I 3/4-field → -1
+            return new CarrierData(parts[0], parts[1], level, successBonus, baseSuccess);
         } catch (NumberFormatException bad) {
-            return null; // non-numeric level/bonus → treat as not-a-carrier, never crash
+            return null; // non-numeric level/bonus/base → treat as not-a-carrier, never crash
         }
     }
 }

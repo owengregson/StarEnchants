@@ -1,0 +1,27 @@
+# Book-economy scrolls (docs/v3-directives.md §I). One file groups the scroll family; each scroll is a
+# one-shot consumable dragged onto a target. {ENCHANT} = the extracted enchant; {PERCENT} = the rerolled %.
+type: scrolls
+
+# Black scroll — drag onto enchanted gear to extract one (random) enchant into an enchant book.
+black:
+  material: INK_SAC
+  name: "&8Black Scroll"
+  lore:
+    - "&7Drag onto enchanted gear to"
+    - "&7extract one enchant into a book."
+  success-chance: 80
+  message-success: "&aExtracted &f{ENCHANT}&a into a book."
+  message-fail: "&cThe black scroll crumbled — nothing was extracted."
+  message-no-enchants: "&cThat item has no enchants to extract."
+
+# Randomizer scroll — drag onto an enchant book to reroll its success chance into [min, max].
+randomizer:
+  material: SUGAR
+  name: "&eRandomizer Scroll"
+  lore:
+    - "&7Drag onto an enchant book to"
+    - "&7reroll its success chance."
+  min-percent: 25
+  max-percent: 100
+  message-success: "&aThe book's success chance was rerolled to &f{PERCENT}%&a."
+  message-not-book: "&cThe randomizer only works on an enchant book."

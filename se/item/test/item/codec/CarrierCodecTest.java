@@ -46,6 +46,31 @@ class CarrierCodecTest {
         CarrierData back = CarrierCodec.decode("items/book/zap:enchants/zap:2");
         assertEquals(new CarrierData("items/book/zap", "enchants/zap", 2, 0), back);
         assertEquals(0, back.successBonus());
+        assertEquals(-1, back.baseSuccess(), "no explicit base on a legacy/un-§I payload");
+    }
+
+    @Test
+    void baseSuccessRoundTripsAsAFifthField() {
+        // §I: an explicit base-success override forces the full 5-field form (the 4th field is a placeholder).
+        CarrierData book = new CarrierData("book", "enchants/zap", 2, 0, 40);
+        String encoded = CarrierCodec.encode(book);
+        assertEquals("book:enchants/zap:2:0:40", encoded);
+        CarrierData back = CarrierCodec.decode(encoded);
+        assertEquals(book, back);
+        assertEquals(40, back.baseSuccess());
+        assertTrue(back.hasBaseSuccess());
+
+        // A base override AND an accumulated bonus both survive.
+        CarrierData both = new CarrierData("book", "enchants/zap", 2, 15, 40);
+        assertEquals(both, CarrierCodec.decode(CarrierCodec.encode(both)));
+    }
+
+    @Test
+    void fourFieldPayloadDecodesWithNoBaseOverride() {
+        CarrierData back = CarrierCodec.decode("items/book/zap:enchants/zap:2:25");
+        assertEquals(25, back.successBonus());
+        assertEquals(-1, back.baseSuccess());
+        assertFalse(back.hasBaseSuccess());
     }
 
     @Test
@@ -67,8 +92,9 @@ class CarrierCodecTest {
         assertNull(CarrierCodec.decode(null));
         assertNull(CarrierCodec.decode(""));
         assertNull(CarrierCodec.decode("only:two"));
-        assertNull(CarrierCodec.decode("a:b:c:d"));            // non-numeric bonus in the 4th field
-        assertNull(CarrierCodec.decode("a:b:c:d:e"));          // too many fields
+        assertNull(CarrierCodec.decode("a:b:c:d"));              // non-numeric level (parts[2])
+        assertNull(CarrierCodec.decode("a:b:1:2:3:4"));          // six fields — too many
+        assertNull(CarrierCodec.decode("item:grant:1:2:notAnInt")); // non-numeric base in the 5th field
         assertNull(CarrierCodec.decode("item:grant:notAnInt"));
         assertNull(CarrierCodec.decode("item:grant:1:notAnInt")); // non-numeric bonus
         assertNull(CarrierCodec.decode(":enchants/x:1"));      // empty itemKey
