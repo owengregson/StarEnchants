@@ -27,6 +27,8 @@ import feature.carrier.CarrierService;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
+import feature.crystal.CrystalListener;
+import feature.crystal.CrystalService;
 import feature.menu.EnchantMenu;
 import feature.menu.MenuListener;
 import feature.soul.SoulInteractListener;
@@ -36,6 +38,7 @@ import feature.trigger.TriggerDispatch;
 import feature.trigger.TriggerListeners;
 import item.codec.CarrierCodec;
 import item.codec.CombatCodec;
+import item.codec.CrystalItemCodec;
 import item.codec.ItemKeys;
 import item.codec.SoulCodec;
 import item.render.LoreRenderer;
@@ -136,6 +139,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of(this).carrier(), ItemKeys.of(this).guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random());
 
+        // Physical crystal items (§E): mint + drag-apply (success roll + consume) + multi-crystal merge.
+        // The crystal-item PDC is separate from the combat blob; the applied crystal becomes one crystal-slot
+        // entry on the gear (a multi-crystal is encoded "a+b" — one slot, both abilities).
+        CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of(this).crystalItem());
+        CrystalService crystals = new CrystalService(crystalItemCodec, enchanter, content,
+                () -> items.config().crystalOrDefault(), new java.util.Random());
+
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
@@ -186,6 +196,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
+        getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
 
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).
@@ -211,7 +222,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             SeCommand seCommand = new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menu, content,
-                    head -> migrateSpecs.lookup(head).orElse(null), carriers);
+                    head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }
@@ -308,6 +319,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
     private void logItems(compile.load.ItemsConfig config) {
         long errors = config.diagnostics().stream().filter(Diagnostic::blocking).count();
         getLogger().info("items config loaded: soul-gem=" + config.soulGem().isPresent()
+                + ", crystal=" + config.crystal().isPresent()
                 + ", " + config.diagnostics().size() + " diagnostic(s), " + errors + " error(s)");
         for (Diagnostic diagnostic : config.diagnostics()) {
             getLogger().warning("  " + diagnostic);

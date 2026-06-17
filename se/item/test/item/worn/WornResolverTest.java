@@ -54,6 +54,18 @@ class WornResolverTest {
     }
 
     @Test
+    void multiCrystalEntryResolvesBothComponents() {
+        // A multi-crystal occupies ONE crystal-list entry "a+b" but contributes BOTH ability ids (§E);
+        // the additive fold then sums overlapping effect magnitudes downstream.
+        StableKeyIndex keys = new StableKeyIndex(List.of("crystals/zap", "crystals/frost"));
+        Ability[] abilities = {ability(0, 1 << 0), ability(1, 1 << 0)};
+        CombatState combat = new CombatState(Map.of(), List.of("crystals/zap+crystals/frost"));
+        WornState worn = resolver().resolveFrom(List.of(combat), keys, abilities, 1);
+        assertArrayEquals(new int[] {0, 1}, sorted(worn.activeCrystalAbilityIds()), "both components tracked");
+        assertArrayEquals(new int[] {0, 1}, sorted(worn.byTrigger(0)), "both components fire");
+    }
+
+    @Test
     void unknownKeysAreSkippedNotCrashed() {
         CombatState combat = new CombatState(Map.of("enchants/ghost", 9), List.of("crystals/missing"));
         WornState worn = resolver().resolveFrom(List.of(combat), KEYS, ABILITIES, 1);

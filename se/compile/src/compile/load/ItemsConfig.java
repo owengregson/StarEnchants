@@ -15,23 +15,31 @@ import schema.diag.Diagnostic;
  * {@code /se reload --dry-run} report items-config faults through the same path as content faults.
  *
  * @param soulGem     the soul-gem config, or empty if none is configured (the runtime falls back to {@link SoulGemConfig#defaults()})
+ * @param crystal     the crystal-item config, or empty if none is configured (falls back to {@link CrystalConfig#defaults()})
  * @param diagnostics every diagnostic raised loading the folder
  */
-public record ItemsConfig(Optional<SoulGemConfig> soulGem, List<Diagnostic> diagnostics) {
+public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfig> crystal,
+                          List<Diagnostic> diagnostics) {
 
     public ItemsConfig {
         Objects.requireNonNull(soulGem, "soulGem");
+        Objects.requireNonNull(crystal, "crystal");
         diagnostics = List.copyOf(diagnostics);
     }
 
     /** An empty config (no item files present) — the runtime uses each item's built-in defaults. */
     public static ItemsConfig empty() {
-        return new ItemsConfig(Optional.empty(), List.of());
+        return new ItemsConfig(Optional.empty(), Optional.empty(), List.of());
     }
 
     /** The soul-gem config, or its built-in default when none is configured. */
     public SoulGemConfig soulGemOrDefault() {
         return soulGem.orElseGet(SoulGemConfig::defaults);
+    }
+
+    /** The crystal-item config, or its built-in default when none is configured. */
+    public CrystalConfig crystalOrDefault() {
+        return crystal.orElseGet(CrystalConfig::defaults);
     }
 
     /** Whether any blocking diagnostic was raised loading the folder. */

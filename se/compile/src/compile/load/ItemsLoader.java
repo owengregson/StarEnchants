@@ -29,6 +29,7 @@ public final class ItemsLoader {
     public static ItemsConfig load(Path itemsRoot) {
         Diagnostics diags = new Diagnostics();
         Optional<SoulGemConfig> soulGem = Optional.empty();
+        Optional<CrystalConfig> crystal = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -61,10 +62,33 @@ public final class ItemsLoader {
                         soulGem = Optional.of(readSoulGem(root, diags));
                     }
                 }
+                case "crystal" -> {
+                    if (crystal.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one crystal config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        crystal = Optional.of(readCrystal(root, diags));
+                    }
+                }
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
-        return new ItemsConfig(soulGem, diags.all());
+        return new ItemsConfig(soulGem, crystal, diags.all());
+    }
+
+    private static CrystalConfig readCrystal(YamlNode root, Diagnostics diags) {
+        CrystalConfig d = CrystalConfig.defaults();
+        return new CrystalConfig(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("success-chance"), d.successChance(), root, diags),
+                root.has("consume-on-fail")
+                        ? "true".equalsIgnoreCase(root.string("consume-on-fail")) : d.consumeOnFail(),
+                orDefault(root.string("message-apply-success"), d.messageApplySuccess()),
+                orDefault(root.string("message-apply-fail"), d.messageApplyFail()),
+                orDefault(root.string("message-no-slots"), d.messageNoSlots()),
+                orDefault(root.string("message-merge"), d.messageMerge()));
     }
 
     private static SoulGemConfig readSoulGem(YamlNode root, Diagnostics diags) {

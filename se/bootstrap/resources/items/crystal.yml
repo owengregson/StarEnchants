@@ -1,0 +1,18 @@
+# The physical crystal item — drag it onto gear to apply it (a success roll), or drag one crystal onto
+# another to MERGE them into a multi-crystal (two effects in one crystal slot). Everything below is
+# configurable; reload with /se reload. {CRYSTAL} renders the component crystal name(s).
+#
+# Per-item crystal SLOT capacity is not here — it is a cross-cutting knob (master config.yml crystals:
+# section, a later increment); until then it defaults to 1.
+type: crystal
+material: AMETHYST_SHARD
+name: "&d{CRYSTAL} Crystal"
+lore:
+  - "&7Drag onto gear to apply."
+  - "&7Merge two crystals into a multi-crystal."
+success-chance: 75
+consume-on-fail: true
+message-apply-success: "&aApplied &f{CRYSTAL}&a to your item."
+message-apply-fail: "&cThe crystal shattered without taking hold."
+message-no-slots: "&cThat item has no free crystal slot."
+message-merge: "&dMerged into a multi-crystal: &f{CRYSTAL}&d."

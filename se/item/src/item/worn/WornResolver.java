@@ -103,11 +103,16 @@ public final class WornResolver {
                     mergedIds.add(id);
                 }
             }
-            for (String crystalKey : combat.crystals()) {
-                int id = keys.idOf(crystalKey);
-                if (id >= 0) {
-                    mergedIds.add(id);   // crystals fire on triggers like any source...
-                    crystalIds.add(id);  // ...and are tracked as the dedicated crystal source (§5.5)
+            for (String crystalEntry : combat.crystals()) {
+                // A crystal-list entry is ONE slot but may carry two component keys (a multi-crystal,
+                // encoded "a+b", §E). Each component resolves + fires independently; the additive fold
+                // (ADR-0012) sums overlapping effect magnitudes. A single crystal is a plain key.
+                for (String crystalKey : item.codec.CrystalItemData.componentsOf(crystalEntry)) {
+                    int id = keys.idOf(crystalKey);
+                    if (id >= 0) {
+                        mergedIds.add(id);   // crystals fire on triggers like any source...
+                        crystalIds.add(id);  // ...and are tracked as the dedicated crystal source (§5.5)
+                    }
                 }
             }
             // Set membership: an omni piece is a wildcard (counts toward any partially-worn set, §6.6);

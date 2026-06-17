@@ -16,18 +16,22 @@ public final class ItemKeys {
     private final NamespacedKey soul;
     private final NamespacedKey carrier;
     private final NamespacedKey guarded;
+    private final NamespacedKey crystalItem;
 
-    private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded) {
+    private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded,
+                     NamespacedKey crystalItem) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
         this.guarded = guarded;
+        this.crystalItem = crystalItem;
     }
 
     /** Build the key set under {@code plugin}'s namespace. */
     public static ItemKeys of(Plugin plugin) {
         return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
-                new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"));
+                new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"),
+                new NamespacedKey(plugin, "crystalitem"));
     }
 
     /** The single key the combat-state blob is stored under (§5.1). */
@@ -59,5 +63,14 @@ public final class ItemKeys {
      */
     public NamespacedKey guarded() {
         return guarded;
+    }
+
+    /**
+     * The key the physical CRYSTAL item's component keys live under (docs/v3-directives.md §E) — a
+     * crystal is its own item (single or merged multi-crystal), distinct from the {@link #carrier()}
+     * economy and never on the combat hot path.
+     */
+    public NamespacedKey crystalItem() {
+        return crystalItem;
     }
 }
