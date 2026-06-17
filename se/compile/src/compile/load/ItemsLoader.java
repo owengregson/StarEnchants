@@ -247,14 +247,70 @@ public final class ItemsLoader {
 
     private static SoulGemConfig readSoulGem(YamlNode root, Diagnostics diags) {
         SoulGemConfig d = SoulGemConfig.defaults();
+        YamlNode sounds = root.child("sounds");
+        YamlNode particles = root.child("particles");
         return new SoulGemConfig(
                 orDefault(root.string("material"), d.material()),
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("souls-per-kill"), d.soulsPerKill(), root, diags),
+                readSoulsPerMob(root, diags),
+                readColorTiers(root, diags, d.colorTiers()),
+                orDefault(root.string("empty-soul-color"), d.emptyColor()),
+                root.has("sounds") && sounds.has("enabled")
+                        ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
+                orDefault(sounds.string("activate"), d.soundActivate()),
+                orDefault(sounds.string("deactivate"), d.soundDeactivate()),
+                orDefault(sounds.string("combine"), d.soundCombine()),
+                particles.has("active") ? particles.stringList("active") : d.particlesActive(),
+                particles.has("on-activate") ? particles.stringList("on-activate") : d.particlesActivate(),
+                particles.has("on-deactivate") ? particles.stringList("on-deactivate") : d.particlesDeactivate(),
                 orDefault(root.string("message-activate"), d.messageActivate()),
                 orDefault(root.string("message-deactivate"), d.messageDeactivate()),
                 orDefault(root.string("message-soul-use"), d.messageSoulUse()));
+    }
+
+    /** Parse the optional {@code souls-per-mob:} map ({@code ENTITY_TYPE: amount}); a bad amount warns + skips. */
+    private static Map<String, Integer> readSoulsPerMob(YamlNode root, Diagnostics diags) {
+        if (!root.has("souls-per-mob")) {
+            return Map.of();
+        }
+        Map<String, Integer> out = new LinkedHashMap<>();
+        for (YamlNode.Entry entry : root.entries("souls-per-mob")) {
+            String raw = entry.value().scalar();
+            if (raw == null) {
+                continue;
+            }
+            try {
+                out.put(entry.key(), Integer.parseInt(raw.trim()));
+            } catch (NumberFormatException bad) {
+                diags.warning("W_SOUL_MOB", "souls-per-mob[" + entry.key() + "] is not a number: " + raw,
+                        entry.value().source());
+            }
+        }
+        return out;
+    }
+
+    /** Parse the optional {@code soul-colors:} map ({@code min: &color}); empty/all-bad falls back to {@code fallback}. */
+    private static List<SoulGemConfig.ColorTier> readColorTiers(YamlNode root, Diagnostics diags,
+            List<SoulGemConfig.ColorTier> fallback) {
+        if (!root.has("soul-colors")) {
+            return fallback;
+        }
+        List<SoulGemConfig.ColorTier> out = new ArrayList<>();
+        for (YamlNode.Entry entry : root.entries("soul-colors")) {
+            String color = entry.value().scalar();
+            if (color == null) {
+                continue;
+            }
+            try {
+                out.add(new SoulGemConfig.ColorTier(Integer.parseInt(entry.key().trim()), color));
+            } catch (NumberFormatException bad) {
+                diags.warning("W_SOUL_TIER", "soul-colors key is not a number: " + entry.key(),
+                        entry.value().source());
+            }
+        }
+        return out.isEmpty() ? fallback : out;
     }
 
     private static List<Path> configFiles(Path root) {

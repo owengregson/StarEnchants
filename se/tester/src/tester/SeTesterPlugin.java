@@ -28,6 +28,7 @@ import tester.suite.ProtectionSuite;
 import tester.suite.RenderSuite;
 import tester.suite.ResolverSuite;
 import tester.suite.SetSuite;
+import tester.suite.SoulEconomySuite;
 import tester.suite.SoulSuite;
 import tester.suite.TeleportSuite;
 import tester.suite.TriggerSuite;
@@ -97,6 +98,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
         harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
         harness.add(new SoulSuite(this)); // soul-cost enchant spends from the gem in soul mode
+        harness.add(new SoulEconomySuite(this)); // §D deposit-on-any-kill + combine + split on a real inventory
         harness.add(new ScrollPlayerSuite(this)); // §I holy death-save + nametag rename on a real player inventory
         harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
         harness.add(new TeleportSuite(this)); // TELEPORT effect → teleportAsync, first user of that intent

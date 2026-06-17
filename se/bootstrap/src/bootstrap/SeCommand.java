@@ -43,7 +43,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
             List.of("reload", "enchant", "crystal", "heroic", "orb", "slotgem", "gem", "book", "blackscroll",
-                    "randomizer", "transmog", "holy", "nametag", "unopened", "soulmode", "migrate", "menu");
+                    "randomizer", "transmog", "holy", "nametag", "unopened", "soulmode", "split", "migrate", "menu");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -109,6 +109,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "nametag" -> giveSimpleItem(sender, nametags.mint(), "§bMinted an item nametag. §7Drag it onto gear, then type the new name.");
             case "unopened" -> giveUnopened(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
+            case "split" -> splitSoul(sender, args);
             case "migrate" -> migrate(sender, args);
             case "menu" -> openMenu(sender);
             default -> usage(sender);
@@ -190,6 +191,37 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         Scheduling.onEntity(player, () -> {
             if (souls.toggle(player) == SoulService.Toggle.NO_GEM) {
                 player.sendMessage("§cHold a soul gem first (/se gem).");
+            }
+        });
+    }
+
+    /** Split souls off the held gem into a new gem: {@code /se split <amount>} (never auto-split, §D). */
+    private void splitSoul(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("§cUsage: /se split <amount> §7— hold the gem to split.");
+            return;
+        }
+        int amount;
+        try {
+            amount = Integer.parseInt(args[1]);
+        } catch (NumberFormatException bad) {
+            sender.sendMessage("§cThat is not a number: §7" + args[1]);
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            SoulService.SplitResult result = souls.split(player, amount);
+            switch (result.status()) {
+                case OK -> player.sendMessage("§aSplit off §f" + result.moved()
+                        + "§a souls into a new gem §7(this gem keeps " + result.remaining() + ").");
+                case NO_GEM -> player.sendMessage("§cHold a soul gem first (/se gem).");
+                case BAD_AMOUNT -> player.sendMessage("§cThe amount must be a positive number.");
+                case TOO_MANY -> player.sendMessage("§cThis gem has only §f" + result.remaining()
+                        + "§c souls — leave at least one behind.");
+                default -> { /* unreachable */ }
             }
         });
     }
@@ -477,6 +509,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
         sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
+        sender.sendMessage("§e  /se split <amount> §7— split souls off the held gem into a new gem");
         sender.sendMessage("§e  /se migrate <ee|ea|ae> <path> §7— import legacy EE/EA/AdvancedEnchantments configs");
     }
 
