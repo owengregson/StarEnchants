@@ -40,8 +40,12 @@ import feature.heroic.HeroicListener;
 import feature.heroic.HeroicService;
 import feature.book.UnopenedBookListener;
 import feature.book.UnopenedBookService;
+import feature.menu.AdminBrowserMenu;
+import feature.menu.CrystalsBrowserMenu;
 import feature.menu.EnchantMenu;
+import feature.menu.EnchantsBrowserMenu;
 import feature.menu.MenuRegistry;
+import feature.menu.SetsBrowserMenu;
 import feature.scroll.HolyScrollListener;
 import feature.scroll.HolyScrollService;
 import feature.scroll.NametagListener;
@@ -323,7 +327,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // menu ("apply") is the visual /se enchant. Menus open on the player's region thread (Folia open-hop).
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
                 player -> worn.refresh(player, content.snapshot()), caps);
-        MenuRegistry menus = new MenuRegistry().register(applyMenu);
+        MenuRegistry menus = new MenuRegistry()
+                .register(applyMenu)
+                .register(new EnchantsBrowserMenu(content, caps))   // tier → enchant catalog browser
+                .register(new SetsBrowserMenu(content, caps))       // armour-set browser + preview
+                .register(new CrystalsBrowserMenu(content, caps))   // crystals/modifiers catalog
+                .register(new AdminBrowserMenu(content, carriers, caps)); // admin grant browser (perm-gated)
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
         PluginCommand command = getCommand("se");
