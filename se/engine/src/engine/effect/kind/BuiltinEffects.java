@@ -71,6 +71,9 @@ public final class BuiltinEffects {
                 .register(new DropItemEffect())
                 .register(new GiveItemEffect())
                 .register(new RemoveItemEffect())
+                // §C spawn / visual primitives.
+                .register(new FireworkEffectKind())
+                .register(new ProjectileEffect())
                 .build();
     }
 }

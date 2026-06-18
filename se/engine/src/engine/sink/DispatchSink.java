@@ -6,6 +6,8 @@ import java.util.Objects;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,17 +20,21 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -403,6 +409,53 @@ public final class DispatchSink implements Sink {
         entityOp(shooter, () -> {
             Fireball fireball = shooter.launchProjectile(Fireball.class);
             fireball.setYield((float) yield);
+        });
+    }
+
+    @Override
+    public void firework(Location at, int power) {
+        regionOp(at, () -> {
+            World world = at.getWorld();
+            if (world == null) {
+                return;
+            }
+            Firework firework = world.spawn(at, Firework.class);
+            FireworkMeta meta = firework.getFireworkMeta();
+            meta.setPower(Math.max(0, Math.min(power, 127)));
+            meta.addEffect(FireworkEffect.builder()
+                    .withColor(Color.AQUA, Color.WHITE)
+                    .with(FireworkEffect.Type.BALL_LARGE)
+                    .flicker(true)
+                    .build());
+            firework.setFireworkMeta(meta);
+        });
+    }
+
+    @Override
+    public void launchProjectile(Player shooter, int entityTypeId, int count, double speed) {
+        entityOp(shooter, () -> {
+            EntityType type = handles.entityType(entityTypeId);
+            World world = shooter.getWorld();
+            if (type == null || world == null || count <= 0) {
+                return;
+            }
+            Location eye = shooter.getEyeLocation();
+            Vector base = eye.getDirection().normalize().multiply(speed);
+            for (int i = 0; i < count; i++) {
+                Entity entity = world.spawnEntity(eye, type);
+                Vector velocity = base.clone();
+                if (count > 1) {
+                    // A small spread so a volley fans out instead of stacking on one line.
+                    velocity.add(new Vector(
+                            (ThreadLocalRandom.current().nextDouble() - 0.5) * 0.2,
+                            (ThreadLocalRandom.current().nextDouble() - 0.5) * 0.1,
+                            (ThreadLocalRandom.current().nextDouble() - 0.5) * 0.2));
+                }
+                entity.setVelocity(velocity);
+                if (entity instanceof Projectile projectile) {
+                    projectile.setShooter(shooter);
+                }
+            }
         });
     }
 
