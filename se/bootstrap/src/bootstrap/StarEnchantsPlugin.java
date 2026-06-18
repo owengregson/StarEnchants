@@ -45,6 +45,7 @@ import feature.menu.CrystalsBrowserMenu;
 import feature.menu.EnchantMenu;
 import feature.menu.EnchantsBrowserMenu;
 import feature.menu.MenuRegistry;
+import feature.menu.ReferenceBrowserMenu;
 import feature.menu.SetsBrowserMenu;
 import feature.scroll.HolyScrollListener;
 import feature.scroll.HolyScrollService;
@@ -332,6 +333,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .register(new EnchantsBrowserMenu(content, caps))   // tier → enchant catalog browser
                 .register(new SetsBrowserMenu(content, caps))       // armour-set browser + preview
                 .register(new CrystalsBrowserMenu(content, caps))   // crystals/modifiers catalog
+                .register(new ReferenceBrowserMenu(caps))           // effects/selectors/triggers/conditions/vars
                 .register(new AdminBrowserMenu(content, carriers, caps)); // admin grant browser (perm-gated)
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
