@@ -20,4 +20,4 @@ levels:
       - { POTION: { effect: STRENGTH, amplifier: 1, duration: 200 } }
       - { POTION: { effect: SPEED, amplifier: 0, duration: 200 } }
       - { PARTICLE: { particle: FLAME, count: 8 } }
-      - { ACTIONBAR: { text: "&4Killing Spree!" } }
+      - { MESSAGE: { channel: actionbar, text: "&4Killing Spree!" } }

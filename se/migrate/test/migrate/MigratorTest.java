@@ -286,6 +286,8 @@ class MigratorTest {
         assertEquals("MESSAGE:contact @admin", Mappings.aeEffect("MESSAGE:contact @admin").se());
         assertFalse(Mappings.aeEffect("MESSAGE:Visit @Self now").mapped(), "an embedded @selector → TODO");
         assertFalse(Mappings.aeEffect("MESSAGE:hello @Victim").mapped(), "a trailing target selector → TODO");
+        // ACTIONBAR collapses onto the canonical MESSAGE via the actionbar channel (§C); MESSAGE stays chat.
+        assertEquals("MESSAGE:Charged:actionbar", Mappings.aeEffect("ACTIONBAR:Charged").se());
     }
 
     @Test

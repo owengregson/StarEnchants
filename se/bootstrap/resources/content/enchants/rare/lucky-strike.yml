@@ -18,10 +18,10 @@ effects:
 levels:
   1:
     effects+:
-      - { ACTIONBAR: { text: "&eLucky Strike!" } }
+      - { MESSAGE: { channel: actionbar, text: "&eLucky Strike!" } }
   2:
     effects+:
-      - { ACTIONBAR: { text: "&eLucky Strike!" } }
+      - { MESSAGE: { channel: actionbar, text: "&eLucky Strike!" } }
   3:
     effects+:
-      - { TITLE: { title: "&6Lucky Strike!", subtitle: "&eFortune favours you", fadeIn: 10, stay: 40, fadeOut: 10 } }
+      - { MESSAGE: { channel: title, text: "&6Lucky Strike!", subtitle: "&eFortune favours you", fadeIn: 10, stay: 40, fadeOut: 10 } }
