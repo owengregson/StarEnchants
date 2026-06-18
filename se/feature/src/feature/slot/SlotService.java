@@ -30,25 +30,34 @@ public final class SlotService {
     private final LoreRenderer lore;
     private final Supplier<SlotConfig> config;
     private final IntSupplier baseSlots; // §H config.yml slots.base — read live so the cap math tracks a reload
+    private final item.lang.Messages messages; // §L lang.yml — apply/at-cap + guards
 
-    /** Fixed base-slots form (tests/fixtures). */
+    /** Fixed base-slots + default messages form (tests/fixtures). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, int baseSlots) {
         this(codec, combat, lore, config, () -> Math.max(0, baseSlots));
     }
 
+    /** As above with a live base-slots supplier but default messages. */
+    public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
+                       Supplier<SlotConfig> config, IntSupplier baseSlots) {
+        this(codec, combat, lore, config, baseSlots, item.lang.Messages.defaults());
+    }
+
     /**
      * Canonical form (the composition root): {@code baseSlots} is read live, so the universal cap math
      * ({@code hardCap - base}, the cap itself staying in {@code items/slots.yml} per §H) re-tunes on a
-     * {@code /se reload} that changes {@code config.yml}'s {@code slots.base}.
+     * {@code /se reload} that changes {@code config.yml}'s {@code slots.base}; {@code messages} sources the
+     * apply/at-cap chat from {@code lang.yml} (§L).
      */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
-                       Supplier<SlotConfig> config, IntSupplier baseSlots) {
+                       Supplier<SlotConfig> config, IntSupplier baseSlots, item.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.config = Objects.requireNonNull(config, "config");
         this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Whether {@code stack} is a slot expander / gem item. */
@@ -86,21 +95,21 @@ public final class SlotService {
      */
     public SlotResult applyTo(ItemStack slotItem, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return SlotResult.unchanged("§cApply the slot item onto a piece of gear.");
+            return SlotResult.unchanged(messages.format("slot.not-gear"));
         }
         if (gear.getAmount() > 1) {
-            return SlotResult.unchanged("§cApply to a single item — split the stack first.");
+            return SlotResult.unchanged(messages.format("common.single-item"));
         }
         int grant = codec.amountOf(slotItem);
         if (grant <= 0) {
-            return SlotResult.unchanged("§cThat is not a slot item.");
+            return SlotResult.unchanged(messages.format("slot.not-slot-item"));
         }
         SlotConfig cfg = config.get();
         int base = baseSlots.getAsInt();
         int maxAdded = Math.max(0, cfg.hardCap() - base); // the cap is on TOTAL slots (base + added)
         CombatState current = combat.read(gear);
         if (current.added() >= maxAdded) {
-            return SlotResult.unchanged(color(cfg.messageAtCap()));
+            return SlotResult.unchanged(messages.format("slot.at-cap"));
         }
         int newAdded = Math.min(current.added() + grant, maxAdded);
         CombatState next = current.withAdded(newAdded);
@@ -108,7 +117,7 @@ public final class SlotService {
         lore.apply(gear, next); // keep the gear's lore in sync (unchanged enchant/crystal lines re-rendered)
         consume(slotItem);
         int total = base + newAdded;
-        return SlotResult.committed(gear, color(cfg.messageApply().replace("{SLOTS}", Integer.toString(total))));
+        return SlotResult.committed(gear, messages.format("slot.apply", "SLOTS", total));
     }
 
     private static java.util.List<String> renderLore(java.util.List<String> lore, String amount) {
@@ -121,9 +130,5 @@ public final class SlotService {
 
     private static void consume(ItemStack stack) {
         stack.setAmount(stack.getAmount() - 1);
-    }
-
-    private static String color(String raw) {
-        return ItemFactory.color(raw);
     }
 }

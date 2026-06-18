@@ -194,6 +194,34 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("menu.enchanter.bought", "&aBought a &f{TIER} &amystery book.");
         s.put("menu.admin.granted", "&aGranted a guaranteed &f{DISPLAY} &abook.");
 
+        // ── Config-backed item messages (were items/*.yml message-* fields; now centralised here) ──
+        s.put("soul.activate", "&aSoul mode &lON&a.");
+        s.put("soul.deactivate", "&7Soul mode &lOFF&7.");
+        s.put("soul.soul-use", "&7Souls remaining: &a{AMOUNT}");
+        s.put("crystal.apply-success", "&aApplied &f{CRYSTAL}&a to your item.");
+        s.put("crystal.apply-fail", "&cThe crystal shattered without taking hold.");
+        s.put("crystal.no-slots", "&cThat item has no free crystal slot.");
+        s.put("crystal.merge", "&dMerged into a multi-crystal: &f{CRYSTAL}&d.");
+        s.put("heroic.success", "&6Heroic upgrade succeeded! &7Your gear is now &6heroic&7.");
+        s.put("heroic.fail", "&cThe heroic upgrade failed — the upgrade was consumed.");
+        s.put("slot.apply", "&aSlots increased — this item now has &f{SLOTS}&a total.");
+        s.put("slot.at-cap", "&cThat item is already at the maximum slots.");
+        s.put("scroll.black.success", "&aExtracted &f{ENCHANT}&a into a book.");
+        s.put("scroll.black.fail", "&cThe black scroll crumbled — nothing was extracted.");
+        s.put("scroll.black.no-enchants", "&cThat item has no enchants to extract.");
+        s.put("scroll.randomizer.success", "&aThe book's success chance was rerolled to &f{PERCENT}%&a.");
+        s.put("scroll.randomizer.not-book", "&cThe randomizer only works on an enchant book.");
+        s.put("scroll.randomizer.single-book", "&cApply to a single book — split the stack first.");
+        s.put("scroll.transmog.success", "&aReordered the enchant display.");
+        s.put("scroll.transmog.no-enchants", "&cThat item has no enchants to transmog.");
+        s.put("scroll.holy.saved", "&fThe holy scroll shattered — your items were spared.");
+        s.put("scroll.nametag.prompt", "&7Type the new item name in chat (or 'cancel').");
+        s.put("scroll.nametag.renamed", "&aRenamed your item.");
+        s.put("scroll.nametag.blacklisted", "&cThat name contains a blacklisted word.");
+        s.put("scroll.nametag.cancelled", "&7Rename cancelled.");
+        s.put("book.unopened.open", "&aYou revealed &f{ENCHANT} {LEVEL}&a (&f{PERCENT}%&a success)!");
+        s.put("book.unopened.empty-tier", "&cThere are no enchants in that tier to reveal.");
+
         // ── Multi-line blocks ──────────────────────────────────────────────────────────────────────
         Map<String, List<String>> l = new LinkedHashMap<>();
         l.put("command.usage", List.of(

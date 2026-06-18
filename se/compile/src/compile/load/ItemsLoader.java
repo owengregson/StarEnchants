@@ -131,40 +131,28 @@ public final class ItemsLoader {
                         orDefault(black.string("material"), bd.material()),
                         orDefault(black.string("name"), bd.name()),
                         black.has("lore") ? black.stringList("lore") : bd.lore(),
-                        parseInt(black.string("success-chance"), bd.successChance(), root, diags),
-                        orDefault(black.string("message-success"), bd.messageSuccess()),
-                        orDefault(black.string("message-fail"), bd.messageFail()),
-                        orDefault(black.string("message-no-enchants"), bd.messageNoEnchants())),
+                        parseInt(black.string("success-chance"), bd.successChance(), root, diags)),
                 new ScrollsConfig.Randomizer(
                         orDefault(rand.string("material"), rd.material()),
                         orDefault(rand.string("name"), rd.name()),
                         rand.has("lore") ? rand.stringList("lore") : rd.lore(),
                         parseInt(rand.string("min-percent"), rd.minPercent(), root, diags),
-                        parseInt(rand.string("max-percent"), rd.maxPercent(), root, diags),
-                        orDefault(rand.string("message-success"), rd.messageSuccess()),
-                        orDefault(rand.string("message-not-book"), rd.messageNotBook())),
+                        parseInt(rand.string("max-percent"), rd.maxPercent(), root, diags)),
                 new ScrollsConfig.Transmog(
                         orDefault(trans.string("material"), td.material()),
                         orDefault(trans.string("name"), td.name()),
                         trans.has("lore") ? trans.stringList("lore") : td.lore(),
-                        orDefault(trans.string("name-suffix"), td.nameSuffix()),
-                        orDefault(trans.string("message-success"), td.messageSuccess()),
-                        orDefault(trans.string("message-no-enchants"), td.messageNoEnchants())),
+                        orDefault(trans.string("name-suffix"), td.nameSuffix())),
                 new ScrollsConfig.Holy(
                         orDefault(holy.string("material"), hd.material()),
                         orDefault(holy.string("name"), hd.name()),
                         holy.has("lore") ? holy.stringList("lore") : hd.lore(),
-                        parseInt(holy.string("save-chance"), hd.saveChance(), root, diags),
-                        orDefault(holy.string("message-saved"), hd.messageSaved())),
+                        parseInt(holy.string("save-chance"), hd.saveChance(), root, diags)),
                 new ScrollsConfig.Nametag(
                         orDefault(tag.string("material"), nd.material()),
                         orDefault(tag.string("name"), nd.name()),
                         tag.has("lore") ? tag.stringList("lore") : nd.lore(),
-                        tag.has("blacklist") ? tag.stringList("blacklist") : nd.blacklist(),
-                        orDefault(tag.string("message-prompt"), nd.messagePrompt()),
-                        orDefault(tag.string("message-renamed"), nd.messageRenamed()),
-                        orDefault(tag.string("message-blacklisted"), nd.messageBlacklisted()),
-                        orDefault(tag.string("message-cancelled"), nd.messageCancelled())));
+                        tag.has("blacklist") ? tag.stringList("blacklist") : nd.blacklist()));
     }
 
     private static UnopenedBookConfig readUnopenedBook(YamlNode root, Diagnostics diags) {
@@ -174,9 +162,7 @@ public final class ItemsLoader {
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-success"), d.minSuccess(), root, diags),
-                parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
-                orDefault(root.string("message-open"), d.messageOpen()),
-                orDefault(root.string("message-empty-tier"), d.messageEmptyTier()));
+                parseInt(root.string("max-success"), d.maxSuccess(), root, diags));
     }
 
     private static SlotConfig readSlots(YamlNode root, Diagnostics diags) {
@@ -189,9 +175,7 @@ public final class ItemsLoader {
                 orDefault(root.string("gem-material"), d.gemMaterial()),
                 orDefault(root.string("gem-name"), d.gemName()),
                 root.has("gem-lore") ? root.stringList("gem-lore") : d.gemLore(),
-                parseInt(root.string("hard-cap"), d.hardCap(), root, diags),
-                orDefault(root.string("message-apply"), d.messageApply()),
-                orDefault(root.string("message-at-cap"), d.messageAtCap()));
+                parseInt(root.string("hard-cap"), d.hardCap(), root, diags));
     }
 
     private static HeroicConfig readHeroic(YamlNode root, Diagnostics diags) {
@@ -213,9 +197,7 @@ public final class ItemsLoader {
                 parseDouble(root.string("percent-reduction"), d.percentReduction(), root, diags),
                 parseDouble(root.string("durability"), d.durability(), root, diags),
                 upgrades.isEmpty() ? d.materialUpgrades() : upgrades,
-                orDefault(root.string("reduction-scope"), d.reductionScope()),
-                orDefault(root.string("message-success"), d.messageSuccess()),
-                orDefault(root.string("message-fail"), d.messageFail()));
+                orDefault(root.string("reduction-scope"), d.reductionScope()));
     }
 
     private static double parseDouble(String raw, double fallback, YamlNode root, Diagnostics diags) {
@@ -238,11 +220,7 @@ public final class ItemsLoader {
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("success-chance"), d.successChance(), root, diags),
                 root.has("consume-on-fail")
-                        ? "true".equalsIgnoreCase(root.string("consume-on-fail")) : d.consumeOnFail(),
-                orDefault(root.string("message-apply-success"), d.messageApplySuccess()),
-                orDefault(root.string("message-apply-fail"), d.messageApplyFail()),
-                orDefault(root.string("message-no-slots"), d.messageNoSlots()),
-                orDefault(root.string("message-merge"), d.messageMerge()));
+                        ? "true".equalsIgnoreCase(root.string("consume-on-fail")) : d.consumeOnFail());
     }
 
     private static SoulGemConfig readSoulGem(YamlNode root, Diagnostics diags) {
@@ -264,10 +242,7 @@ public final class ItemsLoader {
                 orDefault(sounds.string("combine"), d.soundCombine()),
                 particles.has("active") ? particles.stringList("active") : d.particlesActive(),
                 particles.has("on-activate") ? particles.stringList("on-activate") : d.particlesActivate(),
-                particles.has("on-deactivate") ? particles.stringList("on-deactivate") : d.particlesDeactivate(),
-                orDefault(root.string("message-activate"), d.messageActivate()),
-                orDefault(root.string("message-deactivate"), d.messageDeactivate()),
-                orDefault(root.string("message-soul-use"), d.messageSoulUse()));
+                particles.has("on-deactivate") ? particles.stringList("on-deactivate") : d.particlesDeactivate());
     }
 
     /** Parse the optional {@code souls-per-mob:} map ({@code ENTITY_TYPE: amount}); a bad amount warns + skips. */

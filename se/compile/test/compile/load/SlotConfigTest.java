@@ -19,7 +19,7 @@ class SlotConfigTest {
 
     @Test
     void clampsNonPositiveAmounts() {
-        SlotConfig c = new SlotConfig("M", "n", List.of(), 0, "M", "g", List.of(), 0, "a", "b");
+        SlotConfig c = new SlotConfig("M", "n", List.of(), 0, "M", "g", List.of(), 0);
         assertEquals(1, c.orbAmount(), "orb amount floored to 1");
         assertEquals(1, c.hardCap(), "hard cap floored to 1");
     }

@@ -230,8 +230,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
     private static ScrollsConfig withBlackSuccess(ScrollsConfig base, int chance) {
         ScrollsConfig.Black b = base.black();
         return new ScrollsConfig(
-                new ScrollsConfig.Black(b.material(), b.name(), b.lore(), chance,
-                        b.messageSuccess(), b.messageFail(), b.messageNoEnchants()),
+                new ScrollsConfig.Black(b.material(), b.name(), b.lore(), chance),
                 base.randomizer(), base.transmog(), base.holy(), base.nametag());
     }
 

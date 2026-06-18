@@ -56,7 +56,7 @@ public final class NametagListener implements Listener {
         // so a second nametag is never consumed for nothing (and the first rename is not clobbered).
         String prompt = service.begin(player.getUniqueId(), target);
         if (prompt == null) {
-            player.sendMessage("§7Finish your current rename first, or type 'cancel'.");
+            player.sendMessage(service.busyMessage()); // §L lang.yml scroll.nametag.busy
             return; // do NOT consume a nametag while a rename is already awaiting chat
         }
         cursor.setAmount(cursor.getAmount() - 1); // a nametag is spent to begin the rename (refunded if aborted)

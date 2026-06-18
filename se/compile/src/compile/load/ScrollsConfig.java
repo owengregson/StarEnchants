@@ -30,8 +30,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * The black scroll: dragged onto enchanted gear, it extracts one (random) enchant into an enchant book
      * with a {@link #successChance} roll. On failure the scroll is spent and nothing is extracted.
      */
-    public record Black(String material, String name, List<String> lore, int successChance,
-                        String messageSuccess, String messageFail, String messageNoEnchants) {
+    public record Black(String material, String name, List<String> lore, int successChance) {
         public Black {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
@@ -44,8 +43,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * The randomizer scroll: dragged onto an enchant book, it rerolls the book's success chance to a random
      * value in {@code [minPercent, maxPercent]}.
      */
-    public record Randomizer(String material, String name, List<String> lore, int minPercent, int maxPercent,
-                             String messageSuccess, String messageNotBook) {
+    public record Randomizer(String material, String name, List<String> lore, int minPercent, int maxPercent) {
         public Randomizer {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
@@ -62,8 +60,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * combat behaviour is order-independent) and appends a configurable {@code nameSuffix} to the item name.
      * Godly (manual) transmog is the reorder GUI (§K), a later wave.
      */
-    public record Transmog(String material, String name, List<String> lore, String nameSuffix,
-                           String messageSuccess, String messageNoEnchants) {
+    public record Transmog(String material, String name, List<String> lore, String nameSuffix) {
         public Transmog {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
@@ -77,7 +74,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * roll it keeps the player's items + levels (consumed on the saved death). Respects an existing
      * keepInventory gamerule (then it is neither needed nor spent).
      */
-    public record Holy(String material, String name, List<String> lore, int saveChance, String messageSaved) {
+    public record Holy(String material, String name, List<String> lore, int saveChance) {
         public Holy {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
@@ -91,9 +88,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * rejected if it contains a blacklisted word. {@code blacklist} entries are matched case-insensitively
      * as substrings of the (colour-stripped) name.
      */
-    public record Nametag(String material, String name, List<String> lore, List<String> blacklist,
-                          String messagePrompt, String messageRenamed, String messageBlacklisted,
-                          String messageCancelled) {
+    public record Nametag(String material, String name, List<String> lore, List<String> blacklist) {
         public Nametag {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
@@ -109,39 +104,27 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                         "INK_SAC",
                         "&8Black Scroll",
                         List.of("&7Drag onto enchanted gear to", "&7extract one enchant into a book."),
-                        80,
-                        "&aExtracted &f{ENCHANT}&a into a book.",
-                        "&cThe black scroll crumbled — nothing was extracted.",
-                        "&cThat item has no enchants to extract."),
+                        80),
                 new Randomizer(
                         "SUGAR",
                         "&eRandomizer Scroll",
                         List.of("&7Drag onto an enchant book to", "&7reroll its success chance."),
                         25,
-                        100,
-                        "&aThe book's success chance was rerolled to &f{PERCENT}%&a.",
-                        "&cThe randomizer only works on an enchant book."),
+                        100),
                 new Transmog(
                         "PURPLE_DYE",
                         "&5Transmog Scroll",
                         List.of("&7Drag onto enchanted gear to", "&7reorder its enchant display."),
-                        " &8(Transmogged)",
-                        "&aReordered the enchant display.",
-                        "&cThat item has no enchants to transmog."),
+                        " &8(Transmogged)"),
                 new Holy(
                         "TOTEM_OF_UNDYING",
                         "&fHoly Scroll",
                         List.of("&7Keep your items if you die", "&7while carrying this (one use)."),
-                        100,
-                        "&fThe holy scroll shattered — your items were spared."),
+                        100),
                 new Nametag(
                         "NAME_TAG",
                         "&bItem Nametag",
                         List.of("&7Drag onto gear, then type the", "&7new name in chat."),
-                        List.of(),
-                        "&7Type the new item name in chat (or 'cancel').",
-                        "&aRenamed your item.",
-                        "&cThat name contains a blacklisted word.",
-                        "&7Rename cancelled."));
+                        List.of()));
     }
 }

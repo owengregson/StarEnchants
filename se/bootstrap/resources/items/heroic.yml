@@ -25,5 +25,3 @@ material-upgrades:
   DIAMOND_BOOTS: NETHERITE_BOOTS
   DIAMOND_SWORD: NETHERITE_SWORD
   DIAMOND_AXE: NETHERITE_AXE
-message-success: "&6Heroic upgrade succeeded! &7Your gear is now &6heroic&7."
-message-fail: "&cThe heroic upgrade failed — the upgrade was consumed."

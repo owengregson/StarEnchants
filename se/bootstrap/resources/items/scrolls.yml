@@ -10,9 +10,6 @@ black:
     - "&7Drag onto enchanted gear to"
     - "&7extract one enchant into a book."
   success-chance: 80
-  message-success: "&aExtracted &f{ENCHANT}&a into a book."
-  message-fail: "&cThe black scroll crumbled — nothing was extracted."
-  message-no-enchants: "&cThat item has no enchants to extract."
 
 # Randomizer scroll — drag onto an enchant book to reroll its success chance into [min, max].
 randomizer:
@@ -23,8 +20,6 @@ randomizer:
     - "&7reroll its success chance."
   min-percent: 25
   max-percent: 100
-  message-success: "&aThe book's success chance was rerolled to &f{PERCENT}%&a."
-  message-not-book: "&cThe randomizer only works on an enchant book."
 
 # Transmog scroll — drag onto enchanted gear to reorder its enchant display + append a name suffix.
 # (Godly/manual transmog is the reorder GUI, a later wave.)
@@ -35,8 +30,6 @@ transmog:
     - "&7Drag onto enchanted gear to"
     - "&7reorder its enchant display."
   name-suffix: " &8(Transmogged)"
-  message-success: "&aReordered the enchant display."
-  message-no-enchants: "&cThat item has no enchants to transmog."
 
 # Holy / death scroll — carry it (incl. off-hand) to keep your items + levels on a death (one use).
 # Respects the keepInventory gamerule (then it is neither needed nor spent).
@@ -47,7 +40,6 @@ holy:
     - "&7Keep your items if you die"
     - "&7while carrying this (one use)."
   save-chance: 100
-  message-saved: "&fThe holy scroll shattered — your items were spared."
 
 # Item nametag — drag onto gear, then type the new name in chat. Blacklisted words are rejected.
 nametag:
@@ -57,7 +49,3 @@ nametag:
     - "&7Drag onto gear, then type the"
     - "&7new name in chat."
   blacklist: []
-  message-prompt: "&7Type the new item name in chat (or 'cancel')."
-  message-renamed: "&aRenamed your item."
-  message-blacklisted: "&cThat name contains a blacklisted word."
-  message-cancelled: "&7Rename cancelled."

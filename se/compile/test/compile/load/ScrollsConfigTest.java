@@ -22,20 +22,20 @@ class ScrollsConfigTest {
 
     @Test
     void holySaveChanceIsClamped() {
-        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250, "saved");
+        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250);
         assertEquals(100, h.saveChance(), "save chance clamped to 100");
     }
 
     @Test
     void blackSuccessIsClamped() {
-        ScrollsConfig.Black b = new ScrollsConfig.Black("M", "n", List.of(), 150, "a", "b", "c");
+        ScrollsConfig.Black b = new ScrollsConfig.Black("M", "n", List.of(), 150);
         assertEquals(100, b.successChance(), "success chance clamped to 100");
     }
 
     @Test
     void randomizerOrdersAndClampsRange() {
         // Reversed + out-of-range bounds are clamped to [0,100] and ordered low..high.
-        ScrollsConfig.Randomizer r = new ScrollsConfig.Randomizer("M", "n", List.of(), 120, -5, "a", "b");
+        ScrollsConfig.Randomizer r = new ScrollsConfig.Randomizer("M", "n", List.of(), 120, -5);
         assertEquals(0, r.minPercent());
         assertEquals(100, r.maxPercent());
     }

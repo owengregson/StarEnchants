@@ -15,17 +15,16 @@ import java.util.Objects;
  * @param lore            its lore lines ({@code {TIER}} placeholder)
  * @param minSuccess      the lower bound of the produced book's random success chance, 0..100
  * @param maxSuccess      the upper bound of the produced book's random success chance, 0..100
- * @param messageOpen     chat when a book is rolled ({@code {ENCHANT}}, {@code {LEVEL}}, {@code {PERCENT}})
- * @param messageEmptyTier chat when the scoped tier has no enchants to roll
+ *
+ * <p>The reveal/empty-tier messages now live in {@code lang.yml} ({@code book.unopened.open} /
+ * {@code book.unopened.empty-tier}) — §L centralised them out of this likeness config.
  */
 public record UnopenedBookConfig(
         String material,
         String name,
         List<String> lore,
         int minSuccess,
-        int maxSuccess,
-        String messageOpen,
-        String messageEmptyTier) {
+        int maxSuccess) {
 
     public UnopenedBookConfig {
         Objects.requireNonNull(material, "material");
@@ -44,8 +43,6 @@ public record UnopenedBookConfig(
                 "&b{TIER} Mystery Book",
                 List.of("&7Right-click to reveal a random", "&7{TIER} enchant book."),
                 25,
-                100,
-                "&aYou revealed &f{ENCHANT} {LEVEL}&a (&f{PERCENT}%&a success)!",
-                "&cThere are no enchants in that tier to reveal.");
+                100);
     }
 }

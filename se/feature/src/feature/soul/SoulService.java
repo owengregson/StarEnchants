@@ -48,24 +48,32 @@ public final class SoulService {
     private final SoulCodec codec;
     private final Supplier<SoulGemConfig> config;
     private final java.util.function.BooleanSupplier depositOnAnyKill; // §D config.yml souls.deposit-on-any-kill
+    private final item.lang.Messages messages; // §L lang.yml — the soul-mode messages
 
-    /** Soul service with deposit-on-any-kill always on (the common test/fixture form). */
+    /** Soul service with deposit-on-any-kill always on + default messages (the common test/fixture form). */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
         this(ledger, modes, codec, config, () -> true);
     }
 
-    /**
-     * Canonical form (the composition root): {@code depositOnAnyKill} (config.yml {@code souls.deposit-on-any-kill},
-     * §D) is read live, so a {@code /se reload} can switch the deposit-on-kill mechanic off without restarting
-     * (give/combine/split are unaffected).
-     */
+    /** As above, with a deposit toggle but default messages. */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill) {
+        this(ledger, modes, codec, config, depositOnAnyKill, item.lang.Messages.defaults());
+    }
+
+    /**
+     * Canonical form (the composition root): {@code depositOnAnyKill} (config.yml {@code souls.deposit-on-any-kill},
+     * §D) is read live, so a {@code /se reload} can switch the deposit-on-kill mechanic off without restarting;
+     * {@code messages} sources the soul-mode chat from {@code lang.yml} (§L).
+     */
+    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages) {
         this.ledger = Objects.requireNonNull(ledger, "ledger");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.config = Objects.requireNonNull(config, "config");
         this.depositOnAnyKill = Objects.requireNonNull(depositOnAnyKill, "depositOnAnyKill");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** The result of {@link #toggle}, for the command to relay. */
@@ -99,13 +107,13 @@ public final class SoulService {
             persist(player, gem.gemId());
             modes.deactivate(id);
             ledger.forget(gem.gemId());
-            message(player, cfg.messageDeactivate());
+            message(player, messages.format("soul.deactivate"));
             playSound(player, cfg.soundDeactivate());
             return Toggle.DISABLED;
         }
         modes.activate(id, gem.gemId());
         seed(gem); // prime the authority from the durable count on this (player) thread
-        message(player, cfg.messageActivate());
+        message(player, messages.format("soul.activate"));
         playSound(player, cfg.soundActivate());
         return Toggle.ENABLED;
     }
@@ -431,10 +439,7 @@ public final class SoulService {
             public void setSouls(int next) {
                 Scheduling.onEntity(player, () -> {
                     persist(player, gemId);
-                    String raw = config.get().messageSoulUse();
-                    if (raw != null && !raw.isBlank()) {
-                        message(player, raw.replace("{AMOUNT}", Integer.toString(next)));
-                    }
+                    message(player, messages.format("soul.soul-use", "AMOUNT", next));
                 });
             }
         };

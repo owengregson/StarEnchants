@@ -21,8 +21,9 @@ import java.util.Objects;
  * @param gemName       the gem's display name ({@code &} colours)
  * @param gemLore       the gem's lore lines
  * @param hardCap       the universal maximum TOTAL slot count (base + added) any item may reach
- * @param messageApply  chat on a successful slot increase ({@code {SLOTS}} renders the new total)
- * @param messageAtCap  chat when the gear is already at the hard cap
+ *
+ * <p>The apply/at-cap messages now live in {@code lang.yml} ({@code slot.apply} / {@code slot.at-cap}) — §L
+ * centralised them out of this likeness config.
  */
 public record SlotConfig(
         String orbMaterial,
@@ -32,9 +33,7 @@ public record SlotConfig(
         String gemMaterial,
         String gemName,
         List<String> gemLore,
-        int hardCap,
-        String messageApply,
-        String messageAtCap) {
+        int hardCap) {
 
     public SlotConfig {
         Objects.requireNonNull(orbMaterial, "orbMaterial");
@@ -57,8 +56,6 @@ public record SlotConfig(
                 "AMETHYST_SHARD",
                 "&dSlot Gem",
                 List.of("&7Drag onto gear to add &f1&7 enchant slot."),
-                15,
-                "&aSlots increased — this item now has &f{SLOTS}&a total.",
-                "&cThat item is already at the maximum slots.");
+                15);
     }
 }

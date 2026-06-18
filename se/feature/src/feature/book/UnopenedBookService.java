@@ -30,14 +30,22 @@ public final class UnopenedBookService {
     private final ContentHolder content;
     private final Supplier<UnopenedBookConfig> config;
     private final Random random;
+    private final item.lang.Messages messages; // §L lang.yml — reveal/empty-tier messages
 
+    /** Default-messages form (tests/fixtures). */
     public UnopenedBookService(UnopenedBookCodec codec, CarrierService carriers, ContentHolder content,
                                Supplier<UnopenedBookConfig> config, Random random) {
+        this(codec, carriers, content, config, random, item.lang.Messages.defaults());
+    }
+
+    public UnopenedBookService(UnopenedBookCodec codec, CarrierService carriers, ContentHolder content,
+                               Supplier<UnopenedBookConfig> config, Random random, item.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.content = Objects.requireNonNull(content, "content");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Whether {@code stack} is an unopened book. */
@@ -74,16 +82,14 @@ public final class UnopenedBookService {
             }
         }
         if (pool.isEmpty()) {
-            return UnopenedResult.nothing(color(cfg.messageEmptyTier()));
+            return UnopenedResult.nothing(messages.format("book.unopened.empty-tier"));
         }
         EnchantDef chosen = pool.get(random.nextInt(pool.size()));
         int level = 1 + random.nextInt(Math.max(1, chosen.maxLevel()));
         int success = cfg.minSuccess() + random.nextInt(cfg.maxSuccess() - cfg.minSuccess() + 1);
         ItemStack produced = carriers.mintBook(chosen.key(), level, success);
-        String message = color(cfg.messageOpen()
-                .replace("{ENCHANT}", chosen.display())
-                .replace("{LEVEL}", Integer.toString(level))
-                .replace("{PERCENT}", Integer.toString(success)));
+        String message = messages.format("book.unopened.open",
+                "ENCHANT", chosen.display(), "LEVEL", level, "PERCENT", success);
         return UnopenedResult.opened(produced, message);
     }
 
@@ -93,9 +99,5 @@ public final class UnopenedBookService {
             out.add(line.replace("{TIER}", tier));
         }
         return out;
-    }
-
-    private static String color(String raw) {
-        return ItemFactory.color(raw);
     }
 }

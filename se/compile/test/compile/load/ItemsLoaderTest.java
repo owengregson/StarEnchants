@@ -43,8 +43,7 @@ class ItemsLoaderTest {
         assertEquals("&5Soul Gem", gem.name());
         assertEquals(List.of("&7Souls: {AMOUNT}", "&7Right-click to toggle."), gem.lore());
         assertEquals(3, gem.soulsPerKill());
-        assertEquals("on", gem.messageActivate());
-        assertEquals("left {AMOUNT}", gem.messageSoulUse());
+        // (soul-mode messages moved to lang.yml in §L — no longer on the item config)
     }
 
     @Test
@@ -79,7 +78,7 @@ class ItemsLoaderTest {
         assertEquals(List.of("&7+{AMOUNT} slots"), slots.orbLore());
         assertEquals("QUARTZ", slots.gemMaterial());
         assertEquals(20, slots.hardCap());
-        assertEquals("now {SLOTS}", slots.messageApply());
+        // (slot messages moved to lang.yml in §L)
         // Omitted gem-lore falls back to the default.
         assertEquals(SlotConfig.defaults().gemLore(), slots.gemLore());
     }
@@ -103,7 +102,7 @@ class ItemsLoaderTest {
         assertEquals("COAL", scrolls.black().material());
         assertEquals("&8Void Scroll", scrolls.black().name());
         assertEquals(50, scrolls.black().successChance());
-        assertEquals("got {ENCHANT}", scrolls.black().messageSuccess());
+        // (scroll messages moved to lang.yml in §L)
         // Omitted black lore falls back to the default.
         assertEquals(ScrollsConfig.defaults().black().lore(), scrolls.black().lore());
         assertEquals("GLOWSTONE_DUST", scrolls.randomizer().material());

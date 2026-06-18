@@ -12,7 +12,3 @@ lore:
   - "&7Merge two crystals into a multi-crystal."
 success-chance: 75
 consume-on-fail: true
-message-apply-success: "&aApplied &f{CRYSTAL}&a to your item."
-message-apply-fail: "&cThe crystal shattered without taking hold."
-message-no-slots: "&cThat item has no free crystal slot."
-message-merge: "&dMerged into a multi-crystal: &f{CRYSTAL}&d."

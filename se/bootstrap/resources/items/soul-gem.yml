@@ -42,6 +42,3 @@ particles:
   on-deactivate: []
 
 # Messages ({AMOUNT} = remaining souls on soul use).
-message-activate: "&aSoul mode &lON&a."
-message-deactivate: "&7Soul mode &lOFF&7."
-message-soul-use: "&7Souls remaining: &a{AMOUNT}"

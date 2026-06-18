@@ -43,9 +43,17 @@ public final class ScrollService {
     private final ContentHolder content;
     private final Supplier<ScrollsConfig> config;
     private final Random random;
+    private final item.lang.Messages messages; // §L lang.yml — black/randomizer/transmog result messages + guards
 
+    /** Default-messages form (tests/fixtures). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random) {
+        this(scrolls, combat, lore, carriers, content, config, random, item.lang.Messages.defaults());
+    }
+
+    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
+                         ContentHolder content, Supplier<ScrollsConfig> config, Random random,
+                         item.lang.Messages messages) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -53,6 +61,7 @@ public final class ScrollService {
         this.content = Objects.requireNonNull(content, "content");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Whether {@code stack} is a drag-onto-target scroll handled by this service (black / randomizer / transmog). */
@@ -111,14 +120,14 @@ public final class ScrollService {
     private ScrollResult applyTransmog(ItemStack cursor, ItemStack gear) {
         ScrollsConfig.Transmog cfg = config.get().transmog();
         if (gear == null || gear.getType() == Material.AIR) {
-            return ScrollResult.unchanged("§cApply the transmog scroll onto enchanted gear.");
+            return ScrollResult.unchanged(messages.format("scroll.transmog.apply-target"));
         }
         if (gear.getAmount() > 1) {
-            return ScrollResult.unchanged("§cApply to a single item — split the stack first.");
+            return ScrollResult.unchanged(messages.format("common.single-item"));
         }
         CombatState current = combat.read(gear);
         if (current.enchants().isEmpty()) {
-            return ScrollResult.unchanged(color(cfg.messageNoEnchants()));
+            return ScrollResult.unchanged(messages.format("scroll.transmog.no-enchants"));
         }
         // Reorder the enchant display (cosmetic — combat behaviour is order-independent). One line per slot.
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(current.enchants().entrySet());
@@ -133,7 +142,7 @@ public final class ScrollService {
         lore.apply(gear, next); // re-render the enchant lore in the new order
         appendNameSuffix(gear, cfg.nameSuffix()); // the applied-name suffix
         consume(cursor);
-        return ScrollResult.committed(gear, null, color(cfg.messageSuccess()));
+        return ScrollResult.committed(gear, null, messages.format("scroll.transmog.success"));
     }
 
     /**
@@ -197,14 +206,14 @@ public final class ScrollService {
     private ScrollResult applyBlack(ItemStack cursor, ItemStack gear) {
         ScrollsConfig.Black cfg = config.get().black();
         if (gear == null || gear.getType() == Material.AIR) {
-            return ScrollResult.unchanged("§cApply the black scroll onto enchanted gear.");
+            return ScrollResult.unchanged(messages.format("scroll.black.apply-target"));
         }
         if (gear.getAmount() > 1) {
-            return ScrollResult.unchanged("§cApply to a single item — split the stack first.");
+            return ScrollResult.unchanged(messages.format("common.single-item"));
         }
         CombatState current = combat.read(gear);
         if (current.enchants().isEmpty()) {
-            return ScrollResult.unchanged(color(cfg.messageNoEnchants()));
+            return ScrollResult.unchanged(messages.format("scroll.black.no-enchants"));
         }
         // Pick one enchant to (attempt to) extract — random across the item's enchants.
         List<String> keys = new ArrayList<>(current.enchants().keySet());
@@ -212,7 +221,7 @@ public final class ScrollService {
         int level = current.enchants().get(key);
         consume(cursor); // the scroll is spent whether the roll succeeds or fails
         if (random.nextInt(100) >= cfg.successChance()) {
-            return ScrollResult.committed(gear, null, color(cfg.messageFail())); // gear untouched, scroll spent
+            return ScrollResult.committed(gear, null, messages.format("scroll.black.fail")); // gear untouched, scroll spent
         }
         Map<String, Integer> remaining = new LinkedHashMap<>(current.enchants());
         remaining.remove(key);
@@ -221,26 +230,26 @@ public final class ScrollService {
         combat.write(gear, next);
         lore.apply(gear, next); // re-render the gear's lore from the reduced state
         ItemStack book = carriers.mintBook(key, level); // the extracted enchant, as an enchant book
-        return ScrollResult.committed(gear, book, color(cfg.messageSuccess().replace("{ENCHANT}", displayOf(key))));
+        return ScrollResult.committed(gear, book, messages.format("scroll.black.success", "ENCHANT", displayOf(key)));
     }
 
     /** Randomizer scroll: reroll a book's success chance to a random value in the configured range. */
     private ScrollResult applyRandomizer(ItemStack cursor, ItemStack book) {
         ScrollsConfig.Randomizer cfg = config.get().randomizer();
         if (book == null || book.getType() == Material.AIR) {
-            return ScrollResult.unchanged("§cApply the randomizer onto an enchant book.");
+            return ScrollResult.unchanged(messages.format("scroll.randomizer.apply-target"));
         }
         if (book.getAmount() > 1) {
-            return ScrollResult.unchanged("§cApply to a single book — split the stack first.");
+            return ScrollResult.unchanged(messages.format("scroll.randomizer.single-book"));
         }
         int target = cfg.minPercent() + random.nextInt(cfg.maxPercent() - cfg.minPercent() + 1);
         CarrierResult rolled = carriers.rerollSuccess(book, target);
         if (!rolled.consumed()) {
-            return ScrollResult.unchanged(color(cfg.messageNotBook())); // not a book — don't waste the scroll
+            return ScrollResult.unchanged(messages.format("scroll.randomizer.not-book")); // not a book — don't waste the scroll
         }
         consume(cursor);
         return ScrollResult.committed(book, null,
-                color(cfg.messageSuccess().replace("{PERCENT}", Integer.toString(target))));
+                messages.format("scroll.randomizer.success", "PERCENT", target));
     }
 
     private String displayOf(String key) {
@@ -250,9 +259,5 @@ public final class ScrollService {
 
     private static void consume(ItemStack stack) {
         stack.setAmount(stack.getAmount() - 1);
-    }
-
-    private static String color(String raw) {
-        return ItemFactory.color(raw);
     }
 }

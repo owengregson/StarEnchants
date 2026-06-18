@@ -37,9 +37,9 @@ import java.util.Objects;
  * @param particlesActive   particle tokens shown while a gem is active (spawning deferred — see class note)
  * @param particlesActivate particle tokens shown when soul mode enables (deferred)
  * @param particlesDeactivate particle tokens shown when soul mode disables (deferred)
- * @param messageActivate   chat message when soul mode is enabled ({@code null}/blank = silent)
- * @param messageDeactivate chat message when soul mode is disabled
- * @param messageSoulUse    chat message when souls are spent ({@code {AMOUNT}} = remaining)
+ *
+ * <p>The soul-mode messages now live in {@code lang.yml} ({@code soul.activate} / {@code soul.deactivate} /
+ * {@code soul.soul-use}) — §L centralised them out of this likeness config.
  */
 public record SoulGemConfig(
         String material,
@@ -55,10 +55,7 @@ public record SoulGemConfig(
         String soundCombine,
         List<String> particlesActive,
         List<String> particlesActivate,
-        List<String> particlesDeactivate,
-        String messageActivate,
-        String messageDeactivate,
-        String messageSoulUse) {
+        List<String> particlesDeactivate) {
 
     /**
      * One soul-colour tier: at {@code min} souls or above (and below the next-higher tier), the gem's
@@ -129,10 +126,7 @@ public record SoulGemConfig(
                 "block.anvil.use",
                 List.of(),
                 List.of(),
-                List.of(),
-                "&aSoul mode &lON&a.",
-                "&7Soul mode &lOFF&7.",
-                "&7Souls remaining: &a{AMOUNT}");
+                List.of());
     }
 
     private static Map<String, Integer> upperKeyed(Map<String, Integer> raw) {
