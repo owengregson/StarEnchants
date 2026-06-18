@@ -6,7 +6,6 @@ import feature.carrier.CarrierService;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -57,16 +56,7 @@ public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
     protected void onSelect(MenuClick click, EnchantDef def) {
         Player player = click.player();
         ItemStack book = carriers.mintBook(def.key(), 1, 100); // 100% success — the admin "guaranteed" book
-        giveOrDrop(player, book);
+        MenuItems.giveOrDrop(player, book);
         player.sendMessage("§aGranted a guaranteed §f" + def.display() + " §abook.");
-    }
-
-    /** Add {@code item} to the player's inventory, dropping any overflow at their feet (inventory-full guard). */
-    private static void giveOrDrop(Player player, ItemStack item) {
-        Map<Integer, ItemStack> overflow = player.getInventory().addItem(item);
-        // The click fires on the player's own region thread, so dropping at their location is in-region (Folia-safe).
-        for (ItemStack over : overflow.values()) {
-            player.getWorld().dropItemNaturally(player.getLocation(), over);
-        }
     }
 }

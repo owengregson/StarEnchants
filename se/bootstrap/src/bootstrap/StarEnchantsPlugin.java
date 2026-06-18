@@ -43,6 +43,7 @@ import feature.book.UnopenedBookService;
 import feature.menu.AdminBrowserMenu;
 import feature.menu.CrystalsBrowserMenu;
 import feature.menu.EnchantMenu;
+import feature.menu.EnchanterMenu;
 import feature.menu.EnchantsBrowserMenu;
 import feature.menu.GodlyTransmogMenu;
 import feature.menu.MenuRegistry;
@@ -336,6 +337,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .register(new CrystalsBrowserMenu(content, caps))   // crystals/modifiers catalog
                 .register(new ReferenceBrowserMenu(caps))           // effects/selectors/triggers/conditions/vars
                 .register(new GodlyTransmogMenu(content, codec, scrolls, caps)) // reorder held gear's enchant lore
+                .register(new EnchanterMenu(content, unopenedBooks, caps)) // buy mystery books per tier (XP)
                 .register(new AdminBrowserMenu(content, carriers, caps)); // admin grant browser (perm-gated)
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
