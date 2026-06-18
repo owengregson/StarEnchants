@@ -1,0 +1,12 @@
+# Layout of the enchant-application GUI (/se menu apply). Surfaced layout only — the click behaviour (apply
+# the clicked enchant) stays in code. Any field you omit keeps the built-in default shown in the comment.
+#
+# rows:       chest height, 1–6 (default 6; the bottom row is reserved for navigation)
+# title:      window title, legacy '&' colour codes (default "StarEnchants")
+# filler:     material name for the bottom-row filler panes, blank for none (default GRAY_STAINED_GLASS_PANE)
+# prev-slot / next-slot / back-slot / close-slot:
+#             raw slot of each nav button, -1 to hide (defaults 45 / 53 / 48 / 49 for a 6-row menu). A slot
+#             that does not fit the chosen row count is hidden automatically.
+
+title: "&dStarEnchants"
+filler: "BLACK_STAINED_GLASS_PANE"

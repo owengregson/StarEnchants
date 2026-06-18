@@ -28,8 +28,13 @@ public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.R
 
     private final ReferenceCatalog catalog;
 
+    /** Default-layout form (tests/fixtures). */
     public ReferenceBrowserMenu(Capabilities caps) {
-        super("reference", MenuLayout.paged("&3Reference"), caps);
+        this(caps, compile.load.MenusConfig::empty);
+    }
+
+    public ReferenceBrowserMenu(Capabilities caps, java.util.function.Supplier<compile.load.MenusConfig> menus) {
+        super("reference", MenuLayout.paged("&3Reference"), caps, menus);
         this.catalog = ReferenceCatalog.build();
     }
 

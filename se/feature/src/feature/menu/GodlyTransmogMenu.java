@@ -33,8 +33,14 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
     private final CombatCodec combat;
     private final ScrollService scrolls;
 
+    /** Default-layout form (tests/fixtures). */
     public GodlyTransmogMenu(ContentHolder content, CombatCodec combat, ScrollService scrolls, Capabilities caps) {
-        super("transmog", MenuLayout.paged("&5Godly Transmog"), caps);
+        this(content, combat, scrolls, caps, compile.load.MenusConfig::empty);
+    }
+
+    public GodlyTransmogMenu(ContentHolder content, CombatCodec combat, ScrollService scrolls, Capabilities caps,
+                             java.util.function.Supplier<compile.load.MenusConfig> menus) {
+        super("transmog", MenuLayout.paged("&5Godly Transmog"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");

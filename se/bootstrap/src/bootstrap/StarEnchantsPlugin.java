@@ -11,6 +11,8 @@ import compile.load.LibraryLoader;
 import compile.load.MasterConfig;
 import compile.load.MasterConfigHolder;
 import compile.load.MasterConfigLoader;
+import compile.load.MenusHolder;
+import compile.load.MenusLoader;
 import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
 import engine.interact.SoulLedger;
@@ -152,6 +154,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         Path itemsRoot = getDataFolder().toPath().resolve("items");
         Path configFile = getDataFolder().toPath().resolve("config.yml");
         Path langFile = getDataFolder().toPath().resolve("lang.yml");
+        Path menusRoot = getDataFolder().toPath().resolve("menus");
 
         // One retained resolver pairs compile-time interning with runtime resolution (§9).
         RegistryResolvers resolvers = new RegistryResolvers();
@@ -178,6 +181,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // and reads the holder live, so a reload re-texts everything.
         LangHolder lang = new LangHolder(LangLoader.load(langFile));
         Messages messages = new Messages(lang::lang);
+
+        // menus/ (§L) — per-GUI layout overrides, one file per menu; another parallel immutable reference
+        // swapped in the same reload transaction. Each menu merges its programmatic default with this holder's
+        // override at render time, so a reload re-lays-out the next open.
+        MenusHolder menusHolder = new MenusHolder(MenusLoader.load(menusRoot));
 
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
         CombatCodec codec = new CombatCodec(ItemKeys.of(this).combat());
@@ -354,6 +362,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             items.publish(ItemsLoader.load(itemsRoot));
             master.publish(MasterConfigLoader.load(configFile));
             lang.publish(LangLoader.load(langFile));
+            menusHolder.publish(MenusLoader.load(menusRoot));
             itemViews.reload(published.snapshot().generation());
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
@@ -379,18 +388,18 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // the registry maps a name → menu so `/se menu <name>` opens any of them. The direct-apply enchant
         // menu ("apply") is the visual /se enchant. Menus open on the player's region thread (Folia open-hop).
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
-                player -> worn.refresh(player, content.snapshot()), caps);
+                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config);
         MenuRegistry menus = new MenuRegistry()
                 .register(applyMenu)
-                .register(new EnchantsBrowserMenu(content, caps))   // tier → enchant catalog browser
-                .register(new SetsBrowserMenu(content, caps))       // armour-set browser + preview
-                .register(new CrystalsBrowserMenu(content, caps))   // crystals/modifiers catalog
-                .register(new ReferenceBrowserMenu(caps))           // effects/selectors/triggers/conditions/vars
-                .register(new GodlyTransmogMenu(content, codec, scrolls, caps)) // reorder held gear's enchant lore
-                .register(new EnchanterMenu(content, unopenedBooks, caps, messages)) // buy mystery books per tier (XP)
-                .register(new AlchemistMenu(carriers, caps, messages))   // combine two identical books → +1 level
-                .register(new TinkererMenu(carriers, caps, messages))    // salvage an enchant book → XP refund
-                .register(new AdminBrowserMenu(content, carriers, caps, messages)); // admin grant browser (perm-gated)
+                .register(new EnchantsBrowserMenu(content, caps, menusHolder::config))   // tier → enchant catalog
+                .register(new SetsBrowserMenu(content, caps, menusHolder::config))       // armour-set browser + preview
+                .register(new CrystalsBrowserMenu(content, caps, menusHolder::config))   // crystals/modifiers catalog
+                .register(new ReferenceBrowserMenu(caps, menusHolder::config))           // effects/selectors/…
+                .register(new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config)) // reorder lore
+                .register(new EnchanterMenu(content, unopenedBooks, caps, messages, menusHolder::config)) // buy books
+                .register(new AlchemistMenu(carriers, caps, messages, menusHolder::config)) // combine books → +1
+                .register(new TinkererMenu(carriers, caps, messages, menusHolder::config))  // salvage book → XP
+                .register(new AdminBrowserMenu(content, carriers, caps, messages, menusHolder::config)); // admin grant
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
         PluginCommand command = getCommand("se");
@@ -480,6 +489,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         saveDefaultFile("lang.yml");
         saveDefaultTree("content");
         saveDefaultTree("items");
+        saveDefaultTree("menus");
     }
 
     /** Extract one bundled top-level file (e.g. {@code config.yml}); never overwrites an operator's copy. */

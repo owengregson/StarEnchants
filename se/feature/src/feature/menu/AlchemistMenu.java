@@ -35,7 +35,12 @@ public final class AlchemistMenu extends FormMenu {
     }
 
     public AlchemistMenu(CarrierService carriers, Capabilities caps, Messages messages) {
-        super("alchemist", MenuLayout.form(3, "&3Alchemist"), caps);
+        this(carriers, caps, messages, compile.load.MenusConfig::empty);
+    }
+
+    public AlchemistMenu(CarrierService carriers, Capabilities caps, Messages messages,
+                         java.util.function.Supplier<compile.load.MenusConfig> menus) {
+        super("alchemist", MenuLayout.form(3, "&3Alchemist"), caps, menus);
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
@@ -43,11 +48,6 @@ public final class AlchemistMenu extends FormMenu {
     @Override
     public Set<Integer> inputSlots() {
         return Set.of(LEFT_INPUT, RIGHT_INPUT);
-    }
-
-    @Override
-    protected String title() {
-        return "&3Alchemist";
     }
 
     @Override

@@ -22,8 +22,14 @@ public final class SetsBrowserMenu extends PagedMenu<SetDef> {
 
     private final ContentHolder content;
 
+    /** Default-layout form (tests/fixtures). */
     public SetsBrowserMenu(ContentHolder content, Capabilities caps) {
-        super("sets", MenuLayout.paged("&3Armour Sets"), caps);
+        this(content, caps, compile.load.MenusConfig::empty);
+    }
+
+    public SetsBrowserMenu(ContentHolder content, Capabilities caps,
+                           java.util.function.Supplier<compile.load.MenusConfig> menus) {
+        super("sets", MenuLayout.paged("&3Armour Sets"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
     }
 
