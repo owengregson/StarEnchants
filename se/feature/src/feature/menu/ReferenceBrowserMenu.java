@@ -50,7 +50,7 @@ public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.R
     }
 
     @Override
-    protected ItemStack icon(Row row) {
+    protected ItemStack icon(MenuHolder holder, Row row) {
         if (row.isCategory()) {
             int count = catalog.entries(row.category()).size();
             return ItemFactory.build(categoryMaterial(row.category()), "&3" + row.category(),

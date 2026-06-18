@@ -61,7 +61,7 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     @Override
     @SuppressWarnings("deprecation") // setDisplayName/setLore(String): the floor-stable item-meta path
-    protected ItemStack icon(EnchantDef def) {
+    protected ItemStack icon(MenuHolder holder, EnchantDef def) {
         ItemStack item = new ItemStack(iconMaterial());
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {

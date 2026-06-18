@@ -41,8 +41,8 @@ public abstract class PagedMenu<T> implements Menu {
     /** The content rows to page through for the holder's current view (drill-down menus branch on view()). */
     protected abstract List<T> items(MenuHolder holder);
 
-    /** The icon for one content row. */
-    protected abstract ItemStack icon(T item);
+    /** The icon for one content row; {@code holder} gives the per-open state (e.g. a current selection). */
+    protected abstract ItemStack icon(MenuHolder holder, T item);
 
     /** Handle a click on a content row (apply, drill in, grant, …). */
     protected abstract void onSelect(MenuClick click, T item);
@@ -77,7 +77,7 @@ public abstract class PagedMenu<T> implements Menu {
         int start = Paging.indexFor(page, 0, perPage);
         for (int i = 0; i < perPage && start + i < items.size(); i++) {
             T item = items.get(start + i);
-            holder.set(i, icon(item), click -> onSelect(click, item));
+            holder.set(i, icon(holder, item), click -> onSelect(click, item));
         }
 
         fillNavRow(holder);
