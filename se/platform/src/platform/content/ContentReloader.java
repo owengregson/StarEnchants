@@ -5,12 +5,15 @@ import compile.load.ContentHolder;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import platform.sched.Scheduling;
+import schema.diag.Diagnostic;
 
 /**
  * The transactional content reload (docs/architecture.md §10; ADR-0014). It builds the next
@@ -50,6 +53,7 @@ public final class ContentReloader {
     private final AtomicInteger generation;
     private final AtomicBoolean inFlight = new AtomicBoolean(false);
     private final Consumer<Library> onPublished;
+    private final List<ReloadStep> steps; // §L parallel config sources swapped in the same transaction
 
     public ContentReloader(ContentHolder holder, Supplier<Compiler> compilerFactory,
                            Path contentRoot, int initialGeneration) {
@@ -58,11 +62,24 @@ public final class ContentReloader {
 
     public ContentReloader(ContentHolder holder, Supplier<Compiler> compilerFactory,
                            Path contentRoot, int initialGeneration, Consumer<Library> onPublished) {
+        this(holder, compilerFactory, contentRoot, initialGeneration, onPublished, List.of());
+    }
+
+    /**
+     * As above, plus the parallel {@link ReloadStep config sources} (items/ , config.yml, lang.yml, menus/)
+     * that reload in the SAME transaction as the content Library (§L). Each step builds off-thread; the
+     * transaction commits — swapping content AND every source — only when the content build AND every step
+     * are clean, so a broken config keeps the previous state of everything (true all-or-nothing).
+     */
+    public ContentReloader(ContentHolder holder, Supplier<Compiler> compilerFactory,
+                           Path contentRoot, int initialGeneration, Consumer<Library> onPublished,
+                           List<ReloadStep> steps) {
         this.holder = Objects.requireNonNull(holder, "holder");
         this.compilerFactory = Objects.requireNonNull(compilerFactory, "compilerFactory");
         this.contentRoot = Objects.requireNonNull(contentRoot, "contentRoot");
         this.generation = new AtomicInteger(initialGeneration);
         this.onPublished = Objects.requireNonNull(onPublished, "onPublished");
+        this.steps = List.copyOf(steps);
     }
 
     /** Build the next library synchronously with a fresh compiler (clean interners). Does not publish. */
@@ -89,8 +106,14 @@ public final class ContentReloader {
         Scheduling.async(() -> {
             try {
                 Library library = build();
-                boolean publish = !dryRun && !library.hasErrors();
-                Scheduling.onGlobal(() -> finish(library, publish, dryRun, onDone));
+                // Build every parallel source off-thread too (pure parse), so the swap can be all-or-nothing.
+                List<ReloadStep.Built> built = new ArrayList<>(steps.size());
+                for (ReloadStep step : steps) {
+                    built.add(step.build());
+                }
+                boolean clean = !library.hasErrors() && built.stream().noneMatch(ReloadStep.Built::hasErrors);
+                boolean publish = !dryRun && clean;
+                Scheduling.onGlobal(() -> finish(library, built, publish, dryRun, onDone));
             } catch (Throwable buildFailure) {
                 // build() threw (e.g. an I/O fault walking the tree) — report on the global thread and
                 // release the guard, so the operator never waits forever on a stranded reload.
@@ -105,16 +128,38 @@ public final class ContentReloader {
         });
     }
 
-    private void finish(Library library, boolean publish, boolean dryRun, Consumer<ReloadResult> onDone) {
+    private void finish(Library library, List<ReloadStep.Built> built, boolean publish, boolean dryRun,
+                        Consumer<ReloadResult> onDone) {
         try {
             if (publish) {
-                holder.publish(library);
-                onPublished.accept(library);
+                try {
+                    holder.publish(library);
+                    for (ReloadStep.Built b : built) {
+                        b.publish().run(); // swap each source — by-reference set, all already validated clean
+                    }
+                    onPublished.accept(library);
+                } catch (Throwable swapFailure) {
+                    // The holder publishes are non-throwing reference swaps; the realistic thrower is a
+                    // third-party StarEnchantsReloadEvent listener or the player re-resolve in onPublished,
+                    // which runs AFTER every swap (so the published state is consistent, not half-applied).
+                    // Still report it so /se reload never hangs without a result.
+                    onDone.accept(ReloadResult.failure(swapFailure));
+                    return;
+                }
             }
-            onDone.accept(new ReloadResult(publish, dryRun,
-                    library.snapshot().generation(), library.snapshot().abilityCount(), library.diagnostics()));
+            onDone.accept(new ReloadResult(publish, dryRun, library.snapshot().generation(),
+                    library.snapshot().abilityCount(), mergeDiagnostics(library, built)));
         } finally {
             inFlight.set(false); // released only after the swap + report complete, so single-flight holds
         }
+    }
+
+    /** Content diagnostics first, then each parallel source's — so {@code /se reload} reports every fault. */
+    private static List<Diagnostic> mergeDiagnostics(Library library, List<ReloadStep.Built> built) {
+        List<Diagnostic> all = new ArrayList<>(library.diagnostics());
+        for (ReloadStep.Built b : built) {
+            all.addAll(b.diagnostics());
+        }
+        return all;
     }
 }
