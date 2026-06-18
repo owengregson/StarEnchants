@@ -25,6 +25,7 @@ import tester.suite.GuiSuite;
 import tester.suite.HeroicSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
+import tester.suite.LifecycleSuite;
 import tester.suite.MenuSuite;
 import tester.suite.ProtectionSuite;
 import tester.suite.RenderSuite;
@@ -105,6 +106,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new SoulEconomySuite(this)); // §D deposit-on-any-kill + combine + split on a real inventory
         harness.add(new ScrollPlayerSuite(this)); // §I holy death-save + nametag rename on a real player inventory
         harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
+        harness.add(new LifecycleSuite(this)); // §B HELD/PASSIVE start+stop lifecycle + COMMAND trigger fire
         harness.add(new TeleportSuite(this)); // TELEPORT effect → teleportAsync, first user of that intent
 
         getServer().getPluginManager().registerEvents(this, this);

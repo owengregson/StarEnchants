@@ -27,6 +27,8 @@ class MasterConfigLoaderTest {
         assertEquals(0, config.reload().autoSeconds());
         assertTrue(config.lore().roman());
         assertEquals("&7", config.lore().enchantColor());
+        assertTrue(config.commandTrigger().enabled());          // §B COMMAND trigger command on by default
+        assertEquals("cast", config.commandTrigger().name());
     }
 
     @Test
@@ -57,6 +59,10 @@ class MasterConfigLoaderTest {
                 reload:
                   re-resolve-players: false
                   auto-seconds: 600
+                command-trigger:
+                  enabled: false
+                  name: ability
+                  description: "Cast it."
                 """);
 
         MasterConfig config = MasterConfigLoader.load(file);
@@ -79,6 +85,9 @@ class MasterConfigLoaderTest {
         assertTrue(config.integrations().enabled("oraxen"));       // unlisted ⇒ enabled
         assertFalse(config.reload().reResolvePlayers());
         assertEquals(600, config.reload().autoSeconds());
+        assertFalse(config.commandTrigger().enabled());
+        assertEquals("ability", config.commandTrigger().name());
+        assertEquals("Cast it.", config.commandTrigger().description());
     }
 
     @Test

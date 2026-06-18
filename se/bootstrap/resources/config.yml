@@ -53,3 +53,11 @@ integrations:
 reload:
   re-resolve-players: true  # re-resolve every online player's worn state after a content swap
   auto-seconds: 0           # auto-/se-reload interval in seconds (0 = off; armed once at boot)
+
+# Command trigger (§B). The COMMAND trigger fires a player's worn COMMAND-trigger enchants when they run a
+# configured command. Registered ONCE at boot (a command name cannot be re-bound mid-run cleanly), so a
+# change here takes effect on the next server start, not a /se reload.
+command-trigger:
+  enabled: true                                     # register the command at boot
+  name: cast                                        # the command players run (no leading slash): /cast
+  description: "Trigger your COMMAND enchantments."  # shown in tab/help listings

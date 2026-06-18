@@ -131,6 +131,39 @@ public final class AbilityExecutor {
         return stableKey.endsWith(suffix) ? stableKey.substring(0, stableKey.length() - suffix.length()) : stableKey;
     }
 
+    /**
+     * Run ONE HELD/PASSIVE ability's effects as a lifecycle transition (§B, ADR-0022) — NOT through the
+     * gate pipeline. A maintained buff is deterministic, so the chance/cooldown/condition/soul gates do not
+     * apply; the {@code LifecycleDriver} has already decided this source just became active ({@code stopping
+     * == false} → {@link EffectKind#run}) or inactive ({@code stopping == true} → {@link EffectKind#stop},
+     * the teardown). World-blacklist is the caller's concern (it knows the activator's world); STOP is always
+     * unconditional so a buff can never leak. No {@code WAIT} deferral — a teardown must land with the
+     * unequip, not ticks later — and no {@link ActivationListener} notification (lifecycle is not a gated
+     * activation). Failures are isolated per effect, like {@link #runEffects}.
+     */
+    public void runLifecycle(Ability ability, ActivationContext context, DispatchSink sink, boolean stopping) {
+        for (CompiledEffect effect : ability.effects()) {
+            try {
+                EffectKind kind = effects.lookup(effect.head()).orElse(null);
+                if (kind == null) {
+                    LOG.log(Level.WARNING, "no effect kind registered for head " + effect.head());
+                    continue;
+                }
+                List<LivingEntity> targets = resolveTargets(effect, context);
+                EffectCtx ctx = new RuntimeEffectCtx(
+                        effect.args(), context, slotMap(kind, targets), ability.level(), null);
+                sink.delay(0); // lifecycle transitions are immediate — a buff turns on/off with the equip change
+                if (stopping) {
+                    kind.stop(ctx, sink);
+                } else {
+                    kind.run(ctx, sink);
+                }
+            } catch (Throwable failed) {
+                LOG.log(Level.WARNING, "lifecycle effect " + effect.head() + " failed during execution", failed);
+            }
+        }
+    }
+
     private void runEffects(Ability ability, ActivationContext context, DispatchSink sink, UUID activeGem) {
         for (CompiledEffect effect : ability.effects()) {
             try {

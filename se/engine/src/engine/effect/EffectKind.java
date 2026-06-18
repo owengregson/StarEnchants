@@ -26,6 +26,21 @@ public interface EffectKind {
      */
     void run(EffectCtx ctx, Sink sink);
 
+    /**
+     * Tear down this effect for a HELD/PASSIVE source that just became inactive — the deactivation half
+     * of the EE start/stop lifecycle (docs/v3-directives.md §B, ADR-0022). The default is a no-op, because
+     * most kinds are one-shot and leave no maintained state to undo (a {@code MESSAGE} on equip simply
+     * does not un-send on unequip). A <em>maintained-buff</em> kind whose {@link #run} applies a persistent
+     * state overrides this to emit the inverse intent — e.g. {@code POTION.stop} removes the potion it
+     * applied. Called UNCONDITIONALLY when a started source unequips (never gated by chance/cooldown/world),
+     * so a buff can never leak; the engine only stops what it actually started, so a no-op {@code stop} for
+     * a one-shot effect is always safe. Same contract as {@link #run}: stateless, intents only, no entity
+     * touch, no scheduling.
+     */
+    default void stop(EffectCtx ctx, Sink sink) {
+        // one-shot by default: nothing maintained to undo
+    }
+
     /** The canonical head this kind registers under, e.g. {@code DAMAGE}. */
     default String head() {
         return spec().head();
