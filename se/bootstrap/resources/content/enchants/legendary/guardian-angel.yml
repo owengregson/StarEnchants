@@ -13,13 +13,13 @@ cooldown: { 1: 1200, 2: 1000, 3: 800 }
 condition: { 1: "%actor.health% <= 4", 2: "%actor.health% <= 5", 3: "%actor.health% <= 6" }
 scale:
   heal: { 1: 4, 2: 6, 3: 8 }
-  resamp: { 1: 0, 2: 1, 3: 1 }
+  resamp: { 1: 1, 2: 2, 3: 2 }
   resdur: { 1: 60, 2: 80, 3: 120 }
 effects:
   - { CANCEL: {} }
   - { MODIFY_HEALTH: { amount: $heal, who: "@Self" } }
-  - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: $resamp, duration: $resdur, who: "@Self" } }
+  - { POTION: { effect: DAMAGE_RESISTANCE, level: $resamp, duration: $resdur, who: "@Self" } }
 levels:
   3:
     effects+:
-      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 120, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 120, who: "@Self" } }

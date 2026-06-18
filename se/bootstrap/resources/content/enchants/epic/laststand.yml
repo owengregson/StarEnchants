@@ -13,15 +13,15 @@ cooldown: { 1: 400, 2: 360, 3: 320 }
 condition: { 1: "%actor.health% <= 6", 2: "%actor.health% <= 7", 3: "%actor.health% <= 8" }
 scale:
   reduce: { 1: 40, 2: 55, 3: 70 }
-  resAmp: { 1: 0, 2: 1, 3: 1 }
+  resAmp: { 1: 1, 2: 2, 3: 2 }
   resDur: { 1: 80, 2: 100, 3: 140 }
 effects:
   - { DAMAGE_MOD: { side: defense, mode: add, amount: $reduce } }
-  - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: $resAmp, duration: $resDur, who: "@Self" } }
+  - { POTION: { effect: DAMAGE_RESISTANCE, level: $resAmp, duration: $resDur, who: "@Self" } }
 levels:
   2:
     effects+:
-      - { POTION: { effect: ABSORPTION, amplifier: 0, duration: 120, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 1, duration: 120, who: "@Self" } }
   3:
     effects+:
-      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 160, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 160, who: "@Self" } }

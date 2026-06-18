@@ -334,8 +334,10 @@ public final class Mappings {
                                 "AE add-health → MODIFY_HEALTH (give)")
                         : MigratedEffect.todo(token, "unexpected heal arg shape");
                 case "POTION" -> parts.length >= 4
-                        ? MigratedEffect.mapped(token, "POTION:" + parts[1].trim() + ":" + intArg(parts[2])
-                                + ":" + intArg(parts[3]) + suffix, "")
+                        // §C: SE POTION uses 1-based level, never the 0-based amplifier. AE's amplifier is the
+                        // Bukkit 0-based value, so the SE level is amplifier + 1.
+                        ? MigratedEffect.mapped(token, "POTION:" + parts[1].trim() + ":" + (intArg(parts[2]) + 1)
+                                + ":" + intArg(parts[3]) + suffix, "AE amplifier → SE level (1-based)")
                         : MigratedEffect.todo(token, "unexpected POTION arg shape (effect:amplifier:duration)");
                 // MESSAGE/ACTIONBAR are handled before the switch (aeMessage) — never reached here.
                 case "ADD_MONEY", "GIVE_MONEY" -> parts.length >= 2

@@ -13,18 +13,18 @@ levels:
     effects:
       - { EXTINGUISH: { who: "@Self" } }
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 30 } }
-      - { POTION: { effect: FIRE_RESISTANCE, amplifier: 0, duration: 80, who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 80, who: "@Self" } }
   2:
     chance: 55
     effects:
       - { EXTINGUISH: { who: "@Self" } }
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 50 } }
       - { DAMAGE_MOD: { side: defense, mode: flat, amount: 2 } }
-      - { POTION: { effect: FIRE_RESISTANCE, amplifier: 0, duration: 140, who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 140, who: "@Self" } }
   3:
     chance: 70
     cooldown: 200
     effects:
       - { EXTINGUISH: { who: "@Self" } }
       - { CANCEL: {} }
-      - { POTION: { effect: FIRE_RESISTANCE, amplifier: 0, duration: 200, who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 200, who: "@Self" } }

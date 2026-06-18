@@ -10,7 +10,7 @@ scale:
   dur: { from: 80, step: 40 }
   kb: { from: 1, step: 1 }
 effects:
-  - { POTION: { effect: NAUSEA, amplifier: 0, duration: $dur, who: "@Victim" } }
+  - { POTION: { effect: NAUSEA, level: 1, duration: $dur, who: "@Victim" } }
   - { VELOCITY: { mode: away, strength: $kb, who: "@Victim" } }
 levels:
   3:

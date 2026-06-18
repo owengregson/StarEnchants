@@ -44,7 +44,7 @@ public final class SetSuite implements Harness.Scenario {
             display: Yeti
             pieces: 2
             trigger: DEFENSE
-            effects: ["POTION:REGENERATION:0:80:@Self"]
+            effects: ["POTION:REGENERATION:1:80:@Self"]
             """;
 
     private final Plugin plugin;

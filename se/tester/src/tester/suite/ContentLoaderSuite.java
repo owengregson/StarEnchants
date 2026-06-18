@@ -39,13 +39,13 @@ public final class ContentLoaderSuite implements Harness.Scenario {
             display: Spark
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["POTION:STRENGTH:1:60"] }
+              1: { chance: 100, effects: ["POTION:STRENGTH:2:60"] }
             """;
     private static final String BOLT = """
             display: Bolt
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["POTION:SPEED:1:60"] }
+              1: { chance: 100, effects: ["POTION:SPEED:2:60"] }
             """;
 
     private final Plugin plugin;

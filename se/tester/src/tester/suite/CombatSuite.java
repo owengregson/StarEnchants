@@ -50,7 +50,7 @@ import tester.harness.Harness;
 /**
  * The end-to-end combat spine, live (ADR-0014; §3.3, §3.6): a fake player wielding an enchanted weapon
  * hits a victim, and the enchant's effect lands — exercising the WHOLE runtime in one shot, on a real
- * server, on Paper and Folia. The enchant is {@code Venom} (ATTACK, {@code POTION:POISON:0:80:@Victim}),
+ * server, on Paper and Folia. The enchant is {@code Venom} (ATTACK, {@code POTION:POISON:1:80:@Victim}),
  * so it also proves the §9 RESOLVER PAIRING: the potion handle is interned at compile time and resolved
  * back to a live {@code PotionEffectType} at runtime through the SAME retained {@code RegistryResolvers}.
  *
@@ -66,7 +66,7 @@ public final class CombatSuite implements Harness.Scenario {
             display: Venom
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["POTION:POISON:0:80:@Victim"] }
+              1: { chance: 100, effects: ["POTION:POISON:1:80:@Victim"] }
             """;
 
     private final Plugin plugin;

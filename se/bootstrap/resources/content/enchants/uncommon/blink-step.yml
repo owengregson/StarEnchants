@@ -10,7 +10,7 @@ levels:
     cooldown: 200
     effects:
       - { VELOCITY: { x: 0, y: 0.4, z: 0 } }
-      - { POTION: { effect: SPEED, amplifier: 1, duration: 40, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 2, duration: 40, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
       - { PARTICLE: { particle: PORTAL, count: 20 } }
   2:
@@ -18,7 +18,7 @@ levels:
     cooldown: 160
     effects:
       - { VELOCITY: { x: 0, y: 0.6, z: 0 } }
-      - { POTION: { effect: SPEED, amplifier: 2, duration: 60, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 3, duration: 60, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
       - { PARTICLE: { particle: PORTAL, count: 30 } }
   3:
@@ -26,7 +26,7 @@ levels:
     cooldown: 120
     effects:
       - { VELOCITY: { x: 0, y: 0.8, z: 0 } }
-      - { POTION: { effect: SPEED, amplifier: 2, duration: 80, who: "@Self" } }
-      - { POTION: { effect: JUMP, amplifier: 1, duration: 80, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 3, duration: 80, who: "@Self" } }
+      - { POTION: { effect: JUMP, level: 2, duration: 80, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
       - { PARTICLE: { particle: PORTAL, count: 40 } }

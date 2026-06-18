@@ -14,7 +14,7 @@ levels:
     cooldown: 600
     effects:
       - { MODIFY_HEALTH: { amount: 6 } }
-      - { POTION: { effect: REGENERATION, amplifier: 1, duration: 100, who: "@Self" } }
+      - { POTION: { effect: REGENERATION, level: 2, duration: 100, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
       - { MESSAGE: { text: "&dYou channel the weapon's power." } }
   2:
@@ -22,7 +22,7 @@ levels:
     cooldown: 500
     effects:
       - { MODIFY_HEALTH: { amount: 10 } }
-      - { POTION: { effect: REGENERATION, amplifier: 2, duration: 120, who: "@Self" } }
-      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 200, who: "@Self" } }
+      - { POTION: { effect: REGENERATION, level: 3, duration: 120, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 200, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
       - { MESSAGE: { text: "&dYou channel the weapon's power." } }

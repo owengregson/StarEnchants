@@ -325,12 +325,12 @@ Spawn particles at the activation location. No-op if there is no location.
 
 ### POTION
 
-Apply a potion effect to the target(s). The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).
+Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `POTION:<effect:potion_effect>:<amplifier:int[0..]>:<duration:ticks[0..]>`
+- _usage_: `POTION:<effect:potion_effect>:<level:int[1..]>:<duration:ticks[0..]>`
 - _param_ `effect` `potion_effect`
-- _param_ `amplifier` `int[0..]`
+- _param_ `level` `int[1..]`
 - _param_ `duration` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `POTION:STRENGTH:1:100`

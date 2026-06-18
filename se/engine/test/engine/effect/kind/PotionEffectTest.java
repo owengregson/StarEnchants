@@ -26,14 +26,14 @@ class PotionEffectTest {
 
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.integer("effect")).thenReturn(7);
-        when(ctx.integer("amplifier")).thenReturn(1);
+        when(ctx.integer("level")).thenReturn(2); // §C: authored 1-based level…
         when(ctx.integer("duration")).thenReturn(100);
         when(ctx.targets("who")).thenReturn(List.of(self));
 
         Sink sink = mock(Sink.class);
         new PotionEffect().run(ctx, sink);
 
-        verify(sink).potion(self, 7, 1, 100);
+        verify(sink).potion(self, 7, 1, 100); // …reaches the Sink as the 0-based Bukkit amplifier (level − 1)
         verifyNoMoreInteractions(sink);
     }
 

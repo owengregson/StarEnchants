@@ -13,8 +13,8 @@ effects:
 levels:
   2:
     effects+:
-      - { POTION: { effect: WEAKNESS, amplifier: 0, duration: 60, who: "@Attacker" } }
+      - { POTION: { effect: WEAKNESS, level: 1, duration: 60, who: "@Attacker" } }
   3:
     effects+:
-      - { POTION: { effect: WEAKNESS, amplifier: 1, duration: 80, who: "@Attacker" } }
-      - { POTION: { effect: SLOWNESS, amplifier: 0, duration: 60, who: "@Attacker" } }
+      - { POTION: { effect: WEAKNESS, level: 2, duration: 80, who: "@Attacker" } }
+      - { POTION: { effect: SLOWNESS, level: 1, duration: 60, who: "@Attacker" } }

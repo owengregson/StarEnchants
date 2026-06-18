@@ -10,5 +10,5 @@ chance: 45
 cooldown: 100
 effects:
   - { IGNITE: { duration: 80, who: "@Attacker" } }
-  - { POTION: { effect: FIRE_RESISTANCE, amplifier: 0, duration: 100, who: "@Self" } }
+  - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
   - { PARTICLE: { particle: FLAME, count: 12 } }

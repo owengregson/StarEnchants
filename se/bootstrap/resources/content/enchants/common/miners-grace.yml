@@ -8,10 +8,10 @@ max-level: 3
 chance: { 1: 25, 2: 35, 3: 50 }
 cooldown: { 1: 200, 2: 160, 3: 120 }
 scale:
-  amp: { from: 0, step: 1 }
+  amp: { from: 1, step: 1 }
   dur: { from: 120, step: 40 }
 effects:
-  - { POTION: { effect: HASTE, amplifier: $amp, duration: $dur } }
+  - { POTION: { effect: HASTE, level: $amp, duration: $dur } }
 levels:
   3:
     effects+:

@@ -6,4 +6,4 @@ applies-to: [BOOTS, LEGGINGS]
 chance: 100
 cooldown: 60
 effects:
-  - { POTION: { effect: SPEED, amplifier: 0, duration: 60, who: "@Self" } }
+  - { POTION: { effect: SPEED, level: 1, duration: 60, who: "@Self" } }

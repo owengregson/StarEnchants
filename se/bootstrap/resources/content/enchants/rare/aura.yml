@@ -9,23 +9,23 @@ levels:
     chance: 100
     cooldown: 240
     effects:
-      - { POTION: { effect: ABSORPTION, amplifier: 0, duration: 120, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 1, duration: 120, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
       - { PARTICLE: { particle: WITCH, count: 20 } }
   2:
     chance: 100
     cooldown: 220
     effects:
-      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 140, who: "@Self" } }
-      - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 0, duration: 120, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 140, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 120, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
       - { PARTICLE: { particle: WITCH, count: 30 } }
   3:
     chance: 100
     cooldown: 200
     effects:
-      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 160, who: "@Self" } }
-      - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 1, duration: 140, who: "@Self" } }
-      - { POTION: { effect: FIRE_RESISTANCE, amplifier: 0, duration: 160, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 160, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 140, who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 160, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
       - { PARTICLE: { particle: WITCH, count: 40 } }
