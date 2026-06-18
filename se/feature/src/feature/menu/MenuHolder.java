@@ -34,6 +34,7 @@ public final class MenuHolder implements InventoryHolder {
     private int page;
     private String view;
     private String selection;
+    private Object payload; // arbitrary menu-specific per-open state (e.g. a working list)
 
     public MenuHolder(Menu menu) {
         this.menu = Objects.requireNonNull(menu, "menu");
@@ -99,6 +100,15 @@ public final class MenuHolder implements InventoryHolder {
 
     public void setSelection(String selection) {
         this.selection = selection;
+    }
+
+    /** Arbitrary per-open state a menu attaches (e.g. a working reorder list); {@code null} until set. */
+    public Object payload() {
+        return payload;
+    }
+
+    public void setPayload(Object payload) {
+        this.payload = payload;
     }
 
     @Override

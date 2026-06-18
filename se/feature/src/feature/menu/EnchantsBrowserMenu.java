@@ -67,7 +67,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     }
 
     @Override
-    protected ItemStack icon(Row row) {
+    protected ItemStack icon(MenuHolder holder, Row row) {
         return row.isTier() ? tierIcon(row.tier()) : enchantIcon(row.enchant());
     }
 

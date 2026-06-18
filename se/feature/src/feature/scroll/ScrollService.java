@@ -136,6 +136,44 @@ public final class ScrollService {
         return ScrollResult.committed(gear, null, color(cfg.messageSuccess()));
     }
 
+    /**
+     * Rebuild {@code gear}'s enchant display order to exactly {@code orderedKeys} — the deterministic reorder
+     * behind the Godly Transmog GUI (vs {@link #applyTransmog}'s random shuffle). Combat behaviour is
+     * order-independent; this only re-renders the cosmetic enchant lore. Returns {@code false} (a no-op) when
+     * {@code orderedKeys} is not a permutation of the gear's current enchant keys, so an enchant can never be
+     * dropped or duplicated. The caller (the reorder menu) runs on the player's region thread.
+     */
+    public boolean reorder(ItemStack gear, List<String> orderedKeys) {
+        if (gear == null || gear.getType() == Material.AIR || gear.getAmount() > 1) {
+            return false;
+        }
+        CombatState current = combat.read(gear);
+        return reorderedEnchants(current.enchants(), orderedKeys).map(reordered -> {
+            CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
+                    current.omni(), current.heroic(), current.added());
+            combat.write(gear, next);
+            lore.apply(gear, next); // re-render the enchant lore in the chosen order
+            return true;
+        }).orElse(false);
+    }
+
+    /**
+     * The reordered enchant map for {@code orderedKeys}, or empty when {@code orderedKeys} is not exactly a
+     * permutation of {@code current}'s keys. Pure (no item / server) so the permutation guard is unit-tested.
+     */
+    public static java.util.Optional<Map<String, Integer>> reorderedEnchants(
+            Map<String, Integer> current, List<String> orderedKeys) {
+        if (orderedKeys.size() != current.size()
+                || !new java.util.HashSet<>(orderedKeys).equals(current.keySet())) {
+            return java.util.Optional.empty(); // not a permutation — refuse rather than lose/duplicate an enchant
+        }
+        Map<String, Integer> reordered = new LinkedHashMap<>();
+        for (String key : orderedKeys) {
+            reordered.put(key, current.get(key));
+        }
+        return java.util.Optional.of(reordered);
+    }
+
     /** Append {@code suffix} to {@code gear}'s display name when it has one and is not already suffixed. */
     @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
     private static void appendNameSuffix(ItemStack gear, String suffix) {

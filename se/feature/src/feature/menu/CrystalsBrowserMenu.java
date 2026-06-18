@@ -32,7 +32,7 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
     }
 
     @Override
-    protected ItemStack icon(CrystalDef def) {
+    protected ItemStack icon(MenuHolder holder, CrystalDef def) {
         List<String> lore = new ArrayList<>();
         if (!def.description().isBlank()) {
             lore.add("&7" + def.description());
