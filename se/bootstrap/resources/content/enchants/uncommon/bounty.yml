@@ -9,7 +9,7 @@ chance: 100
 scale:
   reward: { 1: 50, 2: 100, 3: 200 }
 effects:
-  - { GIVE_MONEY: { amount: $reward } }
+  - { MODIFY_MONEY: { amount: $reward } }
 levels:
   3:
     effects+:

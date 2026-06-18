@@ -11,7 +11,7 @@ scale:
   kb: { from: 1, step: 1 }
 effects:
   - { POTION: { effect: NAUSEA, amplifier: 0, duration: $dur, who: "@Victim" } }
-  - { KNOCKBACK: { strength: $kb, who: "@Victim" } }
+  - { VELOCITY: { mode: away, strength: $kb, who: "@Victim" } }
 levels:
   3:
     cooldown: 0

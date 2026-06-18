@@ -11,4 +11,4 @@ scale:
   kb: { 1: 0.6, 2: 1.0, 3: 1.5 }
 effects:
   - { REDUCE_DAMAGE: { percent: $reduce } }
-  - { KNOCKBACK: { strength: $kb, who: "@Attacker" } }
+  - { VELOCITY: { mode: away, strength: $kb, who: "@Attacker" } }

@@ -337,10 +337,16 @@ public final class Mappings {
                         : MigratedEffect.todo(token, "unexpected POTION arg shape (effect:amplifier:duration)");
                 // MESSAGE/ACTIONBAR are handled before the switch (aeMessage) — never reached here.
                 case "ADD_MONEY", "GIVE_MONEY" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "GIVE_MONEY:" + numArg(parts[1]) + suffix, "AE add-money → GIVE_MONEY")
+                        ? MigratedEffect.mapped(token, "MODIFY_MONEY:" + numArg(parts[1]) + ":give" + suffix,
+                                "AE add-money → MODIFY_MONEY (give)")
                         : MigratedEffect.todo(token, "unexpected money arg shape");
                 case "REMOVE_MONEY", "TAKE_MONEY" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "TAKE_MONEY:" + numArg(parts[1]) + suffix, "AE remove-money → TAKE_MONEY")
+                        ? MigratedEffect.mapped(token, "MODIFY_MONEY:" + numArg(parts[1]) + ":take" + suffix,
+                                "AE remove-money → MODIFY_MONEY (take)")
+                        : MigratedEffect.todo(token, "unexpected money arg shape");
+                case "STEAL_MONEY" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "MODIFY_MONEY:" + numArg(parts[1]) + ":transfer" + suffix,
+                                "AE steal-money → MODIFY_MONEY (transfer: take from target, give to activator)")
                         : MigratedEffect.todo(token, "unexpected money arg shape");
                 // AE add-food → FEED (food points); AE EXP → GIVE_EXP (XP amount).
                 case "ADD_FOOD" -> parts.length >= 2

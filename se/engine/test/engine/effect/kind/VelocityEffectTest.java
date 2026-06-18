@@ -14,9 +14,9 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test for the canonical {@code VELOCITY}: {@code mode=add} emits a launch per target;
- * {@code mode=away} emits a knockback per target from the actor's location. The THROW/LAUNCH/KNOCKBACK
- * aliases delegate to the same {@link VelocityEffect#apply} path (covered by their own tests).
+ * Mock-host test for the canonical {@code VELOCITY} (which replaced the deleted THROW/LAUNCH/KNOCKBACK):
+ * {@code mode=add} emits a launch per target; {@code mode=away} emits a knockback per target from the
+ * actor's location.
  */
 class VelocityEffectTest {
 

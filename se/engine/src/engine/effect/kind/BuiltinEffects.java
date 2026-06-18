@@ -27,7 +27,6 @@ public final class BuiltinEffects {
                 .register(new HealEffect())
                 .register(new IgniteEffect())
                 .register(new LightningEffect())
-                .register(new LaunchEffect())
                 .register(new TeleportEffect())
                 // Player feedback + event control.
                 .register(new MessageEffect())
@@ -50,17 +49,14 @@ public final class BuiltinEffects {
                 .register(new FeedEffect())
                 .register(new RepairEffect())
                 .register(new GiveExpEffect())
-                .register(new GiveMoneyEffect())
-                .register(new TakeMoneyEffect())
-                .register(new KnockbackEffect())
+                .register(new MoneyEffect()) // §C canonical MODIFY_MONEY (give/take/transfer); replaces GIVE_MONEY/TAKE_MONEY
                 .register(new DisarmEffect())
                 // World / spawn intents.
                 .register(new ExplodeEffect())
                 .register(new SpawnTntEffect())
                 .register(new FireballEffect())
                 // Movement + durability + vitals.
-                .register(new VelocityEffect()) // §C canonical; THROW/LAUNCH/KNOCKBACK delegate here
-                .register(new ThrowEffect())
+                .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK
                 .register(new FlyEffect())
                 .register(new HealthEffect())
                 .register(new DamageArmorEffect())

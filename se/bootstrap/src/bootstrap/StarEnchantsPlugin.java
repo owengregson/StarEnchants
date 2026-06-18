@@ -224,7 +224,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 areaScan(), this::fireActivation);
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
-        // Economy bridge (gate-free): GIVE_MONEY/TAKE_MONEY effects deposit/withdraw through the sink,
+        // Economy bridge (gate-free): the MODIFY_MONEY effect deposits/withdraws/transfers through the sink,
         // routed to the global thread. Wraps the EconomyProvider registered via the ServicesManager;
         // absent ⇒ money effects are no-ops.
         EconomyService economy = EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"));
