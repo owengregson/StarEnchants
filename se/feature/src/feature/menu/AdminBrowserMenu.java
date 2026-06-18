@@ -32,7 +32,12 @@ public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
     }
 
     public AdminBrowserMenu(ContentHolder content, CarrierService carriers, Capabilities caps, Messages messages) {
-        super("admin", MenuLayout.paged("&cAdmin &8• &cEnchants"), caps);
+        this(content, carriers, caps, messages, compile.load.MenusConfig::empty);
+    }
+
+    public AdminBrowserMenu(ContentHolder content, CarrierService carriers, Capabilities caps, Messages messages,
+                            java.util.function.Supplier<compile.load.MenusConfig> menus) {
+        super("admin", MenuLayout.paged("&cAdmin &8• &cEnchants"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");

@@ -1,8 +1,10 @@
 package feature.menu;
 
+import compile.load.MenusConfig;
 import item.mint.ItemFactory;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
@@ -20,12 +22,24 @@ import platform.caps.Capabilities;
 public abstract class PagedMenu<T> implements Menu {
 
     private final String name;
-    private final MenuLayout layout;
+    private final Supplier<MenuLayout> layout;
     private final Capabilities caps;
 
+    /** Fixed-layout form (tests/fixtures): the programmatic default is used verbatim, no menus/ override. */
     protected PagedMenu(String name, MenuLayout layout, Capabilities caps) {
+        this(name, layout, caps, MenusConfig::empty);
+    }
+
+    /**
+     * Canonical form (the composition root): {@code menus} supplies the live {@code menus/} config; the
+     * effective layout is {@code defaultLayout} merged with this menu's {@code menus/<name>.yml} override
+     * (§L), re-resolved on every render so a {@code /se reload} re-lays-out the next open.
+     */
+    protected PagedMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus) {
         this.name = Objects.requireNonNull(name, "name").toLowerCase(java.util.Locale.ROOT);
-        this.layout = Objects.requireNonNull(layout, "layout");
+        Objects.requireNonNull(defaultLayout, "defaultLayout");
+        Objects.requireNonNull(menus, "menus");
+        this.layout = () -> MenuLayout.from(defaultLayout, menus.get().forMenu(this.name).orElse(null));
         this.caps = caps; // nullable in pure tests; MenuText degrades to the conservative 32-char cap
     }
 
@@ -35,7 +49,7 @@ public abstract class PagedMenu<T> implements Menu {
     }
 
     protected final MenuLayout layout() {
-        return layout;
+        return layout.get();
     }
 
     /** The content rows to page through for the holder's current view (drill-down menus branch on view()). */
@@ -49,7 +63,7 @@ public abstract class PagedMenu<T> implements Menu {
 
     /** The base (page-suffix-free) title for the holder's current view; defaults to the layout title. */
     protected String titleFor(MenuHolder holder) {
-        return layout.titleTemplate();
+        return layout().titleTemplate();
     }
 
     /** Whether a "back" button is shown for the holder's current view (drill-down menus enable it). */
@@ -64,6 +78,7 @@ public abstract class PagedMenu<T> implements Menu {
 
     @Override
     public void render(MenuHolder holder) {
+        MenuLayout layout = layout(); // resolve the live (config-merged) layout once for this render
         List<T> items = items(holder);
         int perPage = layout.contentSlots();
         int pages = Paging.pageCount(items.size(), perPage);
@@ -80,7 +95,7 @@ public abstract class PagedMenu<T> implements Menu {
             holder.set(i, icon(holder, item), click -> onSelect(click, item));
         }
 
-        fillNavRow(holder);
+        fillNavRow(holder, layout);
         if (page > 0) {
             bind(holder, layout.prevSlot(), navIcon("ARROW", "&ePrevious"),
                     click -> { click.holder().setPage(page - 1); reopen(click); });
@@ -96,7 +111,7 @@ public abstract class PagedMenu<T> implements Menu {
     }
 
     /** Fill the reserved bottom navigation row with decorative filler panes (config material, by name). */
-    private void fillNavRow(MenuHolder holder) {
+    private void fillNavRow(MenuHolder holder, MenuLayout layout) {
         Material filler = ItemFactory.material(layout.fillerMaterial(), Material.AIR);
         if (filler == Material.AIR) {
             return; // blank/unknown filler token → leave the nav row empty

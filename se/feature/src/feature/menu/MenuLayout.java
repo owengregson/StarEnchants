@@ -30,6 +30,34 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial,
         }
     }
 
+    /**
+     * Merge an operator's {@link compile.load.MenuLayoutConfig} (from {@code menus/<name>.yml}, §L) onto this
+     * programmatic default: each field the operator set wins, each unset field keeps the default. A
+     * {@code null} override (no {@code menus/} file for this menu) returns {@code this} unchanged. Rows are
+     * clamped to 1..6; any nav slot that would fall outside the resulting inventory (e.g. after shrinking
+     * {@code rows} without moving the buttons) is hidden ({@code -1}) rather than crashing the render.
+     */
+    public static MenuLayout from(MenuLayout def, compile.load.MenuLayoutConfig override) {
+        if (override == null) {
+            return def;
+        }
+        int rows = Math.min(6, Math.max(1, override.rows().orElse(def.rows())));
+        int size = rows * 9;
+        return new MenuLayout(
+                rows,
+                override.title().orElse(def.titleTemplate()),
+                override.filler().orElse(def.fillerMaterial()),
+                fitSlot(override.prevSlot().orElse(def.prevSlot()), size),
+                fitSlot(override.nextSlot().orElse(def.nextSlot()), size),
+                fitSlot(override.backSlot().orElse(def.backSlot()), size),
+                fitSlot(override.closeSlot().orElse(def.closeSlot()), size));
+    }
+
+    /** A nav slot that does not fit the (possibly resized) inventory is hidden ({@code -1}); {@code -1} stays hidden. */
+    private static int fitSlot(int slot, int size) {
+        return slot >= 0 && slot < size ? slot : -1;
+    }
+
     /** Total inventory size (cells). */
     public int size() {
         return rows * 9;

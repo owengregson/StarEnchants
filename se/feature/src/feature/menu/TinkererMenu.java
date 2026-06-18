@@ -33,7 +33,12 @@ public final class TinkererMenu extends FormMenu {
     }
 
     public TinkererMenu(CarrierService carriers, Capabilities caps, Messages messages) {
-        super("tinkerer", MenuLayout.form(3, "&3Tinkerer"), caps);
+        this(carriers, caps, messages, compile.load.MenusConfig::empty);
+    }
+
+    public TinkererMenu(CarrierService carriers, Capabilities caps, Messages messages,
+                        java.util.function.Supplier<compile.load.MenusConfig> menus) {
+        super("tinkerer", MenuLayout.form(3, "&3Tinkerer"), caps, menus);
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
@@ -41,11 +46,6 @@ public final class TinkererMenu extends FormMenu {
     @Override
     public Set<Integer> inputSlots() {
         return Set.of(INPUT);
-    }
-
-    @Override
-    protected String title() {
-        return "&3Tinkerer";
     }
 
     @Override

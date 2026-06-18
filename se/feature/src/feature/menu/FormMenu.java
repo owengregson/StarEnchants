@@ -1,9 +1,11 @@
 package feature.menu;
 
+import compile.load.MenusConfig;
 import item.mint.ItemFactory;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -20,12 +22,24 @@ import platform.caps.Capabilities;
 public abstract class FormMenu implements Menu, InteractiveMenu {
 
     private final String name;
-    private final MenuLayout layout;
+    private final Supplier<MenuLayout> layout;
     private final Capabilities caps;
 
+    /** Fixed-layout form (tests/fixtures): the programmatic default is used verbatim, no menus/ override. */
     protected FormMenu(String name, MenuLayout layout, Capabilities caps) {
+        this(name, layout, caps, MenusConfig::empty);
+    }
+
+    /**
+     * Canonical form (the composition root): {@code menus} supplies the live {@code menus/} config; the
+     * effective layout (including the title) is {@code defaultLayout} merged with this bench's
+     * {@code menus/<name>.yml} override (§L), re-resolved per render.
+     */
+    protected FormMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus) {
         this.name = Objects.requireNonNull(name, "name").toLowerCase(java.util.Locale.ROOT);
-        this.layout = Objects.requireNonNull(layout, "layout");
+        Objects.requireNonNull(defaultLayout, "defaultLayout");
+        Objects.requireNonNull(menus, "menus");
+        this.layout = () -> MenuLayout.from(defaultLayout, menus.get().forMenu(this.name).orElse(null));
         this.caps = caps;
     }
 
@@ -35,24 +49,22 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
     }
 
     protected final MenuLayout layout() {
-        return layout;
+        return layout.get();
     }
-
-    /** The bench title (legacy {@code &} colour codes). */
-    protected abstract String title();
 
     /** Place the control buttons (e.g. the combine/salvage button) onto the holder. */
     protected abstract void layoutControls(MenuHolder holder);
 
     @Override
     public void render(MenuHolder holder) {
-        holder.begin(layout.size(), MenuText.title(title(), caps));
-        fillBackground(holder);   // decorative panes everywhere except the input slots
+        MenuLayout layout = layout(); // resolve the live (config-merged) layout once for this render
+        holder.begin(layout.size(), MenuText.title(layout.titleTemplate(), caps)); // title is now surfaced (§L)
+        fillBackground(holder, layout); // decorative panes everywhere except the input slots
         layoutControls(holder);   // control buttons overwrite the background
     }
 
     /** Fill every non-input slot with the decorative filler pane (the input slots stay empty for placement). */
-    private void fillBackground(MenuHolder holder) {
+    private void fillBackground(MenuHolder holder, MenuLayout layout) {
         Material filler = ItemFactory.material(layout.fillerMaterial(), Material.AIR);
         if (filler == Material.AIR) {
             return;

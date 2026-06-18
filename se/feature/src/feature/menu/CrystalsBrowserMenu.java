@@ -21,8 +21,14 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
 
     private final ContentHolder content;
 
+    /** Default-layout form (tests/fixtures). */
     public CrystalsBrowserMenu(ContentHolder content, Capabilities caps) {
-        super("crystals", MenuLayout.paged("&3Crystals"), caps);
+        this(content, caps, compile.load.MenusConfig::empty);
+    }
+
+    public CrystalsBrowserMenu(ContentHolder content, Capabilities caps,
+                               java.util.function.Supplier<compile.load.MenusConfig> menus) {
+        super("crystals", MenuLayout.paged("&3Crystals"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
     }
 

@@ -2,12 +2,14 @@ package feature.menu;
 
 import compile.load.ContentHolder;
 import compile.load.EnchantDef;
+import compile.load.MenusConfig;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,9 +33,15 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
 
+    /** Default-layout form (tests/fixtures). */
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
                        Capabilities caps) {
-        super("apply", MenuLayout.paged("StarEnchants"), caps);
+        this(content, enchanter, refreshWorn, caps, MenusConfig::empty);
+    }
+
+    public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
+                       Capabilities caps, Supplier<MenusConfig> menus) {
+        super("apply", MenuLayout.paged("StarEnchants"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.refreshWorn = Objects.requireNonNull(refreshWorn, "refreshWorn");

@@ -2,11 +2,13 @@ package feature.menu;
 
 import compile.load.ContentHolder;
 import compile.load.EnchantDef;
+import compile.load.MenusConfig;
 import compile.load.TierRegistry;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
@@ -36,12 +38,18 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
 
     private final ContentHolder content;
 
+    /** Default-layout form (tests/fixtures). */
     public EnchantsBrowserMenu(ContentHolder content, Capabilities caps) {
-        this(content, caps, "enchants", "&3Enchants");
+        this(content, caps, MenusConfig::empty);
     }
 
-    EnchantsBrowserMenu(ContentHolder content, Capabilities caps, String name, String title) {
-        super(name, MenuLayout.paged(title), caps);
+    public EnchantsBrowserMenu(ContentHolder content, Capabilities caps, Supplier<MenusConfig> menus) {
+        this(content, caps, "enchants", "&3Enchants", menus);
+    }
+
+    EnchantsBrowserMenu(ContentHolder content, Capabilities caps, String name, String title,
+                        Supplier<MenusConfig> menus) {
+        super(name, MenuLayout.paged(title), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
     }
 
