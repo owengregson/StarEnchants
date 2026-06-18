@@ -59,6 +59,7 @@ public final class BuiltinEffects {
                 .register(new SpawnTntEffect())
                 .register(new FireballEffect())
                 // Movement + durability + vitals.
+                .register(new VelocityEffect()) // §C canonical; THROW/LAUNCH/KNOCKBACK delegate here
                 .register(new ThrowEffect())
                 .register(new FlyEffect())
                 .register(new HealthEffect())

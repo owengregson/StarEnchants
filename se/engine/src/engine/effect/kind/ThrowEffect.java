@@ -6,14 +6,13 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
-import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code THROW} — add a velocity vector to the target(s) (docs/architecture.md §7).
- * Stateless; reuses the {@code launch} intent, emitting one per resolved target and
- * never moving an entity directly. {@link Affinity#TARGET_ENTITY}: the {@code Sink}
- * routes each push to the target's own thread (one hop on Folia).
+ * {@code THROW} — add a velocity vector to the target(s) (docs/architecture.md §7). A back-compat alias of
+ * {@code VELOCITY} (mode=add): {@link #run} delegates to {@link VelocityEffect#apply}, so the {@code launch}
+ * logic lives in exactly one place. {@link Affinity#TARGET_ENTITY}: the {@code Sink} routes each push to the
+ * target's own thread (one hop on Folia).
  */
 public final class ThrowEffect implements EffectKind {
 
@@ -34,11 +33,6 @@ public final class ThrowEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        double x = ctx.dbl("x");
-        double y = ctx.dbl("y");
-        double z = ctx.dbl("z");
-        for (LivingEntity target : ctx.targets("who")) {
-            sink.launch(target, x, y, z);
-        }
+        VelocityEffect.apply(ctx, sink, "add", ctx.dbl("x"), ctx.dbl("y"), ctx.dbl("z"), 0);
     }
 }
