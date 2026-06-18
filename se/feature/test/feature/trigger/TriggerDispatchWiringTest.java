@@ -47,10 +47,11 @@ class TriggerDispatchWiringTest {
         assertEquals(id(triggers, "EAT"), dispatch.eat);
         assertEquals(id(triggers, "ITEM_DAMAGE"), dispatch.itemDamage);
         assertEquals(id(triggers, "BREAK"), dispatch.breakItem);
+        assertEquals(id(triggers, "REPEATING"), dispatch.repeating); // §B repeating lifecycle
 
         // None of them silently fell back to the −1 no-op.
         for (int trigger : new int[] {dispatch.death, dispatch.bowFire, dispatch.fishing,
-                dispatch.eat, dispatch.itemDamage, dispatch.breakItem}) {
+                dispatch.eat, dispatch.itemDamage, dispatch.breakItem, dispatch.repeating}) {
             assertTrue(trigger >= 0, "a v3.2 trigger resolved to the -1 no-op");
         }
     }

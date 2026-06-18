@@ -45,6 +45,9 @@ public final class BuiltinTriggers {
                 .register(Trigger.held("INTERACT"))
                 .register(Trigger.held("INTERACT_LEFT"))
                 .register(Trigger.held("INTERACT_RIGHT"))
+                // Equipment-scanned, timer-driven (§B): armed per worn ability with repeat>0, fired by the
+                // RepeatingDriver on each ability's period. Appended last so existing trigger ids are unshifted.
+                .register(Trigger.neutral("REPEATING"))
                 .build();
     }
 }
