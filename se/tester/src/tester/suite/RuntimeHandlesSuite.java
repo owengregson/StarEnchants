@@ -40,6 +40,16 @@ public final class RuntimeHandlesSuite implements Harness.Scenario {
             }
         });
 
+        // Primed TNT resolves to a live entity type on every version (PRIMED_TNT on the floor, TNT in
+        // modern) — the cross-version path SPAWN_ENTITY uses for the old TNT kind.
+        h.expect("handles.entity.PRIMED_TNT");
+        h.guard("handles.entity.PRIMED_TNT", () -> {
+            EntityType t = handles.entityType(internOrThrow(resolvers.entityType("PRIMED_TNT"), "PRIMED_TNT"));
+            if (t == null) {
+                throw new IllegalStateException("PRIMED_TNT did not resolve to a live EntityType");
+            }
+        });
+
         nonNull(h, "handles.ench.DAMAGE_ALL", () ->
                 handles.enchantment(internOrThrow(resolvers.enchantment("DAMAGE_ALL"), "DAMAGE_ALL")));
         nonNull(h, "handles.potion.CONFUSION", () ->

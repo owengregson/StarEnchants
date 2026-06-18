@@ -52,11 +52,11 @@ import tester.harness.Harness;
 /**
  * The economy seam, live (docs/architecture.md §2, §7): a {@link EconomyProvider} registered through
  * the {@code ServicesManager}, discovered via {@link EconomyService#discover}, is driven by a
- * GIVE_MONEY ATTACK enchant — proving the whole chain end-to-end on Paper and Folia (provider discovery
- * → EconomyService → the GIVE_MONEY effect → the sink's global-thread money intent) with a fake
+ * MODIFY_MONEY ATTACK enchant — proving the whole chain end-to-end on Paper and Folia (provider discovery
+ * → EconomyService → the MODIFY_MONEY effect → the sink's global-thread money intent) with a fake
  * in-memory economy, since no real economy plugin exists on the matrix. A fake-player attacker hits a
- * cow; GIVE_MONEY:@Self deposits to the attacker, and the recorded balance is asserted. Mojang-mapped
- * only (needs the fake attacker). GIVE_MONEY:@Self (not TAKE_MONEY:@Victim) because a money target must
+ * cow; MODIFY_MONEY:@Self deposits to the attacker, and the recorded balance is asserted. Mojang-mapped
+ * only (needs the fake attacker). MODIFY_MONEY:@Self (not MODIFY_MONEY:@Victim) because a money target must
  * be a player, and a player victim cannot take a programmatic hit (PvP/peaceful gating, see CombatSuite).
  */
 public final class EconomySuite implements Harness.Scenario {
@@ -65,7 +65,7 @@ public final class EconomySuite implements Harness.Scenario {
             display: Bounty
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["GIVE_MONEY:100"] }
+              1: { chance: 100, effects: ["MODIFY_MONEY:100:give"] }
             """;
 
     private final Plugin plugin;
@@ -146,13 +146,13 @@ public final class EconomySuite implements Harness.Scenario {
                 Scheduling.onEntity(attacker, () -> {
                     attacker.getInventory().setItemInMainHand(sword);
                     worn.refresh(attacker, library.snapshot());
-                    victim.damage(1.0, attacker); // ATTACK → GIVE_MONEY:@Self deposits to the attacker
+                    victim.damage(1.0, attacker); // ATTACK → MODIFY_MONEY:@Self deposits to the attacker
                     // The deposit is routed to the global thread; 10 ticks is ample for it to land.
                     Scheduling.onEntityLater(victim, 10L, () -> {
                         h.guard("economy.giveMoneyDepositsToActor", () -> {
                             double balance = bank.balance(attackerId);
                             if (balance != 100.0) {
-                                throw new IllegalStateException("expected attacker balance 100 after GIVE_MONEY, got "
+                                throw new IllegalStateException("expected attacker balance 100 after MODIFY_MONEY, got "
                                         + balance + " (deposits=" + bank.deposits.get() + ")");
                             }
                         });

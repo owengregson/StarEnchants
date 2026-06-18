@@ -19,12 +19,10 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.entity.TNTPrimed;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -406,33 +404,21 @@ public final class DispatchSink implements Sink {
     // ── World / block intents ────────────────────────────────────────────────────────────────────
 
     @Override
-    public void lightning(Location at) {
-        regionOp(at, () -> {
-            World world = at.getWorld();
-            if (world != null) {
-                world.strikeLightning(at);
-            }
-        });
-    }
-
-    @Override
-    public void spawn(Location at, int entityTypeId) {
-        regionOp(at, () -> {
+    public void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health) {
+        Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
+        regionOp(origin, () -> {
             EntityType type = handles.entityType(entityTypeId);
-            World world = at.getWorld();
-            if (type != null && world != null) {
-                world.spawnEntity(at, type);
+            World world = origin.getWorld();
+            if (type == null || world == null || count <= 0) {
+                return;
             }
-        });
-    }
-
-    @Override
-    public void spawnTnt(Location at, int count) {
-        regionOp(at, () -> {
-            World world = at.getWorld();
-            if (world != null) {
-                for (int i = 0; i < count; i++) {
-                    world.spawn(at, TNTPrimed.class);
+            for (int i = 0; i < count; i++) {
+                Entity spawned = world.spawnEntity(origin, type);
+                if (health > 0 && spawned instanceof LivingEntity living) {
+                    applySpawnHealth(living, health);
+                }
+                if (ttlTicks > 0) {
+                    Scheduling.onEntityLater(spawned, ttlTicks, spawned::remove);
                 }
             }
         });
@@ -445,14 +431,6 @@ public final class DispatchSink implements Sink {
             if (world != null) {
                 world.createExplosion(at, (float) power, false, breakBlocks);
             }
-        });
-    }
-
-    @Override
-    public void fireball(Player shooter, double yield) {
-        entityOp(shooter, () -> {
-            Fireball fireball = shooter.launchProjectile(Fireball.class);
-            fireball.setYield((float) yield);
         });
     }
 
@@ -657,6 +635,15 @@ public final class DispatchSink implements Sink {
     private double maxHealth(LivingEntity entity) {
         AttributeInstance maxHealth = maxHealthAttribute(entity);
         return maxHealth != null ? maxHealth.getValue() : entity.getMaxHealth();
+    }
+
+    /** Set a freshly-spawned living entity's max + current health (SPAWN_ENTITY's {@code health} param). */
+    private void applySpawnHealth(LivingEntity entity, double health) {
+        AttributeInstance maxHealth = maxHealthAttribute(entity);
+        if (maxHealth != null) {
+            maxHealth.setBaseValue(health);
+        }
+        entity.setHealth(Math.min(health, maxHealth(entity)));
     }
 
     /** Repair one item by {@code amount} (negative = full); returns whether the meta changed. */

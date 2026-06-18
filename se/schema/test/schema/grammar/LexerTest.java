@@ -58,8 +58,8 @@ class LexerTest {
 
     @Test
     void effectLineWithNoArguments() {
-        EffectLine line = EffectLine.parse("STRIKE", Source.UNKNOWN);
-        assertEquals("STRIKE", line.head());
+        EffectLine line = EffectLine.parse("CANCEL", Source.UNKNOWN);
+        assertEquals("CANCEL", line.head());
         assertEquals(0, line.argCount());
         assertTrue(line.argTexts().isEmpty());
     }

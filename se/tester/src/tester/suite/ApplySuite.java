@@ -43,9 +43,9 @@ public final class ApplySuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:1"] }
-              2: { chance: 100, effects: ["HEAL:2"] }
-              3: { chance: 100, effects: ["HEAL:3"] }
+              1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
+              2: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
+              3: { chance: 100, effects: ["MODIFY_HEALTH:3"] }
             """;
 
     private static final String SPARK = """
@@ -53,7 +53,7 @@ public final class ApplySuite implements Harness.Scenario {
             applies-to: [WEAPON]
             trigger: ATTACK
             chance: 100
-            effects: ["HEAL:1"]
+            effects: ["MODIFY_HEALTH:1"]
             """;
 
     private final Plugin plugin;

@@ -39,6 +39,10 @@ public final class ResolverSuite implements Harness.Scenario {
 
         check(h, "resolve.entity.PIG_ZOMBIE", r.entityType("PIG_ZOMBIE"));   // → ZOMBIFIED_PIGLIN
         check(h, "resolve.entity.ZOMBIE", r.entityType("ZOMBIE"));
+        // Primed TNT: PRIMED_TNT on the floor, TNT in modern — both spellings must resolve on every
+        // version (SPAWN_ENTITY's TNT path relies on this bidirectional alias).
+        check(h, "resolve.entity.PRIMED_TNT", r.entityType("PRIMED_TNT"));
+        check(h, "resolve.entity.TNT", r.entityType("TNT"));
 
         check(h, "resolve.particle.VILLAGER_HAPPY", r.particle("VILLAGER_HAPPY")); // → HAPPY_VILLAGER
         check(h, "resolve.particle.HAPPY_VILLAGER", r.particle("HAPPY_VILLAGER"));

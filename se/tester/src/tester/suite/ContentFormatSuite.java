@@ -41,7 +41,7 @@ public final class ContentFormatSuite implements Harness.Scenario {
             levels:
               3:
                 effects+:
-                  - { HEAL: { amount: 4, who: "@Self" } }
+                  - { MODIFY_HEALTH: { amount: 4, who: "@Self" } }
             """;
     private static final String STORM_BOOK = """
             display: "&dStorm Book"
@@ -102,7 +102,7 @@ public final class ContentFormatSuite implements Harness.Scenario {
                     throw new IllegalStateException("scaled level " + level + " missing");
                 }
             }
-            // Level 3 gained the appended HEAL (effects+): IGNITE, MESSAGE, HEAL.
+            // Level 3 gained the appended MODIFY_HEALTH (effects+): IGNITE, MESSAGE, MODIFY_HEALTH.
             int l3 = lib.snapshot().byStableKey("enchants/stormcaller/3").effects().length;
             if (l3 != 3) {
                 throw new IllegalStateException("level 3 effects+ append did not land; effect count=" + l3);
