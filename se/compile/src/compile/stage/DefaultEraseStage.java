@@ -7,6 +7,7 @@ import compile.model.Interners;
 import compile.model.SourceMap;
 import compile.model.StableKeyIndex;
 import schema.diag.Diagnostics;
+import schema.spec.Args;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -153,7 +154,7 @@ public final class DefaultEraseStage implements EraseStage {
                     la.soulCost(),
                     worldBlacklist,
                     la.condition(),
-                    la.effects().toArray(new CompiledEffect[0]),
+                    eraseSuppressArgs(la.effects(), cooldownScopes),
                     la.repeatTicks(),
                     la.affinity(),
                     cdScopeEnchant,
@@ -172,5 +173,39 @@ public final class DefaultEraseStage implements EraseStage {
         Interners interners = new Interners(worlds, triggers, suppress, cooldownScopes);
 
         return new ErasedContent(abilities.toArray(new Ability[0]), interners, stableKeyIndex, sourceMap);
+    }
+
+    /**
+     * Rewrite each {@code SUPPRESS} effect's {@code scope}/{@code key} args from authored strings to ints:
+     * {@code scope} → its kind (enchant 0 / group 1 / type 2) and {@code key} → its id in the SAME
+     * {@code cooldownScopes} interner the abilities lower their {@code cdScope*} into — so the suppression a
+     * {@code SUPPRESS:GROUP:lifesteal} writes shares one namespace with gate 5's reads (the bridge invariant).
+     * Every other effect passes through untouched. Never throws (a malformed SUPPRESS is left as-is).
+     */
+    private static CompiledEffect[] eraseSuppressArgs(List<CompiledEffect> effects, Interner cooldownScopes) {
+        CompiledEffect[] out = new CompiledEffect[effects.size()];
+        for (int i = 0; i < effects.size(); i++) {
+            CompiledEffect effect = effects.get(i);
+            Args args = effect.args();
+            if ("SUPPRESS".equals(effect.head()) && args.has("scope") && args.has("key")) {
+                Args rewritten = args
+                        .with("scope", (long) scopeKind(args.str("scope")))
+                        .with("key", (long) cooldownScopes.intern(args.str("key")));
+                out[i] = new CompiledEffect(effect.head(), rewritten, effect.target(),
+                        effect.cumulativeWaitTicks(), effect.affinity());
+            } else {
+                out[i] = effect;
+            }
+        }
+        return out;
+    }
+
+    /** The cooldown-scope kind for a {@code SUPPRESS} scope token (matches ActivationPipeline's SCOPE_* ids). */
+    private static int scopeKind(String scope) {
+        return switch (scope.toUpperCase(Locale.ROOT)) {
+            case "GROUP" -> 1;
+            case "TYPE" -> 2;
+            default -> 0; // ENCHANT
+        };
     }
 }

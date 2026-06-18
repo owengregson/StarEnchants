@@ -6,6 +6,7 @@ import engine.condition.ConditionResult;
 import engine.condition.Flow;
 import engine.interact.SoulLedger;
 import engine.stores.CooldownStore;
+import engine.stores.SuppressionStore;
 import java.util.Objects;
 
 /**
@@ -41,17 +42,24 @@ public final class ActivationPipeline {
 
     private final CooldownStore cooldowns;
     private final SoulLedger souls;
+    private final SuppressionStore suppression;
     private final Guard protection;
     private final Guard preActivate;
 
     public ActivationPipeline(CooldownStore cooldowns, SoulLedger souls) {
-        this(cooldowns, souls, Guard.ALLOW, Guard.ALLOW);
+        this(cooldowns, souls, new SuppressionStore(), Guard.ALLOW, Guard.ALLOW);
     }
 
     public ActivationPipeline(CooldownStore cooldowns, SoulLedger souls,
                               Guard protection, Guard preActivate) {
+        this(cooldowns, souls, new SuppressionStore(), protection, preActivate);
+    }
+
+    public ActivationPipeline(CooldownStore cooldowns, SoulLedger souls, SuppressionStore suppression,
+                              Guard protection, Guard preActivate) {
         this.cooldowns = Objects.requireNonNull(cooldowns, "cooldowns");
         this.souls = Objects.requireNonNull(souls, "souls");
+        this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.protection = Objects.requireNonNull(protection, "protection");
         this.preActivate = Objects.requireNonNull(preActivate, "preActivate");
     }
@@ -74,8 +82,9 @@ public final class ActivationPipeline {
         if (ability.level() < 0) {
             return GateOutcome.OUT_OF_LEVEL;
         }
-        // 5. suppression — O(1) interned-id membership
-        if (act.suppression().contains(ability.suppressKey())) {
+        // 5. suppression — the per-activation set (legacy/role scratch) OR a per-player timed
+        //    DISABLE_* across the three scopes (enchant/group/type), keyed identically to cooldowns
+        if (act.suppression().contains(ability.suppressKey()) || suppressed(ability, act)) {
             return GateOutcome.SUPPRESSED;
         }
         // 6. cooldown (three scopes) — primitive long map
@@ -102,6 +111,22 @@ public final class ActivationPipeline {
         // 11. start cooldown
         armCooldowns(ability, act);
         return GateOutcome.ACTIVATED;
+    }
+
+    /**
+     * Whether any of {@code ability}'s three scopes is under an active timed {@code DISABLE_*} for the
+     * activator — mirrors {@link #cooldownsReady} (gate 6) over the SAME packed scope keys, so a
+     * {@code SUPPRESS:ENCHANT|GROUP|TYPE:key} silences exactly the abilities whose scope lowered to that key.
+     */
+    private boolean suppressed(Ability ability, Activation act) {
+        return scopeSuppressed(ability.cdScopeEnchant(), SCOPE_ENCHANT, act)
+                || scopeSuppressed(ability.cdScopeGroup(), SCOPE_GROUP, act)
+                || scopeSuppressed(ability.cdScopeType(), SCOPE_TYPE, act);
+    }
+
+    private boolean scopeSuppressed(int scopeId, int scopeKind, Activation act) {
+        return scopeId >= 0
+                && suppression.isSuppressed(act.actor(), CooldownStore.key(scopeKind, scopeId), act.nowTicks());
     }
 
     private boolean cooldownsReady(Ability ability, Activation act) {

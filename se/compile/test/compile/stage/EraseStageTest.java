@@ -157,6 +157,36 @@ class EraseStageTest {
     }
 
     @Test
+    void suppressEffectKeyInternsToTheSameScopeIdItsTargetAbilityLowersTo() {
+        // SUPPRESS:GROUP:lifesteal — its key must intern to the SAME cooldownScopes id the
+        // suppressed abilities lower their group scope to, so gate 5 matches them (the bridge invariant).
+        Args suppressArgs = Args.empty()
+                .with("scope", "GROUP").with("key", "lifesteal").with("duration", 200L);
+        CompiledEffect suppress = new CompiledEffect(
+                "SUPPRESS", suppressArgs, CompiledSelector.SELF, 0, Affinity.CONTEXT_LOCAL);
+        LoweredAbility suppressor = new LoweredAbility(
+                SourceKind.ENCHANT, "suppressor", 1, 0, 0.0, 0, 0,
+                List.of(), List.of(), null, List.of(suppress),
+                null, null, null, null, 0, Affinity.CONTEXT_LOCAL, Source.UNKNOWN, 0);
+        LoweredAbility victim = lowered(
+                "victim", 2, List.of(), List.of(), null, null, "lifesteal", null, Source.UNKNOWN);
+
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = STAGE.erase(List.of(suppressor, victim), d);
+        assertFalse(d.hasErrors());
+
+        Ability suppressorAbility = erased.abilities()[0];
+        Ability victimAbility = erased.abilities()[1];
+        CompiledEffect erasedSuppress = suppressorAbility.effects()[0];
+
+        assertEquals(1L, erasedSuppress.args().lng("scope")); // GROUP → kind 1
+        assertEquals(200L, erasedSuppress.args().lng("duration")); // untouched
+        // the bridge: SUPPRESS key == the victim's group scope id == the cooldownScopes id of "lifesteal"
+        assertEquals((long) victimAbility.cdScopeGroup(), erasedSuppress.args().lng("key"));
+        assertEquals(erased.interners().cooldownScopes().idOf("lifesteal"), victimAbility.cdScopeGroup());
+    }
+
+    @Test
     void duplicateStableKeyIsReportedAndDropped() {
         Diagnostics d = new Diagnostics();
         ErasedContent erased = STAGE.erase(List.of(

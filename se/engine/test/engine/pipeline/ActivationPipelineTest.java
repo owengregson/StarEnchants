@@ -13,6 +13,7 @@ import compile.model.cond.Cond;
 import engine.interact.SoulLedger;
 import engine.interact.SuppressionSet;
 import engine.stores.CooldownStore;
+import engine.stores.SuppressionStore;
 import schema.diag.Source;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,33 @@ class ActivationPipelineTest {
         SuppressionSet sup = new SuppressionSet();
         sup.add(7);
         assertEquals(GateOutcome.SUPPRESSED, pipeline.evaluate(a.build(), act().suppression(sup).build()));
+    }
+
+    @Test
+    void timedSuppressionGatesTheMatchingScopeThenClearsAtExpiry() {
+        SuppressionStore store = new SuppressionStore();
+        ActivationPipeline p = new ActivationPipeline(cooldowns, souls, store,
+                ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW);
+        Ab a = new Ab();
+        a.cdGroup = 5; // this ability is in group-scope id 5
+        store.suppress(ACTOR, CooldownStore.key(1, 5), 90L, 40); // DISABLE_GROUP id 5: suppressed [90,130)
+
+        assertEquals(GateOutcome.SUPPRESSED, p.evaluate(a.build(), act().build())); // tick 100 → suppressed
+        assertEquals(GateOutcome.ACTIVATED,
+                p.evaluate(a.build(), Activation.builder(ACTOR, 3, 0, 140L).build())); // tick 140 → elapsed
+    }
+
+    @Test
+    void suppressionOnlyGatesTheMatchingScopeKindAndId() {
+        SuppressionStore store = new SuppressionStore();
+        ActivationPipeline p = new ActivationPipeline(cooldowns, souls, store,
+                ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW);
+        Ab a = new Ab();
+        a.cdEnchant = 5; // ability is in ENCHANT-scope id 5
+        store.suppress(ACTOR, CooldownStore.key(1, 5), 0L, 100); // a GROUP-scope id 5 suppression
+        assertEquals(GateOutcome.ACTIVATED, p.evaluate(a.build(), act().build())); // different kind → not matched
+        store.suppress(ACTOR, CooldownStore.key(0, 6), 0L, 100); // ENCHANT id 6 (different id)
+        assertEquals(GateOutcome.ACTIVATED, p.evaluate(a.build(), act().build())); // different id → not matched
     }
 
     @Test

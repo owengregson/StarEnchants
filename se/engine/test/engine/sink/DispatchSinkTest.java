@@ -9,6 +9,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import engine.stores.CooldownStore;
+import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
 import java.util.UUID;
 import org.bukkit.Location;
@@ -145,7 +147,7 @@ class DispatchSinkTest {
             }
         };
 
-        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, recording, new VarStore(), () -> 0L);
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, recording, new VarStore(), new SuppressionStore(), () -> 0L);
         sink.removeSouls(holder, gemId, 5);
         assertEquals(0, debited[0], "the debit is captured, never applied inline on the firing thread");
 
@@ -159,7 +161,7 @@ class DispatchSinkTest {
         int[] calls = {0};
         SoulDebit recording = (h, g, amount) -> calls[0]++;
 
-        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, recording, new VarStore(), () -> 0L);
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, recording, new VarStore(), new SuppressionStore(), () -> 0L);
         sink.removeSouls(null, UUID.randomUUID(), 5);
         sink.removeSouls(holder, null, 5);
         sink.removeSouls(holder, UUID.randomUUID(), 0);
@@ -175,7 +177,8 @@ class DispatchSinkTest {
         when(holder.getUniqueId()).thenReturn(id);
         VarStore store = new VarStore();
 
-        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE, store, () -> 100L);
+        DispatchSink sink = new DispatchSink(
+                handles, EconomyService.NONE, SoulDebit.NONE, store, new SuppressionStore(), () -> 100L);
         sink.setVar(holder, "rage", "1", 0); // per-player state, written immediately (no flush needed)
 
         assertEquals("1", store.get(id, "rage", 100L));
@@ -188,9 +191,25 @@ class DispatchSinkTest {
         when(holder.getUniqueId()).thenReturn(id);
         VarStore store = new VarStore();
 
-        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE, store, () -> 0L);
+        DispatchSink sink = new DispatchSink(
+                handles, EconomyService.NONE, SoulDebit.NONE, store, new SuppressionStore(), () -> 0L);
         sink.invertVar(holder, "flag");
 
         assertEquals("1", store.get(id, "flag", 0L)); // unset → inverted to "1"
+    }
+
+    @Test
+    void suppressWritesThroughToTheStoreWithThePackedScopeKey() {
+        Player holder = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(holder.getUniqueId()).thenReturn(id);
+        SuppressionStore store = new SuppressionStore();
+
+        DispatchSink sink = new DispatchSink(
+                handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), store, () -> 100L);
+        sink.suppress(holder, 1, 7, 40); // GROUP(1) scope id 7, for 40 ticks
+
+        assertTrue(store.isSuppressed(id, CooldownStore.key(1, 7), 100L));
+        assertFalse(store.isSuppressed(id, CooldownStore.key(1, 7), 140L)); // expires at 140
     }
 }
