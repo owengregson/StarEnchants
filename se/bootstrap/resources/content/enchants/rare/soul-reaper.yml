@@ -10,7 +10,7 @@ scale:
   heal: { 1: 3, 2: 5, 3: 8 }
   crits: { 1: 6, 2: 8, 3: 12 }
 effects:
-  - { HEAL: { amount: $heal } }
+  - { MODIFY_HEALTH: { amount: $heal } }
   - { PARTICLE: { particle: CRIT, count: $crits } }
 levels:
   3:

@@ -34,7 +34,7 @@ class EngineCompilerBridgeTest {
                 SourceKind.ENCHANT, "ench/test", 1, 2, 50.0, 0, 0,
                 List.of("ATTACK"), List.of(), null,
                 List.of(EffectLine.parse("DAMAGE:6", Source.of("enchants.yml", 1, 1)),
-                        EffectLine.parse("HEAL:3", Source.of("enchants.yml", 2, 1))),
+                        EffectLine.parse("MODIFY_HEALTH:3", Source.of("enchants.yml", 2, 1))),
                 null, null, null, null, 0, Source.ofFile("enchants.yml"), 0);
 
         Diagnostics d = new Diagnostics();
@@ -46,10 +46,10 @@ class EngineCompilerBridgeTest {
         assertEquals(2, a.effects().length);
         assertEquals("DAMAGE", a.effects()[0].head());
         assertEquals(6.0, a.effects()[0].args().dbl("amount"));
-        assertEquals("HEAL", a.effects()[1].head());
+        assertEquals("MODIFY_HEALTH", a.effects()[1].head());
         assertEquals(3.0, a.effects()[1].args().dbl("amount"));
 
-        // Affinity folded through the bridge: DAMAGE(CONTEXT_LOCAL) ∨ HEAL(TARGET_ENTITY)
+        // Affinity folded through the bridge: DAMAGE(CONTEXT_LOCAL) ∨ MODIFY_HEALTH(TARGET_ENTITY)
         // ⇒ ability-level TARGET_ENTITY.
         assertEquals(Affinity.TARGET_ENTITY, a.affinity());
     }

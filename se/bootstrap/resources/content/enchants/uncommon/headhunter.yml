@@ -8,15 +8,15 @@ chance: 100
 levels:
   1:
     effects:
-      - { GIVE_EXP: { amount: 5 } }
+      - { MODIFY_EXP: { amount: 5 } }
       - { MESSAGE: { text: "&5You claim your trophy." } }
   2:
     effects:
-      - { GIVE_EXP: { amount: 10 } }
+      - { MODIFY_EXP: { amount: 10 } }
       - { MESSAGE: { text: "&5You claim your trophy." } }
   3:
     effects:
-      - { GIVE_EXP: { amount: 18 } }
+      - { MODIFY_EXP: { amount: 18 } }
       - { PARTICLE: { particle: HAPPY_VILLAGER, count: 8 } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
       - { MESSAGE: { text: "&5You claim your trophy." } }

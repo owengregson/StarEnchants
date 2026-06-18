@@ -14,7 +14,7 @@ condition: { 1: "%actor.health% <= 6", 2: "%actor.health% <= 7", 3: "%actor.heal
 scale:
   heal: { 1: 6, 2: 8, 3: 10 }
 effects:
-  - { HEAL: { amount: $heal, who: "@Self" } }
+  - { MODIFY_HEALTH: { amount: $heal, who: "@Self" } }
 levels:
   2:
     effects+:

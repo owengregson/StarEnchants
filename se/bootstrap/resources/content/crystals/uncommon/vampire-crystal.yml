@@ -5,5 +5,5 @@ trigger: ATTACK
 applies-to: [SWORD, AXE]
 chance: 50
 effects:
-  - { HEAL: { amount: 2 } }
+  - { MODIFY_HEALTH: { amount: 2 } }
   - { PARTICLE: { particle: WITCH, count: 6 } }

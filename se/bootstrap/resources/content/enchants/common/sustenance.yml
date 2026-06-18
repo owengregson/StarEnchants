@@ -10,7 +10,7 @@ cooldown: { 1: 200, 2: 160, 3: 120 }
 scale:
   food: { from: 2, step: 2 }
 effects:
-  - { FEED: { amount: $food } }
+  - { MODIFY_FOOD: { amount: $food } }
 levels:
   3:
     effects+:

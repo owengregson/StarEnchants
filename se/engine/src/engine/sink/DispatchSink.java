@@ -231,6 +231,18 @@ public final class DispatchSink implements Sink {
     }
 
     @Override
+    public void takeExp(Player target, int amount) {
+        // Player.giveExp accepts a negative delta; the server clamps total XP at zero across the whole
+        // range — the same code path as giveExp, so XP routing stays on the entity's region thread.
+        entityOp(target, () -> target.giveExp(-amount));
+    }
+
+    @Override
+    public void takeFood(Player target, int foodPoints) {
+        entityOp(target, () -> target.setFoodLevel(Math.max(0, target.getFoodLevel() - foodPoints)));
+    }
+
+    @Override
     public void knockback(Entity target, Location from, double strength) {
         // `from` is the activator's location on the firing thread. Clone it: a WAIT tier can defer this
         // closure to a LATER tick, so the captured origin must be an owned snapshot, not a Location the

@@ -98,13 +98,14 @@ public final class Mappings {
                 // EXTINGUISH:[PLAYER/TARGET] → EXTINGUISH:@target.
                 case "EXTINGUISH" -> MigratedEffect.mapped(token,
                         "EXTINGUISH:" + target(parts.length >= 2 ? parts[1] : "TARGET"), "");
-                // FEED:[AMOUNT] → FEED:<amount> (StarEnchants feeds the actor).
+                // FEED:[AMOUNT] → MODIFY_FOOD:<amount>:give (StarEnchants feeds the actor).
                 case "FEED" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "FEED:" + intArg(parts[1]), "")
+                        ? MigratedEffect.mapped(token, "MODIFY_FOOD:" + intArg(parts[1]) + ":give",
+                                "EE FEED → MODIFY_FOOD (give)")
                         : MigratedEffect.todo(token, "unexpected FEED arg shape");
-                // EXP:[AMOUNT] → GIVE_EXP:<amount>.
+                // EXP:[AMOUNT] → MODIFY_EXP:<amount>:give (give is the default mode).
                 case "EXP" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "GIVE_EXP:" + intArg(parts[1]), "renamed EXP → GIVE_EXP")
+                        ? MigratedEffect.mapped(token, "MODIFY_EXP:" + intArg(parts[1]) + ":give", "EXP → MODIFY_EXP (give)")
                         : MigratedEffect.todo(token, "unexpected EXP arg shape");
                 // KILL (excludes players in both engines) → KILL (defaults to @Victim).
                 case "KILL" -> MigratedEffect.mapped(token, "KILL", "");
@@ -329,7 +330,8 @@ public final class Mappings {
                         ? MigratedEffect.mapped(token, "DAMAGE:" + intArg(parts[1]) + suffix, "")
                         : MigratedEffect.todo(token, "unexpected DAMAGE arg shape");
                 case "ADD_HEALTH", "HEAL" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "HEAL:" + intArg(parts[1]) + suffix, "AE add-health → HEAL")
+                        ? MigratedEffect.mapped(token, "MODIFY_HEALTH:" + intArg(parts[1]) + ":give" + suffix,
+                                "AE add-health → MODIFY_HEALTH (give)")
                         : MigratedEffect.todo(token, "unexpected heal arg shape");
                 case "POTION" -> parts.length >= 4
                         ? MigratedEffect.mapped(token, "POTION:" + parts[1].trim() + ":" + intArg(parts[2])
@@ -348,13 +350,14 @@ public final class Mappings {
                         ? MigratedEffect.mapped(token, "MODIFY_MONEY:" + numArg(parts[1]) + ":transfer" + suffix,
                                 "AE steal-money → MODIFY_MONEY (transfer: take from target, give to activator)")
                         : MigratedEffect.todo(token, "unexpected money arg shape");
-                // AE add-food → FEED (food points); AE EXP → GIVE_EXP (XP amount).
+                // AE add-food → MODIFY_FOOD:give (food points); AE EXP → MODIFY_EXP:give (XP amount).
                 case "ADD_FOOD" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "FEED:" + intArg(parts[1]) + suffix, "AE add-food → FEED")
+                        ? MigratedEffect.mapped(token, "MODIFY_FOOD:" + intArg(parts[1]) + ":give" + suffix,
+                                "AE add-food → MODIFY_FOOD (give)")
                         : MigratedEffect.todo(token, "unexpected ADD_FOOD arg shape");
                 case "EXP" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "GIVE_EXP:" + intArg(parts[1]) + suffix,
-                                "AE EXP spawns XP orbs at the target; GIVE_EXP grants XP to the actor — review the recipient")
+                        ? MigratedEffect.mapped(token, "MODIFY_EXP:" + intArg(parts[1]) + ":give" + suffix,
+                                "AE EXP spawns XP orbs at the target; MODIFY_EXP (give) grants XP to the actor — review the recipient")
                         : MigratedEffect.todo(token, "unexpected EXP arg shape");
                 // AE BURN takes SECONDS (×20 internally); StarEnchants IGNITE takes ticks.
                 case "BURN" -> parts.length >= 2
