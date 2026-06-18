@@ -8,6 +8,7 @@ import engine.run.ActivationContext;
 import engine.run.FactPopulator;
 import engine.sink.DispatchSink;
 import engine.sink.SoulDebit;
+import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
 import feature.soul.SoulBinding;
 import feature.trigger.TriggerRunner;
@@ -50,6 +51,7 @@ public final class CombatDispatch {
     private final EconomyService economy;
     private final SoulDebit souls;
     private final VarStore vars;
+    private final SuppressionStore suppression;
     private final LongSupplier nowTicks;
     private final int attackTriggerId;
     private final int defenseTriggerId;
@@ -61,7 +63,7 @@ public final class CombatDispatch {
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks) {
         this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks,
-                actor -> Optional.empty(), EconomyService.NONE, SoulDebit.NONE, new VarStore());
+                actor -> Optional.empty(), EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore());
     }
 
     /** Combat dispatch with a soul binder (no economy): an actor in soul mode arms gate 10 from their gem. */
@@ -69,7 +71,7 @@ public final class CombatDispatch {
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
         this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
-                EconomyService.NONE, SoulDebit.NONE, new VarStore());
+                EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore());
     }
 
     /** Combat dispatch with a soul binder + economy but no distinct BOW/TRIDENT triggers (arrow hits fire ATTACK). */
@@ -78,7 +80,7 @@ public final class CombatDispatch {
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy) {
         this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
-                economy, SoulDebit.NONE, new VarStore());
+                economy, SoulDebit.NONE, new VarStore(), new SuppressionStore());
     }
 
     /**
@@ -90,12 +92,13 @@ public final class CombatDispatch {
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
-                          EconomyService economy, SoulDebit souls, VarStore vars) {
+                          EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
         this.vars = Objects.requireNonNull(vars, "vars");
+        this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         // The runner reads conditions through a populator backed by the shared VarStore, so a condition's
         // %name% can read a value an earlier SET_VAR wrote (the write side is the per-event DispatchSink below).
@@ -124,7 +127,7 @@ public final class CombatDispatch {
         Location at = victimEntity.getLocation();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, nowTicks);
 
         // Attack side: the player damager's abilities act on the victim (self = the attacker). The trigger
         // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.

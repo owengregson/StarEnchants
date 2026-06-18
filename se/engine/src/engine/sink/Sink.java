@@ -213,6 +213,16 @@ public interface Sink {
     /** Numerically invert {@code target}'s named variable (0↔1), preserving its remaining TTL (INVERT_VAR). */
     void invertVar(Player target, String name);
 
+    // ── Suppression intents (SUPPRESS_ENCHANT — disable an enchant/group/type for a player) ──
+
+    /**
+     * Suppress one of {@code target}'s ability scopes for {@code durationTicks} (SUPPRESS_ENCHANT,
+     * covering DISABLE_ENCHANT/GROUP/TYPE). {@code scopeKind} is enchant(0)/group(1)/type(2) and
+     * {@code scopeId} is the interned cooldown-scope id of the key — so the suppression is keyed by the
+     * same scope id the gated abilities lower their scope to, and gate 5 matches it O(1). Player-only.
+     */
+    void suppress(Player target, int scopeKind, int scopeId, int durationTicks);
+
     // ── Event control ──
 
     /** Cancel the Bukkit event that triggered this activation. */

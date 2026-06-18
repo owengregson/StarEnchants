@@ -23,16 +23,18 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class SuppressionStore {
 
-    private final Map<UUID, Map<Integer, Long>> expiryByPlayer = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
 
     /**
-     * Suppress interned {@code id} for {@code durationTicks}, expiring at
-     * {@code nowTicks + durationTicks}. A non-positive duration is a no-op (no
-     * suppression). Re-suppressing an already-suppressed id only ever EXTENDS it: the
-     * expiry is set to the later of the existing and the new one, so a fresh short
+     * Suppress packed scope key {@code id} for {@code durationTicks}, expiring at
+     * {@code nowTicks + durationTicks}. The key is a {@link CooldownStore#key(int, int)}-packed
+     * (scopeKind, scopeId) pair so the three DISABLE scopes (enchant/group/type) never collide —
+     * shared with the gate's cooldown-scope namespace, so a {@code SUPPRESS} keys the same id the
+     * suppressed abilities lower their scope to. A non-positive duration is a no-op. Re-suppressing
+     * an already-suppressed key only ever EXTENDS it (the later expiry wins), so a fresh short
      * suppression never cuts an in-flight longer one short.
      */
-    public void suppress(UUID player, int id, long nowTicks, int durationTicks) {
+    public void suppress(UUID player, long id, long nowTicks, int durationTicks) {
         if (durationTicks <= 0) {
             return;
         }
@@ -47,8 +49,8 @@ public final class SuppressionStore {
      *     reported as not suppressed; the expiry tick itself counts as elapsed (the
      *     suppression covers {@code [start, expiry)}).
      */
-    public boolean isSuppressed(UUID player, int id, long nowTicks) {
-        Map<Integer, Long> ids = expiryByPlayer.get(player);
+    public boolean isSuppressed(UUID player, long id, long nowTicks) {
+        Map<Long, Long> ids = expiryByPlayer.get(player);
         if (ids == null) {
             return false;
         }

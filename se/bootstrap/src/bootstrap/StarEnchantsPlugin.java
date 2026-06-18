@@ -19,6 +19,7 @@ import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
 import engine.stores.SoulModeStore;
+import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
@@ -206,6 +207,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // One shared writable variable store (§A): the SET_VAR/INVERT_VAR effects write it through the
         // per-event sink, and conditions read it back as %name% through the dispatchers' FactPopulator.
         VarStore vars = new VarStore();
+        // One shared suppression store (§C SUPPRESS): the SUPPRESS effect writes it through the per-event
+        // sink, and gate 5 of the pipeline reads it across the three DISABLE scopes. Same instance both ends.
+        SuppressionStore suppression = new SuppressionStore();
 
         // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
         // ServicesManager; a server with none allows everything. The guard passes the firing location
@@ -226,7 +230,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // here, so the engine itself stays event-API-free (it only calls the callback).
         engine.effect.EffectRegistry effects = BuiltinEffects.registry();
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), souls, protectionGuard, ActivationPipeline.Guard.ALLOW),
+                new ActivationPipeline(new CooldownStore(), souls, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
                 areaScan(), this::fireActivation);
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
@@ -240,10 +244,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
-                soulService::bindingFor, economy, soulService::debit, vars);
+                soulService::bindingFor, economy, soulService::debit, vars, suppression);
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
-                tick::get, soulService::bindingFor, economy, soulService::debit, vars);
+                tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression);
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
@@ -251,7 +255,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
-        getServer().getPluginManager().registerEvents(new EngineStoreListener(vars), this);
+        getServer().getPluginManager().registerEvents(new EngineStoreListener(vars, suppression), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);

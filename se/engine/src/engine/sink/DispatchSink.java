@@ -1,6 +1,8 @@
 package engine.sink;
 
 import engine.interact.DamageFold;
+import engine.stores.CooldownStore;
+import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
 import java.util.List;
 import java.util.Objects;
@@ -82,6 +84,7 @@ public final class DispatchSink implements Sink {
     private final EconomyService economy;
     private final SoulDebit souls;
     private final VarStore vars;
+    private final SuppressionStore suppression;
     private final LongSupplier nowTicks;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold = new DamageFold();
@@ -91,27 +94,29 @@ public final class DispatchSink implements Sink {
     private boolean flushed;
     private int delayTicks;
 
-    /** A bare sink — economy/soul intents are no-ops, vars write to a throwaway store (the test/economy-free default). */
+    /** A bare sink — economy/soul intents are no-ops, vars/suppression write to throwaway stores (the test default). */
     public DispatchSink(RuntimeHandles handles) {
-        this(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), () -> 0L);
+        this(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
     }
 
-    /** A sink with economy but no soul debit; vars write to a throwaway store. */
+    /** A sink with economy but no soul debit; vars/suppression write to throwaway stores. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy) {
-        this(handles, economy, SoulDebit.NONE, new VarStore(), () -> 0L);
+        this(handles, economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
     }
 
     /**
-     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + the current-tick supply
-     * the timed var TTLs read. The production dispatchers build one of these per event; the convenience
-     * ctors above default the new collaborators so every existing economy-free call site compiles unchanged.
+     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + a shared
+     * {@link SuppressionStore} + the current-tick supply the timed var/suppression TTLs read. The
+     * production dispatchers build one of these per event; the convenience ctors above default the new
+     * collaborators so every existing economy-free call site compiles unchanged.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
-                        VarStore vars, LongSupplier nowTicks) {
+                        VarStore vars, SuppressionStore suppression, LongSupplier nowTicks) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
         this.vars = Objects.requireNonNull(vars, "vars");
+        this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
 
@@ -710,6 +715,20 @@ public final class DispatchSink implements Sink {
             return;
         }
         vars.invert(target.getUniqueId(), name, nowTicks.getAsLong());
+    }
+
+    // ── Suppression intents ──────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void suppress(Player target, int scopeKind, int scopeId, int durationTicks) {
+        if (target == null || scopeId < 0) {
+            return;
+        }
+        // Per-player in-memory state keyed by the (scopeKind, scopeId) cooldown-scope packing — the same
+        // key gate 5 reads for the suppressed abilities. The store is concurrent, so writing it on the
+        // firing thread is Folia-safe (only the target's UUID is captured; no cross-region entity read).
+        suppression.suppress(target.getUniqueId(), CooldownStore.key(scopeKind, scopeId),
+                nowTicks.getAsLong(), durationTicks);
     }
 
     // ── Event control ──────────────────────────────────────────────────────────────────────────
