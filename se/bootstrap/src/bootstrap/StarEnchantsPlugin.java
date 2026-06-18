@@ -353,16 +353,24 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             Scheduling.onEntity(player, () -> passives.arm(player, worn.refresh(player, content.snapshot())));
         }
 
-        // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
-        // every online player against the new snapshot (on each player's own thread).
+        // The §L parallel config sources, each reloaded in the SAME transaction as content (§L-4): every step
+        // parses OFF the main thread and returns its diagnostics + a global-thread publish; the reloader
+        // commits content AND all sources together only when every one is clean (all-or-nothing), and surfaces
+        // each source's faults through /se reload [--dry-run]. A broken config.yml/lang.yml/menus/ now keeps
+        // the previous state of EVERYTHING and reports the fault, instead of half-swapping.
+        List<platform.content.ReloadStep> reloadSteps = List.of(
+                () -> { var c = ItemsLoader.load(itemsRoot); return new platform.content.ReloadStep.Built(
+                        c.diagnostics(), () -> items.publish(c)); },
+                () -> { var c = MasterConfigLoader.load(configFile); return new platform.content.ReloadStep.Built(
+                        c.diagnostics(), () -> master.publish(c)); },
+                () -> { var c = LangLoader.load(langFile); return new platform.content.ReloadStep.Built(
+                        c.diagnostics(), () -> lang.publish(c)); },
+                () -> { var c = MenusLoader.load(menusRoot); return new platform.content.ReloadStep.Built(
+                        c.diagnostics(), () -> menusHolder.publish(c)); });
+
+        // Reload: one persistent compiler; on a clean swap the sources above are already published, so this
+        // content-coupled hook advances the gen-keyed caches and re-resolves every online player.
         reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
-            // Republish the parallel config references (items/ + master config.yml) in the SAME global-thread
-            // reload step as the content swap — "one reload reloads everything" (§L). §L-4 tightens this into a
-            // build-all-off-thread, all-or-nothing swap; here they re-parse on the global thread as items did.
-            items.publish(ItemsLoader.load(itemsRoot));
-            master.publish(MasterConfigLoader.load(configFile));
-            lang.publish(LangLoader.load(langFile));
-            menusHolder.publish(MenusLoader.load(menusRoot));
             itemViews.reload(published.snapshot().generation());
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
@@ -373,7 +381,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                             () -> passives.arm(player, worn.refresh(player, published.snapshot())));
                 }
             }
-        });
+        }, reloadSteps);
 
         // Optional auto-reload (§L config.yml reload.auto-seconds; ≤ 0 = off). Armed once at boot off the
         // initial config — changing the interval needs a restart. A recurring /se reload on the global thread.

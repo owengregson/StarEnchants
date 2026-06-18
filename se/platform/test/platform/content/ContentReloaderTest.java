@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,6 +98,65 @@ class ContentReloaderTest {
         assertTrue(result[0].dryRun());
         assertFalse(result[0].published());
         assertEquals(0, holder.snapshot().abilityCount()); // holder still the empty initial library
+    }
+
+    @Test
+    void cleanStepsPublishWithContent(@TempDir Path root) throws IOException {
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
+        write(root, "enchants/spark.yml", GOOD);
+        boolean[] sourcePublished = {false};
+        ReloadStep step = () -> new ReloadStep.Built(List.of(), () -> sourcePublished[0] = true);
+        ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0,
+                library -> { }, List.of(step));
+
+        ReloadResult[] result = new ReloadResult[1];
+        reloader.reload(r -> result[0] = r);
+
+        assertTrue(result[0].published());
+        assertTrue(sourcePublished[0], "a clean parallel source publishes with content");
+        assertNotNull(holder.snapshot().byStableKey("enchants/spark/1"));
+    }
+
+    @Test
+    void aStepWithABlockingDiagnosticAbortsTheWholeSwap(@TempDir Path root) throws IOException {
+        write(root, "enchants/good.yml", GOOD);
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0)); // generation 0
+        boolean[] sourcePublished = {false};
+        // Content is clean, but a parallel source reports a blocking diagnostic — the transaction must abort.
+        ReloadStep brokenStep = () -> new ReloadStep.Built(
+                List.of(schema.diag.Diagnostic.error("X_BAD", "broken config", schema.diag.Source.UNKNOWN)),
+                () -> sourcePublished[0] = true);
+        ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0,
+                library -> { }, List.of(brokenStep));
+
+        ReloadResult[] result = new ReloadResult[1];
+        reloader.reload(r -> result[0] = r);
+
+        assertFalse(result[0].published(), "a broken source aborts the whole reload");
+        assertFalse(sourcePublished[0], "no source is published when the transaction aborts");
+        assertEquals(0, holder.snapshot().generation()); // content kept its previous (un-swapped) snapshot
+        assertTrue(result[0].diagnostics().stream().anyMatch(d -> d.code().equals("X_BAD")),
+                "the source's diagnostic is surfaced in the reload result");
+    }
+
+    @Test
+    void dryRunReportsStepDiagnosticsWithoutPublishing(@TempDir Path root) throws IOException {
+        write(root, "enchants/spark.yml", GOOD);
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
+        boolean[] sourcePublished = {false};
+        ReloadStep step = () -> new ReloadStep.Built(
+                List.of(schema.diag.Diagnostic.warning("W_NOTE", "a note", schema.diag.Source.UNKNOWN)),
+                () -> sourcePublished[0] = true);
+        ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0,
+                library -> { }, List.of(step));
+
+        ReloadResult[] result = new ReloadResult[1];
+        reloader.dryRun(r -> result[0] = r);
+
+        assertFalse(result[0].published());
+        assertFalse(sourcePublished[0], "dry-run never publishes a source");
+        assertTrue(result[0].diagnostics().stream().anyMatch(d -> d.code().equals("W_NOTE")),
+                "dry-run still surfaces a source's diagnostics");
     }
 
     /** Runs every scheduled task immediately on the calling thread (deterministic for tests). */
