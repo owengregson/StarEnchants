@@ -17,6 +17,13 @@ import schema.spec.D;
  * resolved to an interned id at compile time, so the runtime never sees a renamed
  * constant (§9). {@link Affinity#TARGET_ENTITY}: the {@code Sink} routes each intent
  * to the owning entity's thread.
+ *
+ * <p>As the canonical maintained buff, {@code POTION} is also lifecycle-aware (§B, ADR-0022): on a
+ * HELD/PASSIVE source's deactivation the engine calls {@link #stop}, which clears the very effect this
+ * applied (the exact inverse — a {@code removePotion} of the same handle). So a passive "Speed while worn"
+ * is authored as one {@code POTION:SPEED:…} line whose buff turns on at equip and off at unequip, with no
+ * separate teardown enchant. Author a long {@code duration} (or pair with {@code REPEATING}) so the buff
+ * does not lapse mid-wear; {@code stop} guarantees it never outlives the item.
  */
 public final class PotionEffect implements EffectKind {
 
@@ -26,7 +33,8 @@ public final class PotionEffect implements EffectKind {
             .param("duration", D.TICKS)
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
-            .doc("Apply a potion effect to the target(s). The effect name is resolved to a handle at compile time.")
+            .doc("Apply a potion effect to the target(s). The effect name is resolved to a handle at compile time."
+                    + " On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).")
             .example("POTION:STRENGTH:1:100")
             .build();
 
@@ -42,6 +50,19 @@ public final class PotionEffect implements EffectKind {
         int duration = ctx.integer("duration");
         for (LivingEntity target : ctx.targets("who")) {
             sink.potion(target, effect, amplifier, duration);
+        }
+    }
+
+    /**
+     * §B lifecycle teardown: a HELD/PASSIVE potion buff is removed when its source unequips, so a worn
+     * "Strength while held" never lingers after the sword is put away. The exact inverse of {@link #run} —
+     * {@code removePotion} of the same compile-resolved handle (amplifier/duration are irrelevant to a clear).
+     */
+    @Override
+    public void stop(EffectCtx ctx, Sink sink) {
+        int effect = ctx.integer("effect");
+        for (LivingEntity target : ctx.targets("who")) {
+            sink.removePotion(target, effect);
         }
     }
 }

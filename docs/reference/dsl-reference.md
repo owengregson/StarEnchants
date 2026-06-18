@@ -325,7 +325,7 @@ Spawn particles at the activation location. No-op if there is no location.
 
 ### POTION
 
-Apply a potion effect to the target(s). The effect name is resolved to a handle at compile time.
+Apply a potion effect to the target(s). The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).
 
 - _affinity_: `TARGET_ENTITY`
 - _usage_: `POTION:<effect:potion_effect>:<amplifier:int[0..]>:<duration:ticks[0..]>`
@@ -549,6 +549,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `INTERACT_LEFT` | NEUTRAL | true | false | false |
 | `INTERACT_RIGHT` | NEUTRAL | true | false | false |
 | `REPEATING` | NEUTRAL | false | true | false |
+| `COMMAND` | NEUTRAL | false | true | false |
 
 ## Conditions
 

@@ -48,6 +48,9 @@ public final class BuiltinTriggers {
                 // Equipment-scanned, timer-driven (§B): armed per worn ability with repeat>0, fired by the
                 // RepeatingDriver on each ability's period. Appended last so existing trigger ids are unshifted.
                 .register(Trigger.neutral("REPEATING"))
+                // Equipment-scanned, command-driven (§B): fired by the configured CommandTriggerCommand when a
+                // player runs it. Appended after REPEATING so every prior trigger id stays unshifted.
+                .register(Trigger.neutral("COMMAND"))
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 package feature.trigger;
 
 import compile.load.ContentHolder;
+import compile.model.Ability;
 import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
@@ -14,6 +15,7 @@ import engine.stores.VarStore;
 import engine.trigger.TriggerRegistry;
 import feature.soul.SoulBinding;
 import item.worn.WornStateStore;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -39,6 +41,7 @@ import platform.resolve.RuntimeHandles;
 public final class TriggerDispatch {
 
     private final TriggerRunner runner;
+    private final AbilityExecutor executor; // §B lifecycle runs effects gatelessly, outside the runner's gate path
     private final RuntimeHandles handles;
     private final ContentHolder content;
     private final EconomyService economy;
@@ -65,6 +68,9 @@ public final class TriggerDispatch {
     public final int itemDamage;
     public final int breakItem;
     public final int repeating;
+    public final int held;    // §B HELD lifecycle — fired by the LifecycleDriver, not a Bukkit listener
+    public final int passive; // §B PASSIVE lifecycle — fired by the LifecycleDriver, not a Bukkit listener
+    public final int command; // §B COMMAND — fired by the configured CommandTriggerCommand
 
     /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
     public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
@@ -109,6 +115,7 @@ public final class TriggerDispatch {
         this.maxHeroicOutgoing = Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing");
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
+        this.executor = Objects.requireNonNull(executor, "executor");
         this.attackTrigger = triggers.attackTriggers();
         this.mine = triggers.idOf("MINE").orElse(-1);
         this.kill = triggers.idOf("KILL").orElse(-1);
@@ -124,6 +131,9 @@ public final class TriggerDispatch {
         this.itemDamage = triggers.idOf("ITEM_DAMAGE").orElse(-1);
         this.breakItem = triggers.idOf("BREAK").orElse(-1);
         this.repeating = triggers.idOf("REPEATING").orElse(-1);
+        this.held = triggers.idOf("HELD").orElse(-1);
+        this.passive = triggers.idOf("PASSIVE").orElse(-1);
+        this.command = triggers.idOf("COMMAND").orElse(-1);
     }
 
     /**
@@ -184,6 +194,54 @@ public final class TriggerDispatch {
         runner.runCandidates(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context),
                 repeating, false, actor, context, sink, snapshot.stableKeys(), new int[]{abilityId});
         sink.flush();
+    }
+
+    /**
+     * Fire the §B HELD/PASSIVE lifecycle transition for {@code actor} — the {@link feature.trigger.LifecycleDriver}'s
+     * equip-change body, run on the player's own (entity) thread. {@code stops} are the abilities whose source just
+     * <em>un</em>equipped (their maintained buff is torn down) and {@code starts} the abilities whose source just
+     * equipped (their buff is applied), into ONE sink flushed once. NOT gated: a maintained buff is deterministic, so
+     * there is no chance/cooldown/condition roll. STOP runs before START (so swapping levels of the same enchant
+     * removes the old buff before re-applying), STOP is unconditional (a buff can never leak), and START honours only
+     * the world-blacklist (a world-disabled passive stays off). Inert if neither lifecycle trigger is in the
+     * vocabulary.
+     */
+    public void fireLifecycle(Player actor, List<Ability> stops, List<Ability> starts) {
+        if (held < 0 && passive < 0) {
+            return; // lifecycle triggers absent from the vocabulary — nothing to fire
+        }
+        if (stops.isEmpty() && starts.isEmpty()) {
+            return;
+        }
+        Snapshot snapshot = content.snapshot();
+        ActivationContext context = new ActivationContext(actor, null, null, actor.getLocation());
+        int worldId = worldId(snapshot, context);
+        DispatchSink sink = newSink();
+        for (Ability ability : stops) {
+            executor.runLifecycle(ability, context, sink, true); // unconditional teardown — never world-gated
+        }
+        for (Ability ability : starts) {
+            if (!ability.blockedInWorld(worldId)) { // gate-1 only: a world-disabled passive does not turn on
+                executor.runLifecycle(ability, context, sink, false);
+            }
+        }
+        sink.flush();
+    }
+
+    /**
+     * Fire the §B COMMAND trigger for {@code actor} — the body of the configured {@code CommandTriggerCommand}.
+     * A COMMAND enchant is a normal triggered activation (the player explicitly invokes it), so it runs through
+     * the full gate sequence (chance/cooldown/condition/souls) exactly like any other trigger; only the entry
+     * point differs. A neutral trigger, so the heroic fold is inert. No-op if COMMAND is absent or the player
+     * has no COMMAND ability worn.
+     */
+    public void fireCommand(Player actor) {
+        fire(actor, command, new ActivationContext(actor, null, null, actor.getLocation()), null);
+    }
+
+    private DispatchSink newSink() {
+        return new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+                nowTicks, maxHeroicOutgoing);
     }
 
     private static int worldId(Snapshot snapshot, ActivationContext context) {

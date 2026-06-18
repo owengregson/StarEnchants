@@ -1,0 +1,28 @@
+# Channel (§B COMMAND trigger, ADR-0022) — run the configured command (default /cast) to channel the weapon's
+# power: a burst of healing and a short Regeneration/Absorption, gated by a cooldown so it cannot be spammed.
+# COMMAND is a NORMAL triggered activation (the player explicitly invokes it), so it runs through the full gate
+# sequence — chance/cooldown/condition/souls — exactly like ATTACK or MINE; only the entry point differs (the
+# CommandTriggerCommand instead of a Bukkit event). The command name lives in config.yml (command-trigger.name).
+display: "&dChannel"
+description: "Run /cast to channel a healing surge from the weapon."
+trigger: COMMAND
+applies-to: [WEAPON]
+group: utility
+levels:
+  1:
+    chance: 100
+    cooldown: 600
+    effects:
+      - { MODIFY_HEALTH: { amount: 6 } }
+      - { POTION: { effect: REGENERATION, amplifier: 1, duration: 100, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&dYou channel the weapon's power." } }
+  2:
+    chance: 100
+    cooldown: 500
+    effects:
+      - { MODIFY_HEALTH: { amount: 10 } }
+      - { POTION: { effect: REGENERATION, amplifier: 2, duration: 120, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 200, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&dYou channel the weapon's power." } }

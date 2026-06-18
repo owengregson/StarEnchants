@@ -38,7 +38,8 @@ public final class MasterConfigLoader {
             return new MasterConfig(MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
                     MasterConfig.CrystalsSection.defaults(), MasterConfig.HeroicSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
-                    MasterConfig.ReloadSection.defaults(), diags.all());
+                    MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
+                    diags.all());
         }
         YamlNode root = YamlNode.compose("config.yml", yaml, diags);
         if (!root.isMapping()) {
@@ -53,6 +54,7 @@ public final class MasterConfigLoader {
                 readLore(root.child("lore"), diags),
                 readIntegrations(root.child("integrations"), diags),
                 readReload(root.child("reload"), diags),
+                readCommandTrigger(root.child("command-trigger"), diags),
                 diags.all());
     }
 
@@ -109,6 +111,14 @@ public final class MasterConfigLoader {
         return new MasterConfig.ReloadSection(
                 parseBool(n.string("re-resolve-players"), d.reResolvePlayers()),
                 parseInt(n.string("auto-seconds"), d.autoSeconds(), n, diags));
+    }
+
+    private static MasterConfig.CommandTriggerSection readCommandTrigger(YamlNode n, Diagnostics diags) {
+        MasterConfig.CommandTriggerSection d = MasterConfig.CommandTriggerSection.defaults();
+        return new MasterConfig.CommandTriggerSection(
+                parseBool(n.string("enabled"), d.enabled()),
+                orDefault(n.string("name"), d.name()),
+                orDefault(n.string("description"), d.description()));
     }
 
     private static int parseInt(String raw, int fallback, YamlNode at, Diagnostics diags) {

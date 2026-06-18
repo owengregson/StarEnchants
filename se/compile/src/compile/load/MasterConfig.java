@@ -33,11 +33,13 @@ import schema.diag.Diagnostic;
  * @param lore         the lore render style (colours, numerals, unknown-key label)
  * @param integrations boot-time discovery toggles for the protection/economy/integration providers (§N)
  * @param reload       reload behaviour (re-resolve players, optional auto-reload interval)
+ * @param commandTrigger the configurable command that fires the §B {@code COMMAND} trigger
  * @param diagnostics  every diagnostic raised loading {@code config.yml}
  */
 public record MasterConfig(SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
                            HeroicSection heroic, LoreSection lore, IntegrationsSection integrations,
-                           ReloadSection reload, List<Diagnostic> diagnostics) {
+                           ReloadSection reload, CommandTriggerSection commandTrigger,
+                           List<Diagnostic> diagnostics) {
 
     public MasterConfig {
         Objects.requireNonNull(slots, "slots");
@@ -47,6 +49,7 @@ public record MasterConfig(SlotsSection slots, SoulsSection souls, CrystalsSecti
         Objects.requireNonNull(lore, "lore");
         Objects.requireNonNull(integrations, "integrations");
         Objects.requireNonNull(reload, "reload");
+        Objects.requireNonNull(commandTrigger, "commandTrigger");
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -54,7 +57,7 @@ public record MasterConfig(SlotsSection slots, SoulsSection souls, CrystalsSecti
     public static MasterConfig defaults() {
         return new MasterConfig(SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
                 HeroicSection.defaults(), LoreSection.defaults(), IntegrationsSection.defaults(),
-                ReloadSection.defaults(), List.of());
+                ReloadSection.defaults(), CommandTriggerSection.defaults(), List.of());
     }
 
     /** Whether any blocking diagnostic was raised loading {@code config.yml}. */
@@ -197,6 +200,29 @@ public record MasterConfig(SlotsSection slots, SoulsSection souls, CrystalsSecti
     public record ReloadSection(boolean reResolvePlayers, int autoSeconds) {
         public static ReloadSection defaults() {
             return new ReloadSection(true, 0);
+        }
+    }
+
+    /**
+     * The configurable command that fires the §B {@code COMMAND} trigger (docs/v3-directives.md §B,
+     * ADR-0022). When {@link #enabled}, a standalone command named {@link #name} is registered at boot; a
+     * player running it fires their worn {@code COMMAND}-trigger abilities through the full gate sequence.
+     * Registered ONCE at {@code onEnable} (a command name cannot be re-bound mid-run cleanly), so a change to
+     * {@code name}/{@code enabled} takes effect on the next server start, not a {@code /se reload} — like the
+     * integration toggles.
+     *
+     * @param enabled     whether to register the command-trigger command at boot
+     * @param name        the command name players run (no leading slash); default {@code cast}
+     * @param description the command's help description (shown in tab/help listings)
+     */
+    public record CommandTriggerSection(boolean enabled, String name, String description) {
+        public CommandTriggerSection {
+            Objects.requireNonNull(name, "name");
+            Objects.requireNonNull(description, "description");
+        }
+
+        public static CommandTriggerSection defaults() {
+            return new CommandTriggerSection(true, "cast", "Trigger your COMMAND enchantments.");
         }
     }
 }

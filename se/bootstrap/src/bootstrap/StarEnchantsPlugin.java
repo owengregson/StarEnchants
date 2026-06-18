@@ -72,6 +72,8 @@ import feature.soul.SoulInventoryListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulService;
 import feature.trigger.EngineStoreListener;
+import feature.trigger.CommandTriggerCommand;
+import feature.trigger.LifecycleDriver;
 import feature.trigger.RepeatingDriver;
 import feature.trigger.TriggerDispatch;
 import feature.trigger.TriggerListeners;
@@ -137,6 +139,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
     private ContentHolder content;
     private ContentReloader reloader;
     private RepeatingDriver passives; // §B REPEATING lifecycle — torn down in onDisable
+    private LifecycleDriver lifecycle; // §B HELD/PASSIVE start/stop lifecycle — tracking cleared in onDisable
 
     @Override
     public void onEnable() {
@@ -319,9 +322,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // EquipListener on every equip change and torn down on quit/disable. RepeatStore owns the mapping.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
                 new RepeatStore<TaskHandle>());
+        // §B HELD/PASSIVE start/stop lifecycle: maintained buffs that turn on at equip and off at unequip,
+        // driven by EquipListener diffing the worn HELD/PASSIVE abilities each equip change (ADR-0022).
+        lifecycle = new LifecycleDriver(triggerDispatch, content,
+                triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
-        getServer().getPluginManager().registerEvents(new EquipListener(worn, content, passives), this);
+        getServer().getPluginManager().registerEvents(new EquipListener(worn, content, passives, lifecycle), this);
         getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
@@ -350,7 +357,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Arm REPEATING tasks for players already online (a plugin /reload with players on) — a fresh server
         // boot has none, so this is a no-op there; PlayerJoinEvent arms normal joins via EquipListener.
         for (Player player : getServer().getOnlinePlayers()) {
-            Scheduling.onEntity(player, () -> passives.arm(player, worn.refresh(player, content.snapshot())));
+            Scheduling.onEntity(player, () -> {
+                var state = worn.refresh(player, content.snapshot());
+                passives.arm(player, state);     // §B REPEATING
+                lifecycle.refresh(player, state); // §B HELD/PASSIVE start/stop
+            });
         }
 
         // The §L parallel config sources, each reloaded in the SAME transaction as content (§L-4): every step
@@ -376,9 +387,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     published.snapshot().generation(), published.snapshot().abilityCount()));
             if (master.config().reload().reResolvePlayers()) { // §L config.yml reload.re-resolve-players
                 for (Player player : getServer().getOnlinePlayers()) {
-                    // Re-resolve worn state AND re-arm repeating tasks (their period may have changed) per player.
-                    Scheduling.onEntity(player,
-                            () -> passives.arm(player, worn.refresh(player, published.snapshot())));
+                    // Re-resolve worn state, re-arm repeating tasks (their period may have changed), and
+                    // re-diff the HELD/PASSIVE lifecycle against the new snapshot, per player.
+                    Scheduling.onEntity(player, () -> {
+                        var state = worn.refresh(player, published.snapshot());
+                        passives.arm(player, state);
+                        lifecycle.refresh(player, state);
+                    });
                 }
             }
         }, reloadSteps);
@@ -420,6 +435,23 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }
+
+        // §B COMMAND trigger: register the configurable command that fires a player's worn COMMAND enchants.
+        // Registered through the server command map (its name is dynamic, so it cannot live in plugin.yml) and
+        // guarded — a server without an accessible command map simply leaves the trigger unfireable, never
+        // crashing the boot. Read once here, matching the integration toggles (a name change needs a restart).
+        var commandTrigger = master.config().commandTrigger();
+        if (commandTrigger.enabled()) {
+            try {
+                getServer().getCommandMap().register("starenchants", new CommandTriggerCommand(
+                        commandTrigger.name(), commandTrigger.description(), triggerDispatch,
+                        messages.format("command.not-a-player")));
+                getLogger().info("command-trigger registered: /" + commandTrigger.name());
+            } catch (Throwable t) {
+                getLogger().warning("could not register the command-trigger '/" + commandTrigger.name()
+                        + "' (COMMAND enchants will not be fireable by command): " + t);
+            }
+        }
     }
 
     @Override
@@ -429,6 +461,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // outlives the JVM-less reload boundary and must be torn down explicitly.
         if (passives != null) {
             passives.disarmAll();
+        }
+        if (lifecycle != null) {
+            lifecycle.clearAll(); // forget started HELD/PASSIVE buffs (the driver is discarded across a reload)
         }
     }
 

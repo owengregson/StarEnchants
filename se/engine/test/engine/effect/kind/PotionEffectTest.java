@@ -36,4 +36,26 @@ class PotionEffectTest {
         verify(sink).potion(self, 7, 1, 100);
         verifyNoMoreInteractions(sink);
     }
+
+    /**
+     * §B lifecycle teardown (ADR-0022): on a HELD/PASSIVE source unequip the engine calls {@link
+     * PotionEffect#stop}, which must emit the exact inverse — a {@code removePotion} of the same handle —
+     * for every target, and nothing else (amplifier/duration are irrelevant to a clear).
+     */
+    @Test
+    void stopRemovesThePotionItApplied() {
+        LivingEntity a = mock(LivingEntity.class);
+        LivingEntity b = mock(LivingEntity.class);
+
+        EffectCtx ctx = mock(EffectCtx.class);
+        when(ctx.integer("effect")).thenReturn(7);
+        when(ctx.targets("who")).thenReturn(List.of(a, b));
+
+        Sink sink = mock(Sink.class);
+        new PotionEffect().stop(ctx, sink);
+
+        verify(sink).removePotion(a, 7);
+        verify(sink).removePotion(b, 7);
+        verifyNoMoreInteractions(sink); // never re-applies, never reads amplifier/duration
+    }
 }
