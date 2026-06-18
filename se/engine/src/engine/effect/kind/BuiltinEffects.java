@@ -54,6 +54,7 @@ public final class BuiltinEffects {
                 // §C block + item primitives.
                 .register(new SetBlockEffect())
                 .register(new BreakBlockEffect())
+                .register(new WalkerEffect()) // §C new primitive: temporary revert-after-ticks platform
                 .register(new DropItemEffect())
                 .register(new GiveItemEffect())
                 .register(new RemoveItemEffect())
