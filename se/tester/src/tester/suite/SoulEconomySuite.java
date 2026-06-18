@@ -9,6 +9,7 @@ import item.codec.SoulCodec;
 import item.codec.SoulData;
 import java.util.UUID;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -24,12 +25,32 @@ import tester.harness.Harness;
  * ({@link SoulService#onKill}, deferred to the killer's thread); dragging two gems together sums their souls
  * into a fresh gem with a new identity ({@link SoulService#combine}); and {@code /se split} carves a count
  * off the held gem into a new gem, keeping the remainder and refusing to split everything away
- * ({@link SoulService#split}). Uses a fake player; every assertion runs on that player's own region thread.
+ * ({@link SoulService#split}).
+ *
+ * <p>Also pins two adversarial-review regressions (both would dupe/lose souls): a spend persists to the
+ * active gem WHEREVER it sits (not only the main hand — the common combat case where the weapon is held and
+ * the gem is in the bag), and toggling soul mode OFF FLUSHES the live authority to PDC before forgetting it
+ * (so a just-spent balance is never refunded). Both are driven synchronously through the SHARED ledger this
+ * suite owns. Uses a fake player; every assertion runs on that player's own region thread.
  */
 public final class SoulEconomySuite implements Harness.Scenario {
 
+    /** A throwaway balance for driving a ledger debit in a test — the durable write is asserted elsewhere. */
+    private static final SoulLedger.Balance NOOP = new SoulLedger.Balance() {
+        @Override
+        public int souls() {
+            return 0;
+        }
+
+        @Override
+        public void setSouls(int souls) {
+            // intentionally inert: the test asserts the SERVICE's own write-through, not this proxy
+        }
+    };
+
     private static final String[] KEYS = {
         "soul.depositOnAnyKill", "soul.combineSumsAndRetires", "soul.splitCarvesAndKeeps",
+        "soul.spendPersistsByIdentity", "soul.toggleOffFlushesSpend",
     };
 
     private final Plugin plugin;
@@ -46,7 +67,8 @@ public final class SoulEconomySuite implements Harness.Scenario {
 
         ItemKeys keys = ItemKeys.of(plugin);
         SoulCodec codec = new SoulCodec(keys.soul());
-        SoulService souls = new SoulService(new SoulLedger(), new SoulModeStore(), codec, SoulGemConfig::defaults);
+        SoulLedger ledger = new SoulLedger();
+        SoulService souls = new SoulService(ledger, new SoulModeStore(), codec, SoulGemConfig::defaults);
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -64,7 +86,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
                     return;
                 }
                 Scheduling.onEntity(player, () -> {
-                    // Combine + split are synchronous on this thread; run them first.
+                    // All of these are synchronous on this thread.
                     h.guard("soul.combineSumsAndRetires", () -> {
                         player.getInventory().clear();
                         ItemStack a = gem(souls, codec, 5);
@@ -94,12 +116,55 @@ public final class SoulEconomySuite implements Harness.Scenario {
                             throw new IllegalStateException("held gem did not keep 6: "
                                     + (held == null ? "null" : held.souls()));
                         }
-                        if (countGemsWithSouls(souls, codec, player, 4) != 1) {
+                        if (countGemsWithSouls(codec, player, 4) != 1) {
                             throw new IllegalStateException("the carved-off 4-soul gem was not produced");
                         }
                         SoulService.SplitResult tooMany = souls.split(player, 100);
                         if (tooMany.status() != SoulService.SplitResult.Status.TOO_MANY) {
                             throw new IllegalStateException("splitting everything away should be refused: " + tooMany);
+                        }
+                    });
+
+                    // Finding #3: a seeded spend must persist to the gem wherever it sits, not only the main
+                    // hand. Seed via toggle-on (main hand), move the gem off-hand, debit the authority, then
+                    // clear() (the quit flush, which calls the same persist() under test) — synchronously.
+                    h.guard("soul.spendPersistsByIdentity", () -> {
+                        player.getInventory().clear();
+                        ItemStack g = gem(souls, codec, 10);
+                        player.getInventory().setItemInMainHand(g);
+                        UUID gid = codec.read(player.getInventory().getItemInMainHand()).gemId();
+                        if (souls.toggle(player) != SoulService.Toggle.ENABLED) {
+                            throw new IllegalStateException("toggle-on did not enable soul mode");
+                        }
+                        player.getInventory().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
+                        player.getInventory().setItem(18, g); // gem now in the bag, weapon in hand
+                        if (!ledger.tryConsume(gid, NOOP, 3)) { // debit the in-memory authority 10 -> 7
+                            throw new IllegalStateException("authority debit unexpectedly failed");
+                        }
+                        souls.clear(player); // flushes the authority to the gem by IDENTITY, then forgets it
+                        SoulData after = codec.read(player.getInventory().getItem(18));
+                        if (after == null || after.souls() != 7) {
+                            throw new IllegalStateException("spend did not persist to the off-hand gem: "
+                                    + (after == null ? "no gem" : after.souls()));
+                        }
+                    });
+
+                    // Finding #1: toggling soul mode OFF must flush the just-spent balance to PDC before
+                    // forgetting the authority, else the spend refunds (a dupe). Synchronous.
+                    h.guard("soul.toggleOffFlushesSpend", () -> {
+                        player.getInventory().clear();
+                        ItemStack g = gem(souls, codec, 10);
+                        player.getInventory().setItemInMainHand(g);
+                        UUID gid = codec.read(player.getInventory().getItemInMainHand()).gemId();
+                        souls.toggle(player); // ENABLED, seeds 10
+                        if (!ledger.tryConsume(gid, NOOP, 3)) { // debit 10 -> 7 (durable not yet written)
+                            throw new IllegalStateException("authority debit unexpectedly failed");
+                        }
+                        souls.toggle(player); // DISABLED — must flush 7 to PDC before forgetting
+                        SoulData after = codec.read(player.getInventory().getItemInMainHand());
+                        if (after == null || after.souls() != 7) {
+                            throw new IllegalStateException("toggle-off did not flush the spent balance: "
+                                    + (after == null ? "no gem" : after.souls()));
                         }
                     });
 
@@ -132,7 +197,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
         return stack;
     }
 
-    private static int countGemsWithSouls(SoulService service, SoulCodec codec, Player player, int souls) {
+    private static int countGemsWithSouls(SoulCodec codec, Player player, int souls) {
         int n = 0;
         for (ItemStack stack : player.getInventory().getContents()) {
             SoulData data = codec.read(stack);

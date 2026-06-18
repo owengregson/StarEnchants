@@ -80,6 +80,10 @@ public final class SoulService {
         }
         UUID id = player.getUniqueId();
         if (modes.active(id).filter(active -> active.equals(gem.gemId())).isPresent()) {
+            // Flush the live authority to PDC BEFORE forgetting it (we are on the holder's thread): else a
+            // spend whose deferred write is still in flight would find the authority gone and no-op, leaving
+            // the durable count un-debited — the souls would refund (a dupe). Same flush-then-forget as clear().
+            persist(player, gem.gemId());
             modes.deactivate(id);
             ledger.forget(gem.gemId());
             message(player, cfg.messageDeactivate());
@@ -183,8 +187,8 @@ public final class SoulService {
         UUID gemId = data.gemId();
         if (ledger.peek(gemId).isPresent()) {
             // The seeded active gem — credit through the ledger so the live authority stays correct;
-            // the write-through persists the new count to this slot (we are on the killer's thread).
-            ledger.deposit(gemId, slotBalance(killer, slot, gemId), amount);
+            // the write-through persists the new count to the gem wherever it sits (we are on the killer's thread).
+            ledger.deposit(gemId, balanceFor(killer, gemId), amount);
         } else {
             writeGem(inv, slot, data.withSouls(data.souls() + amount));
         }
@@ -235,10 +239,17 @@ public final class SoulService {
         if (amount >= have) {
             return new SplitResult(SplitResult.Status.TOO_MANY, amount, have); // never split everything away
         }
-        int remain = have - amount;
+        int remain;
         if (seeded.isPresent()) {
-            ledger.tryConsume(gemId, slotBalance(player, held, gemId), amount); // debit + persist remainder
+            // The `have` above was a lock-free peek; a concurrent spend on another region thread could have
+            // dropped the authority below `amount` since. tryConsume re-checks atomically under the stripe
+            // lock — only mint the carved gem if the debit ACTUALLY happened, else no souls are created.
+            if (!ledger.tryConsume(gemId, balanceFor(player, gemId), amount)) {
+                return new SplitResult(SplitResult.Status.TOO_MANY, amount, ledger.peek(gemId).orElse(0));
+            }
+            remain = ledger.peek(gemId).orElse(have - amount);
         } else {
+            remain = have - amount;
             writeGem(inv, held, data.withSouls(remain));
         }
         ItemStack fresh = mintGemStack(new SoulData(UUID.randomUUID(), amount));
@@ -307,8 +318,13 @@ public final class SoulService {
         inv.setItem(slot, stack);
     }
 
-    /** A ledger {@link SoulLedger.Balance} that write-throughs to the gem at a known inventory slot. */
-    private SoulLedger.Balance slotBalance(Player holder, int slot, UUID gemId) {
+    /**
+     * A ledger {@link SoulLedger.Balance} that write-throughs the gem identified by {@code gemId}
+     * WHEREVER it sits in {@code holder}'s inventory — located by identity, not a fixed slot — so a spend
+     * or deposit persists even when the active gem is not in the main hand (the common case in combat: you
+     * hold the weapon, the gem is in the bag). {@code setSouls} must run on the holder's own thread.
+     */
+    private SoulLedger.Balance balanceFor(Player holder, UUID gemId) {
         return new SoulLedger.Balance() {
             @Override
             public int souls() {
@@ -317,15 +333,37 @@ public final class SoulService {
 
             @Override
             public void setSouls(int next) {
-                ItemStack stack = holder.getInventory().getItem(slot);
-                SoulData cur = codec.read(stack);
-                if (cur != null && cur.gemId().equals(gemId)) {
-                    codec.write(stack, cur.withSouls(next));
-                    reRenderGemLore(stack, next);
-                    holder.getInventory().setItem(slot, stack);
-                }
+                writeAuthorityTo(holder, gemId, next);
             }
         };
+    }
+
+    /** Write {@code next} onto the gem identified by {@code gemId} wherever it sits, re-rendering its lore. */
+    private void writeAuthorityTo(Player holder, UUID gemId, int next) {
+        PlayerInventory inv = holder.getInventory();
+        int slot = locateGemSlotById(inv, gemId);
+        if (slot < 0) {
+            return; // the gem is no longer in the inventory (dropped/destroyed) — nothing to write
+        }
+        ItemStack stack = inv.getItem(slot);
+        SoulData cur = codec.read(stack);
+        if (cur != null && cur.gemId().equals(gemId)) {
+            codec.write(stack, cur.withSouls(next));
+            reRenderGemLore(stack, next);
+            inv.setItem(slot, stack);
+        }
+    }
+
+    /** The slot of the gem whose identity is {@code gemId}, or {@code -1} if it is not in the inventory. */
+    private int locateGemSlotById(PlayerInventory inv, UUID gemId) {
+        ItemStack[] contents = inv.getContents();
+        for (int i = 0; i < contents.length; i++) {
+            SoulData data = codec.read(contents[i]);
+            if (data != null && data.gemId().equals(gemId)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /** Seed the ledger authority from a gem's durable count (caller is on the gem-holder's thread). */
@@ -371,23 +409,16 @@ public final class SoulService {
     }
 
     /**
-     * Flush the live authority for {@code gemId} to {@code player}'s main-hand gem, iff that gem is
-     * still held. Reads the authority via {@link SoulLedger#peek} (NO seeding), so a forgotten gem is
-     * a no-op rather than a 0-seed; writing the current authority (not a stale snapshot) keeps every
-     * deferred write idempotent and convergent. Must run on {@code player}'s own thread.
+     * Flush the live authority for {@code gemId} to the gem WHEREVER it sits in {@code player}'s inventory
+     * (located by identity — NOT assumed to be in the main hand), iff it is still carried. Reads the
+     * authority via {@link SoulLedger#peek} (NO seeding), so a forgotten gem is a no-op rather than a
+     * 0-seed; writing the current authority (not a stale snapshot) keeps every deferred write idempotent
+     * and convergent. Must run on {@code player}'s own thread.
      */
     private void persist(Player player, UUID gemId) {
         OptionalInt authority = ledger.peek(gemId);
-        if (authority.isEmpty()) {
-            return; // forgotten (e.g. after quit) — nothing authoritative to write
-        }
-        ItemStack held = player.getInventory().getItemInMainHand();
-        SoulData gem = codec.read(held);
-        if (gem != null && gem.gemId().equals(gemId)) {
-            int next = authority.getAsInt();
-            codec.write(held, gem.withSouls(next));
-            reRenderGemLore(held, next); // keep the displayed {AMOUNT}/{SOUL-COLOR} in sync with the count
-            player.getInventory().setItemInMainHand(held);
+        if (authority.isPresent()) {
+            writeAuthorityTo(player, gemId, authority.getAsInt());
         }
     }
 
