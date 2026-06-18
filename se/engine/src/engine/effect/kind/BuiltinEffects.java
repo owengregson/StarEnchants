@@ -74,6 +74,9 @@ public final class BuiltinEffects {
                 // §C spawn / visual primitives.
                 .register(new FireworkEffectKind())
                 .register(new ProjectileEffect())
+                // §C temporary player-state primitives.
+                .register(new MovementSpeedEffect())
+                .register(new InvincibleEffect())
                 .build();
     }
 }
