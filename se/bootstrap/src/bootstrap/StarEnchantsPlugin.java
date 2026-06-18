@@ -4,6 +4,8 @@ import compile.Compiler;
 import compile.load.ContentHolder;
 import compile.load.ItemsHolder;
 import compile.load.ItemsLoader;
+import compile.load.LangHolder;
+import compile.load.LangLoader;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import compile.load.MasterConfig;
@@ -80,6 +82,7 @@ import item.codec.ScrollCodec;
 import item.codec.SlotItemCodec;
 import item.codec.UnopenedBookCodec;
 import item.codec.SoulCodec;
+import item.lang.Messages;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
 import item.view.ItemViewCache;
@@ -148,6 +151,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         Path contentRoot = getDataFolder().toPath().resolve("content");
         Path itemsRoot = getDataFolder().toPath().resolve("items");
         Path configFile = getDataFolder().toPath().resolve("config.yml");
+        Path langFile = getDataFolder().toPath().resolve("lang.yml");
 
         // One retained resolver pairs compile-time interning with runtime resolution (§9).
         RegistryResolvers resolvers = new RegistryResolvers();
@@ -169,6 +173,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         MasterConfigHolder master = new MasterConfigHolder(MasterConfigLoader.load(configFile));
         logMaster(master.config());
 
+        // lang.yml (§L) — every player-facing message, another parallel immutable reference swapped in the
+        // same reload transaction. The Messages facade colour-translates + substitutes at the send boundary
+        // and reads the holder live, so a reload re-texts everything.
+        LangHolder lang = new LangHolder(LangLoader.load(langFile));
+        Messages messages = new Messages(lang::lang);
+
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
         CombatCodec codec = new CombatCodec(ItemKeys.of(this).combat());
         ItemViewCache itemViews = new ItemViewCache(codec, initial.snapshot().generation());
@@ -184,7 +194,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard(),
                 () -> master.config().slots().base(),          // §H base enchant slots
                 () -> master.config().crystals().slots(),      // §E per-item crystal slots
-                () -> master.config().crystals().maxStack());  // §E crystal sanity cap
+                () -> master.config().crystals().maxStack(),   // §E crystal sanity cap
+                messages);                                     // §L ApplyResult reason strings
 
         // Carrier economy (ADR-0016): mint + apply books/scrolls onto gear. Cold path — the carrier PDC is
         // separate from the combat blob, so it never decodes on the hot path. Random for the success roll.
@@ -342,6 +353,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             // build-all-off-thread, all-or-nothing swap; here they re-parse on the global thread as items did.
             items.publish(ItemsLoader.load(itemsRoot));
             master.publish(MasterConfigLoader.load(configFile));
+            lang.publish(LangLoader.load(langFile));
             itemViews.reload(published.snapshot().generation());
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
@@ -375,10 +387,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .register(new CrystalsBrowserMenu(content, caps))   // crystals/modifiers catalog
                 .register(new ReferenceBrowserMenu(caps))           // effects/selectors/triggers/conditions/vars
                 .register(new GodlyTransmogMenu(content, codec, scrolls, caps)) // reorder held gear's enchant lore
-                .register(new EnchanterMenu(content, unopenedBooks, caps)) // buy mystery books per tier (XP)
-                .register(new AlchemistMenu(carriers, caps))        // combine two identical books → +1 level
-                .register(new TinkererMenu(carriers, caps))         // salvage an enchant book → XP refund
-                .register(new AdminBrowserMenu(content, carriers, caps)); // admin grant browser (perm-gated)
+                .register(new EnchanterMenu(content, unopenedBooks, caps, messages)) // buy mystery books per tier (XP)
+                .register(new AlchemistMenu(carriers, caps, messages))   // combine two identical books → +1 level
+                .register(new TinkererMenu(carriers, caps, messages))    // salvage an enchant book → XP refund
+                .register(new AdminBrowserMenu(content, carriers, caps, messages)); // admin grant browser (perm-gated)
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
         PluginCommand command = getCommand("se");
@@ -387,7 +399,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
-                    scrolls, unopenedBooks, holyScrolls, nametags);
+                    scrolls, unopenedBooks, holyScrolls, nametags, messages);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }
@@ -465,6 +477,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
      */
     private void saveDefaults() {
         saveDefaultFile("config.yml");
+        saveDefaultFile("lang.yml");
         saveDefaultTree("content");
         saveDefaultTree("items");
     }

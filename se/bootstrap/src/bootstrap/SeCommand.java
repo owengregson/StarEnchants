@@ -8,6 +8,7 @@ import feature.apply.ItemEnchanter;
 import feature.menu.Menu;
 import feature.menu.MenuRegistry;
 import feature.soul.SoulService;
+import item.lang.Messages;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -50,6 +51,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
     private final SoulService souls;
+    private final Messages messages; // §L lang.yml — every player-facing /se message
     private final Path migrationTarget;
     private final MenuRegistry menus;
     private final ContentHolder content;
@@ -69,11 +71,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
-              feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags) {
+              feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
+              Messages messages) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
         this.souls = souls;
+        this.messages = messages;
         this.migrationTarget = migrationTarget;
         this.menus = menus;
         this.content = content;
@@ -105,9 +109,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "book" -> giveBook(sender, args);
             case "blackscroll" -> giveScroll(sender, true);
             case "randomizer" -> giveScroll(sender, false);
-            case "transmog" -> giveSimpleItem(sender, scrolls.mintTransmog(), "§5Minted a transmog scroll. §7Drag it onto enchanted gear.");
-            case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), "§fMinted a holy scroll. §7Carry it to survive a death once.");
-            case "nametag" -> giveSimpleItem(sender, nametags.mint(), "§bMinted an item nametag. §7Drag it onto gear, then type the new name.");
+            case "transmog" -> giveSimpleItem(sender, scrolls.mintTransmog(), messages.format("command.give.transmog"));
+            case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), messages.format("command.give.holy"));
+            case "nametag" -> giveSimpleItem(sender, nametags.mint(), messages.format("command.give.nametag"));
             case "unopened" -> giveUnopened(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "split" -> splitSoul(sender, args);
@@ -177,7 +181,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** Mint a DISTINCT soul gem from the configured likeness and give it to the sender (on their thread). */
     private void giveGem(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         Scheduling.onEntity(player, () -> {
@@ -185,21 +189,21 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
             player.getInventory().addItem(gem).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage("§aSoul gem minted. §7Right-click it (or /se soulmode) to toggle soul mode.");
+            player.sendMessage(messages.format("command.give.gem"));
         });
     }
 
     /** Toggle soul mode based on the gem in the sender's hand (on the sender's own thread). */
     private void toggleSoulMode(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         // The ENABLED/DISABLED feedback is sent by SoulService from the soul-gem config; only the
         // no-gem hint is the command's to relay.
         Scheduling.onEntity(player, () -> {
             if (souls.toggle(player) == SoulService.Toggle.NO_GEM) {
-                player.sendMessage("§cHold a soul gem first (/se gem).");
+                player.sendMessage(messages.format("command.soul.no-gem"));
             }
         });
     }
@@ -207,29 +211,29 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** Split souls off the held gem into a new gem: {@code /se split <amount>} (never auto-split, §D). */
     private void splitSoul(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         if (args.length < 2) {
-            sender.sendMessage("§cUsage: /se split <amount> §7— hold the gem to split.");
+            sender.sendMessage(messages.format("command.soul.split-usage"));
             return;
         }
         int amount;
         try {
             amount = Integer.parseInt(args[1]);
         } catch (NumberFormatException bad) {
-            sender.sendMessage("§cThat is not a number: §7" + args[1]);
+            sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[1]));
             return;
         }
         Scheduling.onEntity(player, () -> {
             SoulService.SplitResult result = souls.split(player, amount);
             switch (result.status()) {
-                case OK -> player.sendMessage("§aSplit off §f" + result.moved()
-                        + "§a souls into a new gem §7(this gem keeps " + result.remaining() + ").");
-                case NO_GEM -> player.sendMessage("§cHold a soul gem first (/se gem).");
-                case BAD_AMOUNT -> player.sendMessage("§cThe amount must be a positive number.");
-                case TOO_MANY -> player.sendMessage("§cThis gem has only §f" + result.remaining()
-                        + "§c souls — leave at least one behind.");
+                case OK -> player.sendMessage(messages.format("command.soul.split-ok",
+                        "MOVED", result.moved(), "REMAINING", result.remaining()));
+                case NO_GEM -> player.sendMessage(messages.format("command.soul.no-gem"));
+                case BAD_AMOUNT -> player.sendMessage(messages.format("command.soul.split-bad"));
+                case TOO_MANY -> player.sendMessage(messages.format("command.soul.split-too-many",
+                        "REMAINING", result.remaining()));
                 default -> { /* unreachable */ }
             }
         });
@@ -237,7 +241,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     private void reload(CommandSender sender, String[] args) {
         boolean dryRun = args.length >= 2 && args[1].equalsIgnoreCase("--dry-run");
-        sender.sendMessage("§7StarEnchants: " + (dryRun ? "checking" : "reloading") + " content…");
+        sender.sendMessage(messages.format("command.reload.start", "MODE", dryRun ? "checking" : "reloading"));
         if (dryRun) {
             reloader.dryRun(result -> report(sender, result));
         } else {
@@ -251,18 +255,19 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** {@code /se menu [name]} — open a registered GUI (on the player's own region thread via the open-hop). */
     private void openMenu(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         String name = args.length >= 2 ? args[1] : DEFAULT_MENU;
         Menu menu = menus.get(name).orElse(null);
         if (menu == null) {
-            sender.sendMessage("§cUnknown menu '" + name + "'. §7Available: " + String.join(", ", menus.names()));
+            sender.sendMessage(messages.format("command.menu.unknown",
+                    "NAME", name, "AVAILABLE", String.join(", ", menus.names())));
             return;
         }
         String perm = menu.permission();
         if (perm != null && !player.hasPermission(perm)) {
-            sender.sendMessage("§cYou don't have permission to open that menu.");
+            sender.sendMessage(messages.format("command.menu.no-permission"));
             return;
         }
         menu.open(player);
@@ -271,15 +276,12 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** {@code /se migrate <ee|ea|ae> <sourcePath>} — import legacy configs into the migrated/ folder for review. */
     private void migrate(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage("§eUsage: /se migrate <ee|ea|ae> <sourcePath>");
-            sender.sendMessage("§7  ee §8— path to EliteEnchantments' enchantments.yml");
-            sender.sendMessage("§7  ea §8— path to EliteArmor's armor/ directory");
-            sender.sendMessage("§7  ae §8— path to AdvancedEnchantments' enchantments.yml");
+            messages.lines("command.migrate.usage").forEach(sender::sendMessage);
             return;
         }
         String format = args[1].toLowerCase(Locale.ROOT);
         Path source = Path.of(args[2]);
-        sender.sendMessage("§7StarEnchants: migrating " + format + " from §f" + source + "§7…");
+        sender.sendMessage(messages.format("command.migrate.start", "FORMAT", format, "SOURCE", source));
         // File I/O runs off the command thread; results route back to the sender's thread. Effects are
         // written in the verbose v2 form via the live effect-spec lookup (migrateSpecs).
         Scheduling.async(() -> {
@@ -291,16 +293,16 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     default -> null;
                 };
                 if (result == null) {
-                    tell(sender, "§cUnknown format '" + format + "' — use §fee§c, §fea§c or §fae§c.");
+                    tell(sender, messages.format("command.migrate.unknown-format", "FORMAT", format));
                     return;
                 }
                 int written = result.writeTo(migrationTarget);
                 int skipped = result.files().size() - written;
-                tell(sender, "§aMigrated " + result.files().size() + " file(s): §f" + written + "§a written, §f"
-                        + skipped + "§a already present; §f" + result.diagnostics().size() + "§a review note(s).");
-                tell(sender, "§7Review the §f# TODO §7markers in §f" + migrationTarget + "§7, then move files into content/.");
+                tell(sender, messages.format("command.migrate.done", "N", result.files().size(),
+                        "WRITTEN", written, "SKIPPED", skipped, "NOTES", result.diagnostics().size()));
+                tell(sender, messages.format("command.migrate.review", "TARGET", migrationTarget));
             } catch (IOException e) {
-                tell(sender, "§cMigration failed reading §f" + source + "§c: " + e.getMessage());
+                tell(sender, messages.format("command.migrate.failed", "SOURCE", source, "ERROR", e.getMessage()));
             }
         });
     }
@@ -333,11 +335,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** Apply an enchant to the sender's held item (admin force-give), on the sender's own thread. */
     private void applyHeld(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         if (args.length < 2) {
-            sender.sendMessage("§eUsage: /se enchant <key> [level]");
+            sender.sendMessage(messages.format("command.enchant.usage"));
             return;
         }
         String key = normalize(args[1], "enchants/");
@@ -346,7 +348,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             try {
                 level = Integer.parseInt(args[2]);
             } catch (NumberFormatException bad) {
-                sender.sendMessage("§cLevel must be a number, got §f" + args[2]);
+                sender.sendMessage(messages.format("command.error.bad-level", "ARG", args[2]));
                 return;
             }
         }
@@ -368,16 +370,16 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** {@code /se crystal <key>} — mint a physical crystal item and give it (drag it onto gear to apply). */
     private void giveCrystal(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         if (args.length < 2) {
-            sender.sendMessage("§eUsage: /se crystal <key> §7— a crystal you drag onto gear to apply");
+            sender.sendMessage(messages.format("command.crystal.usage"));
             return;
         }
         String key = normalize(args[1], "crystals/");
         if (content.library().crystals().stream().noneMatch(d -> d.key().equals(key))) {
-            player.sendMessage("§cNo such crystal: §f" + key);
+            player.sendMessage(messages.format("command.error.no-such-crystal", "KEY", key));
             return;
         }
         Scheduling.onEntity(player, () -> {
@@ -385,43 +387,42 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
             player.getInventory().addItem(crystal).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage("§aMinted a crystal: §f" + key + "§a. §7Drag it onto gear to apply.");
+            player.sendMessage(messages.format("command.give.crystal", "KEY", key));
         });
     }
 
     /** {@code /se heroic} — mint a heroic upgrade item and give it (drag it onto armour/weapon to attempt). */
     private void giveHeroic(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         Scheduling.onEntity(player, () -> {
             ItemStack upgrade = heroics.mint();
             player.getInventory().addItem(upgrade).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage("§6Minted a heroic upgrade. §7Drag it onto armour or a weapon to attempt.");
+            player.sendMessage(messages.format("command.give.heroic"));
         });
     }
 
     /** {@code /se orb} / {@code /se slotgem} — mint a slot expander (+N) / slot gem (+1) and give it. */
     private void giveSlotItem(CommandSender sender, boolean orb) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         Scheduling.onEntity(player, () -> {
             ItemStack item = orb ? slots.mintOrb() : slots.mintGem();
             player.getInventory().addItem(item).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage("§5Minted a " + (orb ? "slot expander" : "slot gem")
-                    + ". §7Drag it onto gear to add enchant slots.");
+            player.sendMessage(messages.format("command.give.slot", "KIND", orb ? "slot expander" : "slot gem"));
         });
     }
 
     /** Give a pre-minted item to the sender on their own thread (overflow drops at feet), with a message. */
     private void giveSimpleItem(CommandSender sender, ItemStack item, String message) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         Scheduling.onEntity(player, () -> {
@@ -434,57 +435,55 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** {@code /se blackscroll} / {@code /se randomizer} — mint a book-economy scroll and give it. */
     private void giveScroll(CommandSender sender, boolean black) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         Scheduling.onEntity(player, () -> {
             ItemStack scroll = black ? scrolls.mintBlack() : scrolls.mintRandomizer();
             player.getInventory().addItem(scroll).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage(black
-                    ? "§8Minted a black scroll. §7Drag it onto enchanted gear to extract an enchant."
-                    : "§eMinted a randomizer scroll. §7Drag it onto an enchant book to reroll its success.");
+            player.sendMessage(messages.format(black ? "command.give.blackscroll" : "command.give.randomizer"));
         });
     }
 
     /** {@code /se unopened <tier>} — mint a tier-scoped unopened book (right-click it to reveal a book). */
     private void giveUnopened(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         if (args.length < 2) {
-            sender.sendMessage("§eUsage: /se unopened <tier> §7— right-click it to reveal a random book");
+            sender.sendMessage(messages.format("command.unopened.usage"));
             return;
         }
         String tier = args[1];
         if (!content.library().tiers().isTier(tier)) {
-            player.sendMessage("§cNo such tier: §f" + tier);
+            player.sendMessage(messages.format("command.error.no-such-tier", "TIER", tier));
             return;
         }
         Scheduling.onEntity(player, () -> {
             ItemStack book = unopenedBooks.mint(tier);
             player.getInventory().addItem(book).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage("§bMinted an unopened §f" + tier + " §bbook. §7Right-click it to reveal a random enchant book.");
+            player.sendMessage(messages.format("command.give.unopened", "TIER", tier));
         });
     }
 
     /** {@code /se book <enchant> [level]} — mint an enchant book carrier and give it to the sender. */
     private void giveBook(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThat command can only be run by a player.");
+            sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         if (args.length < 2) {
-            sender.sendMessage("§eUsage: /se book <enchant> [level] §7— a book you drag onto gear to apply it");
+            sender.sendMessage(messages.format("command.book.usage"));
             return;
         }
         String key = normalize(args[1], "enchants/");
         EnchantDef def = content.library().catalog().stream()
                 .filter(d -> d.key().equals(key)).findFirst().orElse(null);
         if (def == null) {
-            player.sendMessage("§cNo such enchant: §f" + key);
+            player.sendMessage(messages.format("command.error.no-such-enchant", "KEY", key));
             return;
         }
         int level = 1;
@@ -492,12 +491,12 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             try {
                 level = Integer.parseInt(args[2]);
             } catch (NumberFormatException bad) {
-                sender.sendMessage("§cLevel must be a number, got §f" + args[2]);
+                sender.sendMessage(messages.format("command.error.bad-level", "ARG", args[2]));
                 return;
             }
         }
         if (level < 1 || level > def.maxLevel()) {
-            player.sendMessage("§cLevel must be 1–" + def.maxLevel() + " for §f" + key);
+            player.sendMessage(messages.format("command.error.level-range", "MAX", def.maxLevel(), "KEY", key));
             return;
         }
         int bookLevel = level;
@@ -506,7 +505,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
             player.getInventory().addItem(book).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage("§aMinted an enchant book for §f" + key + " §7(level " + bookLevel + ")§a.");
+            player.sendMessage(messages.format("command.give.book", "KEY", key, "LEVEL", bookLevel));
         });
     }
 
@@ -515,32 +514,15 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return key.indexOf('/') >= 0 ? key : prefix + key;
     }
 
-    private static void usage(CommandSender sender) {
-        sender.sendMessage("§eStarEnchants commands:");
-        sender.sendMessage("§e  /se reload [--dry-run] §7— rebuild content");
-        sender.sendMessage("§e  /se enchant <key> [level] §7— apply an enchant to the held item");
-        sender.sendMessage("§e  /se crystal <key> §7— mint a crystal item (drag it onto gear to apply)");
-        sender.sendMessage("§e  /se heroic §7— mint a heroic upgrade (drag it onto armour/weapon)");
-        sender.sendMessage("§e  /se orb §7— mint a slot expander (drag onto gear for +N slots)");
-        sender.sendMessage("§e  /se slotgem §7— mint a slot gem (drag onto gear for +1 slot)");
-        sender.sendMessage("§e  /se blackscroll §7— mint a black scroll (extract an enchant into a book)");
-        sender.sendMessage("§e  /se randomizer §7— mint a randomizer scroll (reroll a book's success)");
-        sender.sendMessage("§e  /se transmog §7— mint a transmog scroll (reorder enchant lore)");
-        sender.sendMessage("§e  /se holy §7— mint a holy scroll (survive a death once)");
-        sender.sendMessage("§e  /se nametag §7— mint an item nametag (rename gear via chat)");
-        sender.sendMessage("§e  /se unopened <tier> §7— mint an unopened book (right-click to reveal)");
-        sender.sendMessage("§e  /se menu [name] §7— open a GUI (default: the enchant-application menu)");
-        sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
-        sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
-        sender.sendMessage("§e  /se split <amount> §7— split souls off the held gem into a new gem");
-        sender.sendMessage("§e  /se migrate <ee|ea|ae> <path> §7— import legacy EE/EA/AdvancedEnchantments configs");
+    private void usage(CommandSender sender) {
+        messages.lines("command.usage").forEach(sender::sendMessage);
     }
 
     /**
      * Report a reload result. The reloader's callback fires on the GLOBAL thread; a {@link Player}
      * sender is region-owned, so its messages route to its own thread. Console is fine inline.
      */
-    private static void report(CommandSender sender, ReloadResult result) {
+    private void report(CommandSender sender, ReloadResult result) {
         List<String> lines = format(result);
         if (sender instanceof Player player) {
             Scheduling.onEntity(player, () -> lines.forEach(player::sendMessage));
@@ -549,17 +531,18 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    private static List<String> format(ReloadResult result) {
+    private List<String> format(ReloadResult result) {
         List<String> lines = new ArrayList<>();
         if (result.errorCount() == 0) {
-            lines.add("§aStarEnchants: " + (result.dryRun() ? "would load " : "loaded ")
-                    + result.abilityCount() + " abilities (generation " + result.generation() + ").");
+            lines.add(messages.format("command.reload.loaded",
+                    "VERB", result.dryRun() ? "would load" : "loaded",
+                    "COUNT", result.abilityCount(), "GEN", result.generation()));
             return lines;
         }
-        lines.add("§cStarEnchants: " + result.errorCount() + " error(s) — kept the previous content:");
+        lines.add(messages.format("command.reload.errors-header", "N", result.errorCount()));
         for (Diagnostic diagnostic : result.diagnostics()) {
             if (diagnostic.blocking()) {
-                lines.add("§c  " + diagnostic);
+                lines.add(messages.format("command.reload.error-line", "DIAGNOSTIC", diagnostic));
             }
         }
         return lines;

@@ -1,6 +1,7 @@
 package feature.menu;
 
 import feature.carrier.CarrierService;
+import item.lang.Messages;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,10 +25,17 @@ public final class TinkererMenu extends FormMenu {
     private static final int SALVAGE_BUTTON = 15;
 
     private final CarrierService carriers;
+    private final Messages messages;
 
+    /** Default-messages form (tests/fixtures). */
     public TinkererMenu(CarrierService carriers, Capabilities caps) {
+        this(carriers, caps, Messages.defaults());
+    }
+
+    public TinkererMenu(CarrierService carriers, Capabilities caps, Messages messages) {
         super("tinkerer", MenuLayout.form(3, "&3Tinkerer"), caps);
         this.carriers = Objects.requireNonNull(carriers, "carriers");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     @Override
@@ -52,16 +60,16 @@ public final class TinkererMenu extends FormMenu {
         MenuHolder holder = click.holder();
         ItemStack book = holder.getInventory().getItem(INPUT);
         if (book == null || book.getAmount() != 1) {
-            player.sendMessage("§cPlace a single enchant book to salvage.");
+            messages.send(player, "menu.tinkerer.bad-input");
             return;
         }
         Optional<Integer> levels = carriers.salvageLevels(book);
         if (levels.isEmpty()) {
-            player.sendMessage("§cThat isn't an enchant book.");
+            messages.send(player, "menu.tinkerer.not-book");
             return;
         }
         holder.getInventory().setItem(INPUT, null);   // consume the book
         player.giveExpLevels(levels.get());            // refund EXP levels (in-thread; safe)
-        player.sendMessage("§aSalvaged for §a" + levels.get() + " §alevel" + (levels.get() == 1 ? "" : "s") + ".");
+        messages.send(player, "menu.tinkerer.salvaged", "LEVELS", levels.get(), "S", levels.get() == 1 ? "" : "s");
     }
 }

@@ -3,6 +3,7 @@ package feature.menu;
 import compile.load.ContentHolder;
 import compile.load.TierRegistry;
 import feature.book.UnopenedBookService;
+import item.lang.Messages;
 import item.mint.ItemFactory;
 import java.util.List;
 import java.util.Objects;
@@ -25,11 +26,19 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
 
     private final ContentHolder content;
     private final UnopenedBookService unopenedBooks;
+    private final Messages messages;
 
+    /** Default-messages form (tests/fixtures). */
     public EnchanterMenu(ContentHolder content, UnopenedBookService unopenedBooks, Capabilities caps) {
+        this(content, unopenedBooks, caps, Messages.defaults());
+    }
+
+    public EnchanterMenu(ContentHolder content, UnopenedBookService unopenedBooks, Capabilities caps,
+                         Messages messages) {
         super("enchanter", MenuLayout.paged("&3Enchanter"), caps);
         this.content = Objects.requireNonNull(content, "content");
         this.unopenedBooks = Objects.requireNonNull(unopenedBooks, "unopenedBooks");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     @Override
@@ -50,12 +59,12 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
     protected void onSelect(MenuClick click, EnchanterOffers.Offer offer) {
         Player player = click.player();
         if (player.getLevel() < offer.costLevels()) {
-            player.sendMessage("§cYou need §a" + offer.costLevels() + " §clevels to buy that.");
+            messages.send(player, "menu.enchanter.too-poor", "COST", offer.costLevels());
             return;
         }
         player.setLevel(player.getLevel() - offer.costLevels()); // charge EXP levels (in-thread; safe)
         MenuItems.giveOrDrop(player, unopenedBooks.mint(offer.tier()));
-        player.sendMessage("§aBought a §f" + offer.tier() + " §amystery book.");
+        messages.send(player, "menu.enchanter.bought", "TIER", offer.tier());
     }
 
     private String tierColor(String tier) {
