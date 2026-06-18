@@ -9,12 +9,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import engine.stores.VarStore;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
+import platform.economy.EconomyService;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -120,5 +124,73 @@ class DispatchSinkTest {
         sink.flush();
         sink.flush(); // a second flush must not re-apply the batch
         verify(target).setFireTicks(40);
+    }
+
+    @Test
+    void ignoreArmorSetsTheReadBackFlag() {
+        DispatchSink sink = new DispatchSink(handles);
+        assertFalse(sink.armorIgnored(), "a fresh sink must not ignore armor");
+        sink.ignoreArmor();
+        assertTrue(sink.armorIgnored(), "ignoreArmor must set the read-back flag");
+    }
+
+    @Test
+    void removeSoulsDefersToTheHolderThreadThenDebits() {
+        Player holder = mock(Player.class);
+        UUID gemId = UUID.randomUUID();
+        int[] debited = {0};
+        SoulDebit recording = (h, g, amount) -> {
+            if (h == holder && g.equals(gemId)) {
+                debited[0] += amount;
+            }
+        };
+
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, recording, new VarStore(), () -> 0L);
+        sink.removeSouls(holder, gemId, 5);
+        assertEquals(0, debited[0], "the debit is captured, never applied inline on the firing thread");
+
+        sink.flush();
+        assertEquals(5, debited[0], "the debit runs on the holder's thread after flush");
+    }
+
+    @Test
+    void removeSoulsIgnoresNullOrNonPositive() {
+        Player holder = mock(Player.class);
+        int[] calls = {0};
+        SoulDebit recording = (h, g, amount) -> calls[0]++;
+
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, recording, new VarStore(), () -> 0L);
+        sink.removeSouls(null, UUID.randomUUID(), 5);
+        sink.removeSouls(holder, null, 5);
+        sink.removeSouls(holder, UUID.randomUUID(), 0);
+        sink.flush();
+
+        assertEquals(0, calls[0]);
+    }
+
+    @Test
+    void setVarWritesThroughToTheStoreWithTheCapturedUuidAndTick() {
+        Player holder = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(holder.getUniqueId()).thenReturn(id);
+        VarStore store = new VarStore();
+
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE, store, () -> 100L);
+        sink.setVar(holder, "rage", "1", 0); // per-player state, written immediately (no flush needed)
+
+        assertEquals("1", store.get(id, "rage", 100L));
+    }
+
+    @Test
+    void invertVarWritesThroughToTheStore() {
+        Player holder = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(holder.getUniqueId()).thenReturn(id);
+        VarStore store = new VarStore();
+
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE, store, () -> 0L);
+        sink.invertVar(holder, "flag");
+
+        assertEquals("1", store.get(id, "flag", 0L)); // unset → inverted to "1"
     }
 }
