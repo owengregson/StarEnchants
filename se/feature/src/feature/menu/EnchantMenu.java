@@ -8,90 +8,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import platform.sched.Scheduling;
+import platform.caps.Capabilities;
 
 /**
- * A paginated enchant-application menu (docs/architecture.md §7): each enchant in the published catalog
- * is a clickable icon; clicking one applies it (level 1) to the viewer's held item through the
- * {@link ItemEnchanter} — the visual equivalent of {@code /se enchant}. Stateless and shareable; the
- * per-open page lives on the {@link MenuHolder}, and all inventory work runs on the viewer's region
- * thread (Folia-correct — the menu opens from the command thread, so it hops; a click event already
- * fires on the player's thread, so the apply runs inline).
+ * The direct-apply enchant menu, now built on the shared framework ({@link PagedMenu}): each enchant in the
+ * published catalog is a clickable icon that applies it (level 1) to the viewer's held item through the
+ * {@link ItemEnchanter} — the visual equivalent of {@code /se enchant}. The framework owns pagination,
+ * the nav/close buttons, the title (with cross-version truncation) and the Folia open-hop; this subclass
+ * supplies only the catalog, the icon, and the apply-on-click behaviour.
  *
- * <p>The book/scroll/dust application <em>economy</em> (success rates, protect/destroy) is a later
- * feature that needs the identity-item data layer; this menu is the direct-apply surface.
+ * <p>Registered as {@code "apply"} (the §K merchant "Enchanter" is a separate buy shop). The book/scroll/
+ * dust application <em>economy</em> is a separate gesture surface; this menu is the direct-apply one. A
+ * level picker remains a follow-up — clicks apply at level 1.
  */
-public final class EnchantMenu {
-
-    private static final int ROWS = 6;
-    private static final int SIZE = ROWS * 9;          // 54
-    private static final int CONTENT_SLOTS = SIZE - 9; // top 5 rows (45) are enchant icons
-    static final int PREV_SLOT = SIZE - 9;             // 45 — bottom-left
-    static final int NEXT_SLOT = SIZE - 1;             // 53 — bottom-right
-    private static final String TITLE = "StarEnchants";
+public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     private final ContentHolder content;
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
 
-    public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn) {
+    public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
+                       Capabilities caps) {
+        super("apply", MenuLayout.paged("StarEnchants"), caps);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.refreshWorn = Objects.requireNonNull(refreshWorn, "refreshWorn");
     }
 
-    /** Open page 0 for {@code player} (hops to the player's region thread — safe from the command thread). */
-    public void open(Player player) {
-        open(player, 0);
+    @Override
+    protected List<EnchantDef> items(MenuHolder holder) {
+        return content.library().catalog();
     }
 
-    /** Open the given page for {@code player} on the player's own region thread. */
-    public void open(Player player, int page) {
-        Scheduling.onEntity(player, () -> player.openInventory(build(page)));
-    }
-
-    /** Build the inventory for {@code page} (pure — no player needed; safe to call off the main path in tests). */
-    @SuppressWarnings("deprecation") // createInventory(holder, size, String title): deprecated-not-removed 1.17.1→26.1.x.
-    public Inventory build(int page) {
-        List<EnchantDef> catalog = content.library().catalog();
-        int pages = Math.max(1, (catalog.size() + CONTENT_SLOTS - 1) / CONTENT_SLOTS);
-        int clamped = Math.floorMod(page, pages);
-        MenuHolder holder = new MenuHolder(clamped);
-        Inventory inv = Bukkit.createInventory(holder, SIZE, TITLE + "  (" + (clamped + 1) + "/" + pages + ")");
-        holder.setInventory(inv);
-
-        int start = clamped * CONTENT_SLOTS;
-        for (int i = 0; i < CONTENT_SLOTS && start + i < catalog.size(); i++) {
-            inv.setItem(i, icon(catalog.get(start + i)));
-        }
-        if (clamped > 0) {
-            inv.setItem(PREV_SLOT, navIcon("§e« Previous"));
-        }
-        if (clamped < pages - 1) {
-            inv.setItem(NEXT_SLOT, navIcon("§eNext »"));
-        }
-        return inv;
-    }
-
-    /**
-     * Handle a click in slot {@code rawSlot} of a menu opened at {@code holder}'s page, for {@code player}.
-     * Runs on the player's region thread (the click event fires there). A content-slot click applies the
-     * enchant to the held item; a nav slot re-opens the adjacent page.
-     */
-    void handleClick(Player player, MenuHolder holder, int rawSlot) {
-        List<EnchantDef> catalog = content.library().catalog();
-        Click click = resolveClick(holder.page(), rawSlot, catalog.size());
-        switch (click.kind()) {
-            case OPEN_PAGE -> open(player, click.value());
-            case APPLY -> applyEnchant(player, catalog.get(click.value()));
-            case NONE -> { } // an empty/non-interactive slot — the listener already cancelled the click
-        }
+    @Override
+    protected void onSelect(MenuClick click, EnchantDef def) {
+        applyEnchant(click.player(), def);
     }
 
     private void applyEnchant(Player player, EnchantDef def) {
@@ -104,35 +59,9 @@ public final class EnchantMenu {
         player.sendMessage(result.message());
     }
 
-    /** What a click resolves to — decided purely (no Bukkit) so the pagination/bounds logic is unit-testable. */
-    enum ClickKind { OPEN_PAGE, APPLY, NONE }
-
-    /** A click outcome: {@code OPEN_PAGE}→target page, {@code APPLY}→catalog index, {@code NONE}→ignore. */
-    record Click(ClickKind kind, int value) {
-    }
-
-    /**
-     * Resolve a raw-slot click against the page + catalog size. Nav slots resolve to {@code OPEN_PAGE}
-     * ONLY when the corresponding arrow was rendered (prev when {@code page>0}, next when more pages
-     * remain) — a click on an empty corner slot is {@code NONE}, never a wrap. A content slot resolves to
-     * {@code APPLY} only when it maps to a real catalog entry (trailing slots on the last page are {@code NONE}).
-     */
-    static Click resolveClick(int page, int rawSlot, int catalogSize) {
-        int pages = Math.max(1, (catalogSize + CONTENT_SLOTS - 1) / CONTENT_SLOTS);
-        if (rawSlot == PREV_SLOT) {
-            return page > 0 ? new Click(ClickKind.OPEN_PAGE, page - 1) : new Click(ClickKind.NONE, 0);
-        }
-        if (rawSlot == NEXT_SLOT) {
-            return page < pages - 1 ? new Click(ClickKind.OPEN_PAGE, page + 1) : new Click(ClickKind.NONE, 0);
-        }
-        if (rawSlot < 0 || rawSlot >= CONTENT_SLOTS) {
-            return new Click(ClickKind.NONE, 0); // a non-icon slot in the bottom row
-        }
-        int index = page * CONTENT_SLOTS + rawSlot;
-        return index < catalogSize ? new Click(ClickKind.APPLY, index) : new Click(ClickKind.NONE, 0);
-    }
-
-    private static ItemStack icon(EnchantDef def) {
+    @Override
+    @SuppressWarnings("deprecation") // setDisplayName/setLore(String): the floor-stable item-meta path
+    protected ItemStack icon(EnchantDef def) {
         ItemStack item = new ItemStack(iconMaterial());
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -145,16 +74,6 @@ public final class EnchantMenu {
             lore.add("§8max level: §7" + def.maxLevel());
             lore.add("§eClick to apply to your held item.");
             meta.setLore(lore);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    private static ItemStack navIcon(String name) {
-        ItemStack item = new ItemStack(firstMaterial("ARROW", "FEATHER", "PAPER"));
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
             item.setItemMeta(meta);
         }
         return item;
