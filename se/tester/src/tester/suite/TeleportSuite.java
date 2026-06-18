@@ -48,8 +48,11 @@ import tester.harness.Harness;
  * {@code teleport} intent / {@code teleportAsync}, so this proves that path works on Paper and Folia. A
  * fake attacker with a {@code TELEPORT:VICTIM} (ATTACK) enchant hits a cow spawned 5 blocks away; the
  * enchant teleports the attacker (@Self) to the victim, so afterwards the attacker has moved well away
- * from its spawn. Asserting distance-from-spawn (rather than distance-to-cow) is robust against the cow
- * drifting in the intervening ticks. Mojang- and spigot-mapped alike (needs the fake-player attacker).
+ * from its spawn. The check POLLS the attacker's HORIZONTAL distance-from-spawn each tick until the
+ * (async) teleport lands — distance-from-spawn rather than distance-to-cow is robust against the cow
+ * drifting, horizontal-only ignores a not-yet-teleported player's gravity fall, and the per-tick poll
+ * (vs a fixed one-shot wait) makes it correct under concurrent matrix load where {@code teleportAsync}
+ * can resolve several ticks late. Mojang- and spigot-mapped alike (needs the fake-player attacker).
  */
 public final class TeleportSuite implements Harness.Scenario {
 
@@ -134,22 +137,57 @@ public final class TeleportSuite implements Harness.Scenario {
                     attacker.getInventory().setItemInMainHand(sword);
                     worn.refresh(attacker, library.snapshot());
                     victim.damage(1.0, attacker); // programmatic hit (range-independent) → ATTACK → TELEPORT
-                    // teleportAsync may land a tick later (always async on Folia) — assert after a delay,
-                    // on the attacker's scheduler, which follows it across the move.
-                    Scheduling.onEntityLater(attacker, 10L, () -> {
-                        h.guard("teleport.movesActorToVictim", () -> {
-                            double moved = attacker.getLocation().distance(origin);
-                            if (moved < 3.0) {
-                                throw new IllegalStateException("attacker did not teleport toward the victim (moved "
-                                        + String.format("%.2f", moved) + " blocks)");
-                            }
-                        });
+                    // teleportAsync resolves a tick or more later (always async on Folia, and later still under
+                    // concurrent matrix load) — so POLL each tick until the move lands rather than asserting once
+                    // at a fixed +10 (which raced the async teleport: a slow run measured only the residual fall
+                    // and read "moved 2.92"). HORIZONTAL distance is used so a not-yet-teleported player's gravity
+                    // fall (pure −Y) can never be mistaken for the teleport (a pure-X/Z hop toward the cow). Tick-
+                    // anchored on the attacker's own scheduler, which follows it across the move.
+                    awaitTeleport(attacker, origin, 3.0, 80, h, () -> {
                         victim.remove();
                         FakePlayers.despawn(attacker);
                     });
                 });
             });
         });
+    }
+
+    /**
+     * Poll, once per game tick on {@code actor}'s own scheduler, until it has moved at least
+     * {@code minHorizontal} blocks HORIZONTALLY from {@code origin} (the teleport landed) — passing
+     * {@code teleport.movesActorToVictim} as soon as it does, or failing it if {@code maxTicks} elapse
+     * first (a real teleport that never resolved). Tick-anchored, not wall-clock, so it is correct under
+     * concurrent matrix load; horizontal-only so a not-yet-teleported player's gravity fall is ignored.
+     * Runs {@code cleanup} (remove the cow, despawn the fake player) exactly once on either outcome.
+     */
+    private static void awaitTeleport(Player actor, Location origin, double minHorizontal, int maxTicks,
+                                      Harness h, Runnable cleanup) {
+        awaitTeleportStep(actor, origin, minHorizontal, 0, maxTicks, h, cleanup);
+    }
+
+    private static void awaitTeleportStep(Player actor, Location origin, double minHorizontal, int tick,
+                                          int maxTicks, Harness h, Runnable cleanup) {
+        double moved = horizontalDistance(actor.getLocation(), origin);
+        if (moved >= minHorizontal) {
+            h.pass("teleport.movesActorToVictim");
+            cleanup.run();
+            return;
+        }
+        if (tick >= maxTicks) {
+            h.fail("teleport.movesActorToVictim", "attacker did not teleport toward the victim within "
+                    + maxTicks + " ticks (moved " + String.format("%.2f", moved) + " blocks horizontally)");
+            cleanup.run();
+            return;
+        }
+        Scheduling.onEntityLater(actor, 1L,
+                () -> awaitTeleportStep(actor, origin, minHorizontal, tick + 1, maxTicks, h, cleanup));
+    }
+
+    /** Distance between two locations ignoring the Y axis — immune to a falling player's vertical drift. */
+    private static double horizontalDistance(Location a, Location b) {
+        double dx = a.getX() - b.getX();
+        double dz = a.getZ() - b.getZ();
+        return Math.sqrt(dx * dx + dz * dz);
     }
 
     private static void write(Path root, String relative, String yaml) throws IOException {
