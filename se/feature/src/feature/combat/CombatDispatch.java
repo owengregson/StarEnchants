@@ -8,6 +8,7 @@ import engine.run.ActivationContext;
 import engine.run.FactPopulator;
 import engine.sink.DispatchSink;
 import engine.sink.SoulDebit;
+import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
@@ -54,6 +55,7 @@ public final class CombatDispatch {
     private final VarStore vars;
     private final SuppressionStore suppression;
     private final KnockbackControlStore knockback;
+    private final KeepOnDeathStore keepOnDeath;
     private final LongSupplier nowTicks;
     private final int attackTriggerId;
     private final int defenseTriggerId;
@@ -66,7 +68,7 @@ public final class CombatDispatch {
                           LongSupplier nowTicks) {
         this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks,
                 actor -> Optional.empty(), EconomyService.NONE, SoulDebit.NONE, new VarStore(),
-                new SuppressionStore(), new KnockbackControlStore());
+                new SuppressionStore(), new KnockbackControlStore(), new KeepOnDeathStore());
     }
 
     /** Combat dispatch with a soul binder (no economy): an actor in soul mode arms gate 10 from their gem. */
@@ -74,7 +76,8 @@ public final class CombatDispatch {
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
         this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
-                EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(), new KnockbackControlStore());
+                EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(),
+                new KnockbackControlStore(), new KeepOnDeathStore());
     }
 
     /** Combat dispatch with a soul binder + economy but no distinct BOW/TRIDENT triggers (arrow hits fire ATTACK). */
@@ -83,7 +86,8 @@ public final class CombatDispatch {
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy) {
         this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
-                economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(), new KnockbackControlStore());
+                economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(),
+                new KnockbackControlStore(), new KeepOnDeathStore());
     }
 
     /**
@@ -96,7 +100,7 @@ public final class CombatDispatch {
                           int bowTriggerId, int tridentTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                          KnockbackControlStore knockback) {
+                          KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
@@ -104,6 +108,7 @@ public final class CombatDispatch {
         this.vars = Objects.requireNonNull(vars, "vars");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.knockback = Objects.requireNonNull(knockback, "knockback");
+        this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         // The runner reads conditions through a populator backed by the shared VarStore, so a condition's
         // %name% can read a value an earlier SET_VAR wrote (the write side is the per-event DispatchSink below).
@@ -132,7 +137,7 @@ public final class CombatDispatch {
         Location at = victimEntity.getLocation();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
 
         // Attack side: the player damager's abilities act on the victim (self = the attacker). The trigger
         // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.

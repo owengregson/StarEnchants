@@ -2,6 +2,7 @@ package engine.sink;
 
 import engine.interact.DamageFold;
 import engine.stores.CooldownStore;
+import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
@@ -10,6 +11,7 @@ import java.util.Objects;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
@@ -26,6 +28,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.inventory.EntityEquipment;
@@ -87,6 +90,7 @@ public final class DispatchSink implements Sink {
     private final VarStore vars;
     private final SuppressionStore suppression;
     private final KnockbackControlStore knockback;
+    private final KeepOnDeathStore keepOnDeath;
     private final LongSupplier nowTicks;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold = new DamageFold();
@@ -118,20 +122,34 @@ public final class DispatchSink implements Sink {
     }
 
     /**
-     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + a shared
-     * {@link SuppressionStore} + a shared {@link KnockbackControlStore} + the current-tick supply the timed
-     * var/suppression/knockback TTLs read. The production dispatchers build one of these per event so the
-     * KNOCKBACK_CONTROL flag a hit writes is visible to the (separate) knockback event's listener.
+     * Convenience ctor: a shared {@link KnockbackControlStore} but a throwaway {@link KeepOnDeathStore}.
+     * Defaulting the keep store here keeps the §C KNOCKBACK_CONTROL-era seven-arg call sites compiling
+     * unchanged while the production dispatchers reach for the full ctor below to share the real keep store
+     * with the death listener.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
                         LongSupplier nowTicks) {
+        this(handles, economy, souls, vars, suppression, knockback, new KeepOnDeathStore(), nowTicks);
+    }
+
+    /**
+     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + a shared
+     * {@link SuppressionStore} + a shared {@link KnockbackControlStore} + a shared {@link KeepOnDeathStore}
+     * + the current-tick supply the timed var/suppression/knockback/keep TTLs read. The production
+     * dispatchers build one of these per event so the KNOCKBACK_CONTROL / KEEP_ON_DEATH flags a hit writes
+     * are visible to the (separate) knockback / death events' listeners.
+     */
+    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
+                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
+                        KeepOnDeathStore keepOnDeath, LongSupplier nowTicks) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
         this.vars = Objects.requireNonNull(vars, "vars");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.knockback = Objects.requireNonNull(knockback, "knockback");
+        this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
 
@@ -471,6 +489,39 @@ public final class DispatchSink implements Sink {
     }
 
     @Override
+    public void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name) {
+        Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
+        regionOp(origin, () -> {
+            EntityType type = handles.entityType(entityTypeId);
+            World world = origin.getWorld();
+            if (type == null || world == null || count <= 0) {
+                return;
+            }
+            for (int i = 0; i < count; i++) {
+                Entity spawned = world.spawnEntity(origin, type);
+                if (target != null && spawned instanceof Mob mob) {
+                    // Path to + attack the attacker. setTarget only stores the reference; the AI runs on the
+                    // mob's own (spawn) region, so this is not a cross-region read of the attacker.
+                    mob.setTarget(target);
+                }
+                applyGuardName(spawned, name);
+                if (ttlTicks > 0) {
+                    Scheduling.onEntityLater(spawned, ttlTicks, spawned::remove);
+                }
+            }
+        });
+    }
+
+    /** Apply an optional custom name (with {@code &}-colour codes) to a freshly-summoned guard. */
+    @SuppressWarnings("deprecation") // setCustomName(String): deprecated-not-removed across the whole 1.17.1→26.1.x range.
+    private static void applyGuardName(Entity entity, String name) {
+        if (name != null && !name.isEmpty()) {
+            entity.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
+            entity.setCustomNameVisible(true);
+        }
+    }
+
+    @Override
     public void explode(Location at, double power, boolean breakBlocks) {
         regionOp(at, () -> {
             World world = at.getWorld();
@@ -767,6 +818,17 @@ public final class DispatchSink implements Sink {
         // hit). The store is concurrent and only the victim's UUID is captured here, so writing it on the
         // firing thread is Folia-safe — no cross-region live entity read, no scheduler hop.
         knockback.control(victim.getUniqueId(), multiplier, nowTicks.getAsLong(), ttlTicks);
+    }
+
+    @Override
+    public void keepOnDeath(Player target, int ttlTicks) {
+        if (target == null) {
+            return;
+        }
+        // Per-player in-memory flag read later by the death listener (a separate Bukkit event). The store is
+        // concurrent and only the player's UUID is captured here, so writing it on the firing thread is
+        // Folia-safe — no cross-region live entity read, no scheduler hop.
+        keepOnDeath.keep(target.getUniqueId(), nowTicks.getAsLong(), ttlTicks);
     }
 
     // ── Cross-version helpers ────────────────────────────────────────────────────────────────────

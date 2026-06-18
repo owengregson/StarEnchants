@@ -139,6 +139,15 @@ public interface Sink {
      */
     void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health);
 
+    /**
+     * Summon {@code count} guardian mobs of an interned type at {@code at}, each set to target
+     * {@code target} (the attacker) if it is a mob (GUARD). {@code ttlTicks > 0} auto-removes each after
+     * that many ticks; a non-blank {@code name} is shown above each. A targeted superset of
+     * {@link #spawnEntity} — the spawn runs on {@code at}'s region and the target reference is captured on
+     * the firing thread (only stored on the mob, never read cross-region).
+     */
+    void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name);
+
     /** Spawn an explosion at a location, optionally breaking blocks. */
     void explode(Location at, double power, boolean breakBlocks);
 
@@ -244,4 +253,12 @@ public interface Sink {
      * Inert on a server with no knockback event. The clamp at zero and TTL live in the store.
      */
     void controlKnockback(LivingEntity victim, double multiplier, int ttlTicks);
+
+    /**
+     * Arm "keep items + levels on death" for {@code target} for {@code ttlTicks} (KEEP_ON_DEATH,
+     * § combat-flags). Like {@link #controlKnockback}, the death is a SEPARATE Bukkit event, so this writes
+     * a short-TTL per-player flag a death listener reads. Author on REPEATING (TTL &ge; the period) for an
+     * always-on keep while worn, since the engine has no unequip teardown. A non-positive TTL is a no-op.
+     */
+    void keepOnDeath(Player target, int ttlTicks);
 }
