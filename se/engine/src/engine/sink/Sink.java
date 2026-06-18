@@ -129,6 +129,12 @@ public interface Sink {
     /** Launch a fireball from a player, with the given explosion yield. */
     void fireball(Player shooter, double yield);
 
+    /** Spawn a cosmetic firework at a location with the given flight power (FIREWORK). */
+    void firework(Location at, int power);
+
+    /** Launch {@code count} projectiles of an entity type from the shooter's eye at {@code speed} (PROJECTILE). */
+    void launchProjectile(Player shooter, int entityTypeId, int count, double speed);
+
     void blockChange(Location at, int blockDataId);
 
     /** Break the block at {@code at}; {@code drops} controls whether it yields its drops (BREAK_BLOCK). */
