@@ -117,4 +117,19 @@ public abstract class PagedMenu<T> implements Menu {
     protected static ItemStack navIcon(String materialToken, String name) {
         return ItemFactory.build(ItemFactory.material(materialToken, Material.PAPER), name, List.of());
     }
+
+    /**
+     * The first of {@code names} that exists on this server (resolved by name — cross-version-safe; never a
+     * hard {@code Material} constant), or {@code STONE} as a last resort. The reusable icon-material idiom for
+     * a menu whose button material is a fixed preference list rather than a config token.
+     */
+    protected static Material material(String... names) {
+        for (String name : names) {
+            Material material = Material.getMaterial(name);
+            if (material != null) {
+                return material;
+            }
+        }
+        return Material.STONE; // present on every version
+    }
 }

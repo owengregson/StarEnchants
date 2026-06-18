@@ -260,6 +260,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage("§cUnknown menu '" + name + "'. §7Available: " + String.join(", ", menus.names()));
             return;
         }
+        String perm = menu.permission();
+        if (perm != null && !player.hasPermission(perm)) {
+            sender.sendMessage("§cYou don't have permission to open that menu.");
+            return;
+        }
         menu.open(player);
     }
 
