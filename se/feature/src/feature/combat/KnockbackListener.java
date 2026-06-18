@@ -40,8 +40,10 @@ public final class KnockbackListener {
     /** Which knockback applier a server uses. */
     public enum Path { MODERN, LEGACY, NONE }
 
-    static final String MODERN_EVENT = "org.bukkit.event.entity.EntityKnockbackEvent";
-    static final String LEGACY_EVENT = "com.destroystokyo.paper.event.entity.EntityKnockbackByEntityEvent";
+    /** The modern Bukkit knockback event (1.20.6+); the live suite asserts its reflective accessors exist. */
+    public static final String MODERN_EVENT = "org.bukkit.event.entity.EntityKnockbackEvent";
+    /** The legacy destroystokyo knockback event (floor &rarr; pre-1.20.6). */
+    public static final String LEGACY_EVENT = "com.destroystokyo.paper.event.entity.EntityKnockbackByEntityEvent";
 
     private KnockbackListener() {
     }
