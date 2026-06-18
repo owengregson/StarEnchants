@@ -80,6 +80,12 @@ public interface Sink {
     /** Grant experience points to a player. */
     void giveExp(Player target, int amount);
 
+    /** Withdraw experience points from a player (clamped at zero). */
+    void takeExp(Player target, int amount);
+
+    /** Drain food points from a player (clamped at zero); the give counterpart is {@link #feed}. */
+    void takeFood(Player target, int foodPoints);
+
     /** Knock {@code target} back, away from {@code from}, with the given strength. */
     void knockback(Entity target, Location from, double strength);
 

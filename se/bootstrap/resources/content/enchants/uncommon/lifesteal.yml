@@ -10,4 +10,4 @@ chance: { 1: 25, 2: 35, 3: 45 }
 scale:
   heal: { 1: 2, 2: 4, 3: 6 }
 effects:
-  - { HEAL: { amount: $heal } }
+  - { MODIFY_HEALTH: { amount: $heal } }

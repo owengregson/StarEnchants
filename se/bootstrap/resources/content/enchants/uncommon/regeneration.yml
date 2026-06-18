@@ -16,4 +16,4 @@ effects:
 levels:
   3:
     effects+:
-      - { HEAL: { amount: 2, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 2, who: "@Self" } }

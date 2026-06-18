@@ -10,7 +10,7 @@ scale:
   xp: { 1: 2, 2: 4, 3: 7 }
   parts: { from: 4, step: 2 }
 effects:
-  - { GIVE_EXP: { amount: $xp } }
+  - { MODIFY_EXP: { amount: $xp } }
   - { PARTICLE: { particle: HAPPY_VILLAGER, count: $parts } }
 levels:
   3:

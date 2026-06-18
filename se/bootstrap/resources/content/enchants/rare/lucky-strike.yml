@@ -12,7 +12,7 @@ scale:
   happy: { 1: 8, 2: 12, 3: 16 }
   pitch: { 1: 1, 2: 2, 3: 2 }
 effects:
-  - { GIVE_EXP: { amount: $exp } }
+  - { MODIFY_EXP: { amount: $exp } }
   - { PARTICLE: { particle: HAPPY_VILLAGER, count: $happy } }
   - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: $pitch } }
 levels:

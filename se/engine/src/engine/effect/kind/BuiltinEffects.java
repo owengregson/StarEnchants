@@ -24,7 +24,7 @@ public final class BuiltinEffects {
                 .register(new AddDamageEffect())
                 .register(new ReduceDamageEffect())
                 // Entity intents.
-                .register(new HealEffect())
+                .register(new HealthModEffect()) // §C canonical MODIFY_HEALTH (give/take/transfer); replaces HEAL
                 .register(new IgniteEffect())
                 .register(new LightningEffect())
                 .register(new TeleportEffect())
@@ -46,9 +46,9 @@ public final class BuiltinEffects {
                 .register(new KillEffect())
                 .register(new ExtinguishEffect())
                 .register(new FillOxygenEffect())
-                .register(new FeedEffect())
                 .register(new RepairEffect())
-                .register(new GiveExpEffect())
+                .register(new ExpEffect()) // §C canonical MODIFY_EXP (give/take/transfer); replaces GIVE_EXP
+                .register(new FoodEffect()) // §C canonical MODIFY_FOOD (give/take); replaces FEED
                 .register(new MoneyEffect()) // §C canonical MODIFY_MONEY (give/take/transfer); replaces GIVE_MONEY/TAKE_MONEY
                 .register(new DisarmEffect())
                 // World / spawn intents.

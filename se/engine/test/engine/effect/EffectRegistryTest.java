@@ -25,7 +25,7 @@ class EffectRegistryTest {
         assertTrue(reg.lookup("damage").isPresent());
         assertTrue(reg.lookup("nope").isEmpty());
         assertTrue(reg.heads().contains("DAMAGE"));
-        assertTrue(reg.heads().contains("HEAL"));
+        assertTrue(reg.heads().contains("MODIFY_HEALTH"));
     }
 
     @Test
@@ -48,7 +48,7 @@ class EffectRegistryTest {
     void affinityBridgeReturnsDeclaredAffinityOrNull() {
         Function<String, Affinity> aff = BuiltinEffects.registry().affinityOf();
         assertEquals(Affinity.CONTEXT_LOCAL, aff.apply("DAMAGE"));
-        assertEquals(Affinity.TARGET_ENTITY, aff.apply("HEAL"));
+        assertEquals(Affinity.TARGET_ENTITY, aff.apply("MODIFY_HEALTH"));
         assertNull(aff.apply("nope"));
     }
 }

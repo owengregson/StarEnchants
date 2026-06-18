@@ -17,7 +17,7 @@ scale:
   resdur: { 1: 60, 2: 80, 3: 120 }
 effects:
   - { CANCEL: {} }
-  - { HEAL: { amount: $heal, who: "@Self" } }
+  - { MODIFY_HEALTH: { amount: $heal, who: "@Self" } }
   - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: $resamp, duration: $resdur, who: "@Self" } }
 levels:
   3:
