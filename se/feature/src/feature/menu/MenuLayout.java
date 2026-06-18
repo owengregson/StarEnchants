@@ -60,4 +60,9 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial,
         int base = (rows - 1) * 9;
         return new MenuLayout(rows, title, "GRAY_STAINED_GLASS_PANE", base, base + 8, base + 3, base + 4);
     }
+
+    /** A single-screen form layout (no navigation row) for a {@link FormMenu} bench. */
+    public static MenuLayout form(int rows, String title) {
+        return new MenuLayout(rows, title, "GRAY_STAINED_GLASS_PANE", -1, -1, -1, -1);
+    }
 }

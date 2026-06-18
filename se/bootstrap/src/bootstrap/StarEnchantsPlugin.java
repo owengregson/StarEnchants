@@ -41,6 +41,7 @@ import feature.heroic.HeroicService;
 import feature.book.UnopenedBookListener;
 import feature.book.UnopenedBookService;
 import feature.menu.AdminBrowserMenu;
+import feature.menu.AlchemistMenu;
 import feature.menu.CrystalsBrowserMenu;
 import feature.menu.EnchantMenu;
 import feature.menu.EnchanterMenu;
@@ -49,6 +50,7 @@ import feature.menu.GodlyTransmogMenu;
 import feature.menu.MenuRegistry;
 import feature.menu.ReferenceBrowserMenu;
 import feature.menu.SetsBrowserMenu;
+import feature.menu.TinkererMenu;
 import feature.scroll.HolyScrollListener;
 import feature.scroll.HolyScrollService;
 import feature.scroll.NametagListener;
@@ -338,6 +340,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .register(new ReferenceBrowserMenu(caps))           // effects/selectors/triggers/conditions/vars
                 .register(new GodlyTransmogMenu(content, codec, scrolls, caps)) // reorder held gear's enchant lore
                 .register(new EnchanterMenu(content, unopenedBooks, caps)) // buy mystery books per tier (XP)
+                .register(new AlchemistMenu(carriers, caps))        // combine two identical books → +1 level
+                .register(new TinkererMenu(carriers, caps))         // salvage an enchant book → XP refund
                 .register(new AdminBrowserMenu(content, carriers, caps)); // admin grant browser (perm-gated)
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
