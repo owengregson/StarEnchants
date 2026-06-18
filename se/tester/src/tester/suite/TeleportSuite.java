@@ -118,6 +118,9 @@ public final class TeleportSuite implements Harness.Scenario {
                     attacker = FakePlayers.spawn(world, "se_tp_atk");
                     // 5 blocks away (same region) so the teleport is observable but stays in-region.
                     victim = (LivingEntity) world.spawnEntity(spawn.clone().add(0, 0, 5), EntityType.COW);
+                    // Pin the cow: a wandering cow drifts toward the attacker before the hit, shrinking the
+                    // teleport distance below the threshold (the flake that surfaced as "moved 2.12 blocks").
+                    victim.setAI(false);
                 } catch (Throwable t) {
                     h.fail("teleport.movesActorToVictim", "spawn: " + t);
                     return;
