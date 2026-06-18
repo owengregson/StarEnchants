@@ -7,6 +7,7 @@ import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import feature.menu.Menu;
 import feature.menu.MenuRegistry;
+import feature.menu.ReferenceCatalog;
 import feature.soul.SoulService;
 import item.lang.Messages;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import migrate.Migrator;
 import org.bukkit.command.Command;
@@ -45,7 +47,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
             List.of("reload", "enchant", "crystal", "heroic", "orb", "slotgem", "gem", "book", "blackscroll",
-                    "randomizer", "transmog", "holy", "nametag", "unopened", "soulmode", "split", "migrate", "menu");
+                    "randomizer", "transmog", "holy", "nametag", "unopened", "soulmode", "split", "migrate", "menu",
+                    "effects", "selectors", "triggers", "conditions", "variables", "list");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -117,6 +120,12 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "split" -> splitSoul(sender, args);
             case "migrate" -> migrate(sender, args);
             case "menu" -> openMenu(sender, args);
+            case "effects" -> reference(sender, ReferenceCatalog.EFFECTS);
+            case "selectors" -> reference(sender, ReferenceCatalog.SELECTORS);
+            case "triggers" -> reference(sender, ReferenceCatalog.TRIGGERS);
+            case "conditions" -> reference(sender, ReferenceCatalog.CONDITIONS);
+            case "variables" -> reference(sender, ReferenceCatalog.VARIABLES);
+            case "list" -> referenceList(sender);
             default -> usage(sender);
         }
         return true;
@@ -271,6 +280,28 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         menu.open(player);
+    }
+
+    /**
+     * {@code /se <effects|selectors|triggers|conditions|variables>} — dump one reference category (§J/§M). The
+     * same five live vocabularies the in-game reference browser GUI and the committed {@code docs/reference/}
+     * Markdown read; here as a one-line joined list of the category's heads/names (the GUI is the rich view).
+     */
+    private void reference(CommandSender sender, String category) {
+        ReferenceCatalog catalog = ReferenceCatalog.build();
+        List<ReferenceCatalog.Entry> entries = catalog.entries(category);
+        String items = entries.stream().map(ReferenceCatalog.Entry::title).collect(Collectors.joining("&7, &f"));
+        sender.sendMessage(messages.format("command.reference.header",
+                "CATEGORY", category, "COUNT", entries.size(), "ITEMS", items));
+    }
+
+    /** {@code /se list} — the reference categories + counts, a directory to the per-category dumps. */
+    private void referenceList(CommandSender sender) {
+        ReferenceCatalog catalog = ReferenceCatalog.build();
+        String cats = catalog.categories().stream()
+                .map(c -> c + "&7(" + catalog.entries(c).size() + ")&f")
+                .collect(Collectors.joining("&7, &f"));
+        sender.sendMessage(messages.format("command.reference.list", "CATEGORIES", cats));
     }
 
     /** {@code /se migrate <ee|ea|ae> <sourcePath>} — import legacy configs into the migrated/ folder for review. */
