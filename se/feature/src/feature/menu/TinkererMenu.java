@@ -1,0 +1,67 @@
+package feature.menu;
+
+import feature.carrier.CarrierService;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import platform.caps.Capabilities;
+
+/**
+ * The Tinkerer salvage bench (docs/v3-directives.md §K): place an enchant book in the input slot and click
+ * Salvage to break it down for an EXP-level refund (the book's level, at least one). A {@link FormMenu};
+ * an unconsumed input is returned on close.
+ *
+ * <p>In-scope economy only — a salvage to EXP via {@link CarrierService#salvageLevels}. EE's salvage-to-XP-
+ * bottle item and book↔dust conversion are NOT built (no data model — ADR-0019); this is the modernized
+ * StarEnchants salvage (a direct EXP refund, no new carrier item).
+ */
+public final class TinkererMenu extends FormMenu {
+
+    private static final int INPUT = 13;
+    private static final int SALVAGE_BUTTON = 15;
+
+    private final CarrierService carriers;
+
+    public TinkererMenu(CarrierService carriers, Capabilities caps) {
+        super("tinkerer", MenuLayout.form(3, "&3Tinkerer"), caps);
+        this.carriers = Objects.requireNonNull(carriers, "carriers");
+    }
+
+    @Override
+    public Set<Integer> inputSlots() {
+        return Set.of(INPUT);
+    }
+
+    @Override
+    protected String title() {
+        return "&3Tinkerer";
+    }
+
+    @Override
+    protected void layoutControls(MenuHolder holder) {
+        holder.set(SALVAGE_BUTTON, button("FURNACE", "&aSalvage",
+                List.of("&7Place an enchant book to break it", "&7down for an experience refund.")),
+                this::salvage);
+    }
+
+    private void salvage(MenuClick click) {
+        Player player = click.player();
+        MenuHolder holder = click.holder();
+        ItemStack book = holder.getInventory().getItem(INPUT);
+        if (book == null || book.getAmount() != 1) {
+            player.sendMessage("§cPlace a single enchant book to salvage.");
+            return;
+        }
+        Optional<Integer> levels = carriers.salvageLevels(book);
+        if (levels.isEmpty()) {
+            player.sendMessage("§cThat isn't an enchant book.");
+            return;
+        }
+        holder.getInventory().setItem(INPUT, null);   // consume the book
+        player.giveExpLevels(levels.get());            // refund EXP levels (in-thread; safe)
+        player.sendMessage("§aSalvaged for §a" + levels.get() + " §alevel" + (levels.get() == 1 ? "" : "s") + ".");
+    }
+}

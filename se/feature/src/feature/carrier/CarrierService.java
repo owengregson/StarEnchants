@@ -1,6 +1,7 @@
 package feature.carrier;
 
 import compile.load.ContentHolder;
+import compile.load.EnchantDef;
 import compile.load.ItemDef;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
@@ -174,6 +175,66 @@ public final class CarrierService {
         }
         codec.write(stack, new CarrierData("book", enchantKey, level, 0, chance));
         return stack;
+    }
+
+    /** The enchant a book grants and at what level, or empty when {@code stack} is not an enchant book. */
+    public java.util.Optional<BookContents> bookContents(ItemStack stack) {
+        CarrierData data = codec.read(stack);
+        if (data == null || !data.grants() || enchantDef(data.grantKey()) == null) {
+            return java.util.Optional.empty(); // not a carrier, no grant, or the grant is not a catalog enchant
+        }
+        return java.util.Optional.of(new BookContents(data.grantKey(), data.grantLevel()));
+    }
+
+    /**
+     * Combine two enchant books into one of the next level — the Alchemist's upgrade (docs/v3-directives.md
+     * §K). Both must grant the SAME enchant at the SAME level, below that enchant's max. Returns the minted
+     * level+1 book, or empty when the pair is not combinable (the menu then leaves both inputs untouched). A
+     * mint of an existing item type — NOT a new economy data model (cf. ADR-0019, which excludes EE's
+     * dust-rarity-tinkering / book↔dust conversion).
+     */
+    public java.util.Optional<ItemStack> combineBooks(ItemStack a, ItemStack b) {
+        java.util.Optional<BookContents> ca = bookContents(a);
+        java.util.Optional<BookContents> cb = bookContents(b);
+        if (ca.isEmpty() || cb.isEmpty()) {
+            return java.util.Optional.empty();
+        }
+        BookContents x = ca.get();
+        BookContents y = cb.get();
+        EnchantDef def = enchantDef(x.enchantKey());
+        if (def == null || !combinable(x.enchantKey(), x.level(), y.enchantKey(), y.level(), def.maxLevel())) {
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(mintBook(x.enchantKey(), x.level() + 1));
+    }
+
+    /** EXP-level refund for salvaging a book of {@code level} (the Tinkerer): the book's level, at least one. */
+    public java.util.Optional<Integer> salvageLevels(ItemStack book) {
+        return bookContents(book).map(c -> salvageLevels(c.level()));
+    }
+
+    /** Whether two books combine: same enchant, same level, below that enchant's max. Pure. */
+    public static boolean combinable(String keyA, int levelA, String keyB, int levelB, int maxLevel) {
+        return keyA.equals(keyB) && levelA == levelB && levelA >= 1 && levelA < maxLevel;
+    }
+
+    /** EXP levels refunded for salvaging a book of {@code bookLevel} — its level, at least one. Pure. */
+    public static int salvageLevels(int bookLevel) {
+        return Math.max(1, bookLevel);
+    }
+
+    /** The catalog {@link EnchantDef} for {@code key}, or {@code null} if no such enchant. */
+    private EnchantDef enchantDef(String key) {
+        for (EnchantDef def : content.library().catalog()) {
+            if (def.key().equals(key)) {
+                return def;
+            }
+        }
+        return null;
+    }
+
+    /** What an enchant book grants: the enchant key and the level it applies. */
+    public record BookContents(String enchantKey, int level) {
     }
 
     /**
