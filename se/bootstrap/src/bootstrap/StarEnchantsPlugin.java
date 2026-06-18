@@ -6,6 +6,9 @@ import compile.load.ItemsHolder;
 import compile.load.ItemsLoader;
 import compile.load.Library;
 import compile.load.LibraryLoader;
+import compile.load.MasterConfig;
+import compile.load.MasterConfigHolder;
+import compile.load.MasterConfigLoader;
 import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
 import engine.interact.SoulLedger;
@@ -144,6 +147,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         saveDefaults();
         Path contentRoot = getDataFolder().toPath().resolve("content");
         Path itemsRoot = getDataFolder().toPath().resolve("items");
+        Path configFile = getDataFolder().toPath().resolve("config.yml");
 
         // One retained resolver pairs compile-time interning with runtime resolution (§9).
         RegistryResolvers resolvers = new RegistryResolvers();
@@ -159,6 +163,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         ItemsHolder items = new ItemsHolder(ItemsLoader.load(itemsRoot));
         logItems(items.config());
 
+        // Master config.yml (§L) — the sectioned cross-cutting knobs (slots/souls/crystals/heroic/lore/
+        // integrations/reload). Another parallel immutable reference swapped in the same reload transaction;
+        // services read its values through suppliers, so a reload re-tunes them live.
+        MasterConfigHolder master = new MasterConfigHolder(MasterConfigLoader.load(configFile));
+        logMaster(master.config());
+
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
         CombatCodec codec = new CombatCodec(ItemKeys.of(this).combat());
         ItemViewCache itemViews = new ItemViewCache(codec, initial.snapshot().generation());
@@ -169,8 +179,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // Cold apply path: render lore from state (the display lookup reads the CURRENT library, so a
         // reload re-renders against new content) + the validating enchant/crystal apply service.
-        LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key));
-        ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard());
+        LoreRenderer lore = new LoreRenderer(() -> loreStyle(master.config()),
+                key -> content.library().displayNameOf(key));
+        ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard(),
+                () -> master.config().slots().base(),          // §H base enchant slots
+                () -> master.config().crystals().slots(),      // §E per-item crystal slots
+                () -> master.config().crystals().maxStack());  // §E crystal sanity cap
 
         // Carrier economy (ADR-0016): mint + apply books/scrolls onto gear. Cold path — the carrier PDC is
         // separate from the combat blob, so it never decodes on the hot path. Random for the success roll.
@@ -195,7 +209,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // matches the ItemEnchanter default so the cap is computed against the same base capacity.
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of(this).slotItem());
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
-                () -> items.config().slotsOrDefault(), ItemEnchanter.DEFAULT_BASE_SLOTS);
+                () -> items.config().slotsOrDefault(),
+                (java.util.function.IntSupplier) () -> master.config().slots().base());
 
         // Book-economy scrolls (§I): black scroll extracts an enchant from gear into a book; randomizer
         // scroll rerolls a book's success. Reuse the combat codec + lore (gear) and CarrierService (mint
@@ -220,7 +235,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
         SoulService soulService = new SoulService(souls, new SoulModeStore(),
-                new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault());
+                new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault(),
+                () -> master.config().souls().depositOnAnyKill()); // §D deposit-on-any-kill master toggle
 
         // One shared writable variable store (§A): the SET_VAR/INVERT_VAR effects write it through the
         // per-event sink, and conditions read it back as %name% through the dispatchers' FactPopulator.
@@ -242,7 +258,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // (captured on the Activation, owned by the firing region) and the actor's UUID — no live-Player
         // lookup, so no cross-region read on Folia. A missing location is permissive (nothing to check).
         ProtectionService protection = new ProtectionService(
-                ProtectionProviders.discover(getServer(), System.getLogger("StarEnchants.Protection")));
+                master.config().integrations().protection()
+                        ? ProtectionProviders.discover(getServer(), System.getLogger("StarEnchants.Protection"))
+                        : List.of()); // §L config.yml integrations.protection: false → register against none
         if (protection.providerCount() > 0) {
             getLogger().info("protection gate active with " + protection.providerCount() + " provider(s)");
         }
@@ -263,18 +281,21 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Economy bridge (gate-free): the MODIFY_MONEY effect deposits/withdraws/transfers through the sink,
         // routed to the global thread. Wraps the EconomyProvider registered via the ServicesManager;
         // absent ⇒ money effects are no-ops.
-        EconomyService economy = EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"));
+        EconomyService economy = master.config().integrations().economy()
+                ? EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"))
+                : EconomyService.NONE; // §L config.yml integrations.economy: false → money effects are no-ops
         if (economy.present()) {
             getLogger().info("economy provider active");
         }
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
-                soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback, keepOnDeath);
+                soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback, keepOnDeath,
+                () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
                 tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback,
-                keepOnDeath);
+                keepOnDeath, () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
         // §B REPEATING lifecycle: one entity-owned repeating task per (player, repeating ability), armed by
         // EquipListener on every equip change and torn down on quit/disable. RepeatStore owns the mapping.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
@@ -316,16 +337,31 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).
         reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
-            // Republish the items/ config in the same global-thread reload step as the content swap.
+            // Republish the parallel config references (items/ + master config.yml) in the SAME global-thread
+            // reload step as the content swap — "one reload reloads everything" (§L). §L-4 tightens this into a
+            // build-all-off-thread, all-or-nothing swap; here they re-parse on the global thread as items did.
             items.publish(ItemsLoader.load(itemsRoot));
+            master.publish(MasterConfigLoader.load(configFile));
             itemViews.reload(published.snapshot().generation());
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
-            for (Player player : getServer().getOnlinePlayers()) {
-                // Re-resolve worn state AND re-arm repeating tasks (their period may have changed) per player.
-                Scheduling.onEntity(player, () -> passives.arm(player, worn.refresh(player, published.snapshot())));
+            if (master.config().reload().reResolvePlayers()) { // §L config.yml reload.re-resolve-players
+                for (Player player : getServer().getOnlinePlayers()) {
+                    // Re-resolve worn state AND re-arm repeating tasks (their period may have changed) per player.
+                    Scheduling.onEntity(player,
+                            () -> passives.arm(player, worn.refresh(player, published.snapshot())));
+                }
             }
         });
+
+        // Optional auto-reload (§L config.yml reload.auto-seconds; ≤ 0 = off). Armed once at boot off the
+        // initial config — changing the interval needs a restart. A recurring /se reload on the global thread.
+        int autoSeconds = master.config().reload().autoSeconds();
+        if (autoSeconds > 0) {
+            long period = autoSeconds * 20L;
+            Scheduling.repeatingGlobal(period, period, () -> reloader.reload(result -> { }));
+            getLogger().info("auto-reload armed: every " + autoSeconds + "s");
+        }
 
         // GUIs on the shared menu framework (§K). One listener routes every menu (recognised by MenuHolder);
         // the registry maps a name → menu so `/se menu <name>` opens any of them. The direct-apply enchant
@@ -417,10 +453,32 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
     }
 
-    /** Extract the bundled default trees to the data folder on first boot ({@code content/} + {@code items/}). */
+    /** The live {@code lore:} render style built from the master config (§L) — re-read on every render. */
+    private static LoreStyle loreStyle(MasterConfig config) {
+        MasterConfig.LoreSection l = config.lore();
+        return new LoreStyle(l.enchantColor(), l.levelColor(), l.crystalColor(), l.roman(), l.unknownLabel());
+    }
+
+    /**
+     * Extract the bundled defaults to the data folder on first boot: the {@code config.yml} master file plus
+     * the {@code content/} and {@code items/} trees. Never overwrites an operator's edits.
+     */
     private void saveDefaults() {
+        saveDefaultFile("config.yml");
         saveDefaultTree("content");
         saveDefaultTree("items");
+    }
+
+    /** Extract one bundled top-level file (e.g. {@code config.yml}); never overwrites an operator's copy. */
+    private void saveDefaultFile(String name) {
+        if (Files.exists(getDataFolder().toPath().resolve(name))) {
+            return;
+        }
+        try {
+            saveResource(name, false);
+        } catch (RuntimeException missing) {
+            getLogger().warning("could not save default '" + name + "': " + missing.getMessage());
+        }
     }
 
     /** Extract one bundled tree, driven by {@code <root>/index.txt}; never overwrites an operator's edits. */
@@ -464,6 +522,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 + ", scrolls=" + config.scrolls().isPresent()
                 + ", unopened-book=" + config.unopenedBook().isPresent()
                 + ", " + config.diagnostics().size() + " diagnostic(s), " + errors + " error(s)");
+        for (Diagnostic diagnostic : config.diagnostics()) {
+            getLogger().warning("  " + diagnostic);
+        }
+    }
+
+    /** Log the master config.yml load result (the resolved cross-cutting knobs + any diagnostics). */
+    private void logMaster(MasterConfig config) {
+        getLogger().info("config.yml loaded: slots.base=" + config.slots().base()
+                + ", crystals.slots=" + config.crystals().slots()
+                + ", heroic.max-outgoing-factor=" + config.heroic().maxOutgoingFactor()
+                + ", integrations[protection=" + config.integrations().protection()
+                + ", economy=" + config.integrations().economy() + "]"
+                + ", reload.auto-seconds=" + config.reload().autoSeconds()
+                + ", " + config.diagnostics().size() + " diagnostic(s)");
         for (Diagnostic diagnostic : config.diagnostics()) {
             getLogger().warning("  " + diagnostic);
         }

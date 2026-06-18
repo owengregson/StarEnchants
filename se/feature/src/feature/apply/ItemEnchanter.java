@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.IntSupplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -29,8 +30,8 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class ItemEnchanter {
 
-    /** A sanity cap on crystals per item — they stack (§6.5), but unbounded growth bloats PDC. */
-    private static final int MAX_CRYSTALS = 16;
+    /** The default sanity cap on crystals per item — they stack (§6.5), but unbounded growth bloats PDC. */
+    public static final int DEFAULT_MAX_CRYSTALS = 16;
 
     /** The default base enchant-slot capacity (docs/v3-directives.md §H; was 6, now 9 by default). */
     public static final int DEFAULT_BASE_SLOTS = 9;
@@ -42,8 +43,9 @@ public final class ItemEnchanter {
     private final LoreRenderer lore;
     private final ContentHolder content;
     private final platform.item.ItemGroups groups;
-    private final int baseSlots;
-    private final int crystalSlots;
+    private final IntSupplier baseSlots;     // §H config.yml slots.base — read live so a reload re-tunes it
+    private final IntSupplier crystalSlots;  // §E config.yml crystals.slots — read live
+    private final IntSupplier maxCrystals;   // §E config.yml crystals.max-stack — read live
 
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups) {
@@ -56,15 +58,28 @@ public final class ItemEnchanter {
         this(codec, lore, content, groups, baseSlots, DEFAULT_CRYSTAL_SLOTS);
     }
 
-    /** As above, with configurable enchant AND crystal slot counts (§H/§E; the master config supplies them). */
+    /** As above, with fixed enchant AND crystal slot counts (the common test/fixture form). */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, int baseSlots, int crystalSlots) {
+        this(codec, lore, content, groups,
+                () -> Math.max(0, baseSlots), () -> Math.max(0, crystalSlots), () -> DEFAULT_MAX_CRYSTALS);
+    }
+
+    /**
+     * The canonical ctor (the composition root): slot capacities are {@link IntSupplier}s read on every
+     * apply, so a {@code /se reload} that swaps the master {@code config.yml} ({@code slots.base},
+     * {@code crystals.slots}, {@code crystals.max-stack}) re-tunes them live with no re-wiring (§H/§E).
+     */
+    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
+                         platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
+                         IntSupplier maxCrystals) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
         this.groups = Objects.requireNonNull(groups, "groups");
-        this.baseSlots = Math.max(0, baseSlots);
-        this.crystalSlots = Math.max(0, crystalSlots);
+        this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
+        this.crystalSlots = Objects.requireNonNull(crystalSlots, "crystalSlots");
+        this.maxCrystals = Objects.requireNonNull(maxCrystals, "maxCrystals");
     }
 
     /** Validate (without mutating) that enchant {@code baseKey} at {@code level} may sit on {@code material}. */
@@ -105,7 +120,7 @@ public final class ItemEnchanter {
         if (current.enchants().containsKey(baseKey)) {
             return ApplyResult.ok(""); // re-applying an existing enchant consumes no new slot
         }
-        SlotLedger slots = new SlotLedger(baseSlots, current.added(), current.enchants().size());
+        SlotLedger slots = new SlotLedger(baseSlots.getAsInt(), current.added(), current.enchants().size());
         return slots.canApply(1 - Math.max(0, freed)) // net cost; ≤0 always fits (the upgrade supersedes)
                 ? ApplyResult.ok("")
                 : ApplyResult.fail("§cThis item has no free enchant slots (" + slots.max() + " max).");
@@ -267,8 +282,9 @@ public final class ItemEnchanter {
             label = label.isEmpty() ? c.message() : label + " §7+ " + c.message();
         }
         CombatState current = codec.read(gear);
-        if (current.crystals().size() >= crystalSlots) {
-            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalSlots + " max).");
+        int crystalCap = crystalSlots.getAsInt();
+        if (current.crystals().size() >= crystalCap) {
+            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalCap + " max).");
         }
         return ApplyResult.ok(label);
     }
@@ -305,11 +321,13 @@ public final class ItemEnchanter {
             label = label.isEmpty() ? check.message() : label + " §7+ " + check.message();
         }
         CombatState current = codec.read(stack);
-        if (enforceSlots && current.crystals().size() >= crystalSlots) {
-            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalSlots + " max).");
+        int crystalCap = crystalSlots.getAsInt();
+        if (enforceSlots && current.crystals().size() >= crystalCap) {
+            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalCap + " max).");
         }
-        if (current.crystals().size() >= MAX_CRYSTALS) {
-            return ApplyResult.fail("§cThis item already holds the maximum " + MAX_CRYSTALS + " crystals.");
+        int maxStack = maxCrystals.getAsInt();
+        if (current.crystals().size() >= maxStack) {
+            return ApplyResult.fail("§cThis item already holds the maximum " + maxStack + " crystals.");
         }
         List<String> crystals = new ArrayList<>(current.crystals());
         crystals.add(String.join(item.codec.CrystalItemData.DELIMITER, keys)); // ONE entry = ONE slot

@@ -47,12 +47,25 @@ public final class SoulService {
     private final SoulModeStore modes;
     private final SoulCodec codec;
     private final Supplier<SoulGemConfig> config;
+    private final java.util.function.BooleanSupplier depositOnAnyKill; // §D config.yml souls.deposit-on-any-kill
 
+    /** Soul service with deposit-on-any-kill always on (the common test/fixture form). */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
+        this(ledger, modes, codec, config, () -> true);
+    }
+
+    /**
+     * Canonical form (the composition root): {@code depositOnAnyKill} (config.yml {@code souls.deposit-on-any-kill},
+     * §D) is read live, so a {@code /se reload} can switch the deposit-on-kill mechanic off without restarting
+     * (give/combine/split are unaffected).
+     */
+    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+                       java.util.function.BooleanSupplier depositOnAnyKill) {
         this.ledger = Objects.requireNonNull(ledger, "ledger");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.config = Objects.requireNonNull(config, "config");
+        this.depositOnAnyKill = Objects.requireNonNull(depositOnAnyKill, "depositOnAnyKill");
     }
 
     /** The result of {@link #toggle}, for the command to relay. */
@@ -166,6 +179,9 @@ public final class SoulService {
      * inventory is region-safe; a no-op if the configured amount is ≤ 0 or they carry no gem.
      */
     public void onKill(Player killer, org.bukkit.entity.EntityType victimType) {
+        if (!depositOnAnyKill.getAsBoolean()) {
+            return; // §D deposit-on-kill disabled in config.yml (souls.deposit-on-any-kill: false)
+        }
         int amount = config.get().soulsFor(victimType == null ? null : victimType.name());
         if (amount <= 0) {
             return;

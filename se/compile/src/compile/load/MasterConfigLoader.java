@@ -1,0 +1,156 @@
+package compile.load;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import schema.diag.Diagnostics;
+import schema.diag.Source;
+
+/**
+ * Loads the master {@code config.yml} into an immutable {@link MasterConfig} (docs/v3-directives.md §L).
+ * Mirrors {@link ItemsLoader}'s read style but over a single FILE (not a folder): {@code config.yml} is
+ * composed with the package-private {@link YamlNode} and each top-level section read by a dedicated
+ * {@code read*} helper, falling back per-field to the section default. Reuses the content YAML/diagnostics
+ * machinery, so {@code /se reload --dry-run} surfaces config faults the same way. Never throws — an absent
+ * or unreadable file yields {@link MasterConfig#defaults()}, a malformed file yields a diagnostic and
+ * defaults.
+ */
+public final class MasterConfigLoader {
+
+    private MasterConfigLoader() {
+    }
+
+    /** Load {@code config.yml} (or {@link MasterConfig#defaults()} if the file is absent/unreadable). */
+    public static MasterConfig load(Path configFile) {
+        Diagnostics diags = new Diagnostics();
+        if (configFile == null || !Files.isRegularFile(configFile)) {
+            return MasterConfig.defaults();
+        }
+        String yaml;
+        try {
+            yaml = Files.readString(configFile, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            diags.error("E_CONFIG_IO", "could not read config.yml: " + e.getMessage(), Source.ofFile("config.yml"));
+            return new MasterConfig(MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
+                    MasterConfig.CrystalsSection.defaults(), MasterConfig.HeroicSection.defaults(),
+                    MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
+                    MasterConfig.ReloadSection.defaults(), diags.all());
+        }
+        YamlNode root = YamlNode.compose("config.yml", yaml, diags);
+        if (!root.isMapping()) {
+            diags.error("E_CONFIG_SHAPE", "config.yml is not a YAML mapping", Source.ofFile("config.yml"));
+            root = YamlNode.compose("config.yml", "", diags); // an empty mapping → every section defaults
+        }
+        return new MasterConfig(
+                readSlots(root.child("slots"), diags),
+                readSouls(root.child("souls"), diags),
+                readCrystals(root.child("crystals"), diags),
+                readHeroic(root.child("heroic"), diags),
+                readLore(root.child("lore"), diags),
+                readIntegrations(root.child("integrations"), diags),
+                readReload(root.child("reload"), diags),
+                diags.all());
+    }
+
+    private static MasterConfig.SlotsSection readSlots(YamlNode n, Diagnostics diags) {
+        MasterConfig.SlotsSection d = MasterConfig.SlotsSection.defaults();
+        return new MasterConfig.SlotsSection(parseInt(n.string("base"), d.base(), n, diags));
+    }
+
+    private static MasterConfig.SoulsSection readSouls(YamlNode n, Diagnostics diags) {
+        MasterConfig.SoulsSection d = MasterConfig.SoulsSection.defaults();
+        return new MasterConfig.SoulsSection(parseBool(n.string("deposit-on-any-kill"), d.depositOnAnyKill()));
+    }
+
+    private static MasterConfig.CrystalsSection readCrystals(YamlNode n, Diagnostics diags) {
+        MasterConfig.CrystalsSection d = MasterConfig.CrystalsSection.defaults();
+        return new MasterConfig.CrystalsSection(
+                parseInt(n.string("slots"), d.slots(), n, diags),
+                parseInt(n.string("max-stack"), d.maxStack(), n, diags));
+    }
+
+    private static MasterConfig.HeroicSection readHeroic(YamlNode n, Diagnostics diags) {
+        MasterConfig.HeroicSection d = MasterConfig.HeroicSection.defaults();
+        return new MasterConfig.HeroicSection(
+                parseDouble(n.string("max-outgoing-factor"), d.maxOutgoingFactor(), n, diags));
+    }
+
+    private static MasterConfig.LoreSection readLore(YamlNode n, Diagnostics diags) {
+        MasterConfig.LoreSection d = MasterConfig.LoreSection.defaults();
+        return new MasterConfig.LoreSection(
+                orDefault(n.string("enchant-color"), d.enchantColor()),
+                orDefault(n.string("level-color"), d.levelColor()),
+                orDefault(n.string("crystal-color"), d.crystalColor()),
+                parseBool(n.string("roman"), d.roman()),
+                orDefault(n.string("unknown-label"), d.unknownLabel()));
+    }
+
+    private static MasterConfig.IntegrationsSection readIntegrations(YamlNode n, Diagnostics diags) {
+        MasterConfig.IntegrationsSection d = MasterConfig.IntegrationsSection.defaults();
+        Map<String, Boolean> named = new LinkedHashMap<>();
+        for (YamlNode.Entry e : n.entries("named")) {
+            String raw = e.value().scalar();
+            if (raw != null && !raw.isBlank()) {
+                named.put(e.key().toLowerCase(Locale.ROOT), parseBool(raw, true));
+            }
+        }
+        return new MasterConfig.IntegrationsSection(
+                parseBool(n.string("protection"), d.protection()),
+                parseBool(n.string("economy"), d.economy()),
+                named);
+    }
+
+    private static MasterConfig.ReloadSection readReload(YamlNode n, Diagnostics diags) {
+        MasterConfig.ReloadSection d = MasterConfig.ReloadSection.defaults();
+        return new MasterConfig.ReloadSection(
+                parseBool(n.string("re-resolve-players"), d.reResolvePlayers()),
+                parseInt(n.string("auto-seconds"), d.autoSeconds(), n, diags));
+    }
+
+    private static int parseInt(String raw, int fallback, YamlNode at, Diagnostics diags) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException e) {
+            diags.warning("W_CONFIG_NUM", "invalid number '" + raw + "', using " + fallback, at.source());
+            return fallback;
+        }
+    }
+
+    private static double parseDouble(String raw, double fallback, YamlNode at, Diagnostics diags) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Double.parseDouble(raw.trim());
+        } catch (NumberFormatException e) {
+            diags.warning("W_CONFIG_NUM", "invalid number '" + raw + "', using " + fallback, at.source());
+            return fallback;
+        }
+    }
+
+    /** Lenient boolean: blank/unparseable falls back; {@code true}/{@code yes}/{@code on}/{@code 1} are truthy. */
+    private static boolean parseBool(String raw, boolean fallback) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        String v = raw.trim().toLowerCase(Locale.ROOT);
+        if (v.equals("true") || v.equals("yes") || v.equals("on") || v.equals("1")) {
+            return true;
+        }
+        if (v.equals("false") || v.equals("no") || v.equals("off") || v.equals("0")) {
+            return false;
+        }
+        return fallback;
+    }
+
+    private static String orDefault(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
+    }
+}

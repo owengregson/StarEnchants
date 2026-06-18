@@ -57,6 +57,7 @@ public final class CombatDispatch {
     private final KnockbackControlStore knockback;
     private final KeepOnDeathStore keepOnDeath;
     private final LongSupplier nowTicks;
+    private final java.util.function.DoubleSupplier maxHeroicOutgoing; // §F config.yml heroic.max-outgoing-factor
     private final int attackTriggerId;
     private final int defenseTriggerId;
     private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
@@ -101,6 +102,23 @@ public final class CombatDispatch {
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
+        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
+                nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
+                () -> engine.interact.DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
+    }
+
+    /**
+     * As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
+     * §F) threaded into each per-event {@link DispatchSink}. The composition root passes
+     * {@code () -> master.config().heroic().maxOutgoingFactor()}; the ctor above defaults it.
+     */
+    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
+                          int bowTriggerId, int tridentTriggerId,
+                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
+                          EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
+                          KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
+                          java.util.function.DoubleSupplier maxHeroicOutgoing) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
@@ -110,6 +128,7 @@ public final class CombatDispatch {
         this.knockback = Objects.requireNonNull(knockback, "knockback");
         this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.maxHeroicOutgoing = Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing");
         // The runner reads conditions through a populator backed by the shared VarStore, so a condition's
         // %name% can read a value an earlier SET_VAR wrote (the write side is the per-event DispatchSink below).
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
@@ -137,7 +156,8 @@ public final class CombatDispatch {
         Location at = victimEntity.getLocation();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+                nowTicks, maxHeroicOutgoing);
 
         // Attack side: the player damager's abilities act on the victim (self = the attacker). The trigger
         // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.

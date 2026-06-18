@@ -1,0 +1,55 @@
+# StarEnchants — master config (docs/v3-directives.md §L).
+#
+# This file holds the CROSS-CUTTING knobs: ceilings and switches that are not a single item's "physical
+# likeness" (those live in items/*.yml) and not player-facing text (that lives in lang.yml). Edit here, then
+# run /se reload — the master config, items/, menus/, lang.yml and content/ all reload together in one
+# transaction. Most values below are re-read live on the next use, so a reload re-tunes them without a restart
+# (the exceptions — integration discovery and the auto-reload interval — are armed once at boot and noted).
+
+# Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
+# (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
+slots:
+  base: 9
+
+# Souls (§D). The full soul economy — per-kill amount, per-mob overrides, colour tiers, sounds, particles,
+# messages — is the gem's likeness in items/soul-gem.yml. Only the master deposit switch lives here.
+souls:
+  # Whether souls deposit into a carried gem on ANY kill. false disables the deposit-on-kill mechanic entirely
+  # (the give/combine/split commands and soul-cost spending still work).
+  deposit-on-any-kill: true
+
+# Crystals (§E). Per-item crystal slots are a SEPARATE ledger from enchant slots; the crystal ITEM's likeness
+# (material/name/lore/chance) lives in items/crystal.yml.
+crystals:
+  # Crystal slots every item has by default.
+  slots: 1
+  # Absolute maximum crystals one item may ever hold (a PDC-bloat sanity guard, distinct from the slot count).
+  max-stack: 16
+
+# Heroic (§F / ADR-0021). The granted percents, success range and material-upgrade map are the upgrade's
+# likeness in items/heroic.yml. Only the bounded-multiplicative CLAMP CEILING is cross-cutting: heroic applies
+# as a distinct stage after the additive damage fold, outgoing x clamp(1 + sum, 0, max-outgoing-factor).
+heroic:
+  # The ceiling on the heroic outgoing-damage multiplier (>= 1.0). 4.0 = heroic can at most quadruple output.
+  max-outgoing-factor: 4.0
+
+# Lore render style (§L). Legacy '&' colour codes. Re-read on every lore render, so a reload restyles live.
+lore:
+  enchant-color: "&7"      # an enchant's display name
+  level-color: "&f"        # the level numeral
+  crystal-color: "&b"      # a crystal line
+  roman: true              # levels as Roman numerals (Venom III) vs Arabic (Venom 3)
+  unknown-label: "&8Unknown Enchant"  # shown for a stored key no longer in the catalog
+
+# Integration discovery (§N). Toggles read ONCE at boot (un-discovering a provider mid-run is not clean), so a
+# change here takes effect on the next server start. Named integrations (worldguard, vault, …) read from the
+# 'named' map below; an unlisted name is enabled.
+integrations:
+  protection: true   # discover ProtectionProviders for the region/build gate
+  economy: true      # discover an EconomyProvider for the money effects
+  named: {}
+
+# Reload behaviour (§L).
+reload:
+  re-resolve-players: true  # re-resolve every online player's worn state after a content swap
+  auto-seconds: 0           # auto-/se-reload interval in seconds (0 = off; armed once at boot)
