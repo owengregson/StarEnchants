@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -24,10 +25,20 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public final class LoreRenderer {
 
-    private final LoreStyle style;
+    private final Supplier<LoreStyle> style;
     private final Function<String, String> displayNameOf;
 
+    /** Fixed-style renderer (tests, fixtures); the style never changes. */
     public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf) {
+        this(() -> Objects.requireNonNull(style, "style"), displayNameOf);
+    }
+
+    /**
+     * Live-style renderer (the composition root): {@code style} is re-read on every render, so a
+     * {@code /se reload} that swaps the master {@code config.yml}'s {@code lore:} section takes effect on
+     * the next render with no re-wiring.
+     */
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
     }
@@ -37,9 +48,10 @@ public final class LoreRenderer {
      * ({@code name level}) then one per crystal. Empty when the item carries no combat state.
      */
     public List<String> lines(CombatState state) {
+        LoreStyle style = this.style.get(); // resolve the live style once per render (reload-swappable)
         List<String> out = new ArrayList<>(state.enchants().size() + state.crystals().size());
         for (Map.Entry<String, Integer> enchant : state.enchants().entrySet()) {
-            String name = nameOr(enchant.getKey());
+            String name = nameOr(enchant.getKey(), style);
             String level = style.roman() ? Numerals.roman(enchant.getValue()) : Integer.toString(enchant.getValue());
             out.add(Colors.translate(style.enchantColor() + name + " " + style.levelColor() + level));
         }
@@ -51,7 +63,7 @@ public final class LoreRenderer {
                 if (label.length() > 0) {
                     label.append(" + ");
                 }
-                label.append(nameOr(component));
+                label.append(nameOr(component, style));
             }
             out.add(Colors.translate(style.crystalColor() + label));
         }
@@ -80,7 +92,7 @@ public final class LoreRenderer {
         return true;
     }
 
-    private String nameOr(String key) {
+    private String nameOr(String key, LoreStyle style) {
         String display = displayNameOf.apply(key);
         return display != null ? display : style.unknownLabel();
     }

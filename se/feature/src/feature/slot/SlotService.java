@@ -7,6 +7,7 @@ import item.codec.SlotItemCodec;
 import item.mint.ItemFactory;
 import item.render.LoreRenderer;
 import java.util.Objects;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -28,15 +29,26 @@ public final class SlotService {
     private final CombatCodec combat;
     private final LoreRenderer lore;
     private final Supplier<SlotConfig> config;
-    private final int baseSlots;
+    private final IntSupplier baseSlots; // §H config.yml slots.base — read live so the cap math tracks a reload
 
+    /** Fixed base-slots form (tests/fixtures). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, int baseSlots) {
+        this(codec, combat, lore, config, () -> Math.max(0, baseSlots));
+    }
+
+    /**
+     * Canonical form (the composition root): {@code baseSlots} is read live, so the universal cap math
+     * ({@code hardCap - base}, the cap itself staying in {@code items/slots.yml} per §H) re-tunes on a
+     * {@code /se reload} that changes {@code config.yml}'s {@code slots.base}.
+     */
+    public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
+                       Supplier<SlotConfig> config, IntSupplier baseSlots) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.config = Objects.requireNonNull(config, "config");
-        this.baseSlots = Math.max(0, baseSlots);
+        this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
     }
 
     /** Whether {@code stack} is a slot expander / gem item. */
@@ -84,7 +96,8 @@ public final class SlotService {
             return SlotResult.unchanged("§cThat is not a slot item.");
         }
         SlotConfig cfg = config.get();
-        int maxAdded = Math.max(0, cfg.hardCap() - baseSlots); // the cap is on TOTAL slots (base + added)
+        int base = baseSlots.getAsInt();
+        int maxAdded = Math.max(0, cfg.hardCap() - base); // the cap is on TOTAL slots (base + added)
         CombatState current = combat.read(gear);
         if (current.added() >= maxAdded) {
             return SlotResult.unchanged(color(cfg.messageAtCap()));
@@ -94,7 +107,7 @@ public final class SlotService {
         combat.write(gear, next);
         lore.apply(gear, next); // keep the gear's lore in sync (unchanged enchant/crystal lines re-rendered)
         consume(slotItem);
-        int total = baseSlots + newAdded;
+        int total = base + newAdded;
         return SlotResult.committed(gear, color(cfg.messageApply().replace("{SLOTS}", Integer.toString(total))));
     }
 

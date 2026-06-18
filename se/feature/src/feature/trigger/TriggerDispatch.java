@@ -48,6 +48,7 @@ public final class TriggerDispatch {
     private final KnockbackControlStore knockback;
     private final KeepOnDeathStore keepOnDeath;
     private final LongSupplier nowTicks;
+    private final java.util.function.DoubleSupplier maxHeroicOutgoing; // §F config.yml heroic.max-outgoing-factor
     private final IntPredicate attackTrigger;
 
     public final int mine;
@@ -80,6 +81,22 @@ public final class TriggerDispatch {
                            Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
                            SoulDebit souls, VarStore vars, SuppressionStore suppression,
                            KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
+        this(executor, handles, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
+                suppression, knockback, keepOnDeath,
+                () -> engine.interact.DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
+    }
+
+    /**
+     * As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
+     * §F) threaded into each per-event {@link DispatchSink}. The composition root passes
+     * {@code () -> master.config().heroic().maxOutgoingFactor()}; the ctor above defaults it.
+     */
+    public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+                           WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
+                           Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
+                           SoulDebit souls, VarStore vars, SuppressionStore suppression,
+                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
+                           java.util.function.DoubleSupplier maxHeroicOutgoing) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
@@ -89,6 +106,7 @@ public final class TriggerDispatch {
         this.knockback = Objects.requireNonNull(knockback, "knockback");
         this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.maxHeroicOutgoing = Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing");
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
         this.attackTrigger = triggers.attackTriggers();
@@ -118,7 +136,8 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+                nowTicks, maxHeroicOutgoing);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         if (cancellable != null && sink.cancelled()) {
@@ -137,7 +156,8 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+                nowTicks, maxHeroicOutgoing);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         event.setDamage(sink.fold().apply(event.getDamage()));
@@ -159,7 +179,8 @@ public final class TriggerDispatch {
         }
         Snapshot snapshot = content.snapshot();
         ActivationContext context = new ActivationContext(actor, null, null, actor.getLocation());
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+                nowTicks, maxHeroicOutgoing);
         runner.runCandidates(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context),
                 repeating, false, actor, context, sink, snapshot.stableKeys(), new int[]{abilityId});
         sink.flush();

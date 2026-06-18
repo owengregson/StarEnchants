@@ -38,8 +38,11 @@ package engine.interact;
  */
 public final class DamageFold {
 
-    /** The heroic multiplicative stage is bounded: it can at most QUADRUPLE outgoing damage (§F/ADR-0021). */
-    private static final double MAX_HEROIC_OUTGOING_FACTOR = 4.0;
+    /** The default ceiling on the heroic multiplicative stage: at most QUADRUPLE outgoing damage (§F/ADR-0021). */
+    public static final double DEFAULT_MAX_HEROIC_OUTGOING_FACTOR = 4.0;
+
+    /** The live ceiling on the heroic outgoing factor (config.yml {@code heroic.max-outgoing-factor}, §F). */
+    private final java.util.function.DoubleSupplier maxOutgoingFactor;
 
     private double flatDamage;
     private double flatReduction;
@@ -47,6 +50,19 @@ public final class DamageFold {
     private double reductionPercent;
     private double heroicOutgoing;
     private double heroicReduction;
+
+    /** Fold with the built-in heroic ceiling (the common test/fixture form). */
+    public DamageFold() {
+        this(() -> DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
+    }
+
+    /**
+     * Fold with a configurable heroic outgoing ceiling read live per {@link #apply} — the composition root
+     * passes {@code () -> master.config().heroic().maxOutgoingFactor()} so a {@code /se reload} re-tunes it.
+     */
+    public DamageFold(java.util.function.DoubleSupplier maxOutgoingFactor) {
+        this.maxOutgoingFactor = java.util.Objects.requireNonNull(maxOutgoingFactor, "maxOutgoingFactor");
+    }
 
     /** Contribute an outgoing-damage bonus, e.g. {@code 0.25} for +25% (may be negative). */
     public void addOutgoing(double percent) {
@@ -101,7 +117,8 @@ public final class DamageFold {
         double outgoing = base * Math.max(0.0, 1.0 + outgoingPercent) + flatDamage;
         double mitigated = outgoing * Math.max(0.0, 1.0 - reductionPercent) - flatReduction;
         double folded = Math.max(0.0, mitigated);
-        double heroicOut = Math.min(MAX_HEROIC_OUTGOING_FACTOR, Math.max(0.0, 1.0 + heroicOutgoing));
+        double ceiling = Math.max(1.0, maxOutgoingFactor.getAsDouble());
+        double heroicOut = Math.min(ceiling, Math.max(0.0, 1.0 + heroicOutgoing));
         double heroicRed = Math.max(0.0, Math.min(1.0, 1.0 - heroicReduction));
         return Math.max(0.0, folded * heroicOut * heroicRed);
     }

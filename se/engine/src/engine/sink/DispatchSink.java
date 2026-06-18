@@ -93,7 +93,7 @@ public final class DispatchSink implements Sink {
     private final KeepOnDeathStore keepOnDeath;
     private final LongSupplier nowTicks;
     private final DispatchPlan plan = new DispatchPlan();
-    private final DamageFold fold = new DamageFold();
+    private final DamageFold fold;
 
     private boolean cancelled;
     private boolean armorIgnored;
@@ -143,6 +143,20 @@ public final class DispatchSink implements Sink {
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
                         KeepOnDeathStore keepOnDeath, LongSupplier nowTicks) {
+        this(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks,
+                () -> DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
+    }
+
+    /**
+     * As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
+     * §F/ADR-0021) threaded into this event's {@link DamageFold}. The production dispatchers pass
+     * {@code () -> master.config().heroic().maxOutgoingFactor()} so a {@code /se reload} re-tunes the bound;
+     * the eight-arg ctor above defaults it to {@link DamageFold#DEFAULT_MAX_HEROIC_OUTGOING_FACTOR}.
+     */
+    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
+                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
+                        KeepOnDeathStore keepOnDeath, LongSupplier nowTicks,
+                        java.util.function.DoubleSupplier maxHeroicOutgoing) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
@@ -151,6 +165,7 @@ public final class DispatchSink implements Sink {
         this.knockback = Objects.requireNonNull(knockback, "knockback");
         this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.fold = new DamageFold(Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing"));
     }
 
     // ── Read-backs (called by the firing system, never by an effect) ─────────────────────────────
