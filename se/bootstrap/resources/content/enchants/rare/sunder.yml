@@ -1,4 +1,4 @@
-# Sunder — rend the foe's armour apart with a heavy blow. DAMAGE_ARMOR defaults to @Victim.
+# Sunder — rend the foe's armour apart with a heavy blow. DURABILITY (armor/damage) defaults to @Victim.
 display: "&6Sunder"
 description: "Rend the armour of the enemy you strike."
 trigger: ATTACK
@@ -9,14 +9,14 @@ chance: { 1: 30, 2: 40, 3: 50 }
 scale:
   shred: { 1: 1, 2: 2, 3: 3 }
 effects:
-  - { DAMAGE_ARMOR: { amount: $shred, who: "@Victim" } }
+  - { DURABILITY: { amount: $shred, target: armor, mode: damage, who: "@Victim" } }
 levels:
   2:
     effects+:
-      - { ADD_DAMAGE: { percent: 10 } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }
   3:
     cooldown: 0
     effects+:
-      - { ADD_DAMAGE: { percent: 20 } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
       - { SOUND: { sound: BLOCK_ANVIL_LAND, volume: 1, pitch: 1 } }
       - { MESSAGE: { text: "&6Their armour is sundered!" } }

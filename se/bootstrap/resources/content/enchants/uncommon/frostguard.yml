@@ -1,4 +1,4 @@
-# Frostguard — chill whoever strikes you. A DEFENSE enchant that softens the blow (REDUCE_DAMAGE,
+# Frostguard — chill whoever strikes you. A DEFENSE enchant that softens the blow (DAMAGE_MOD defense/add,
 # additive defense bucket §6.1) and slows the attacker (POTION:SLOWNESS → @Attacker, valid on a
 # defender-side trigger). The top tier also briefly blinds them.
 display: "&bFrostguard"
@@ -13,7 +13,7 @@ scale:
   slowamp: { 1: 0, 2: 1, 3: 1 }
   slowdur: { 1: 40, 2: 60, 3: 80 }
 effects:
-  - { REDUCE_DAMAGE: { percent: $reduce } }
+  - { DAMAGE_MOD: { side: defense, mode: add, amount: $reduce } }
   - { POTION: { effect: SLOWNESS, amplifier: $slowamp, duration: $slowdur, who: "@Attacker" } }
 levels:
   3:

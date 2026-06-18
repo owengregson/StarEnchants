@@ -5,4 +5,4 @@ trigger: DEFENSE
 applies-to: [CHESTPLATE, HELMET, LEGGINGS, BOOTS]
 chance: 100
 effects:
-  - { REDUCE_DAMAGE: { percent: 20 } }
+  - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }

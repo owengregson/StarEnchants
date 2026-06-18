@@ -188,7 +188,7 @@ class MigratorTest {
                 """;
         Migrator.Result result = Migrator.eliteArmorSet("ancient", ea);
         String set = result.files().get("sets/ancient.yml");
-        assertTrue(set.contains("REDUCE_DAMAGE:15"), "REDUCTION:15 should map to REDUCE_DAMAGE:15");
+        assertTrue(set.contains("DAMAGE_MOD:defense:add:15"), "REDUCTION:15 should map to DAMAGE_MOD:defense:add:15");
         assertTrue(set.contains("# TODO port manually: DAMAGE:35"), "attack-direction DAMAGE should be a TODO");
 
         Library library = compile(result.files(), dir);
@@ -248,7 +248,7 @@ class MigratorTest {
         assertEquals("MODIFY_FOOD:4:give:@Self", Mappings.aeEffect("ADD_FOOD:4 @Self").se()); // AE add-food → MODIFY_FOOD (give)
         assertEquals("MODIFY_EXP:30:give", Mappings.aeEffect("EXP:30").se());            // AE EXP → MODIFY_EXP (give)
         assertEquals("IGNITE:60:@Victim", Mappings.aeEffect("BURN:3 @Victim").se());     // BURN seconds → IGNITE ticks (x20)
-        assertEquals("REPAIR", Mappings.aeEffect("REPAIR").se());
+        assertEquals("DURABILITY:-1:item", Mappings.aeEffect("REPAIR").se());
         assertEquals("KILL:@Victim", Mappings.aeEffect("KILL @Victim").se());
         assertEquals("EXTINGUISH:@Self", Mappings.aeEffect("EXTINGUISH @Self").se());
         assertEquals("DISARM:@Victim", Mappings.aeEffect("DISARM @Victim").se());

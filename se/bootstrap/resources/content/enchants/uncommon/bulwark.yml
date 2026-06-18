@@ -9,7 +9,7 @@ chance: { 1: 30, 2: 40, 3: 55 }
 scale:
   reduce: { 1: 10, 2: 18, 3: 25 }
 effects:
-  - { REDUCE_DAMAGE: { percent: $reduce } }
+  - { DAMAGE_MOD: { side: defense, mode: add, amount: $reduce } }
 levels:
   3:
     effects+:

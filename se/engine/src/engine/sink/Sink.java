@@ -77,6 +77,9 @@ public interface Sink {
     /** Repair the player's held item; {@code amount < 0} fully repairs it. */
     void repairHand(Player target, int amount);
 
+    /** Wear down the durability of the player's held item by {@code amount} (clamped to its maximum). */
+    void damageHand(Player target, int amount);
+
     /** Grant experience points to a player. */
     void giveExp(Player target, int amount);
 

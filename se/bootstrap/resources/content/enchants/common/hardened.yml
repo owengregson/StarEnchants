@@ -9,7 +9,7 @@ chance: { 1: 20, 2: 30, 3: 40 }
 scale:
   dura: { from: 1, step: 1 }
 effects:
-  - { ADD_DURABILITY_ITEM: { amount: $dura } }
+  - { DURABILITY: { amount: $dura, target: item } }
 levels:
   3:
     effects+:
