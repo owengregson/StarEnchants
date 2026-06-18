@@ -6,14 +6,12 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
-import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code LAUNCH} — add to the target(s) velocity (knockback / fling)
- * (docs/architecture.md §7). Stateless; emits a {@code launch} intent per resolved
- * target and never moves an entity directly. {@link Affinity#TARGET_ENTITY}: the
- * {@code Sink} routes each push to the target's own thread (one hop on Folia).
+ * {@code LAUNCH} — add to the target(s) velocity (knockback / fling) (docs/architecture.md §7). A back-compat
+ * alias of {@code VELOCITY} (mode=add): {@link #run} delegates to {@link VelocityEffect#apply}. {@link
+ * Affinity#TARGET_ENTITY}: the {@code Sink} routes each push to the target's own thread (one hop on Folia).
  */
 public final class LaunchEffect implements EffectKind {
 
@@ -34,11 +32,6 @@ public final class LaunchEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        double x = ctx.dbl("x");
-        double y = ctx.dbl("y");
-        double z = ctx.dbl("z");
-        for (LivingEntity target : ctx.targets("who")) {
-            sink.launch(target, x, y, z);
-        }
+        VelocityEffect.apply(ctx, sink, "add", ctx.dbl("x"), ctx.dbl("y"), ctx.dbl("z"), 0);
     }
 }
