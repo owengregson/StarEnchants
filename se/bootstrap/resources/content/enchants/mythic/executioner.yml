@@ -10,7 +10,7 @@ scale:
   dmg: { from: 4, step: 2 }
   parts: { from: 10, step: 4 }
 effects:
-  - { FLAT_DAMAGE: { amount: $dmg } }
+  - { DAMAGE_MOD: { side: attack, mode: flat, amount: $dmg } }
   - { PARTICLE: { particle: CRIT, count: $parts } }
 levels:
   1:

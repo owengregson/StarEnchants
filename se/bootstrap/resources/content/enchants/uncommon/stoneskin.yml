@@ -1,5 +1,5 @@
 # Stoneskin — harden your hide against the hit. A DEFENSE enchant that absorbs a flat amount of
-# the incoming blow (FLAT_REDUCE subtracts last in the damage fold §6.1, so it absorbs exactly
+# the incoming blow (DAMAGE_MOD defense/flat subtracts last in the damage fold §6.1, so it absorbs exactly
 # that many points regardless of percent context). The top tier adds a Resistance buff (@Self).
 display: "&8Stoneskin"
 description: "Harden your hide against the hit."
@@ -11,7 +11,7 @@ chance: { 1: 35, 2: 45, 3: 55 }
 scale:
   absorb: { 1: 1, 2: 2, 3: 4 }
 effects:
-  - { FLAT_REDUCE: { amount: $absorb } }
+  - { DAMAGE_MOD: { side: defense, mode: flat, amount: $absorb } }
 levels:
   3:
     effects+:

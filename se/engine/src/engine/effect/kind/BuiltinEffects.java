@@ -19,10 +19,7 @@ public final class BuiltinEffects {
         return EffectRegistry.builder()
                 // Damage arbiter contributions + direct damage (§6.1).
                 .register(new DamageEffect())
-                .register(new FlatDamageEffect())
-                .register(new FlatReduceEffect())
-                .register(new AddDamageEffect())
-                .register(new ReduceDamageEffect())
+                .register(new DamageModEffect()) // §C canonical; replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE
                 // Entity intents.
                 .register(new HealthModEffect()) // §C canonical MODIFY_HEALTH (give/take/transfer); replaces HEAL
                 .register(new IgniteEffect())
@@ -46,7 +43,7 @@ public final class BuiltinEffects {
                 .register(new KillEffect())
                 .register(new ExtinguishEffect())
                 .register(new FillOxygenEffect())
-                .register(new RepairEffect())
+                .register(new DurabilityEffect()) // §C canonical; replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR
                 .register(new ExpEffect()) // §C canonical MODIFY_EXP (give/take/transfer); replaces GIVE_EXP
                 .register(new FoodEffect()) // §C canonical MODIFY_FOOD (give/take); replaces FEED
                 .register(new MoneyEffect()) // §C canonical MODIFY_MONEY (give/take/transfer); replaces GIVE_MONEY/TAKE_MONEY
@@ -55,13 +52,10 @@ public final class BuiltinEffects {
                 .register(new ExplodeEffect())
                 .register(new SpawnTntEffect())
                 .register(new FireballEffect())
-                // Movement + durability + vitals.
+                // Movement + vitals.
                 .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK
                 .register(new FlyEffect())
                 .register(new HealthEffect())
-                .register(new DamageArmorEffect())
-                .register(new AddDurabilityEffect())
-                .register(new AddDurabilityItemEffect())
                 // §C block + item primitives.
                 .register(new SetBlockEffect())
                 .register(new BreakBlockEffect())

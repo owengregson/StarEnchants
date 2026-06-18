@@ -1,5 +1,5 @@
 # Featherfall — land light on your feet. A FALL enchant (fires on fall damage): lower tiers
-# soften the impact (REDUCE_DAMAGE, additive defense bucket §6.1) and the top tier cancels the
+# soften the impact (DAMAGE_MOD defense/add, additive defense bucket §6.1) and the top tier cancels the
 # fall entirely (CANCEL negates the triggering event — used sparingly, here on a high-tier FALL).
 display: "&fFeatherfall"
 description: "Land light on your feet."
@@ -10,11 +10,11 @@ levels:
   1:
     chance: 50
     effects:
-      - { REDUCE_DAMAGE: { percent: 40 } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 40 } }
   2:
     chance: 70
     effects:
-      - { REDUCE_DAMAGE: { percent: 70 } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 70 } }
   3:
     chance: 100
     effects:

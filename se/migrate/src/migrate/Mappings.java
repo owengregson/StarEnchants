@@ -109,8 +109,8 @@ public final class Mappings {
                         : MigratedEffect.todo(token, "unexpected EXP arg shape");
                 // KILL (excludes players in both engines) → KILL (defaults to @Victim).
                 case "KILL" -> MigratedEffect.mapped(token, "KILL", "");
-                // REPAIR (held item) → REPAIR.
-                case "REPAIR" -> MigratedEffect.mapped(token, "REPAIR", "");
+                // REPAIR (held item) → DURABILITY (full restore of the held item; -1 = full repair).
+                case "REPAIR" -> MigratedEffect.mapped(token, "DURABILITY:-1:item", "REPAIR collapsed into DURABILITY");
                 // MESSAGE:[MESSAGE]:[PLAYER/TARGET] → MESSAGE:<text> (StarEnchants messages the actor). A body
                 // that itself contains ':' is demoted to a TODO: the effect lexer splits a bare arg on ':',
                 // so emitting it would silently truncate the message — better the operator quotes it by hand.
@@ -143,7 +143,7 @@ public final class Mappings {
         try {
             return switch (head) {
                 case "REDUCTION" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "REDUCE_DAMAGE:" + Math.min(100, Math.max(0, intArg(parts[1]))),
+                        ? MigratedEffect.mapped(token, "DAMAGE_MOD:defense:add:" + Math.min(100, Math.max(0, intArg(parts[1]))),
                                 intArg(parts[1]) > 100 ? "clamped to the 0-100 reduction cap" : "")
                         : MigratedEffect.todo(token, "unexpected REDUCTION arg shape");
                 case "DAMAGE" -> MigratedEffect.todo(token,
@@ -366,7 +366,7 @@ public final class Mappings {
                         : MigratedEffect.todo(token, "unexpected BURN arg shape");
                 // Argless AE effects (a stray arg is unexpected → TODO rather than silently dropped).
                 case "REPAIR" -> parts.length == 1
-                        ? MigratedEffect.mapped(token, "REPAIR" + suffix, "")
+                        ? MigratedEffect.mapped(token, "DURABILITY:-1:item" + suffix, "AE REPAIR collapsed into DURABILITY")
                         : MigratedEffect.todo(token, "unexpected REPAIR arg shape (AE REPAIR is argless)");
                 case "KILL" -> parts.length == 1
                         ? MigratedEffect.mapped(token, "KILL" + suffix, "")

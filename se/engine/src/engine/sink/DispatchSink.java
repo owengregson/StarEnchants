@@ -226,6 +226,16 @@ public final class DispatchSink implements Sink {
     }
 
     @Override
+    public void damageHand(Player target, int amount) {
+        entityOp(target, () -> {
+            ItemStack item = target.getInventory().getItemInMainHand();
+            if (applyDamage(item, amount)) {
+                target.getInventory().setItemInMainHand(item);
+            }
+        });
+    }
+
+    @Override
     public void giveExp(Player target, int amount) {
         entityOp(target, () -> target.giveExp(amount));
     }
@@ -658,6 +668,21 @@ public final class DispatchSink implements Sink {
         if (meta instanceof Damageable damageable) {
             int repaired = amount < 0 ? 0 : Math.max(0, damageable.getDamage() - amount);
             damageable.setDamage(repaired);
+            item.setItemMeta(meta);
+            return true;
+        }
+        return false;
+    }
+
+    /** Wear one item down by {@code amount} (clamped to its max durability); returns whether it changed. */
+    private static boolean applyDamage(ItemStack item, int amount) {
+        if (item == null || amount <= 0) {
+            return false;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta instanceof Damageable damageable) {
+            int worn = Math.min(item.getType().getMaxDurability(), damageable.getDamage() + amount);
+            damageable.setDamage(worn);
             item.setItemMeta(meta);
             return true;
         }

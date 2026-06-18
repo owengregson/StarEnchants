@@ -9,18 +9,18 @@ levels:
   1:
     chance: 25
     effects:
-      - { FLAT_DAMAGE: { amount: 2 } }
+      - { DAMAGE_MOD: { side: attack, mode: flat, amount: 2 } }
       - { PARTICLE: { particle: WITCH, count: 8 } }
   2:
     chance: 35
     effects:
-      - { FLAT_DAMAGE: { amount: 3 } }
+      - { DAMAGE_MOD: { side: attack, mode: flat, amount: 3 } }
       - { IGNITE: { duration: 40, who: "@Victim" } }
   3:
     chance: 45
     cooldown: 0
     effects:
-      - { FLAT_DAMAGE: { amount: 4 } }
+      - { DAMAGE_MOD: { side: attack, mode: flat, amount: 4 } }
       - { IGNITE: { duration: 60, who: "@Victim" } }
       - { PARTICLE: { particle: WITCH, count: 14 } }
       - { MESSAGE: { text: "&fHoly fire smites your foe!" } }

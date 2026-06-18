@@ -16,4 +16,4 @@ effects:
 levels:
   3:
     effects+:
-      - { REDUCE_DAMAGE: { percent: 30 } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 30 } }

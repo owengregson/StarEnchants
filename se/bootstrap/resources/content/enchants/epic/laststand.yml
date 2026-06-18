@@ -1,6 +1,6 @@
 # Last Stand — dig in when the end is near. A DEFENSE enchant gated on the wearer's health
 # (%actor.health%, a registered numeric fact §3.4): when a blow drops the wearer to the level's
-# threshold it softens the hit (REDUCE_DAMAGE, additive defense bucket §6.1) and buffs the wearer
+# threshold it softens the hit (DAMAGE_MOD defense/add, additive defense bucket §6.1) and buffs the wearer
 # with Resistance and Absorption (POTION defaults to @Self).
 display: "&4Last Stand"
 description: "Dig in when the end is near."
@@ -16,7 +16,7 @@ scale:
   resAmp: { 1: 0, 2: 1, 3: 1 }
   resDur: { 1: 80, 2: 100, 3: 140 }
 effects:
-  - { REDUCE_DAMAGE: { percent: $reduce } }
+  - { DAMAGE_MOD: { side: defense, mode: add, amount: $reduce } }
   - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: $resAmp, duration: $resDur, who: "@Self" } }
 levels:
   2:
