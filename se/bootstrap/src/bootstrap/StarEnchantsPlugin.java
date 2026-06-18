@@ -18,6 +18,7 @@ import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
+import engine.stores.RepeatStore;
 import engine.stores.SoulModeStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
@@ -50,6 +51,7 @@ import feature.soul.SoulInventoryListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulService;
 import feature.trigger.EngineStoreListener;
+import feature.trigger.RepeatingDriver;
 import feature.trigger.TriggerDispatch;
 import feature.trigger.TriggerListeners;
 import item.codec.CarrierCodec;
@@ -92,6 +94,7 @@ import platform.protect.ProtectionService;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
+import platform.sched.TaskHandle;
 import schema.diag.Diagnostic;
 import schema.diag.Diagnostics;
 
@@ -111,6 +114,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
     private ContentHolder content;
     private ContentReloader reloader;
+    private RepeatingDriver passives; // §B REPEATING lifecycle — torn down in onDisable
 
     @Override
     public void onEnable() {
@@ -248,9 +252,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
                 tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression);
+        // §B REPEATING lifecycle: one entity-owned repeating task per (player, repeating ability), armed by
+        // EquipListener on every equip change and torn down on quit/disable. RepeatStore owns the mapping.
+        passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
+                new RepeatStore<TaskHandle>());
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
-        getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
+        getServer().getPluginManager().registerEvents(new EquipListener(worn, content, passives), this);
         getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
@@ -268,6 +276,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
 
+        // Arm REPEATING tasks for players already online (a plugin /reload with players on) — a fresh server
+        // boot has none, so this is a no-op there; PlayerJoinEvent arms normal joins via EquipListener.
+        for (Player player : getServer().getOnlinePlayers()) {
+            Scheduling.onEntity(player, () -> passives.arm(player, worn.refresh(player, content.snapshot())));
+        }
+
         // Reload: one persistent compiler; on a clean swap, advance the gen-keyed caches and re-resolve
         // every online player against the new snapshot (on each player's own thread).
         reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
@@ -277,7 +291,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
             for (Player player : getServer().getOnlinePlayers()) {
-                Scheduling.onEntity(player, () -> worn.refresh(player, published.snapshot()));
+                // Re-resolve worn state AND re-arm repeating tasks (their period may have changed) per player.
+                Scheduling.onEntity(player, () -> passives.arm(player, worn.refresh(player, published.snapshot())));
             }
         });
 
@@ -296,6 +311,16 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     scrolls, unopenedBooks, holyScrolls, nametags);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        // Cancel every live REPEATING task so they don't leak across a plugin /reload (§B). The other
+        // per-player stores self-bound via lazy TTL eviction; repeating tasks are the one thing that
+        // outlives the JVM-less reload boundary and must be torn down explicitly.
+        if (passives != null) {
+            passives.disarmAll();
         }
     }
 

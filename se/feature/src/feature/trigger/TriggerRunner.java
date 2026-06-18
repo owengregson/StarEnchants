@@ -67,12 +67,35 @@ public final class TriggerRunner {
         if (wornState == null || wornState.gen() != generation) {
             return; // not resolved yet (or stale across a reload) — this actor contributes nothing
         }
+        runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
+                wornState, wornState.byTrigger(triggerId));
+    }
+
+    /**
+     * Run an EXPLICIT candidate id list for {@code actor} (the §B REPEATING driver supplies a single
+     * ability id from its timer). Same WornState gen-check + heroic fold + activation build as {@link #run},
+     * but the caller chooses the candidates rather than {@code byTrigger(triggerId)} — the caller is
+     * responsible that they fire on {@code triggerId} (gate 3 still enforces it).
+     */
+    public void runCandidates(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
+                              Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
+                              int[] candidates) {
+        WornState wornState = worn.get(actor.getUniqueId());
+        if (wornState == null || wornState.gen() != generation) {
+            return; // gone or stale across a reload — a repeating task no-ops until re-armed
+        }
+        runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
+                wornState, candidates);
+    }
+
+    private void runResolved(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
+                             Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
+                             WornState wornState, int[] candidates) {
         if (attackSide) {
             sink.addHeroicOutgoing(wornState.heroic().percentDamage()); // §F multiplicative stage
         } else {
             sink.addHeroicReduction(wornState.heroic().percentReduction());
         }
-        int[] candidates = wornState.byTrigger(triggerId);
         if (candidates.length == 0) {
             return;
         }

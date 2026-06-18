@@ -59,6 +59,7 @@ public final class TriggerDispatch {
     public final int eat;
     public final int itemDamage;
     public final int breakItem;
+    public final int repeating;
 
     /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
     public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
@@ -96,6 +97,7 @@ public final class TriggerDispatch {
         this.eat = triggers.idOf("EAT").orElse(-1);
         this.itemDamage = triggers.idOf("ITEM_DAMAGE").orElse(-1);
         this.breakItem = triggers.idOf("BREAK").orElse(-1);
+        this.repeating = triggers.idOf("REPEATING").orElse(-1);
     }
 
     /**
@@ -134,6 +136,24 @@ public final class TriggerDispatch {
         if (sink.cancelled()) {
             event.setCancelled(true);
         }
+        sink.flush();
+    }
+
+    /**
+     * Fire ONE repeating ability for {@code actor} — the §B {@link feature.trigger.RepeatingDriver}'s timer
+     * body, run on the player's own (entity) thread. Builds a fresh per-tick sink, runs just that ability
+     * through the full gate sequence on the REPEATING trigger, and flushes. No firing event ⇒ nothing to
+     * cancel; chance/cooldown/condition gates still apply each period.
+     */
+    public void fireRepeating(Player actor, int abilityId) {
+        if (repeating < 0 || abilityId < 0) {
+            return;
+        }
+        Snapshot snapshot = content.snapshot();
+        ActivationContext context = new ActivationContext(actor, null, null, actor.getLocation());
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, nowTicks);
+        runner.runCandidates(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context),
+                repeating, false, actor, context, sink, snapshot.stableKeys(), new int[]{abilityId});
         sink.flush();
     }
 

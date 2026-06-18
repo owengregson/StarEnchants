@@ -2,6 +2,8 @@ package feature.combat;
 
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 import compile.load.ContentHolder;
+import feature.trigger.RepeatingDriver;
+import item.worn.WornState;
 import item.worn.WornStateStore;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,10 +25,12 @@ public final class EquipListener implements Listener {
 
     private final WornStateStore worn;
     private final ContentHolder content;
+    private final RepeatingDriver repeating;
 
-    public EquipListener(WornStateStore worn, ContentHolder content) {
+    public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating) {
         this.worn = worn;
         this.content = content;
+        this.repeating = repeating;
     }
 
     @EventHandler
@@ -49,9 +53,11 @@ public final class EquipListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         worn.remove(event.getPlayer().getUniqueId());
+        repeating.disarm(event.getPlayer().getUniqueId()); // cancel the player's repeating tasks (§B)
     }
 
     private void refresh(Player player) {
-        worn.refresh(player, content.snapshot());
+        WornState state = worn.refresh(player, content.snapshot());
+        repeating.arm(player, state); // (re)arm REPEATING abilities against the fresh worn state (§B)
     }
 }
