@@ -7,6 +7,7 @@ import compile.model.Snapshot;
 import engine.interact.SlotLedger;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
+import item.lang.Messages;
 import item.render.LoreRenderer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,6 +47,7 @@ public final class ItemEnchanter {
     private final IntSupplier baseSlots;     // §H config.yml slots.base — read live so a reload re-tunes it
     private final IntSupplier crystalSlots;  // §E config.yml crystals.slots — read live
     private final IntSupplier maxCrystals;   // §E config.yml crystals.max-stack — read live
+    private final Messages messages;         // §L lang.yml — the ApplyResult reason strings
 
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups) {
@@ -58,21 +60,22 @@ public final class ItemEnchanter {
         this(codec, lore, content, groups, baseSlots, DEFAULT_CRYSTAL_SLOTS);
     }
 
-    /** As above, with fixed enchant AND crystal slot counts (the common test/fixture form). */
+    /** As above, with fixed enchant AND crystal slot counts + default messages (the common test/fixture form). */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, int baseSlots, int crystalSlots) {
-        this(codec, lore, content, groups,
-                () -> Math.max(0, baseSlots), () -> Math.max(0, crystalSlots), () -> DEFAULT_MAX_CRYSTALS);
+        this(codec, lore, content, groups, () -> Math.max(0, baseSlots), () -> Math.max(0, crystalSlots),
+                () -> DEFAULT_MAX_CRYSTALS, Messages.defaults());
     }
 
     /**
      * The canonical ctor (the composition root): slot capacities are {@link IntSupplier}s read on every
      * apply, so a {@code /se reload} that swaps the master {@code config.yml} ({@code slots.base},
-     * {@code crystals.slots}, {@code crystals.max-stack}) re-tunes them live with no re-wiring (§H/§E).
+     * {@code crystals.slots}, {@code crystals.max-stack}) re-tunes them live with no re-wiring (§H/§E); the
+     * {@link Messages} facade sources every {@link ApplyResult} reason from {@code lang.yml} (§L).
      */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
-                         IntSupplier maxCrystals) {
+                         IntSupplier maxCrystals, Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
@@ -80,25 +83,26 @@ public final class ItemEnchanter {
         this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
         this.crystalSlots = Objects.requireNonNull(crystalSlots, "crystalSlots");
         this.maxCrystals = Objects.requireNonNull(maxCrystals, "maxCrystals");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Validate (without mutating) that enchant {@code baseKey} at {@code level} may sit on {@code material}. */
     public ApplyResult checkEnchant(Material material, String baseKey, int level) {
         EnchantDef def = enchant(baseKey);
         if (def == null) {
-            return ApplyResult.fail("§cNo such enchant: §f" + baseKey);
+            return ApplyResult.fail(messages.format("apply.no-such-enchant", "KEY", baseKey));
         }
         if (level < 1 || level > def.maxLevel()) {
-            return ApplyResult.fail("§cLevel must be 1–" + def.maxLevel() + " for §f" + baseKey);
+            return ApplyResult.fail(messages.format("apply.level-range", "MAX", def.maxLevel(), "KEY", baseKey));
         }
         Snapshot snapshot = content.snapshot();
         if (snapshot.byStableKey(baseKey + "/" + level) == null) {
-            return ApplyResult.fail("§cLevel " + level + " of §f" + baseKey + " §cis not defined.");
+            return ApplyResult.fail(messages.format("apply.level-undefined", "LEVEL", level, "KEY", baseKey));
         }
         if (!groups.matches(material, def.appliesTo())) {
-            return ApplyResult.fail("§c" + def.display() + " §ccannot be applied to that item.");
+            return ApplyResult.fail(messages.format("apply.not-applicable", "DISPLAY", def.display()));
         }
-        return ApplyResult.ok("§a" + def.display());
+        return ApplyResult.ok(messages.format("apply.ok", "DISPLAY", def.display()));
     }
 
     /**
@@ -123,7 +127,7 @@ public final class ItemEnchanter {
         SlotLedger slots = new SlotLedger(baseSlots.getAsInt(), current.added(), current.enchants().size());
         return slots.canApply(1 - Math.max(0, freed)) // net cost; ≤0 always fits (the upgrade supersedes)
                 ? ApplyResult.ok("")
-                : ApplyResult.fail("§cThis item has no free enchant slots (" + slots.max() + " max).");
+                : ApplyResult.fail(messages.format("apply.no-enchant-slots", "MAX", slots.max()));
     }
 
     /**
@@ -137,10 +141,10 @@ public final class ItemEnchanter {
         for (String req : def.requires()) {
             Integer have = present.get(req);
             if (have == null) {
-                return ApplyResult.fail("§cRequires §f" + displayOf(req) + " §cfirst.");
+                return ApplyResult.fail(messages.format("apply.requires", "REQ", displayOf(req)));
             }
             if (have < level) {
-                return ApplyResult.fail("§cRequires §f" + displayOf(req) + " §cat level " + level + " or higher.");
+                return ApplyResult.fail(messages.format("apply.requires-level", "REQ", displayOf(req), "LEVEL", level));
             }
         }
         for (String other : present.keySet()) {
@@ -149,7 +153,8 @@ public final class ItemEnchanter {
             }
             EnchantDef otherDef = enchant(other);
             if (def.blacklist().contains(other) || (otherDef != null && otherDef.blacklist().contains(def.key()))) {
-                return ApplyResult.fail("§c" + def.display() + " §ccannot be combined with §f" + displayOf(other) + "§c.");
+                return ApplyResult.fail(messages.format("apply.conflicts",
+                        "DISPLAY", def.display(), "OTHER", displayOf(other)));
             }
         }
         return ApplyResult.ok("");
@@ -179,15 +184,15 @@ public final class ItemEnchanter {
     public ApplyResult checkCrystal(Material material, String baseKey) {
         CrystalDef def = crystal(baseKey);
         if (def == null) {
-            return ApplyResult.fail("§cNo such crystal: §f" + baseKey);
+            return ApplyResult.fail(messages.format("apply.crystal.no-such", "KEY", baseKey));
         }
         if (content.snapshot().byStableKey(baseKey) == null) {
-            return ApplyResult.fail("§c" + baseKey + " §cdid not compile.");
+            return ApplyResult.fail(messages.format("apply.crystal.no-compile", "KEY", baseKey));
         }
         if (!groups.matches(material, def.appliesTo())) {
-            return ApplyResult.fail("§c" + def.display() + " §ccannot be applied to that item.");
+            return ApplyResult.fail(messages.format("apply.not-applicable", "DISPLAY", def.display()));
         }
-        return ApplyResult.ok("§a" + def.display());
+        return ApplyResult.ok(messages.format("apply.ok", "DISPLAY", def.display()));
     }
 
     /**
@@ -206,7 +211,7 @@ public final class ItemEnchanter {
      */
     public ApplyResult applyEnchant(ItemStack stack, String baseKey, int level, boolean enforceRelationships) {
         if (stack == null || stack.getType() == Material.AIR) {
-            return ApplyResult.fail("§cHold an item first.");
+            return ApplyResult.fail(messages.format("apply.hold-item"));
         }
         ApplyResult check = checkEnchant(stack.getType(), baseKey, level);
         if (!check.ok()) {
@@ -234,7 +239,7 @@ public final class ItemEnchanter {
                 current.setKey(), current.omni(), current.heroic(), current.added());
         codec.write(stack, next);
         lore.apply(stack, next);
-        return ApplyResult.ok(check.message() + " §7applied (level " + level + ").");
+        return ApplyResult.ok(messages.format("apply.applied-suffix", "MSG", check.message(), "LEVEL", level));
     }
 
     /** How many of {@code def}'s prerequisites a successful apply would free (0 unless removes-required). */
@@ -265,13 +270,13 @@ public final class ItemEnchanter {
      */
     public ApplyResult checkCrystalEntry(ItemStack gear, List<String> keys) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return ApplyResult.fail("§cApply the crystal onto an item.");
+            return ApplyResult.fail(messages.format("apply.crystal.on-item"));
         }
         if (gear.getAmount() > 1) {
-            return ApplyResult.fail("§cApply the crystal to a single item — split the stack first.");
+            return ApplyResult.fail(messages.format("apply.crystal.single-item"));
         }
         if (keys.isEmpty()) {
-            return ApplyResult.fail("§cThat is not a crystal.");
+            return ApplyResult.fail(messages.format("apply.crystal.not-crystal"));
         }
         String label = "";
         for (String key : keys) {
@@ -284,7 +289,7 @@ public final class ItemEnchanter {
         CombatState current = codec.read(gear);
         int crystalCap = crystalSlots.getAsInt();
         if (current.crystals().size() >= crystalCap) {
-            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalCap + " max).");
+            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap));
         }
         return ApplyResult.ok(label);
     }
@@ -307,10 +312,10 @@ public final class ItemEnchanter {
      */
     public ApplyResult applyCrystalEntry(ItemStack stack, List<String> keys, boolean enforceSlots) {
         if (stack == null || stack.getType() == Material.AIR) {
-            return ApplyResult.fail("§cHold an item first.");
+            return ApplyResult.fail(messages.format("apply.hold-item"));
         }
         if (keys.isEmpty()) {
-            return ApplyResult.fail("§cThat is not a crystal.");
+            return ApplyResult.fail(messages.format("apply.crystal.not-crystal"));
         }
         String label = "";
         for (String key : keys) {
@@ -323,11 +328,11 @@ public final class ItemEnchanter {
         CombatState current = codec.read(stack);
         int crystalCap = crystalSlots.getAsInt();
         if (enforceSlots && current.crystals().size() >= crystalCap) {
-            return ApplyResult.fail("§cThis item has no free crystal slots (" + crystalCap + " max).");
+            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap));
         }
         int maxStack = maxCrystals.getAsInt();
         if (current.crystals().size() >= maxStack) {
-            return ApplyResult.fail("§cThis item already holds the maximum " + maxStack + " crystals.");
+            return ApplyResult.fail(messages.format("apply.crystal.max-reached", "MAX", maxStack));
         }
         List<String> crystals = new ArrayList<>(current.crystals());
         crystals.add(String.join(item.codec.CrystalItemData.DELIMITER, keys)); // ONE entry = ONE slot
@@ -335,7 +340,7 @@ public final class ItemEnchanter {
                 current.setKey(), current.omni(), current.heroic(), current.added());
         codec.write(stack, next);
         lore.apply(stack, next);
-        return ApplyResult.ok(label + " §7crystal applied.");
+        return ApplyResult.ok(messages.format("apply.crystal.applied", "LABEL", label));
     }
 
     private EnchantDef enchant(String baseKey) {

@@ -3,6 +3,7 @@ package feature.menu;
 import compile.load.ContentHolder;
 import compile.load.EnchantDef;
 import feature.carrier.CarrierService;
+import item.lang.Messages;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +24,18 @@ public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
 
     private final ContentHolder content;
     private final CarrierService carriers;
+    private final Messages messages;
 
+    /** Default-messages form (tests/fixtures). */
     public AdminBrowserMenu(ContentHolder content, CarrierService carriers, Capabilities caps) {
+        this(content, carriers, caps, Messages.defaults());
+    }
+
+    public AdminBrowserMenu(ContentHolder content, CarrierService carriers, Capabilities caps, Messages messages) {
         super("admin", MenuLayout.paged("&cAdmin &8• &cEnchants"), caps);
         this.content = Objects.requireNonNull(content, "content");
         this.carriers = Objects.requireNonNull(carriers, "carriers");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     @Override
@@ -57,6 +65,6 @@ public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
         Player player = click.player();
         ItemStack book = carriers.mintBook(def.key(), 1, 100); // 100% success — the admin "guaranteed" book
         MenuItems.giveOrDrop(player, book);
-        player.sendMessage("§aGranted a guaranteed §f" + def.display() + " §abook.");
+        messages.send(player, "menu.admin.granted", "DISPLAY", def.display());
     }
 }
