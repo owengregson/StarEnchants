@@ -12,6 +12,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -506,6 +507,44 @@ public final class DispatchSink implements Sink {
                 block.setType(Material.AIR);
             }
         });
+    }
+
+    @Override
+    public void tempPlatform(Location center, int materialId, int radius, int durationTicks, int replaceMode) {
+        Location origin = center.clone(); // own the centre: a WAIT tier can defer this to a later tick
+        regionOp(origin, () -> {
+            Material material = handles.material(materialId);
+            World world = origin.getWorld();
+            if (material == null || !material.isBlock() || world == null) {
+                return;
+            }
+            int y = origin.getBlockY() - 1; // the layer under the target's feet
+            int cx = origin.getBlockX();
+            int cz = origin.getBlockZ();
+            List<BlockState> prior = new java.util.ArrayList<>();
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    Block block = world.getBlockAt(cx + dx, y, cz + dz);
+                    if (canReplace(block, replaceMode)) {
+                        prior.add(block.getState()); // capture for the revert
+                        block.setType(material, false);
+                    }
+                }
+            }
+            if (durationTicks > 0 && !prior.isEmpty()) {
+                // Best-effort revert on the same region thread; restores each captured prior block.
+                Scheduling.onRegionLater(origin, durationTicks, () -> prior.forEach(s -> s.update(true, false)));
+            }
+        });
+    }
+
+    /** Whether a temp-platform may overwrite this block: 0 = air only, 1 = air/liquid, 2 = anything. */
+    private static boolean canReplace(Block block, int replaceMode) {
+        return switch (replaceMode) {
+            case 0 -> block.getType().isAir();
+            case 1 -> block.getType().isAir() || block.isLiquid();
+            default -> true;
+        };
     }
 
     @Override

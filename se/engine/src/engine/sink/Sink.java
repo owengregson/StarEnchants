@@ -152,6 +152,14 @@ public interface Sink {
     /** Break the block at {@code at}; {@code drops} controls whether it yields its drops (BREAK_BLOCK). */
     void breakBlock(Location at, boolean drops);
 
+    /**
+     * Lay a temporary platform of a material in the block layer beneath {@code center}, out to
+     * {@code radius} blocks each way, then revert to the captured prior blocks after {@code durationTicks}
+     * (WALKER). {@code replaceMode}: 0 = only air, 1 = air or liquid, 2 = anything. Best-effort revert
+     * (no temp-block ledger): re-firing over a still-active platform may make a tile permanent.
+     */
+    void tempPlatform(Location center, int materialId, int radius, int durationTicks, int replaceMode);
+
     /** Drop {@code count} of a material as an item entity at {@code at} (DROP_ITEM). */
     void dropItem(Location at, int materialId, int count);
 
