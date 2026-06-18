@@ -7,6 +7,7 @@ import engine.run.ActivationContext;
 import engine.run.FactPopulator;
 import engine.sink.DispatchSink;
 import engine.sink.SoulDebit;
+import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
@@ -45,6 +46,7 @@ public final class TriggerDispatch {
     private final VarStore vars;
     private final SuppressionStore suppression;
     private final KnockbackControlStore knockback;
+    private final KeepOnDeathStore keepOnDeath;
     private final LongSupplier nowTicks;
     private final IntPredicate attackTrigger;
 
@@ -68,7 +70,8 @@ public final class TriggerDispatch {
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder) {
         this(executor, handles, content, worn, triggers, nowTicks, soulBinder, EconomyService.NONE,
-                SoulDebit.NONE, new VarStore(), new SuppressionStore(), new KnockbackControlStore());
+                SoulDebit.NONE, new VarStore(), new SuppressionStore(), new KnockbackControlStore(),
+                new KeepOnDeathStore());
     }
 
     /** Trigger dispatch with an economy: GIVE_MONEY/TAKE_MONEY on MINE/KILL/… deposit/withdraw via the sink. */
@@ -76,7 +79,7 @@ public final class TriggerDispatch {
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
                            SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                           KnockbackControlStore knockback) {
+                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
@@ -84,6 +87,7 @@ public final class TriggerDispatch {
         this.vars = Objects.requireNonNull(vars, "vars");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.knockback = Objects.requireNonNull(knockback, "knockback");
+        this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
@@ -114,7 +118,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         if (cancellable != null && sink.cancelled()) {
@@ -133,7 +137,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         event.setDamage(sink.fold().apply(event.getDamage()));
@@ -155,7 +159,7 @@ public final class TriggerDispatch {
         }
         Snapshot snapshot = content.snapshot();
         ActivationContext context = new ActivationContext(actor, null, null, actor.getLocation());
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, nowTicks);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks);
         runner.runCandidates(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context),
                 repeating, false, actor, context, sink, snapshot.stableKeys(), new int[]{abilityId});
         sink.flush();

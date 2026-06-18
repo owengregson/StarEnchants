@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import engine.stores.CooldownStore;
+import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
@@ -227,5 +228,20 @@ class DispatchSinkTest {
 
         assertEquals(0.0, store.multiplier(id, 100L)); // cancel flag live now
         assertTrue(Double.isNaN(store.multiplier(id, 105L)), "expires at tick 105");
+    }
+
+    @Test
+    void keepOnDeathWritesThroughToTheStoreWithTheCapturedUuidAndTick() {
+        Player player = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(player.getUniqueId()).thenReturn(id);
+        KeepOnDeathStore store = new KeepOnDeathStore();
+
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(),
+                new SuppressionStore(), new KnockbackControlStore(), store, () -> 100L);
+        sink.keepOnDeath(player, 40); // per-player flag, written immediately (no flush needed)
+
+        assertTrue(store.shouldKeep(id, 100L)); // armed now
+        assertFalse(store.shouldKeep(id, 140L), "expires at tick 140");
     }
 }

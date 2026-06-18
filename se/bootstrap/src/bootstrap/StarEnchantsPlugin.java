@@ -18,6 +18,7 @@ import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
+import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.RepeatStore;
 import engine.stores.SoulModeStore;
@@ -31,6 +32,7 @@ import feature.carrier.CarrierService;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
+import feature.combat.KeepOnDeathListener;
 import feature.combat.KnockbackListener;
 import feature.crystal.CrystalListener;
 import feature.crystal.CrystalService;
@@ -220,6 +222,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // multiplier through the per-event sink, and the knockback listener (a SEPARATE event the same tick)
         // reads it to cancel/scale the launch. Same instance both ends.
         KnockbackControlStore knockback = new KnockbackControlStore();
+        // One shared keep-on-death store (§C KEEP_ON_DEATH): the effect arms a short-TTL per-player flag
+        // through the per-event sink; the death listener reads it on PlayerDeathEvent to keep items+levels.
+        // Same instance both ends.
+        KeepOnDeathStore keepOnDeath = new KeepOnDeathStore();
 
         // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
         // ServicesManager; a server with none allows everything. The guard passes the firing location
@@ -254,10 +260,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
-                soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback);
+                soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback, keepOnDeath);
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
-                tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback);
+                tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback,
+                keepOnDeath);
         // §B REPEATING lifecycle: one entity-owned repeating task per (player, repeating ability), armed by
         // EquipListener on every equip change and torn down on quit/disable. RepeatStore owns the mapping.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
@@ -269,7 +276,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
-        getServer().getPluginManager().registerEvents(new EngineStoreListener(vars, suppression, knockback), this);
+        getServer().getPluginManager().registerEvents(
+                new EngineStoreListener(vars, suppression, knockback, keepOnDeath), this);
+        // §C KEEP_ON_DEATH: keep items+levels on a death while the flag is armed. NORMAL priority — earlier
+        // than HolyScrollListener (HIGH) — so an enchant-kept death never spends a holy scroll.
+        getServer().getPluginManager().registerEvents(new KeepOnDeathListener(keepOnDeath, tick::get), this);
         // §C KNOCKBACK_CONTROL: hook whichever knockback event this server fires (modern bukkit / legacy
         // destroystokyo), capability-probed. A no-op on a server with neither (the effect is simply inert).
         KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);

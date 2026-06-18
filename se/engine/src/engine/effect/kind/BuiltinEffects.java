@@ -48,6 +48,7 @@ public final class BuiltinEffects {
                 // World / spawn intents.
                 .register(new ExplodeEffect())
                 .register(new SpawnEntityEffect()) // §C canonical; replaces SPAWN/TNT (FIREBALL folded into PROJECTILE)
+                .register(new GuardEffect()) // § combat-flags GUARD: summon mob(s) targeting the attacker
                 // Movement + vitals.
                 .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK
                 .register(new FlyEffect())
@@ -70,6 +71,7 @@ public final class BuiltinEffects {
                 .register(new InvertVarEffect()) // §A INVERT_VAR: numeric flip of a per-player named var
                 .register(new IgnoreArmorEffect()) // § combat-flags IGNORE_ARMOR: hit bypasses armor/protection
                 .register(new KnockbackControlEffect()) // § combat-flags KNOCKBACK_CONTROL: cancel/scale incoming knockback
+                .register(new KeepOnDeathEffect()) // § combat-flags KEEP_ON_DEATH: keep items+levels on a death
                 .register(new SuppressEffect()) // §C SUPPRESS: disable a target's enchant/group/type (DISABLE_*)
                 .build();
     }
