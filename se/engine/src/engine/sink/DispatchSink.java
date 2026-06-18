@@ -256,6 +256,28 @@ public final class DispatchSink implements Sink {
     }
 
     @Override
+    public void movementSpeed(Player target, double speed, int durationTicks) {
+        entityOp(target, () -> {
+            target.setWalkSpeed((float) Math.max(-1.0, Math.min(1.0, speed)));
+            if (durationTicks >= 0) {
+                // Restore the vanilla default (0.2) rather than the captured prior value, so re-firing the
+                // buff before it elapses can never leak an inflated speed upward.
+                Scheduling.onEntityLater(target, durationTicks, () -> target.setWalkSpeed(0.2f));
+            }
+        });
+    }
+
+    @Override
+    public void invincible(LivingEntity target, int durationTicks) {
+        entityOp(target, () -> {
+            target.setInvulnerable(true);
+            if (durationTicks >= 0) {
+                Scheduling.onEntityLater(target, durationTicks, () -> target.setInvulnerable(false));
+            }
+        });
+    }
+
+    @Override
     public void addMaxHealth(LivingEntity target, double amount) {
         entityOp(target, () -> {
             // The unequip restoration of this delta is wired when the WornState resolver lands

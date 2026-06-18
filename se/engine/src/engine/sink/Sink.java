@@ -86,6 +86,12 @@ public interface Sink {
     /** Grant a player temporary flight for {@code durationTicks} ({@code < 0} = until cleared). */
     void setFlight(Player target, int durationTicks);
 
+    /** Set a player's walk speed for {@code durationTicks}, then restore the vanilla default (MOVEMENT_SPEED). */
+    void movementSpeed(Player target, double speed, int durationTicks);
+
+    /** Make the target invulnerable for {@code durationTicks}, then restore (INVINCIBLE). */
+    void invincible(LivingEntity target, int durationTicks);
+
     /** Add to the target's maximum health (tracked + restored on unequip by the dispatcher). */
     void addMaxHealth(LivingEntity target, double amount);
 
