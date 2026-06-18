@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -418,12 +419,63 @@ public final class DispatchSink implements Sink {
     }
 
     @Override
+    public void breakBlock(Location at, boolean drops) {
+        regionOp(at, () -> {
+            Block block = at.getBlock();
+            if (block.getType().isAir()) {
+                return;
+            }
+            if (drops) {
+                block.breakNaturally(); // yields the block's natural drops at its location
+            } else {
+                block.setType(Material.AIR);
+            }
+        });
+    }
+
+    @Override
+    public void dropItem(Location at, int materialId, int count) {
+        regionOp(at, () -> {
+            Material material = handles.material(materialId);
+            World world = at.getWorld();
+            if (material != null && material.isItem() && world != null && count > 0) {
+                world.dropItemNaturally(at, new ItemStack(material, count));
+            }
+        });
+    }
+
+    @Override
     public void sound(Location at, int soundId, float volume, float pitch) {
         regionOp(at, () -> {
             Sound resolved = handles.sound(soundId);
             World world = at.getWorld();
             if (resolved != null && world != null) {
                 world.playSound(at, resolved, volume, pitch);
+            }
+        });
+    }
+
+    @Override
+    public void giveItem(Player target, int materialId, int count) {
+        // Runs on the target's own thread (entityOp): reading + mutating their inventory and dropping
+        // overflow at their location is region-correct.
+        entityOp(target, () -> {
+            Material material = handles.material(materialId);
+            if (material == null || !material.isItem() || count <= 0) {
+                return;
+            }
+            ItemStack stack = new ItemStack(material, count);
+            target.getInventory().addItem(stack).values()
+                    .forEach(extra -> target.getWorld().dropItemNaturally(target.getLocation(), extra));
+        });
+    }
+
+    @Override
+    public void removeItem(Player target, int materialId, int count) {
+        entityOp(target, () -> {
+            Material material = handles.material(materialId);
+            if (material != null && material.isItem() && count > 0) {
+                target.getInventory().removeItem(new ItemStack(material, count));
             }
         });
     }

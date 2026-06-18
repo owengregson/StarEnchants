@@ -65,6 +65,12 @@ public final class BuiltinEffects {
                 .register(new DamageArmorEffect())
                 .register(new AddDurabilityEffect())
                 .register(new AddDurabilityItemEffect())
+                // §C block + item primitives.
+                .register(new SetBlockEffect())
+                .register(new BreakBlockEffect())
+                .register(new DropItemEffect())
+                .register(new GiveItemEffect())
+                .register(new RemoveItemEffect())
                 .build();
     }
 }

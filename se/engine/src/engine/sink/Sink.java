@@ -131,9 +131,23 @@ public interface Sink {
 
     void blockChange(Location at, int blockDataId);
 
+    /** Break the block at {@code at}; {@code drops} controls whether it yields its drops (BREAK_BLOCK). */
+    void breakBlock(Location at, boolean drops);
+
+    /** Drop {@code count} of a material as an item entity at {@code at} (DROP_ITEM). */
+    void dropItem(Location at, int materialId, int count);
+
     void sound(Location at, int soundId, float volume, float pitch);
 
     void particle(Location at, int particleId, int count);
+
+    // ── Player inventory intents ──
+
+    /** Give {@code count} of a material to the player, dropping any overflow at their feet (GIVE_ITEM). */
+    void giveItem(Player target, int materialId, int count);
+
+    /** Remove up to {@code count} of a material from the player's inventory (REMOVE_ITEM). */
+    void removeItem(Player target, int materialId, int count);
 
     // ── Player feedback ──
 
