@@ -9,15 +9,15 @@ levels:
     chance: 50
     effects:
       - { RUN_COMMAND: { command: "eco give %player% 25" } }
-      - { ACTIONBAR: { text: "&6+25 coins" } }
+      - { MESSAGE: { channel: actionbar, text: "&6+25 coins" } }
   2:
     chance: 65
     effects:
       - { RUN_COMMAND: { command: "eco give %player% 50" } }
-      - { ACTIONBAR: { text: "&6+50 coins" } }
+      - { MESSAGE: { channel: actionbar, text: "&6+50 coins" } }
   3:
     chance: 80
     effects:
       - { RUN_COMMAND: { command: "eco give %player% 100" } }
-      - { ACTIONBAR: { text: "&6+100 coins" } }
+      - { MESSAGE: { channel: actionbar, text: "&6+100 coins" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }

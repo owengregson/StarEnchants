@@ -24,4 +24,4 @@ levels:
       - { EXPLODE: { power: 2, breakBlocks: false } }
       - { PARTICLE: { particle: FLAME, count: 18 } }
       - { SOUND: { sound: BLOCK_ANVIL_LAND, volume: 1, pitch: 1 } }
-      - { TITLE: { title: "&cExecuted!", subtitle: "", fadeIn: 10, stay: 40, fadeOut: 10 } }
+      - { MESSAGE: { channel: title, text: "&cExecuted!", subtitle: "", fadeIn: 10, stay: 40, fadeOut: 10 } }

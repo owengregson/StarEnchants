@@ -440,7 +440,11 @@ public final class Mappings {
             return MigratedEffect.todo(token,
                     "AE " + low + " targets a @selector; StarEnchants messages the actor — port the target manually");
         }
-        return MigratedEffect.mapped(token, head + ":" + msg, "StarEnchants " + low + "s the actor");
+        // Both AE heads collapse onto the canonical MESSAGE: ACTIONBAR becomes the actionbar channel
+        // (channel is the optional 2nd terse arg, so MESSAGE:<text> stays a chat line). msg has no ':'
+        // (guarded above), so the trailing ':actionbar' is an unambiguous channel arg.
+        String se = "ACTIONBAR".equals(head) ? "MESSAGE:" + msg + ":actionbar" : "MESSAGE:" + msg;
+        return MigratedEffect.mapped(token, se, "StarEnchants " + low + "s the actor (canonical MESSAGE)");
     }
 
     /** Whether a StarEnchants condition expression is type-coherent (so it compiles): every {@code &&}/{@code ||}

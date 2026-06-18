@@ -26,9 +26,7 @@ public final class BuiltinEffects {
                 .register(new LightningEffect())
                 .register(new TeleportEffect())
                 // Player feedback + event control.
-                .register(new MessageEffect())
-                .register(new ActionBarEffect())
-                .register(new TitleEffect())
+                .register(new MessageEffect()) // §C canonical; channel chat/actionbar/title — replaces ACTIONBAR/TITLE
                 .register(new RunCommandEffect())
                 .register(new CancelEffect())
                 // Handle-using kinds (resolved tokens, §9).
