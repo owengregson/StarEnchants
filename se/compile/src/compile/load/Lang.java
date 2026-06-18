@@ -142,6 +142,8 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.unopened",
                 "&bMinted an unopened &f{TIER} &bbook. &7Right-click it to reveal a random enchant book.");
         s.put("command.give.book", "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a.");
+        s.put("command.reference.header", "&e{CATEGORY} &7({COUNT}): &f{ITEMS}");
+        s.put("command.reference.list", "&eReference: &f{CATEGORIES} &7— /se effects|selectors|triggers|conditions|variables");
 
         // ── ItemEnchanter ApplyResult reasons ─────────────────────────────────────────────────────
         s.put("apply.no-such-enchant", "&cNo such enchant: &f{KEY}");
@@ -209,6 +211,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&e  /se nametag &7— mint an item nametag (rename gear via chat)",
                 "&e  /se unopened <tier> &7— mint an unopened book (right-click to reveal)",
                 "&e  /se menu [name] &7— open a GUI (default: the enchant-application menu)",
+                "&e  /se effects|selectors|triggers|conditions|variables|list &7— browse the DSL reference",
                 "&e  /se gem &7— mint a soul gem (right-click it to toggle soul mode)",
                 "&e  /se soulmode &7— toggle soul mode for the held gem",
                 "&e  /se split <amount> &7— split souls off the held gem into a new gem",

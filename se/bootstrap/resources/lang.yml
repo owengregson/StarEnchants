@@ -44,6 +44,8 @@ command.give.blackscroll: "&8Minted a black scroll. &7Drag it onto enchanted gea
 command.give.randomizer: "&eMinted a randomizer scroll. &7Drag it onto an enchant book to reroll its success."
 command.give.unopened: "&bMinted an unopened &f{TIER} &bbook. &7Right-click it to reveal a random enchant book."
 command.give.book: "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a."
+command.reference.header: "&e{CATEGORY} &7({COUNT}): &f{ITEMS}"
+command.reference.list: "&eReference: &f{CATEGORIES} &7— /se effects|selectors|triggers|conditions|variables"
 
 # The /se help block (sent line-by-line when /se is run with no/invalid args).
 command.usage:
@@ -61,6 +63,7 @@ command.usage:
   - "&e  /se nametag &7— mint an item nametag (rename gear via chat)"
   - "&e  /se unopened <tier> &7— mint an unopened book (right-click to reveal)"
   - "&e  /se menu [name] &7— open a GUI (default: the enchant-application menu)"
+  - "&e  /se effects|selectors|triggers|conditions|variables|list &7— browse the DSL reference"
   - "&e  /se gem &7— mint a soul gem (right-click it to toggle soul mode)"
   - "&e  /se soulmode &7— toggle soul mode for the held gem"
   - "&e  /se split <amount> &7— split souls off the held gem into a new gem"
