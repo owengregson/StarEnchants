@@ -28,11 +28,19 @@ public final class HolyScrollService {
     private final ScrollCodec scrolls;
     private final Supplier<ScrollsConfig> config;
     private final Random random;
+    private final item.lang.Messages messages; // §L lang.yml — the "saved" message
 
+    /** Default-messages form (tests/fixtures). */
     public HolyScrollService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, Random random) {
+        this(scrolls, config, random, item.lang.Messages.defaults());
+    }
+
+    public HolyScrollService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, Random random,
+                             item.lang.Messages messages) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Whether {@code stack} is a holy scroll. */
@@ -72,7 +80,7 @@ public final class HolyScrollService {
             off.setAmount(off.getAmount() - 1);
             inv.setItemInOffHand(off.getAmount() <= 0 ? null : off);
         }
-        return ItemFactory.color(cfg.messageSaved());
+        return messages.format("scroll.holy.saved");
     }
 
     /** The first storage slot holding a holy scroll, or {@code -1} if none. */

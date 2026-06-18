@@ -31,14 +31,22 @@ public final class HeroicService {
     private final LoreRenderer lore;
     private final Supplier<HeroicConfig> config;
     private final Random random;
+    private final item.lang.Messages messages; // §L lang.yml — heroic apply result + guards
 
+    /** Default-messages form (tests/fixtures). */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
                          Supplier<HeroicConfig> config, Random random) {
+        this(upgrades, combat, lore, config, random, item.lang.Messages.defaults());
+    }
+
+    public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
+                         Supplier<HeroicConfig> config, Random random, item.lang.Messages messages) {
         this.upgrades = Objects.requireNonNull(upgrades, "upgrades");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Whether {@code stack} is a heroic upgrade item. */
@@ -62,19 +70,19 @@ public final class HeroicService {
      */
     public HeroicResult applyTo(ItemStack upgrade, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return HeroicResult.unchanged("§cApply the heroic upgrade onto a piece of gear.");
+            return HeroicResult.unchanged(messages.format("heroic.not-gear"));
         }
         if (gear.getAmount() > 1) {
-            return HeroicResult.unchanged("§cApply to a single item — split the stack first.");
+            return HeroicResult.unchanged(messages.format("common.single-item"));
         }
         if (!combat.read(gear).heroic().isZero()) {
-            return HeroicResult.unchanged("§7That item is already heroic.");
+            return HeroicResult.unchanged(messages.format("heroic.already-heroic"));
         }
         HeroicConfig cfg = config.get();
         int chance = cfg.successMin() + random.nextInt(cfg.successMax() - cfg.successMin() + 1);
         consume(upgrade); // a heroic upgrade is spent whether the roll succeeds or fails
         if (random.nextInt(100) >= chance) {
-            return HeroicResult.committed(gear, color(cfg.messageFail())); // gear untouched, upgrade spent
+            return HeroicResult.committed(gear, messages.format("heroic.fail")); // gear untouched, upgrade spent
         }
         ItemStack upgraded = withUpgradedMaterial(gear, cfg);
         CombatState current = combat.read(upgraded);
@@ -83,7 +91,7 @@ public final class HeroicService {
                 current.added());
         combat.write(upgraded, next);
         lore.apply(upgraded, next); // re-render: enchants/crystals + the HEROIC marker, from state
-        return HeroicResult.committed(upgraded, color(cfg.messageSuccess()));
+        return HeroicResult.committed(upgraded, messages.format("heroic.success"));
     }
 
     /**
@@ -113,9 +121,5 @@ public final class HeroicService {
 
     private static void consume(ItemStack stack) {
         stack.setAmount(stack.getAmount() - 1);
-    }
-
-    private static String color(String raw) {
-        return ItemFactory.color(raw);
     }
 }

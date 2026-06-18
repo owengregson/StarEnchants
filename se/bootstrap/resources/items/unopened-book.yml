@@ -10,5 +10,3 @@ lore:
   - "&7{TIER} enchant book."
 min-success: 25
 max-success: 100
-message-open: "&aYou revealed &f{ENCHANT} {LEVEL}&a (&f{PERCENT}%&a success)!"
-message-empty-tier: "&cThere are no enchants in that tier to reveal."

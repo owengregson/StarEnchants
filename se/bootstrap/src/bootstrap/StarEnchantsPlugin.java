@@ -215,13 +215,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // entry on the gear (a multi-crystal is encoded "a+b" — one slot, both abilities).
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of(this).crystalItem());
         CrystalService crystals = new CrystalService(crystalItemCodec, enchanter, content,
-                () -> items.config().crystalOrDefault(), new java.util.Random());
+                () -> items.config().crystalOrDefault(), new java.util.Random(), messages);
 
         // Heroic upgrades (§F): mint + drag-apply onto armour/weapon (small success roll, material swap,
         // "heroic piece" lore rendered from state). Reuses the combat codec + lore renderer.
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of(this).heroicUpgrade());
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
-                () -> items.config().heroicOrDefault(), new java.util.Random());
+                () -> items.config().heroicOrDefault(), new java.util.Random(), messages);
 
         // Slot economy (§H): mint + drag-apply the upgrade orb (+N) / slot gem (+1) onto gear, raising its
         // persisted CombatState.added slot count (clamped to the config's universal hard cap). baseSlots
@@ -229,33 +229,33 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of(this).slotItem());
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(),
-                (java.util.function.IntSupplier) () -> master.config().slots().base());
+                (java.util.function.IntSupplier) () -> master.config().slots().base(), messages);
 
         // Book-economy scrolls (§I): black scroll extracts an enchant from gear into a book; randomizer
         // scroll rerolls a book's success. Reuse the combat codec + lore (gear) and CarrierService (mint
         // the extracted book / reroll book success). Distinct 'scroll' PDC tag, off the combat hot path.
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of(this).scroll());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
-                () -> items.config().scrollsOrDefault(), new java.util.Random());
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages);
 
         // Unopened/randomized book (§I): right-click yields a concrete enchant book of a random enchant
         // from its tier, at a random level + success. Mints through CarrierService's explicit-success book.
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of(this).unopened());
         UnopenedBookService unopenedBooks = new UnopenedBookService(unopenedCodec, carriers, content,
-                () -> items.config().unopenedBookOrDefault(), new java.util.Random());
+                () -> items.config().unopenedBookOrDefault(), new java.util.Random(), messages);
 
         // Survival + cosmetic scrolls (§I): holy scroll keeps items on a death (PlayerDeathEvent scan);
         // item nametag renames gear via a chat-capture flow. Both share the 'scroll' PDC tag + scrolls config.
         HolyScrollService holyScrolls = new HolyScrollService(scrollCodec,
-                () -> items.config().scrollsOrDefault(), new java.util.Random());
-        NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault());
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages);
+        NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(), messages);
 
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
         SoulService soulService = new SoulService(souls, new SoulModeStore(),
                 new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault(),
-                () -> master.config().souls().depositOnAnyKill()); // §D deposit-on-any-kill master toggle
+                () -> master.config().souls().depositOnAnyKill(), messages); // §D deposit toggle + §L messages
 
         // One shared writable variable store (§A): the SET_VAR/INVERT_VAR effects write it through the
         // per-event sink, and conditions read it back as %name% through the dispatchers' FactPopulator.

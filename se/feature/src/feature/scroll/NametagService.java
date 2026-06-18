@@ -34,11 +34,18 @@ public final class NametagService {
 
     private final ScrollCodec scrolls;
     private final Supplier<ScrollsConfig> config;
+    private final item.lang.Messages messages; // §L lang.yml — rename prompt/result + guards
     private final ConcurrentHashMap<UUID, ItemStack> pending = new ConcurrentHashMap<>();
 
+    /** Default-messages form (tests/fixtures). */
     public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config) {
+        this(scrolls, config, item.lang.Messages.defaults());
+    }
+
+    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, item.lang.Messages messages) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.config = Objects.requireNonNull(config, "config");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Whether {@code stack} is an item nametag. */
@@ -66,7 +73,12 @@ public final class NametagService {
             return null; // a rename is already awaiting this player's chat line — don't start (or consume) a second
         }
         pending.put(player, target.clone()); // capture identity, not a volatile slot index
-        return ItemFactory.color(config.get().nametag().messagePrompt());
+        return messages.format("scroll.nametag.prompt");
+    }
+
+    /** The "a rename is already pending" message (§L lang.yml) — the listener shows it when {@link #begin} refuses. */
+    public String busyMessage() {
+        return messages.format("scroll.nametag.busy");
     }
 
     /** Whether {@code player} has a rename awaiting a chat line. */
@@ -95,31 +107,31 @@ public final class NametagService {
         String trimmed = text.trim();
         if (trimmed.equalsIgnoreCase("cancel")) {
             refund(player);
-            return ItemFactory.color(cfg.messageCancelled());
+            return messages.format("scroll.nametag.cancelled");
         }
         String translated = ItemFactory.color(trimmed);
         String plain = ChatColor.stripColor(translated).toLowerCase(Locale.ROOT);
         for (String word : cfg.blacklist()) {
             if (!word.isBlank() && plain.contains(word.toLowerCase(Locale.ROOT))) {
                 refund(player);
-                return ItemFactory.color(cfg.messageBlacklisted());
+                return messages.format("scroll.nametag.blacklisted");
             }
         }
         int slot = locate(player, token); // re-find the captured stack wherever it now sits
         if (slot < 0) {
             refund(player); // the target moved out of reach / changed — return the nametag, never lose it
-            return "§cThe item to rename is no longer there — your nametag was returned.";
+            return messages.format("scroll.nametag.target-gone");
         }
         ItemStack item = player.getInventory().getItem(slot);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             refund(player);
-            return "§cThat item cannot be renamed — your nametag was returned.";
+            return messages.format("scroll.nametag.cannot-rename");
         }
         meta.setDisplayName(translated);
         item.setItemMeta(meta);
         player.getInventory().setItem(slot, item);
-        return ItemFactory.color(cfg.messageRenamed());
+        return messages.format("scroll.nametag.renamed");
     }
 
     /** The slot of the first stack matching the captured {@code token} by identity, or {@code -1} if gone. */

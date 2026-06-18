@@ -20,21 +20,16 @@ import java.util.Objects;
  * @param lore                its lore lines ({@code {CRYSTAL}} placeholder)
  * @param successChance       drag-apply success chance, 0..100
  * @param consumeOnFail       whether a failed apply still consumes the crystal
- * @param messageApplySuccess chat on a successful apply ({@code {CRYSTAL}})
- * @param messageApplyFail    chat on a failed apply
- * @param messageNoSlots      chat when the gear has no free crystal slot
- * @param messageMerge        chat when two crystals merge ({@code {CRYSTAL}})
+ *
+ * <p>The apply/merge messages now live in {@code lang.yml} ({@code crystal.apply-success} /
+ * {@code crystal.apply-fail} / {@code crystal.no-slots} / {@code crystal.merge}) — §L centralised them.
  */
 public record CrystalConfig(
         String material,
         String name,
         List<String> lore,
         int successChance,
-        boolean consumeOnFail,
-        String messageApplySuccess,
-        String messageApplyFail,
-        String messageNoSlots,
-        String messageMerge) {
+        boolean consumeOnFail) {
 
     public CrystalConfig {
         Objects.requireNonNull(material, "material");
@@ -50,10 +45,6 @@ public record CrystalConfig(
                 "&d{CRYSTAL} Crystal",
                 List.of("&7Drag onto gear to apply.", "&7Merge two crystals into a multi-crystal."),
                 75,
-                true,
-                "&aApplied &f{CRYSTAL}&a to your item.",
-                "&cThe crystal shattered without taking hold.",
-                "&cThat item has no free crystal slot.",
-                "&dMerged into a multi-crystal: &f{CRYSTAL}&d.");
+                true);
     }
 }

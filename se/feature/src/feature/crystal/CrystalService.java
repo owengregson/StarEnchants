@@ -35,14 +35,22 @@ public final class CrystalService {
     private final ContentHolder content;
     private final Supplier<CrystalConfig> config;
     private final Random random;
+    private final item.lang.Messages messages; // §L lang.yml — apply/merge result messages
 
+    /** Default-messages form (tests/fixtures). */
     public CrystalService(CrystalItemCodec codec, ItemEnchanter enchanter, ContentHolder content,
                           Supplier<CrystalConfig> config, Random random) {
+        this(codec, enchanter, content, config, random, item.lang.Messages.defaults());
+    }
+
+    public CrystalService(CrystalItemCodec codec, ItemEnchanter enchanter, ContentHolder content,
+                          Supplier<CrystalConfig> config, Random random, item.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Whether {@code stack} is a physical crystal item. */
@@ -92,35 +100,34 @@ public final class CrystalService {
         if (!eligible.ok()) {
             // A slot-full message is configurable; other ineligibility uses the enchanter's reason.
             String message = eligible.message() != null && eligible.message().contains("crystal slot")
-                    ? color(cfg.messageNoSlots()) : eligible.message();
+                    ? messages.format("crystal.no-slots") : eligible.message();
             return CrystalResult.unchanged(message); // never consume on an ineligible target
         }
         String label = labelOf(crystal.keys());
         if (random.nextInt(100) < cfg.successChance()) {
             enchanter.applyCrystalEntry(gear, crystal.keys(), true); // re-validates + appends one slot entry
             consume(cursor);
-            return CrystalResult.committed(gear, color(cfg.messageApplySuccess().replace("{CRYSTAL}", label)));
+            return CrystalResult.committed(gear, messages.format("crystal.apply-success", "CRYSTAL", label));
         }
         if (cfg.consumeOnFail()) {
             consume(cursor);
-            return CrystalResult.committed(gear, color(cfg.messageApplyFail())); // gear unchanged, cursor spent
+            return CrystalResult.committed(gear, messages.format("crystal.apply-fail")); // gear unchanged, cursor spent
         }
-        return CrystalResult.unchanged(color(cfg.messageApplyFail()));
+        return CrystalResult.unchanged(messages.format("crystal.apply-fail"));
     }
 
     /** Merge two SINGLE crystals into a multi-crystal (pairs only): the target slot becomes the multi. */
     private CrystalResult merge(ItemStack cursor, CrystalItemData a, ItemStack target, CrystalItemData b) {
-        CrystalConfig cfg = config.get();
         if (target.getAmount() > 1) {
-            return CrystalResult.unchanged("§cMerge onto a single crystal — split the stack first.");
+            return CrystalResult.unchanged(messages.format("crystal.merge-single"));
         }
         CrystalItemData merged = a.mergeWith(b);
         if (merged == null) {
-            return CrystalResult.unchanged("§cMulti-crystals are pairs — you cannot merge a multi-crystal further.");
+            return CrystalResult.unchanged(messages.format("crystal.merge-pairs"));
         }
         ItemStack multi = mint(merged);
         consume(cursor);
-        return CrystalResult.committed(multi, color(cfg.messageMerge().replace("{CRYSTAL}", labelOf(merged.keys()))));
+        return CrystalResult.committed(multi, messages.format("crystal.merge", "CRYSTAL", labelOf(merged.keys())));
     }
 
     /** The component crystal display names joined for a {@code {CRYSTAL}} placeholder ({@code "Jolt + Frost"}). */
@@ -146,9 +153,5 @@ public final class CrystalService {
 
     private static void consume(ItemStack stack) {
         stack.setAmount(stack.getAmount() - 1);
-    }
-
-    private static String color(String raw) {
-        return ItemFactory.color(raw);
     }
 }

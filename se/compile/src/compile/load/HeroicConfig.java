@@ -22,8 +22,9 @@ import java.util.Objects;
  * @param durability       heroic item-damage-cancel probability granted on success ({@code 0..1})
  * @param materialUpgrades input-material token → upgraded-material token (within-category, e.g. DIAMOND→NETHERITE)
  * @param reductionScope   {@code ENTITY} (PvP/entity only, default) or {@code ALL} (all damage causes)
- * @param messageSuccess   chat on a successful upgrade
- * @param messageFail      chat on a failed upgrade
+ *
+ * <p>The success/fail messages now live in {@code lang.yml} ({@code heroic.success} / {@code heroic.fail}) —
+ * §L centralised them out of this likeness config.
  */
 public record HeroicConfig(
         String material,
@@ -35,9 +36,7 @@ public record HeroicConfig(
         double percentReduction,
         double durability,
         Map<String, String> materialUpgrades,
-        String reductionScope,
-        String messageSuccess,
-        String messageFail) {
+        String reductionScope) {
 
     public HeroicConfig {
         Objects.requireNonNull(material, "material");
@@ -75,8 +74,6 @@ public record HeroicConfig(
                         Map.entry("DIAMOND_BOOTS", "NETHERITE_BOOTS"),
                         Map.entry("DIAMOND_SWORD", "NETHERITE_SWORD"),
                         Map.entry("DIAMOND_AXE", "NETHERITE_AXE")),
-                "ENTITY",
-                "&6Heroic upgrade succeeded! &7Your gear is now &6heroic&7.",
-                "&cThe heroic upgrade failed — the upgrade was consumed.");
+                "ENTITY");
     }
 }
