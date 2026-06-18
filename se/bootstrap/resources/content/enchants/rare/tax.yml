@@ -1,4 +1,4 @@
-# Tax — every hit skims coin from your victim's purse. An ATTACK enchant using TAKE_MONEY against
+# Tax — every hit skims coin from your victim's purse. An ATTACK enchant using MODIFY_MONEY (mode=take) against
 # the @Victim (the EE/EA "tax"/"trade" family). A no-op on a server with no economy provider; the
 # withdraw is best-effort, taking only what the victim can afford. Money moves on the global thread.
 display: "&6Tax"
@@ -11,7 +11,7 @@ chance: { 1: 25, 2: 35, 3: 45 }
 scale:
   toll: { 1: 25, 2: 50, 3: 100 }
 effects:
-  - { TAKE_MONEY: { amount: $toll, who: "@Victim" } }
+  - { MODIFY_MONEY: { mode: take, amount: $toll, who: "@Victim" } }
 levels:
   3:
     effects+:

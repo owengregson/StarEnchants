@@ -219,10 +219,12 @@ class MigratorTest {
                 .map(Diagnostic::toString).collect(Collectors.joining("\n  "));
         assertFalse(library.hasErrors(), () -> "migrated AE output should compile clean:\n  " + blocking);
         assertEquals(2, library.snapshot().abilityCount(), "two levels ⇒ two compiled abilities");
-        // STEAL_MONEY has no verified equivalent → flagged, not silently dropped.
+        // STEAL_MONEY now maps to the canonical MODIFY_MONEY transfer mode (§C collapse) — no longer a TODO.
         String venom = result.files().get("enchants/venomaura.yml");
-        assertTrue(venom.contains("# TODO port manually: STEAL_MONEY:100 @Victim"),
-                "expected a TODO for the unmapped AE effect");
+        assertTrue(venom.contains("MODIFY_MONEY") && venom.contains("transfer"),
+                "expected STEAL_MONEY migrated to MODIFY_MONEY (transfer): " + venom);
+        assertFalse(venom.contains("# TODO port manually: STEAL_MONEY"),
+                "STEAL_MONEY now has a verified equivalent — no manual TODO");
         assertFalse(result.diagnostics().hasErrors(), "an unmapped AE effect is a warning, never an error");
     }
 
@@ -235,9 +237,10 @@ class MigratorTest {
         assertEquals("POTION:POISON:0:60:@Self", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se());
         assertEquals("HEAL:2:@Self", Mappings.aeEffect("ADD_HEALTH:2 @Self").se()); // AE add-health → HEAL
         assertEquals("DAMAGE:6:@Victim", Mappings.aeEffect("DAMAGE:6:@Victim").se()); // colon-attached selector
-        // Legacy %victim% form still maps; large money values survive (not int-capped).
-        assertEquals("GIVE_MONEY:5000000000:@Self", Mappings.aeEffect("ADD_MONEY:5000000000 @Self").se());
-        assertFalse(Mappings.aeEffect("STEAL_MONEY:100 @Victim").mapped(), "no verified equivalent → TODO");
+        // Legacy %victim% form still maps; large money values survive (not int-capped). Money collapsed to
+        // the canonical MODIFY_MONEY (§C): add→give, remove→take, and STEAL now maps to transfer mode.
+        assertEquals("MODIFY_MONEY:5000000000:give:@Self", Mappings.aeEffect("ADD_MONEY:5000000000 @Self").se());
+        assertEquals("MODIFY_MONEY:100:transfer:@Victim", Mappings.aeEffect("STEAL_MONEY:100 @Victim").se());
     }
 
     @Test

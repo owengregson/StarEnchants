@@ -11,12 +11,11 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code VELOCITY} — the canonical movement primitive (docs/v3-directives.md §C), collapsing
- * {@code THROW}/{@code LAUNCH}/{@code KNOCKBACK}. {@code mode=add} adds the {@code x/y/z} vector to each
- * target's velocity (what THROW/LAUNCH did, byte-identically); {@code mode=away} shoves each target back
- * from the activator with {@code strength} (what KNOCKBACK did). The shared {@link #apply} is the ONE place
- * the four heads converge, so there is no duplicated logic — THROW/LAUNCH/KNOCKBACK remain as back-compat
- * aliases that delegate here. {@link Affinity#TARGET_ENTITY}: each push routes to the target's own thread.
+ * {@code VELOCITY} — the canonical movement primitive (docs/v3-directives.md §C), which REPLACED the now-deleted
+ * {@code THROW}/{@code LAUNCH}/{@code KNOCKBACK} kinds (collapse = delete the redundant heads, authors use this
+ * one). {@code mode=add} adds the {@code x/y/z} vector to each target's velocity (what THROW/LAUNCH did);
+ * {@code mode=away} shoves each target back from the activator with {@code strength} (what KNOCKBACK did).
+ * {@link Affinity#TARGET_ENTITY}: each push routes to the target's own thread.
  */
 public final class VelocityEffect implements EffectKind {
 
@@ -40,22 +39,19 @@ public final class VelocityEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        apply(ctx, sink, ctx.str("mode"), ctx.dbl("x"), ctx.dbl("y"), ctx.dbl("z"), ctx.dbl("strength"));
-    }
-
-    /**
-     * The single velocity-application path shared by {@code VELOCITY} and the {@code THROW}/{@code LAUNCH}/
-     * {@code KNOCKBACK} aliases. {@code add} emits one {@code launch} intent per target; {@code away} emits one
-     * {@code knockback} (from the actor's location) per target. Reading {@code actor().getLocation()} mirrors
-     * the long-standing {@code KNOCKBACK} behavior.
-     */
-    static void apply(EffectCtx ctx, Sink sink, String mode, double x, double y, double z, double strength) {
+        String mode = ctx.str("mode");
         if ("away".equalsIgnoreCase(mode)) {
+            // mode=away: knock each target back from the activator (reading actor().getLocation() mirrors the
+            // former KNOCKBACK behavior); the dispatcher derives the away-from-actor direction.
             Location from = ctx.actor().getLocation();
+            double strength = ctx.dbl("strength");
             for (LivingEntity target : ctx.targets("who")) {
                 sink.knockback(target, from, strength);
             }
         } else {
+            double x = ctx.dbl("x");
+            double y = ctx.dbl("y");
+            double z = ctx.dbl("z");
             for (LivingEntity target : ctx.targets("who")) {
                 sink.launch(target, x, y, z);
             }

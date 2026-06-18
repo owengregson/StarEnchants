@@ -1,6 +1,6 @@
 # Juggernaut — a three-piece (pieces:3) armour bonus (§6.6). On DEFENSE, once three pieces are worn,
 # it makes you immovable: Resistance and Absorption on @Self, while shoving the @Attacker back
-# (KNOCKBACK — an attacker exists only on DEFENSE). Levelless: trigger/chance/effects sit at the top.
+# (VELOCITY mode=away — an attacker exists only on DEFENSE). Levelless: trigger/chance/effects sit at the top.
 display: "&6Juggernaut"
 description: "Stand immovable and shove attackers when the set is worn."
 trigger: DEFENSE
@@ -11,4 +11,4 @@ cooldown: 80
 effects:
   - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 0, duration: 60, who: "@Self" } }
   - { POTION: { effect: ABSORPTION, amplifier: 0, duration: 80, who: "@Self" } }
-  - { KNOCKBACK: { strength: 1.5, who: "@Attacker" } }
+  - { VELOCITY: { mode: away, strength: 1.5, who: "@Attacker" } }

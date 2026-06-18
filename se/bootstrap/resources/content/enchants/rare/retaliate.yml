@@ -15,4 +15,4 @@ effects:
 levels:
   3:
     effects+:
-      - { KNOCKBACK: { strength: 0.8, who: "@Attacker" } }
+      - { VELOCITY: { mode: away, strength: 0.8, who: "@Attacker" } }
