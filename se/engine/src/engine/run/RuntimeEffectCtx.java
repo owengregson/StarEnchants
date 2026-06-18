@@ -3,6 +3,7 @@ package engine.run;
 import engine.effect.EffectCtx;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -21,13 +22,15 @@ final class RuntimeEffectCtx implements EffectCtx {
     private final ActivationContext context;
     private final Map<String, List<LivingEntity>> targetsBySlot;
     private final int level;
+    private final UUID activeGem;
 
     RuntimeEffectCtx(Args args, ActivationContext context,
-                     Map<String, List<LivingEntity>> targetsBySlot, int level) {
+                     Map<String, List<LivingEntity>> targetsBySlot, int level, UUID activeGem) {
         this.args = args;
         this.context = context;
         this.targetsBySlot = targetsBySlot;
         this.level = level;
+        this.activeGem = activeGem;
     }
 
     @Override
@@ -83,5 +86,10 @@ final class RuntimeEffectCtx implements EffectCtx {
     @Override
     public int level() {
         return level;
+    }
+
+    @Override
+    public UUID activeGem() {
+        return activeGem;
     }
 }

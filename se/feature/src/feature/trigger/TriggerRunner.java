@@ -76,9 +76,10 @@ public final class TriggerRunner {
         if (candidates.length == 0) {
             return;
         }
-        Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, nowTicks.getAsLong())
+        long now = nowTicks.getAsLong();
+        Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0))
-                .facts(factPopulator.populate(context)) // gate-7 condition facts, read on the firing thread
+                .facts(factPopulator.populate(context, now)) // gate-7 condition facts, read on the firing thread
                 .location(context.location()); // captured on the firing thread → safe for the gate-2 guard
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
         executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);

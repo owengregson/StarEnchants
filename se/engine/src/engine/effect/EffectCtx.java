@@ -1,5 +1,6 @@
 package engine.effect;
 
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -52,4 +53,10 @@ public interface EffectCtx {
 
     /** The activating ability's level (enchants; {@code 0} for other sources). */
     int level();
+
+    /**
+     * The activator's active soul-gem id, or {@code null} when they are not in soul mode (REMOVE_SOULS).
+     * Souls bind to the activator, so this is the actor's gem — not a target's.
+     */
+    UUID activeGem();
 }

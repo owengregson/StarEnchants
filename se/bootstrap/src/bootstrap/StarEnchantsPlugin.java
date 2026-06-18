@@ -19,6 +19,7 @@ import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
 import engine.stores.SoulModeStore;
+import engine.stores.VarStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.apply.ItemEnchanter;
@@ -47,6 +48,7 @@ import feature.soul.SoulInteractListener;
 import feature.soul.SoulInventoryListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulService;
+import feature.trigger.EngineStoreListener;
 import feature.trigger.TriggerDispatch;
 import feature.trigger.TriggerListeners;
 import item.codec.CarrierCodec;
@@ -201,6 +203,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulService soulService = new SoulService(souls, new SoulModeStore(),
                 new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault());
 
+        // One shared writable variable store (§A): the SET_VAR/INVERT_VAR effects write it through the
+        // per-event sink, and conditions read it back as %name% through the dispatchers' FactPopulator.
+        VarStore vars = new VarStore();
+
         // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
         // ServicesManager; a server with none allows everything. The guard passes the firing location
         // (captured on the Activation, owned by the firing region) and the actor's UUID — no live-Player
@@ -234,10 +240,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
-                soulService::bindingFor, economy);
+                soulService::bindingFor, economy, soulService::debit, vars);
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
-                tick::get, soulService::bindingFor, economy);
+                tick::get, soulService::bindingFor, economy, soulService::debit, vars);
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content), this);
@@ -245,6 +251,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
+        getServer().getPluginManager().registerEvents(new EngineStoreListener(vars), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);

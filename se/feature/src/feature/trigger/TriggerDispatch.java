@@ -4,7 +4,10 @@ import compile.load.ContentHolder;
 import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
+import engine.run.FactPopulator;
 import engine.sink.DispatchSink;
+import engine.sink.SoulDebit;
+import engine.stores.VarStore;
 import engine.trigger.TriggerRegistry;
 import feature.soul.SoulBinding;
 import item.worn.WornStateStore;
@@ -36,6 +39,9 @@ public final class TriggerDispatch {
     private final RuntimeHandles handles;
     private final ContentHolder content;
     private final EconomyService economy;
+    private final SoulDebit souls;
+    private final VarStore vars;
+    private final LongSupplier nowTicks;
     private final IntPredicate attackTrigger;
 
     public final int mine;
@@ -56,17 +62,23 @@ public final class TriggerDispatch {
     public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder) {
-        this(executor, handles, content, worn, triggers, nowTicks, soulBinder, EconomyService.NONE);
+        this(executor, handles, content, worn, triggers, nowTicks, soulBinder, EconomyService.NONE,
+                SoulDebit.NONE, new VarStore());
     }
 
     /** Trigger dispatch with an economy: GIVE_MONEY/TAKE_MONEY on MINE/KILL/… deposit/withdraw via the sink. */
     public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
-                           Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy) {
-        this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks);
+                           Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
+                           SoulDebit souls, VarStore vars) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
+        this.souls = Objects.requireNonNull(souls, "souls");
+        this.vars = Objects.requireNonNull(vars, "vars");
+        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
+        this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
         this.attackTrigger = triggers.attackTriggers();
         this.mine = triggers.idOf("MINE").orElse(-1);
         this.kill = triggers.idOf("KILL").orElse(-1);
@@ -93,7 +105,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles, economy);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, nowTicks);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         if (cancellable != null && sink.cancelled()) {
@@ -112,7 +124,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = new DispatchSink(handles, economy);
+        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, nowTicks);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         event.setDamage(sink.fold().apply(event.getDamage()));

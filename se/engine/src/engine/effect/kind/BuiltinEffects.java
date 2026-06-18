@@ -43,6 +43,7 @@ public final class BuiltinEffects {
                 .register(new ExpEffect()) // §C canonical MODIFY_EXP (give/take/transfer); replaces GIVE_EXP
                 .register(new FoodEffect()) // §C canonical MODIFY_FOOD (give/take); replaces FEED
                 .register(new MoneyEffect()) // §C canonical MODIFY_MONEY (give/take/transfer); replaces GIVE_MONEY/TAKE_MONEY
+                .register(new RemoveSoulsEffect()) // §D actor-only soul debit; charges the activator's active gem
                 .register(new DisarmEffect())
                 // World / spawn intents.
                 .register(new ExplodeEffect())
@@ -64,6 +65,10 @@ public final class BuiltinEffects {
                 // §C temporary player-state primitives.
                 .register(new MovementSpeedEffect())
                 .register(new InvincibleEffect())
+                // §A writable variables + § combat-flags.
+                .register(new SetVarEffect()) // §A SET_VAR: per-player named var, read back as %name%
+                .register(new InvertVarEffect()) // §A INVERT_VAR: numeric flip of a per-player named var
+                .register(new IgnoreArmorEffect()) // § combat-flags IGNORE_ARMOR: hit bypasses armor/protection
                 .build();
     }
 }

@@ -1,6 +1,7 @@
 package engine.sink;
 
 import engine.interact.DamageFold;
+import engine.stores.VarStore;
 import java.util.List;
 import java.util.Objects;
 import net.md_5.bungee.api.ChatMessageType;
@@ -34,6 +35,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.LongSupplier;
 import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -78,21 +80,39 @@ public final class DispatchSink implements Sink {
 
     private final RuntimeHandles handles;
     private final EconomyService economy;
+    private final SoulDebit souls;
+    private final VarStore vars;
+    private final LongSupplier nowTicks;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold = new DamageFold();
 
     private boolean cancelled;
+    private boolean armorIgnored;
     private boolean flushed;
     private int delayTicks;
 
-    /** A sink with no economy — money intents are no-ops (the default for tests and economy-free paths). */
+    /** A bare sink — economy/soul intents are no-ops, vars write to a throwaway store (the test/economy-free default). */
     public DispatchSink(RuntimeHandles handles) {
-        this(handles, EconomyService.NONE);
+        this(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), () -> 0L);
     }
 
+    /** A sink with economy but no soul debit; vars write to a throwaway store. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy) {
+        this(handles, economy, SoulDebit.NONE, new VarStore(), () -> 0L);
+    }
+
+    /**
+     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + the current-tick supply
+     * the timed var TTLs read. The production dispatchers build one of these per event; the convenience
+     * ctors above default the new collaborators so every existing economy-free call site compiles unchanged.
+     */
+    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
+                        VarStore vars, LongSupplier nowTicks) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.economy = Objects.requireNonNull(economy, "economy");
+        this.souls = Objects.requireNonNull(souls, "souls");
+        this.vars = Objects.requireNonNull(vars, "vars");
+        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
 
     // ── Read-backs (called by the firing system, never by an effect) ─────────────────────────────
@@ -105,6 +125,11 @@ public final class DispatchSink implements Sink {
     /** Whether an effect asked for the triggering event to be cancelled (§3.6 event control). */
     public boolean cancelled() {
         return cancelled;
+    }
+
+    /** Whether an effect asked the triggering hit to ignore armor (§ combat-flags). Read by the combat dispatcher. */
+    public boolean armorIgnored() {
+        return armorIgnored;
     }
 
     /** Schedule every deferred intent on its owning thread; call once after the gate walk. Idempotent. */
@@ -654,11 +679,49 @@ public final class DispatchSink implements Sink {
         globalOp(() -> economy.withdraw(id, amount));
     }
 
+    // ── Soul intents ───────────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void removeSouls(Player holder, UUID gemId, int amount) {
+        if (holder == null || gemId == null || amount <= 0) {
+            return;
+        }
+        // Route to the HOLDER's own thread (not global like money): the debit write-throughs the gem's PDC
+        // wherever it sits in the holder's inventory, which is region-bound on Folia. The in-memory authority
+        // debit (SoulLedger.tryConsume, stripe-locked) happens inside SoulDebit.debit on that thread.
+        entityOp(holder, () -> souls.debit(holder, gemId, amount));
+    }
+
+    // ── Variable intents ───────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void setVar(Player target, String name, String value, int ttlTicks) {
+        if (target == null || name == null) {
+            return;
+        }
+        // Per-player in-memory state, not a world mutation: the VarStore is a ConcurrentHashMap, so writing
+        // it on the firing thread is Folia-safe (the UUID is captured here; no live cross-region entity read).
+        vars.set(target.getUniqueId(), name, value, nowTicks.getAsLong(), ttlTicks);
+    }
+
+    @Override
+    public void invertVar(Player target, String name) {
+        if (target == null || name == null) {
+            return;
+        }
+        vars.invert(target.getUniqueId(), name, nowTicks.getAsLong());
+    }
+
     // ── Event control ──────────────────────────────────────────────────────────────────────────
 
     @Override
     public void cancelEvent() {
         cancelled = true;
+    }
+
+    @Override
+    public void ignoreArmor() {
+        armorIgnored = true;
     }
 
     // ── Cross-version helpers ────────────────────────────────────────────────────────────────────

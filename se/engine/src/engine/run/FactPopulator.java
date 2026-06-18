@@ -5,9 +5,12 @@ import compile.cond.VarKind;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
+import engine.stores.VarStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.function.UnaryOperator;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
@@ -70,6 +73,8 @@ public final class FactPopulator {
     private record VictimStr(int slot, VictimS src) {}
 
     private final ThreadLocal<FactBuffer> buffer;
+    private final VarStore vars;
+    private final UnaryOperator<String> papiDelegate;
     private final List<ActorNum> actorNum = new ArrayList<>();
     private final List<ActorFlag> actorFlag = new ArrayList<>();
     private final List<ActorStr> actorStr = new ArrayList<>();
@@ -77,8 +82,20 @@ public final class FactPopulator {
     private final List<VictimFlag> victimFlag = new ArrayList<>();
     private final List<VictimStr> victimStr = new ArrayList<>();
 
+    /** A populator with no dynamic-var store and no PAPI (unknown tokens resolve to null) — the lower-level default. */
     public FactPopulator(VarVocabulary vocabulary) {
+        this(vocabulary, new VarStore(), t -> null);
+    }
+
+    /**
+     * A populator backed by a shared {@link VarStore} (the {@code SET_VAR}/{@code INVERT_VAR} write target)
+     * and an optional real-PAPI delegate. An unknown {@code %name%} token resolves: built-in slot (handled
+     * by the compiler/IR) → this player's dynamic var → {@code papiDelegate} → null.
+     */
+    public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate) {
         Objects.requireNonNull(vocabulary, "vocabulary");
+        this.vars = Objects.requireNonNull(vars, "vars");
+        this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
 
         // ── Actor (the firing player) ──
@@ -112,17 +129,41 @@ public final class FactPopulator {
         return new FactPopulator(BuiltinVars.vocabulary());
     }
 
+    /** A built-in populator backed by a shared {@link VarStore} so conditions can read {@code SET_VAR} dynamic vars. */
+    public static FactPopulator builtin(VarStore vars) {
+        return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null);
+    }
+
+    /** The thread-local buffer for {@code context}, with timed dynamic vars read at tick {@code 0}. */
+    public FactBuffer populate(ActivationContext context) {
+        return populate(context, 0L);
+    }
+
     /**
      * The thread-local buffer, cleared and repopulated from {@code context} (or just cleared if
      * {@code context} is {@code null}). One per trigger pass — installed on the {@code Activation} and
      * read by every candidate ability's condition gate before this method is next called on this thread.
+     *
+     * <p>After the built-in slots are filled, the buffer's unknown-token resolver is installed so a
+     * condition's {@code %name%} resolves the activator's dynamic var (from the {@link VarStore} at
+     * {@code nowTicks}) before falling through to real PAPI — the read side of {@code SET_VAR}.
      */
-    public FactBuffer populate(ActivationContext context) {
+    public FactBuffer populate(ActivationContext context, long nowTicks) {
         FactBuffer facts = buffer.get();
         facts.clear();
         if (context != null) {
             populateActor(facts, context.actor());
             populateVictim(facts, context.victim());
+            Player actor = context.actor();
+            if (actor != null) {
+                UUID id = actor.getUniqueId();
+                facts.papiResolver(token -> {
+                    String value = vars.get(id, token, nowTicks);
+                    return value != null ? value : papiDelegate.apply(token);
+                });
+            } else {
+                facts.papiResolver(papiDelegate);
+            }
         }
         return facts;
     }

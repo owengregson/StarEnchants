@@ -1,5 +1,6 @@
 package engine.sink;
 
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -194,8 +195,34 @@ public interface Sink {
     /** Withdraw up to {@code amount} from the player's account (TAKE_MONEY); best-effort if unaffordable. */
     void takeMoney(Player target, double amount);
 
+    // ── Soul intents (actor-only; debited from the activator's active gem, no-op without a soul system) ──
+
+    /**
+     * Debit {@code amount} souls from {@code holder}'s active gem {@code gemId} (REMOVE_SOULS). Souls bind
+     * to the activator, so there is no target — the holder is the constant end. Routed to the holder's own
+     * thread (the durable PDC write-through is region-bound to where the gem sits); a no-op without a soul
+     * system, a non-positive amount, or a gem that is not the seeded active one.
+     */
+    void removeSouls(Player holder, UUID gemId, int amount);
+
+    // ── Variable intents (per-player named vars, read back in later conditions as %name%) ──
+
+    /** Set {@code target}'s named variable to {@code value}; {@code ttlTicks <= 0} = no expiry (SET_VAR). */
+    void setVar(Player target, String name, String value, int ttlTicks);
+
+    /** Numerically invert {@code target}'s named variable (0↔1), preserving its remaining TTL (INVERT_VAR). */
+    void invertVar(Player target, String name);
+
     // ── Event control ──
 
     /** Cancel the Bukkit event that triggered this activation. */
     void cancelEvent();
+
+    /**
+     * Ask the triggering hit to ignore the victim's armor (and enchant-protection) reduction
+     * (IGNORE_ARMOR, § combat-flags). An inline read-back like {@link #cancelEvent()}: the combat
+     * dispatcher zeroes the event's ARMOR/MAGIC damage modifiers after the fold. Inert on a non-combat
+     * trigger (no damage event reads it).
+     */
+    void ignoreArmor();
 }

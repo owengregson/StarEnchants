@@ -265,6 +265,22 @@ public final class SoulService {
     }
 
     /**
+     * Debit {@code amount} souls from {@code holder}'s gem {@code gemId} — the {@code REMOVE_SOULS} effect's
+     * collaborator (engine-side {@link engine.sink.SoulDebit}, docs/v3-directives.md §D). Charges the
+     * in-memory authority atomically ({@link SoulLedger#tryConsume}) and write-throughs the new count to the
+     * gem's PDC <em>wherever it sits</em> via {@link #balanceFor} (NOT a main-hand assumption — the gem is
+     * usually in the bag during combat). MUST run on {@code holder}'s own thread (the {@code DispatchSink}
+     * routes it there). A non-positive amount, or a gem that is not the seeded active one, is a no-op — souls
+     * are only ever spent against the seeded active gem, so a stale PDC-only gem is never silently drained.
+     */
+    public void debit(Player holder, UUID gemId, int amount) {
+        if (amount <= 0 || ledger.peek(gemId).isEmpty()) {
+            return; // free, or the gem is not seeded/active → nothing to spend
+        }
+        ledger.tryConsume(gemId, balanceFor(holder, gemId), amount);
+    }
+
+    /**
      * Forget a player's soul mode + authority on quit. Runs on the player's own thread (the quit
      * event), so it FLUSHES the live authority to the gem's PDC before forgetting it — otherwise a
      * deferred write still in flight (or that an unloaded Folia entity will never run) would lose a

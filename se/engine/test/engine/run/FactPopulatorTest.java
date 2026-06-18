@@ -12,6 +12,8 @@ import compile.cond.VarKind;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
+import engine.stores.VarStore;
+import java.util.UUID;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -77,6 +79,21 @@ class FactPopulatorTest {
         lenient().when(inv.getItemInMainHand()).thenReturn(held);
         lenient().when(p.getInventory()).thenReturn(inv);
         return p;
+    }
+
+    @Test
+    void unknownTokenResolvesFromTheVarStoreThenFallsThroughToPapi() {
+        UUID id = UUID.randomUUID();
+        Player player = mock(Player.class);
+        when(player.getUniqueId()).thenReturn(id);
+        VarStore vars = new VarStore();
+        vars.set(id, "rage", "1", 100L, 0); // a dynamic var SET_VAR wrote for this player
+        FactPopulator pop = new FactPopulator(BuiltinVars.vocabulary(), vars, token -> "papi:" + token);
+
+        FactBuffer f = pop.populate(new ActivationContext(player, null, null, null), 100L);
+
+        assertEquals("1", f.resolvePapi("rage"));        // dynamic var wins over PAPI
+        assertEquals("papi:miss", f.resolvePapi("miss")); // store miss → falls through to the PAPI delegate
     }
 
     @Test

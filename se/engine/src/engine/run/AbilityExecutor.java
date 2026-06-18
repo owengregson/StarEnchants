@@ -17,6 +17,7 @@ import java.lang.System.Logger.Level;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -84,7 +85,7 @@ public final class AbilityExecutor {
             Ability ability = abilities[id];
             try {
                 if (pipeline.evaluate(ability, activation).activated()) {
-                    runEffects(ability, context, sink);
+                    runEffects(ability, context, sink, activation.activeGem());
                     activated++;
                     notifyActivation(ability, context, stableKeys);
                 }
@@ -130,7 +131,7 @@ public final class AbilityExecutor {
         return stableKey.endsWith(suffix) ? stableKey.substring(0, stableKey.length() - suffix.length()) : stableKey;
     }
 
-    private void runEffects(Ability ability, ActivationContext context, DispatchSink sink) {
+    private void runEffects(Ability ability, ActivationContext context, DispatchSink sink, UUID activeGem) {
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = effects.lookup(effect.head()).orElse(null);
@@ -139,7 +140,8 @@ public final class AbilityExecutor {
                     continue;
                 }
                 List<LivingEntity> targets = resolveTargets(effect, context);
-                EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets), ability.level());
+                EffectCtx ctx = new RuntimeEffectCtx(
+                        effect.args(), context, slotMap(kind, targets), ability.level(), activeGem);
                 // WAIT (§3.6): route this effect's world-mutation intents into its accumulated delay tier so
                 // they dispatch that many ticks after the hit. Targets are still resolved now, on the firing
                 // thread; the sink defers only the mutation (and keeps inline feedback — fold/cancel — instant).
