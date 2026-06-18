@@ -41,6 +41,7 @@ import feature.heroic.HeroicService;
 import feature.book.UnopenedBookListener;
 import feature.book.UnopenedBookService;
 import feature.menu.EnchantMenu;
+import feature.menu.MenuRegistry;
 import feature.scroll.HolyScrollListener;
 import feature.scroll.HolyScrollService;
 import feature.scroll.NametagListener;
@@ -317,17 +318,19 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             }
         });
 
-        // Enchant-application GUI: clicking an enchant icon applies it to the held item (the visual /se
-        // enchant). Opens on the player's thread; the click listener cancels item movement + applies inline.
-        EnchantMenu menu = new EnchantMenu(content, enchanter,
-                player -> worn.refresh(player, content.snapshot()));
-        getServer().getPluginManager().registerEvents(new MenuListener(menu), this);
+        // GUIs on the shared menu framework (§K). One listener routes every menu (recognised by MenuHolder);
+        // the registry maps a name → menu so `/se menu <name>` opens any of them. The direct-apply enchant
+        // menu ("apply") is the visual /se enchant. Menus open on the player's region thread (Folia open-hop).
+        EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
+                player -> worn.refresh(player, content.snapshot()), caps);
+        MenuRegistry menus = new MenuRegistry().register(applyMenu);
+        getServer().getPluginManager().registerEvents(new MenuListener(), this);
 
         PluginCommand command = getCommand("se");
         if (command != null) {
             SeCommand seCommand = new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
-                    getDataFolder().toPath().resolve("migrated"), menu, content,
+                    getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
                     scrolls, unopenedBooks, holyScrolls, nametags);
             command.setExecutor(seCommand);

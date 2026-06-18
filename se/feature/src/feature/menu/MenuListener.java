@@ -1,6 +1,5 @@
 package feature.menu;
 
-import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -8,19 +7,21 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 
 /**
- * Routes inventory interaction in a StarEnchants menu to the {@link EnchantMenu} (docs/architecture.md §7).
- * Recognises our menus by the {@link MenuHolder} on the view's top inventory and CANCELS every click and
- * drag in them — the menus are display-only, so no item can ever be inserted, removed, or rearranged —
- * then routes a click on an icon to the menu's handler. The event fires on the clicking player's region
- * thread, so the handler (which reads/writes that player's own inventory) runs inline and Folia-correct.
+ * The single shared router for every StarEnchants menu (docs/v3-directives.md §K). It recognises our menus
+ * by the {@link MenuHolder} on the view's top inventory and CANCELS every click and drag in them — the
+ * menus are display-only, so no item can ever be inserted, removed or rearranged — then invokes the
+ * {@link ClickAction} the menu bound to the clicked slot (if any). One listener serves all menus: there is
+ * no per-menu registration, because the holder carries its own {@link Menu} and action bindings.
+ *
+ * <p>The event fires on the clicking player's region thread (Folia) / main thread (Paper), so the action
+ * runs inline and may freely touch the clicking player's own inventory; cross-entity/world work inside an
+ * action must hop through {@code Scheduling} itself (folia-scheduling).
+ *
+ * <p>Crystal / slot / carrier / scroll <em>drag gestures</em> operate in the player's normal inventory (no
+ * {@code MenuHolder} open) through their own listeners and are unaffected — this listener only ever fires
+ * when one of our menus is the open top inventory.
  */
 public final class MenuListener implements Listener {
-
-    private final EnchantMenu menu;
-
-    public MenuListener(EnchantMenu menu) {
-        this.menu = Objects.requireNonNull(menu, "menu");
-    }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
@@ -35,7 +36,10 @@ public final class MenuListener implements Listener {
         if (raw < 0 || raw >= event.getView().getTopInventory().getSize()) {
             return; // a click in the player's own inventory (below our menu) — cancelled above, nothing to do
         }
-        menu.handleClick(player, holder, raw);
+        ClickAction action = holder.actionAt(raw);
+        if (action != null) {
+            action.onClick(new MenuClick(player, holder, event.getClick()));
+        }
     }
 
     @EventHandler

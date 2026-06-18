@@ -5,7 +5,8 @@ import compile.load.CrystalDef;
 import compile.load.EnchantDef;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
-import feature.menu.EnchantMenu;
+import feature.menu.Menu;
+import feature.menu.MenuRegistry;
 import feature.soul.SoulService;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -50,7 +51,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final Consumer<Player> refreshWorn;
     private final SoulService souls;
     private final Path migrationTarget;
-    private final EnchantMenu menu;
+    private final MenuRegistry menus;
     private final ContentHolder content;
     private final java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs;
     private final feature.carrier.CarrierService carriers;
@@ -63,7 +64,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.scroll.NametagService nametags;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
-              Path migrationTarget, EnchantMenu menu, ContentHolder content,
+              Path migrationTarget, MenuRegistry menus, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
               feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
@@ -74,7 +75,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.refreshWorn = refreshWorn;
         this.souls = souls;
         this.migrationTarget = migrationTarget;
-        this.menu = menu;
+        this.menus = menus;
         this.content = content;
         this.migrateSpecs = migrateSpecs;
         this.carriers = carriers;
@@ -111,7 +112,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "soulmode" -> toggleSoulMode(sender);
             case "split" -> splitSoul(sender, args);
             case "migrate" -> migrate(sender, args);
-            case "menu" -> openMenu(sender);
+            case "menu" -> openMenu(sender, args);
             default -> usage(sender);
         }
         return true;
@@ -122,12 +123,19 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return complete(args,
                 content.library().catalog().stream().map(EnchantDef::key).toList(),
                 content.library().crystals().stream().map(CrystalDef::key).toList(),
-                content.library().tiers().tiers().stream().map(t -> t.name()).toList());
+                content.library().tiers().tiers().stream().map(t -> t.name()).toList(),
+                menus.names());
     }
 
-    /** As {@link #complete(String[], List, List, List)} with no tier completions (legacy 3-arg form). */
+    /** As the canonical form with no tier/menu completions (legacy 3-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys) {
         return complete(args, enchantKeys, crystalKeys, List.of());
+    }
+
+    /** As the canonical form with no menu-name completions (4-arg form). */
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
+                                 List<String> tierNames) {
+        return complete(args, enchantKeys, crystalKeys, tierNames, List.of());
     }
 
     /**
@@ -136,7 +144,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
      * {@code --dry-run} for reload). Extracted from Bukkit so it is unit-tested without a server.
      */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames) {
+                                 List<String> tierNames, List<String> menuNames) {
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }
@@ -145,6 +153,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 case "enchant", "book" -> filter(enchantKeys, args[1]);
                 case "crystal" -> filter(crystalKeys, args[1]);
                 case "unopened" -> filter(tierNames, args[1]);
+                case "menu" -> filter(menuNames, args[1]);
                 case "migrate" -> filter(List.of("ee", "ea", "ae"), args[1]);
                 case "reload" -> filter(List.of("--dry-run"), args[1]);
                 default -> List.of();
@@ -236,10 +245,19 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /** {@code /se menu} — open the enchant-application menu (on the player's own region thread). */
-    private void openMenu(CommandSender sender) {
+    /** The menu {@code /se menu} (no name) opens — the direct-apply enchant GUI. */
+    private static final String DEFAULT_MENU = "apply";
+
+    /** {@code /se menu [name]} — open a registered GUI (on the player's own region thread via the open-hop). */
+    private void openMenu(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("§cThat command can only be run by a player.");
+            return;
+        }
+        String name = args.length >= 2 ? args[1] : DEFAULT_MENU;
+        Menu menu = menus.get(name).orElse(null);
+        if (menu == null) {
+            sender.sendMessage("§cUnknown menu '" + name + "'. §7Available: " + String.join(", ", menus.names()));
             return;
         }
         menu.open(player);
@@ -506,7 +524,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§e  /se holy §7— mint a holy scroll (survive a death once)");
         sender.sendMessage("§e  /se nametag §7— mint an item nametag (rename gear via chat)");
         sender.sendMessage("§e  /se unopened <tier> §7— mint an unopened book (right-click to reveal)");
-        sender.sendMessage("§e  /se menu §7— open the enchant-application menu");
+        sender.sendMessage("§e  /se menu [name] §7— open a GUI (default: the enchant-application menu)");
         sender.sendMessage("§e  /se gem §7— mint a soul gem (right-click it to toggle soul mode)");
         sender.sendMessage("§e  /se soulmode §7— toggle soul mode for the held gem");
         sender.sendMessage("§e  /se split <amount> §7— split souls off the held gem into a new gem");

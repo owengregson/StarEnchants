@@ -7,6 +7,7 @@ import compile.load.LibraryLoader;
 import engine.boot.ContentCompiler;
 import feature.apply.ItemEnchanter;
 import feature.menu.EnchantMenu;
+import feature.menu.MenuHolder;
 import feature.menu.MenuListener;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
@@ -29,6 +30,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import platform.caps.Capabilities;
 import platform.item.ItemGroups;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
@@ -75,13 +77,14 @@ public final class MenuSuite implements Harness.Scenario {
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
-            menu = new EnchantMenu(holder, enchanter, player -> { }); // no WornState store needed for this check
+            // no WornState store needed for this check; caps drives the cross-version title cap
+            menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
         } catch (IOException e) {
             h.fail("menu.clickAppliesEnchant", e.toString());
             return;
         }
 
-        MenuListener listener = new MenuListener(menu);
+        MenuListener listener = new MenuListener();
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
 
         World world = plugin.getServer().getWorlds().get(0);
@@ -102,8 +105,11 @@ public final class MenuSuite implements Harness.Scenario {
                 }
                 Scheduling.onEntity(player, () -> {
                     player.getInventory().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
-                    // Open page 0 server-side and dispatch a real click on slot 0 (the only enchant, "keen").
-                    InventoryView view = player.openInventory(menu.build(0));
+                    // Render page 0 into a holder server-side and dispatch a real click on slot 0 (the only
+                    // enchant, "keen"). The shared MenuListener routes the click through the holder's menu.
+                    MenuHolder menuHolder = new MenuHolder(menu);
+                    menu.render(menuHolder);
+                    InventoryView view = player.openInventory(menuHolder.getInventory());
                     InventoryClickEvent click = new InventoryClickEvent(view, InventoryType.SlotType.CONTAINER,
                             0, ClickType.LEFT, InventoryAction.PICKUP_ALL);
                     plugin.getServer().getPluginManager().callEvent(click); // handled inline by MenuListener
