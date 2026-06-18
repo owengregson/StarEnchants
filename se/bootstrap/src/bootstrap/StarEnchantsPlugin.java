@@ -18,6 +18,7 @@ import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
+import engine.stores.KnockbackControlStore;
 import engine.stores.RepeatStore;
 import engine.stores.SoulModeStore;
 import engine.stores.SuppressionStore;
@@ -30,6 +31,7 @@ import feature.carrier.CarrierService;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
+import feature.combat.KnockbackListener;
 import feature.crystal.CrystalListener;
 import feature.crystal.CrystalService;
 import feature.heroic.HeroicListener;
@@ -214,6 +216,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // One shared suppression store (§C SUPPRESS): the SUPPRESS effect writes it through the per-event
         // sink, and gate 5 of the pipeline reads it across the three DISABLE scopes. Same instance both ends.
         SuppressionStore suppression = new SuppressionStore();
+        // One shared knockback-control store (§C KNOCKBACK_CONTROL): the effect writes a short-TTL per-victim
+        // multiplier through the per-event sink, and the knockback listener (a SEPARATE event the same tick)
+        // reads it to cancel/scale the launch. Same instance both ends.
+        KnockbackControlStore knockback = new KnockbackControlStore();
 
         // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
         // ServicesManager; a server with none allows everything. The guard passes the firing location
@@ -248,10 +254,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
-                soulService::bindingFor, economy, soulService::debit, vars, suppression);
+                soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback);
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
-                tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression);
+                tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback);
         // §B REPEATING lifecycle: one entity-owned repeating task per (player, repeating ability), armed by
         // EquipListener on every equip change and torn down on quit/disable. RepeatStore owns the mapping.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
@@ -263,7 +269,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
-        getServer().getPluginManager().registerEvents(new EngineStoreListener(vars, suppression), this);
+        getServer().getPluginManager().registerEvents(new EngineStoreListener(vars, suppression, knockback), this);
+        // §C KNOCKBACK_CONTROL: hook whichever knockback event this server fires (modern bukkit / legacy
+        // destroystokyo), capability-probed. A no-op on a server with neither (the effect is simply inert).
+        KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);
+        getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);
