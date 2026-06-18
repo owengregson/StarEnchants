@@ -21,6 +21,7 @@ import tester.suite.CrystalSuite;
 import tester.suite.EconomyItemsSuite;
 import tester.suite.EconomySuite;
 import tester.suite.FakePlayerSuite;
+import tester.suite.GuiSuite;
 import tester.suite.HeroicSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
@@ -96,6 +97,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new ProtectionSuite(this)); // gate-2 protection blocks/allows a hit by location
         harness.add(new EconomySuite(this)); // MODIFY_MONEY deposits via a discovered economy provider
         harness.add(new MenuSuite(this)); // the enchant-apply GUI applies on click, end-to-end
+        harness.add(new GuiSuite(this)); // §K interactive benches: input-slot lock, combine, salvage, close-return
         harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
         harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
         harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
