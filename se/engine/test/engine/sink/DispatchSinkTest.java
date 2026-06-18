@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import engine.stores.CooldownStore;
+import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
 import java.util.UUID;
@@ -211,5 +212,20 @@ class DispatchSinkTest {
 
         assertTrue(store.isSuppressed(id, CooldownStore.key(1, 7), 100L));
         assertFalse(store.isSuppressed(id, CooldownStore.key(1, 7), 140L)); // expires at 140
+    }
+
+    @Test
+    void controlKnockbackWritesThroughToTheStoreWithTheCapturedUuidAndTick() {
+        LivingEntity victim = mock(LivingEntity.class);
+        UUID id = UUID.randomUUID();
+        when(victim.getUniqueId()).thenReturn(id);
+        KnockbackControlStore store = new KnockbackControlStore();
+
+        DispatchSink sink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE,
+                new VarStore(), new SuppressionStore(), store, () -> 100L);
+        sink.controlKnockback(victim, 0.0, 5); // per-victim state, written immediately (no flush needed)
+
+        assertEquals(0.0, store.multiplier(id, 100L)); // cancel flag live now
+        assertTrue(Double.isNaN(store.multiplier(id, 105L)), "expires at tick 105");
     }
 }

@@ -235,4 +235,13 @@ public interface Sink {
      * trigger (no damage event reads it).
      */
     void ignoreArmor();
+
+    /**
+     * Scale {@code victim}'s incoming knockback for {@code ttlTicks} (KNOCKBACK_CONTROL, § combat-flags):
+     * {@code multiplier <= 0} cancels it, {@code 0.5} halves it, {@code 2} doubles it. Unlike
+     * {@link #ignoreArmor()}, the knockback is a SEPARATE Bukkit event fired the same tick as the hit, so
+     * this cannot be an inline read-back — it writes a short-TTL per-victim flag a knockback listener reads.
+     * Inert on a server with no knockback event. The clamp at zero and TTL live in the store.
+     */
+    void controlKnockback(LivingEntity victim, double multiplier, int ttlTicks);
 }

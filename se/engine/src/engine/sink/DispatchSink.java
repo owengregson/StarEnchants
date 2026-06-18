@@ -2,6 +2,7 @@ package engine.sink;
 
 import engine.interact.DamageFold;
 import engine.stores.CooldownStore;
+import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
 import java.util.List;
@@ -85,6 +86,7 @@ public final class DispatchSink implements Sink {
     private final SoulDebit souls;
     private final VarStore vars;
     private final SuppressionStore suppression;
+    private final KnockbackControlStore knockback;
     private final LongSupplier nowTicks;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold = new DamageFold();
@@ -94,29 +96,42 @@ public final class DispatchSink implements Sink {
     private boolean flushed;
     private int delayTicks;
 
-    /** A bare sink — economy/soul intents are no-ops, vars/suppression write to throwaway stores (the test default). */
+    /** A bare sink — economy/soul intents are no-ops, vars/suppression/knockback write to throwaway stores (the test default). */
     public DispatchSink(RuntimeHandles handles) {
         this(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
     }
 
-    /** A sink with economy but no soul debit; vars/suppression write to throwaway stores. */
+    /** A sink with economy but no soul debit; vars/suppression/knockback write to throwaway stores. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy) {
         this(handles, economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
     }
 
     /**
-     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + a shared
-     * {@link SuppressionStore} + the current-tick supply the timed var/suppression TTLs read. The
-     * production dispatchers build one of these per event; the convenience ctors above default the new
-     * collaborators so every existing economy-free call site compiles unchanged.
+     * Convenience ctor: economy + soul debit + shared {@link VarStore}/{@link SuppressionStore} but a
+     * throwaway {@link KnockbackControlStore}. Defaulting the knockback store here keeps every existing
+     * call site (tests + the §C SUPPRESS-era six-arg sites) compiling unchanged while the production
+     * dispatchers reach for the full ctor below to share the real knockback store with its listener.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, LongSupplier nowTicks) {
+        this(handles, economy, souls, vars, suppression, new KnockbackControlStore(), nowTicks);
+    }
+
+    /**
+     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + a shared
+     * {@link SuppressionStore} + a shared {@link KnockbackControlStore} + the current-tick supply the timed
+     * var/suppression/knockback TTLs read. The production dispatchers build one of these per event so the
+     * KNOCKBACK_CONTROL flag a hit writes is visible to the (separate) knockback event's listener.
+     */
+    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
+                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
+                        LongSupplier nowTicks) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
         this.vars = Objects.requireNonNull(vars, "vars");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
+        this.knockback = Objects.requireNonNull(knockback, "knockback");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
 
@@ -741,6 +756,17 @@ public final class DispatchSink implements Sink {
     @Override
     public void ignoreArmor() {
         armorIgnored = true;
+    }
+
+    @Override
+    public void controlKnockback(LivingEntity victim, double multiplier, int ttlTicks) {
+        if (victim == null) {
+            return;
+        }
+        // Per-victim in-memory flag read later by the knockback listener (a separate Bukkit event from this
+        // hit). The store is concurrent and only the victim's UUID is captured here, so writing it on the
+        // firing thread is Folia-safe — no cross-region live entity read, no scheduler hop.
+        knockback.control(victim.getUniqueId(), multiplier, nowTicks.getAsLong(), ttlTicks);
     }
 
     // ── Cross-version helpers ────────────────────────────────────────────────────────────────────
