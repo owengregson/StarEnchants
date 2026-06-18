@@ -131,18 +131,15 @@ public interface Sink {
 
     // ── World / block intents ──
 
-    void lightning(Location at);
-
-    void spawn(Location at, int entityTypeId);
-
-    /** Spawn primed TNT at a location. */
-    void spawnTnt(Location at, int count);
+    /**
+     * Spawn {@code count} entities of an interned type at {@code at} (SPAWN_ENTITY). {@code ttlTicks > 0}
+     * auto-removes each after that many ticks; {@code health > 0} sets each living spawn's max + current
+     * health. Replaces the old {@code spawn}/{@code spawnTnt} intents (a primed-TNT type auto-primes).
+     */
+    void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health);
 
     /** Spawn an explosion at a location, optionally breaking blocks. */
     void explode(Location at, double power, boolean breakBlocks);
-
-    /** Launch a fireball from a player, with the given explosion yield. */
-    void fireball(Player shooter, double yield);
 
     /** Spawn a cosmetic firework at a location with the given flight power (FIREWORK). */
     void firework(Location at, int power);

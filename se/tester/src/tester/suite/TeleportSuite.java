@@ -116,8 +116,12 @@ public final class TeleportSuite implements Harness.Scenario {
                 LivingEntity victim;
                 try {
                     attacker = FakePlayers.spawn(world, "se_tp_atk");
-                    // 5 blocks away (same region) so the teleport is observable but stays in-region.
-                    victim = (LivingEntity) world.spawnEntity(spawn.clone().add(0, 0, 5), EntityType.COW);
+                    // 8 blocks away (same region) so the teleport is observable but stays in-region. The gap
+                    // is deliberately wider than the bare minimum: on the 1.17.1 floor a teleport into a
+                    // mob's space lands the player a couple of blocks SHORT of the target (collision push-out),
+                    // so a 5-block gap left the move (~2.5) just under the threshold. 8 blocks clears it with
+                    // margin on every platform while a non-teleport still reads ~0.
+                    victim = (LivingEntity) world.spawnEntity(spawn.clone().add(0, 0, 8), EntityType.COW);
                     // Pin the cow: a wandering cow drifts toward the attacker before the hit, shrinking the
                     // teleport distance below the threshold (the flake that surfaced as "moved 2.12 blocks").
                     victim.setAI(false);

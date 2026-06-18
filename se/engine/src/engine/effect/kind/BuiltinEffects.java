@@ -37,8 +37,6 @@ public final class BuiltinEffects {
                 .register(new CureEffect())
                 .register(new SoundEffect())
                 .register(new ParticleEffect())
-                .register(new SpawnEffect())
-                .register(new StrikeEffect())
                 // Entity-state intents.
                 .register(new KillEffect())
                 .register(new ExtinguishEffect())
@@ -50,8 +48,7 @@ public final class BuiltinEffects {
                 .register(new DisarmEffect())
                 // World / spawn intents.
                 .register(new ExplodeEffect())
-                .register(new SpawnTntEffect())
-                .register(new FireballEffect())
+                .register(new SpawnEntityEffect()) // §C canonical; replaces SPAWN/TNT (FIREBALL folded into PROJECTILE)
                 // Movement + vitals.
                 .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK
                 .register(new FlyEffect())

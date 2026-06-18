@@ -49,7 +49,7 @@ public final class MenuSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:1"] }
+              1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
             """;
 
     private final Plugin plugin;

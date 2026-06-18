@@ -55,7 +55,10 @@ public final class Aliases {
             Map.entry("PIG_ZOMBIE", "ZOMBIFIED_PIGLIN"),
             Map.entry("ZOMBIE_PIGMAN", "ZOMBIFIED_PIGLIN"),
             Map.entry("SNOWMAN", "SNOW_GOLEM"),
-            Map.entry("MUSHROOM_COW", "MOOSHROOM"));
+            Map.entry("MUSHROOM_COW", "MOOSHROOM"),
+            // Primed TNT: PRIMED_TNT on the floor, renamed to TNT in modern. One entry resolves both
+            // spellings on both eras (HandleResolver also matches a modern token against an older server).
+            Map.entry("PRIMED_TNT", "TNT"));
 
     private static final Map<String, String> MATERIAL = Map.ofEntries(
             Map.entry("SULPHUR", "GUNPOWDER"),

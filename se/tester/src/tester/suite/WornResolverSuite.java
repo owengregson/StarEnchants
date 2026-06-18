@@ -44,9 +44,9 @@ public final class WornResolverSuite implements Harness.Scenario {
             display: Lifesteal
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
-              2: { chance: 100, effects: ["HEAL:4"] }
-              3: { chance: 100, effects: ["HEAL:6"] }
+              1: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
+              2: { chance: 100, effects: ["MODIFY_HEALTH:4"] }
+              3: { chance: 100, effects: ["MODIFY_HEALTH:6"] }
             """;
 
     private final Plugin plugin;
@@ -59,7 +59,7 @@ public final class WornResolverSuite implements Harness.Scenario {
     public void accept(Harness h) {
         h.expect("worn.resolveFromArmor");
 
-        // Build a snapshot from temp content (HEAL is handle-free, so loading on the global thread
+        // Build a snapshot from temp content (MODIFY_HEALTH is handle-free, so loading on the global thread
         // resolves nothing version-volatile and is safe here).
         Snapshot snapshot;
         int expectedId;
