@@ -70,7 +70,7 @@ public final class ConditionSuite implements Harness.Scenario {
             display: LowStrike
             trigger: ATTACK
             levels:
-              1: { chance: 100, condition: "%victim.health% >= 8", effects: ["POTION:POISON:0:80:@Victim"] }
+              1: { chance: 100, condition: "%victim.health% >= 8", effects: ["POTION:POISON:1:80:@Victim"] }
             """;
 
     // Gates on a numeric ACTOR fact AND a string VICTIM fact, so one hit proves both slot kinds populate.
@@ -78,7 +78,7 @@ public final class ConditionSuite implements Harness.Scenario {
             display: ActorGate
             trigger: ATTACK
             levels:
-              1: { chance: 100, condition: "%actor.health% >= 10 && %victim.type% == \\"COW\\"", effects: ["POTION:POISON:0:80:@Victim"] }
+              1: { chance: 100, condition: "%actor.health% >= 10 && %victim.type% == \\"COW\\"", effects: ["POTION:POISON:1:80:@Victim"] }
             """;
 
     private final Plugin plugin;

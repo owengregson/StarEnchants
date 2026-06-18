@@ -10,20 +10,20 @@ max-level: 3
 chance: 100
 cooldown: { 1: 240, 2: 210, 3: 180 }
 scale:
-  haste_amp: { 1: 0, 2: 1, 3: 2 }
+  haste_amp: { 1: 1, 2: 2, 3: 3 }
   haste_dur: { 1: 160, 2: 200, 3: 240 }
   nv_dur: { 1: 160, 2: 200, 3: 240 }
   parts: { 1: 15, 2: 25, 3: 35 }
 effects:
-  - { POTION: { effect: HASTE, amplifier: $haste_amp, duration: $haste_dur, who: "@Self" } }
-  - { POTION: { effect: NIGHT_VISION, amplifier: 0, duration: $nv_dur, who: "@Self" } }
+  - { POTION: { effect: HASTE, level: $haste_amp, duration: $haste_dur, who: "@Self" } }
+  - { POTION: { effect: NIGHT_VISION, level: 1, duration: $nv_dur, who: "@Self" } }
   - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
   - { PARTICLE: { particle: WITCH, count: $parts } }
 levels:
   3:
     effects:
-      - { POTION: { effect: HASTE, amplifier: 2, duration: 240, who: "@Self" } }
-      - { POTION: { effect: NIGHT_VISION, amplifier: 0, duration: 240, who: "@Self" } }
-      - { POTION: { effect: STRENGTH, amplifier: 0, duration: 240, who: "@Self" } }
+      - { POTION: { effect: HASTE, level: 3, duration: 240, who: "@Self" } }
+      - { POTION: { effect: NIGHT_VISION, level: 1, duration: 240, who: "@Self" } }
+      - { POTION: { effect: STRENGTH, level: 1, duration: 240, who: "@Self" } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
       - { PARTICLE: { particle: WITCH, count: 35 } }

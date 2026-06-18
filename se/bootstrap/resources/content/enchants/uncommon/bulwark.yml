@@ -13,4 +13,4 @@ effects:
 levels:
   3:
     effects+:
-      - { POTION: { effect: DAMAGE_RESISTANCE, amplifier: 0, duration: 40, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 40, who: "@Self" } }

@@ -20,4 +20,4 @@ levels:
     effects:
       - { FILL_OXYGEN: {} }
       - { PARTICLE: { particle: CLOUD, count: 6 } }
-      - { POTION: { effect: NIGHT_VISION, amplifier: 0, duration: 200 } }
+      - { POTION: { effect: NIGHT_VISION, level: 1, duration: 200 } }

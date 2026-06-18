@@ -12,7 +12,7 @@ scale:
   dur: { 1: 60, 2: 100, 3: 160 }
 effects:
   - { EXTINGUISH: { who: "@Self" } }
-  - { POTION: { effect: FIRE_RESISTANCE, amplifier: 0, duration: $dur, who: "@Self" } }
+  - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: $dur, who: "@Self" } }
 levels:
   3:
     effects+:

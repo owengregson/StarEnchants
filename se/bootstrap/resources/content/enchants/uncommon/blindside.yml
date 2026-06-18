@@ -8,16 +8,16 @@ levels:
   1:
     chance: 20
     effects:
-      - { POTION: { effect: BLINDNESS, amplifier: 0, duration: 40, who: "@Victim" } }
+      - { POTION: { effect: BLINDNESS, level: 1, duration: 40, who: "@Victim" } }
   2:
     chance: 28
     effects:
-      - { POTION: { effect: BLINDNESS, amplifier: 0, duration: 60, who: "@Victim" } }
-      - { POTION: { effect: NAUSEA, amplifier: 0, duration: 60, who: "@Victim" } }
+      - { POTION: { effect: BLINDNESS, level: 1, duration: 60, who: "@Victim" } }
+      - { POTION: { effect: NAUSEA, level: 1, duration: 60, who: "@Victim" } }
   3:
     chance: 36
     cooldown: 0
     effects:
-      - { POTION: { effect: BLINDNESS, amplifier: 0, duration: 80, who: "@Victim" } }
-      - { POTION: { effect: NAUSEA, amplifier: 0, duration: 80, who: "@Victim" } }
+      - { POTION: { effect: BLINDNESS, level: 1, duration: 80, who: "@Victim" } }
+      - { POTION: { effect: NAUSEA, level: 1, duration: 80, who: "@Victim" } }
       - { MESSAGE: { text: "&8You strike from the shadows!" } }

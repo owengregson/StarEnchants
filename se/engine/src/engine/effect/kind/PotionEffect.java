@@ -29,12 +29,13 @@ public final class PotionEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("POTION")
             .param("effect", D.potionEffect())
-            .param("amplifier", D.INT.min(0))
+            .param("level", D.INT.min(1))
             .param("duration", D.TICKS)
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
-            .doc("Apply a potion effect to the target(s). The effect name is resolved to a handle at compile time."
-                    + " On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).")
+            .doc("Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier),"
+                    + " for a duration in ticks. The effect name is resolved to a handle at compile time. On a"
+                    + " HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).")
             .example("POTION:STRENGTH:1:100")
             .build();
 
@@ -46,7 +47,7 @@ public final class PotionEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         int effect = ctx.integer("effect");
-        int amplifier = ctx.integer("amplifier");
+        int amplifier = ctx.integer("level") - 1; // §C: authored level is 1-based; Bukkit amplifier is 0-based
         int duration = ctx.integer("duration");
         for (LivingEntity target : ctx.targets("who")) {
             sink.potion(target, effect, amplifier, duration);

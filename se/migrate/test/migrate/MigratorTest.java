@@ -234,7 +234,7 @@ class MigratorTest {
         // direction here) AE @Attacker is the WIELDER → StarEnchants @Self (NOT @Attacker, which is empty
         // on the attack side); AE @Victim is the foe → @Victim.
         assertEquals("DAMAGE:4:@Victim", Mappings.aeEffect("DAMAGE:4 @Victim").se());
-        assertEquals("POTION:POISON:0:60:@Self", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se());
+        assertEquals("POTION:POISON:1:60:@Self", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se()); // §C: AE amplifier 0 → SE level 1
         assertEquals("MODIFY_HEALTH:2:give:@Self", Mappings.aeEffect("ADD_HEALTH:2 @Self").se()); // AE add-health → MODIFY_HEALTH (give)
         assertEquals("DAMAGE:6:@Victim", Mappings.aeEffect("DAMAGE:6:@Victim").se()); // colon-attached selector
         // Legacy %victim% form still maps; large money values survive (not int-capped). Money collapsed to

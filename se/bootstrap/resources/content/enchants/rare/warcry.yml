@@ -12,23 +12,23 @@ levels:
     chance: 100
     cooldown: 200
     effects:
-      - { POTION: { effect: STRENGTH, amplifier: 0, duration: 120, who: "@Self" } }
+      - { POTION: { effect: STRENGTH, level: 1, duration: 120, who: "@Self" } }
       - { SOUND: { sound: ENTITY_WITHER_SPAWN, volume: 1, pitch: 1 } }
       - { MESSAGE: { text: "&6Warcry!" } }
   2:
     chance: 100
     cooldown: 180
     effects:
-      - { POTION: { effect: STRENGTH, amplifier: 1, duration: 120, who: "@Self" } }
-      - { POTION: { effect: SPEED, amplifier: 0, duration: 120, who: "@Self" } }
+      - { POTION: { effect: STRENGTH, level: 2, duration: 120, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 1, duration: 120, who: "@Self" } }
       - { SOUND: { sound: ENTITY_WITHER_SPAWN, volume: 1, pitch: 1 } }
       - { MESSAGE: { text: "&6Warcry!" } }
   3:
     chance: 100
     cooldown: 160
     effects:
-      - { POTION: { effect: STRENGTH, amplifier: 1, duration: 160, who: "@Self" } }
-      - { POTION: { effect: SPEED, amplifier: 1, duration: 160, who: "@Self" } }
-      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 160, who: "@Self" } }
+      - { POTION: { effect: STRENGTH, level: 2, duration: 160, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 2, duration: 160, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 160, who: "@Self" } }
       - { PARTICLE: { particle: FLAME, count: 30 } }
       - { SOUND: { sound: ENTITY_WITHER_SPAWN, volume: 1, pitch: 1 } }

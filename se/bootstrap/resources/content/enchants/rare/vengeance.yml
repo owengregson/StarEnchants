@@ -8,16 +8,16 @@ levels:
   1:
     chance: 40
     effects:
-      - { POTION: { effect: REGENERATION, amplifier: 0, duration: 80 } }
+      - { POTION: { effect: REGENERATION, level: 1, duration: 80 } }
   2:
     chance: 55
     effects:
-      - { POTION: { effect: REGENERATION, amplifier: 0, duration: 120 } }
-      - { POTION: { effect: ABSORPTION, amplifier: 0, duration: 200 } }
+      - { POTION: { effect: REGENERATION, level: 1, duration: 120 } }
+      - { POTION: { effect: ABSORPTION, level: 1, duration: 200 } }
   3:
     chance: 70
     effects:
-      - { POTION: { effect: REGENERATION, amplifier: 1, duration: 160 } }
-      - { POTION: { effect: ABSORPTION, amplifier: 1, duration: 200 } }
+      - { POTION: { effect: REGENERATION, level: 2, duration: 160 } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 200 } }
       - { PARTICLE: { particle: HEART, count: 6 } }
       - { MESSAGE: { text: "&dVengeance restores you." } }
