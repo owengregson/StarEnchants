@@ -242,6 +242,29 @@ public final class ItemEnchanter {
         return ApplyResult.ok(messages.format("apply.applied-suffix", "MSG", check.message(), "LEVEL", level));
     }
 
+    /**
+     * Remove enchant {@code baseKey} from {@code stack} in place (the inverse of {@link #applyEnchant}, §J
+     * {@code /se removeenchant}); re-renders the lore. Preserves every other facet of the item's state
+     * (crystals, set tag, omni, heroic, purchased slots); the freed slot is implicit since slot occupancy is
+     * derived from the enchant count. A no-op fail when the item carries no such enchant.
+     */
+    public ApplyResult removeEnchant(ItemStack stack, String baseKey) {
+        if (stack == null || stack.getType() == Material.AIR) {
+            return ApplyResult.fail(messages.format("apply.hold-item"));
+        }
+        CombatState current = codec.read(stack);
+        if (!current.enchants().containsKey(baseKey)) {
+            return ApplyResult.fail(messages.format("apply.not-present", "KEY", baseKey));
+        }
+        Map<String, Integer> enchants = new LinkedHashMap<>(current.enchants());
+        enchants.remove(baseKey);
+        CombatState next = new CombatState(enchants, current.crystals(),
+                current.setKey(), current.omni(), current.heroic(), current.added());
+        codec.write(stack, next);
+        lore.apply(stack, next);
+        return ApplyResult.ok(messages.format("apply.removed", "KEY", baseKey));
+    }
+
     /** How many of {@code def}'s prerequisites a successful apply would free (0 unless removes-required). */
     private static int freedBy(EnchantDef def, CombatState current) {
         if (!def.removesRequired()) {

@@ -144,6 +144,18 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.book", "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a.");
         s.put("command.reference.header", "&e{CATEGORY} &7({COUNT}): &f{ITEMS}");
         s.put("command.reference.list", "&eReference: &f{CATEGORIES} &7— /se effects|selectors|triggers|conditions|variables");
+        // §J give-to-player surface + the inverse removeenchant
+        s.put("command.give.usage",
+                "&eUsage: /se give <type> <player> [args] &7— type: gem [amount] | crystal <key> | book <enchant> "
+                        + "[level] [success] | item <id> [args] | heroic | upgrade | orb | slotgem | blackscroll | "
+                        + "randomizer | transmog | holy | nametag | unopened <tier>");
+        s.put("command.give.delivered", "&aGave &f{ITEM}&a to &f{PLAYER}&a.");
+        s.put("command.give.item", "&aReceived &f{ID}&a.");
+        s.put("command.give.set-unavailable",
+                "&cGiving set pieces is not available yet — no set-piece model exists (tracked follow-up).");
+        s.put("command.error.no-such-player", "&cNo online player named &f{PLAYER}&c.");
+        s.put("command.error.no-such-item", "&cNo such item: &f{ID}&c.");
+        s.put("command.removeenchant.usage", "&eUsage: /se removeenchant <enchant> &7— strips it from the held item");
 
         // ── ItemEnchanter ApplyResult reasons ─────────────────────────────────────────────────────
         s.put("apply.no-such-enchant", "&cNo such enchant: &f{KEY}");
@@ -157,6 +169,8 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("apply.conflicts", "&c{DISPLAY} &ccannot be combined with &f{OTHER}&c.");
         s.put("apply.applied-suffix", "{MSG} &7applied (level {LEVEL}).");
         s.put("apply.hold-item", "&cHold an item first.");
+        s.put("apply.removed", "&aRemoved &f{KEY}&a from the held item.");
+        s.put("apply.not-present", "&cThe held item does not carry &f{KEY}&c.");
         s.put("apply.crystal.no-such", "&cNo such crystal: &f{KEY}");
         s.put("apply.crystal.no-compile", "&c{KEY} &cdid not compile.");
         s.put("apply.crystal.on-item", "&cApply the crystal onto an item.");
@@ -227,7 +241,9 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         l.put("command.usage", List.of(
                 "&eStarEnchants commands:",
                 "&e  /se reload [--dry-run] &7— rebuild content",
+                "&e  /se give <type> <player> [args] &7— give any item to a player (gem|crystal|book|item|set|heroic|…)",
                 "&e  /se enchant <key> [level] &7— apply an enchant to the held item",
+                "&e  /se removeenchant <key> &7— strip an enchant from the held item",
                 "&e  /se crystal <key> &7— mint a crystal item (drag it onto gear to apply)",
                 "&e  /se heroic &7— mint a heroic upgrade (drag it onto armour/weapon)",
                 "&e  /se orb &7— mint a slot expander (drag onto gear for +N slots)",

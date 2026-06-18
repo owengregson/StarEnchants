@@ -148,6 +148,11 @@ public final class SoulService {
         return mintGemStack(SoulData.fresh(UUID.randomUUID()));
     }
 
+    /** Mint a fresh soul gem already carrying {@code souls} (§J {@code /se give gem <player> [amount]}). */
+    public ItemStack mintGem(int souls) {
+        return mintGemStack(new SoulData(UUID.randomUUID(), Math.max(0, souls)));
+    }
+
     /** Build a gem ITEM carrying exactly {@code data} (identity + count) from the configured likeness. */
     private ItemStack mintGemStack(SoulData data) {
         SoulGemConfig cfg = config.get();

@@ -34,6 +34,8 @@ import tester.harness.Harness;
  *   <li>{@code item.apply.enchant} — apply an enchant: PDC carries it and the lore renders the name.</li>
  *   <li>{@code item.apply.crystal} — apply a crystal: it lands in the (stacking) crystal list.</li>
  *   <li>{@code item.apply.appliesTo} — an enchant rejects an ineligible material, leaving the item untouched.</li>
+ *   <li>{@code item.apply.removeEnchant} — the §J inverse: a removed enchant leaves the PDC + lore (and frees
+ *       its slot), and removing one the item lacks is a clean no-op.</li>
  * </ul>
  */
 public final class ApplySuite implements Harness.Scenario {
@@ -67,6 +69,7 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.enchant");
         h.expect("item.apply.crystal");
         h.expect("item.apply.appliesTo");
+        h.expect("item.apply.removeEnchant");
 
         ItemEnchanter enchanter;
         CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
@@ -119,6 +122,23 @@ public final class ApplySuite implements Harness.Scenario {
             }
             if (!codec.read(helmet).isEmpty()) {
                 throw new IllegalStateException("a rejected apply still mutated the item");
+            }
+        });
+
+        h.guard("item.apply.removeEnchant", () -> {
+            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+            enchanter.applyEnchant(sword, "enchants/keen", 2);
+            if (!enchanter.removeEnchant(sword, "enchants/keen").ok()) {
+                throw new IllegalStateException("removeEnchant rejected an enchant the item carries");
+            }
+            if (codec.read(sword).enchants().containsKey("enchants/keen")) {
+                throw new IllegalStateException("PDC still carries the removed enchant");
+            }
+            if (renderedLoreMentions(sword, "Keen")) {
+                throw new IllegalStateException("lore still renders the removed enchant");
+            }
+            if (enchanter.removeEnchant(sword, "enchants/keen").ok()) {
+                throw new IllegalStateException("removing an absent enchant should be a clean no-op fail");
             }
         });
     }
