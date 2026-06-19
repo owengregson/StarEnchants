@@ -70,6 +70,11 @@ public final class LoreRenderer {
         if (!state.heroic().isZero()) {
             out.add(Colors.translate("&6&lHEROIC")); // the §F "heroic piece" marker, rendered from state
         }
+        if (state.setKey() != null) {
+            // The §J set-piece marker, rendered from state — resolves the set's display name like an enchant.
+            out.add(Colors.translate("&b" + nameOr(state.setKey(), style)
+                    + (state.omni() ? " &d(Omni Set)" : " &7(Set)")));
+        }
         return out;
     }
 
