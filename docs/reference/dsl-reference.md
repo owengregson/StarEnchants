@@ -293,12 +293,12 @@ Modify a target's health: give heals them, take deals direct health damage, tran
 
 ### MODIFY_MONEY
 
-Modify a player target's balance: give to them, take from them, or transfer (take from the target and give the total to the activator). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY.
+Modify a player target's balance: give to them, take from them, transfer (take from the target and give the total to the activator), or steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `MODIFY_MONEY:<amount:double[0..]>[:mode:enum{give|take|transfer}=give]`
+- _usage_: `MODIFY_MONEY:<amount:double[0..]>[:mode:enum{give|take|transfer|steal_percent}=give]`
 - _param_ `amount` `double[0..]`
-- _param_ `mode` `enum{give|take|transfer}`
+- _param_ `mode` `enum{give|take|transfer|steal_percent}`
 - _target_ `who`: selector `SELF`
 - _example_: `MODIFY_MONEY:100:give:@Self`
 
@@ -419,16 +419,17 @@ Play a sound at the activation location. No-op if the activation has no location
 
 ### SPAWN_ENTITY
 
-Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health. Replaces SPAWN/TNT.
+Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. Replaces SPAWN/TNT.
 
 - _affinity_: `REGION`
-- _usage_: `SPAWN_ENTITY:<type:entity_type>[:count:int[1..]=1][:ttl:ticks[0..]=0][:health:double[0..]=0]`
+- _usage_: `SPAWN_ENTITY:<type:entity_type>[:count:int[1..]=1][:ttl:ticks[0..]=0][:health:double[0..]=0][:owner:enum{none|activator}=none]`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
 - _param_ `health` `double[0..]`
+- _param_ `owner` `enum{none|activator}`
 - _target_ `who`: selector `SELF`
-- _example_: `SPAWN_ENTITY:ZOMBIE:3:0:20`
+- _example_: `SPAWN_ENTITY:WOLF:1:0:0:activator`
 
 ### SUPPRESS
 

@@ -19,7 +19,9 @@ import schema.spec.D;
  *       at compile time, so {@code PRIMED_TNT}/{@code TNT} both work on every server;</li>
  *   <li>{@code count} — how many to spawn (default 1);</li>
  *   <li>{@code ttl} — ticks until each spawned entity is auto-removed (0 = permanent);</li>
- *   <li>{@code health} — starting/max health for living spawns (0 = leave the type default).</li>
+ *   <li>{@code health} — starting/max health for living spawns (0 = leave the type default);</li>
+ *   <li>{@code owner} — {@code none} (default) or {@code activator}: when {@code activator} and the spawn is
+ *       {@link org.bukkit.entity.Tameable}, it is tamed to and owned by the activator (an owned summon, e.g. a wolf).</li>
  * </ul>
  *
  * <p>Spawns at each resolved target's location (so {@code SPAWN_ENTITY:...:@Victim} reproduces TNT at
@@ -34,11 +36,13 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("count", D.INT.min(1).def(1))
             .param("ttl", D.TICKS.def(0))
             .param("health", D.DOUBLE.min(0).def(0))
+            .param("owner", D.enumOf("none", "activator").def("none"))
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
             .doc("Spawn count entities of type at the target's (or activation) location; ttl ticks until "
-                    + "removal (0 = permanent), optional starting health. Replaces SPAWN/TNT.")
-            .example("SPAWN_ENTITY:ZOMBIE:3:0:20")
+                    + "removal (0 = permanent), optional starting health, and owner=activator to tame an owned "
+                    + "summon to the activator. Replaces SPAWN/TNT.")
+            .example("SPAWN_ENTITY:WOLF:1:0:0:activator")
             .build();
 
     @Override
@@ -52,13 +56,15 @@ public final class SpawnEntityEffect implements EffectKind {
         int count = ctx.integer("count");
         int ttl = ctx.integer("ttl");
         double health = ctx.dbl("health");
+        java.util.UUID owner = "activator".equalsIgnoreCase(ctx.str("owner")) && ctx.actor() != null
+                ? ctx.actor().getUniqueId() : null;
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {
-            sink.spawnEntity(who.getLocation(), type, count, ttl, health);
+            sink.spawnEntity(who.getLocation(), type, count, ttl, health, owner);
             any = true;
         }
         if (!any && ctx.location() != null) {
-            sink.spawnEntity(ctx.location(), type, count, ttl, health);
+            sink.spawnEntity(ctx.location(), type, count, ttl, health, owner);
         }
     }
 }

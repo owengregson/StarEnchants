@@ -67,4 +67,22 @@ class MoneyEffectTest {
         verify(sink).giveMoney(actor, 25.0); // the activator gains the taken total
         verifyNoMoreInteractions(sink);
     }
+
+    @Test
+    void stealPercentTransfersAFractionToTheActor() {
+        Player victim = mock(Player.class);
+        Player actor = mock(Player.class);
+        LivingEntity mob = mock(LivingEntity.class); // skipped, not a player
+        EffectCtx ctx = mock(EffectCtx.class);
+        when(ctx.dbl("amount")).thenReturn(50.0); // a percentage
+        when(ctx.str("mode")).thenReturn("steal_percent");
+        when(ctx.targets("who")).thenReturn(List.of(victim, mob));
+        when(ctx.actor()).thenReturn(actor);
+
+        Sink sink = mock(Sink.class);
+        new MoneyEffect().run(ctx, sink);
+
+        verify(sink).stealMoneyPercent(victim, actor, 0.5); // 50% of the victim's balance → the actor
+        verifyNoMoreInteractions(sink);
+    }
 }

@@ -17,7 +17,9 @@ import schema.spec.D;
  * <ul>
  *   <li>{@code give} — deposit {@code amount} into each resolved player target;</li>
  *   <li>{@code take} — withdraw {@code amount} from each resolved player target;</li>
- *   <li>{@code transfer} — withdraw from each target AND deposit the total into the ACTIVATOR (steal).</li>
+ *   <li>{@code transfer} — withdraw {@code amount} from each target AND deposit the total into the ACTIVATOR (steal);</li>
+ *   <li>{@code steal_percent} — transfer {@code amount} <em>percent</em> (0..100) of each target's CURRENT
+ *       balance to the activator (STEAL_MONEY_PERCENT) — here {@code amount} is read as a percentage.</li>
  * </ul>
  *
  * <p>The transfer counterpart is fixed to the activator rather than a second selector, because an effect
@@ -29,11 +31,12 @@ public final class MoneyEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("MODIFY_MONEY")
             .param("amount", D.DOUBLE.min(0))
-            .param("mode", D.enumOf("give", "take", "transfer").def("give"))
+            .param("mode", D.enumOf("give", "take", "transfer", "steal_percent").def("give"))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
-            .doc("Modify a player target's balance: give to them, take from them, or transfer (take from the "
-                    + "target and give the total to the activator). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY.")
+            .doc("Modify a player target's balance: give to them, take from them, transfer (take from the target "
+                    + "and give the total to the activator), or steal_percent (give the activator that PERCENT of the "
+                    + "target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].")
             .example("MODIFY_MONEY:100:give:@Self")
             .build();
 
@@ -45,8 +48,20 @@ public final class MoneyEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         double amount = ctx.dbl("amount");
-        boolean transfer = "transfer".equalsIgnoreCase(ctx.str("mode"));
-        boolean take = transfer || "take".equalsIgnoreCase(ctx.str("mode"));
+        String mode = ctx.str("mode");
+        if ("steal_percent".equalsIgnoreCase(mode)) {
+            // amount is a percentage; the Sink reads each target's live balance and transfers that fraction.
+            if (ctx.actor() != null) {
+                for (LivingEntity target : ctx.targets("who")) {
+                    if (target instanceof Player p) {
+                        sink.stealMoneyPercent(p, ctx.actor(), amount / 100.0);
+                    }
+                }
+            }
+            return;
+        }
+        boolean transfer = "transfer".equalsIgnoreCase(mode);
+        boolean take = transfer || "take".equalsIgnoreCase(mode);
         int taken = 0;
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {

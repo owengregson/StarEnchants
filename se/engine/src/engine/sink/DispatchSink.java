@@ -483,7 +483,7 @@ public final class DispatchSink implements Sink {
     // ── World / block intents ────────────────────────────────────────────────────────────────────
 
     @Override
-    public void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health) {
+    public void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health, UUID ownerId) {
         Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
             EntityType type = handles.entityType(entityTypeId);
@@ -495,6 +495,12 @@ public final class DispatchSink implements Sink {
                 Entity spawned = world.spawnEntity(origin, type);
                 if (health > 0 && spawned instanceof LivingEntity living) {
                     applySpawnHealth(living, health);
+                }
+                if (ownerId != null && spawned instanceof org.bukkit.entity.Tameable tame) {
+                    // Owned/tamed summon: resolve by the Tameable CAPABILITY (a stable interface across the
+                    // range), never a volatile constant. setOwner accepts an offline AnimalTamer; tame so it sticks.
+                    tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
+                    tame.setTamed(true);
                 }
                 if (ttlTicks > 0) {
                     Scheduling.onEntityLater(spawned, ttlTicks, spawned::remove);
@@ -763,6 +769,24 @@ public final class DispatchSink implements Sink {
         }
         UUID id = target.getUniqueId();
         globalOp(() -> economy.withdraw(id, amount));
+    }
+
+    @Override
+    public void stealMoneyPercent(Player from, Player to, double fraction) {
+        if (from == null || to == null || fraction <= 0) {
+            return;
+        }
+        UUID fromId = from.getUniqueId();
+        UUID toId = to.getUniqueId();
+        double frac = Math.min(1.0, fraction); // never take more than the whole balance
+        // Read-balance + withdraw + deposit in ONE global-thread task so no other money op interleaves;
+        // deposit only what was actually charged (withdraw is all-or-nothing).
+        globalOp(() -> {
+            double amount = economy.balance(fromId) * frac;
+            if (amount > 0 && economy.withdraw(fromId, amount)) {
+                economy.deposit(toId, amount);
+            }
+        });
     }
 
     // ── Soul intents ───────────────────────────────────────────────────────────────────────────

@@ -33,6 +33,19 @@ public final class EconomyService {
         return provider != null;
     }
 
+    /** {@code player}'s current balance, or {@code 0.0} with no provider / on a provider fault. */
+    public double balance(UUID player) {
+        if (provider == null || player == null) {
+            return 0.0;
+        }
+        try {
+            return provider.balance(player);
+        } catch (Throwable failed) {
+            warnOnce(provider.name(), failed);
+            return 0.0;
+        }
+    }
+
     /** Withdraw {@code amount} from {@code player}; {@code true} iff fully charged. Absent economy ⇒ false. */
     public boolean withdraw(UUID player, double amount) {
         if (provider == null || player == null || amount <= 0) {
