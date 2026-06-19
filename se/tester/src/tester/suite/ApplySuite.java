@@ -62,8 +62,8 @@ public final class ApplySuite implements Harness.Scenario {
             display: Base
             applies-to: [SWORD]
             trigger: ATTACK
-            chance: 100
-            effects: ["MODIFY_HEALTH:1"]
+            levels:
+              1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
             """;
 
     // §G removes-required: the superior enchant requires Base and strips it on a successful apply (net-zero slot).
@@ -73,8 +73,8 @@ public final class ApplySuite implements Harness.Scenario {
             trigger: ATTACK
             requires: ["enchants/base"]
             removes-required: true
-            chance: 100
-            effects: ["MODIFY_HEALTH:2"]
+            levels:
+              1: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
             """;
 
     // §J set-piece: an armour-only set; a minted piece carries sets/titan and the bonus fires once 4 are worn.
