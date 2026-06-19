@@ -49,6 +49,7 @@ public final class SoulService {
     private final Supplier<SoulGemConfig> config;
     private final java.util.function.BooleanSupplier depositOnAnyKill; // §D config.yml souls.deposit-on-any-kill
     private final item.lang.Messages messages; // §L lang.yml — the soul-mode messages
+    private final feature.fx.ParticleFx particles; // §D on-activate / on-deactivate particle spawns
 
     /** Soul service with deposit-on-any-kill always on + default messages (the common test/fixture form). */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
@@ -61,19 +62,28 @@ public final class SoulService {
         this(ledger, modes, codec, config, depositOnAnyKill, item.lang.Messages.defaults());
     }
 
+    /** As above, with messages but no particle fx (the no-fx form). */
+    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages) {
+        this(ledger, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
+    }
+
     /**
      * Canonical form (the composition root): {@code depositOnAnyKill} (config.yml {@code souls.deposit-on-any-kill},
      * §D) is read live, so a {@code /se reload} can switch the deposit-on-kill mechanic off without restarting;
-     * {@code messages} sources the soul-mode chat from {@code lang.yml} (§L).
+     * {@code messages} sources the soul-mode chat from {@code lang.yml} (§L); {@code particles} spawns the §D
+     * on-activate / on-deactivate particles at toggle (the while-active aura is the {@code SoulParticleDriver}).
      */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
-                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages) {
+                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
+                       feature.fx.ParticleFx particles) {
         this.ledger = Objects.requireNonNull(ledger, "ledger");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.config = Objects.requireNonNull(config, "config");
         this.depositOnAnyKill = Objects.requireNonNull(depositOnAnyKill, "depositOnAnyKill");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.particles = Objects.requireNonNull(particles, "particles");
     }
 
     /** The result of {@link #toggle}, for the command to relay. */
@@ -109,12 +119,14 @@ public final class SoulService {
             ledger.forget(gem.gemId());
             message(player, messages.format("soul.deactivate"));
             playSound(player, cfg.soundDeactivate());
+            particles.spawn(player, cfg.particlesDeactivate(), 1); // §D on-deactivate (in-thread: player's own)
             return Toggle.DISABLED;
         }
         modes.activate(id, gem.gemId());
         seed(gem); // prime the authority from the durable count on this (player) thread
         message(player, messages.format("soul.activate"));
         playSound(player, cfg.soundActivate());
+        particles.spawn(player, cfg.particlesActivate(), 1); // §D on-activate
         return Toggle.ENABLED;
     }
 

@@ -7,4 +7,5 @@ description: "Combine onto an enchant book to boost its success chance."
 tier: uncommon
 kind: dust
 material: GLOWSTONE_DUST
-grants: { success-bonus: 15 }
+# §I: success feedback played on apply — a sound (namespaced, range-stable) + particle tokens (alias-resolved).
+grants: { success-bonus: 15, sound: "block.amethyst_block.chime", particles: [HAPPY_VILLAGER] }

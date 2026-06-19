@@ -140,6 +140,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
     private ContentReloader reloader;
     private RepeatingDriver passives; // §B REPEATING lifecycle — torn down in onDisable
     private LifecycleDriver lifecycle; // §B HELD/PASSIVE start/stop lifecycle — tracking cleared in onDisable
+    private feature.soul.SoulParticleDriver soulParticles; // §D while-active soul aura — stopped in onDisable
 
     @Override
     public void onEnable() {
@@ -163,6 +164,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
         RuntimeHandles handles = new RuntimeHandles(resolvers);
+        // §D/§I particle feedback: resolve a token through the alias-aware interner → live Particle, skip-on-miss.
+        feature.fx.ParticleFx particleFx = new feature.fx.ParticleFx(token -> {
+            java.util.OptionalInt id = resolvers.particle(token);
+            return id.isPresent() ? handles.particle(id.getAsInt()) : null;
+        });
 
         Library initial = loadInitial(compiler, contentRoot);
         content = new ContentHolder(initial);
@@ -258,9 +264,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
         SoulLedger souls = new SoulLedger();
-        SoulService soulService = new SoulService(souls, new SoulModeStore(),
+        SoulModeStore soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
+        SoulService soulService = new SoulService(souls, soulModes,
                 new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault(),
-                () -> master.config().souls().depositOnAnyKill(), messages); // §D deposit toggle + §L messages
+                () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
+        // §D while-active soul aura: one global task spawning the configured particles at players in soul mode.
+        soulParticles = new feature.soul.SoulParticleDriver(
+                soulModes, () -> items.config().soulGemOrDefault(), particleFx);
+        soulParticles.start();
 
         // One shared writable variable store (§A): the SET_VAR/INVERT_VAR effects write it through the
         // per-event sink, and conditions read it back as %name% through the dispatchers' FactPopulator.
@@ -344,7 +355,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // destroystokyo), capability-probed. A no-op on a server with neither (the effect is simply inert).
         KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
-        getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec), this);
+        getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);
         getServer().getPluginManager().registerEvents(new SlotListener(slots), this);
@@ -466,6 +477,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
         if (lifecycle != null) {
             lifecycle.clearAll(); // forget started HELD/PASSIVE buffs (the driver is discarded across a reload)
+        }
+        if (soulParticles != null) {
+            soulParticles.stop(); // cancel the §D while-active soul aura task
         }
     }
 

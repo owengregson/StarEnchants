@@ -37,8 +37,8 @@ sounds:
 # Particles (tokens). Spawning is wired alongside the HELD/REPEATING equip lifecycle; listed here so the
 # schema is complete and forward-compatible.
 particles:
-  active: []
-  on-activate: []
-  on-deactivate: []
+  active: [SOUL]
+  on-activate: [SOUL_FIRE_FLAME, HAPPY_VILLAGER]
+  on-deactivate: [SMOKE]
 
 # Messages ({AMOUNT} = remaining souls on soul use).

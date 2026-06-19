@@ -1,6 +1,8 @@
 package feature.carrier;
 
+import feature.fx.ParticleFx;
 import item.codec.CarrierCodec;
+import java.util.Objects;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,10 +23,16 @@ public final class CarrierListener implements Listener {
 
     private final CarrierService service;
     private final CarrierCodec codec;
+    private final ParticleFx particles;
 
     public CarrierListener(CarrierService service, CarrierCodec codec) {
+        this(service, codec, ParticleFx.NONE);
+    }
+
+    public CarrierListener(CarrierService service, CarrierCodec codec, ParticleFx particles) {
         this.service = service;
         this.codec = codec;
+        this.particles = Objects.requireNonNull(particles, "particles");
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -64,6 +72,11 @@ public final class CarrierListener implements Listener {
             event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
             event.setCurrentItem(target.getAmount() <= 0 ? null : target);
             player.updateInventory();
+            // §I apply-feedback (dust): play on the player's own region thread — the event fires there.
+            if (result.sound() != null && !result.sound().isBlank()) {
+                player.playSound(player.getLocation(), result.sound(), 1.0f, 1.0f);
+            }
+            particles.spawn(player, result.particles(), 1);
         }
         if (result.message() != null) {
             player.sendMessage(result.message());

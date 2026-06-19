@@ -36,9 +36,21 @@ public record ItemDef(
     /**
      * What a carrier confers. Exactly one of {@code enchant}/{@code crystal}/{@code set} for a book-like
      * carrier (with {@code level} for an enchant); {@code successBonus} for a dust; {@code role} for a
-     * scroll. Unused fields are {@code null}/{@code 0}.
+     * scroll. {@code sound}/{@code particles} are the §I apply-feedback (used by dust today): a namespaced
+     * sound token and particle tokens played/spawned on a successful apply. Unused fields are
+     * {@code null}/{@code 0}/empty.
      */
-    public record Grant(String enchant, String crystal, String set, int level, Integer successBonus, String role) {
+    public record Grant(String enchant, String crystal, String set, int level, Integer successBonus, String role,
+                        String sound, List<String> particles) {
+
+        public Grant {
+            particles = particles == null ? List.of() : List.copyOf(particles);
+        }
+
+        /** A grant with no apply-feedback (the common form for non-dust carriers). */
+        public Grant(String enchant, String crystal, String set, int level, Integer successBonus, String role) {
+            this(enchant, crystal, set, level, successBonus, role, null, List.of());
+        }
     }
 
     /** The application mechanics for a carrier: success chance, gear-destroy-on-fail, and protectability. */

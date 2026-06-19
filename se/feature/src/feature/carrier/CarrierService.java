@@ -311,8 +311,13 @@ public final class CarrierService {
             reRenderLore(book, bookDef, updated);
         }
         consume(dust);
+        // §I: hand the dust's configured sound + particle tokens to the listener (it plays them on the
+        // player's own region thread). A dust with no feedback configured falls back to a plain result.
+        ItemDef.Grant grant = dustDef.grant();
         return CarrierResult.consumed("§aThe book's success chance is now §f"
-                + effectiveSuccess(base, newBonus) + "%§a.");
+                + effectiveSuccess(base, newBonus) + "%§a.",
+                grant == null ? null : grant.sound(),
+                grant == null ? java.util.List.of() : grant.particles());
     }
 
     /** Re-render a carrier's lore from its def + current state (lore is rendered from state, never parsed). */
