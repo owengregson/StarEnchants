@@ -155,6 +155,52 @@ class LibraryLoaderTest {
     }
 
     @Test
+    void requiresAnUnknownEnchantIsABlockingError(@TempDir Path root) throws IOException {
+        write(root, "enchants/upgrade.yml", """
+            display: "Upgrade"
+            trigger: ATTACK
+            requires: ["enchants/ghost"]
+            levels:
+              1: { chance: 100, effects: ["HEAL:1"] }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        assertTrue(lib.hasErrors(), "a requires: naming a non-existent enchant must be a diagnostic");
+    }
+
+    @Test
+    void blacklistsAnUnknownEnchantIsABlockingError(@TempDir Path root) throws IOException {
+        write(root, "enchants/rival.yml", """
+            display: "Rival"
+            trigger: ATTACK
+            blacklist: ["enchants/phantom"]
+            levels:
+              1: { chance: 100, effects: ["HEAL:1"] }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        assertTrue(lib.hasErrors());
+    }
+
+    @Test
+    void validRequiresAndBlacklistBetweenExistingEnchantsCompileClean(@TempDir Path root) throws IOException {
+        write(root, "enchants/base.yml", """
+            display: "Base"
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: ["HEAL:1"] }
+            """);
+        write(root, "enchants/upgrade.yml", """
+            display: "Upgrade"
+            trigger: ATTACK
+            requires: ["enchants/base"]
+            blacklist: ["enchants/base"]
+            levels:
+              1: { chance: 100, effects: ["HEAL:2"] }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+    }
+
+    @Test
     void missingContentDirYieldsAnEmptyCleanLibrary(@TempDir Path root) {
         Library lib = LibraryLoader.load(root, compiler(), 3);
         assertFalse(lib.hasErrors());
