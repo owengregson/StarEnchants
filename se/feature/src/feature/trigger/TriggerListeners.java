@@ -38,8 +38,10 @@ public final class TriggerListeners implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMine(BlockBreakEvent event) {
         Player player = event.getPlayer();
+        // Capture the broken block so the %block.type%/%isblock% facts source it (region-owned on this thread).
         dispatch.fire(player, dispatch.mine,
-                new ActivationContext(player, null, null, event.getBlock().getLocation()), event);
+                new ActivationContext(player, null, null, event.getBlock().getLocation(), 0.0, event.getBlock()),
+                event);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

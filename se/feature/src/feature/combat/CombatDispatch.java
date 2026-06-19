@@ -154,6 +154,9 @@ public final class CombatDispatch {
         LivingEntity victim = victimEntity instanceof LivingEntity living ? living : null;
         LivingEntity attacker = damager instanceof LivingEntity living ? living : null;
         Location at = victimEntity.getLocation();
+        // Capture the incoming damage BEFORE the additive fold mutates it (line ~end), so the %damage% fact
+        // reads the hit's value at activation time, not the post-effect total.
+        double incomingDamage = event.getDamage();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
@@ -164,14 +167,14 @@ public final class CombatDispatch {
         if (damager instanceof Player attackerPlayer) {
             int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
             runner.run(abilities, snapshot.generation(), worldId, attackId, true,
-                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at), sink,
+                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null), sink,
                     snapshot.stableKeys());
         }
         // Defense side: the player victim's DEFENSE abilities retaliate against the attacker.
         if (victimEntity instanceof Player defenderPlayer) {
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
-                    defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at), sink,
-                    snapshot.stableKeys());
+                    defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at, incomingDamage, null),
+                    sink, snapshot.stableKeys());
         }
 
         // Fold every damage contribution onto the event ONCE (§6.1); honour a cancel; flush deferred work.
