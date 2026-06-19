@@ -63,4 +63,15 @@ final class RuntimeSelectorCtx implements SelectorCtx {
     public Iterable<LivingEntity> nearbyLiving(Location center, double radius) {
         return areaScan.nearbyLiving(center, radius);
     }
+
+    @Override
+    public Player playerByName(String name) {
+        return areaScan.playerByName(name);
+    }
+
+    @Override
+    public LivingEntity entityInSight(double maxDistance) {
+        // The raytrace originates from the activator, on its own (firing) region thread — region-correct.
+        return context.actor() == null ? null : areaScan.entityInSight(context.actor(), maxDistance);
+    }
 }

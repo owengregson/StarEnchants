@@ -415,12 +415,20 @@ public final class Mappings {
         if (aeTarget == null) {
             return null; // no explicit target → the effect keeps its StarEnchants default
         }
-        return switch (aeTarget.trim().toLowerCase(Locale.ROOT)) {
-            case "@self", "%player%", "%self%" -> "@Self"; // the wielder, in either direction
-            case "@attacker", "%attacker%" -> defenseDirection ? "@Attacker" : "@Self";
-            case "@victim", "%victim%", "%target%" -> defenseDirection ? "@Self" : "@Victim";
-            default -> null; // an AoE / @NearestPlayer / mining / unknown selector → TODO
-        };
+        String trimmed = aeTarget.trim();
+        switch (trimmed.toLowerCase(Locale.ROOT)) {
+            case "@self", "%player%", "%self%" -> { return "@Self"; } // the wielder, in either direction
+            case "@attacker", "%attacker%" -> { return defenseDirection ? "@Attacker" : "@Self"; }
+            case "@victim", "%victim%", "%target%" -> { return defenseDirection ? "@Self" : "@Victim"; }
+            default -> { /* fall through to head-based selectors */ }
+        }
+        // Head + optional {args}: StarEnchants now has a faithful @NearestPlayer using the same {r=N} syntax,
+        // so pass it through verbatim (v3.1 §A). @Aoe still differs (default radius + entity cap) and
+        // @EntityInSight/@PlayerFromName/the mining selectors have no verified AE arg shape → TODO.
+        int brace = trimmed.indexOf('{');
+        String head = (brace < 0 ? trimmed : trimmed.substring(0, brace)).toLowerCase(Locale.ROOT);
+        String args = brace < 0 ? "" : trimmed.substring(brace);
+        return "@nearestplayer".equals(head) ? "@NearestPlayer" + args : null;
     }
 
     /**

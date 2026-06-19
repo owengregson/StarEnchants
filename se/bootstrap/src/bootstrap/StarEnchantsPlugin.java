@@ -472,19 +472,42 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         return content;
     }
 
-    /** An area scan over the firing region — used by AOE/NEAREST selectors (§3.6). */
+    /**
+     * The world-access seam for selectors (§3.6): the firing-region area scan (AOE/NEAREST/AllPlayers/
+     * NearestPlayer), the online-player roster (PlayerFromName), and the actor's line-of-sight raytrace
+     * (EntityInSight). All run synchronously on the firing thread, so each touch is region-correct on
+     * Folia — the area scan reads the centre's region, the raytrace reads the actor's own region, and the
+     * roster lookup is a server-global read.
+     */
     private static AreaScan areaScan() {
-        return (center, radius) -> {
-            World world = center.getWorld();
-            List<LivingEntity> out = new ArrayList<>();
-            if (world != null) {
-                for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
-                    if (entity instanceof LivingEntity living) {
-                        out.add(living);
+        return new AreaScan() {
+            @Override
+            public Iterable<LivingEntity> nearbyLiving(Location center, double radius) {
+                World world = center.getWorld();
+                List<LivingEntity> out = new ArrayList<>();
+                if (world != null) {
+                    for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
+                        if (entity instanceof LivingEntity living) {
+                            out.add(living);
+                        }
                     }
                 }
+                return out;
             }
-            return out;
+
+            @Override
+            public Player playerByName(String name) {
+                return name == null || name.isBlank() ? null : org.bukkit.Bukkit.getPlayerExact(name);
+            }
+
+            @Override
+            public LivingEntity entityInSight(Player from, double maxDistance) {
+                if (from == null) {
+                    return null;
+                }
+                Entity hit = from.getTargetEntity((int) Math.ceil(maxDistance));
+                return hit instanceof LivingEntity living ? living : null;
+            }
         };
     }
 

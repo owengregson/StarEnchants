@@ -45,4 +45,20 @@ public interface SelectorCtx {
      * returns {@code null} (an empty result when nothing is near).
      */
     Iterable<LivingEntity> nearbyLiving(Location center, double radius);
+
+    /**
+     * The online player with this exact name, or {@code null} if none is online (the {@code PlayerFromName}
+     * selector). Defaults to {@code null} for a context with no roster lookup (unit/synthetic).
+     */
+    default Player playerByName(String name) {
+        return null;
+    }
+
+    /**
+     * The living entity the activator is looking at within {@code maxDistance} blocks, or {@code null}
+     * (the {@code EntityInSight} selector). Defaults to {@code null} for a context with no raytrace.
+     */
+    default LivingEntity entityInSight(double maxDistance) {
+        return null;
+    }
 }

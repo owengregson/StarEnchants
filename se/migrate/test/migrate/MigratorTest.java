@@ -264,11 +264,19 @@ class MigratorTest {
 
     @Test
     void aeAreaAndMiningSelectorsAreNotMapped() {
-        // StarEnchants @Aoe differs from AE's (default radius 4 vs 1, no entity cap vs AE's always-20), and
-        // @Nearest is any-living not player-only, so these area/mining selectors are TODO'd, not retargeted.
+        // StarEnchants @Aoe still differs from AE's (default radius 4 vs 1, no entity cap vs AE's always-20),
+        // so AoE remains TODO'd rather than retargeted; the mining/block selectors await a location-target seam.
         assertFalse(Mappings.aeEffect("DAMAGE:4 @Aoe{r=5}").mapped(), "AoE has no faithful @Aoe equivalent → TODO");
         assertFalse(Mappings.aeEffect("DAMAGE:4 @Aoe").mapped(), "bare AoE (radius differs) → TODO");
-        assertFalse(Mappings.aeEffect("DAMAGE:4 @NearestPlayer{r=5}").mapped(), "player-only nearest → TODO");
+        assertFalse(Mappings.aeEffect("DAMAGE:4 @Trench{...}").mapped(), "mining selectors need a location target → TODO");
+    }
+
+    @Test
+    void aeNearestPlayerMapsToTheNewSelector() {
+        // v3.1 §A: StarEnchants now has a faithful @NearestPlayer using the same {r=N} syntax.
+        var mapped = Mappings.aeEffect("DAMAGE:4 @NearestPlayer{r=5}");
+        assertTrue(mapped.mapped(), "@NearestPlayer is now a real selector → mapped, not TODO");
+        assertTrue(mapped.se().endsWith("@NearestPlayer{r=5}"), () -> "selector preserved: " + mapped.se());
     }
 
     @Test
