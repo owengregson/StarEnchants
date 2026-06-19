@@ -127,8 +127,39 @@ public final class LibraryLoader {
             }
         }
 
+        validateRelationships(catalog, diags); // §G: requires/blacklist must name existing enchants
         Snapshot snapshot = compiler.compile(defs, generation, diags);
         return new Library(snapshot, catalog, crystals, sets, items, tiers, diags.all());
+    }
+
+    /**
+     * Whole-library referential-integrity pass (§G): every {@code requires}/{@code blacklist} reference must
+     * name an enchant that exists. A typo'd {@code requires} silently blocks the enchant forever at apply
+     * time; a typo'd {@code blacklist} silently never matches — both become a blocking diagnostic here so the
+     * bad content is rejected rather than mis-loaded. Runs after the enchant catalog is fully built (the only
+     * point at which every key is visible — a per-file reader cannot see other keys).
+     */
+    private static void validateRelationships(List<EnchantDef> catalog, Diagnostics diags) {
+        Set<String> keys = new HashSet<>();
+        for (EnchantDef def : catalog) {
+            keys.add(def.key());
+        }
+        for (EnchantDef def : catalog) {
+            for (String req : def.requires()) {
+                if (!keys.contains(req)) {
+                    diags.error("E_REL_UNKNOWN",
+                            "enchant '" + def.key() + "' requires unknown enchant '" + req + "'",
+                            def.source(), "the requires: key must name an existing enchant");
+                }
+            }
+            for (String black : def.blacklist()) {
+                if (!keys.contains(black)) {
+                    diags.error("E_REL_UNKNOWN",
+                            "enchant '" + def.key() + "' blacklists unknown enchant '" + black + "'",
+                            def.source(), "the blacklist: key must name an existing enchant");
+                }
+            }
+        }
     }
 
     /** The path-and-tier of a source file: a tier-folder-stripped key and the resolved folder tier. */

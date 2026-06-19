@@ -58,6 +58,25 @@ public final class ApplySuite implements Harness.Scenario {
             effects: ["MODIFY_HEALTH:1"]
             """;
 
+    private static final String BASE = """
+            display: Base
+            applies-to: [SWORD]
+            trigger: ATTACK
+            chance: 100
+            effects: ["MODIFY_HEALTH:1"]
+            """;
+
+    // §G removes-required: the superior enchant requires Base and strips it on a successful apply (net-zero slot).
+    private static final String SUPERIOR = """
+            display: Superior
+            applies-to: [SWORD]
+            trigger: ATTACK
+            requires: ["enchants/base"]
+            removes-required: true
+            chance: 100
+            effects: ["MODIFY_HEALTH:2"]
+            """;
+
     private final Plugin plugin;
 
     public ApplySuite(Plugin plugin) {
@@ -71,13 +90,18 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.appliesTo");
         h.expect("item.apply.removeEnchant");
         h.expect("item.apply.extractCrystal");
+        h.expect("item.apply.removesRequired");
+        h.expect("item.apply.removesRequired.netZeroSlots");
 
         ItemEnchanter enchanter;
+        ItemEnchanter capped; // a 1-slot enchanter for the net-zero-slot case
         CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
         try {
             Path root = Files.createTempDirectory("se-apply-suite");
             write(root, "enchants/keen.yml", KEEN);
             write(root, "crystals/spark.yml", SPARK);
+            write(root, "enchants/base.yml", BASE);
+            write(root, "enchants/superior.yml", SUPERIOR);
             Compiler compiler = ContentCompiler.production();
             Library library = LibraryLoader.load(root, compiler, 0);
             if (library.hasErrors()) {
@@ -87,6 +111,7 @@ public final class ApplySuite implements Harness.Scenario {
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
+            capped = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(), 1); // base = 1 enchant slot
         } catch (IOException e) {
             h.fail("item.apply.enchant", e.toString());
             return;
@@ -158,6 +183,39 @@ public final class ApplySuite implements Harness.Scenario {
             }
             if (enchanter.extractCrystal(sword).ok()) {
                 throw new IllegalStateException("extracting from a crystal-less item should be a clean no-op fail");
+            }
+        });
+
+        h.guard("item.apply.removesRequired", () -> {
+            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+            if (!enchanter.applyEnchant(sword, "enchants/base", 1).ok()) {
+                throw new IllegalStateException("setup: base did not apply");
+            }
+            if (!enchanter.applyEnchant(sword, "enchants/superior", 1).ok()) {
+                throw new IllegalStateException("the removes-required upgrade did not apply over its prerequisite");
+            }
+            var enchants = codec.read(sword).enchants();
+            if (!enchants.containsKey("enchants/superior")) {
+                throw new IllegalStateException("the upgrade was not recorded");
+            }
+            if (enchants.containsKey("enchants/base")) {
+                throw new IllegalStateException("removes-required did not strip the prerequisite");
+            }
+        });
+
+        h.guard("item.apply.removesRequired.netZeroSlots", () -> {
+            // A 1-slot item: base fills it; the removes-required upgrade frees base, so it nets zero and fits.
+            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+            if (!capped.applyEnchant(sword, "enchants/base", 1).ok()) {
+                throw new IllegalStateException("setup: base did not fill the single slot");
+            }
+            if (!capped.applyEnchant(sword, "enchants/superior", 1).ok()) {
+                throw new IllegalStateException("a removes-required upgrade must fit at capacity (net-zero slot)");
+            }
+            var enchants = codec.read(sword).enchants();
+            if (enchants.size() != 1 || !enchants.containsKey("enchants/superior")
+                    || enchants.containsKey("enchants/base")) {
+                throw new IllegalStateException("expected exactly the upgrade after a net-zero swap: " + enchants.keySet());
             }
         });
     }
