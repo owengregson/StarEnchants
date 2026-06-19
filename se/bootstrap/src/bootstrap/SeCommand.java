@@ -149,7 +149,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 content.library().tiers().tiers().stream().map(t -> t.name()).toList(),
                 menus.names(),
                 content.library().items().stream().map(ItemDef::key).toList(),
-                Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
+                content.library().sets().stream().map(compile.load.SetDef::key).toList());
     }
 
     /** As the canonical form with no tier/menu completions (legacy 3-arg form). */
@@ -169,14 +170,23 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, List.of(), List.of());
     }
 
-    /**
-     * Pure tab-completion: the subcommand at {@code args[0]}; then context-sensitive completions for the
-     * flat verbs and the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
-     * arg 2, type-specific key at arg 3). Extracted from Bukkit so it is unit-tested without a server.
-     */
+    /** As the canonical form with no set completions (7-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames, List<String> itemIds,
                                  List<String> playerNames) {
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, itemIds, playerNames, List.of());
+    }
+
+    /**
+     * Pure tab-completion: the subcommand at {@code args[0]}; then context-sensitive completions for the
+     * flat verbs and the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
+     * arg 2, type-specific key at arg 3, and {@code give book <player> random <tier>} at arg 4). Extracted
+     * from Bukkit so it is unit-tested without a server. (A {@code dust} is an item, so {@code @dusts} is
+     * served by {@code itemIds} on the {@code give item} route.)
+     */
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
+                                 List<String> tierNames, List<String> menuNames, List<String> itemIds,
+                                 List<String> playerNames, List<String> setKeys) {
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }
@@ -199,13 +209,26 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         if (sub.equals("give") && args.length == 4) {
             return switch (args[1].toLowerCase(Locale.ROOT)) { // the type-specific key
                 case "crystal" -> filter(crystalKeys, args[3]);
-                case "book" -> filter(enchantKeys, args[3]);
+                case "book" -> filter(concat("random", enchantKeys), args[3]); // book key, or the `random` form
                 case "unopened" -> filter(tierNames, args[3]);
                 case "item" -> filter(itemIds, args[3]);
+                case "set" -> filter(setKeys, args[3]);
                 default -> List.of();
             };
         }
+        if (sub.equals("give") && args.length == 5
+                && args[1].equalsIgnoreCase("book") && args[3].equalsIgnoreCase("random")) {
+            return filter(tierNames, args[4]); // /se give book <player> random <tier>
+        }
         return List.of();
+    }
+
+    /** {@code head} followed by {@code rest} — a small helper to offer a sentinel verb alongside a key list. */
+    private static List<String> concat(String head, List<String> rest) {
+        List<String> out = new java.util.ArrayList<>(rest.size() + 1);
+        out.add(head);
+        out.addAll(rest);
+        return out;
     }
 
     /** The candidates that start with {@code prefix} (case-insensitive), in order. */
@@ -524,10 +547,17 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /** {@code /se give book <player> <enchant> [level] [success]} — mint an enchant book for the target. */
+    /**
+     * {@code /se give book <player> <enchant> [level] [success]} — mint an enchant book for the target;
+     * {@code /se give book <player> random <tier>} mints a CONCRETE random enchant book from that tier.
+     */
     private void giveBookTo(CommandSender sender, Player target, String[] args) {
         if (args.length < 4) {
             sender.sendMessage(messages.format("command.book.usage"));
+            return;
+        }
+        if ("random".equalsIgnoreCase(args[3])) {
+            giveRandomBookTo(sender, target, args);
             return;
         }
         String key = normalize(args[3], "enchants/");
@@ -569,6 +599,33 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
         if (notSelf(sender, target)) {
             tell(sender, messages.format("command.give.delivered", "ITEM", key, "PLAYER", target.getName()));
+        }
+    }
+
+    /** {@code /se give book <player> random <tier>} — mint a CONCRETE random enchant book from that tier. */
+    private void giveRandomBookTo(CommandSender sender, Player target, String[] args) {
+        if (args.length < 5) {
+            sender.sendMessage(messages.format("command.book.usage"));
+            return;
+        }
+        String tier = args[4];
+        if (!content.library().tiers().isTier(tier)) {
+            sender.sendMessage(messages.format("command.error.no-such-tier", "TIER", tier));
+            return;
+        }
+        java.util.Optional<ItemStack> rolled = unopenedBooks.roll(tier);
+        if (rolled.isEmpty()) {
+            sender.sendMessage(messages.format("command.error.no-such-tier", "TIER", tier)); // valid tier, but empty
+            return;
+        }
+        ItemStack book = rolled.get();
+        Scheduling.onEntity(target, () -> {
+            MenuItems.giveOrDrop(target, book);
+            target.sendMessage(messages.format("command.give.book", "KEY", tier, "LEVEL", 0));
+        });
+        if (notSelf(sender, target)) {
+            tell(sender, messages.format("command.give.delivered", "ITEM", "random " + tier + " book",
+                    "PLAYER", target.getName()));
         }
     }
 

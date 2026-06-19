@@ -74,6 +74,27 @@ public final class UnopenedBookService {
         if (tier == null) {
             return UnopenedResult.nothing(null); // not an unopened book (defensive)
         }
+        java.util.Optional<Rolled> rolled = rollDetailed(tier);
+        if (rolled.isEmpty()) {
+            return UnopenedResult.nothing(messages.format("book.unopened.empty-tier"));
+        }
+        Rolled r = rolled.get();
+        String message = messages.format("book.unopened.open",
+                "ENCHANT", r.display(), "LEVEL", r.level(), "PERCENT", r.success());
+        return UnopenedResult.opened(r.book(), message);
+    }
+
+    /**
+     * Roll a CONCRETE enchant book of a random enchant from {@code tier} (random level + success), the same
+     * roll {@link #open} performs — for the §J {@code /se give book <player> random <tier>} form. Empty when
+     * the tier has no enchants.
+     */
+    public java.util.Optional<ItemStack> roll(String tier) {
+        return rollDetailed(tier).map(Rolled::book);
+    }
+
+    /** The shared tier→concrete-book roll: pick a random enchant from the tier, roll its level + success, mint it. */
+    private java.util.Optional<Rolled> rollDetailed(String tier) {
         UnopenedBookConfig cfg = config.get();
         List<EnchantDef> pool = new ArrayList<>();
         for (EnchantDef def : content.library().catalog()) {
@@ -82,15 +103,17 @@ public final class UnopenedBookService {
             }
         }
         if (pool.isEmpty()) {
-            return UnopenedResult.nothing(messages.format("book.unopened.empty-tier"));
+            return java.util.Optional.empty();
         }
         EnchantDef chosen = pool.get(random.nextInt(pool.size()));
         int level = 1 + random.nextInt(Math.max(1, chosen.maxLevel()));
         int success = cfg.minSuccess() + random.nextInt(cfg.maxSuccess() - cfg.minSuccess() + 1);
-        ItemStack produced = carriers.mintBook(chosen.key(), level, success);
-        String message = messages.format("book.unopened.open",
-                "ENCHANT", chosen.display(), "LEVEL", level, "PERCENT", success);
-        return UnopenedResult.opened(produced, message);
+        return java.util.Optional.of(new Rolled(carriers.mintBook(chosen.key(), level, success),
+                chosen.display(), level, success));
+    }
+
+    /** A rolled concrete book plus the details {@link #open}'s reveal message needs. */
+    private record Rolled(ItemStack book, String display, int level, int success) {
     }
 
     private static List<String> renderLore(List<String> lore, String tier) {
