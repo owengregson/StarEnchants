@@ -483,6 +483,14 @@ Lay a temporary platform of a material under the target for a duration (then rev
 
 Choose WHO an effect targets (`@Self`, `@Victim`, `@Aoe`, …). Routing is the effect's; a selector carries no affinity.
 
+### ALLPLAYERS
+
+Every player within r blocks of the target, except the activator.
+
+- _usage_: `ALLPLAYERS[:r:double[0..]=32]`
+- _param_ `r` `double[0..]` — search radius in blocks
+- _example_: `@AllPlayers{r=32}`
+
 ### AOE
 
 Living entities within r blocks of the target, except the activator; optionally filtered and capped.
@@ -500,6 +508,14 @@ The entity that damaged the activator (for defensive effects).
 - _usage_: `ATTACKER`
 - _example_: `@Attacker`
 
+### ENTITYINSIGHT
+
+The living entity the activator is looking at within r blocks, or nothing.
+
+- _usage_: `ENTITYINSIGHT[:r:double[0..]=16]`
+- _param_ `r` `double[0..]` — maximum line-of-sight distance in blocks
+- _example_: `@EntityInSight{r=16}`
+
 ### NEAREST
 
 The single nearest living entity within r blocks (optionally filtered), except the activator.
@@ -508,6 +524,22 @@ The single nearest living entity within r blocks (optionally filtered), except t
 - _param_ `r` `double[0..]` — search radius in blocks
 - _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS}` — which entities to consider
 - _example_: `@Nearest{r=5, filter=PLAYERS}`
+
+### NEARESTPLAYER
+
+The single nearest player within r blocks, except the activator.
+
+- _usage_: `NEARESTPLAYER[:r:double[0..]=16]`
+- _param_ `r` `double[0..]` — search radius in blocks
+- _example_: `@NearestPlayer{r=16}`
+
+### PLAYERFROMNAME
+
+The online player with the given exact name, or nothing if they are not online.
+
+- _usage_: `PLAYERFROMNAME:<name:string>`
+- _param_ `name` `string` — the exact name of the online player to target
+- _example_: `@PlayerFromName{name=Steve}`
 
 ### SELF
 

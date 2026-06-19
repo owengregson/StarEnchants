@@ -23,6 +23,11 @@ public final class BuiltinSelectors {
                 .register(new AttackerSelector())
                 .register(new NearestSelector())
                 .register(new AoeSelector())
+                // v3.1 §A — the AE entity-selector set (the block/location selectors await a location-target seam).
+                .register(new AllPlayersSelector())
+                .register(new NearestPlayerSelector())
+                .register(new PlayerFromNameSelector())
+                .register(new EntityInSightSelector())
                 .build();
     }
 }
