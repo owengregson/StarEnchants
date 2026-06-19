@@ -52,9 +52,10 @@ class SeCommandCompletionTest {
 
     private static final List<String> ITEMS = List.of("items/relic", "items/charm");
     private static final List<String> PLAYERS = List.of("Bob", "Alice");
+    private static final List<String> SETS = List.of("sets/titan", "sets/yeti");
 
     private static List<String> complete(String... args) {
-        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of("common", "rare"), List.of(), ITEMS, PLAYERS);
+        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of("common", "rare"), List.of(), ITEMS, PLAYERS, SETS);
     }
 
     @Test
@@ -73,5 +74,18 @@ class SeCommandCompletionTest {
         assertEquals(List.of("enchants/venom", "enchants/vigor"),
                 complete("removeenchant", "enchants/v"));
         assertEquals(List.of("enchants/blast"), complete("unenchant", "enchants/b"));
+    }
+
+    @Test
+    void giveSetCompletesSetKeys() {
+        assertEquals(SETS, complete("give", "set", "Bob", ""));               // arg 3 = set key (@sets)
+        assertEquals(List.of("sets/yeti"), complete("give", "set", "Bob", "sets/y"));
+    }
+
+    @Test
+    void giveBookOffersRandomThenCompletesTheTier() {
+        assertTrue(complete("give", "book", "Bob", "").contains("random"));   // arg 3 offers the `random` form
+        assertEquals(List.of("common", "rare"), complete("give", "book", "Bob", "random", ""));  // arg 4 = tier
+        assertEquals(List.of("rare"), complete("give", "book", "Bob", "random", "ra"));
     }
 }
