@@ -354,6 +354,10 @@ public final class Mappings {
                         ? MigratedEffect.mapped(token, "MODIFY_MONEY:" + numArg(parts[1]) + ":transfer" + suffix,
                                 "AE steal-money → MODIFY_MONEY (transfer: take from target, give to activator)")
                         : MigratedEffect.todo(token, "unexpected money arg shape");
+                case "STEAL_MONEY_PERCENT" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "MODIFY_MONEY:" + numArg(parts[1]) + ":steal_percent" + suffix,
+                                "AE steal-money-percent → MODIFY_MONEY (steal_percent: that % of the target's balance)")
+                        : MigratedEffect.todo(token, "unexpected money arg shape");
                 // AE add-food → MODIFY_FOOD:give (food points); AE EXP → MODIFY_EXP:give (XP amount).
                 case "ADD_FOOD" -> parts.length >= 2
                         ? MigratedEffect.mapped(token, "MODIFY_FOOD:" + intArg(parts[1]) + ":give" + suffix,

@@ -242,6 +242,9 @@ class MigratorTest {
         // the canonical MODIFY_MONEY (§C): add→give, remove→take, and STEAL now maps to transfer mode.
         assertEquals("MODIFY_MONEY:5000000000:give:@Self", Mappings.aeEffect("ADD_MONEY:5000000000 @Self").se());
         assertEquals("MODIFY_MONEY:100:transfer:@Victim", Mappings.aeEffect("STEAL_MONEY:100 @Victim").se());
+        // §C: STEAL_MONEY_PERCENT now maps to the steal_percent mode (a % of the target's balance).
+        assertEquals("MODIFY_MONEY:25:steal_percent:@Victim",
+                Mappings.aeEffect("STEAL_MONEY_PERCENT:25 @Victim").se());
     }
 
     @Test

@@ -133,11 +133,17 @@ public interface Sink {
     // ── World / block intents ──
 
     /**
-     * Spawn {@code count} entities of an interned type at {@code at} (SPAWN_ENTITY). {@code ttlTicks > 0}
-     * auto-removes each after that many ticks; {@code health > 0} sets each living spawn's max + current
-     * health. Replaces the old {@code spawn}/{@code spawnTnt} intents (a primed-TNT type auto-primes).
+     * Spawn {@code count} entities of an interned type at {@code at} (SPAWN_ENTITY), owned by {@code ownerId}
+     * when non-null and the spawn is {@link org.bukkit.entity.Tameable} (a tamed, owned summon). {@code ttlTicks > 0}
+     * auto-removes each after that many ticks; {@code health > 0} sets each living spawn's max + current health.
+     * Replaces the old {@code spawn}/{@code spawnTnt} intents (a primed-TNT type auto-primes).
      */
-    void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health);
+    void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health, java.util.UUID ownerId);
+
+    /** {@link #spawnEntity(Location, int, int, int, double, java.util.UUID)} with no owner. */
+    default void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health) {
+        spawnEntity(at, entityTypeId, count, ttlTicks, health, null);
+    }
 
     /**
      * Summon {@code count} guardian mobs of an interned type at {@code at}, each set to target
@@ -203,6 +209,14 @@ public interface Sink {
 
     /** Withdraw up to {@code amount} from the player's account (TAKE_MONEY); best-effort if unaffordable. */
     void takeMoney(Player target, double amount);
+
+    /**
+     * Transfer {@code fraction} (0..1, clamped) of {@code from}'s CURRENT balance to {@code to}
+     * (MODIFY_MONEY steal_percent). The balance-read, withdraw, and deposit happen atomically on the global
+     * thread so no other money op interleaves; only the amount actually withdrawn is deposited. A no-op
+     * without an economy provider, with a null party, or a non-positive fraction.
+     */
+    void stealMoneyPercent(Player from, Player to, double fraction);
 
     // ── Soul intents (actor-only; debited from the activator's active gem, no-op without a soul system) ──
 
