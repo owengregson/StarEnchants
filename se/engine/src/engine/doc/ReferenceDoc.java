@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import schema.grammar.expr.Cmp;
+import schema.grammar.expr.FlowKind;
 import schema.grammar.expr.StrOp;
 import schema.spec.Param;
 import schema.spec.ParamSpec;
@@ -132,7 +133,25 @@ public final class ReferenceDoc {
         for (StrOp op : StrOp.values()) {
             out.append("| `").append(op.symbol()).append("` | ").append(op.name().toLowerCase()).append(" |\n");
         }
+        out.append("\n### Flow / chance clauses\n\n");
+        out.append("A condition may end in a clause `<test> : <outcome>` whose outcome is applied when the test "
+                + "is true (a bare condition with no clause is a gate that stops the activation when false).\n\n");
+        out.append("| Clause | Effect when the test is true |\n| --- | --- |\n");
+        for (FlowKind flow : FlowKind.values()) {
+            out.append("| `%").append(flow.name().toLowerCase()).append("%` | ").append(flowDoc(flow)).append(" |\n");
+        }
+        out.append("| `±N %chance%` | add N percentage points to the chance roll |\n");
         out.append('\n');
+    }
+
+    /** One-line description of a flow-clause sentinel, for the conditions reference table. */
+    private static String flowDoc(FlowKind flow) {
+        return switch (flow) {
+            case CONTINUE -> "proceed to the chance roll as normal";
+            case STOP -> "block this activation";
+            case FORCE -> "force activation, skipping the chance roll";
+            case ALLOW -> "allow activation regardless of the chance roll";
+        };
     }
 
     private static void variables(StringBuilder out) {

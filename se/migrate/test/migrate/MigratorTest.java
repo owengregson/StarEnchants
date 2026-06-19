@@ -11,6 +11,7 @@ import compile.load.LibraryLoader;
 import compile.resolve.PlatformResolvers;
 import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
+import migrate.model.MigratedCondition;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -296,9 +297,17 @@ class MigratorTest {
         assertEquals("%sneaking% == true", Mappings.aeCondition("%player is sneaking% = true : %allow%").expr());
         assertEquals("%combo% > 0 && %combo% < 5",
                 Mappings.aeCondition("%combo% > 0 && %combo% < 5 : %continue%").expr());
+        // Flow/chance results now map to clause forms (v3.1 §A) — flagged as clauses so the reader does not &&-join them.
+        MigratedCondition force = Mappings.aeCondition("%victim health% > 5 : %force%");
+        assertEquals("%victim.health% > 5 : %force%", force.expr());
+        assertTrue(force.clauseForm(), "a %force% result is a clause, not a joinable gate");
+        MigratedCondition chance = Mappings.aeCondition("%victim health% > 5 : +50 %chance%");
+        assertEquals("%victim.health% > 5 : +50 %chance%", chance.expr());
+        assertTrue(chance.clauseForm());
+        assertEquals("%victim.health% < 3 : -25 %chance%",
+                Mappings.aeCondition("%victim health% < 3 : -25 %chance%").expr());
         // No StarEnchants equivalent → TODO, never a silently-wrong gate.
         assertFalse(Mappings.aeCondition("%block type% contains ORE : %allow%").mapped(), "contains operator → TODO");
-        assertFalse(Mappings.aeCondition("%victim health% > 5 : +50 %chance%").mapped(), "chance modifier → TODO");
         assertFalse(Mappings.aeCondition("%victim food% > 5 : %allow%").mapped(), "no 'food' fact → TODO");
         assertFalse(Mappings.aeCondition("%victim health% > 5").mapped(), "missing ' : <result>' → TODO");
     }

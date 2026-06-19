@@ -32,10 +32,25 @@ import schema.diag.Source;
  */
 public sealed interface Expr
         permits Expr.Or, Expr.And, Expr.Not, Expr.Compare, Expr.StringMatch,
-                Expr.VarRef, Expr.NumberLit, Expr.BoolLit, Expr.StringLit {
+                Expr.VarRef, Expr.NumberLit, Expr.BoolLit, Expr.StringLit, Expr.Clause {
 
     /** The source position of this node's first character, for diagnostics. */
     Source source();
+
+    /**
+     * A top-level condition <em>clause</em>: a boolean {@code test} expression paired with an authored
+     * control-flow outcome (docs/architecture.md §3.4; v3.1 §A). Written {@code <test> : %force%},
+     * {@code <test> : %stop%}, {@code <test> : %allow%}, {@code <test> : %continue%}, or
+     * {@code <test> : ±N %chance%}. A {@code Clause} only ever appears at the root of a condition
+     * (the parser produces it from the optional clause tail of {@link ExprParser#parse}); its
+     * {@code test} is always a plain boolean sub-expression, never another {@code Clause}.
+     *
+     * <p>For a {@code %chance%} clause the {@code flow} is {@link FlowKind#CONTINUE} and
+     * {@code chanceDelta} is the signed adjustment (percentage points) applied to the base chance when
+     * {@code test} is true; for the flow sentinels {@code chanceDelta} is {@code 0}. {@code source}
+     * points at the start of the {@code test}.
+     */
+    record Clause(Expr test, FlowKind flow, double chanceDelta, Source source) implements Expr {}
 
     /**
      * Logical OR ({@code ||}) — the lowest-precedence binary operator.

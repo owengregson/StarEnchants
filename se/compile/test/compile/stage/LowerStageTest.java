@@ -15,6 +15,7 @@ import compile.cond.VarResolver;
 import compile.def.AbilityDef;
 import compile.model.Affinity;
 import compile.model.CompiledCondition;
+import schema.grammar.expr.FlowKind;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.SourceKind;
@@ -195,6 +196,33 @@ class LowerStageTest {
         assertNotNull(condition);
         assertEquals(SRC, condition.source());
         assertTrue(condition.root() instanceof Cond.And); // top-level && lowered to a typed node
+        // A bare expression is a gate: pass → CONTINUE, fail → STOP, no chance delta.
+        assertEquals(FlowKind.CONTINUE, condition.whenTrue());
+        assertEquals(FlowKind.STOP, condition.whenFalse());
+        assertEquals(0.0, condition.chanceDelta());
+    }
+
+    @Test
+    void flowAndChanceClausesLowerToTheAuthoredOutcome() {
+        Diagnostics d = new Diagnostics();
+        VarResolver vars = (scope, name) ->
+                "blocking".equals(name) ? Optional.of(new VarBinding(VarKind.BOOL, 0)) : Optional.empty();
+        DefaultLowerStage stage = new DefaultLowerStage(registry(), head -> Affinity.CONTEXT_LOCAL,
+                MapSpecRegistry.of(), head -> null, vars);
+
+        // A %force% clause: whenTrue=FORCE, whenFalse=CONTINUE (a failing clause never stops).
+        CompiledCondition force = stage.lower(def("%blocking% : %force%", line("DAMAGE:1")), d).condition();
+        assertNotNull(force);
+        assertEquals(FlowKind.FORCE, force.whenTrue());
+        assertEquals(FlowKind.CONTINUE, force.whenFalse());
+        assertTrue(force.root() instanceof Cond.BoolVar);
+
+        // A ±N %chance% clause: CONTINUE with the signed delta carried.
+        CompiledCondition chance = stage.lower(def("%blocking% : +40 %chance%", line("DAMAGE:1")), d).condition();
+        assertNotNull(chance);
+        assertEquals(FlowKind.CONTINUE, chance.whenTrue());
+        assertEquals(40.0, chance.chanceDelta());
+        assertFalse(d.hasErrors());
     }
 
     @Test

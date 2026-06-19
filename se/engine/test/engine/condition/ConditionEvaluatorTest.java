@@ -10,12 +10,13 @@ import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
 import schema.diag.Source;
 import schema.grammar.expr.Cmp;
+import schema.grammar.expr.FlowKind;
 import org.junit.jupiter.api.Test;
 
 class ConditionEvaluatorTest {
 
     private static boolean pass(Cond root, FactBuffer f) {
-        return ConditionEvaluator.eval(new CompiledCondition(root, Source.UNKNOWN), f).passes();
+        return ConditionEvaluator.eval(CompiledCondition.gate(root, Source.UNKNOWN), f).passes();
     }
 
     @Test
@@ -23,6 +24,63 @@ class ConditionEvaluatorTest {
         ConditionResult r = ConditionEvaluator.eval(null, new FactBuffer(0, 0, 0));
         assertEquals(Flow.CONTINUE, r.flow());
         assertTrue(r.passes());
+    }
+
+    @Test
+    void bareGateContinuesOnPassAndStopsOnFail() {
+        FactBuffer f = new FactBuffer(0, 1, 0);
+        f.setFlag(0, true);
+        assertEquals(Flow.CONTINUE, ConditionEvaluator.eval(
+                CompiledCondition.gate(new Cond.BoolVar(0), Source.UNKNOWN), f).flow());
+        f.setFlag(0, false);
+        assertEquals(Flow.STOP, ConditionEvaluator.eval(
+                CompiledCondition.gate(new Cond.BoolVar(0), Source.UNKNOWN), f).flow());
+    }
+
+    @Test
+    void forceClauseForcesOnPassAndContinuesOnFail() {
+        FactBuffer f = new FactBuffer(0, 1, 0);
+        CompiledCondition force = new CompiledCondition(
+                new Cond.BoolVar(0), FlowKind.FORCE, FlowKind.CONTINUE, 0.0, Source.UNKNOWN);
+        f.setFlag(0, true);
+        assertEquals(Flow.FORCE, ConditionEvaluator.eval(force, f).flow());
+        f.setFlag(0, false);
+        assertEquals(Flow.CONTINUE, ConditionEvaluator.eval(force, f).flow()); // a failing clause never STOPs
+    }
+
+    @Test
+    void allowClauseAllowsOnPass() {
+        FactBuffer f = new FactBuffer(0, 1, 0);
+        f.setFlag(0, true);
+        CompiledCondition allow = new CompiledCondition(
+                new Cond.BoolVar(0), FlowKind.ALLOW, FlowKind.CONTINUE, 0.0, Source.UNKNOWN);
+        assertEquals(Flow.ALLOW, ConditionEvaluator.eval(allow, f).flow());
+    }
+
+    @Test
+    void stopClauseStopsOnPassAndContinuesOnFail() {
+        FactBuffer f = new FactBuffer(0, 1, 0);
+        CompiledCondition stop = new CompiledCondition(
+                new Cond.BoolVar(0), FlowKind.STOP, FlowKind.CONTINUE, 0.0, Source.UNKNOWN);
+        f.setFlag(0, true);
+        assertEquals(Flow.STOP, ConditionEvaluator.eval(stop, f).flow());
+        f.setFlag(0, false);
+        assertEquals(Flow.CONTINUE, ConditionEvaluator.eval(stop, f).flow());
+    }
+
+    @Test
+    void chanceClauseAppliesDeltaOnlyWhenTestPasses() {
+        FactBuffer f = new FactBuffer(0, 1, 0);
+        CompiledCondition chance = new CompiledCondition(
+                new Cond.BoolVar(0), FlowKind.CONTINUE, FlowKind.CONTINUE, 50.0, Source.UNKNOWN);
+        f.setFlag(0, true);
+        ConditionResult hit = ConditionEvaluator.eval(chance, f);
+        assertEquals(Flow.CONTINUE, hit.flow());
+        assertEquals(50.0, hit.chanceDelta());
+        f.setFlag(0, false);
+        ConditionResult miss = ConditionEvaluator.eval(chance, f);
+        assertEquals(Flow.CONTINUE, miss.flow());
+        assertEquals(0.0, miss.chanceDelta()); // no delta when the test fails
     }
 
     @Test

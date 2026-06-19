@@ -73,6 +73,9 @@ public final class ExprLexer {
                 case '<' -> out.add(relational('<', ExprTok.Kind.LT, ExprTok.Kind.LE, startCol));
                 case '>' -> out.add(relational('>', ExprTok.Kind.GT, ExprTok.Kind.GE, startCol));
                 case '%' -> out.add(variable(startCol));
+                case ':' -> { out.add(new ExprTok(ExprTok.Kind.COLON, ":", startCol)); pos++; }
+                case '+' -> { out.add(new ExprTok(ExprTok.Kind.PLUS, "+", startCol)); pos++; }
+                case '-' -> { out.add(new ExprTok(ExprTok.Kind.MINUS, "-", startCol)); pos++; }
                 case '"', '\'' -> out.add(string(c, startCol));
                 default -> {
                     if (isNumberStart(c)) {

@@ -131,7 +131,7 @@ class ActivationPipelineTest {
     @Test
     void conditionStopFails() {
         Ab a = new Ab();
-        a.condition = new CompiledCondition(new Cond.BoolLit(false), Source.UNKNOWN);
+        a.condition = CompiledCondition.gate(new Cond.BoolLit(false), Source.UNKNOWN);
         assertEquals(GateOutcome.CONDITION_FAILED, pipeline.evaluate(a.build(), act().build()));
     }
 

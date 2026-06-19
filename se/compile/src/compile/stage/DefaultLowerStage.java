@@ -16,6 +16,7 @@ import schema.diag.Diagnostics;
 import schema.grammar.EffectLine;
 import schema.grammar.expr.Expr;
 import schema.grammar.expr.ExprParser;
+import schema.grammar.expr.FlowKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -194,8 +195,16 @@ public final class DefaultLowerStage implements LowerStage {
         if (parsed.isEmpty()) {
             return null; // ExprParser already diagnosed the syntax error
         }
-        Optional<Cond> lowered = conditionCompiler.compile(parsed.get(), diags);
-        return lowered.map(root -> new CompiledCondition(root, def.source())).orElse(null);
+        // A clause "<test> : <outcome>" wraps a boolean test with an authored flow + chance delta;
+        // a bare expression is a plain gate (pass → CONTINUE, fail → STOP).
+        Expr root = parsed.get();
+        if (root instanceof Expr.Clause clause) {
+            Optional<Cond> test = conditionCompiler.compile(clause.test(), diags);
+            return test.map(c -> new CompiledCondition(
+                    c, clause.flow(), FlowKind.CONTINUE, clause.chanceDelta(), def.source())).orElse(null);
+        }
+        Optional<Cond> lowered = conditionCompiler.compile(root, diags);
+        return lowered.map(c -> CompiledCondition.gate(c, def.source())).orElse(null);
     }
 
     /**
