@@ -18,10 +18,10 @@ import java.util.Objects;
  * minimum soul count to a {@code &}-colour, walked highest-first by {@link #colorFor}; below every tier the
  * {@link #emptyColor} applies. <strong>Sounds</strong> are a master on/off ({@link #sounds}) plus three
  * tokens played through the cross-version {@code playSound(Location, String, …)} overload (no resolver
- * needed). <strong>Particle</strong> token lists are carried for the on-activate / on-deactivate /
- * while-active cosmetics — their spawning is wired alongside the HELD/REPEATING equip lifecycle (the
- * active loop) and the {@code Particle} resolver, so the fields are parsed and held here now for a complete,
- * forward-compatible schema but are not yet consumed.
+ * needed). <strong>Particle</strong> token lists drive the on-activate / on-deactivate / while-active
+ * cosmetics: the on-activate/on-deactivate lists spawn from {@code SoulService.toggle()} and the active
+ * list from the {@code SoulParticleDriver} aura loop, each through the alias-aware {@code ParticleFx}
+ * resolver (§D).
  *
  * @param material          the gem's material token (resolved cross-version at use, e.g. {@code EMERALD})
  * @param name              the gem's display name (legacy {@code &} colour codes allowed)
@@ -34,9 +34,9 @@ import java.util.Objects;
  * @param soundActivate     sound key played when soul mode enables (e.g. {@code entity.player.levelup})
  * @param soundDeactivate   sound key played when soul mode disables
  * @param soundCombine      sound key played when two gems combine (e.g. {@code block.anvil.use})
- * @param particlesActive   particle tokens shown while a gem is active (spawning deferred — see class note)
- * @param particlesActivate particle tokens shown when soul mode enables (deferred)
- * @param particlesDeactivate particle tokens shown when soul mode disables (deferred)
+ * @param particlesActive   particle tokens spawned each tick while a gem is active (the §D aura loop)
+ * @param particlesActivate particle tokens spawned when soul mode enables
+ * @param particlesDeactivate particle tokens spawned when soul mode disables
  *
  * <p>The soul-mode messages now live in {@code lang.yml} ({@code soul.activate} / {@code soul.deactivate} /
  * {@code soul.soul-use}) — §L centralised them out of this likeness config.

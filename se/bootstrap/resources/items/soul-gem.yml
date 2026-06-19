@@ -34,8 +34,8 @@ sounds:
   deactivate: "ui.button.click"
   combine: "block.anvil.use"
 
-# Particles (tokens). Spawning is wired alongside the HELD/REPEATING equip lifecycle; listed here so the
-# schema is complete and forward-compatible.
+# Particles (tokens, alias-resolved). on-activate/on-deactivate spawn at the toggle; `active` is the
+# while-active aura spawned each tick at every player in soul mode. Multiple tokens per knob are allowed.
 particles:
   active: [SOUL]
   on-activate: [SOUL_FIRE_FLAME, HAPPY_VILLAGER]

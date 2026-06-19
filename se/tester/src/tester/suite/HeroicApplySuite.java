@@ -116,13 +116,6 @@ public final class HeroicApplySuite implements Harness.Scenario {
         });
     }
 
-    /** A heroic upgrade item that is already heroic (for the already-heroic guard). */
-    private static ItemStack reHeroic(HeroicService always, CombatCodec combat) {
-        ItemStack g = new ItemStack(Material.NETHERITE_BOOTS);
-        ItemStack out = always.applyTo(always.mint(), g).newTarget();
-        return out; // its CombatState carries a non-zero HeroicStat
-    }
-
     private HeroicService service(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore, int chance) {
         HeroicConfig cfg = new HeroicConfig("NETHERITE_SCRAP", "&6Heroic", List.of(), chance, chance,
                 0.10, 0.10, 0.25,
