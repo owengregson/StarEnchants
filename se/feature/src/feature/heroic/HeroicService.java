@@ -7,11 +7,13 @@ import item.codec.HeroicStat;
 import item.codec.HeroicUpgradeCodec;
 import item.mint.ItemFactory;
 import item.render.LoreRenderer;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import platform.item.ItemGroups;
 
 /**
  * The heroic upgrade economy (docs/v3-directives.md §F; ADR-0021) — the cold path that MINTS the heroic
@@ -32,6 +34,7 @@ public final class HeroicService {
     private final Supplier<HeroicConfig> config;
     private final Random random;
     private final item.lang.Messages messages; // §L lang.yml — heroic apply result + guards
+    private final ItemGroups groups; // §F: gate applyTo to armour/weapons
 
     /** Default-messages form (tests/fixtures). */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
@@ -39,14 +42,22 @@ public final class HeroicService {
         this(upgrades, combat, lore, config, random, item.lang.Messages.defaults());
     }
 
+    /** As above with messages; the armour/weapon group table defaults to {@link ItemGroups#standard()}. */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
                          Supplier<HeroicConfig> config, Random random, item.lang.Messages messages) {
+        this(upgrades, combat, lore, config, random, messages, ItemGroups.standard());
+    }
+
+    public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
+                         Supplier<HeroicConfig> config, Random random, item.lang.Messages messages,
+                         ItemGroups groups) {
         this.upgrades = Objects.requireNonNull(upgrades, "upgrades");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.groups = Objects.requireNonNull(groups, "groups");
     }
 
     /** Whether {@code stack} is a heroic upgrade item. */
@@ -74,6 +85,9 @@ public final class HeroicService {
         }
         if (gear.getAmount() > 1) {
             return HeroicResult.unchanged(messages.format("common.single-item"));
+        }
+        if (!groups.matches(gear.getType(), List.of("ARMOR", "WEAPON"))) {
+            return HeroicResult.unchanged(messages.format("heroic.not-gear")); // §F: armour/weapons only
         }
         if (!combat.read(gear).heroic().isZero()) {
             return HeroicResult.unchanged(messages.format("heroic.already-heroic"));

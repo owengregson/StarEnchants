@@ -63,12 +63,36 @@ public final class TriggerRunner {
      */
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                     Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys) {
+        run(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys, true);
+    }
+
+    /**
+     * As {@link #run} but with explicit control over the §F passive-heroic contribution: {@code applyHeroic}
+     * false runs the trigger's abilities WITHOUT adding the worn heroic outgoing/reduction percent to the
+     * sink. The environmental damage path (FALL/FIRE) passes {@code reduction-scope == ALL} so heroic
+     * reduction softens non-entity damage only when configured to (the entity/PvP path always passes true).
+     */
+    public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
+                    Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
+                    boolean applyHeroic) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != generation) {
             return; // not resolved yet (or stale across a reload) — this actor contributes nothing
         }
         runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
-                wornState, wornState.byTrigger(triggerId));
+                wornState, wornState.byTrigger(triggerId), applyHeroic);
+    }
+
+    /**
+     * Contribute ONLY the worn heroic reduction to {@code sink} (no trigger abilities) — for environmental
+     * damage causes that have no StarEnchants trigger but should still be softened by heroic reduction when
+     * {@code reduction-scope: ALL} (§F). A no-op until the actor's {@link WornState} is resolved.
+     */
+    public void contributeHeroicReduction(int generation, Player actor, DispatchSink sink) {
+        WornState wornState = worn.get(actor.getUniqueId());
+        if (wornState != null && wornState.gen() == generation) {
+            sink.addHeroicReduction(wornState.heroic().percentReduction());
+        }
     }
 
     /**
@@ -85,16 +109,18 @@ public final class TriggerRunner {
             return; // gone or stale across a reload — a repeating task no-ops until re-armed
         }
         runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
-                wornState, candidates);
+                wornState, candidates, true);
     }
 
     private void runResolved(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                              Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
-                             WornState wornState, int[] candidates) {
-        if (attackSide) {
-            sink.addHeroicOutgoing(wornState.heroic().percentDamage()); // §F multiplicative stage
-        } else {
-            sink.addHeroicReduction(wornState.heroic().percentReduction());
+                             WornState wornState, int[] candidates, boolean applyHeroic) {
+        if (applyHeroic) {
+            if (attackSide) {
+                sink.addHeroicOutgoing(wornState.heroic().percentDamage()); // §F multiplicative stage
+            } else {
+                sink.addHeroicReduction(wornState.heroic().percentReduction());
+            }
         }
         if (candidates.length == 0) {
             return;

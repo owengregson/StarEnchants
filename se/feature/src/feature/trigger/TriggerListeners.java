@@ -30,9 +30,16 @@ import org.bukkit.inventory.EquipmentSlot;
 public final class TriggerListeners implements Listener {
 
     private final TriggerDispatch dispatch;
+    private final java.util.function.BooleanSupplier heroicAllScope; // §F: reduction-scope == ALL (live)
 
+    /** Default form: heroic reduction is ENTITY-scoped (environmental damage gets no heroic reduction). */
     public TriggerListeners(TriggerDispatch dispatch) {
+        this(dispatch, () -> false);
+    }
+
+    public TriggerListeners(TriggerDispatch dispatch, java.util.function.BooleanSupplier heroicAllScope) {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
+        this.heroicAllScope = Objects.requireNonNull(heroicAllScope, "heroicAllScope");
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -116,10 +123,17 @@ public final class TriggerListeners implements Listener {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
+        // §F reduction-scope: heroic reduction softens environmental damage ONLY when scope == ALL; under the
+        // default ENTITY scope only entity/PvP damage (CombatDispatch) is softened.
+        boolean heroic = heroicAllScope.getAsBoolean();
         switch (event.getCause()) {
-            case FALL -> dispatch.fireDamage(player, dispatch.fall, self(player), event);
-            case FIRE, FIRE_TICK, LAVA -> dispatch.fireDamage(player, dispatch.fire, self(player), event);
-            default -> { } // other environmental causes carry no trigger yet
+            case FALL -> dispatch.fireDamage(player, dispatch.fall, self(player), event, heroic);
+            case FIRE, FIRE_TICK, LAVA -> dispatch.fireDamage(player, dispatch.fire, self(player), event, heroic);
+            default -> {
+                if (heroic) {
+                    dispatch.fireEnvironmentalHeroic(player, event); // other causes: heroic reduction only, under ALL
+                }
+            }
         }
     }
 

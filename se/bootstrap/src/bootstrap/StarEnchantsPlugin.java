@@ -345,7 +345,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
         getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
-        getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch), this);
+        getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch,
+                () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope())), this); // §F reduction-scope
         getServer().getPluginManager().registerEvents(
                 new EngineStoreListener(vars, suppression, knockback, keepOnDeath), this);
         // §C KEEP_ON_DEATH: keep items+levels on a death while the flag is armed. NORMAL priority — earlier
