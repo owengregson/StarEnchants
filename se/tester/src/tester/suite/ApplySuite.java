@@ -70,6 +70,7 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.crystal");
         h.expect("item.apply.appliesTo");
         h.expect("item.apply.removeEnchant");
+        h.expect("item.apply.extractCrystal");
 
         ItemEnchanter enchanter;
         CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
@@ -139,6 +140,24 @@ public final class ApplySuite implements Harness.Scenario {
             }
             if (enchanter.removeEnchant(sword, "enchants/keen").ok()) {
                 throw new IllegalStateException("removing an absent enchant should be a clean no-op fail");
+            }
+        });
+
+        h.guard("item.apply.extractCrystal", () -> {
+            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+            enchanter.applyCrystal(sword, "crystals/spark");
+            if (!codec.read(sword).crystals().contains("crystals/spark")) {
+                throw new IllegalStateException("setup: crystal was not applied");
+            }
+            var extracted = enchanter.extractCrystal(sword);
+            if (!extracted.ok() || !"crystals/spark".equals(extracted.poppedEntry())) {
+                throw new IllegalStateException("extractCrystal did not return the popped entry: " + extracted.poppedEntry());
+            }
+            if (codec.read(sword).crystals().contains("crystals/spark")) {
+                throw new IllegalStateException("PDC still carries the extracted crystal");
+            }
+            if (enchanter.extractCrystal(sword).ok()) {
+                throw new IllegalStateException("extracting from a crystal-less item should be a clean no-op fail");
             }
         });
     }

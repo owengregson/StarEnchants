@@ -217,7 +217,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // The crystal-item PDC is separate from the combat blob; the applied crystal becomes one crystal-slot
         // entry on the gear (a multi-crystal is encoded "a+b" — one slot, both abilities).
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of(this).crystalItem());
-        CrystalService crystals = new CrystalService(crystalItemCodec, enchanter, content,
+        item.codec.CrystalExtractorCodec crystalExtractorCodec =
+                new item.codec.CrystalExtractorCodec(ItemKeys.of(this).crystalExtractor());
+        CrystalService crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, enchanter, content,
                 () -> items.config().crystalOrDefault(), new java.util.Random(), messages);
 
         // Heroic upgrades (§F): mint + drag-apply onto armour/weapon (small success roll, material swap,

@@ -265,6 +265,29 @@ public final class ItemEnchanter {
         return ApplyResult.ok(messages.format("apply.removed", "KEY", baseKey));
     }
 
+    /**
+     * Extract the most-recently-applied crystal ENTRY off {@code gear} in place (the inverse of
+     * {@link #applyCrystalEntry}, §E); re-renders the lore and frees its crystal slot. Returns the popped
+     * entry ({@code "a"} or {@code "a+b"}) so the caller can mint it back as a whole crystal item —
+     * "extraction returns the multi-crystal as a whole". A no-op fail when the item carries no crystal.
+     */
+    public ExtractResult extractCrystal(ItemStack gear) {
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ExtractResult.fail(messages.format("apply.hold-item"));
+        }
+        CombatState current = codec.read(gear);
+        if (current.crystals().isEmpty()) {
+            return ExtractResult.fail(messages.format("apply.crystal.none"));
+        }
+        List<String> crystals = new ArrayList<>(current.crystals());
+        String popped = crystals.remove(crystals.size() - 1); // the most-recent entry, returned whole
+        CombatState next = new CombatState(current.enchants(), crystals,
+                current.setKey(), current.omni(), current.heroic(), current.added());
+        codec.write(gear, next);
+        lore.apply(gear, next);
+        return ExtractResult.ok(popped, messages.format("apply.crystal.extracted"));
+    }
+
     /** How many of {@code def}'s prerequisites a successful apply would free (0 unless removes-required). */
     private static int freedBy(EnchantDef def, CombatState current) {
         if (!def.removesRequired()) {

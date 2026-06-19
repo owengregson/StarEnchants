@@ -3,7 +3,9 @@ package feature.crystal;
 import compile.load.ContentHolder;
 import compile.load.CrystalConfig;
 import feature.apply.ApplyResult;
+import feature.apply.ExtractResult;
 import feature.apply.ItemEnchanter;
+import item.codec.CrystalExtractorCodec;
 import item.codec.CrystalItemCodec;
 import item.codec.CrystalItemData;
 import item.mint.ItemFactory;
@@ -31,21 +33,24 @@ import org.bukkit.inventory.ItemStack;
 public final class CrystalService {
 
     private final CrystalItemCodec codec;
+    private final CrystalExtractorCodec extractorCodec;
     private final ItemEnchanter enchanter;
     private final ContentHolder content;
     private final Supplier<CrystalConfig> config;
     private final Random random;
-    private final item.lang.Messages messages; // §L lang.yml — apply/merge result messages
+    private final item.lang.Messages messages; // §L lang.yml — apply/merge/extract result messages
 
     /** Default-messages form (tests/fixtures). */
-    public CrystalService(CrystalItemCodec codec, ItemEnchanter enchanter, ContentHolder content,
-                          Supplier<CrystalConfig> config, Random random) {
-        this(codec, enchanter, content, config, random, item.lang.Messages.defaults());
+    public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
+                          ContentHolder content, Supplier<CrystalConfig> config, Random random) {
+        this(codec, extractorCodec, enchanter, content, config, random, item.lang.Messages.defaults());
     }
 
-    public CrystalService(CrystalItemCodec codec, ItemEnchanter enchanter, ContentHolder content,
-                          Supplier<CrystalConfig> config, Random random, item.lang.Messages messages) {
+    public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
+                          ContentHolder content, Supplier<CrystalConfig> config, Random random,
+                          item.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
+        this.extractorCodec = Objects.requireNonNull(extractorCodec, "extractorCodec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
         this.config = Objects.requireNonNull(config, "config");
@@ -56,6 +61,22 @@ public final class CrystalService {
     /** Whether {@code stack} is a physical crystal item. */
     public boolean isCrystal(ItemStack stack) {
         return codec.read(stack) != null;
+    }
+
+    /** Whether {@code stack} is a crystal extractor item. */
+    public boolean isExtractor(ItemStack stack) {
+        return extractorCodec.isExtractor(stack);
+    }
+
+    /** Mint a crystal extractor item from the configured likeness. */
+    public ItemStack mintExtractor() {
+        CrystalConfig cfg = config.get();
+        ItemStack stack = ItemFactory.build(
+                ItemFactory.material(cfg.extractorMaterial(), Material.AMETHYST_CLUSTER),
+                cfg.extractorName(),
+                cfg.extractorLore());
+        extractorCodec.mark(stack);
+        return stack;
     }
 
     /** Mint a physical crystal item carrying {@code keys} (1 = single, 2 = multi) from the configured likeness. */
@@ -107,13 +128,30 @@ public final class CrystalService {
         if (random.nextInt(100) < cfg.successChance()) {
             enchanter.applyCrystalEntry(gear, crystal.keys(), true); // re-validates + appends one slot entry
             consume(cursor);
-            return CrystalResult.committed(gear, messages.format("crystal.apply-success", "CRYSTAL", label));
+            return CrystalResult.committed(gear, applySound(cfg), messages.format("crystal.apply-success", "CRYSTAL", label));
         }
         if (cfg.consumeOnFail()) {
             consume(cursor);
-            return CrystalResult.committed(gear, messages.format("crystal.apply-fail")); // gear unchanged, cursor spent
+            return CrystalResult.committed(gear, null, messages.format("crystal.apply-fail")); // gear unchanged, cursor spent
         }
         return CrystalResult.unchanged(messages.format("crystal.apply-fail"));
+    }
+
+    /**
+     * Extract the most-recent crystal off {@code gear} using the extractor on the {@code cursor}: pop the
+     * gear's last crystal, mint it back as a whole crystal item to hand the player, and spend the extractor.
+     * A no-op (no consume) when the gear carries no crystal.
+     */
+    public CrystalResult extract(ItemStack cursor, ItemStack gear) {
+        ExtractResult result = enchanter.extractCrystal(gear);
+        if (!result.ok()) {
+            return CrystalResult.unchanged(result.message());
+        }
+        List<String> components = CrystalItemData.componentsOf(result.poppedEntry());
+        ItemStack minted = mint(new CrystalItemData(components));
+        consume(cursor); // spend the extractor
+        return CrystalResult.extracted(gear, minted, removeSound(config.get()),
+                messages.format("crystal.extract-success", "CRYSTAL", labelOf(components)));
     }
 
     /** Merge two SINGLE crystals into a multi-crystal (pairs only): the target slot becomes the multi. */
@@ -127,7 +165,18 @@ public final class CrystalService {
         }
         ItemStack multi = mint(merged);
         consume(cursor);
-        return CrystalResult.committed(multi, messages.format("crystal.merge", "CRYSTAL", labelOf(merged.keys())));
+        return CrystalResult.committed(multi, applySound(config.get()),
+                messages.format("crystal.merge", "CRYSTAL", labelOf(merged.keys())));
+    }
+
+    /** The configured apply/merge sound token, or {@code null} when sounds are disabled. */
+    private static String applySound(CrystalConfig cfg) {
+        return cfg.sounds() ? cfg.soundApply() : null;
+    }
+
+    /** The configured extract sound token, or {@code null} when sounds are disabled. */
+    private static String removeSound(CrystalConfig cfg) {
+        return cfg.sounds() ? cfg.soundRemove() : null;
     }
 
     /** The component crystal display names joined for a {@code {CRYSTAL}} placeholder ({@code "Jolt + Frost"}). */
