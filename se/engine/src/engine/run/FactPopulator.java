@@ -23,10 +23,11 @@ import org.bukkit.entity.Player;
  * slot and the populated buffer agree by construction).
  *
  * <p><strong>Table-driven.</strong> Each built-in fact is one entry pairing its resolved slot with a
- * pure extractor over the actor ({@link Player}) or victim ({@link LivingEntity}). Adding a fact is one
- * line here plus its declaration in {@link BuiltinVars}; a fact whose name is absent from the vocabulary
- * is simply skipped. Facts whose extraction is not yet wired (e.g. {@code damage}, {@code combo}) are
- * declared in the vocabulary but have no entry here, so they read their default (0).
+ * pure extractor over the actor ({@link Player}) or victim ({@link LivingEntity}); event-payload facts
+ * ({@code damage}, {@code block.type}/{@code isblock}, world weather/time) are filled from the
+ * {@link ActivationContext} in {@code populateContext}. Adding a fact is one line here plus its declaration
+ * in {@link BuiltinVars}; a fact whose name is absent from the vocabulary is simply skipped. {@code combo}
+ * has no entry (no combat-streak tracker exists) so it reads its default (0).
  *
  * <p><strong>Thread-local pooling (§3.4).</strong> The buffer is held per worker thread and reused —
  * {@link #populate} clears it and refills, returning the SAME instance — so the per-hit pipeline stays
@@ -81,6 +82,13 @@ public final class FactPopulator {
     private final List<VictimNum> victimNum = new ArrayList<>();
     private final List<VictimFlag> victimFlag = new ArrayList<>();
     private final List<VictimStr> victimStr = new ArrayList<>();
+    // Context facts come from the event payload, not an actor/victim entity — resolved slots (−1 if absent).
+    private final int damageSlot;
+    private final int blockTypeSlot;
+    private final int isBlockSlot;
+    private final int worldRainingSlot;
+    private final int worldThunderingSlot;
+    private final int worldTimeSlot;
 
     /** A populator with no dynamic-var store and no PAPI (unknown tokens resolve to null) — the lower-level default. */
     public FactPopulator(VarVocabulary vocabulary) {
@@ -110,18 +118,36 @@ public final class FactPopulator {
         addActorFlag(vocabulary, "sprinting", Player::isSprinting);
         addActorFlag(vocabulary, "swimming", Player::isSwimming);
         addActorFlag(vocabulary, "gliding", Player::isGliding);
+        addActorNum(vocabulary, "actor.healthpercent", actor -> healthPercent(actor));
+        addActorFlag(vocabulary, "onfire", actor -> actor.getFireTicks() > 0);
+        addActorFlag(vocabulary, "onground", FactPopulator::onGround);
         addActorStr(vocabulary, "actor.world", actor -> actor.getWorld().getName());
         addActorStr(vocabulary, "actor.gamemode", actor -> actor.getGameMode().name());
         addActorStr(vocabulary, "actor.helditem",
                 actor -> actor.getInventory().getItemInMainHand().getType().name());
+        addActorStr(vocabulary, "actor.type", actor -> actor.getType().name());
 
         // ── Victim (the combat target) ──
         addVictimNum(vocabulary, "victim.health", LivingEntity::getHealth);
         addVictimNum(vocabulary, "victim.maxhealth", FactPopulator::maxHealth);
+        addVictimNum(vocabulary, "victim.healthpercent", FactPopulator::healthPercent);
+        addVictimNum(vocabulary, "victim.food", v -> v instanceof Player p ? p.getFoodLevel() : 0);
         addVictimFlag(vocabulary, "victim.sneaking", v -> v instanceof Player p && p.isSneaking());
         addVictimFlag(vocabulary, "victim.blocking", v -> v instanceof Player p && p.isBlocking());
         addVictimFlag(vocabulary, "victim.flying", v -> v instanceof Player p && p.isFlying());
+        addVictimFlag(vocabulary, "victim.sprinting", v -> v instanceof Player p && p.isSprinting());
+        addVictimFlag(vocabulary, "victim.swimming", v -> v instanceof Player p && p.isSwimming());
+        addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && p.isGliding());
         addVictimStr(vocabulary, "victim.type", v -> v.getType().name());
+        addVictimStr(vocabulary, "victim.helditem", FactPopulator::heldItemName);
+
+        // ── Context (event payload: combat damage, the broken block, world weather/time) ──
+        this.damageSlot = slot(vocabulary, "damage", VarKind.NUM);
+        this.blockTypeSlot = slot(vocabulary, "block.type", VarKind.STR);
+        this.isBlockSlot = slot(vocabulary, "isblock", VarKind.BOOL);
+        this.worldRainingSlot = slot(vocabulary, "world.raining", VarKind.BOOL);
+        this.worldThunderingSlot = slot(vocabulary, "world.thundering", VarKind.BOOL);
+        this.worldTimeSlot = slot(vocabulary, "world.time", VarKind.NUM);
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
@@ -154,6 +180,7 @@ public final class FactPopulator {
         if (context != null) {
             populateActor(facts, context.actor());
             populateVictim(facts, context.victim());
+            populateContext(facts, context);
             Player actor = context.actor();
             if (actor != null) {
                 UUID id = actor.getUniqueId();
@@ -207,10 +234,73 @@ public final class FactPopulator {
         }
     }
 
+    /**
+     * Fill the event-payload facts (combat {@code damage}, the broken {@code block}, world weather/time) from
+     * the {@link ActivationContext}. These are not actor/victim entity reads, so they have their own guards:
+     * {@code damage} is a plain value; the block snapshot is region-owned on the firing thread (MINE); the
+     * world getters are global-region-owned on Folia and wrapped so a wrong-thread read defaults only them.
+     */
+    private void populateContext(FactBuffer facts, ActivationContext context) {
+        if (damageSlot >= 0) {
+            facts.setNumber(damageSlot, context.damage());
+        }
+        org.bukkit.block.Block block = context.block();
+        if (block != null && (blockTypeSlot >= 0 || isBlockSlot >= 0)) {
+            try {
+                org.bukkit.Material type = block.getType();
+                if (blockTypeSlot >= 0) {
+                    facts.setString(blockTypeSlot, type.name());
+                }
+                if (isBlockSlot >= 0) {
+                    facts.setFlag(isBlockSlot, !type.isAir());
+                }
+            } catch (RuntimeException unreadable) {
+                // A block owned by another region — leave the block facts defaulted.
+            }
+        }
+        if (worldRainingSlot >= 0 || worldThunderingSlot >= 0 || worldTimeSlot >= 0) {
+            try {
+                org.bukkit.World world = context.actor() != null ? context.actor().getWorld()
+                        : context.location() != null ? context.location().getWorld() : null;
+                if (world != null) {
+                    if (worldRainingSlot >= 0) {
+                        facts.setFlag(worldRainingSlot, world.hasStorm());
+                    }
+                    if (worldThunderingSlot >= 0) {
+                        facts.setFlag(worldThunderingSlot, world.isThundering());
+                    }
+                    if (worldTimeSlot >= 0) {
+                        facts.setNumber(worldTimeSlot, world.getTime());
+                    }
+                }
+            } catch (RuntimeException unreadable) {
+                // Folia: weather/time are global-region-owned; a wrong-thread read defaults only these facts.
+            }
+        }
+    }
+
     /** Max health via the cross-version-stable {@code getMaxHealth()} (the Attribute API flipped at 1.21.3). */
     @SuppressWarnings("deprecation")
     private static double maxHealth(LivingEntity entity) {
         return entity.getMaxHealth();
+    }
+
+    /** Health as a percentage of max (0–100), or 0 when max health is non-positive. */
+    private static double healthPercent(LivingEntity entity) {
+        double max = maxHealth(entity);
+        return max > 0 ? 100.0 * entity.getHealth() / max : 0.0;
+    }
+
+    /** On-ground via the cross-version-stable getter; deprecated-not-removed (client-reported) across the range. */
+    @SuppressWarnings("deprecation")
+    private static boolean onGround(Player player) {
+        return player.isOnGround();
+    }
+
+    /** The main-hand item's material name for a living victim, or {@code null} if it has no equipment. */
+    private static String heldItemName(LivingEntity victim) {
+        return victim.getEquipment() == null ? null
+                : victim.getEquipment().getItemInMainHand().getType().name();
     }
 
     private void addActorNum(VarVocabulary v, String key, ActorD src) {

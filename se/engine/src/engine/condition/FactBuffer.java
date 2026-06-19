@@ -17,12 +17,13 @@ import java.util.function.UnaryOperator;
  */
 public final class FactBuffer {
 
-    /** The maximum number of boolean flags (one {@code long} bitset). */
-    public static final int MAX_FLAGS = Long.SIZE;
+    /** The maximum number of boolean flags (two {@code long} bitsets — v3.1 §A widened from one). */
+    public static final int MAX_FLAGS = 2 * Long.SIZE;
 
     private final double[] numbers;
     private final String[] strings;
-    private long flags;
+    private long flags0; // flags 0..63
+    private long flags1; // flags 64..127
     private UnaryOperator<String> papi = t -> null;
 
     public FactBuffer(int numberSlots, int flagSlots, int stringSlots) {
@@ -45,12 +46,17 @@ public final class FactBuffer {
     }
 
     public void setFlag(int slot, boolean value) {
-        long bit = 1L << slot;
-        flags = value ? (flags | bit) : (flags & ~bit);
+        long bit = 1L << (slot & 63);
+        if (slot < Long.SIZE) {
+            flags0 = value ? (flags0 | bit) : (flags0 & ~bit);
+        } else {
+            flags1 = value ? (flags1 | bit) : (flags1 & ~bit);
+        }
     }
 
     public boolean flag(int slot) {
-        return (flags & (1L << slot)) != 0;
+        long bit = 1L << (slot & 63);
+        return slot < Long.SIZE ? (flags0 & bit) != 0 : (flags1 & bit) != 0;
     }
 
     public void setString(int slot, String value) {
@@ -81,7 +87,8 @@ public final class FactBuffer {
     public void clear() {
         Arrays.fill(numbers, 0.0);
         Arrays.fill(strings, null);
-        flags = 0L;
+        flags0 = 0L;
+        flags1 = 0L;
         papi = t -> null;
     }
 }

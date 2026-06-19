@@ -69,6 +69,9 @@ class FactPopulatorTest {
         lenient().when(p.isSprinting()).thenReturn(true);
         lenient().when(p.isSwimming()).thenReturn(false);
         lenient().when(p.isGliding()).thenReturn(false);
+        lenient().when(p.getFireTicks()).thenReturn(20);
+        lenient().when(p.isOnGround()).thenReturn(true);
+        lenient().when(p.getType()).thenReturn(EntityType.PLAYER);
         World world = mock(World.class);
         lenient().when(world.getName()).thenReturn("world_nether");
         lenient().when(p.getWorld()).thenReturn(world);
@@ -111,9 +114,13 @@ class FactPopulatorTest {
         assertTrue(f.flag(flag("sprinting")));
         assertFalse(f.flag(flag("swimming")));
         assertFalse(f.flag(flag("gliding")));
+        assertTrue(f.flag(flag("onfire")));   // fireTicks 20 > 0
+        assertTrue(f.flag(flag("onground")));
+        assertEquals(75.0, f.number(num("actor", "healthpercent"))); // 15 / 20 * 100
         assertEquals("world_nether", f.string(str("actor", "world")));
         assertEquals("SURVIVAL", f.string(str("actor", "gamemode")));
         assertEquals("DIAMOND_SWORD", f.string(str("actor", "helditem")));
+        assertEquals("PLAYER", f.string(str("actor", "type")));
     }
 
     @Test
@@ -125,15 +132,26 @@ class FactPopulatorTest {
         when(victim.isSneaking()).thenReturn(true);
         when(victim.isBlocking()).thenReturn(true);
         when(victim.isFlying()).thenReturn(false);
+        org.bukkit.inventory.EntityEquipment eq = mock(org.bukkit.inventory.EntityEquipment.class);
+        ItemStack vHeld = mock(ItemStack.class);
+        lenient().when(vHeld.getType()).thenReturn(Material.SHIELD);
+        lenient().when(eq.getItemInMainHand()).thenReturn(vHeld);
+        lenient().when(victim.getEquipment()).thenReturn(eq);
 
         FactBuffer f = populator.populate(new ActivationContext(mock(Player.class), victim, null, null));
 
         assertEquals(7.0, f.number(num("victim", "health")));
         assertEquals(20.0, f.number(num("victim", "maxhealth")));
+        assertEquals(35.0, f.number(num("victim", "healthpercent"))); // 7 / 20 * 100
+        assertEquals(8.0, f.number(num("victim", "food")));           // actor()'s food level
         assertEquals("PLAYER", f.string(str("victim", "type")));
+        assertEquals("SHIELD", f.string(str("victim", "helditem")));
         assertTrue(f.flag(flag("victim.sneaking")));
         assertTrue(f.flag(flag("victim.blocking")));
         assertFalse(f.flag(flag("victim.flying")));
+        assertTrue(f.flag(flag("victim.sprinting"))); // actor() is sprinting
+        assertFalse(f.flag(flag("victim.swimming")));
+        assertFalse(f.flag(flag("victim.gliding")));
     }
 
     @Test
@@ -152,10 +170,64 @@ class FactPopulatorTest {
     }
 
     @Test
-    void unsourcedFactsKeepTheirDefault() {
+    void comboStaysUnsourcedAtZero() {
+        // combo is declared so conditions referencing it compile, but no combat-streak tracker exists.
         FactBuffer f = populator.populate(new ActivationContext(actor(), null, null, null));
-        assertEquals(0.0, f.number(num(null, "damage"))); // declared but not yet sourced
         assertEquals(0.0, f.number(num(null, "combo")));
+    }
+
+    @Test
+    void populatesContextFactsFromTheEventPayload() {
+        Player actor = actor();
+        World world = actor.getWorld();
+        lenient().when(world.hasStorm()).thenReturn(true);
+        lenient().when(world.isThundering()).thenReturn(false);
+        lenient().when(world.getTime()).thenReturn(6000L);
+        org.bukkit.block.Block block = mock(org.bukkit.block.Block.class);
+        when(block.getType()).thenReturn(Material.DIAMOND_ORE);
+
+        FactBuffer f = populator.populate(new ActivationContext(actor, null, null, null, 7.5, block));
+
+        assertEquals(7.5, f.number(num(null, "damage")));        // sourced from the event payload
+        assertEquals("DIAMOND_ORE", f.string(str("block", "type")));
+        assertTrue(f.flag(flag("isblock")));
+        assertTrue(f.flag(flag("world.raining")));
+        assertFalse(f.flag(flag("world.thundering")));
+        assertEquals(6000.0, f.number(num("world", "time")));
+    }
+
+    @Test
+    void noBlockContextLeavesBlockFactsDefaulted() {
+        FactBuffer f = populator.populate(new ActivationContext(actor(), null, null, null));
+        assertEquals(null, f.string(str("block", "type")));
+        assertFalse(f.flag(flag("isblock")));
+    }
+
+    @Test
+    void factBufferSupportsFlagsAcrossBothWords() {
+        FactBuffer f = new FactBuffer(0, FactBuffer.MAX_FLAGS, 0);
+        f.setFlag(0, true);
+        f.setFlag(63, true);
+        f.setFlag(64, true);   // first bit of the second word
+        f.setFlag(127, true);
+        assertTrue(f.flag(0));
+        assertTrue(f.flag(63));
+        assertTrue(f.flag(64));
+        assertTrue(f.flag(127));
+        assertFalse(f.flag(1));
+        assertFalse(f.flag(65)); // words are independent
+        f.clear();
+        assertFalse(f.flag(0));
+        assertFalse(f.flag(64));
+    }
+
+    @Test
+    void vocabularyAcceptsMoreThan64Flags() {
+        VarVocabulary.Builder b = VarVocabulary.builder();
+        for (int i = 0; i < 80; i++) {
+            b.flag("f" + i); // 80 > the old 64-flag ceiling, under the new 128
+        }
+        assertEquals(80, b.build().flagSlots());
     }
 
     @Test

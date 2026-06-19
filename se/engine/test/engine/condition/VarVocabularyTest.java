@@ -38,19 +38,22 @@ class VarVocabularyTest {
     @Test
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
-        // 9 numeric (actor/victim health+maxhealth, actor food/level/totalexp, damage, combo),
-        // 9 flags (actor sneaking/blocking/flying/sprinting/swimming/gliding + victim pose),
-        // 4 string (actor world/gamemode/helditem, victim type).
-        assertEquals(9, v.numberSlots());
-        assertEquals(9, v.flagSlots());
-        assertEquals(4, v.stringSlots());
+        // v3.1 §A: 13 numeric (the original 9 + actor/victim healthpercent, victim.food, world.time),
+        // 17 flags (the original 9 + onfire/onground, victim sprint/swim/glide, isblock, world raining/thundering),
+        // 7 string (the original 4 + actor.type, victim.helditem, block.type).
+        assertEquals(13, v.numberSlots());
+        assertEquals(17, v.flagSlots());
+        assertEquals(7, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
+        assertEquals(VarKind.NUM, v.lookup("world", "time").orElseThrow().kind());
         assertEquals(VarKind.BOOL, v.lookup(null, "blocking").orElseThrow().kind());
         assertEquals(VarKind.BOOL, v.lookup("victim", "sneaking").orElseThrow().kind());
+        assertEquals(VarKind.BOOL, v.lookup(null, "isblock").orElseThrow().kind());
         assertEquals(VarKind.STR, v.lookup("actor", "world").orElseThrow().kind());
         assertEquals(VarKind.STR, v.lookup("victim", "type").orElseThrow().kind());
-        assertTrue(v.flagSlots() <= FactBuffer.MAX_FLAGS); // still within the single-long flag space
+        assertEquals(VarKind.STR, v.lookup("block", "type").orElseThrow().kind());
+        assertTrue(v.flagSlots() <= FactBuffer.MAX_FLAGS); // within the (now two-long) flag space
     }
 
     @Test
