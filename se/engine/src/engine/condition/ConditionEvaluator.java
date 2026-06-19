@@ -5,6 +5,7 @@ import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
 import schema.grammar.expr.Cmp;
+import schema.grammar.expr.FlowKind;
 
 /**
  * Evaluates a compiled condition over a primitive {@link FactBuffer} to a
@@ -30,7 +31,22 @@ public final class ConditionEvaluator {
         if (condition == null) {
             return ConditionResult.CONTINUE;
         }
-        return test(condition.root(), facts) ? ConditionResult.CONTINUE : ConditionResult.STOP;
+        // Evaluate the boolean root, then apply the authored outcome: a bare gate is
+        // CONTINUE/STOP, a clause carries its own whenTrue flow (+ chance delta) and CONTINUE on fail.
+        if (test(condition.root(), facts)) {
+            return ConditionResult.of(flow(condition.whenTrue()), condition.chanceDelta());
+        }
+        return ConditionResult.of(flow(condition.whenFalse()), 0.0);
+    }
+
+    /** Map the schema-layer {@link FlowKind} carried by the compiled condition to the engine {@link Flow}. */
+    private static Flow flow(FlowKind kind) {
+        return switch (kind) {
+            case CONTINUE -> Flow.CONTINUE;
+            case STOP -> Flow.STOP;
+            case FORCE -> Flow.FORCE;
+            case ALLOW -> Flow.ALLOW;
+        };
     }
 
     /**

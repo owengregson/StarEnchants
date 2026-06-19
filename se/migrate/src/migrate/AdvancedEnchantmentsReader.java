@@ -72,21 +72,34 @@ public final class AdvancedEnchantmentsReader {
             for (String token : LegacyYaml.stringList(lvl, "effects")) {
                 effects.add(Mappings.aeEffect(token, defenseDirection));
             }
-            // AE conditions are per-level (a scalar or a list of `LEFT : RESULT` lines). Map each to a
-            // StarEnchants allow-gate; combine the mappable lines with `&&`, flag the rest as TODOs.
-            List<String> mappedExprs = new ArrayList<>();
+            // AE conditions are per-level (a scalar or a list of `LEFT : RESULT` lines). Plain boolean gates
+            // combine with `&&`; a flow/chance clause is top-level-only (a condition admits at most one), so
+            // if any clause is present it is emitted alone and every other line is demoted to a TODO.
+            List<String> mappedGates = new ArrayList<>();
+            List<String> mappedClauses = new ArrayList<>();
             List<String> conditionTodos = new ArrayList<>();
             for (String condLine : LegacyYaml.stringList(lvl, "conditions")) {
                 MigratedCondition condition = Mappings.aeCondition(condLine);
-                if (condition.mapped()) {
-                    mappedExprs.add(condition.expr());
-                } else {
+                if (!condition.mapped()) {
                     conditionTodos.add(condition.todo());
+                } else if (condition.clauseForm()) {
+                    mappedClauses.add(condition.expr());
+                } else {
+                    mappedGates.add(condition.expr());
                 }
             }
-            String condition = mappedExprs.isEmpty() ? null
-                    : mappedExprs.size() == 1 ? mappedExprs.get(0)
-                    : mappedExprs.stream().map(e -> "(" + e + ")").collect(Collectors.joining(" && "));
+            String condition;
+            if (!mappedClauses.isEmpty()) {
+                condition = mappedClauses.get(0);
+                mappedClauses.stream().skip(1).forEach(e -> conditionTodos.add(
+                        "a condition admits one flow/chance clause; this extra clause was dropped: " + e));
+                mappedGates.forEach(e -> conditionTodos.add(
+                        "a boolean gate cannot combine with a flow/chance clause; port manually: " + e));
+            } else {
+                condition = mappedGates.isEmpty() ? null
+                        : mappedGates.size() == 1 ? mappedGates.get(0)
+                        : mappedGates.stream().map(e -> "(" + e + ")").collect(Collectors.joining(" && "));
+            }
             out.add(new MigratedLevel(
                     level,
                     LegacyYaml.doubleOrNull(lvl, "chance"),

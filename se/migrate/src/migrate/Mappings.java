@@ -163,6 +163,8 @@ public final class Mappings {
 
     /** A {@code %variable%} token; group 1 = the inner name (which may contain spaces, AE-style). */
     private static final Pattern VAR = Pattern.compile("%([^%]+)%");
+    /** The signed delta of an AE {@code ±N %chance%} result; group 1 = the number (the only digits in the result). */
+    private static final Pattern CHANCE_DELTA = Pattern.compile("([+-]?\\d+(?:\\.\\d+)?)\\s*%chance%");
     /** A real target @selector embedded in MESSAGE/ACTIONBAR text (vs an arbitrary "@word" like "@admin"). */
     private static final Pattern SELECTOR_IN_TEXT =
             Pattern.compile("(?i)@(self|victim|attacker)\\b|%(victim|attacker|player|self|target)%");
@@ -497,11 +499,12 @@ public final class Mappings {
     }
 
     /**
-     * Translate one AE condition line ({@code LEFT : RESULT}) to a {@link MigratedCondition}. An
-     * {@code %allow%}/{@code %continue%} result becomes a StarEnchants allow-gate (run only when LEFT is
-     * true); a {@code %stop%} result becomes the negated gate {@code !(LEFT)}. A {@code %force%} /
-     * {@code ±N %chance%} result, or a LEFT with an unmappable variable/operator, is a TODO — never a
-     * silently-wrong gate.
+     * Translate one AE condition line ({@code LEFT : RESULT}) to a {@link MigratedCondition}. Now that the
+     * StarEnchants grammar has the flow/chance clause forms (v3.1 §A), every AE result maps:
+     * {@code %allow%}/{@code %continue%} &rarr; the allow-gate {@code LEFT}; {@code %stop%} &rarr; the negated
+     * gate {@code !(LEFT)}; {@code %force%} &rarr; the clause {@code LEFT : %force%}; {@code ±N %chance%} &rarr;
+     * the clause {@code LEFT : ±N %chance%}. Only a LEFT with an unmappable variable/operator (or a chance
+     * result with no parseable {@code ±N}) is a TODO — never a silently-wrong gate.
      */
     public static MigratedCondition aeCondition(String line) {
         String raw = line == null ? "" : line.trim();
@@ -511,16 +514,8 @@ public final class Mappings {
         }
         String left = raw.substring(0, sep).trim();
         String result = raw.substring(sep + 3).trim().toLowerCase(Locale.ROOT);
-        boolean negate;
-        if (result.contains("%force%")) {
-            return MigratedCondition.todo("AE '%force%' result has no StarEnchants equivalent: " + raw);
-        } else if (result.contains("%chance%")) {
-            return MigratedCondition.todo("AE chance-modifier result has no StarEnchants equivalent: " + raw);
-        } else if (result.contains("%stop%")) {
-            negate = true;
-        } else if (result.contains("%allow%") || result.contains("%continue%")) {
-            negate = false;
-        } else {
+        if (!result.contains("%force%") && !result.contains("%chance%")
+                && !result.contains("%stop%") && !result.contains("%allow%") && !result.contains("%continue%")) {
             return MigratedCondition.todo("unrecognised AE condition result '" + result + "': " + raw);
         }
         String expr = aeLeftToSe(left);
@@ -533,7 +528,41 @@ public final class Mappings {
             return MigratedCondition.todo(
                     "AE condition is not type-coherent for StarEnchants (e.g. a flag compared numerically) — port manually: " + raw);
         }
-        return MigratedCondition.mapped(negate ? "!(" + expr + ")" : expr);
+        if (result.contains("%force%")) {
+            return MigratedCondition.clause(expr + " : %force%");
+        }
+        if (result.contains("%chance%")) {
+            Double delta = parseChanceDelta(result);
+            if (delta == null) {
+                return MigratedCondition.todo("AE chance result has no parseable ±N before %chance%: " + raw);
+            }
+            String signed = (delta >= 0 ? "+" : "-") + trimNumber(Math.abs(delta));
+            return MigratedCondition.clause(expr + " : " + signed + " %chance%");
+        }
+        if (result.contains("%stop%")) {
+            return MigratedCondition.mapped("!(" + expr + ")");
+        }
+        return MigratedCondition.mapped(expr); // %allow% / %continue%
+    }
+
+    /** The first signed number in an AE {@code ±N %chance%} result, or {@code null} if none parses. */
+    private static Double parseChanceDelta(String result) {
+        Matcher m = CHANCE_DELTA.matcher(result);
+        if (!m.find()) {
+            return null;
+        }
+        try {
+            return Double.valueOf(m.group(1));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    /** Render a non-negative magnitude without a trailing {@code .0} (so {@code 50.0} → {@code "50"}). */
+    private static String trimNumber(double magnitude) {
+        return magnitude == Math.rint(magnitude)
+                ? Long.toString((long) magnitude)
+                : Double.toString(magnitude);
     }
 
     /**

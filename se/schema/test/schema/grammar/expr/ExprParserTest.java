@@ -237,4 +237,65 @@ class ExprParserTest {
         Expr.Not n = assertInstanceOf(Expr.Not.class, parseOk("  !%x%"));
         assertEquals(3, n.source().col()); // '!' at index 2 -> col 3
     }
+
+    // ----- flow / chance clauses (v3.1 §A) -----
+
+    @Test
+    void bareExpressionIsNotAClause() {
+        assertInstanceOf(Expr.Compare.class, parseOk("%victim.health% < 5"));
+    }
+
+    @Test
+    void forceClauseWrapsTheTest() {
+        Expr.Clause c = assertInstanceOf(Expr.Clause.class, parseOk("%victim.health% < 5 : %force%"));
+        assertEquals(FlowKind.FORCE, c.flow());
+        assertEquals(0.0, c.chanceDelta());
+        assertEquals("(< %victim.health% #5)", sexpr(c.test()));
+    }
+
+    @Test
+    void stopAllowContinueSentinels() {
+        assertEquals(FlowKind.STOP, ((Expr.Clause) parseOk("%blocking% : %stop%")).flow());
+        assertEquals(FlowKind.ALLOW, ((Expr.Clause) parseOk("%blocking% : %allow%")).flow());
+        assertEquals(FlowKind.CONTINUE, ((Expr.Clause) parseOk("%blocking% : %continue%")).flow());
+    }
+
+    @Test
+    void chanceClauseCarriesASignedDelta() {
+        Expr.Clause plus = assertInstanceOf(Expr.Clause.class, parseOk("%sneaking% : +50 %chance%"));
+        assertEquals(FlowKind.CONTINUE, plus.flow());
+        assertEquals(50.0, plus.chanceDelta());
+        Expr.Clause minus = assertInstanceOf(Expr.Clause.class, parseOk("%sneaking% : -10 %chance%"));
+        assertEquals(-10.0, minus.chanceDelta());
+        Expr.Clause unsigned = assertInstanceOf(Expr.Clause.class, parseOk("%sneaking% : 25 %chance%"));
+        assertEquals(25.0, unsigned.chanceDelta()); // an unsigned delta is positive
+    }
+
+    @Test
+    void aColonInsideAPlaceholderIsNotAClauseSeparator() {
+        // The lexer reads a %...% body up to the next %, so a PAPI token's ':' stays inside the VarRef.
+        Expr.Compare c = assertInstanceOf(Expr.Compare.class, parseOk("%server_tps_1:colored% == \"20.0\""));
+        assertEquals("server_tps_1:colored", ((Expr.VarRef) c.left()).name());
+    }
+
+    @Test
+    void aSecondClauseIsAParseError() {
+        Diagnostics diags = new Diagnostics();
+        ExprParser.parse("%a% : %stop% : %force%", SRC, diags);
+        assertTrue(diags.hasErrors());
+    }
+
+    @Test
+    void aMissingChanceSentinelIsAParseError() {
+        Diagnostics diags = new Diagnostics();
+        ExprParser.parse("%a% : +50", SRC, diags);
+        assertTrue(diags.hasErrors());
+    }
+
+    @Test
+    void anUnknownSentinelIsAParseError() {
+        Diagnostics diags = new Diagnostics();
+        ExprParser.parse("%a% : %nonsense%", SRC, diags);
+        assertTrue(diags.hasErrors());
+    }
 }

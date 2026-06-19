@@ -61,6 +61,7 @@ public final class ExprParser {
         List<ExprTok> toks = ExprLexer.tokenize(text, lineSource, diags);
         ExprParser p = new ExprParser(toks, lineSource, diags);
         Expr e = p.parseOr();
+        e = p.parseClauseTail(e); // optional ": <%stop%|%force%|%allow%|%continue%|±N %chance%>" outcome
         if (!p.atEnd()) {
             // Trailing tokens after a complete expression — e.g. "1 2" or "(a) b".
             ExprTok extra = p.peek();
@@ -70,6 +71,118 @@ public final class ExprParser {
                     "did you forget an operator like '&&', '||', or a comparator?");
         }
         return Optional.of(e);
+    }
+
+    // ----- clause outcome grammar (the optional top-level flow/chance tail) -----
+
+    /**
+     * {@code clause-tail := ( ":" outcome )?} — parse the optional flow/chance clause after a boolean
+     * test. With no {@code :} the {@code test} is returned unchanged (a bare boolean gate). A second
+     * {@code :} (a chained clause) is reported as an error, after which the rest of the line is consumed
+     * so recovery does not produce a spurious trailing-token error.
+     */
+    private Expr parseClauseTail(Expr test) {
+        if (!check(ExprTok.Kind.COLON)) {
+            return test;
+        }
+        advance(); // consume ':'
+        Expr clause = parseOutcome(test);
+        if (check(ExprTok.Kind.COLON)) {
+            ExprTok at = peek();
+            diags.error("E_PARSE", "a condition takes at most one ':' outcome clause",
+                    lineSource.atColumn(at.col()),
+                    "write a single '<test> : <%stop%|%force%|%allow%|±N %chance%>'");
+            consumeToEnd();
+        }
+        return clause;
+    }
+
+    /**
+     * {@code outcome := flow-sentinel | ( ("+"|"-")? number "%chance%" )} — a flow sentinel
+     * ({@code %stop%}/{@code %force%}/{@code %allow%}/{@code %continue%}) or a signed chance delta.
+     * On a malformed outcome the error is reported, the rest is consumed, and the bare {@code test}
+     * is returned so the tree stays usable.
+     */
+    private Expr parseOutcome(Expr test) {
+        Source src = test.source();
+        if (check(ExprTok.Kind.PLUS) || check(ExprTok.Kind.MINUS) || check(ExprTok.Kind.NUMBER)) {
+            return chanceClause(test, src);
+        }
+        if (check(ExprTok.Kind.VAR)) {
+            FlowKind flow = sentinelFlow(peek().text());
+            if (flow != null) {
+                advance();
+                return new Expr.Clause(test, flow, 0.0, src);
+            }
+        }
+        ExprTok at = peek();
+        diags.error("E_PARSE",
+                "expected a clause outcome after ':' but found '" + describe(at) + "'",
+                lineSource.atColumn(at.col()),
+                "use %stop%, %force%, %allow%, %continue%, or '±N %chance%'");
+        consumeToEnd();
+        return test;
+    }
+
+    /** {@code ("+"|"-")? number "%chance%"} — a signed percentage-point delta applied when the test passes. */
+    private Expr chanceClause(Expr test, Source src) {
+        double sign = 1.0;
+        if (check(ExprTok.Kind.PLUS)) {
+            advance();
+        } else if (check(ExprTok.Kind.MINUS)) {
+            sign = -1.0;
+            advance();
+        }
+        if (!check(ExprTok.Kind.NUMBER)) {
+            ExprTok at = peek();
+            diags.error("E_PARSE", "expected a number before '%chance%' but found '" + describe(at) + "'",
+                    lineSource.atColumn(at.col()), "write the delta, e.g. '+50 %chance%'");
+            consumeToEnd();
+            return test;
+        }
+        ExprTok numTok = peek();
+        advance();
+        double magnitude;
+        try {
+            magnitude = Double.parseDouble(numTok.text());
+        } catch (NumberFormatException ex) {
+            diags.error("E_PARSE", "invalid number '" + numTok.text() + "'", lineSource.atColumn(numTok.col()));
+            consumeToEnd();
+            return test;
+        }
+        if (!(check(ExprTok.Kind.VAR) && peek().text().equalsIgnoreCase("chance"))) {
+            ExprTok at = peek();
+            diags.error("E_PARSE", "expected '%chance%' after the delta but found '" + describe(at) + "'",
+                    lineSource.atColumn(at.col()), "write the delta as '±N %chance%'");
+            consumeToEnd();
+            return test;
+        }
+        advance(); // consume the %chance% sentinel
+        return new Expr.Clause(test, FlowKind.CONTINUE, sign * magnitude, src);
+    }
+
+    /** The {@link FlowKind} for a flow sentinel's {@code %…%} body, or {@code null} if it is not one. */
+    private static FlowKind sentinelFlow(String body) {
+        if (body.equalsIgnoreCase("stop")) {
+            return FlowKind.STOP;
+        }
+        if (body.equalsIgnoreCase("force")) {
+            return FlowKind.FORCE;
+        }
+        if (body.equalsIgnoreCase("allow")) {
+            return FlowKind.ALLOW;
+        }
+        if (body.equalsIgnoreCase("continue")) {
+            return FlowKind.CONTINUE;
+        }
+        return null;
+    }
+
+    /** Consume every remaining token up to EOF, for one-finding error recovery on a malformed clause. */
+    private void consumeToEnd() {
+        while (!atEnd()) {
+            advance();
+        }
     }
 
     // ----- grammar (one method per precedence level) -----
@@ -255,7 +368,8 @@ public final class ExprParser {
 
     private static boolean isOperatorLike(ExprTok t) {
         return switch (t.kind()) {
-            case AND, OR, BANG, COMMA, EQ, NE, LT, LE, GT, GE, CONTAINS, MATCHES_REGEX -> true;
+            case AND, OR, BANG, COMMA, EQ, NE, LT, LE, GT, GE, CONTAINS, MATCHES_REGEX,
+                    COLON, PLUS, MINUS -> true;
             default -> false;
         };
     }

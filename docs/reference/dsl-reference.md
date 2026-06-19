@@ -573,6 +573,18 @@ Boolean expressions over `%scope.name%` variables, combined with `&& || ! ( )` a
 | `contains` | contains |
 | `matchesregex` | matches_regex |
 
+### Flow / chance clauses
+
+A condition may end in a clause `<test> : <outcome>` whose outcome is applied when the test is true (a bare condition with no clause is a gate that stops the activation when false).
+
+| Clause | Effect when the test is true |
+| --- | --- |
+| `%continue%` | proceed to the chance roll as normal |
+| `%stop%` | block this activation |
+| `%force%` | force activation, skipping the chance roll |
+| `%allow%` | allow activation regardless of the chance roll |
+| `±N %chance%` | add N percentage points to the chance roll |
+
 ## Variables
 
 The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.

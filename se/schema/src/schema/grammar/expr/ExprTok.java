@@ -57,6 +57,12 @@ public record ExprTok(ExprTok.Kind kind, String text, int col) {
         CONTAINS,
         /** {@code matchesregex} — the string regular-expression match operator. */
         MATCHES_REGEX,
+        /** {@code :} — the clause separator between a condition's test and its flow/chance outcome. */
+        COLON,
+        /** {@code +} — the optional positive sign of a {@code ±N %chance%} clause delta. */
+        PLUS,
+        /** {@code -} — the optional negative sign of a {@code ±N %chance%} clause delta. */
+        MINUS,
         /** End of input — a sentinel the parser stops on; {@link ExprTok#text} is empty. */
         EOF
     }
