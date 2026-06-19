@@ -130,6 +130,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.unopened.usage", "&eUsage: /se unopened <tier> &7— right-click it to reveal a random book");
         s.put("command.book.usage", "&eUsage: /se book <enchant> [level] &7— a book you drag onto gear to apply it");
         s.put("command.give.crystal", "&aMinted a crystal: &f{KEY}&a. &7Drag it onto gear to apply.");
+        s.put("command.give.extractor", "&aMinted a crystal extractor. &7Drag it onto crystal-bearing gear to extract.");
         s.put("command.give.heroic", "&6Minted a heroic upgrade. &7Drag it onto armour or a weapon to attempt.");
         s.put("command.give.slot", "&5Minted a {KIND}. &7Drag it onto gear to add enchant slots.");
         s.put("command.give.transmog", "&5Minted a transmog scroll. &7Drag it onto enchanted gear.");
@@ -179,6 +180,8 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("apply.crystal.no-slots", "&cThis item has no free crystal slots ({MAX} max).");
         s.put("apply.crystal.max-reached", "&cThis item already holds the maximum {MAX} crystals.");
         s.put("apply.crystal.applied", "{LABEL} &7crystal applied.");
+        s.put("apply.crystal.none", "&cThat item carries no crystal to extract.");
+        s.put("apply.crystal.extracted", "&aExtracted the crystal.");
 
         // ── Hardcoded gesture/service guards (no items/ home; not the config-backed *Config messages) ──
         s.put("common.single-item", "&cApply to a single item — split the stack first.");
@@ -216,6 +219,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("crystal.apply-fail", "&cThe crystal shattered without taking hold.");
         s.put("crystal.no-slots", "&cThat item has no free crystal slot.");
         s.put("crystal.merge", "&dMerged into a multi-crystal: &f{CRYSTAL}&d.");
+        s.put("crystal.extract-success", "&aExtracted &f{CRYSTAL}&a back into a crystal.");
         s.put("heroic.success", "&6Heroic upgrade succeeded! &7Your gear is now &6heroic&7.");
         s.put("heroic.fail", "&cThe heroic upgrade failed — the upgrade was consumed.");
         s.put("slot.apply", "&aSlots increased — this item now has &f{SLOTS}&a total.");

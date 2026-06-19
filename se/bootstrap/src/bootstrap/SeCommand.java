@@ -55,8 +55,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
-            List.of("gem", "crystal", "book", "item", "set", "heroic", "upgrade", "orb", "slotgem", "blackscroll",
-                    "randomizer", "transmog", "holy", "nametag", "unopened");
+            List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb", "slotgem",
+                    "blackscroll", "randomizer", "transmog", "holy", "nametag", "unopened");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -470,6 +470,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy scroll");
             case "nametag" -> deliver(sender, target, nametags.mint(), "command.give.nametag", "item nametag");
             case "crystal" -> giveCrystalTo(sender, target, args);
+            case "extractor" -> deliver(sender, target, crystals.mintExtractor(), "command.give.extractor", "crystal extractor");
             case "book" -> giveBookTo(sender, target, args);
             case "unopened" -> giveUnopenedTo(sender, target, args);
             case "item" -> giveItemTo(sender, target, args);

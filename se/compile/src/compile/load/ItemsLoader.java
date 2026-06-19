@@ -214,13 +214,22 @@ public final class ItemsLoader {
 
     private static CrystalConfig readCrystal(YamlNode root, Diagnostics diags) {
         CrystalConfig d = CrystalConfig.defaults();
+        YamlNode sounds = root.child("sounds");
+        YamlNode extractor = root.child("extractor");
         return new CrystalConfig(
                 orDefault(root.string("material"), d.material()),
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("success-chance"), d.successChance(), root, diags),
                 root.has("consume-on-fail")
-                        ? "true".equalsIgnoreCase(root.string("consume-on-fail")) : d.consumeOnFail());
+                        ? "true".equalsIgnoreCase(root.string("consume-on-fail")) : d.consumeOnFail(),
+                root.has("sounds") && sounds.has("enabled")
+                        ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
+                orDefault(sounds.string("apply"), d.soundApply()),
+                orDefault(sounds.string("remove"), d.soundRemove()),
+                orDefault(extractor.string("material"), d.extractorMaterial()),
+                orDefault(extractor.string("name"), d.extractorName()),
+                extractor.has("lore") ? extractor.stringList("lore") : d.extractorLore());
     }
 
     private static SoulGemConfig readSoulGem(YamlNode root, Diagnostics diags) {

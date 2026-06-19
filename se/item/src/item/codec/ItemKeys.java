@@ -17,19 +17,21 @@ public final class ItemKeys {
     private final NamespacedKey carrier;
     private final NamespacedKey guarded;
     private final NamespacedKey crystalItem;
+    private final NamespacedKey crystalExtractor;
     private final NamespacedKey heroicUpgrade;
     private final NamespacedKey slotItem;
     private final NamespacedKey scroll;
     private final NamespacedKey unopened;
 
     private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded,
-                     NamespacedKey crystalItem, NamespacedKey heroicUpgrade, NamespacedKey slotItem,
-                     NamespacedKey scroll, NamespacedKey unopened) {
+                     NamespacedKey crystalItem, NamespacedKey crystalExtractor, NamespacedKey heroicUpgrade,
+                     NamespacedKey slotItem, NamespacedKey scroll, NamespacedKey unopened) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
         this.guarded = guarded;
         this.crystalItem = crystalItem;
+        this.crystalExtractor = crystalExtractor;
         this.heroicUpgrade = heroicUpgrade;
         this.slotItem = slotItem;
         this.scroll = scroll;
@@ -40,7 +42,8 @@ public final class ItemKeys {
     public static ItemKeys of(Plugin plugin) {
         return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
                 new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"),
-                new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "heroicupgrade"),
+                new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "crystalextractor"),
+                new NamespacedKey(plugin, "heroicupgrade"),
                 new NamespacedKey(plugin, "slotitem"), new NamespacedKey(plugin, "scroll"),
                 new NamespacedKey(plugin, "unopened"));
     }
@@ -83,6 +86,15 @@ public final class ItemKeys {
      */
     public NamespacedKey crystalItem() {
         return crystalItem;
+    }
+
+    /**
+     * The key that marks an item as a crystal EXTRACTOR (docs/v3-directives.md §E) — a one-shot consumable
+     * dragged onto crystal-bearing gear to pop its last crystal back into a whole crystal item. An identity
+     * marker, off the combat hot path.
+     */
+    public NamespacedKey crystalExtractor() {
+        return crystalExtractor;
     }
 
     /**

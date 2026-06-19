@@ -4,38 +4,56 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The configurable likeness + apply mechanics of the physical CRYSTAL item (docs/v3-directives.md §E),
- * loaded from the top-level {@code items/crystal.yml}. Immutable; lives in the {@link ItemsConfig}
- * snapshot the runtime reads and {@code /se reload} swaps. A crystal is its own item (distinct from the
- * book/scroll/dust carrier economy): drag-applied to gear with a {@link #successChance} roll (optionally
- * {@link #consumeOnFail}), and two crystals merge into a multi-crystal.
+ * The configurable likeness + apply mechanics of the physical CRYSTAL item and its EXTRACTOR
+ * (docs/v3-directives.md §E), loaded from the top-level {@code items/crystal.yml}. Immutable; lives in the
+ * {@link ItemsConfig} snapshot the runtime reads and {@code /se reload} swaps. A crystal is its own item
+ * (distinct from the book/scroll/dust carrier economy): drag-applied to gear with a {@link #successChance}
+ * roll (optionally {@link #consumeOnFail}), two crystals merge into a multi-crystal, and a crystal
+ * EXTRACTOR pops a crystal back off gear as a whole item.
  *
  * <p>Per-item crystal SLOT capacity is intentionally NOT here — it is a cross-cutting knob that belongs
  * in the master {@code config.yml} {@code crystals:} section (§L); until that lands the runtime injects a
- * default. Particles and sounds are cosmetic follow-ups (as with {@link SoulGemConfig}). {@code {CRYSTAL}}
- * in the name/lore/messages renders the component crystal display name(s).
+ * default. {@code {CRYSTAL}} in the name/lore/messages renders the component crystal display name(s).
  *
- * @param material            the crystal item's material token (resolved cross-version at use)
- * @param name                its display name ({@code &} colours; {@code {CRYSTAL}} placeholder)
- * @param lore                its lore lines ({@code {CRYSTAL}} placeholder)
- * @param successChance       drag-apply success chance, 0..100
- * @param consumeOnFail       whether a failed apply still consumes the crystal
+ * @param material          the crystal item's material token (resolved cross-version at use)
+ * @param name              its display name ({@code &} colours; {@code {CRYSTAL}} placeholder)
+ * @param lore              its lore lines ({@code {CRYSTAL}} placeholder)
+ * @param successChance     drag-apply success chance, 0..100
+ * @param consumeOnFail     whether a failed apply still consumes the crystal
+ * @param sounds            master toggle for the apply/remove gesture sounds
+ * @param soundApply        the namespaced sound played on a successful apply/merge
+ * @param soundRemove       the namespaced sound played on a successful extraction
+ * @param extractorMaterial the extractor item's material token (resolved cross-version at use)
+ * @param extractorName     the extractor item's display name
+ * @param extractorLore     the extractor item's lore lines
  *
- * <p>The apply/merge messages now live in {@code lang.yml} ({@code crystal.apply-success} /
- * {@code crystal.apply-fail} / {@code crystal.no-slots} / {@code crystal.merge}) — §L centralised them.
+ * <p>The apply/merge/extract messages live in {@code lang.yml} ({@code crystal.apply-success} /
+ * {@code crystal.apply-fail} / {@code crystal.no-slots} / {@code crystal.merge} / {@code crystal.extract-success})
+ * — §L centralised them.
  */
 public record CrystalConfig(
         String material,
         String name,
         List<String> lore,
         int successChance,
-        boolean consumeOnFail) {
+        boolean consumeOnFail,
+        boolean sounds,
+        String soundApply,
+        String soundRemove,
+        String extractorMaterial,
+        String extractorName,
+        List<String> extractorLore) {
 
     public CrystalConfig {
         Objects.requireNonNull(material, "material");
         Objects.requireNonNull(name, "name");
         lore = List.copyOf(lore);
         successChance = Math.max(0, Math.min(100, successChance));
+        Objects.requireNonNull(soundApply, "soundApply");
+        Objects.requireNonNull(soundRemove, "soundRemove");
+        Objects.requireNonNull(extractorMaterial, "extractorMaterial");
+        Objects.requireNonNull(extractorName, "extractorName");
+        extractorLore = List.copyOf(extractorLore);
     }
 
     /** The built-in crystal item used when {@code items/crystal.yml} is absent or omits fields. */
@@ -45,6 +63,12 @@ public record CrystalConfig(
                 "&d{CRYSTAL} Crystal",
                 List.of("&7Drag onto gear to apply.", "&7Merge two crystals into a multi-crystal."),
                 75,
-                true);
+                true,
+                true,
+                "block.amethyst_block.chime",
+                "block.amethyst_cluster.break",
+                "AMETHYST_CLUSTER",
+                "&dCrystal Extractor",
+                List.of("&7Drag onto crystal-bearing gear", "&7to extract its last crystal."));
     }
 }

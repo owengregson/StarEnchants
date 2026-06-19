@@ -12,3 +12,15 @@ lore:
   - "&7Merge two crystals into a multi-crystal."
 success-chance: 75
 consume-on-fail: true
+# Apply/merge and extract gesture sounds (namespaced keys, valid across the version range).
+sounds:
+  enabled: true
+  apply: "block.amethyst_block.chime"
+  remove: "block.amethyst_cluster.break"
+# The crystal EXTRACTOR — drag it onto crystal-bearing gear to pop its last crystal back into a whole item.
+extractor:
+  material: AMETHYST_CLUSTER
+  name: "&dCrystal Extractor"
+  lore:
+    - "&7Drag onto crystal-bearing gear"
+    - "&7to extract its last crystal."
