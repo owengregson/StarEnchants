@@ -77,6 +77,15 @@ public final class ApplySuite implements Harness.Scenario {
             effects: ["MODIFY_HEALTH:2"]
             """;
 
+    // §J set-piece: an armour-only set; a minted piece carries sets/titan and the bonus fires once 4 are worn.
+    private static final String TITAN = """
+            display: "&bTitan"
+            pieces: 4
+            trigger: DEFENSE
+            applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+            effects: ["MODIFY_HEALTH:1"]
+            """;
+
     private final Plugin plugin;
 
     public ApplySuite(Plugin plugin) {
@@ -92,6 +101,7 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.extractCrystal");
         h.expect("item.apply.removesRequired");
         h.expect("item.apply.removesRequired.netZeroSlots");
+        h.expect("item.apply.mintSet");
 
         ItemEnchanter enchanter;
         ItemEnchanter capped; // a 1-slot enchanter for the net-zero-slot case
@@ -102,6 +112,7 @@ public final class ApplySuite implements Harness.Scenario {
             write(root, "crystals/spark.yml", SPARK);
             write(root, "enchants/base.yml", BASE);
             write(root, "enchants/superior.yml", SUPERIOR);
+            write(root, "sets/titan.yml", TITAN);
             Compiler compiler = ContentCompiler.production();
             Library library = LibraryLoader.load(root, compiler, 0);
             if (library.hasErrors()) {
@@ -216,6 +227,26 @@ public final class ApplySuite implements Harness.Scenario {
             if (enchants.size() != 1 || !enchants.containsKey("enchants/superior")
                     || enchants.containsKey("enchants/base")) {
                 throw new IllegalStateException("expected exactly the upgrade after a net-zero swap: " + enchants.keySet());
+            }
+        });
+
+        h.guard("item.apply.mintSet", () -> {
+            var minted = enchanter.mintSetPiece("sets/titan", "HELMET");
+            if (minted.isEmpty()) {
+                throw new IllegalStateException("a set HELMET piece should mint");
+            }
+            ItemStack piece = minted.get();
+            if (!"sets/titan".equals(codec.read(piece).setKey())) {
+                throw new IllegalStateException("the minted piece did not carry the set key");
+            }
+            if (!piece.getType().name().endsWith("HELMET")) {
+                throw new IllegalStateException("the minted piece is not a helmet: " + piece.getType());
+            }
+            if (enchanter.mintSetPiece("sets/titan", "SWORD").isPresent()) {
+                throw new IllegalStateException("a weapon piece must fail on an armour-only set");
+            }
+            if (enchanter.mintSetPiece("sets/ghost", "HELMET").isPresent()) {
+                throw new IllegalStateException("an unknown set must fail to mint");
             }
         });
     }

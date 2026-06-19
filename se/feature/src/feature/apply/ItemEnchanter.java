@@ -288,6 +288,45 @@ public final class ItemEnchanter {
         return ExtractResult.ok(popped, messages.format("apply.crystal.extracted"));
     }
 
+    /**
+     * Mint a SET-PIECE item for {@code setKey} on the {@code pieceToken} slot (§J {@code /se give set}) — set
+     * membership is PDC-keyed ({@link CombatState#setKey()}), so a piece is just a chosen material stamped with
+     * the set key. The piece must be a group the set's {@code applies-to} actually covers, and that group must
+     * resolve to a concrete material on this version; otherwise empty (so a {@code <weapon>} on an armour-only
+     * set, or an unknown set, fails cleanly without inventing data — ADR-0019). The set bonus then fires through
+     * the existing WornResolver→SetResolver path once enough pieces are worn.
+     */
+    public java.util.Optional<ItemStack> mintSetPiece(String setKey, String pieceToken) {
+        compile.load.SetDef def = set(setKey);
+        if (def == null) {
+            return java.util.Optional.empty();
+        }
+        String token = pieceToken == null ? "" : pieceToken.toUpperCase(java.util.Locale.ROOT);
+        boolean applicable = def.appliesTo().stream().anyMatch(t -> t.equalsIgnoreCase(token));
+        if (!applicable) {
+            return java.util.Optional.empty(); // the set does not cover this slot (e.g. a weapon on an armour set)
+        }
+        Material material = groups.materials(token).stream().findFirst().orElse(null);
+        if (material == null) {
+            return java.util.Optional.empty(); // the group resolves to no material on this version
+        }
+        ItemStack stack = item.mint.ItemFactory.build(material, def.display(), List.of());
+        CombatState next = new CombatState(Map.of(), List.of(), setKey, false, item.codec.HeroicStat.NONE, 0);
+        codec.write(stack, next);
+        lore.apply(stack, next); // renders the set line (LoreRenderer §J)
+        return java.util.Optional.of(stack);
+    }
+
+    /** The set def for {@code key}, or {@code null} if no such set exists. */
+    private compile.load.SetDef set(String key) {
+        for (compile.load.SetDef def : content.library().sets()) {
+            if (def.key().equals(key)) {
+                return def;
+            }
+        }
+        return null;
+    }
+
     /** How many of {@code def}'s prerequisites a successful apply would free (0 unless removes-required). */
     private static int freedBy(EnchantDef def, CombatState current) {
         if (!def.removesRequired()) {

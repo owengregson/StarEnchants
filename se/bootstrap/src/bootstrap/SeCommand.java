@@ -497,7 +497,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "book" -> giveBookTo(sender, target, args);
             case "unopened" -> giveUnopenedTo(sender, target, args);
             case "item" -> giveItemTo(sender, target, args);
-            case "set" -> sender.sendMessage(messages.format("command.give.set-unavailable")); // blocked: no set-piece model
+            case "set" -> giveSetTo(sender, target, args);
             default -> sender.sendMessage(messages.format("command.give.usage"));
         }
     }
@@ -544,6 +544,38 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
         if (notSelf(sender, target)) {
             tell(sender, messages.format("command.give.delivered", "ITEM", key, "PLAYER", target.getName()));
+        }
+    }
+
+    /**
+     * {@code /se give set <player> <set> <piece>} — mint an armour set piece (the piece is HELMET/CHESTPLATE/
+     * LEGGINGS/BOOTS, whichever the set's {@code applies-to} covers) stamped with the set key, and give it to
+     * the target. A piece the set does not cover (e.g. a weapon on an armour-only set) fails cleanly.
+     */
+    private void giveSetTo(CommandSender sender, Player target, String[] args) {
+        if (args.length < 5) {
+            sender.sendMessage(messages.format("command.set.usage"));
+            return;
+        }
+        String key = normalize(args[3], "sets/");
+        if (content.library().sets().stream().noneMatch(d -> d.key().equals(key))) {
+            sender.sendMessage(messages.format("command.error.no-such-set", "KEY", key));
+            return;
+        }
+        String piece = args[4];
+        java.util.Optional<ItemStack> minted = enchanter.mintSetPiece(key, piece);
+        if (minted.isEmpty()) {
+            sender.sendMessage(messages.format("command.give.set-piece", "PIECE", piece, "KEY", key));
+            return;
+        }
+        ItemStack item = minted.get();
+        Scheduling.onEntity(target, () -> {
+            MenuItems.giveOrDrop(target, item);
+            target.sendMessage(messages.format("command.give.set", "KEY", key, "PIECE", piece));
+        });
+        if (notSelf(sender, target)) {
+            tell(sender, messages.format("command.give.delivered", "ITEM", key + " " + piece,
+                    "PLAYER", target.getName()));
         }
     }
 

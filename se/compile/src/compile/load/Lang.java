@@ -152,8 +152,11 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                         + "randomizer | transmog | holy | nametag | unopened <tier>");
         s.put("command.give.delivered", "&aGave &f{ITEM}&a to &f{PLAYER}&a.");
         s.put("command.give.item", "&aReceived &f{ID}&a.");
-        s.put("command.give.set-unavailable",
-                "&cGiving set pieces is not available yet — no set-piece model exists (tracked follow-up).");
+        s.put("command.give.set", "&aMinted the &f{KEY}&a {PIECE} piece. &7Wear the set to complete its bonus.");
+        s.put("command.give.set-piece",
+                "&cThe &f{KEY}&c set has no &f{PIECE}&c piece — use HELMET / CHESTPLATE / LEGGINGS / BOOTS.");
+        s.put("command.set.usage", "&eUsage: /se give set <player> <set> <piece> &7— mint an armour set piece");
+        s.put("command.error.no-such-set", "&cNo such set: &f{KEY}");
         s.put("command.error.no-such-player", "&cNo online player named &f{PLAYER}&c.");
         s.put("command.error.no-such-item", "&cNo such item: &f{ID}&c.");
         s.put("command.removeenchant.usage", "&eUsage: /se removeenchant <enchant> &7— strips it from the held item");
