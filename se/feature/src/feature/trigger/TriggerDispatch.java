@@ -161,7 +161,7 @@ public final class TriggerDispatch {
      * {@code event}, so a defensive reduction/heroic-reduction actually softens the fall/fire damage.
      */
     public void fireDamage(Player actor, int triggerId, ActivationContext context,
-                           org.bukkit.event.entity.EntityDamageEvent event) {
+                           org.bukkit.event.entity.EntityDamageEvent event, boolean applyHeroic) {
         if (triggerId < 0) {
             return;
         }
@@ -169,11 +169,24 @@ public final class TriggerDispatch {
         DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
                 nowTicks, maxHeroicOutgoing);
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
-                attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
+                attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys(), applyHeroic);
         event.setDamage(sink.fold().apply(event.getDamage()));
         if (sink.cancelled()) {
             event.setCancelled(true);
         }
+        sink.flush();
+    }
+
+    /**
+     * Fold ONLY the worn heroic reduction onto {@code event} — for an environmental damage cause that has
+     * no StarEnchants trigger but should still be softened by heroic when {@code reduction-scope: ALL} (§F).
+     * The caller only invokes this under ALL scope; it runs no trigger abilities.
+     */
+    public void fireEnvironmentalHeroic(Player actor, org.bukkit.event.entity.EntityDamageEvent event) {
+        Snapshot snapshot = content.snapshot();
+        DispatchSink sink = newSink();
+        runner.contributeHeroicReduction(snapshot.generation(), actor, sink);
+        event.setDamage(sink.fold().apply(event.getDamage()));
         sink.flush();
     }
 
