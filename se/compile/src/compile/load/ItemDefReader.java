@@ -77,7 +77,9 @@ final class ItemDefReader {
         if (enchant == null && crystal == null && set == null && successBonus == null && role == null) {
             return null;
         }
-        return new ItemDef.Grant(enchant, crystal, set, level, successBonus, role);
+        String sound = ContentParse.blankToNull(grants.string("sound"));
+        java.util.List<String> particles = grants.has("particles") ? grants.stringList("particles") : java.util.List.of();
+        return new ItemDef.Grant(enchant, crystal, set, level, successBonus, role, sound, particles);
     }
 
     private static ItemDef.Apply readApply(YamlNode apply, Diagnostics diags) {
