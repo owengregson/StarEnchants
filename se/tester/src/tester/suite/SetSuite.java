@@ -42,9 +42,15 @@ public final class SetSuite implements Harness.Scenario {
 
     private static final String YETI = """
             display: Yeti
-            pieces: 2
-            trigger: DEFENSE
-            effects: ["POTION:REGENERATION:1:80:@Self"]
+            complete: 2
+            armor:
+              pieces:
+                helmet:     { material: DIAMOND_HELMET }
+                chestplate: { material: DIAMOND_CHESTPLATE }
+                leggings:   { material: DIAMOND_LEGGINGS }
+                boots:      { material: DIAMOND_BOOTS }
+              trigger: DEFENSE
+              effects: ["POTION:REGENERATION:1:80:@Self"]
             """;
 
     private final Plugin plugin;
