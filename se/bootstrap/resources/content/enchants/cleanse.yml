@@ -5,7 +5,6 @@ description: "Wash away afflictions when struck."
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: defense
-max-level: 3
 levels:
   1:
     chance: 25

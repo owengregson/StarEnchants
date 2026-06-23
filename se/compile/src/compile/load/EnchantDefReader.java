@@ -15,31 +15,25 @@ import schema.grammar.EffectLine;
 
 /**
  * Reads one authored enchant file (a composed {@link YamlNode} mapping) into its metadata
- * {@link EnchantDef} plus one {@link AbilityDef} per level (docs/architecture.md §10; ADR-0014,
- * ADR-0016). The stable key is path-derived — the base key plus {@code /<level>} — so an item storing
+ * {@link EnchantDef} plus one {@link AbilityDef} per level (docs/architecture.md §10; ADR-0014). The
+ * stable key is path-derived — the base key plus {@code /<level>} — so an item storing
  * {@code (enchants/lifesteal, 3)} resolves to {@code enchants/lifesteal/3}.
  *
- * <p>Two authoring shapes, unified here (ADR-0016):
- * <ul>
- *   <li><strong>v1</strong> — everything per level under {@code levels: { 1: {chance, effects}, … }}.
- *       The level set is the declared level keys; each level reads its own knobs/effects.</li>
- *   <li><strong>v2 templated</strong> — shared {@code effects:}/{@code scale:}/knobs at the file root,
- *       expanded over {@code 1..max-level}; {@code $token} scale references fill the varying numbers,
- *       and {@code levels: { N: { … } }} deep-merges over the scaled defaults (a level's scalar knob
- *       wins; {@code effects:} replaces the scaled list, {@code effects+:} appends to it).</li>
- * </ul>
- * Presence of a root {@code effects:} or {@code scale:} switches to templated mode; otherwise the v1
- * path runs (so existing files load byte-for-byte). Every fault is a {@code file:line:col} diagnostic;
- * a bad field/level is warned-and-skipped, never thrown (§7, §10).
+ * <p>One authoring shape: every level is declared explicitly under {@code levels: { 1: {chance,
+ * effects}, … }}. The level set is exactly the declared level keys; each level reads its own
+ * effects and its own knobs ({@code chance}/{@code cooldown}/{@code soul-cost}/{@code condition}),
+ * falling back to a same-named root knob as a shared default. Effects may be terse {@code "HEAD:arg"}
+ * strings or verbose {@code HEAD: { … }} maps (ADR-0016). Every fault is a {@code file:line:col}
+ * diagnostic; a bad field/level is warned-and-skipped, never thrown (§7, §10).
  */
 final class EnchantDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
-            "repeat", "scale", "max-level", "levels", "effects", "chance", "cooldown", "soul-cost", "condition",
+            "repeat", "levels", "chance", "cooldown", "soul-cost", "condition",
             "requires", "blacklist", "removes-required");
     private static final Set<String> LEVEL_KEYS = Set.of(
-            "chance", "cooldown", "soul-cost", "condition", "effects", "effects+");
+            "chance", "cooldown", "soul-cost", "condition", "effects");
 
     private EnchantDefReader() {
     }
@@ -90,10 +84,8 @@ final class EnchantDefReader {
                     root.sourceOf("removes-required"));
         }
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
-        ScaleEnv scale = ScaleEnv.read(root, diags);
-        boolean templated = root.has("effects") || root.has("scale");
 
-        // Gather declared level override nodes (must be mappings), and the explicit level set.
+        // Gather the declared level nodes (each must be a mapping); the level set is exactly those keys.
         Map<Integer, YamlNode> levelNodes = new LinkedHashMap<>();
         for (YamlNode.Entry entry : root.entries("levels")) {
             Integer level = ContentParse.parseInt(entry.key());
@@ -112,29 +104,22 @@ final class EnchantDefReader {
             levelNodes.put(level, entry.value());
         }
 
-        int declaredMax = levelNodes.keySet().stream().mapToInt(Integer::intValue).max().orElse(0);
-        int maxLevel = ContentParse.optInt(root, "max-level", declaredMax, diags);
-        // The level set: 1..maxLevel for templated files; the declared keys for v1 files.
         TreeSet<Integer> levelSet = new TreeSet<>(levelNodes.keySet());
-        if (templated) {
-            for (int level = 1; level <= maxLevel; level++) {
-                levelSet.add(level);
-            }
-        }
         if (levelSet.isEmpty()) {
-            diags.error("load.enchant.levels", "enchant '" + baseKey + "' declares no levels (need 'levels:' "
-                    + "or a root 'effects:' with 'max-level')", root.sourceOf("levels"));
+            diags.error("load.enchant.levels", "enchant '" + baseKey + "' declares no levels (need a 'levels:' map)",
+                    root.sourceOf("levels"));
         }
+        int maxLevel = levelSet.isEmpty() ? 0 : levelSet.last();
 
         List<AbilityDef> abilities = new ArrayList<>();
         for (int level : levelSet) {
-            YamlNode lvl = levelNodes.get(level); // null = a templated level with no override
-            double chance = ContentParse.resolveChance(knobNode(lvl, root, "chance"), "chance", level, scale, diags);
-            int cooldown = ContentParse.resolveInt(knobNode(lvl, root, "cooldown"), "cooldown", 0, level, scale, diags);
-            int soulCost = ContentParse.resolveInt(knobNode(lvl, root, "soul-cost"), "soul-cost", 0, level, scale, diags);
+            YamlNode lvl = levelNodes.get(level); // every level in the set has a declared node
+            double chance = ContentParse.resolveChance(knobNode(lvl, root, "chance"), "chance", diags);
+            int cooldown = ContentParse.resolveInt(knobNode(lvl, root, "cooldown"), "cooldown", 0, diags);
+            int soulCost = ContentParse.resolveInt(knobNode(lvl, root, "soul-cost"), "soul-cost", 0, diags);
             String condition = ContentParse.blankToNull(
-                    ContentParse.resolveString(knobNode(lvl, root, "condition"), "condition", level, scale, diags));
-            List<EffectLine> effects = effectsFor(baseKey, level, lvl, root, templated, scale, diags);
+                    ContentParse.resolveString(knobNode(lvl, root, "condition"), "condition", diags));
+            List<EffectLine> effects = effectsFor(baseKey, level, lvl, diags);
 
             abilities.add(new AbilityDef(
                     SourceKind.ENCHANT,
@@ -158,8 +143,7 @@ final class EnchantDefReader {
         }
 
         EnchantDef def = new EnchantDef(baseKey, display, description == null ? "" : description,
-                tier, appliesTo, Math.max(maxLevel, levelSet.isEmpty() ? 0 : levelSet.last()),
-                requires, blacklist, removesRequired, fileSource);
+                tier, appliesTo, maxLevel, requires, blacklist, removesRequired, fileSource);
         return new Parsed(def, abilities);
     }
 
@@ -169,26 +153,16 @@ final class EnchantDefReader {
     }
 
     /**
-     * The effects for one level: the level's own {@code effects:} (replace) if present, else the
-     * templated root {@code effects:} (when templated), with a level {@code effects+:} appended. A
-     * level with no effects from any source is warned (a no-op ability is almost always a mistake).
+     * The effects for one level: the level's own {@code effects:} list. A level with no effects is
+     * warned (a no-op ability is almost always a mistake).
      */
-    private static List<EffectLine> effectsFor(String baseKey, int level, YamlNode lvl, YamlNode root,
-                                               boolean templated, ScaleEnv scale, Diagnostics diags) {
-        List<EffectLine> effects;
-        if (lvl != null && lvl.has("effects")) {
-            effects = ContentParse.effectItems(lvl, "effects", level, scale, diags);
-        } else if (templated && root.has("effects")) {
-            effects = ContentParse.effectItems(root, "effects", level, scale, diags);
-        } else {
-            effects = new ArrayList<>();
-        }
-        if (lvl != null && lvl.has("effects+")) {
-            effects.addAll(ContentParse.effectItems(lvl, "effects+", level, scale, diags));
-        }
+    private static List<EffectLine> effectsFor(String baseKey, int level, YamlNode lvl, Diagnostics diags) {
+        List<EffectLine> effects = lvl.has("effects")
+                ? ContentParse.effectItems(lvl, "effects", diags)
+                : new ArrayList<>();
         if (effects.isEmpty()) {
-            Source where = lvl != null ? lvl.sourceOf("effects") : root.sourceOf("effects");
-            diags.warning("load.effects", "level " + level + " of '" + baseKey + "' declares no effects", where);
+            diags.warning("load.effects", "level " + level + " of '" + baseKey + "' declares no effects",
+                    lvl.sourceOf("effects"));
         }
         return effects;
     }

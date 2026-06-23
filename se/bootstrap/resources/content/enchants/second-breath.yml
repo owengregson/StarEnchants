@@ -5,7 +5,6 @@ description: "Refill your air as you mine."
 trigger: MINE
 applies-to: [PICKAXE, SHOVEL]
 group: mining
-max-level: 3
 levels:
   1:
     chance: 40

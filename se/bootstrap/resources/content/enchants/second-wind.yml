@@ -7,7 +7,6 @@ description: "Catch your breath and recover."
 trigger: INTERACT_RIGHT
 applies-to: [WEAPON]
 group: utility
-max-level: 3
 levels:
   1:
     chance: 100

@@ -68,11 +68,11 @@ final class SetDefReader {
         String group = ContentParse.blankToNull(root.string("group"));
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
 
-        double chance = ContentParse.resolveChance(root, "chance", 0, ScaleEnv.EMPTY, diags);
-        int cooldown = ContentParse.resolveInt(root, "cooldown", 0, 0, ScaleEnv.EMPTY, diags);
-        int soulCost = ContentParse.resolveInt(root, "soul-cost", 0, 0, ScaleEnv.EMPTY, diags);
+        double chance = ContentParse.resolveChance(root, "chance", diags);
+        int cooldown = ContentParse.resolveInt(root, "cooldown", 0, diags);
+        int soulCost = ContentParse.resolveInt(root, "soul-cost", 0, diags);
         String condition = ContentParse.blankToNull(root.string("condition"));
-        List<EffectLine> effects = ContentParse.effectItems(root, "effects", 0, ScaleEnv.EMPTY, diags);
+        List<EffectLine> effects = ContentParse.effectItems(root, "effects", diags);
         if (effects.isEmpty()) {
             diags.warning("load.effects", "set '" + baseKey + "' declares no effects", root.sourceOf("effects"));
         }
