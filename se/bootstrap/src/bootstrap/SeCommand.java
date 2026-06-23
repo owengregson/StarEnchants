@@ -58,6 +58,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb", "slotgem",
                     "blackscroll", "randomizer", "transmog", "holy", "nametag", "unopened");
 
+    /** The set members {@code /se give set <player> <set> <member>} can mint (§6.6). */
+    static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
+
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
@@ -216,9 +219,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 default -> List.of();
             };
         }
-        if (sub.equals("give") && args.length == 5
-                && args[1].equalsIgnoreCase("book") && args[3].equalsIgnoreCase("random")) {
-            return filter(tierNames, args[4]); // /se give book <player> random <tier>
+        if (sub.equals("give") && args.length == 5) {
+            if (args[1].equalsIgnoreCase("book") && args[3].equalsIgnoreCase("random")) {
+                return filter(tierNames, args[4]); // /se give book <player> random <tier>
+            }
+            if (args[1].equalsIgnoreCase("set")) {
+                return filter(SET_MEMBERS, args[4]); // /se give set <player> <set> <member>
+            }
         }
         return List.of();
     }
@@ -548,9 +555,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se give set <player> <set> <piece>} — mint an armour set piece (the piece is HELMET/CHESTPLATE/
-     * LEGGINGS/BOOTS, whichever the set's {@code applies-to} covers) stamped with the set key, and give it to
-     * the target. A piece the set does not cover (e.g. a weapon on an armour-only set) fails cleanly.
+     * {@code /se give set <player> <set> <member>} — mint a set member (an armour slot the set declares —
+     * {@code helmet}/{@code chestplate}/{@code leggings}/{@code boots} — or {@code weapon}) from its own
+     * material + name, and give it to the target (§6.6). A member the set does not declare fails cleanly.
      */
     private void giveSetTo(CommandSender sender, Player target, String[] args) {
         if (args.length < 5) {

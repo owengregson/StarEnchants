@@ -1,12 +1,31 @@
-# Berserker — a three-piece armour set bonus.
+# Berserker — wear `complete` of its armour pieces to turn pain into rage on DEFENSE; hold the Berserker
+# axe with the set complete for the additional weapon bonus (§6.6). Sets have no tier.
 display: "&4Berserker"
 description: "Turn pain into rage when struck while wearing the set."
-trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-pieces: 3
-chance: 40
-cooldown: 100
-effects:
-  - { POTION: { effect: STRENGTH, level: 1, duration: 80, who: "@Self" } }
-  - { POTION: { effect: SPEED, level: 1, duration: 80, who: "@Self" } }
-  - { PARTICLE: { particle: CRIT, count: 10 } }
+complete: 3
+armor:
+  lore:
+    - "&4Berserker Set &7(3 pieces)"
+    - "&7Wear the set to rage when struck."
+  pieces:
+    helmet:     { material: NETHERITE_HELMET,     name: "&4Berserker Helm" }
+    chestplate: { material: NETHERITE_CHESTPLATE, name: "&4Berserker Chestplate" }
+    leggings:   { material: NETHERITE_LEGGINGS,   name: "&4Berserker Leggings" }
+    boots:      { material: NETHERITE_BOOTS,      name: "&4Berserker Boots" }
+  trigger: DEFENSE
+  chance: 40
+  cooldown: 100
+  effects:
+    - { POTION: { effect: STRENGTH, level: 1, duration: 80, who: "@Self" } }
+    - { POTION: { effect: SPEED, level: 1, duration: 80, who: "@Self" } }
+    - { PARTICLE: { particle: CRIT, count: 10 } }
+weapon:
+  material: NETHERITE_AXE
+  name: "&4Berserker's Fury"
+  lore:
+    - "&4Berserker Set Weapon"
+    - "&7Wield with the set for extra bite."
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 8 } }

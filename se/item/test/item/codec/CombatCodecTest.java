@@ -80,6 +80,17 @@ class CombatCodecTest {
     }
 
     @Test
+    void roundTripsWeaponSetMembership() {
+        // A set WEAPON member carries setWeaponKey (label 'w') and NO setKey — it must survive the codec
+        // distinct from an armour member, and is not empty.
+        CombatState weapon = CombatState.weaponMember("sets/titan");
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(weapon));
+        assertEquals("sets/titan", back.setWeaponKey());
+        assertEquals(null, back.setKey());
+        assertTrue(!weapon.isEmpty());
+    }
+
+    @Test
     void roundTripsHeroicStats() {
         CombatState s = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.35, 0.2, 0.5));
         CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(s));

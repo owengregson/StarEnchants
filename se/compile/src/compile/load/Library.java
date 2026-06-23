@@ -56,6 +56,16 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         return null;
     }
 
+    /** The parsed {@link SetDef} for a stored set base key, or {@code null} if no content defines it. */
+    public SetDef setDefOf(String baseKey) {
+        for (SetDef def : sets) {
+            if (def.key().equals(baseKey)) {
+                return def;
+            }
+        }
+        return null;
+    }
+
     /** An empty library around an already-compiled (empty) snapshot — the boot-failure fallback. */
     public static Library empty(Snapshot snapshot, List<Diagnostic> diagnostics) {
         return new Library(snapshot, List.of(), List.of(), List.of(), List.of(), TierRegistry.BUILTIN, diagnostics);

@@ -207,7 +207,18 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Cold apply path: render lore from state (the display lookup reads the CURRENT library, so a
         // reload re-renders against new content) + the validating enchant/crystal apply service.
         LoreRenderer lore = new LoreRenderer(() -> loreStyle(master.config()),
-                key -> content.library().displayNameOf(key));
+                key -> content.library().displayNameOf(key),
+                new LoreRenderer.SetLore() {        // §6.6 set-member lore, read live from the current library
+                    @Override public java.util.List<String> armor(String setKey) {
+                        compile.load.SetDef def = content.library().setDefOf(setKey);
+                        return def != null ? def.armorLore() : java.util.List.of();
+                    }
+
+                    @Override public java.util.List<String> weapon(String setKey) {
+                        compile.load.SetDef def = content.library().setDefOf(setKey);
+                        return def != null ? def.weaponLore() : java.util.List.of();
+                    }
+                });
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard(),
                 () -> master.config().slots().base(),          // §H base enchant slots
                 () -> master.config().crystals().slots(),      // §E per-item crystal slots

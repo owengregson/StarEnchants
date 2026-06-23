@@ -1,14 +1,31 @@
-# Juggernaut — a three-piece (pieces:3) armour bonus (§6.6). On DEFENSE, once three pieces are worn,
-# it makes you immovable: Resistance and Absorption on @Self, while shoving the @Attacker back
-# (VELOCITY mode=away — an attacker exists only on DEFENSE). Levelless: trigger/chance/effects sit at the top.
+# Juggernaut — wear `complete` armour pieces to stand immovable and shove attackers on DEFENSE; hold the
+# Juggernaut weapon with the set complete to bludgeon foes back on ATTACK (§6.6). Sets have no tier.
 display: "&6Juggernaut"
 description: "Stand immovable and shove attackers when the set is worn."
-trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-pieces: 3
-chance: 60
-cooldown: 80
-effects:
-  - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
-  - { POTION: { effect: ABSORPTION, level: 1, duration: 80, who: "@Self" } }
-  - { VELOCITY: { mode: away, strength: 1.5, who: "@Attacker" } }
+complete: 3
+armor:
+  lore:
+    - "&6Juggernaut Set &7(3 pieces)"
+    - "&7Wear the set to stand immovable."
+  pieces:
+    helmet:     { material: NETHERITE_HELMET,     name: "&6Juggernaut Helm" }
+    chestplate: { material: NETHERITE_CHESTPLATE, name: "&6Juggernaut Chestplate" }
+    leggings:   { material: NETHERITE_LEGGINGS,   name: "&6Juggernaut Leggings" }
+    boots:      { material: NETHERITE_BOOTS,      name: "&6Juggernaut Boots" }
+  trigger: DEFENSE
+  chance: 60
+  cooldown: 80
+  effects:
+    - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
+    - { POTION: { effect: ABSORPTION, level: 1, duration: 80, who: "@Self" } }
+    - { VELOCITY: { mode: away, strength: 1.5, who: "@Attacker" } }
+weapon:
+  material: NETHERITE_SWORD
+  name: "&6Juggernaut's Maul"
+  lore:
+    - "&6Juggernaut Set Weapon"
+    - "&7Wield with the set to bludgeon foes back."
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { VELOCITY: { mode: away, strength: 1.0, who: "@Victim" } }

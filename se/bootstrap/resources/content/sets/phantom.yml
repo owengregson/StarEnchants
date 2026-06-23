@@ -1,14 +1,21 @@
-# Phantom — a partial-set (pieces:2) armour bonus (§6.6). On DEFENSE, once two pieces are worn, it
-# slips you out of sight: Invisibility and Speed on @Self (POTION's default target) to escape a fight.
-# Levelless: trigger/chance/effects live at the file top.
+# Phantom — wear `complete` armour pieces to vanish and flee when struck (§6.6). Phantom has NO weapon
+# member (the weapon block is optional — an armour-only set). Sets have no tier.
 display: "&5Phantom"
 description: "Vanish and flee when struck while wearing the set."
-trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-pieces: 2
-chance: 30
-cooldown: 140
-effects:
-  - { POTION: { effect: INVISIBILITY, level: 1, duration: 80, who: "@Self" } }
-  - { POTION: { effect: SPEED, level: 2, duration: 80, who: "@Self" } }
-  - { PARTICLE: { particle: PORTAL, count: 15 } }
+complete: 2
+armor:
+  lore:
+    - "&5Phantom Set &7(2 pieces)"
+    - "&7Wear 2 pieces to vanish when struck."
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&5Phantom Helm" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&5Phantom Chestplate" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&5Phantom Leggings" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&5Phantom Boots" }
+  trigger: DEFENSE
+  chance: 30
+  cooldown: 140
+  effects:
+    - { POTION: { effect: INVISIBILITY, level: 1, duration: 80, who: "@Self" } }
+    - { POTION: { effect: SPEED, level: 2, duration: 80, who: "@Self" } }
+    - { PARTICLE: { particle: PORTAL, count: 15 } }
