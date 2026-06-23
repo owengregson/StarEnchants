@@ -17,7 +17,7 @@ jobs:
     name: Markdown
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: DavidAnson/markdownlint-cli2-action@v19
         with:
           globs: |
@@ -29,7 +29,7 @@ jobs:
     name: GitHub workflows
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: actionlint
         uses: docker://rhysd/actionlint:1.7.7
         with:
