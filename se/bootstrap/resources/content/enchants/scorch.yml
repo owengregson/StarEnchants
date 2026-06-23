@@ -5,9 +5,16 @@ description: "Ignite the enemy you strike."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 group: combat
-max-level: 3
-chance: { 1: 30, 2: 40, 3: 50 }
-scale:
-  burn: { 1: 40, 2: 80, 3: 120 }
-effects:
-  - { IGNITE: { duration: $burn } }
+levels:
+  1:
+    chance: 30
+    effects:
+      - { IGNITE: { duration: 40 } }
+  2:
+    chance: 40
+    effects:
+      - { IGNITE: { duration: 80 } }
+  3:
+    chance: 50
+    effects:
+      - { IGNITE: { duration: 120 } }

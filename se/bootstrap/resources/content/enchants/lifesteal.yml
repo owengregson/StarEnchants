@@ -6,9 +6,16 @@ description: "Heal when you strike an enemy."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 group: combat
-max-level: 3
-chance: { 1: 25, 2: 35, 3: 45 }
-scale:
-  heal: { 1: 2, 2: 4, 3: 6 }
-effects:
-  - { MODIFY_HEALTH: { amount: $heal } }
+levels:
+  1:
+    chance: 25
+    effects:
+      - { MODIFY_HEALTH: { amount: 2 } }
+  2:
+    chance: 35
+    effects:
+      - { MODIFY_HEALTH: { amount: 4 } }
+  3:
+    chance: 45
+    effects:
+      - { MODIFY_HEALTH: { amount: 6 } }

@@ -10,10 +10,19 @@ description: "More likely to strike harder against wounded prey."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 group: offense
-max-level: 3
-chance: { 1: 25, 2: 35, 3: 45 }
-condition: { 1: "%victim.health% < 6 : +25 %chance%", 2: "%victim.health% < 6 : +35 %chance%", 3: "%victim.health% < 6 : +45 %chance%" }
-scale:
-  damage: { 1: 2, 2: 3, 3: 4 }
-effects:
-  - { DAMAGE_MOD: { side: attack, amount: $damage } }
+levels:
+  1:
+    chance: 25
+    condition: "%victim.health% < 6 : +25 %chance%"
+    effects:
+      - { DAMAGE_MOD: { side: attack, amount: 2 } }
+  2:
+    chance: 35
+    condition: "%victim.health% < 6 : +35 %chance%"
+    effects:
+      - { DAMAGE_MOD: { side: attack, amount: 3 } }
+  3:
+    chance: 45
+    condition: "%victim.health% < 6 : +45 %chance%"
+    effects:
+      - { DAMAGE_MOD: { side: attack, amount: 4 } }

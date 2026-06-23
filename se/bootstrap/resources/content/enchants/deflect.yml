@@ -5,11 +5,19 @@ description: "Turn aside the blow and shove your attacker back."
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: defense
-max-level: 3
-chance: { 1: 25, 2: 35, 3: 45 }
-scale:
-  reduce: { 1: 8, 2: 14, 3: 20 }
-  kb: { 1: 0.6, 2: 1.0, 3: 1.5 }
-effects:
-  - { DAMAGE_MOD: { side: defense, mode: add, amount: $reduce } }
-  - { VELOCITY: { mode: away, strength: $kb, who: "@Attacker" } }
+levels:
+  1:
+    chance: 25
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 8 } }
+      - { VELOCITY: { mode: away, strength: 0.6, who: "@Attacker" } }
+  2:
+    chance: 35
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 14 } }
+      - { VELOCITY: { mode: away, strength: 1.0, who: "@Attacker" } }
+  3:
+    chance: 45
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+      - { VELOCITY: { mode: away, strength: 1.5, who: "@Attacker" } }

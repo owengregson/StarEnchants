@@ -8,19 +8,29 @@ description: "A watcher that snatches you from the brink."
 trigger: DEFENSE
 applies-to: [CHESTPLATE]
 group: defense
-max-level: 3
-chance: 100
-cooldown: { 1: 1200, 2: 1000, 3: 800 }
-condition: { 1: "%actor.health% <= 4", 2: "%actor.health% <= 5", 3: "%actor.health% <= 6" }
-scale:
-  heal: { 1: 4, 2: 6, 3: 8 }
-  resamp: { 1: 1, 2: 2, 3: 2 }
-  resdur: { 1: 60, 2: 80, 3: 120 }
-effects:
-  - { CANCEL: {} }
-  - { MODIFY_HEALTH: { amount: $heal, who: "@Self" } }
-  - { POTION: { effect: DAMAGE_RESISTANCE, level: $resamp, duration: $resdur, who: "@Self" } }
 levels:
+  1:
+    chance: 100
+    cooldown: 1200
+    condition: "%actor.health% <= 4"
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: 4, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
+  2:
+    chance: 100
+    cooldown: 1000
+    condition: "%actor.health% <= 5"
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: 6, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 80, who: "@Self" } }
   3:
-    effects+:
+    chance: 100
+    cooldown: 800
+    condition: "%actor.health% <= 6"
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: 8, who: "@Self" } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 120, who: "@Self" } }
       - { POTION: { effect: ABSORPTION, level: 2, duration: 120, who: "@Self" } }
