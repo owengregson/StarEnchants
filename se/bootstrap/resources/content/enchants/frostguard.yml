@@ -1,0 +1,22 @@
+# Frostguard — chill whoever strikes you. A DEFENSE enchant that softens the blow (DAMAGE_MOD defense/add,
+# additive defense bucket §6.1) and slows the attacker (POTION:SLOWNESS → @Attacker, valid on a
+# defender-side trigger). The top tier also briefly blinds them.
+tier: uncommon
+display: "&bFrostguard"
+description: "Chill whoever strikes you."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: defense
+max-level: 3
+chance: { 1: 30, 2: 40, 3: 50 }
+scale:
+  reduce: { 1: 8, 2: 14, 3: 20 }
+  slowamp: { 1: 1, 2: 2, 3: 2 }
+  slowdur: { 1: 40, 2: 60, 3: 80 }
+effects:
+  - { DAMAGE_MOD: { side: defense, mode: add, amount: $reduce } }
+  - { POTION: { effect: SLOWNESS, level: $slowamp, duration: $slowdur, who: "@Attacker" } }
+levels:
+  3:
+    effects+:
+      - { POTION: { effect: BLINDNESS, level: 1, duration: 40, who: "@Attacker" } }

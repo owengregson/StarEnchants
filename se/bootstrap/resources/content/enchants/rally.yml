@@ -1,0 +1,36 @@
+# Rally — right-click to rally yourself and nearby allies, granting Regeneration and Speed in an
+# area. The buffs are aimed at @Aoe{r=...} so everyone in range benefits; an activated
+# INTERACT_RIGHT ability behind a cooldown (§3.7). The horn-like growl sells the rallying cry.
+tier: rare
+display: "&eRally"
+description: "Rally yourself and nearby allies."
+trigger: INTERACT_RIGHT
+applies-to: [WEAPON]
+group: utility
+levels:
+  1:
+    chance: 100
+    cooldown: 280
+    effects:
+      - { POTION: { effect: REGENERATION, level: 1, duration: 100, who: "@Aoe{r=4}" } }
+      - { POTION: { effect: SPEED, level: 1, duration: 100, who: "@Aoe{r=4}" } }
+      - { SOUND: { sound: ENTITY_WITHER_SPAWN, volume: 1, pitch: 2 } }
+      - { MESSAGE: { text: "&eRally!" } }
+  2:
+    chance: 100
+    cooldown: 250
+    effects:
+      - { POTION: { effect: REGENERATION, level: 2, duration: 120, who: "@Aoe{r=5}" } }
+      - { POTION: { effect: SPEED, level: 1, duration: 120, who: "@Aoe{r=5}" } }
+      - { SOUND: { sound: ENTITY_WITHER_SPAWN, volume: 1, pitch: 2 } }
+      - { MESSAGE: { text: "&eRally!" } }
+  3:
+    chance: 100
+    cooldown: 220
+    effects:
+      - { POTION: { effect: REGENERATION, level: 2, duration: 160, who: "@Aoe{r=6}" } }
+      - { POTION: { effect: SPEED, level: 2, duration: 160, who: "@Aoe{r=6}" } }
+      - { POTION: { effect: STRENGTH, level: 1, duration: 160, who: "@Aoe{r=6}" } }
+      - { SOUND: { sound: ENTITY_WITHER_SPAWN, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: HEART, count: 20 } }
+      - { MESSAGE: { text: "&eRally!" } }

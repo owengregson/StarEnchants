@@ -1,0 +1,17 @@
+# Bounty — slaying a foe pays out a reward.
+tier: uncommon
+display: "&eBounty"
+description: "Collect a reward for every kill."
+trigger: KILL
+applies-to: [WEAPON]
+group: combat
+max-level: 3
+chance: 100
+scale:
+  reward: { 1: 50, 2: 100, 3: 200 }
+effects:
+  - { MODIFY_MONEY: { amount: $reward } }
+levels:
+  3:
+    effects+:
+      - { MESSAGE: { text: "&eBounty collected!" } }

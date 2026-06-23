@@ -1,0 +1,25 @@
+# Executioner — finish off a wounded foe. Condition gates the killing blow on low victim health.
+tier: mythic
+display: "&4&lExecutioner"
+description: "Execute foes who are near death."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+max-level: 3
+chance: { 1: 30, 2: 40, 3: 50 }
+scale:
+  dmg: { from: 4, step: 2 }
+  parts: { from: 10, step: 4 }
+effects:
+  - { DAMAGE_MOD: { side: attack, mode: flat, amount: $dmg } }
+  - { PARTICLE: { particle: CRIT, count: $parts } }
+levels:
+  1:
+    condition: "%victim.health% < 4"
+  2:
+    condition: "%victim.health% < 5"
+  3:
+    cooldown: 0
+    condition: "%victim.health% < 6"
+    effects+:
+      - { MESSAGE: { text: "&4&lExecuted!" } }

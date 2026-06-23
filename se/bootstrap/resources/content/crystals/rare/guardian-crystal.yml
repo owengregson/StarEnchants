@@ -1,8 +1,0 @@
-# Guardian Crystal — a flat, levelless socket bonus.
-display: "&7Guardian Crystal"
-description: "Blunt a portion of incoming damage."
-trigger: DEFENSE
-applies-to: [CHESTPLATE, HELMET, LEGGINGS, BOOTS]
-chance: 100
-effects:
-  - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
