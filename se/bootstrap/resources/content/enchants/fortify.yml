@@ -8,10 +8,16 @@ description: "Gain Resistance when struck."
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: defense
-max-level: 3
-chance: { 1: 40, 2: 55, 3: 70 }
-scale:
-  amp: { 1: 1, 2: 2, 3: 2 }
-  dur: { 1: 60, 2: 80, 3: 100 }
-effects:
-  - { POTION: { effect: DAMAGE_RESISTANCE, level: $amp, duration: $dur } }
+levels:
+  1:
+    chance: 40
+    effects:
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60 } }
+  2:
+    chance: 55
+    effects:
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 80 } }
+  3:
+    chance: 70
+    effects:
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 100 } }

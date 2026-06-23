@@ -5,21 +5,23 @@ description: "Mark your kills for a deadly finishing blast."
 trigger: KILL
 applies-to: [SWORD, AXE]
 group: combat
-max-level: 3
-chance: { 1: 20, 2: 30, 3: 40 }
-cooldown: 100
-scale:
-  pcount: { 1: 10, 2: 14, 3: 18 }
-effects:
-  - { LIGHTNING: { damage: 0 } }
-  - { PARTICLE: { particle: FLAME, count: $pcount } }
 levels:
+  1:
+    chance: 20
+    cooldown: 100
+    effects:
+      - { LIGHTNING: { damage: 0 } }
+      - { PARTICLE: { particle: FLAME, count: 10 } }
   2:
+    chance: 30
+    cooldown: 100
     effects:
       - { LIGHTNING: { damage: 0 } }
       - { EXPLODE: { power: 1, breakBlocks: false } }
       - { PARTICLE: { particle: FLAME, count: 14 } }
   3:
+    chance: 40
+    cooldown: 100
     effects:
       - { LIGHTNING: { damage: 0 } }
       - { EXPLODE: { power: 2, breakBlocks: false } }

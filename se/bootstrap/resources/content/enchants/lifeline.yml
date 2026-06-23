@@ -8,18 +8,24 @@ description: "A burst of healing when death is near."
 trigger: DEFENSE
 applies-to: [CHESTPLATE]
 group: defense
-max-level: 3
-chance: 100
-cooldown: { 1: 600, 2: 500, 3: 400 }
-condition: { 1: "%actor.health% <= 6", 2: "%actor.health% <= 7", 3: "%actor.health% <= 8" }
-scale:
-  heal: { 1: 6, 2: 8, 3: 10 }
-effects:
-  - { MODIFY_HEALTH: { amount: $heal, who: "@Self" } }
 levels:
+  1:
+    chance: 100
+    cooldown: 600
+    condition: "%actor.health% <= 6"
+    effects:
+      - { MODIFY_HEALTH: { amount: 6, who: "@Self" } }
   2:
-    effects+:
+    chance: 100
+    cooldown: 500
+    condition: "%actor.health% <= 7"
+    effects:
+      - { MODIFY_HEALTH: { amount: 8, who: "@Self" } }
       - { POTION: { effect: ABSORPTION, level: 1, duration: 120, who: "@Self" } }
   3:
-    effects+:
+    chance: 100
+    cooldown: 400
+    condition: "%actor.health% <= 8"
+    effects:
+      - { MODIFY_HEALTH: { amount: 10, who: "@Self" } }
       - { POTION: { effect: ABSORPTION, level: 2, duration: 160, who: "@Self" } }

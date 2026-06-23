@@ -5,15 +5,20 @@ description: "Unearth bonus XP from the blocks you break."
 trigger: MINE
 applies-to: [PICKAXE, SHOVEL]
 group: mining
-max-level: 3
-chance: { 1: 30, 2: 40, 3: 50 }
-scale:
-  xp: { 1: 2, 2: 4, 3: 7 }
-  parts: { from: 4, step: 2 }
-effects:
-  - { MODIFY_EXP: { amount: $xp } }
-  - { PARTICLE: { particle: HAPPY_VILLAGER, count: $parts } }
 levels:
+  1:
+    chance: 30
+    effects:
+      - { MODIFY_EXP: { amount: 2 } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 4 } }
+  2:
+    chance: 40
+    effects:
+      - { MODIFY_EXP: { amount: 4 } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 6 } }
   3:
-    effects+:
+    chance: 50
+    effects:
+      - { MODIFY_EXP: { amount: 7 } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 8 } }
       - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }

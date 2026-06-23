@@ -7,13 +7,17 @@ description: "Skim coins from those you strike."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 group: combat
-max-level: 3
-chance: { 1: 25, 2: 35, 3: 45 }
-scale:
-  toll: { 1: 25, 2: 50, 3: 100 }
-effects:
-  - { MODIFY_MONEY: { mode: take, amount: $toll, who: "@Victim" } }
 levels:
+  1:
+    chance: 25
+    effects:
+      - { MODIFY_MONEY: { mode: take, amount: 25, who: "@Victim" } }
+  2:
+    chance: 35
+    effects:
+      - { MODIFY_MONEY: { mode: take, amount: 50, who: "@Victim" } }
   3:
-    effects+:
+    chance: 45
+    effects:
+      - { MODIFY_MONEY: { mode: take, amount: 100, who: "@Victim" } }
       - { MESSAGE: { text: "&6Taxed!" } }

@@ -5,16 +5,21 @@ description: "Daze and stagger the enemy you strike."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 group: combat
-max-level: 3
-chance: { 1: 20, 2: 28, 3: 36 }
-scale:
-  dur: { from: 80, step: 40 }
-  kb: { from: 1, step: 1 }
-effects:
-  - { POTION: { effect: NAUSEA, level: 1, duration: $dur, who: "@Victim" } }
-  - { VELOCITY: { mode: away, strength: $kb, who: "@Victim" } }
 levels:
+  1:
+    chance: 20
+    effects:
+      - { POTION: { effect: NAUSEA, level: 1, duration: 80, who: "@Victim" } }
+      - { VELOCITY: { mode: away, strength: 1, who: "@Victim" } }
+  2:
+    chance: 28
+    effects:
+      - { POTION: { effect: NAUSEA, level: 1, duration: 120, who: "@Victim" } }
+      - { VELOCITY: { mode: away, strength: 2, who: "@Victim" } }
   3:
+    chance: 36
     cooldown: 0
-    effects+:
+    effects:
+      - { POTION: { effect: NAUSEA, level: 1, duration: 160, who: "@Victim" } }
+      - { VELOCITY: { mode: away, strength: 3, who: "@Victim" } }
       - { MESSAGE: { text: "&eThe world spins for your foe!" } }

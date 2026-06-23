@@ -7,14 +7,20 @@ description: "Quench the flames the moment they catch."
 trigger: FIRE
 applies-to: [ARMOR]
 group: defense
-max-level: 3
-chance: { 1: 35, 2: 50, 3: 65 }
-scale:
-  dur: { 1: 60, 2: 100, 3: 160 }
-effects:
-  - { EXTINGUISH: { who: "@Self" } }
-  - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: $dur, who: "@Self" } }
 levels:
+  1:
+    chance: 35
+    effects:
+      - { EXTINGUISH: { who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
+  2:
+    chance: 50
+    effects:
+      - { EXTINGUISH: { who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
   3:
-    effects+:
+    chance: 65
+    effects:
+      - { EXTINGUISH: { who: "@Self" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 160, who: "@Self" } }
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 30 } }

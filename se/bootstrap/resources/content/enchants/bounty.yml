@@ -5,13 +5,17 @@ description: "Collect a reward for every kill."
 trigger: KILL
 applies-to: [WEAPON]
 group: combat
-max-level: 3
-chance: 100
-scale:
-  reward: { 1: 50, 2: 100, 3: 200 }
-effects:
-  - { MODIFY_MONEY: { amount: $reward } }
 levels:
+  1:
+    chance: 100
+    effects:
+      - { MODIFY_MONEY: { amount: 50 } }
+  2:
+    chance: 100
+    effects:
+      - { MODIFY_MONEY: { amount: 100 } }
   3:
-    effects+:
+    chance: 100
+    effects:
+      - { MODIFY_MONEY: { amount: 200 } }
       - { MESSAGE: { text: "&eBounty collected!" } }

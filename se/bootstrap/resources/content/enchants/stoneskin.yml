@@ -7,13 +7,17 @@ description: "Harden your hide against the hit."
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: defense
-max-level: 3
-chance: { 1: 35, 2: 45, 3: 55 }
-scale:
-  absorb: { 1: 1, 2: 2, 3: 4 }
-effects:
-  - { DAMAGE_MOD: { side: defense, mode: flat, amount: $absorb } }
 levels:
+  1:
+    chance: 35
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: flat, amount: 1 } }
+  2:
+    chance: 45
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: flat, amount: 2 } }
   3:
-    effects+:
+    chance: 55
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: flat, amount: 4 } }
       - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
