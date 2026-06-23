@@ -1,14 +1,31 @@
-# Yeti — a full-set (pieces:4) armour bonus (§6.6). The bonus fires on DEFENSE once all four worn
-# pieces complete the set: it freezes the @Attacker (Slowness — valid only on DEFENSE, where an
-# attacker exists) and shields @Self with Resistance. Levelless: trigger/chance/effects sit at the top.
+# Yeti — wear `complete` armour pieces to freeze attackers on DEFENSE; hold the Yeti weapon with the set
+# complete to chill foes on ATTACK (§6.6). Sets have no tier.
 display: "&bYeti"
 description: "Freeze attackers when the full set is worn."
-trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-pieces: 4
-chance: 50
-cooldown: 100
-effects:
-  - { POTION: { effect: SLOWNESS, level: 2, duration: 60, who: "@Attacker" } }
-  - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
-  - { PARTICLE: { particle: CLOUD, count: 10 } }
+complete: 4
+armor:
+  lore:
+    - "&bYeti Set &7(4 pieces)"
+    - "&7Wear the full set to freeze attackers."
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&bYeti Helm" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&bYeti Chestplate" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&bYeti Leggings" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&bYeti Boots" }
+  trigger: DEFENSE
+  chance: 50
+  cooldown: 100
+  effects:
+    - { POTION: { effect: SLOWNESS, level: 2, duration: 60, who: "@Attacker" } }
+    - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
+    - { PARTICLE: { particle: CLOUD, count: 10 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&bYeti's Bite"
+  lore:
+    - "&bYeti Set Weapon"
+    - "&7Wield with the full set to chill your foes."
+  trigger: ATTACK
+  chance: 60
+  effects:
+    - { POTION: { effect: SLOWNESS, level: 1, duration: 60, who: "@Victim" } }

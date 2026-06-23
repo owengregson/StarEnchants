@@ -8,7 +8,7 @@ import migrate.model.MigratedSet;
 import schema.spec.ParamSpec;
 
 /**
- * Renders a {@link MigratedEnchant}/{@link MigratedSet} to StarEnchants content-format-v2 YAML
+ * Renders a {@link MigratedEnchant}/{@link MigratedSet} to StarEnchants content YAML
  * (docs/architecture.md §10; ADR-0016) — valid, loadable content for everything that mapped, with the
  * original legacy token kept as a trailing comment and anything unmapped emitted as a
  * {@code # TODO port manually} line (never a silently-wrong value). The mapped portion compiles as-is
@@ -68,18 +68,48 @@ public final class SchemaWriter {
         return b.toString();
     }
 
-    /** Render one migrated armour set to a v2 set YAML document. */
+    /**
+     * Render one migrated armour set to a set YAML document (§6.6). EliteArmor sets are armour-only (no
+     * weapon member), so the output has just an {@code armor:} block: each piece becomes a member with a
+     * default material the operator should confirm, sharing the document's DEFENSE bonus.
+     */
     public static String set(MigratedSet s, Function<String, ParamSpec> specs) {
         StringBuilder b = new StringBuilder();
         b.append("# Imported from EliteArmor (id: ").append(s.id())
-                .append("). DEFENSE-triggered; review before shipping.\n");
+                .append("). DEFENSE-triggered armour set; confirm the member materials/names before shipping.\n");
         b.append("display: ").append(q(s.display())).append('\n');
-        b.append("trigger: DEFENSE\n");
-        b.append("applies-to: [").append(String.join(", ", s.pieces())).append("]\n");
-        b.append("pieces: ").append(s.threshold()).append('\n');
-        b.append("chance: 100\n");
-        appendEffects(b, s.effects(), "", specs); // set effects sit at the document root
+        b.append("complete: ").append(s.threshold()).append('\n');
+        b.append("armor:\n");
+        b.append("  pieces:\n");
+        if (s.pieces().isEmpty()) {
+            b.append("    # TODO no armour pieces migrated — declare at least one (slot: { material: ... })\n");
+        }
+        for (String piece : s.pieces()) {
+            String slot = piece.toLowerCase(java.util.Locale.ROOT);
+            String material = defaultArmorMaterial(slot);
+            if (material == null) {
+                b.append("    # TODO unrecognised piece '").append(piece)
+                        .append("' — add it as 'slot: { material: <MATERIAL> }'\n");
+            } else {
+                b.append("    ").append(slot).append(": { material: ").append(material)
+                        .append(" }  # TODO confirm the armour material; add a name: for a custom item name\n");
+            }
+        }
+        b.append("  trigger: DEFENSE\n");
+        b.append("  chance: 100\n");
+        appendEffects(b, s.effects(), "  ", specs); // armour bonus effects nested under armor:
         return b.toString();
+    }
+
+    /** A sensible default material per armour slot for a migrated set (the operator confirms it). */
+    private static String defaultArmorMaterial(String slot) {
+        return switch (slot) {
+            case "helmet" -> "DIAMOND_HELMET";
+            case "chestplate" -> "DIAMOND_CHESTPLATE";
+            case "leggings" -> "DIAMOND_LEGGINGS";
+            case "boots" -> "DIAMOND_BOOTS";
+            default -> null;
+        };
     }
 
     /**

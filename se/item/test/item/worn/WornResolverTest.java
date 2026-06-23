@@ -124,6 +124,35 @@ class WornResolverTest {
     }
 
     @Test
+    void weaponBonusFiresOnlyWhenTheSetIsCompleteAndWeaponHeld() {
+        // id 0 = sets/yeti armour bonus (DEFENSE, completes at 3); id 1 = sets/yeti/weapon (ATTACK, gated).
+        StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/weapon"));
+        Ability[] abilities = {
+            new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null,
+                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3),
+            new Ability(1, 0, SourceKind.SET, 1 << 0, 0, 100.0, 0, 0, 0L, null,
+                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0)
+        };
+        CombatState armor = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+        CombatState weapon = CombatState.weaponMember("sets/yeti");
+
+        // 2 armour + weapon held: the weapon does NOT count toward completion, so the set is incomplete
+        // and the weapon bonus must not fire.
+        WornState incomplete = resolver().resolveFrom(List.of(armor, armor, weapon), keys, abilities, 1);
+        assertEquals(false, incomplete.isSetActive(0), "weapon must not count toward completion");
+        assertEquals(0, incomplete.byTrigger(0).length, "weapon bonus must not fire while the set is incomplete");
+
+        // 3 armour (complete) + weapon held: armour bonus on DEFENSE, weapon bonus on ATTACK.
+        WornState complete = resolver().resolveFrom(List.of(armor, armor, armor, weapon), keys, abilities, 1);
+        assertArrayEquals(new int[] {0}, complete.byTrigger(1), "armour bonus fires on DEFENSE");
+        assertArrayEquals(new int[] {1}, complete.byTrigger(0), "weapon bonus fires on ATTACK when complete + held");
+
+        // 3 armour (complete) but weapon NOT held: only the armour bonus.
+        WornState noWeapon = resolver().resolveFrom(List.of(armor, armor, armor), keys, abilities, 1);
+        assertEquals(0, noWeapon.byTrigger(0).length, "no weapon held → no weapon bonus");
+    }
+
+    @Test
     void omniAloneCannotConjureASet() {
         // Omni pieces with NO real piece of the set must not complete it (§6.6).
         CombatState omni = new CombatState(Map.of(), List.of(), null, true);

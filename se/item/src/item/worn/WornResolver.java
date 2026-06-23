@@ -93,6 +93,7 @@ public final class WornResolver {
         List<Integer> mergedIds = new ArrayList<>();
         List<Integer> crystalIds = new ArrayList<>();
         List<Integer> wornSetIds = new ArrayList<>();
+        List<String> heldWeaponSetKeys = new ArrayList<>(); // sets whose WEAPON this entity holds (§6.6)
         int omniCount = 0;
         HeroicStat heroic = HeroicStat.NONE;
         for (CombatState combat : combats) {
@@ -116,18 +117,34 @@ public final class WornResolver {
                 }
             }
             // Set membership: an omni piece is a wildcard (counts toward any partially-worn set, §6.6);
-            // a normal piece contributes its set's bonus ability id (the set's dense id is its "set id").
+            // a normal ARMOUR piece contributes its set's bonus ability id (the set's dense id is its
+            // "set id"). A WEAPON member never counts toward completion — it is remembered separately and
+            // grants the set's ADDITIONAL weapon bonus only when the armour set is already complete.
             if (combat.omni()) {
                 omniCount++;
             } else if (combat.setKey() != null) {
                 wornSetIds.add(keys.idOf(combat.setKey())); // -1 for unknown content → SetResolver ignores it
+            }
+            if (combat.setWeaponKey() != null) {
+                heldWeaponSetKeys.add(combat.setWeaponKey());
             }
         }
         // A set's bonus ability id is its set id; its completion threshold is that ability's setPieces.
         BitSet activeSets = SetResolver.activeSets(toIntArray(wornSetIds), omniCount,
                 setId -> setId >= 0 && setId < abilities.length ? abilities[setId].setPieces() : 0);
         for (int setId = activeSets.nextSetBit(0); setId >= 0; setId = activeSets.nextSetBit(setId + 1)) {
-            mergedIds.add(setId); // an active set's bonus fires on triggers like any other source
+            mergedIds.add(setId); // an active set's armour bonus fires on triggers like any other source
+        }
+        // The ADDITIONAL weapon bonus: for each held set-weapon whose armour set is complete, add the
+        // set's <key>/weapon ability. Gated on BOTH the set being active AND the weapon being held.
+        for (String weaponSetKey : heldWeaponSetKeys) {
+            int parentSetId = keys.idOf(weaponSetKey);
+            if (parentSetId >= 0 && parentSetId < abilities.length && activeSets.get(parentSetId)) {
+                int weaponAbilityId = keys.idOf(weaponSetKey + "/weapon");
+                if (weaponAbilityId >= 0) {
+                    mergedIds.add(weaponAbilityId);
+                }
+            }
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), abilities, triggerCount,
                 activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger);

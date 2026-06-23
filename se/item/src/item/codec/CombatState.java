@@ -21,18 +21,24 @@ import java.util.Map;
  *
  * @param enchants stable-key &rarr; level, in insertion order; never {@code null}
  * @param crystals applied crystal stable keys, in order; never {@code null}
- * @param setKey   the armour-set this piece belongs to (stable key), or {@code null} for none
+ * @param setKey   the armour-set this piece belongs to as an ARMOUR member (stable key), or {@code null}.
+ *                 An armour member counts toward set completion (§6.6).
+ * @param setWeaponKey the armour-set this item is the WEAPON of (stable key), or {@code null}. A weapon
+ *                 does NOT count toward completion — instead, while the set is complete AND this weapon is
+ *                 held, the set's additional weapon bonus ({@code <setKey>/weapon}) fires
+ *                 (docs/v3-directives.md §6.6: "hold the weapon while wearing the set for the extra bonus").
  * @param omni     whether this is an omni wildcard set piece (§6.6)
  * @param heroic   the heroic flat stats this piece carries (§6); {@link HeroicStat#NONE} for none
  * @param added    extra enchant slots purchased onto this item (slot expander / gem, §H); never negative.
  *                 Persisted so a slot increase survives — it feeds the {@code SlotLedger} at apply time
  *                 (docs/v3-directives.md §H: "persist per-item slot count to PDC").
  */
-public record CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
-                          HeroicStat heroic, int added) {
+public record CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey,
+                          String setWeaponKey, boolean omni, HeroicStat heroic, int added) {
 
     /** An item with no StarEnchants combat state. */
-    public static final CombatState EMPTY = new CombatState(Map.of(), List.of(), null, false, HeroicStat.NONE, 0);
+    public static final CombatState EMPTY =
+            new CombatState(Map.of(), List.of(), null, null, false, HeroicStat.NONE, 0);
 
     public CombatState {
         // Defensive, order-PRESERVING copies → the record is immutable and the encoded blob (and thus
@@ -41,33 +47,46 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         enchants = Collections.unmodifiableMap(new LinkedHashMap<>(enchants));
         crystals = List.copyOf(crystals);
         setKey = (setKey == null || setKey.isBlank()) ? null : setKey;
+        setWeaponKey = (setWeaponKey == null || setWeaponKey.isBlank()) ? null : setWeaponKey;
         heroic = heroic == null ? HeroicStat.NONE : heroic;
         added = Math.max(0, added);
     }
 
     /** Back-compat constructor for state with no set membership or heroic stats (enchants + crystals only). */
     public CombatState(Map<String, Integer> enchants, List<String> crystals) {
-        this(enchants, crystals, null, false, HeroicStat.NONE, 0);
+        this(enchants, crystals, null, null, false, HeroicStat.NONE, 0);
     }
 
-    /** Constructor for state with set membership but no heroic stats. */
+    /** Constructor for state with armour-set membership but no heroic stats. */
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni) {
-        this(enchants, crystals, setKey, omni, HeroicStat.NONE, 0);
+        this(enchants, crystals, setKey, null, omni, HeroicStat.NONE, 0);
     }
 
-    /** Constructor for state with set + heroic but no purchased slots (the common pre-§H case). */
+    /** Constructor for state with armour-set membership + heroic but no purchased slots (the common case). */
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
                        HeroicStat heroic) {
-        this(enchants, crystals, setKey, omni, heroic, 0);
+        this(enchants, crystals, setKey, null, omni, heroic, 0);
+    }
+
+    /** Back-compat constructor (no weapon-set membership): the pre-weapon-bonus 6-field shape. */
+    public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
+                       HeroicStat heroic, int added) {
+        this(enchants, crystals, setKey, null, omni, heroic, added);
+    }
+
+    /** A set's WEAPON member: holding it while the set is complete fires the set's weapon bonus (§6.6). */
+    public static CombatState weaponMember(String weaponSetKey) {
+        return new CombatState(Map.of(), List.of(), null, weaponSetKey, false, HeroicStat.NONE, 0);
     }
 
     /** This state with {@code added} purchased enchant slots (slot expander / gem, §H). */
     public CombatState withAdded(int added) {
-        return new CombatState(enchants, crystals, setKey, omni, heroic, added);
+        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
     }
 
     /** Whether this item carries no combat state at all (the common miss-path case). */
     public boolean isEmpty() {
-        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && !omni && heroic.isZero() && added == 0;
+        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && setWeaponKey == null
+                && !omni && heroic.isZero() && added == 0;
     }
 }

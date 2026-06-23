@@ -77,13 +77,26 @@ public final class ApplySuite implements Harness.Scenario {
               1: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
             """;
 
-    // §J set-piece: an armour-only set; a minted piece carries sets/titan and the bonus fires once 4 are worn.
+    // §6.6 set: 4 armour members (each its own name, shared armour lore) complete the set bonus; the
+    // weapon member grants the ADDITIONAL weapon bonus while the set is complete and held.
     private static final String TITAN = """
             display: "&bTitan"
-            pieces: 4
-            trigger: DEFENSE
-            applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-            effects: ["MODIFY_HEALTH:1"]
+            complete: 4
+            armor:
+              lore: ["&7Titan Set"]
+              pieces:
+                helmet:     { material: DIAMOND_HELMET,     name: "&bTitan Helm" }
+                chestplate: { material: DIAMOND_CHESTPLATE, name: "&bTitan Chestplate" }
+                leggings:   { material: DIAMOND_LEGGINGS,   name: "&bTitan Leggings" }
+                boots:      { material: DIAMOND_BOOTS,      name: "&bTitan Boots" }
+              trigger: DEFENSE
+              effects: ["MODIFY_HEALTH:1"]
+            weapon:
+              material: DIAMOND_SWORD
+              name: "&bTitan Blade"
+              lore: ["&7Titan Weapon"]
+              trigger: ATTACK
+              effects: ["MODIFY_HEALTH:1"]
             """;
 
     private final Plugin plugin;
@@ -231,21 +244,30 @@ public final class ApplySuite implements Harness.Scenario {
         });
 
         h.guard("item.apply.mintSet", () -> {
-            var minted = enchanter.mintSetPiece("sets/titan", "HELMET");
+            var minted = enchanter.mintSetPiece("sets/titan", "helmet");
             if (minted.isEmpty()) {
-                throw new IllegalStateException("a set HELMET piece should mint");
+                throw new IllegalStateException("a set helmet member should mint");
             }
             ItemStack piece = minted.get();
             if (!"sets/titan".equals(codec.read(piece).setKey())) {
-                throw new IllegalStateException("the minted piece did not carry the set key");
+                throw new IllegalStateException("the minted armour member did not carry the set key");
             }
             if (!piece.getType().name().endsWith("HELMET")) {
-                throw new IllegalStateException("the minted piece is not a helmet: " + piece.getType());
+                throw new IllegalStateException("the minted member is not a helmet: " + piece.getType());
             }
-            if (enchanter.mintSetPiece("sets/titan", "SWORD").isPresent()) {
-                throw new IllegalStateException("a weapon piece must fail on an armour-only set");
+            // The weapon member mints and carries setWeaponKey (NOT setKey — it never counts toward completion).
+            var weapon = enchanter.mintSetPiece("sets/titan", "weapon");
+            if (weapon.isEmpty()) {
+                throw new IllegalStateException("the set weapon member should mint");
             }
-            if (enchanter.mintSetPiece("sets/ghost", "HELMET").isPresent()) {
+            CombatState weaponState = codec.read(weapon.get());
+            if (!"sets/titan".equals(weaponState.setWeaponKey()) || weaponState.setKey() != null) {
+                throw new IllegalStateException("the weapon must carry setWeaponKey and no setKey: " + weaponState);
+            }
+            if (enchanter.mintSetPiece("sets/titan", "trident").isPresent()) {
+                throw new IllegalStateException("an undeclared member must fail to mint");
+            }
+            if (enchanter.mintSetPiece("sets/ghost", "helmet").isPresent()) {
                 throw new IllegalStateException("an unknown set must fail to mint");
             }
         });
