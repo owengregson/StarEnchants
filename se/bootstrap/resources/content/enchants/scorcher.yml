@@ -5,7 +5,6 @@ description: "Set the enemy ablaze on hit."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 group: combat
-max-level: 3
 levels:
   1:
     chance: 25

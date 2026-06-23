@@ -5,7 +5,6 @@ description: "Smite the enemy you strike with holy fire."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 group: combat
-max-level: 3
 levels:
   1:
     chance: 25
