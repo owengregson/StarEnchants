@@ -12,18 +12,18 @@ import org.bukkit.plugin.Plugin;
 import tester.harness.Harness;
 
 /**
- * Live checks for content format v2 (ADR-0016) — the things a unit test cannot prove because they
- * depend on the REAL effect-spec registry + selector vocabulary + handle resolvers (the unit tests use
- * a tiny hand-built registry). A small v2 tree is compiled through the production {@link ContentCompiler}
- * on this server, exercising verbose effects against the real {@code ParamSpec}s, level scaling, tier
- * subfolders with key stability, and a carrier {@code ItemDef}.
+ * Live checks for the content format — the things a unit test cannot prove because they depend on the
+ * REAL effect-spec registry + selector vocabulary + handle resolvers (the unit tests use a tiny
+ * hand-built registry). A small content tree is compiled through the production {@link ContentCompiler}
+ * on this server, exercising verbose effects against the real {@code ParamSpec}s, the explicit per-level
+ * shape, tier subfolders with key stability, and a carrier {@code ItemDef}.
  *
  * <ul>
- *   <li>{@code content.v2.verbose} — a verbose {@code IGNITE: { duration }} / {@code MESSAGE: { text }}
+ *   <li>{@code content.format.verbose} — a verbose {@code IGNITE: { duration }} / {@code MESSAGE: { text }}
  *       enchant compiles clean against the real specs, and a colon-bearing message text survives.</li>
- *   <li>{@code content.v2.scale} — {@code scale:} + {@code $token} expands one effect line over 3 levels.</li>
- *   <li>{@code content.v2.tier} — a file under {@code enchants/mythic/} keeps the tier OFF the stable key.</li>
- *   <li>{@code content.v2.item} — an {@code items/book/} carrier loads as a zero-ability ItemDef.</li>
+ *   <li>{@code content.format.levels} — every explicitly-declared level compiles to its own ability.</li>
+ *   <li>{@code content.format.tier} — a file under {@code enchants/mythic/} keeps the tier OFF the stable key.</li>
+ *   <li>{@code content.format.item} — an {@code items/book/} carrier loads as a zero-ability ItemDef.</li>
  * </ul>
  */
 public final class ContentFormatSuite implements Harness.Scenario {
@@ -32,15 +32,19 @@ public final class ContentFormatSuite implements Harness.Scenario {
             display: "&dStormcaller"
             trigger: ATTACK
             applies-to: [SWORD, AXE]
-            max-level: 3
-            scale:
-              burn: { 1: 20, 2: 40, 3: 60 }
-            effects:
-              - { IGNITE: { duration: $burn, who: "@Victim" } }
-              - { MESSAGE: { text: "Zap: the storm strikes!" } }
             levels:
+              1:
+                effects:
+                  - { IGNITE: { duration: 20, who: "@Victim" } }
+                  - { MESSAGE: { text: "Zap: the storm strikes!" } }
+              2:
+                effects:
+                  - { IGNITE: { duration: 40, who: "@Victim" } }
+                  - { MESSAGE: { text: "Zap: the storm strikes!" } }
               3:
-                effects+:
+                effects:
+                  - { IGNITE: { duration: 60, who: "@Victim" } }
+                  - { MESSAGE: { text: "Zap: the storm strikes!" } }
                   - { MODIFY_HEALTH: { amount: 4, who: "@Self" } }
             """;
     private static final String STORM_BOOK = """
@@ -58,18 +62,19 @@ public final class ContentFormatSuite implements Harness.Scenario {
 
     @Override
     public void accept(Harness h) {
-        h.expect("content.v2.verbose");
-        h.expect("content.v2.scale");
-        h.expect("content.v2.tier");
-        h.expect("content.v2.item");
+        h.expect("content.format.verbose");
+        h.expect("content.format.levels");
+        h.expect("content.format.tier");
+        h.expect("content.format.item");
 
         Path root;
         try {
-            root = Files.createTempDirectory("se-content-v2-suite");
+            root = Files.createTempDirectory("se-content-format-suite");
             write(root, "enchants/mythic/stormcaller.yml", STORMCALLER);
             write(root, "items/book/storm-book.yml", STORM_BOOK);
         } catch (IOException e) {
-            for (String key : new String[] {"content.v2.verbose", "content.v2.scale", "content.v2.tier", "content.v2.item"}) {
+            for (String key : new String[] {
+                    "content.format.verbose", "content.format.levels", "content.format.tier", "content.format.item"}) {
                 h.fail(key, e.toString());
             }
             return;
@@ -80,9 +85,9 @@ public final class ContentFormatSuite implements Harness.Scenario {
         Compiler compiler = ContentCompiler.production();
         Library lib = LibraryLoader.load(root, compiler, 0);
 
-        h.guard("content.v2.verbose", () -> {
+        h.guard("content.format.verbose", () -> {
             if (lib.hasErrors()) {
-                throw new IllegalStateException("v2 load reported errors: " + lib.diagnostics());
+                throw new IllegalStateException("content load reported errors: " + lib.diagnostics());
             }
             var level1 = lib.snapshot().byStableKey("enchants/stormcaller/1");
             if (level1 == null) {
@@ -95,21 +100,21 @@ public final class ContentFormatSuite implements Harness.Scenario {
             }
         });
 
-        h.guard("content.v2.scale", () -> {
-            // $burn expands over 3 levels from ONE effect line; all three abilities must exist.
+        h.guard("content.format.levels", () -> {
+            // Every explicitly-declared level compiles to its own ability.
             for (int level = 1; level <= 3; level++) {
                 if (lib.snapshot().byStableKey("enchants/stormcaller/" + level) == null) {
-                    throw new IllegalStateException("scaled level " + level + " missing");
+                    throw new IllegalStateException("level " + level + " missing");
                 }
             }
-            // Level 3 gained the appended MODIFY_HEALTH (effects+): IGNITE, MESSAGE, MODIFY_HEALTH.
+            // Level 3 lists three effects (IGNITE, MESSAGE, MODIFY_HEALTH) — the others two.
             int l3 = lib.snapshot().byStableKey("enchants/stormcaller/3").effects().length;
             if (l3 != 3) {
-                throw new IllegalStateException("level 3 effects+ append did not land; effect count=" + l3);
+                throw new IllegalStateException("level 3 effect count wrong; got " + l3);
             }
         });
 
-        h.guard("content.v2.tier", () -> {
+        h.guard("content.format.tier", () -> {
             // The tier folder is NOT part of the key (live gear keeps resolving); the tier is metadata.
             if (lib.snapshot().byStableKey("enchants/mythic/stormcaller/1") != null) {
                 throw new IllegalStateException("tier folder leaked into the stable key");
@@ -119,7 +124,7 @@ public final class ContentFormatSuite implements Harness.Scenario {
             }
         });
 
-        h.guard("content.v2.item", () -> {
+        h.guard("content.format.item", () -> {
             if (lib.items().size() != 1) {
                 throw new IllegalStateException("expected one carrier ItemDef, got " + lib.items().size());
             }
