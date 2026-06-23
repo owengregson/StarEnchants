@@ -1,7 +1,13 @@
-# Guardian Crystal — a flat, levelless socket bonus.
+# Guardian Crystal — a flat, levelless socket bonus. material/name/lore give the minted crystal item
+# its own likeness so the lore explains its effect.
 tier: rare
 display: "&7Guardian Crystal"
 description: "Blunt a portion of incoming damage."
+material: PRISMARINE_SHARD
+name: "&7Guardian Crystal"
+lore:
+  - "&7Socket into any armor piece."
+  - "&7Blunts &b20&7 of every incoming hit."
 trigger: DEFENSE
 applies-to: [CHESTPLATE, HELMET, LEGGINGS, BOOTS]
 chance: 100

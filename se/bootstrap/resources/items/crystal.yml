@@ -2,6 +2,11 @@
 # another to MERGE them into a multi-crystal (two effects in one crystal slot). Everything below is
 # configurable; reload with /se reload. {CRYSTAL} renders the component crystal name(s).
 #
+# The material/name/lore here are the SHARED FALLBACK: each crystal (content/crystals/*.yml) declares its
+# own material/name/lore so it self-explains its effect, and only falls back to these when it omits a
+# field. They are also the likeness of a MERGED multi-crystal — whose two effects can't share one
+# material — whose lore is each component crystal's own lore, concatenated.
+#
 # Per-item crystal SLOT capacity is not here — it is a cross-cutting knob (master config.yml crystals:
 # section, a later increment); until then it defaults to 1.
 type: crystal

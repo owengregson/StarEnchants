@@ -22,8 +22,8 @@ import schema.grammar.EffectLine;
 final class CrystalDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
-            "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
+            "display", "description", "tier", "material", "name", "lore", "applies-to", "trigger",
+            "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
 
     private CrystalDefReader() {
     }
@@ -91,8 +91,11 @@ final class CrystalDefReader {
                 fileSource,
                 0);
 
+        String material = ContentParse.blankToNull(root.string("material"));
+        String name = ContentParse.blankToNull(root.string("name"));
+        List<String> lore = root.stringList("lore");
         CrystalDef def = new CrystalDef(baseKey, display, description == null ? "" : description,
-                tier, appliesTo, fileSource);
+                tier, material, name, lore, appliesTo, fileSource);
         return new Parsed(def, List.of(ability));
     }
 }

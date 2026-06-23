@@ -2,6 +2,7 @@ package feature.crystal;
 
 import compile.load.ContentHolder;
 import compile.load.CrystalConfig;
+import compile.load.CrystalDef;
 import feature.apply.ApplyResult;
 import feature.apply.ExtractResult;
 import feature.apply.ItemEnchanter;
@@ -84,16 +85,49 @@ public final class CrystalService {
         return mint(new CrystalItemData(keys));
     }
 
-    /** Mint a physical crystal item for {@code data} (its likeness rendered from config + the component names). */
+    /**
+     * Mint a physical crystal item for {@code data}. A SINGLE crystal uses its own per-crystal likeness
+     * (material/name/lore from its {@link compile.load.CrystalDef}, §E — "the lore is different per
+     * crystal so they can explain their effects"), each field falling back to the shared
+     * {@link CrystalConfig} when the crystal omits it. A MERGED multi-crystal carries two effects that
+     * can't share one material, so it takes the shared likeness and concatenates each component's own
+     * lore — the item still explains both effects.
+     */
     public ItemStack mint(CrystalItemData data) {
         CrystalConfig cfg = config.get();
-        String label = labelOf(data.keys());
+        List<String> keys = data.keys();
+        String label = labelOf(keys);
+        String materialToken;
+        String nameTemplate;
+        List<String> loreTemplate;
+        if (keys.size() == 1) {
+            CrystalDef def = content.library().crystalDefOf(keys.get(0));
+            materialToken = def != null && def.material() != null ? def.material() : cfg.material();
+            nameTemplate = def != null && def.name() != null ? def.name() : cfg.name();
+            loreTemplate = def != null && !def.lore().isEmpty() ? def.lore() : cfg.lore();
+        } else {
+            materialToken = cfg.material();
+            nameTemplate = cfg.name();
+            loreTemplate = mergedLore(keys, cfg);
+        }
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.material(), Material.AMETHYST_SHARD),
-                cfg.name().replace("{CRYSTAL}", label),
-                renderLore(cfg.lore(), label));
+                ItemFactory.material(materialToken, Material.AMETHYST_SHARD),
+                nameTemplate.replace("{CRYSTAL}", label),
+                renderLore(loreTemplate, label));
         codec.write(stack, data);
         return stack;
+    }
+
+    /** The concatenated per-component lore of a merged multi-crystal (each rendered with its own name). */
+    private List<String> mergedLore(List<String> keys, CrystalConfig cfg) {
+        List<String> out = new ArrayList<>();
+        for (String key : keys) {
+            CrystalDef def = content.library().crystalDefOf(key);
+            List<String> componentLore = def != null && !def.lore().isEmpty() ? def.lore() : cfg.lore();
+            String name = content.library().displayNameOf(key);
+            out.addAll(renderLore(componentLore, name != null ? name : key));
+        }
+        return out;
     }
 
     /**

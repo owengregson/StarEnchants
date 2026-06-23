@@ -46,6 +46,16 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         return null;
     }
 
+    /** The parsed {@link CrystalDef} for a stored crystal base key, or {@code null} if none defines it. */
+    public CrystalDef crystalDefOf(String baseKey) {
+        for (CrystalDef def : crystals) {
+            if (def.key().equals(baseKey)) {
+                return def;
+            }
+        }
+        return null;
+    }
+
     /** An empty library around an already-compiled (empty) snapshot — the boot-failure fallback. */
     public static Library empty(Snapshot snapshot, List<Diagnostic> diagnostics) {
         return new Library(snapshot, List.of(), List.of(), List.of(), List.of(), TierRegistry.BUILTIN, diagnostics);
