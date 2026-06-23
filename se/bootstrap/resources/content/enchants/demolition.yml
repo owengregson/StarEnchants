@@ -1,0 +1,22 @@
+# Demolition — channel the force of your strike into raw mining power.
+tier: common
+display: "&cDemolition"
+description: "A chance to surge with mining power as you dig."
+trigger: MINE
+applies-to: [PICKAXE]
+group: mining
+max-level: 3
+chance: { 1: 15, 2: 25, 3: 35 }
+cooldown: { 1: 240, 2: 200, 3: 160 }
+scale:
+  amp: { 1: 2, 2: 3, 3: 3 }
+  dur: { 1: 120, 2: 160, 3: 200 }
+  pcount: { 1: 6, 2: 10, 3: 14 }
+effects:
+  - { POTION: { effect: HASTE, level: $amp, duration: $dur } }
+  - { PARTICLE: { particle: FLAME, count: $pcount } }
+levels:
+  3:
+    effects+:
+      - { SOUND: { sound: BLOCK_ANVIL_LAND, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&cDemolition!" } }

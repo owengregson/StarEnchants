@@ -1,0 +1,26 @@
+# Guardian Angel — a watcher that snatches you from the brink. A DEFENSE enchant gated on the
+# wearer's health (%actor.health%, a registered numeric fact §3.4): when a blow drops the wearer
+# low it cancels that hit (CANCEL negates the triggering event — used sparingly, here behind a
+# health gate and a long cooldown), HEALs the wearer, and grants a Resistance buff (@Self).
+tier: legendary
+display: "&eGuardian Angel"
+description: "A watcher that snatches you from the brink."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: defense
+max-level: 3
+chance: 100
+cooldown: { 1: 1200, 2: 1000, 3: 800 }
+condition: { 1: "%actor.health% <= 4", 2: "%actor.health% <= 5", 3: "%actor.health% <= 6" }
+scale:
+  heal: { 1: 4, 2: 6, 3: 8 }
+  resamp: { 1: 1, 2: 2, 3: 2 }
+  resdur: { 1: 60, 2: 80, 3: 120 }
+effects:
+  - { CANCEL: {} }
+  - { MODIFY_HEALTH: { amount: $heal, who: "@Self" } }
+  - { POTION: { effect: DAMAGE_RESISTANCE, level: $resamp, duration: $resdur, who: "@Self" } }
+levels:
+  3:
+    effects+:
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 120, who: "@Self" } }

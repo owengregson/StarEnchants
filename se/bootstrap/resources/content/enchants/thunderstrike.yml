@@ -1,0 +1,19 @@
+# Thunderstrike — call lightning down onto the foe you hit. LIGHTNING defaults to @Victim.
+tier: epic
+display: "&eThunderstrike"
+description: "Summon lightning on your target."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+max-level: 3
+chance: { 1: 15, 2: 22, 3: 30 }
+scale:
+  bolts: { from: 2, step: 2 }
+effects:
+  - { LIGHTNING: { damage: $bolts } }
+  - { SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }
+levels:
+  3:
+    cooldown: 40
+    effects+:
+      - { MESSAGE: { text: "&eThunder answers your call!" } }

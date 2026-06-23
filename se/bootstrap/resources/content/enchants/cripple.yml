@@ -1,0 +1,19 @@
+# Cripple — slow the legs of whoever you strike.
+tier: common
+display: "&7Cripple"
+description: "Slow the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+max-level: 3
+chance: { 1: 30, 2: 40, 3: 50 }
+scale:
+  amp: { 1: 1, 2: 2, 3: 3 }
+  dur: { 1: 60, 2: 80, 3: 100 }
+effects:
+  - { POTION: { effect: SLOWNESS, level: $amp, duration: $dur, who: "@Victim" } }
+levels:
+  3:
+    cooldown: 0
+    effects+:
+      - { MESSAGE: { text: "&7Their legs buckle!" } }

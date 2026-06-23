@@ -1,0 +1,15 @@
+# Deflect — turn aside the blow and shove your attacker back.
+tier: uncommon
+display: "&bDeflect"
+description: "Turn aside the blow and shove your attacker back."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: defense
+max-level: 3
+chance: { 1: 25, 2: 35, 3: 45 }
+scale:
+  reduce: { 1: 8, 2: 14, 3: 20 }
+  kb: { 1: 0.6, 2: 1.0, 3: 1.5 }
+effects:
+  - { DAMAGE_MOD: { side: defense, mode: add, amount: $reduce } }
+  - { VELOCITY: { mode: away, strength: $kb, who: "@Attacker" } }

@@ -1,0 +1,18 @@
+# Sustenance — the toil of mining sustains the body, restoring hunger.
+tier: common
+display: "&6Sustenance"
+description: "Mining replenishes your hunger."
+trigger: MINE
+applies-to: [PICKAXE, SHOVEL, AXE, HOE]
+group: mining
+max-level: 3
+chance: { 1: 20, 2: 30, 3: 40 }
+cooldown: { 1: 200, 2: 160, 3: 120 }
+scale:
+  food: { from: 2, step: 2 }
+effects:
+  - { MODIFY_FOOD: { amount: $food } }
+levels:
+  3:
+    effects+:
+      - { POTION: { effect: SATURATION, level: 1, duration: 40 } }

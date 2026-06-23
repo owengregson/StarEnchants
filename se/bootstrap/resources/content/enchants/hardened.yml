@@ -1,0 +1,17 @@
+# Hardened — a well-worked tool mends itself, shedding wear as you mine.
+tier: common
+display: "&7Hardened"
+description: "Repair your tool while mining."
+trigger: MINE
+applies-to: [TOOL]
+group: mining
+max-level: 3
+chance: { 1: 20, 2: 30, 3: 40 }
+scale:
+  dura: { from: 1, step: 1 }
+effects:
+  - { DURABILITY: { amount: $dura, target: item } }
+levels:
+  3:
+    effects+:
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 4 } }
