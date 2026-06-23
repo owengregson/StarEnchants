@@ -1,7 +1,13 @@
-# Power Crystal — a flat, levelless socket bonus.
+# Power Crystal — a flat, levelless socket bonus. material/name/lore give the minted crystal item its
+# own likeness so the lore explains its effect.
 tier: epic
 display: "&cPower Crystal"
 description: "Adds raw striking power to your blows."
+material: REDSTONE
+name: "&cPower Crystal"
+lore:
+  - "&7Socket into a sword or axe."
+  - "&7Adds &c+15&7 melee damage to every hit."
 trigger: ATTACK
 applies-to: [SWORD, AXE]
 chance: 100
