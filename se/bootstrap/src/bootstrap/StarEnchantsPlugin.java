@@ -376,6 +376,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (economy.present()) {
             getLogger().info("economy provider active");
         }
+        // §N anti-cheat exemption (ADR-0027): install the sink's movement-exemption hook so engine-applied
+        // VELOCITY/TELEPORT briefly exempt the player from a supported anti-cheat's movement checks. No-op
+        // when no actionable anti-cheat is present. Set once at boot (a static cross-cutting hook).
+        engine.sink.DispatchSink.movementExemption(Integrations.antiCheatExemption(
+                this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat")));
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,

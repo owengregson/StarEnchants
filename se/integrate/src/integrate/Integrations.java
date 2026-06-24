@@ -1,5 +1,6 @@
 package integrate;
 
+import integrate.anticheat.AntiCheat;
 import integrate.economy.VaultEconomyProvider;
 import integrate.papi.PapiPassthrough;
 import integrate.papi.SePlaceholderExpansion;
@@ -11,6 +12,7 @@ import integrate.protect.WorldGuardProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import org.bukkit.entity.Player;
@@ -101,6 +103,15 @@ public final class Integrations {
             return (player, text) -> text; // identity — PAPI absent
         }
         return PapiPassthrough.resolver();
+    }
+
+    /**
+     * The anti-cheat movement-exemption hook for the anti-cheats present on this server — install it into the
+     * sink so engine-applied velocity/teleport doesn't trip movement checks. A no-op when none is actionable.
+     * (Per-anti-cheat enable is via {@code integrations.named}; see {@link AntiCheat} for verification status.)
+     */
+    public static Consumer<Player> antiCheatExemption(Plugin plugin, Predicate<String> enabled, System.Logger log) {
+        return AntiCheat.exemption(plugin, enabled, log);
     }
 
     /** Present + enabled + not disabled in config. String-only, so it never loads an absent plugin's API. */

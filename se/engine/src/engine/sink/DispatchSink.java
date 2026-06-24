@@ -108,6 +108,27 @@ public final class DispatchSink implements Sink {
     private boolean flushed;
     private int delayTicks;
 
+    /**
+     * §N anti-cheat movement exemption (ADR-0027): invoked just before StarEnchants moves a PLAYER
+     * (VELOCITY / TELEPORT) so a bundled anti-cheat bridge can briefly exempt them from movement checks,
+     * preventing false flags on engine-applied motion. A static, boot-configured no-op by default (set once
+     * via {@link #movementExemption}, mirroring how cross-cutting platform concerns like {@code Scheduling}
+     * are installed) — so it adds nothing to the per-event sink construction and is inert in tests.
+     */
+    private static volatile java.util.function.Consumer<org.bukkit.entity.Player> movementExemption = player -> { };
+
+    /** Install the anti-cheat movement-exemption hook (boot-time). A {@code null} hook resets to no-op. */
+    public static void movementExemption(java.util.function.Consumer<org.bukkit.entity.Player> hook) {
+        movementExemption = hook == null ? player -> { } : hook;
+    }
+
+    /** Exempt {@code target} from anti-cheat movement checks if it is a player (runs on the target thread). */
+    private static void exemptMovement(Entity target) {
+        if (target instanceof org.bukkit.entity.Player player) {
+            movementExemption.accept(player);
+        }
+    }
+
     /** A bare sink — economy/soul intents are no-ops, vars/suppression/knockback write to throwaway stores (the test default). */
     public DispatchSink(RuntimeHandles handles) {
         this(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
@@ -382,6 +403,7 @@ public final class DispatchSink implements Sink {
         // which is correct because the body runs on the target's own thread (entityOp).
         Location origin = from.clone();
         entityOp(target, () -> {
+            exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied knockback
             Vector delta = target.getLocation().toVector().subtract(origin.toVector());
             Vector direction = delta.lengthSquared() > 1.0e-6 ? delta.normalize() : new Vector(0, 1, 0);
             target.setVelocity(target.getVelocity().add(direction.multiply(strength)));
@@ -544,7 +566,10 @@ public final class DispatchSink implements Sink {
 
     @Override
     public void launch(Entity target, double x, double y, double z) {
-        entityOp(target, () -> target.setVelocity(target.getVelocity().add(new Vector(x, y, z))));
+        entityOp(target, () -> {
+            exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied velocity
+            target.setVelocity(target.getVelocity().add(new Vector(x, y, z)));
+        });
     }
 
     @Override
@@ -553,7 +578,10 @@ public final class DispatchSink implements Sink {
         // Clone the destination: a WAIT tier can defer this to a later tick, so the captured target must
         // be an owned snapshot the caller cannot mutate before the hop lands.
         Location dest = to.clone();
-        entityOp(target, () -> target.teleportAsync(dest));
+        entityOp(target, () -> {
+            exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied teleport
+            target.teleportAsync(dest);
+        });
     }
 
     // ── World / block intents ────────────────────────────────────────────────────────────────────
