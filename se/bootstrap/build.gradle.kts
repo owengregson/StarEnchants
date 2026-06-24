@@ -4,6 +4,20 @@ plugins {
     `java-library`
 }
 
+// Shipped config packs (ADR-0023): each pack lives in the repo as a REVIEWABLE config tree under
+// packs-src/<name>/ and is zipped at build time into packs/<name>.zip inside the jar, so the source is
+// diffable in PRs while the shipped/on-disk artifact is the chosen ZIP format. First boot extracts the
+// zip via packs/index.txt; /se pack apply swaps it over the live config. Add a pack by registering a
+// Zip task here and listing its archive in resources/packs/index.txt. Reproducible (sorted entries,
+// zeroed timestamps) so a given source tree yields a byte-identical archive.
+val packEliteEnchantments by tasks.registering(Zip::class) {
+    from(layout.projectDirectory.dir("packs-src/elite-enchantments"))
+    archiveFileName.set("elite-enchantments.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("generated-packs"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
 dependencies {
     // Floor API: the plugin loads on 1.17.1 → 26.1.x; the server provides it.
     compileOnly(libs.paper.api.floor)
@@ -17,6 +31,7 @@ dependencies {
     implementation(project(":compat-folia"))
     implementation(project(":api")) // public events fired at activation/reload points
     implementation(project(":migrate")) // /se migrate imports legacy EE/EA configs
+    implementation(project(":pack")) // /se pack export/apply config packs (ADR-0023)
 
     // The catalog-validation test compiles resources/content/ through the real LibraryLoader +
     // BuiltinEffects registry; the effect kinds reference Bukkit types and YAML is parsed, both
@@ -25,12 +40,16 @@ dependencies {
     testImplementation("org.yaml:snakeyaml:2.2")
 }
 
-// Stamp the build version into plugin.yml's ${version} placeholder.
+// Stamp the build version into plugin.yml's ${version} placeholder, and fold the built config-pack
+// archive(s) into the jar under packs/ (alongside the static packs/index.txt manifest).
 tasks.named<ProcessResources>("processResources") {
     val pluginVersion = project.version.toString()
     inputs.property("version", pluginVersion)
     filesMatching("plugin.yml") {
         expand("version" to pluginVersion)
+    }
+    from(packEliteEnchantments) {
+        into("packs")
     }
 }
 

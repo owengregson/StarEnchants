@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import migrate.Migrator;
+import pack.PackStore;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -51,7 +52,15 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb",
                     "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
                     "dust", "whitescroll", "unopened", "soulmode",
-                    "split", "migrate", "menu", "effects", "selectors", "triggers", "conditions", "variables", "list");
+                    "split", "migrate", "pack", "menu", "effects", "selectors", "triggers", "conditions",
+                    "variables", "list");
+
+    /** The {@code /se pack <action>} actions (ADR-0023), for tab-completion at arg index 1. */
+    static final List<String> PACK_ACTIONS = List.of("list", "info", "apply", "export");
+
+    /** The filename-safe timestamp stamped into an auto-backup pack's name on {@code /se pack apply}. */
+    private static final java.time.format.DateTimeFormatter BACKUP_STAMP =
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss");
 
     /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
@@ -79,6 +88,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.book.UnopenedBookService unopenedBooks;
     private final feature.scroll.HolyScrollService holyScrolls;
     private final feature.scroll.NametagService nametags;
+    private final PackStore packs; // ADR-0023 config packs: list/info/apply/export the config surface
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -87,7 +97,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
-              Messages messages) {
+              PackStore packs, Messages messages) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -105,6 +115,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.unopenedBooks = unopenedBooks;
         this.holyScrolls = holyScrolls;
         this.nametags = nametags;
+        this.packs = packs;
     }
 
     @Override
@@ -137,6 +148,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "soulmode" -> toggleSoulMode(sender);
             case "split" -> splitSoul(sender, args);
             case "migrate" -> migrate(sender, args);
+            case "pack" -> pack(sender, args);
             case "menu" -> openMenu(sender, args);
             case "effects" -> reference(sender, ReferenceCatalog.EFFECTS);
             case "selectors" -> reference(sender, ReferenceCatalog.SELECTORS);
@@ -157,7 +169,17 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 content.library().tiers().tiers().stream().map(t -> t.name()).toList(),
                 menus.names(),
                 Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
-                content.library().sets().stream().map(compile.load.SetDef::key).toList());
+                content.library().sets().stream().map(compile.load.SetDef::key).toList(),
+                packNamesQuietly());
+    }
+
+    /** Pack names for tab-completion — packs/ is tiny; an I/O hiccup completes to nothing, never throws. */
+    private List<String> packNamesQuietly() {
+        try {
+            return packs.list().stream().map(PackStore.PackInfo::name).toList();
+        } catch (IOException e) {
+            return List.of();
+        }
     }
 
     /** As the canonical form with no tier/menu completions (legacy 3-arg form). */
@@ -183,15 +205,23 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, List.of());
     }
 
-    /**
-     * Pure tab-completion: the subcommand at {@code args[0]}; then context-sensitive completions for the
-     * flat verbs and the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
-     * arg 2, type-specific key at arg 3, and {@code give book <player> random <tier>} at arg 4). Extracted
-     * from Bukkit so it is unit-tested without a server.
-     */
+    /** As the canonical form with no pack-name completions (7-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames,
                                  List<String> playerNames, List<String> setKeys) {
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys, List.of());
+    }
+
+    /**
+     * Pure tab-completion: the subcommand at {@code args[0]}; then context-sensitive completions for the
+     * flat verbs, the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
+     * arg 2, type-specific key at arg 3, and {@code give book <player> random <tier>} at arg 4), and the
+     * §packs {@code pack <action> [name]} tree (action at arg 1, pack name at arg 2). Extracted from
+     * Bukkit so it is unit-tested without a server.
+     */
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
+                                 List<String> tierNames, List<String> menuNames,
+                                 List<String> playerNames, List<String> setKeys, List<String> packNames) {
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }
@@ -204,12 +234,17 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 case "unopened" -> filter(tierNames, args[1]);
                 case "menu" -> filter(menuNames, args[1]);
                 case "migrate" -> filter(List.of("ee", "ea", "ae"), args[1]);
+                case "pack" -> filter(PACK_ACTIONS, args[1]);
                 case "reload" -> filter(List.of("--dry-run"), args[1]);
                 default -> List.of();
             };
         }
         if (sub.equals("give") && args.length == 3) {
             return filter(playerNames, args[2]); // /se give <type> <player>
+        }
+        if (sub.equals("pack") && args.length == 3) {
+            String action = args[1].toLowerCase(Locale.ROOT); // /se pack <info|apply> <name>
+            return action.equals("info") || action.equals("apply") ? filter(packNames, args[2]) : List.of();
         }
         if (sub.equals("give") && args.length == 4) {
             return switch (args[1].toLowerCase(Locale.ROOT)) { // the type-specific key
@@ -416,6 +451,135 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             }
         }
         return new Migrator.Result(files, diagnostics);
+    }
+
+    /**
+     * {@code /se pack <list|info|apply|export>} (ADR-0023) — manage config packs: a ZIP snapshot of the
+     * whole config surface (config.yml, lang.yml, content/, items/, menus/). {@code apply} backs up the
+     * current config, swaps in the pack, and reloads transactionally; {@code export} snapshots the live
+     * config into a new pack. All filesystem work runs off the command thread.
+     */
+    private void pack(CommandSender sender, String[] args) {
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "list";
+        switch (action) {
+            case "list" -> packList(sender);
+            case "info" -> packInfo(sender, args);
+            case "apply" -> packApply(sender, args);
+            case "export" -> packExport(sender, args);
+            default -> messages.lines("command.pack.usage").forEach(sender::sendMessage);
+        }
+    }
+
+    /** {@code /se pack list} — every pack in {@code packs/}, with its description + file count. */
+    private void packList(CommandSender sender) {
+        Scheduling.async(() -> {
+            try {
+                List<PackStore.PackInfo> available = packs.list();
+                if (available.isEmpty()) {
+                    tell(sender, messages.format("command.pack.empty"));
+                    return;
+                }
+                tell(sender, messages.format("command.pack.list-header", "COUNT", available.size()));
+                for (PackStore.PackInfo info : available) {
+                    tell(sender, messages.format("command.pack.list-entry", "NAME", info.name(),
+                            "DESC", info.manifest().description(), "FILES", info.manifest().fileCount()));
+                }
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
+    /** {@code /se pack info <name>} — the manifest of one pack. */
+    private void packInfo(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            messages.lines("command.pack.usage").forEach(sender::sendMessage);
+            return;
+        }
+        String name = args[2];
+        Scheduling.async(() -> {
+            try {
+                var manifest = packs.info(name).orElse(null);
+                if (manifest == null) {
+                    tell(sender, messages.format("command.pack.unknown", "NAME", name));
+                    return;
+                }
+                tell(sender, messages.format("command.pack.info", "NAME", manifest.name(),
+                        "DESC", manifest.description(), "AUTHOR", manifest.author(),
+                        "CREATED", manifest.created(), "FILES", manifest.fileCount()));
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
+    /**
+     * {@code /se pack apply <name>} — back up the current config, swap in the pack on disk, then reload
+     * transactionally so it takes effect live. Boot-gated wiring (souls/slots/scrolls listeners, the
+     * integration toggles, the command-trigger) still needs a restart — reported in the note.
+     */
+    private void packApply(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            messages.lines("command.pack.usage").forEach(sender::sendMessage);
+            return;
+        }
+        String name = args[2];
+        if (!PackStore.isValidName(name)) {
+            sender.sendMessage(messages.format("command.pack.bad-name", "NAME", name));
+            return;
+        }
+        if (!packs.exists(name)) {
+            sender.sendMessage(messages.format("command.pack.unknown", "NAME", name));
+            return;
+        }
+        sender.sendMessage(messages.format("command.pack.apply-start", "NAME", name));
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        String createdIso = now.toString();
+        String backupLabel = "backup-" + now.format(BACKUP_STAMP);
+        Scheduling.async(() -> {
+            try {
+                PackStore.ApplyResult applied = packs.apply(name, backupLabel, createdIso);
+                tell(sender, messages.format("command.pack.apply-done", "NAME", applied.manifest().name(),
+                        "FILES", applied.fileCount(),
+                        "BACKUP", applied.hasBackup() ? applied.backupName() : "(none)"));
+                if (!applied.skipped().isEmpty()) {
+                    tell(sender, messages.format("command.pack.apply-skipped", "N", applied.skipped().size()));
+                }
+                // Make the swapped config live (the same transactional reload as /se reload). A pack with
+                // a fault keeps the previous in-memory state and reports the diagnostics here.
+                reloader.reload(result -> report(sender, result));
+                tell(sender, messages.format("command.pack.apply-note"));
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
+    /** {@code /se pack export <name> [description…]} — snapshot the live config into a new pack. */
+    private void packExport(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            messages.lines("command.pack.usage").forEach(sender::sendMessage);
+            return;
+        }
+        String name = args[2];
+        if (!PackStore.isValidName(name)) {
+            sender.sendMessage(messages.format("command.pack.bad-name", "NAME", name));
+            return;
+        }
+        String description = args.length > 3
+                ? String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length))
+                : "Exported config snapshot.";
+        String author = sender.getName();
+        String createdIso = java.time.LocalDateTime.now().toString();
+        Scheduling.async(() -> {
+            try {
+                PackStore.ExportResult result = packs.export(name, description, author, createdIso);
+                tell(sender, messages.format("command.pack.export-done", "NAME", result.name(),
+                        "FILES", result.fileCount()));
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
     }
 
     /** Message the sender, routing a {@link Player} to its own region thread (Folia-correct). */
