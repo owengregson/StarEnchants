@@ -9,8 +9,10 @@ name: "&aSuccess Dust"
 lore:
   - "&7Combine onto an enchant book to"
   - "&7boost its success by &a+{BONUS}%&7."
-# Success-chance bonus (0–100) a single dust confers onto a book.
-success-bonus: 15
+# A normal dust rolls a RANDOM bonus in [min-bonus, max-bonus] (each 0–100) when combined onto a book.
+# {BONUS} renders as the range "10–25" here, or the exact value on a fixed dust (/se dust <percent>).
+min-bonus: 10
+max-bonus: 25
 # Feedback played on a successful combine: a sound (namespaced, range-stable) + particle tokens
 # (alias-resolved). Leave sound blank / particles empty for none.
 sound: "block.amethyst_block.chime"

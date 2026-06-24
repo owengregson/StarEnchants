@@ -50,22 +50,21 @@ class SeCommandCompletionTest {
 
     // ── §J give-tree + removeenchant completion ──────────────────────────────────────────────────
 
-    private static final List<String> ITEMS = List.of("items/relic", "items/charm");
     private static final List<String> PLAYERS = List.of("Bob", "Alice");
     private static final List<String> SETS = List.of("sets/titan", "sets/yeti");
 
     private static List<String> complete(String... args) {
-        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of("common", "rare"), List.of(), ITEMS, PLAYERS, SETS);
+        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of("common", "rare"), List.of(), PLAYERS, SETS);
     }
 
     @Test
     void giveCompletesTypeThenPlayerThenTypeKey() {
-        assertTrue(complete("give", "").containsAll(List.of("gem", "crystal", "book", "item", "set", "upgrade")));
+        assertTrue(complete("give", "").containsAll(List.of("gem", "crystal", "book", "dust", "set", "upgrade")));
+        assertTrue(complete("give", "").stream().noneMatch("item"::equals)); // the old ItemDef route is gone
         assertEquals(List.of("Bob"), complete("give", "crystal", "Bo"));               // arg 2 = online player
         assertEquals(CRYSTALS, complete("give", "crystal", "Bob", ""));                 // arg 3 = crystal key
         assertEquals(List.of("enchants/venom", "enchants/vigor"),
                 complete("give", "book", "Bob", "enchants/v"));                          // arg 3 = enchant key
-        assertEquals(ITEMS, complete("give", "item", "Bob", ""));                        // arg 3 = item id
         assertEquals(List.of("rare"), complete("give", "unopened", "Bob", "ra"));        // arg 3 = tier
     }
 

@@ -12,3 +12,7 @@ lore:
 # Extra line(s) shown only when the book carries an explicit success chance (e.g. from an unopened book).
 success-lore:
   - "&7Success chance: &f{SUCCESS}%"
+# When a sub-100% book FAILS its apply roll, destroy the gear — unless a White Scroll (items/white-scroll.yml)
+# guards it. Books that always succeed (success 100, e.g. /se book) never fail, so this only bites the
+# unopened/randomized books. Set false to make a failed apply harmless (the White Scroll then has no effect).
+destroy-on-fail: true

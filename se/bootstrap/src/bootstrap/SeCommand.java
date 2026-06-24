@@ -3,7 +3,6 @@ package bootstrap;
 import compile.load.ContentHolder;
 import compile.load.CrystalDef;
 import compile.load.EnchantDef;
-import compile.load.ItemDef;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import feature.menu.Menu;
@@ -56,7 +55,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
-            List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb",
+            List.of("gem", "crystal", "extractor", "book", "set", "heroic", "upgrade", "orb",
                     "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
                     "dust", "whitescroll", "unopened");
 
@@ -131,7 +130,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     messages.format("command.give.godlytransmog"));
             case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), messages.format("command.give.holy"));
             case "nametag" -> giveSimpleItem(sender, nametags.mint(), messages.format("command.give.nametag"));
-            case "dust" -> giveSimpleItem(sender, carriers.mintDust(), messages.format("command.give.dust"));
+            case "dust" -> giveSimpleItem(sender, dustFor(args, 1), messages.format("command.give.dust"));
             case "whitescroll" -> giveSimpleItem(sender, carriers.mintWhiteScroll(),
                     messages.format("command.give.whitescroll"));
             case "unopened" -> giveUnopened(sender, args);
@@ -157,7 +156,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 content.library().crystals().stream().map(CrystalDef::key).toList(),
                 content.library().tiers().tiers().stream().map(t -> t.name()).toList(),
                 menus.names(),
-                content.library().items().stream().map(ItemDef::key).toList(),
                 Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
                 content.library().sets().stream().map(compile.load.SetDef::key).toList());
     }
@@ -173,28 +171,26 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return complete(args, enchantKeys, crystalKeys, tierNames, List.of());
     }
 
-    /** As the canonical form with no item-id / player completions (5-arg form). */
+    /** As the canonical form with no player completions (5-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, List.of(), List.of());
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, List.of());
     }
 
-    /** As the canonical form with no set completions (7-arg form). */
+    /** As the canonical form with no set completions (6-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames, List<String> itemIds,
-                                 List<String> playerNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, itemIds, playerNames, List.of());
+                                 List<String> tierNames, List<String> menuNames, List<String> playerNames) {
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, List.of());
     }
 
     /**
      * Pure tab-completion: the subcommand at {@code args[0]}; then context-sensitive completions for the
      * flat verbs and the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
      * arg 2, type-specific key at arg 3, and {@code give book <player> random <tier>} at arg 4). Extracted
-     * from Bukkit so it is unit-tested without a server. (A {@code dust} is an item, so {@code @dusts} is
-     * served by {@code itemIds} on the {@code give item} route.)
+     * from Bukkit so it is unit-tested without a server.
      */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames, List<String> itemIds,
+                                 List<String> tierNames, List<String> menuNames,
                                  List<String> playerNames, List<String> setKeys) {
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
@@ -220,7 +216,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 case "crystal" -> filter(crystalKeys, args[3]);
                 case "book" -> filter(concat("random", enchantKeys), args[3]); // book key, or the `random` form
                 case "unopened" -> filter(tierNames, args[3]);
-                case "item" -> filter(itemIds, args[3]);
                 case "set" -> filter(setKeys, args[3]);
                 default -> List.of();
             };
@@ -504,14 +499,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
             case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy white scroll");
             case "nametag" -> deliver(sender, target, nametags.mint(), "command.give.nametag", "item nametag");
-            case "dust" -> deliver(sender, target, carriers.mintDust(), "command.give.dust", "success dust");
+            case "dust" -> giveDustTo(sender, target, args);
             case "whitescroll" -> deliver(sender, target, carriers.mintWhiteScroll(),
                     "command.give.whitescroll", "white scroll");
             case "crystal" -> giveCrystalTo(sender, target, args);
             case "extractor" -> deliver(sender, target, crystals.mintExtractor(), "command.give.extractor", "crystal extractor");
             case "book" -> giveBookTo(sender, target, args);
             case "unopened" -> giveUnopenedTo(sender, target, args);
-            case "item" -> giveItemTo(sender, target, args);
             case "set" -> giveSetTo(sender, target, args);
             default -> sender.sendMessage(messages.format("command.give.usage"));
         }
@@ -697,29 +691,29 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se give item <player> <item-id> [args]} — the §J universal item dispatcher: mint any authored
-     * carrier (book/tome/scroll/dust/gem) from {@code content.library().items()} by its id.
+     * {@code /se give dust <player> [percent]} — mint a success dust for the target. With no percent it is a
+     * RANDOM-bonus dust (rolls the configured {@code [min, max]} range when combined); with a percent it
+     * confers exactly that fixed bonus (§I).
      */
-    private void giveItemTo(CommandSender sender, Player target, String[] args) {
-        if (args.length < 4) {
-            sender.sendMessage(messages.format("command.give.usage"));
-            return;
+    private void giveDustTo(CommandSender sender, Player target, String[] args) {
+        deliver(sender, target, dustFor(args, 3), "command.give.dust", "success dust");
+    }
+
+    /** Mint a success dust from {@code args[idx]}: a parseable percent → a FIXED dust, else a RANDOM-range dust. */
+    private ItemStack dustFor(String[] args, int idx) {
+        java.util.OptionalInt percent = dustPercent(args, idx);
+        return percent.isPresent() ? carriers.mintDust(percent.getAsInt()) : carriers.mintDust();
+    }
+
+    /** Parse an optional dust percent at {@code args[idx]}; absent or non-numeric ⇒ empty (a random dust). */
+    private static java.util.OptionalInt dustPercent(String[] args, int idx) {
+        if (args.length <= idx) {
+            return java.util.OptionalInt.empty();
         }
-        String id = args[3];
-        ItemDef def = content.library().items().stream()
-                .filter(d -> d.key().equals(id) || d.key().equals(normalize(id, "items/"))
-                        || d.key().endsWith("/" + id))
-                .findFirst().orElse(null);
-        if (def == null) {
-            sender.sendMessage(messages.format("command.error.no-such-item", "ID", id));
-            return;
-        }
-        Scheduling.onEntity(target, () -> {
-            MenuItems.giveOrDrop(target, carriers.mint(def));
-            target.sendMessage(messages.format("command.give.item", "ID", def.key()));
-        });
-        if (notSelf(sender, target)) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", def.key(), "PLAYER", target.getName()));
+        try {
+            return java.util.OptionalInt.of(Integer.parseInt(args[idx].trim()));
+        } catch (NumberFormatException e) {
+            return java.util.OptionalInt.empty();
         }
     }
 

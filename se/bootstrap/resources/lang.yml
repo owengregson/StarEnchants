@@ -69,7 +69,7 @@ command.usage:
   - "&e  /se godlytransmog &7— mint a godly transmog (hand-reorder enchant lore)"
   - "&e  /se holy &7— mint a holy white scroll (survive a death once)"
   - "&e  /se nametag &7— mint an item nametag (rename gear via chat)"
-  - "&e  /se dust &7— mint success dust (drag onto a book to boost its success)"
+  - "&e  /se dust [percent] &7— mint success dust (random, or a fixed % to boost a book)"
   - "&e  /se whitescroll &7— mint a white scroll (protect gear from a failed enchant)"
   - "&e  /se unopened <tier> &7— mint an unopened book (right-click to reveal)"
   - "&e  /se menu [name] &7— open a GUI (default: the enchant-application menu)"
