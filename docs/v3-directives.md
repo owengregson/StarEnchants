@@ -307,10 +307,28 @@ reference (effects + triggers + conditions + variables + selectors).
 
 ## N. Integrations — LAST
 
-Only after §§1–6 ship: Factions, Towny, Lands, SuperiorSkyblock, mcMMO, anticheat,
-ItemsAdder, Oraxen, MythicMobs, PlaceholderAPI (expansion + passthrough),
-EliteBosses, Vault — as `ProtectionProvider` / `EconomyProvider` / `se-api`
-add-ons (the WorldGuard add-on, ADR 0017, is the pattern).
+Factions, Towny, Lands, SuperiorSkyblock, mcMMO, anticheat, ItemsAdder, Oraxen,
+MythicMobs, PlaceholderAPI (expansion + passthrough), EliteBosses, Vault.
+
+**Packaging (ADR 0027, supersedes 0017):** every integration is **bundled in the one
+core jar and active out of the box when its plugin is present — never required.** Each
+plugin API is `compileOnly` (never shaded) and each bridge loads only when its plugin is
+detected, so the single jar carries them all with no hard dependency. They live in
+`se/integrate`; the protection ones implement `ProtectionProvider`, Vault implements
+`EconomyProvider`, both union with anything registered externally through the
+`ServicesManager`. (Mental — ADR 0026 — follows the same soft model but lives in
+`feature.combat` as it shares the live knockback store.)
+
+**Delivered:** WorldGuard, Towny, Lands, SuperiorSkyblock2, FactionsUUID
+(`ProtectionProvider`); Vault (`EconomyProvider`); PlaceholderAPI (expansion +
+chat passthrough); Mental (knockback coordination). All bundled-soft, unit-tested
+against the real APIs, jar-verified to contain zero plugin-API bytecode; end-to-end per
+plugin is verified out-of-matrix (no integration plugin runs on the live matrix).
+
+**Pending direction (behavioural, not packaging):** mcMMO, anticheat exemptions,
+ItemsAdder/Oraxen custom-item resolution, MythicMobs/EliteBosses mob-type condition
+variable — these need per-plugin behaviour decided (which anticheat, mcMMO semantics,
+how custom item ids map onto SE's Material+PDC item model) before building.
 
 ---
 
