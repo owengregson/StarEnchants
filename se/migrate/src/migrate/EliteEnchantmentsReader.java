@@ -3,6 +3,7 @@ package migrate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import migrate.model.MigratedCondition;
 import migrate.model.MigratedEffect;
 import migrate.model.MigratedEnchant;
 import migrate.model.MigratedLevel;
@@ -31,6 +32,8 @@ public final class EliteEnchantmentsReader {
             String id = String.valueOf(entry.getKey());
             String legacyType = LegacyYaml.string(e, "type", null);
             String legacyApplies = LegacyYaml.string(e, "applies", null);
+            // DEFENSE enchants flip the foe selector to @Attacker (the entity that hit the wielder).
+            boolean defenseDir = "DEFENSE".equals(Mappings.trigger(legacyType));
             out.add(new MigratedEnchant(
                     id,
                     LegacyYaml.string(e, "name", id),
@@ -38,14 +41,15 @@ public final class EliteEnchantmentsReader {
                     Mappings.trigger(legacyType),
                     Mappings.appliesTo(legacyApplies),
                     LegacyYaml.string(e, "group", "imported").toLowerCase(java.util.Locale.ROOT),
-                    levels(LegacyYaml.map(e, "levels")),
+                    levels(LegacyYaml.map(e, "levels"), defenseDir),
                     legacyType,
-                    legacyApplies));
+                    legacyApplies,
+                    Mappings.repeatTicks(legacyType)));
         }
         return out;
     }
 
-    private static List<MigratedLevel> levels(Map<?, ?> levels) {
+    private static List<MigratedLevel> levels(Map<?, ?> levels, boolean defenseDir) {
         List<MigratedLevel> out = new ArrayList<>();
         if (levels == null) {
             return out;
@@ -62,13 +66,27 @@ public final class EliteEnchantmentsReader {
             }
             List<MigratedEffect> effects = new ArrayList<>();
             for (String token : LegacyYaml.stringList(lvl, "effects")) {
-                effects.add(Mappings.effect(token));
+                effects.add(Mappings.effect(token, defenseDir));
+            }
+            // EE conditions are a small fixed vocabulary; map the ones that have an SE fact, TODO the rest
+            // (an unmappable condition is flagged, never emitted raw — that would be invalid SE grammar).
+            String legacyCondition = blankToNull(LegacyYaml.string(lvl, "condition", null));
+            String mappedCondition = null;
+            List<String> conditionTodos = new ArrayList<>();
+            if (legacyCondition != null) {
+                MigratedCondition cond = Mappings.eeCondition(legacyCondition);
+                if (cond.mapped()) {
+                    mappedCondition = cond.expr();
+                } else {
+                    conditionTodos.add(legacyCondition + " — " + cond.todo());
+                }
             }
             out.add(new MigratedLevel(
                     level,
                     LegacyYaml.doubleOrNull(lvl, "chance"),
                     LegacyYaml.intOrNull(lvl, "cooldown"),
-                    blankToNull(LegacyYaml.string(lvl, "condition", null)),
+                    mappedCondition,
+                    conditionTodos,
                     effects));
         }
         return out;
