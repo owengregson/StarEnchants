@@ -31,6 +31,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0021](0021-heroic-multiplicative-stage.md) | Heroic as a bounded multiplicative stage (amends 0012's scope) | Accepted |
 | [0022](0022-held-passive-lifecycle-and-command-trigger.md) | HELD/PASSIVE start-stop lifecycle + the COMMAND trigger (§B tail) | Accepted |
 | [0023](0023-config-packs.md) | Config packs (swappable whole-config presets) | Accepted |
+| [0024](0024-exotic-effect-ports.md) | Expression-valued effect args + the exotic EE-effect ports | Accepted |
 
 ## Process
 
