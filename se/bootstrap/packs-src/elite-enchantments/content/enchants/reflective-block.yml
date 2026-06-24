@@ -1,0 +1,29 @@
+# Imported from EliteEnchantments (id: reflective-block). Review before shipping.
+display: "Reflective Block"
+description: "&dHeroic upgrade for Block. &dWhile blocking, greatly reduces &dor fully negates incoming damage &dand strikes the attacker back. &c&l(!)&r &7Requires &eBlock  &d&lI: &f🎲 45% &7| &f▲ 80% &7| &f⌛ 5s &d&lII: &f🎲 65% &7| &f▲ 90% &7| &f⌛ 5s &d&lIII: &f🎲 80% &7| &f▲ 100% &7| &f⌛ 5s"
+trigger: DEFENSE
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 45
+    cooldown: 5
+    condition: "%blocking% == true"
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 80 } }  # from REDUCTION:80
+      - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:3:8:TARGET — legacy random range 3-8 collapsed to its max
+  2:
+    chance: 65
+    cooldown: 5
+    condition: "%blocking% == true"
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 90 } }  # from REDUCTION:90
+      - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:3:8:TARGET — legacy random range 3-8 collapsed to its max
+  3:
+    chance: 80
+    cooldown: 5
+    condition: "%blocking% == true"
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from REDUCTION:100
+      - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:3:8:TARGET — legacy random range 3-8 collapsed to its max

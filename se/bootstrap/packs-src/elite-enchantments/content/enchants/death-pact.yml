@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: death-pact). Review before shipping.
+display: "Death Pact"
+description: "&4When hit, reduces the damage &4taken.  &4&lI: &f🎲 12.25% &7| &f▲ 10% &7| &f⌛ 4s &4&lII: &f🎲 15% &7| &f▲ 20% &7| &f⌛ 4s &4&lIII: &f🎲 18.5% &7| &f▲ 30% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "mythic"
+tier: mythic
+levels:
+  1:
+    chance: 12.25
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
+  2:
+    chance: 15
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 20 } }  # from REDUCTION:20
+  3:
+    chance: 18.5
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 30 } }  # from REDUCTION:30

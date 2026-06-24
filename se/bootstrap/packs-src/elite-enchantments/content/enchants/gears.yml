@@ -1,0 +1,17 @@
+# Imported from EliteEnchantments (id: gears). Review before shipping.
+display: "Gears"
+description: "&6Grants permanent Speed.  &6&lI: &f▲ Lvl I &6&lII: &f▲ Lvl II &6&lIII: &f▲ Lvl III"
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "SPEED", level: 1, duration: 200, who: "@Self" } }  # from POTION:SPEED:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "SPEED", level: 2, duration: 200, who: "@Self" } }  # from POTION:SPEED:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  3:
+    effects:
+      - { POTION: { effect: "SPEED", level: 3, duration: 200, who: "@Self" } }  # from POTION:SPEED:3:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: telepathy). Review before shipping.
+display: "Telepathy"
+description: "&aSends mined block drops straight &ato your inventory.  &a&lI: &f🎲 40% &a&lII: &f🎲 60% &a&lIII: &f🎲 80% &a&lIV: &f🎲 100%"
+trigger: MINE
+applies-to: [TOOL]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 40
+    effects: []
+      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually
+  2:
+    chance: 60
+    effects: []
+      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually
+  3:
+    chance: 80
+    effects: []
+      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually
+  4:
+    effects: []
+      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually

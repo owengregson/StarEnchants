@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: self-destruct). Review before shipping.
+display: "Self Destruct"
+description: "&aAt low health, when hit, spawns &aprimed TNT at your position.  &a&lI: &f🎲 13% &7| &f▲ 1 TNT &7| &f⌛ 20s &a&lII: &f🎲 17% &7| &f▲ 2 TNT &7| &f⌛ 20s &a&lIII: &f🎲 22% &7| &f▲ 3 TNT &7| &f⌛ 20s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 13
+    cooldown: 20
+    condition: "%actor.health% <= 4"
+    effects:
+      - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 1 } }  # from TNT:1:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)
+  2:
+    chance: 17
+    cooldown: 20
+    condition: "%actor.health% <= 4"
+    effects:
+      - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 2 } }  # from TNT:2:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)
+  3:
+    chance: 22
+    cooldown: 20
+    condition: "%actor.health% <= 4"
+    effects:
+      - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 3 } }  # from TNT:3:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)

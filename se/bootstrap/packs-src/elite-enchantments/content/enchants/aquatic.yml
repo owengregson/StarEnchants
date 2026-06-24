@@ -1,0 +1,11 @@
+# Imported from EliteEnchantments (id: aquatic). Review before shipping.
+display: "Aquatic"
+description: "&7Grants permanent Water &7Breathing."
+trigger: PASSIVE
+applies-to: [HELMET]
+group: "common"
+tier: common
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "WATER_BREATHING", level: 1, duration: 200, who: "@Self" } }  # from POTION:WATER_BREATHING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

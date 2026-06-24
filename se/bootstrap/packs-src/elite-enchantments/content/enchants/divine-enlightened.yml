@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: divine-enlightened). Review before shipping.
+display: "Divine Enlightened"
+description: "&dHeroic upgrade for Enlightened. &dRestores more health when hit. &c&l(!)&r &7Requires &6Enlightened  &d&lI: &f🎲 7.5% &7| &f▲ +2-4❤ &7| &f⌛ 5s &d&lII: &f🎲 15% &7| &f▲ +2-4❤ &7| &f⌛ 5s &d&lIII: &f🎲 22.5% &7| &f▲ +2-4❤ &7| &f⌛ 5s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 7.5
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  2:
+    chance: 15
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  3:
+    chance: 22.5
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

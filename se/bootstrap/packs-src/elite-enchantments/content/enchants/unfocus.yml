@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: unfocus). Review before shipping.
+display: "Unfocus"
+description: "&eArrows apply Weakness to the &etarget.  &e&lI: &f🎲 5% &7| &f⌛ 10s &e&lII: &f🎲 6% &7| &f⌛ 10s &e&lIII: &f🎲 7% &7| &f⌛ 10s &e&lIV: &f🎲 8% &7| &f⌛ 10s &e&lV: &f🎲 9% &7| &f⌛ 10s"
+trigger: BOW
+applies-to: [BOW]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 5
+    cooldown: 10
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+  2:
+    chance: 6
+    cooldown: 10
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+  3:
+    chance: 7
+    cooldown: 10
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+  4:
+    chance: 8
+    cooldown: 10
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+  5:
+    chance: 9
+    cooldown: 10
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)

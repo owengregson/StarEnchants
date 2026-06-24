@@ -1,0 +1,40 @@
+# Imported from EliteEnchantments (id: extreme-insanity). Review before shipping.
+display: "Extreme Insanity"
+description: "&dHeroic upgrade for Insanity. &dDeals scaling bonus damage to &dtargets holding a sword. &c&l(!)&r &7Requires &6Insanity  &d&lI: &f▲ 4% &d&lII: &f▲ 6% &d&lIII: &f▲ 8% &d&lIV: &f▲ 10% &d&lV: &f▲ 12% &d&lVI: &f▲ 14% &d&lVII: &f▲ 16% &d&lVIII: &f▲ 18%"
+trigger: ATTACK
+applies-to: [AXE]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4 } }  # from DAMAGE_INCREASE:4 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } }  # from DAMAGE_INCREASE:6 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  4:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  5:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  6:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 14 } }  # from DAMAGE_INCREASE:14 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  7:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 16 } }  # from DAMAGE_INCREASE:16 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  8:
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } }  # from DAMAGE_INCREASE:18 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

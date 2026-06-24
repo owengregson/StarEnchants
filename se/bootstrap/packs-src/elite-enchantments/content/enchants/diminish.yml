@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: diminish). Review before shipping.
+display: "Diminish"
+description: "&6When hit, halves the damage &6taken.  &6&lI: &f🎲 1.75% &7| &f▲ 50% &7| &f⌛ 4s &6&lII: &f🎲 3% &7| &f▲ 50% &7| &f⌛ 4s &6&lIII: &f🎲 4.5% &7| &f▲ 50% &7| &f⌛ 4s &6&lIV: &f🎲 6% &7| &f▲ 50% &7| &f⌛ 4s &6&lV: &f🎲 7.5% &7| &f▲ 50% &7| &f⌛ 4s &6&lVI: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 1.75
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  2:
+    chance: 3
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  3:
+    chance: 4.5
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  4:
+    chance: 6
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  5:
+    chance: 7.5
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  6:
+    chance: 10
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50

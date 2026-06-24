@@ -1,0 +1,27 @@
+# The heroic upgrade item — drag it onto any armour piece or weapon to attempt a heroic upgrade
+# (heroic is NOT set-bound). A small randomised success chance; consumed on use either way. On success
+# it stamps heroic percent stats, optionally swaps the material, and renders a "heroic" lore marker.
+# On failure the gear is unharmed. Everything below is configurable; reload with /se reload.
+type: heroic
+material: NETHERITE_SCRAP
+name: "&6&lHeroic Upgrade"
+lore:
+  - "&7Drag onto armour or a weapon to attempt a heroic upgrade."
+  - "&7Small success chance — consumed on use."
+# Per-attempt success chance is drawn from [success-min, success-max] (percent), then rolled.
+success-min: 5
+success-max: 15
+# Heroic stats granted on success (fractions): +damage, -incoming, and item-damage-cancel chance.
+percent-damage: 0.10
+percent-reduction: 0.10
+durability: 0.25
+# entity = PvP/entity damage only (default); all = every damage cause.
+reduction-scope: ENTITY
+# Optional material swap on success (within-category, e.g. diamond -> netherite).
+material-upgrades:
+  DIAMOND_HELMET: NETHERITE_HELMET
+  DIAMOND_CHESTPLATE: NETHERITE_CHESTPLATE
+  DIAMOND_LEGGINGS: NETHERITE_LEGGINGS
+  DIAMOND_BOOTS: NETHERITE_BOOTS
+  DIAMOND_SWORD: NETHERITE_SWORD
+  DIAMOND_AXE: NETHERITE_AXE

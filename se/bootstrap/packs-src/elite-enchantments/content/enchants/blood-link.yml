@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: blood-link). Review before shipping.
+display: "Blood Link"
+description: "&6When you take damage, restores &6some of your health.  &6&lI: &f🎲 2% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lII: &f🎲 3.75% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lIII: &f🎲 5% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lIV: &f🎲 6.5% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lV: &f🎲 7.5% &7| &f▲ +1-4❤ &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 2
+    cooldown: 3
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  2:
+    chance: 3.75
+    cooldown: 3
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  3:
+    chance: 5
+    cooldown: 3
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  4:
+    chance: 6.5
+    cooldown: 3
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  5:
+    chance: 7.5
+    cooldown: 3
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

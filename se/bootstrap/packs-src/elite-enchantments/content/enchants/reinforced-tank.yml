@@ -1,0 +1,24 @@
+# Imported from EliteEnchantments (id: reinforced-tank). Review before shipping.
+display: "Reinforced Tank"
+description: "&dHeroic upgrade for Tank. &dReduces more axe damage. &c&l(!)&r &7Requires &eTank  &d&lI: &f▲ 2.25% &d&lII: &f▲ 4.5% &d&lIII: &f▲ 6.75% &d&lIV: &f▲ 9.95%"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }  # from REDUCTION:2.25
+  2:
+    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 4.5 } }  # from REDUCTION:4.5
+  3:
+    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 6.75 } }  # from REDUCTION:6.75
+  4:
+    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 9.95 } }  # from REDUCTION:9.95

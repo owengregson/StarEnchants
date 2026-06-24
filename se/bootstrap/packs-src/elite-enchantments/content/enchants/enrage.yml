@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: enrage). Review before shipping.
+display: "Enrage"
+description: "&eOn hit at low health, deals &ebonus damage that grows as your &ehealth falls.  &e&lI: &f🎲 3.25% &7| &f⌛ 5s &e&lII: &f🎲 5% &7| &f⌛ 5s &e&lIII: &f🎲 7.5% &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 3.25
+    cooldown: 5
+    condition: "%actor.health% < 10"
+    effects: []
+      # TODO port manually: DAMAGE_INCREASE:playerHealth*2 — could not parse a numeric argument: For input string: "playerHealth*2"
+  2:
+    chance: 5
+    cooldown: 5
+    condition: "%actor.health% < 10"
+    effects: []
+      # TODO port manually: DAMAGE_INCREASE:playerHealth*2 — could not parse a numeric argument: For input string: "playerHealth*2"
+  3:
+    chance: 7.5
+    cooldown: 5
+    condition: "%actor.health% < 10"
+    effects: []
+      # TODO port manually: DAMAGE_INCREASE:playerHealth*2.5 — could not parse a numeric argument: For input string: "playerHealth*2.5"

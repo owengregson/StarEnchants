@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: rage). Review before shipping.
+display: "Rage"
+description: "&6Each consecutive hit in a combo &6adds stacking bonus damage.  &6&lI: &f▲ +10% &6&lII: &f▲ +15% &6&lIII: &f▲ +25% &6&lIV: &f▲ +30% &6&lV: &f▲ +35% &6&lVI: &f▲ +40%"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    effects: []
+      # TODO port manually: RAGE:0.1 — no StarEnchants equivalent for EE effect 'RAGE' — port this effect manually
+  2:
+    effects: []
+      # TODO port manually: RAGE:0.15 — no StarEnchants equivalent for EE effect 'RAGE' — port this effect manually
+  3:
+    effects: []
+      # TODO port manually: RAGE:0.25 — no StarEnchants equivalent for EE effect 'RAGE' — port this effect manually
+  4:
+    effects: []
+      # TODO port manually: RAGE:0.3 — no StarEnchants equivalent for EE effect 'RAGE' — port this effect manually
+  5:
+    effects: []
+      # TODO port manually: RAGE:0.35 — no StarEnchants equivalent for EE effect 'RAGE' — port this effect manually
+  6:
+    effects: []
+      # TODO port manually: RAGE:0.4 — no StarEnchants equivalent for EE effect 'RAGE' — port this effect manually

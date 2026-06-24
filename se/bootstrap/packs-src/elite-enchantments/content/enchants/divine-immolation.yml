@@ -1,0 +1,48 @@
+# Imported from EliteEnchantments (id: divine-immolation). Review before shipping.
+display: "Divine Immolation"
+description: "&cOn hit, ignites the target, &cdeals bonus damage and applies &cWither.  &c&lI: &f▲ 10% &7| &f⌛ 2s &7| &f☄ 20 &c&lII: &f▲ 15% &7| &f⌛ 2s &7| &f☄ 20 &c&lIII: &f▲ 20% &7| &f⌛ 2s &7| &f☄ 20 &c&lIV: &f▲ 25% &7| &f⌛ 2s &7| &f☄ 20"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "soul"
+tier: soul
+levels:
+  1:
+    cooldown: 2
+    effects:
+      - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15
+      - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Victim" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+      - { MESSAGE: { text: "&c&l** DIVINE IMMOLATION **" } }  # from MESSAGE:&c&l** DIVINE IMMOLATION **:TARGET — legacy target dropped — StarEnchants messages the actor
+      # TODO port manually: DRAIN_SOULS_CONSTANT:1:20 — no StarEnchants equivalent for EE effect 'DRAIN_SOULS_CONSTANT' — port this effect manually
+  2:
+    cooldown: 2
+    effects:
+      - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15
+      - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Victim" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+      - { MESSAGE: { text: "&c&l** DIVINE IMMOLATION **" } }  # from MESSAGE:&c&l** DIVINE IMMOLATION **:TARGET — legacy target dropped — StarEnchants messages the actor
+      # TODO port manually: DRAIN_SOULS_CONSTANT:1:20 — no StarEnchants equivalent for EE effect 'DRAIN_SOULS_CONSTANT' — port this effect manually
+  3:
+    cooldown: 2
+    effects:
+      - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15
+      - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }  # from DAMAGE_INCREASE:20 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "WITHER", level: 2, duration: 20, who: "@Victim" } }  # from POTION:WITHER:2:TARGET:1 — EE seconds → ticks (x20)
+      - { MESSAGE: { text: "&c&l** DIVINE IMMOLATION **" } }  # from MESSAGE:&c&l** DIVINE IMMOLATION **:TARGET — legacy target dropped — StarEnchants messages the actor
+      # TODO port manually: DRAIN_SOULS_CONSTANT:1:20 — no StarEnchants equivalent for EE effect 'DRAIN_SOULS_CONSTANT' — port this effect manually
+  4:
+    cooldown: 2
+    effects:
+      - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15
+      - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }  # from DAMAGE_INCREASE:25 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "WITHER", level: 2, duration: 60, who: "@Victim" } }  # from POTION:WITHER:2:TARGET:3 — EE seconds → ticks (x20)
+      - { MESSAGE: { text: "&c&l** DIVINE IMMOLATION **" } }  # from MESSAGE:&c&l** DIVINE IMMOLATION **:TARGET — legacy target dropped — StarEnchants messages the actor
+      # TODO port manually: DRAIN_SOULS_CONSTANT:1:20 — no StarEnchants equivalent for EE effect 'DRAIN_SOULS_CONSTANT' — port this effect manually

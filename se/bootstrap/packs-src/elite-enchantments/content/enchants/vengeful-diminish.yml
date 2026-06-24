@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: vengeful-diminish). Review before shipping.
+display: "Vengeful Diminish"
+description: "&dHeroic upgrade for Diminish. &dHalves incoming damage more &doften. &c&l(!)&r &7Requires &6Diminish  &d&lI: &f🎲 3.75% &7| &f▲ 50% &7| &f⌛ 3s &d&lII: &f🎲 6% &7| &f▲ 50% &7| &f⌛ 3s &d&lIII: &f🎲 8.5% &7| &f▲ 50% &7| &f⌛ 3s &d&lIV: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 3s &d&lV: &f🎲 11.5% &7| &f▲ 50% &7| &f⌛ 3s &d&lVI: &f🎲 13% &7| &f▲ 50% &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 3.75
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  2:
+    chance: 6
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  3:
+    chance: 8.5
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  4:
+    chance: 10
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  5:
+    chance: 11.5
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+  6:
+    chance: 13
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50

@@ -1,0 +1,17 @@
+# Imported from EliteEnchantments (id: springs). Review before shipping.
+display: "Springs"
+description: "&bGrants a permanent Jump Boost.  &b&lI: &f▲ Lvl I &b&lII: &f▲ Lvl II &b&lIII: &f▲ Lvl III"
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: "rare"
+tier: rare
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "JUMP", level: 1, duration: 200, who: "@Self" } }  # from POTION:JUMP:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "JUMP", level: 2, duration: 200, who: "@Self" } }  # from POTION:JUMP:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  3:
+    effects:
+      - { POTION: { effect: "JUMP", level: 3, duration: 200, who: "@Self" } }  # from POTION:JUMP:3:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

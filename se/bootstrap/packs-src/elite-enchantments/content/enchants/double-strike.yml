@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: double-strike). Review before shipping.
+display: "Double Strike"
+description: "&6On hit, doubles the damage &6dealt.  &6&lI: &f🎲 2.75% &7| &f▲ 100% &7| &f⌛ 8s &6&lII: &f🎲 4% &7| &f▲ 100% &7| &f⌛ 8s &6&lIII: &f🎲 6% &7| &f▲ 100% &7| &f⌛ 8s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 2.75
+    cooldown: 8
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 4
+    cooldown: 8
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 6
+    cooldown: 8
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

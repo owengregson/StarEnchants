@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: berserk). Review before shipping.
+display: "Berserk"
+description: "&aOn hit, grants you Strength but &aalso Mining Fatigue for a few &aseconds.  &a&lI: &f🎲 1.25% &7| &f▲ 3s &7| &f⌛ 5s &a&lII: &f🎲 2.95% &7| &f▲ 3s &7| &f⌛ 5s &a&lIII: &f🎲 4.5% &7| &f▲ 3s &7| &f⌛ 5s &a&lIV: &f🎲 6% &7| &f▲ 3s &7| &f⌛ 5s &a&lV: &f🎲 8% &7| &f▲ 3s &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [AXE]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 1.25
+    cooldown: 5
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  2:
+    chance: 2.95
+    cooldown: 5
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  3:
+    chance: 4.5
+    cooldown: 5
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  4:
+    chance: 6
+    cooldown: 5
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  5:
+    chance: 8
+    cooldown: 5
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)

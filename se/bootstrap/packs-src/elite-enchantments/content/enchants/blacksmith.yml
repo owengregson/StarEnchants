@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: blacksmith). Review before shipping.
+display: "Blacksmith"
+description: "&6On hit, repairs your armor but &6the hit deals reduced damage.  &6&lI: &f🎲 2.75% &7| &f▲ +10 pt. &7| &f⌛ 5s &6&lII: &f🎲 4% &7| &f▲ +10 pt. &7| &f⌛ 5s &6&lIII: &f🎲 6% &7| &f▲ +10 pt. &7| &f⌛ 5s &6&lIV: &f🎲 9% &7| &f▲ +20 pt. &7| &f⌛ 5s &6&lV: &f🎲 11.25% &7| &f▲ +20 pt. &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 2.75
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY:10 — EE add-durability → DURABILITY (restore)
+      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+  2:
+    chance: 4
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY:10 — EE add-durability → DURABILITY (restore)
+      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+  3:
+    chance: 6
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY:10 — EE add-durability → DURABILITY (restore)
+      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+  4:
+    chance: 9
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 20, target: "item", mode: "restore" } }  # from ADD_DURABILITY:20 — EE add-durability → DURABILITY (restore)
+      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+  5:
+    chance: 11.25
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 20, target: "item", mode: "restore" } }  # from ADD_DURABILITY:20 — EE add-durability → DURABILITY (restore)
+      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually

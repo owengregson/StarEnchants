@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: mortal-coil). Review before shipping.
+display: "Mortal Coil"
+description: "&4On hit, removes the target's &4Overload bonus hearts for a few &4seconds and deals bonus damage.  &4&lI: &f🎲 1.5% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lII: &f🎲 3% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lIII: &f🎲 4.5% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lIV: &f🎲 6% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lV: &f🎲 7.5% &7| &f▲ -6❤ &7| &f⌛ 30s"
+trigger: ATTACK
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "mythic"
+tier: mythic
+levels:
+  1:
+    chance: 1.5
+    cooldown: 30
+    effects:
+      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 3
+    cooldown: 30
+    effects:
+      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 4.5
+    cooldown: 30
+    effects:
+      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  4:
+    chance: 6
+    cooldown: 30
+    effects:
+      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  5:
+    chance: 7.5
+    cooldown: 30
+    effects:
+      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

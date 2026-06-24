@@ -1,0 +1,17 @@
+# Imported from EliteEnchantments (id: overload). Review before shipping.
+display: "Overload"
+description: "&6Increases your maximum health &6while worn.  &6&lI: &f▲ Lvl I &6&lII: &f▲ Lvl II &6&lIII: &f▲ Lvl III"
+trigger: PASSIVE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 1, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  3:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 3, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:3:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: deep-wounds). Review before shipping.
+display: "Deep Wounds"
+description: "&aOn hit, deals bonus melee damage &ato the target.  &a&lI: &f🎲 1.75% &7| &f▲ 5% &7| &f⌛ 5s &a&lII: &f🎲 3% &7| &f▲ 5% &7| &f⌛ 5s &a&lIII: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 1.75
+    cooldown: 5
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 3
+    cooldown: 5
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 5
+    cooldown: 5
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

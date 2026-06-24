@@ -1,0 +1,24 @@
+# Imported from EliteEnchantments (id: overwhelm). Review before shipping.
+display: "Overwhelm"
+description: "&6On hit, disables the target's &6Reflective Block.  &6&lI: &f🎲 2.5% &6&lII: &f🎲 4.5% &6&lIII: &f🎲 6.5% &6&lIV: &f🎲 8%"
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 2.5
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  2:
+    chance: 4.5
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  3:
+    chance: 6.5
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  4:
+    chance: 8
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
