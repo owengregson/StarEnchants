@@ -1,6 +1,7 @@
 # Manifest of default files extracted to <plugin>/items/ on first boot (one path per line,
 # relative to items/). Operator edits are never overwritten. Reload with /se reload.
 crystal.yml
+enchant-book.yml
 heroic.yml
 scrolls.yml
 slot-orb.yml

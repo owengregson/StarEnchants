@@ -25,6 +25,7 @@ import schema.diag.Diagnostic;
 public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfig> crystal,
                           Optional<HeroicConfig> heroic, Optional<SlotConfig> slots,
                           Optional<ScrollsConfig> scrolls, Optional<UnopenedBookConfig> unopenedBook,
+                          Optional<EnchantBookConfig> enchantBook,
                           List<Diagnostic> diagnostics) {
 
     public ItemsConfig {
@@ -34,13 +35,14 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
         Objects.requireNonNull(slots, "slots");
         Objects.requireNonNull(scrolls, "scrolls");
         Objects.requireNonNull(unopenedBook, "unopenedBook");
+        Objects.requireNonNull(enchantBook, "enchantBook");
         diagnostics = List.copyOf(diagnostics);
     }
 
     /** An empty config (no item files present) — the runtime uses each item's built-in defaults. */
     public static ItemsConfig empty() {
         return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), List.of());
+                Optional.empty(), Optional.empty(), Optional.empty(), List.of());
     }
 
     /** The soul-gem config, or its built-in default when none is configured. */
@@ -71,6 +73,11 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
     /** The unopened/randomized book config, or its built-in default when none is configured. */
     public UnopenedBookConfig unopenedBookOrDefault() {
         return unopenedBook.orElseGet(UnopenedBookConfig::defaults);
+    }
+
+    /** The general enchant-book likeness, or its built-in default when none is configured. */
+    public EnchantBookConfig enchantBookOrDefault() {
+        return enchantBook.orElseGet(EnchantBookConfig::defaults);
     }
 
     /** Whether any blocking diagnostic was raised loading the folder. */

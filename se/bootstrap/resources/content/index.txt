@@ -68,7 +68,6 @@ enchants/vengeance.yml
 enchants/venom.yml
 enchants/warcry.yml
 enchants/wither-touch.yml
-items/book/executioner-book.yml
 items/dust/success-dust.yml
 items/scroll/protect-scroll.yml
 sets/berserker.yml
