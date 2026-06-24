@@ -74,6 +74,20 @@ public final class CombatDispatch {
     private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
     private final int tridentTriggerId; // −1 ⇒ no distinct trident trigger; trident hits fall back to ATTACK
 
+    /**
+     * §N friendly-fire gate (ADR-0027): when both combatants are players this decides whether they are
+     * "friendly" (e.g. the same mcMMO party) — if so StarEnchants applies NO combat effects between them
+     * (neither attack nor defense), respecting the party's friendly-fire-off expectation. A static,
+     * boot-configured no-op by default (set once via {@link #friendlyFire}, mirroring the sink's anti-cheat
+     * hook) so it adds nothing to the per-event path and is inert in tests / without mcMMO.
+     */
+    private static volatile java.util.function.BiPredicate<Player, Player> friendlyFire = (attacker, victim) -> false;
+
+    /** Install the friendly-fire gate (boot-time). A {@code null} predicate resets to "never friendly". */
+    public static void friendlyFire(java.util.function.BiPredicate<Player, Player> predicate) {
+        friendlyFire = predicate == null ? (attacker, victim) -> false : predicate;
+    }
+
     /** Combat dispatch with NO soul system (the soul gate is never armed) and no economy. */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
@@ -208,10 +222,12 @@ public final class CombatDispatch {
         // PvP/PvE gates (config.yml combat.pvp/pve): a side whose context is disabled contributes nothing to
         // the fold. The context is decided by the VICTIM's player-ness — a player victim is PvP, else PvE.
         boolean victimIsPlayer = victimEntity instanceof Player;
+        // §N friendly-fire: skip ALL SE combat effects between two friendly players (e.g. same mcMMO party).
+        boolean friendly = damager instanceof Player a && victimEntity instanceof Player v && friendlyFire.test(a, v);
 
         // Attack side: the player damager's abilities act on the victim (self = the attacker). The trigger
         // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.
-        if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer)) {
+        if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
             // Extend the attacker's consecutive-hit streak for the %combo% fact (RAGE-style scaling, §3.4).
             int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong());
@@ -222,7 +238,7 @@ public final class CombatDispatch {
         }
         // Defense side: the player victim's DEFENSE abilities retaliate against the attacker. A player victim
         // always implies the PvP gate when the attacker is a player, else the PvE gate.
-        if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player)) {
+        if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player) && !friendly) {
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
                     defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at, incomingDamage, null),
                     sink, snapshot.stableKeys());
