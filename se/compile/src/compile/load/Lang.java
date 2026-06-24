@@ -134,6 +134,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.heroic", "&6Minted a heroic upgrade. &7Drag it onto armour or a weapon to attempt.");
         s.put("command.give.slot", "&5Minted a {KIND}. &7Drag it onto gear to add enchant slots.");
         s.put("command.give.transmog", "&5Minted a transmog scroll. &7Drag it onto enchanted gear.");
+        s.put("command.give.godlytransmog", "&5Minted a godly transmog. &7Drag it onto enchanted gear to reorder.");
         s.put("command.give.holy", "&fMinted a holy scroll. &7Carry it to survive a death once.");
         s.put("command.give.nametag", "&bMinted an item nametag. &7Drag it onto gear, then type the new name.");
         s.put("command.give.blackscroll",

@@ -257,8 +257,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // scroll rerolls a book's success. Reuse the combat codec + lore (gear) and CarrierService (mint
         // the extracted book / reroll book success). Distinct 'scroll' PDC tag, off the combat hot path.
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of(this).scroll());
+        item.codec.GodlyTransmogCodec godlyTransmogCodec =
+                new item.codec.GodlyTransmogCodec(ItemKeys.of(this).godlyTransmog());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages);
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec);
 
         // Unopened/randomized book (§I): right-click yields a concrete enchant book of a random enchant
         // from its tier, at a random level + success. Mints through CarrierService's explicit-success book.
@@ -437,18 +439,23 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // menu ("apply") is the visual /se enchant. Menus open on the player's region thread (Folia open-hop).
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
                 player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config);
+        // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
+        GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config);
         MenuRegistry menus = new MenuRegistry()
                 .register(applyMenu)
                 .register(new EnchantsBrowserMenu(content, caps, menusHolder::config))   // tier → enchant catalog
                 .register(new SetsBrowserMenu(content, caps, menusHolder::config))       // armour-set browser + preview
                 .register(new CrystalsBrowserMenu(content, caps, menusHolder::config))   // crystals/modifiers catalog
                 .register(new ReferenceBrowserMenu(caps, menusHolder::config))           // effects/selectors/…
-                .register(new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config)) // reorder lore
+                .register(transmogMenu)                                                  // reorder lore (held or bound)
                 .register(new EnchanterMenu(content, unopenedBooks, caps, messages, menusHolder::config)) // buy books
                 .register(new AlchemistMenu(carriers, caps, messages, menusHolder::config)) // combine books → +1
                 .register(new TinkererMenu(carriers, caps, messages, menusHolder::config))  // salvage book → XP
                 .register(new AdminBrowserMenu(content, carriers, caps, messages, menusHolder::config)); // admin grant
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
+        // §I/§K physical godly-transmog: drag the tool onto enchanted gear → open the reorder GUI for that piece.
+        getServer().getPluginManager().registerEvents(
+                new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec), this);
 
         PluginCommand command = getCommand("se");
         if (command != null) {
