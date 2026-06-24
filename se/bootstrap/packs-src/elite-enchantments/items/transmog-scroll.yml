@@ -1,0 +1,13 @@
+# Transmog Scroll (docs/v3-directives.md §I) — drag onto enchanted gear to REORDER its enchant lore
+# (cosmetic only; combat behaviour is order-independent) and append a configurable suffix to the item name.
+# For a hand-picked order, use the Godly Transmog tool (items/godly-transmog.yml). One physical item per
+# file; reload with /se reload. Result messages live in lang.yml (scroll.transmog.*).
+type: transmog-scroll
+
+material: PURPLE_DYE
+name: "&5Transmog Scroll"
+lore:
+  - "&7Drag onto enchanted gear to"
+  - "&7reorder its enchant display."
+# Appended to the gear's display name when transmogged (only if it already has a custom name).
+name-suffix: " &8(Transmogged)"

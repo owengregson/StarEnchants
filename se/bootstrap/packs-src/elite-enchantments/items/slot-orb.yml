@@ -1,0 +1,13 @@
+# Slot Orb (docs/v3-directives.md §H) — the upgrade orb: drag onto gear to raise its enchant-slot count by
+# +orb-amount, clamped to a universal maximum TOTAL slots (base + added) defined by hard-cap. {AMOUNT}
+# renders the orb's +N. Messages (apply / at-cap) live in lang.yml (slot.apply / slot.at-cap) — §L.
+type: slot-orb
+
+orb-material: ENDER_EYE
+orb-name: "&5Slot Expander &7(+{AMOUNT})"
+orb-lore:
+  - "&7Drag onto gear to add &f{AMOUNT}&7 enchant slots."
+orb-amount: 3
+
+# Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base).
+hard-cap: 15

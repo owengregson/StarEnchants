@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: confusion). Review before shipping.
+display: "Confusion"
+description: "&7On hit, applies Nausea to the &7target.  &7&lI: &f🎲 1.05% &7| &f⌛ 2s &7&lII: &f🎲 1.95% &7| &f⌛ 2s &7&lIII: &f🎲 2.5% &7| &f⌛ 2s"
+trigger: ATTACK
+applies-to: [AXE]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 1.05
+    cooldown: 2
+    effects:
+      - { POTION: { effect: "CONFUSION", level: 1, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:1:TARGET:3 — EE seconds → ticks (x20)
+  2:
+    chance: 1.95
+    cooldown: 2
+    effects:
+      - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:2:TARGET:3 — EE seconds → ticks (x20)
+  3:
+    chance: 2.5
+    cooldown: 2
+    effects:
+      - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:2:TARGET:3 — EE seconds → ticks (x20)

@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: ender-walker). Review before shipping.
+display: "Ender Walker"
+description: "&eGrants immunity to negative &epotion effects. Higher levels &ealso heal you when you take &edamage.  &e&lI: &f🎲 100% &e&lII: &f🎲 100% &e&lIII: &f🎲 100% &7| &f▲ +1-2❤ &e&lIV: &f🎲 100% &7| &f▲ +1-3❤ &e&lV: &f🎲 100% &7| &f▲ +2-4❤"
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1:
+    effects: []
+      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+  2:
+    effects: []
+      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+  3:
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from DEFENSE;1.5;HEAL:ADD:1:2 — EE DEFENSE-threshold factor 1.5 dropped (no SE per-effect gate)
+      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+  4:
+    effects:
+      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }  # from DEFENSE;2.5;HEAL:ADD:1:3 — EE DEFENSE-threshold factor 2.5 dropped (no SE per-effect gate)
+      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+  5:
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from DEFENSE;3;HEAL:ADD:2:4 — EE DEFENSE-threshold factor 3 dropped (no SE per-effect gate)
+      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually

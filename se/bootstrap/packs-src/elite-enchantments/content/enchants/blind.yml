@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: blind). Review before shipping.
+display: "Blind"
+description: "&bOn hit, applies Blindness to the &btarget.  &b&lI: &f🎲 7.5% &7| &f⌛ 3s &b&lII: &f🎲 9% &7| &f⌛ 3s &b&lIII: &f🎲 12% &7| &f⌛ 3s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 7.5
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 80, who: "@Victim" } }  # from POTION:BLINDNESS:1:TARGET:4 — EE seconds → ticks (x20)
+  2:
+    chance: 9
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 80, who: "@Victim" } }  # from POTION:BLINDNESS:1:TARGET:4 — EE seconds → ticks (x20)
+  3:
+    chance: 12
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 80, who: "@Victim" } }  # from POTION:BLINDNESS:1:TARGET:4 — EE seconds → ticks (x20)

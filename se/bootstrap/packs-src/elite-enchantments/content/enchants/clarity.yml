@@ -1,0 +1,19 @@
+# Imported from EliteEnchantments (id: clarity). Review before shipping.
+display: "Clarity"
+description: "&6When hit, cures Blindness and &6briefly prevents it.  &6&lI: &f🎲 50% &6&lII: &f🎲 80% &6&lIII: &f🎲 100%"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 50
+    effects:
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+  2:
+    chance: 80
+    effects:
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+  3:
+    effects:
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)

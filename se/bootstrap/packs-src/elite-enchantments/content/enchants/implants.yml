@@ -1,0 +1,24 @@
+# Imported from EliteEnchantments (id: implants). Review before shipping.
+display: "Implants"
+description: "&ePeriodically restores health and &ehunger.  &e&lI: &f🎲 15% &7| &f▲ +1❤ &e&lII: &f🎲 20% &7| &f▲ +1❤ &e&lIII: &f🎲 25% &7| &f▲ +1❤"
+trigger: REPEATING
+repeat: 100
+applies-to: [HELMET]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 15
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:1 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+  2:
+    chance: 20
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:1 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+  3:
+    chance: 25
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:1 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD

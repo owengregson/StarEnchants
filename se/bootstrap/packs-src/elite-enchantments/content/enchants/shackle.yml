@@ -1,0 +1,19 @@
+# Imported from EliteEnchantments (id: shackle). Review before shipping.
+display: "Shackle"
+description: "&bOn hit, stops mobs from spawners &bfrom taking knockback.  &b&lI: &f🎲 25% &b&lII: &f🎲 50% &b&lIII: &f🎲 100%"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 25
+    effects: []
+      # TODO port manually: SHACKLE — no StarEnchants equivalent for EE effect 'SHACKLE' — port this effect manually
+  2:
+    chance: 50
+    effects: []
+      # TODO port manually: SHACKLE — no StarEnchants equivalent for EE effect 'SHACKLE' — port this effect manually
+  3:
+    effects: []
+      # TODO port manually: SHACKLE — no StarEnchants equivalent for EE effect 'SHACKLE' — port this effect manually

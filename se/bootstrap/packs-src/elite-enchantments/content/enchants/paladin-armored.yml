@@ -1,0 +1,71 @@
+# Imported from EliteEnchantments (id: paladin-armored). Review before shipping.
+display: "Paladin Armored"
+description: "&dHeroic upgrade for Armored. &dHeavily reduces sword damage and &dclears your debuffs. &c&l(!)&r &7Requires &6Armored  &d&lI: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 4s &d&lII: &f🎲 20% &7| &f▲ 50% &7| &f⌛ 4s &d&lIII: &f🎲 30% &7| &f▲ 50% &7| &f⌛ 4s &d&lIV: &f🎲 40% &7| &f▲ 50% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 10
+    cooldown: 4
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+  2:
+    chance: 20
+    cooldown: 4
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+  3:
+    chance: 30
+    cooldown: 4
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+  4:
+    chance: 40
+    cooldown: 4
+    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)

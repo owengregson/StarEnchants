@@ -1,0 +1,17 @@
+# Imported from EliteEnchantments (id: haste). Review before shipping.
+display: "Haste"
+description: "&7While held, grants Haste, &7increasing mining speed.  &7&lI: &f▲ Lvl I &7&lII: &f▲ Lvl II &7&lIII: &f▲ Lvl III"
+trigger: HELD
+applies-to: [TOOL]
+group: "common"
+tier: common
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 1, duration: 200, who: "@Self" } }  # from POTION:FAST_DIGGING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 2, duration: 200, who: "@Self" } }  # from POTION:FAST_DIGGING:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  3:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 3, duration: 200, who: "@Self" } }  # from POTION:FAST_DIGGING:3:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

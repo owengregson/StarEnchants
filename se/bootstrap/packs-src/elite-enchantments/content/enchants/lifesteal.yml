@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: lifesteal). Review before shipping.
+display: "Lifesteal"
+description: "&6On hit, restores some of your &6health.  &6&lI: &f🎲 2% &7| &f▲ +1❤ &7| &f⌛ 5s &6&lII: &f🎲 4% &7| &f▲ +2❤ &7| &f⌛ 5s &6&lIII: &f🎲 6% &7| &f▲ +3❤ &7| &f⌛ 5s &6&lIV: &f🎲 8% &7| &f▲ +4❤ &7| &f⌛ 5s &6&lV: &f🎲 10% &7| &f▲ +5❤ &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 2
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # from HEAL:ADD:1 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  2:
+    chance: 4
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  3:
+    chance: 6
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }  # from HEAL:ADD:3 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  4:
+    chance: 8
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  5:
+    chance: 10
+    cooldown: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }  # from HEAL:ADD:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

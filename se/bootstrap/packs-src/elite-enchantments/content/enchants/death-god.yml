@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: death-god). Review before shipping.
+display: "Death God"
+description: "&6When hit at low health, restores &6a burst of health.  &6&lI: &f🎲 1.5% &7| &f▲ +3-5❤ &7| &f⌛ 6s &6&lII: &f🎲 3% &7| &f▲ +3-5❤ &7| &f⌛ 6s &6&lIII: &f🎲 4.5% &7| &f▲ +3-5❤ &7| &f⌛ 6s"
+trigger: DEFENSE
+applies-to: [HELMET]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 1.5
+    cooldown: 6
+    condition: "%actor.health% <= 5"
+    effects:
+      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  2:
+    chance: 3
+    cooldown: 6
+    condition: "%actor.health% <= 5"
+    effects:
+      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  3:
+    chance: 4.5
+    cooldown: 6
+    condition: "%actor.health% <= 5"
+    effects:
+      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

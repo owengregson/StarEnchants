@@ -1,0 +1,5 @@
+# Layout of the Enchanter merchant GUI (/se menu enchanter). See menus/apply.yml for the full field list;
+# the offer pricing / buy behaviour stays in code. Omitted fields keep their defaults.
+
+title: "&3Enchanter &8• &7Mystery Books"
+filler: "GRAY_STAINED_GLASS_PANE"

@@ -1,0 +1,36 @@
+# Imported from EliteEnchantments (id: corrupt). Review before shipping.
+display: "Corrupt"
+description: "&eOn hit, deals bonus damage and &edisables the target's Inversion.  &e&lI: &f🎲 1.75% &7| &f▲ 1-2❤ &7| &f⌛ 4s &e&lII: &f🎲 3% &7| &f▲ 1-2❤ &7| &f⌛ 4s &e&lIII: &f🎲 4% &7| &f▲ 1-2❤ &7| &f⌛ 4s &e&lIV: &f🎲 5% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
+trigger: ATTACK
+applies-to: [AXE]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 1.75
+    cooldown: 4
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  2:
+    chance: 3
+    cooldown: 4
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  3:
+    chance: 4
+    cooldown: 4
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  4:
+    chance: 5
+    cooldown: 4
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

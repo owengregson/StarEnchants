@@ -1,0 +1,47 @@
+# Imported from EliteEnchantments (id: reforged). Review before shipping.
+display: "Reforged"
+description: "&bWhile mining, restores &bdurability to the tool.  &b&lI: &f🎲 8% &7| &f▲ +10 pt. &b&lII: &f🎲 16% &7| &f▲ +10 pt. &b&lIII: &f🎲 24% &7| &f▲ +10 pt. &b&lIV: &f🎲 32% &7| &f▲ +10 pt. &b&lV: &f🎲 40% &7| &f▲ +10 pt. &b&lVI: &f🎲 48% &7| &f▲ +10 pt. &b&lVII: &f🎲 56% &7| &f▲ +10 pt. &b&lVIII: &f🎲 74% &7| &f▲ +10 pt. &b&lIX: &f🎲 82% &7| &f▲ +10 pt. &b&lX: &f🎲 100% &7| &f▲ +10 pt."
+trigger: MINE
+applies-to: [TOOL]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 8
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  2:
+    chance: 16
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  3:
+    chance: 24
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  4:
+    chance: 32
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  5:
+    chance: 40
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  6:
+    chance: 48
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  7:
+    chance: 56
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  8:
+    chance: 74
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  9:
+    chance: 82
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+  10:
+    effects:
+      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)

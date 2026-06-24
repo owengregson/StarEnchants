@@ -1,0 +1,44 @@
+# The soul gem — a DISTINCT item you right-click to toggle soul mode on/off. Souls accrue on ANY kill
+# (souls-per-kill, optionally per-mob) regardless of soul mode; soul mode is the "spend switch" that lets
+# soul-cost enchants and the REMOVE_SOULS effect consume them. Drag one gem onto another to combine (their
+# souls sum into a new gem); /se split <amount> carves souls into a new gem. Everything below is
+# configurable; reload with /se reload.
+type: soul-gem
+material: EMERALD
+name: "&aSoul Gem"
+lore:
+  - "&7Souls: {SOUL-COLOR}{AMOUNT}"
+  - "&7Right-click to toggle soul mode."
+
+# Acquisition (deposit on any kill).
+souls-per-kill: 1
+# Optional per-mob overrides (EntityType name -> amount); anything not listed uses souls-per-kill.
+souls-per-mob:
+  WITHER: 100
+  ENDER_DRAGON: 250
+  PLAYER: 10
+
+# Soul-colour tiers for the {SOUL-COLOR} placeholder (min count -> &colour); the highest match wins.
+soul-colors:
+  1: "&f"
+  64: "&a"
+  256: "&b"
+  1024: "&d"
+# The colour shown below every tier (an empty gem).
+empty-soul-color: "&7"
+
+# Sounds: a master on/off plus namespaced sound keys (work on every supported version).
+sounds:
+  enabled: true
+  activate: "entity.player.levelup"
+  deactivate: "ui.button.click"
+  combine: "block.anvil.use"
+
+# Particles (tokens, alias-resolved). on-activate/on-deactivate spawn at the toggle; `active` is the
+# while-active aura spawned each tick at every player in soul mode. Multiple tokens per knob are allowed.
+particles:
+  active: [SOUL]
+  on-activate: [SOUL_FIRE_FLAME, HAPPY_VILLAGER]
+  on-deactivate: [SMOKE]
+
+# Messages ({AMOUNT} = remaining souls on soul use).

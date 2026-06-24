@@ -1,0 +1,43 @@
+# Imported from EliteEnchantments (id: destruction). Review before shipping.
+display: "Destruction"
+description: "&6When hit, damages the attacker &6and applies Poison and Weakness.  &6&lI: &f🎲 3.5% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lII: &f🎲 5% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lIII: &f🎲 7.5% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lIV: &f🎲 9.75% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lV: &f🎲 11.5% &7| &f▲ 1❤ &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [HELMET]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 3.5
+    cooldown: 3
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
+      - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
+  2:
+    chance: 5
+    cooldown: 3
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
+      - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
+  3:
+    chance: 7.5
+    cooldown: 3
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
+      - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
+  4:
+    chance: 9.75
+    cooldown: 3
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
+      - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
+  5:
+    chance: 11.5
+    cooldown: 3
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
+      - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)

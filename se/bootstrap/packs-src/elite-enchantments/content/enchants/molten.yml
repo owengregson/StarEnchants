@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: molten). Review before shipping.
+display: "Molten"
+description: "&aWhen hit, sets the attacker on &afire.  &a&lI: &f🎲 4% &7| &f⌛ 3s &a&lII: &f🎲 6% &7| &f⌛ 3s &a&lIII: &f🎲 8% &7| &f⌛ 3s &a&lIV: &f🎲 10% &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 4
+    cooldown: 3
+    effects:
+      - { IGNITE: { duration: 20, who: "@Attacker" } }  # from FLAME:1:TARGET — legacy seconds → ticks (x20)
+  2:
+    chance: 6
+    cooldown: 3
+    effects:
+      - { IGNITE: { duration: 40, who: "@Attacker" } }  # from FLAME:2:TARGET — legacy seconds → ticks (x20)
+  3:
+    chance: 8
+    cooldown: 3
+    effects:
+      - { IGNITE: { duration: 80, who: "@Attacker" } }  # from FLAME:4:TARGET — legacy seconds → ticks (x20)
+  4:
+    chance: 10
+    cooldown: 3
+    effects:
+      - { IGNITE: { duration: 120, who: "@Attacker" } }  # from FLAME:6:TARGET — legacy seconds → ticks (x20)

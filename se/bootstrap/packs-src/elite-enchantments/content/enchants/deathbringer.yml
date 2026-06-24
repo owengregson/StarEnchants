@@ -1,0 +1,20 @@
+# Imported from EliteEnchantments (id: deathbringer). Review before shipping.
+display: "Deathbringer"
+description: "&6On hit, deals a guaranteed &6critical strike for double &6damage.  &6&lI: &f▲ 100% &7| &f⌛ 45s &6&lII: &f▲ 100% &7| &f⌛ 45s &6&lIII: &f▲ 100% &7| &f⌛ 45s"
+trigger: ATTACK
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    cooldown: 45
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    cooldown: 45
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    cooldown: 45
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

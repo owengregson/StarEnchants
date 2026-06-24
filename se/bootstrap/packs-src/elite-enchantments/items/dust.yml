@@ -1,0 +1,20 @@
+# Success Dust (docs/v3-directives.md §I; ADR-0019) — drag onto an enchant book to RAISE its success
+# chance by success-bonus (clamped so a book can never exceed 100%). Its own top-level item (no category,
+# no tier). Pure economy metadata — it never compiles to an ability and never touches the combat hot path.
+# One physical item per file; reload with /se reload.
+type: dust
+
+material: GLOWSTONE_DUST
+name: "&aSuccess Dust"
+lore:
+  - "&7Combine onto an enchant book to"
+  - "&7boost its success by &a+{BONUS}%&7."
+# A normal dust rolls a RANDOM bonus in [min-bonus, max-bonus] (each 0–100) when combined onto a book.
+# {BONUS} renders as the range "10–25" here, or the exact value on a fixed dust (/se dust <percent>).
+min-bonus: 10
+max-bonus: 25
+# Feedback played on a successful combine: a sound (namespaced, range-stable) + particle tokens
+# (alias-resolved). Leave sound blank / particles empty for none.
+sound: "block.amethyst_block.chime"
+particles:
+  - HAPPY_VILLAGER

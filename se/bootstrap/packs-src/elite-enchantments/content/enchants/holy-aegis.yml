@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: holy-aegis). Review before shipping.
+display: "Holy Aegis"
+description: "&dHeroic upgrade for Aegis. &dReduces more incoming damage. &c&l(!)&r &7Requires &6Aegis  &d&lI: &f🎲 4% &7| &f▲ 25% &7| &f⌛ 3s &d&lII: &f🎲 5% &7| &f▲ 25% &7| &f⌛ 3s &d&lIII: &f🎲 6% &7| &f▲ 25% &7| &f⌛ 3s &d&lIV: &f🎲 7% &7| &f▲ 25% &7| &f⌛ 3s &d&lV: &f🎲 8% &7| &f▲ 25% &7| &f⌛ 3s &d&lVI: &f🎲 9% &7| &f▲ 25% &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 4
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+  2:
+    chance: 5
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+  3:
+    chance: 6
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+  4:
+    chance: 7
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+  5:
+    chance: 8
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+  6:
+    chance: 9
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25

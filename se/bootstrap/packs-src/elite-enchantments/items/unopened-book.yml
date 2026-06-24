@@ -1,0 +1,12 @@
+# Unopened / randomized book (docs/v3-directives.md §I). Tier-scoped: right-click to reveal a concrete
+# enchant book of a random enchant from its tier, with a random level and a random success chance in
+# [min-success, max-success]. {TIER} = the scoped tier; {ENCHANT}/{LEVEL}/{PERCENT} = the rolled book.
+type: unopened-book
+
+material: BOOK
+name: "&b{TIER} Mystery Book"
+lore:
+  - "&7Right-click to reveal a random"
+  - "&7{TIER} enchant book."
+min-success: 25
+max-success: 100

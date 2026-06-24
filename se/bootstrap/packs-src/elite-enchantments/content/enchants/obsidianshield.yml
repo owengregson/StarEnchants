@@ -1,0 +1,11 @@
+# Imported from EliteEnchantments (id: obsidianshield). Review before shipping.
+display: "Obsidian Shield"
+description: "&eGrants permanent Fire &eResistance."
+trigger: PASSIVE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "FIRE_RESISTANCE", level: 1, duration: 200, who: "@Self" } }  # from POTION:FIRE_RESISTANCE:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
