@@ -14,6 +14,7 @@ repositories {
     maven { url = uri("https://repo.glaremasters.me/repository/towny/") }   // Towny
     maven { url = uri("https://repo.bg-software.com/repository/api/") }      // SuperiorSkyblock2
     maven { url = uri("https://maven.enginehub.org/repo/") }                // WorldGuard (+ WorldEdit)
+    maven { url = uri("https://repo.extendedclip.com/releases/") }          // PlaceholderAPI
 }
 
 dependencies {
@@ -31,6 +32,7 @@ dependencies {
     compileOnly(libs.lands.api) { isTransitive = false }
     compileOnly(libs.superiorskyblock.api) { isTransitive = false }
     compileOnly(libs.factions.api) { isTransitive = false }
+    compileOnly(libs.placeholderapi) { isTransitive = false }
 
     // Unit tests mock each plugin's API to pin the decision wiring (mirrors the former add-on tests).
     testImplementation(project(":platform"))
@@ -42,4 +44,5 @@ dependencies {
     testImplementation(libs.lands.api) { isTransitive = false }
     testImplementation(libs.superiorskyblock.api) { isTransitive = false }
     testImplementation(libs.factions.api) { isTransitive = false }
+    testImplementation(libs.placeholderapi) { isTransitive = false }
 }
