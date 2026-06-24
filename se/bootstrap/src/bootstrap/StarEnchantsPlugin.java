@@ -384,6 +384,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §N mcMMO friendly-fire (ADR-0027): SE applies no combat effects between two players in the same
         // mcMMO party. Installed as the combat dispatch's friendly-fire gate (no-op when mcMMO is absent).
         CombatDispatch.friendlyFire(Integrations.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
+        // §N MythicMobs (ADR-0027): source the %victim.mobtype% condition fact from MythicMobs' internal name
+        // (empty when absent). A boot-installed soft hook on the engine's FactPopulator (no engine→MythicMobs dep).
+        engine.run.FactPopulator.entityTypeResolver(
+                Integrations.mythicMobType(this, master.config().integrations()::enabled));
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,

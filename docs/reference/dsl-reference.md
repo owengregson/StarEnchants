@@ -777,6 +777,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%victim.healthpercent%` | NUM |
 | `%victim.helditem%` | STR |
 | `%victim.maxhealth%` | NUM |
+| `%victim.mobtype%` | STR |
 | `%victim.sneaking%` | BOOL |
 | `%victim.sprinting%` | BOOL |
 | `%victim.swimming%` | BOOL |

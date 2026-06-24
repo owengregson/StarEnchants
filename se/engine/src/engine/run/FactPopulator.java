@@ -76,6 +76,20 @@ public final class FactPopulator {
     private final ThreadLocal<FactBuffer> buffer;
     private final VarStore vars;
     private final UnaryOperator<String> papiDelegate;
+
+    /**
+     * §N entity-type resolver (ADR-0027): resolves a victim entity to its integration mob type (MythicMobs'
+     * internal name) for the {@code %victim.mobtype%} fact. A static, boot-configured no-op by default (set
+     * once via {@link #entityTypeResolver}, mirroring the sink/combat soft hooks) so the engine never
+     * references any integration API and tests read an empty fact.
+     */
+    private static volatile java.util.function.Function<org.bukkit.entity.Entity, String> entityTypeResolver =
+            entity -> "";
+
+    /** Install the entity-type ({@code victim.mobtype}) resolver (boot-time). A {@code null} resets to empty. */
+    public static void entityTypeResolver(java.util.function.Function<org.bukkit.entity.Entity, String> resolver) {
+        entityTypeResolver = resolver == null ? entity -> "" : resolver;
+    }
     private final List<ActorNum> actorNum = new ArrayList<>();
     private final List<ActorFlag> actorFlag = new ArrayList<>();
     private final List<ActorStr> actorStr = new ArrayList<>();
@@ -146,6 +160,9 @@ public final class FactPopulator {
         addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && p.isGliding());
         addVictimStr(vocabulary, "victim.type", v -> v.getType().name());
         addVictimStr(vocabulary, "victim.helditem", FactPopulator::heldItemName);
+        // §N MythicMobs: the victim's MythicMob internal name (empty when not a MythicMob / integration absent),
+        // resolved through the boot-installed soft hook so the engine never references the MythicMobs API.
+        addVictimStr(vocabulary, "victim.mobtype", v -> entityTypeResolver.apply(v));
 
         // ── Context (event payload: combat damage, the broken block, world weather/time) ──
         this.damageSlot = slot(vocabulary, "damage", VarKind.NUM);

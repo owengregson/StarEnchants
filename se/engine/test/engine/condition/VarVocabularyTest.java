@@ -41,10 +41,10 @@ class VarVocabularyTest {
         // v3.1 §A: 13 numeric (the original 9 + actor/victim healthpercent, victim.food, world.time) + 2 for
         // the exotic-effect port (distance, nearbyenemies) = 15,
         // 17 flags (the original 9 + onfire/onground, victim sprint/swim/glide, isblock, world raining/thundering),
-        // 7 string (the original 4 + actor.type, victim.helditem, block.type).
+        // 8 string (the original 4 + actor.type, victim.helditem, block.type, and v3.7 §N victim.mobtype).
         assertEquals(15, v.numberSlots());
         assertEquals(17, v.flagSlots());
-        assertEquals(7, v.stringSlots());
+        assertEquals(8, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("world", "time").orElseThrow().kind());
