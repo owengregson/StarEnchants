@@ -73,7 +73,7 @@ public final class CrystalService {
     public ItemStack mintExtractor() {
         CrystalConfig cfg = config.get();
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.extractorMaterial(), Material.AMETHYST_CLUSTER),
+                cfg.extractorMaterial(), Material.AMETHYST_CLUSTER,
                 cfg.extractorName(),
                 cfg.extractorLore());
         extractorCodec.mark(stack);
@@ -111,7 +111,7 @@ public final class CrystalService {
             loreTemplate = mergedLore(keys, cfg);
         }
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(materialToken, Material.AMETHYST_SHARD),
+                materialToken, Material.AMETHYST_SHARD,
                 nameTemplate.replace("{CRYSTAL}", label),
                 renderLore(loreTemplate, label));
         codec.write(stack, data);

@@ -319,16 +319,23 @@ detected, so the single jar carries them all with no hard dependency. They live 
 `ServicesManager`. (Mental — ADR 0026 — follows the same soft model but lives in
 `feature.combat` as it shares the live knockback store.)
 
-**Delivered:** WorldGuard, Towny, Lands, SuperiorSkyblock2, FactionsUUID
-(`ProtectionProvider`); Vault (`EconomyProvider`); PlaceholderAPI (expansion +
-chat passthrough); Mental (knockback coordination). All bundled-soft, unit-tested
-against the real APIs, jar-verified to contain zero plugin-API bytecode; end-to-end per
-plugin is verified out-of-matrix (no integration plugin runs on the live matrix).
+**Delivered (all of §N):**
 
-**Pending direction (behavioural, not packaging):** mcMMO, anticheat exemptions,
-ItemsAdder/Oraxen custom-item resolution, MythicMobs/EliteBosses mob-type condition
-variable — these need per-plugin behaviour decided (which anticheat, mcMMO semantics,
-how custom item ids map onto SE's Material+PDC item model) before building.
+- *Protection* — WorldGuard, Towny, Lands, SuperiorSkyblock2, FactionsUUID (`ProtectionProvider`).
+- *Economy* — Vault (`EconomyProvider`).
+- *PlaceholderAPI* — `%starenchants_…%` expansion + chat passthrough.
+- *Mental* — knockback coordination (ADR 0026).
+- *Anti-cheat* — NoCheatPlus exemption (reflective) + GrimAC flag-cancel (compiled against GrimAPI; the
+  Mental+SE+Grim combo); Vulcan/Matrix/Spartan detected + logged (closed APIs, native handling).
+- *mcMMO* — party friendly-fire (no SE combat effects between party members).
+- *MythicMobs* — `%victim.mobtype%` condition variable.
+- *ItemsAdder / Oraxen* — `itemsadder:…` / `oraxen:…` custom-item materials in item + menu configs.
+
+All bundled in the one jar and soft (each plugin API `compileOnly`, never required); unit-tested against the
+real APIs where mockable, jar-verified to contain **zero** plugin-API bytecode; end-to-end per plugin is
+verified out-of-matrix (no integration plugin runs on the live matrix). See `docs/integrations.md`.
+
+EliteBosses/EliteMobs is intentionally out of scope (no usable public API; the user dropped it).
 
 ---
 

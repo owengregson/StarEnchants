@@ -52,7 +52,7 @@ public final class HolyScrollService {
     public ItemStack mint() {
         ScrollsConfig.Holy cfg = config.get().holy();
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.material(), Material.TOTEM_OF_UNDYING), cfg.name(), cfg.lore());
+                cfg.material(), Material.TOTEM_OF_UNDYING, cfg.name(), cfg.lore());
         scrolls.mark(stack, HOLY);
         return stack;
     }

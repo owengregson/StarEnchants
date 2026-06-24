@@ -57,7 +57,7 @@ public final class NametagService {
     public ItemStack mint() {
         ScrollsConfig.Nametag cfg = config.get().nametag();
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.material(), Material.NAME_TAG), cfg.name(), cfg.lore());
+                cfg.material(), Material.NAME_TAG, cfg.name(), cfg.lore());
         scrolls.mark(stack, NAMETAG);
         return stack;
     }
