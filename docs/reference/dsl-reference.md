@@ -45,13 +45,13 @@ Deal a flat amount of extra damage to the target.
 
 ### DAMAGE_MOD
 
-Contribute to the damage fold: side attack/defense, mode add (percent 0-100) or flat (raw amount). Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.
+Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage (the EE negative DAMAGE_INCREASE). Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `DAMAGE_MOD:<side:enum{attack|defense}>[:mode:enum{add|flat}=add]:<amount:double[0..]>`
+- _usage_: `DAMAGE_MOD:<side:enum{attack|defense}>[:mode:enum{add|flat}=add]:<amount:double>`
 - _param_ `side` `enum{attack|defense}`
 - _param_ `mode` `enum{add|flat}`
-- _param_ `amount` `double[0..]`
+- _param_ `amount` `double`
 - _example_: `DAMAGE_MOD:attack:add:25`
 
 ### DISARM
@@ -185,6 +185,17 @@ Make the triggering hit ignore the victim's armor and enchant-protection reducti
 - _usage_: `IGNORE_ARMOR`
 - _example_: `IGNORE_ARMOR`
 
+### IMMUNE
+
+Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for duration ticks.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `IMMUNE:<type:enum{sword|axe|projectile|potion|all}>[:duration:ticks[0..]=100]`
+- _param_ `type` `enum{sword|axe|projectile|potion|all}`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `IMMUNE:potion:100`
+
 ### INVERT_VAR
 
 Numerically invert a per-player variable (0↔1), preserving its remaining TTL.
@@ -283,12 +294,12 @@ Modify a player target's hunger: give food points (clamped to 20) or take them (
 
 ### MODIFY_HEALTH
 
-Modify a target's health: give heals them, take deals direct health damage, transfer (lifesteal) damages the target and heals the activator by the same amount. Replaces HEAL.
+Modify a target's health: give heals them, take deals direct health damage, transfer (lifesteal) damages the target and heals the activator by the same amount, set forces their health to the amount. Replaces HEAL.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `MODIFY_HEALTH:<amount:double[0..]>[:mode:enum{give|take|transfer}=give]`
+- _usage_: `MODIFY_HEALTH:<amount:double[0..]>[:mode:enum{give|take|transfer|set}=give]`
 - _param_ `amount` `double[0..]`
-- _param_ `mode` `enum{give|take|transfer}`
+- _param_ `mode` `enum{give|take|transfer|set}`
 - _target_ `who`: selector `SELF`
 - _example_: `MODIFY_HEALTH:4:give:@Self`
 
@@ -347,6 +358,15 @@ Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS
 - _param_ `speed` `double[0..]`
 - _example_: `PROJECTILE:ARROW:3:1.5`
 
+### REMOVE_ARMOR
+
+Strip one random worn armour piece from the target(s) and drop it.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `REMOVE_ARMOR`
+- _target_ `who`: selector `VICTIM`
+- _example_: `REMOVE_ARMOR`
+
 ### REMOVE_ITEM
 
 Remove up to count of a material from the player target(s)' inventory.
@@ -370,11 +390,12 @@ Remove a potion effect from the target(s).
 
 ### REMOVE_SOULS
 
-Debit souls from the activator's active soul gem (a no-op when they are not in soul mode).
+Debit souls from a soul gem: @Self (default) charges the activator's active gem, @Victim drains the target's own gem. A no-op when that player is not in soul mode.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `REMOVE_SOULS:<amount:int[1..]>`
 - _param_ `amount` `int[1..]`
+- _target_ `who`: selector `SELF`
 - _example_: `REMOVE_SOULS:5`
 
 ### RUN_COMMAND
@@ -385,6 +406,14 @@ Run a command from the console. Affinity GLOBAL — runs on the global thread.
 - _usage_: `RUN_COMMAND:<command:string>`
 - _param_ `command` `string`
 - _example_: `RUN_COMMAND:eco give %player% 100`
+
+### SEEK
+
+Make the projectile fired by this BOW_FIRE activation home onto the nearest target in sight.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `SEEK`
+- _example_: `SEEK`
 
 ### SET_BLOCK
 
@@ -407,6 +436,14 @@ Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 =
 - _param_ `ttl` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `SET_VAR:rage:1:200:@Self`
+
+### SMELT
+
+Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, …).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `SMELT`
+- _example_: `SMELT`
 
 ### SOUND
 
@@ -445,6 +482,16 @@ Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE
 - _target_ `who`: selector `VICTIM`
 - _example_: `SUPPRESS:GROUP:lifesteal:200:@Victim`
 
+### TELEBLOCK
+
+Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `TELEBLOCK[:duration:ticks[0..]=400]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `TELEBLOCK:400`
+
 ### TELEPORT
 
 Teleport the target to the actor's or the victim's location.
@@ -454,6 +501,14 @@ Teleport the target to the actor's or the victim's location.
 - _param_ `to` `enum{VICTIM|ACTOR}` — destination party: the victim or the actor
 - _target_ `who`: selector `SELF`
 - _example_: `TELEPORT:VICTIM`
+
+### TELEPORT_DROPS
+
+Send the block's drops straight to the breaker's inventory (this MINE activation).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `TELEPORT_DROPS`
+- _example_: `TELEPORT_DROPS`
 
 ### VELOCITY
 
@@ -704,9 +759,11 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%blocking%` | BOOL |
 | `%combo%` | NUM |
 | `%damage%` | NUM |
+| `%distance%` | NUM |
 | `%flying%` | BOOL |
 | `%gliding%` | BOOL |
 | `%isblock%` | BOOL |
+| `%nearbyenemies%` | NUM |
 | `%onfire%` | BOOL |
 | `%onground%` | BOOL |
 | `%sneaking%` | BOOL |
