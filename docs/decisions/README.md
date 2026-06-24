@@ -32,6 +32,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0022](0022-held-passive-lifecycle-and-command-trigger.md) | HELD/PASSIVE start-stop lifecycle + the COMMAND trigger (§B tail) | Accepted |
 | [0023](0023-config-packs.md) | Config packs (swappable whole-config presets) | Accepted |
 | [0024](0024-exotic-effect-ports.md) | Expression-valued effect args + the exotic EE-effect ports | Accepted |
+| [0025](0025-automated-releases.md) | Automated releases — version-bump-driven GitHub Release of the universal jar | Accepted |
 
 ## Process
 
