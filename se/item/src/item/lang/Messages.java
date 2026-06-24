@@ -24,21 +24,32 @@ public final class Messages {
     private final Supplier<Lang> lang;
     private final Supplier<String> prefix;                       // §L config.yml messages.prefix (live)
     private final java.util.function.BooleanSupplier feedback;   // §L config.yml messages.feedback (live)
+    // §N optional PlaceholderAPI passthrough (ADR-0027): resolves other plugins' %…% in a message for its
+    // target player. Identity by default (PAPI absent / tests); the composition root injects the live one.
+    private final java.util.function.BiFunction<Player, String, String> placeholders;
 
-    /** No-prefix, feedback-on form (tests/fixtures + the delegating service ctors). */
+    /** No-prefix, feedback-on, no-passthrough form (tests/fixtures + the delegating service ctors). */
     public Messages(Supplier<Lang> lang) {
         this(lang, () -> "", () -> true);
     }
 
-    /**
-     * Canonical form (the composition root): {@code prefix} is prepended to every {@link #format} result and
-     * {@code feedback} gates {@link #send} (the keyed gameplay-feedback channel). Both read live, so a
-     * {@code /se reload} re-tunes them.
-     */
+    /** Prefix + feedback, no placeholder passthrough — kept so existing call sites compile unchanged. */
     public Messages(Supplier<Lang> lang, Supplier<String> prefix, java.util.function.BooleanSupplier feedback) {
+        this(lang, prefix, feedback, (player, text) -> text);
+    }
+
+    /**
+     * Canonical form (the composition root): {@code prefix} is prepended to every {@link #format} result,
+     * {@code feedback} gates {@link #send} (the keyed gameplay-feedback channel), and {@code placeholders}
+     * resolves other plugins' tokens in a sent message for its target player (identity when PlaceholderAPI is
+     * absent). All read live, so a {@code /se reload} re-tunes them.
+     */
+    public Messages(Supplier<Lang> lang, Supplier<String> prefix, java.util.function.BooleanSupplier feedback,
+                    java.util.function.BiFunction<Player, String, String> placeholders) {
         this.lang = Objects.requireNonNull(lang, "lang");
         this.prefix = Objects.requireNonNull(prefix, "prefix");
         this.feedback = Objects.requireNonNull(feedback, "feedback");
+        this.placeholders = Objects.requireNonNull(placeholders, "placeholders");
     }
 
     /** A messages facade over the built-in {@link Lang#defaults()} — the test/fixture/default-ctor source. */
@@ -81,6 +92,8 @@ public final class Messages {
         if (!feedback.getAsBoolean()) {
             return;
         }
-        player.sendMessage(format(key, kv));
+        // Resolve any other-plugin %…% placeholders for this player (§N PlaceholderAPI passthrough); identity
+        // when PAPI is absent, so this is a no-op cost on a server without it.
+        player.sendMessage(placeholders.apply(player, format(key, kv)));
     }
 }

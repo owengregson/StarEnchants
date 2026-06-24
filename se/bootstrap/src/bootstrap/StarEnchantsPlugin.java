@@ -200,7 +200,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         LangHolder lang = new LangHolder(LangLoader.load(langFile));
         Messages messages = new Messages(lang::lang,
                 () -> master.config().messages().prefix(),         // §L config.yml messages.prefix (live)
-                () -> master.config().messages().feedback());      // §L config.yml messages.feedback (live)
+                () -> master.config().messages().feedback(),       // §L config.yml messages.feedback (live)
+                // §N PlaceholderAPI passthrough (ADR-0027): resolve other plugins' %…% in sent messages when
+                // PAPI is present; identity otherwise. Decided once at boot (integration discovery is boot-time).
+                Integrations.placeholderResolver(this, master.config().integrations()::enabled));
 
         // menus/ (§L) — per-GUI layout overrides, one file per menu; another parallel immutable reference
         // swapped in the same reload transaction. Each menu merges its programmatic default with this holder's
@@ -299,6 +302,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulService soulService = new SoulService(souls, soulModes,
                 new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault(),
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
+        // §N PlaceholderAPI expansion (ADR-0027): surface %starenchants_soulmode% / %starenchants_souls% when
+        // PAPI is present. Accessors are plain JDK-typed, so PAPI never loads StarEnchants internals.
+        Integrations.registerPlaceholders(this, master.config().integrations()::enabled,
+                player -> soulModes.isActive(player.getUniqueId()),
+                player -> soulService.bindingFor(player).map(b -> souls.peek(b.gemId()).orElse(0)).orElse(0));
         // §D while-active soul aura: one global task spawning the configured particles at players in soul mode.
         soulParticles = new feature.soul.SoulParticleDriver(
                 soulModes, () -> items.config().soulGemOrDefault(), particleFx);

@@ -1,6 +1,8 @@
 package integrate;
 
 import integrate.economy.VaultEconomyProvider;
+import integrate.papi.PapiPassthrough;
+import integrate.papi.SePlaceholderExpansion;
 import integrate.protect.FactionsProvider;
 import integrate.protect.LandsProvider;
 import integrate.protect.SuperiorSkyblockProvider;
@@ -8,7 +10,10 @@ import integrate.protect.TownyProvider;
 import integrate.protect.WorldGuardProvider;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import platform.economy.EconomyProvider;
 import platform.protect.ProtectionProvider;
@@ -69,6 +74,33 @@ public final class Integrations {
      */
     public static EconomyProvider economyProvider(Plugin plugin, Predicate<String> enabled) {
         return active(plugin, enabled, "Vault", "vault") ? VaultEconomyProvider.fromServices() : null;
+    }
+
+    /**
+     * Register the {@code %starenchants_…%} PlaceholderAPI expansion when PlaceholderAPI is present + enabled
+     * (a no-op otherwise). The expansion reads state through the supplied JDK-typed accessors, so PAPI never
+     * loads any StarEnchants internals.
+     *
+     * @param soulMode whether the player has soul mode on
+     * @param souls    the player's active-gem soul balance (0 when soul mode is off)
+     */
+    public static void registerPlaceholders(Plugin plugin, Predicate<String> enabled,
+                                            Predicate<Player> soulMode, ToIntFunction<Player> souls) {
+        if (active(plugin, enabled, "PlaceholderAPI", "placeholderapi")) {
+            SePlaceholderExpansion.install(plugin.getDescription().getVersion(), soulMode, souls);
+        }
+    }
+
+    /**
+     * The PlaceholderAPI passthrough resolver for player-facing chat — fills other plugins' {@code %…%}
+     * placeholders in StarEnchants messages. Returns an identity resolver (no PAPI touched) when PlaceholderAPI
+     * is absent/disabled, so the message path can call it unconditionally.
+     */
+    public static BiFunction<Player, String, String> placeholderResolver(Plugin plugin, Predicate<String> enabled) {
+        if (!active(plugin, enabled, "PlaceholderAPI", "placeholderapi")) {
+            return (player, text) -> text; // identity — PAPI absent
+        }
+        return PapiPassthrough.resolver();
     }
 
     /** Present + enabled + not disabled in config. String-only, so it never loads an absent plugin's API. */
