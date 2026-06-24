@@ -135,12 +135,15 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.slot", "&5Minted a {KIND}. &7Drag it onto gear to add enchant slots.");
         s.put("command.give.transmog", "&5Minted a transmog scroll. &7Drag it onto enchanted gear.");
         s.put("command.give.godlytransmog", "&5Minted a godly transmog. &7Drag it onto enchanted gear to reorder.");
-        s.put("command.give.holy", "&fMinted a holy scroll. &7Carry it to survive a death once.");
+        s.put("command.give.holy", "&fMinted a holy white scroll. &7Carry it to survive a death once.");
         s.put("command.give.nametag", "&bMinted an item nametag. &7Drag it onto gear, then type the new name.");
         s.put("command.give.blackscroll",
                 "&8Minted a black scroll. &7Drag it onto enchanted gear to extract an enchant.");
         s.put("command.give.randomizer",
                 "&eMinted a randomizer scroll. &7Drag it onto an enchant book to reroll its success.");
+        s.put("command.give.dust", "&aMinted success dust. &7Drag it onto an enchant book to boost its success.");
+        s.put("command.give.whitescroll",
+                "&fMinted a white scroll. &7Drag it onto gear to protect it from a failed enchant.");
         s.put("command.give.unopened",
                 "&bMinted an unopened &f{TIER} &bbook. &7Right-click it to reveal a random enchant book.");
         s.put("command.give.book", "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a.");
@@ -150,7 +153,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.usage",
                 "&eUsage: /se give <type> <player> [args] &7— type: gem [amount] | crystal <key> | book <enchant> "
                         + "[level] [success] | item <id> [args] | heroic | upgrade | orb | blackscroll | "
-                        + "randomizer | transmog | godlytransmog | holy | nametag | unopened <tier>");
+                        + "randomizer | transmog | godlytransmog | holy | nametag | dust | whitescroll | unopened <tier>");
         s.put("command.give.delivered", "&aGave &f{ITEM}&a to &f{PLAYER}&a.");
         s.put("command.give.item", "&aReceived &f{ID}&a.");
         s.put("command.give.set", "&aMinted the &f{KEY}&a {PIECE} piece. &7Wear the set to complete its bonus.");
@@ -258,8 +261,11 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&e  /se blackscroll &7— mint a black scroll (extract an enchant into a book)",
                 "&e  /se randomizer &7— mint a randomizer scroll (reroll a book's success)",
                 "&e  /se transmog &7— mint a transmog scroll (reorder enchant lore)",
-                "&e  /se holy &7— mint a holy scroll (survive a death once)",
+                "&e  /se godlytransmog &7— mint a godly transmog (hand-reorder enchant lore)",
+                "&e  /se holy &7— mint a holy white scroll (survive a death once)",
                 "&e  /se nametag &7— mint an item nametag (rename gear via chat)",
+                "&e  /se dust &7— mint success dust (drag onto a book to boost its success)",
+                "&e  /se whitescroll &7— mint a white scroll (protect gear from a failed enchant)",
                 "&e  /se unopened <tier> &7— mint an unopened book (right-click to reveal)",
                 "&e  /se menu [name] &7— open a GUI (default: the enchant-application menu)",
                 "&e  /se effects|selectors|triggers|conditions|variables|list &7— browse the DSL reference",

@@ -34,9 +34,17 @@ public final class ItemsLoader {
         Optional<CrystalConfig> crystal = Optional.empty();
         Optional<HeroicConfig> heroic = Optional.empty();
         Optional<SlotConfig> slots = Optional.empty();
-        Optional<ScrollsConfig> scrolls = Optional.empty();
         Optional<UnopenedBookConfig> unopenedBook = Optional.empty();
         Optional<EnchantBookConfig> enchantBook = Optional.empty();
+        Optional<DustConfig> dust = Optional.empty();
+        Optional<WhiteScrollConfig> whiteScroll = Optional.empty();
+        // The scroll family — each member is its own file; assembled into one ScrollsConfig below (§I).
+        Optional<ScrollsConfig.Black> black = Optional.empty();
+        Optional<ScrollsConfig.Randomizer> randomizer = Optional.empty();
+        Optional<ScrollsConfig.Transmog> transmog = Optional.empty();
+        Optional<ScrollsConfig.Holy> holy = Optional.empty();
+        Optional<ScrollsConfig.Nametag> nametag = Optional.empty();
+        Optional<ScrollsConfig.Godly> godly = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -93,12 +101,68 @@ public final class ItemsLoader {
                         slots = Optional.of(readSlots(root, diags));
                     }
                 }
-                case "scrolls", "scroll" -> {
-                    if (scrolls.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one scrolls config (" + name + "); keeping the first",
+                case "black-scroll", "black" -> {
+                    if (black.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one black-scroll config (" + name + "); keeping the first",
                                 root.source());
                     } else {
-                        scrolls = Optional.of(readScrolls(root, diags));
+                        black = Optional.of(readBlack(root, diags));
+                    }
+                }
+                case "randomizer-scroll", "randomizer" -> {
+                    if (randomizer.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one randomizer-scroll config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        randomizer = Optional.of(readRandomizer(root, diags));
+                    }
+                }
+                case "transmog-scroll", "transmog" -> {
+                    if (transmog.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one transmog-scroll config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        transmog = Optional.of(readTransmog(root, diags));
+                    }
+                }
+                case "holy-white-scroll", "holy-scroll", "holy" -> {
+                    if (holy.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one holy-white-scroll config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        holy = Optional.of(readHoly(root, diags));
+                    }
+                }
+                case "nametag", "item-nametag" -> {
+                    if (nametag.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one nametag config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        nametag = Optional.of(readNametag(root, diags));
+                    }
+                }
+                case "godly-transmog", "godly" -> {
+                    if (godly.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one godly-transmog config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        godly = Optional.of(readGodly(root, diags));
+                    }
+                }
+                case "dust", "success-dust" -> {
+                    if (dust.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one dust config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        dust = Optional.of(readDust(root, diags));
+                    }
+                }
+                case "white-scroll", "protect-scroll", "protect" -> {
+                    if (whiteScroll.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one white-scroll config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        whiteScroll = Optional.of(readWhiteScroll(root, diags));
                     }
                 }
                 case "unopened-book", "unopened", "mystery-book" -> {
@@ -120,54 +184,95 @@ public final class ItemsLoader {
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
-        return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, enchantBook, diags.all());
+        // Assemble the scroll family from its per-file members, filling any absent member with its default.
+        // Present iff at least one scroll-family file was read (so an items/ folder with no scrolls still
+        // falls back to ScrollsConfig.defaults() through ItemsConfig#scrollsOrDefault()).
+        ScrollsConfig sd = ScrollsConfig.defaults();
+        Optional<ScrollsConfig> scrolls;
+        if (black.isPresent() || randomizer.isPresent() || transmog.isPresent()
+                || holy.isPresent() || nametag.isPresent() || godly.isPresent()) {
+            scrolls = Optional.of(new ScrollsConfig(
+                    black.orElseGet(sd::black), randomizer.orElseGet(sd::randomizer),
+                    transmog.orElseGet(sd::transmog), holy.orElseGet(sd::holy),
+                    nametag.orElseGet(sd::nametag), godly.orElseGet(sd::godly)));
+        } else {
+            scrolls = Optional.empty();
+        }
+        return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, enchantBook,
+                dust, whiteScroll, diags.all());
     }
 
-    private static ScrollsConfig readScrolls(YamlNode root, Diagnostics diags) {
-        ScrollsConfig d = ScrollsConfig.defaults();
-        YamlNode black = root.child("black");
-        YamlNode rand = root.child("randomizer");
-        YamlNode trans = root.child("transmog");
-        YamlNode holy = root.child("holy");
-        YamlNode tag = root.child("nametag");
-        YamlNode godly = root.child("godly");
-        ScrollsConfig.Black bd = d.black();
-        ScrollsConfig.Randomizer rd = d.randomizer();
-        ScrollsConfig.Transmog td = d.transmog();
-        ScrollsConfig.Holy hd = d.holy();
-        ScrollsConfig.Nametag nd = d.nametag();
-        ScrollsConfig.Godly gd = d.godly();
-        return new ScrollsConfig(
-                new ScrollsConfig.Black(
-                        orDefault(black.string("material"), bd.material()),
-                        orDefault(black.string("name"), bd.name()),
-                        black.has("lore") ? black.stringList("lore") : bd.lore(),
-                        parseInt(black.string("success-chance"), bd.successChance(), root, diags)),
-                new ScrollsConfig.Randomizer(
-                        orDefault(rand.string("material"), rd.material()),
-                        orDefault(rand.string("name"), rd.name()),
-                        rand.has("lore") ? rand.stringList("lore") : rd.lore(),
-                        parseInt(rand.string("min-percent"), rd.minPercent(), root, diags),
-                        parseInt(rand.string("max-percent"), rd.maxPercent(), root, diags)),
-                new ScrollsConfig.Transmog(
-                        orDefault(trans.string("material"), td.material()),
-                        orDefault(trans.string("name"), td.name()),
-                        trans.has("lore") ? trans.stringList("lore") : td.lore(),
-                        orDefault(trans.string("name-suffix"), td.nameSuffix())),
-                new ScrollsConfig.Holy(
-                        orDefault(holy.string("material"), hd.material()),
-                        orDefault(holy.string("name"), hd.name()),
-                        holy.has("lore") ? holy.stringList("lore") : hd.lore(),
-                        parseInt(holy.string("save-chance"), hd.saveChance(), root, diags)),
-                new ScrollsConfig.Nametag(
-                        orDefault(tag.string("material"), nd.material()),
-                        orDefault(tag.string("name"), nd.name()),
-                        tag.has("lore") ? tag.stringList("lore") : nd.lore(),
-                        tag.has("blacklist") ? tag.stringList("blacklist") : nd.blacklist()),
-                new ScrollsConfig.Godly(
-                        orDefault(godly.string("material"), gd.material()),
-                        orDefault(godly.string("name"), gd.name()),
-                        godly.has("lore") ? godly.stringList("lore") : gd.lore()));
+    private static ScrollsConfig.Black readBlack(YamlNode root, Diagnostics diags) {
+        ScrollsConfig.Black d = ScrollsConfig.defaults().black();
+        return new ScrollsConfig.Black(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("success-chance"), d.successChance(), root, diags));
+    }
+
+    private static ScrollsConfig.Randomizer readRandomizer(YamlNode root, Diagnostics diags) {
+        ScrollsConfig.Randomizer d = ScrollsConfig.defaults().randomizer();
+        return new ScrollsConfig.Randomizer(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("min-percent"), d.minPercent(), root, diags),
+                parseInt(root.string("max-percent"), d.maxPercent(), root, diags));
+    }
+
+    private static ScrollsConfig.Transmog readTransmog(YamlNode root, Diagnostics diags) {
+        ScrollsConfig.Transmog d = ScrollsConfig.defaults().transmog();
+        return new ScrollsConfig.Transmog(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                orDefault(root.string("name-suffix"), d.nameSuffix()));
+    }
+
+    private static ScrollsConfig.Holy readHoly(YamlNode root, Diagnostics diags) {
+        ScrollsConfig.Holy d = ScrollsConfig.defaults().holy();
+        return new ScrollsConfig.Holy(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("save-chance"), d.saveChance(), root, diags));
+    }
+
+    private static ScrollsConfig.Nametag readNametag(YamlNode root, Diagnostics diags) {
+        ScrollsConfig.Nametag d = ScrollsConfig.defaults().nametag();
+        return new ScrollsConfig.Nametag(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                root.has("blacklist") ? root.stringList("blacklist") : d.blacklist());
+    }
+
+    private static ScrollsConfig.Godly readGodly(YamlNode root, Diagnostics diags) {
+        ScrollsConfig.Godly d = ScrollsConfig.defaults().godly();
+        return new ScrollsConfig.Godly(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore());
+    }
+
+    private static DustConfig readDust(YamlNode root, Diagnostics diags) {
+        DustConfig d = DustConfig.defaults();
+        return new DustConfig(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("success-bonus"), d.successBonus(), root, diags),
+                orDefault(root.string("sound"), d.sound()),
+                root.has("particles") ? root.stringList("particles") : d.particles());
+    }
+
+    private static WhiteScrollConfig readWhiteScroll(YamlNode root, Diagnostics diags) {
+        WhiteScrollConfig d = WhiteScrollConfig.defaults();
+        return new WhiteScrollConfig(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore());
     }
 
     private static EnchantBookConfig readEnchantBook(YamlNode root, Diagnostics diags) {

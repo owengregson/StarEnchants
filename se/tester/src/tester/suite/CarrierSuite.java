@@ -81,6 +81,7 @@ public final class CarrierSuite implements Harness.Scenario {
         "carrier.book.applies", "carrier.book.stackGuard", "carrier.book.destroyOnFail",
         "carrier.scroll.protects", "carrier.dust.boostsBook", "carrier.dust.cappedAndIdempotent",
         "carrier.dust.boostedBookApplies", "carrier.dust.rejectsNonBook", "carrier.dust.gestureEligibility",
+        "carrier.topLevel.dustBoostsBook", "carrier.topLevel.whiteScrollProtects",
     };
 
     private final Plugin plugin;
@@ -222,6 +223,45 @@ public final class CarrierSuite implements Harness.Scenario {
             CarrierResult result = carriers.applyTo(dust, sword); // dust onto plain gear, not a book
             if (result.consumed() || dust.getAmount() != 1) {
                 throw new IllegalStateException("dust on non-book gear must be a no-op: " + result);
+            }
+        });
+
+        // The top-level items/dust.yml dust (sentinel-keyed, bonus from live config) boosts a content book
+        // exactly like the operator-authored content dust — proving the relocation off the ItemDef path.
+        h.guard("carrier.topLevel.dustBoostsBook", () -> {
+            ItemStack book = carriers.mint(itemDef(lib, "items/book/boostbook")); // base 50%
+            ItemStack dust = carriers.mintDust(); // default likeness: +15%
+            CarrierResult result = carriers.applyTo(dust, book);
+            if (!result.consumed() || dust.getAmount() != 0) {
+                throw new IllegalStateException("the top-level dust was not consumed onto the book: " + result);
+            }
+            CarrierData bookData = carrierCodec.read(book);
+            if (bookData == null || bookData.successBonus() != 15) {
+                throw new IllegalStateException("the book did not record the +15 default dust bonus: " + bookData);
+            }
+            if (!carriers.canCombineDust(dust, book)) {
+                // (dust was consumed above; re-mint for the gesture-eligibility check)
+                ItemStack fresh = carriers.mintDust();
+                if (!carriers.canCombineDust(fresh, carriers.mint(itemDef(lib, "items/book/weakbook")))) {
+                    throw new IllegalStateException("a top-level dust must claim the gesture onto a content book");
+                }
+            }
+        });
+
+        // The top-level items/white-scroll.yml scroll (sentinel-keyed) stamps the guard and spares gear from
+        // one failed destroy — the protect mechanic relocated off the ItemDef path.
+        h.guard("carrier.topLevel.whiteScrollProtects", () -> {
+            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+            carriers.applyTo(carriers.mintWhiteScroll(), sword); // guard it
+            if (!carrierCodec.isGuarded(sword)) {
+                throw new IllegalStateException("the white scroll did not mark the sword guarded");
+            }
+            carriers.applyTo(carriers.mint(itemDef(lib, "items/book/zapbook")), sword); // failing destroy book
+            if (sword.getAmount() != 1) {
+                throw new IllegalStateException("the white scroll should have spared the sword from destruction");
+            }
+            if (carrierCodec.isGuarded(sword)) {
+                throw new IllegalStateException("the guard should be consumed by the failed apply");
             }
         });
 

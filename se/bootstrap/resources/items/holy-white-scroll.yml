@@ -1,0 +1,14 @@
+# Holy White Scroll (docs/v3-directives.md §I) — carry it (inventory or off-hand) and, on a death, with a
+# save-chance roll it KEEPS your items + levels (consumed on the saved death). Respects an existing
+# keepInventory gamerule (then it is neither needed nor spent). This is distinct from the White Scroll
+# (items/white-scroll.yml), which protects an item from enchant destruction. One physical item per file;
+# reload with /se reload. Result messages live in lang.yml (scroll.holy.*).
+type: holy-white-scroll
+
+material: TOTEM_OF_UNDYING
+name: "&fHoly White Scroll"
+lore:
+  - "&7Keep your items if you die"
+  - "&7while carrying this (one use)."
+# Chance (0–100) a death is survived (items + levels kept). 100 = always saves while carried.
+save-chance: 100
