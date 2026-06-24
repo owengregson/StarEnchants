@@ -121,32 +121,31 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 UnopenedBookConfig::defaults, new Random(3));
 
         h.guard("economy.slot.persistsAndCaps", () -> {
-            // Base 9 + hardCap 15 → maxAdded 6. Reach a non-multiple of the orb's +3 with two +1 gems so the
-            // final orb genuinely OVERSHOOTS the cap and must clamp-and-commit (5 + 3 → clamp to 6), then a
-            // further item at the cap is a no-op that is not consumed.
+            // A config whose maxAdded (hardCap - base = 5) is NOT a multiple of the orb's +3, so the second
+            // orb genuinely OVERSHOOTS the cap and must clamp-and-commit (3 + 3 → clamp to 5), then a further
+            // orb at the cap is a no-op that is not consumed.
+            SlotConfig capCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
+                    ItemEnchanter.DEFAULT_BASE_SLOTS + 5);
+            SlotService capSlots = new SlotService(slotCodec, combat, lore, () -> capCfg,
+                    ItemEnchanter.DEFAULT_BASE_SLOTS);
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-            slots.applyTo(slots.mintOrb(), sword); // +3 → 3
+            capSlots.applyTo(capSlots.mintOrb(), sword); // +3 → 3
             if (combat.read(sword).added() != 3) {
                 throw new IllegalStateException("first orb did not persist +3: " + combat.read(sword).added());
             }
-            slots.applyTo(slots.mintGem(), sword); // +1 → 4
-            slots.applyTo(slots.mintGem(), sword); // +1 → 5
+            ItemStack orb = capSlots.mintOrb();
+            SlotResult capped = capSlots.applyTo(orb, sword); // 3 + 3 = 6 > cap 5 → clamp to 5, still commits
             if (combat.read(sword).added() != 5) {
-                throw new IllegalStateException("gems did not persist to +5: " + combat.read(sword).added());
-            }
-            ItemStack orb = slots.mintOrb();
-            SlotResult capped = slots.applyTo(orb, sword); // 5 + 3 = 8 > cap 6 → clamp to 6, still commits
-            if (combat.read(sword).added() != 6) {
-                throw new IllegalStateException("clamp did not land on the cap (6): " + combat.read(sword).added());
+                throw new IllegalStateException("clamp did not land on the cap (5): " + combat.read(sword).added());
             }
             if (!capped.commit() || orb.getAmount() != 0) {
                 throw new IllegalStateException("the overshooting orb should clamp-and-commit (consuming it): " + capped);
             }
-            // A fully-capped item must reject (and NOT consume) a further slot item.
-            ItemStack extra = slots.mintGem();
-            SlotResult noop = slots.applyTo(extra, sword);
-            if (noop.commit() || extra.getAmount() != 1 || combat.read(sword).added() != 6) {
-                throw new IllegalStateException("a capped item must not consume a further slot item: " + noop);
+            // A fully-capped item must reject (and NOT consume) a further orb.
+            ItemStack extra = capSlots.mintOrb();
+            SlotResult noop = capSlots.applyTo(extra, sword);
+            if (noop.commit() || extra.getAmount() != 1 || combat.read(sword).added() != 5) {
+                throw new IllegalStateException("a capped item must not consume a further orb: " + noop);
             }
         });
 

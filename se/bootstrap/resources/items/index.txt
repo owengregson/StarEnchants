@@ -1,8 +1,8 @@
 # Manifest of default files extracted to <plugin>/items/ on first boot (one path per line,
 # relative to items/). Operator edits are never overwritten. Reload with /se reload.
-soul-gem.yml
 crystal.yml
 heroic.yml
-slots.yml
 scrolls.yml
+slot-orb.yml
+soul-gem.yml
 unopened-book.yml

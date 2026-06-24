@@ -61,7 +61,6 @@ command.usage:
   - "&e  /se crystal <key> &7— mint a crystal item (drag it onto gear to apply)"
   - "&e  /se heroic &7— mint a heroic upgrade (drag it onto armour/weapon)"
   - "&e  /se orb &7— mint a slot expander (drag onto gear for +N slots)"
-  - "&e  /se slotgem &7— mint a slot gem (drag onto gear for +1 slot)"
   - "&e  /se blackscroll &7— mint a black scroll (extract an enchant into a book)"
   - "&e  /se randomizer &7— mint a randomizer scroll (reroll a book's success)"
   - "&e  /se transmog &7— mint a transmog scroll (reorder enchant lore)"
