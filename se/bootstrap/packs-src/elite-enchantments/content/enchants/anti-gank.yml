@@ -9,20 +9,20 @@ levels:
   1:
     chance: 4.25
     cooldown: 5
-    effects: []
-      # TODO port manually: GANK — no StarEnchants equivalent for EE effect 'GANK' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%
   2:
     chance: 6.25
     cooldown: 5
-    effects: []
-      # TODO port manually: GANK — no StarEnchants equivalent for EE effect 'GANK' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%
   3:
     chance: 8.25
     cooldown: 5
-    effects: []
-      # TODO port manually: GANK — no StarEnchants equivalent for EE effect 'GANK' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%
   4:
     chance: 10
     cooldown: 5
-    effects: []
-      # TODO port manually: GANK — no StarEnchants equivalent for EE effect 'GANK' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%

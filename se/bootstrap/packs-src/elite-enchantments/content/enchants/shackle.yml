@@ -8,12 +8,12 @@ tier: rare
 levels:
   1:
     chance: 25
-    effects: []
-      # TODO port manually: SHACKLE — no StarEnchants equivalent for EE effect 'SHACKLE' — port this effect manually
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
   2:
     chance: 50
-    effects: []
-      # TODO port manually: SHACKLE — no StarEnchants equivalent for EE effect 'SHACKLE' — port this effect manually
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
   3:
-    effects: []
-      # TODO port manually: SHACKLE — no StarEnchants equivalent for EE effect 'SHACKLE' — port this effect manually
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)

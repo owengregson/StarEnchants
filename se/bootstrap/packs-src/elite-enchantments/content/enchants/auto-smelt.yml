@@ -8,12 +8,12 @@ tier: common
 levels:
   1:
     chance: 34
-    effects: []
-      # TODO port manually: SMELT — no StarEnchants equivalent for EE effect 'SMELT' — port this effect manually
+    effects:
+      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
   2:
     chance: 75
-    effects: []
-      # TODO port manually: SMELT — no StarEnchants equivalent for EE effect 'SMELT' — port this effect manually
+    effects:
+      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
   3:
-    effects: []
-      # TODO port manually: SMELT — no StarEnchants equivalent for EE effect 'SMELT' — port this effect manually
+    effects:
+      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)

@@ -8,21 +8,21 @@ tier: soul
 levels:
   1:
     cooldown: 9
-    effects: []
-      # TODO port manually: AUTO_LOCK — no StarEnchants equivalent for EE effect 'AUTO_LOCK' — port this effect manually
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   2:
     cooldown: 8
-    effects: []
-      # TODO port manually: AUTO_LOCK — no StarEnchants equivalent for EE effect 'AUTO_LOCK' — port this effect manually
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   3:
     cooldown: 7
-    effects: []
-      # TODO port manually: AUTO_LOCK — no StarEnchants equivalent for EE effect 'AUTO_LOCK' — port this effect manually
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   4:
     cooldown: 5
-    effects: []
-      # TODO port manually: AUTO_LOCK — no StarEnchants equivalent for EE effect 'AUTO_LOCK' — port this effect manually
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   5:
     cooldown: 3
-    effects: []
-      # TODO port manually: AUTO_LOCK — no StarEnchants equivalent for EE effect 'AUTO_LOCK' — port this effect manually
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)

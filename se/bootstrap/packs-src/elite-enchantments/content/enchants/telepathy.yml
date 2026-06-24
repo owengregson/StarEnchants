@@ -8,16 +8,16 @@ tier: uncommon
 levels:
   1:
     chance: 40
-    effects: []
-      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually
+    effects:
+      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)
   2:
     chance: 60
-    effects: []
-      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually
+    effects:
+      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)
   3:
     chance: 80
-    effects: []
-      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually
+    effects:
+      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)
   4:
-    effects: []
-      # TODO port manually: TELEPORT_DROPS — no StarEnchants equivalent for EE effect 'TELEPORT_DROPS' — port this effect manually
+    effects:
+      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)

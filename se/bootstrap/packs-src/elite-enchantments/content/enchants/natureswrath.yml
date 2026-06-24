@@ -9,20 +9,32 @@ levels:
   1:
     chance: 4
     cooldown: 10
-    effects: []
-      # TODO port manually: WRATH:3:1:2:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=3}" } }  # from WRATH:3:1:2:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=3}" } }  # from WRATH:3:1:2:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "SLOWNESS", level: 3, duration: 200, who: "@Aoe{r=3}" } }  # from WRATH:3:1:2:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 260, who: "@Aoe{r=3}" } }  # from WRATH:3:1:2:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
   2:
     chance: 8
     cooldown: 10
-    effects: []
-      # TODO port manually: WRATH:5:2:3:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { DAMAGE: { amount: 3, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "SLOWNESS", level: 3, duration: 200, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 260, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
   3:
     chance: 12
     cooldown: 10
-    effects: []
-      # TODO port manually: WRATH:7:2:4:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { DAMAGE: { amount: 4, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "SLOWNESS", level: 3, duration: 200, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 260, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
   4:
     chance: 16
     cooldown: 10
-    effects: []
-      # TODO port manually: WRATH:10:2:4:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { DAMAGE: { amount: 4, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "SLOWNESS", level: 3, duration: 200, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 260, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe

@@ -7,20 +7,20 @@ group: "epic"
 tier: epic
 levels:
   1:
-    effects: []
-      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+    effects:
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
   2:
-    effects: []
-      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+    effects:
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
   3:
     effects:
       - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from DEFENSE;1.5;HEAL:ADD:1:2 — EE DEFENSE-threshold factor 1.5 dropped (no SE per-effect gate)
-      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
   4:
     effects:
       - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }  # from DEFENSE;2.5;HEAL:ADD:1:3 — EE DEFENSE-threshold factor 2.5 dropped (no SE per-effect gate)
-      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
   5:
     effects:
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from DEFENSE;3;HEAL:ADD:2:4 — EE DEFENSE-threshold factor 3 dropped (no SE per-effect gate)
-      # TODO port manually: IMMUNE:POTION — no StarEnchants equivalent for EE effect 'IMMUNE' — port this effect manually
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)

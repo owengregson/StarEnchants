@@ -7,34 +7,34 @@ group: "heroic"
 tier: heroic
 levels:
   1:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4 } }  # from DAMAGE_INCREASE:4 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } }  # from DAMAGE_INCREASE:6 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   6:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 14 } }  # from DAMAGE_INCREASE:14 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   7:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 16 } }  # from DAMAGE_INCREASE:16 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   8:
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } }  # from DAMAGE_INCREASE:18 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

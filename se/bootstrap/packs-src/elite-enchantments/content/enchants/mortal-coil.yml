@@ -10,29 +10,29 @@ levels:
     chance: 1.5
     cooldown: 30
     effects:
-      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 3
     cooldown: 30
     effects:
-      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 4.5
     cooldown: 30
     effects:
-      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 6
     cooldown: 30
     effects:
-      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     chance: 7.5
     cooldown: 30
     effects:
-      # TODO port manually: REDUCE_HEARTS:12:5 — no StarEnchants equivalent for EE effect 'REDUCE_HEARTS' — port this effect manually
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
