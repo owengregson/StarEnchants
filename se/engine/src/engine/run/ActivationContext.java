@@ -20,16 +20,27 @@ import org.bukkit.entity.Player;
  * @param damage   the event's damage at fire time (the {@code %damage%} fact), captured pre-fold; 0 if none
  * @param block    the block this activation concerns (the MINE/BREAK block — the {@code %block.type%} /
  *                 {@code %isblock%} facts), region-owned on the firing thread; {@code null} for non-block triggers
+ * @param combo    the activator's consecutive-hit streak at fire time (the {@code %combo%} fact); 0 outside
+ *                 a tracked attack (the combat dispatch sets it on the attack side from its {@code ComboStore})
  */
 public record ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
-                                double damage, Block block) {
+                                double damage, Block block, int combo) {
 
     /**
-     * The common non-combat, non-block activation: no damage payload and no block. Keeps every existing
-     * call site terse while the combat/mine dispatchers use the full constructor to source {@code %damage%}
-     * and {@code %block.type%}.
+     * The combat/mine activation with a damage/block payload but no combat streak (defense side, MINE, …).
+     * Combo defaults to 0; the attack side uses the canonical constructor to pass the streak count.
+     */
+    public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
+                             double damage, Block block) {
+        this(actor, victim, attacker, location, damage, block, 0);
+    }
+
+    /**
+     * The common non-combat, non-block activation: no damage payload, no block, no streak. Keeps every
+     * existing call site terse while the combat/mine dispatchers use the fuller constructors to source
+     * {@code %damage%}/{@code %block.type%}/{@code %combo%}.
      */
     public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location) {
-        this(actor, victim, attacker, location, 0.0, null);
+        this(actor, victim, attacker, location, 0.0, null, 0);
     }
 }

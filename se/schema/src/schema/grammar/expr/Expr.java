@@ -32,6 +32,7 @@ import schema.diag.Source;
  */
 public sealed interface Expr
         permits Expr.Or, Expr.And, Expr.Not, Expr.Compare, Expr.StringMatch,
+                Expr.Arith, Expr.Neg,
                 Expr.VarRef, Expr.NumberLit, Expr.BoolLit, Expr.StringLit, Expr.Clause {
 
     /** The source position of this node's first character, for diagnostics. */
@@ -85,6 +86,21 @@ public sealed interface Expr
      * must be a literal) is se-compile's job; {@code source} points at the start of the left operand.
      */
     record StringMatch(Expr left, StrOp op, Expr right, Source source) implements Expr {}
+
+    /**
+     * A binary arithmetic expression {@code left op right} ({@code + - * /}), used wherever a
+     * numeric value is expected. Multiplication/division bind tighter than addition/subtraction;
+     * both are left-associative. Like {@link Compare} it carries no type — se-compile lowers it to
+     * the runtime numeric AST and rejects it in a boolean position. {@code source} points at the
+     * start of the left operand.
+     */
+    record Arith(Expr left, ArithOp op, Expr right, Source source) implements Expr {}
+
+    /**
+     * Numeric negation ({@code -operand}), the unary minus binding tighter than the binary
+     * arithmetic operators. {@code source} points at the {@code -} token.
+     */
+    record Neg(Expr operand, Source source) implements Expr {}
 
     /**
      * A {@code %scope.name%} variable reference. The {@code scope} is optional: a

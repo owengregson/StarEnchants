@@ -59,10 +59,14 @@ public record ExprTok(ExprTok.Kind kind, String text, int col) {
         MATCHES_REGEX,
         /** {@code :} — the clause separator between a condition's test and its flow/chance outcome. */
         COLON,
-        /** {@code +} — the optional positive sign of a {@code ±N %chance%} clause delta. */
+        /** {@code +} — addition, or the optional positive sign of a {@code ±N %chance%} clause delta. */
         PLUS,
-        /** {@code -} — the optional negative sign of a {@code ±N %chance%} clause delta. */
+        /** {@code -} — subtraction / numeric negation, or the optional negative sign of a {@code ±N %chance%} clause delta. */
         MINUS,
+        /** {@code *} — numeric multiplication (arithmetic operands). */
+        STAR,
+        /** {@code /} — numeric division (arithmetic operands). */
+        SLASH,
         /** End of input — a sentinel the parser stops on; {@link ExprTok#text} is empty. */
         EOF
     }

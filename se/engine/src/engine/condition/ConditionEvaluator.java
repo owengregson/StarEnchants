@@ -93,16 +93,8 @@ public final class ConditionEvaluator {
     }
 
     private static double num(NumExpr e, FactBuffer f) {
-        if (e instanceof NumExpr.Var v) {
-            return f.number(v.slot());
-        }
-        if (e instanceof NumExpr.Lit l) {
-            return l.value();
-        }
-        if (e instanceof NumExpr.Papi p) {
-            return parseDouble(f.resolvePapi(p.raw()));
-        }
-        throw new IllegalStateException("unknown numeric operand: " + e);
+        // The numeric walk (incl. arithmetic) is shared with expression-valued effect arguments (§3.4).
+        return NumExprEval.eval(e, f);
     }
 
     private static String str(StrExpr e, FactBuffer f) {
@@ -159,16 +151,5 @@ public final class ConditionEvaluator {
         String t = s.trim();
         return t.equalsIgnoreCase("true") || t.equalsIgnoreCase("yes")
                 || t.equalsIgnoreCase("on") || t.equals("1");
-    }
-
-    private static double parseDouble(String s) {
-        if (s == null) {
-            return Double.NaN; // unresolved placeholder → fail-closed numeric comparisons
-        }
-        try {
-            return Double.parseDouble(s.trim());
-        } catch (NumberFormatException e) {
-            return Double.NaN;
-        }
     }
 }

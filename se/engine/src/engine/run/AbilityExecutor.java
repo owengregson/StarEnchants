@@ -85,7 +85,7 @@ public final class AbilityExecutor {
             Ability ability = abilities[id];
             try {
                 if (pipeline.evaluate(ability, activation).activated()) {
-                    runEffects(ability, context, sink, activation.activeGem());
+                    runEffects(ability, context, sink, activation.activeGem(), activation.facts());
                     activated++;
                     notifyActivation(ability, context, stableKeys);
                 }
@@ -155,7 +155,7 @@ public final class AbilityExecutor {
                 List<LivingEntity> targets = selector == null ? List.of() : selector.resolve(sel);
                 List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), null);
+                        locationSlotMap(kind, locations), ability.level(), null, null);
                 sink.delay(0); // lifecycle transitions are immediate — a buff turns on/off with the equip change
                 if (stopping) {
                     kind.stop(ctx, sink);
@@ -168,7 +168,8 @@ public final class AbilityExecutor {
         }
     }
 
-    private void runEffects(Ability ability, ActivationContext context, DispatchSink sink, UUID activeGem) {
+    private void runEffects(Ability ability, ActivationContext context, DispatchSink sink, UUID activeGem,
+                            engine.condition.FactBuffer facts) {
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = effects.lookup(effect.head()).orElse(null);
@@ -185,7 +186,7 @@ public final class AbilityExecutor {
                     LOG.log(Level.WARNING, "no selector kind registered for head " + effect.target().head());
                 }
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), activeGem);
+                        locationSlotMap(kind, locations), ability.level(), activeGem, facts);
                 // WAIT (§3.6): route this effect's world-mutation intents into its accumulated delay tier so
                 // they dispatch that many ticks after the hit. Targets are still resolved now, on the firing
                 // thread; the sink defers only the mutation (and keeps inline feedback — fold/cancel — instant).

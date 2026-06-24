@@ -20,9 +20,11 @@ package engine.condition;
  * the victim's {@code health/maxhealth/healthpercent/food/type/helditem} and pose flags
  * ({@code victim.sneaking/blocking/flying/sprinting/swimming/gliding}); the combat {@code damage}; the broken
  * {@code block.type}/{@code isblock} (MINE); and the world {@code world.raining}/{@code world.thundering}/{@code world.time}.
- * <strong>Declared but not yet sourced</strong> (reads 0 until a model exists; no shipped content depends on it):
- * {@code combo} — there is no combat-streak tracker, and inventing one is out of scope (ADR-0019 no-invention);
- * it stays declared so authored conditions referencing it still compile.
+ * Also sourced: {@code combo} — the activator's consecutive-hit streak, from the combat dispatch's
+ * {@code ComboStore} (RAGE-style scaling); {@code distance} — actor↔victim distance in blocks; and
+ * {@code nearbyenemies} — the count of other living entities within 8 blocks of the actor (GANK-style
+ * scaling). The latter two are derived in {@code FactPopulator} on the firing thread (Folia-guarded; a
+ * cross-region read defaults them to 0).
  *
  * <p>Slots are assigned per kind in registration order, so new facts are <strong>appended</strong> — never
  * reordered — or a previously-compiled condition's slot would drift from the populated buffer.
@@ -50,6 +52,9 @@ public final class BuiltinVars {
                 .number("victim.healthpercent")
                 .number("victim.food")
                 .number("world.time")
+                // Appended for the exotic-effect port — never reorder the above.
+                .number("distance")        // actor↔victim distance in blocks (DAMAGE_DISTANCE-style scaling)
+                .number("nearbyenemies")   // count of other living entities within 8 blocks (GANK-style scaling)
                 // ── Boolean flags ──
                 // The activator's pose/state (bare names).
                 .flag("sneaking")
