@@ -39,6 +39,9 @@ public final class SchemaWriter {
             b.append("# TODO set a trigger — legacy type '").append(e.legacyTrigger())
                     .append("' has no StarEnchants equivalent\n");
         }
+        if (e.repeatTicks() > 0) {
+            b.append("repeat: ").append(e.repeatTicks()).append('\n'); // EE REPEATING-<seconds> period
+        }
         if (!e.appliesTo().isEmpty()) {
             b.append("applies-to: [").append(String.join(", ", e.appliesTo())).append("]\n");
         } else if (e.legacyApplies() != null) {

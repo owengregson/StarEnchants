@@ -179,6 +179,91 @@ class MigratorTest {
     }
 
     @Test
+    void translatesTheExpandedEeEffectVocabulary() {
+        // Combat (ATTACK direction): the foe is @Victim.
+        assertEquals("POTION:CONFUSION:1:60:@Victim", Mappings.effect("POTION:CONFUSION:1:TARGET:3").se()); // sec→ticks
+        assertEquals("POTION:FAST_DIGGING:1:200:@Self", Mappings.effect("POTION:FAST_DIGGING:1:PLAYER").se()); // no-dur default
+        assertEquals("MODIFY_HEALTH:2:give:@Self", Mappings.effect("HEAL:ADD:1:2").se());        // range → max
+        assertEquals("MODIFY_HEALTH:50:give:@Self", Mappings.effect("HEAL:ADD:40:50:PLAYER").se()); // trailing target ignored
+        assertEquals("DAMAGE_MOD:defense:add:1.85", Mappings.effect("REDUCTION:1.85").se());     // decimal kept
+        assertEquals("DAMAGE_MOD:defense:add:100", Mappings.effect("REDUCTION:150").se());       // clamped to 100
+        assertEquals("DAMAGE_MOD:attack:add:25", Mappings.effect("DAMAGE_INCREASE:25").se());
+        assertFalse(Mappings.effect("DAMAGE_INCREASE:-50").mapped());                            // negative self-nerf → TODO
+        assertEquals("REMOVE_POTION:POISON:@Self", Mappings.effect("CURE:POISON:true").se());
+        assertEquals("SOUND:ENTITY_GENERIC_EXPLODE:2:5", Mappings.effect("SOUND:ENTITY_GENERIC_EXPLODE:2:5").se());
+        assertEquals("PARTICLE:FLAME", Mappings.effect("PARTICLE:FLAME").se());
+        assertEquals("DURABILITY:10:item:restore", Mappings.effect("ADD_DURABILITY:10").se());
+        assertEquals("DURABILITY:2:armor:damage:@Victim", Mappings.effect("DAMAGE_ARMOR:2").se());
+        assertEquals("DAMAGE:3.25:@Aoe", Mappings.effect("DAMAGE_ARC:3.25").se());               // decimal arc damage
+        assertEquals("LIGHTNING:5:@Victim", Mappings.effect("LIGHTNING:TARGET:REAL").se());
+        assertEquals("EXPLODE:1:false:@Victim", Mappings.effect("EXPLODE:1:false:TARGET").se());
+        assertEquals("VELOCITY:add:0:5:0:@Self", Mappings.effect("THROW:0:5:0:PLAYER").se());
+        assertEquals("SPAWN_ENTITY:PRIMED_TNT:2", Mappings.effect("TNT:2:PLAYER").se());
+        assertEquals("SPAWN_ENTITY:IRON_GOLEM:1:400:0:activator",
+                Mappings.effect("SPAWN:IRON_GOLEM:20:1:10:&b&l%player%").se());
+        assertEquals("SUPPRESS:GROUP:common:200:@Victim", Mappings.effect("DISABLE_ENCHANTMENT_GROUP:COMMON:10").se());
+        assertEquals("SUPPRESS:ENCHANT:enchants/immortal:80:@Victim",
+                Mappings.effect("DISABLE_ENCHANTMENT:immortal:4").se());
+        assertEquals("SUPPRESS:TYPE:DEFENSE:100:@Victim", Mappings.effect("DISABLE_ENCHANTMENT_TYPE:DEFENSE:5").se());
+        assertEquals("DAMAGE_MOD:defense:add:100", Mappings.effect("DAMAGE_CANCEL").se()); // ≈ cancel the hit
+        assertEquals("IGNORE_ARMOR", Mappings.effect("ARMOR_CANCEL").se());
+    }
+
+    @Test
+    void eeEffectsAreDirectionAwareOnDefense() {
+        // DEFENSE direction: the foe is @Attacker (the entity that struck the wielder); the wielder is @Self.
+        assertEquals("DAMAGE:6:@Attacker", Mappings.effect("DAMAGE:1:6:TARGET", true).se());
+        assertEquals("POTION:WITHER:1:80:@Attacker", Mappings.effect("POTION:WITHER:1:TARGET:4", true).se());
+        assertEquals("MODIFY_HEALTH:3:give:@Self", Mappings.effect("HEAL:ADD:2:3", true).se()); // self-heal both ways
+        assertEquals("SUPPRESS:GROUP:rare:200:@Attacker",
+                Mappings.effect("DISABLE_ENCHANTMENT_GROUP:RARE:10", true).se());
+    }
+
+    @Test
+    void eeDefenseCompoundEffectPortsTheInnerEffect() {
+        // ender-walker: "DEFENSE;<factor>;HEAL:ADD:1:2" → the inner HEAL maps; the threshold factor is dropped.
+        var compound = Mappings.effect("DEFENSE;2.5;HEAL:ADD:1:3", true);
+        assertTrue(compound.mapped());
+        assertEquals("MODIFY_HEALTH:3:give:@Self", compound.se());
+    }
+
+    @Test
+    void eeConditionsMapToFactsOrTodo() {
+        assertEquals("%actor.health% <= 5", Mappings.eeCondition("isPlayerHealth <= 5").expr());
+        assertEquals("%victim.health% <= 5", Mappings.eeCondition("isTargetHealth <= 5").expr());
+        assertEquals("%blocking% == true", Mappings.eeCondition("isPlayerBlocking").expr());
+        // isTargetHolding checks an item GROUP — no SE fact → TODO (never emitted as an invalid raw gate).
+        assertFalse(Mappings.eeCondition("isTargetHolding SWORD").mapped());
+    }
+
+    @Test
+    void eeRepeatingTypeMapsToTheRepeatTrigger() {
+        assertEquals("REPEATING", Mappings.trigger("REPEATING-5"));
+        assertEquals(100, Mappings.repeatTicks("REPEATING-5")); // 5s × 20
+        assertEquals(0, Mappings.repeatTicks("ATTACK"));
+    }
+
+    @Test
+    void migratesAnEeRepeatingEnchantWithItsPeriod(@TempDir Path dir) throws IOException {
+        String ee = """
+                Enchants:
+                  implants:
+                    name: "Implants"
+                    group: "EPIC"
+                    applies: "HELMET"
+                    type: "REPEATING-5"
+                    levels:
+                      1: { chance: 25, effects: ['HEAL:ADD:1', 'FEED:2'] }
+                """;
+        Migrator.Result result = Migrator.eliteEnchantments(ee, SPECS);
+        String yml = result.files().get("enchants/implants.yml");
+        assertTrue(yml.contains("trigger: REPEATING"), () -> yml);
+        assertTrue(yml.contains("repeat: 100"), () -> yml);
+        Library library = compile(result.files(), dir);
+        assertFalse(library.hasErrors(), "migrated repeating enchant should compile clean");
+    }
+
+    @Test
     void migratesEliteArmorSetToCompilableContent(@TempDir Path dir) throws IOException {
         String ea = """
                 Required-Items: 4
