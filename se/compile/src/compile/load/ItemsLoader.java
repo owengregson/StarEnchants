@@ -258,11 +258,17 @@ public final class ItemsLoader {
 
     private static DustConfig readDust(YamlNode root, Diagnostics diags) {
         DustConfig d = DustConfig.defaults();
+        // `success-bonus` is a shorthand for a FIXED dust (min == max); explicit min-bonus/max-bonus override it.
+        int legacy = parseInt(root.string("success-bonus"), -1, root, diags);
+        int min = root.has("min-bonus") ? parseInt(root.string("min-bonus"), d.minBonus(), root, diags)
+                : (legacy >= 0 ? legacy : d.minBonus());
+        int max = root.has("max-bonus") ? parseInt(root.string("max-bonus"), d.maxBonus(), root, diags)
+                : (legacy >= 0 ? legacy : d.maxBonus());
         return new DustConfig(
                 orDefault(root.string("material"), d.material()),
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
-                parseInt(root.string("success-bonus"), d.successBonus(), root, diags),
+                min, max,
                 orDefault(root.string("sound"), d.sound()),
                 root.has("particles") ? root.stringList("particles") : d.particles());
     }
@@ -281,7 +287,9 @@ public final class ItemsLoader {
                 orDefault(root.string("material"), d.material()),
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
-                root.has("success-lore") ? root.stringList("success-lore") : d.successLore());
+                root.has("success-lore") ? root.stringList("success-lore") : d.successLore(),
+                root.has("destroy-on-fail")
+                        ? "true".equalsIgnoreCase(root.string("destroy-on-fail")) : d.destroyOnFail());
     }
 
     private static UnopenedBookConfig readUnopenedBook(YamlNode root, Diagnostics diags) {

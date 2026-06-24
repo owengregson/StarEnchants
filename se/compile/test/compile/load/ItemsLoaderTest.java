@@ -108,12 +108,13 @@ class ItemsLoaderTest {
     }
 
     @Test
-    void parsesADustAndWhiteScrollConfig(@TempDir Path dir) throws Exception {
+    void parsesADustRangeAndWhiteScrollConfig(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("dust.yml"), """
                 type: dust
                 material: REDSTONE
                 name: "&cTinker Dust"
-                success-bonus: 25
+                min-bonus: 5
+                max-bonus: 40
                 """);
         Files.writeString(dir.resolve("white-scroll.yml"), """
                 type: white-scroll
@@ -124,12 +125,24 @@ class ItemsLoaderTest {
         ItemsConfig config = ItemsLoader.load(dir);
         DustConfig dust = config.dust().orElseThrow();
         assertEquals("REDSTONE", dust.material());
-        assertEquals(25, dust.successBonus());
+        assertEquals(5, dust.minBonus());
+        assertEquals(40, dust.maxBonus());
         // Omitted sound falls back to the default.
         assertEquals(DustConfig.defaults().sound(), dust.sound());
         WhiteScrollConfig white = config.whiteScroll().orElseThrow();
         assertEquals("MAP", white.material());
         assertEquals("&fWard", white.name());
+    }
+
+    @Test
+    void dustSuccessBonusShorthandIsAFixedRange(@TempDir Path dir) throws Exception {
+        // The legacy `success-bonus` shorthand sets a FIXED dust (min == max).
+        Files.writeString(dir.resolve("dust.yml"), "type: dust\nsuccess-bonus: 25\n");
+
+        DustConfig dust = ItemsLoader.load(dir).dust().orElseThrow();
+        assertEquals(25, dust.minBonus());
+        assertEquals(25, dust.maxBonus());
+        assertEquals("25", dust.bonusLabel());
     }
 
     @Test

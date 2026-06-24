@@ -57,7 +57,6 @@ public final class LibraryLoader {
         List<EnchantDef> catalog = new ArrayList<>();
         List<CrystalDef> crystals = new ArrayList<>();
         List<SetDef> sets = new ArrayList<>();
-        List<ItemDef> items = new ArrayList<>();
         List<AbilityDef> defs = new ArrayList<>();
         int[] nextDefId = {0};
         Set<String> seenKeys = new HashSet<>();
@@ -110,26 +109,9 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
-        // Carrier items: the key keeps the full path (items/<kind>/<name>) — items are not stamped on gear
-        // as enchant keys, so there is no key-stability concern; the in-file `tier:` sets the tier.
-        for (Path file : sourceFiles(contentRoot, "items")) {
-            String key = stripExtension(relativePath(contentRoot, file));
-            if (!claim(key, contentRoot, file, seenKeys, diags)) {
-                continue;
-            }
-            YamlNode root = composeOf(contentRoot, file, diags);
-            if (root == null) {
-                continue;
-            }
-            ItemDef def = ItemDefReader.read(key, tiers.defaultTier(), root, diags);
-            if (def != null) {
-                items.add(def);
-            }
-        }
-
         validateRelationships(catalog, diags); // §G: requires/blacklist must name existing enchants
         Snapshot snapshot = compiler.compile(defs, generation, diags);
-        return new Library(snapshot, catalog, crystals, sets, items, tiers, diags.all());
+        return new Library(snapshot, catalog, crystals, sets, tiers, diags.all());
     }
 
     /**

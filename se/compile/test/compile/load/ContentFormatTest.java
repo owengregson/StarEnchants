@@ -21,7 +21,7 @@ import schema.spec.ParamSpec;
 
 /**
  * Unit tests for the content format: verbose effects, literal-{@code $} survival, tier folders with
- * key stability, in-file tier override, duplicate-key detection, carrier {@code ItemDef}s, and list
+ * key stability, in-file tier override, duplicate-key detection, and list
  * descriptions. Uses a real {@link Compiler} wired with a tiny effect-spec registry (HEAL, MESSAGE,
  * POTION) — no server — and the real {@link LibraryLoader}, so the verbose lowering is exercised end
  * to end through the production compile path.
@@ -240,34 +240,6 @@ class ContentFormatTest {
         assertEquals("divine", lib.tierOf("enchants/x"));
         assertEquals("scrap", lib.tierOf("enchants/plain")); // the declared default
         assertNotNull(lib.tiers().tier("divine"));
-    }
-
-    @Test
-    void carrierItemLoadsAsAZeroAbilityItemDef(@TempDir Path root) throws IOException {
-        write(root, "items/book/thunder-book.yml", """
-            display: "&dThunder Book"
-            description: "Apply Thunderstrike."
-            kind: book
-            grants:
-              enchant: enchants/thunderstrike
-              level: 3
-            apply:
-              success-chance: 75
-              destroy-on-fail: true
-            """);
-        Library lib = LibraryLoader.load(root, compiler(), 1);
-
-        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
-        assertEquals(0, lib.snapshot().abilityCount()); // carriers never compile to abilities
-        assertEquals(1, lib.items().size());
-        ItemDef book = lib.items().get(0);
-        assertEquals("items/book/thunder-book", book.key());
-        assertEquals("book", book.kind());
-        assertEquals("ENCHANTED_BOOK", book.material()); // per-kind default
-        assertEquals("enchants/thunderstrike", book.grant().enchant());
-        assertEquals(3, book.grant().level());
-        assertEquals(75, book.apply().successChance());
-        assertTrue(book.apply().destroyOnFail());
     }
 
     @Test

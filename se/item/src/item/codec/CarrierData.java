@@ -8,23 +8,22 @@ import java.util.Objects;
  * {@link ItemKeys#carrier()}, separate from the {@link CombatState} blob so a carrier never decodes on
  * the combat hot path.
  *
- * @param itemKey      the {@code ItemDef} key it was minted from (e.g. {@code items/book/thunder-book})
- *                     — the source of the apply mechanics (success/destroy/protect, kind); never
- *                     {@code null}
+ * @param itemKey      the stable carrier-kind key — one of the {@code CarrierService} sentinels
+ *                     {@code "book"} / {@code "dust"} / {@code "white-scroll"} — naming what kind of carrier
+ *                     this is (and so its apply mechanics); never {@code null}
  * @param grantKey     the RESOLVED content key it confers (e.g. {@code enchants/thunderstrike}),
  *                     resolved at mint time (so a random-pool book fixes its roll on creation);
- *                     {@code ""} for a carrier that grants no content (e.g. a protect scroll); never
+ *                     {@code ""} for a carrier that grants no content (a dust / white scroll); never
  *                     {@code null}
- * @param grantLevel   the enchant level to grant ({@code 0} for crystals/sets/scrolls)
- * @param successBonus the success-chance bonus accumulated on THIS carrier (ADR-0019): combining a dust
- *                     onto an enchant book raises the book's stored bonus, and the book's effective
- *                     success when applied to gear is {@code clamp(base + successBonus)}.
- *                     {@code 0} for a freshly-minted carrier, a dust, or a scroll. Non-negative.
- * @param baseSuccess  an explicit base success chance that OVERRIDES the def-derived base when
- *                     {@code >= 0} (docs/v3-directives.md §I): an unopened book mints its output book
- *                     with a random success, and a randomizer scroll rerolls a book's success in full
- *                     range — both need a per-item base that the {@code ItemDef} cannot supply.
- *                     {@code -1} means "use the def's success chance" (the common case).
+ * @param grantLevel   the enchant level to grant ({@code 0} for a dust / white scroll)
+ * @param successBonus dual-use, never negative: on an enchant BOOK it is the accumulated dust bonus
+ *                     (ADR-0019) — the book's effective success on gear is {@code clamp(base + successBonus)};
+ *                     on a DUST it is the FIXED bonus the dust confers ({@code 0} = roll the configured
+ *                     {@code [min, max]} range at apply). {@code 0} for a freshly-minted book or white scroll.
+ * @param baseSuccess  an explicit base success chance that OVERRIDES the default 100 when {@code >= 0}
+ *                     (docs/v3-directives.md §I): an unopened book mints its output with a random success,
+ *                     and a randomizer scroll rerolls a book's success in full range — both need a per-item
+ *                     base. {@code -1} means "use the default success" (the common case).
  */
 public record CarrierData(String itemKey, String grantKey, int grantLevel, int successBonus, int baseSuccess) {
 

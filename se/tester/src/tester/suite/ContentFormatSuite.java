@@ -16,14 +16,13 @@ import tester.harness.Harness;
  * REAL effect-spec registry + selector vocabulary + handle resolvers (the unit tests use a tiny
  * hand-built registry). A small content tree is compiled through the production {@link ContentCompiler}
  * on this server, exercising verbose effects against the real {@code ParamSpec}s, the explicit per-level
- * shape, tier subfolders with key stability, and a carrier {@code ItemDef}.
+ * shape, and tier subfolders with key stability.
  *
  * <ul>
  *   <li>{@code content.format.verbose} — a verbose {@code IGNITE: { duration }} / {@code MESSAGE: { text }}
  *       enchant compiles clean against the real specs, and a colon-bearing message text survives.</li>
  *   <li>{@code content.format.levels} — every explicitly-declared level compiles to its own ability.</li>
  *   <li>{@code content.format.tier} — a file under {@code enchants/mythic/} keeps the tier OFF the stable key.</li>
- *   <li>{@code content.format.item} — an {@code items/book/} carrier loads as a zero-ability ItemDef.</li>
  * </ul>
  */
 public final class ContentFormatSuite implements Harness.Scenario {
@@ -47,13 +46,6 @@ public final class ContentFormatSuite implements Harness.Scenario {
                   - { MESSAGE: { text: "Zap: the storm strikes!" } }
                   - { MODIFY_HEALTH: { amount: 4, who: "@Self" } }
             """;
-    private static final String STORM_BOOK = """
-            display: "&dStorm Book"
-            kind: book
-            grants: { enchant: enchants/stormcaller, level: 3 }
-            apply: { success-chance: 80 }
-            """;
-
     private final Plugin plugin;
 
     public ContentFormatSuite(Plugin plugin) {
@@ -65,16 +57,14 @@ public final class ContentFormatSuite implements Harness.Scenario {
         h.expect("content.format.verbose");
         h.expect("content.format.levels");
         h.expect("content.format.tier");
-        h.expect("content.format.item");
 
         Path root;
         try {
             root = Files.createTempDirectory("se-content-format-suite");
             write(root, "enchants/mythic/stormcaller.yml", STORMCALLER);
-            write(root, "items/book/storm-book.yml", STORM_BOOK);
         } catch (IOException e) {
             for (String key : new String[] {
-                    "content.format.verbose", "content.format.levels", "content.format.tier", "content.format.item"}) {
+                    "content.format.verbose", "content.format.levels", "content.format.tier"}) {
                 h.fail(key, e.toString());
             }
             return;
@@ -121,16 +111,6 @@ public final class ContentFormatSuite implements Harness.Scenario {
             }
             if (!"mythic".equals(lib.tierOf("enchants/stormcaller"))) {
                 throw new IllegalStateException("folder-derived tier wrong: " + lib.tierOf("enchants/stormcaller"));
-            }
-        });
-
-        h.guard("content.format.item", () -> {
-            if (lib.items().size() != 1) {
-                throw new IllegalStateException("expected one carrier ItemDef, got " + lib.items().size());
-            }
-            if (!"book".equals(lib.items().get(0).kind())
-                    || !"enchants/stormcaller".equals(lib.items().get(0).grant().enchant())) {
-                throw new IllegalStateException("carrier ItemDef parsed wrong: " + lib.items().get(0));
             }
         });
     }

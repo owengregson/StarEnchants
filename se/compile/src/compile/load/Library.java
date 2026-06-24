@@ -6,23 +6,26 @@ import schema.diag.Diagnostic;
 
 /**
  * The result of loading a content library (ADR-0014, ADR-0016): the compiled runtime {@link Snapshot}
- * the engine walks, the parsed {@link EnchantDef}/{@link CrystalDef}/{@link SetDef}/{@link ItemDef}
- * catalogs (display metadata for the render/apply cycles), the {@link TierRegistry}, and every
- * {@link Diagnostic} the load produced. Immutable; published by reference through {@link ContentHolder}.
+ * the engine walks, the parsed {@link EnchantDef}/{@link CrystalDef}/{@link SetDef} catalogs (display
+ * metadata for the render/apply cycles), the {@link TierRegistry}, and every {@link Diagnostic} the load
+ * produced. Immutable; published by reference through {@link ContentHolder}.
  *
  * <p>A {@code Snapshot} is always present (the compiler always returns one); inspect
  * {@link #hasErrors()} before publishing — a load with blocking diagnostics keeps the previous
  * library live (transactional reload, §10).
+ *
+ * <p>Carrier items (books, dust, scrolls) are NOT content: they are minted from the top-level
+ * {@code items/*.yml} likeness ({@code ItemsConfig}), not authored under {@code content/} — so there is
+ * no item catalog here.
  */
 public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalDef> crystals,
-                      List<SetDef> sets, List<ItemDef> items, TierRegistry tiers,
+                      List<SetDef> sets, TierRegistry tiers,
                       List<Diagnostic> diagnostics) {
 
     public Library {
         catalog = List.copyOf(catalog);
         crystals = List.copyOf(crystals);
         sets = List.copyOf(sets);
-        items = List.copyOf(items);
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -68,7 +71,7 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
 
     /** An empty library around an already-compiled (empty) snapshot — the boot-failure fallback. */
     public static Library empty(Snapshot snapshot, List<Diagnostic> diagnostics) {
-        return new Library(snapshot, List.of(), List.of(), List.of(), List.of(), TierRegistry.BUILTIN, diagnostics);
+        return new Library(snapshot, List.of(), List.of(), List.of(), TierRegistry.BUILTIN, diagnostics);
     }
 
     /** Whether the load produced any blocking diagnostic (the caller then keeps the old library). */

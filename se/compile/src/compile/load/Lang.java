@@ -152,17 +152,15 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         // §J give-to-player surface + the inverse removeenchant
         s.put("command.give.usage",
                 "&eUsage: /se give <type> <player> [args] &7— type: gem [amount] | crystal <key> | book <enchant> "
-                        + "[level] [success] | item <id> [args] | heroic | upgrade | orb | blackscroll | "
-                        + "randomizer | transmog | godlytransmog | holy | nametag | dust | whitescroll | unopened <tier>");
+                        + "[level] [success] | heroic | upgrade | orb | blackscroll | randomizer | transmog | "
+                        + "godlytransmog | holy | nametag | dust [percent] | whitescroll | unopened <tier>");
         s.put("command.give.delivered", "&aGave &f{ITEM}&a to &f{PLAYER}&a.");
-        s.put("command.give.item", "&aReceived &f{ID}&a.");
         s.put("command.give.set", "&aMinted the &f{KEY}&a {PIECE} piece. &7Wear the set to complete its bonus.");
         s.put("command.give.set-piece",
                 "&cThe &f{KEY}&c set has no &f{PIECE}&c piece — use HELMET / CHESTPLATE / LEGGINGS / BOOTS.");
         s.put("command.set.usage", "&eUsage: /se give set <player> <set> <piece> &7— mint an armour set piece");
         s.put("command.error.no-such-set", "&cNo such set: &f{KEY}");
         s.put("command.error.no-such-player", "&cNo online player named &f{PLAYER}&c.");
-        s.put("command.error.no-such-item", "&cNo such item: &f{ID}&c.");
         s.put("command.removeenchant.usage", "&eUsage: /se removeenchant <enchant> &7— strips it from the held item");
 
         // ── ItemEnchanter ApplyResult reasons ─────────────────────────────────────────────────────
@@ -264,7 +262,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&e  /se godlytransmog &7— mint a godly transmog (hand-reorder enchant lore)",
                 "&e  /se holy &7— mint a holy white scroll (survive a death once)",
                 "&e  /se nametag &7— mint an item nametag (rename gear via chat)",
-                "&e  /se dust &7— mint success dust (drag onto a book to boost its success)",
+                "&e  /se dust [percent] &7— mint success dust (random, or a fixed % to boost a book)",
                 "&e  /se whitescroll &7— mint a white scroll (protect gear from a failed enchant)",
                 "&e  /se unopened <tier> &7— mint an unopened book (right-click to reveal)",
                 "&e  /se menu [name] &7— open a GUI (default: the enchant-application menu)",
