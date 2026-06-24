@@ -50,13 +50,14 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
             List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb", "slotgem",
-                    "gem", "book", "blackscroll", "randomizer", "transmog", "holy", "nametag", "unopened", "soulmode",
+                    "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
+                    "unopened", "soulmode",
                     "split", "migrate", "menu", "effects", "selectors", "triggers", "conditions", "variables", "list");
 
     /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
             List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb", "slotgem",
-                    "blackscroll", "randomizer", "transmog", "holy", "nametag", "unopened");
+                    "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "unopened");
 
     /** The set members {@code /se give set <player> <set> <member>} can mint (§6.6). */
     static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
@@ -126,6 +127,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "blackscroll" -> giveScroll(sender, true);
             case "randomizer" -> giveScroll(sender, false);
             case "transmog" -> giveSimpleItem(sender, scrolls.mintTransmog(), messages.format("command.give.transmog"));
+            case "godlytransmog" -> giveSimpleItem(sender, scrolls.mintGodlyTransmog(),
+                    messages.format("command.give.godlytransmog"));
             case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), messages.format("command.give.holy"));
             case "nametag" -> giveSimpleItem(sender, nametags.mint(), messages.format("command.give.nametag"));
             case "unopened" -> giveUnopened(sender, args);

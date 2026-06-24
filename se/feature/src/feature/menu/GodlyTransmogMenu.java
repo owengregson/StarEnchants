@@ -46,24 +46,44 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
     }
 
+    /** Per-open binding: the working enchant order + the inventory slot it reorders ({@code -1} = main hand). */
+    private record Working(List<String> order, int slot) {
+    }
+
     @Override
     public void open(Player player) {
-        // Capture the held item's enchant order on the player's region thread (a cross-region read off the
-        // command thread would be unsafe on Folia), then open inline.
+        open(player, -1); // -1 = the held main-hand item (the /se menu transmog path)
+    }
+
+    /**
+     * Open the reorder GUI bound to a specific inventory {@code slot} ({@code -1} = main hand) — the physical
+     * godly-transmog tool uses this to reorder the gear it was dragged onto, not whatever is held.
+     */
+    public void open(Player player, int slot) {
+        // Capture the bound item's enchant order on the player's region thread (a cross-region read off the
+        // command/click thread would be unsafe on Folia), then open inline.
         Scheduling.onEntity(player, () -> {
             MenuHolder holder = new MenuHolder(this);
-            CombatState state = combat.read(player.getInventory().getItemInMainHand());
-            holder.setPayload(new ArrayList<>(state.enchants().keySet())); // the working order
+            CombatState state = combat.read(gearAt(player, slot));
+            holder.setPayload(new Working(new ArrayList<>(state.enchants().keySet()), slot));
             render(holder);
             player.openInventory(holder.getInventory());
         });
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected List<String> items(MenuHolder holder) {
+        return binding(holder).order();
+    }
+
+    private static Working binding(MenuHolder holder) {
         Object payload = holder.payload();
-        return payload instanceof List ? (List<String>) payload : List.of();
+        return payload instanceof Working w ? w : new Working(new ArrayList<>(), -1);
+    }
+
+    /** The bound gear ItemStack: the main hand for {@code slot == -1}, else the inventory slot. */
+    private static ItemStack gearAt(Player player, int slot) {
+        return slot < 0 ? player.getInventory().getItemInMainHand() : player.getInventory().getItem(slot);
     }
 
     @Override
@@ -101,9 +121,14 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
         int j = order.indexOf(key);
         if (i >= 0 && j >= 0) {
             Collections.swap(order, i, j); // swap in the working order
-            ItemStack held = click.player().getInventory().getItemInMainHand();
-            if (scrolls.reorder(held, order)) {
-                click.player().getInventory().setItemInMainHand(held); // write the reordered copy back
+            int slot = binding(holder).slot();
+            ItemStack gear = gearAt(click.player(), slot);
+            if (scrolls.reorder(gear, order)) {
+                if (slot < 0) {
+                    click.player().getInventory().setItemInMainHand(gear);
+                } else {
+                    click.player().getInventory().setItem(slot, gear); // write back to the bound slot
+                }
             }
         }
         holder.setSelection(null);

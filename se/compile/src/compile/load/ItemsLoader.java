@@ -121,11 +121,13 @@ public final class ItemsLoader {
         YamlNode trans = root.child("transmog");
         YamlNode holy = root.child("holy");
         YamlNode tag = root.child("nametag");
+        YamlNode godly = root.child("godly");
         ScrollsConfig.Black bd = d.black();
         ScrollsConfig.Randomizer rd = d.randomizer();
         ScrollsConfig.Transmog td = d.transmog();
         ScrollsConfig.Holy hd = d.holy();
         ScrollsConfig.Nametag nd = d.nametag();
+        ScrollsConfig.Godly gd = d.godly();
         return new ScrollsConfig(
                 new ScrollsConfig.Black(
                         orDefault(black.string("material"), bd.material()),
@@ -152,7 +154,11 @@ public final class ItemsLoader {
                         orDefault(tag.string("material"), nd.material()),
                         orDefault(tag.string("name"), nd.name()),
                         tag.has("lore") ? tag.stringList("lore") : nd.lore(),
-                        tag.has("blacklist") ? tag.stringList("blacklist") : nd.blacklist()));
+                        tag.has("blacklist") ? tag.stringList("blacklist") : nd.blacklist()),
+                new ScrollsConfig.Godly(
+                        orDefault(godly.string("material"), gd.material()),
+                        orDefault(godly.string("name"), gd.name()),
+                        godly.has("lore") ? godly.stringList("lore") : gd.lore()));
     }
 
     private static UnopenedBookConfig readUnopenedBook(YamlNode root, Diagnostics diags) {

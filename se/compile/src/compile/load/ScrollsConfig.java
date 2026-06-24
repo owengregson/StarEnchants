@@ -15,8 +15,10 @@ import java.util.Objects;
  * @param transmog   the transmog scroll (reorder an item's enchant lore + name suffix)
  * @param holy       the holy/death scroll (survive a death once)
  * @param nametag    the item nametag (rename gear via chat)
+ * @param godly      the physical godly-transmog tool (open the reorder GUI on a clicked piece)
  */
-public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmog, Holy holy, Nametag nametag) {
+public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmog, Holy holy, Nametag nametag,
+                            Godly godly) {
 
     public ScrollsConfig {
         Objects.requireNonNull(black, "black");
@@ -24,6 +26,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         Objects.requireNonNull(transmog, "transmog");
         Objects.requireNonNull(holy, "holy");
         Objects.requireNonNull(nametag, "nametag");
+        Objects.requireNonNull(godly, "godly");
     }
 
     /**
@@ -97,6 +100,19 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         }
     }
 
+    /**
+     * The physical godly-transmog tool: dragged onto enchanted gear, it OPENS the deterministic
+     * enchant-reorder GUI (§K) bound to that piece — a reusable tool, not a one-shot scroll. Its likeness
+     * is configured here; its marker is the dedicated {@code GodlyTransmogCodec} (off the scroll consume path).
+     */
+    public record Godly(String material, String name, List<String> lore) {
+        public Godly {
+            Objects.requireNonNull(material, "material");
+            Objects.requireNonNull(name, "name");
+            lore = List.copyOf(lore);
+        }
+    }
+
     /** The built-in scroll likenesses used when {@code items/scrolls.yml} is absent or omits fields. */
     public static ScrollsConfig defaults() {
         return new ScrollsConfig(
@@ -125,6 +141,10 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                         "NAME_TAG",
                         "&bItem Nametag",
                         List.of("&7Drag onto gear, then type the", "&7new name in chat."),
-                        List.of()));
+                        List.of()),
+                new Godly(
+                        "NETHER_STAR",
+                        "&5Godly Transmog",
+                        List.of("&7Drag onto enchanted gear to", "&7reorder its enchants by hand.")));
     }
 }

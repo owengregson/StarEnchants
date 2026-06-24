@@ -22,7 +22,7 @@ randomizer:
   max-percent: 100
 
 # Transmog scroll — drag onto enchanted gear to reorder its enchant display + append a name suffix.
-# (Godly/manual transmog is the reorder GUI, a later wave.)
+# (For the manual, deterministic reorder GUI see `godly:` below.)
 transmog:
   material: PURPLE_DYE
   name: "&5Transmog Scroll"
@@ -30,6 +30,15 @@ transmog:
     - "&7Drag onto enchanted gear to"
     - "&7reorder its enchant display."
   name-suffix: " &8(Transmogged)"
+
+# Godly transmog — a reusable tool: drag it onto enchanted gear to OPEN the deterministic enchant-reorder
+# GUI bound to THAT piece (unlike the transmog scroll above, which is a one-shot random shuffle). Not consumed.
+godly:
+  material: NETHER_STAR
+  name: "&5Godly Transmog"
+  lore:
+    - "&7Drag onto enchanted gear to"
+    - "&7reorder its enchants by hand."
 
 # Holy / death scroll — carry it (incl. off-hand) to keep your items + levels on a death (one use).
 # Respects the keepInventory gamerule (then it is neither needed nor spent).
