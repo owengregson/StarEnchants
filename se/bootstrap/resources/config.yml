@@ -6,6 +6,35 @@
 # transaction. Most values below are re-read live on the next use, so a reload re-tunes them without a restart
 # (the exceptions — integration discovery and the auto-reload interval — are armed once at boot and noted).
 
+# Per-feature master switches. Each turns a whole subsystem on/off. enchants/sets/crystals/heroic drop that
+# source when a player's worn state is resolved (their combat + trigger effects go inert; re-read live, so a
+# /se reload takes effect at once). slots/souls/scrolls gate their apply/interaction listeners at boot, so a
+# change to those three takes effect on the next server start (like the integration toggles below).
+features:
+  enchants: true   # enchant effects fire in combat / on triggers
+  sets: true       # armour-set bonuses (and the held-weapon set bonus) apply
+  crystals: true   # crystal effects fire
+  heroic: true     # heroic flat stats feed the heroic damage stage
+  slots: true      # the slot-expander orb can be applied to gear
+  souls: true      # the soul gem system (deposit on kill, soul mode, gem inventory)
+  scrolls: true    # scroll-family interactions (black/randomizer/transmog/holy/nametag/godly transmog)
+
+# Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
+# reduction%; these ceil those sums. A negative value = no cap (the default — current behaviour). pvp/pve gate
+# whether StarEnchants combat effects apply at all in that context. All read live on /se reload.
+combat:
+  max-bonus-damage: -1.0      # ceiling on summed outgoing-damage fraction (e.g. 5.0 = at most +500%); <0 = uncapped
+  max-bonus-reduction: -1.0   # ceiling on summed damage-reduction fraction (e.g. 0.8 = at most 80%); <0 = uncapped
+  pvp: true                   # apply combat effects in player-vs-player hits
+  pve: true                   # apply combat effects in player-vs-environment hits
+
+# Player feedback (chat style). prefix is prepended to every message the plugin sends through its message
+# facade (chat feedback only — never item names/lore). feedback toggles the keyed gameplay-feedback channel
+# (e.g. menu confirmations); false = a quieter server (admin command echoes still print). Read live on reload.
+messages:
+  prefix: ""        # e.g. "&8[&dSE&8] " — prepended to plugin chat messages
+  feedback: true    # send keyed gameplay-feedback messages to players
+
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
 slots:

@@ -189,7 +189,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // same reload transaction. The Messages facade colour-translates + substitutes at the send boundary
         // and reads the holder live, so a reload re-texts everything.
         LangHolder lang = new LangHolder(LangLoader.load(langFile));
-        Messages messages = new Messages(lang::lang);
+        Messages messages = new Messages(lang::lang,
+                () -> master.config().messages().prefix(),         // §L config.yml messages.prefix (live)
+                () -> master.config().messages().feedback());      // §L config.yml messages.feedback (live)
 
         // menus/ (§L) — per-GUI layout overrides, one file per menu; another parallel immutable reference
         // swapped in the same reload transaction. Each menu merges its programmatic default with this holder's
@@ -201,7 +203,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         ItemViewCache itemViews = new ItemViewCache(codec, initial.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornResolver wornResolver = new WornResolver(itemViews, triggers.count(),
-                triggers.attackTriggers(), triggers.defenseTriggers());
+                triggers.attackTriggers(), triggers.defenseTriggers(),
+                () -> {                                            // §L per-feature master toggles (live)
+                    MasterConfig.FeaturesSection ff = master.config().features();
+                    return new WornResolver.Features(ff.enchants(), ff.sets(), ff.crystals(), ff.heroic());
+                });
         WornStateStore worn = new WornStateStore(wornResolver::resolve);
 
         // Cold apply path: render lore from state (the display lookup reads the CURRENT library, so a
@@ -342,7 +348,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
                 soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback, keepOnDeath,
-                () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
+                () -> master.config().heroic().maxOutgoingFactor(),       // §F heroic clamp ceiling
+                () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
+                () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
+                () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
+                () -> master.config().combat().pve());                    // §L combat.pve gate (live)
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
                 tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback,
@@ -356,11 +366,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         lifecycle = new LifecycleDriver(triggerDispatch, content,
                 triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
 
+        // §L per-feature master toggles: slots/souls/scrolls gate their apply/interaction listeners at boot
+        // (these subsystems register event handlers, which cannot be cleanly re-bound mid-run, so — like the
+        // integration toggles — a change to these three takes effect on the next server start).
+        MasterConfig.FeaturesSection features = master.config().features();
+
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(new EquipListener(worn, content, passives, lifecycle), this);
-        getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
-        getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
-        getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
+        if (features.souls()) {
+            getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
+            getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
+            getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
+        } else {
+            getLogger().info("souls feature disabled (config.yml features.souls) — soul listeners not registered");
+        }
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch,
                 () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope())), this); // §F reduction-scope
         getServer().getPluginManager().registerEvents(
@@ -375,11 +394,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);
-        getServer().getPluginManager().registerEvents(new SlotListener(slots), this);
-        getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
+        if (features.slots()) {
+            getServer().getPluginManager().registerEvents(new SlotListener(slots), this);
+        } else {
+            getLogger().info("slots feature disabled (config.yml features.slots) — slot-expander apply not registered");
+        }
         getServer().getPluginManager().registerEvents(new UnopenedBookListener(unopenedBooks), this);
-        getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls), this);
-        getServer().getPluginManager().registerEvents(new NametagListener(nametags), this);
+        // §L scrolls feature: the black/randomizer/transmog + holy + nametag + godly-transmog interactions.
+        if (features.scrolls()) {
+            getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
+            getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls), this);
+            getServer().getPluginManager().registerEvents(new NametagListener(nametags), this);
+        } else {
+            getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");
+        }
         // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events.
         getServer().getPluginManager().registerEvents(
                 new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
@@ -456,9 +484,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .register(new TinkererMenu(carriers, caps, messages, menusHolder::config))  // salvage book → XP
                 .register(new AdminBrowserMenu(content, carriers, caps, messages, menusHolder::config)); // admin grant
         getServer().getPluginManager().registerEvents(new MenuListener(), this);
-        // §I/§K physical godly-transmog: drag the tool onto enchanted gear → open the reorder GUI for that piece.
-        getServer().getPluginManager().registerEvents(
-                new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec), this);
+        // §I/§K physical godly-transmog: drag the tool onto enchanted gear → open the reorder GUI for that
+        // piece. Part of the scroll family, so it shares the features.scrolls() boot gate.
+        if (features.scrolls()) {
+            getServer().getPluginManager().registerEvents(
+                    new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec), this);
+        }
 
         PluginCommand command = getCommand("se");
         if (command != null) {

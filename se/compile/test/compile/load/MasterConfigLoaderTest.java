@@ -29,6 +29,49 @@ class MasterConfigLoaderTest {
         assertEquals("&7", config.lore().enchantColor());
         assertTrue(config.commandTrigger().enabled());          // §B COMMAND trigger command on by default
         assertEquals("cast", config.commandTrigger().name());
+        // §L new sections default to "all on / no caps / no prefix".
+        assertTrue(config.features().enchants() && config.features().sets() && config.features().crystals()
+                && config.features().heroic() && config.features().slots() && config.features().souls()
+                && config.features().scrolls());
+        assertEquals(-1.0, config.combat().maxBonusDamage());
+        assertEquals(-1.0, config.combat().maxBonusReduction());
+        assertTrue(config.combat().pvp() && config.combat().pve());
+        assertEquals("", config.messages().prefix());
+        assertTrue(config.messages().feedback());
+    }
+
+    @Test
+    void parsesFeaturesCombatAndMessages(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                features:
+                  enchants: false
+                  crystals: false
+                  souls: false
+                combat:
+                  max-bonus-damage: 5.0
+                  max-bonus-reduction: 0.8
+                  pvp: false
+                  pve: true
+                messages:
+                  prefix: "&8[&dSE&8] "
+                  feedback: false
+                """);
+
+        MasterConfig config = MasterConfigLoader.load(file);
+
+        assertFalse(config.hasErrors());
+        assertFalse(config.features().enchants());
+        assertFalse(config.features().crystals());
+        assertFalse(config.features().souls());
+        assertTrue(config.features().sets());        // omitted feature stays on
+        assertTrue(config.features().heroic());
+        assertEquals(5.0, config.combat().maxBonusDamage());
+        assertEquals(0.8, config.combat().maxBonusReduction());
+        assertFalse(config.combat().pvp());
+        assertTrue(config.combat().pve());
+        assertEquals("&8[&dSE&8] ", config.messages().prefix());
+        assertFalse(config.messages().feedback());
     }
 
     @Test
