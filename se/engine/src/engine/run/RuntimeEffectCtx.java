@@ -1,5 +1,8 @@
 package engine.run;
 
+import compile.model.cond.NumExpr;
+import engine.condition.FactBuffer;
+import engine.condition.NumExprEval;
 import engine.effect.EffectCtx;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +18,13 @@ import schema.spec.Args;
  * already resolved into each declared slot, and the ability level (docs/architecture.md §3.5, §7).
  * An effect reads facts from here and emits results through the {@code Sink}; there is no parsing and
  * no entity touch on the hot path.
+ *
+ * <p>A numeric argument may be an <em>expression</em> over {@code %variables%} (a compiled {@link NumExpr},
+ * docs/architecture.md §3.4): {@link #dbl}/{@link #integer}/{@link #lng} evaluate it against the activation's
+ * {@link FactBuffer} on read, so e.g. {@code DAMAGE_MOD:attack:add:%combo% * 10} scales per hit. A constant
+ * argument is the parsed {@link Double}/{@link Long} as before, read with no work. The fact buffer is the
+ * one populated for this activation's condition gate; it is {@code null} only on the lifecycle path
+ * (HELD/PASSIVE start/stop), where an expression argument has no combat facts and evaluates to {@code 0}.
  */
 final class RuntimeEffectCtx implements EffectCtx {
 
@@ -24,31 +34,51 @@ final class RuntimeEffectCtx implements EffectCtx {
     private final Map<String, List<Location>> locationsBySlot;
     private final int level;
     private final UUID activeGem;
+    private final FactBuffer facts;
 
     RuntimeEffectCtx(Args args, ActivationContext context,
                      Map<String, List<LivingEntity>> targetsBySlot,
-                     Map<String, List<Location>> locationsBySlot, int level, UUID activeGem) {
+                     Map<String, List<Location>> locationsBySlot, int level, UUID activeGem,
+                     FactBuffer facts) {
         this.args = args;
         this.context = context;
         this.targetsBySlot = targetsBySlot;
         this.locationsBySlot = locationsBySlot;
         this.level = level;
         this.activeGem = activeGem;
+        this.facts = facts;
     }
 
     @Override
     public double dbl(String name) {
+        Object value = args.opt(name).orElse(null);
+        if (value instanceof NumExpr expr) {
+            return finite(facts == null ? 0.0 : NumExprEval.eval(expr, facts));
+        }
         return args.dbl(name);
     }
 
     @Override
     public int integer(String name) {
+        Object value = args.opt(name).orElse(null);
+        if (value instanceof NumExpr expr) {
+            return (int) Math.round(finite(facts == null ? 0.0 : NumExprEval.eval(expr, facts)));
+        }
         return args.integer(name);
     }
 
     @Override
     public long lng(String name) {
+        Object value = args.opt(name).orElse(null);
+        if (value instanceof NumExpr expr) {
+            return Math.round(finite(facts == null ? 0.0 : NumExprEval.eval(expr, facts)));
+        }
         return args.lng(name);
+    }
+
+    /** Sanitize an evaluated expression: a non-finite result (NaN/∞ from a missing var) degrades to 0. */
+    private static double finite(double v) {
+        return Double.isFinite(v) ? v : 0.0;
     }
 
     @Override

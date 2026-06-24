@@ -38,10 +38,11 @@ class VarVocabularyTest {
     @Test
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
-        // v3.1 §A: 13 numeric (the original 9 + actor/victim healthpercent, victim.food, world.time),
+        // v3.1 §A: 13 numeric (the original 9 + actor/victim healthpercent, victim.food, world.time) + 2 for
+        // the exotic-effect port (distance, nearbyenemies) = 15,
         // 17 flags (the original 9 + onfire/onground, victim sprint/swim/glide, isblock, world raining/thundering),
         // 7 string (the original 4 + actor.type, victim.helditem, block.type).
-        assertEquals(13, v.numberSlots());
+        assertEquals(15, v.numberSlots());
         assertEquals(17, v.flagSlots());
         assertEquals(7, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());

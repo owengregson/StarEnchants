@@ -5,6 +5,7 @@ import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
+import schema.grammar.expr.ArithOp;
 import schema.grammar.expr.Cmp;
 import schema.grammar.expr.Expr;
 import schema.grammar.expr.StrOp;
@@ -48,6 +49,17 @@ public final class ConditionCompiler {
         return bool(expr, diags);
     }
 
+    /**
+     * Lower a parsed expression as a <em>numeric</em> value into the {@link NumExpr} IR — the entry point
+     * for an expression-valued effect argument (docs/architecture.md §3.4). Variables resolve to dense
+     * {@code FactBuffer} slots, arithmetic lowers to {@link NumExpr.Bin}/{@link NumExpr.Neg}, and an unknown
+     * variable becomes a PlaceholderAPI token; a string/boolean operand (or a comparison) is a type error.
+     * Returns empty (with a diagnostic recorded) on any such error, so the caller keeps the constant default.
+     */
+    public Optional<NumExpr> numeric(Expr expr, Diagnostics diags) {
+        return num(expr, diags);
+    }
+
     // ── Lower an expression expected to yield a boolean (the gate) ──
 
     // instanceof pattern chains rather than switch type patterns (the Java 17 floor
@@ -82,7 +94,80 @@ public final class ConditionCompiler {
             return typeError(diags, s.source(), "a string is not a condition on its own",
                     "compare it, e.g. %name% == \"steve\"");
         }
+        if (e instanceof Expr.Arith a) {
+            return typeError(diags, a.source(), "an arithmetic expression is not a condition on its own",
+                    "compare it, e.g. %actor.health% + 1 > 0");
+        }
+        if (e instanceof Expr.Neg n) {
+            return typeError(diags, n.source(), "a negated value is not a condition on its own",
+                    "compare it, e.g. -%damage% < 0");
+        }
         throw new IllegalStateException("unknown expression: " + e);
+    }
+
+    // ── Lower an expression expected to yield a number (a numeric operand or an expression-valued arg) ──
+
+    private Optional<NumExpr> num(Expr e, Diagnostics diags) {
+        if (e instanceof Expr.NumberLit n) {
+            return literal(n, diags);
+        }
+        if (e instanceof Expr.VarRef v) {
+            return numVar(v, diags);
+        }
+        if (e instanceof Expr.Neg n) {
+            return num(n.operand(), diags).map(NumExpr.Neg::new);
+        }
+        if (e instanceof Expr.Arith a) {
+            Optional<NumExpr> l = num(a.left(), diags);
+            Optional<NumExpr> r = num(a.right(), diags); // lower both, to collect every diagnostic
+            return l.isPresent() && r.isPresent()
+                    ? Optional.of(new NumExpr.Bin(l.get(), op(a.op()), r.get()))
+                    : Optional.empty();
+        }
+        Source src = e.source();
+        if (e instanceof Expr.StringLit) {
+            return numError(diags, src, "a string is not a number");
+        }
+        if (e instanceof Expr.BoolLit) {
+            return numError(diags, src, "a boolean is not a number");
+        }
+        // And / Or / Not / Compare / StringMatch / Clause — boolean-valued, never a number.
+        return numError(diags, src, "expected a numeric value but found a condition");
+    }
+
+    private Optional<NumExpr> literal(Expr.NumberLit n, Diagnostics diags) {
+        try {
+            return Optional.of(new NumExpr.Lit(Double.parseDouble(n.raw().trim())));
+        } catch (NumberFormatException ex) {
+            diags.error("E_COND_TYPE", "invalid number '" + n.raw() + "'", n.source());
+            return Optional.empty();
+        }
+    }
+
+    private Optional<NumExpr> numVar(Expr.VarRef v, Diagnostics diags) {
+        Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
+        if (b.isEmpty()) {
+            return Optional.of(new NumExpr.Papi(token(v))); // unknown → PlaceholderAPI passthrough, parsed at runtime
+        }
+        return switch (b.get().kind()) {
+            case NUM -> Optional.of(new NumExpr.Var(b.get().slot()));
+            case STR -> numError(diags, v.source(), "string variable '" + token(v) + "' is not a number");
+            case BOOL -> numError(diags, v.source(), "boolean variable '" + token(v) + "' is not a number");
+        };
+    }
+
+    private static NumExpr.Op op(ArithOp op) {
+        return switch (op) {
+            case ADD -> NumExpr.Op.ADD;
+            case SUBTRACT -> NumExpr.Op.SUBTRACT;
+            case MULTIPLY -> NumExpr.Op.MULTIPLY;
+            case DIVIDE -> NumExpr.Op.DIVIDE;
+        };
+    }
+
+    private static Optional<NumExpr> numError(Diagnostics diags, Source src, String message) {
+        diags.error("E_COND_TYPE", message, src, "use a number, a %numeric variable%, or arithmetic over them");
+        return Optional.empty();
     }
 
     private Optional<Cond> both(Expr l, Expr r, Diagnostics diags, BiFunction<Cond, Cond, Cond> ctor) {
@@ -186,6 +271,10 @@ public final class ConditionCompiler {
         if (e instanceof Expr.VarRef v) {
             return varOperand(v);
         }
+        if (e instanceof Expr.Arith || e instanceof Expr.Neg) {
+            // An arithmetic operand of a comparison, e.g. %actor.health% < %actor.maxhealth% / 2.
+            return num(e, diags).map(Operand::num).orElse(null);
+        }
         // And / Or / Not / Compare → a (possibly parenthesised) boolean operand.
         return boolOperand(e, diags);
     }
@@ -195,12 +284,7 @@ public final class ConditionCompiler {
     }
 
     private Operand numLit(Expr.NumberLit n, Diagnostics diags) {
-        try {
-            return Operand.num(new NumExpr.Lit(Double.parseDouble(n.raw().trim())));
-        } catch (NumberFormatException ex) {
-            diags.error("E_COND_TYPE", "invalid number '" + n.raw() + "'", n.source());
-            return null;
-        }
+        return literal(n, diags).map(Operand::num).orElse(null);
     }
 
     private Operand varOperand(Expr.VarRef v) {
