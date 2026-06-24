@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":api")) // public events fired at activation/reload points
     implementation(project(":migrate")) // /se migrate imports legacy EE/EA configs
     implementation(project(":pack")) // /se pack export/apply config packs (ADR-0023)
+    implementation(project(":integrate")) // §N third-party integrations, bundled + soft (ADR-0027)
 
     // The catalog-validation test compiles resources/content/ through the real LibraryLoader +
     // BuiltinEffects registry; the effect kinds reference Bukkit types and YAML is parsed, both

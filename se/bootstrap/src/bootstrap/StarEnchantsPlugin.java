@@ -117,8 +117,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.content.ContentReloader;
+import integrate.Integrations;
+import platform.economy.EconomyProvider;
 import platform.economy.EconomyService;
 import platform.item.ItemGroups;
+import platform.protect.ProtectionProvider;
 import platform.protect.ProtectionProviders;
 import platform.protect.ProtectionService;
 import platform.resolve.RegistryResolvers;
@@ -320,14 +323,19 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         TeleblockStore teleblock = new TeleblockStore();
         ImmuneStore immune = new ImmuneStore();
 
-        // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
-        // ServicesManager; a server with none allows everything. The guard passes the firing location
-        // (captured on the Activation, owned by the firing region) and the actor's UUID — no live-Player
-        // lookup, so no cross-region read on Folia. A missing location is permissive (nothing to check).
-        ProtectionService protection = new ProtectionService(
-                master.config().integrations().protection()
-                        ? ProtectionProviders.discover(getServer(), System.getLogger("StarEnchants.Protection"))
-                        : List.of()); // §L config.yml integrations.protection: false → register against none
+        // Protection / region gate (gate 2): compose the BUNDLED integration ProtectionProviders for the
+        // land/region plugins present on this server (§N — bundled in this jar and soft, ADR-0027) together
+        // with any registered through the ServicesManager (the open first-party SPI). A server with none
+        // allows everything. The guard passes the firing location (captured on the Activation, owned by the
+        // firing region) and the actor's UUID — no live-Player lookup, so no cross-region read on Folia.
+        List<ProtectionProvider> protectionProviders = new ArrayList<>();
+        if (master.config().integrations().protection()) {
+            protectionProviders.addAll(
+                    Integrations.protectionProviders(this, master.config().integrations()::enabled));
+            protectionProviders.addAll(
+                    ProtectionProviders.discover(getServer(), System.getLogger("StarEnchants.Protection")));
+        } // §L config.yml integrations.protection: false → gate against none
+        ProtectionService protection = new ProtectionService(protectionProviders);
         if (protection.providerCount() > 0) {
             getLogger().info("protection gate active with " + protection.providerCount() + " provider(s)");
         }
@@ -346,11 +354,17 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
         // Economy bridge (gate-free): the MODIFY_MONEY effect deposits/withdraws/transfers through the sink,
-        // routed to the global thread. Wraps the EconomyProvider registered via the ServicesManager;
-        // absent ⇒ money effects are no-ops.
-        EconomyService economy = master.config().integrations().economy()
-                ? EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"))
-                : EconomyService.NONE; // §L config.yml integrations.economy: false → money effects are no-ops
+        // routed to the global thread. Prefer the BUNDLED Vault bridge when Vault is present (§N, ADR-0027);
+        // otherwise fall back to any EconomyProvider registered via the ServicesManager. Absent ⇒ no-ops.
+        EconomyService economy;
+        if (master.config().integrations().economy()) {
+            EconomyProvider bundled = Integrations.economyProvider(this, master.config().integrations()::enabled);
+            economy = bundled != null
+                    ? new EconomyService(bundled)
+                    : EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"));
+        } else {
+            economy = EconomyService.NONE; // §L config.yml integrations.economy: false → money effects are no-ops
+        }
         if (economy.present()) {
             getLogger().info("economy provider active");
         }

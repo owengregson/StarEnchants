@@ -1,9 +1,15 @@
 # ADR 0017: Protection/region integrations ship as separate add-on plugins
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR 0027](0027-bundled-soft-integrations.md)
 - **Date:** 2026-06-16
 - **Deciders:** project owner + platform work
 - **Relates to:** ADR 0001 (first-party SPIs, drop bundled bridges), `platform.protect.ProtectionProvider`
+
+> **Superseded (2026-06-24) by [ADR 0027](0027-bundled-soft-integrations.md).** Integrations are now
+> bundled inside the one core jar as `compileOnly`, plugin-presence-guarded bridges (soft, never required),
+> rather than separate add-on plugin jars. The first-party SPI and the compile-against-the-real-API
+> principle below are retained; only the *packaging* (separate jar per integration) is replaced. The
+> `se/addon-worldguard` module described here no longer exists — its provider moved into `se/integrate`.
 
 ## Context
 

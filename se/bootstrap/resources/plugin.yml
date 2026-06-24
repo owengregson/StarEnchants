@@ -6,6 +6,10 @@ api-version: '1.17'
 folia-supported: true
 description: One unified, cross-version (1.17.1–26.1.x) Paper/Folia enchantments + armor engine.
 authors: [StarEnchants]
+# Optional integrations (§N, docs/decisions/0027): every bridge is bundled in THIS jar and active out of the
+# box when the plugin is present — none is required. softdepend = "load after these if installed" so their
+# APIs/services are ready when StarEnchants enables; it never forces any of them to be present.
+softdepend: [Mental, WorldGuard, Vault, Towny, Lands, SuperiorSkyblock2, Factions]
 commands:
   se:
     description: StarEnchants admin command.

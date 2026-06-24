@@ -24,7 +24,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0014](0014-content-loader-and-reload.md) | Content loader + transactional reload | Accepted |
 | [0015](0015-spigot-floor-fakeplayer-deferred.md) | Spigot-floor fake-player deferred; floor covered by non-fake suites | Accepted |
 | [0016](0016-content-format-v2.md) | Content format v2 — verbose effects, scaling, tier folders, item defs (superset of v1) | Accepted |
-| [0017](0017-protection-addon-packaging.md) | Protection/region integrations ship as separate add-on plugins | Accepted |
+| [0017](0017-protection-addon-packaging.md) | Protection/region integrations ship as separate add-on plugins | Superseded by 0027 |
 | [0018](0018-spigot-floor-fakeplayer.md) | Spigot-floor fake-player harness — combat suites now run floor-wide | Accepted |
 | [0019](0019-dust-success-bonus-combining.md) | Dust carrier kind — success-bonus combining (the last deferred carrier) | Accepted |
 | [0020](0020-ae-migrator-dsl-coverage.md) | AdvancedEnchantments migrator — selector, condition, and effect DSL coverage | Accepted |
@@ -34,6 +34,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0024](0024-exotic-effect-ports.md) | Expression-valued effect args + the exotic EE-effect ports | Accepted |
 | [0025](0025-automated-releases.md) | Automated releases — version-bump-driven GitHub Release of the universal jar | Accepted |
 | [0026](0026-mental-knockback-coordination.md) | Coordinate KNOCKBACK_CONTROL with the Mental knockback plugin (reflective core edge) | Accepted |
+| [0027](0027-bundled-soft-integrations.md) | Integrations bundled in the core jar — soft, compileOnly, optional (supersedes 0017) | Accepted |
 
 ## Process
 
