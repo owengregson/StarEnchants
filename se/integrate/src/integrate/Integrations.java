@@ -4,6 +4,8 @@ import integrate.anticheat.AntiCheat;
 import integrate.combat.Mcmmo;
 import integrate.economy.VaultEconomyProvider;
 import integrate.entity.MythicMobs;
+import integrate.item.CustomItems;
+import org.bukkit.inventory.ItemStack;
 import integrate.papi.PapiPassthrough;
 import integrate.papi.SePlaceholderExpansion;
 import integrate.protect.FactionsProvider;
@@ -132,6 +134,15 @@ public final class Integrations {
     public static java.util.function.Function<org.bukkit.entity.Entity, String> mythicMobType(
             Plugin plugin, Predicate<String> enabled) {
         return enabled.test("mythicmobs") ? MythicMobs.mobType(plugin) : entity -> "";
+    }
+
+    /**
+     * The ItemsAdder/Oraxen custom-item resolver ({@code token → ItemStack}) to install as the item factory's
+     * custom-item source, so configs can use {@code itemsadder:…} / {@code oraxen:…} materials. A constant
+     * {@code null} resolver when neither plugin is present/enabled.
+     */
+    public static java.util.function.Function<String, ItemStack> customItem(Plugin plugin, Predicate<String> enabled) {
+        return CustomItems.resolver(plugin, enabled);
     }
 
     /** Present + enabled + not disabled in config. String-only, so it never loads an absent plugin's API. */

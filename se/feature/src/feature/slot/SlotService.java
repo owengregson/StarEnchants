@@ -69,7 +69,7 @@ public final class SlotService {
         SlotConfig cfg = config.get();
         String amount = Integer.toString(cfg.orbAmount());
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.orbMaterial(), Material.ENDER_EYE),
+                cfg.orbMaterial(), Material.ENDER_EYE,
                 cfg.orbName().replace("{AMOUNT}", amount),
                 renderLore(cfg.orbLore(), amount));
         codec.mark(stack, cfg.orbAmount());

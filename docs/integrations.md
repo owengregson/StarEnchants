@@ -21,8 +21,9 @@ integrations:
 ```
 
 `named.<id>: false` disables one integration; an unlisted id is enabled. Ids: `worldguard`, `towny`,
-`lands`, `superiorskyblock`, `factions`, `vault`, `placeholderapi`, `mental`. Integration discovery is
-read once at boot, so a change here takes effect on the next server start.
+`lands`, `superiorskyblock`, `factions`, `vault`, `placeholderapi`, `mental`, `nocheatplus`, `grim`,
+`vulcan`, `matrix`, `spartan`, `mcmmo`, `mythicmobs`, `itemsadder`, `oraxen`. Integration discovery is read
+once at boot, so a change here takes effect on the next server start.
 
 ## Protection / region plugins
 
@@ -65,8 +66,34 @@ is present, StarEnchants' `KNOCKBACK_CONTROL` effect composes onto Mental's comp
 `KnockbackApplyEvent`) instead of being overwritten — so a no-knockback / scaled-knockback effect keeps
 working under Mental. Folia-correct.
 
-## Planned (behaviour to be decided)
+## Anti-cheat
 
-mcMMO, anticheat exemptions (for StarEnchants-applied velocity/teleport), ItemsAdder/Oraxen custom item-id
-resolution in configs, and a MythicMobs/EliteBosses mob-type condition variable are scoped but await a
-decision on their exact behaviour (see `docs/v3-directives.md` §N).
+When StarEnchants moves a player itself (a `VELOCITY` or `TELEPORT` effect), it briefly tells the installed
+anti-cheat to ignore the motion so engine-applied movement never false-flags.
+
+| Plugin | Mechanism | Verification |
+| --- | --- | --- |
+| NoCheatPlus | exempts the player from `MOVING` checks for the window (reflective) | known stable API |
+| GrimAC | cancels Grim's `FlagEvent` only for a player SE just moved, in a tight window (compiled against GrimAPI) | open-source, compiled |
+| Vulcan / Matrix / Spartan | detected + logged — they handle server-applied velocity/teleport natively; use their own bypass if needed | closed/premium, no public exemption API |
+
+The `Mental + StarEnchants + GrimAC` combo is safe by construction: SE composes knockback onto Mental's
+authoritative pipeline (ADR [0026](decisions/0026-mental-knockback-coordination.md)) which Grim predicts
+natively, and the Grim flag-cancel covers the residual edge.
+
+## mcMMO
+
+StarEnchants applies no combat effects between two players in the same mcMMO party (friendly-fire off). Bound
+reflectively to `PartyAPI.inSameParty`.
+
+## MythicMobs
+
+A `%victim.mobtype%` condition variable exposes a victim's MythicMob internal name, so an enchant can react to
+a specific custom mob (e.g. `victim.mobtype contains SkeletalKnight`). SE already targets MythicMobs (they are
+ordinary living entities); this adds detection. Compiled against the MythicMobs API.
+
+## ItemsAdder / Oraxen
+
+Any config `material:` (item likenesses + menu icons) accepts a custom item id — `itemsadder:<namespace:id>`
+or `oraxen:<id>` — resolved to that plugin's custom item as the base; StarEnchants' name/lore/PDC are applied
+on top. A plain/vanilla token resolves as a material as before. Compiled against both APIs.

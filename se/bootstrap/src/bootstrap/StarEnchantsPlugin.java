@@ -388,6 +388,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // (empty when absent). A boot-installed soft hook on the engine's FactPopulator (no engine→MythicMobs dep).
         engine.run.FactPopulator.entityTypeResolver(
                 Integrations.mythicMobType(this, master.config().integrations()::enabled));
+        // §N ItemsAdder/Oraxen (ADR-0027): let item-likeness + menu configs use custom-item materials
+        // (itemsadder:… / oraxen:…). A boot-installed soft hook on the item factory (no item→IA/Oraxen dep).
+        item.mint.ItemFactory.customItemResolver(
+                Integrations.customItem(this, master.config().integrations()::enabled));
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,

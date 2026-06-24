@@ -69,7 +69,7 @@ public final class HeroicService {
     public ItemStack mint() {
         HeroicConfig cfg = config.get();
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.material(), Material.NETHERITE_SCRAP), cfg.name(), cfg.lore());
+                cfg.material(), Material.NETHERITE_SCRAP, cfg.name(), cfg.lore());
         upgrades.mark(stack);
         return stack;
     }

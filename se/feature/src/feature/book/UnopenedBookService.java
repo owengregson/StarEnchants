@@ -57,7 +57,7 @@ public final class UnopenedBookService {
     public ItemStack mint(String tier) {
         UnopenedBookConfig cfg = config.get();
         ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.material(), Material.BOOK),
+                cfg.material(), Material.BOOK,
                 cfg.name().replace("{TIER}", tier),
                 renderLore(cfg.lore(), tier));
         codec.mark(stack, tier);
