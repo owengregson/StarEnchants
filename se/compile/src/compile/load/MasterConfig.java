@@ -26,6 +26,9 @@ import schema.diag.Diagnostic;
  * crystal-slot default (§E), the heroic bounded-multiplicative clamp ceiling (§F/ADR-0021), the lore render
  * style, integration discovery toggles, and reload behaviour.
  *
+ * @param features     per-feature master on/off toggles (enchants/sets/crystals/heroic/slots/souls/scrolls)
+ * @param combat       cross-cutting combat caps (additive bonus ceilings + PvP/PvE gates)
+ * @param messages     the player-feedback chat style (prefix + feedback channel toggle)
  * @param slots        base enchant-slot capacity (§H)
  * @param souls        cross-cutting soul toggles (§D) — per-kill amounts/colours stay in {@code items/soul-gem.yml}
  * @param crystals     per-item crystal-slot capacity + the multi-crystal sanity cap (§E)
@@ -36,12 +39,16 @@ import schema.diag.Diagnostic;
  * @param commandTrigger the configurable command that fires the §B {@code COMMAND} trigger
  * @param diagnostics  every diagnostic raised loading {@code config.yml}
  */
-public record MasterConfig(SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
+public record MasterConfig(FeaturesSection features, CombatSection combat, MessagesSection messages,
+                           SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
                            HeroicSection heroic, LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
                            List<Diagnostic> diagnostics) {
 
     public MasterConfig {
+        Objects.requireNonNull(features, "features");
+        Objects.requireNonNull(combat, "combat");
+        Objects.requireNonNull(messages, "messages");
         Objects.requireNonNull(slots, "slots");
         Objects.requireNonNull(souls, "souls");
         Objects.requireNonNull(crystals, "crystals");
@@ -55,7 +62,8 @@ public record MasterConfig(SlotsSection slots, SoulsSection souls, CrystalsSecti
 
     /** The built-in master config — every section at its default; used when {@code config.yml} is absent. */
     public static MasterConfig defaults() {
-        return new MasterConfig(SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
+        return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MessagesSection.defaults(),
+                SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
                 HeroicSection.defaults(), LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), List.of());
     }
@@ -223,6 +231,67 @@ public record MasterConfig(SlotsSection slots, SoulsSection souls, CrystalsSecti
 
         public static CommandTriggerSection defaults() {
             return new CommandTriggerSection(true, "cast", "Trigger your COMMAND enchantments.");
+        }
+    }
+
+    /**
+     * Per-feature master on/off switches. Each toggle disables a whole subsystem at its entry point:
+     * {@link #enchants}/{@link #sets}/{@link #crystals}/{@link #heroic} drop that source when a player's
+     * worn state is resolved (so the feature's combat + trigger effects go inert, re-read live on reload),
+     * while {@link #slots}/{@link #souls}/{@link #scrolls} gate their apply/interaction listeners at boot
+     * (a change takes effect on the next server start, like the integration toggles). Default-all-on, so an
+     * absent {@code features:} section changes nothing.
+     *
+     * @param enchants whether enchant sources contribute to worn state (their effects fire)
+     * @param sets     whether armour-set bonuses contribute to worn state
+     * @param crystals whether crystal sources contribute to worn state
+     * @param heroic   whether heroic flat stats contribute to worn state (the heroic damage stage)
+     * @param slots    whether the slot-expander apply gesture is registered
+     * @param souls    whether the soul system (deposit, soul mode, gem inventory) is registered
+     * @param scrolls  whether the scroll-family interactions (black/randomizer/transmog/holy/nametag/godly) are registered
+     */
+    public record FeaturesSection(boolean enchants, boolean sets, boolean crystals, boolean heroic,
+                                  boolean slots, boolean souls, boolean scrolls) {
+        public static FeaturesSection defaults() {
+            return new FeaturesSection(true, true, true, true, true, true, true);
+        }
+    }
+
+    /**
+     * Cross-cutting combat caps. {@link #maxBonusDamage}/{@link #maxBonusReduction} ceil the ADDITIVE fold's
+     * summed outgoing/reduction fractions (ADR-0012) — e.g. {@code maxBonusReduction = 0.8} forbids more than
+     * 80% damage reduction (no immunity stacking); a negative value means "no cap" (the default, preserving
+     * current behaviour). {@link #pvp}/{@link #pve} gate whether StarEnchants combat effects apply at all when
+     * a player fights another player (PvP) or a non-player (PvE) — disabling a context makes that side
+     * contribute nothing to the fold. All read live, so a {@code /se reload} re-tunes them.
+     *
+     * @param maxBonusDamage    ceiling on the summed outgoing-damage fraction (e.g. {@code 5.0} = +500% max); {@code < 0} = uncapped
+     * @param maxBonusReduction ceiling on the summed damage-reduction fraction (e.g. {@code 0.8} = 80% max); {@code < 0} = uncapped
+     * @param pvp               whether combat effects apply in player-vs-player hits
+     * @param pve               whether combat effects apply in player-vs-environment hits
+     */
+    public record CombatSection(double maxBonusDamage, double maxBonusReduction, boolean pvp, boolean pve) {
+        public static CombatSection defaults() {
+            return new CombatSection(-1.0, -1.0, true, true);
+        }
+    }
+
+    /**
+     * The player-feedback chat style (§L). {@link #prefix} is prepended to every message rendered through the
+     * {@code Messages} facade (chat feedback only — never item names or lore). {@link #feedback} toggles the
+     * keyed gameplay-feedback channel ({@code Messages#send}, e.g. menu confirmations): {@code false} silences
+     * it for a quiet server (admin command echoes still print). Both read live on reload.
+     *
+     * @param prefix   text prepended to facade-rendered messages (legacy {@code &} colour codes); may be empty
+     * @param feedback whether keyed gameplay-feedback messages are sent to players
+     */
+    public record MessagesSection(String prefix, boolean feedback) {
+        public MessagesSection {
+            Objects.requireNonNull(prefix, "prefix");
+        }
+
+        public static MessagesSection defaults() {
+            return new MessagesSection("", true);
         }
     }
 }

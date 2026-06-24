@@ -153,6 +153,34 @@ class DamageFoldTest {
     }
 
     @Test
+    void maxBonusDamageCapCeilsTheSummedOutgoing() {
+        // Two sources sum to +200% (×3 → 30), but the combat cap ceils Σout at +100% (×2 → 20).
+        DamageFold f = new DamageFold();
+        f.caps(1.0, -1.0); // max-bonus-damage = +100%; reduction uncapped
+        f.addOutgoing(1.0);
+        f.addOutgoing(1.0);
+        assertEquals(20.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void maxBonusReductionCapForbidsImmunityStacking() {
+        // Σreduction = 100% would zero the hit, but the cap ceils it at 80% → ×0.2 → 2.0.
+        DamageFold f = new DamageFold();
+        f.caps(-1.0, 0.8); // damage uncapped; max-bonus-reduction = 80%
+        f.addReduction(1.0);
+        assertEquals(2.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void negativeCapMeansUncapped() {
+        // A negative ceiling = no cap (the default) — the full +200% applies (×3 → 30).
+        DamageFold f = new DamageFold();
+        f.caps(-1.0, -1.0);
+        f.addOutgoing(2.0);
+        assertEquals(30.0, f.apply(10.0), EPS);
+    }
+
+    @Test
     void resetClearsEveryBucket() {
         DamageFold f = new DamageFold();
         f.addFlatDamage(5.0);
