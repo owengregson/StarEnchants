@@ -11,28 +11,28 @@ levels:
     cooldown: 5
     effects:
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY:10 — EE add-durability → DURABILITY (restore)
-      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }  # from DAMAGE_INCREASE:-50 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
   2:
     chance: 4
     cooldown: 5
     effects:
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY:10 — EE add-durability → DURABILITY (restore)
-      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }  # from DAMAGE_INCREASE:-50 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
   3:
     chance: 6
     cooldown: 5
     effects:
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY:10 — EE add-durability → DURABILITY (restore)
-      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }  # from DAMAGE_INCREASE:-50 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
   4:
     chance: 9
     cooldown: 5
     effects:
       - { DURABILITY: { amount: 20, target: "item", mode: "restore" } }  # from ADD_DURABILITY:20 — EE add-durability → DURABILITY (restore)
-      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }  # from DAMAGE_INCREASE:-50 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
   5:
     chance: 11.25
     cooldown: 5
     effects:
       - { DURABILITY: { amount: 20, target: "item", mode: "restore" } }  # from ADD_DURABILITY:20 — EE add-durability → DURABILITY (restore)
-      # TODO port manually: DAMAGE_INCREASE:-50 — negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }  # from DAMAGE_INCREASE:-50 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)

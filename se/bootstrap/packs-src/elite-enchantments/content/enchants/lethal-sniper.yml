@@ -10,29 +10,29 @@ levels:
     chance: 5
     cooldown: 3
     effects:
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 7.5
     cooldown: 3
     effects:
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 10
     cooldown: 3
     effects:
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 12.5
     cooldown: 3
     effects:
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     chance: 15
     cooldown: 3
     effects:
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

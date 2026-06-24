@@ -168,14 +168,13 @@ class MigratorTest {
     @Test
     void flagsUnmappedEffectsWithoutFailing() {
         Migrator.Result result = Migrator.eliteEnchantments(EE);
-        // DROP_HEAD has no equivalent: a warning is recorded and a TODO line is emitted, but the file
-        // still migrates (its other effects translate) and compiles.
-        assertTrue(result.diagnostics().all().stream()
-                        .anyMatch(d -> d.code().equals("migrate.effect") && d.message().contains("DROP_HEAD")),
-                "expected a migrate.effect warning for DROP_HEAD");
-        String venom = result.files().get("enchants/venomstrike.yml");
-        assertTrue(venom.contains("# TODO port manually: DROP_HEAD"), "expected a TODO line for DROP_HEAD");
+        // The full EE effect vocabulary now translates (the exotic-effect port), so the fixture migrates with
+        // no effect warnings and never errors.
         assertFalse(result.diagnostics().hasErrors(), "an unmapped effect is a warning, never an error");
+        // The warn-and-skip safety net still flags a genuinely-unknown effect head (a TODO, never a guess) —
+        // so a future/custom EE effect with no SE equivalent degrades gracefully rather than crashing the load.
+        assertFalse(Mappings.effect("TOTALLY_UNKNOWN_EFFECT:1").mapped(),
+                "an unrecognised effect head must be a TODO, never guessed");
     }
 
     @Test
@@ -188,7 +187,7 @@ class MigratorTest {
         assertEquals("DAMAGE_MOD:defense:add:1.85", Mappings.effect("REDUCTION:1.85").se());     // decimal kept
         assertEquals("DAMAGE_MOD:defense:add:100", Mappings.effect("REDUCTION:150").se());       // clamped to 100
         assertEquals("DAMAGE_MOD:attack:add:25", Mappings.effect("DAMAGE_INCREASE:25").se());
-        assertFalse(Mappings.effect("DAMAGE_INCREASE:-50").mapped());                            // negative self-nerf → TODO
+        assertEquals("DAMAGE_MOD:attack:add:-50", Mappings.effect("DAMAGE_INCREASE:-50").se()); // negative self-nerf now maps
         assertEquals("REMOVE_POTION:POISON:@Self", Mappings.effect("CURE:POISON:true").se());
         assertEquals("SOUND:ENTITY_GENERIC_EXPLODE:2:5", Mappings.effect("SOUND:ENTITY_GENERIC_EXPLODE:2:5").se());
         assertEquals("PARTICLE:FLAME", Mappings.effect("PARTICLE:FLAME").se());
@@ -207,6 +206,51 @@ class MigratorTest {
         assertEquals("SUPPRESS:TYPE:DEFENSE:100:@Victim", Mappings.effect("DISABLE_ENCHANTMENT_TYPE:DEFENSE:5").se());
         assertEquals("DAMAGE_MOD:defense:add:100", Mappings.effect("DAMAGE_CANCEL").se()); // ≈ cancel the hit
         assertEquals("IGNORE_ARMOR", Mappings.effect("ARMOR_CANCEL").se());
+    }
+
+    @Test
+    void translatesTheExoticEeEffects() {
+        // Simple 1:1 exotic effects (ATTACK direction → the foe is @Victim).
+        assertEquals("KNOCKBACK_CONTROL:0:2:@Victim", Mappings.effect("SHACKLE").se());
+        assertEquals("DROP_ITEM:PLAYER_HEAD:1", Mappings.effect("DROP_HEAD:TARGET").se());
+        assertEquals("DAMAGE:8:@Victim", Mappings.effect("SNIPER").se());
+        assertEquals("REMOVE_ARMOR:@Victim", Mappings.effect("REMOVE_ARMOR").se());
+        assertEquals("MODIFY_HEALTH:12:set:@Victim", Mappings.effect("REDUCE_HEARTS:12:5").se());
+        assertEquals("TELEBLOCK:400:@Victim", Mappings.effect("TELEBLOCK:20").se());           // seconds → ticks
+        assertEquals("IMMUNE:potion:100:@Self", Mappings.effect("IMMUNE:POTION").se());        // no duration → 100t
+        assertEquals("SMELT", Mappings.effect("SMELT").se());
+        assertEquals("TELEPORT_DROPS", Mappings.effect("TELEPORT_DROPS").se());
+        assertEquals("SEEK", Mappings.effect("AUTO_LOCK").se());
+        assertEquals("REMOVE_SOULS:300:@Victim", Mappings.effect("REMOVE_SOULS:300:TARGET").se()); // drains the foe
+        assertEquals("REMOVE_SOULS:4", Mappings.effect("DRAIN_SOULS_CONSTANT:1:4").se());       // actor, instant
+
+        // Dynamic scaling → expression-valued DAMAGE_MOD over the new facts.
+        assertEquals("DAMAGE_MOD:attack:add:%combo% * 40", Mappings.effect("RAGE:0.4").se());
+        assertEquals("DAMAGE_MOD:attack:add:%nearbyenemies% * 8", Mappings.effect("GANK").se());
+        assertEquals("DAMAGE_MOD:attack:add:25 - %distance% * 7", Mappings.effect("DAMAGE_DISTANCE").se());
+        assertEquals("DAMAGE_MOD:attack:add:(%actor.health%*2.5 - 1) * 100",
+                Mappings.effect("DAMAGE_INCREASE:playerHealth*2.5").se());
+    }
+
+    @Test
+    void expandsCompoundEeEffectsToSeveralEffects() {
+        // WRATH → a lightning storm: 4 SE effects over @Aoe (radius from the EE arg, max-damage from the range).
+        var wrath = Mappings.effects("WRATH:3:1:2:&cNatures Wrath", false);
+        assertEquals(4, wrath.size());
+        assertEquals("LIGHTNING:0:@Aoe{r=3}", wrath.get(0).se());
+        assertEquals("DAMAGE:2:@Aoe{r=3}", wrath.get(1).se());
+        assertEquals("POTION:SLOWNESS:3:200:@Aoe{r=3}", wrath.get(2).se());
+        assertEquals("POTION:BLINDNESS:1:260:@Aoe{r=3}", wrath.get(3).se());
+        // FROST → a permafrost field + debuffs on the foe (DEFENSE direction → @Attacker).
+        var frost = Mappings.effects("FROST", true);
+        assertEquals(4, frost.size());
+        assertEquals("WALKER:PACKED_ICE:400:3:@Attacker", frost.get(0).se());
+        // ROT_DECAY → rotting zombies + wither + armour decay on the foe.
+        var rot = Mappings.effects("ROT_DECAY", false);
+        assertEquals(3, rot.size());
+        assertEquals("SPAWN_ENTITY:ZOMBIE:3:100:100:none:@Victim", rot.get(0).se());
+        // A non-compound token expands to a singleton list (delegates to effect()).
+        assertEquals(1, Mappings.effects("SMELT", false).size());
     }
 
     @Test
@@ -232,8 +276,9 @@ class MigratorTest {
         assertEquals("%actor.health% <= 5", Mappings.eeCondition("isPlayerHealth <= 5").expr());
         assertEquals("%victim.health% <= 5", Mappings.eeCondition("isTargetHealth <= 5").expr());
         assertEquals("%blocking% == true", Mappings.eeCondition("isPlayerBlocking").expr());
-        // isTargetHolding checks an item GROUP — no SE fact → TODO (never emitted as an invalid raw gate).
-        assertFalse(Mappings.eeCondition("isTargetHolding SWORD").mapped());
+        // isTargetHolding checks an item GROUP → the `contains` string operator IS that group test.
+        assertEquals("%victim.helditem% contains \"SWORD\"",
+                Mappings.eeCondition("isTargetHolding SWORD").expr());
     }
 
     @Test

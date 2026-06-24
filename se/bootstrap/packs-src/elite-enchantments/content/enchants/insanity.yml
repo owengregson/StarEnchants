@@ -9,48 +9,48 @@ levels:
   1:
     chance: 1.5
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 2.75
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 4
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 5
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     chance: 6
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   6:
     chance: 7
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   7:
     chance: 8
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   8:
     chance: 9
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

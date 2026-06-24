@@ -126,6 +126,75 @@ public final class Mappings {
     }
 
     /**
+     * Translate one EE effect token to the LIST of StarEnchants effects it becomes — usually a singleton
+     * (delegating to {@link #effect(String, boolean)}), but a compound EE effect ({@code WRATH}, {@code FROST},
+     * {@code ROT_DECAY}) expands to several SE effects that together reproduce it. The EE reader flat-maps
+     * these into a level's {@code effects:} list.
+     */
+    public static List<MigratedEffect> effects(String legacyToken, boolean defenseDirection) {
+        String token = legacyToken == null ? "" : legacyToken.trim();
+        String[] parts = token.split(":");
+        String head = parts.length == 0 ? "" : parts[0].trim().toUpperCase(Locale.ROOT);
+        try {
+            return switch (head) {
+                case "WRATH" -> wrath(token, parts);
+                case "FROST" -> frost(token, defenseDirection);
+                case "ROT_DECAY" -> rotDecay(token, defenseDirection);
+                default -> List.of(effect(token, defenseDirection));
+            };
+        } catch (NumberFormatException badNumber) {
+            return List.of(MigratedEffect.todo(token, "could not parse a numeric argument: " + badNumber.getMessage()));
+        }
+    }
+
+    /**
+     * WRATH:RADIUS:MIN:MAX:(MESSAGE) → a lightning storm in {@code radius}: a cosmetic strike, area damage
+     * (random range → max), and the EE Slowness III + Blindness I debuffs, all on {@code @Aoe}. The per-target
+     * message is dropped (SE messages the actor, not each AoE target).
+     */
+    private static List<MigratedEffect> wrath(String token, String[] parts) {
+        if (parts.length < 4) {
+            return List.of(MigratedEffect.todo(token, "unexpected WRATH arg shape (RADIUS:MIN:MAX[:MESSAGE])"));
+        }
+        int radius = intArg(parts[1]);
+        int maxDmg = intArg(parts[3]);
+        String aoe = "@Aoe{r=" + radius + "}";
+        String note = "EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe";
+        return List.of(
+                MigratedEffect.mapped(token, "LIGHTNING:0:" + aoe, note),
+                MigratedEffect.mapped(token, "DAMAGE:" + maxDmg + ":" + aoe, note),
+                MigratedEffect.mapped(token, "POTION:SLOWNESS:3:200:" + aoe, note),
+                MigratedEffect.mapped(token, "POTION:BLINDNESS:1:260:" + aoe, note));
+    }
+
+    /**
+     * FROST → a permafrost field on the foe: a temporary packed-ice platform (WALKER) plus the EE Slowness /
+     * Mining-Fatigue / Nausea debuffs (amplifier 3 → SE level 4) — the slow-the-target essence of EE's Frost.
+     */
+    private static List<MigratedEffect> frost(String token, boolean defenseDir) {
+        String foe = foe(defenseDir);
+        String note = "EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe";
+        return List.of(
+                MigratedEffect.mapped(token, "WALKER:PACKED_ICE:400:3:" + foe, note),
+                MigratedEffect.mapped(token, "POTION:SLOWNESS:4:60:" + foe, note),
+                MigratedEffect.mapped(token, "POTION:MINING_FATIGUE:4:60:" + foe, note),
+                MigratedEffect.mapped(token, "POTION:NAUSEA:4:60:" + foe, note));
+    }
+
+    /**
+     * ROT_DECAY → spawn 3 rotting corpses (zombies) on the foe, plus the rot (WITHER) and the decay
+     * (armour-durability damage) — the rotting-zombie + decay essence of EE's Rot and Decay.
+     */
+    private static List<MigratedEffect> rotDecay(String token, boolean defenseDir) {
+        String foe = foe(defenseDir);
+        String note = "EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe";
+        return List.of(
+                MigratedEffect.mapped(token, "SPAWN_ENTITY:ZOMBIE:3:100:100:none:" + foe, note),
+                MigratedEffect.mapped(token, "POTION:WITHER:1:100:" + foe, note),
+                MigratedEffect.mapped(token, "DURABILITY:10:armor:damage:" + foe, note));
+    }
+
+    /**
      * Translate one EE effect token to a {@link MigratedEffect}, direction-aware: {@code defenseDirection}
      * flips the foe selector to {@code @Attacker} on a DEFENSE enchant (vs {@code @Victim} on attack). The
      * verified EE vocabulary is translated faithfully (seconds→ticks ×20, random ranges→max, EE rarity
@@ -177,11 +246,14 @@ public final class Mappings {
                         ? MigratedEffect.mapped(token, "REMOVE_POTION:" + parts[1].trim() + ":@Self",
                                 "EE CURE → REMOVE_POTION (self)")
                         : MigratedEffect.todo(token, "unexpected CURE arg shape");
-                // PARTICLE:TYPE[:...] → PARTICLE:<type> at the activation location (a ';'-compound/custom name → TODO).
+                // PARTICLE:TYPE[:...] → PARTICLE:<type> at the activation location. An EE block-crack/compound
+                // particle (BLOCK_BREAK;MATERIAL, bleed) has no block-data SE form, so it lowers to a thematic
+                // generic (CRIT) — cosmetic-only, faithful in spirit.
                 case "PARTICLE" -> (parts.length >= 2 && !parts[1].contains(";"))
                         ? MigratedEffect.mapped(token, "PARTICLE:" + parts[1].trim(),
                                 "EE particle target dropped (SE spawns at the activation location)")
-                        : MigratedEffect.todo(token, "EE compound/custom particle has no SE equivalent");
+                        : MigratedEffect.mapped(token, "PARTICLE:CRIT:7",
+                                "EE compound/block-crack particle → a thematic generic (cosmetic only)");
                 // SOUND:NAME:VOLUME[:PITCH] → SOUND:name:volume:pitch (pitch defaults to 1).
                 case "SOUND" -> parts.length >= 3
                         ? MigratedEffect.mapped(token, "SOUND:" + parts[1].trim() + ":" + numArg(parts[2])
@@ -277,6 +349,67 @@ public final class Mappings {
                             : MigratedEffect.mapped(token, "MESSAGE:" + body,
                                     "legacy target dropped — StarEnchants messages the actor");
                 }
+                // SHACKLE → cancel the foe's knockback (zero their incoming knockback briefly).
+                case "SHACKLE" -> MigratedEffect.mapped(token, "KNOCKBACK_CONTROL:0:2:" + foe(defenseDirection),
+                        "EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)");
+                // DROP_HEAD:[PLAYER/TARGET] → DROP_ITEM:PLAYER_HEAD at the activation (the skin owner is dropped).
+                case "DROP_HEAD" -> MigratedEffect.mapped(token, "DROP_ITEM:PLAYER_HEAD:1",
+                        "EE DROP_HEAD → DROP_ITEM:PLAYER_HEAD (a generic head; the skin owner is not preserved)");
+                // SNIPER (EE config effect with no implementation) → heavy bonus arrow damage (no headshot test in SE).
+                case "SNIPER" -> MigratedEffect.mapped(token, "DAMAGE:8:" + foe(defenseDirection),
+                        "EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)");
+                // GANK / anti-gank → more damage per nearby enemy (expression-valued DAMAGE_MOD over %nearbyenemies%).
+                case "GANK" -> MigratedEffect.mapped(token, "DAMAGE_MOD:attack:add:%nearbyenemies% * 8",
+                        "EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%");
+                // RAGE:PERCENT → stacking combo damage: DAMAGE_MOD scaling with %combo% (per-hit streak).
+                case "RAGE" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token,
+                                "DAMAGE_MOD:attack:add:%combo% * " + trimNumber(pct(parts[1]) * 100),
+                                "EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%")
+                        : MigratedEffect.todo(token, "unexpected RAGE arg shape");
+                // DAMAGE_DISTANCE → a melee bonus that falls off with range (expression over %distance%).
+                case "DAMAGE_DISTANCE" -> MigratedEffect.mapped(token, "DAMAGE_MOD:attack:add:25 - %distance% * 7",
+                        "EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)");
+                // REDUCE_HEARTS:HP:TIME → set the foe's health to HP (EE's regen-block is dead code, so omitted).
+                case "REDUCE_HEARTS" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "MODIFY_HEALTH:" + intArg(parts[1]) + ":set:" + foe(defenseDirection),
+                                "EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)")
+                        : MigratedEffect.todo(token, "unexpected REDUCE_HEARTS arg shape");
+                // REMOVE_ARMOR → drop a random worn armour piece from the foe.
+                case "REMOVE_ARMOR" -> MigratedEffect.mapped(token, "REMOVE_ARMOR:" + foe(defenseDirection),
+                        "EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)");
+                // TELEBLOCK:SECONDS → block the foe from teleporting for <sec*20> ticks.
+                case "TELEBLOCK" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "TELEBLOCK:" + (intArg(parts[1]) * 20) + ":" + foe(defenseDirection),
+                                "EE TELEBLOCK → TELEBLOCK (seconds → ticks)")
+                        : MigratedEffect.todo(token, "unexpected TELEBLOCK arg shape");
+                // IMMUNE:TYPE[:SECONDS] → make the wielder immune to that damage cause (default 5s when omitted).
+                case "IMMUNE" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "IMMUNE:" + parts[1].trim().toLowerCase(Locale.ROOT) + ":"
+                                + (parts.length >= 3 ? intArg(parts[2]) * 20 : 100) + ":@Self",
+                                "EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)")
+                        : MigratedEffect.todo(token, "unexpected IMMUNE arg shape");
+                // SMELT → auto-smelt the mined block (MINE-side).
+                case "SMELT" -> MigratedEffect.mapped(token, "SMELT", "EE SMELT → SMELT (auto-smelt on MINE)");
+                // TELEPORT_DROPS → mined drops to the breaker's inventory (MINE-side).
+                case "TELEPORT_DROPS" -> MigratedEffect.mapped(token, "TELEPORT_DROPS",
+                        "EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)");
+                // AUTO_LOCK → home the fired arrow onto the nearest target (BOW_FIRE-side).
+                case "AUTO_LOCK" -> MigratedEffect.mapped(token, "SEEK",
+                        "EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)");
+                // DRAIN_SOULS_CONSTANT:TIME:AMOUNT → debit AMOUNT souls from the activator (the short EE durations
+                // drain ~once, so an instant REMOVE_SOULS is faithful).
+                case "DRAIN_SOULS_CONSTANT" -> parts.length >= 3
+                        ? MigratedEffect.mapped(token, "REMOVE_SOULS:" + intArg(parts[2]),
+                                "EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)")
+                        : MigratedEffect.todo(token, "unexpected DRAIN_SOULS_CONSTANT arg shape");
+                // REMOVE_SOULS:AMOUNT:[PLAYER/TARGET] → debit AMOUNT souls from the activator (@Self) or the foe.
+                case "REMOVE_SOULS" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "REMOVE_SOULS:" + intArg(parts[1]) + ":"
+                                + (parts.length >= 3 && parts[2].trim().equalsIgnoreCase("TARGET")
+                                        ? foe(defenseDirection) : "@Self"),
+                                "EE REMOVE_SOULS → REMOVE_SOULS (TARGET drains the foe's gem, else the activator's)")
+                        : MigratedEffect.todo(token, "unexpected REMOVE_SOULS arg shape");
                 default -> MigratedEffect.todo(token,
                         "no StarEnchants equivalent for EE effect '" + head + "' — port this effect manually");
             };
@@ -325,17 +458,38 @@ public final class Mappings {
                         "EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max");
     }
 
-    /** DAMAGE_INCREASE:PCT → {@code DAMAGE_MOD:attack:add:<pct>} (a negative self-nerf is a TODO). */
+    /**
+     * DAMAGE_INCREASE:PCT → {@code DAMAGE_MOD:attack:add:<pct>}. A negative percent is a self-nerf
+     * ({@code DAMAGE_MOD:attack:add} now admits negatives). An EE equation form ({@code playerHealth*2.5},
+     * referencing {@code playerHealth}/{@code targetHealth}/{@code targetDistance}) multiplies the hit by the
+     * equation result, so it lowers to an expression-valued percent {@code (expr - 1) * 100} over the matching
+     * SE facts ({@code %actor.health%}/{@code %victim.health%}/{@code %distance%}), evaluated per hit.
+     */
     private static MigratedEffect damageIncrease(String token, String[] parts) {
         if (parts.length < 2) {
             return MigratedEffect.todo(token, "unexpected DAMAGE_INCREASE arg shape");
         }
-        double value = pct(parts[1]);
-        return value < 0
-                ? MigratedEffect.todo(token,
-                        "negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually")
-                : MigratedEffect.mapped(token, "DAMAGE_MOD:attack:add:" + trimNumber(value),
-                        "EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add");
+        String arg = parts[1].trim();
+        if (isEeEquation(arg)) {
+            String expr = arg
+                    .replace("playerHealth", "%actor.health%")
+                    .replace("targetHealth", "%victim.health%")
+                    .replace("targetDistance", "%distance%");
+            // EE multiplies the hit by the equation result; DAMAGE_MOD:add is a percent, so (result - 1) * 100.
+            return MigratedEffect.mapped(token, "DAMAGE_MOD:attack:add:(" + expr + " - 1) * 100",
+                    "EE DAMAGE_INCREASE equation → expression-valued DAMAGE_MOD percent ((expr - 1) * 100)");
+        }
+        double value = pct(arg);
+        return MigratedEffect.mapped(token, "DAMAGE_MOD:attack:add:" + trimNumber(value),
+                value < 0 ? "EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)"
+                        : "EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add");
+    }
+
+    /** Whether a DAMAGE_INCREASE arg is an EE equation (references a health/distance var or uses {@code * /}). */
+    private static boolean isEeEquation(String arg) {
+        String low = arg.toLowerCase(Locale.ROOT);
+        return low.contains("playerhealth") || low.contains("targethealth") || low.contains("targetdistance")
+                || arg.indexOf('*') >= 0 || arg.indexOf('/') >= 0;
     }
 
     /** LIGHTNING:[target]:REAL → {@code LIGHTNING:5:@foe} (real ≈ 5 dmg); without REAL → cosmetic ({@code 0}). */
@@ -387,8 +541,15 @@ public final class Mappings {
             return MigratedCondition.mapped("%" + fact + "% " + op + " " + num.group(3));
         }
         if (low.startsWith("istargetholding")) {
-            return MigratedCondition.todo("EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single "
-                    + "material with no group test — port manually");
+            // EE checks the victim's held item against a material GROUP (SWORD/AXE/BOW). SE's %victim.helditem%
+            // is the single material name (e.g. DIAMOND_SWORD), so the `contains` string operator IS the group
+            // test: %victim.helditem% contains "SWORD" matches any sword. Case-insensitive in the evaluator.
+            String[] words = raw.trim().split("\\s+", 2);
+            if (words.length >= 2 && !words[1].isBlank()) {
+                String group = words[1].trim().toUpperCase(Locale.ROOT);
+                return MigratedCondition.mapped("%victim.helditem% contains \"" + group + "\"");
+            }
+            return MigratedCondition.todo("isTargetHolding without an item group");
         }
         return MigratedCondition.todo("unrecognised EE condition '" + raw + "' — port manually");
     }

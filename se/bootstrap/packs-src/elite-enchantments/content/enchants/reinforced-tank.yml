@@ -7,18 +7,18 @@ group: "heroic"
 tier: heroic
 levels:
   1:
-    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }  # from REDUCTION:2.25
   2:
-    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 4.5 } }  # from REDUCTION:4.5
   3:
-    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 6.75 } }  # from REDUCTION:6.75
   4:
-    # TODO condition (port manually): isTargetHolding AXE — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 9.95 } }  # from REDUCTION:9.95

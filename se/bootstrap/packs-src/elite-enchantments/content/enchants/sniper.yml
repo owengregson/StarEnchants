@@ -9,25 +9,25 @@ levels:
   1:
     chance: 3.25
     cooldown: 3
-    effects: []
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+    effects:
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   2:
     chance: 5
     cooldown: 3
-    effects: []
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+    effects:
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   3:
     chance: 7
     cooldown: 3
-    effects: []
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+    effects:
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   4:
     chance: 9
     cooldown: 3
-    effects: []
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+    effects:
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   5:
     chance: 12
     cooldown: 3
-    effects: []
-      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+    effects:
+      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)

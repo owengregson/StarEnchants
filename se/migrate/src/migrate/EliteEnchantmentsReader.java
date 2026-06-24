@@ -66,7 +66,8 @@ public final class EliteEnchantmentsReader {
             }
             List<MigratedEffect> effects = new ArrayList<>();
             for (String token : LegacyYaml.stringList(lvl, "effects")) {
-                effects.add(Mappings.effect(token, defenseDir));
+                // One EE token can expand to several SE effects (a WRATH/FROST/ROT_DECAY compound).
+                effects.addAll(Mappings.effects(token, defenseDir));
             }
             // EE conditions are a small fixed vocabulary; map the ones that have an SE fact, TODO the rest
             // (an unmappable condition is flagged, never emitted raw — that would be invalid SE grammar).

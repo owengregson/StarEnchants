@@ -9,25 +9,25 @@ levels:
   1:
     chance: 4.25
     cooldown: 3
-    effects: []
-      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
   2:
     chance: 7
     cooldown: 3
-    effects: []
-      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
   3:
     chance: 9.5
     cooldown: 2
-    effects: []
-      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
   4:
     chance: 11
     cooldown: 2
-    effects: []
-      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
   5:
     chance: 13
     cooldown: 1
-    effects: []
-      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)

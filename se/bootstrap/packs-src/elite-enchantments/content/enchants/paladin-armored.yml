@@ -9,7 +9,7 @@ levels:
   1:
     chance: 10
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
@@ -25,7 +25,7 @@ levels:
   2:
     chance: 20
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
@@ -41,7 +41,7 @@ levels:
   3:
     chance: 30
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
@@ -56,7 +56,7 @@ levels:
   4:
     chance: 40
     cooldown: 4
-    # TODO condition (port manually): isTargetHolding SWORD — EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single material with no group test — port manually
+    condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
