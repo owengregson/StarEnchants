@@ -81,6 +81,30 @@ code.
   PASS; a green banner can hide a server that never booted. A green Paper run
   says nothing about Folia.
 
+## Cutting a release
+
+Releases are automated (ADR-0025). The trigger is a **version bump**: the version
+lives in one place — `version` in the root `build.gradle.kts` (stamped into
+`plugin.yml`) — and CI publishes when that value on `main` becomes a non-`SNAPSHOT`
+version that hasn't been released yet.
+
+```bash
+scripts/run-matrix.sh --all          # 1. local pre-release gate: all targets PASS
+# 2. bump version in build.gradle.kts, e.g. "0.1.0-SNAPSHOT" -> "1.0.0"
+# 3. open a PR with that bump, get CI green, rebase-merge to main
+```
+
+On merge, `.github/workflows/release.yml` runs `./gradlew build :bootstrap:jar`,
+creates the `v<version>` tag, and publishes a GitHub Release with the universal
+plugin jar (`StarEnchants-<version>.jar` + `.sha256`) and auto-generated notes.
+`-SNAPSHOT` versions never release, and an existing `v<version>` is a no-op, so
+ordinary merges never publish. After releasing, bump back to the next
+`-SNAPSHOT` (e.g. `1.0.1-SNAPSHOT`). `workflow_dispatch` re-runs the check by hand.
+
+The release build runs the **unit gate only** — the live Paper+Folia matrix needs
+the gitignored server reference cache, so it stays the local pre-release gate (run
+it before the bump).
+
 ## Version matrix (target)
 
 Paper: 1.17.1 (floor), 1.18.2, 1.19.4, 1.20.6, 1.21.x, 26.1.x (ceiling) — and
