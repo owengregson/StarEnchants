@@ -25,8 +25,10 @@ import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.stores.CooldownStore;
+import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
+import engine.stores.TeleblockStore;
 import engine.stores.RepeatStore;
 import engine.stores.SoulModeStore;
 import engine.stores.SuppressionStore;
@@ -39,8 +41,10 @@ import feature.carrier.CarrierService;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.EquipListener;
+import feature.combat.ImmuneListener;
 import feature.combat.KeepOnDeathListener;
 import feature.combat.KnockbackListener;
+import feature.combat.TeleblockListener;
 import feature.crystal.CrystalListener;
 import feature.crystal.CrystalService;
 import feature.heroic.HeroicListener;
@@ -310,6 +314,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // through the per-event sink; the death listener reads it on PlayerDeathEvent to keep items+levels.
         // Same instance both ends.
         KeepOnDeathStore keepOnDeath = new KeepOnDeathStore();
+        // Shared TELEBLOCK / IMMUNE stores (EE exotic-effect ports): the effects arm a per-player timed flag
+        // through the per-event sink; the teleport / damage listeners (separate Bukkit events) read it back.
+        TeleblockStore teleblock = new TeleblockStore();
+        ImmuneStore immune = new ImmuneStore();
 
         // Protection / region gate (gate 2): compose the ProtectionProviders registered via the
         // ServicesManager; a server with none allows everything. The guard passes the firing location
@@ -348,7 +356,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
-                soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback, keepOnDeath,
+                soulService::bindingFor, economy, soulService, vars, suppression, knockback, keepOnDeath,
+                teleblock, immune,
                 () -> master.config().heroic().maxOutgoingFactor(),       // §F heroic clamp ceiling
                 () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
                 () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
@@ -356,8 +365,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().combat().pve());                    // §L combat.pve gate (live)
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
-                tick::get, soulService::bindingFor, economy, soulService::debit, vars, suppression, knockback,
-                keepOnDeath, () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
+                tick::get, soulService::bindingFor, economy, soulService, vars, suppression, knockback,
+                keepOnDeath, teleblock, immune,
+                () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
         // §B REPEATING lifecycle: one entity-owned repeating task per (player, repeating ability), armed by
         // EquipListener on every equip change and torn down on quit/disable. RepeatStore owns the mapping.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
@@ -384,10 +394,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch,
                 () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope())), this); // §F reduction-scope
         getServer().getPluginManager().registerEvents(
-                new EngineStoreListener(vars, suppression, knockback, keepOnDeath), this);
+                new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune), this);
         // §C KEEP_ON_DEATH: keep items+levels on a death while the flag is armed. NORMAL priority — earlier
         // than HolyScrollListener (HIGH) — so an enchant-kept death never spends a holy scroll.
         getServer().getPluginManager().registerEvents(new KeepOnDeathListener(keepOnDeath, tick::get), this);
+        // EE exotic-effect ports: TELEBLOCK (cancel ender-pearl/chorus teleport while flagged) and IMMUNE
+        // (cancel matching damage while flagged) read their per-event flags back on the separate events.
+        getServer().getPluginManager().registerEvents(new TeleblockListener(teleblock, tick::get), this);
+        getServer().getPluginManager().registerEvents(new ImmuneListener(immune, tick::get), this);
         // §C KNOCKBACK_CONTROL: hook whichever knockback event this server fires (modern bukkit / legacy
         // destroystokyo), capability-probed. A no-op on a server with neither (the effect is simply inert).
         KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);
