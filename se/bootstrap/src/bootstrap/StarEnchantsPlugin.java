@@ -92,6 +92,7 @@ import item.render.LoreStyle;
 import item.view.ItemViewCache;
 import item.worn.WornResolver;
 import item.worn.WornStateStore;
+import pack.PackStore;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -491,13 +492,17 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec), this);
         }
 
+        // Config packs (ADR-0023): export/apply a ZIP snapshot of the whole config surface, over the
+        // data folder. /se pack apply pairs the on-disk swap with the transactional reloader below.
+        PackStore packs = new PackStore(getDataFolder().toPath());
+
         PluginCommand command = getCommand("se");
         if (command != null) {
             SeCommand seCommand = new SeCommand(reloader, enchanter,
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
-                    scrolls, unopenedBooks, holyScrolls, nametags, messages);
+                    scrolls, unopenedBooks, holyScrolls, nametags, packs, messages);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
         }
@@ -688,6 +693,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         saveDefaultTree("content");
         saveDefaultTree("items");
         saveDefaultTree("menus");
+        saveDefaultTree("packs"); // ADR-0023: the shipped config packs (e.g. elite-enchantments.zip)
     }
 
     /** Extract one bundled top-level file (e.g. {@code config.yml}); never overwrites an operator's copy. */

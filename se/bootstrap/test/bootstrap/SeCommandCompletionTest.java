@@ -81,6 +81,24 @@ class SeCommandCompletionTest {
         assertEquals(List.of("sets/yeti"), complete("give", "set", "Bob", "sets/y"));
     }
 
+    // ── §packs (ADR-0023) /se pack completion ──────────────────────────────────────────────────────
+
+    private static final List<String> PACKS = List.of("elite-enchantments", "vanilla-plus");
+
+    private static List<String> completePack(String... args) {
+        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of(), List.of(), PLAYERS, SETS, PACKS);
+    }
+
+    @Test
+    void packCompletesActionsThenNamesForInfoAndApply() {
+        assertEquals(List.of("list", "info", "apply", "export"), completePack("pack", ""));
+        assertEquals(List.of("apply"), completePack("pack", "ap"));
+        assertEquals(PACKS, completePack("pack", "info", ""));                       // arg 2 = pack name
+        assertEquals(List.of("elite-enchantments"), completePack("pack", "apply", "elite"));
+        assertTrue(completePack("pack", "export", "").isEmpty());                    // export takes a NEW name
+        assertTrue(completePack("pack", "list", "x").isEmpty());                     // list takes no further arg
+    }
+
     @Test
     void giveBookOffersRandomThenCompletesTheTier() {
         assertTrue(complete("give", "book", "Bob", "").contains("random"));   // arg 3 offers the `random` form
