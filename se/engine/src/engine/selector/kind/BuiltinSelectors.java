@@ -28,6 +28,15 @@ public final class BuiltinSelectors {
                 .register(new NearestPlayerSelector())
                 .register(new PlayerFromNameSelector())
                 .register(new EntityInSightSelector())
+                // §A block/location selectors — resolve to LOCATIONS (the location-target seam).
+                .register(new HereSelector())
+                .register(new AddSelector())
+                .register(new EyeHeightSelector())
+                .register(new BlockSelector())
+                .register(new BlockInDistanceSelector())
+                .register(new TrenchSelector())
+                .register(new TunnelSelector())
+                .register(new VeinSelector())
                 .build();
     }
 }

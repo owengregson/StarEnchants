@@ -8,30 +8,33 @@ import static org.mockito.Mockito.when;
 
 import engine.effect.EffectCtx;
 import engine.sink.Sink;
+import java.util.List;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code BREAK_BLOCK}: emits one breakBlock at the location, no-op without one. */
+/** Mock-host test for {@code BREAK_BLOCK}: emits one breakBlock per target location, no-op without any. */
 class BreakBlockEffectTest {
 
     @Test
-    void emitsBreakBlockWithDropsFlag() {
-        Location loc = mock(Location.class);
+    void emitsBreakBlockWithDropsFlagPerTarget() {
+        Location a = mock(Location.class);
+        Location b = mock(Location.class);
         EffectCtx ctx = mock(EffectCtx.class);
-        when(ctx.location()).thenReturn(loc);
+        when(ctx.targetLocations("at")).thenReturn(List.of(a, b)); // e.g. an @Vein resolved to two blocks
         when(ctx.bool("drops")).thenReturn(false);
 
         Sink sink = mock(Sink.class);
         new BreakBlockEffect().run(ctx, sink);
 
-        verify(sink).breakBlock(loc, false);
+        verify(sink).breakBlock(a, false);
+        verify(sink).breakBlock(b, false);
         verifyNoMoreInteractions(sink);
     }
 
     @Test
-    void noLocationIsNoOp() {
+    void noTargetLocationsIsNoOp() {
         EffectCtx ctx = mock(EffectCtx.class);
-        when(ctx.location()).thenReturn(null);
+        when(ctx.targetLocations("at")).thenReturn(List.of());
 
         Sink sink = mock(Sink.class);
         new BreakBlockEffect().run(ctx, sink);

@@ -543,7 +543,70 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 Entity hit = from.getTargetEntity((int) Math.ceil(maxDistance));
                 return hit instanceof LivingEntity living ? living : null;
             }
+
+            @Override
+            public Location targetBlock(Player from, double maxDistance) {
+                if (from == null) {
+                    return null;
+                }
+                org.bukkit.block.Block block = from.getTargetBlockExact((int) Math.ceil(maxDistance));
+                return block == null ? null : block.getLocation();
+            }
+
+            @Override
+            public List<Location> vein(Location start, int limit) {
+                if (start == null || start.getWorld() == null || limit <= 0) {
+                    return List.of();
+                }
+                World world = start.getWorld();
+                org.bukkit.Material match;
+                try {
+                    match = world.getBlockAt(start).getType();
+                } catch (RuntimeException offRegion) {
+                    return List.of(); // a cross-region/unloaded read on Folia — bail rather than crash
+                }
+                if (match.isAir()) {
+                    return List.of();
+                }
+                // BFS flood-fill over 6-neighbours of the same material, capped at `limit`. Each block read is
+                // guarded: a cross-region/unloaded read on Folia simply truncates the vein (best-effort), and the
+                // BREAK/SET intents route to each block's own region via the Sink regardless (Affinity.REGION).
+                List<Location> out = new ArrayList<>();
+                java.util.Set<Long> seen = new java.util.HashSet<>();
+                java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+                int[] origin = {start.getBlockX(), start.getBlockY(), start.getBlockZ()};
+                queue.add(origin);
+                seen.add(packBlock(origin[0], origin[1], origin[2]));
+                int[][] dirs = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+                while (!queue.isEmpty() && out.size() < limit) {
+                    int[] c = queue.poll();
+                    org.bukkit.Material type;
+                    try {
+                        type = world.getBlockAt(c[0], c[1], c[2]).getType();
+                    } catch (RuntimeException offRegion) {
+                        continue;
+                    }
+                    if (type != match) {
+                        continue;
+                    }
+                    out.add(new Location(world, c[0], c[1], c[2]));
+                    for (int[] d : dirs) {
+                        int nx = c[0] + d[0];
+                        int ny = c[1] + d[1];
+                        int nz = c[2] + d[2];
+                        if (seen.add(packBlock(nx, ny, nz))) {
+                            queue.add(new int[] {nx, ny, nz});
+                        }
+                    }
+                }
+                return out;
+            }
         };
+    }
+
+    /** Pack block coords into a collision-free long for the vein flood-fill visited set (26/12/26 bits). */
+    private static long packBlock(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
     }
 
     /**

@@ -1,5 +1,6 @@
 package engine.selector;
 
+import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -60,5 +61,24 @@ public interface SelectorCtx {
      */
     default LivingEntity entityInSight(double maxDistance) {
         return null;
+    }
+
+    // ── Block/location world reads (§A block selectors; run on the actor's own region thread) ──
+
+    /**
+     * The location of the first solid block the activator is looking at within {@code maxDistance} blocks,
+     * or {@code null} if none ({@code Block}/{@code BlockInDistance} selectors). Default {@code null} for a
+     * context with no raytrace (unit/synthetic).
+     */
+    default Location targetBlock(double maxDistance) {
+        return null;
+    }
+
+    /**
+     * The locations of up to {@code limit} contiguous blocks of the same material as the block at
+     * {@code start} (flood-fill — the {@code Vein} selector). Default empty for a context with no world.
+     */
+    default List<Location> vein(Location start, int limit) {
+        return List.of();
     }
 }

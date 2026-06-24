@@ -1,6 +1,7 @@
 package engine.selector;
 
 import engine.spec.SelectorSpec;
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import java.util.List;
 
@@ -25,9 +26,22 @@ public interface SelectorKind {
     /**
      * Resolve the entities this selector targets for one activation. Reads the actors
      * and arguments from {@code ctx}; returns an empty list (never {@code null}) when
-     * nothing matches.
+     * nothing matches. A LOCATION selector (block/coordinate targeting) overrides
+     * {@link #resolveLocations} instead and leaves this empty.
      */
-    List<LivingEntity> resolve(SelectorCtx ctx);
+    default List<LivingEntity> resolve(SelectorCtx ctx) {
+        return List.of();
+    }
+
+    /**
+     * Resolve the LOCATIONS this selector targets for one activation (block/coordinate selectors —
+     * {@code @Block}/{@code @Trench}/{@code @Vein}/…, docs/v3-directives.md §A). Entity selectors leave
+     * this empty (the default); the engine resolves BOTH channels and a location-consuming effect
+     * (e.g. {@code SET_BLOCK}/{@code BREAK_BLOCK}) reads {@code EffectCtx.targetLocations}. Never null.
+     */
+    default List<Location> resolveLocations(SelectorCtx ctx) {
+        return List.of();
+    }
 
     /** The canonical head this kind registers under, e.g. {@code AOE}. */
     default String head() {
