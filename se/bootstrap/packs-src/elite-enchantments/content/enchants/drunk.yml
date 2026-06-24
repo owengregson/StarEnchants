@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: drunk). Review before shipping.
+display: "Drunk"
+description: "&6Slows your movement and mining &6but grants Strength.  &6&lI: &f▲ Lvl I &6&lII: &f▲ Lvl I &6&lIII: &f▲ Lvl II &6&lIV: &f▲ Lvl II"
+trigger: PASSIVE
+applies-to: [HELMET]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 200, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 200, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  3:
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 200, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  4:
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 200, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: trap). Review before shipping.
+display: "Trap"
+description: "&bOn hit, applies strong Slowness &bto the target.  &b&lI: &f🎲 3% &7| &f⌛ 4s &b&lII: &f🎲 6% &7| &f⌛ 4s &b&lIII: &f🎲 9% &7| &f⌛ 4s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 3
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)
+  2:
+    chance: 6
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)
+  3:
+    chance: 9
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)

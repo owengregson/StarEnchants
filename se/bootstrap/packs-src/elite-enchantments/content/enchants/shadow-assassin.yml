@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: shadow-assassin). Review before shipping.
+display: "Shadow Assassin"
+description: "&dHeroic upgrade for Assassin. &dDeals more damage the closer you &dare to the target, with a &dshorter cooldown. &c&l(!)&r &7Requires &eAssassin  &d&lI: &f🎲 4.25% &7| &f⌛ 3s &d&lII: &f🎲 7% &7| &f⌛ 3s &d&lIII: &f🎲 9.5% &7| &f⌛ 2s &d&lIV: &f🎲 11% &7| &f⌛ 2s &d&lV: &f🎲 13% &7| &f⌛ 1s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 4.25
+    cooldown: 3
+    effects: []
+      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+  2:
+    chance: 7
+    cooldown: 3
+    effects: []
+      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+  3:
+    chance: 9.5
+    cooldown: 2
+    effects: []
+      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+  4:
+    chance: 11
+    cooldown: 2
+    effects: []
+      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually
+  5:
+    chance: 13
+    cooldown: 1
+    effects: []
+      # TODO port manually: DAMAGE_DISTANCE — no StarEnchants equivalent for EE effect 'DAMAGE_DISTANCE' — port this effect manually

@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: furious-enrage). Review before shipping.
+display: "Furious Enrage"
+description: "&dHeroic upgrade for Enrage. &dDeals more bonus damage as your &dhealth drops. &c&l(!)&r &7Requires &eEnrage  &d&lI: &f🎲 4.5% &7| &f⌛ 5s &d&lII: &f🎲 6.25% &7| &f⌛ 5s &d&lIII: &f🎲 8.25% &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 4.5
+    cooldown: 5
+    condition: "%actor.health% < 10"
+    effects: []
+      # TODO port manually: DAMAGE_INCREASE:playerHealth*2.5 — could not parse a numeric argument: For input string: "playerHealth*2.5"
+  2:
+    chance: 6.25
+    cooldown: 5
+    condition: "%actor.health% < 10"
+    effects: []
+      # TODO port manually: DAMAGE_INCREASE:playerHealth*2.5 — could not parse a numeric argument: For input string: "playerHealth*2.5"
+  3:
+    chance: 8.25
+    cooldown: 5
+    condition: "%actor.health% < 10"
+    effects: []
+      # TODO port manually: DAMAGE_INCREASE:playerHealth*3 — could not parse a numeric argument: For input string: "playerHealth*3"

@@ -1,0 +1,24 @@
+# Imported from EliteEnchantments (id: alien-implants). Review before shipping.
+display: "Alien Implants"
+description: "&dHeroic upgrade for Implants. &dRestores more health and hunger, &dmore often. &c&l(!)&r &7Requires &eImplants  &d&lI: &f🎲 30% &7| &f▲ +2❤ &d&lII: &f🎲 60% &7| &f▲ +2❤ &d&lIII: &f🎲 90% &7| &f▲ +2❤"
+trigger: REPEATING
+repeat: 40
+applies-to: [HELMET]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 30
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+  2:
+    chance: 60
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+  3:
+    chance: 90
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD

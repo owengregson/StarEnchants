@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: poison). Review before shipping.
+display: "Poison"
+description: "&bOn hit, applies Poison to the &btarget.  &b&lI: &f🎲 5% &7| &f⌛ 3s &b&lII: &f🎲 8% &7| &f⌛ 3s &b&lIII: &f🎲 12% &7| &f⌛ 3s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 5
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)
+  2:
+    chance: 8
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)
+  3:
+    chance: 12
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)

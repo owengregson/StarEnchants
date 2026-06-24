@@ -1,0 +1,12 @@
+# Black Scroll (docs/v3-directives.md §I) — drag onto enchanted gear to EXTRACT one (random) enchant into
+# an enchant book, rolling success-chance. On failure the scroll is spent and nothing is extracted. One
+# physical item per file; reload with /se reload. Result messages live in lang.yml (scroll.black.*).
+type: black-scroll
+
+material: INK_SAC
+name: "&8Black Scroll"
+lore:
+  - "&7Drag onto enchanted gear to"
+  - "&7extract one enchant into a book."
+# Chance (0–100) the extraction succeeds; on a miss the scroll is consumed and nothing is extracted.
+success-chance: 80

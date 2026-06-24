@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: momentum). Review before shipping.
+display: "Momentum"
+description: "&eWhen hit, clears Slowness from &eyourself.  &e&lI: &f🎲 5% &7| &f⌛ 3s &e&lII: &f🎲 7% &7| &f⌛ 3s &e&lIII: &f🎲 9% &7| &f⌛ 3s &e&lIV: &f🎲 10% &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 5
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)
+  2:
+    chance: 7
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)
+  3:
+    chance: 9
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)
+  4:
+    chance: 10
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)

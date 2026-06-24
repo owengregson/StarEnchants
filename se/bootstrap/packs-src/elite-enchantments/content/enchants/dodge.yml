@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: dodge). Review before shipping.
+display: "Dodge"
+description: "&eWhen hit, has a chance to fully &enegate the attack.  &e&lI: &f🎲 2.75% &7| &f⌛ 4s &e&lII: &f🎲 4.5% &7| &f⌛ 4s &e&lIII: &f🎲 7.25% &7| &f⌛ 4s &e&lIV: &f🎲 9% &7| &f⌛ 4s &e&lV: &f🎲 11% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 2.75
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+  2:
+    chance: 4.5
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+  3:
+    chance: 7.25
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+  4:
+    chance: 9
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+  5:
+    chance: 11
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)

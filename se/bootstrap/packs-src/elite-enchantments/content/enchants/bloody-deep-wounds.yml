@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: bloody-deep-wounds). Review before shipping.
+display: "Bloody Deep Wounds"
+description: "&dHeroic upgrade for Deep Wounds. &dDeals more bonus melee damage. &c&l(!)&r &7Requires &aDeep Wounds  &d&lI: &f🎲 2.25% &7| &f▲ 15% &7| &f⌛ 4s &d&lII: &f🎲 3.75% &7| &f▲ 15% &7| &f⌛ 4s &d&lIII: &f🎲 5.5% &7| &f▲ 15% &7| &f⌛ 4s"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 2.25
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 3.75
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 5.5
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

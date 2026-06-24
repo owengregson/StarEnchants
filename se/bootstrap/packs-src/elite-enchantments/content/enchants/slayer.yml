@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: slayer). Review before shipping.
+display: "Slayer"
+description: "&eOn hit, has a chance to &einstantly kill the target.  &e&lI: &f🎲 9.25% &7| &f⌛ 5s &e&lII: &f🎲 12.5% &7| &f⌛ 5s &e&lIII: &f🎲 18.75% &7| &f⌛ 5s &e&lIV: &f🎲 22.5% &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 9.25
+    cooldown: 5
+    effects:
+      - { KILL: { who: "@Victim" } }  # from KILL
+  2:
+    chance: 12.5
+    cooldown: 5
+    effects:
+      - { KILL: { who: "@Victim" } }  # from KILL
+  3:
+    chance: 18.75
+    cooldown: 5
+    effects:
+      - { KILL: { who: "@Victim" } }  # from KILL
+  4:
+    chance: 22.5
+    cooldown: 5
+    effects:
+      - { KILL: { who: "@Victim" } }  # from KILL

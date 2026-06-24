@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: lethal-sniper). Review before shipping.
+display: "Lethal Sniper"
+description: "&dHeroic upgrade for Sniper. &dLands more reliable, &dharder-hitting headshots. &c&l(!)&r &7Requires &6Sniper  &d&lI: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 3s &d&lII: &f🎲 7.5% &7| &f▲ 5% &7| &f⌛ 3s &d&lIII: &f🎲 10% &7| &f▲ 5% &7| &f⌛ 3s &d&lIV: &f🎲 12.5% &7| &f▲ 5% &7| &f⌛ 3s &d&lV: &f🎲 15% &7| &f▲ 5% &7| &f⌛ 3s"
+trigger: BOW
+applies-to: [BOW]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 5
+    cooldown: 3
+    effects:
+      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 7.5
+    cooldown: 3
+    effects:
+      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 10
+    cooldown: 3
+    effects:
+      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  4:
+    chance: 12.5
+    cooldown: 3
+    effects:
+      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  5:
+    chance: 15
+    cooldown: 3
+    effects:
+      # TODO port manually: SNIPER — no StarEnchants equivalent for EE effect 'SNIPER' — port this effect manually
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

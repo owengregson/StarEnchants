@@ -1,0 +1,50 @@
+# Imported from EliteEnchantments (id: deep-bleed). Review before shipping.
+display: "Deep Bleed"
+description: "&dHeroic upgrade for Bleed. &dDeals more bonus damage and &dapplies stronger Slowness. &c&l(!)&r &7Requires &eBleed  &d&lI: &f🎲 2.25% &7| &f▲ 3% &7| &f⌛ 4s &d&lII: &f🎲 4% &7| &f▲ 5% &7| &f⌛ 4s &d&lIII: &f🎲 5.5% &7| &f▲ 8% &7| &f⌛ 4s &d&lIV: &f🎲 6.25% &7| &f▲ 10% &7| &f⌛ 4s &d&lV: &f🎲 7% &7| &f▲ 12% &7| &f⌛ 4s &d&lVI: &f🎲 8.25% &7| &f▲ 15% &7| &f⌛ 4s"
+trigger: ATTACK
+applies-to: [AXE]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 2.25
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } }  # from DAMAGE_INCREASE:3 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
+  2:
+    chance: 4
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
+  3:
+    chance: 5.5
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
+  4:
+    chance: 6.25
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
+  5:
+    chance: 7
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
+  6:
+    chance: 8.25
+    cooldown: 4
+    effects:
+      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)

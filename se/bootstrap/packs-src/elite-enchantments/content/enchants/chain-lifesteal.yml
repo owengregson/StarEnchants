@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: chain-lifesteal). Review before shipping.
+display: "Chain Lifesteal"
+description: "&4On hit, restores a chunk of your &4health.  &4&lI: &f🎲 3.25% &7| &f▲ +2-4❤ &7| &f⌛ 6s &4&lII: &f🎲 5% &7| &f▲ +2-4❤ &7| &f⌛ 6s &4&lIII: &f🎲 7.5% &7| &f▲ +3-4❤ &7| &f⌛ 6s &4&lIV: &f🎲 9% &7| &f▲ +5-6❤ &7| &f⌛ 6s &4&lV: &f🎲 12% &7| &f▲ +5-6❤ &7| &f⌛ 6s"
+trigger: ATTACK
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "mythic"
+tier: mythic
+levels:
+  1:
+    chance: 3.25
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  2:
+    chance: 5
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  3:
+    chance: 7.5
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  4:
+    chance: 9
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }  # from HEAL:ADD:5:6 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  5:
+    chance: 12
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }  # from HEAL:ADD:5:6 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

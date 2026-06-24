@@ -1,0 +1,56 @@
+# Imported from EliteEnchantments (id: disarmor). Review before shipping.
+display: "Disarmor"
+description: "&6On hit against a low-health &6target, removes a piece of their &6armor.  &6&lI: &f🎲 0.5% &7| &f⌛ 4s &6&lII: &f🎲 1% &7| &f⌛ 4s &6&lIII: &f🎲 1.5% &7| &f⌛ 4s &6&lIV: &f🎲 2% &7| &f⌛ 4s &6&lV: &f🎲 2.75% &7| &f⌛ 4s &6&lVI: &f🎲 3.5% &7| &f⌛ 4s &6&lVII: &f🎲 4.5% &7| &f⌛ 4s &6&lVIII: &f🎲 5.25% &7| &f⌛ 4s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 0.5
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually
+  2:
+    chance: 1
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually
+  3:
+    chance: 1.5
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually
+  4:
+    chance: 2
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually
+  5:
+    chance: 2.75
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually
+  6:
+    chance: 3.5
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually
+  7:
+    chance: 4.5
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually
+  8:
+    chance: 5.25
+    cooldown: 4
+    condition: "%victim.health% <= 5"
+    effects: []
+      # TODO port manually: REMOVE_ARMOR — no StarEnchants equivalent for EE effect 'REMOVE_ARMOR' — port this effect manually

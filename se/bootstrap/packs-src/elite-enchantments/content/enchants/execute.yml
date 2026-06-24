@@ -1,0 +1,50 @@
+# Imported from EliteEnchantments (id: execute). Review before shipping.
+display: "Execute"
+description: "&bOn hit against a low-health &btarget, deals bonus damage.  &b&lI: &f🎲 1.25% &7| &f▲ 12% &7| &f⌛ 6s &b&lII: &f🎲 2.5% &7| &f▲ 12% &7| &f⌛ 6s &b&lIII: &f🎲 3.75% &7| &f▲ 12% &7| &f⌛ 6s &b&lIV: &f🎲 5% &7| &f▲ 12% &7| &f⌛ 6s &b&lV: &f🎲 6.75% &7| &f▲ 12% &7| &f⌛ 6s &b&lVI: &f🎲 8% &7| &f▲ 12% &7| &f⌛ 6s &b&lVII: &f🎲 10% &7| &f▲ 12% &7| &f⌛ 6s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 1.25
+    cooldown: 6
+    condition: "%victim.health% <= 5"
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 2.5
+    cooldown: 6
+    condition: "%victim.health% <= 5"
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 3.75
+    cooldown: 6
+    condition: "%victim.health% <= 5"
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  4:
+    chance: 5
+    cooldown: 6
+    condition: "%victim.health% <= 5"
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  5:
+    chance: 6.75
+    cooldown: 6
+    condition: "%victim.health% <= 5"
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  6:
+    chance: 8
+    cooldown: 6
+    condition: "%victim.health% <= 5"
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  7:
+    chance: 10
+    cooldown: 6
+    condition: "%victim.health% <= 5"
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

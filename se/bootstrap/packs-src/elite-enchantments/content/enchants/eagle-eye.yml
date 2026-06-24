@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: eagle-eye). Review before shipping.
+display: "Eagle Eye"
+description: "&eArrows damage the durability of &ethe target's armor.  &e&lI: &f🎲 3.25% &7| &f▲ 1 pt. &7| &f⌛ 5s &e&lII: &f🎲 5.25% &7| &f▲ 1 pt. &7| &f⌛ 5s &e&lIII: &f🎲 7.25% &7| &f▲ 2 pt. &7| &f⌛ 5s &e&lIV: &f🎲 9.25% &7| &f▲ 2 pt. &7| &f⌛ 5s &e&lV: &f🎲 11.25% &7| &f▲ 3 pt. &7| &f⌛ 5s"
+trigger: BOW
+applies-to: [BOW]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 3.25
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+  2:
+    chance: 5.25
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+  3:
+    chance: 7.25
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:2 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+  4:
+    chance: 9.25
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:2 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+  5:
+    chance: 11.25
+    cooldown: 5
+    effects:
+      - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:3 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)

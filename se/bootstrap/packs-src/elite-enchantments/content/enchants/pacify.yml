@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: pacify). Review before shipping.
+display: "Pacify"
+description: "&eArrows deal no normal damage, &edealing a small fixed amount &einstead.  &e&lI: &f▲ 1-4❤ &7| &f⌛ 3s &e&lII: &f▲ 1-4❤ &7| &f⌛ 3s &e&lIII: &f▲ 1-4❤ &7| &f⌛ 3s &e&lIV: &f▲ 1-4❤ &7| &f⌛ 3s"
+trigger: BOW
+applies-to: [BOW]
+group: "epic"
+tier: epic
+levels:
+  1:
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+  2:
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+  3:
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+  4:
+    cooldown: 3
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max

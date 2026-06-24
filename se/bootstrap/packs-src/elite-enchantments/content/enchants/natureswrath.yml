@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: natureswrath). Review before shipping.
+display: "Natures Wrath"
+description: "&cWhen hit, freezes and knocks &cback nearby enemies.  &c&lI: &f🎲 4% &7| &f⌛ 10s &7| &f☄ 75 &c&lII: &f🎲 8% &7| &f⌛ 10s &7| &f☄ 75 &c&lIII: &f🎲 12% &7| &f⌛ 10s &7| &f☄ 75 &c&lIV: &f🎲 16% &7| &f⌛ 10s &7| &f☄ 75"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "soul"
+tier: soul
+levels:
+  1:
+    chance: 4
+    cooldown: 10
+    effects: []
+      # TODO port manually: WRATH:3:1:2:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually
+  2:
+    chance: 8
+    cooldown: 10
+    effects: []
+      # TODO port manually: WRATH:5:2:3:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually
+  3:
+    chance: 12
+    cooldown: 10
+    effects: []
+      # TODO port manually: WRATH:7:2:4:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually
+  4:
+    chance: 16
+    cooldown: 10
+    effects: []
+      # TODO port manually: WRATH:10:2:4:&c&l*** Natures Wrath *** — no StarEnchants equivalent for EE effect 'WRATH' — port this effect manually

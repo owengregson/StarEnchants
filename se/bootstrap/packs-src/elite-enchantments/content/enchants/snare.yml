@@ -1,0 +1,32 @@
+# Imported from EliteEnchantments (id: snare). Review before shipping.
+display: "Snare"
+description: "&bArrows apply Slowness and Mining &bFatigue to the target.  &b&lI: &f🎲 4% &7| &f⌛ 4s &b&lII: &f🎲 6% &7| &f⌛ 4s &b&lIII: &f🎲 8% &7| &f⌛ 4s &b&lIV: &f🎲 10% &7| &f⌛ 4s"
+trigger: BOW
+applies-to: [BOW]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 4
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
+  2:
+    chance: 6
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
+  3:
+    chance: 8
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
+  4:
+    chance: 10
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
