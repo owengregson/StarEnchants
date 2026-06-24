@@ -20,14 +20,14 @@ import platform.sched.Scheduling;
  * uses reflection (no compile dependency) and every call is wrapped — a missing/changed method simply means
  * "not exempted" (the status quo), never a thrown exception in the combat path.
  *
- * <p><b>Verification status (honest).</b> <strong>NoCheatPlus</strong> has a stable, public, well-known
- * exemption API ({@code NCPExemptionManager.exemptPermanently(UUID, CheckType.MOVING)} + {@code unexempt}),
- * implemented here. Grim, Vulcan, Matrix and Spartan are closed/premium and/or expose no runtime
- * exemption API that can be implemented blind without risking a no-op that pretends to work; this class
- * <em>detects</em> them and logs guidance (most movement checks already honor server-applied velocity /
- * teleport events, and each of those anti-cheats provides its own velocity/bypass handling) rather than
- * shipping unverifiable reflection. Adding a real exemption for one of them later is a localized
- * {@link Exempter}.
+ * <p><b>Verification status (honest).</b> <strong>NoCheatPlus</strong> has a stable public exemption API
+ * ({@code NCPExemptionManager.exemptPermanently(UUID, CheckType.MOVING)} + {@code unexempt}), implemented
+ * reflectively here. <strong>GrimAC</strong> is open-source with a real API: {@link Grim} compiles against
+ * GrimAPI and surgically cancels its {@code FlagEvent} for a player StarEnchants just moved (the
+ * Mental+SE+Grim combo). Vulcan, Matrix and Spartan are closed/premium and expose no runtime exemption API
+ * that can be implemented without risking a no-op that pretends to work; this class <em>detects</em> them and
+ * logs guidance (each handles server-applied velocity/teleport natively, with its own bypass settings)
+ * rather than shipping unverifiable reflection. Adding a real one later is a localized addition.
  */
 public final class AntiCheat {
 
@@ -50,33 +50,45 @@ public final class AntiCheat {
      * player's region scheduler, Folia-correct).
      */
     public static Consumer<Player> exemption(Plugin plugin, Predicate<String> enabled, System.Logger log) {
-        List<Exempter> active = new ArrayList<>();
+        // Windowed exempters (exempt now, auto-unexempt after the window) — NoCheatPlus.
+        List<Exempter> windowed = new ArrayList<>();
+        // Fire-and-forget motion recorders — GrimAC (records the motion; a flag listener cancels coinciding flags).
+        List<Consumer<Player>> recorders = new ArrayList<>();
+
         if (present(plugin, "NoCheatPlus") && enabled.test("nocheatplus")) {
             Exempter ncp = NoCheatPlusExempter.tryCreate();
             if (ncp != null) {
-                active.add(ncp);
+                windowed.add(ncp);
                 log.log(System.Logger.Level.INFO, "anti-cheat: NoCheatPlus exemption active for engine-applied movement");
             }
         }
+        if (present(plugin, "GrimAC") && enabled.test("grim")) {
+            recorders.add(Grim.install(plugin, log)); // compiled GrimAPI bridge — registers its FlagEvent listener
+        }
         // Detected-but-unsupported anti-cheats: log guidance rather than ship unverifiable reflection.
-        noteUnsupported(plugin, enabled, log, "Grim", "grim");
         noteUnsupported(plugin, enabled, log, "Vulcan", "vulcan");
         noteUnsupported(plugin, enabled, log, "Matrix", "matrix");
         noteUnsupported(plugin, enabled, log, "Spartan", "spartan");
 
-        if (active.isEmpty()) {
+        if (windowed.isEmpty() && recorders.isEmpty()) {
             return player -> { };
         }
-        List<Exempter> exempters = List.copyOf(active);
+        List<Exempter> exempters = List.copyOf(windowed);
+        List<Consumer<Player>> moves = List.copyOf(recorders);
         return player -> {
-            for (Exempter e : exempters) {
-                e.exempt(player);
+            for (Consumer<Player> recorder : moves) {
+                recorder.accept(player);
             }
-            Scheduling.onEntityLater(player, EXEMPT_WINDOW_TICKS, () -> {
+            if (!exempters.isEmpty()) {
                 for (Exempter e : exempters) {
-                    e.unexempt(player);
+                    e.exempt(player);
                 }
-            });
+                Scheduling.onEntityLater(player, EXEMPT_WINDOW_TICKS, () -> {
+                    for (Exempter e : exempters) {
+                        e.unexempt(player);
+                    }
+                });
+            }
         };
     }
 

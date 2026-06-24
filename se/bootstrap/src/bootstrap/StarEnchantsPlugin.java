@@ -381,6 +381,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // when no actionable anti-cheat is present. Set once at boot (a static cross-cutting hook).
         engine.sink.DispatchSink.movementExemption(Integrations.antiCheatExemption(
                 this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat")));
+        // §N mcMMO friendly-fire (ADR-0027): SE applies no combat effects between two players in the same
+        // mcMMO party. Installed as the combat dispatch's friendly-fire gate (no-op when mcMMO is absent).
+        CombatDispatch.friendlyFire(Integrations.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,

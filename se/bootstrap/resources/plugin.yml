@@ -9,7 +9,8 @@ authors: [StarEnchants]
 # Optional integrations (§N, docs/decisions/0027): every bridge is bundled in THIS jar and active out of the
 # box when the plugin is present — none is required. softdepend = "load after these if installed" so their
 # APIs/services are ready when StarEnchants enables; it never forces any of them to be present.
-softdepend: [Mental, WorldGuard, Vault, Towny, Lands, SuperiorSkyblock2, Factions, PlaceholderAPI]
+softdepend: [Mental, WorldGuard, Vault, Towny, Lands, SuperiorSkyblock2, Factions, PlaceholderAPI,
+  GrimAC, NoCheatPlus, Vulcan, Matrix, Spartan, mcMMO, MythicMobs, ItemsAdder, Oraxen]
 commands:
   se:
     description: StarEnchants admin command.

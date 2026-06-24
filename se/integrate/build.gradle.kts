@@ -15,6 +15,9 @@ repositories {
     maven { url = uri("https://repo.bg-software.com/repository/api/") }      // SuperiorSkyblock2
     maven { url = uri("https://maven.enginehub.org/repo/") }                // WorldGuard (+ WorldEdit)
     maven { url = uri("https://repo.extendedclip.com/releases/") }          // PlaceholderAPI
+    maven { url = uri("https://mvn.lumine.io/repository/maven-public/") }   // MythicMobs
+    maven { url = uri("https://repo.oraxen.com/releases") }                 // Oraxen
+    maven { url = uri("https://repo.grim.ac/snapshots") }                   // GrimAC API
 }
 
 dependencies {
@@ -33,6 +36,10 @@ dependencies {
     compileOnly(libs.superiorskyblock.api) { isTransitive = false }
     compileOnly(libs.factions.api) { isTransitive = false }
     compileOnly(libs.placeholderapi) { isTransitive = false }
+    compileOnly(libs.mythicmobs.api) { isTransitive = false }
+    compileOnly(libs.itemsadder.api) { isTransitive = false }
+    compileOnly(libs.oraxen.api) { isTransitive = false }
+    compileOnly(libs.grim.api) { isTransitive = false }
 
     // Unit tests mock each plugin's API to pin the decision wiring (mirrors the former add-on tests).
     testImplementation(project(":platform"))

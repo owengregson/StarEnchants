@@ -1,6 +1,7 @@
 package integrate;
 
 import integrate.anticheat.AntiCheat;
+import integrate.combat.Mcmmo;
 import integrate.economy.VaultEconomyProvider;
 import integrate.papi.PapiPassthrough;
 import integrate.papi.SePlaceholderExpansion;
@@ -12,6 +13,7 @@ import integrate.protect.WorldGuardProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
@@ -112,6 +114,14 @@ public final class Integrations {
      */
     public static Consumer<Player> antiCheatExemption(Plugin plugin, Predicate<String> enabled, System.Logger log) {
         return AntiCheat.exemption(plugin, enabled, log);
+    }
+
+    /**
+     * The mcMMO friendly-fire predicate ({@code (attacker, victim) → same party?}) to install as the combat
+     * dispatch's friendly-fire gate, or a constant {@code false} when mcMMO is absent/disabled.
+     */
+    public static BiPredicate<Player, Player> mcmmoFriendlyFire(Plugin plugin, Predicate<String> enabled) {
+        return enabled.test("mcmmo") ? Mcmmo.sameParty(plugin) : (attacker, victim) -> false;
     }
 
     /** Present + enabled + not disabled in config. String-only, so it never loads an absent plugin's API. */

@@ -29,6 +29,10 @@ towny = "0.100.1.0"              # Towny API (repo.glaremasters.me/towny)
 lands = "7.25.4"                 # LandsAPI (jitpack: com.github.angeschossen:LandsAPI)
 superiorskyblock = "2024.4"      # SuperiorSkyblock2 API (repo.bg-software.com)
 placeholderapi = "2.11.6"        # PlaceholderAPI (repo.extendedclip.com) — expansion + passthrough
+mythicmobs = "5.6.1"             # MythicMobs API (io.lumine:Mythic-Dist, mvn.lumine.io) — mob-type variable
+itemsadder = "3.6.1"             # ItemsAdder API (jitpack: com.github.LoneDev6:API-ItemsAdder) — custom items
+oraxen = "1.171.0"               # Oraxen (repo.oraxen.com: io.th0rgal:oraxen) — custom items
+grim = "1.6.0.5"                 # GrimAPI (repo.grim.ac/snapshots: ac.grim.grimac:GrimAPI) — anti-cheat exemption
 junit = "5.11.3"
 # Mock-host testing for Bukkit-facing kinds (effects/conditions verified against a
 # mocked Sink + entities) — the testability practice the design adopts (§1.3).
@@ -45,6 +49,10 @@ towny-api = { module = "com.palmergames.bukkit.towny:towny", version.ref = "town
 lands-api = { module = "com.github.angeschossen:LandsAPI", version.ref = "lands" }
 superiorskyblock-api = { module = "com.bgsoftware:SuperiorSkyblockAPI", version.ref = "superiorskyblock" }
 placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
+mythicmobs-api = { module = "io.lumine:Mythic-Dist", version.ref = "mythicmobs" }
+itemsadder-api = { module = "com.github.LoneDev6:API-ItemsAdder", version.ref = "itemsadder" }
+oraxen-api = { module = "io.th0rgal:oraxen", version.ref = "oraxen" }
+grim-api = { module = "ac.grim.grimac:GrimAPI", version.ref = "grim" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
