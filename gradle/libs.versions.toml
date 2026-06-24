@@ -20,6 +20,14 @@ folia = "1.19.4-R0.1-SNAPSHOT"
 # ProtectionProvider via the ServicesManager). compileOnly — WorldGuard provides it at runtime, never
 # bundled. From the EngineHub maven repo (declared only in the addon module).
 worldguard = "7.0.9"
+# Plugin APIs for the optional §N integration add-ons (each a SEPARATE plugin jar that registers a
+# first-party SPI provider via the ServicesManager). All compileOnly — the bridged plugin provides its API
+# at runtime, never bundled — and each repo is declared ONLY in its add-on module so the core never sees it.
+vault = "1.7.1"                  # VaultAPI (jitpack: com.github.MilkBowl:VaultAPI) — economy SPI
+factions = "0.6.35"              # FactionsUUID (jitpack: com.github.drtshock.Factions:Factions) — com.massivecraft.factions
+towny = "0.100.1.0"              # Towny API (repo.glaremasters.me/towny)
+lands = "7.25.4"                 # LandsAPI (jitpack: com.github.angeschossen:LandsAPI)
+superiorskyblock = "2024.4"      # SuperiorSkyblock2 API (repo.bg-software.com)
 junit = "5.11.3"
 # Mock-host testing for Bukkit-facing kinds (effects/conditions verified against a
 # mocked Sink + entities) — the testability practice the design adopts (§1.3).
@@ -30,6 +38,11 @@ paper-api-floor = { module = "io.papermc.paper:paper-api", version.ref = "paper-
 paper-api-modern = { module = "io.papermc.paper:paper-api", version.ref = "paper-modern" }
 folia-api = { module = "dev.folia:folia-api", version.ref = "folia" }
 worldguard-bukkit = { module = "com.sk89q.worldguard:worldguard-bukkit", version.ref = "worldguard" }
+vault-api = { module = "com.github.MilkBowl:VaultAPI", version.ref = "vault" }
+factions-api = { module = "com.github.drtshock.Factions:Factions", version.ref = "factions" }
+towny-api = { module = "com.palmergames.bukkit.towny:towny", version.ref = "towny" }
+lands-api = { module = "com.github.angeschossen:LandsAPI", version.ref = "lands" }
+superiorskyblock-api = { module = "com.bgsoftware:SuperiorSkyblockAPI", version.ref = "superiorskyblock" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
