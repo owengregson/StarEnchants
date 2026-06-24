@@ -74,4 +74,15 @@ final class RuntimeSelectorCtx implements SelectorCtx {
         // The raytrace originates from the activator, on its own (firing) region thread — region-correct.
         return context.actor() == null ? null : areaScan.entityInSight(context.actor(), maxDistance);
     }
+
+    @Override
+    public Location targetBlock(double maxDistance) {
+        // The block raytrace originates from the activator, on its own (firing) region thread.
+        return context.actor() == null ? null : areaScan.targetBlock(context.actor(), maxDistance);
+    }
+
+    @Override
+    public java.util.List<Location> vein(Location start, int limit) {
+        return areaScan.vein(start, limit);
+    }
 }

@@ -30,4 +30,11 @@ public final class T {
 
     /** The single nearest living entity. */
     public static final String NEAREST = "NEAREST";
+
+    /**
+     * The activation's own block LOCATION — the default target of block effects ({@code SET_BLOCK}/
+     * {@code BREAK_BLOCK}); resolves via the {@code @Here} location selector. The location analogue of
+     * {@link #SELF}. Authors override it inline with a block selector ({@code @Block}/{@code @Trench}/…).
+     */
+    public static final String HERE = "HERE";
 }

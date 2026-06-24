@@ -21,14 +21,17 @@ final class RuntimeEffectCtx implements EffectCtx {
     private final Args args;
     private final ActivationContext context;
     private final Map<String, List<LivingEntity>> targetsBySlot;
+    private final Map<String, List<Location>> locationsBySlot;
     private final int level;
     private final UUID activeGem;
 
     RuntimeEffectCtx(Args args, ActivationContext context,
-                     Map<String, List<LivingEntity>> targetsBySlot, int level, UUID activeGem) {
+                     Map<String, List<LivingEntity>> targetsBySlot,
+                     Map<String, List<Location>> locationsBySlot, int level, UUID activeGem) {
         this.args = args;
         this.context = context;
         this.targetsBySlot = targetsBySlot;
+        this.locationsBySlot = locationsBySlot;
         this.level = level;
         this.activeGem = activeGem;
     }
@@ -81,6 +84,11 @@ final class RuntimeEffectCtx implements EffectCtx {
     @Override
     public Iterable<LivingEntity> targets(String selectorName) {
         return targetsBySlot.getOrDefault(selectorName, List.of());
+    }
+
+    @Override
+    public Iterable<Location> targetLocations(String selectorName) {
+        return locationsBySlot.getOrDefault(selectorName, List.of());
     }
 
     @Override

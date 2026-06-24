@@ -8,11 +8,12 @@ The actions an ability runs. Each is a `HEAD:args` token in an enchant/set/cryst
 
 ### BREAK_BLOCK
 
-Break the block at the activation location (drops=false clears it). No-op if there is no location.
+Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.
 
 - _affinity_: `REGION`
 - _usage_: `BREAK_BLOCK[:drops:bool=true]`
 - _param_ `drops` `bool`
+- _target_ `at`: selector `HERE`
 - _example_: `BREAK_BLOCK:true`
 
 ### CANCEL
@@ -387,11 +388,12 @@ Run a command from the console. Affinity GLOBAL — runs on the global thread.
 
 ### SET_BLOCK
 
-Set the block at the activation location to a material. No-op if there is no location.
+Set the target block(s) to a material (default @Here = the activation block).
 
 - _affinity_: `REGION`
 - _usage_: `SET_BLOCK:<material:material>`
 - _param_ `material` `material`
+- _target_ `at`: selector `HERE`
 - _example_: `SET_BLOCK:OBSIDIAN`
 
 ### SET_VAR
@@ -484,6 +486,16 @@ Lay a temporary platform of a material under the target for a duration (then rev
 
 Choose WHO an effect targets (`@Self`, `@Victim`, `@Aoe`, …). Routing is the effect's; a selector carries no affinity.
 
+### ADD
+
+The activation location offset by (x, y, z).
+
+- _usage_: `ADD[:x:double=0][:y:double=0][:z:double=0]`
+- _param_ `x` `double` — x offset in blocks
+- _param_ `y` `double` — y offset in blocks
+- _param_ `z` `double` — z offset in blocks
+- _example_: `@Add{y=2}`
+
 ### ALLPLAYERS
 
 Every player within r blocks of the target, except the activator.
@@ -509,6 +521,22 @@ The entity that damaged the activator (for defensive effects).
 - _usage_: `ATTACKER`
 - _example_: `@Attacker`
 
+### BLOCK
+
+The first solid block the activator is looking at, within distance.
+
+- _usage_: `BLOCK[:distance:double[0..]=5]`
+- _param_ `distance` `double[0..]` — max look distance in blocks
+- _example_: `@Block`
+
+### BLOCKINDISTANCE
+
+The first solid block along the activator's line of sight, within distance.
+
+- _usage_: `BLOCKINDISTANCE[:distance:double[0..]=30]`
+- _param_ `distance` `double[0..]` — max look distance in blocks
+- _example_: `@BlockInDistance{distance=50}`
+
 ### ENTITYINSIGHT
 
 The living entity the activator is looking at within r blocks, or nothing.
@@ -516,6 +544,20 @@ The living entity the activator is looking at within r blocks, or nothing.
 - _usage_: `ENTITYINSIGHT[:r:double[0..]=16]`
 - _param_ `r` `double[0..]` — maximum line-of-sight distance in blocks
 - _example_: `@EntityInSight{r=16}`
+
+### EYEHEIGHT
+
+The activator's eye location (their position at eye level).
+
+- _usage_: `EYEHEIGHT`
+- _example_: `@EyeHeight`
+
+### HERE
+
+The activation block location itself — the default target of block effects.
+
+- _usage_: `HERE`
+- _example_: `@Here`
 
 ### NEAREST
 
@@ -548,6 +590,30 @@ The activating player themself.
 
 - _usage_: `SELF`
 - _example_: `@Self`
+
+### TRENCH
+
+The square of blocks perpendicular to the look direction, centred on the activation block.
+
+- _usage_: `TRENCH[:radius:int[0..]=1]`
+- _param_ `radius` `int[0..]` — half-width of the face (1 = 3x3)
+- _example_: `@Trench{radius=1}`
+
+### TUNNEL
+
+The blocks directly ahead of the activation block, along the look direction.
+
+- _usage_: `TUNNEL[:depth:int[1..]=3]`
+- _param_ `depth` `int[1..]` — blocks ahead along the look direction
+- _example_: `@Tunnel{depth=4}`
+
+### VEIN
+
+Up to `limit` blocks contiguous with and matching the activation block (vein miner).
+
+- _usage_: `VEIN[:limit:int[1..]=64]`
+- _param_ `limit` `int[1..]` — max blocks in the vein
+- _example_: `@Vein{limit=32}`
 
 ### VICTIM
 
