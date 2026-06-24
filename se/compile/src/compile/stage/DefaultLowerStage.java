@@ -12,13 +12,16 @@ import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.cond.Cond;
+import compile.model.cond.NumExpr;
 import schema.diag.Diagnostics;
 import schema.grammar.EffectLine;
 import schema.grammar.expr.Expr;
 import schema.grammar.expr.ExprParser;
 import schema.grammar.expr.FlowKind;
+import schema.spec.Args;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -115,7 +118,7 @@ public final class DefaultLowerStage implements LowerStage {
             compile.CompiledLine cl = compiled.get();
             CompiledSelector selector = resolveSelector(line, cl.head(), diags);
             out.add(new CompiledEffect(
-                    cl.head(), cl.args(), selector, waitAccum, affinityOf(cl.head())));
+                    cl.head(), lowerExprArgs(cl.args(), diags), selector, waitAccum, affinityOf(cl.head())));
         }
 
         CompiledCondition condition = lowerCondition(def, diags);
@@ -145,6 +148,26 @@ public final class DefaultLowerStage implements LowerStage {
                 ability,
                 def.source(),
                 def.setPieces());
+    }
+
+    /**
+     * Lower any <em>expression-valued</em> numeric argument from its parsed {@link Expr} (var <em>names</em>,
+     * produced by {@code ParamType}) to the slot-resolved {@link NumExpr} IR the runtime evaluates — the same
+     * variable→slot resolution conditions use, applied to effect args (docs/architecture.md §3.4). A constant
+     * numeric argument is a {@link Double}/{@link Long} and passes through untouched; only an {@code Expr}
+     * value is rewritten. A lowering error is recorded (so the load fails) and the value is left as-is.
+     */
+    private Args lowerExprArgs(Args args, Diagnostics diags) {
+        Args out = args;
+        for (Map.Entry<String, Object> entry : args.asMap().entrySet()) {
+            if (entry.getValue() instanceof Expr expr) {
+                Optional<NumExpr> lowered = conditionCompiler.numeric(expr, diags);
+                if (lowered.isPresent()) {
+                    out = out.with(entry.getKey(), lowered.get());
+                }
+            }
+        }
+        return out;
     }
 
     /**

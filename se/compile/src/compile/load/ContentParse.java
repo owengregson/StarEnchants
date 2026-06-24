@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -124,26 +123,25 @@ final class ContentParse {
     }
 
     /**
-     * The effects under {@code key} of {@code node} as {@link EffectLine}s (ADR-0016 §2–3): each item
-     * is a terse {@code "HEAD:arg"} string OR a verbose {@code HEAD: { param: value, who:, wait: }} map.
-     * {@code $token} / {@code ${token}} scale references are substituted at {@code level}; a {@code wait:}
-     * desugars to a preceding {@code WAIT} line. Both forms produce the same downstream shape.
+     * The effects under {@code key} of {@code node} as {@link EffectLine}s: each item is a terse
+     * {@code "HEAD:arg"} string OR a verbose {@code HEAD: { param: value, who:, wait: }} map. A
+     * {@code wait:} desugars to a preceding {@code WAIT} line. Both forms produce the same downstream
+     * shape. (A literal {@code $} in a value is preserved verbatim — there is no scale/token grammar.)
      */
-    static List<EffectLine> effectItems(YamlNode node, String key, int level, ScaleEnv scale, Diagnostics diags) {
+    static List<EffectLine> effectItems(YamlNode node, String key, Diagnostics diags) {
         List<EffectLine> out = new ArrayList<>();
         for (YamlNode item : node.items(key)) {
             if (item.isScalar()) {
-                out.add(EffectLine.parse(substitute(item.scalar(), level, scale, item.source(), diags), item.source()));
+                out.add(EffectLine.parse(item.scalar(), item.source()));
             } else {
-                appendVerbose(item, level, scale, out, diags);
+                appendVerbose(item, out, diags);
             }
         }
         return out;
     }
 
     /** Lower one verbose effect map ({@code HEAD: { ... }}) into its {@link EffectLine}(s). */
-    private static void appendVerbose(YamlNode item, int level, ScaleEnv scale, List<EffectLine> out,
-                                      Diagnostics diags) {
+    private static void appendVerbose(YamlNode item, List<EffectLine> out, Diagnostics diags) {
         List<YamlNode.Entry> head = item.entries();
         if (head.size() != 1) {
             diags.error("E_EFFECT", "a verbose effect must be a single-key map 'HEAD: { ... }'", item.source());
@@ -154,7 +152,7 @@ final class ContentParse {
 
         if (effectHead.equalsIgnoreCase("WAIT")) {
             // `- WAIT: 20` — the verbose spelling of a `"WAIT:20"` timing directive.
-            String ticks = body.isScalar() ? substitute(body.scalar(), level, scale, body.source(), diags) : null;
+            String ticks = body.isScalar() ? body.scalar() : null;
             if (ticks == null) {
                 diags.error("E_EFFECT", "WAIT must be written 'WAIT: <ticks>'", item.source());
             } else {
@@ -178,7 +176,7 @@ final class ContentParse {
                         param.value().source());
                 continue;
             }
-            String value = substitute(param.value().scalar(), level, scale, param.value().source(), diags);
+            String value = param.value().scalar();
             switch (name) {
                 case "who" -> who = value;
                 case "wait" -> {
@@ -198,66 +196,9 @@ final class ContentParse {
         out.add(EffectLine.verbose(effectHead, 1, named, who, item.source()));
     }
 
-    /**
-     * Substitute {@code $token} / {@code ${token}} scale references in {@code raw} at {@code level}
-     * (ADR-0016 §3). Backward-compatible with v1 strings that contain a literal {@code $} (money
-     * amounts, other plugins' {@code ${...}} placeholders): {@code $$} is an escaped literal {@code $};
-     * a {@code $} not followed by an identifier start is a literal {@code $}; and a {@code $name} that
-     * is not a declared scale token is only an error when this def actually USES scaling (a non-empty
-     * {@code scale:} block) — otherwise it is left verbatim. Returns {@code raw} unchanged when it
-     * holds no {@code $}.
-     */
-    static String substitute(String raw, int level, ScaleEnv scale, Source source, Diagnostics diags) {
-        if (raw == null || raw.indexOf('$') < 0) {
-            return raw;
-        }
-        StringBuilder out = new StringBuilder(raw.length());
-        int i = 0;
-        int n = raw.length();
-        while (i < n) {
-            char c = raw.charAt(i);
-            if (c != '$') {
-                out.append(c);
-                i++;
-                continue;
-            }
-            if (i + 1 < n && raw.charAt(i + 1) == '$') {
-                out.append('$'); // $$ → an escaped literal $
-                i += 2;
-                continue;
-            }
-            boolean braced = i + 1 < n && raw.charAt(i + 1) == '{';
-            int nameStart = i + (braced ? 2 : 1);
-            if (nameStart >= n || !(Character.isLetter(raw.charAt(nameStart)) || raw.charAt(nameStart) == '_')) {
-                out.append('$'); // a bare $ (e.g. "$500") — a literal, not a token reference
-                i++;
-                continue;
-            }
-            int j = nameStart;
-            while (j < n && (Character.isLetterOrDigit(raw.charAt(j)) || raw.charAt(j) == '_' || raw.charAt(j) == '-')) {
-                j++;
-            }
-            String name = raw.substring(nameStart, j);
-            int end = braced && j < n && raw.charAt(j) == '}' ? j + 1 : j;
-            if (scale.has(name)) {
-                String value = scale.resolve(name, level);
-                out.append(value == null ? "" : value);
-            } else if (scale.active()) {
-                // The def declares a scale: block, so $name is meant as a token — an unknown one is a typo.
-                diags.error("E_SCALE", "unknown scale token '$" + name + "'", source,
-                        "declare '" + name + "' under scale:");
-                out.append(raw, i, end);
-            } else {
-                out.append(raw, i, end); // no scale block → $name is a literal, left verbatim
-            }
-            i = end;
-        }
-        return out.toString();
-    }
-
-    /** A {@code [0,100]} chance knob that may be a literal, a {@code $token}, or an inline level-map. */
-    static double resolveChance(YamlNode node, String key, int level, ScaleEnv scale, Diagnostics diags) {
-        String raw = knobValue(node, key, level, scale, diags);
+    /** A {@code [0,100]} chance knob (scalar); {@code 100} when absent. */
+    static double resolveChance(YamlNode node, String key, Diagnostics diags) {
+        String raw = node.has(key) ? node.string(key) : null;
         if (raw == null) {
             return 100.0;
         }
@@ -271,9 +212,9 @@ final class ContentParse {
         return clampChance(chance, node.sourceOf(key), diags);
     }
 
-    /** An integer knob that may be a literal, a {@code $token}, or an inline level-map; else {@code fallback}. */
-    static int resolveInt(YamlNode node, String key, int fallback, int level, ScaleEnv scale, Diagnostics diags) {
-        String raw = knobValue(node, key, level, scale, diags);
+    /** An integer knob (scalar); else {@code fallback}. */
+    static int resolveInt(YamlNode node, String key, int fallback, Diagnostics diags) {
+        String raw = node.has(key) ? node.string(key) : null;
         if (raw == null) {
             return fallback;
         }
@@ -285,41 +226,8 @@ final class ContentParse {
         }
     }
 
-    /**
-     * A string-valued knob that may be a scalar (with {@code $token} substituted) OR an inline per-level
-     * map ({@code condition: { 1: "…", 2: "…" }}), resolved at {@code level}; {@code null} when absent.
-     * Lets {@code condition} scale per level like the numeric knobs.
-     */
-    static String resolveString(YamlNode node, String key, int level, ScaleEnv scale, Diagnostics diags) {
-        return knobValue(node, key, level, scale, diags);
-    }
-
-    /** The raw value of a knob at {@code level}: a scalar (with {@code $token} substituted) or an inline level-map. */
-    private static String knobValue(YamlNode node, String key, int level, ScaleEnv scale, Diagnostics diags) {
-        if (!node.has(key)) {
-            return null;
-        }
-        String scalar = node.string(key);
-        if (scalar != null) {
-            return substitute(scalar, level, scale, node.sourceOf(key), diags);
-        }
-        TreeMap<Integer, String> byLevel = new TreeMap<>();
-        for (YamlNode.Entry entry : node.entries(key)) {
-            Integer lvl = parseInt(entry.key());
-            if (lvl == null || !entry.value().isScalar()) {
-                diags.error("E_SCALE", "'" + key + "' level-map entry must be '<level>: <value>', got '"
-                        + entry.key() + "'", entry.value().source());
-                continue;
-            }
-            byLevel.put(lvl, entry.value().scalar());
-        }
-        if (byLevel.isEmpty()) {
-            return null;
-        }
-        Map.Entry<Integer, String> floor = byLevel.floorEntry(level);
-        String value = floor != null ? floor.getValue() : byLevel.firstEntry().getValue();
-        // Substitute $token in the chosen level-map value too (consistent with the scalar branch) — so a
-        // condition/knob level-map may reference scale tokens, resolved at the level being queried.
-        return substitute(value, level, scale, node.sourceOf(key), diags);
+    /** A string-valued knob (scalar); {@code null} when absent. */
+    static String resolveString(YamlNode node, String key, Diagnostics diags) {
+        return node.has(key) ? node.string(key) : null;
     }
 }

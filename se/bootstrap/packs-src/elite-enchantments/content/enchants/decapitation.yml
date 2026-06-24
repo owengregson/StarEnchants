@@ -1,0 +1,20 @@
+# Imported from EliteEnchantments (id: decapitation). Review before shipping.
+display: "Decapitation"
+description: "&7Targets you kill drop their own &7head as an item.  &7&lI: &f🎲 15% &7&lII: &f🎲 30% &7&lIII: &f🎲 50%"
+trigger: KILL
+applies-to: [AXE]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 15
+    effects:
+      - { DROP_ITEM: { material: "PLAYER_HEAD", count: 1 } }  # from DROP_HEAD:TARGET — EE DROP_HEAD → DROP_ITEM:PLAYER_HEAD (a generic head; the skin owner is not preserved)
+  2:
+    chance: 30
+    effects:
+      - { DROP_ITEM: { material: "PLAYER_HEAD", count: 1 } }  # from DROP_HEAD:TARGET — EE DROP_HEAD → DROP_ITEM:PLAYER_HEAD (a generic head; the skin owner is not preserved)
+  3:
+    chance: 50
+    effects:
+      - { DROP_ITEM: { material: "PLAYER_HEAD", count: 1 } }  # from DROP_HEAD:TARGET — EE DROP_HEAD → DROP_ITEM:PLAYER_HEAD (a generic head; the skin owner is not preserved)

@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: bewitched-hex). Review before shipping.
+display: "Bewitched Hex"
+description: "&dHeroic upgrade for Hex. &dDeals more bonus damage and &dweakens the target for longer. &c&l(!)&r &7Requires &6Hex  &d&lI: &f🎲 3.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lII: &f🎲 4.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lIII: &f🎲 5.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lIV: &f🎲 6.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lV: &f🎲 7.5% &7| &f▲ 15% &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [AXE]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 3.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+  2:
+    chance: 4.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+  3:
+    chance: 5.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+  4:
+    chance: 6.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+  5:
+    chance: 7.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max

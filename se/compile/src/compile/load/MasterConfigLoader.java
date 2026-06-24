@@ -35,7 +35,9 @@ public final class MasterConfigLoader {
             yaml = Files.readString(configFile, StandardCharsets.UTF_8);
         } catch (IOException e) {
             diags.error("E_CONFIG_IO", "could not read config.yml: " + e.getMessage(), Source.ofFile("config.yml"));
-            return new MasterConfig(MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
+            return new MasterConfig(MasterConfig.FeaturesSection.defaults(), MasterConfig.CombatSection.defaults(),
+                    MasterConfig.MessagesSection.defaults(),
+                    MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
                     MasterConfig.CrystalsSection.defaults(), MasterConfig.HeroicSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
@@ -47,6 +49,9 @@ public final class MasterConfigLoader {
             root = YamlNode.compose("config.yml", "", diags); // an empty mapping → every section defaults
         }
         return new MasterConfig(
+                readFeatures(root.child("features"), diags),
+                readCombat(root.child("combat"), diags),
+                readMessages(root.child("messages"), diags),
                 readSlots(root.child("slots"), diags),
                 readSouls(root.child("souls"), diags),
                 readCrystals(root.child("crystals"), diags),
@@ -56,6 +61,36 @@ public final class MasterConfigLoader {
                 readReload(root.child("reload"), diags),
                 readCommandTrigger(root.child("command-trigger"), diags),
                 diags.all());
+    }
+
+    private static MasterConfig.FeaturesSection readFeatures(YamlNode n, Diagnostics diags) {
+        MasterConfig.FeaturesSection d = MasterConfig.FeaturesSection.defaults();
+        return new MasterConfig.FeaturesSection(
+                parseBool(n.string("enchants"), d.enchants()),
+                parseBool(n.string("sets"), d.sets()),
+                parseBool(n.string("crystals"), d.crystals()),
+                parseBool(n.string("heroic"), d.heroic()),
+                parseBool(n.string("slots"), d.slots()),
+                parseBool(n.string("souls"), d.souls()),
+                parseBool(n.string("scrolls"), d.scrolls()));
+    }
+
+    private static MasterConfig.CombatSection readCombat(YamlNode n, Diagnostics diags) {
+        MasterConfig.CombatSection d = MasterConfig.CombatSection.defaults();
+        return new MasterConfig.CombatSection(
+                parseDouble(n.string("max-bonus-damage"), d.maxBonusDamage(), n, diags),
+                parseDouble(n.string("max-bonus-reduction"), d.maxBonusReduction(), n, diags),
+                parseBool(n.string("pvp"), d.pvp()),
+                parseBool(n.string("pve"), d.pve()));
+    }
+
+    private static MasterConfig.MessagesSection readMessages(YamlNode n, Diagnostics diags) {
+        MasterConfig.MessagesSection d = MasterConfig.MessagesSection.defaults();
+        // prefix may legitimately be empty, so honour an explicit "" rather than falling back to the default.
+        String prefix = n.has("prefix") ? n.string("prefix") : d.prefix();
+        return new MasterConfig.MessagesSection(
+                prefix == null ? d.prefix() : prefix,
+                parseBool(n.string("feedback"), d.feedback()));
     }
 
     private static MasterConfig.SlotsSection readSlots(YamlNode n, Diagnostics diags) {

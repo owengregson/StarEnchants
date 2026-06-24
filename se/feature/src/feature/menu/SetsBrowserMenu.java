@@ -2,7 +2,6 @@ package feature.menu;
 
 import compile.load.ContentHolder;
 import compile.load.SetDef;
-import compile.load.TierRegistry;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +43,11 @@ public final class SetsBrowserMenu extends PagedMenu<SetDef> {
         if (!def.description().isBlank()) {
             lore.add("&7" + def.description());
         }
-        lore.add("&8tier: " + tierColor(def.tier()) + tierLabel(def.tier()));
-        lore.add("&8completes at: &7" + def.pieces() + " piece" + (def.pieces() == 1 ? "" : "s"));
-        lore.add("&8pieces: &7" + String.join(", ", def.appliesTo()));
+        lore.add("&8completes at: &7" + def.armorComplete() + " armour piece" + (def.armorComplete() == 1 ? "" : "s"));
+        lore.add("&8armour: &7" + String.join(", ", def.appliesTo()));
+        if (def.hasWeapon()) {
+            lore.add("&8weapon: &7" + (def.weapon().name() != null ? def.weapon().name() : def.weapon().material()));
+        }
         return ItemFactory.build(material("DIAMOND_CHESTPLATE", "IRON_CHESTPLATE", "LEATHER_CHESTPLATE"),
                 def.display(), lore);
     }
@@ -54,17 +55,5 @@ public final class SetsBrowserMenu extends PagedMenu<SetDef> {
     @Override
     protected void onSelect(MenuClick click, SetDef def) {
         // Read-only: the icon tooltip is the preview.
-    }
-
-    private String tierColor(String tier) {
-        if (tier == null) {
-            return "&7";
-        }
-        TierRegistry.Tier t = content.library().tiers().tier(tier);
-        return t != null && !t.color().isBlank() ? t.color() : "&7";
-    }
-
-    private static String tierLabel(String tier) {
-        return tier == null || tier.isBlank() ? "—" : tier;
     }
 }

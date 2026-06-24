@@ -1,0 +1,56 @@
+# Imported from EliteEnchantments (id: permafrost). Review before shipping.
+display: "PermaFrost"
+description: "&4When hit, turns the area to snow &4and ice and chills the attacker.  &4&lI: &f🎲 1.5% &7| &f⌛ 20s &4&lII: &f🎲 3.75% &7| &f⌛ 20s &4&lIII: &f🎲 5% &7| &f⌛ 20s &4&lIV: &f🎲 8% &7| &f⌛ 20s &4&lV: &f🎲 11.25% &7| &f⌛ 20s &4&lVI: &f🎲 14% &7| &f⌛ 20s"
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "mythic"
+tier: mythic
+levels:
+  1:
+    chance: 1.5
+    cooldown: 20
+    effects:
+      - { WALKER: { material: "PACKED_ICE", ticks: 400, radius: 3, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+  2:
+    chance: 3.75
+    cooldown: 20
+    effects:
+      - { WALKER: { material: "PACKED_ICE", ticks: 400, radius: 3, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+  3:
+    chance: 5
+    cooldown: 20
+    effects:
+      - { WALKER: { material: "PACKED_ICE", ticks: 400, radius: 3, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+  4:
+    chance: 8
+    cooldown: 20
+    effects:
+      - { WALKER: { material: "PACKED_ICE", ticks: 400, radius: 3, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+  5:
+    chance: 11.25
+    cooldown: 20
+    effects:
+      - { WALKER: { material: "PACKED_ICE", ticks: 400, radius: 3, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+  6:
+    chance: 14
+    cooldown: 20
+    effects:
+      - { WALKER: { material: "PACKED_ICE", ticks: 400, radius: 3, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
+      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe

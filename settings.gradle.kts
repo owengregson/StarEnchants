@@ -26,6 +26,7 @@ listOf(
     // Version + Folia absorption, migration, public API.
     "platform",      // boot-time resolvers, Scheduling, capabilities, protection/economy SPIs
     "migrate",       // legacy NBT reader + EE/EA/AE config importer
+    "pack",          // config packs: ZIP snapshot of the whole config surface (export/apply/swap)
     "api",           // public surface: events + the registration SPI + read-only queries
     "bootstrap",     // the StarEnchants JavaPlugin: composition root, content load, /se reload
     // Newer-than-floor edges, behind a Capabilities probe.

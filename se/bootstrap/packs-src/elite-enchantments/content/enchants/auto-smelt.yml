@@ -1,0 +1,19 @@
+# Imported from EliteEnchantments (id: auto-smelt). Review before shipping.
+display: "Auto Smelt"
+description: "&7Smelts ores into ingots as they &7are mined.  &7&lI: &f🎲 34% &7&lII: &f🎲 75% &7&lIII: &f🎲 100%"
+trigger: MINE
+applies-to: [PICKAXE]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 34
+    effects:
+      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
+  2:
+    chance: 75
+    effects:
+      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
+  3:
+    effects:
+      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)

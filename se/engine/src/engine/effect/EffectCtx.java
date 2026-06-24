@@ -51,6 +51,15 @@ public interface EffectCtx {
      */
     Iterable<LivingEntity> targets(String selectorName);
 
+    /**
+     * The LOCATIONS resolved for the named target slot by a block/coordinate selector
+     * ({@code @Block}/{@code @Trench}/{@code @Vein}/…, §A). Empty for an entity selector or when nothing
+     * matched — never null. A block-mutating effect ({@code SET_BLOCK}/{@code BREAK_BLOCK}) reads this.
+     */
+    default Iterable<Location> targetLocations(String selectorName) {
+        return java.util.List.of();
+    }
+
     /** The activating ability's level (enchants; {@code 0} for other sources). */
     int level();
 

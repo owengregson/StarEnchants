@@ -58,51 +58,44 @@ class ItemsLoaderTest {
 
     @Test
     void parsesASlotsConfig(@TempDir Path dir) throws Exception {
-        Files.writeString(dir.resolve("slots.yml"), """
-                type: slots
+        Files.writeString(dir.resolve("slot-orb.yml"), """
+                type: slot-orb
                 orb-material: ENDER_PEARL
                 orb-name: "&5Expander +{AMOUNT}"
                 orb-lore:
                   - "&7+{AMOUNT} slots"
                 orb-amount: 5
-                gem-material: QUARTZ
-                gem-name: "&dGem"
                 hard-cap: 20
-                message-apply: "now {SLOTS}"
-                message-at-cap: "maxed"
                 """);
 
         SlotConfig slots = ItemsLoader.load(dir).slots().orElseThrow();
         assertEquals("ENDER_PEARL", slots.orbMaterial());
         assertEquals(5, slots.orbAmount());
         assertEquals(List.of("&7+{AMOUNT} slots"), slots.orbLore());
-        assertEquals("QUARTZ", slots.gemMaterial());
         assertEquals(20, slots.hardCap());
-        // (slot messages moved to lang.yml in §L)
-        // Omitted gem-lore falls back to the default.
-        assertEquals(SlotConfig.defaults().gemLore(), slots.gemLore());
     }
 
     @Test
-    void parsesAScrollsConfigWithNestedSections(@TempDir Path dir) throws Exception {
-        Files.writeString(dir.resolve("scrolls.yml"), """
-                type: scrolls
-                black:
-                  material: COAL
-                  name: "&8Void Scroll"
-                  success-chance: 50
-                  message-success: "got {ENCHANT}"
-                randomizer:
-                  material: GLOWSTONE_DUST
-                  min-percent: 10
-                  max-percent: 90
+    void assemblesTheScrollFamilyFromPerItemFiles(@TempDir Path dir) throws Exception {
+        // The scroll family is now one physical item per file; ItemsLoader assembles them into one
+        // ScrollsConfig, filling any absent member with its default.
+        Files.writeString(dir.resolve("black-scroll.yml"), """
+                type: black-scroll
+                material: COAL
+                name: "&8Void Scroll"
+                success-chance: 50
+                """);
+        Files.writeString(dir.resolve("randomizer-scroll.yml"), """
+                type: randomizer-scroll
+                material: GLOWSTONE_DUST
+                min-percent: 10
+                max-percent: 90
                 """);
 
         ScrollsConfig scrolls = ItemsLoader.load(dir).scrolls().orElseThrow();
         assertEquals("COAL", scrolls.black().material());
         assertEquals("&8Void Scroll", scrolls.black().name());
         assertEquals(50, scrolls.black().successChance());
-        // (scroll messages moved to lang.yml in §L)
         // Omitted black lore falls back to the default.
         assertEquals(ScrollsConfig.defaults().black().lore(), scrolls.black().lore());
         assertEquals("GLOWSTONE_DUST", scrolls.randomizer().material());
@@ -110,6 +103,46 @@ class ItemsLoaderTest {
         assertEquals(90, scrolls.randomizer().maxPercent());
         // Omitted randomizer name falls back to the default.
         assertEquals(ScrollsConfig.defaults().randomizer().name(), scrolls.randomizer().name());
+        // An entirely-absent member (the holy white scroll) is filled from defaults.
+        assertEquals(ScrollsConfig.defaults().holy().name(), scrolls.holy().name());
+    }
+
+    @Test
+    void parsesADustRangeAndWhiteScrollConfig(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("dust.yml"), """
+                type: dust
+                material: REDSTONE
+                name: "&cTinker Dust"
+                min-bonus: 5
+                max-bonus: 40
+                """);
+        Files.writeString(dir.resolve("white-scroll.yml"), """
+                type: white-scroll
+                material: MAP
+                name: "&fWard"
+                """);
+
+        ItemsConfig config = ItemsLoader.load(dir);
+        DustConfig dust = config.dust().orElseThrow();
+        assertEquals("REDSTONE", dust.material());
+        assertEquals(5, dust.minBonus());
+        assertEquals(40, dust.maxBonus());
+        // Omitted sound falls back to the default.
+        assertEquals(DustConfig.defaults().sound(), dust.sound());
+        WhiteScrollConfig white = config.whiteScroll().orElseThrow();
+        assertEquals("MAP", white.material());
+        assertEquals("&fWard", white.name());
+    }
+
+    @Test
+    void dustSuccessBonusShorthandIsAFixedRange(@TempDir Path dir) throws Exception {
+        // The legacy `success-bonus` shorthand sets a FIXED dust (min == max).
+        Files.writeString(dir.resolve("dust.yml"), "type: dust\nsuccess-bonus: 25\n");
+
+        DustConfig dust = ItemsLoader.load(dir).dust().orElseThrow();
+        assertEquals(25, dust.minBonus());
+        assertEquals(25, dust.maxBonus());
+        assertEquals("25", dust.bonusLabel());
     }
 
     @Test
@@ -140,7 +173,7 @@ class ItemsLoaderTest {
 
     @Test
     void anUnknownTypeWarnsButDoesNotError(@TempDir Path dir) throws Exception {
-        Files.writeString(dir.resolve("future.yml"), "type: black-scroll\n"); // not yet supported
+        Files.writeString(dir.resolve("future.yml"), "type: time-machine\n"); // not a recognised item type
 
         ItemsConfig config = ItemsLoader.load(dir);
         assertFalse(config.hasErrors()); // a warning, not blocking — forward-compatible

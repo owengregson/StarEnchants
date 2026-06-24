@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: autolock). Review before shipping.
+display: "Auto Lock"
+description: "&cYour arrows home in on nearby &ctargets.  &c&lI: &f⌛ 9s &7| &f☄ 10 &c&lII: &f⌛ 8s &7| &f☄ 10 &c&lIII: &f⌛ 7s &7| &f☄ 7 &c&lIV: &f⌛ 5s &7| &f☄ 7 &c&lV: &f⌛ 3s &7| &f☄ 5"
+trigger: BOW_FIRE
+applies-to: [BOW]
+group: "soul"
+tier: soul
+levels:
+  1:
+    cooldown: 9
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
+  2:
+    cooldown: 8
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
+  3:
+    cooldown: 7
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
+  4:
+    cooldown: 5
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
+  5:
+    cooldown: 3
+    effects:
+      - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)

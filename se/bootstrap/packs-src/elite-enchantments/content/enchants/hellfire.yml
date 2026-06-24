@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: hellfire). Review before shipping.
+display: "Hellfire"
+description: "&eArrows explode on impact without &ebreaking blocks.  &e&lI: &f🎲 3% &7| &f⌛ 4s &e&lII: &f🎲 6% &7| &f⌛ 4s &e&lIII: &f🎲 9% &7| &f⌛ 4s &e&lIV: &f🎲 12% &7| &f⌛ 4s &e&lV: &f🎲 15% &7| &f⌛ 4s"
+trigger: BOW
+applies-to: [BOW]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 3
+    cooldown: 4
+    effects:
+      - { EXPLODE: { power: 1, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:1:false:TARGET — EE fire flag dropped; breakBlocks=false
+  2:
+    chance: 6
+    cooldown: 4
+    effects:
+      - { EXPLODE: { power: 1, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:1:false:TARGET — EE fire flag dropped; breakBlocks=false
+  3:
+    chance: 9
+    cooldown: 4
+    effects:
+      - { EXPLODE: { power: 2, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:2:false:TARGET — EE fire flag dropped; breakBlocks=false
+  4:
+    chance: 12
+    cooldown: 4
+    effects:
+      - { EXPLODE: { power: 2, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:2:false:TARGET — EE fire flag dropped; breakBlocks=false
+  5:
+    chance: 15
+    cooldown: 4
+    effects:
+      - { EXPLODE: { power: 3, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:3:false:TARGET — EE fire flag dropped; breakBlocks=false

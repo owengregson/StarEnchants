@@ -89,6 +89,12 @@ public final class FactPopulator {
     private final int worldRainingSlot;
     private final int worldThunderingSlot;
     private final int worldTimeSlot;
+    private final int comboSlot;          // the activator's consecutive-hit streak (from the context)
+    private final int distanceSlot;       // actor↔victim distance in blocks (derived, Folia-guarded)
+    private final int nearbyEnemiesSlot;  // living entities within NEARBY_RADIUS of the actor (derived, Folia-guarded)
+
+    /** Search radius for the {@code %nearbyenemies%} fact, in blocks (GANK-style scaling). */
+    private static final double NEARBY_RADIUS = 8.0;
 
     /** A populator with no dynamic-var store and no PAPI (unknown tokens resolve to null) — the lower-level default. */
     public FactPopulator(VarVocabulary vocabulary) {
@@ -148,6 +154,9 @@ public final class FactPopulator {
         this.worldRainingSlot = slot(vocabulary, "world.raining", VarKind.BOOL);
         this.worldThunderingSlot = slot(vocabulary, "world.thundering", VarKind.BOOL);
         this.worldTimeSlot = slot(vocabulary, "world.time", VarKind.NUM);
+        this.comboSlot = slot(vocabulary, "combo", VarKind.NUM);
+        this.distanceSlot = slot(vocabulary, "distance", VarKind.NUM);
+        this.nearbyEnemiesSlot = slot(vocabulary, "nearbyenemies", VarKind.NUM);
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
@@ -181,6 +190,7 @@ public final class FactPopulator {
             populateActor(facts, context.actor());
             populateVictim(facts, context.victim());
             populateContext(facts, context);
+            populateDerived(facts, context);
             Player actor = context.actor();
             if (actor != null) {
                 UUID id = actor.getUniqueId();
@@ -244,6 +254,9 @@ public final class FactPopulator {
         if (damageSlot >= 0) {
             facts.setNumber(damageSlot, context.damage());
         }
+        if (comboSlot >= 0) {
+            facts.setNumber(comboSlot, context.combo());
+        }
         org.bukkit.block.Block block = context.block();
         if (block != null && (blockTypeSlot >= 0 || isBlockSlot >= 0)) {
             try {
@@ -276,6 +289,43 @@ public final class FactPopulator {
             } catch (RuntimeException unreadable) {
                 // Folia: weather/time are global-region-owned; a wrong-thread read defaults only these facts.
             }
+        }
+    }
+
+    /**
+     * Derived combat facts that read live entity geometry: {@code distance} (actor↔victim) and
+     * {@code nearbyenemies} (other living entities within {@link #NEARBY_RADIUS} of the actor). Both are
+     * entity reads on the firing thread, so — like the actor/victim facts — they are wrapped: on Folia an
+     * actor owned by another region (e.g. the shooter on a projectile ATTACK pass) cannot be read, and the
+     * fact defaults to 0 rather than aborting the hit. Skipped entirely when neither slot is in the
+     * vocabulary (no shipped content references them).
+     */
+    private void populateDerived(FactBuffer facts, ActivationContext context) {
+        if (distanceSlot < 0 && nearbyEnemiesSlot < 0) {
+            return;
+        }
+        org.bukkit.entity.Player actor = context.actor();
+        if (actor == null) {
+            return;
+        }
+        try {
+            if (distanceSlot >= 0) {
+                LivingEntity victim = context.victim();
+                if (victim != null && victim.getWorld() == actor.getWorld()) {
+                    facts.setNumber(distanceSlot, actor.getLocation().distance(victim.getLocation()));
+                }
+            }
+            if (nearbyEnemiesSlot >= 0) {
+                int count = 0;
+                for (org.bukkit.entity.Entity e : actor.getNearbyEntities(NEARBY_RADIUS, NEARBY_RADIUS, NEARBY_RADIUS)) {
+                    if (e instanceof LivingEntity && !e.equals(actor)) {
+                        count++;
+                    }
+                }
+                facts.setNumber(nearbyEnemiesSlot, count);
+            }
+        } catch (RuntimeException unreadable) {
+            // Cross-region actor (Folia) or a read failure — leave the derived facts defaulted.
         }
     }
 

@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: thundering-blow). Review before shipping.
+display: "Thundering Blow"
+description: "&7On hit, strikes the target with &7a lightning bolt.  &7&lI: &f🎲 1.25% &7| &f⌛ 5s &7&lII: &f🎲 2.75% &7| &f⌛ 5s &7&lIII: &f🎲 4% &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 1.25
+    cooldown: 5
+    effects:
+      - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
+  2:
+    chance: 2.75
+    cooldown: 5
+    effects:
+      - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
+  3:
+    chance: 4
+    cooldown: 5
+    effects:
+      - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage

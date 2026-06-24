@@ -1,0 +1,18 @@
+# Imported from EliteEnchantments (id: mighty-cactus). Review before shipping.
+display: "Mighty Cactus"
+description: "&dHeroic upgrade for Cactus. &dDeals much more damage back to &dattackers. &c&l(!)&r &7Requires &bCactus  &d&lI: &f🎲 6% &7| &f▲ 3-6❤ &7| &f⌛ 5s &d&lII: &f🎲 9% &7| &f▲ 4-8❤ &7| &f⌛ 5s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 6
+    cooldown: 5
+    effects:
+      - { DAMAGE: { amount: 6, who: "@Attacker" } }  # from DAMAGE:3:6:TARGET — legacy random range 3-6 collapsed to its max
+  2:
+    chance: 9
+    cooldown: 5
+    effects:
+      - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:4:8:TARGET — legacy random range 4-8 collapsed to its max

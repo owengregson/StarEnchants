@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: plated-heavy). Review before shipping.
+display: "Plated Heavy"
+description: "&dHeroic upgrade for Heavy. &dGreatly reduces bow damage. &c&l(!)&r &7Requires &eHeavy  &d&lI: &f▲ 12% &d&lII: &f▲ 14% &d&lIII: &f▲ 16% &d&lIV: &f▲ 18% &d&lV: &f▲ 20%"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 12 } }  # from REDUCTION:12
+  2:
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 14 } }  # from REDUCTION:14
+  3:
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 16 } }  # from REDUCTION:16
+  4:
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 18 } }  # from REDUCTION:18
+  5:
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 20 } }  # from REDUCTION:20

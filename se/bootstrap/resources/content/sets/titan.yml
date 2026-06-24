@@ -1,0 +1,30 @@
+# Titan — a full armour set (§6.6). Wear the `complete` armour pieces for the ARMOUR set bonus; while the
+# set is complete, HOLD the Titan weapon for the ADDITIONAL weapon bonus. Sets have no tier. Each armour
+# piece has its own name and shares armor.lore; the weapon has its own name + lore.
+display: "&8Titan"
+description: "Harden against blows when the full set is worn."
+complete: 4
+armor:
+  lore:
+    - "&8Titan Set &7(4 pieces)"
+    - "&7Wear the full set to harden against blows."
+  pieces:
+    helmet:     { material: NETHERITE_HELMET,     name: "&8Titan Helm" }
+    chestplate: { material: NETHERITE_CHESTPLATE, name: "&8Titan Cuirass" }
+    leggings:   { material: NETHERITE_LEGGINGS,   name: "&8Titan Greaves" }
+    boots:      { material: NETHERITE_BOOTS,      name: "&8Titan Treads" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+    - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 80, who: "@Self" } }
+weapon:
+  material: NETHERITE_SWORD
+  name: "&8Titan's Wrath"
+  lore:
+    - "&8Titan Set Weapon"
+    - "&7Wield with the full set to crush your foes."
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }

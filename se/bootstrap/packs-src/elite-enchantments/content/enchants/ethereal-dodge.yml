@@ -1,0 +1,43 @@
+# Imported from EliteEnchantments (id: ethereal-dodge). Review before shipping.
+display: "Ethereal Dodge"
+description: "&dHeroic upgrade for Dodge. &dNegates an attack and grants &dSpeed. &c&l(!)&r &7Requires &eDodge  &d&lI: &f🎲 2.75% &7| &f▲ 6s &7| &f⌛ 5s &d&lII: &f🎲 4.25% &7| &f▲ 6s &7| &f⌛ 5s &d&lIII: &f🎲 6.25% &7| &f▲ 6s &7| &f⌛ 5s &d&lIV: &f🎲 8.25% &7| &f▲ 6s &7| &f⌛ 5s &d&lV: &f🎲 10% &7| &f▲ 6s &7| &f⌛ 5s"
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 2.75
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { MESSAGE: { text: "&d&l** ETHEREAL DODGE**" } }  # from MESSAGE:&d&l** ETHEREAL DODGE**:PLAYER — legacy target dropped — StarEnchants messages the actor
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
+  2:
+    chance: 4.25
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { MESSAGE: { text: "&d&l** ETHEREAL DODGE**" } }  # from MESSAGE:&d&l** ETHEREAL DODGE**:PLAYER — legacy target dropped — StarEnchants messages the actor
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
+  3:
+    chance: 6.25
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { MESSAGE: { text: "&d&l** ETHEREAL DODGE**" } }  # from MESSAGE:&d&l** ETHEREAL DODGE**:PLAYER — legacy target dropped — StarEnchants messages the actor
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
+  4:
+    chance: 8.25
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { MESSAGE: { text: "&d&l** ETHEREAL DODGE**" } }  # from MESSAGE:&d&l** ETHEREAL DODGE**:PLAYER — legacy target dropped — StarEnchants messages the actor
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
+  5:
+    chance: 10
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { MESSAGE: { text: "&d&l** ETHEREAL DODGE**" } }  # from MESSAGE:&d&l** ETHEREAL DODGE**:PLAYER — legacy target dropped — StarEnchants messages the actor
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)

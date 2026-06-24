@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: rage). Review before shipping.
+display: "Rage"
+description: "&6Each consecutive hit in a combo &6adds stacking bonus damage.  &6&lI: &f▲ +10% &6&lII: &f▲ +15% &6&lIII: &f▲ +25% &6&lIV: &f▲ +30% &6&lV: &f▲ +35% &6&lVI: &f▲ +40%"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 10" } }  # from RAGE:0.1 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 15" } }  # from RAGE:0.15 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 25" } }  # from RAGE:0.25 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 30" } }  # from RAGE:0.3 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+  5:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 35" } }  # from RAGE:0.35 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+  6:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 40" } }  # from RAGE:0.4 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%

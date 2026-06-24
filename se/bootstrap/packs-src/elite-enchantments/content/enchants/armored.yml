@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: armored). Review before shipping.
+display: "Armored"
+description: "&6Reduces damage taken from &6enemies holding a sword.  &6&lI: &f▲ 1.85% &7| &f⌛ 2s &6&lII: &f▲ 3.7% &7| &f⌛ 2s &6&lIII: &f▲ 5.55% &7| &f⌛ 2s &6&lIV: &f▲ 7.4% &7| &f⌛ 2s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    cooldown: 2
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.85 } }  # from REDUCTION:1.85
+  2:
+    cooldown: 2
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 3.7 } }  # from REDUCTION:3.7
+  3:
+    cooldown: 2
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 5.55 } }  # from REDUCTION:5.55
+  4:
+    cooldown: 2
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 7.4 } }  # from REDUCTION:7.4

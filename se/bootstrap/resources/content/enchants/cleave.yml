@@ -1,0 +1,23 @@
+# Cleave — your strike spills out into nearby enemies.
+tier: rare
+display: "&cCleave"
+description: "Strike all foes around your target."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 25
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=3}" } }
+  2:
+    chance: 35
+    effects:
+      - { DAMAGE: { amount: 3, who: "@Aoe{r=4}" } }
+  3:
+    chance: 45
+    cooldown: 0
+    effects:
+      - { DAMAGE: { amount: 4, who: "@Aoe{r=4}" } }
+      - { PARTICLE: { particle: CRIT, count: 12 } }
+      - { MESSAGE: { text: "&cCleave!" } }

@@ -24,6 +24,14 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0014](0014-content-loader-and-reload.md) | Content loader + transactional reload | Accepted |
 | [0015](0015-spigot-floor-fakeplayer-deferred.md) | Spigot-floor fake-player deferred; floor covered by non-fake suites | Accepted |
 | [0016](0016-content-format-v2.md) | Content format v2 — verbose effects, scaling, tier folders, item defs (superset of v1) | Accepted |
+| [0017](0017-protection-addon-packaging.md) | Protection/region integrations ship as separate add-on plugins | Accepted |
+| [0018](0018-spigot-floor-fakeplayer.md) | Spigot-floor fake-player harness — combat suites now run floor-wide | Accepted |
+| [0019](0019-dust-success-bonus-combining.md) | Dust carrier kind — success-bonus combining (the last deferred carrier) | Accepted |
+| [0020](0020-ae-migrator-dsl-coverage.md) | AdvancedEnchantments migrator — selector, condition, and effect DSL coverage | Accepted |
+| [0021](0021-heroic-multiplicative-stage.md) | Heroic as a bounded multiplicative stage (amends 0012's scope) | Accepted |
+| [0022](0022-held-passive-lifecycle-and-command-trigger.md) | HELD/PASSIVE start-stop lifecycle + the COMMAND trigger (§B tail) | Accepted |
+| [0023](0023-config-packs.md) | Config packs (swappable whole-config presets) | Accepted |
+| [0024](0024-exotic-effect-ports.md) | Expression-valued effect args + the exotic EE-effect ports | Accepted |
 
 ## Process
 

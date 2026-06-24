@@ -1,0 +1,13 @@
+# Randomizer Scroll (docs/v3-directives.md §I) — drag onto an enchant book to REROLL its success chance to
+# a random value in [min-percent, max-percent]. One physical item per file; reload with /se reload.
+# Result messages live in lang.yml (scroll.randomizer.*).
+type: randomizer-scroll
+
+material: SUGAR
+name: "&eRandomizer Scroll"
+lore:
+  - "&7Drag onto an enchant book to"
+  - "&7reroll its success chance."
+# The book's new success chance is rolled uniformly in [min-percent, max-percent] (each 0–100).
+min-percent: 25
+max-percent: 100

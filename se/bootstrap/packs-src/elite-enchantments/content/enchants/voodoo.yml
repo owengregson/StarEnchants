@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: voodoo). Review before shipping.
+display: "Voodoo"
+description: "&bWhen hit, applies Weakness to &bthe attacker.  &b&lI: &f🎲 2.5% &7| &f⌛ 4s &b&lII: &f🎲 4% &7| &f⌛ 4s &b&lIII: &f🎲 6% &7| &f⌛ 4s &b&lIV: &f🎲 8% &7| &f⌛ 4s &b&lV: &f🎲 10% &7| &f⌛ 4s &b&lVI: &f🎲 12.5% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 2.5
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
+  2:
+    chance: 4
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
+  3:
+    chance: 6
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
+  4:
+    chance: 8
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
+  5:
+    chance: 10
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
+  6:
+    chance: 12.5
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)

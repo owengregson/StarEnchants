@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: aegis). Review before shipping.
+display: "Aegis"
+description: "&6When hit, reduces the damage &6taken.  &6&lI: &f🎲 5% &7| &f▲ 15% &7| &f⌛ 2s &6&lII: &f🎲 6% &7| &f▲ 15% &7| &f⌛ 2s &6&lIII: &f🎲 7% &7| &f▲ 15% &7| &f⌛ 2s &6&lIV: &f🎲 8% &7| &f▲ 15% &7| &f⌛ 2s &6&lV: &f🎲 9% &7| &f▲ 15% &7| &f⌛ 2s &6&lVI: &f🎲 10% &7| &f▲ 15% &7| &f⌛ 2s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 5
+    cooldown: 2
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+  2:
+    chance: 6
+    cooldown: 2
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+  3:
+    chance: 7
+    cooldown: 2
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+  4:
+    chance: 8
+    cooldown: 2
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+  5:
+    chance: 9
+    cooldown: 2
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+  6:
+    chance: 10
+    cooldown: 2
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15

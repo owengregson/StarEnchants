@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: heavy). Review before shipping.
+display: "Heavy"
+description: "&eReduces damage taken from &eenemies holding a bow.  &e&lI: &f🎲 9% &7| &f▲ 2% &7| &f⌛ 3s &e&lII: &f🎲 9% &7| &f▲ 4% &7| &f⌛ 3s &e&lIII: &f🎲 9% &7| &f▲ 6% &7| &f⌛ 3s &e&lIV: &f🎲 9% &7| &f▲ 8% &7| &f⌛ 3s &e&lV: &f🎲 9% &7| &f▲ 10% &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 9
+    cooldown: 3
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }  # from REDUCTION:2
+  2:
+    chance: 9
+    cooldown: 3
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 4 } }  # from REDUCTION:4
+  3:
+    chance: 9
+    cooldown: 3
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 6 } }  # from REDUCTION:6
+  4:
+    chance: 9
+    cooldown: 3
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 8 } }  # from REDUCTION:8
+  5:
+    chance: 9
+    cooldown: 3
+    condition: "%victim.helditem% contains \"BOW\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10

@@ -1,0 +1,25 @@
+# Soul Reaper — drink in the life of the slain, mending body and blade.
+tier: rare
+display: "&8Soul Reaper"
+description: "Drain life from your fallen foes to heal yourself."
+trigger: KILL
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 60
+    effects:
+      - { MODIFY_HEALTH: { amount: 3 } }
+      - { PARTICLE: { particle: CRIT, count: 6 } }
+  2:
+    chance: 75
+    effects:
+      - { MODIFY_HEALTH: { amount: 5 } }
+      - { PARTICLE: { particle: CRIT, count: 8 } }
+  3:
+    chance: 90
+    effects:
+      - { MODIFY_HEALTH: { amount: 8 } }
+      - { PARTICLE: { particle: CRIT, count: 12 } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&8Their soul is yours." } }

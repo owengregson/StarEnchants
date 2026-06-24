@@ -72,6 +72,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
     private static final String[] KEYS = {
         "economy.slot.persistsAndCaps", "economy.black.extractsToBook", "economy.randomizer.rerollsBase",
         "economy.unopened.revealsTierBook", "economy.transmog.reordersAndSuffixes",
+        "economy.godly.mintsAndReorders",
     };
 
     private final Plugin plugin;
@@ -120,32 +121,31 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 UnopenedBookConfig::defaults, new Random(3));
 
         h.guard("economy.slot.persistsAndCaps", () -> {
-            // Base 9 + hardCap 15 → maxAdded 6. Reach a non-multiple of the orb's +3 with two +1 gems so the
-            // final orb genuinely OVERSHOOTS the cap and must clamp-and-commit (5 + 3 → clamp to 6), then a
-            // further item at the cap is a no-op that is not consumed.
+            // A config whose maxAdded (hardCap - base = 5) is NOT a multiple of the orb's +3, so the second
+            // orb genuinely OVERSHOOTS the cap and must clamp-and-commit (3 + 3 → clamp to 5), then a further
+            // orb at the cap is a no-op that is not consumed.
+            SlotConfig capCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
+                    ItemEnchanter.DEFAULT_BASE_SLOTS + 5);
+            SlotService capSlots = new SlotService(slotCodec, combat, lore, () -> capCfg,
+                    ItemEnchanter.DEFAULT_BASE_SLOTS);
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-            slots.applyTo(slots.mintOrb(), sword); // +3 → 3
+            capSlots.applyTo(capSlots.mintOrb(), sword); // +3 → 3
             if (combat.read(sword).added() != 3) {
                 throw new IllegalStateException("first orb did not persist +3: " + combat.read(sword).added());
             }
-            slots.applyTo(slots.mintGem(), sword); // +1 → 4
-            slots.applyTo(slots.mintGem(), sword); // +1 → 5
+            ItemStack orb = capSlots.mintOrb();
+            SlotResult capped = capSlots.applyTo(orb, sword); // 3 + 3 = 6 > cap 5 → clamp to 5, still commits
             if (combat.read(sword).added() != 5) {
-                throw new IllegalStateException("gems did not persist to +5: " + combat.read(sword).added());
-            }
-            ItemStack orb = slots.mintOrb();
-            SlotResult capped = slots.applyTo(orb, sword); // 5 + 3 = 8 > cap 6 → clamp to 6, still commits
-            if (combat.read(sword).added() != 6) {
-                throw new IllegalStateException("clamp did not land on the cap (6): " + combat.read(sword).added());
+                throw new IllegalStateException("clamp did not land on the cap (5): " + combat.read(sword).added());
             }
             if (!capped.commit() || orb.getAmount() != 0) {
                 throw new IllegalStateException("the overshooting orb should clamp-and-commit (consuming it): " + capped);
             }
-            // A fully-capped item must reject (and NOT consume) a further slot item.
-            ItemStack extra = slots.mintGem();
-            SlotResult noop = slots.applyTo(extra, sword);
-            if (noop.commit() || extra.getAmount() != 1 || combat.read(sword).added() != 6) {
-                throw new IllegalStateException("a capped item must not consume a further slot item: " + noop);
+            // A fully-capped item must reject (and NOT consume) a further orb.
+            ItemStack extra = capSlots.mintOrb();
+            SlotResult noop = capSlots.applyTo(extra, sword);
+            if (noop.commit() || extra.getAmount() != 1 || combat.read(sword).added() != 5) {
+                throw new IllegalStateException("a capped item must not consume a further orb: " + noop);
             }
         });
 
@@ -224,6 +224,37 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                         + (meta == null ? "no meta" : meta.getDisplayName()));
             }
         });
+
+        h.guard("economy.godly.mintsAndReorders", () -> {
+            // The physical godly-transmog tool mints + is detected (its own codec, NOT a scroll), and the
+            // deterministic reorder the menu commits works on an ARBITRARY (bound) gear item, not just the held one.
+            item.codec.GodlyTransmogCodec godlyCodec = new item.codec.GodlyTransmogCodec(keys.godlyTransmog());
+            ScrollService godly = new ScrollService(scrollCodec, combat, lore, carriers, holder,
+                    ScrollsConfig::defaults, new Random(8), item.lang.Messages.defaults(), godlyCodec);
+            ItemStack tool = godly.mintGodlyTransmog();
+            if (!godly.isGodlyTransmog(tool)) {
+                throw new IllegalStateException("godly transmog tool not detected after mint");
+            }
+            if (godly.isScroll(tool)) {
+                throw new IllegalStateException("godly transmog must NOT be a one-shot scroll");
+            }
+            if (tool.getType() != Material.NETHER_STAR) {
+                throw new IllegalStateException("godly transmog material: " + tool.getType());
+            }
+            // Bound reorder: reorder a specific gear item's enchant order (what the menu does for a clicked piece).
+            ItemStack gear = new ItemStack(Material.DIAMOND_BOOTS);
+            combat.write(gear, new CombatState(
+                    new java.util.LinkedHashMap<>(Map.of("enchants/sharp", 1, "enchants/tough", 1)), List.of()));
+            List<String> first = new java.util.ArrayList<>(combat.read(gear).enchants().keySet());
+            java.util.Collections.reverse(first); // the swapped order
+            if (!godly.reorder(gear, first)) {
+                throw new IllegalStateException("reorder rejected a valid permutation");
+            }
+            List<String> after = new java.util.ArrayList<>(combat.read(gear).enchants().keySet());
+            if (!after.equals(first)) {
+                throw new IllegalStateException("bound reorder did not apply the chosen order: " + after);
+            }
+        });
     }
 
     /** A {@link ScrollsConfig} with the black scroll's success chance overridden (rest unchanged). */
@@ -231,7 +262,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         ScrollsConfig.Black b = base.black();
         return new ScrollsConfig(
                 new ScrollsConfig.Black(b.material(), b.name(), b.lore(), chance),
-                base.randomizer(), base.transmog(), base.holy(), base.nametag());
+                base.randomizer(), base.transmog(), base.holy(), base.nametag(), base.godly());
     }
 
     @SuppressWarnings("deprecation") // setDisplayName: the floor-stable item-meta path

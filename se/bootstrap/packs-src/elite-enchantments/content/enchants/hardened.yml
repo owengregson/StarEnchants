@@ -1,0 +1,20 @@
+# Imported from EliteEnchantments (id: hardened). Review before shipping.
+display: "Hardened"
+description: "&bWhen hit, restores durability to &byour armor.  &b&lI: &f🎲 6.25% &7| &f▲ +2 pt. &b&lII: &f🎲 9% &7| &f▲ +2 pt. &b&lIII: &f🎲 11% &7| &f▲ +2 pt."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 6.25
+    effects:
+      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+  2:
+    chance: 9
+    effects:
+      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+  3:
+    chance: 11
+    effects:
+      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)

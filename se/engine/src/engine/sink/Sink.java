@@ -63,6 +63,9 @@ public interface Sink {
 
     void heal(LivingEntity target, double amount);
 
+    /** Set the target's current health to {@code health} (clamped to [0, max]) — MODIFY_HEALTH's {@code set} mode. */
+    void setHealth(LivingEntity target, double health);
+
     /** Instantly kill the target. */
     void kill(LivingEntity target);
 
@@ -120,6 +123,9 @@ public interface Sink {
 
     /** Drop the target's held (main-hand) item into the world, clearing the slot. */
     void disarm(LivingEntity target);
+
+    /** Drop one random worn armour piece from the target into the world, clearing its slot (REMOVE_ARMOR). */
+    void removeArmor(LivingEntity target);
 
     void ignite(Entity target, int durationTicks);
 
@@ -228,6 +234,14 @@ public interface Sink {
      */
     void removeSouls(Player holder, UUID gemId, int amount);
 
+    /**
+     * Debit {@code amount} souls from {@code target}'s OWN active gem (REMOVE_SOULS with a victim target —
+     * drain the enemy's souls). Resolves the target's gem from the soul-mode store inside the debit
+     * collaborator; a no-op if the target is not in soul mode or there is no soul system. Routed to the
+     * target's own thread (the gem's PDC write-through is region-bound there).
+     */
+    void removeSoulsFrom(Player target, int amount);
+
     // ── Variable intents (per-player named vars, read back in later conditions as %name%) ──
 
     /** Set {@code target}'s named variable to {@code value}; {@code ttlTicks <= 0} = no expiry (SET_VAR). */
@@ -275,4 +289,39 @@ public interface Sink {
      * always-on keep while worn, since the engine has no unequip teardown. A non-positive TTL is a no-op.
      */
     void keepOnDeath(Player target, int ttlTicks);
+
+    /**
+     * Block {@code target} from teleporting (ender-pearl / chorus-fruit) for {@code durationTicks} (TELEBLOCK,
+     * § combat-flags). Like {@link #controlKnockback}, the launch/teleport is a SEPARATE Bukkit event, so this
+     * writes a per-player timed flag a teleport listener reads back. A non-positive duration is a no-op.
+     */
+    void teleblock(Player target, int durationTicks);
+
+    /**
+     * Make {@code target} immune to a damage cause for {@code durationTicks} (IMMUNE, § combat-flags):
+     * {@code damageType} is 0=sword, 1=axe, 2=projectile, 3=potion(magic/poison/wither), 4=all. Like
+     * {@link #controlKnockback}, the future damage is a SEPARATE Bukkit event, so this writes a per-player
+     * timed flag a damage listener reads back and cancels matching hits. A non-positive duration is a no-op.
+     */
+    void immune(Player target, int damageType, int durationTicks);
+
+    /**
+     * Ask the triggering block-break (MINE) to auto-smelt the broken block (SMELT): an inline read-back like
+     * {@link #ignoreArmor()}, applied by the MINE dispatcher (which drops the smelted result and suppresses
+     * the raw drop). Inert outside a block-break.
+     */
+    void smelt();
+
+    /**
+     * Ask the triggering block-break (MINE) to send the block's drops straight to the breaker's inventory
+     * (TELEPORT_DROPS): an inline read-back applied by the MINE dispatcher. Inert outside a block-break.
+     */
+    void teleportDrops();
+
+    /**
+     * Ask the triggering bow-shot (BOW_FIRE) to make the fired projectile home onto the nearest line-of-sight
+     * target (AUTO_LOCK): an inline read-back applied by the bow dispatcher, which starts a per-projectile
+     * steering task. Inert outside a bow shot.
+     */
+    void seek();
 }

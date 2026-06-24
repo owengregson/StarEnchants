@@ -22,9 +22,23 @@ import org.bukkit.entity.Player;
 public final class Messages {
 
     private final Supplier<Lang> lang;
+    private final Supplier<String> prefix;                       // §L config.yml messages.prefix (live)
+    private final java.util.function.BooleanSupplier feedback;   // §L config.yml messages.feedback (live)
 
+    /** No-prefix, feedback-on form (tests/fixtures + the delegating service ctors). */
     public Messages(Supplier<Lang> lang) {
+        this(lang, () -> "", () -> true);
+    }
+
+    /**
+     * Canonical form (the composition root): {@code prefix} is prepended to every {@link #format} result and
+     * {@code feedback} gates {@link #send} (the keyed gameplay-feedback channel). Both read live, so a
+     * {@code /se reload} re-tunes them.
+     */
+    public Messages(Supplier<Lang> lang, Supplier<String> prefix, java.util.function.BooleanSupplier feedback) {
         this.lang = Objects.requireNonNull(lang, "lang");
+        this.prefix = Objects.requireNonNull(prefix, "prefix");
+        this.feedback = Objects.requireNonNull(feedback, "feedback");
     }
 
     /** A messages facade over the built-in {@link Lang#defaults()} — the test/fixture/default-ctor source. */
@@ -32,9 +46,20 @@ public final class Messages {
         return new Messages(Lang::defaults);
     }
 
-    /** The colour-translated message for {@code key} with {@code {TOKEN}} placeholders filled from {@code kv}. */
+    /**
+     * The colour-translated message for {@code key} with {@code {TOKEN}} placeholders filled from {@code kv},
+     * prepended with the configured {@code messages.prefix} (empty by default). Used for all single-line
+     * player feedback — never for item names or lore (those render through {@code LoreRenderer}).
+     */
     public String format(String key, Object... kv) {
-        return ItemFactory.color(lang.get().format(key, kv));
+        String p = prefix.get();
+        String body = lang.get().format(key, kv);
+        return ItemFactory.color(p == null || p.isEmpty() ? body : p + body);
+    }
+
+    /** Whether the keyed gameplay-feedback channel ({@link #send}) is enabled (config.yml messages.feedback). */
+    public boolean feedbackEnabled() {
+        return feedback.getAsBoolean();
     }
 
     /** The colour-translated multi-line block for {@code key}, placeholders filled from {@code kv}. */
@@ -47,8 +72,15 @@ public final class Messages {
         return out;
     }
 
-    /** Send {@code key} to {@code player} (caller is responsible for being on the player's region thread). */
+    /**
+     * Send {@code key} to {@code player} on the keyed gameplay-feedback channel — a no-op when
+     * {@code messages.feedback} is off (a quiet server). Caller is responsible for being on the player's
+     * region thread.
+     */
     public void send(Player player, String key, Object... kv) {
+        if (!feedback.getAsBoolean()) {
+            return;
+        }
         player.sendMessage(format(key, kv));
     }
 }

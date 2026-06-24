@@ -15,7 +15,9 @@ import java.util.Optional;
  *   ||  (left-assoc, lowest)
  *   &&  (left-assoc)
  *   comparators  ( ==  !=  &lt;  &lt;=  &gt;  &gt;= )  — NON-associative
- *   !   (unary prefix)
+ *   +  -  (left-assoc)            — arithmetic, operands of a comparison
+ *   *  /  (left-assoc)
+ *   !  -  (unary prefix)
  *   primary:  ( expr )  |  literal  |  %variable%
  * </pre>
  * Comparators are deliberately non-associative: {@code a < b < c} is reported as a
@@ -216,7 +218,7 @@ public final class ExprParser {
      * recovery does not loop.
      */
     private Expr parseComparison() {
-        Expr left = parseUnary();
+        Expr left = parseAdditive();
         Cmp cmpOp = comparatorAt(peek());
         StrOp strOp = strOpAt(peek());
         if (cmpOp == null && strOp == null) {
@@ -224,7 +226,7 @@ public final class ExprParser {
         }
         ExprTok opTok = peek();
         advance();
-        Expr right = parseUnary();
+        Expr right = parseAdditive();
         Expr cmp = cmpOp != null
                 ? new Expr.Compare(left, cmpOp, right, left.source())
                 : new Expr.StringMatch(left, strOp, right, left.source());
@@ -240,19 +242,53 @@ public final class ExprParser {
             // Consume the rest of the chain so the caller's loop terminates.
             while (isComparisonOp(peek())) {
                 advance();
-                parseUnary();
+                parseAdditive();
             }
         }
         return cmp;
     }
 
-    /** {@code unary := "!" unary | primary} — right-recursive so {@code !!x} works. */
+    /** {@code add := mul ( ("+"|"-") mul )*} — left-associative arithmetic, an operand of a comparison. */
+    private Expr parseAdditive() {
+        Expr left = parseMultiplicative();
+        while (check(ExprTok.Kind.PLUS) || check(ExprTok.Kind.MINUS)) {
+            ArithOp op = check(ExprTok.Kind.PLUS) ? ArithOp.ADD : ArithOp.SUBTRACT;
+            advance();
+            Expr right = parseMultiplicative();
+            left = new Expr.Arith(left, op, right, left.source());
+        }
+        return left;
+    }
+
+    /** {@code mul := unary ( ("*"|"/") unary )*} — left-associative, binds tighter than {@code +}/{@code -}. */
+    private Expr parseMultiplicative() {
+        Expr left = parseUnary();
+        while (check(ExprTok.Kind.STAR) || check(ExprTok.Kind.SLASH)) {
+            ArithOp op = check(ExprTok.Kind.STAR) ? ArithOp.MULTIPLY : ArithOp.DIVIDE;
+            advance();
+            Expr right = parseUnary();
+            left = new Expr.Arith(left, op, right, left.source());
+        }
+        return left;
+    }
+
+    /**
+     * {@code unary := "!" unary | "-" unary | primary} — right-recursive so {@code !!x} works.
+     * {@code !} is boolean negation; {@code -} is numeric negation (se-compile rejects whichever does
+     * not fit the operand's type).
+     */
     private Expr parseUnary() {
         if (check(ExprTok.Kind.BANG)) {
             ExprTok bang = peek();
             advance();
             Expr operand = parseUnary();
             return new Expr.Not(operand, lineSource.atColumn(bang.col()));
+        }
+        if (check(ExprTok.Kind.MINUS)) {
+            ExprTok minus = peek();
+            advance();
+            Expr operand = parseUnary();
+            return new Expr.Neg(operand, lineSource.atColumn(minus.col()));
         }
         return parsePrimary();
     }
@@ -369,7 +405,7 @@ public final class ExprParser {
     private static boolean isOperatorLike(ExprTok t) {
         return switch (t.kind()) {
             case AND, OR, BANG, COMMA, EQ, NE, LT, LE, GT, GE, CONTAINS, MATCHES_REGEX,
-                    COLON, PLUS, MINUS -> true;
+                    COLON, PLUS, MINUS, STAR, SLASH -> true;
             default -> false;
         };
     }

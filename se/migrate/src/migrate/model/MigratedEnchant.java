@@ -8,13 +8,23 @@ import java.util.List;
  * {@code appliesTo}, the {@code group}, and the per-level data. {@code trigger} is {@code null} when
  * the legacy type had no StarEnchants equivalent (the writer flags it with a {@code # TODO}); the
  * {@code legacyTrigger}/{@code legacyApplies} originals are retained for the review comments.
+ * {@code repeatTicks} is the REPEATING period in ticks (EE's {@code REPEATING-<seconds>} type) — 0 when
+ * the enchant is not a repeating one (the writer then omits the {@code repeat:} field).
  */
 public record MigratedEnchant(String id, String display, String description, String trigger,
                               List<String> appliesTo, String group, List<MigratedLevel> levels,
-                              String legacyTrigger, String legacyApplies) {
+                              String legacyTrigger, String legacyApplies, int repeatTicks) {
 
     public MigratedEnchant {
         appliesTo = List.copyOf(appliesTo);
         levels = List.copyOf(levels);
+        repeatTicks = Math.max(0, repeatTicks);
+    }
+
+    /** A non-repeating enchant (the AE/EA path, and any EE enchant that is not {@code REPEATING}). */
+    public MigratedEnchant(String id, String display, String description, String trigger,
+                           List<String> appliesTo, String group, List<MigratedLevel> levels,
+                           String legacyTrigger, String legacyApplies) {
+        this(id, display, description, trigger, appliesTo, group, levels, legacyTrigger, legacyApplies, 0);
     }
 }

@@ -94,12 +94,23 @@ class LibraryLoaderTest {
     }
 
     @Test
-    void loadsSetsAsSetTaggedAbilitiesCarryingThePieceThreshold(@TempDir Path root) throws IOException {
+    void loadsSetsAsArmourAndWeaponAbilitiesCarryingTheCompletionThreshold(@TempDir Path root) throws IOException {
         write(root, "sets/yeti.yml", """
             display: "&bYeti"
-            pieces: 4
-            trigger: DEFENSE
-            effects: ["HEAL:1"]
+            complete: 4
+            armor:
+              pieces:
+                helmet:     { material: DIAMOND_HELMET,     name: "&bYeti Helm" }
+                chestplate: { material: DIAMOND_CHESTPLATE, name: "&bYeti Chestplate" }
+                leggings:   { material: DIAMOND_LEGGINGS,   name: "&bYeti Leggings" }
+                boots:      { material: DIAMOND_BOOTS,      name: "&bYeti Boots" }
+              trigger: DEFENSE
+              effects: ["HEAL:1"]
+            weapon:
+              material: DIAMOND_SWORD
+              name: "&bYeti Blade"
+              trigger: ATTACK
+              effects: ["HEAL:1"]
             """);
 
         Library lib = LibraryLoader.load(root, compiler(), 8);
@@ -108,19 +119,23 @@ class LibraryLoaderTest {
         compile.model.Ability bonus = lib.snapshot().byStableKey("sets/yeti");
         assertNotNull(bonus);
         assertEquals(compile.model.SourceKind.SET, bonus.sourceKind());
-        assertEquals(4, bonus.setPieces()); // the completion threshold is erased onto the ability
+        assertEquals(4, bonus.setPieces()); // the completion threshold is erased onto the armour ability
+        // The additional weapon bonus is its own ability (gated by the resolver, so setPieces 0).
+        compile.model.Ability weapon = lib.snapshot().byStableKey("sets/yeti/weapon");
+        assertNotNull(weapon);
+        assertEquals(compile.model.SourceKind.SET, weapon.sourceKind());
+        assertEquals(0, weapon.setPieces());
         assertEquals(1, lib.sets().size());
         assertEquals("sets/yeti", lib.sets().get(0).key());
-        assertEquals(4, lib.sets().get(0).pieces());
+        assertEquals(4, lib.sets().get(0).armorComplete());
+        assertTrue(lib.sets().get(0).hasWeapon());
         assertEquals("&bYeti", lib.displayNameOf("sets/yeti"));
     }
 
     @Test
-    void aSetWithNoPieceCountIsABlockingError(@TempDir Path root) throws IOException {
+    void aSetWithNoArmourPiecesIsABlockingError(@TempDir Path root) throws IOException {
         write(root, "sets/broken.yml", """
             display: "Broken"
-            trigger: DEFENSE
-            effects: ["HEAL:1"]
             """);
         Library lib = LibraryLoader.load(root, compiler(), 9);
         assertTrue(lib.hasErrors());

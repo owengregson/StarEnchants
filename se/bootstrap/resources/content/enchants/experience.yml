@@ -1,0 +1,21 @@
+# Experience — every block you break feeds your levels.
+tier: common
+display: "&aExperience"
+description: "Gain bonus XP as you mine."
+trigger: MINE
+applies-to: [PICKAXE, SHOVEL, AXE, HOE]
+group: mining
+levels:
+  1:
+    chance: 100
+    effects:
+      - { MODIFY_EXP: { amount: 3 } }
+  2:
+    chance: 100
+    effects:
+      - { MODIFY_EXP: { amount: 6 } }
+  3:
+    chance: 100
+    effects:
+      - { MODIFY_EXP: { amount: 10 } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }

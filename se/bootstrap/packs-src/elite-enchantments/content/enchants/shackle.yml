@@ -1,0 +1,19 @@
+# Imported from EliteEnchantments (id: shackle). Review before shipping.
+display: "Shackle"
+description: "&bOn hit, stops mobs from spawners &bfrom taking knockback.  &b&lI: &f🎲 25% &b&lII: &f🎲 50% &b&lIII: &f🎲 100%"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 25
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
+  2:
+    chance: 50
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
+  3:
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)

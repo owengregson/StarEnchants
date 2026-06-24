@@ -1,0 +1,32 @@
+# Imported from EliteEnchantments (id: ender-shift). Review before shipping.
+display: "Ender Shift"
+description: "&aAt low health, when hit, grants &ayou Speed and Absorption.  &a&lI: &f🎲 8% &7| &f▲ 4s &7| &f⌛ 10s &a&lII: &f🎲 10% &7| &f▲ 4s &7| &f⌛ 10s &a&lIII: &f🎲 12% &7| &f▲ 4s &7| &f⌛ 10s"
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 8
+    cooldown: 10
+    condition: "%actor.health% <= 3"
+    effects:
+      - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
+      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)
+  2:
+    chance: 10
+    cooldown: 10
+    condition: "%actor.health% <= 3"
+    effects:
+      - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
+      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)
+  3:
+    chance: 12
+    cooldown: 10
+    condition: "%actor.health% <= 3"
+    effects:
+      - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
+      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)

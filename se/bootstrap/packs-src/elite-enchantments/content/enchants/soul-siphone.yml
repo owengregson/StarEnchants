@@ -1,0 +1,36 @@
+# Imported from EliteEnchantments (id: soul-siphone). Review before shipping.
+display: "Soul Siphone"
+description: "&4On hit, drains the target's &4souls, damages their armor, and &4repairs your own gear.  &4&lI: &f🎲 3% &7| &f⌛ 3s &4&lII: &f🎲 5% &7| &f⌛ 3s &4&lIII: &f🎲 7% &7| &f⌛ 3s &4&lIV: &f🎲 10% &7| &f⌛ 3s"
+trigger: ATTACK
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "mythic"
+tier: mythic
+levels:
+  1:
+    chance: 3
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore" } }  # from ADD_DURABILITY:1 — EE add-durability → DURABILITY (restore)
+      - { REMOVE_SOULS: { amount: 100, who: "@Victim" } }  # from REMOVE_SOULS:100:TARGET — EE REMOVE_SOULS → REMOVE_SOULS (TARGET drains the foe's gem, else the activator's)
+  2:
+    chance: 5
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+      - { REMOVE_SOULS: { amount: 150, who: "@Victim" } }  # from REMOVE_SOULS:150:TARGET — EE REMOVE_SOULS → REMOVE_SOULS (TARGET drains the foe's gem, else the activator's)
+  3:
+    chance: 7
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+      - { DURABILITY: { amount: 3, target: "item", mode: "restore" } }  # from ADD_DURABILITY:3 — EE add-durability → DURABILITY (restore)
+      - { REMOVE_SOULS: { amount: 200, who: "@Victim" } }  # from REMOVE_SOULS:200:TARGET — EE REMOVE_SOULS → REMOVE_SOULS (TARGET drains the foe's gem, else the activator's)
+  4:
+    chance: 10
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:2 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+      - { DURABILITY: { amount: 5, target: "item", mode: "restore" } }  # from ADD_DURABILITY:5 — EE add-durability → DURABILITY (restore)
+      - { REMOVE_SOULS: { amount: 300, who: "@Victim" } }  # from REMOVE_SOULS:300:TARGET — EE REMOVE_SOULS → REMOVE_SOULS (TARGET drains the foe's gem, else the activator's)

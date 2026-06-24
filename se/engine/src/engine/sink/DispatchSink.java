@@ -2,9 +2,11 @@ package engine.sink;
 
 import engine.interact.DamageFold;
 import engine.stores.CooldownStore;
+import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
+import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
 import java.util.List;
 import java.util.Objects;
@@ -95,8 +97,14 @@ public final class DispatchSink implements Sink {
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold;
 
+    private final TeleblockStore teleblock;
+    private final ImmuneStore immune;
+
     private boolean cancelled;
     private boolean armorIgnored;
+    private boolean smeltRequested;
+    private boolean teleportDropsRequested;
+    private boolean seekRequested;
     private boolean flushed;
     private int delayTicks;
 
@@ -157,6 +165,21 @@ public final class DispatchSink implements Sink {
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
                         KeepOnDeathStore keepOnDeath, LongSupplier nowTicks,
                         java.util.function.DoubleSupplier maxHeroicOutgoing) {
+        this(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+                new TeleblockStore(), new ImmuneStore(), nowTicks, maxHeroicOutgoing);
+    }
+
+    /**
+     * The full sink, additionally sharing the {@link TeleblockStore} and {@link ImmuneStore} the
+     * TELEBLOCK / IMMUNE flags write — read back by the teleport / damage listeners on their separate Bukkit
+     * events. The production dispatchers pass the shared instances; every shorter ctor above defaults them to
+     * throwaways (so those flags are inert unless the real stores are threaded in), exactly as the
+     * knockback/keep-on-death stores were introduced.
+     */
+    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
+                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
+                        KeepOnDeathStore keepOnDeath, TeleblockStore teleblock, ImmuneStore immune,
+                        LongSupplier nowTicks, java.util.function.DoubleSupplier maxHeroicOutgoing) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
@@ -164,6 +187,8 @@ public final class DispatchSink implements Sink {
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.knockback = Objects.requireNonNull(knockback, "knockback");
         this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
+        this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
+        this.immune = Objects.requireNonNull(immune, "immune");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         this.fold = new DamageFold(Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing"));
     }
@@ -183,6 +208,21 @@ public final class DispatchSink implements Sink {
     /** Whether an effect asked the triggering hit to ignore armor (§ combat-flags). Read by the combat dispatcher. */
     public boolean armorIgnored() {
         return armorIgnored;
+    }
+
+    /** Whether an effect asked the triggering block-break to auto-smelt (SMELT). Read by the MINE dispatcher. */
+    public boolean smeltRequested() {
+        return smeltRequested;
+    }
+
+    /** Whether an effect asked the broken block's drops to go to the breaker's inventory (TELEPORT_DROPS). */
+    public boolean teleportDropsRequested() {
+        return teleportDropsRequested;
+    }
+
+    /** Whether an effect asked the fired projectile to home onto a target (AUTO_LOCK). Read by the bow dispatcher. */
+    public boolean seekRequested() {
+        return seekRequested;
     }
 
     /** Schedule every deferred intent on its owning thread; call once after the gate walk. Idempotent. */
@@ -270,6 +310,11 @@ public final class DispatchSink implements Sink {
     @Override
     public void heal(LivingEntity target, double amount) {
         entityOp(target, () -> target.setHealth(Math.min(target.getHealth() + amount, maxHealth(target))));
+    }
+
+    @Override
+    public void setHealth(LivingEntity target, double health) {
+        entityOp(target, () -> target.setHealth(Math.max(0.0, Math.min(health, maxHealth(target)))));
     }
 
     @Override
@@ -446,6 +491,37 @@ public final class DispatchSink implements Sink {
             World world = target.getWorld();
             if (world != null) {
                 world.dropItemNaturally(target.getLocation(), held);
+            }
+        });
+    }
+
+    @Override
+    public void removeArmor(LivingEntity target) {
+        // Runs on the target's own thread (entityOp): reading its equipment + dropping at its location is
+        // region-correct. Picks one random non-empty armour slot, clears it, and drops the piece (REMOVE_ARMOR).
+        entityOp(target, () -> {
+            EntityEquipment equipment = target.getEquipment();
+            if (equipment == null) {
+                return;
+            }
+            ItemStack[] worn = equipment.getArmorContents(); // [boots, leggings, chestplate, helmet]
+            int[] filled = new int[worn.length];
+            int n = 0;
+            for (int i = 0; i < worn.length; i++) {
+                if (worn[i] != null && !worn[i].getType().isAir()) {
+                    filled[n++] = i;
+                }
+            }
+            if (n == 0) {
+                return;
+            }
+            int slot = filled[ThreadLocalRandom.current().nextInt(n)];
+            ItemStack piece = worn[slot];
+            worn[slot] = null;
+            equipment.setArmorContents(worn);
+            World world = target.getWorld();
+            if (world != null) {
+                world.dropItemNaturally(target.getLocation(), piece);
             }
         });
     }
@@ -802,6 +878,16 @@ public final class DispatchSink implements Sink {
         entityOp(holder, () -> souls.debit(holder, gemId, amount));
     }
 
+    @Override
+    public void removeSoulsFrom(Player target, int amount) {
+        if (target == null || amount <= 0) {
+            return;
+        }
+        // Route to the TARGET's own thread: the debit collaborator resolves the target's active gem from the
+        // soul-mode store and write-throughs its PDC, which is region-bound to where the gem sits.
+        entityOp(target, () -> souls.debitTarget(target, amount));
+    }
+
     // ── Variable intents ───────────────────────────────────────────────────────────────────────
 
     @Override
@@ -868,6 +954,41 @@ public final class DispatchSink implements Sink {
         // concurrent and only the player's UUID is captured here, so writing it on the firing thread is
         // Folia-safe — no cross-region live entity read, no scheduler hop.
         keepOnDeath.keep(target.getUniqueId(), nowTicks.getAsLong(), ttlTicks);
+    }
+
+    @Override
+    public void teleblock(Player target, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        // Per-player timed flag read later by the teleport/launch listener (a separate Bukkit event). Concurrent
+        // store, UUID captured here → Folia-safe on the firing thread.
+        teleblock.block(target.getUniqueId(), nowTicks.getAsLong(), durationTicks);
+    }
+
+    @Override
+    public void immune(Player target, int damageType, int durationTicks) {
+        if (target == null) {
+            return;
+        }
+        // Per-player timed flag read later by the damage listener (a separate Bukkit event from the hit that
+        // armed it). Concurrent store, UUID captured here → Folia-safe on the firing thread.
+        immune.immune(target.getUniqueId(), ImmuneStore.Type.of(damageType), nowTicks.getAsLong(), durationTicks);
+    }
+
+    @Override
+    public void smelt() {
+        smeltRequested = true;
+    }
+
+    @Override
+    public void teleportDrops() {
+        teleportDropsRequested = true;
+    }
+
+    @Override
+    public void seek() {
+        seekRequested = true;
     }
 
     // ── Cross-version helpers ────────────────────────────────────────────────────────────────────

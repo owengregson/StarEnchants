@@ -20,11 +20,16 @@ import schema.diag.Diagnostic;
  * @param slots       the slot expander/gem config, or empty if none is configured (falls back to {@link SlotConfig#defaults()})
  * @param scrolls     the scroll-family config, or empty if none is configured (falls back to {@link ScrollsConfig#defaults()})
  * @param unopenedBook the unopened/randomized book config, or empty if none (falls back to {@link UnopenedBookConfig#defaults()})
+ * @param enchantBook the general enchant-book likeness, or empty if none (falls back to {@link EnchantBookConfig#defaults()})
+ * @param dust        the success-dust config, or empty if none is configured (falls back to {@link DustConfig#defaults()})
+ * @param whiteScroll the white-scroll (enchant-protect) config, or empty if none (falls back to {@link WhiteScrollConfig#defaults()})
  * @param diagnostics every diagnostic raised loading the folder
  */
 public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfig> crystal,
                           Optional<HeroicConfig> heroic, Optional<SlotConfig> slots,
                           Optional<ScrollsConfig> scrolls, Optional<UnopenedBookConfig> unopenedBook,
+                          Optional<EnchantBookConfig> enchantBook, Optional<DustConfig> dust,
+                          Optional<WhiteScrollConfig> whiteScroll,
                           List<Diagnostic> diagnostics) {
 
     public ItemsConfig {
@@ -34,13 +39,17 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
         Objects.requireNonNull(slots, "slots");
         Objects.requireNonNull(scrolls, "scrolls");
         Objects.requireNonNull(unopenedBook, "unopenedBook");
+        Objects.requireNonNull(enchantBook, "enchantBook");
+        Objects.requireNonNull(dust, "dust");
+        Objects.requireNonNull(whiteScroll, "whiteScroll");
         diagnostics = List.copyOf(diagnostics);
     }
 
     /** An empty config (no item files present) — the runtime uses each item's built-in defaults. */
     public static ItemsConfig empty() {
         return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), List.of());
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                List.of());
     }
 
     /** The soul-gem config, or its built-in default when none is configured. */
@@ -71,6 +80,21 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
     /** The unopened/randomized book config, or its built-in default when none is configured. */
     public UnopenedBookConfig unopenedBookOrDefault() {
         return unopenedBook.orElseGet(UnopenedBookConfig::defaults);
+    }
+
+    /** The general enchant-book likeness, or its built-in default when none is configured. */
+    public EnchantBookConfig enchantBookOrDefault() {
+        return enchantBook.orElseGet(EnchantBookConfig::defaults);
+    }
+
+    /** The success-dust config, or its built-in default when none is configured. */
+    public DustConfig dustOrDefault() {
+        return dust.orElseGet(DustConfig::defaults);
+    }
+
+    /** The white-scroll (enchant-protect) config, or its built-in default when none is configured. */
+    public WhiteScrollConfig whiteScrollOrDefault() {
+        return whiteScroll.orElseGet(WhiteScrollConfig::defaults);
     }
 
     /** Whether any blocking diagnostic was raised loading the folder. */

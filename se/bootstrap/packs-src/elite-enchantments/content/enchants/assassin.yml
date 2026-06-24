@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: assassin). Review before shipping.
+display: "Assassin"
+description: "&eOn hit, deals more damage the &ecloser you are to the target.  &e&lI: &f🎲 4.25% &7| &f⌛ 5s &e&lII: &f🎲 7% &7| &f⌛ 5s &e&lIII: &f🎲 9.5% &7| &f⌛ 5s &e&lIV: &f🎲 11% &7| &f⌛ 5s &e&lV: &f🎲 13% &7| &f⌛ 5s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 4.25
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
+  2:
+    chance: 7
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
+  3:
+    chance: 9.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
+  4:
+    chance: 11
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)
+  5:
+    chance: 13
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "25 - %distance% * 7" } }  # from DAMAGE_DISTANCE — EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)

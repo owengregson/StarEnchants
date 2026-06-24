@@ -46,7 +46,8 @@ public final class TriggerListeners implements Listener {
     public void onMine(BlockBreakEvent event) {
         Player player = event.getPlayer();
         // Capture the broken block so the %block.type%/%isblock% facts source it (region-owned on this thread).
-        dispatch.fire(player, dispatch.mine,
+        // fireMine also applies the SMELT/TELEPORT_DROPS drop read-backs to the event.
+        dispatch.fireMine(player,
                 new ActivationContext(player, null, null, event.getBlock().getLocation(), 0.0, event.getBlock()),
                 event);
     }
@@ -70,7 +71,8 @@ public final class TriggerListeners implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBowFire(EntityShootBowEvent event) {
         if (event.getEntity() instanceof Player shooter) {
-            dispatch.fire(shooter, dispatch.bowFire, self(shooter), event);
+            // fireBow also starts SEEK (AUTO_LOCK) homing on the fired projectile when a proc asks for it.
+            dispatch.fireBow(shooter, self(shooter), event);
         }
     }
 

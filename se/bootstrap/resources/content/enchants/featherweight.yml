@@ -1,0 +1,19 @@
+# Featherweight (§B PASSIVE lifecycle, ADR-0022) — while WORN the boots lighten your step with Speed. Applied
+# when the piece is equipped (START) and removed when it is taken off (STOP). PASSIVE differs from REPEATING:
+# it is a one-time apply/remove around the equip change, not a recurring tick — use it for a steady "while-worn"
+# buff (a potion, a stat) rather than a periodic pulse. The buff can never outlive the armour: STOP clears it.
+tier: uncommon
+display: "&bFeatherweight"
+description: "While worn, lightens your step with Speed."
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: utility
+levels:
+  1:
+    chance: 100
+    effects:
+      - { POTION: { effect: SPEED, level: 1, duration: 1000000, who: "@Self" } }
+  2:
+    chance: 100
+    effects:
+      - { POTION: { effect: SPEED, level: 2, duration: 1000000, who: "@Self" } }

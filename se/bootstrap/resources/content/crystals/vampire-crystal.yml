@@ -1,0 +1,17 @@
+# Vampire Crystal — a flat, levelless socket bonus. material/name/lore give the minted crystal item its
+# own likeness so the lore explains its effect.
+tier: uncommon
+display: "&4Vampire Crystal"
+description: "Drain life back to yourself on a hit."
+material: GHAST_TEAR
+name: "&4Vampire Crystal"
+lore:
+  - "&7Socket into a sword or axe."
+  - "&450%&7 chance on hit to drain"
+  - "&c2 health&7 back to yourself."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+chance: 50
+effects:
+  - { MODIFY_HEALTH: { amount: 2 } }
+  - { PARTICLE: { particle: WITCH, count: 6 } }

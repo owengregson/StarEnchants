@@ -289,32 +289,41 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Mint a SET-PIECE item for {@code setKey} on the {@code pieceToken} slot (§J {@code /se give set}) — set
-     * membership is PDC-keyed ({@link CombatState#setKey()}), so a piece is just a chosen material stamped with
-     * the set key. The piece must be a group the set's {@code applies-to} actually covers, and that group must
-     * resolve to a concrete material on this version; otherwise empty (so a {@code <weapon>} on an armour-only
-     * set, or an unknown set, fails cleanly without inventing data — ADR-0019). The set bonus then fires through
-     * the existing WornResolver→SetResolver path once enough pieces are worn.
+     * Mint a SET MEMBER item for {@code setKey} (§J {@code /se give set}). {@code memberToken} names a member:
+     * an armour slot ({@code helmet}/{@code chestplate}/{@code leggings}/{@code boots} — anything the set's
+     * {@code armor.pieces} declares) or {@code weapon}. The member is minted from its own configured material +
+     * name; its lore (the set's shared armour lore, or the weapon's own lore) is rendered from state by the
+     * LoreRenderer (docs/v3-directives.md §6.6). An armour member stamps {@link CombatState#setKey()} (counts
+     * toward completion); the weapon stamps {@link CombatState#setWeaponKey()} (grants the additional weapon
+     * bonus while the set is complete and held). Unknown set or member &rarr; empty (ADR-0019, no invented data).
      */
-    public java.util.Optional<ItemStack> mintSetPiece(String setKey, String pieceToken) {
+    public java.util.Optional<ItemStack> mintSetPiece(String setKey, String memberToken) {
         compile.load.SetDef def = set(setKey);
         if (def == null) {
             return java.util.Optional.empty();
         }
-        String token = pieceToken == null ? "" : pieceToken.toUpperCase(java.util.Locale.ROOT);
-        boolean applicable = def.appliesTo().stream().anyMatch(t -> t.equalsIgnoreCase(token));
-        if (!applicable) {
-            return java.util.Optional.empty(); // the set does not cover this slot (e.g. a weapon on an armour set)
+        String token = memberToken == null ? "" : memberToken.toLowerCase(java.util.Locale.ROOT);
+        if (def.hasWeapon() && token.equals("weapon")) {
+            Material material = item.mint.ItemFactory.material(def.weapon().material(), Material.IRON_SWORD);
+            String name = def.weapon().name() != null ? def.weapon().name() : def.display();
+            ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
+            CombatState next = CombatState.weaponMember(setKey);
+            codec.write(stack, next);
+            lore.apply(stack, next); // renders the weapon's own lore + (Set Weapon) marker
+            return java.util.Optional.of(stack);
         }
-        Material material = groups.materials(token).stream().findFirst().orElse(null);
-        if (material == null) {
-            return java.util.Optional.empty(); // the group resolves to no material on this version
+        for (compile.load.SetDef.Member member : def.armorMembers()) {
+            if (member.slot().equalsIgnoreCase(token)) {
+                Material material = item.mint.ItemFactory.material(member.material(), Material.LEATHER_HELMET);
+                String name = member.name() != null ? member.name() : def.display();
+                ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
+                CombatState next = new CombatState(Map.of(), List.of(), setKey, false);
+                codec.write(stack, next);
+                lore.apply(stack, next); // renders the set's shared armour lore + (Set) marker
+                return java.util.Optional.of(stack);
+            }
         }
-        ItemStack stack = item.mint.ItemFactory.build(material, def.display(), List.of());
-        CombatState next = new CombatState(Map.of(), List.of(), setKey, false, item.codec.HeroicStat.NONE, 0);
-        codec.write(stack, next);
-        lore.apply(stack, next); // renders the set line (LoreRenderer §J)
-        return java.util.Optional.of(stack);
+        return java.util.Optional.empty(); // no such member on this set
     }
 
     /** The set def for {@code key}, or {@code null} if no such set exists. */

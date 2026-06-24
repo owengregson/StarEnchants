@@ -44,6 +44,7 @@ public final class ScrollService {
     private final Supplier<ScrollsConfig> config;
     private final Random random;
     private final item.lang.Messages messages; // §L lang.yml — black/randomizer/transmog result messages + guards
+    private final item.codec.GodlyTransmogCodec godlyCodec; // §I/§K physical godly-transmog marker; null in tests
 
     /** Default-messages form (tests/fixtures). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
@@ -54,6 +55,13 @@ public final class ScrollService {
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
                          item.lang.Messages messages) {
+        this(scrolls, combat, lore, carriers, content, config, random, messages, null);
+    }
+
+    /** Full form (the composition root) — {@code godlyCodec} enables minting the physical godly-transmog tool. */
+    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
+                         ContentHolder content, Supplier<ScrollsConfig> config, Random random,
+                         item.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -62,6 +70,7 @@ public final class ScrollService {
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.godlyCodec = godlyCodec; // nullable: tests that never mint the godly tool omit it
     }
 
     /** Whether {@code stack} is a drag-onto-target scroll handled by this service (black / randomizer / transmog). */
@@ -94,6 +103,21 @@ public final class ScrollService {
         ItemStack stack = ItemFactory.build(
                 ItemFactory.material(cfg.material(), Material.PURPLE_DYE), cfg.name(), cfg.lore());
         scrolls.mark(stack, TRANSMOG);
+        return stack;
+    }
+
+    /** Whether {@code stack} is a physical godly-transmog tool (§I/§K) — opens the reorder GUI on a piece. */
+    public boolean isGodlyTransmog(ItemStack stack) {
+        return godlyCodec != null && godlyCodec.isGodlyTransmog(stack);
+    }
+
+    /** Mint the physical godly-transmog tool from its configured likeness (drag onto gear → reorder GUI). */
+    public ItemStack mintGodlyTransmog() {
+        Objects.requireNonNull(godlyCodec, "godlyCodec — this ScrollService was built without the godly codec");
+        ScrollsConfig.Godly cfg = config.get().godly();
+        ItemStack stack = ItemFactory.build(
+                ItemFactory.material(cfg.material(), Material.NETHER_STAR), cfg.name(), cfg.lore());
+        godlyCodec.mark(stack);
         return stack;
     }
 

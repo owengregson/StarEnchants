@@ -1,0 +1,25 @@
+# Concussion — daze the foe with nausea and knock them reeling backward.
+tier: uncommon
+display: "&eConcussion"
+description: "Daze and stagger the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 20
+    effects:
+      - { POTION: { effect: NAUSEA, level: 1, duration: 80, who: "@Victim" } }
+      - { VELOCITY: { mode: away, strength: 1, who: "@Victim" } }
+  2:
+    chance: 28
+    effects:
+      - { POTION: { effect: NAUSEA, level: 1, duration: 120, who: "@Victim" } }
+      - { VELOCITY: { mode: away, strength: 2, who: "@Victim" } }
+  3:
+    chance: 36
+    cooldown: 0
+    effects:
+      - { POTION: { effect: NAUSEA, level: 1, duration: 160, who: "@Victim" } }
+      - { VELOCITY: { mode: away, strength: 3, who: "@Victim" } }
+      - { MESSAGE: { text: "&eThe world spins for your foe!" } }

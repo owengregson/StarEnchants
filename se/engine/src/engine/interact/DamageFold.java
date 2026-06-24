@@ -50,6 +50,9 @@ public final class DamageFold {
     private double reductionPercent;
     private double heroicOutgoing;
     private double heroicReduction;
+    // Combat caps (config.yml combat.*): ceilings on the summed additive fractions; +inf = uncapped.
+    private double maxBonusOutgoing = Double.POSITIVE_INFINITY;
+    private double maxBonusReduction = Double.POSITIVE_INFINITY;
 
     /** Fold with the built-in heroic ceiling (the common test/fixture form). */
     public DamageFold() {
@@ -62,6 +65,17 @@ public final class DamageFold {
      */
     public DamageFold(java.util.function.DoubleSupplier maxOutgoingFactor) {
         this.maxOutgoingFactor = java.util.Objects.requireNonNull(maxOutgoingFactor, "maxOutgoingFactor");
+    }
+
+    /**
+     * Set the additive combat caps for this event (config.yml {@code combat.max-bonus-damage} /
+     * {@code combat.max-bonus-reduction}): a ceiling on the summed outgoing% and reduction% applied in
+     * {@link #apply}. A negative ceiling means "no cap" (the default). The composition root calls this per
+     * event from the live config so a {@code /se reload} re-tunes the caps.
+     */
+    public void caps(double maxBonusOutgoing, double maxBonusReduction) {
+        this.maxBonusOutgoing = maxBonusOutgoing < 0 ? Double.POSITIVE_INFINITY : maxBonusOutgoing;
+        this.maxBonusReduction = maxBonusReduction < 0 ? Double.POSITIVE_INFINITY : maxBonusReduction;
     }
 
     /** Contribute an outgoing-damage bonus, e.g. {@code 0.25} for +25% (may be negative). */
@@ -114,8 +128,11 @@ public final class DamageFold {
      * heroic cannot quadruple-and-then-some nor invert damage.
      */
     public double apply(double base) {
-        double outgoing = base * Math.max(0.0, 1.0 + outgoingPercent) + flatDamage;
-        double mitigated = outgoing * Math.max(0.0, 1.0 - reductionPercent) - flatReduction;
+        // Combat caps (config.yml) ceil the summed additive fractions before the fold; +inf = uncapped.
+        double cappedOutgoing = Math.min(outgoingPercent, maxBonusOutgoing);
+        double cappedReduction = Math.min(reductionPercent, maxBonusReduction);
+        double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing) + flatDamage;
+        double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatReduction;
         double folded = Math.max(0.0, mitigated);
         double ceiling = Math.max(1.0, maxOutgoingFactor.getAsDouble());
         double heroicOut = Math.min(ceiling, Math.max(0.0, 1.0 + heroicOutgoing));

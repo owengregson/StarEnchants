@@ -1,12 +1,12 @@
 package compile.model.cond;
 
 /**
- * A numeric-valued operand of a compiled condition (docs/architecture.md §3.4): a
- * resolved {@code FactBuffer} slot, a constant, or a PlaceholderAPI token parsed to a
- * number at evaluation time. Pure data — the runtime walks it over a primitive fact
- * buffer with no parsing on the hot path.
+ * A numeric-valued operand of a compiled condition <em>or an expression-valued effect argument</em>
+ * (docs/architecture.md §3.4): a resolved {@code FactBuffer} slot, a constant, a PlaceholderAPI token
+ * parsed to a number at evaluation time, or an arithmetic combination of those. Pure data — the runtime
+ * walks it over a primitive fact buffer with no parsing on the hot path (see the engine's {@code NumExprEval}).
  */
-public sealed interface NumExpr permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi {
+public sealed interface NumExpr permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, NumExpr.Bin, NumExpr.Neg {
 
     /** A numeric variable resolved to its dense {@code FactBuffer} number slot. */
     record Var(int slot) implements NumExpr {}
@@ -21,4 +21,13 @@ public sealed interface NumExpr permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi {
      * {@code %...%} text (without the surrounding percents).
      */
     record Papi(String raw) implements NumExpr {}
+
+    /** A binary arithmetic node ({@code left op right}) over numeric operands, evaluated at activation. */
+    record Bin(NumExpr left, Op op, NumExpr right) implements NumExpr {}
+
+    /** Numeric negation of an operand. */
+    record Neg(NumExpr operand) implements NumExpr {}
+
+    /** The binary arithmetic operators a {@link Bin} can carry. */
+    enum Op { ADD, SUBTRACT, MULTIPLY, DIVIDE }
 }

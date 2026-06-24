@@ -48,13 +48,32 @@ public final class WornResolver {
     private final int triggerCount;
     private final IntPredicate attackTrigger;
     private final IntPredicate defenseTrigger;
+    private final java.util.function.Supplier<Features> features; // §L per-feature master toggles (live)
 
+    /** The per-feature source toggles (config.yml {@code features:}) — which sources contribute to worn state. */
+    public record Features(boolean enchants, boolean sets, boolean crystals, boolean heroic) {
+        /** Every source on (the default + the test/fixture form). */
+        public static final Features ALL = new Features(true, true, true, true);
+    }
+
+    /** All-features-on form (tests/fixtures): every worn source contributes. */
     public WornResolver(ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger) {
+        this(itemViews, triggerCount, attackTrigger, defenseTrigger, () -> Features.ALL);
+    }
+
+    /**
+     * Canonical form (the composition root): {@code features} is read live per resolve, so a {@code /se reload}
+     * that toggles a feature drops (or restores) that source on the next equip-change re-resolve.
+     */
+    public WornResolver(ItemViewCache itemViews, int triggerCount,
+                        IntPredicate attackTrigger, IntPredicate defenseTrigger,
+                        java.util.function.Supplier<Features> features) {
         this.itemViews = itemViews;
         this.triggerCount = triggerCount;
         this.attackTrigger = attackTrigger;
         this.defenseTrigger = defenseTrigger;
+        this.features = java.util.Objects.requireNonNull(features, "features");
     }
 
     /** Resolve {@code entity}'s worn armour + held items into a WornState against the current snapshot. */
@@ -93,41 +112,67 @@ public final class WornResolver {
         List<Integer> mergedIds = new ArrayList<>();
         List<Integer> crystalIds = new ArrayList<>();
         List<Integer> wornSetIds = new ArrayList<>();
+        List<String> heldWeaponSetKeys = new ArrayList<>(); // sets whose WEAPON this entity holds (§6.6)
         int omniCount = 0;
         HeroicStat heroic = HeroicStat.NONE;
+        Features f = features.get(); // §L master toggles: a disabled feature's source is skipped entirely
         for (CombatState combat : combats) {
-            heroic = heroic.plus(combat.heroic()); // heroic flat stats sum across every worn piece (§6)
-            for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
-                int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
-                if (id >= 0) {
-                    mergedIds.add(id);
+            if (f.heroic()) {
+                heroic = heroic.plus(combat.heroic()); // heroic flat stats sum across every worn piece (§6)
+            }
+            if (f.enchants()) {
+                for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
+                    int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
+                    if (id >= 0) {
+                        mergedIds.add(id);
+                    }
                 }
             }
-            for (String crystalEntry : combat.crystals()) {
-                // A crystal-list entry is ONE slot but may carry two component keys (a multi-crystal,
-                // encoded "a+b", §E). Each component resolves + fires independently; the additive fold
-                // (ADR-0012) sums overlapping effect magnitudes. A single crystal is a plain key.
-                for (String crystalKey : item.codec.CrystalItemData.componentsOf(crystalEntry)) {
-                    int id = keys.idOf(crystalKey);
-                    if (id >= 0) {
-                        mergedIds.add(id);   // crystals fire on triggers like any source...
-                        crystalIds.add(id);  // ...and are tracked as the dedicated crystal source (§5.5)
+            if (f.crystals()) {
+                for (String crystalEntry : combat.crystals()) {
+                    // A crystal-list entry is ONE slot but may carry two component keys (a multi-crystal,
+                    // encoded "a+b", §E). Each component resolves + fires independently; the additive fold
+                    // (ADR-0012) sums overlapping effect magnitudes. A single crystal is a plain key.
+                    for (String crystalKey : item.codec.CrystalItemData.componentsOf(crystalEntry)) {
+                        int id = keys.idOf(crystalKey);
+                        if (id >= 0) {
+                            mergedIds.add(id);   // crystals fire on triggers like any source...
+                            crystalIds.add(id);  // ...and are tracked as the dedicated crystal source (§5.5)
+                        }
                     }
                 }
             }
             // Set membership: an omni piece is a wildcard (counts toward any partially-worn set, §6.6);
-            // a normal piece contributes its set's bonus ability id (the set's dense id is its "set id").
-            if (combat.omni()) {
-                omniCount++;
-            } else if (combat.setKey() != null) {
-                wornSetIds.add(keys.idOf(combat.setKey())); // -1 for unknown content → SetResolver ignores it
+            // a normal ARMOUR piece contributes its set's bonus ability id (the set's dense id is its
+            // "set id"). A WEAPON member never counts toward completion — it is remembered separately and
+            // grants the set's ADDITIONAL weapon bonus only when the armour set is already complete.
+            if (f.sets()) {
+                if (combat.omni()) {
+                    omniCount++;
+                } else if (combat.setKey() != null) {
+                    wornSetIds.add(keys.idOf(combat.setKey())); // -1 for unknown content → SetResolver ignores it
+                }
+                if (combat.setWeaponKey() != null) {
+                    heldWeaponSetKeys.add(combat.setWeaponKey());
+                }
             }
         }
         // A set's bonus ability id is its set id; its completion threshold is that ability's setPieces.
         BitSet activeSets = SetResolver.activeSets(toIntArray(wornSetIds), omniCount,
                 setId -> setId >= 0 && setId < abilities.length ? abilities[setId].setPieces() : 0);
         for (int setId = activeSets.nextSetBit(0); setId >= 0; setId = activeSets.nextSetBit(setId + 1)) {
-            mergedIds.add(setId); // an active set's bonus fires on triggers like any other source
+            mergedIds.add(setId); // an active set's armour bonus fires on triggers like any other source
+        }
+        // The ADDITIONAL weapon bonus: for each held set-weapon whose armour set is complete, add the
+        // set's <key>/weapon ability. Gated on BOTH the set being active AND the weapon being held.
+        for (String weaponSetKey : heldWeaponSetKeys) {
+            int parentSetId = keys.idOf(weaponSetKey);
+            if (parentSetId >= 0 && parentSetId < abilities.length && activeSets.get(parentSetId)) {
+                int weaponAbilityId = keys.idOf(weaponSetKey + "/weapon");
+                if (weaponAbilityId >= 0) {
+                    mergedIds.add(weaponAbilityId);
+                }
+            }
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), abilities, triggerCount,
                 activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger);

@@ -25,6 +25,17 @@ public interface SoulDebit {
      */
     void debit(Player holder, UUID gemId, int amount);
 
+    /**
+     * Debit {@code amount} souls from {@code target}'s OWN active gem, resolving which gem that is from the
+     * soul-mode store (the {@code REMOVE_SOULS:…:@Victim} case — drain the enemy's souls). A no-op if the
+     * target is not in soul mode. Like {@link #debit}, MUST run on {@code target}'s own thread (the
+     * {@link DispatchSink} routes it there). The default is a no-op so the functional-interface lambda
+     * usages (and {@link #NONE}) keep compiling; the feature soul service overrides it.
+     */
+    default void debitTarget(Player target, int amount) {
+        // No soul-mode lookup at this seam by default — overridden by the feature soul service.
+    }
+
     /** No soul system wired — every debit is a no-op. */
     SoulDebit NONE = (holder, gemId, amount) -> { };
 }

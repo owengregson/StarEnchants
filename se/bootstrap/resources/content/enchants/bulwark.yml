@@ -1,0 +1,21 @@
+# Bulwark — soften incoming blows.
+tier: uncommon
+display: "&9Bulwark"
+description: "Shrug off incoming blows."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: defense
+levels:
+  1:
+    chance: 30
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+  2:
+    chance: 40
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 18 } }
+  3:
+    chance: 55
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 40, who: "@Self" } }

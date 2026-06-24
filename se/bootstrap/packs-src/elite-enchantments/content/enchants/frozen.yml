@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: frozen). Review before shipping.
+display: "Frozen"
+description: "&bWhen hit, applies Slowness to &bthe attacker.  &b&lI: &f🎲 5% &7| &f⌛ 3s &b&lII: &f🎲 8% &7| &f⌛ 3s &b&lIII: &f🎲 12% &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 5
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:SLOW:1:TARGET:4 — EE seconds → ticks (x20)
+  2:
+    chance: 8
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:SLOW:1:TARGET:4 — EE seconds → ticks (x20)
+  3:
+    chance: 12
+    cooldown: 3
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:SLOW:1:TARGET:4 — EE seconds → ticks (x20)

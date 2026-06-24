@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: demonic-lifesteal). Review before shipping.
+display: "Demonic Lifesteal"
+description: "&dHeroic upgrade for Lifesteal. &dRestores much more health on &dhit. &c&l(!)&r &7Requires &6Lifesteal  &d&lI: &f🎲 4.5% &7| &f▲ +8❤ &7| &f⌛ 6s &d&lII: &f🎲 6.75% &7| &f▲ +12❤ &7| &f⌛ 6s &d&lIII: &f🎲 9% &7| &f▲ +15❤ &7| &f⌛ 6s"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 4.5
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 8, mode: "give", who: "@Self" } }  # from HEAL:ADD:8:8 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  2:
+    chance: 6.75
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 12, mode: "give", who: "@Self" } }  # from HEAL:ADD:12:12 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  3:
+    chance: 9
+    cooldown: 6
+    effects:
+      - { MODIFY_HEALTH: { amount: 15, mode: "give", who: "@Self" } }  # from HEAL:ADD:15:15 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

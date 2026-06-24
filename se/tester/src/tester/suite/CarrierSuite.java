@@ -1,7 +1,7 @@
 package tester.suite;
 
 import compile.load.ContentHolder;
-import compile.load.ItemDef;
+import compile.load.EnchantBookConfig;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import engine.boot.ContentCompiler;
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Random;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -27,12 +28,14 @@ import platform.item.ItemGroups;
 import tester.harness.Harness;
 
 /**
- * Live checks for the carrier application economy (ADR-0016) — the things a unit test cannot prove
- * because they mutate real {@link ItemStack}s through the server's item factory: a minted book applies
- * its enchant to gear and is consumed; a destroy-on-fail book shatters the gear when its roll fails; and
- * a protect scroll spares the gear from one such failure. Runs on the global thread over a small temp
- * content tree (its own enchant + carrier defs), with deterministic apply rolls (success-100 vs
- * success-0), so the outcomes are exact.
+ * Live checks for the carrier application economy (ADR-0016; ADR-0019) — the things a unit test cannot
+ * prove because they mutate real {@link ItemStack}s through the server's item factory: a minted book
+ * applies its enchant and is consumed; a sub-100% book whose likeness sets {@code destroy-on-fail} shatters
+ * the gear on a failed roll; a White Scroll spares it from one such failure; and success dust (fixed % or a
+ * random {@code [min, max]} roll) boosts a book's stored success. Every carrier is minted from a top-level
+ * {@code items/*.yml} likeness — there is no authored content/items path. Runs on the global thread over a
+ * tiny temp content tree (its own enchant), with deterministic rolls (seeded {@link Random}, success-100 vs
+ * success-0) so the outcomes are exact.
  */
 public final class CarrierSuite implements Harness.Scenario {
 
@@ -43,44 +46,12 @@ public final class CarrierSuite implements Harness.Scenario {
             levels:
               1: { chance: 100, effects: ["IGNITE:40:@Victim"] }
             """;
-    private static final String ZAP_BOOK = """
-            display: "&eZap Book"
-            kind: book
-            grants: { enchant: enchants/zap, level: 1 }
-            apply: { success-chance: 0, destroy-on-fail: true }
-            """;
-    private static final String GUARD_SCROLL = """
-            display: "&fGuard Scroll"
-            kind: scroll
-            grants: { role: PROTECT }
-            """;
-    private static final String BOOST_BOOK = """
-            display: "&eBoost Book"
-            kind: book
-            grants: { enchant: enchants/zap, level: 1 }
-            apply: { success-chance: 50 }
-            """;
-    private static final String WEAK_BOOK = """
-            display: "&eWeak Book"
-            kind: book
-            grants: { enchant: enchants/zap, level: 1 }
-            apply: { success-chance: 0 }
-            """;
-    private static final String DUST_15 = """
-            display: "&aSuccess Dust"
-            kind: dust
-            grants: { success-bonus: 15 }
-            """;
-    private static final String DUST_100 = """
-            display: "&bMega Dust"
-            kind: dust
-            grants: { success-bonus: 100 }
-            """;
 
     private static final String[] KEYS = {
         "carrier.book.applies", "carrier.book.stackGuard", "carrier.book.destroyOnFail",
-        "carrier.scroll.protects", "carrier.dust.boostsBook", "carrier.dust.cappedAndIdempotent",
+        "carrier.scroll.whiteScrollProtects", "carrier.dust.fixedBoostsBook", "carrier.dust.cappedAndIdempotent",
         "carrier.dust.boostedBookApplies", "carrier.dust.rejectsNonBook", "carrier.dust.gestureEligibility",
+        "carrier.dust.randomInRange",
     };
 
     private final Plugin plugin;
@@ -99,12 +70,6 @@ public final class CarrierSuite implements Harness.Scenario {
         try {
             root = Files.createTempDirectory("se-carrier-suite");
             write(root, "enchants/zap.yml", ZAP);
-            write(root, "items/book/zapbook.yml", ZAP_BOOK);
-            write(root, "items/scroll/guard.yml", GUARD_SCROLL);
-            write(root, "items/book/boostbook.yml", BOOST_BOOK);
-            write(root, "items/book/weakbook.yml", WEAK_BOOK);
-            write(root, "items/dust/dust15.yml", DUST_15);
-            write(root, "items/dust/dust100.yml", DUST_100);
         } catch (IOException e) {
             failAll(h, e.toString());
             return;
@@ -121,7 +86,13 @@ public final class CarrierSuite implements Harness.Scenario {
         LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
+        // Default likeness: books never destroy on fail (destroy-on-fail false in EnchantBookConfig.defaults()).
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
+        // A likeness with destroy-on-fail ON — for the shatter + white-scroll-protect cases.
+        EnchantBookConfig destroyLikeness = new EnchantBookConfig(
+                "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true);
+        CarrierService destroyer = new CarrierService(
+                carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness);
 
         h.guard("carrier.book.applies", () -> {
             ItemStack book = carriers.mintBook("enchants/zap", 1); // ad-hoc book: default success-100
@@ -154,35 +125,35 @@ public final class CarrierSuite implements Harness.Scenario {
         });
 
         h.guard("carrier.book.destroyOnFail", () -> {
-            ItemStack book = carriers.mint(itemDef(lib, "items/book/zapbook")); // success-0 + destroy
+            ItemStack book = destroyer.mintBook("enchants/zap", 1, 0); // success-0 + destroy-on-fail likeness
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-            carriers.applyTo(book, sword);
+            destroyer.applyTo(book, sword);
             if (sword.getAmount() != 0) {
                 throw new IllegalStateException("a failed destroy-on-fail apply should shatter the sword");
             }
         });
 
-        h.guard("carrier.scroll.protects", () -> {
+        h.guard("carrier.scroll.whiteScrollProtects", () -> {
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-            carriers.applyTo(carriers.mint(itemDef(lib, "items/scroll/guard")), sword); // guard it
+            carriers.applyTo(carriers.mintWhiteScroll(), sword); // guard it
             if (!carrierCodec.isGuarded(sword)) {
-                throw new IllegalStateException("the protect scroll did not mark the sword guarded");
+                throw new IllegalStateException("the white scroll did not mark the sword guarded");
             }
-            carriers.applyTo(carriers.mint(itemDef(lib, "items/book/zapbook")), sword); // failing destroy book
+            destroyer.applyTo(destroyer.mintBook("enchants/zap", 1, 0), sword); // failing destroy book
             if (sword.getAmount() != 1) {
-                throw new IllegalStateException("the guard should have spared the sword from destruction");
+                throw new IllegalStateException("the white scroll should have spared the sword from destruction");
             }
             if (carrierCodec.isGuarded(sword)) {
                 throw new IllegalStateException("the guard should be consumed by the failed apply");
             }
         });
 
-        h.guard("carrier.dust.boostsBook", () -> {
-            ItemStack book = carriers.mint(itemDef(lib, "items/book/boostbook")); // base 50%
-            ItemStack dust = carriers.mint(itemDef(lib, "items/dust/dust15"));     // +15%
+        h.guard("carrier.dust.fixedBoostsBook", () -> {
+            ItemStack book = carriers.mintBook("enchants/zap", 1, 50); // base 50%
+            ItemStack dust = carriers.mintDust(15);                    // FIXED +15%
             CarrierResult result = carriers.applyTo(dust, book);
             if (!result.consumed() || dust.getAmount() != 0) {
-                throw new IllegalStateException("the dust was not consumed onto the book: " + result);
+                throw new IllegalStateException("the fixed dust was not consumed onto the book: " + result);
             }
             CarrierData bookData = carrierCodec.read(book);
             if (bookData == null || bookData.successBonus() != 15) {
@@ -191,14 +162,14 @@ public final class CarrierSuite implements Harness.Scenario {
         });
 
         h.guard("carrier.dust.cappedAndIdempotent", () -> {
-            ItemStack book = carriers.mint(itemDef(lib, "items/book/boostbook")); // base 50%
-            carriers.applyTo(carriers.mint(itemDef(lib, "items/dust/dust100")), book); // +100 → caps at +50
+            ItemStack book = carriers.mintBook("enchants/zap", 1, 50);   // base 50%
+            carriers.applyTo(carriers.mintDust(100), book);             // +100 → caps at +50
             CarrierData bookData = carrierCodec.read(book);
             if (bookData == null || bookData.successBonus() != 50) {
                 throw new IllegalStateException("dust bonus must cap so effective ≤ 100% (base 50 → +50): "
                         + bookData);
             }
-            ItemStack extra = carriers.mint(itemDef(lib, "items/dust/dust15"));
+            ItemStack extra = carriers.mintDust(15);
             CarrierResult result = carriers.applyTo(extra, book); // already 100% → no-op
             if (result.consumed() || extra.getAmount() != 1) {
                 throw new IllegalStateException("a dust on a maxed book must be a no-op: " + result);
@@ -206,8 +177,8 @@ public final class CarrierSuite implements Harness.Scenario {
         });
 
         h.guard("carrier.dust.boostedBookApplies", () -> {
-            ItemStack book = carriers.mint(itemDef(lib, "items/book/weakbook")); // base 0% → always fails
-            carriers.applyTo(carriers.mint(itemDef(lib, "items/dust/dust100")), book); // +100 → effective 100%
+            ItemStack book = carriers.mintBook("enchants/zap", 1, 0);   // base 0% → always fails
+            carriers.applyTo(carriers.mintDust(100), book);            // +100 → effective 100%
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             carriers.applyTo(book, sword); // the dust-boosted chance flows into the book→gear roll
             CombatState state = combat.read(sword);
@@ -217,7 +188,7 @@ public final class CarrierSuite implements Harness.Scenario {
         });
 
         h.guard("carrier.dust.rejectsNonBook", () -> {
-            ItemStack dust = carriers.mint(itemDef(lib, "items/dust/dust15"));
+            ItemStack dust = carriers.mintDust(15);
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             CarrierResult result = carriers.applyTo(dust, sword); // dust onto plain gear, not a book
             if (result.consumed() || dust.getAmount() != 1) {
@@ -225,18 +196,18 @@ public final class CarrierSuite implements Harness.Scenario {
             }
         });
 
-        // The interaction-layer gate (ADR-0019): the dust gesture is claimed ONLY onto a content book, so
-        // a dust onto a scroll/another dust falls through to the vanilla click (no dead, cancelled no-op).
+        // The interaction-layer gate (ADR-0019): the dust gesture is claimed ONLY onto an enchant book, so a
+        // dust onto a scroll / another dust falls through to the vanilla click (no dead, cancelled no-op).
         h.guard("carrier.dust.gestureEligibility", () -> {
-            ItemStack dust = carriers.mint(itemDef(lib, "items/dust/dust15"));
-            ItemStack book = carriers.mint(itemDef(lib, "items/book/boostbook"));
-            ItemStack scroll = carriers.mint(itemDef(lib, "items/scroll/guard"));
-            ItemStack otherDust = carriers.mint(itemDef(lib, "items/dust/dust100"));
+            ItemStack dust = carriers.mintDust();          // a random dust is eligible (max-bonus > 0)
+            ItemStack book = carriers.mintBook("enchants/zap", 1, 50);
+            ItemStack whiteScroll = carriers.mintWhiteScroll();
+            ItemStack otherDust = carriers.mintDust(15);
             if (!carriers.canCombineDust(dust, book)) {
-                throw new IllegalStateException("a dust should be allowed to combine onto a content book");
+                throw new IllegalStateException("a dust should be allowed to combine onto an enchant book");
             }
-            if (carriers.canCombineDust(dust, scroll)) {
-                throw new IllegalStateException("a dust must NOT claim the gesture onto a scroll (dead click)");
+            if (carriers.canCombineDust(dust, whiteScroll)) {
+                throw new IllegalStateException("a dust must NOT claim the gesture onto a white scroll (dead click)");
             }
             if (carriers.canCombineDust(dust, otherDust)) {
                 throw new IllegalStateException("a dust must NOT claim the gesture onto another dust");
@@ -245,11 +216,19 @@ public final class CarrierSuite implements Harness.Scenario {
                 throw new IllegalStateException("a book is not a dust — no carrier-onto-carrier claim");
             }
         });
-    }
 
-    private static ItemDef itemDef(Library lib, String key) {
-        return lib.items().stream().filter(d -> d.key().equals(key)).findFirst()
-                .orElseThrow(() -> new IllegalStateException("missing item def " + key));
+        // A RANDOM dust (no fixed percent) rolls its bonus in the configured [min, max] = [10, 25] each combine.
+        h.guard("carrier.dust.randomInRange", () -> {
+            for (int i = 0; i < 8; i++) {
+                ItemStack book = carriers.mintBook("enchants/zap", 1, 0); // base 0 → recorded bonus == roll
+                carriers.applyTo(carriers.mintDust(), book);
+                CarrierData data = carrierCodec.read(book);
+                int bonus = data == null ? -1 : data.successBonus();
+                if (bonus < 10 || bonus > 25) {
+                    throw new IllegalStateException("random dust bonus out of [10,25]: " + bonus);
+                }
+            }
+        });
     }
 
     private static void failAll(Harness h, String message) {

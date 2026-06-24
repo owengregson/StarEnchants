@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: sabotage). Review before shipping.
+display: "Sabotage"
+description: "&cOn hit, disables the target's &cRocket Escape.  &c&lI: &f⌛ 10s &7| &f☄ 4 &c&lII: &f⌛ 10s &7| &f☄ 4 &c&lIII: &f⌛ 10s &7| &f☄ 4 &c&lIV: &f⌛ 10s &7| &f☄ 4 &c&lV: &f⌛ 10s &7| &f☄ 4"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "soul"
+tier: soul
+levels:
+  1:
+    cooldown: 10
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { MESSAGE: { text: "&c&l** SABOTAGE [&46s&c&l] **" } }  # from MESSAGE:&c&l** SABOTAGE [&46s&c&l] **:TARGET — legacy target dropped — StarEnchants messages the actor
+      - { REMOVE_SOULS: { amount: 4 } }  # from DRAIN_SOULS_CONSTANT:1:4 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
+  2:
+    cooldown: 10
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { MESSAGE: { text: "&c&l** SABOTAGE [&46s&c&l] **" } }  # from MESSAGE:&c&l** SABOTAGE [&46s&c&l] **:TARGET — legacy target dropped — StarEnchants messages the actor
+      - { REMOVE_SOULS: { amount: 4 } }  # from DRAIN_SOULS_CONSTANT:1:4 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
+  3:
+    cooldown: 10
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { MESSAGE: { text: "&c&l** SABOTAGE [&46s&c&l] **" } }  # from MESSAGE:&c&l** SABOTAGE [&46s&c&l] **:TARGET — legacy target dropped — StarEnchants messages the actor
+      - { REMOVE_SOULS: { amount: 4 } }  # from DRAIN_SOULS_CONSTANT:1:4 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
+  4:
+    cooldown: 10
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { MESSAGE: { text: "&c&l** SABOTAGE [&46s&c&l] **" } }  # from MESSAGE:&c&l** SABOTAGE [&46s&c&l] **:TARGET — legacy target dropped — StarEnchants messages the actor
+      - { REMOVE_SOULS: { amount: 4 } }  # from DRAIN_SOULS_CONSTANT:1:4 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
+  5:
+    cooldown: 10
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { MESSAGE: { text: "&c&l** SABOTAGE [&46s&c&l] **" } }  # from MESSAGE:&c&l** SABOTAGE [&46s&c&l] **:TARGET — legacy target dropped — StarEnchants messages the actor
+      - { REMOVE_SOULS: { amount: 4 } }  # from DRAIN_SOULS_CONSTANT:1:4 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)

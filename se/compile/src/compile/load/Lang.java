@@ -125,6 +125,23 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.migrate.review",
                 "&7Review the &f# TODO &7markers in &f{TARGET}&7, then move files into content/.");
         s.put("command.migrate.failed", "&cMigration failed reading &f{SOURCE}&c: {ERROR}");
+        s.put("command.pack.empty", "&7No config packs found. Create one with &f/se pack export <name>&7.");
+        s.put("command.pack.list-header", "&eConfig packs &7({COUNT}):");
+        s.put("command.pack.list-entry", "&e  {NAME} &7— {DESC} &8({FILES} files)");
+        s.put("command.pack.info",
+                "&ePack &f{NAME}&e: &7{DESC} &8| author {AUTHOR} | created {CREATED} | {FILES} files");
+        s.put("command.pack.unknown", "&cNo such pack: &f{NAME}&c. Use &f/se pack list&c.");
+        s.put("command.pack.bad-name",
+                "&cInvalid pack name &f{NAME}&c — use letters, digits, &7_&c and &7-&c only.");
+        s.put("command.pack.apply-start", "&7Applying config pack &f{NAME}&7…");
+        s.put("command.pack.apply-done",
+                "&aApplied pack &f{NAME}&a ({FILES} files). &7Previous config backed up as &f{BACKUP}&7.");
+        s.put("command.pack.apply-skipped",
+                "&e{N} pack entr(ies) were outside the config surface and were skipped.");
+        s.put("command.pack.apply-note",
+                "&7Config swapped + reloaded. &8Toggled features/integrations need a server restart.");
+        s.put("command.pack.export-done", "&aExported the current config as pack &f{NAME}&a ({FILES} files).");
+        s.put("command.pack.error", "&cPack operation failed: &f{ERROR}");
         s.put("command.enchant.usage", "&eUsage: /se enchant <key> [level]");
         s.put("command.crystal.usage", "&eUsage: /se crystal <key> &7— a crystal you drag onto gear to apply");
         s.put("command.unopened.usage", "&eUsage: /se unopened <tier> &7— right-click it to reveal a random book");
@@ -134,12 +151,16 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.heroic", "&6Minted a heroic upgrade. &7Drag it onto armour or a weapon to attempt.");
         s.put("command.give.slot", "&5Minted a {KIND}. &7Drag it onto gear to add enchant slots.");
         s.put("command.give.transmog", "&5Minted a transmog scroll. &7Drag it onto enchanted gear.");
-        s.put("command.give.holy", "&fMinted a holy scroll. &7Carry it to survive a death once.");
+        s.put("command.give.godlytransmog", "&5Minted a godly transmog. &7Drag it onto enchanted gear to reorder.");
+        s.put("command.give.holy", "&fMinted a holy white scroll. &7Carry it to survive a death once.");
         s.put("command.give.nametag", "&bMinted an item nametag. &7Drag it onto gear, then type the new name.");
         s.put("command.give.blackscroll",
                 "&8Minted a black scroll. &7Drag it onto enchanted gear to extract an enchant.");
         s.put("command.give.randomizer",
                 "&eMinted a randomizer scroll. &7Drag it onto an enchant book to reroll its success.");
+        s.put("command.give.dust", "&aMinted success dust. &7Drag it onto an enchant book to boost its success.");
+        s.put("command.give.whitescroll",
+                "&fMinted a white scroll. &7Drag it onto gear to protect it from a failed enchant.");
         s.put("command.give.unopened",
                 "&bMinted an unopened &f{TIER} &bbook. &7Right-click it to reveal a random enchant book.");
         s.put("command.give.book", "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a.");
@@ -148,17 +169,15 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         // §J give-to-player surface + the inverse removeenchant
         s.put("command.give.usage",
                 "&eUsage: /se give <type> <player> [args] &7— type: gem [amount] | crystal <key> | book <enchant> "
-                        + "[level] [success] | item <id> [args] | heroic | upgrade | orb | slotgem | blackscroll | "
-                        + "randomizer | transmog | holy | nametag | unopened <tier>");
+                        + "[level] [success] | heroic | upgrade | orb | blackscroll | randomizer | transmog | "
+                        + "godlytransmog | holy | nametag | dust [percent] | whitescroll | unopened <tier>");
         s.put("command.give.delivered", "&aGave &f{ITEM}&a to &f{PLAYER}&a.");
-        s.put("command.give.item", "&aReceived &f{ID}&a.");
         s.put("command.give.set", "&aMinted the &f{KEY}&a {PIECE} piece. &7Wear the set to complete its bonus.");
         s.put("command.give.set-piece",
                 "&cThe &f{KEY}&c set has no &f{PIECE}&c piece — use HELMET / CHESTPLATE / LEGGINGS / BOOTS.");
         s.put("command.set.usage", "&eUsage: /se give set <player> <set> <piece> &7— mint an armour set piece");
         s.put("command.error.no-such-set", "&cNo such set: &f{KEY}");
         s.put("command.error.no-such-player", "&cNo online player named &f{PLAYER}&c.");
-        s.put("command.error.no-such-item", "&cNo such item: &f{ID}&c.");
         s.put("command.removeenchant.usage", "&eUsage: /se removeenchant <enchant> &7— strips it from the held item");
 
         // ── ItemEnchanter ApplyResult reasons ─────────────────────────────────────────────────────
@@ -254,24 +273,33 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&e  /se crystal <key> &7— mint a crystal item (drag it onto gear to apply)",
                 "&e  /se heroic &7— mint a heroic upgrade (drag it onto armour/weapon)",
                 "&e  /se orb &7— mint a slot expander (drag onto gear for +N slots)",
-                "&e  /se slotgem &7— mint a slot gem (drag onto gear for +1 slot)",
                 "&e  /se blackscroll &7— mint a black scroll (extract an enchant into a book)",
                 "&e  /se randomizer &7— mint a randomizer scroll (reroll a book's success)",
                 "&e  /se transmog &7— mint a transmog scroll (reorder enchant lore)",
-                "&e  /se holy &7— mint a holy scroll (survive a death once)",
+                "&e  /se godlytransmog &7— mint a godly transmog (hand-reorder enchant lore)",
+                "&e  /se holy &7— mint a holy white scroll (survive a death once)",
                 "&e  /se nametag &7— mint an item nametag (rename gear via chat)",
+                "&e  /se dust [percent] &7— mint success dust (random, or a fixed % to boost a book)",
+                "&e  /se whitescroll &7— mint a white scroll (protect gear from a failed enchant)",
                 "&e  /se unopened <tier> &7— mint an unopened book (right-click to reveal)",
                 "&e  /se menu [name] &7— open a GUI (default: the enchant-application menu)",
                 "&e  /se effects|selectors|triggers|conditions|variables|list &7— browse the DSL reference",
                 "&e  /se gem &7— mint a soul gem (right-click it to toggle soul mode)",
                 "&e  /se soulmode &7— toggle soul mode for the held gem",
                 "&e  /se split <amount> &7— split souls off the held gem into a new gem",
-                "&e  /se migrate <ee|ea|ae> <path> &7— import legacy EE/EA/AdvancedEnchantments configs"));
+                "&e  /se migrate <ee|ea|ae> <path> &7— import legacy EE/EA/AdvancedEnchantments configs",
+                "&e  /se pack <list|info|apply|export> &7— manage config packs (swap the whole config)"));
         l.put("command.migrate.usage", List.of(
                 "&eUsage: /se migrate <ee|ea|ae> <sourcePath>",
                 "&7  ee &8— path to EliteEnchantments' enchantments.yml",
                 "&7  ea &8— path to EliteArmor's armor/ directory",
                 "&7  ae &8— path to AdvancedEnchantments' enchantments.yml"));
+        l.put("command.pack.usage", List.of(
+                "&eUsage: /se pack <action>",
+                "&7  list &8— show every available config pack",
+                "&7  info <name> &8— show a pack's details",
+                "&7  apply <name> &8— back up the current config, swap in the pack, and reload",
+                "&7  export <name> [description] &8— save the current config as a new pack"));
 
         return new Lang(s, l, List.of());
     }

@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: dominate). Review before shipping.
+display: "Dominate"
+description: "&eOn hit, reduces the damage the &etarget deals for a short time.  &e&lI: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 6s &e&lII: &f🎲 7.5% &7| &f▲ 10% &7| &f⌛ 6s &e&lIII: &f🎲 10% &7| &f▲ 15% &7| &f⌛ 6s &e&lIV: &f🎲 12.5% &7| &f▲ 20% &7| &f⌛ 6s"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 5
+    cooldown: 6
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 5 } }  # from REDUCTION:5
+  2:
+    chance: 7.5
+    cooldown: 6
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
+  3:
+    chance: 10
+    cooldown: 6
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+  4:
+    chance: 12.5
+    cooldown: 6
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 20 } }  # from REDUCTION:20

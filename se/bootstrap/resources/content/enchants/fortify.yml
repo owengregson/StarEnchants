@@ -1,0 +1,23 @@
+# Fortify — gain Resistance when you take a hit. A DEFENSE enchant whose POTION effect names a
+# version-volatile handle (DAMAGE_RESISTANCE → resistance) resolved to an interned id at load time
+# through the same cross-version resolver the runtime uses (§9) — so the same file works on every
+# supported version. POTION defaults to the @Self target (the wearer).
+tier: uncommon
+display: "&9Fortify"
+description: "Gain Resistance when struck."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: defense
+levels:
+  1:
+    chance: 40
+    effects:
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60 } }
+  2:
+    chance: 55
+    effects:
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 80 } }
+  3:
+    chance: 70
+    effects:
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 100 } }

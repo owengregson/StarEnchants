@@ -8,11 +8,12 @@ The actions an ability runs. Each is a `HEAD:args` token in an enchant/set/cryst
 
 ### BREAK_BLOCK
 
-Break the block at the activation location (drops=false clears it). No-op if there is no location.
+Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.
 
 - _affinity_: `REGION`
 - _usage_: `BREAK_BLOCK[:drops:bool=true]`
 - _param_ `drops` `bool`
+- _target_ `at`: selector `HERE`
 - _example_: `BREAK_BLOCK:true`
 
 ### CANCEL
@@ -44,13 +45,13 @@ Deal a flat amount of extra damage to the target.
 
 ### DAMAGE_MOD
 
-Contribute to the damage fold: side attack/defense, mode add (percent 0-100) or flat (raw amount). Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.
+Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage (the EE negative DAMAGE_INCREASE). Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `DAMAGE_MOD:<side:enum{attack|defense}>[:mode:enum{add|flat}=add]:<amount:double[0..]>`
+- _usage_: `DAMAGE_MOD:<side:enum{attack|defense}>[:mode:enum{add|flat}=add]:<amount:double>`
 - _param_ `side` `enum{attack|defense}`
 - _param_ `mode` `enum{add|flat}`
-- _param_ `amount` `double[0..]`
+- _param_ `amount` `double`
 - _example_: `DAMAGE_MOD:attack:add:25`
 
 ### DISARM
@@ -184,6 +185,17 @@ Make the triggering hit ignore the victim's armor and enchant-protection reducti
 - _usage_: `IGNORE_ARMOR`
 - _example_: `IGNORE_ARMOR`
 
+### IMMUNE
+
+Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for duration ticks.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `IMMUNE:<type:enum{sword|axe|projectile|potion|all}>[:duration:ticks[0..]=100]`
+- _param_ `type` `enum{sword|axe|projectile|potion|all}`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `IMMUNE:potion:100`
+
 ### INVERT_VAR
 
 Numerically invert a per-player variable (0↔1), preserving its remaining TTL.
@@ -282,12 +294,12 @@ Modify a player target's hunger: give food points (clamped to 20) or take them (
 
 ### MODIFY_HEALTH
 
-Modify a target's health: give heals them, take deals direct health damage, transfer (lifesteal) damages the target and heals the activator by the same amount. Replaces HEAL.
+Modify a target's health: give heals them, take deals direct health damage, transfer (lifesteal) damages the target and heals the activator by the same amount, set forces their health to the amount. Replaces HEAL.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `MODIFY_HEALTH:<amount:double[0..]>[:mode:enum{give|take|transfer}=give]`
+- _usage_: `MODIFY_HEALTH:<amount:double[0..]>[:mode:enum{give|take|transfer|set}=give]`
 - _param_ `amount` `double[0..]`
-- _param_ `mode` `enum{give|take|transfer}`
+- _param_ `mode` `enum{give|take|transfer|set}`
 - _target_ `who`: selector `SELF`
 - _example_: `MODIFY_HEALTH:4:give:@Self`
 
@@ -346,6 +358,15 @@ Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS
 - _param_ `speed` `double[0..]`
 - _example_: `PROJECTILE:ARROW:3:1.5`
 
+### REMOVE_ARMOR
+
+Strip one random worn armour piece from the target(s) and drop it.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `REMOVE_ARMOR`
+- _target_ `who`: selector `VICTIM`
+- _example_: `REMOVE_ARMOR`
+
 ### REMOVE_ITEM
 
 Remove up to count of a material from the player target(s)' inventory.
@@ -369,11 +390,12 @@ Remove a potion effect from the target(s).
 
 ### REMOVE_SOULS
 
-Debit souls from the activator's active soul gem (a no-op when they are not in soul mode).
+Debit souls from a soul gem: @Self (default) charges the activator's active gem, @Victim drains the target's own gem. A no-op when that player is not in soul mode.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `REMOVE_SOULS:<amount:int[1..]>`
 - _param_ `amount` `int[1..]`
+- _target_ `who`: selector `SELF`
 - _example_: `REMOVE_SOULS:5`
 
 ### RUN_COMMAND
@@ -385,13 +407,22 @@ Run a command from the console. Affinity GLOBAL — runs on the global thread.
 - _param_ `command` `string`
 - _example_: `RUN_COMMAND:eco give %player% 100`
 
+### SEEK
+
+Make the projectile fired by this BOW_FIRE activation home onto the nearest target in sight.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `SEEK`
+- _example_: `SEEK`
+
 ### SET_BLOCK
 
-Set the block at the activation location to a material. No-op if there is no location.
+Set the target block(s) to a material (default @Here = the activation block).
 
 - _affinity_: `REGION`
 - _usage_: `SET_BLOCK:<material:material>`
 - _param_ `material` `material`
+- _target_ `at`: selector `HERE`
 - _example_: `SET_BLOCK:OBSIDIAN`
 
 ### SET_VAR
@@ -405,6 +436,14 @@ Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 =
 - _param_ `ttl` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `SET_VAR:rage:1:200:@Self`
+
+### SMELT
+
+Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, …).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `SMELT`
+- _example_: `SMELT`
 
 ### SOUND
 
@@ -443,6 +482,16 @@ Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE
 - _target_ `who`: selector `VICTIM`
 - _example_: `SUPPRESS:GROUP:lifesteal:200:@Victim`
 
+### TELEBLOCK
+
+Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `TELEBLOCK[:duration:ticks[0..]=400]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `TELEBLOCK:400`
+
 ### TELEPORT
 
 Teleport the target to the actor's or the victim's location.
@@ -452,6 +501,14 @@ Teleport the target to the actor's or the victim's location.
 - _param_ `to` `enum{VICTIM|ACTOR}` — destination party: the victim or the actor
 - _target_ `who`: selector `SELF`
 - _example_: `TELEPORT:VICTIM`
+
+### TELEPORT_DROPS
+
+Send the block's drops straight to the breaker's inventory (this MINE activation).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `TELEPORT_DROPS`
+- _example_: `TELEPORT_DROPS`
 
 ### VELOCITY
 
@@ -484,6 +541,16 @@ Lay a temporary platform of a material under the target for a duration (then rev
 
 Choose WHO an effect targets (`@Self`, `@Victim`, `@Aoe`, …). Routing is the effect's; a selector carries no affinity.
 
+### ADD
+
+The activation location offset by (x, y, z).
+
+- _usage_: `ADD[:x:double=0][:y:double=0][:z:double=0]`
+- _param_ `x` `double` — x offset in blocks
+- _param_ `y` `double` — y offset in blocks
+- _param_ `z` `double` — z offset in blocks
+- _example_: `@Add{y=2}`
+
 ### ALLPLAYERS
 
 Every player within r blocks of the target, except the activator.
@@ -509,6 +576,22 @@ The entity that damaged the activator (for defensive effects).
 - _usage_: `ATTACKER`
 - _example_: `@Attacker`
 
+### BLOCK
+
+The first solid block the activator is looking at, within distance.
+
+- _usage_: `BLOCK[:distance:double[0..]=5]`
+- _param_ `distance` `double[0..]` — max look distance in blocks
+- _example_: `@Block`
+
+### BLOCKINDISTANCE
+
+The first solid block along the activator's line of sight, within distance.
+
+- _usage_: `BLOCKINDISTANCE[:distance:double[0..]=30]`
+- _param_ `distance` `double[0..]` — max look distance in blocks
+- _example_: `@BlockInDistance{distance=50}`
+
 ### ENTITYINSIGHT
 
 The living entity the activator is looking at within r blocks, or nothing.
@@ -516,6 +599,20 @@ The living entity the activator is looking at within r blocks, or nothing.
 - _usage_: `ENTITYINSIGHT[:r:double[0..]=16]`
 - _param_ `r` `double[0..]` — maximum line-of-sight distance in blocks
 - _example_: `@EntityInSight{r=16}`
+
+### EYEHEIGHT
+
+The activator's eye location (their position at eye level).
+
+- _usage_: `EYEHEIGHT`
+- _example_: `@EyeHeight`
+
+### HERE
+
+The activation block location itself — the default target of block effects.
+
+- _usage_: `HERE`
+- _example_: `@Here`
 
 ### NEAREST
 
@@ -548,6 +645,30 @@ The activating player themself.
 
 - _usage_: `SELF`
 - _example_: `@Self`
+
+### TRENCH
+
+The square of blocks perpendicular to the look direction, centred on the activation block.
+
+- _usage_: `TRENCH[:radius:int[0..]=1]`
+- _param_ `radius` `int[0..]` — half-width of the face (1 = 3x3)
+- _example_: `@Trench{radius=1}`
+
+### TUNNEL
+
+The blocks directly ahead of the activation block, along the look direction.
+
+- _usage_: `TUNNEL[:depth:int[1..]=3]`
+- _param_ `depth` `int[1..]` — blocks ahead along the look direction
+- _example_: `@Tunnel{depth=4}`
+
+### VEIN
+
+Up to `limit` blocks contiguous with and matching the activation block (vein miner).
+
+- _usage_: `VEIN[:limit:int[1..]=64]`
+- _param_ `limit` `int[1..]` — max blocks in the vein
+- _example_: `@Vein{limit=32}`
 
 ### VICTIM
 
@@ -638,9 +759,11 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%blocking%` | BOOL |
 | `%combo%` | NUM |
 | `%damage%` | NUM |
+| `%distance%` | NUM |
 | `%flying%` | BOOL |
 | `%gliding%` | BOOL |
 | `%isblock%` | BOOL |
+| `%nearbyenemies%` | NUM |
 | `%onfire%` | BOOL |
 | `%onground%` | BOOL |
 | `%sneaking%` | BOOL |

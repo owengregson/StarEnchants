@@ -22,10 +22,12 @@ public final class ItemKeys {
     private final NamespacedKey slotItem;
     private final NamespacedKey scroll;
     private final NamespacedKey unopened;
+    private final NamespacedKey godlyTransmog;
 
     private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded,
                      NamespacedKey crystalItem, NamespacedKey crystalExtractor, NamespacedKey heroicUpgrade,
-                     NamespacedKey slotItem, NamespacedKey scroll, NamespacedKey unopened) {
+                     NamespacedKey slotItem, NamespacedKey scroll, NamespacedKey unopened,
+                     NamespacedKey godlyTransmog) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -36,6 +38,7 @@ public final class ItemKeys {
         this.slotItem = slotItem;
         this.scroll = scroll;
         this.unopened = unopened;
+        this.godlyTransmog = godlyTransmog;
     }
 
     /** Build the key set under {@code plugin}'s namespace. */
@@ -45,7 +48,7 @@ public final class ItemKeys {
                 new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "crystalextractor"),
                 new NamespacedKey(plugin, "heroicupgrade"),
                 new NamespacedKey(plugin, "slotitem"), new NamespacedKey(plugin, "scroll"),
-                new NamespacedKey(plugin, "unopened"));
+                new NamespacedKey(plugin, "unopened"), new NamespacedKey(plugin, "godlytransmog"));
     }
 
     /** The single key the combat-state blob is stored under (§5.1). */
@@ -106,7 +109,7 @@ public final class ItemKeys {
     }
 
     /**
-     * The key that marks an item as a SLOT EXPANDER / SLOT GEM (docs/v3-directives.md §H) — a one-shot
+     * The key that marks an item as a SLOT EXPANDER orb (docs/v3-directives.md §H) — a one-shot
      * consumable dragged onto gear to raise its enchant-slot count, storing the {@code +N} it grants.
      * An identity marker, off the combat hot path (the granted slots persist in the combat blob's
      * {@code added} field, not here).
@@ -131,5 +134,14 @@ public final class ItemKeys {
      */
     public NamespacedKey unopened() {
         return unopened;
+    }
+
+    /**
+     * The key that marks an item as a physical GODLY TRANSMOG tool (docs/v3-directives.md §I/§K) — dragged
+     * onto enchanted gear, it opens the deterministic enchant-reorder GUI bound to that piece (it is NOT a
+     * one-shot scroll, so it lives off the {@link #scroll()} consume path). An identity marker, off the hot path.
+     */
+    public NamespacedKey godlyTransmog() {
+        return godlyTransmog;
     }
 }

@@ -1,0 +1,68 @@
+# Imported from EliteEnchantments (id: spirits). Review before shipping.
+display: "Spirits"
+description: "&eWhen hit, summons blazes that &efight for you and grants &eRegeneration.  &e&lI: &f🎲 0.25% &7| &f▲ 1x &7| &f⌛ 15s &e&lII: &f🎲 0.5% &7| &f▲ 1x &7| &f⌛ 15s &e&lIII: &f🎲 0.75% &7| &f▲ 1x &7| &f⌛ 15s &e&lIV: &f🎲 0.85% &7| &f▲ 1x &7| &f⌛ 15s &e&lV: &f🎲 1% &7| &f▲ 1x &7| &f⌛ 15s &e&lVI: &f🎲 2% &7| &f▲ 1x &7| &f⌛ 15s &e&lVII: &f🎲 3% &7| &f▲ 1x &7| &f⌛ 15s &e&lVIII: &f🎲 4% &7| &f▲ 1x &7| &f⌛ 15s &e&lIX: &f🎲 5% &7| &f▲ 1x &7| &f⌛ 15s &e&lX: &f🎲 6% &7| &f▲ 1x &7| &f⌛ 15s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 0.25
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  2:
+    chance: 0.5
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  3:
+    chance: 0.75
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  4:
+    chance: 0.85
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  5:
+    chance: 1
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  6:
+    chance: 2
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  7:
+    chance: 3
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  8:
+    chance: 4
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  9:
+    chance: 5
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  10:
+    chance: 6
+    cooldown: 15
+    effects:
+      - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)

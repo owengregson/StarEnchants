@@ -2,6 +2,8 @@ package schema.spec;
 
 import schema.diag.Diagnostics;
 import schema.diag.Source;
+import schema.grammar.expr.Expr;
+import schema.grammar.expr.ExprParser;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -174,12 +176,18 @@ public final class ParamType {
     }
 
     private Optional<Object> parseDouble(String raw, Source source, Diagnostics diags) {
+        String t = raw.trim();
         double v;
         try {
-            v = Double.parseDouble(raw.trim());
+            v = Double.parseDouble(t);
         } catch (NumberFormatException e) {
+            // Not a plain literal: a {@code %var%}/arithmetic expression is a valid numeric argument,
+            // evaluated per-activation (docs/architecture.md §3.4). Anything else is a type error.
+            if (looksLikeExpression(t)) {
+                return numericExpression(t, source, diags);
+            }
             diags.error("E_TYPE", "expected a number but got '" + raw + "'", source,
-                    "use a decimal like 2.5");
+                    "use a decimal like 2.5, or a %variable% expression like %combo% * 10");
             return Optional.empty();
         }
         if (!Double.isFinite(v)) {
@@ -195,12 +203,38 @@ public final class ParamType {
         try {
             v = Long.parseLong(t);
         } catch (NumberFormatException e) {
+            // An expression is admissible here too; its evaluated value is narrowed to a whole number
+            // at read time (a TICKS/INT arg can scale with a variable just like a DOUBLE).
+            if (looksLikeExpression(t)) {
+                return numericExpression(t, source, diags);
+            }
             // A decimal where an integer is required is the classic getInt() trap.
             String hint = t.contains(".") ? "use a whole number (no decimal point)" : "use a whole number";
             diags.error("E_TYPE", "expected a whole number but got '" + raw + "'", source, hint);
             return Optional.empty();
         }
         return checkRange((double) v, source, diags) ? Optional.of(v) : Optional.empty();
+    }
+
+    /**
+     * Whether a numeric token that failed literal parsing is an <em>expression</em> rather than a typo —
+     * it names a {@code %variable%} or applies an arithmetic operator. A leading sign alone never reaches
+     * here (a signed literal parses), so an interior {@code +}/{@code -} (or any {@code *}/{@code /}) marks
+     * arithmetic.
+     */
+    private static boolean looksLikeExpression(String t) {
+        return t.indexOf('%') >= 0 || t.indexOf('*') >= 0 || t.indexOf('/') >= 0
+                || t.indexOf('+', 1) >= 0 || t.indexOf('-', 1) >= 0;
+    }
+
+    /**
+     * Parse a numeric-argument token as an expression over {@code %variables%} and arithmetic, producing the
+     * untyped {@link Expr} AST. se-compile's lower stage resolves its variables to dense fact slots (the same
+     * pass that lowers conditions), and the runtime evaluates it per-activation against the fact buffer. Range
+     * bounds cannot be checked statically on an expression, so they are not — the author owns the value.
+     */
+    private static Optional<Object> numericExpression(String token, Source source, Diagnostics diags) {
+        return ExprParser.parse(token, source, diags).map(expr -> expr);
     }
 
     private boolean checkRange(double v, Source source, Diagnostics diags) {

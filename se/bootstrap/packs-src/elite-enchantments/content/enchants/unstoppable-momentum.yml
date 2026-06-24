@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: unstoppable-momentum). Review before shipping.
+display: "Unstoppable Momentum"
+description: "&dHeroic upgrade for Momentum. &dClears Slowness from yourself &dmore often. &c&l(!)&r &7Requires &eMomentum  &d&lI: &f🎲 4% &7| &f⌛ 3s &d&lII: &f🎲 6% &7| &f⌛ 3s &d&lIII: &f🎲 8% &7| &f⌛ 3s &d&lIV: &f🎲 10% &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 4
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+  2:
+    chance: 6
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+  3:
+    chance: 8
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+  4:
+    chance: 10
+    cooldown: 3
+    effects:
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)

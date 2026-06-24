@@ -1,0 +1,24 @@
+# Killing Spree — a fresh kill stokes your fury, granting Strength for the next.
+tier: rare
+display: "&4Killing Spree"
+description: "A kill fuels your Strength for the slaughter to come."
+trigger: KILL
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 50
+    effects:
+      - { POTION: { effect: STRENGTH, level: 1, duration: 120 } }
+  2:
+    chance: 65
+    effects:
+      - { POTION: { effect: STRENGTH, level: 1, duration: 160 } }
+      - { POTION: { effect: SPEED, level: 1, duration: 160 } }
+  3:
+    chance: 80
+    effects:
+      - { POTION: { effect: STRENGTH, level: 2, duration: 200 } }
+      - { POTION: { effect: SPEED, level: 1, duration: 200 } }
+      - { PARTICLE: { particle: FLAME, count: 8 } }
+      - { MESSAGE: { channel: actionbar, text: "&4Killing Spree!" } }

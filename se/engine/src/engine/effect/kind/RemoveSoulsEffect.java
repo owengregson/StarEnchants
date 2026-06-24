@@ -5,24 +5,29 @@ import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
+import engine.spec.T;
 import java.util.UUID;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code REMOVE_SOULS} — actor-only soul debit (docs/v3-directives.md §D): charge {@code amount} souls from
- * the activator's active soul gem. Souls bind to the activator, so there is NO target selector — the holder
- * is the constant end (cf. {@link MoneyEffect}'s actor-fixed transfer). A no-op when the activator is not in
- * soul mode (no active gem) or the gem cannot afford it; the spend is atomic in the {@code SoulLedger} and
- * written through to the gem's PDC on the holder's own thread by the {@code Sink}.
- * {@link Affinity#CONTEXT_LOCAL}: no world mutation is routed here (the sink owns the thread hop).
+ * {@code REMOVE_SOULS} — debit souls from a soul gem (docs/v3-directives.md §D). Targets the activator by
+ * default ({@code @Self} — charge YOUR active gem, the original §D behaviour), but a victim target
+ * ({@code @Victim}) drains the ENEMY's own active gem instead (the EE {@code REMOVE_SOULS:…:TARGET}). The
+ * activator path spends against {@link EffectCtx#activeGem()} (the seeded active gem on the activation); a
+ * victim path resolves the target's gem inside the {@code Sink}/soul service. A no-op when the chosen player
+ * is not in soul mode or the gem cannot afford it; the spend is atomic in the {@code SoulLedger} and written
+ * through to the gem's PDC on that player's own thread. {@link Affinity#CONTEXT_LOCAL}.
  */
 public final class RemoveSoulsEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("REMOVE_SOULS")
             .param("amount", D.INT.min(1))
+            .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
-            .doc("Debit souls from the activator's active soul gem (a no-op when they are not in soul mode).")
+            .doc("Debit souls from a soul gem: @Self (default) charges the activator's active gem, @Victim "
+                    + "drains the target's own gem. A no-op when that player is not in soul mode.")
             .example("REMOVE_SOULS:5")
             .build();
 
@@ -33,12 +38,23 @@ public final class RemoveSoulsEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        UUID gemId = ctx.activeGem();
-        Player holder = ctx.actor();
         int amount = ctx.integer("amount");
-        if (gemId == null || holder == null || amount <= 0) {
-            return; // not in soul mode (or nothing to spend) → nothing to debit
+        Player actor = ctx.actor();
+        if (amount <= 0) {
+            return;
         }
-        sink.removeSouls(holder, gemId, amount);
+        for (LivingEntity target : ctx.targets("who")) {
+            if (!(target instanceof Player player)) {
+                continue;
+            }
+            if (player.equals(actor)) {
+                UUID gemId = ctx.activeGem(); // the activator's seeded active gem
+                if (gemId != null) {
+                    sink.removeSouls(player, gemId, amount);
+                }
+            } else {
+                sink.removeSoulsFrom(player, amount); // the enemy's own gem, resolved in the soul service
+            }
+        }
     }
 }

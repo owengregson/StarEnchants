@@ -1,0 +1,5 @@
+# First-boot extraction manifest for bundled config packs (ADR-0023). One pack archive per line,
+# relative to packs/. Each listed .zip is copied to <data>/packs/ on first enable (never overwriting
+# an operator's copy) so /se pack apply <name> can swap it in. The shipped elite-enchantments.zip is
+# produced at build time from se/bootstrap/packs-src/elite-enchantments/ (a reviewable config tree).
+elite-enchantments.zip

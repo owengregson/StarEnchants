@@ -14,8 +14,8 @@ import java.util.List;
  * the <em>expression</em> grammar: numbers, identifiers ({@code true}/{@code false}
  * and bare enum-ish words), {@code %scope.name%} variables, single- or
  * double-quoted strings (with {@code \} escapes), and the operators
- * {@code && || ! ( ) , < <= > >= == !=}. Whitespace separates tokens and is
- * otherwise discarded.
+ * {@code && || ! ( ) , < <= > >= == != + - * /}. Whitespace separates tokens and
+ * is otherwise discarded.
  *
  * <p>It never throws. Lexical faults (an unterminated string or {@code %…%}, a
  * stray character) are reported into the supplied {@link Diagnostics} with an
@@ -76,6 +76,8 @@ public final class ExprLexer {
                 case ':' -> { out.add(new ExprTok(ExprTok.Kind.COLON, ":", startCol)); pos++; }
                 case '+' -> { out.add(new ExprTok(ExprTok.Kind.PLUS, "+", startCol)); pos++; }
                 case '-' -> { out.add(new ExprTok(ExprTok.Kind.MINUS, "-", startCol)); pos++; }
+                case '*' -> { out.add(new ExprTok(ExprTok.Kind.STAR, "*", startCol)); pos++; }
+                case '/' -> { out.add(new ExprTok(ExprTok.Kind.SLASH, "/", startCol)); pos++; }
                 case '"', '\'' -> out.add(string(c, startCol));
                 default -> {
                     if (isNumberStart(c)) {

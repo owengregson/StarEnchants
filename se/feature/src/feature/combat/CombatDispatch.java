@@ -8,9 +8,12 @@ import engine.run.ActivationContext;
 import engine.run.FactPopulator;
 import engine.sink.DispatchSink;
 import engine.sink.SoulDebit;
+import engine.stores.ComboStore;
+import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
+import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
 import feature.soul.SoulBinding;
 import feature.trigger.TriggerRunner;
@@ -56,8 +59,16 @@ public final class CombatDispatch {
     private final SuppressionStore suppression;
     private final KnockbackControlStore knockback;
     private final KeepOnDeathStore keepOnDeath;
+    private final TeleblockStore teleblock;
+    private final ImmuneStore immune;
+    // Combat-local consecutive-hit streak (the %combo% fact); owned here since only combat writes it.
+    private final ComboStore combo = new ComboStore();
     private final LongSupplier nowTicks;
     private final java.util.function.DoubleSupplier maxHeroicOutgoing; // §F config.yml heroic.max-outgoing-factor
+    private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
+    private final java.util.function.DoubleSupplier maxBonusReduction; // §L config.yml combat.max-bonus-reduction (<0 = uncapped)
+    private final java.util.function.BooleanSupplier pvpEnabled;       // §L config.yml combat.pvp
+    private final java.util.function.BooleanSupplier pveEnabled;       // §L config.yml combat.pve
     private final int attackTriggerId;
     private final int defenseTriggerId;
     private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
@@ -119,6 +130,31 @@ public final class CombatDispatch {
                           EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
                           java.util.function.DoubleSupplier maxHeroicOutgoing) {
+        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
+                nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
+                new TeleblockStore(), new ImmuneStore(), maxHeroicOutgoing,
+                () -> -1.0, () -> -1.0, () -> true, () -> true); // combat caps uncapped + PvP/PvE on by default
+    }
+
+    /**
+     * As above, plus the live cross-cutting combat caps (config.yml {@code combat.*}, §L): the additive
+     * bonus ceilings ({@code maxBonusDamage}/{@code maxBonusReduction}, {@code < 0} ⇒ uncapped) threaded onto
+     * each event's fold, and the {@code pvp}/{@code pve} gates that decide whether a side's effects apply by
+     * the victim's player-ness. The composition root passes live config suppliers; the ctor above defaults
+     * them (uncapped, both contexts on).
+     */
+    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
+                          int bowTriggerId, int tridentTriggerId,
+                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
+                          EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
+                          KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
+                          TeleblockStore teleblock, ImmuneStore immune,
+                          java.util.function.DoubleSupplier maxHeroicOutgoing,
+                          java.util.function.DoubleSupplier maxBonusDamage,
+                          java.util.function.DoubleSupplier maxBonusReduction,
+                          java.util.function.BooleanSupplier pvpEnabled,
+                          java.util.function.BooleanSupplier pveEnabled) {
         this.handles = Objects.requireNonNull(handles, "handles");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
@@ -127,8 +163,14 @@ public final class CombatDispatch {
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.knockback = Objects.requireNonNull(knockback, "knockback");
         this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
+        this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
+        this.immune = Objects.requireNonNull(immune, "immune");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         this.maxHeroicOutgoing = Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing");
+        this.maxBonusDamage = Objects.requireNonNull(maxBonusDamage, "maxBonusDamage");
+        this.maxBonusReduction = Objects.requireNonNull(maxBonusReduction, "maxBonusReduction");
+        this.pvpEnabled = Objects.requireNonNull(pvpEnabled, "pvpEnabled");
+        this.pveEnabled = Objects.requireNonNull(pveEnabled, "pveEnabled");
         // The runner reads conditions through a populator backed by the shared VarStore, so a condition's
         // %name% can read a value an earlier SET_VAR wrote (the write side is the per-event DispatchSink below).
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
@@ -160,18 +202,27 @@ public final class CombatDispatch {
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
-                nowTicks, maxHeroicOutgoing);
+                teleblock, immune, nowTicks, maxHeroicOutgoing);
+        sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
+
+        // PvP/PvE gates (config.yml combat.pvp/pve): a side whose context is disabled contributes nothing to
+        // the fold. The context is decided by the VICTIM's player-ness — a player victim is PvP, else PvE.
+        boolean victimIsPlayer = victimEntity instanceof Player;
 
         // Attack side: the player damager's abilities act on the victim (self = the attacker). The trigger
         // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.
-        if (damager instanceof Player attackerPlayer) {
+        if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer)) {
             int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
+            // Extend the attacker's consecutive-hit streak for the %combo% fact (RAGE-style scaling, §3.4).
+            int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong());
             runner.run(abilities, snapshot.generation(), worldId, attackId, true,
-                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null), sink,
+                    attackerPlayer,
+                    new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null, streak), sink,
                     snapshot.stableKeys());
         }
-        // Defense side: the player victim's DEFENSE abilities retaliate against the attacker.
-        if (victimEntity instanceof Player defenderPlayer) {
+        // Defense side: the player victim's DEFENSE abilities retaliate against the attacker. A player victim
+        // always implies the PvP gate when the attacker is a player, else the PvE gate.
+        if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player)) {
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
                     defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at, incomingDamage, null),
                     sink, snapshot.stableKeys());
@@ -190,6 +241,11 @@ public final class CombatDispatch {
             event.setCancelled(true);
         }
         sink.flush();
+    }
+
+    /** Whether StarEnchants combat effects apply in this context — {@code pvp} ⇒ the PvP gate, else PvE (§L). */
+    private boolean contextEnabled(boolean pvp) {
+        return pvp ? pvpEnabled.getAsBoolean() : pveEnabled.getAsBoolean();
     }
 
     /** Zero one of the event's damage modifiers if this version/cause carries it (the IGNORE_ARMOR primitive). */

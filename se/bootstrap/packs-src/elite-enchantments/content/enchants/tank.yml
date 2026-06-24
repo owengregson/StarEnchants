@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: tank). Review before shipping.
+display: "Tank"
+description: "&eReduces damage taken from &eenemies holding an axe.  &e&lI: &f▲ 1.85% &7| &f⌛ 4s &e&lII: &f▲ 3.7% &7| &f⌛ 4s &e&lIII: &f▲ 5.55% &7| &f⌛ 4s &e&lIV: &f▲ 7.4% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1:
+    cooldown: 4
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.85 } }  # from REDUCTION:1.85
+  2:
+    cooldown: 4
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 3.7 } }  # from REDUCTION:3.7
+  3:
+    cooldown: 4
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 5.55 } }  # from REDUCTION:5.55
+  4:
+    cooldown: 4
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 7.4 } }  # from REDUCTION:7.4

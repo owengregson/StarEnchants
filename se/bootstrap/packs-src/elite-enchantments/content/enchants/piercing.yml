@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: piercing). Review before shipping.
+display: "Piercing"
+description: "&eArrows deal bonus damage on hit.  &e&lI: &f🎲 4.25% &7| &f▲ 7% &7| &f⌛ 4s &e&lII: &f🎲 6.5% &7| &f▲ 7% &7| &f⌛ 4s &e&lIII: &f🎲 9% &7| &f▲ 7% &7| &f⌛ 4s &e&lIV: &f🎲 11.25% &7| &f▲ 7% &7| &f⌛ 4s &e&lV: &f🎲 14% &7| &f▲ 7% &7| &f⌛ 4s"
+trigger: BOW
+applies-to: [BOW]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 4.25
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 6.5
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 9
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  4:
+    chance: 11.25
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  5:
+    chance: 14
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

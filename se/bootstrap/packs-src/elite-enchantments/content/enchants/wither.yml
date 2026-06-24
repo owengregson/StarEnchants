@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: wither). Review before shipping.
+display: "Wither"
+description: "&bWhen hit, applies Wither to the &battacker.  &b&lI: &f🎲 3% &7| &f⌛ 4s &b&lII: &f🎲 5% &7| &f⌛ 4s &b&lIII: &f🎲 7% &7| &f⌛ 4s &b&lIV: &f🎲 9% &7| &f⌛ 4s &b&lV: &f🎲 11% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 3
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  2:
+    chance: 5
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  3:
+    chance: 7
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  4:
+    chance: 9
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  5:
+    chance: 11
+    cooldown: 4
+    effects:
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)

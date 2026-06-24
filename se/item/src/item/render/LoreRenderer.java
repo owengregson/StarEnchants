@@ -27,20 +27,51 @@ public final class LoreRenderer {
 
     private final Supplier<LoreStyle> style;
     private final Function<String, String> displayNameOf;
+    private final SetLore setLore;
 
-    /** Fixed-style renderer (tests, fixtures); the style never changes. */
+    /**
+     * The authored lore of a set's members, looked up from state at render time so a worn set piece
+     * keeps its flavour lore even after it is enchanted (lore is rebuilt from scratch on every change).
+     * The wiring passes a {@code Library}-backed lookup; tests/fixtures use {@link #NONE}.
+     */
+    public interface SetLore {
+        /** The lore shared by every armour piece of {@code setKey} (empty if none / unknown). */
+        List<String> armor(String setKey);
+
+        /** The weapon's own lore for {@code setKey} (empty if none / unknown). */
+        List<String> weapon(String setKey);
+
+        /** A lookup that renders no member lore (the generic "(Set)" marker still shows). */
+        SetLore NONE = new SetLore() {
+            @Override public List<String> armor(String setKey) {
+                return List.of();
+            }
+
+            @Override public List<String> weapon(String setKey) {
+                return List.of();
+            }
+        };
+    }
+
+    /** Fixed-style renderer (tests, fixtures); the style never changes, no set-member lore. */
     public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf) {
-        this(() -> Objects.requireNonNull(style, "style"), displayNameOf);
+        this(() -> Objects.requireNonNull(style, "style"), displayNameOf, SetLore.NONE);
+    }
+
+    /** Live-style renderer with no set-member lore (suites that never mint a set member). */
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
+        this(style, displayNameOf, SetLore.NONE);
     }
 
     /**
      * Live-style renderer (the composition root): {@code style} is re-read on every render, so a
      * {@code /se reload} that swaps the master {@code config.yml}'s {@code lore:} section takes effect on
-     * the next render with no re-wiring.
+     * the next render with no re-wiring. {@code setLore} renders each worn set member's authored lore.
      */
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf, SetLore setLore) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
+        this.setLore = Objects.requireNonNull(setLore, "setLore");
     }
 
     /**
@@ -71,9 +102,19 @@ public final class LoreRenderer {
             out.add(Colors.translate("&6&lHEROIC")); // the §F "heroic piece" marker, rendered from state
         }
         if (state.setKey() != null) {
-            // The §J set-piece marker, rendered from state — resolves the set's display name like an enchant.
+            // An armour set member: its set's SHARED armour lore, then the set marker (§6.6) — all from state.
+            for (String line : setLore.armor(state.setKey())) {
+                out.add(Colors.translate(line));
+            }
             out.add(Colors.translate("&b" + nameOr(state.setKey(), style)
                     + (state.omni() ? " &d(Omni Set)" : " &7(Set)")));
+        }
+        if (state.setWeaponKey() != null) {
+            // A set WEAPON member: its own lore, then a weapon marker naming its set (§6.6) — all from state.
+            for (String line : setLore.weapon(state.setWeaponKey())) {
+                out.add(Colors.translate(line));
+            }
+            out.add(Colors.translate("&b" + nameOr(state.setWeaponKey(), style) + " &7(Set Weapon)"));
         }
         return out;
     }

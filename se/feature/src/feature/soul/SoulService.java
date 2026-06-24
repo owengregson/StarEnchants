@@ -2,6 +2,7 @@ package feature.soul;
 
 import compile.load.SoulGemConfig;
 import engine.interact.SoulLedger;
+import engine.sink.SoulDebit;
 import engine.stores.SoulModeStore;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
@@ -41,7 +42,7 @@ import platform.sched.Scheduling;
  * one and {@link #split} carves a count off the held gem into a new one — both reconciling the ledger and
  * any active mode whose gem identity they retire.
  */
-public final class SoulService {
+public final class SoulService implements SoulDebit {
 
     private final SoulLedger ledger;
     private final SoulModeStore modes;
@@ -314,11 +315,22 @@ public final class SoulService {
      * routes it there). A non-positive amount, or a gem that is not the seeded active one, is a no-op — souls
      * are only ever spent against the seeded active gem, so a stale PDC-only gem is never silently drained.
      */
+    @Override
     public void debit(Player holder, UUID gemId, int amount) {
         if (amount <= 0 || ledger.peek(gemId).isEmpty()) {
             return; // free, or the gem is not seeded/active → nothing to spend
         }
         ledger.tryConsume(gemId, balanceFor(holder, gemId), amount);
+    }
+
+    /**
+     * Debit {@code target}'s OWN active gem (the {@code REMOVE_SOULS:…:@Victim} drain-the-enemy case): resolve
+     * which gem the target has active from the mode store, then debit it exactly as {@link #debit}. Runs on
+     * the target's own thread (the sink routes it there); a no-op if the target is not in soul mode.
+     */
+    @Override
+    public void debitTarget(Player target, int amount) {
+        modes.active(target.getUniqueId()).ifPresent(gemId -> debit(target, gemId, amount));
     }
 
     /**

@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: soul-hardened). Review before shipping.
+display: "Soul Hardened"
+description: "&dHeroic upgrade for Hardened. &dRepairs armor and blocks enemy &dSoul Trap. &c&l(!)&r &7Requires &bHardened  &d&lI: &f🎲 5.25% &7| &f▲ +2 pt. &7| &f⌛ 3s &d&lII: &f🎲 7.5% &7| &f▲ +2 pt. &7| &f⌛ 3s &d&lIII: &f🎲 10% &7| &f▲ +2 pt. &7| &f⌛ 3s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 5.25
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/soul-trap", duration: 100, who: "@Attacker" } }  # from DISABLE_ENCHANTMENT:soul-trap:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  2:
+    chance: 7.5
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/soul-trap", duration: 100, who: "@Attacker" } }  # from DISABLE_ENCHANTMENT:soul-trap:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  3:
+    chance: 10
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/soul-trap", duration: 100, who: "@Attacker" } }  # from DISABLE_ENCHANTMENT:soul-trap:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

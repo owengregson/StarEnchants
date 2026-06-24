@@ -17,7 +17,9 @@ import schema.spec.D;
  * <ul>
  *   <li>{@code give} — restore {@code amount} health to each resolved target (heal);</li>
  *   <li>{@code take} — deal {@code amount} direct health damage to each resolved target;</li>
- *   <li>{@code transfer} — damage each target AND heal the ACTIVATOR by the same total (lifesteal).</li>
+ *   <li>{@code transfer} — damage each target AND heal the ACTIVATOR by the same total (lifesteal);</li>
+ *   <li>{@code set} — set each target's current health TO {@code amount} (the EE {@code REDUCE_HEARTS}
+ *       drop-to-N-HP), clamped to [0, max].</li>
  * </ul>
  *
  * <p>The transfer counterpart is fixed to the activator rather than a second selector, because an
@@ -30,11 +32,12 @@ public final class HealthModEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("MODIFY_HEALTH")
             .param("amount", D.DOUBLE.min(0))
-            .param("mode", D.enumOf("give", "take", "transfer").def("give"))
+            .param("mode", D.enumOf("give", "take", "transfer", "set").def("give"))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Modify a target's health: give heals them, take deals direct health damage, transfer "
-                    + "(lifesteal) damages the target and heals the activator by the same amount. Replaces HEAL.")
+                    + "(lifesteal) damages the target and heals the activator by the same amount, set forces "
+                    + "their health to the amount. Replaces HEAL.")
             .example("MODIFY_HEALTH:4:give:@Self")
             .build();
 
@@ -46,8 +49,15 @@ public final class HealthModEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         double amount = ctx.dbl("amount");
-        boolean transfer = "transfer".equalsIgnoreCase(ctx.str("mode"));
-        boolean take = transfer || "take".equalsIgnoreCase(ctx.str("mode"));
+        String mode = ctx.str("mode");
+        if ("set".equalsIgnoreCase(mode)) {
+            for (LivingEntity target : ctx.targets("who")) {
+                sink.setHealth(target, amount);
+            }
+            return;
+        }
+        boolean transfer = "transfer".equalsIgnoreCase(mode);
+        boolean take = transfer || "take".equalsIgnoreCase(mode);
         int hit = 0;
         for (LivingEntity target : ctx.targets("who")) {
             if (take) {

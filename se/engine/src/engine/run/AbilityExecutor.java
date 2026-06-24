@@ -85,7 +85,7 @@ public final class AbilityExecutor {
             Ability ability = abilities[id];
             try {
                 if (pipeline.evaluate(ability, activation).activated()) {
-                    runEffects(ability, context, sink, activation.activeGem());
+                    runEffects(ability, context, sink, activation.activeGem(), activation.facts());
                     activated++;
                     notifyActivation(ability, context, stableKeys);
                 }
@@ -149,9 +149,13 @@ public final class AbilityExecutor {
                     LOG.log(Level.WARNING, "no effect kind registered for head " + effect.head());
                     continue;
                 }
-                List<LivingEntity> targets = resolveTargets(effect, context);
-                EffectCtx ctx = new RuntimeEffectCtx(
-                        effect.args(), context, slotMap(kind, targets), ability.level(), null);
+                SelectorKind selector = selectors.lookup(effect.target().head()).orElse(null);
+                RuntimeSelectorCtx sel = selector == null ? null
+                        : new RuntimeSelectorCtx(context, effect.target().args(), areaScan);
+                List<LivingEntity> targets = selector == null ? List.of() : selector.resolve(sel);
+                List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
+                EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
+                        locationSlotMap(kind, locations), ability.level(), null, null);
                 sink.delay(0); // lifecycle transitions are immediate — a buff turns on/off with the equip change
                 if (stopping) {
                     kind.stop(ctx, sink);
@@ -164,7 +168,8 @@ public final class AbilityExecutor {
         }
     }
 
-    private void runEffects(Ability ability, ActivationContext context, DispatchSink sink, UUID activeGem) {
+    private void runEffects(Ability ability, ActivationContext context, DispatchSink sink, UUID activeGem,
+                            engine.condition.FactBuffer facts) {
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = effects.lookup(effect.head()).orElse(null);
@@ -172,9 +177,16 @@ public final class AbilityExecutor {
                     LOG.log(Level.WARNING, "no effect kind registered for head " + effect.head());
                     continue;
                 }
-                List<LivingEntity> targets = resolveTargets(effect, context);
-                EffectCtx ctx = new RuntimeEffectCtx(
-                        effect.args(), context, slotMap(kind, targets), ability.level(), activeGem);
+                SelectorKind selector = selectors.lookup(effect.target().head()).orElse(null);
+                RuntimeSelectorCtx sel = selector == null ? null
+                        : new RuntimeSelectorCtx(context, effect.target().args(), areaScan);
+                List<LivingEntity> targets = selector == null ? List.of() : selector.resolve(sel);
+                List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
+                if (selector == null) {
+                    LOG.log(Level.WARNING, "no selector kind registered for head " + effect.target().head());
+                }
+                EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
+                        locationSlotMap(kind, locations), ability.level(), activeGem, facts);
                 // WAIT (§3.6): route this effect's world-mutation intents into its accumulated delay tier so
                 // they dispatch that many ticks after the hit. Targets are still resolved now, on the firing
                 // thread; the sink defers only the mutation (and keeps inline feedback — fold/cancel — instant).
@@ -186,22 +198,20 @@ public final class AbilityExecutor {
         }
     }
 
-    private List<LivingEntity> resolveTargets(CompiledEffect effect, ActivationContext context) {
-        SelectorKind selector = selectors.lookup(effect.target().head()).orElse(null);
-        if (selector == null) {
-            LOG.log(Level.WARNING, "no selector kind registered for head " + effect.target().head());
-            return List.of();
-        }
-        return selector.resolve(new RuntimeSelectorCtx(context, effect.target().args(), areaScan));
-    }
-
     /**
-     * Bind the resolved targets to the effect's primary target slot (the slot {@code CompiledEffect}'s
+     * Bind the resolved entity targets to the effect's primary target slot (the slot {@code CompiledEffect}'s
      * single selector fills). Effects with no declared slot never read {@code targets()}, so an empty
      * map is correct for them.
      */
     private static Map<String, List<LivingEntity>> slotMap(EffectKind kind, List<LivingEntity> targets) {
         List<TargetSpec> slots = kind.spec().targets();
         return slots.isEmpty() ? Map.of() : Map.of(slots.get(0).name(), targets);
+    }
+
+    /** Bind the resolved LOCATION targets to the effect's primary slot (block/coordinate selectors, §A). */
+    private static Map<String, List<org.bukkit.Location>> locationSlotMap(
+            EffectKind kind, List<org.bukkit.Location> locations) {
+        List<TargetSpec> slots = kind.spec().targets();
+        return slots.isEmpty() ? Map.of() : Map.of(slots.get(0).name(), locations);
     }
 }

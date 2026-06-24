@@ -1,0 +1,26 @@
+# Bonebreaker — shatter armour and weaken the foe with a crushing blow.
+tier: uncommon
+display: "&fBonebreaker"
+description: "Crush armour and weaken your target."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 25
+    effects:
+      - { DURABILITY: { amount: 1, target: armor, mode: damage, who: "@Victim" } }
+      - { POTION: { effect: WEAKNESS, level: 1, duration: 60, who: "@Victim" } }
+  2:
+    chance: 35
+    effects:
+      - { DURABILITY: { amount: 2, target: armor, mode: damage, who: "@Victim" } }
+      - { POTION: { effect: WEAKNESS, level: 1, duration: 80, who: "@Victim" } }
+  3:
+    chance: 45
+    cooldown: 0
+    effects:
+      - { DURABILITY: { amount: 3, target: armor, mode: damage, who: "@Victim" } }
+      - { POTION: { effect: WEAKNESS, level: 2, duration: 100, who: "@Victim" } }
+      - { SOUND: { sound: BLOCK_ANVIL_LAND, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&fBones crack under your strike!" } }

@@ -1,0 +1,11 @@
+# White Scroll (docs/v3-directives.md §I) — drag onto gear to PROTECT it from enchant destruction: it
+# stamps a one-shot guard so the NEXT failed enchant apply spares the item instead of shattering it. This
+# is distinct from the Holy White Scroll (items/holy-white-scroll.yml), which keeps your items on death.
+# One physical item per file; reload with /se reload.
+type: white-scroll
+
+material: PAPER
+name: "&fWhite Scroll"
+lore:
+  - "&7Protects an item — a failed"
+  - "&7enchant will spare it once."

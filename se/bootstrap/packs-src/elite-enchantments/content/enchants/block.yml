@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: block). Review before shipping.
+display: "Block"
+description: "&eWhen hit, reduces the damage &etaken and deals damage back to &ethe attacker.  &e&lI: &f▲ 50% &7| &f⌛ 4s &e&lII: &f▲ 50% &7| &f⌛ 4s &e&lIII: &f▲ 50% &7| &f⌛ 4s"
+trigger: DEFENSE
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+  2:
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+  3:
+    cooldown: 4
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max

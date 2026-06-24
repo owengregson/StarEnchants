@@ -1,0 +1,20 @@
+# Absorb — soak the next blows behind a buffer of extra hearts.
+tier: uncommon
+display: "&eAbsorb"
+description: "Soak blows behind extra hearts."
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: defense
+levels:
+  1:
+    chance: 30
+    effects:
+      - { POTION: { effect: ABSORPTION, level: 1, duration: 80, who: "@Self" } }
+  2:
+    chance: 40
+    effects:
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 120, who: "@Self" } }
+  3:
+    chance: 50
+    effects:
+      - { POTION: { effect: ABSORPTION, level: 3, duration: 160, who: "@Self" } }

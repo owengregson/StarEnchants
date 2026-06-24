@@ -22,8 +22,8 @@ import schema.grammar.EffectLine;
 final class CrystalDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
-            "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
+            "display", "description", "tier", "material", "name", "lore", "applies-to", "trigger",
+            "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
 
     private CrystalDefReader() {
     }
@@ -62,11 +62,11 @@ final class CrystalDefReader {
         String group = ContentParse.blankToNull(root.string("group"));
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
 
-        double chance = ContentParse.resolveChance(root, "chance", 0, ScaleEnv.EMPTY, diags);
-        int cooldown = ContentParse.resolveInt(root, "cooldown", 0, 0, ScaleEnv.EMPTY, diags);
-        int soulCost = ContentParse.resolveInt(root, "soul-cost", 0, 0, ScaleEnv.EMPTY, diags);
+        double chance = ContentParse.resolveChance(root, "chance", diags);
+        int cooldown = ContentParse.resolveInt(root, "cooldown", 0, diags);
+        int soulCost = ContentParse.resolveInt(root, "soul-cost", 0, diags);
         String condition = ContentParse.blankToNull(root.string("condition"));
-        List<EffectLine> effects = ContentParse.effectItems(root, "effects", 0, ScaleEnv.EMPTY, diags);
+        List<EffectLine> effects = ContentParse.effectItems(root, "effects", diags);
         if (effects.isEmpty()) {
             diags.warning("load.effects", "crystal '" + baseKey + "' declares no effects", root.sourceOf("effects"));
         }
@@ -91,8 +91,11 @@ final class CrystalDefReader {
                 fileSource,
                 0);
 
+        String material = ContentParse.blankToNull(root.string("material"));
+        String name = ContentParse.blankToNull(root.string("name"));
+        List<String> lore = root.stringList("lore");
         CrystalDef def = new CrystalDef(baseKey, display, description == null ? "" : description,
-                tier, appliesTo, fileSource);
+                tier, material, name, lore, appliesTo, fileSource);
         return new Parsed(def, List.of(ability));
     }
 }

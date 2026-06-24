@@ -1,0 +1,25 @@
+# Sunder — rend the foe's armour apart with a heavy blow. DURABILITY (armor/damage) defaults to @Victim.
+tier: rare
+display: "&6Sunder"
+description: "Rend the armour of the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 30
+    effects:
+      - { DURABILITY: { amount: 1, target: armor, mode: damage, who: "@Victim" } }
+  2:
+    chance: 40
+    effects:
+      - { DURABILITY: { amount: 2, target: armor, mode: damage, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }
+  3:
+    chance: 50
+    cooldown: 0
+    effects:
+      - { DURABILITY: { amount: 3, target: armor, mode: damage, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
+      - { SOUND: { sound: BLOCK_ANVIL_LAND, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&6Their armour is sundered!" } }

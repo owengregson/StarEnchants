@@ -1,0 +1,24 @@
+# Disarming — knock the weapon clean out of your foe's hand.
+tier: rare
+display: "&bDisarming"
+description: "Disarm the enemy you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 8
+    cooldown: 100
+    effects:
+      - { DISARM: {} }
+  2:
+    chance: 12
+    cooldown: 80
+    effects:
+      - { DISARM: {} }
+  3:
+    chance: 16
+    cooldown: 60
+    effects:
+      - { DISARM: {} }
+      - { MESSAGE: { text: "&bYou knock the weapon from their grip!" } }

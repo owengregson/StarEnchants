@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: phoenix). Review before shipping.
+display: "Phoenix"
+description: "&cA blow that would kill you &cinstead restores you to full &chealth.  &c&lI: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500 &c&lII: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500 &c&lIII: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500"
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "soul"
+tier: soul
+levels:
+  1:
+    cooldown: 120
+    condition: "%actor.health% <= 4"
+    effects:
+      - { MODIFY_HEALTH: { amount: 50, mode: "give", who: "@Self" } }  # from HEAL:ADD:40:50:PLAYER — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MESSAGE: { text: "&c&l** PHOENIX **" } }  # from MESSAGE:&c&l** PHOENIX **:PLAYER — legacy target dropped — StarEnchants messages the actor
+  2:
+    cooldown: 120
+    condition: "%actor.health% <= 4"
+    effects:
+      - { MODIFY_HEALTH: { amount: 50, mode: "give", who: "@Self" } }  # from HEAL:ADD:40:50:PLAYER — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MESSAGE: { text: "&c&l** PHOENIX **" } }  # from MESSAGE:&c&l** PHOENIX **:PLAYER — legacy target dropped — StarEnchants messages the actor
+  3:
+    cooldown: 120
+    condition: "%actor.health% <= 4"
+    effects:
+      - { MODIFY_HEALTH: { amount: 50, mode: "give", who: "@Self" } }  # from HEAL:ADD:40:50:PLAYER — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MESSAGE: { text: "&c&l** PHOENIX **" } }  # from MESSAGE:&c&l** PHOENIX **:PLAYER — legacy target dropped — StarEnchants messages the actor

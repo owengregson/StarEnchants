@@ -1,0 +1,23 @@
+# Imported from EliteEnchantments (id: rogue). Review before shipping.
+display: "Rogue"
+description: "&cOn hit, deals double damage.  &c&lI: &f🎲 3.25% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100 &c&lII: &f🎲 6.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100 &c&lIII: &f🎲 8.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
+trigger: ATTACK
+applies-to: [AXE]
+group: "soul"
+tier: soul
+levels:
+  1:
+    chance: 3.25
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  2:
+    chance: 6.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  3:
+    chance: 8.5
+    cooldown: 5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

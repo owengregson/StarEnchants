@@ -1,0 +1,35 @@
+# Leap — right-click to spring high into the air. VELOCITY (mode=add) supplies an upward velocity vector on the
+# @Self target (its default); a brief Jump Boost softens the landing and a Cloud puff marks the
+# take-off. An activated INTERACT_RIGHT ability behind a cooldown (§3.7).
+tier: common
+display: "&bLeap"
+description: "Spring high into the air."
+trigger: INTERACT_RIGHT
+applies-to: [BOOTS, WEAPON]
+group: utility
+levels:
+  1:
+    chance: 100
+    cooldown: 180
+    effects:
+      - { VELOCITY: { x: 0, y: 0.9, z: 0 } }
+      - { POTION: { effect: JUMP, level: 2, duration: 60, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: CLOUD, count: 15 } }
+  2:
+    chance: 100
+    cooldown: 150
+    effects:
+      - { VELOCITY: { x: 0, y: 1.2, z: 0 } }
+      - { POTION: { effect: JUMP, level: 3, duration: 60, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: CLOUD, count: 20 } }
+  3:
+    chance: 100
+    cooldown: 120
+    effects:
+      - { VELOCITY: { x: 0, y: 1.5, z: 0 } }
+      - { POTION: { effect: JUMP, level: 3, duration: 80, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 1, duration: 80, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 2 } }
+      - { PARTICLE: { particle: CLOUD, count: 30 } }

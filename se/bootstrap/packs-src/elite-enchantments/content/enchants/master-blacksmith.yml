@@ -1,0 +1,37 @@
+# Imported from EliteEnchantments (id: master-blacksmith). Review before shipping.
+display: "Master Blacksmith"
+description: "&dHeroic upgrade for Blacksmith. &dRepairs more armor with a &dsmaller damage penalty. &c&l(!)&r &7Requires &6Blacksmith  &d&lI: &f🎲 4.5% &7| &f▲ +25 pt. &7| &f⌛ 3s &d&lII: &f🎲 7.5% &7| &f▲ +25 pt. &7| &f⌛ 3s &d&lIII: &f🎲 9.5% &7| &f▲ +25 pt. &7| &f⌛ 3s &d&lIV: &f🎲 11% &7| &f▲ +35 pt. &7| &f⌛ 3s &d&lV: &f🎲 13% &7| &f▲ +35 pt. &7| &f⌛ 3s"
+trigger: ATTACK
+applies-to: [AXE]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    chance: 4.5
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 25, target: "item", mode: "restore" } }  # from ADD_DURABILITY:25 — EE add-durability → DURABILITY (restore)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -25 } }  # from DAMAGE_INCREASE:-25 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
+  2:
+    chance: 7.5
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 25, target: "item", mode: "restore" } }  # from ADD_DURABILITY:25 — EE add-durability → DURABILITY (restore)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -25 } }  # from DAMAGE_INCREASE:-25 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
+  3:
+    chance: 9.5
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 25, target: "item", mode: "restore" } }  # from ADD_DURABILITY:25 — EE add-durability → DURABILITY (restore)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -15 } }  # from DAMAGE_INCREASE:-15 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
+  4:
+    chance: 11
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 35, target: "item", mode: "restore" } }  # from ADD_DURABILITY:35 — EE add-durability → DURABILITY (restore)
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -10 } }  # from DAMAGE_INCREASE:-10 — EE negative DAMAGE_INCREASE → DAMAGE_MOD:attack:add (a self-nerf)
+  5:
+    chance: 13
+    cooldown: 3
+    effects:
+      - { DURABILITY: { amount: 35, target: "item", mode: "restore" } }  # from ADD_DURABILITY:35 — EE add-durability → DURABILITY (restore)

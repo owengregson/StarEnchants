@@ -42,6 +42,10 @@ class WornResolverTest {
         return new WornResolver(null, TRIGGERS, ATTACK, DEFENSE); // itemViews unused by resolveFrom
     }
 
+    private static WornResolver resolver(WornResolver.Features features) {
+        return new WornResolver(null, TRIGGERS, ATTACK, DEFENSE, () -> features);
+    }
+
     @Test
     void composesEnchantKeysAndResolvesCrystals() {
         CombatState combat = new CombatState(Map.of("enchants/lifesteal", 3), List.of("crystals/zap"));
@@ -121,6 +125,66 @@ class WornResolverTest {
         assertEquals(0.50, worn.heroic().percentDamage(), 1e-9);
         assertEquals(0.50, worn.heroic().percentReduction(), 1e-9);
         assertEquals(0.50, worn.heroic().durability(), 1e-9);
+    }
+
+    @Test
+    void weaponBonusFiresOnlyWhenTheSetIsCompleteAndWeaponHeld() {
+        // id 0 = sets/yeti armour bonus (DEFENSE, completes at 3); id 1 = sets/yeti/weapon (ATTACK, gated).
+        StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/weapon"));
+        Ability[] abilities = {
+            new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null,
+                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3),
+            new Ability(1, 0, SourceKind.SET, 1 << 0, 0, 100.0, 0, 0, 0L, null,
+                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0)
+        };
+        CombatState armor = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+        CombatState weapon = CombatState.weaponMember("sets/yeti");
+
+        // 2 armour + weapon held: the weapon does NOT count toward completion, so the set is incomplete
+        // and the weapon bonus must not fire.
+        WornState incomplete = resolver().resolveFrom(List.of(armor, armor, weapon), keys, abilities, 1);
+        assertEquals(false, incomplete.isSetActive(0), "weapon must not count toward completion");
+        assertEquals(0, incomplete.byTrigger(0).length, "weapon bonus must not fire while the set is incomplete");
+
+        // 3 armour (complete) + weapon held: armour bonus on DEFENSE, weapon bonus on ATTACK.
+        WornState complete = resolver().resolveFrom(List.of(armor, armor, armor, weapon), keys, abilities, 1);
+        assertArrayEquals(new int[] {0}, complete.byTrigger(1), "armour bonus fires on DEFENSE");
+        assertArrayEquals(new int[] {1}, complete.byTrigger(0), "weapon bonus fires on ATTACK when complete + held");
+
+        // 3 armour (complete) but weapon NOT held: only the armour bonus.
+        WornState noWeapon = resolver().resolveFrom(List.of(armor, armor, armor), keys, abilities, 1);
+        assertEquals(0, noWeapon.byTrigger(0).length, "no weapon held → no weapon bonus");
+    }
+
+    @Test
+    void disabledFeaturesDropTheirSources() {
+        // §L config.yml features.* — a disabled feature's source is skipped at resolve time.
+        CombatState combat = new CombatState(Map.of("enchants/lifesteal", 3), List.of("crystals/zap"));
+
+        // enchants off: only the crystal survives (id 1).
+        WornState noEnchants = resolver(new WornResolver.Features(false, true, true, true))
+                .resolveFrom(List.of(combat), KEYS, ABILITIES, 1);
+        assertArrayEquals(new int[] {1}, sorted(noEnchants.byTrigger(0)), "enchant dropped, crystal kept");
+
+        // crystals off: only the enchant survives (id 0) and no crystal is tracked.
+        WornState noCrystals = resolver(new WornResolver.Features(true, true, false, true))
+                .resolveFrom(List.of(combat), KEYS, ABILITIES, 1);
+        assertArrayEquals(new int[] {0}, sorted(noCrystals.byTrigger(0)), "crystal dropped, enchant kept");
+        assertEquals(0, noCrystals.activeCrystalAbilityIds().length);
+
+        // sets off: a worn set never completes.
+        CombatState piece = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+        WornState noSets = resolver(new WornResolver.Features(true, false, true, true))
+                .resolveFrom(List.of(piece, piece, piece), SET_KEYS, SET_ABILITIES, 1);
+        assertEquals(false, noSets.isSetActive(0), "sets off → no completion");
+        assertEquals(0, noSets.byTrigger(1).length);
+
+        // heroic off: worn heroic stats do not accumulate.
+        CombatState heroicPiece =
+                new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.5, 0.5, 0.5));
+        WornState noHeroic = resolver(new WornResolver.Features(true, true, true, false))
+                .resolveFrom(List.of(heroicPiece), KEYS, ABILITIES, 1);
+        assertEquals(0.0, noHeroic.heroic().percentDamage(), 1e-9, "heroic off → no flat stat");
     }
 
     @Test

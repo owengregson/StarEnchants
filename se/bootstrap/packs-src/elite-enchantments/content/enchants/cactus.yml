@@ -1,0 +1,20 @@
+# Imported from EliteEnchantments (id: cactus). Review before shipping.
+display: "Cactus"
+description: "&bWhen hit, deals damage back to &bthe attacker; your armor takes &bno durability loss.  &b&lI: &f🎲 4% &7| &f▲ 1-4❤ &7| &f⌛ 5s &b&lII: &f🎲 8% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
+trigger: DEFENSE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 4
+    cooldown: 5
+    effects:
+      - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+      - { PARTICLE: { particle: "CRIT", count: 7 } }  # from PARTICLE:BLOCK_BREAK;CACTUS:PLAYER — EE compound/block-crack particle → a thematic generic (cosmetic only)
+  2:
+    chance: 8
+    cooldown: 5
+    effects:
+      - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+      - { PARTICLE: { particle: "CRIT", count: 7 } }  # from PARTICLE:BLOCK_BREAK;CACTUS:PLAYER — EE compound/block-crack particle → a thematic generic (cosmetic only)

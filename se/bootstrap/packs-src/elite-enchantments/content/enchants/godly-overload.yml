@@ -1,0 +1,17 @@
+# Imported from EliteEnchantments (id: godly-overload). Review before shipping.
+display: "Godly Overload"
+description: "&dHeroic upgrade for Overload. &dGreatly increases your maximum &dhealth. &c&l(!)&r &7Requires &6Overload  &d&lI: &f▲ Lvl IV &d&lII: &f▲ Lvl V &d&lIII: &f▲ Lvl VI"
+trigger: PASSIVE
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+group: "heroic"
+tier: heroic
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 4, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:4:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 5, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:5:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  3:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 6, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:6:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

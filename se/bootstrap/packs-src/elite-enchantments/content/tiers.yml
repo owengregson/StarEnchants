@@ -1,0 +1,10 @@
+default-tier: common
+tiers:
+  common:    { color: "&7",   weight: 10, glint: false }
+  uncommon:  { color: "&a",   weight: 20, glint: false }
+  rare:      { color: "&b",   weight: 30, glint: false }
+  epic:      { color: "&e",   weight: 40, glint: true  }
+  legendary: { color: "&6",   weight: 50, glint: true  }
+  soul:      { color: "&c",   weight: 60, glint: true  }
+  heroic:    { color: "&d",   weight: 70, glint: true  }
+  mythic:    { color: "&4",   weight: 80, glint: true  }

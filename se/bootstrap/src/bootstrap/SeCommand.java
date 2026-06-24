@@ -3,7 +3,6 @@ package bootstrap;
 import compile.load.ContentHolder;
 import compile.load.CrystalDef;
 import compile.load.EnchantDef;
-import compile.load.ItemDef;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import feature.menu.Menu;
@@ -24,6 +23,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import migrate.Migrator;
+import pack.PackStore;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -49,14 +49,27 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
-            List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb", "slotgem",
-                    "gem", "book", "blackscroll", "randomizer", "transmog", "holy", "nametag", "unopened", "soulmode",
-                    "split", "migrate", "menu", "effects", "selectors", "triggers", "conditions", "variables", "list");
+            List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb",
+                    "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
+                    "dust", "whitescroll", "unopened", "soulmode",
+                    "split", "migrate", "pack", "menu", "effects", "selectors", "triggers", "conditions",
+                    "variables", "list");
+
+    /** The {@code /se pack <action>} actions (ADR-0023), for tab-completion at arg index 1. */
+    static final List<String> PACK_ACTIONS = List.of("list", "info", "apply", "export");
+
+    /** The filename-safe timestamp stamped into an auto-backup pack's name on {@code /se pack apply}. */
+    private static final java.time.format.DateTimeFormatter BACKUP_STAMP =
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss");
 
     /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
-            List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb", "slotgem",
-                    "blackscroll", "randomizer", "transmog", "holy", "nametag", "unopened");
+            List.of("gem", "crystal", "extractor", "book", "set", "heroic", "upgrade", "orb",
+                    "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
+                    "dust", "whitescroll", "unopened");
+
+    /** The set members {@code /se give set <player> <set> <member>} can mint (§6.6). */
+    static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
@@ -75,6 +88,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.book.UnopenedBookService unopenedBooks;
     private final feature.scroll.HolyScrollService holyScrolls;
     private final feature.scroll.NametagService nametags;
+    private final PackStore packs; // ADR-0023 config packs: list/info/apply/export the config surface
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -83,7 +97,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
-              Messages messages) {
+              PackStore packs, Messages messages) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -101,6 +115,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.unopenedBooks = unopenedBooks;
         this.holyScrolls = holyScrolls;
         this.nametags = nametags;
+        this.packs = packs;
     }
 
     @Override
@@ -116,19 +131,24 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "removeenchant", "unenchant" -> removeHeld(sender, args);
             case "crystal" -> giveCrystal(sender, args);
             case "heroic" -> giveHeroic(sender);
-            case "orb" -> giveSlotItem(sender, true);
-            case "slotgem" -> giveSlotItem(sender, false);
+            case "orb" -> giveSlotItem(sender);
             case "gem" -> giveGem(sender);
             case "book" -> giveBook(sender, args);
             case "blackscroll" -> giveScroll(sender, true);
             case "randomizer" -> giveScroll(sender, false);
             case "transmog" -> giveSimpleItem(sender, scrolls.mintTransmog(), messages.format("command.give.transmog"));
+            case "godlytransmog" -> giveSimpleItem(sender, scrolls.mintGodlyTransmog(),
+                    messages.format("command.give.godlytransmog"));
             case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), messages.format("command.give.holy"));
             case "nametag" -> giveSimpleItem(sender, nametags.mint(), messages.format("command.give.nametag"));
+            case "dust" -> giveSimpleItem(sender, dustFor(args, 1), messages.format("command.give.dust"));
+            case "whitescroll" -> giveSimpleItem(sender, carriers.mintWhiteScroll(),
+                    messages.format("command.give.whitescroll"));
             case "unopened" -> giveUnopened(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "split" -> splitSoul(sender, args);
             case "migrate" -> migrate(sender, args);
+            case "pack" -> pack(sender, args);
             case "menu" -> openMenu(sender, args);
             case "effects" -> reference(sender, ReferenceCatalog.EFFECTS);
             case "selectors" -> reference(sender, ReferenceCatalog.SELECTORS);
@@ -148,9 +168,18 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 content.library().crystals().stream().map(CrystalDef::key).toList(),
                 content.library().tiers().tiers().stream().map(t -> t.name()).toList(),
                 menus.names(),
-                content.library().items().stream().map(ItemDef::key).toList(),
                 Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
-                content.library().sets().stream().map(compile.load.SetDef::key).toList());
+                content.library().sets().stream().map(compile.load.SetDef::key).toList(),
+                packNamesQuietly());
+    }
+
+    /** Pack names for tab-completion — packs/ is tiny; an I/O hiccup completes to nothing, never throws. */
+    private List<String> packNamesQuietly() {
+        try {
+            return packs.list().stream().map(PackStore.PackInfo::name).toList();
+        } catch (IOException e) {
+            return List.of();
+        }
     }
 
     /** As the canonical form with no tier/menu completions (legacy 3-arg form). */
@@ -164,29 +193,35 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return complete(args, enchantKeys, crystalKeys, tierNames, List.of());
     }
 
-    /** As the canonical form with no item-id / player completions (5-arg form). */
+    /** As the canonical form with no player completions (5-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, List.of(), List.of());
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, List.of());
     }
 
-    /** As the canonical form with no set completions (7-arg form). */
+    /** As the canonical form with no set completions (6-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames, List<String> itemIds,
-                                 List<String> playerNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, itemIds, playerNames, List.of());
+                                 List<String> tierNames, List<String> menuNames, List<String> playerNames) {
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, List.of());
+    }
+
+    /** As the canonical form with no pack-name completions (7-arg form). */
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
+                                 List<String> tierNames, List<String> menuNames,
+                                 List<String> playerNames, List<String> setKeys) {
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys, List.of());
     }
 
     /**
      * Pure tab-completion: the subcommand at {@code args[0]}; then context-sensitive completions for the
-     * flat verbs and the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
-     * arg 2, type-specific key at arg 3, and {@code give book <player> random <tier>} at arg 4). Extracted
-     * from Bukkit so it is unit-tested without a server. (A {@code dust} is an item, so {@code @dusts} is
-     * served by {@code itemIds} on the {@code give item} route.)
+     * flat verbs, the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
+     * arg 2, type-specific key at arg 3, and {@code give book <player> random <tier>} at arg 4), and the
+     * §packs {@code pack <action> [name]} tree (action at arg 1, pack name at arg 2). Extracted from
+     * Bukkit so it is unit-tested without a server.
      */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames, List<String> itemIds,
-                                 List<String> playerNames, List<String> setKeys) {
+                                 List<String> tierNames, List<String> menuNames,
+                                 List<String> playerNames, List<String> setKeys, List<String> packNames) {
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }
@@ -199,6 +234,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 case "unopened" -> filter(tierNames, args[1]);
                 case "menu" -> filter(menuNames, args[1]);
                 case "migrate" -> filter(List.of("ee", "ea", "ae"), args[1]);
+                case "pack" -> filter(PACK_ACTIONS, args[1]);
                 case "reload" -> filter(List.of("--dry-run"), args[1]);
                 default -> List.of();
             };
@@ -206,19 +242,26 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         if (sub.equals("give") && args.length == 3) {
             return filter(playerNames, args[2]); // /se give <type> <player>
         }
+        if (sub.equals("pack") && args.length == 3) {
+            String action = args[1].toLowerCase(Locale.ROOT); // /se pack <info|apply> <name>
+            return action.equals("info") || action.equals("apply") ? filter(packNames, args[2]) : List.of();
+        }
         if (sub.equals("give") && args.length == 4) {
             return switch (args[1].toLowerCase(Locale.ROOT)) { // the type-specific key
                 case "crystal" -> filter(crystalKeys, args[3]);
                 case "book" -> filter(concat("random", enchantKeys), args[3]); // book key, or the `random` form
                 case "unopened" -> filter(tierNames, args[3]);
-                case "item" -> filter(itemIds, args[3]);
                 case "set" -> filter(setKeys, args[3]);
                 default -> List.of();
             };
         }
-        if (sub.equals("give") && args.length == 5
-                && args[1].equalsIgnoreCase("book") && args[3].equalsIgnoreCase("random")) {
-            return filter(tierNames, args[4]); // /se give book <player> random <tier>
+        if (sub.equals("give") && args.length == 5) {
+            if (args[1].equalsIgnoreCase("book") && args[3].equalsIgnoreCase("random")) {
+                return filter(tierNames, args[4]); // /se give book <player> random <tier>
+            }
+            if (args[1].equalsIgnoreCase("set")) {
+                return filter(SET_MEMBERS, args[4]); // /se give set <player> <set> <member>
+            }
         }
         return List.of();
     }
@@ -410,6 +453,135 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return new Migrator.Result(files, diagnostics);
     }
 
+    /**
+     * {@code /se pack <list|info|apply|export>} (ADR-0023) — manage config packs: a ZIP snapshot of the
+     * whole config surface (config.yml, lang.yml, content/, items/, menus/). {@code apply} backs up the
+     * current config, swaps in the pack, and reloads transactionally; {@code export} snapshots the live
+     * config into a new pack. All filesystem work runs off the command thread.
+     */
+    private void pack(CommandSender sender, String[] args) {
+        String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "list";
+        switch (action) {
+            case "list" -> packList(sender);
+            case "info" -> packInfo(sender, args);
+            case "apply" -> packApply(sender, args);
+            case "export" -> packExport(sender, args);
+            default -> messages.lines("command.pack.usage").forEach(sender::sendMessage);
+        }
+    }
+
+    /** {@code /se pack list} — every pack in {@code packs/}, with its description + file count. */
+    private void packList(CommandSender sender) {
+        Scheduling.async(() -> {
+            try {
+                List<PackStore.PackInfo> available = packs.list();
+                if (available.isEmpty()) {
+                    tell(sender, messages.format("command.pack.empty"));
+                    return;
+                }
+                tell(sender, messages.format("command.pack.list-header", "COUNT", available.size()));
+                for (PackStore.PackInfo info : available) {
+                    tell(sender, messages.format("command.pack.list-entry", "NAME", info.name(),
+                            "DESC", info.manifest().description(), "FILES", info.manifest().fileCount()));
+                }
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
+    /** {@code /se pack info <name>} — the manifest of one pack. */
+    private void packInfo(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            messages.lines("command.pack.usage").forEach(sender::sendMessage);
+            return;
+        }
+        String name = args[2];
+        Scheduling.async(() -> {
+            try {
+                var manifest = packs.info(name).orElse(null);
+                if (manifest == null) {
+                    tell(sender, messages.format("command.pack.unknown", "NAME", name));
+                    return;
+                }
+                tell(sender, messages.format("command.pack.info", "NAME", manifest.name(),
+                        "DESC", manifest.description(), "AUTHOR", manifest.author(),
+                        "CREATED", manifest.created(), "FILES", manifest.fileCount()));
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
+    /**
+     * {@code /se pack apply <name>} — back up the current config, swap in the pack on disk, then reload
+     * transactionally so it takes effect live. Boot-gated wiring (souls/slots/scrolls listeners, the
+     * integration toggles, the command-trigger) still needs a restart — reported in the note.
+     */
+    private void packApply(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            messages.lines("command.pack.usage").forEach(sender::sendMessage);
+            return;
+        }
+        String name = args[2];
+        if (!PackStore.isValidName(name)) {
+            sender.sendMessage(messages.format("command.pack.bad-name", "NAME", name));
+            return;
+        }
+        if (!packs.exists(name)) {
+            sender.sendMessage(messages.format("command.pack.unknown", "NAME", name));
+            return;
+        }
+        sender.sendMessage(messages.format("command.pack.apply-start", "NAME", name));
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        String createdIso = now.toString();
+        String backupLabel = "backup-" + now.format(BACKUP_STAMP);
+        Scheduling.async(() -> {
+            try {
+                PackStore.ApplyResult applied = packs.apply(name, backupLabel, createdIso);
+                tell(sender, messages.format("command.pack.apply-done", "NAME", applied.manifest().name(),
+                        "FILES", applied.fileCount(),
+                        "BACKUP", applied.hasBackup() ? applied.backupName() : "(none)"));
+                if (!applied.skipped().isEmpty()) {
+                    tell(sender, messages.format("command.pack.apply-skipped", "N", applied.skipped().size()));
+                }
+                // Make the swapped config live (the same transactional reload as /se reload). A pack with
+                // a fault keeps the previous in-memory state and reports the diagnostics here.
+                reloader.reload(result -> report(sender, result));
+                tell(sender, messages.format("command.pack.apply-note"));
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
+    /** {@code /se pack export <name> [description…]} — snapshot the live config into a new pack. */
+    private void packExport(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            messages.lines("command.pack.usage").forEach(sender::sendMessage);
+            return;
+        }
+        String name = args[2];
+        if (!PackStore.isValidName(name)) {
+            sender.sendMessage(messages.format("command.pack.bad-name", "NAME", name));
+            return;
+        }
+        String description = args.length > 3
+                ? String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length))
+                : "Exported config snapshot.";
+        String author = sender.getName();
+        String createdIso = java.time.LocalDateTime.now().toString();
+        Scheduling.async(() -> {
+            try {
+                PackStore.ExportResult result = packs.export(name, description, author, createdIso);
+                tell(sender, messages.format("command.pack.export-done", "NAME", result.name(),
+                        "FILES", result.fileCount()));
+            } catch (IOException e) {
+                tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
+            }
+        });
+    }
+
     /** Message the sender, routing a {@link Player} to its own region thread (Folia-correct). */
     private static void tell(CommandSender sender, String message) {
         if (sender instanceof Player player) {
@@ -486,17 +658,18 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             }
             case "heroic", "upgrade" -> deliver(sender, target, heroics.mint(), "command.give.heroic", "heroic upgrade");
             case "orb" -> deliver(sender, target, slots.mintOrb(), "command.give.slot", "slot expander");
-            case "slotgem" -> deliver(sender, target, slots.mintGem(), "command.give.slot", "slot gem");
             case "blackscroll" -> deliver(sender, target, scrolls.mintBlack(), "command.give.blackscroll", "black scroll");
             case "randomizer" -> deliver(sender, target, scrolls.mintRandomizer(), "command.give.randomizer", "randomizer scroll");
             case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
-            case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy scroll");
+            case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy white scroll");
             case "nametag" -> deliver(sender, target, nametags.mint(), "command.give.nametag", "item nametag");
+            case "dust" -> giveDustTo(sender, target, args);
+            case "whitescroll" -> deliver(sender, target, carriers.mintWhiteScroll(),
+                    "command.give.whitescroll", "white scroll");
             case "crystal" -> giveCrystalTo(sender, target, args);
             case "extractor" -> deliver(sender, target, crystals.mintExtractor(), "command.give.extractor", "crystal extractor");
             case "book" -> giveBookTo(sender, target, args);
             case "unopened" -> giveUnopenedTo(sender, target, args);
-            case "item" -> giveItemTo(sender, target, args);
             case "set" -> giveSetTo(sender, target, args);
             default -> sender.sendMessage(messages.format("command.give.usage"));
         }
@@ -548,9 +721,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se give set <player> <set> <piece>} — mint an armour set piece (the piece is HELMET/CHESTPLATE/
-     * LEGGINGS/BOOTS, whichever the set's {@code applies-to} covers) stamped with the set key, and give it to
-     * the target. A piece the set does not cover (e.g. a weapon on an armour-only set) fails cleanly.
+     * {@code /se give set <player> <set> <member>} — mint a set member (an armour slot the set declares —
+     * {@code helmet}/{@code chestplate}/{@code leggings}/{@code boots} — or {@code weapon}) from its own
+     * material + name, and give it to the target (§6.6). A member the set does not declare fails cleanly.
      */
     private void giveSetTo(CommandSender sender, Player target, String[] args) {
         if (args.length < 5) {
@@ -682,29 +855,29 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se give item <player> <item-id> [args]} — the §J universal item dispatcher: mint any authored
-     * carrier (book/tome/scroll/dust/gem) from {@code content.library().items()} by its id.
+     * {@code /se give dust <player> [percent]} — mint a success dust for the target. With no percent it is a
+     * RANDOM-bonus dust (rolls the configured {@code [min, max]} range when combined); with a percent it
+     * confers exactly that fixed bonus (§I).
      */
-    private void giveItemTo(CommandSender sender, Player target, String[] args) {
-        if (args.length < 4) {
-            sender.sendMessage(messages.format("command.give.usage"));
-            return;
+    private void giveDustTo(CommandSender sender, Player target, String[] args) {
+        deliver(sender, target, dustFor(args, 3), "command.give.dust", "success dust");
+    }
+
+    /** Mint a success dust from {@code args[idx]}: a parseable percent → a FIXED dust, else a RANDOM-range dust. */
+    private ItemStack dustFor(String[] args, int idx) {
+        java.util.OptionalInt percent = dustPercent(args, idx);
+        return percent.isPresent() ? carriers.mintDust(percent.getAsInt()) : carriers.mintDust();
+    }
+
+    /** Parse an optional dust percent at {@code args[idx]}; absent or non-numeric ⇒ empty (a random dust). */
+    private static java.util.OptionalInt dustPercent(String[] args, int idx) {
+        if (args.length <= idx) {
+            return java.util.OptionalInt.empty();
         }
-        String id = args[3];
-        ItemDef def = content.library().items().stream()
-                .filter(d -> d.key().equals(id) || d.key().equals(normalize(id, "items/"))
-                        || d.key().endsWith("/" + id))
-                .findFirst().orElse(null);
-        if (def == null) {
-            sender.sendMessage(messages.format("command.error.no-such-item", "ID", id));
-            return;
-        }
-        Scheduling.onEntity(target, () -> {
-            MenuItems.giveOrDrop(target, carriers.mint(def));
-            target.sendMessage(messages.format("command.give.item", "ID", def.key()));
-        });
-        if (notSelf(sender, target)) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", def.key(), "PLAYER", target.getName()));
+        try {
+            return java.util.OptionalInt.of(Integer.parseInt(args[idx].trim()));
+        } catch (NumberFormatException e) {
+            return java.util.OptionalInt.empty();
         }
     }
 
@@ -773,17 +946,17 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
-    /** {@code /se orb} / {@code /se slotgem} — mint a slot expander (+N) / slot gem (+1) and give it. */
-    private void giveSlotItem(CommandSender sender, boolean orb) {
+    /** {@code /se orb} — mint a slot expander (+N) and give it. */
+    private void giveSlotItem(CommandSender sender) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         Scheduling.onEntity(player, () -> {
-            ItemStack item = orb ? slots.mintOrb() : slots.mintGem();
+            ItemStack item = slots.mintOrb();
             player.getInventory().addItem(item).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage(messages.format("command.give.slot", "KIND", orb ? "slot expander" : "slot gem"));
+            player.sendMessage(messages.format("command.give.slot", "KIND", "slot expander"));
         });
     }
 

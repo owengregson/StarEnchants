@@ -1,0 +1,23 @@
+# Tax — every hit skims coin from your victim's purse. An ATTACK enchant using MODIFY_MONEY (mode=take) against
+# the @Victim (the EE/EA "tax"/"trade" family). A no-op on a server with no economy provider; the
+# withdraw is best-effort, taking only what the victim can afford. Money moves on the global thread.
+tier: rare
+display: "&6Tax"
+description: "Skim coins from those you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 25
+    effects:
+      - { MODIFY_MONEY: { mode: take, amount: 25, who: "@Victim" } }
+  2:
+    chance: 35
+    effects:
+      - { MODIFY_MONEY: { mode: take, amount: 50, who: "@Victim" } }
+  3:
+    chance: 45
+    effects:
+      - { MODIFY_MONEY: { mode: take, amount: 100, who: "@Victim" } }
+      - { MESSAGE: { text: "&6Taxed!" } }

@@ -1,0 +1,18 @@
+# Swift Crystal — a flat, levelless socket bonus. material/name/lore give the minted crystal item its
+# own likeness so the lore explains its effect.
+tier: uncommon
+display: "&bSwift Crystal"
+description: "Surge with Speed when you are struck."
+material: SUGAR
+name: "&bSwift Crystal"
+lore:
+  - "&7Socket into boots or leggings."
+  - "&7When struck, surge with &bSpeed I"
+  - "&7for &b3 seconds&7."
+  - "&8Cooldown: 3s."
+trigger: DEFENSE
+applies-to: [BOOTS, LEGGINGS]
+chance: 100
+cooldown: 60
+effects:
+  - { POTION: { effect: SPEED, level: 1, duration: 60, who: "@Self" } }
