@@ -229,7 +229,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // separate from the combat blob, so it never decodes on the hot path. Random for the success roll.
         CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of(this).carrier(), ItemKeys.of(this).guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
-                () -> items.config().enchantBookOrDefault()); // §I general enchant-book likeness, live-reloaded
+                () -> items.config().enchantBookOrDefault(),   // §I general enchant-book likeness, live-reloaded
+                () -> items.config().dustOrDefault(),          // §I success dust (items/dust.yml), live-reloaded
+                () -> items.config().whiteScrollOrDefault());  // §I white scroll (items/white-scroll.yml), live
 
         // Physical crystal items (§E): mint + drag-apply (success roll + consume) + multi-crystal merge.
         // The crystal-item PDC is separate from the combat blob; the applied crystal becomes one crystal-slot

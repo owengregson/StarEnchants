@@ -76,25 +76,26 @@ class ItemsLoaderTest {
     }
 
     @Test
-    void parsesAScrollsConfigWithNestedSections(@TempDir Path dir) throws Exception {
-        Files.writeString(dir.resolve("scrolls.yml"), """
-                type: scrolls
-                black:
-                  material: COAL
-                  name: "&8Void Scroll"
-                  success-chance: 50
-                  message-success: "got {ENCHANT}"
-                randomizer:
-                  material: GLOWSTONE_DUST
-                  min-percent: 10
-                  max-percent: 90
+    void assemblesTheScrollFamilyFromPerItemFiles(@TempDir Path dir) throws Exception {
+        // The scroll family is now one physical item per file; ItemsLoader assembles them into one
+        // ScrollsConfig, filling any absent member with its default.
+        Files.writeString(dir.resolve("black-scroll.yml"), """
+                type: black-scroll
+                material: COAL
+                name: "&8Void Scroll"
+                success-chance: 50
+                """);
+        Files.writeString(dir.resolve("randomizer-scroll.yml"), """
+                type: randomizer-scroll
+                material: GLOWSTONE_DUST
+                min-percent: 10
+                max-percent: 90
                 """);
 
         ScrollsConfig scrolls = ItemsLoader.load(dir).scrolls().orElseThrow();
         assertEquals("COAL", scrolls.black().material());
         assertEquals("&8Void Scroll", scrolls.black().name());
         assertEquals(50, scrolls.black().successChance());
-        // (scroll messages moved to lang.yml in §L)
         // Omitted black lore falls back to the default.
         assertEquals(ScrollsConfig.defaults().black().lore(), scrolls.black().lore());
         assertEquals("GLOWSTONE_DUST", scrolls.randomizer().material());
@@ -102,6 +103,33 @@ class ItemsLoaderTest {
         assertEquals(90, scrolls.randomizer().maxPercent());
         // Omitted randomizer name falls back to the default.
         assertEquals(ScrollsConfig.defaults().randomizer().name(), scrolls.randomizer().name());
+        // An entirely-absent member (the holy white scroll) is filled from defaults.
+        assertEquals(ScrollsConfig.defaults().holy().name(), scrolls.holy().name());
+    }
+
+    @Test
+    void parsesADustAndWhiteScrollConfig(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("dust.yml"), """
+                type: dust
+                material: REDSTONE
+                name: "&cTinker Dust"
+                success-bonus: 25
+                """);
+        Files.writeString(dir.resolve("white-scroll.yml"), """
+                type: white-scroll
+                material: MAP
+                name: "&fWard"
+                """);
+
+        ItemsConfig config = ItemsLoader.load(dir);
+        DustConfig dust = config.dust().orElseThrow();
+        assertEquals("REDSTONE", dust.material());
+        assertEquals(25, dust.successBonus());
+        // Omitted sound falls back to the default.
+        assertEquals(DustConfig.defaults().sound(), dust.sound());
+        WhiteScrollConfig white = config.whiteScroll().orElseThrow();
+        assertEquals("MAP", white.material());
+        assertEquals("&fWard", white.name());
     }
 
     @Test
@@ -132,7 +160,7 @@ class ItemsLoaderTest {
 
     @Test
     void anUnknownTypeWarnsButDoesNotError(@TempDir Path dir) throws Exception {
-        Files.writeString(dir.resolve("future.yml"), "type: black-scroll\n"); // not yet supported
+        Files.writeString(dir.resolve("future.yml"), "type: time-machine\n"); // not a recognised item type
 
         ItemsConfig config = ItemsLoader.load(dir);
         assertFalse(config.hasErrors()); // a warning, not blocking — forward-compatible

@@ -51,13 +51,14 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     static final List<String> SUBCOMMANDS =
             List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb",
                     "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
-                    "unopened", "soulmode",
+                    "dust", "whitescroll", "unopened", "soulmode",
                     "split", "migrate", "menu", "effects", "selectors", "triggers", "conditions", "variables", "list");
 
     /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
             List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb",
-                    "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "unopened");
+                    "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
+                    "dust", "whitescroll", "unopened");
 
     /** The set members {@code /se give set <player> <set> <member>} can mint (§6.6). */
     static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
@@ -130,6 +131,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     messages.format("command.give.godlytransmog"));
             case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), messages.format("command.give.holy"));
             case "nametag" -> giveSimpleItem(sender, nametags.mint(), messages.format("command.give.nametag"));
+            case "dust" -> giveSimpleItem(sender, carriers.mintDust(), messages.format("command.give.dust"));
+            case "whitescroll" -> giveSimpleItem(sender, carriers.mintWhiteScroll(),
+                    messages.format("command.give.whitescroll"));
             case "unopened" -> giveUnopened(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "split" -> splitSoul(sender, args);
@@ -498,8 +502,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "blackscroll" -> deliver(sender, target, scrolls.mintBlack(), "command.give.blackscroll", "black scroll");
             case "randomizer" -> deliver(sender, target, scrolls.mintRandomizer(), "command.give.randomizer", "randomizer scroll");
             case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
-            case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy scroll");
+            case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy white scroll");
             case "nametag" -> deliver(sender, target, nametags.mint(), "command.give.nametag", "item nametag");
+            case "dust" -> deliver(sender, target, carriers.mintDust(), "command.give.dust", "success dust");
+            case "whitescroll" -> deliver(sender, target, carriers.mintWhiteScroll(),
+                    "command.give.whitescroll", "white scroll");
             case "crystal" -> giveCrystalTo(sender, target, args);
             case "extractor" -> deliver(sender, target, crystals.mintExtractor(), "command.give.extractor", "crystal extractor");
             case "book" -> giveBookTo(sender, target, args);

@@ -33,25 +33,47 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public final class CarrierService {
 
+    /** Stable PDC item-key for the top-level success dust (items/dust.yml) — identifies it off config, not an ItemDef. */
+    public static final String DUST_KEY = "dust";
+    /** Stable PDC item-key for the top-level white scroll (items/white-scroll.yml) — the enchant-protect guard. */
+    public static final String WHITE_SCROLL_KEY = "white-scroll";
+
     private final CarrierCodec codec;
     private final ItemEnchanter enchanter;
     private final ContentHolder content;
     private final Random random;
     private final java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig; // §I general book likeness
+    private final java.util.function.Supplier<compile.load.DustConfig> dustConfig; // §I top-level success dust
+    private final java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig; // §I white scroll
 
-    /** Test/fixture form: the built-in enchant-book likeness. */
+    /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
-        this(codec, enchanter, content, random, compile.load.EnchantBookConfig::defaults);
+        this(codec, enchanter, content, random, compile.load.EnchantBookConfig::defaults,
+                compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
     }
 
-    /** Canonical form (the composition root): {@code bookConfig} is the live general enchant-book likeness. */
+    /** Book-config form: the general enchant-book likeness supplied; dust/white-scroll at their defaults. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig) {
+        this(codec, enchanter, content, random, bookConfig,
+                compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
+    }
+
+    /**
+     * Canonical form (the composition root): the live likeness suppliers for the general enchant book, the
+     * top-level success dust, and the white scroll — each re-read on use so a {@code /se reload} re-tunes them.
+     */
+    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
+                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
+                          java.util.function.Supplier<compile.load.DustConfig> dustConfig,
+                          java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
         this.random = Objects.requireNonNull(random, "random");
         this.bookConfig = Objects.requireNonNull(bookConfig, "bookConfig");
+        this.dustConfig = Objects.requireNonNull(dustConfig, "dustConfig");
+        this.whiteScrollConfig = Objects.requireNonNull(whiteScrollConfig, "whiteScrollConfig");
     }
 
     /** Create one carrier {@link ItemStack} from {@code def} (material, name, lore, carrier PDC). */
@@ -73,6 +95,36 @@ public final class CarrierService {
     }
 
     /**
+     * Mint a SUCCESS DUST from the top-level {@code items/dust.yml} likeness (§I; ADR-0019) — drag onto an
+     * enchant book to raise its success chance. Identified by the {@link #DUST_KEY} sentinel; its conferred
+     * bonus is read live from config on apply (so a reload re-tunes it), not baked onto the item.
+     */
+    public ItemStack mintDust() {
+        compile.load.DustConfig cfg = dustConfig.get();
+        String bonus = Integer.toString(cfg.successBonus());
+        List<String> lore = new ArrayList<>();
+        for (String line : cfg.lore()) {
+            lore.add(line.replace("{BONUS}", bonus));
+        }
+        ItemStack stack = ItemFactory.build(ItemFactory.material(cfg.material(), Material.GLOWSTONE_DUST),
+                cfg.name().replace("{BONUS}", bonus), lore);
+        codec.write(stack, new CarrierData(DUST_KEY, "", 0));
+        return stack;
+    }
+
+    /**
+     * Mint a WHITE SCROLL from the top-level {@code items/white-scroll.yml} likeness (§I) — drag onto gear
+     * to protect it from enchant destruction once. Identified by the {@link #WHITE_SCROLL_KEY} sentinel; it
+     * grants no content (it stamps the guard marker on apply).
+     */
+    public ItemStack mintWhiteScroll() {
+        compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
+        ItemStack stack = ItemFactory.build(material(cfg.material()), cfg.name(), cfg.lore());
+        codec.write(stack, new CarrierData(WHITE_SCROLL_KEY, "", 0));
+        return stack;
+    }
+
+    /**
      * Apply the carrier {@code carrier} to {@code target}, mutating both (the grant lands on the target,
      * one carrier use is consumed) and returning the outcome. A no-op (ineligible target / missing def /
      * unsupported kind) leaves both stacks untouched.
@@ -90,21 +142,27 @@ public final class CarrierService {
         if (target.getAmount() > 1) {
             return CarrierResult.noop("§cApply the carrier to a single item — split the stack first.");
         }
+        // Top-level item carriers (items/dust.yml, items/white-scroll.yml) identify by a stable sentinel
+        // key and read their LIVE likeness from config — so a reload re-tunes them — independent of the
+        // ItemDef escape hatch below.
+        if (DUST_KEY.equals(data.itemKey())) {
+            compile.load.DustConfig cfg = dustConfig.get();
+            return applyDustBonus(carrier, target, cfg.successBonus(), cfg.sound(), cfg.particles());
+        }
+        if (WHITE_SCROLL_KEY.equals(data.itemKey())) {
+            return applyProtect(carrier, target);
+        }
+
         // Mechanics come from the authored ItemDef when present; an ad-hoc book (no def) uses defaults
         // (always succeeds, never destroys). The grant itself always comes from the carrier's PDC.
         ItemDef def = itemDef(data.itemKey());
 
-        // Dust combines onto a book — the one carrier-onto-carrier interaction (ADR-0019).
+        // Operator-authored content/items carriers (the ItemDef escape hatch): dust / protect by their def.
         if (def != null && isDust(def)) {
             return applyDust(carrier, target, def);
         }
         if (def != null && isProtectScroll(def)) {
-            if (codec.isGuarded(target)) {
-                return CarrierResult.noop("§7That item is already protected.");
-            }
-            codec.setGuarded(target, true);
-            consume(carrier);
-            return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
+            return applyProtect(carrier, target);
         }
         if (!data.grants()) {
             return CarrierResult.noop("§cThis carrier grants nothing applicable.");
@@ -279,8 +337,17 @@ public final class CarrierService {
         if (cursorData == null) {
             return false;
         }
-        ItemDef cursorDef = itemDef(cursorData.itemKey());
-        if (cursorDef == null || !isDust(cursorDef) || dustBonus(cursorDef) <= 0) {
+        int bonus;
+        if (DUST_KEY.equals(cursorData.itemKey())) {
+            bonus = dustConfig.get().successBonus(); // the top-level items/dust.yml sentinel
+        } else {
+            ItemDef cursorDef = itemDef(cursorData.itemKey());
+            if (cursorDef == null || !isDust(cursorDef)) {
+                return false;
+            }
+            bonus = dustBonus(cursorDef); // an operator-authored content dust
+        }
+        if (bonus <= 0) {
             return false;
         }
         CarrierData targetData = codec.read(target);
@@ -298,6 +365,22 @@ public final class CarrierService {
      * leaves both stacks untouched.
      */
     private CarrierResult applyDust(ItemStack dust, ItemStack book, ItemDef dustDef) {
+        // §I: hand the dust's configured sound + particle tokens to the listener (it plays them on the
+        // player's own region thread). A dust with no feedback configured falls back to a plain result.
+        ItemDef.Grant grant = dustDef.grant();
+        return applyDustBonus(dust, book, dustBonus(dustDef),
+                grant == null ? null : grant.sound(),
+                grant == null ? java.util.List.of() : grant.particles());
+    }
+
+    /**
+     * Raise {@code book}'s stored success bonus by {@code bonus}, clamped so its effective success can never
+     * exceed 100%, re-render its lore from state, and consume the {@code dust}. Shared by the top-level
+     * {@code items/dust.yml} sentinel and the operator-authored content dust (ADR-0019). A no-op (target not
+     * a content book, no bonus, or the book already at 100%) leaves both stacks untouched.
+     */
+    private CarrierResult applyDustBonus(ItemStack dust, ItemStack book, int bonus, String sound,
+                                         java.util.List<String> particles) {
         CarrierData bookData = codec.read(book);
         ItemDef bookDef = bookData == null ? null : itemDef(bookData.itemKey());
         // A dust only boosts a content-granting book/tome/gem — never another dust, a scroll, or plain gear.
@@ -308,7 +391,6 @@ public final class CarrierService {
         if (effectiveSuccess(base, bookData.successBonus()) >= 100) {
             return CarrierResult.noop("§7That book is already at 100% success.");
         }
-        int bonus = dustBonus(dustDef);
         if (bonus <= 0) {
             return CarrierResult.noop("§cThis dust confers no success bonus.");
         }
@@ -319,13 +401,18 @@ public final class CarrierService {
             reRenderLore(book, bookDef, updated);
         }
         consume(dust);
-        // §I: hand the dust's configured sound + particle tokens to the listener (it plays them on the
-        // player's own region thread). A dust with no feedback configured falls back to a plain result.
-        ItemDef.Grant grant = dustDef.grant();
         return CarrierResult.consumed("§aThe book's success chance is now §f"
-                + effectiveSuccess(base, newBonus) + "%§a.",
-                grant == null ? null : grant.sound(),
-                grant == null ? java.util.List.of() : grant.particles());
+                + effectiveSuccess(base, newBonus) + "%§a.", sound, particles);
+    }
+
+    /** Stamp the one-shot guard marker on {@code target} (white scroll / protect scroll), consuming the carrier. */
+    private CarrierResult applyProtect(ItemStack carrier, ItemStack target) {
+        if (codec.isGuarded(target)) {
+            return CarrierResult.noop("§7That item is already protected.");
+        }
+        codec.setGuarded(target, true);
+        consume(carrier);
+        return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
     }
 
     /** Re-render a carrier's lore from its def + current state (lore is rendered from state, never parsed). */
