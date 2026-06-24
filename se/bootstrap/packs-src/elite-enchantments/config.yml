@@ -71,8 +71,9 @@ lore:
   unknown-label: "&8Unknown Enchant"  # shown for a stored key no longer in the catalog
 
 # Integration discovery (§N). Toggles read ONCE at boot (un-discovering a provider mid-run is not clean), so a
-# change here takes effect on the next server start. Named integrations (worldguard, vault, …) read from the
-# 'named' map below; an unlisted name is enabled.
+# change here takes effect on the next server start. Named integrations (worldguard, vault, mental, …) read
+# from the 'named' map below; an unlisted name is enabled. e.g. `named: {mental: false}` stops StarEnchants
+# coordinating KNOCKBACK_CONTROL with the Mental knockback plugin.
 integrations:
   protection: true   # discover ProtectionProviders for the region/build gate
   economy: true      # discover an EconomyProvider for the money effects

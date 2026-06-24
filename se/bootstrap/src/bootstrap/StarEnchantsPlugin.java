@@ -44,6 +44,7 @@ import feature.combat.EquipListener;
 import feature.combat.ImmuneListener;
 import feature.combat.KeepOnDeathListener;
 import feature.combat.KnockbackListener;
+import feature.combat.MentalKnockbackBridge;
 import feature.combat.TeleblockListener;
 import feature.crystal.CrystalListener;
 import feature.crystal.CrystalService;
@@ -406,6 +407,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // destroystokyo), capability-probed. A no-op on a server with neither (the effect is simply inert).
         KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
+        // §N Mental integration: with the Mental knockback plugin installed it OWNS player knockback (it
+        // overwrites the velocity event with its own residual-computed vector), so the vanilla applier above
+        // is discarded for players. Bind Mental's KnockbackApplyEvent so KNOCKBACK_CONTROL composes onto
+        // Mental's vector instead of being silently lost. Reflective (no hard dep); honours
+        // integrations.named.mental. See docs/decisions/0026.
+        MentalKnockbackBridge.Path mentalPath = MentalKnockbackBridge.register(
+                this, knockback, tick::get, master.config().integrations().enabled("mental"));
+        getLogger().info("Mental knockback coordination: " + mentalPath);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);

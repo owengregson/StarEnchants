@@ -33,6 +33,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0023](0023-config-packs.md) | Config packs (swappable whole-config presets) | Accepted |
 | [0024](0024-exotic-effect-ports.md) | Expression-valued effect args + the exotic EE-effect ports | Accepted |
 | [0025](0025-automated-releases.md) | Automated releases — version-bump-driven GitHub Release of the universal jar | Accepted |
+| [0026](0026-mental-knockback-coordination.md) | Coordinate KNOCKBACK_CONTROL with the Mental knockback plugin (reflective core edge) | Accepted |
 
 ## Process
 
