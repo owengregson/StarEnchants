@@ -3,6 +3,7 @@ package integrate;
 import integrate.anticheat.AntiCheat;
 import integrate.combat.Mcmmo;
 import integrate.economy.VaultEconomyProvider;
+import integrate.entity.MythicMobs;
 import integrate.papi.PapiPassthrough;
 import integrate.papi.SePlaceholderExpansion;
 import integrate.protect.FactionsProvider;
@@ -122,6 +123,15 @@ public final class Integrations {
      */
     public static BiPredicate<Player, Player> mcmmoFriendlyFire(Plugin plugin, Predicate<String> enabled) {
         return enabled.test("mcmmo") ? Mcmmo.sameParty(plugin) : (attacker, victim) -> false;
+    }
+
+    /**
+     * The MythicMobs mob-type resolver ({@code entity → internal name}) to install as the engine's
+     * {@code %victim.mobtype%} source, or a constant {@code ""} when MythicMobs is absent/disabled.
+     */
+    public static java.util.function.Function<org.bukkit.entity.Entity, String> mythicMobType(
+            Plugin plugin, Predicate<String> enabled) {
+        return enabled.test("mythicmobs") ? MythicMobs.mobType(plugin) : entity -> "";
     }
 
     /** Present + enabled + not disabled in config. String-only, so it never loads an absent plugin's API. */

@@ -85,6 +85,8 @@ public final class BuiltinVars {
                 .string("actor.type")
                 .string("victim.helditem")
                 .string("block.type")
+                // Appended in v3.7 §N — the MythicMobs mob-type fact (resolved via a soft hook).
+                .string("victim.mobtype")
                 .build();
     }
 }
