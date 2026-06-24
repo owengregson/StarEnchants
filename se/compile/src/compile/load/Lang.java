@@ -125,6 +125,23 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.migrate.review",
                 "&7Review the &f# TODO &7markers in &f{TARGET}&7, then move files into content/.");
         s.put("command.migrate.failed", "&cMigration failed reading &f{SOURCE}&c: {ERROR}");
+        s.put("command.pack.empty", "&7No config packs found. Create one with &f/se pack export <name>&7.");
+        s.put("command.pack.list-header", "&eConfig packs &7({COUNT}):");
+        s.put("command.pack.list-entry", "&e  {NAME} &7— {DESC} &8({FILES} files)");
+        s.put("command.pack.info",
+                "&ePack &f{NAME}&e: &7{DESC} &8| author {AUTHOR} | created {CREATED} | {FILES} files");
+        s.put("command.pack.unknown", "&cNo such pack: &f{NAME}&c. Use &f/se pack list&c.");
+        s.put("command.pack.bad-name",
+                "&cInvalid pack name &f{NAME}&c — use letters, digits, &7_&c and &7-&c only.");
+        s.put("command.pack.apply-start", "&7Applying config pack &f{NAME}&7…");
+        s.put("command.pack.apply-done",
+                "&aApplied pack &f{NAME}&a ({FILES} files). &7Previous config backed up as &f{BACKUP}&7.");
+        s.put("command.pack.apply-skipped",
+                "&e{N} pack entr(ies) were outside the config surface and were skipped.");
+        s.put("command.pack.apply-note",
+                "&7Config swapped + reloaded. &8Toggled features/integrations need a server restart.");
+        s.put("command.pack.export-done", "&aExported the current config as pack &f{NAME}&a ({FILES} files).");
+        s.put("command.pack.error", "&cPack operation failed: &f{ERROR}");
         s.put("command.enchant.usage", "&eUsage: /se enchant <key> [level]");
         s.put("command.crystal.usage", "&eUsage: /se crystal <key> &7— a crystal you drag onto gear to apply");
         s.put("command.unopened.usage", "&eUsage: /se unopened <tier> &7— right-click it to reveal a random book");
@@ -270,12 +287,19 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&e  /se gem &7— mint a soul gem (right-click it to toggle soul mode)",
                 "&e  /se soulmode &7— toggle soul mode for the held gem",
                 "&e  /se split <amount> &7— split souls off the held gem into a new gem",
-                "&e  /se migrate <ee|ea|ae> <path> &7— import legacy EE/EA/AdvancedEnchantments configs"));
+                "&e  /se migrate <ee|ea|ae> <path> &7— import legacy EE/EA/AdvancedEnchantments configs",
+                "&e  /se pack <list|info|apply|export> &7— manage config packs (swap the whole config)"));
         l.put("command.migrate.usage", List.of(
                 "&eUsage: /se migrate <ee|ea|ae> <sourcePath>",
                 "&7  ee &8— path to EliteEnchantments' enchantments.yml",
                 "&7  ea &8— path to EliteArmor's armor/ directory",
                 "&7  ae &8— path to AdvancedEnchantments' enchantments.yml"));
+        l.put("command.pack.usage", List.of(
+                "&eUsage: /se pack <action>",
+                "&7  list &8— show every available config pack",
+                "&7  info <name> &8— show a pack's details",
+                "&7  apply <name> &8— back up the current config, swap in the pack, and reload",
+                "&7  export <name> [description] &8— save the current config as a new pack"));
 
         return new Lang(s, l, List.of());
     }
