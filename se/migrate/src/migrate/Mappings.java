@@ -51,19 +51,61 @@ public final class Mappings {
             Map.entry("LEGGINGS", List.of("LEGGINGS")),
             Map.entry("BOOTS", List.of("BOOTS")));
 
-    /** Legacy target token → StarEnchants selector. */
-    private static String target(String legacy) {
-        return switch (legacy == null ? "" : legacy.trim().toUpperCase(java.util.Locale.ROOT)) {
+    /**
+     * Legacy target token → StarEnchants selector, direction-aware. On a DEFENSE enchant the foe is the
+     * {@code @Attacker} (the entity that hit the wielder); on an ATTACK enchant it is the {@code @Victim}.
+     * EE {@code PLAYER}/{@code SELF} is always the wielder ({@code @Self}).
+     */
+    private static String target(String legacy, boolean defenseDir) {
+        return switch (legacy == null ? "" : legacy.trim().toUpperCase(Locale.ROOT)) {
             case "PLAYER", "SELF" -> "@Self";
-            case "TARGET", "VICTIM" -> "@Victim";
-            case "ATTACKER" -> "@Attacker";
-            default -> "@Victim"; // the common combat default
+            case "ATTACKER" -> defenseDir ? "@Attacker" : "@Self"; // on attack, the attacker IS the wielder
+            case "TARGET", "VICTIM" -> defenseDir ? "@Attacker" : "@Victim";
+            default -> defenseDir ? "@Attacker" : "@Victim"; // the combat foe is the default recipient
         };
     }
 
-    /** Map a legacy enchant type to a StarEnchants trigger, or {@code null} if it has no equivalent. */
+    /** ":@Selector" suffix for an EE target token, direction-aware. */
+    private static String sel(String legacy, boolean defenseDir) {
+        return ":" + target(legacy, defenseDir);
+    }
+
+    /** The foe selector for the current direction: {@code @Victim} on attack, {@code @Attacker} on defence. */
+    private static String foe(boolean defenseDir) {
+        return defenseDir ? "@Attacker" : "@Victim";
+    }
+
+    /**
+     * Map a legacy enchant type to a StarEnchants trigger, or {@code null} if it has no equivalent. EE's
+     * {@code REPEATING} / {@code REPEATING-<seconds>} both map to the {@code REPEATING} trigger (the period
+     * is read separately by {@link #repeatTicks}).
+     */
     public static String trigger(String legacyType) {
-        return legacyType == null ? null : TRIGGERS.get(legacyType.trim().toUpperCase(java.util.Locale.ROOT));
+        if (legacyType == null) {
+            return null;
+        }
+        String key = legacyType.trim().toUpperCase(Locale.ROOT);
+        if (key.startsWith("REPEATING")) {
+            return "REPEATING";
+        }
+        return TRIGGERS.get(key);
+    }
+
+    /** The REPEATING period in ticks for an EE {@code REPEATING-<seconds>} type (0 if not a repeating type). */
+    public static int repeatTicks(String legacyType) {
+        if (legacyType == null) {
+            return 0;
+        }
+        String key = legacyType.trim().toUpperCase(Locale.ROOT);
+        int dash = key.indexOf('-');
+        if (!key.startsWith("REPEATING") || dash < 0) {
+            return 0;
+        }
+        try {
+            return Math.max(0, Integer.parseInt(key.substring(dash + 1).trim())) * 20;
+        } catch (NumberFormatException notANumber) {
+            return 0;
+        }
     }
 
     /** Map a legacy applies group to StarEnchants {@code applies-to}, or empty if unknown. */
@@ -74,46 +116,159 @@ public final class Mappings {
         return APPLIES.getOrDefault(legacyApplies.trim().toUpperCase(java.util.Locale.ROOT), List.of());
     }
 
-    /**
-     * Translate one legacy effect token to a {@link MigratedEffect}. Faithful for the verified core
-     * (semantics confirmed against the legacy source); everything else is a TODO carrying the original
-     * token and a reason, so the operator ports it by hand rather than receiving a silently-wrong value.
-     */
+    /** An EE numeric condition: {@code isPlayerHealth}/{@code isTargetHealth} <op> N (op may be EE's bare {@code =}). */
+    private static final Pattern EE_NUMERIC_COND = Pattern.compile(
+            "(?i)(isPlayerHealth|isTargetHealth)\\s*(<=|>=|<|>|==|!=|=)\\s*(-?\\d+(?:\\.\\d+)?)");
+
+    /** Translate an EE effect token defaulting to the ATTACK direction (the wielder is the aggressor). */
     public static MigratedEffect effect(String legacyToken) {
+        return effect(legacyToken, false);
+    }
+
+    /**
+     * Translate one EE effect token to a {@link MigratedEffect}, direction-aware: {@code defenseDirection}
+     * flips the foe selector to {@code @Attacker} on a DEFENSE enchant (vs {@code @Victim} on attack). The
+     * verified EE vocabulary is translated faithfully (seconds→ticks ×20, random ranges→max, EE rarity
+     * groups→SE groups, durability/suppress/spawn families); a head with no StarEnchants equivalent
+     * (DROP_HEAD, GANK, ROT_DECAY, SNIPER, …) is a {@link MigratedEffect#todo}, never guessed.
+     */
+    public static MigratedEffect effect(String legacyToken, boolean defenseDirection) {
         String token = legacyToken == null ? "" : legacyToken.trim();
+        // EE's ender-walker uses a "DEFENSE;<factor>;<inner-effect>" compound — port the inner effect and note
+        // the EE damage-threshold factor was dropped (StarEnchants has no per-effect threshold gate).
+        if (token.toUpperCase(Locale.ROOT).startsWith("DEFENSE;")) {
+            String[] seg = token.split(";", 3);
+            if (seg.length == 3) {
+                MigratedEffect inner = effect(seg[2], defenseDirection);
+                return inner.mapped()
+                        ? MigratedEffect.mapped(token, inner.se(),
+                                "EE DEFENSE-threshold factor " + seg[1] + " dropped (no SE per-effect gate)")
+                        : MigratedEffect.todo(token, "EE DEFENSE-compound inner effect did not map: " + inner.note());
+            }
+            return MigratedEffect.todo(token, "unrecognised EE DEFENSE-compound effect shape");
+        }
         String[] parts = token.split(":");
-        String head = parts.length == 0 ? "" : parts[0].trim().toUpperCase(java.util.Locale.ROOT);
+        String head = parts.length == 0 ? "" : parts[0].trim().toUpperCase(Locale.ROOT);
         try {
             return switch (head) {
-                // DAMAGE:MIN:MAX:[PLAYER/TARGET] → DAMAGE:<max>:@target (the random range collapses to its upper bound).
+                // DAMAGE:MIN:MAX:[target] → DAMAGE:<max>:@target (random range collapses to its upper bound).
                 case "DAMAGE" -> parts.length >= 4
-                        ? MigratedEffect.mapped(token, "DAMAGE:" + intArg(parts[2]) + ":" + target(parts[3]),
+                        ? MigratedEffect.mapped(token, "DAMAGE:" + intArg(parts[2]) + sel(parts[3], defenseDirection),
                                 "legacy random range " + parts[1] + "-" + parts[2] + " collapsed to its max")
                         : MigratedEffect.todo(token, "unexpected DAMAGE arg shape");
-                // FLAME:SECONDS:[PLAYER/TARGET] → IGNITE:<seconds*20 ticks>:@target.
+                // FLAME:SECONDS:[target] → IGNITE:<seconds*20 ticks>:@target.
                 case "FLAME" -> parts.length >= 3
-                        ? MigratedEffect.mapped(token, "IGNITE:" + (intArg(parts[1]) * 20) + ":" + target(parts[2]),
-                                "legacy seconds converted to ticks (x20)")
+                        ? MigratedEffect.mapped(token, "IGNITE:" + (intArg(parts[1]) * 20) + sel(parts[2], defenseDirection),
+                                "legacy seconds → ticks (x20)")
                         : MigratedEffect.todo(token, "unexpected FLAME arg shape");
-                // EXTINGUISH:[PLAYER/TARGET] → EXTINGUISH:@target.
+                // POTION:TYPE:LEVEL:[target]:[durationSeconds] → POTION:type:level:<dur*20>:@target.
+                case "POTION" -> eePotion(token, parts, defenseDirection);
+                // HEAL:ADD:MIN[:MAX][:target] → MODIFY_HEALTH:<amount>:give:@Self (random range → max; self-heal).
+                case "HEAL" -> eeHeal(token, parts);
+                // REDUCTION:PCT → DAMAGE_MOD:defense:add:<0..100> (incoming-damage reduction percent).
+                case "REDUCTION" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "DAMAGE_MOD:defense:add:" + clampPct(parts[1]),
+                                pct(parts[1]) > 100 ? "clamped to the 0-100 reduction cap" : "")
+                        : MigratedEffect.todo(token, "unexpected REDUCTION arg shape");
+                // DAMAGE_INCREASE:PCT → DAMAGE_MOD:attack:add:<pct> (a negative self-nerf has no SE equivalent → TODO).
+                case "DAMAGE_INCREASE" -> damageIncrease(token, parts);
+                // CURE:TYPE[:true] → REMOVE_POTION:<type>:@Self (clear that effect from the wielder).
+                case "CURE" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "REMOVE_POTION:" + parts[1].trim() + ":@Self",
+                                "EE CURE → REMOVE_POTION (self)")
+                        : MigratedEffect.todo(token, "unexpected CURE arg shape");
+                // PARTICLE:TYPE[:...] → PARTICLE:<type> at the activation location (a ';'-compound/custom name → TODO).
+                case "PARTICLE" -> (parts.length >= 2 && !parts[1].contains(";"))
+                        ? MigratedEffect.mapped(token, "PARTICLE:" + parts[1].trim(),
+                                "EE particle target dropped (SE spawns at the activation location)")
+                        : MigratedEffect.todo(token, "EE compound/custom particle has no SE equivalent");
+                // SOUND:NAME:VOLUME[:PITCH] → SOUND:name:volume:pitch (pitch defaults to 1).
+                case "SOUND" -> parts.length >= 3
+                        ? MigratedEffect.mapped(token, "SOUND:" + parts[1].trim() + ":" + numArg(parts[2])
+                                + ":" + (parts.length >= 4 ? numArg(parts[3]) : "1"), "")
+                        : MigratedEffect.todo(token, "unexpected SOUND arg shape");
+                // ADD_DURABILITY[_ITEM]:N → DURABILITY:<n>:item:restore (restore N points to the held item).
+                case "ADD_DURABILITY", "ADD_DURABILITY_ITEM" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "DURABILITY:" + intArg(parts[1]) + ":item:restore",
+                                "EE add-durability → DURABILITY (restore)")
+                        : MigratedEffect.todo(token, "unexpected ADD_DURABILITY arg shape");
+                // DAMAGE_CANCEL → DAMAGE_MOD:defense:add:100 (a full incoming-damage reduction ≈ cancel the hit).
+                case "DAMAGE_CANCEL" -> MigratedEffect.mapped(token, "DAMAGE_MOD:defense:add:100",
+                        "EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)");
+                // ARMOR_CANCEL → IGNORE_ARMOR (the hit ignores the victim's armour + protection reduction).
+                case "ARMOR_CANCEL" -> MigratedEffect.mapped(token, "IGNORE_ARMOR",
+                        "EE ARMOR_CANCEL → IGNORE_ARMOR (bypass the victim's armour)");
+                // DAMAGE_ARMOR:N → DURABILITY:<n>:armor:damage:@foe (damage the foe's worn armour).
+                case "DAMAGE_ARMOR" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "DURABILITY:" + intArg(parts[1]) + ":armor:damage:"
+                                + foe(defenseDirection), "EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)")
+                        : MigratedEffect.todo(token, "unexpected DAMAGE_ARMOR arg shape");
+                // DAMAGE_ARC:DMG → DAMAGE:<dmg>:@Aoe (area damage; SE @Aoe default radius may differ).
+                case "DAMAGE_ARC" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "DAMAGE:" + numArg(parts[1]) + ":@Aoe",
+                                "EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)")
+                        : MigratedEffect.todo(token, "unexpected DAMAGE_ARC arg shape");
+                // LIGHTNING:[target]:REAL → LIGHTNING:5:@foe (real ≈ 5 dmg); without REAL it is cosmetic (0).
+                case "LIGHTNING" -> eeLightning(token, parts, defenseDirection);
+                // EXPLODE:POWER:FIRE:[target] → EXPLODE:<power>:false:@foe (EE fire flag dropped; no block break).
+                case "EXPLODE" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "EXPLODE:" + numArg(parts[1]) + ":false"
+                                + (parts.length >= 4 ? sel(parts[3], defenseDirection) : ""),
+                                "EE fire flag dropped; breakBlocks=false")
+                        : MigratedEffect.todo(token, "unexpected EXPLODE arg shape");
+                // THROW:X:Y:Z:[target] → VELOCITY:add:x:y:z:@target.
+                case "THROW" -> parts.length >= 4
+                        ? MigratedEffect.mapped(token, "VELOCITY:add:" + numArg(parts[1]) + ":" + numArg(parts[2])
+                                + ":" + numArg(parts[3])
+                                + (parts.length >= 5 ? sel(parts[4], defenseDirection) : ":@Self"),
+                                "EE THROW → VELOCITY (add)")
+                        : MigratedEffect.todo(token, "unexpected THROW arg shape");
+                // TNT:N:[target] → SPAWN_ENTITY:PRIMED_TNT:<n> at the activator.
+                case "TNT" -> parts.length >= 2
+                        ? MigratedEffect.mapped(token, "SPAWN_ENTITY:PRIMED_TNT:" + intArg(parts[1]),
+                                "EE TNT → SPAWN_ENTITY (primed tnt at the activator)")
+                        : MigratedEffect.todo(token, "unexpected TNT arg shape");
+                // SPAWN:ENTITY:DURsec:AMOUNT:RADIUS:NAME → SPAWN_ENTITY:<entity>:<amount>:<dur*20>:0:activator.
+                case "SPAWN" -> parts.length >= 4
+                        ? MigratedEffect.mapped(token, "SPAWN_ENTITY:" + parts[1].trim() + ":" + intArg(parts[3])
+                                + ":" + (intArg(parts[2]) * 20) + ":0:activator",
+                                "EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)")
+                        : MigratedEffect.todo(token, "unexpected SPAWN arg shape");
+                // DISABLE_ENCHANTMENT:KEY:SEC → SUPPRESS:ENCHANT:enchants/<key>:<sec*20>:@foe.
+                case "DISABLE_ENCHANTMENT" -> parts.length >= 3
+                        ? MigratedEffect.mapped(token, "SUPPRESS:ENCHANT:enchants/" + parts[1].trim()
+                                + ":" + (intArg(parts[2]) * 20) + ":" + foe(defenseDirection),
+                                "EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)")
+                        : MigratedEffect.todo(token, "unexpected DISABLE_ENCHANTMENT arg shape");
+                // DISABLE_ENCHANTMENT_GROUP:GROUP:SEC → SUPPRESS:GROUP:<group>:<sec*20>:@foe (group = EE rarity).
+                case "DISABLE_ENCHANTMENT_GROUP" -> parts.length >= 3
+                        ? MigratedEffect.mapped(token, "SUPPRESS:GROUP:" + parts[1].trim().toLowerCase(Locale.ROOT)
+                                + ":" + (intArg(parts[2]) * 20) + ":" + foe(defenseDirection),
+                                "EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)")
+                        : MigratedEffect.todo(token, "unexpected DISABLE_ENCHANTMENT_GROUP arg shape");
+                // DISABLE_ENCHANTMENT_TYPE:TYPE:SEC → SUPPRESS:TYPE:<type>:<sec*20>:@foe.
+                case "DISABLE_ENCHANTMENT_TYPE" -> parts.length >= 3
+                        ? MigratedEffect.mapped(token, "SUPPRESS:TYPE:" + parts[1].trim().toUpperCase(Locale.ROOT)
+                                + ":" + (intArg(parts[2]) * 20) + ":" + foe(defenseDirection),
+                                "EE disable-type → SUPPRESS:TYPE (seconds → ticks)")
+                        : MigratedEffect.todo(token, "unexpected DISABLE_ENCHANTMENT_TYPE arg shape");
+                // EXTINGUISH:[target] → EXTINGUISH:@target (defaults to the wielder).
                 case "EXTINGUISH" -> MigratedEffect.mapped(token,
-                        "EXTINGUISH:" + target(parts.length >= 2 ? parts[1] : "TARGET"), "");
-                // FEED:[AMOUNT] → MODIFY_FOOD:<amount>:give (StarEnchants feeds the actor).
+                        "EXTINGUISH" + (parts.length >= 2 ? sel(parts[1], defenseDirection) : ":@Self"), "");
+                // FEED:[AMOUNT] → MODIFY_FOOD:<amount>:give (the wielder).
                 case "FEED" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "MODIFY_FOOD:" + intArg(parts[1]) + ":give",
-                                "EE FEED → MODIFY_FOOD (give)")
+                        ? MigratedEffect.mapped(token, "MODIFY_FOOD:" + intArg(parts[1]) + ":give", "EE FEED → MODIFY_FOOD")
                         : MigratedEffect.todo(token, "unexpected FEED arg shape");
-                // EXP:[AMOUNT] → MODIFY_EXP:<amount>:give (give is the default mode).
+                // EXP:[AMOUNT] → MODIFY_EXP:<amount>:give.
                 case "EXP" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "MODIFY_EXP:" + intArg(parts[1]) + ":give", "EXP → MODIFY_EXP (give)")
+                        ? MigratedEffect.mapped(token, "MODIFY_EXP:" + intArg(parts[1]) + ":give", "EXP → MODIFY_EXP")
                         : MigratedEffect.todo(token, "unexpected EXP arg shape");
-                // KILL (excludes players in both engines) → KILL (defaults to @Victim).
-                case "KILL" -> MigratedEffect.mapped(token, "KILL", "");
-                // REPAIR (held item) → DURABILITY (full restore of the held item; -1 = full repair).
-                case "REPAIR" -> MigratedEffect.mapped(token, "DURABILITY:-1:item", "REPAIR collapsed into DURABILITY");
-                // MESSAGE:[MESSAGE]:[PLAYER/TARGET] → MESSAGE:<text> (StarEnchants messages the actor). A body
-                // that itself contains ':' is demoted to a TODO: the effect lexer splits a bare arg on ':',
-                // so emitting it would silently truncate the message — better the operator quotes it by hand.
+                // KILL:[target] (excludes players in both engines) → KILL:@foe.
+                case "KILL" -> MigratedEffect.mapped(token, "KILL:" + foe(defenseDirection), "");
+                // REPAIR → DURABILITY:-1:item (full restore of the held item).
+                case "REPAIR" -> MigratedEffect.mapped(token, "DURABILITY:-1:item", "REPAIR → DURABILITY");
+                // MESSAGE:TEXT[:target] → MESSAGE:<text> (the actor). A ':'-bearing body is a TODO: the effect
+                // lexer splits a bare arg on ':', so emitting it would silently truncate the message.
                 case "MESSAGE" -> {
                     String body = messageBody(token);
                     yield body.indexOf(':') >= 0
@@ -123,11 +278,119 @@ public final class Mappings {
                                     "legacy target dropped — StarEnchants messages the actor");
                 }
                 default -> MigratedEffect.todo(token,
-                        "no StarEnchants equivalent for '" + head + "' in v1 — port this effect manually");
+                        "no StarEnchants equivalent for EE effect '" + head + "' — port this effect manually");
             };
         } catch (NumberFormatException badNumber) {
             return MigratedEffect.todo(token, "could not parse a numeric argument: " + badNumber.getMessage());
         }
+    }
+
+    /** POTION:TYPE:LEVEL:[target]:[durationSeconds] → SE {@code POTION:type:level:<ticks>:@target}. */
+    private static MigratedEffect eePotion(String token, String[] parts, boolean defenseDir) {
+        if (parts.length < 3) {
+            return MigratedEffect.todo(token, "unexpected POTION arg shape (TYPE:LEVEL[:target[:seconds]])");
+        }
+        String type = parts[1].trim();
+        int level = intArg(parts[2]);
+        String targetTok = parts.length >= 4 ? parts[3] : "TARGET";
+        int durTicks;
+        String note;
+        if (parts.length >= 5) {
+            durTicks = intArg(parts[4]) * 20;
+            note = "EE seconds → ticks (x20)";
+        } else {
+            durTicks = 200; // EE omitted the duration (a held-buff form) — default 10s; review for held enchants
+            note = "EE omitted duration — defaulted to 200t (10s); review for held buffs";
+        }
+        return MigratedEffect.mapped(token, "POTION:" + type + ":" + level + ":" + durTicks
+                + sel(targetTok, defenseDir), note);
+    }
+
+    /** HEAL:ADD:MIN[:MAX][:target] → {@code MODIFY_HEALTH:<amount>:give:@Self} (amount = the last numeric arg). */
+    private static MigratedEffect eeHeal(String token, String[] parts) {
+        if (parts.length < 3 || !parts[1].trim().equalsIgnoreCase("ADD")) {
+            return MigratedEffect.todo(token, "unexpected HEAL arg shape (only HEAL:ADD is mapped)");
+        }
+        Integer amount = null;
+        for (int i = 2; i < parts.length; i++) { // last numeric wins (the range max); a trailing target is ignored
+            try {
+                amount = Integer.parseInt(parts[i].trim());
+            } catch (NumberFormatException notNumeric) {
+                /* an EE target word (PLAYER/…) — StarEnchants heals the wielder regardless */
+            }
+        }
+        return amount == null
+                ? MigratedEffect.todo(token, "HEAL:ADD has no numeric amount")
+                : MigratedEffect.mapped(token, "MODIFY_HEALTH:" + amount + ":give:@Self",
+                        "EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max");
+    }
+
+    /** DAMAGE_INCREASE:PCT → {@code DAMAGE_MOD:attack:add:<pct>} (a negative self-nerf is a TODO). */
+    private static MigratedEffect damageIncrease(String token, String[] parts) {
+        if (parts.length < 2) {
+            return MigratedEffect.todo(token, "unexpected DAMAGE_INCREASE arg shape");
+        }
+        double value = pct(parts[1]);
+        return value < 0
+                ? MigratedEffect.todo(token,
+                        "negative DAMAGE_INCREASE (a self-nerf) has no SE attack-side equivalent — port manually")
+                : MigratedEffect.mapped(token, "DAMAGE_MOD:attack:add:" + trimNumber(value),
+                        "EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add");
+    }
+
+    /** LIGHTNING:[target]:REAL → {@code LIGHTNING:5:@foe} (real ≈ 5 dmg); without REAL → cosmetic ({@code 0}). */
+    private static MigratedEffect eeLightning(String token, String[] parts, boolean defenseDir) {
+        boolean real = false;
+        String targetTok = "TARGET";
+        for (int i = 1; i < parts.length; i++) {
+            String p = parts[i].trim();
+            if (p.equalsIgnoreCase("REAL")) {
+                real = true;
+            } else if (!p.isEmpty()) {
+                targetTok = p;
+            }
+        }
+        return MigratedEffect.mapped(token, "LIGHTNING:" + (real ? "5" : "0") + sel(targetTok, defenseDir),
+                real ? "EE real lightning ≈ 5 damage" : "cosmetic lightning");
+    }
+
+    /** Parse a percentage/decimal arg as a double. */
+    private static double pct(String s) {
+        return Double.parseDouble(s.trim());
+    }
+
+    /** A percentage clamped to 0..100, rendered without a trailing {@code .0}. */
+    private static String clampPct(String s) {
+        return trimNumber(Math.max(0, Math.min(100, pct(s))));
+    }
+
+    /**
+     * Translate one EE {@code condition:} string to a {@link MigratedCondition}. EE conditions are a small
+     * fixed vocabulary: {@code isPlayerHealth <op> N} → {@code %actor.health% <op> N}; {@code isTargetHealth
+     * <op> N} → {@code %victim.health% <op> N}; {@code isPlayerBlocking} → {@code %blocking% == true}.
+     * {@code isTargetHolding <ITEM-GROUP>} has no SE fact ({@code %victim.helditem%} is a single material,
+     * not a group test) → a TODO, never a silently-wrong gate.
+     */
+    public static MigratedCondition eeCondition(String line) {
+        String raw = line == null ? "" : line.trim();
+        if (raw.isEmpty()) {
+            return MigratedCondition.todo("empty condition");
+        }
+        String low = raw.toLowerCase(Locale.ROOT);
+        if (low.startsWith("isplayerblocking")) {
+            return MigratedCondition.mapped("%blocking% == true");
+        }
+        Matcher num = EE_NUMERIC_COND.matcher(raw);
+        if (num.matches()) {
+            String fact = num.group(1).equalsIgnoreCase("isPlayerHealth") ? "actor.health" : "victim.health";
+            String op = num.group(2).equals("=") ? "==" : num.group(2); // EE single '=' → SE '=='
+            return MigratedCondition.mapped("%" + fact + "% " + op + " " + num.group(3));
+        }
+        if (low.startsWith("istargetholding")) {
+            return MigratedCondition.todo("EE isTargetHolding checks an item GROUP; SE %victim.helditem% is a single "
+                    + "material with no group test — port manually");
+        }
+        return MigratedCondition.todo("unrecognised EE condition '" + raw + "' — port manually");
     }
 
     /**
