@@ -13,11 +13,10 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The slot-economy cold path (docs/v3-directives.md §H) — MINTS the two slot items (the upgrade orb, a
- * configurable {@code +N}, and the slot gem, {@code +1}) and APPLIES one onto a piece of gear, raising the
- * gear's purchased {@link CombatState#added()} slot count. Both items share one universal
- * {@link SlotConfig#hardCap() cap} on the TOTAL slots (base + added) any item may reach, so a stack of orbs
- * cannot grow an item without bound.
+ * The slot-economy cold path (docs/v3-directives.md §H) — MINTS the upgrade orb (a configurable {@code +N})
+ * and APPLIES it onto a piece of gear, raising the gear's purchased {@link CombatState#added()} slot count,
+ * clamped to one universal {@link SlotConfig#hardCap() cap} on the TOTAL slots (base + added) any item may
+ * reach, so a stack of orbs cannot grow an item without bound.
  *
  * <p>The granted slots persist in the gear's combat blob; the slot item itself is identity-only
  * ({@link SlotItemCodec}), off the combat hot path. Deterministic (no roll). Folia-correct: a gesture fires
@@ -60,7 +59,7 @@ public final class SlotService {
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
-    /** Whether {@code stack} is a slot expander / gem item. */
+    /** Whether {@code stack} is a slot expander (orb) item. */
     public boolean isSlotItem(ItemStack stack) {
         return codec.isSlotItem(stack);
     }
@@ -74,17 +73,6 @@ public final class SlotService {
                 cfg.orbName().replace("{AMOUNT}", amount),
                 renderLore(cfg.orbLore(), amount));
         codec.mark(stack, cfg.orbAmount());
-        return stack;
-    }
-
-    /** Mint a slot gem (grants {@code +1}). */
-    public ItemStack mintGem() {
-        SlotConfig cfg = config.get();
-        ItemStack stack = ItemFactory.build(
-                ItemFactory.material(cfg.gemMaterial(), Material.AMETHYST_SHARD),
-                cfg.gemName().replace("{AMOUNT}", "1"),
-                renderLore(cfg.gemLore(), "1"));
-        codec.mark(stack, 1);
         return stack;
     }
 

@@ -245,7 +245,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
                 () -> items.config().heroicOrDefault(), new java.util.Random(), messages);
 
-        // Slot economy (§H): mint + drag-apply the upgrade orb (+N) / slot gem (+1) onto gear, raising its
+        // Slot economy (§H): mint + drag-apply the upgrade orb (+N) onto gear, raising its
         // persisted CombatState.added slot count (clamped to the config's universal hard cap). baseSlots
         // matches the ItemEnchanter default so the cap is computed against the same base capacity.
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of(this).slotItem());

@@ -109,7 +109,7 @@ public final class ItemKeys {
     }
 
     /**
-     * The key that marks an item as a SLOT EXPANDER / SLOT GEM (docs/v3-directives.md §H) — a one-shot
+     * The key that marks an item as a SLOT EXPANDER orb (docs/v3-directives.md §H) — a one-shot
      * consumable dragged onto gear to raise its enchant-slot count, storing the {@code +N} it grants.
      * An identity marker, off the combat hot path (the granted slots persist in the combat blob's
      * {@code added} field, not here).

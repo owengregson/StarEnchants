@@ -84,7 +84,7 @@ public final class ItemsLoader {
                         heroic = Optional.of(readHeroic(root, diags));
                     }
                 }
-                case "slots", "slot", "slot-expander" -> {
+                case "slot-orb", "slots", "slot", "slot-expander" -> {
                     if (slots.isPresent()) {
                         diags.warning("W_ITEM_DUP", "more than one slots config (" + name + "); keeping the first",
                                 root.source());
@@ -178,9 +178,6 @@ public final class ItemsLoader {
                 orDefault(root.string("orb-name"), d.orbName()),
                 root.has("orb-lore") ? root.stringList("orb-lore") : d.orbLore(),
                 parseInt(root.string("orb-amount"), d.orbAmount(), root, diags),
-                orDefault(root.string("gem-material"), d.gemMaterial()),
-                orDefault(root.string("gem-name"), d.gemName()),
-                root.has("gem-lore") ? root.stringList("gem-lore") : d.gemLore(),
                 parseInt(root.string("hard-cap"), d.hardCap(), root, diags));
     }
 

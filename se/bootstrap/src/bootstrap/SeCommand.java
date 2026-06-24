@@ -49,14 +49,14 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
-            List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb", "slotgem",
+            List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb",
                     "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
                     "unopened", "soulmode",
                     "split", "migrate", "menu", "effects", "selectors", "triggers", "conditions", "variables", "list");
 
     /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
-            List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb", "slotgem",
+            List.of("gem", "crystal", "extractor", "book", "item", "set", "heroic", "upgrade", "orb",
                     "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "unopened");
 
     /** The set members {@code /se give set <player> <set> <member>} can mint (§6.6). */
@@ -120,8 +120,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "removeenchant", "unenchant" -> removeHeld(sender, args);
             case "crystal" -> giveCrystal(sender, args);
             case "heroic" -> giveHeroic(sender);
-            case "orb" -> giveSlotItem(sender, true);
-            case "slotgem" -> giveSlotItem(sender, false);
+            case "orb" -> giveSlotItem(sender);
             case "gem" -> giveGem(sender);
             case "book" -> giveBook(sender, args);
             case "blackscroll" -> giveScroll(sender, true);
@@ -496,7 +495,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             }
             case "heroic", "upgrade" -> deliver(sender, target, heroics.mint(), "command.give.heroic", "heroic upgrade");
             case "orb" -> deliver(sender, target, slots.mintOrb(), "command.give.slot", "slot expander");
-            case "slotgem" -> deliver(sender, target, slots.mintGem(), "command.give.slot", "slot gem");
             case "blackscroll" -> deliver(sender, target, scrolls.mintBlack(), "command.give.blackscroll", "black scroll");
             case "randomizer" -> deliver(sender, target, scrolls.mintRandomizer(), "command.give.randomizer", "randomizer scroll");
             case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
@@ -783,17 +781,17 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
-    /** {@code /se orb} / {@code /se slotgem} — mint a slot expander (+N) / slot gem (+1) and give it. */
-    private void giveSlotItem(CommandSender sender, boolean orb) {
+    /** {@code /se orb} — mint a slot expander (+N) and give it. */
+    private void giveSlotItem(CommandSender sender) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
         Scheduling.onEntity(player, () -> {
-            ItemStack item = orb ? slots.mintOrb() : slots.mintGem();
+            ItemStack item = slots.mintOrb();
             player.getInventory().addItem(item).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            player.sendMessage(messages.format("command.give.slot", "KIND", orb ? "slot expander" : "slot gem"));
+            player.sendMessage(messages.format("command.give.slot", "KIND", "slot expander"));
         });
     }
 

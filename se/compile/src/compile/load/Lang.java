@@ -149,8 +149,8 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         // §J give-to-player surface + the inverse removeenchant
         s.put("command.give.usage",
                 "&eUsage: /se give <type> <player> [args] &7— type: gem [amount] | crystal <key> | book <enchant> "
-                        + "[level] [success] | item <id> [args] | heroic | upgrade | orb | slotgem | blackscroll | "
-                        + "randomizer | transmog | holy | nametag | unopened <tier>");
+                        + "[level] [success] | item <id> [args] | heroic | upgrade | orb | blackscroll | "
+                        + "randomizer | transmog | godlytransmog | holy | nametag | unopened <tier>");
         s.put("command.give.delivered", "&aGave &f{ITEM}&a to &f{PLAYER}&a.");
         s.put("command.give.item", "&aReceived &f{ID}&a.");
         s.put("command.give.set", "&aMinted the &f{KEY}&a {PIECE} piece. &7Wear the set to complete its bonus.");
@@ -255,7 +255,6 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&e  /se crystal <key> &7— mint a crystal item (drag it onto gear to apply)",
                 "&e  /se heroic &7— mint a heroic upgrade (drag it onto armour/weapon)",
                 "&e  /se orb &7— mint a slot expander (drag onto gear for +N slots)",
-                "&e  /se slotgem &7— mint a slot gem (drag onto gear for +1 slot)",
                 "&e  /se blackscroll &7— mint a black scroll (extract an enchant into a book)",
                 "&e  /se randomizer &7— mint a randomizer scroll (reroll a book's success)",
                 "&e  /se transmog &7— mint a transmog scroll (reorder enchant lore)",
