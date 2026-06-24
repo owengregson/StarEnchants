@@ -8,13 +8,16 @@ import static org.mockito.Mockito.when;
 
 import engine.effect.EffectCtx;
 import engine.sink.Sink;
+import java.util.List;
 import java.util.UUID;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test for {@code REMOVE_SOULS}: it debits the activator's active gem when in soul mode, and is a
- * no-op otherwise. Exactly ONE debit intent is emitted (the dupe-risk subsystem — a single sink call).
+ * Mock-host test for {@code REMOVE_SOULS}: it debits the activator's active gem when {@code @Self} targets
+ * the activator and they are in soul mode, drains a victim's own gem when {@code @Victim} targets another
+ * player, and is a no-op otherwise. Exactly ONE debit intent is emitted (the dupe-risk subsystem).
  */
 class RemoveSoulsEffectTest {
 
@@ -26,6 +29,7 @@ class RemoveSoulsEffectTest {
         when(ctx.activeGem()).thenReturn(gemId);
         when(ctx.actor()).thenReturn(holder);
         when(ctx.integer("amount")).thenReturn(5);
+        when(ctx.targets("who")).thenReturn(List.of(holder)); // @Self resolves to the activator
 
         Sink sink = mock(Sink.class);
         new RemoveSoulsEffect().run(ctx, sink);
@@ -35,12 +39,29 @@ class RemoveSoulsEffectTest {
     }
 
     @Test
+    void drainsAVictimsOwnGem() {
+        Player holder = mock(Player.class);
+        Player victim = mock(Player.class);
+        EffectCtx ctx = mock(EffectCtx.class);
+        when(ctx.actor()).thenReturn(holder);
+        when(ctx.integer("amount")).thenReturn(300);
+        when(ctx.targets("who")).thenReturn(List.<LivingEntity>of(victim)); // @Victim resolves to the foe
+
+        Sink sink = mock(Sink.class);
+        new RemoveSoulsEffect().run(ctx, sink);
+
+        verify(sink).removeSoulsFrom(victim, 300); // drains the victim's OWN gem (not the activator's)
+        verifyNoMoreInteractions(sink);
+    }
+
+    @Test
     void noOpWhenNotInSoulMode() {
         Player holder = mock(Player.class);
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.activeGem()).thenReturn(null); // no active gem
         when(ctx.actor()).thenReturn(holder);
         when(ctx.integer("amount")).thenReturn(5);
+        when(ctx.targets("who")).thenReturn(List.of(holder));
 
         Sink sink = mock(Sink.class);
         new RemoveSoulsEffect().run(ctx, sink);
@@ -51,7 +72,6 @@ class RemoveSoulsEffectTest {
     @Test
     void noOpOnNonPositiveAmount() {
         EffectCtx ctx = mock(EffectCtx.class);
-        when(ctx.activeGem()).thenReturn(UUID.randomUUID());
         when(ctx.actor()).thenReturn(mock(Player.class));
         when(ctx.integer("amount")).thenReturn(0);
 

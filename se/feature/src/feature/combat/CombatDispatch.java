@@ -8,9 +8,12 @@ import engine.run.ActivationContext;
 import engine.run.FactPopulator;
 import engine.sink.DispatchSink;
 import engine.sink.SoulDebit;
+import engine.stores.ComboStore;
+import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
+import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
 import feature.soul.SoulBinding;
 import feature.trigger.TriggerRunner;
@@ -56,6 +59,10 @@ public final class CombatDispatch {
     private final SuppressionStore suppression;
     private final KnockbackControlStore knockback;
     private final KeepOnDeathStore keepOnDeath;
+    private final TeleblockStore teleblock;
+    private final ImmuneStore immune;
+    // Combat-local consecutive-hit streak (the %combo% fact); owned here since only combat writes it.
+    private final ComboStore combo = new ComboStore();
     private final LongSupplier nowTicks;
     private final java.util.function.DoubleSupplier maxHeroicOutgoing; // §F config.yml heroic.max-outgoing-factor
     private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
@@ -124,7 +131,8 @@ public final class CombatDispatch {
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
                           java.util.function.DoubleSupplier maxHeroicOutgoing) {
         this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
-                nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath, maxHeroicOutgoing,
+                nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
+                new TeleblockStore(), new ImmuneStore(), maxHeroicOutgoing,
                 () -> -1.0, () -> -1.0, () -> true, () -> true); // combat caps uncapped + PvP/PvE on by default
     }
 
@@ -141,6 +149,7 @@ public final class CombatDispatch {
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
+                          TeleblockStore teleblock, ImmuneStore immune,
                           java.util.function.DoubleSupplier maxHeroicOutgoing,
                           java.util.function.DoubleSupplier maxBonusDamage,
                           java.util.function.DoubleSupplier maxBonusReduction,
@@ -154,6 +163,8 @@ public final class CombatDispatch {
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.knockback = Objects.requireNonNull(knockback, "knockback");
         this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
+        this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
+        this.immune = Objects.requireNonNull(immune, "immune");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         this.maxHeroicOutgoing = Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing");
         this.maxBonusDamage = Objects.requireNonNull(maxBonusDamage, "maxBonusDamage");
@@ -191,7 +202,7 @@ public final class CombatDispatch {
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
-                nowTicks, maxHeroicOutgoing);
+                teleblock, immune, nowTicks, maxHeroicOutgoing);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
 
         // PvP/PvE gates (config.yml combat.pvp/pve): a side whose context is disabled contributes nothing to
@@ -202,8 +213,11 @@ public final class CombatDispatch {
         // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer)) {
             int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
+            // Extend the attacker's consecutive-hit streak for the %combo% fact (RAGE-style scaling, §3.4).
+            int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong());
             runner.run(abilities, snapshot.generation(), worldId, attackId, true,
-                    attackerPlayer, new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null), sink,
+                    attackerPlayer,
+                    new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null, streak), sink,
                     snapshot.stableKeys());
         }
         // Defense side: the player victim's DEFENSE abilities retaliate against the attacker. A player victim

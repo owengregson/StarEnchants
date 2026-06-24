@@ -45,6 +45,7 @@ public final class BuiltinEffects {
                 .register(new MoneyEffect()) // §C canonical MODIFY_MONEY (give/take/transfer); replaces GIVE_MONEY/TAKE_MONEY
                 .register(new RemoveSoulsEffect()) // §D actor-only soul debit; charges the activator's active gem
                 .register(new DisarmEffect())
+                .register(new RemoveArmorEffect()) // EE REMOVE_ARMOR: drop a random worn armour piece
                 // World / spawn intents.
                 .register(new ExplodeEffect())
                 .register(new SpawnEntityEffect()) // §C canonical; replaces SPAWN/TNT (FIREBALL folded into PROJECTILE)
@@ -72,7 +73,13 @@ public final class BuiltinEffects {
                 .register(new IgnoreArmorEffect()) // § combat-flags IGNORE_ARMOR: hit bypasses armor/protection
                 .register(new KnockbackControlEffect()) // § combat-flags KNOCKBACK_CONTROL: cancel/scale incoming knockback
                 .register(new KeepOnDeathEffect()) // § combat-flags KEEP_ON_DEATH: keep items+levels on a death
+                .register(new TeleblockEffect()) // § combat-flags TELEBLOCK: block a target from teleporting
+                .register(new ImmuneEffect()) // § combat-flags IMMUNE: timed immunity to a damage cause
                 .register(new SuppressEffect()) // §C SUPPRESS: disable a target's enchant/group/type (DISABLE_*)
+                // Inline read-backs applied by the MINE / BOW_FIRE dispatchers (EE SMELT/TELEPORT_DROPS/AUTO_LOCK).
+                .register(new SmeltEffect())
+                .register(new TeleportDropsEffect())
+                .register(new SeekEffect())
                 .build();
     }
 }
