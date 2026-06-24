@@ -1,0 +1,14 @@
+# Enchant Book (docs/v3-directives.md §I) — the GENERAL likeness of EVERY enchant book. There is no
+# per-enchant book file: a specific book (from /se give book, the unopened/randomized book, combine, or a
+# drop) is minted from this one likeness with the enchant/level/success filled in. Reload with /se reload.
+# Placeholders: {ENCHANT} = the enchant's display name, {LEVEL} = the granted level, {SUCCESS} = the apply
+# success chance (only in success-lore, appended when the book has an explicit success chance).
+type: enchant-book
+
+material: ENCHANTED_BOOK
+name: "{ENCHANT} &7Book"
+lore:
+  - "&7Drag onto a held/worn item to apply &fLevel {LEVEL}&7."
+# Extra line(s) shown only when the book carries an explicit success chance (e.g. from an unopened book).
+success-lore:
+  - "&7Success chance: &f{SUCCESS}%"

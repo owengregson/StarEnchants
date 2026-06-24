@@ -36,6 +36,7 @@ public final class ItemsLoader {
         Optional<SlotConfig> slots = Optional.empty();
         Optional<ScrollsConfig> scrolls = Optional.empty();
         Optional<UnopenedBookConfig> unopenedBook = Optional.empty();
+        Optional<EnchantBookConfig> enchantBook = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -108,10 +109,18 @@ public final class ItemsLoader {
                         unopenedBook = Optional.of(readUnopenedBook(root, diags));
                     }
                 }
+                case "enchant-book", "book" -> {
+                    if (enchantBook.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one enchant-book config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        enchantBook = Optional.of(readEnchantBook(root, diags));
+                    }
+                }
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
-        return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, diags.all());
+        return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, enchantBook, diags.all());
     }
 
     private static ScrollsConfig readScrolls(YamlNode root, Diagnostics diags) {
@@ -159,6 +168,15 @@ public final class ItemsLoader {
                         orDefault(godly.string("material"), gd.material()),
                         orDefault(godly.string("name"), gd.name()),
                         godly.has("lore") ? godly.stringList("lore") : gd.lore()));
+    }
+
+    private static EnchantBookConfig readEnchantBook(YamlNode root, Diagnostics diags) {
+        EnchantBookConfig d = EnchantBookConfig.defaults();
+        return new EnchantBookConfig(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                root.has("success-lore") ? root.stringList("success-lore") : d.successLore());
     }
 
     private static UnopenedBookConfig readUnopenedBook(YamlNode root, Diagnostics diags) {

@@ -37,12 +37,21 @@ public final class CarrierService {
     private final ItemEnchanter enchanter;
     private final ContentHolder content;
     private final Random random;
+    private final java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig; // §I general book likeness
 
+    /** Test/fixture form: the built-in enchant-book likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
+        this(codec, enchanter, content, random, compile.load.EnchantBookConfig::defaults);
+    }
+
+    /** Canonical form (the composition root): {@code bookConfig} is the live general enchant-book likeness. */
+    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
+                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
         this.random = Objects.requireNonNull(random, "random");
+        this.bookConfig = Objects.requireNonNull(bookConfig, "bookConfig");
     }
 
     /** Create one carrier {@link ItemStack} from {@code def} (material, name, lore, carrier PDC). */
@@ -132,49 +141,48 @@ public final class CarrierService {
     }
 
     /**
-     * Mint an ad-hoc enchant BOOK for an arbitrary enchant (no authored {@code ItemDef} needed) — an
-     * ENCHANTED_BOOK with the enchant's display name + a hint, carrying the grant in PDC. It applies with
-     * default mechanics (always succeeds, never destroys). Used by {@code /se book} for admins/testing.
+     * Mint an enchant BOOK for an arbitrary enchant from the GENERAL {@code items/enchant-book.yml} likeness
+     * (no per-enchant config) — the enchant's display name fills {@code {ENCHANT}}, the level fills
+     * {@code {LEVEL}}. It applies with default mechanics (always succeeds, never destroys). Used by
+     * {@code /se give book}, combine, etc.
      */
-    @SuppressWarnings("deprecation") // setDisplayName/setLore(String/List): the floor-stable item-meta path
     public ItemStack mintBook(String enchantKey, int level) {
-        ItemStack stack = new ItemStack(Material.ENCHANTED_BOOK);
-        ItemMeta meta = stack.getItemMeta();
-        if (meta != null) {
-            String name = content.library().displayNameOf(enchantKey);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
-                    (name != null ? name : enchantKey) + " &7Book"));
-            meta.setLore(List.of(ChatColor.translateAlternateColorCodes('&',
-                    "&7Drag onto a held/worn item to apply &flevel " + level + "&7.")));
-            stack.setItemMeta(meta);
-        }
-        // itemKey "book" resolves to no ItemDef → applyTo uses default mechanics.
+        ItemStack stack = bookLikeness(enchantKey, level, -1);
         codec.write(stack, new CarrierData("book", enchantKey, level));
         return stack;
     }
 
     /**
-     * Mint an ad-hoc enchant BOOK that applies at an explicit {@code successChance} (§I) — used by the
-     * unopened/randomized book, which yields a concrete book of a random enchant with a random level and
-     * success. Like {@link #mintBook(String, int)} but the book carries a base-success override, so its
-     * apply rolls against {@code successChance} rather than always succeeding.
+     * Mint an enchant BOOK that applies at an explicit {@code successChance} (§I) — used by the unopened/
+     * randomized book. Like {@link #mintBook(String, int)} but the general likeness's {@code success-lore}
+     * (with {@code {SUCCESS}}) is appended and the book carries a base-success override.
      */
-    @SuppressWarnings("deprecation") // setDisplayName/setLore(String/List): the floor-stable item-meta path
     public ItemStack mintBook(String enchantKey, int level, int successChance) {
         int chance = clampPercent(successChance);
-        ItemStack stack = new ItemStack(Material.ENCHANTED_BOOK);
-        ItemMeta meta = stack.getItemMeta();
-        if (meta != null) {
-            String name = content.library().displayNameOf(enchantKey);
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
-                    (name != null ? name : enchantKey) + " &7Book"));
-            meta.setLore(List.of(
-                    ChatColor.translateAlternateColorCodes('&', "&7Drag onto an item to apply &flevel " + level + "&7."),
-                    ChatColor.translateAlternateColorCodes('&', "&7Success chance: &f" + chance + "%")));
-            stack.setItemMeta(meta);
-        }
+        ItemStack stack = bookLikeness(enchantKey, level, chance);
         codec.write(stack, new CarrierData("book", enchantKey, level, 0, chance));
         return stack;
+    }
+
+    /** Build the visible book item from the general likeness (success {@code < 0} omits the success line). */
+    private ItemStack bookLikeness(String enchantKey, int level, int successChance) {
+        compile.load.EnchantBookConfig cfg = bookConfig.get();
+        String name = content.library().displayNameOf(enchantKey);
+        String display = cfg.name()
+                .replace("{ENCHANT}", name != null ? name : enchantKey)
+                .replace("{LEVEL}", Integer.toString(level));
+        List<String> lore = new ArrayList<>();
+        for (String line : cfg.lore()) {
+            lore.add(line.replace("{ENCHANT}", name != null ? name : enchantKey)
+                    .replace("{LEVEL}", Integer.toString(level)));
+        }
+        if (successChance >= 0) {
+            for (String line : cfg.successLore()) {
+                lore.add(line.replace("{LEVEL}", Integer.toString(level))
+                        .replace("{SUCCESS}", Integer.toString(successChance)));
+            }
+        }
+        return ItemFactory.build(ItemFactory.material(cfg.material(), Material.ENCHANTED_BOOK), display, lore);
     }
 
     /** The enchant a book grants and at what level, or empty when {@code stack} is not an enchant book. */

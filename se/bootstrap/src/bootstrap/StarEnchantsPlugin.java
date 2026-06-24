@@ -228,7 +228,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Carrier economy (ADR-0016): mint + apply books/scrolls onto gear. Cold path — the carrier PDC is
         // separate from the combat blob, so it never decodes on the hot path. Random for the success roll.
         CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of(this).carrier(), ItemKeys.of(this).guarded());
-        CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random());
+        CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
+                () -> items.config().enchantBookOrDefault()); // §I general enchant-book likeness, live-reloaded
 
         // Physical crystal items (§E): mint + drag-apply (success roll + consume) + multi-crystal merge.
         // The crystal-item PDC is separate from the combat blob; the applied crystal becomes one crystal-slot
