@@ -93,12 +93,16 @@ Bring your existing EliteEnchantments, EliteArmor &amp; AdvancedEnchantments con
 
 <p align="center"><img src="assets/headers/building.svg" height="54" alt="Building from source"></p>
 
+StarEnchants builds with the bundled Gradle wrapper — no global toolchain to install. One universal jar covers the whole range (Paper 1.17.1 → 26.1.x and Folia).
+
 ```bash
 git clone https://github.com/owengregson/StarEnchants.git
 cd StarEnchants
 scripts/setup-dev.sh          # prereqs + git hooks + build (idempotent)
 ./gradlew build               # compile + pure unit tests
 ```
+
+The shaded fat jar lands in `bootstrap/build/libs/`; drop it into any server in the range.
 
 ### Project layout
 
@@ -126,24 +130,75 @@ A flat, single-segment module tree under `se/` — each module's package is one 
 scripts/run-matrix.sh    # boot real Paper AND Folia servers across the range, run the live suites
 ```
 
-A green Paper run says nothing about Folia — both must pass fresh. One universal jar runs the whole range (Paper 1.17.1 → 26.1.x + Folia): a version-agnostic core, boot-time resolvers for version-volatile surfaces, and one Folia-safe scheduling abstraction.
+A green Paper run says nothing about Folia — **both must pass fresh**. The matrix boots real servers across the whole range; the universal jar relies on a version-agnostic core, boot-time resolvers for version-volatile surfaces, and one Folia-safe scheduling abstraction. Full procedure: **[docs/dev/verification-gate.md](docs/dev/verification-gate.md)**.
 
-### The docs site is generated from the engine
+<br>
 
-`website/` is the Docusaurus docs site (auto-deployed to GitHub Pages). Its DSL reference and the web Enchant Creator are driven by `website/src/data/catalog.json`, which `engine.doc.ReferenceCatalogJson` generates from the live registries and a drift test (`ReferenceCatalogDriftTest`) keeps in lock-step — so changing an effect without regenerating fails `./gradlew build`. Regenerate the generated docs with:
+<p align="center"><img src="assets/headers/documentation.svg" height="54" alt="Developer documentation"></p>
 
-```bash
-./gradlew :engine:test --tests "*ReferenceDocDriftTest" --tests "*ReferenceCatalogDriftTest" -Dse.doc.regen=true
-```
+Every developer doc lives in one place — start at the hub and follow the trail:
 
-### Where to read more (contributors)
+<p align="center">
+  <a href="docs/dev/README.md"><b>📚 docs/dev/ — the developer documentation hub&nbsp;→</b></a>
+</p>
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — workflow, branching model, commit conventions.
-- **[docs/architecture.md](docs/architecture.md)** — the self-derived engine design.
-- **[docs/decisions/](docs/decisions/)** — the ADRs (the *why* behind every major choice).
-- **[docs/development.md](docs/development.md)** — the build / run / see-it-live loop.
-- **[docs/glossary.md](docs/glossary.md)** — domain vocabulary.
-- **[CLAUDE.md](CLAUDE.md)** + **`.claude/skills/`** — the engineering invariants and hard-won, per-area knowledge.
+It is organized into **getting started**, **internals** (how the engine works), and **guides** (how to extend it) — all linked from the sections below. Player- and operator-facing docs (install, configuration, commands, the DSL reference, the Enchant Creator) instead live on the generated site at **[owengregson.github.io/StarEnchants](https://owengregson.github.io/StarEnchants/)**, so they never drift from the engine.
+
+<br>
+
+<p align="center"><img src="assets/headers/architecture.svg" height="54" alt="Architecture &amp; internals"></p>
+
+The architecture is self-derived: a content compiler that lowers YAML into an immutable snapshot, and a data-oriented runtime that executes it. Read the design top-down, then dive into the subsystem you're touching.
+
+- **[docs/architecture.md](docs/architecture.md)** — the whole self-derived engine design, top to bottom.
+- **[docs/decisions/](docs/decisions/)** — the ADRs: the *why* behind every major choice.
+- **[docs/glossary.md](docs/glossary.md)** — domain vocabulary (effect, trigger, selector, Sink, Affinity, WornState, …).
+
+Subsystem internals:
+
+| Doc | Covers |
+| :-- | :-- |
+| **[effect-engine.md](docs/dev/internals/effect-engine.md)** | stateless systems, the activation pipeline, gate order, the `Ability` record, the Sink, dispatch |
+| **[item-data-model.md](docs/dev/internals/item-data-model.md)** | item state, the PDC codec, the `ItemView` cache, component stores, `WornState`, lore/name render |
+| **[compiler-and-config.md](docs/dev/internals/compiler-and-config.md)** | resolve → typecheck → lower → erase → snapshot, diagnostics, transactional reload |
+| **[feature-interactions.md](docs/dev/internals/feature-interactions.md)** | damage stacking, enchant/group/type suppression, souls, slots, crystals, omni/multi-set completion |
+| **[cross-version-api.md](docs/dev/internals/cross-version-api.md)** | the 1.17.1 → 26.1.x surface, the 1.20.5 mapping flip, enum→registry breaks, boot-time resolvers |
+| **[folia-scheduling.md](docs/dev/internals/folia-scheduling.md)** | Folia's region/entity/global thread model and the scheduling abstraction that makes one codebase correct on both |
+| **[performance-hot-paths.md](docs/dev/internals/performance-hot-paths.md)** | the combat/item hot path, declared Affinity, the Sink/cache/interning, the lint + JMH gate |
+| **[the-migrator.md](docs/dev/internals/the-migrator.md)** | the EE / EA / AE config importer and the legacy-item migration path |
+| **[config-packs.md](docs/dev/internals/config-packs.md)** | the config-pack (ZIP snapshot) format — export, import, share |
+
+<br>
+
+<p align="center"><img src="assets/headers/extending.svg" height="54" alt="Extending the plugin"></p>
+
+Adding a feature is local — one interface plus one registration. Each how-to walks the full loop, from declaring the kind to a live test that proves it:
+
+| Add a… | Guide |
+| :-- | :-- |
+| new **effect** | **[developing-an-effect.md](docs/dev/guides/developing-an-effect.md)** |
+| new **condition** | **[developing-a-condition.md](docs/dev/guides/developing-a-condition.md)** |
+| new **selector** | **[developing-a-selector.md](docs/dev/guides/developing-a-selector.md)** |
+| new **trigger** | **[developing-a-trigger.md](docs/dev/guides/developing-a-trigger.md)** |
+| new **DSL grammar** | **[extending-the-dsl-grammar.md](docs/dev/guides/extending-the-dsl-grammar.md)** |
+| new **item type** | **[adding-an-item-type.md](docs/dev/guides/adding-an-item-type.md)** |
+| new **integration** | **[adding-an-integration.md](docs/dev/guides/adding-an-integration.md)** |
+| new **config option** | **[adding-a-config-option.md](docs/dev/guides/adding-a-config-option.md)** |
+| new **command** | **[adding-a-command.md](docs/dev/guides/adding-a-command.md)** |
+
+<br>
+
+<p align="center"><img src="assets/headers/contributing.svg" height="54" alt="Contributing"></p>
+
+Contributions are welcome. The flow is **feature branch → frequent Conventional Commits → PR (CI green) → rebase-merge** (never squash). Enable the hooks once with `scripts/setup-hooks.sh`.
+
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — the full workflow, branching model, and commit conventions.
+- **[docs/dev/getting-started.md](docs/dev/getting-started.md)** — clone-to-first-change, the dev loop, where things live.
+- **[docs/dev/verification-gate.md](docs/dev/verification-gate.md)** — `./gradlew build` then `scripts/run-matrix.sh`; how to read results honestly (Paper green ≠ Folia green).
+- **[docs/dev/writing-a-live-test.md](docs/dev/writing-a-live-test.md)** — author an in-server Paper + Folia integration test.
+- **[docs/dev/regenerating-generated-docs.md](docs/dev/regenerating-generated-docs.md)** — the DSL reference and Enchant Creator are generated from the live registries; run `./gradlew regenDocs` (a drift test fails the build if you skip it).
+- **[docs/dev/release-process.md](docs/dev/release-process.md)** — cutting a tagged release.
+- **[CLAUDE.md](CLAUDE.md)** + **`.claude/skills/`** — the engineering invariants and hard-won, per-area knowledge to check *before* working in an area.
 
 <br>
 
