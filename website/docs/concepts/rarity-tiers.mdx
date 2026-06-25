@@ -5,6 +5,8 @@ sidebar_position: 7
 description: The color, glint, and sort metadata an enchant or crystal carries.
 ---
 
+import TiersTable from '@site/src/components/surface/TiersTable';
+
 # Rarity tiers
 
 A **tier** is the rarity label an enchant or crystal carries — *common, uncommon, rare, epic,
@@ -17,16 +19,9 @@ legendary, mythic*. Tiers are purely **cosmetic and organizational**: they decid
 Each enchant or crystal declares its rarity with a single `tier:` field. Tiers themselves are
 defined once in `content/tiers.yml`, which lists every tier with its color, weight, and glint flag.
 
-The default tier ladder:
+The tier ladder StarEnchants ships with:
 
-| Tier | Color | Weight | Glint |
-| --- | --- | --- | --- |
-| `common` | `&7` gray | 10 | no |
-| `uncommon` | `&a` green | 20 | no |
-| `rare` | `&b` aqua | 30 | no |
-| `epic` | `&d` pink | 40 | yes |
-| `legendary` | `&6` gold | 50 | yes |
-| `mythic` | `&c&l` bold red | 60 | yes |
+<TiersTable/>
 
 :::warning Tiers are never part of an item's identity
 A tier is metadata only — it is **not** part of an enchant's stable key. Re-tiering a file (changing
