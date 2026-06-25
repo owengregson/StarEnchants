@@ -20,6 +20,25 @@ shorter comments. Stupid-simple, but exact.
 > bad as a literal "what" comment. When unsure, cut — but never cut something a
 > reader would need minutes to re-derive.
 
+## Match the comment to the file (read this twice)
+
+Comment depth must match code depth. **Most classes need no class Javadoc, or
+one line.** A multi-paragraph Javadoc block is a red flag — reserve it for a
+genuinely subtle *public* contract, and even then link the authority instead of
+re-explaining it.
+
+- A data holder, utility, config-surface, DTO, or internal helper gets **zero or
+  one line**. Writing a second sentence about a simple class? Stop and delete.
+- Architecture, rationale, and the "how it all fits" essay live in **ADRs and
+  skills**, not re-narrated on every class that touches them. Cite the authority
+  in a clause — *"the surface defined in ADR-0023"* — never reproduce the essay
+  on the class. One `ADR-00NN` pointer replaces a paragraph.
+- The test is not "is this comment true / accurate?" It is **"would a competent
+  reader be lost without it?"** If not, delete it. **Default to delete.**
+- Be aggressive. A pruning pass that removes too little is a failed pass. If a
+  block restates the class name, the field name, or what the next two lines
+  plainly do, it goes — length is not value.
+
 ## Keep (high-value "why")
 
 - The reason behind a non-obvious choice — *"interned so gate 5 is an int compare"*.
@@ -37,6 +56,10 @@ shorter comments. Stupid-simple, but exact.
 - Javadoc that only echoes the method name and parameters.
 - Decorative banners, dividers, section ASCII, and filler preambles (*"Note that…"*).
 - Commented-out code and stale TODOs.
+- **Multi-line class/field Javadoc that re-explains an ADR or the plain purpose
+  of a simple class.** Replace with one clause + an `ADR-00NN` cite, or nothing.
+- A comment on a self-describing declaration — `/** Top-level dirs. */` above
+  `DIRS = List.of("content", "items", "menus")`. The name and value already say it.
 
 ## Style
 
@@ -71,6 +94,25 @@ int hash = contentHash(stack); // cache key: PDC content, not ItemMeta identity 
 public UUID uuid() { return uuid; }        public UUID uuid() { return uuid; }
 ```
 
+```java
+// BEFORE — a six-line essay on a simple config-surface class; re-narrates ADR-0023
+/**
+ * Defines and manipulates the config surface a pack captures (ADR-0023): the top-level
+ * config.yml + lang.yml files and the content/, items/, menus/ trees — exactly what
+ * StarEnchantsPlugin.saveDefaults() extracts on first boot. Everything else in the data
+ * folder (the packs/ dir itself, migrated/, staging, dotfiles) is outside the surface and
+ * is never collected or overwritten. ...
+ */
+// AFTER — one clause, the authority cited not reproduced; the genuine footgun kept
+/** The files/dirs a pack captures (ADR-0023). {@link #writeAll} rejects escapes (.., absolute, foreign top-level). */
+```
+
+```java
+// BEFORE                                                 // AFTER (deleted)
+/** Top-level recursive directories in the surface. */    (nothing — DIRS + its value say it)
+static final List<String> DIRS = List.of("content", "items", "menus");
+```
+
 ## Red flags — stop and cut
 
 - The comment paraphrases the line beneath it.
@@ -78,6 +120,8 @@ public UUID uuid() { return uuid; }        public UUID uuid() { return uuid; }
 - A paragraph where a clause would do.
 - Javadoc on a private one-liner whose name already says it.
 - "Note that", "Basically", "Essentially", "As you can see".
+- A class Javadoc longer than ~2 lines on anything that isn't a subtle *public* API.
+- Any comment you kept only because it was already there and looked harmless.
 
 ## Applying as a cleanup pass
 
