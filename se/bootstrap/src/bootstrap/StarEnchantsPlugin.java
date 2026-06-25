@@ -150,6 +150,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
     private RepeatingDriver passives; // §B REPEATING lifecycle — torn down in onDisable
     private LifecycleDriver lifecycle; // §B HELD/PASSIVE start/stop lifecycle — tracking cleared in onDisable
     private feature.soul.SoulParticleDriver soulParticles; // §D while-active soul aura — stopped in onDisable
+    private bstats.Metrics metrics; // bStats (id 32197) anonymous usage stats — shut down in onDisable
 
     @Override
     public void onEnable() {
@@ -157,6 +158,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         Scheduling.init(this, caps);
         getLogger().info("StarEnchants — " + caps + ", scheduling "
                 + Scheduling.backend().getClass().getSimpleName());
+
+        // bStats (id 32197): anonymous usage metrics. The vendored single-file Metrics (package-relocated
+        // to bstats/) runs its own daemon submit thread and is Folia-aware (it skips the Bukkit-scheduler
+        // hop when Folia is present), so it is correct on Paper AND Folia. Server owners opt out via the
+        // global plugins/bStats/config.yml the class writes on first run.
+        metrics = new bstats.Metrics(this, 32197);
 
         // A monotonic game-tick counter (floor-safe) for cooldown timing.
         AtomicLong tick = new AtomicLong();
@@ -599,6 +606,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
         if (soulParticles != null) {
             soulParticles.stop(); // cancel the §D while-active soul aura task
+        }
+        if (metrics != null) {
+            metrics.shutdown(); // stop the bStats submit thread so it doesn't outlive a /reload
         }
     }
 
