@@ -133,8 +133,8 @@ Layering (each piece is its own small, testable unit):
 - **No Mojang assets are committed** — neither item/GUI textures nor the `font/ascii.png`
   glyph atlas. Everything is fetched at generation time from a vanilla client jar (cached
   under the gitignored `build/`), and only the *composite* PNGs (screenshot-equivalent,
-  permitted for non-commercial use) are committed, each shown with a **"NOT AN OFFICIAL
-  MINECRAFT PRODUCT"** disclaimer (see the docs intro page).
+  permitted for non-commercial use) are committed — to be shown with a **"NOT AN OFFICIAL
+  MINECRAFT PRODUCT"** disclaimer wherever they are eventually embedded in the docs.
 
 ### Not wired into `./gradlew build`
 
