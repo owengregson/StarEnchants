@@ -11,8 +11,7 @@ import schema.spec.D;
 
 /**
  * {@code INVINCIBLE} — make the target(s) invulnerable for a span of ticks, then restore
- * (docs/v3-directives.md §C). Stateless; emits one {@code invincible} intent per resolved target and never
- * touches an entity directly. {@link Affinity#TARGET_ENTITY}: routed to each target's own thread.
+ * (docs/v3-directives.md §C). {@link Affinity#TARGET_ENTITY}.
  */
 public final class InvincibleEffect implements EffectKind {
 

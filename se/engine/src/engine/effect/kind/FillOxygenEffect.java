@@ -9,10 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * {@code FILL_OXYGEN} — refill the target(s) air supply (docs/architecture.md §7).
- * No params; stateless; emits a {@code fillAir} intent per resolved target and never
- * touches an entity directly. {@link Affinity#TARGET_ENTITY}: restoring air mutates
- * the target, so the {@code Sink} routes each intent to the owning entity's thread.
+ * {@code FILL_OXYGEN} — refill the target(s)' air supply (docs/architecture.md §7). {@link Affinity#TARGET_ENTITY}.
  */
 public final class FillOxygenEffect implements EffectKind {
 

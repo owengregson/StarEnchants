@@ -12,7 +12,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code SET_BLOCK}: emits one blockChange per target location, no-op without any. */
+/** Mock-host SET_BLOCK test: one blockChange per target location; no-op when none resolve. */
 class SetBlockEffectTest {
 
     @Test

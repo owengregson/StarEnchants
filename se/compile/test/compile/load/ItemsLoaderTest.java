@@ -43,7 +43,7 @@ class ItemsLoaderTest {
         assertEquals("&5Soul Gem", gem.name());
         assertEquals(List.of("&7Souls: {AMOUNT}", "&7Right-click to toggle."), gem.lore());
         assertEquals(3, gem.soulsPerKill());
-        // (soul-mode messages moved to lang.yml in §L — no longer on the item config)
+        // soul-mode messages live in lang.yml (§L), not on the item config
     }
 
     @Test
@@ -77,8 +77,7 @@ class ItemsLoaderTest {
 
     @Test
     void assemblesTheScrollFamilyFromPerItemFiles(@TempDir Path dir) throws Exception {
-        // The scroll family is now one physical item per file; ItemsLoader assembles them into one
-        // ScrollsConfig, filling any absent member with its default.
+        // each scroll is its own file; ItemsLoader assembles one ScrollsConfig, defaulting absent members
         Files.writeString(dir.resolve("black-scroll.yml"), """
                 type: black-scroll
                 material: COAL
@@ -96,14 +95,12 @@ class ItemsLoaderTest {
         assertEquals("COAL", scrolls.black().material());
         assertEquals("&8Void Scroll", scrolls.black().name());
         assertEquals(50, scrolls.black().successChance());
-        // Omitted black lore falls back to the default.
         assertEquals(ScrollsConfig.defaults().black().lore(), scrolls.black().lore());
         assertEquals("GLOWSTONE_DUST", scrolls.randomizer().material());
         assertEquals(10, scrolls.randomizer().minPercent());
         assertEquals(90, scrolls.randomizer().maxPercent());
-        // Omitted randomizer name falls back to the default.
         assertEquals(ScrollsConfig.defaults().randomizer().name(), scrolls.randomizer().name());
-        // An entirely-absent member (the holy white scroll) is filled from defaults.
+        // an entirely-absent member (holy white scroll) is filled from defaults
         assertEquals(ScrollsConfig.defaults().holy().name(), scrolls.holy().name());
     }
 
@@ -127,7 +124,6 @@ class ItemsLoaderTest {
         assertEquals("REDSTONE", dust.material());
         assertEquals(5, dust.minBonus());
         assertEquals(40, dust.maxBonus());
-        // Omitted sound falls back to the default.
         assertEquals(DustConfig.defaults().sound(), dust.sound());
         WhiteScrollConfig white = config.whiteScroll().orElseThrow();
         assertEquals("MAP", white.material());
@@ -136,7 +132,7 @@ class ItemsLoaderTest {
 
     @Test
     void dustSuccessBonusShorthandIsAFixedRange(@TempDir Path dir) throws Exception {
-        // The legacy `success-bonus` shorthand sets a FIXED dust (min == max).
+        // `success-bonus` shorthand pins a fixed dust: min == max
         Files.writeString(dir.resolve("dust.yml"), "type: dust\nsuccess-bonus: 25\n");
 
         DustConfig dust = ItemsLoader.load(dir).dust().orElseThrow();
@@ -173,10 +169,10 @@ class ItemsLoaderTest {
 
     @Test
     void anUnknownTypeWarnsButDoesNotError(@TempDir Path dir) throws Exception {
-        Files.writeString(dir.resolve("future.yml"), "type: time-machine\n"); // not a recognised item type
+        Files.writeString(dir.resolve("future.yml"), "type: time-machine\n");
 
         ItemsConfig config = ItemsLoader.load(dir);
-        assertFalse(config.hasErrors()); // a warning, not blocking — forward-compatible
+        assertFalse(config.hasErrors()); // warn, don't block — stays forward-compatible
         assertFalse(config.diagnostics().isEmpty());
     }
 
@@ -187,7 +183,7 @@ class ItemsLoaderTest {
         ItemsConfig config = ItemsLoader.load(dir);
         SoulGemConfig gem = config.soulGem().orElseThrow();
         assertEquals(SoulGemConfig.defaults().soulsPerKill(), gem.soulsPerKill());
-        assertFalse(config.hasErrors()); // warning only
+        assertFalse(config.hasErrors());
         assertFalse(config.diagnostics().isEmpty());
     }
 }

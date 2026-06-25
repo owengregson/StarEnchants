@@ -34,8 +34,8 @@ public final class D {
         return ParamType.of(ParamType.Kind.ENUM).allowing(values);
     }
 
-    // ── Version-volatile handles: authored as a token, resolved to an interned id
-    //    at compile time so the runtime never sees a renamed constant (§9). ──
+    // Version-volatile handles: authored as a token, resolved to an interned id at
+    // compile time so the runtime never sees a renamed constant (§9).
 
     /** A material/item name (e.g. {@code DIAMOND_SWORD}). */
     public static ParamType material() {

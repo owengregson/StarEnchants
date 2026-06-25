@@ -11,13 +11,9 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads {@code lang.yml} into an immutable {@link Lang} (docs/v3-directives.md §L). One FILE (like
- * {@link MasterConfigLoader}, unlike the {@code items/} folder): the document is composed with the
- * package-private {@link YamlNode} and walked recursively, flattening nested mappings to dotted keys
- * ({@code command:\n  give:\n    book: "…"} → {@code command.give.book}) and reading sequences into the
- * multi-line block map. The shipped {@link Lang#defaults()} are the base; any key present in the file
- * overrides its default, so a partial {@code lang.yml} is valid (every unset message keeps its default).
- * Never throws — an absent/unreadable file yields {@link Lang#defaults()}, a malformed file a diagnostic.
+ * Loads {@code lang.yml} (one file, not a folder) into an immutable {@link Lang} (§L). {@link Lang#defaults()}
+ * is the base; any key present in the file overrides its default, so a partial {@code lang.yml} is valid.
+ * Never throws: an absent/unreadable file yields {@link Lang#defaults()}, a malformed file a diagnostic.
  */
 public final class LangLoader {
 
@@ -60,7 +56,7 @@ public final class LangLoader {
             } else if (child.isScalar()) {
                 singles.put(key, child.scalar());
             } else {
-                // A sequence (a multi-line block) — read it through the parent + raw key.
+                // Multi-line block: read through the parent + raw key (stringList wants the raw key, not dotted).
                 List<String> list = node.stringList(entry.key());
                 if (!list.isEmpty()) {
                     lists.put(key, list);

@@ -6,16 +6,12 @@ import platform.resolve.RegistryResolvers;
 import tester.harness.Harness;
 
 /**
- * Live checks for the production cross-version resolver (docs/architecture.md §9; cross-version-item-api
- * skill). This is the whole reason the version matrix exists: a token authored in any era
- * ({@code CONFUSION}, {@code DAMAGE_ALL}, {@code SULPHUR}, {@code GENERIC_MAX_HEALTH}, …) must resolve
- * to a handle that genuinely exists on THIS server — across the 1.20.5 spigot&rarr;mojang flip, the
- * 1.21.3 attribute de-prefixing, and the enum&rarr;interface transitions. Each token is its own check
- * so a failure pinpoints the exact (category, token) that did not resolve on the version under test.
- *
- * <p>Both the legacy and modern spelling of representative renames are asserted, so the resolver is
- * proven bidirectional on every version (legacy&rarr;modern on a new server, modern&rarr;legacy on an
- * old one). Pure CPU — resolved synchronously on launch.
+ * Production cross-version resolver, live (docs/architecture.md §9; cross-version-item-api skill) — the
+ * reason the version matrix exists: a token authored in any era must resolve to a handle that exists on
+ * THIS server, across the 1.20.5 spigot&rarr;mojang flip, 1.21.3 attribute de-prefixing, and the
+ * enum&rarr;interface transitions. One check per token pinpoints the exact (category, token) that fails.
+ * Both legacy and modern spellings of representative renames are asserted, proving the resolver
+ * bidirectional on every version.
  */
 public final class ResolverSuite implements Harness.Scenario {
 
@@ -39,8 +35,7 @@ public final class ResolverSuite implements Harness.Scenario {
 
         check(h, "resolve.entity.PIG_ZOMBIE", r.entityType("PIG_ZOMBIE"));   // → ZOMBIFIED_PIGLIN
         check(h, "resolve.entity.ZOMBIE", r.entityType("ZOMBIE"));
-        // Primed TNT: PRIMED_TNT on the floor, TNT in modern — both spellings must resolve on every
-        // version (SPAWN_ENTITY's TNT path relies on this bidirectional alias).
+        // PRIMED_TNT (floor) / TNT (modern) — both must resolve; SPAWN_ENTITY's TNT path needs the alias.
         check(h, "resolve.entity.PRIMED_TNT", r.entityType("PRIMED_TNT"));
         check(h, "resolve.entity.TNT", r.entityType("TNT"));
 
@@ -48,13 +43,12 @@ public final class ResolverSuite implements Harness.Scenario {
         check(h, "resolve.particle.HAPPY_VILLAGER", r.particle("HAPPY_VILLAGER"));
 
         check(h, "resolve.sound.ENTITY_PLAYER_LEVELUP", r.sound("ENTITY_PLAYER_LEVELUP"));
-        // A sound whose name has MULTI-WORD segments (lightning_bolt, ender_dragon): a naive '_'→'.'
-        // registry key mangles the boundary, so on 26.1.x (Sound registry-backed) it only resolves via
-        // the static-field path — this pins that fix across the enum→interface transition.
+        // Multi-word segments (lightning_bolt, ender_dragon): a naive '_'→'.' registry key mangles the
+        // boundary, so on 26.1.x (registry-backed Sound) these resolve only via the static-field path.
         check(h, "resolve.sound.ENTITY_LIGHTNING_BOLT_THUNDER", r.sound("ENTITY_LIGHTNING_BOLT_THUNDER"));
         check(h, "resolve.sound.ENTITY_ENDER_DRAGON_GROWL", r.sound("ENTITY_ENDER_DRAGON_GROWL"));
 
-        // The runtime's id→handle reverse lookup must map a resolved id back to a real name.
+        // The runtime's id→name reverse lookup must round-trip a resolved id back to a real name.
         h.expect("resolve.reverseLookup");
         h.guard("resolve.reverseLookup", () -> {
             OptionalInt id = r.potionEffect("CONFUSION");

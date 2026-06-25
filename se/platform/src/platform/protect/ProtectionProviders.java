@@ -6,13 +6,10 @@ import org.bukkit.Server;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 /**
- * Discovers the {@link ProtectionProvider}s registered on this server (docs/architecture.md §1, §2).
- * Per the "first-party SPI, drop the brittle bundled bridges" direction (§1), StarEnchants bundles NO
- * land-plugin-specific reflection: a region plugin (or a server's own integration plugin) registers a
- * {@link ProtectionProvider} through Bukkit's {@code ServicesManager}, and this collects them. A
- * cross-version-and-Folia-correct WorldGuard/GriefPrevention/… bridge — which must read actor state on
- * the actor's own region thread, untestable on the matrix here — belongs in a separately-verified
- * add-on that registers through this same SPI, not in the core jar.
+ * Discovers the {@link ProtectionProvider}s registered via Bukkit's {@code ServicesManager}
+ * (docs/architecture.md §1, §2). Core bundles NO land-plugin reflection: a cross-version-and-Folia-correct
+ * WorldGuard/GriefPrevention/… bridge must read actor state on the actor's own region thread (untestable
+ * on this matrix), so it belongs in a separately-verified add-on registering through this same SPI.
  */
 public final class ProtectionProviders {
 

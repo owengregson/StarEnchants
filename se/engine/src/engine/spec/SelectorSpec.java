@@ -5,21 +5,15 @@ import schema.spec.ParamSpec;
 import schema.spec.ParamType;
 
 /**
- * The self-describing signature of a selector kind (docs/architecture.md §7,
- * "same pattern for {@code ConditionFn}, {@code TriggerKind}, {@code SelectorKind}").
- * A selector resolves an effect's target set at activation time; its {@code SPEC}
- * declares the named arguments it accepts (e.g. {@code @Aoe{r=4}}).
+ * Self-describing signature of a selector kind (docs/architecture.md §7). A selector resolves an
+ * effect's target set at activation time; its {@code SPEC} declares the named arguments it accepts
+ * (e.g. {@code @Aoe{r=4}}).
  *
- * <p>Unlike {@link EffectSpec} a selector carries no {@link compile.model.Affinity}
- * (routing is decided by the <em>effect's</em> affinity) and no nested target slots
- * (a selector <em>is</em> a target). It is a thin wrapper over the schema's
- * {@link ParamSpec} so a selector argument is validated, completed, documented and
- * migrated by exactly the same "one declaration, four uses" machinery as an effect
- * argument.
+ * <p>Unlike {@link EffectSpec} a selector carries no {@link compile.model.Affinity} (routing follows
+ * the <em>effect's</em> affinity) and no nested target slots (a selector <em>is</em> a target).
  *
- * <p>Builtin selectors used as an effect's <em>default</em> target should keep every
- * argument optional (give it a {@code def(...)}), so the no-argument default path
- * validates cleanly; an author who wants a non-default value writes it inline.
+ * <p>A builtin used as an effect's <em>default</em> target must keep every argument optional (give it
+ * a {@code def(...)}) so the no-argument default path validates cleanly.
  */
 public final class SelectorSpec {
 

@@ -16,15 +16,13 @@ import schema.diag.Source;
  * {@code lore} falls back to the shared {@code items/crystal.yml} {@link CrystalConfig} at mint time
  * (which is also the likeness of a merged multi-crystal, whose two effects can't share one material).
  *
- * @param key        the path-derived base key (e.g. {@code crystals/jolt}) — the key stored on items
- * @param display    the display name (colour codes intact), for lore/name render + GUI
- * @param description a short description for {@code /se docs} + lore; never {@code null} (empty if absent)
- * @param tier       the rarity tier (ADR-0016) for lore colour/glint/GUI sort; may be {@code null}
- * @param material   this crystal item's material token (cross-version-resolved at mint), or {@code null}
- * @param name       this crystal item's display name ({@code &} colours, {@code {CRYSTAL}}), or {@code null}
- * @param lore       this crystal item's lore lines ({@code &} colours, {@code {CRYSTAL}}); empty if absent
- * @param appliesTo  the item target groups this crystal may sit on (named groups, not raw materials)
- * @param source     where this crystal was authored
+ * @param key        path-derived base key (e.g. {@code crystals/jolt}) — the key stored on items
+ * @param description never {@code null} (empty if absent)
+ * @param tier       rarity tier (ADR-0016); may be {@code null}
+ * @param material   per-crystal override material (cross-version-resolved at mint), or {@code null}
+ * @param name       per-crystal override name, or {@code null}
+ * @param lore       per-crystal override lore; empty if absent
+ * @param appliesTo  named item target groups (not raw materials)
  */
 public record CrystalDef(
         String key,

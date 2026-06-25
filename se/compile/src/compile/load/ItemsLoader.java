@@ -15,12 +15,10 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads the top-level {@code items/} config folder into an immutable {@link ItemsConfig} (docs/v3-directives.md
- * §L). Mirrors {@link LibraryLoader}'s per-file pattern but produces config (no abilities, never reaches the
- * compiler): each {@code items/*.yml} is composed with {@link YamlNode} and dispatched by its {@code type}
- * field to the matching reader. Reuses the content YAML/diagnostics machinery, so {@code /se reload --dry-run}
- * surfaces items-config faults the same way. Never throws — a missing folder yields {@link ItemsConfig#empty()},
- * an unreadable/malformed file yields a diagnostic and is skipped (the runtime falls back to built-in defaults).
+ * Loads the top-level {@code items/} config folder into an immutable {@link ItemsConfig} (§L): each
+ * {@code items/*.yml} is dispatched by its {@code type} field to the matching reader. Produces config only —
+ * no abilities, never reaches the compiler. Never throws: a missing folder yields {@link ItemsConfig#empty()};
+ * an unreadable/malformed file yields a diagnostic and is skipped (runtime falls back to built-in defaults).
  */
 public final class ItemsLoader {
 
@@ -38,7 +36,7 @@ public final class ItemsLoader {
         Optional<EnchantBookConfig> enchantBook = Optional.empty();
         Optional<DustConfig> dust = Optional.empty();
         Optional<WhiteScrollConfig> whiteScroll = Optional.empty();
-        // The scroll family — each member is its own file; assembled into one ScrollsConfig below (§I).
+        // Scroll family: each member is its own file, assembled into one ScrollsConfig below (§I).
         Optional<ScrollsConfig.Black> black = Optional.empty();
         Optional<ScrollsConfig.Randomizer> randomizer = Optional.empty();
         Optional<ScrollsConfig.Transmog> transmog = Optional.empty();
@@ -184,9 +182,7 @@ public final class ItemsLoader {
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
-        // Assemble the scroll family from its per-file members, filling any absent member with its default.
-        // Present iff at least one scroll-family file was read (so an items/ folder with no scrolls still
-        // falls back to ScrollsConfig.defaults() through ItemsConfig#scrollsOrDefault()).
+        // Present iff at least one scroll-family file was read; absent members fall back to ScrollsConfig.defaults().
         ScrollsConfig sd = ScrollsConfig.defaults();
         Optional<ScrollsConfig> scrolls;
         if (black.isPresent() || randomizer.isPresent() || transmog.isPresent()

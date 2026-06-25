@@ -15,15 +15,14 @@ class CarrierCombineTest {
 
     @Test
     void combinableRequiresSameEnchantAndLevelBelowMax() {
-        // same enchant + level, below max → combinable
         assertTrue(CarrierService.combinable("enchants/keen", 1, "enchants/keen", 1, 5));
         assertTrue(CarrierService.combinable("enchants/keen", 4, "enchants/keen", 4, 5));
     }
 
     @Test
     void combinableRejectsDifferentEnchantOrLevel() {
-        assertFalse(CarrierService.combinable("enchants/keen", 1, "enchants/venom", 1, 5)); // different enchant
-        assertFalse(CarrierService.combinable("enchants/keen", 1, "enchants/keen", 2, 5));  // different level
+        assertFalse(CarrierService.combinable("enchants/keen", 1, "enchants/venom", 1, 5));
+        assertFalse(CarrierService.combinable("enchants/keen", 1, "enchants/keen", 2, 5));
     }
 
     @Test

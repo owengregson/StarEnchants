@@ -10,10 +10,8 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code IGNITE} — set the target(s) on fire for a duration in ticks
- * (docs/architecture.md §7). Stateless; emits an {@code ignite} intent per resolved
- * target and never touches an entity directly. {@link Affinity#TARGET_ENTITY}: the
- * {@code Sink} routes each intent to the owning entity's thread.
+ * {@code IGNITE} — set the target(s) on fire for a duration in ticks (docs/architecture.md §7).
+ * {@link Affinity#TARGET_ENTITY}.
  */
 public final class IgniteEffect implements EffectKind {
 

@@ -13,9 +13,8 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test for the canonical {@code MODIFY_HEALTH} (which replaced HEAL): give heals each
- * target, take deals direct health damage, and transfer (lifesteal) damages each target and heals
- * the activator by the same total.
+ * Mock-host test for {@code MODIFY_HEALTH}: give heals each target, take deals direct health damage,
+ * and transfer (lifesteal) damages each target and heals the activator by the same total.
  */
 class HealthModEffectTest {
 
@@ -63,7 +62,7 @@ class HealthModEffectTest {
         new HealthModEffect().run(ctx, sink);
 
         verify(sink).damage(victim, 5.0);
-        verify(sink).heal(actor, 5.0); // lifesteal: the activator gains what was drained
+        verify(sink).heal(actor, 5.0); // lifesteal: actor gains exactly what was drained
         verifyNoMoreInteractions(sink);
     }
 }

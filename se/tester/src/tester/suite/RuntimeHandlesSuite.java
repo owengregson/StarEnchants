@@ -8,12 +8,11 @@ import platform.resolve.RuntimeHandles;
 import tester.harness.Harness;
 
 /**
- * Live checks for the runtime handle resolver (docs/architecture.md §9): the full cross-version
- * round-trip <em>token &rarr; interned id (compile) &rarr; live Bukkit object (runtime)</em>. The
- * resolver interns a handle; {@link RuntimeHandles} must hand back the live object the {@code Sink}
- * dispatcher would mutate the world with — on every version, through the enum&rarr;interface and
- * registry-key shifts. Rename targets are spot-checked to a stable constant where one exists
- * (SULPHUR&rarr;GUNPOWDER, ZOMBIE) and to non-null otherwise; cache identity is asserted too.
+ * Runtime handle resolver, live (docs/architecture.md §9): the full cross-version round-trip
+ * <em>token &rarr; interned id (compile) &rarr; live Bukkit object (runtime)</em> the {@code Sink}
+ * dispatcher mutates the world with, on every version through the enum&rarr;interface and registry-key
+ * shifts. Rename targets are checked to a stable constant where one exists, non-null otherwise; cache
+ * identity is asserted too.
  */
 public final class RuntimeHandlesSuite implements Harness.Scenario {
 
@@ -22,7 +21,6 @@ public final class RuntimeHandlesSuite implements Harness.Scenario {
         RegistryResolvers resolvers = new RegistryResolvers();
         RuntimeHandles handles = new RuntimeHandles(resolvers);
 
-        // SULPHUR resolves to the live GUNPOWDER material (a stable constant across the range).
         h.expect("handles.material.SULPHUR");
         h.guard("handles.material.SULPHUR", () -> {
             Material m = handles.material(internOrThrow(resolvers.material("SULPHUR"), "SULPHUR"));
@@ -31,7 +29,6 @@ public final class RuntimeHandlesSuite implements Harness.Scenario {
             }
         });
 
-        // PIG_ZOMBIE resolves to a live entity type (ZOMBIFIED_PIGLIN on every supported version).
         h.expect("handles.entity.PIG_ZOMBIE");
         h.guard("handles.entity.PIG_ZOMBIE", () -> {
             EntityType t = handles.entityType(internOrThrow(resolvers.entityType("PIG_ZOMBIE"), "PIG_ZOMBIE"));
@@ -40,8 +37,7 @@ public final class RuntimeHandlesSuite implements Harness.Scenario {
             }
         });
 
-        // Primed TNT resolves to a live entity type on every version (PRIMED_TNT on the floor, TNT in
-        // modern) — the cross-version path SPAWN_ENTITY uses for the old TNT kind.
+        // PRIMED_TNT (floor) / TNT (modern) — the cross-version path SPAWN_ENTITY uses for the old TNT kind.
         h.expect("handles.entity.PRIMED_TNT");
         h.guard("handles.entity.PRIMED_TNT", () -> {
             EntityType t = handles.entityType(internOrThrow(resolvers.entityType("PRIMED_TNT"), "PRIMED_TNT"));
@@ -61,7 +57,7 @@ public final class RuntimeHandlesSuite implements Harness.Scenario {
         nonNull(h, "handles.sound.ENTITY_PLAYER_LEVELUP", () ->
                 handles.sound(internOrThrow(resolvers.sound("ENTITY_PLAYER_LEVELUP"), "ENTITY_PLAYER_LEVELUP")));
 
-        // Cache identity: the same id resolves to the very same object instance.
+        // Cache identity: the same id must return the very same object instance.
         h.expect("handles.cacheIdentity");
         h.guard("handles.cacheIdentity", () -> {
             int id = internOrThrow(resolvers.material("GUNPOWDER"), "GUNPOWDER");

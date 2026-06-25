@@ -13,13 +13,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The crystal gesture UX (docs/v3-directives.md §E): holding a crystal on the CURSOR and clicking gear
- * applies it; clicking another crystal merges them into a multi-crystal; holding a crystal EXTRACTOR and
- * clicking crystal-bearing gear pops its last crystal back into a whole crystal item. Bukkit-thin glue —
- * all logic is in {@link CrystalService}; this only recognises the gesture, cancels the vanilla click, and
- * commits the mutated cursor/slot (and hands over an extracted crystal, plays the configured sound).
- * Folia-correct: an {@code InventoryClickEvent} fires on the clicking player's own region thread, so
- * mutating that player's cursor/inventory and playing a sound at their location is all in-thread.
+ * Crystal gesture glue (docs/v3-directives.md §E); logic lives in {@link CrystalService}. Folia-correct:
+ * {@code InventoryClickEvent} fires on the clicking player's own region thread, so mutating their
+ * cursor/inventory and playing a sound at their location is in-thread.
  */
 public final class CrystalListener implements Listener {
 
@@ -35,8 +31,8 @@ public final class CrystalListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        // A plain LEFT/RIGHT place, or the directive-named SWAP_WITH_CURSOR (drag crystal-onto-crystal merge),
-        // onto a slot in the player's OWN inventory grid — never shift/number/double clicks nor other GUIs.
+        // LEFT/RIGHT place or SWAP_WITH_CURSOR (crystal-onto-crystal merge), player's own grid only — never
+        // shift/number/double clicks nor other GUIs.
         boolean ours = event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT
                 || event.getAction() == InventoryAction.SWAP_WITH_CURSOR;
         if (!ours) {
@@ -49,22 +45,21 @@ public final class CrystalListener implements Listener {
         ItemStack cursor = event.getCursor();
         ItemStack target = event.getCurrentItem();
         if (target == null || target.getType() == Material.AIR) {
-            return; // no target
+            return;
         }
         boolean extractor = service.isExtractor(cursor);
         if (!extractor && !service.isCrystal(cursor)) {
-            return; // the cursor is neither a crystal nor an extractor — leave the click alone
+            return; // cursor is neither crystal nor extractor — leave the click alone
         }
 
-        event.setCancelled(true); // we own this interaction now (apply / merge / extract)
+        event.setCancelled(true);
         CrystalResult result = extractor ? service.extract(cursor, target) : service.interact(cursor, target);
         if (result.commit()) {
             event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
             event.setCurrentItem(result.newTarget() != null && result.newTarget().getAmount() <= 0
                     ? null : result.newTarget());
             if (result.give() != null) {
-                // Hand over the extracted crystal: into the inventory, overflow dropped at the player's feet
-                // (on their own region thread — the event fires there, so this is in-thread on Folia).
+                // Hand over the extracted crystal; overflow drops at the player's feet (in-thread on Folia).
                 Map<Integer, ItemStack> overflow = player.getInventory().addItem(result.give());
                 overflow.values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
             }

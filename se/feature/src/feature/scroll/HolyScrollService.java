@@ -12,13 +12,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 /**
- * The holy / death scroll (docs/v3-directives.md §I) — held in the inventory (incl. off-hand), on a death
- * it has a configurable chance to spare the player's items + levels, consuming one scroll on the saved
- * death. A distinct {@code HOLY}-kind scroll ({@link ScrollCodec}); its behaviour is the death-event scan
- * here, not a gesture. The roll is the only non-determinism, injected as a {@link Random} for testability.
- *
- * <p>Folia-correct: {@code PlayerDeathEvent} fires on the dying player's own region thread, so scanning
- * and mutating their inventory in {@link #trySave} is in-thread.
+ * Holy/death scroll (docs/v3-directives.md §I) — held in the inventory (incl. off-hand), on death it has a
+ * chance to spare the player's items + levels, consuming one scroll only on a saved death. A distinct
+ * {@code HOLY}-kind scroll ({@link ScrollCodec}); driven by the death event, not a gesture. The roll is
+ * injected for tests. Folia-correct: {@code PlayerDeathEvent} fires on the dying player's own region thread.
  */
 public final class HolyScrollService {
 
@@ -43,12 +40,10 @@ public final class HolyScrollService {
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
-    /** Whether {@code stack} is a holy scroll. */
     public boolean isHolyScroll(ItemStack stack) {
         return HOLY.equals(scrolls.kind(stack));
     }
 
-    /** Mint a holy scroll. */
     public ItemStack mint() {
         ScrollsConfig.Holy cfg = config.get().holy();
         ItemStack stack = ItemFactory.build(
@@ -58,9 +53,8 @@ public final class HolyScrollService {
     }
 
     /**
-     * Attempt to save {@code player} from this death: if they carry a holy scroll (storage or off-hand) and
-     * the save roll succeeds, consume one scroll and return the configured "saved" message; otherwise return
-     * {@code null} (no scroll, or the roll failed — the scroll is not consumed and the death proceeds).
+     * Attempt to save {@code player}: on a carried scroll + a winning roll, consume one and return the
+     * "saved" message; else {@code null} (no scroll or a lost roll — nothing consumed, the death proceeds).
      */
     public String trySave(Player player) {
         ScrollsConfig.Holy cfg = config.get().holy();

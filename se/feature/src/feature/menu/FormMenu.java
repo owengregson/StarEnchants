@@ -58,9 +58,9 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
     @Override
     public void render(MenuHolder holder) {
         MenuLayout layout = layout(); // resolve the live (config-merged) layout once for this render
-        holder.begin(layout.size(), MenuText.title(layout.titleTemplate(), caps)); // title is now surfaced (§L)
-        fillBackground(holder, layout); // decorative panes everywhere except the input slots
-        layoutControls(holder);   // control buttons overwrite the background
+        holder.begin(layout.size(), MenuText.title(layout.titleTemplate(), caps)); // title surfaced (§L)
+        fillBackground(holder, layout);
+        layoutControls(holder); // control buttons overwrite the background
     }
 
     /** Fill every non-input slot with the decorative filler pane (the input slots stay empty for placement). */

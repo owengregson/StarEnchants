@@ -8,8 +8,7 @@ import engine.spec.EffectSpec;
 import schema.spec.D;
 
 /**
- * {@code MESSAGE} — the canonical player-feedback primitive (docs/v3-directives.md §C), collapsing
- * {@code ACTIONBAR} and {@code TITLE} into one kind via a {@code channel}:
+ * {@code MESSAGE} — canonical player-feedback primitive (docs/v3-directives.md §C):
  *
  * <ul>
  *   <li>{@code chat} (default) — a chat line;</li>
@@ -18,12 +17,9 @@ import schema.spec.D;
  *       timings (ticks). For the title channel, {@code text} is the title line.</li>
  * </ul>
  *
- * <p><strong>Terse colon-safety.</strong> {@code channel} is optional and declared AFTER {@code text}, so
- * the legacy terse form {@code MESSAGE:<text>} still parses as a chat message (channel defaults to
- * {@code chat}) — every existing content line and migrator emission keeps working unchanged. The
- * pre-existing "free text cannot contain a top-level {@code :} in terse form" limitation is unchanged;
- * colon-bearing or title messages use the verbose form. {@link Affinity#CONTEXT_LOCAL}: applies on the
- * firing thread for the activating player.
+ * <p>{@code channel} is declared AFTER {@code text} so the terse form {@code MESSAGE:<text>} parses as a
+ * chat message (channel defaults to {@code chat}); colon-bearing or title messages need the verbose form.
+ * {@link Affinity#CONTEXT_LOCAL}.
  */
 public final class MessageEffect implements EffectKind {
 

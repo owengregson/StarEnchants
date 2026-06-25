@@ -15,10 +15,10 @@ import platform.protect.ProtectionProvider;
  * there.
  *
  * <p>Bundled but SOFT: the SuperiorSkyblock API is {@code compileOnly} and {@link integrate.Integrations}
- * only loads this class when the plugin is present. The {@code BUILD} privilege is resolved by name once at
- * construction ({@code IslandPrivilege.getByName}) — SuperiorSkyblock registers its default privileges on
- * enable, before StarEnchants boots. Outside any island everything is allowed; on an island the actor's
- * BUILD privilege decides. Never throws — a hiccup degrades to allow.
+ * only loads this class when the plugin is present. {@code BUILD} is resolved by name once at construction —
+ * SuperiorSkyblock registers its default privileges on enable, before StarEnchants boots. Outside any island
+ * everything is allowed; on an island the actor's BUILD privilege decides. Never throws — a hiccup degrades to
+ * allow.
  */
 public final class SuperiorSkyblockProvider implements ProtectionProvider {
 

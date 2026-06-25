@@ -8,9 +8,9 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code @Block{distance}} — the first solid block the activator is looking at, within {@code distance}
- * blocks (docs/v3-directives.md §A; default 5, the reach of a normal look). A world raytrace routed
- * through the injected world-access seam so it is region-correct on Folia; empty if nothing is in sight.
+ * {@code @Block{distance}} — first solid block the actor is looking at, within {@code distance}
+ * (docs/v3-directives.md §A). Raytrace via the world-access seam, so region-correct on Folia; empty if
+ * nothing is in sight.
  */
 public final class BlockSelector implements SelectorKind {
 

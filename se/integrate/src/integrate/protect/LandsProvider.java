@@ -14,11 +14,10 @@ import platform.protect.ProtectionProvider;
  * enchant effect may act at {@code where} iff Lands would let {@code actor} place a block there.
  *
  * <p>Bundled but SOFT: Lands' API is {@code compileOnly} and {@link integrate.Integrations} only loads this
- * class (and constructs the {@link LandsIntegration} handle) when Lands is present. Unclaimed land allows
- * everything; inside a claim the decision is the actor's {@code BLOCK_PLACE} role-flag, resolved by UUID —
- * which works for any actor, online or not, so there is no offline special-case here. Lands IS Folia-aware,
- * so reading the area at {@code where}'s region thread is correct on Folia too. Never throws — a Lands hiccup
- * degrades to allow.
+ * class (and builds the {@link LandsIntegration} handle) when Lands is present. Unclaimed land allows
+ * everything; inside a claim the actor's {@code BLOCK_PLACE} role-flag decides, resolved by UUID so there is no
+ * offline special-case. Lands IS Folia-aware, so reading the area at {@code where}'s region thread is correct
+ * on Folia too. Never throws — a hiccup degrades to allow.
  */
 public final class LandsProvider implements ProtectionProvider {
 

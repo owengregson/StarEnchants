@@ -37,12 +37,10 @@ class SoulLedgerTest {
     void peekDoesNotSeedAndReportsAbsenceVersusZero() {
         SoulLedger ledger = new SoulLedger();
         UUID gem = UUID.randomUUID();
-        // Untouched → empty (NOT zero), and peeking must not seed the authority.
+        // Absence must read as empty (NOT zero) and peeking must not seed the authority.
         assertTrue(ledger.peek(gem).isEmpty());
-        // After a touch, peek reports the live authority without re-seeding.
         ledger.deposit(gem, new IntBalance(0), 7);
         assertEquals(7, ledger.peek(gem).getAsInt());
-        // A zero balance is distinguishable from absence.
         ledger.tryConsume(gem, new IntBalance(7), 7);
         assertEquals(0, ledger.peek(gem).getAsInt());
         ledger.forget(gem);
@@ -62,7 +60,7 @@ class SoulLedgerTest {
         SoulLedger ledger = new SoulLedger();
         IntBalance gem = new IntBalance(3);
         assertFalse(ledger.tryConsume(UUID.randomUUID(), gem, 4));
-        assertEquals(3, gem.souls()); // untouched
+        assertEquals(3, gem.souls());
     }
 
     @Test
@@ -92,18 +90,17 @@ class SoulLedgerTest {
 
     @Test
     void inMemoryAuthorityPreventsDoubleSpendAcrossSeparateBackingSnapshots() {
-        // Simulates two Folia region threads each holding their own per-thread PDC copy
-        // ("snapshot") of the SAME gem: both read 1 soul. The ledger's in-memory authority
-        // must make the second consume see the first's debit, so only one succeeds.
+        // Two Folia region threads each hold their own per-thread PDC copy of the SAME gem, both reading 1
+        // soul; the in-memory authority must make the second consume see the first's debit so only one wins.
         SoulLedger ledger = new SoulLedger();
         UUID gemId = UUID.randomUUID();
         IntBalance snapshotA = new IntBalance(1);
         IntBalance snapshotB = new IntBalance(1);
 
-        assertTrue(ledger.tryConsume(gemId, snapshotA, 1));  // loads 1, debits to 0
-        assertFalse(ledger.tryConsume(gemId, snapshotB, 1)); // authority says 0, stale snapshot ignored
+        assertTrue(ledger.tryConsume(gemId, snapshotA, 1));
+        assertFalse(ledger.tryConsume(gemId, snapshotB, 1)); // authority says 0; the stale snapshot is ignored
         assertEquals(0, snapshotA.souls());
-        assertEquals(1, snapshotB.souls()); // failed consume left snapshot B untouched
+        assertEquals(1, snapshotB.souls());
     }
 
     @Test
@@ -111,10 +108,10 @@ class SoulLedgerTest {
         SoulLedger ledger = new SoulLedger();
         UUID gemId = UUID.randomUUID();
         IntBalance gem = new IntBalance(5);
-        ledger.tryConsume(gemId, gem, 5); // authority now 0, backing 0
+        ledger.tryConsume(gemId, gem, 5);
         ledger.forget(gemId);
-        IntBalance refreshed = new IntBalance(8); // gem re-fed offline, fresh backing
-        assertEquals(8, ledger.balance(gemId, refreshed)); // reloads from backing after forget
+        IntBalance refreshed = new IntBalance(8); // gem re-fed offline → backing is now higher than the dropped authority
+        assertEquals(8, ledger.balance(gemId, refreshed));
     }
 
     @Test
@@ -158,7 +155,7 @@ class SoulLedgerTest {
         pool.shutdown();
         assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
 
-        // Exactly the available souls were spent — never more (no double-spend), never fewer.
+        // Exactly the available souls spend: never more (no double-spend), never fewer (no lost update).
         assertEquals(100, successes.get());
         assertEquals(0, gem.souls());
     }

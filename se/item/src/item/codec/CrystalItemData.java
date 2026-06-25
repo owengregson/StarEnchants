@@ -10,11 +10,11 @@ import java.util.List;
  * Distinct from the book/scroll/dust {@link CarrierData} economy: a crystal is its own item, drag-applied
  * to gear with a success roll, and two crystals merge into a multi-crystal.
  *
- * <p>When applied, the keys become ONE entry in a gear's {@link CombatState#crystals()} list, encoded
- * {@code "a+b"} (a single crystal is just the plain key, so legacy single-key entries stay valid). The
- * entry occupies ONE crystal slot but contributes BOTH abilities; the runtime additive fold (ADR-0012)
- * sums overlapping effect magnitudes, which is the multi-crystal "overlapping types SUM" semantics for
- * free. Crystal keys never contain {@code '+'}, so it is an unambiguous delimiter.
+ * <p>Applied, the keys become ONE entry in a gear's {@link CombatState#crystals()} list, encoded
+ * {@code "a+b"} (a single is the plain key, so legacy single-key entries stay valid). The entry occupies
+ * one slot but contributes both abilities; the runtime additive fold (ADR-0012) sums overlapping
+ * magnitudes — the multi-crystal "overlapping types SUM" semantics for free. Crystal keys never contain
+ * {@code '+'}, so it is an unambiguous delimiter.
  *
  * @param keys the component crystal base keys (e.g. {@code crystals/jolt}); 1 or 2, never empty/null
  */

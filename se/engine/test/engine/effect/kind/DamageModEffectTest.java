@@ -10,9 +10,9 @@ import engine.sink.Sink;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test for the canonical {@code DAMAGE_MOD} (which replaced ADD_DAMAGE/REDUCE_DAMAGE/
- * FLAT_DAMAGE/FLAT_REDUCE): each (side, mode) pair routes to the SAME fold method as its old kind,
- * so the additive damage fold is touched byte-identically. Percent modes divide by 100.
+ * Pins that each unified DAMAGE_MOD (side, mode) pair routes to the same fold method as its old
+ * kind (ADD/REDUCE/FLAT_DAMAGE, FLAT_REDUCE), so the additive damage fold is untouched; percent
+ * modes divide by 100.
  */
 class DamageModEffectTest {
 

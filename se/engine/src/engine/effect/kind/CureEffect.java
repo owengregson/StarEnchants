@@ -9,12 +9,8 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * {@code CURE} — clear every active potion effect from the target(s)
- * (docs/architecture.md §7) — a full cleanse, the broad counterpart of the
- * single-effect {@code REMOVE_POTION}. Stateless; emits one {@code cure} intent per
- * resolved target and never touches an entity directly.
- * {@link Affinity#TARGET_ENTITY}: the {@code Sink} routes each intent to the owning
- * entity's thread.
+ * {@code CURE} — clear every active potion effect from the target(s) (docs/architecture.md §7); a full
+ * cleanse, broad counterpart of single-effect {@code REMOVE_POTION}. {@link Affinity#TARGET_ENTITY}.
  */
 public final class CureEffect implements EffectKind {
 

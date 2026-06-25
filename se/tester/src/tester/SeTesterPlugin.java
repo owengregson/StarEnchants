@@ -43,16 +43,14 @@ import tester.suite.SinkSuite;
 import tester.suite.WornResolverSuite;
 
 /**
- * The live matrix harness plugin (docs/architecture.md §11; live-server-testing, matrix-gate
- * skills). Booted inside a real Paper/Folia server by {@code scripts/run-matrix.sh}, it probes the
- * platform, installs the scheduling backend, runs the in-server suites across game ticks, writes a
- * fresh {@code test-results.txt} (PASS/FAIL), and shuts the server down. The runner then reads that
- * file and fails the gate on anything but a fresh PASS.
+ * The live matrix harness plugin (docs/architecture.md §11; live-server-testing, matrix-gate skills).
+ * Booted inside a real Paper/Folia server by {@code scripts/run-matrix.sh}: probe the platform, install the
+ * scheduling backend, run the in-server suites across game ticks, write a fresh {@code test-results.txt},
+ * and shut down. The runner fails the gate on anything but a fresh PASS.
  *
- * <p>Suites start on {@link ServerLoadEvent}, not in {@code onEnable}: a fully-initialised server
- * is the only stable footing for scenarios that spawn entities or expect a delayed task to fire
- * (mid-startup the world is still loading — a freshly-spawned entity may not survive a few ticks,
- * which is exactly the flake the matrix surfaced on the slow-booting ceiling build).
+ * <p>Suites start on {@link ServerLoadEvent}, not {@code onEnable}: only a fully-initialised server is
+ * stable footing for scenarios that spawn entities or await a delayed task — mid-startup the world is still
+ * loading and a freshly-spawned entity may not survive a few ticks (a flake seen on the slow ceiling build).
  */
 public final class SeTesterPlugin extends JavaPlugin implements Listener {
 
@@ -89,27 +87,26 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new EconomyItemsSuite(this)) // §I slot/black/randomizer/unopened/transmog over real ItemStacks
                 .add(new WornResolverSuite(this));
 
-        // The fake-player harness now spans the whole range — mojang-mapped (1.20.5+) and the spigot-mapped
-        // floor (1.17.1–1.19.4) via FakePlayers' two paths (ADR 0018) — so the combat-path suites run
-        // floor-wide; they no longer self-defer behind Capabilities.mojangMapped().
+        // The fake-player harness spans the whole range via FakePlayers' two paths (ADR 0018): mojang-mapped
+        // (1.20.5+) and the spigot-mapped floor (1.17.1–1.19.4), so the combat-path suites run floor-wide.
         harness.add(new FakePlayerSuite(this));
-        harness.add(new CombatSuite(this)); // end-to-end combat needs the fake-player attacker
-        harness.add(new CombatFlagsSuite(this)); // §C combat-flags: KNOCKBACK_CONTROL version-split, GUARD spawn+target, KEEP_ON_DEATH
+        harness.add(new CombatSuite(this));
+        harness.add(new CombatFlagsSuite(this)); // §C: KNOCKBACK_CONTROL version-split, GUARD spawn+target, KEEP_ON_DEATH
         harness.add(new ConditionSuite(this)); // %victim.health% condition gate fires/blocks (populated FactBuffer)
-        harness.add(new ProtectionSuite(this)); // gate-2 protection blocks/allows a hit by location
-        harness.add(new EconomySuite(this)); // MODIFY_MONEY deposits via a discovered economy provider
-        harness.add(new MenuSuite(this)); // the enchant-apply GUI applies on click, end-to-end
-        harness.add(new GuiSuite(this)); // §K interactive benches: input-slot lock, combine, salvage, close-return
-        harness.add(new CrystalSuite(this)); // crystal source fires end-to-end (also needs the attacker)
-        harness.add(new SetSuite(this)); // armour-set resolution on a real equipped fake player
-        harness.add(new HeroicSuite(this)); // heroic flat stats fold into combat damage
-        harness.add(new HeroicApplySuite(this)); // §F heroic apply: success/fail/consume + armour-weapon guard
-        harness.add(new SoulSuite(this)); // soul-cost enchant spends from the gem in soul mode
-        harness.add(new SoulEconomySuite(this)); // §D deposit-on-any-kill + combine + split on a real inventory
-        harness.add(new ScrollPlayerSuite(this)); // §I holy death-save + nametag rename on a real player inventory
-        harness.add(new TriggerSuite(this)); // non-combat triggers (MINE) fire end-to-end
-        harness.add(new LifecycleSuite(this)); // §B HELD/PASSIVE start+stop lifecycle + COMMAND trigger fire
-        harness.add(new TeleportSuite(this)); // TELEPORT effect → teleportAsync, first user of that intent
+        harness.add(new ProtectionSuite(this));
+        harness.add(new EconomySuite(this)); // MODIFY_MONEY via a discovered economy provider
+        harness.add(new MenuSuite(this));
+        harness.add(new GuiSuite(this)); // §K benches: input-slot lock, combine, salvage, close-return
+        harness.add(new CrystalSuite(this));
+        harness.add(new SetSuite(this));
+        harness.add(new HeroicSuite(this));
+        harness.add(new HeroicApplySuite(this)); // §F: success/fail/consume + armour-weapon guard
+        harness.add(new SoulSuite(this));
+        harness.add(new SoulEconomySuite(this)); // §D: deposit-on-any-kill + combine + split
+        harness.add(new ScrollPlayerSuite(this)); // §I: holy death-save + nametag rename
+        harness.add(new TriggerSuite(this));
+        harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
+        harness.add(new TeleportSuite(this));
 
         getServer().getPluginManager().registerEvents(this, this);
     }

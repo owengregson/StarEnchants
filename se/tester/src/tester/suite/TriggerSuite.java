@@ -47,13 +47,11 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Non-combat triggers, proven live (docs/architecture.md §3.3): the MINE trigger fires when a player
- * breaks a block, and the v3.2 BREAK trigger fires when a held item breaks — each landing the item's
- * trigger-enchant effect through {@link TriggerListeners}/{@link TriggerDispatch}. Proves the whole
- * non-combat path (Bukkit event → WornState.byTrigger → executor → Sink → world) that
- * {@code CombatDispatch} does not exercise, and that a newly-wired listener actually fires. Synthetic
- * {@code BlockBreakEvent}/{@code PlayerItemBreakEvent}s drive the registered listeners — the same path a
- * real event takes. Mojang- and spigot-mapped alike (needs the fake player).
+ * Non-combat triggers, live (docs/architecture.md §3.3): MINE fires on block break, the v3.2 BREAK trigger
+ * on a held item breaking, each landing its effect through {@link TriggerListeners}/{@link TriggerDispatch}.
+ * Proves the non-combat path (Bukkit event → WornState.byTrigger → executor → Sink → world) that
+ * {@code CombatDispatch} doesn't exercise. Synthetic events drive the registered listeners. Mojang- and
+ * spigot-mapped alike (fake player).
  */
 public final class TriggerSuite implements Harness.Scenario {
 
@@ -149,7 +147,6 @@ public final class TriggerSuite implements Harness.Scenario {
                     worn.refresh(miner, library.snapshot());
                     Block block = at.clone().add(0, -1, 0).getBlock();
                     block.setType(Material.STONE);
-                    // Fire the real listener via a synthetic break of that block by the miner.
                     plugin.getServer().getPluginManager().callEvent(new BlockBreakEvent(block, miner));
                     Scheduling.onEntityLater(miner, 10L, () -> {
                         h.guard("trigger.mineFiresOnBlockBreak", () -> {
@@ -157,7 +154,7 @@ public final class TriggerSuite implements Harness.Scenario {
                                 throw new IllegalStateException("MINE enchant did not fire on block break");
                             }
                         });
-                        // Now the BREAK trigger: hold the Backlash sword, re-resolve, and break it.
+                        // BREAK trigger: hold the Backlash sword, re-resolve, break it.
                         miner.getInventory().setItemInMainHand(sword);
                         worn.refresh(miner, library.snapshot());
                         plugin.getServer().getPluginManager().callEvent(new PlayerItemBreakEvent(miner, sword));

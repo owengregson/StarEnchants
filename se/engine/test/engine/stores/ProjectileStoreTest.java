@@ -28,15 +28,15 @@ class ProjectileStoreTest {
     @Test
     void entryExpiresExactlyAtExpiryTick() {
         store.put(a, "payload", 100L, 40);
-        assertTrue(store.get(a, 139L).isPresent()); // one tick before expiry
-        assertTrue(store.get(a, 140L).isEmpty());   // expiry tick is elapsed
+        assertTrue(store.get(a, 139L).isPresent());
+        assertTrue(store.get(a, 140L).isEmpty());
     }
 
     @Test
     void elapsedEntryIsEvictedLazilyOnGet() {
         store.put(a, "payload", 100L, 40);
-        store.get(a, 140L); // touches the elapsed entry, dropping it
-        assertTrue(store.remove(a).isEmpty()); // gone even though we never removed it
+        store.get(a, 140L); // an elapsed read evicts the entry as a side effect (its result is unused)
+        assertTrue(store.remove(a).isEmpty());
     }
 
     @Test
@@ -57,7 +57,7 @@ class ProjectileStoreTest {
         assertEquals("arrow-b", store.get(b, 0L).get());
         store.remove(a);
         assertTrue(store.get(a, 0L).isEmpty());
-        assertTrue(store.get(b, 0L).isPresent()); // removing one leaves the other
+        assertTrue(store.get(b, 0L).isPresent());
     }
 
     @Test

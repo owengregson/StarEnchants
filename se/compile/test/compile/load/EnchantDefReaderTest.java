@@ -94,8 +94,8 @@ class EnchantDefReaderTest {
     @Test
     void duplicateKeysParseAsLastWins() {
         Diagnostics diags = new Diagnostics();
-        // SnakeYAML 2.x's composer rejects duplicate keys by default (1.x does not) — the loader
-        // forces allow-duplicate-keys so the same file behaves identically on every server's SnakeYAML.
+        // SnakeYAML 2.x rejects dup keys by default, 1.x does not; loader forces
+        // allow-duplicate-keys so a file behaves identically on every server's SnakeYAML
         String yaml = """
             trigger: ATTACK
             levels:

@@ -16,15 +16,11 @@ import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
 
 /**
- * The heroic upgrade economy (docs/v3-directives.md §F; ADR-0021) — the cold path that MINTS the heroic
- * upgrade item and APPLIES it to a piece of gear with a small randomised success chance. Heroic is NOT
- * set-bound: any armour or weapon may be upgraded. On success it stamps the configured heroic percents
- * onto the piece's {@link CombatState} (the "heroic piece" lore marker then renders from state), and
- * optionally swaps the piece's material to a configured upgrade (within-category, e.g. diamond→netherite)
- * preserving its meta/enchants/PDC; on failure it consumes the upgrade and never harms the gear.
- *
- * <p>Folia-correct: a gesture fires on the clicking player's own region thread, so mutating their
- * cursor/inventory is in-thread. The success roll is the only non-determinism, injected for testability.
+ * Heroic upgrade economy (docs/v3-directives.md §F; ADR-0021) — mints the upgrade and applies it on a
+ * success roll. NOT set-bound: any armour or weapon may be upgraded. On success it stamps the heroic
+ * percents onto {@link CombatState} (the marker renders from state) and optionally swaps to a configured
+ * within-category material (e.g. diamond→netherite) preserving meta/enchants/PDC; on failure the gear is
+ * untouched. Folia-correct: a gesture fires on the player's own region thread. The roll is injected for tests.
  */
 public final class HeroicService {
 
@@ -60,12 +56,10 @@ public final class HeroicService {
         this.groups = Objects.requireNonNull(groups, "groups");
     }
 
-    /** Whether {@code stack} is a heroic upgrade item. */
     public boolean isUpgrade(ItemStack stack) {
         return upgrades.isUpgrade(stack);
     }
 
-    /** Mint a heroic upgrade item from the configured likeness. */
     public ItemStack mint() {
         HeroicConfig cfg = config.get();
         ItemStack stack = ItemFactory.build(
@@ -74,11 +68,7 @@ public final class HeroicService {
         return stack;
     }
 
-    /**
-     * Attempt to upgrade {@code gear} with the heroic {@code upgrade} (consumed either way). A roll in the
-     * configured {@code [successMin, successMax]} range decides; on success the heroic percents are stamped
-     * and the material optionally swapped, on failure the gear is untouched.
-     */
+    /** Attempt to upgrade {@code gear} with the heroic {@code upgrade} (consumed either way). */
     public HeroicResult applyTo(ItemStack upgrade, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
             return HeroicResult.unchanged(messages.format("heroic.not-gear"));
@@ -109,9 +99,9 @@ public final class HeroicService {
     }
 
     /**
-     * The gear with its material swapped to the configured upgrade (preserving meta/enchants/PDC), or the
-     * original stack when this material is not remapped or the swap is not viable. The meta copy works for
-     * within-category upgrades (the only ones the config should map); any failure falls back to the original.
+     * Gear with its material swapped to the configured upgrade (meta/enchants/PDC preserved), or the original
+     * when not remapped or the swap is unviable. The meta copy only works within-category (the only mappings
+     * the config should declare); any failure falls back to the original.
      */
     private ItemStack withUpgradedMaterial(ItemStack gear, HeroicConfig cfg) {
         String token = cfg.upgradeFor(gear.getType().name());

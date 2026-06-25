@@ -21,11 +21,10 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 
 /**
- * Maps the non-combat Bukkit events to {@link TriggerDispatch} (docs/architecture.md §3.3): a block
- * break → MINE, a kill → KILL, a right/left interact → INTERACT(+direction), and environmental
- * fall/fire damage → FALL/FIRE. Each handler runs on its firing region thread; the dispatch reads
- * the actor's pre-resolved WornState and routes world mutations through the Sink, so no handler
- * touches a cross-region entity directly.
+ * Maps non-combat Bukkit events to {@link TriggerDispatch} (§3.3): break → MINE, kill → KILL, interact →
+ * INTERACT(+direction), fall/fire → FALL/FIRE. Each handler runs on its firing region thread; the dispatch
+ * reads the pre-resolved WornState and routes mutations through the Sink, so no handler touches a cross-region
+ * entity directly.
  */
 public final class TriggerListeners implements Listener {
 
@@ -45,8 +44,7 @@ public final class TriggerListeners implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMine(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        // Capture the broken block so the %block.type%/%isblock% facts source it (region-owned on this thread).
-        // fireMine also applies the SMELT/TELEPORT_DROPS drop read-backs to the event.
+        // the broken block backs the %block.type%/%isblock% facts (region-owned on this thread)
         dispatch.fireMine(player,
                 new ActivationContext(player, null, null, event.getBlock().getLocation(), 0.0, event.getBlock()),
                 event);
@@ -56,12 +54,12 @@ public final class TriggerListeners implements Listener {
     public void onDeath(EntityDeathEvent event) {
         LivingEntity dead = event.getEntity();
         Player killer = dead.getKiller();
-        // KILL fires for the killer's worn gear; the victim and its location are region-safe here.
+        // KILL fires for the killer's worn gear
         if (killer != null) {
             dispatch.fire(killer, dispatch.kill,
                     new ActivationContext(killer, dead, null, dead.getLocation()), null);
         }
-        // DEATH fires for the dying player's own worn gear (the killer, if any, is the victim/context).
+        // DEATH fires for the dying player's own worn gear
         if (dead instanceof Player dying) {
             dispatch.fire(dying, dispatch.death,
                     new ActivationContext(dying, killer, killer, dying.getLocation()), null);
@@ -71,7 +69,6 @@ public final class TriggerListeners implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBowFire(EntityShootBowEvent event) {
         if (event.getEntity() instanceof Player shooter) {
-            // fireBow also starts SEEK (AUTO_LOCK) homing on the fired projectile when a proc asks for it.
             dispatch.fireBow(shooter, self(shooter), event);
         }
     }
@@ -125,8 +122,7 @@ public final class TriggerListeners implements Listener {
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
-        // §F reduction-scope: heroic reduction softens environmental damage ONLY when scope == ALL; under the
-        // default ENTITY scope only entity/PvP damage (CombatDispatch) is softened.
+        // §F reduction-scope: heroic softens environmental damage only when scope == ALL (default ENTITY = PvP only)
         boolean heroic = heroicAllScope.getAsBoolean();
         switch (event.getCause()) {
             case FALL -> dispatch.fireDamage(player, dispatch.fall, self(player), event, heroic);

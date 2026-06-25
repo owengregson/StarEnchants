@@ -68,8 +68,8 @@ class ResolveStageTest {
         assertFalse(d.hasErrors());
         assertEquals(1, resolved.effects().size());
         CompiledEffect e = resolved.effects().get(0);
-        assertEquals(7, e.args().integer("effect"));   // token → interned id
-        assertEquals(1L, e.args().lng("amplifier"));    // non-handle args untouched
+        assertEquals(7, e.args().integer("effect")); // token → interned id
+        assertEquals(1L, e.args().lng("amplifier")); // non-handle args untouched
         assertEquals(100L, e.args().lng("duration"));
     }
 

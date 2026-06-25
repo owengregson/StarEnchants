@@ -39,27 +39,15 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Live checks for the §K interactive merchant benches (docs/v3-directives.md §K) — the GUI code with real
- * cross-version / Folia risk beyond unit coverage: item placement into input slots, the combine/salvage
- * mutations, and the close-returns-staged-inputs guard. Run on a real Paper + Folia server through the
- * shared {@link MenuListener}, so a wrong-thread access or a version-specific inventory quirk surfaces as a
- * failure rather than passing vacuously. (The display-menu click→apply path is covered by {@link MenuSuite};
- * the pure combine/salvage/pagination logic by unit tests.)
- *
- * <ul>
- *   <li><strong>inputSlotPlacementVsLock</strong> — a click in an input slot is NOT cancelled (placement
- *       allowed) while a click on a filler slot IS cancelled (locked) — the bench's safety contract.</li>
- *   <li><strong>alchemistCombines</strong> — two identical level-1 books in the inputs + a Combine click
- *       yield a level-2 book and consume both inputs.</li>
- *   <li><strong>tinkererSalvages</strong> — a book in the input + a Salvage click consumes it and refunds
- *       its level in EXP.</li>
- *   <li><strong>closeReturnsInputs</strong> — closing the bench with a staged book returns it to the player
- *       (no item loss).</li>
- * </ul>
+ * Live checks for the §K interactive merchant benches (docs/v3-directives.md §K) — the GUI code with
+ * cross-version/Folia risk beyond unit coverage: input-slot placement vs filler lock, combine/salvage
+ * mutations, and close-returns-staged-inputs. Run on a real server through the shared {@link MenuListener},
+ * so a wrong-thread access or inventory quirk fails rather than passing vacuously. (Display-menu click→apply
+ * is covered by {@link MenuSuite}; pure combine/salvage/pagination logic by unit tests.)
  */
 public final class GuiSuite implements Harness.Scenario {
 
-    /** An enchant with TWO levels so a level-1 + level-1 combine has a level-2 to produce. */
+    /** Two levels, so a level-1 + level-1 combine has a level-2 to produce. */
     private static final String KEEN = """
             display: "&bKeen"
             applies-to: [SWORD]
@@ -150,7 +138,7 @@ public final class GuiSuite implements Harness.Scenario {
 
     private void runChecks(Harness h, Player player, CarrierService carriers,
                            AlchemistMenu alchemist, TinkererMenu tinkerer) {
-        // 1. Placement allowed in an input slot, locked everywhere else.
+        // Placement allowed in an input slot, locked everywhere else.
         h.guard("gui.inputSlotPlacementVsLock", () -> {
             InventoryView view = open(player, alchemist);
             if (dispatchClick(view, ALCHEMIST_LEFT).isCancelled()) {
@@ -161,7 +149,7 @@ public final class GuiSuite implements Harness.Scenario {
             }
         });
 
-        // 2. Alchemist: two identical level-1 books → one level-2 book; inputs consumed.
+        // Alchemist: two level-1 books → one level-2 book; inputs consumed.
         h.guard("gui.alchemistCombines", () -> {
             InventoryView view = open(player, alchemist);
             player.getInventory().clear();
@@ -177,7 +165,7 @@ public final class GuiSuite implements Harness.Scenario {
             }
         });
 
-        // 3. Tinkerer: a level-3 book salvages for 3 EXP levels; the book is consumed.
+        // Tinkerer: a level-3 book salvages for 3 EXP levels; the book is consumed.
         h.guard("gui.tinkererSalvages", () -> {
             InventoryView view = open(player, tinkerer);
             player.getInventory().clear();
@@ -192,7 +180,6 @@ public final class GuiSuite implements Harness.Scenario {
             }
         });
 
-        // 4. Closing with a staged input returns it to the player.
         h.guard("gui.closeReturnsInputs", () -> {
             InventoryView view = open(player, alchemist);
             player.getInventory().clear();
@@ -207,14 +194,14 @@ public final class GuiSuite implements Harness.Scenario {
         });
     }
 
-    /** Render a menu into a fresh holder and open it for the player; return the live view. */
+    /** Renders the menu into a fresh holder and opens it; returns the live view. */
     private static InventoryView open(Player player, feature.menu.Menu menu) {
         MenuHolder holder = new MenuHolder(menu);
         menu.render(holder);
         return player.openInventory(holder.getInventory());
     }
 
-    /** Fire a real left-click on {@code rawSlot} of {@code view} through the plugin manager; return the event. */
+    /** Fires a real left-click on {@code rawSlot} through the plugin manager; returns the event. */
     private InventoryClickEvent dispatchClick(InventoryView view, int rawSlot) {
         InventoryClickEvent click = new InventoryClickEvent(view, InventoryType.SlotType.CONTAINER, rawSlot,
                 ClickType.LEFT, InventoryAction.PICKUP_ALL);
@@ -222,7 +209,6 @@ public final class GuiSuite implements Harness.Scenario {
         return click;
     }
 
-    /** Whether the player's inventory holds an enchant book of the given level. */
     private static boolean hasBookAtLevel(Player player, CarrierService carriers, int level) {
         for (ItemStack stack : player.getInventory().getContents()) {
             if (stack != null && carriers.bookContents(stack).filter(b -> b.level() == level).isPresent()) {

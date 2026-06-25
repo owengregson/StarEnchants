@@ -11,10 +11,8 @@ import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds the
- * resolved location and typed args (the {@code particle} handle already lowered to an
- * interned id), and a mocked {@link Sink} records the emitted intent — so the effect's
- * behavior is verified with no server.
+ * Mock-host test (docs/architecture.md §1.3): the {@code particle} arg arrives already lowered to an
+ * interned id, so the effect reads it via {@code ctx.integer} and the Sink intent carries that int.
  */
 class ParticleEffectTest {
 

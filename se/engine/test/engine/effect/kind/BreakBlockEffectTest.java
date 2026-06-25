@@ -12,7 +12,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code BREAK_BLOCK}: emits one breakBlock per target location, no-op without any. */
+/** Mock-host BREAK_BLOCK test: one breakBlock per resolved target location, no-op when none. */
 class BreakBlockEffectTest {
 
     @Test

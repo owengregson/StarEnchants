@@ -13,17 +13,14 @@ import schema.diag.Source;
 import schema.spec.ParamSpec;
 
 /**
- * The legacy-plugin importer entry point (docs/architecture.md §10). Reads a legacy plugin's configs,
- * maps them to the unified vocabulary, and produces StarEnchants content-format-v2 YAML keyed by output
- * path — plus a {@link Diagnostics} log of everything that needs manual attention (an unmapped
- * trigger/applies, an effect with no equivalent). The migration NEVER fails on an unmappable construct:
- * it migrates the structure and flags the gaps as warnings, so the operator gets a reviewable,
- * mostly-complete tree.
+ * The legacy-plugin importer entry point (docs/architecture.md §10). Maps a legacy plugin's configs to
+ * the unified vocabulary, producing content-format-v2 YAML keyed by output path plus a {@link Diagnostics}
+ * log of everything needing manual attention. The migration NEVER fails on an unmappable construct: it
+ * migrates the structure and flags gaps as warnings.
  *
- * <p>Readers: EliteEnchantments, EliteArmor, and AdvancedEnchantments. Each entry point has an overload
- * taking an effect-spec lookup ({@code specs}: head → {@link ParamSpec}); when supplied, effects are
- * written in the v2 <strong>verbose</strong> form so migrated configs are stored in the unified v2
- * format (ADR-0016). Without it, effects fall back to the terse string (still valid v2).
+ * <p>Readers: EliteEnchantments, EliteArmor, AdvancedEnchantments. Each entry point has an overload taking
+ * an effect-spec lookup ({@code specs}: head → {@link ParamSpec}); when supplied, effects are written in
+ * the v2 <strong>verbose</strong> form (ADR-0016), else the terse string (still valid v2).
  */
 public final class Migrator {
 

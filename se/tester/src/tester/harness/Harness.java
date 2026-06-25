@@ -17,18 +17,15 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * The in-server suite driver (live-server-testing, matrix-gate skills). A {@link Scenario}
- * declares the checks it will resolve (via {@link #expect}) and kicks off whatever scheduled or
- * cross-thread work resolves them ({@link #pass}/{@link #fail}/{@link #guard}). The harness ticks
- * a global timer: it launches every scenario on the first tick, then each tick asks whether all
- * expected checks have resolved — finishing early when they have, or failing the unresolved ones
- * at the tick deadline. On finish it writes a FRESH {@code test-results.txt} (PASS/FAIL plus a
- * line per check) and {@code test-failures.txt}, then shuts the server down so the matrix runner
- * observes a clean exit and a fresh result (never a stale banner).
+ * The in-server suite driver (live-server-testing, matrix-gate skills). A {@link Scenario} declares its
+ * checks ({@link #expect}) and kicks off the work that resolves them ({@link #pass}/{@link #fail}/
+ * {@link #guard}). A global timer launches every scenario on the first tick, then polls each tick until all
+ * checks resolve (finish early) or the deadline hits (fail the unresolved). On finish it writes FRESH
+ * {@code test-results.txt}/{@code test-failures.txt} and shuts the server down, so the runner sees a clean
+ * exit and a fresh result, never a stale banner.
  *
- * <p>Timing is GAME-TICK anchored, never wall-clock — correct under concurrent matrix load. All
- * mutation of the result map is concurrency-safe because checks resolve from entity/region/async
- * threads on Folia.
+ * <p>Timing is GAME-TICK anchored, never wall-clock — correct under concurrent matrix load. The result map
+ * is concurrent because checks resolve from entity/region/async threads on Folia.
  */
 public final class Harness {
 
@@ -152,7 +149,7 @@ public final class Harness {
         }
 
         log.info("[harness] " + (allPass ? "PASS" : "FAIL") + " — wrote " + resultsFile.toAbsolutePath());
-        // Shut down on the global thread so the runner sees a clean exit + a fresh result file.
+        // Shut down on the global thread so the runner sees a clean exit + fresh result file.
         Scheduling.onGlobal(plugin.getServer()::shutdown);
     }
 }

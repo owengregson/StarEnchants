@@ -8,11 +8,10 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Reads and writes a {@link SoulData} on an item (docs/architecture.md §6.3), stored as one PDC
- * {@code STRING} under {@link ItemKeys#soul()} — SEPARATE from the {@link CombatCodec} blob so a
- * soul spend/gain never invalidates the content-hash {@code ItemView} cache. Format
- * {@code <gemId>:<souls>}; a UUID never contains {@code ':'}, so the first {@code ':'} splits it.
- * A null/malformed entry decodes to {@code null} (no gem), never an exception.
+ * Reads/writes {@link SoulData} as one PDC {@code STRING} under {@link ItemKeys#soul()} (§6.3),
+ * separate from the {@link CombatCodec} blob so a soul spend/gain never invalidates the content-hash
+ * {@code ItemView} cache. Format {@code <gemId>:<souls>}; a UUID never contains {@code ':'}, so the
+ * first {@code ':'} splits it. Null/malformed decodes to {@code null} (no gem), never throws.
  */
 public final class SoulCodec {
 
@@ -57,7 +56,7 @@ public final class SoulCodec {
         try {
             return new SoulData(UUID.fromString(raw.substring(0, sep)), Integer.parseInt(raw.substring(sep + 1)));
         } catch (IllegalArgumentException bad) {
-            return null; // bad UUID or non-numeric souls → treat as no gem, never crash
+            return null; // bad UUID or non-numeric souls → no gem, never crash
         }
     }
 }

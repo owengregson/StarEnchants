@@ -10,10 +10,9 @@ import schema.spec.D;
 import java.util.List;
 
 /**
- * {@code @NearestPlayer{r=16}} — the single closest player within {@code r} blocks of the activation
- * centre, excluding the activator (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). A named alias for
- * {@code @Nearest{filter=PLAYERS}} (clearer in content and the auto-doc), implemented as a player-filtered
- * nearest scan over the injected area-scan seam (Folia-correct). The radius defaults to {@code 16}.
+ * {@code @NearestPlayer{r=16}} — closest player within {@code r} of the centre, except the activator
+ * (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). A named alias for
+ * {@code @Nearest{filter=PLAYERS}}, clearer in content and the auto-doc; Folia-correct via the area-scan seam.
  */
 public final class NearestPlayerSelector implements SelectorKind {
 

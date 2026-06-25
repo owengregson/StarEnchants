@@ -9,11 +9,7 @@ import engine.effect.EffectCtx;
 import engine.sink.Sink;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds the
- * typed {@code command} arg and a mocked {@link Sink} records the emitted intent — so
- * the effect's behavior is verified with no server.
- */
+/** Mock-host effect test (docs/architecture.md §1.3): mocked EffectCtx in, Sink intents verified. */
 class RunCommandEffectTest {
 
     @Test

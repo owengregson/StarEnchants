@@ -18,7 +18,7 @@ import org.bukkit.entity.Entity;
  */
 public interface SchedulerBackend {
 
-    // ── Entity-owned (the common case: anything done TO an entity) ──────────────────────────
+    // Entity-owned: follows the entity across regions, teleports, dimensions.
 
     /** Run on the entity's owning thread as soon as possible. */
     void onEntity(Entity entity, Runnable task);
@@ -29,7 +29,7 @@ public interface SchedulerBackend {
     /** Repeat on the entity's owning thread; cancel via the returned handle. */
     TaskHandle repeatingEntity(Entity entity, long initialDelayTicks, long periodTicks, Runnable task);
 
-    // ── Region-owned (a location/chunk with no entity in hand) ───────────────────────────────
+    // Region-owned: a location/chunk with no entity in hand.
 
     /** Run on the thread that ticks {@code location} as soon as possible. */
     void onRegion(Location location, Runnable task);
@@ -40,7 +40,7 @@ public interface SchedulerBackend {
     /** Repeat on the thread that ticks {@code location}; cancel via the returned handle. */
     TaskHandle repeatingRegion(Location location, long initialDelayTicks, long periodTicks, Runnable task);
 
-    // ── Global-owned (world time, weather, server-wide timers) ───────────────────────────────
+    // Global-owned: world time, weather, server-wide timers.
 
     /** Run on the global region thread as soon as possible. */
     void onGlobal(Runnable task);
@@ -51,7 +51,7 @@ public interface SchedulerBackend {
     /** Repeat on the global region thread; cancel via the returned handle. */
     TaskHandle repeatingGlobal(long initialDelayTicks, long periodTicks, Runnable task);
 
-    // ── Async (I/O; must NOT touch the Bukkit API) ───────────────────────────────────────────
+    // Async: I/O off any game thread; must NOT touch the Bukkit API.
 
     /** Run off any game thread; the task must touch no Bukkit API. */
     void async(Runnable task);

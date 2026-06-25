@@ -143,8 +143,6 @@ class LifecycleDriverTest {
         assertEquals(List.of(abilities[3]), third.starts, "and the worn buff re-starts");
     }
 
-    // ── fixtures ─────────────────────────────────────────────────────────────────────────────────
-
     private Captured capture() {
         return captureNth(0);
     }

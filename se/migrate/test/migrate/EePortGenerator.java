@@ -66,8 +66,8 @@ class EePortGenerator {
 
         Migrator.Result result = Migrator.eliteEnchantments(enchantsYaml, SPECS);
 
-        // Add a StarEnchants tier alongside the migrated group (the EE rarity is BOTH the SE tier — for lore
-        // colour/sort — AND the SE group: that SUPPRESS:GROUP matches). Collect the tier set seen.
+        // The EE rarity is BOTH the SE tier (lore colour/sort) AND the SE group (SUPPRESS:GROUP matches), so
+        // add a tier alongside the migrated group.
         Map<String, String> rewritten = new LinkedHashMap<>();
         TreeMap<String, Integer> tiersSeen = new TreeMap<>();
         for (Map.Entry<String, String> file : result.files().entrySet()) {
@@ -93,7 +93,7 @@ class EePortGenerator {
         Compiler compiler = ContentCompiler.production(PERMISSIVE);
         Library library = LibraryLoader.load(out, compiler, 0);
 
-        // ── Coverage report ──────────────────────────────────────────────────────────────────────
+        // Coverage report.
         long blocking = library.diagnostics().stream().filter(Diagnostic::blocking).count();
         TreeMap<String, Integer> unmapped = new TreeMap<>();
         for (Diagnostic d : result.diagnostics().all()) {

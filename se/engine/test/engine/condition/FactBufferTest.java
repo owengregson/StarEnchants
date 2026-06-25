@@ -27,7 +27,7 @@ class FactBufferTest {
         assertTrue(f.flag(0));
         assertFalse(f.flag(1));
         assertTrue(f.flag(2));
-        f.setFlag(0, false); // clearing one bit leaves the others
+        f.setFlag(0, false);
         assertFalse(f.flag(0));
         assertTrue(f.flag(2));
     }

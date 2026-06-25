@@ -28,12 +28,11 @@ import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 
 /**
- * Mock-host tests for the {@link DispatchSink} (docs/architecture.md §3.6), with no server: a
- * {@link SyncSchedulerBackend} runs deferred batches inline and mocked entities record the emitted
- * mutations. They pin the policy — the damage-fold + cancel feedback is synchronous, every world
- * mutation is deferred to the flush and routed to its owning thread (NEVER inlined on the firing
- * thread, since the target may be a different entity/region), and the per-entity batch preserves
- * emission order. The handle-using intents + the genuine cross-region hop are pinned LIVE.
+ * Pins the {@link DispatchSink} policy (docs/architecture.md §3.6) with no server: damage-fold and cancel
+ * feedback are synchronous, but every world mutation is deferred to flush and routed to its owning thread
+ * (never inlined on the firing thread, since the target may be a different entity/region), preserving
+ * per-entity emission order. A {@link SyncSchedulerBackend} runs the deferred batches inline so mocks can
+ * record them.
  */
 class DispatchSinkTest {
 
@@ -226,7 +225,7 @@ class DispatchSinkTest {
                 new VarStore(), new SuppressionStore(), store, () -> 100L);
         sink.controlKnockback(victim, 0.0, 5); // per-victim state, written immediately (no flush needed)
 
-        assertEquals(0.0, store.multiplier(id, 100L)); // cancel flag live now
+        assertEquals(0.0, store.multiplier(id, 100L)); // 0.0 is an active full-cancel, distinct from NaN "no control"
         assertTrue(Double.isNaN(store.multiplier(id, 105L)), "expires at tick 105");
     }
 
@@ -241,7 +240,7 @@ class DispatchSinkTest {
                 new SuppressionStore(), new KnockbackControlStore(), store, () -> 100L);
         sink.keepOnDeath(player, 40); // per-player flag, written immediately (no flush needed)
 
-        assertTrue(store.shouldKeep(id, 100L)); // armed now
+        assertTrue(store.shouldKeep(id, 100L));
         assertFalse(store.shouldKeep(id, 140L), "expires at tick 140");
     }
 }

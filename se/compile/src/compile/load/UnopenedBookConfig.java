@@ -4,20 +4,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The configurable likeness + mechanics of the UNOPENED / RANDOMIZED book (docs/v3-directives.md §I),
- * loaded from the top-level {@code items/unopened-book.yml}. Tier-scoped: right-clicking it yields a
- * concrete enchant book of a random enchant from its tier, with a random level and a random success
- * chance in {@code [minSuccess, maxSuccess]}. Immutable; lives in the {@link ItemsConfig} snapshot the
- * runtime reads and {@code /se reload} swaps. {@code {TIER}} in the name/lore renders the scoped tier.
+ * The configurable likeness + mechanics of the UNOPENED / RANDOMIZED book (§I), loaded from
+ * {@code items/unopened-book.yml}. Tier-scoped: right-clicking it yields a concrete enchant book of a
+ * random enchant from its tier, with a random level and a random success chance in
+ * {@code [minSuccess, maxSuccess]}. {@code {TIER}} in the name/lore renders the scoped tier. Immutable;
+ * lives in the {@link ItemsConfig} snapshot {@code /se reload} swaps.
  *
- * @param material        the unopened-book item material token (resolved cross-version at use)
  * @param name            its display name ({@code &} colours; {@code {TIER}} placeholder)
  * @param lore            its lore lines ({@code {TIER}} placeholder)
  * @param minSuccess      the lower bound of the produced book's random success chance, 0..100
  * @param maxSuccess      the upper bound of the produced book's random success chance, 0..100
- *
- * <p>The reveal/empty-tier messages now live in {@code lang.yml} ({@code book.unopened.open} /
- * {@code book.unopened.empty-tier}) — §L centralised them out of this likeness config.
  */
 public record UnopenedBookConfig(
         String material,

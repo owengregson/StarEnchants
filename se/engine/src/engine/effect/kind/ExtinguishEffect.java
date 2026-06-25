@@ -9,10 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * {@code EXTINGUISH} — put out the target(s)' fire (docs/architecture.md §7).
- * Stateless; emits an {@code extinguish} intent per resolved target and never touches
- * an entity directly. {@link Affinity#TARGET_ENTITY}: clearing fire ticks mutates the
- * target, so the {@code Sink} routes each intent to the owning entity's thread.
+ * {@code EXTINGUISH} — put out the target(s)' fire (docs/architecture.md §7). {@link Affinity#TARGET_ENTITY}.
  */
 public final class ExtinguishEffect implements EffectKind {
 

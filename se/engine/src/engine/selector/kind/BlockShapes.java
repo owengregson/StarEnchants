@@ -5,24 +5,23 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 /**
- * Shared block-grid + facing math for the mining-shape selectors ({@link TrenchSelector},
- * {@link TunnelSelector}, docs/v3-directives.md §A). These are PURE computations over the actor's facing
- * and a base block — no world read — so the shapes are unit-testable; the effect that consumes the
- * locations ({@code BREAK_BLOCK}/{@code SET_BLOCK}) is what actually touches the world.
+ * Block-grid + facing math for the mining-shape selectors ({@link TrenchSelector}, {@link TunnelSelector},
+ * docs/v3-directives.md §A). Pure computation over facing and a base block, no world read — the consuming
+ * effect ({@code BREAK_BLOCK}/{@code SET_BLOCK}) is what touches the world.
  */
 final class BlockShapes {
 
     private BlockShapes() {
     }
 
-    /** The block-grid-snapped location of {@code loc}, or {@code null}. */
+    /** Block-grid-snapped {@code loc}, or {@code null}. */
     static Location block(Location loc) {
         return loc == null ? null : loc.getBlock().getLocation();
     }
 
     /**
-     * The actor's dominant facing as a unit step on ONE axis ({@code {±1,0,0}}/{@code {0,±1,0}}/
-     * {@code {0,0,±1}}), or {@code null} if the actor is absent — the "forward" a tunnel/trench grows along.
+     * Actor's dominant facing as a unit step on ONE axis ({@code {±1,0,0}}/{@code {0,±1,0}}/{@code {0,0,±1}}),
+     * or {@code null} if the actor is absent — the "forward" a tunnel/trench grows along.
      */
     static int[] facing(Player actor) {
         if (actor == null) {

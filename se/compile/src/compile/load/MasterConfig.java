@@ -7,37 +7,14 @@ import java.util.Objects;
 import schema.diag.Diagnostic;
 
 /**
- * The compiled snapshot of the master {@code config.yml} (docs/v3-directives.md §L) — the sectioned
- * cross-cutting knobs that are NOT a single item's "physical likeness" (those live in {@code items/}) and
- * NOT messages (those live in {@code lang.yml}). Loaded as a parallel immutable reference to the content
- * {@link Library} and swapped in the SAME atomic {@code /se reload} transaction. Pure (no Bukkit); readers
- * always see a fully-built snapshot.
+ * Compiled snapshot of the master {@code config.yml} (§L) — cross-cutting knobs that are neither a single
+ * item's likeness ({@code items/}) nor messages ({@code lang.yml}). Swapped by reference in the same atomic
+ * {@code /se reload} transaction as content + items. Pure (no Bukkit); readers always see a fully-built
+ * snapshot.
  *
- * <p>Seven sections, matching the directive's list ({@code slots:, souls:, crystals:, heroic:, lore:,
- * integrations:, reload:}). Unlike {@link ItemsConfig} (one optional record per item file), every section
- * is mandatory and always resolves to <em>some</em> value, so each section is a plain nested record with a
- * {@code defaults()} factory rather than an {@link java.util.Optional}. An absent or unreadable
- * {@code config.yml} yields {@link #defaults()}; a malformed file yields a diagnostic and defaults for the
- * faulted section.
- *
- * <p>Distinction from {@code items/}: per-feature likeness (a slot expander's material, a soul gem's lore,
- * heroic's granted percents) stays in {@code items/}; the genuinely cross-cutting ceilings live here — base
- * enchant slots (§H; the hard cap stays in the expander's {@code items/slots.yml} per §H), the per-item
- * crystal-slot default (§E), the heroic bounded-multiplicative clamp ceiling (§F/ADR-0021), the lore render
- * style, integration discovery toggles, and reload behaviour.
- *
- * @param features     per-feature master on/off toggles (enchants/sets/crystals/heroic/slots/souls/scrolls)
- * @param combat       cross-cutting combat caps (additive bonus ceilings + PvP/PvE gates)
- * @param messages     the player-feedback chat style (prefix + feedback channel toggle)
- * @param slots        base enchant-slot capacity (§H)
- * @param souls        cross-cutting soul toggles (§D) — per-kill amounts/colours stay in {@code items/soul-gem.yml}
- * @param crystals     per-item crystal-slot capacity + the multi-crystal sanity cap (§E)
- * @param heroic       the heroic multiplicative-stage clamp ceiling (§F)
- * @param lore         the lore render style (colours, numerals, unknown-key label)
- * @param integrations boot-time discovery toggles for the protection/economy/integration providers (§N)
- * @param reload       reload behaviour (re-resolve players, optional auto-reload interval)
- * @param commandTrigger the configurable command that fires the §B {@code COMMAND} trigger
- * @param diagnostics  every diagnostic raised loading {@code config.yml}
+ * <p>Every section is mandatory and resolves to <em>some</em> value (a nested record + {@code defaults()}
+ * factory, not an {@link java.util.Optional}). Absent/unreadable {@code config.yml} yields
+ * {@link #defaults()}; a malformed file yields a diagnostic and defaults for the faulted section.
  */
 public record MasterConfig(FeaturesSection features, CombatSection combat, MessagesSection messages,
                            SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
@@ -74,11 +51,10 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Base enchant-slot capacity (§H). The hard cap on TOTAL slots (base + purchased) lives in the slot
-     * expander's {@code items/slots.yml} ({@code SlotConfig.hardCap}) per §H ("a hard universal maximum
-     * total-slot cap defined in the expander's config") — only the base is cross-cutting.
+     * Base enchant-slot capacity (§H). Only the base is cross-cutting; the hard cap on TOTAL slots
+     * (base + purchased) lives in the expander's {@code items/slots.yml} ({@code SlotConfig.hardCap}).
      *
-     * @param base the base number of enchant slots every item starts with (≥ 0)
+     * @param base base enchant slots every item starts with (≥ 0)
      */
     public record SlotsSection(int base) {
         public SlotsSection {
@@ -91,12 +67,11 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Cross-cutting soul toggles (§D). The concrete soul economy (per-kill amount, per-mob overrides,
-     * colour tiers, sounds, particles, messages) is the gem's likeness in {@code items/soul-gem.yml}; only
+     * Cross-cutting soul toggles (§D). The concrete soul economy lives in {@code items/soul-gem.yml}; only
      * the master deposit toggle is cross-cutting.
      *
-     * @param depositOnAnyKill whether souls deposit into a carried gem on ANY kill (§D); {@code false}
-     *                         disables the deposit-on-kill mechanic entirely (give/combine/split still work)
+     * @param depositOnAnyKill souls deposit into a carried gem on ANY kill; {@code false} disables
+     *                         deposit-on-kill entirely (give/combine/split still work)
      */
     public record SoulsSection(boolean depositOnAnyKill) {
         public static SoulsSection defaults() {
@@ -105,13 +80,11 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Crystal-slot capacity (§E). Per-item crystal slots are a SEPARATE ledger from enchant slots; the
-     * default is 1 (configurable here, never in {@code items/crystal.yml} which carries only the crystal
-     * item's likeness). {@code maxStack} bounds how many crystals a single item may ever hold (a PDC-bloat
-     * sanity guard distinct from the slot count).
+     * Crystal-slot capacity (§E). Crystal slots are a SEPARATE ledger from enchant slots. {@code maxStack}
+     * is a PDC-bloat sanity guard distinct from the slot count.
      *
-     * @param slots    the number of crystal slots every item has (≥ 0)
-     * @param maxStack the absolute maximum crystals one item may hold (≥ 1)
+     * @param slots    crystal slots every item has (≥ 0)
+     * @param maxStack absolute maximum crystals one item may hold (≥ 1)
      */
     public record CrystalsSection(int slots, int maxStack) {
         public CrystalsSection {
@@ -125,12 +98,10 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * The heroic bounded-multiplicative clamp ceiling (§F/ADR-0021). Heroic is a distinct multiplicative
-     * stage applied AFTER the additive damage fold: outgoing {@code ×clamp(1+Σ, 0, maxOutgoingFactor)}. This
-     * is the only cross-cutting heroic knob; the granted percents/success/material map live in
-     * {@code items/heroic.yml}.
+     * Heroic bounded-multiplicative clamp ceiling (§F/ADR-0021). Heroic is a distinct multiplicative stage
+     * AFTER the additive fold: outgoing {@code ×clamp(1+Σ, 0, maxOutgoingFactor)}.
      *
-     * @param maxOutgoingFactor the ceiling on the heroic outgoing-damage multiplier (≥ 1.0; default 4.0)
+     * @param maxOutgoingFactor ceiling on the heroic outgoing-damage multiplier (≥ 1.0; default 4.0)
      */
     public record HeroicSection(double maxOutgoingFactor) {
         public HeroicSection {
@@ -143,15 +114,14 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * The lore render style (§L) — mirrors {@code item.render.LoreStyle} field-for-field (the bridge to that
-     * type is built at the composition root, since {@code compile} does not depend on {@code item}). Swapped
-     * live on reload, so a colour edit takes effect on the next lore render.
+     * Lore render style (§L). Mirrors {@code item.render.LoreStyle} field-for-field; the bridge is built at
+     * the composition root since {@code compile} does not depend on {@code item}.
      *
-     * @param enchantColor colour prefix for an enchant's display name (legacy {@code &} code)
-     * @param levelColor   colour prefix for the level numeral
-     * @param crystalColor colour prefix for a crystal line
-     * @param roman        whether levels render as Roman numerals (else Arabic)
-     * @param unknownLabel the name rendered for a stored key no longer in the catalog (§5.3)
+     * @param enchantColor enchant-name colour prefix (legacy {@code &} code)
+     * @param levelColor   level-numeral colour prefix (legacy {@code &} code)
+     * @param crystalColor crystal-line colour prefix (legacy {@code &} code)
+     * @param roman        levels render as Roman numerals (else Arabic)
+     * @param unknownLabel name rendered for a stored key no longer in the catalog (§5.3)
      */
     public record LoreSection(String enchantColor, String levelColor, String crystalColor,
                               boolean roman, String unknownLabel) {
@@ -168,14 +138,11 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Boot-time discovery toggles (§N). Each named provider can be disabled so the plugin does not register
-     * against it; the two core seams (protection, economy) have explicit toggles, and named integrations
-     * (worldguard, vault, …) read through {@link #enabled} (default-true: an unlisted id is enabled). These
-     * are read at {@code onEnable} — un-discovering a provider mid-run is not a clean operation — so a change
-     * takes effect on the next server start, not a {@code /se reload}.
+     * Boot-time discovery toggles (§N). Read at {@code onEnable} — un-discovering a provider mid-run is not
+     * clean — so a change takes effect on the next server start, NOT a {@code /se reload}.
      *
-     * @param protection whether to discover {@code ProtectionProvider}s (gate 2)
-     * @param economy    whether to discover an {@code EconomyProvider} (the money effects)
+     * @param protection discover {@code ProtectionProvider}s (gate 2)
+     * @param economy    discover an {@code EconomyProvider} (the money effects)
      * @param named      per-id enable flags for named integrations; absent ⇒ enabled
      */
     public record IntegrationsSection(boolean protection, boolean economy, Map<String, Boolean> named) {
@@ -198,12 +165,10 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Reload behaviour (§L). {@link #reResolvePlayers} (default true) gates the per-player worn-state
-     * re-resolve in the reload transaction; {@link #autoSeconds} (default 0 = off) optionally schedules a
-     * recurring {@code /se reload} on the global thread.
+     * Reload behaviour (§L).
      *
-     * @param reResolvePlayers re-resolve every online player's worn state after a content swap
-     * @param autoSeconds      auto-reload interval in seconds (≤ 0 disables; armed once at boot)
+     * @param reResolvePlayers re-resolve every online player's worn state after a content swap (default true)
+     * @param autoSeconds      auto-reload interval in seconds (≤ 0 disables; armed once at boot, global thread)
      */
     public record ReloadSection(boolean reResolvePlayers, int autoSeconds) {
         public static ReloadSection defaults() {
@@ -212,16 +177,13 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * The configurable command that fires the §B {@code COMMAND} trigger (docs/v3-directives.md §B,
-     * ADR-0022). When {@link #enabled}, a standalone command named {@link #name} is registered at boot; a
-     * player running it fires their worn {@code COMMAND}-trigger abilities through the full gate sequence.
-     * Registered ONCE at {@code onEnable} (a command name cannot be re-bound mid-run cleanly), so a change to
-     * {@code name}/{@code enabled} takes effect on the next server start, not a {@code /se reload} — like the
-     * integration toggles.
+     * Configurable command that fires the §B {@code COMMAND} trigger (ADR-0022). Registered ONCE at
+     * {@code onEnable} (a command name cannot be re-bound mid-run cleanly), so a change takes effect on the
+     * next server start, NOT a {@code /se reload}.
      *
-     * @param enabled     whether to register the command-trigger command at boot
-     * @param name        the command name players run (no leading slash); default {@code cast}
-     * @param description the command's help description (shown in tab/help listings)
+     * @param enabled     register the command-trigger command at boot
+     * @param name        command name players run (no leading slash); default {@code cast}
+     * @param description help description shown in tab/help listings
      */
     public record CommandTriggerSection(boolean enabled, String name, String description) {
         public CommandTriggerSection {
@@ -235,20 +197,17 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Per-feature master on/off switches. Each toggle disables a whole subsystem at its entry point:
-     * {@link #enchants}/{@link #sets}/{@link #crystals}/{@link #heroic} drop that source when a player's
-     * worn state is resolved (so the feature's combat + trigger effects go inert, re-read live on reload),
-     * while {@link #slots}/{@link #souls}/{@link #scrolls} gate their apply/interaction listeners at boot
-     * (a change takes effect on the next server start, like the integration toggles). Default-all-on, so an
-     * absent {@code features:} section changes nothing.
+     * Per-feature master on/off switches (default-all-on). FOOTGUN: {@code enchants/sets/crystals/heroic}
+     * are read LIVE (dropped from worn state on resolve, re-read on reload); {@code slots/souls/scrolls}
+     * gate listeners at boot, so a change takes effect only on the next server start.
      *
-     * @param enchants whether enchant sources contribute to worn state (their effects fire)
-     * @param sets     whether armour-set bonuses contribute to worn state
-     * @param crystals whether crystal sources contribute to worn state
-     * @param heroic   whether heroic flat stats contribute to worn state (the heroic damage stage)
-     * @param slots    whether the slot-expander apply gesture is registered
-     * @param souls    whether the soul system (deposit, soul mode, gem inventory) is registered
-     * @param scrolls  whether the scroll-family interactions (black/randomizer/transmog/holy/nametag/godly) are registered
+     * @param enchants enchant sources contribute to worn state
+     * @param sets     armour-set bonuses contribute to worn state
+     * @param crystals crystal sources contribute to worn state
+     * @param heroic   heroic flat stats contribute to worn state (the heroic damage stage)
+     * @param slots    register the slot-expander apply gesture
+     * @param souls    register the soul system (deposit, soul mode, gem inventory)
+     * @param scrolls  register the scroll-family interactions (black/randomizer/transmog/holy/nametag/godly)
      */
     public record FeaturesSection(boolean enchants, boolean sets, boolean crystals, boolean heroic,
                                   boolean slots, boolean souls, boolean scrolls) {
@@ -258,17 +217,13 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Cross-cutting combat caps. {@link #maxBonusDamage}/{@link #maxBonusReduction} ceil the ADDITIVE fold's
-     * summed outgoing/reduction fractions (ADR-0012) — e.g. {@code maxBonusReduction = 0.8} forbids more than
-     * 80% damage reduction (no immunity stacking); a negative value means "no cap" (the default, preserving
-     * current behaviour). {@link #pvp}/{@link #pve} gate whether StarEnchants combat effects apply at all when
-     * a player fights another player (PvP) or a non-player (PvE) — disabling a context makes that side
-     * contribute nothing to the fold. All read live, so a {@code /se reload} re-tunes them.
+     * Cross-cutting combat caps, all read live (ADR-0012). Disabling a PvP/PvE context makes that side
+     * contribute nothing to the additive fold.
      *
      * @param maxBonusDamage    ceiling on the summed outgoing-damage fraction (e.g. {@code 5.0} = +500% max); {@code < 0} = uncapped
      * @param maxBonusReduction ceiling on the summed damage-reduction fraction (e.g. {@code 0.8} = 80% max); {@code < 0} = uncapped
-     * @param pvp               whether combat effects apply in player-vs-player hits
-     * @param pve               whether combat effects apply in player-vs-environment hits
+     * @param pvp               combat effects apply in player-vs-player hits
+     * @param pve               combat effects apply in player-vs-environment hits
      */
     public record CombatSection(double maxBonusDamage, double maxBonusReduction, boolean pvp, boolean pve) {
         public static CombatSection defaults() {
@@ -277,13 +232,12 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * The player-feedback chat style (§L). {@link #prefix} is prepended to every message rendered through the
-     * {@code Messages} facade (chat feedback only — never item names or lore). {@link #feedback} toggles the
-     * keyed gameplay-feedback channel ({@code Messages#send}, e.g. menu confirmations): {@code false} silences
-     * it for a quiet server (admin command echoes still print). Both read live on reload.
+     * Player-feedback chat style (§L), read live on reload. {@code prefix} applies to {@code Messages}-facade
+     * chat only — never item names or lore. {@code feedback=false} silences the keyed gameplay-feedback
+     * channel ({@code Messages#send}) but admin command echoes still print.
      *
-     * @param prefix   text prepended to facade-rendered messages (legacy {@code &} colour codes); may be empty
-     * @param feedback whether keyed gameplay-feedback messages are sent to players
+     * @param prefix   prepended to facade-rendered messages (legacy {@code &} colour codes); may be empty
+     * @param feedback send keyed gameplay-feedback messages to players
      */
     public record MessagesSection(String prefix, boolean feedback) {
         public MessagesSection {

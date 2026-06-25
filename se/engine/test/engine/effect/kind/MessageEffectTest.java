@@ -11,10 +11,8 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test (docs/architecture.md §1.3) for the canonical {@code MESSAGE}, which now routes by
- * {@code channel} (chat / actionbar / title) — collapsing the deleted ACTIONBAR and TITLE kinds. A
- * mocked {@link EffectCtx} feeds the typed args + the activating actor; a mocked {@link Sink} records
- * which intent the channel selected.
+ * Mock-host test (docs/architecture.md §1.3): MESSAGE routes by {@code channel}, collapsing the
+ * deleted ACTIONBAR and TITLE kinds — each test pins which Sink intent a channel selects.
  */
 class MessageEffectTest {
 

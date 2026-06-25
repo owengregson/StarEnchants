@@ -4,16 +4,12 @@ import java.util.regex.Pattern;
 import schema.grammar.expr.Cmp;
 
 /**
- * The boolean-valued root of a compiled condition: a typed, slot-resolved tree the
- * runtime evaluates over a thread-local primitive {@code FactBuffer} to gate an
- * activation (docs/architecture.md §3.2 "compile, never interpret", §3.4). This is the
- * lowered form of the untyped {@link schema.grammar.expr.Expr} the parser produces —
- * every variable is a dense slot, every literal is pre-parsed, and every operand has a
- * checked type, so the hot path does no string work and no boxing.
+ * The boolean-valued root of a compiled condition: a typed, slot-resolved tree the runtime evaluates over
+ * a thread-local {@code FactBuffer} to gate an activation (docs/architecture.md §3.2, §3.4). Variables are
+ * dense slots and literals pre-parsed, so the hot path does no string work and no boxing.
  *
- * <p>The hierarchy is sealed so the evaluator switches exhaustively. Comparisons are
- * split by operand type because the legal operators differ: numbers admit all six
- * comparators, while strings and booleans admit only equality.
+ * <p>Sealed for exhaustive evaluator switching. Comparisons split by operand type because legal operators
+ * differ: numbers admit all six comparators, strings and booleans only equality.
  */
 public sealed interface Cond
         permits Cond.And, Cond.Or, Cond.Not,

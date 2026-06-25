@@ -7,39 +7,23 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The configurable likeness + economy of the soul-gem item (docs/v3-directives.md §D), loaded from the
- * top-level {@code items/soul-gem.yml}. Immutable; lives in the {@link ItemsConfig} snapshot the runtime
- * reads and the {@code /se reload} transaction swaps. The soul subsystem renders the gem and runs its
- * economy from this — the gem is a DISTINCT configured item (material/name/lore), souls deposit on
- * <em>any</em> kill ({@link #soulsPerKill}, optionally per-mob via {@link #soulsPerMob}), and the
- * messages narrate the soul-mode toggle + each spend.
+ * The configurable likeness + economy of the soul-gem item (§D), loaded from {@code items/soul-gem.yml}.
+ * The gem is a DISTINCT configured item; souls deposit on <em>any</em> kill ({@link #soulsPerKill},
+ * optionally per-mob via {@link #soulsPerMob}). Immutable; lives in the {@link ItemsConfig} snapshot the
+ * {@code /se reload} transaction swaps.
  *
- * <p><strong>Soul-colour tiers are configurable</strong> (a Cosmic Enchants-style plugin hard-coded them): {@link #colorTiers} maps a
- * minimum soul count to a {@code &}-colour, walked highest-first by {@link #colorFor}; below every tier the
- * {@link #emptyColor} applies. <strong>Sounds</strong> are a master on/off ({@link #sounds}) plus three
- * tokens played through the cross-version {@code playSound(Location, String, …)} overload (no resolver
- * needed). <strong>Particle</strong> token lists drive the on-activate / on-deactivate / while-active
- * cosmetics: the on-activate/on-deactivate lists spawn from {@code SoulService.toggle()} and the active
- * list from the {@code SoulParticleDriver} aura loop, each through the alias-aware {@code ParticleFx}
- * resolver (§D).
+ * <p>Soul-colour tiers are configurable (a Cosmic Enchants-style plugin hard-coded them): {@link #colorTiers}
+ * maps a min soul count to a {@code &}-colour, walked highest-first by {@link #colorFor}; below every tier
+ * the {@link #emptyColor} applies. Sound tokens go through the cross-version
+ * {@code playSound(Location, String, …)} overload (no resolver needed); particle tokens through the
+ * alias-aware {@code ParticleFx} resolver.
  *
- * @param material          the gem's material token (resolved cross-version at use, e.g. {@code EMERALD})
- * @param name              the gem's display name (legacy {@code &} colour codes allowed)
- * @param lore              the gem's lore lines ({@code {AMOUNT}} / {@code {SOUL-COLOR}} placeholders allowed)
- * @param soulsPerKill      souls deposited into a carried gem per kill (≥ 0); the default when no per-mob entry matches
+ * @param lore              lore lines ({@code {AMOUNT}} / {@code {SOUL-COLOR}} placeholders allowed)
+ * @param soulsPerKill      souls deposited per kill (≥ 0); the default when no per-mob entry matches
  * @param soulsPerMob       optional per-{@code EntityType} deposit overrides (keys upper-cased), empty for none
  * @param colorTiers        soul-colour tiers (min count → {@code &}-colour), highest-first via {@link #colorFor}
  * @param emptyColor        the {@code &}-colour used below every tier (e.g. an empty gem)
- * @param sounds            master on/off for the gem's sounds
- * @param soundActivate     sound key played when soul mode enables (e.g. {@code entity.player.levelup})
- * @param soundDeactivate   sound key played when soul mode disables
- * @param soundCombine      sound key played when two gems combine (e.g. {@code block.anvil.use})
  * @param particlesActive   particle tokens spawned each tick while a gem is active (the §D aura loop)
- * @param particlesActivate particle tokens spawned when soul mode enables
- * @param particlesDeactivate particle tokens spawned when soul mode disables
- *
- * <p>The soul-mode messages now live in {@code lang.yml} ({@code soul.activate} / {@code soul.deactivate} /
- * {@code soul.soul-use}) — §L centralised them out of this likeness config.
  */
 public record SoulGemConfig(
         String material,
@@ -59,11 +43,9 @@ public record SoulGemConfig(
 
     /**
      * One soul-colour tier: at {@code min} souls or above (and below the next-higher tier), the gem's
-     * {@code {SOUL-COLOR}} placeholder renders as {@code color} (a {@code &}-code or hex). A Cosmic Enchants-style plugin's tiers were
-     * hard-coded; ours come from config.
+     * {@code {SOUL-COLOR}} placeholder renders as {@code color} (a {@code &}-code or hex).
      *
-     * @param min   the minimum soul count this tier covers (≥ 0)
-     * @param color the {@code &}-colour token for this tier
+     * @param min the minimum soul count this tier covers (≥ 0)
      */
     public record ColorTier(int min, String color) {
         public ColorTier {

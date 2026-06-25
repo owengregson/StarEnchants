@@ -9,15 +9,13 @@ import schema.spec.ParamSpec;
 
 /**
  * Renders a {@link MigratedEnchant}/{@link MigratedSet} to StarEnchants content YAML
- * (docs/architecture.md §10; ADR-0016) — valid, loadable content for everything that mapped, with the
- * original legacy token kept as a trailing comment and anything unmapped emitted as a
- * {@code # TODO port manually} line (never a silently-wrong value). The mapped portion compiles as-is
- * through the production loader; the output is meant to be reviewed before shipping.
+ * (docs/architecture.md §10; ADR-0016): loadable content for everything that mapped, the legacy token
+ * kept as a trailing comment, and anything unmapped emitted as {@code # TODO port manually} (never a
+ * silently-wrong value). Output is meant to be reviewed before shipping.
  *
- * <p>Effects render in the v2 <strong>verbose</strong> form ({@code { HEAD: { param: value, who: … } }})
- * when a {@code specs} lookup (effect head → {@link ParamSpec}) is supplied — so migrated configs are
- * stored in the unified v2 format, not terse. With {@code specs == null} they fall back to the terse
- * quoted string (still valid v2), which keeps the writer usable without the engine's effect registry.
+ * <p>Effects render in the v2 <strong>verbose</strong> form when a {@code specs} lookup (head →
+ * {@link ParamSpec}) is supplied, else fall back to the terse quoted string (still valid v2, and usable
+ * without the engine's effect registry).
  */
 public final class SchemaWriter {
 
@@ -66,7 +64,7 @@ public final class SchemaWriter {
             for (String todo : level.conditionTodos()) {
                 b.append("    # TODO condition (port manually): ").append(todo).append('\n');
             }
-            appendEffects(b, level.effects(), "    ", specs); // nested under "  <level>:"
+            appendEffects(b, level.effects(), "    ", specs);
         }
         return b.toString();
     }
@@ -100,7 +98,7 @@ public final class SchemaWriter {
         }
         b.append("  trigger: DEFENSE\n");
         b.append("  chance: 100\n");
-        appendEffects(b, s.effects(), "  ", specs); // armour bonus effects nested under armor:
+        appendEffects(b, s.effects(), "  ", specs);
         return b.toString();
     }
 

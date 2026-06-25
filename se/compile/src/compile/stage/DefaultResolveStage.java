@@ -16,12 +16,10 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
- * The default {@link ResolveStage}: for each effect it looks up the kind's
- * {@link ParamSpec}, finds the {@code HANDLE}-typed params, and resolves their
- * authored tokens to interned ids through the injected {@link PlatformResolvers},
- * rewriting the {@link Args} in place (docs/architecture.md §9). The {@code se-compile}
- * module stays Bukkit-free — production injects {@code se-platform}'s resolvers, tests
- * inject a fake.
+ * The default {@link ResolveStage}: resolves each effect's {@code HANDLE}-typed params from authored
+ * tokens to interned ids via the injected {@link PlatformResolvers}, rewriting {@link Args} in place
+ * (docs/architecture.md §9). Injection keeps {@code se-compile} Bukkit-free — production wires
+ * {@code se-platform}'s resolvers, tests a fake.
  */
 public final class DefaultResolveStage implements ResolveStage {
 

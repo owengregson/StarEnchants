@@ -6,11 +6,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Marks / detects a physical GODLY TRANSMOG tool (docs/v3-directives.md §I/§K) — dragged onto enchanted
- * gear, it opens the deterministic enchant-reorder GUI bound to that piece (unlike the one-shot transmog
- * SCROLL, which randomly shuffles). A simple PDC {@code BYTE} flag under {@link ItemKeys#godlyTransmog()},
- * separate from the combat blob (identity, never on the hot path) and from the scroll consume path; mirrors
- * {@link CrystalExtractorCodec}. Reading is null-safe.
+ * Marks / detects a physical GODLY TRANSMOG tool (§I/§K): a PDC {@code BYTE} flag under
+ * {@link ItemKeys#godlyTransmog()}, off both the combat hot path and the scroll consume path
+ * (it opens a reorder GUI rather than being consumed). Mirrors {@link CrystalExtractorCodec};
+ * reading is null-safe.
  */
 public final class GodlyTransmogCodec {
 

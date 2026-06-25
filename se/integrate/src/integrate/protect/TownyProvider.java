@@ -15,10 +15,10 @@ import platform.protect.ProtectionProvider;
  * effect may act at {@code where} iff Towny would let {@code actor} build there.
  *
  * <p>Bundled but SOFT: Towny's API is {@code compileOnly} and {@link integrate.Integrations} only loads this
- * class when Towny is present. Outside a Towny world everything is allowed; inside one the decision is
- * Towny's own per-player BUILD cache for the block at {@code where}. An offline/unknown actor is allowed
- * (no resolvable player ⇒ no membership ⇒ no deny — the SPI's permissive stance). Towny is Paper-only, so
- * the region-owned block read at {@code where} is safe. Never throws — a Towny hiccup degrades to allow.
+ * class when Towny is present. Outside a Towny world everything is allowed; inside one Towny's per-player BUILD
+ * cache for the block at {@code where} decides. An offline/unknown actor is allowed (no resolvable player ⇒ no
+ * deny — the SPI's permissive stance). Towny is Paper-only, so the region-owned block read at {@code where} is
+ * safe. Never throws — a hiccup degrades to allow.
  */
 public final class TownyProvider implements ProtectionProvider {
 

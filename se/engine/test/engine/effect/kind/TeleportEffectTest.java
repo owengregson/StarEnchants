@@ -14,11 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code TELEPORT}: a mocked {@link EffectCtx} supplies the {@code to} argument,
- * actors, and resolved targets, and a mocked {@link Sink} records the emitted teleport intents — so the
- * destination selection is verified with no server.
- */
+/** Mock-host TELEPORT test: verifies destination selection from the {@code to} argument against actor/victim. */
 class TeleportEffectTest {
 
     @Test
@@ -70,6 +66,6 @@ class TeleportEffectTest {
         Sink sink = mock(Sink.class);
         new TeleportEffect().run(ctx, sink);
 
-        verifyNoInteractions(sink); // nothing teleported, no targets resolved
+        verifyNoInteractions(sink);
     }
 }

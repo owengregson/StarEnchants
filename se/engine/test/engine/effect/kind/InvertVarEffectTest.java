@@ -21,7 +21,7 @@ class InvertVarEffectTest {
     @Test
     void invertsTheVariableForEachPlayerTarget() {
         Player p = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // skipped, not a player
+        LivingEntity mob = mock(LivingEntity.class);
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.str("name")).thenReturn("flag");
         when(ctx.targets("who")).thenReturn(List.of(p, mob));

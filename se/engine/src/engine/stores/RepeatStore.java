@@ -8,38 +8,32 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Per-player repeating-task handles: a player &rarr; (ability id &rarr; opaque task handle)
- * table (docs/architecture.md §5.4). New in StarEnchants — backs a Cosmic Enchants-style {@code RepeatingTrigger}
- * and the soul-drain timers ({@code DRAIN_SOULS_CONSTANT}, dead in a Cosmic Enchants-style plugin; §6), which schedule one
- * recurring task per active {@code (player, ability)} pair.
+ * Per-player repeating-task handles: player &rarr; (ability id &rarr; opaque task handle)
+ * (docs/architecture.md §5.4). Backs {@code RepeatingTrigger} and the soul-drain timers
+ * ({@code DRAIN_SOULS_CONSTANT}; §6), one recurring task per active {@code (player, ability)} pair.
  *
- * <p>The handle type {@code H} is the platform's scheduled-task handle (Paper's
- * {@code BukkitTask}, Folia's {@code ScheduledTask}, …), kept opaque so this store stays
- * version- and platform-agnostic. <strong>This store never cancels a task</strong>: it owns the
- * <em>mapping</em>, not the lifecycle. Every removal hands the handle(s) back to the caller, who
- * cancels them on the correct thread via the scheduling abstraction. Keeping cancellation out of
- * the store is what lets it remain a plain, side-effect-free map under Folia's region model.
+ * <p>The handle type {@code H} is the platform's scheduled-task handle (Paper {@code BukkitTask}, Folia
+ * {@code ScheduledTask}, …), opaque so this store stays version- and platform-agnostic.
+ * <strong>This store never cancels a task</strong> — it owns the <em>mapping</em>, not the lifecycle.
+ * Every removal hands the handle(s) back so the caller cancels on the correct thread via the scheduling
+ * abstraction; that is what keeps the store a plain, side-effect-free map under Folia's region model.
  *
- * <p>Concurrent and UUID-keyed for Folia (any region thread may arm or disarm a player's repeats),
- * and self-bounding: {@link #put} replaces — never accumulates — the handle for an ability, so at
- * most one live task exists per {@code (player, ability)}; the returned previous handle is the
- * caller's signal to cancel the task it just superseded (otherwise it leaks, like the Cosmic Enchants-style timers
- * neither original tears down). Drained on quit ({@link #removeAll}) and on disable
- * ({@link #removeEverything}).
+ * <p>Concurrent, UUID-keyed (Folia: any region thread may arm or disarm). Self-bounding: {@link #put}
+ * replaces rather than accumulates, so at most one live task per {@code (player, ability)}; the returned
+ * previous handle is the caller's signal to cancel the superseded task (or it leaks). Drained on quit
+ * ({@link #removeAll}) and disable ({@link #removeEverything}).
  *
- * <p>This store has no time dependency: a handle is live until explicitly removed, so there is no
- * tick parameter and no TTL eviction — expiry is the scheduled task's concern, not the map's.
+ * <p>No time dependency: a handle is live until explicitly removed, so no tick parameter and no TTL —
+ * expiry is the scheduled task's concern, not the map's.
  */
 public final class RepeatStore<H> {
 
     private final Map<UUID, Map<Integer, H>> handlesByPlayer = new ConcurrentHashMap<>();
 
     /**
-     * Record {@code handle} as the live repeating task for {@code abilityId} on {@code player},
-     * replacing any handle already there.
+     * Record {@code handle} as the live task for {@code (player, abilityId)}, replacing any already there.
      *
-     * @return the previous handle for this {@code (player, abilityId)} if one was replaced, so the
-     *     caller can cancel the now-superseded task; empty if this is the first handle for the pair.
+     * @return the replaced handle (the caller must cancel it), or empty if this is the pair's first.
      */
     public Optional<H> put(UUID player, int abilityId, H handle) {
         H previous = handlesByPlayer
@@ -49,9 +43,8 @@ public final class RepeatStore<H> {
     }
 
     /**
-     * Remove and return the handle for {@code abilityId} on {@code player} (so the caller can cancel
-     * the task), or empty if none was stored. Empties the player's inner map once its last handle is
-     * gone, so a player who has stopped all repeats holds no residual entry.
+     * Remove and return the handle for {@code (player, abilityId)} (caller cancels), or empty if none.
+     * Drops the player's inner map once its last handle is gone, so no residual entry lingers.
      */
     public Optional<H> remove(UUID player, int abilityId) {
         Map<Integer, H> handles = handlesByPlayer.get(player);
@@ -72,10 +65,10 @@ public final class RepeatStore<H> {
     }
 
     /**
-     * Remove and return every handle for one player, dropping the player from the store (call on
-     * quit — the caller cancels each handle). Order is unspecified.
+     * Remove and return every handle for one player, dropping the player (call on quit — caller cancels
+     * each). Order unspecified.
      *
-     * @return the player's handles, or an empty list if the player had none.
+     * @return the player's handles, or an empty list if none.
      */
     public List<H> removeAll(UUID player) {
         Map<Integer, H> handles = handlesByPlayer.remove(player);
@@ -86,10 +79,10 @@ public final class RepeatStore<H> {
     }
 
     /**
-     * Remove and return every handle for every player, emptying the store (call on disable — the
-     * caller cancels each handle). Order is unspecified.
+     * Remove and return every handle for every player, emptying the store (call on disable — caller
+     * cancels each). Order unspecified.
      *
-     * @return all live handles across all players, or an empty list if there were none.
+     * @return all live handles, or an empty list if none.
      */
     public List<H> removeEverything() {
         List<H> all = new ArrayList<>();

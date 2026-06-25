@@ -23,15 +23,13 @@ import schema.diag.Diagnostic;
  * keeps the old content live, so a broken reload never takes the server down; {@link #dryRun} reports
  * without ever swapping.
  *
- * <p><strong>The compiler comes from an injected factory.</strong> A build's per-snapshot interners
- * (worlds/triggers/suppress/cooldown-scopes) are rebuilt fresh inside the compile regardless of the
- * compiler instance, so they are always a clean function of that build's content. The bootstrap
- * supplies a CONSTANT compiler (the same instance each build) on purpose: its handle resolver is the
- * one the runtime {@code RuntimeHandles} pairs with, so a token interned at compile time resolves back
- * to its object at runtime (§9) — a fresh resolver per build would break that round-trip. Reusing it
- * is safe because of single-flight (below): only the append-only handle interner is shared, never
- * mutated concurrently. (A factory returning a fresh compiler per call is also valid for callers that
- * do not need runtime handle resolution.)
+ * <p><strong>The compiler comes from an injected factory.</strong> Per-snapshot interners
+ * (worlds/triggers/suppress/cooldown-scopes) are rebuilt fresh each compile, so they stay a clean
+ * function of that build's content. The bootstrap supplies a CONSTANT compiler on purpose: its handle
+ * resolver is the one {@code RuntimeHandles} pairs with, so a token interned at compile resolves back to
+ * its object at runtime (§9) — a fresh resolver per build would break that round-trip. Single-flight
+ * (below) makes reuse safe: only the append-only handle interner is shared, never mutated concurrently.
+ * (A fresh-compiler-per-call factory is also valid where runtime handle resolution is not needed.)
  *
  * <p><strong>Single-flight.</strong> Only one reload runs at a time; a concurrent {@code /se reload}
  * is rejected with {@link ReloadResult#busy()}, so two builds can never race or publish out of order.
@@ -100,7 +98,7 @@ public final class ContentReloader {
     private void apply(boolean dryRun, Consumer<ReloadResult> onDone) {
         Objects.requireNonNull(onDone, "onDone");
         if (!inFlight.compareAndSet(false, true)) {
-            onDone.accept(ReloadResult.busy()); // single-flight: a reload is already running
+            onDone.accept(ReloadResult.busy()); // single-flight
             return;
         }
         Scheduling.async(() -> {
@@ -115,8 +113,8 @@ public final class ContentReloader {
                 boolean publish = !dryRun && clean;
                 Scheduling.onGlobal(() -> finish(library, built, publish, dryRun, onDone));
             } catch (Throwable buildFailure) {
-                // build() threw (e.g. an I/O fault walking the tree) — report on the global thread and
-                // release the guard, so the operator never waits forever on a stranded reload.
+                // build() threw (e.g. I/O fault walking the tree) — report + release the guard on the
+                // global thread, so the operator never waits forever on a stranded reload.
                 Scheduling.onGlobal(() -> {
                     try {
                         onDone.accept(ReloadResult.failure(buildFailure));
@@ -139,10 +137,9 @@ public final class ContentReloader {
                     }
                     onPublished.accept(library);
                 } catch (Throwable swapFailure) {
-                    // The holder publishes are non-throwing reference swaps; the realistic thrower is a
-                    // third-party StarEnchantsReloadEvent listener or the player re-resolve in onPublished,
-                    // which runs AFTER every swap (so the published state is consistent, not half-applied).
-                    // Still report it so /se reload never hangs without a result.
+                    // Holder publishes are non-throwing reference swaps; a realistic thrower is a third-party
+                    // reload listener or the onPublished re-resolve, both of which run AFTER every swap (so
+                    // state stays consistent). Report it anyway so /se reload never hangs without a result.
                     onDone.accept(ReloadResult.failure(swapFailure));
                     return;
                 }

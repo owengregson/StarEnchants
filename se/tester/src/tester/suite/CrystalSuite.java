@@ -46,13 +46,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The crystal source, proven live end-to-end (docs/architecture.md §6.5; ADR-0014): an authored
- * crystal file compiles to a levelless ability keyed by its base key, an item carries that key in
- * its crystal LIST (not as an enchant), and the crystal fires on hit exactly like any other source.
- * This proves the {@code crystals/} reader + the {@code CombatState.crystals} → WornState union path
- * all the way to a landed effect — the new content channel, not just that it compiles. The recipe
- * mirrors {@link CombatSuite}: a fake-player attacker hits a cow; here a {@code Jolt} crystal applies
- * POISON. Mojang-mapped only (needs the fake-player attacker).
+ * The crystal source, proven live end-to-end (docs/architecture.md §6.5; ADR-0014): an item carries
+ * the crystal key in its crystal LIST (not the enchant map) and the crystal fires on hit. Proves the
+ * {@code crystals/} reader + the {@code CombatState.crystals} → WornState union path to a landed effect.
+ * Recipe mirrors {@link CombatSuite}. Mojang-mapped only (needs the fake-player attacker).
  */
 public final class CrystalSuite implements Harness.Scenario {
 
@@ -110,7 +107,7 @@ public final class CrystalSuite implements Harness.Scenario {
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
 
-        // The crystal sits in the crystal LIST, not the enchant map — the distinguishing path.
+        // Crystal goes in the crystal list, not the enchant map — the distinguishing path.
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
         codec.write(sword, new CombatState(Map.of(), List.of("crystals/jolt")));
 

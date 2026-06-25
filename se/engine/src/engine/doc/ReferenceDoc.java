@@ -31,9 +31,9 @@ import schema.spec.ParamSpec;
  * registries construct without a server), so it runs in a unit test; the committed
  * {@code docs/reference/dsl-reference.md} is drift-guarded against this output by {@code ReferenceDocDriftTest}.
  *
- * <p>Deterministic by construction: effects/selectors sorted by head (the registry's {@code kinds()} order
- * is not stable across JVMs), triggers in id order, operators in {@code values()} order, variables sorted by
- * key. The output ends with a trailing newline so the committed file is POSIX-clean.
+ * <p>Deterministic by construction (the committed file must not drift on re-render): effects/selectors
+ * sorted by head since {@code kinds()} order is not stable across JVMs, triggers in id order, operators in
+ * {@code values()} order, variables sorted by key.
  */
 public final class ReferenceDoc {
 
@@ -144,7 +144,6 @@ public final class ReferenceDoc {
         out.append('\n');
     }
 
-    /** One-line description of a flow-clause sentinel, for the conditions reference table. */
     private static String flowDoc(FlowKind flow) {
         return switch (flow) {
             case CONTINUE -> "proceed to the chance roll as normal";
@@ -166,7 +165,6 @@ public final class ReferenceDoc {
         out.append('\n');
     }
 
-    /** Append one bullet per declared param: {@code name  type — doc}. */
     private static void appendParams(StringBuilder out, ParamSpec spec) {
         for (Param param : spec.params()) {
             out.append("- _param_ `").append(param.name()).append("` `").append(param.type().label()).append('`');

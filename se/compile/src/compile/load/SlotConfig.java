@@ -4,20 +4,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The configurable likeness + mechanics of the SLOT ORB (docs/v3-directives.md §H) — the upgrade orb that
- * grants a configurable {@code +N} per use, loaded from the top-level {@code items/slot-orb.yml}. It raises
- * a piece's purchased enchant-slot count, clamped to a {@link #hardCap universal maximum total} (base +
- * added). Immutable; lives in the {@link ItemsConfig} snapshot the runtime reads and {@code /se reload}
- * swaps. {@code {AMOUNT}} in the orb's name/lore renders {@link #orbAmount}.
+ * The configurable likeness + mechanics of the SLOT ORB (§H), loaded from {@code items/slot-orb.yml}. Each
+ * use raises a piece's purchased enchant-slot count by {@link #orbAmount}, clamped to the {@link #hardCap}
+ * universal total (base + added). {@code {AMOUNT}} in the name/lore renders {@link #orbAmount}. Immutable;
+ * lives in the {@link ItemsConfig} snapshot {@code /se reload} swaps.
  *
  * @param orbMaterial   the upgrade-orb item material token (resolved cross-version at use)
  * @param orbName       the orb's display name ({@code &} colours; {@code {AMOUNT}} placeholder)
  * @param orbLore       the orb's lore lines ({@code {AMOUNT}} placeholder)
  * @param orbAmount     how many slots one orb grants (clamped &ge; 1)
  * @param hardCap       the universal maximum TOTAL slot count (base + added) any item may reach
- *
- * <p>The apply/at-cap messages now live in {@code lang.yml} ({@code slot.apply} / {@code slot.at-cap}) — §L
- * centralised them out of this likeness config.
  */
 public record SlotConfig(
         String orbMaterial,

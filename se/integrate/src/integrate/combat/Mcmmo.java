@@ -6,13 +6,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 /**
- * mcMMO integration (docs/decisions/0027): a "same party" predicate so StarEnchants treats mcMMO party
- * members as friendly — it applies no combat effects between two players in the same party (respecting the
- * party's friendly-fire-off expectation; wired into {@code CombatDispatch.friendlyFire}).
+ * mcMMO integration (docs/decisions/0027): a "same party" predicate so StarEnchants applies no combat effects
+ * between two players in the same party (wired into {@code CombatDispatch.friendlyFire}).
  *
- * <p>Reflective + fail-safe: mcMMO has no public maven artifact, so this binds {@code PartyAPI.inSameParty}
- * (a long-stable static) by reflection and degrades to "not friendly" (the status quo) if it is unavailable —
- * never throwing in the combat path.
+ * <p>Reflective + fail-safe: mcMMO has no public maven artifact, so this binds {@code PartyAPI.inSameParty} by
+ * reflection and degrades to "not friendly" if unavailable — never throwing in the combat path.
  */
 public final class Mcmmo {
 
@@ -38,7 +36,7 @@ public final class Mcmmo {
                 }
             };
         } catch (ReflectiveOperationException unavailable) {
-            return (attacker, victim) -> false; // mcMMO's API isn't what we expect — treat nobody as friendly
+            return (attacker, victim) -> false; // unexpected mcMMO API — treat nobody as friendly
         }
     }
 }

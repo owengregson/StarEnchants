@@ -20,15 +20,13 @@ import schema.spec.D;
 import schema.spec.ParamSpec;
 
 /**
- * Unit tests for the content format: verbose effects, literal-{@code $} survival, tier folders with
- * key stability, in-file tier override, duplicate-key detection, and list
- * descriptions. Uses a real {@link Compiler} wired with a tiny effect-spec registry (HEAL, MESSAGE,
- * POTION) — no server — and the real {@link LibraryLoader}, so the verbose lowering is exercised end
- * to end through the production compile path.
+ * Content-format tests run end to end through the production compile path: a real
+ * {@link Compiler} (tiny HEAL/MESSAGE/POTION registry, no server) and the real
+ * {@link LibraryLoader}. Covers verbose effects, literal-{@code $} survival, tier
+ * folders with stable keys, in-file tier override, and duplicate-key detection.
  *
- * <p>There is exactly ONE authoring shape: every level is declared explicitly under {@code levels:}.
- * The legacy templated shape (root {@code effects:}/{@code scale:}/{@code $token}/{@code max-level}/
- * {@code effects+}) was removed — a {@code $} is now always a literal.
+ * <p>There is exactly ONE authoring shape — every level declared explicitly under
+ * {@code levels:}; a {@code $} is always a literal (no scale/token grammar).
  */
 class ContentFormatTest {
 
@@ -53,8 +51,6 @@ class ContentFormatTest {
         return diags.stream().anyMatch(d -> d.code().equals(code));
     }
 
-    // ── verbose effects ───────────────────────────────────────────────────────────────────────────
-
     @Test
     void verboseEffectLowersToTheSameArgsAsTerse(@TempDir Path root) throws IOException {
         write(root, "enchants/terse.yml", """
@@ -75,12 +71,12 @@ class ContentFormatTest {
         assertEquals("STRENGTH", verbose.str("effect"));
         assertEquals(1, verbose.integer("amplifier"));
         assertEquals(100, verbose.integer("duration"));
-        assertEquals(terse.asMap(), verbose.asMap()); // byte-identical typed args
+        assertEquals(terse.asMap(), verbose.asMap());
     }
 
     @Test
     void verboseStringArgWithAColonIsNotShredded(@TempDir Path root) throws IOException {
-        // The B2 fix: a verbose string value is placed as one whole arg — a ':' inside it must survive.
+        // B2 regression: a verbose string is one whole arg — a ':' inside it must survive
         write(root, "enchants/msg.yml", """
             trigger: ATTACK
             levels:
@@ -95,7 +91,7 @@ class ContentFormatTest {
 
     @Test
     void verboseStringArgStartingWithAtIsNotMistakenForASelector(@TempDir Path root) throws IOException {
-        // The M5 fix: a value starting with '@' is the text, never peeled as a target selector.
+        // M5 regression: a value starting with '@' is text, never peeled as a target selector
         write(root, "enchants/at.yml", """
             trigger: ATTACK
             levels:
@@ -145,7 +141,7 @@ class ContentFormatTest {
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
-        // WAIT is a timing directive (not an emitted effect); it stamps the following effect's delay.
+        // WAIT is timing, not an emitted effect; it stamps the following effect's delay
         compile.model.CompiledEffect[] effects = lib.snapshot().byStableKey("enchants/delayed/1").effects();
         assertEquals(1, effects.length);
         assertEquals(20, effects[0].cumulativeWaitTicks());
@@ -153,8 +149,7 @@ class ContentFormatTest {
 
     @Test
     void literalDollarInAMessageSurvives(@TempDir Path root) throws IOException {
-        // There is no scale/token grammar — a '$' in a string (a money amount, another plugin's token)
-        // is always a literal and must pass through unchanged.
+        // no scale/token grammar: a '$' in a string is a literal, passes through unchanged
         write(root, "enchants/loot.yml", """
             trigger: ATTACK
             levels:
@@ -177,11 +172,9 @@ class ContentFormatTest {
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
-        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString()); // a warning, never blocking
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
         assertTrue(hasCode(lib.diagnostics(), "W_UNKNOWN_KEY"));
     }
-
-    // ── tiers, key stability, duplicate keys, items, description ─────────────────────────────────────
 
     @Test
     void tierFolderSetsTheTierButNotTheStableKey(@TempDir Path root) throws IOException {
@@ -193,7 +186,7 @@ class ContentFormatTest {
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
-        // Key excludes the tier folder — so live gear stamped enchants/thunderstrike still resolves.
+        // key excludes the tier folder, so live gear stamped enchants/thunderstrike still resolves
         assertNotNull(lib.snapshot().byStableKey("enchants/thunderstrike/1"));
         assertNull(lib.snapshot().byStableKey("enchants/mythic/thunderstrike/1"));
         assertEquals("mythic", lib.tierOf("enchants/thunderstrike"));
@@ -238,7 +231,7 @@ class ContentFormatTest {
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
         assertEquals("divine", lib.tierOf("enchants/x"));
-        assertEquals("scrap", lib.tierOf("enchants/plain")); // the declared default
+        assertEquals("scrap", lib.tierOf("enchants/plain"));
         assertNotNull(lib.tiers().tier("divine"));
     }
 

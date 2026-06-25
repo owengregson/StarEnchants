@@ -8,10 +8,9 @@ import schema.spec.D;
 import java.util.List;
 
 /**
- * {@code @EntityInSight{r=16}} — the living entity the activator is looking at within {@code r} blocks, or
- * an empty result if nothing is in their line of sight (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). The
- * raytrace goes through the injected world-access seam and originates from the activator on its own (firing)
- * region thread, so it is Folia-correct. The range defaults to {@code 16}.
+ * {@code @EntityInSight{r=16}} — the living entity the actor is looking at within {@code r}, else empty
+ * (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). Raytrace via the world-access seam from
+ * the actor on its own (firing) region thread, so Folia-correct.
  */
 public final class EntityInSightSelector implements SelectorKind {
 

@@ -9,13 +9,9 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code SOUND} — play a sound at the activation location (docs/architecture.md §7).
- * Stateless; emits one {@code sound} intent and never touches the world directly.
- * No-op when the activation carries no location ({@link EffectCtx#location()} may be
- * {@code null} for non-positional activations). The {@code sound} handle is authored
- * as a token and resolved to an interned id at compile time, so the runtime never
- * sees a renamed constant (§9). {@link Affinity#REGION}: the play routes to the
- * region thread owning the target location.
+ * {@code SOUND} — play a sound at the activation location (docs/architecture.md §7). No-op when the
+ * activation carries no location ({@link EffectCtx#location()} may be {@code null}). The {@code sound} handle
+ * is interned at compile time, so the runtime never sees a renamed constant (§9). {@link Affinity#REGION}.
  */
 public final class SoundEffect implements EffectKind {
 

@@ -11,17 +11,12 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * {@code @Aoe{r=4}} — every living entity within {@code r} blocks of the activation
- * centre, excluding the activator (docs/architecture.md §7, the {@code SMITE}
- * example). The centre is the activation's location, falling back to the victim's
- * then the actor's location. The radius defaults to {@code 4} so the no-argument form
- * is a valid default target.
+ * {@code @Aoe{r=4}} — every living entity within {@code r} of the centre, except the activator
+ * (docs/architecture.md §7). Centre is the activation location, else the victim's, else the actor's.
  *
- * <p>Two optional refinements (v3.1 §A): {@code filter} restricts the result set
- * ({@code ALL}/{@code PLAYERS}/{@code MONSTERS}/{@code MOBS}; default {@code ALL}) and
- * {@code limit} caps it to the nearest N targets ({@code 0} = unlimited). Together they
- * express Cosmic Enchants-style area targeting like {@code @Aoe{r=6, filter=MONSTERS}} (a BUTCHER)
- * without a bespoke selector per case.
+ * <p>Optional {@code filter} ({@code ALL}/{@code PLAYERS}/{@code MONSTERS}/{@code MOBS}) and {@code limit}
+ * (nearest N, {@code 0} = unlimited) express Cosmic Enchants-style area targeting without a bespoke
+ * selector per case (v3.1 §A).
  */
 public final class AoeSelector implements SelectorKind {
 
@@ -53,7 +48,7 @@ public final class AoeSelector implements SelectorKind {
             }
         }
         if (limit > 0 && matched.size() > limit) {
-            // Keep the nearest `limit` — the scan order is unspecified, so sort by distance to the centre.
+            // Scan order is unspecified; sort by distance so "nearest N" is well-defined.
             matched.sort(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(center)));
             return new ArrayList<>(matched.subList(0, limit));
         }

@@ -6,14 +6,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-player timed teleport block (docs/architecture.md §5.4, § combat-flags): while armed, the player
- * cannot launch an ender pearl (or chorus-teleport). The {@code TELEBLOCK} effect writes it through the
- * per-event {@link engine.sink.Sink} when a hit lands; a teleport/projectile-launch listener — a SEPARATE
- * Bukkit event from the hit — reads it back and cancels the launch. The two events are decoupled in time,
- * so this short-lived store bridges them (the same shape as {@link KnockbackControlStore}).
+ * cannot launch an ender pearl (or chorus-teleport). The {@code TELEBLOCK} effect writes it via the {@link
+ * engine.sink.Sink} when a hit lands; a launch listener — a SEPARATE Bukkit event from the hit — reads it
+ * back and cancels the launch. The store bridges the two decoupled events (cf. {@link KnockbackControlStore}).
  *
- * <p>Concurrent and UUID-keyed for Folia (the write thread may differ from the launch-event thread), and
- * TTL-evicting: an elapsed block is dropped lazily on the next {@link #isBlocked} read. Time is an explicit
- * tick count supplied by the caller (never wall-clock) — deterministic, Folia-correct, unit-testable.
+ * <p>Concurrent, UUID-keyed (Folia: the write thread may differ from the launch-event thread). TTL-evicting
+ * on read. Time is an explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, testable.
  */
 public final class TeleblockStore {
 

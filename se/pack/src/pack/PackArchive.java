@@ -94,7 +94,7 @@ public final class PackArchive {
         zip.closeEntry();
     }
 
-    /** Convenience: a pack's bytes (used by tests + when a caller wants the archive in memory). */
+    /** A pack's bytes when a caller wants the whole archive in memory. */
     public static byte[] toBytes(PackManifest manifest, Map<String, byte[]> files) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         write(buffer, manifest, files);

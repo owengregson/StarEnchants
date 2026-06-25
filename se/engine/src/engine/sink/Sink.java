@@ -34,24 +34,13 @@ public interface Sink {
     /** Add a damage-reduction percentage to the additive defense bucket. */
     void addDamageReduction(double percent);
 
-    /**
-     * Add a flat damage bonus to the attack side of the fold (heroic flat damage, §6.1).
-     * Delivered after the outgoing multiplier, so it is not inflated by the attacker's
-     * own percent buffs.
-     */
+    /** Add a flat damage bonus to the attack side (§6.1), applied after the outgoing multiplier so percent buffs don't inflate it. */
     void addFlatDamage(double amount);
 
-    /**
-     * Add a flat damage <em>reduction</em> to the defense side of the fold (a flat-reduction
-     * effect, §6.1). Subtracted last, so it absorbs exactly this amount regardless of percent
-     * context.
-     */
+    /** Add a flat damage reduction to the defense side (§6.1), subtracted last so it absorbs exactly this amount regardless of percent context. */
     void addFlatReduction(double amount);
 
-    /**
-     * Add the attacker's heroic outgoing-damage percent (§F, ADR-0021): a distinct bounded
-     * multiplicative stage applied AFTER the additive fold, not summed into it.
-     */
+    /** Add the attacker's heroic outgoing percent (§F, ADR-0021): a bounded multiplicative stage applied AFTER the additive fold, not summed into it. */
     void addHeroicOutgoing(double percent);
 
     /** Add the defender's heroic damage-reduction percent (§F): the multiplicative reduction stage. */
@@ -66,10 +55,8 @@ public interface Sink {
     /** Set the target's current health to {@code health} (clamped to [0, max]) — MODIFY_HEALTH's {@code set} mode. */
     void setHealth(LivingEntity target, double health);
 
-    /** Instantly kill the target. */
     void kill(LivingEntity target);
 
-    /** Clear the target's fire ticks. */
     void extinguish(LivingEntity target);
 
     /** Restore the target's air/oxygen to full. */
@@ -118,7 +105,7 @@ public interface Sink {
 
     void removePotion(LivingEntity target, int potionEffectId);
 
-    /** Clear every active potion effect from the target (a full cleanse). */
+    /** Clear every active potion effect from the target. */
     void cure(LivingEntity target);
 
     /** Drop the target's held (main-hand) item into the world, clearing the slot. */

@@ -19,7 +19,7 @@ public final class ContentHolder {
         current.set(Objects.requireNonNull(initial, "initial"));
     }
 
-    /** The live library (snapshot + catalog + the diagnostics it loaded with). */
+    /** Live library: snapshot + catalog + the diagnostics it loaded with. */
     public Library library() {
         return current.get();
     }

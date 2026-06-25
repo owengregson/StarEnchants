@@ -7,8 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import java.util.List;
 
 /**
- * {@code @Self} — the activating player themself (docs/architecture.md §7). The
- * implicit default for self-directed effects (heal, self-potion, message).
+ * {@code @Self} — the activating player (docs/architecture.md §7); the default for self-directed effects.
  */
 public final class SelfSelector implements SelectorKind {
 
@@ -24,8 +23,7 @@ public final class SelfSelector implements SelectorKind {
 
     @Override
     public List<LivingEntity> resolve(SelectorCtx ctx) {
-        // Explicit witness: actor() is a Player, and List.of(player) would infer
-        // List<Player>, which is not a List<LivingEntity> (generics are invariant).
+        // Explicit witness: List.of(player) infers List<Player>, not List<LivingEntity> (invariant generics).
         return ctx.actor() == null ? List.of() : List.<LivingEntity>of(ctx.actor());
     }
 }

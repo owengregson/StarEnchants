@@ -7,16 +7,14 @@ import schema.diag.Diagnostic;
 /**
  * The result of loading a content library (ADR-0014, ADR-0016): the compiled runtime {@link Snapshot}
  * the engine walks, the parsed {@link EnchantDef}/{@link CrystalDef}/{@link SetDef} catalogs (display
- * metadata for the render/apply cycles), the {@link TierRegistry}, and every {@link Diagnostic} the load
- * produced. Immutable; published by reference through {@link ContentHolder}.
+ * metadata for render/apply), the {@link TierRegistry}, and every {@link Diagnostic} the load produced.
+ * Immutable; published by reference through {@link ContentHolder}.
  *
- * <p>A {@code Snapshot} is always present (the compiler always returns one); inspect
- * {@link #hasErrors()} before publishing — a load with blocking diagnostics keeps the previous
- * library live (transactional reload, §10).
+ * <p>A {@code Snapshot} is always present; inspect {@link #hasErrors()} before publishing — a load with
+ * blocking diagnostics keeps the previous library live (transactional reload, §10).
  *
- * <p>Carrier items (books, dust, scrolls) are NOT content: they are minted from the top-level
- * {@code items/*.yml} likeness ({@code ItemsConfig}), not authored under {@code content/} — so there is
- * no item catalog here.
+ * <p>Carrier items (books, dust, scrolls) are NOT content — minted from {@code items/*.yml}
+ * ({@code ItemsConfig}), not authored under {@code content/} — so there is no item catalog here.
  */
 public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalDef> crystals,
                       List<SetDef> sets, TierRegistry tiers,

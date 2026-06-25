@@ -12,11 +12,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds typed
- * args + resolved targets, and a mocked {@link Sink} records the emitted intents — so
- * the effect's behavior is verified with no server. The {@code effect} handle arrives
- * as the interned id the compiler resolved it to (§9), read here via
- * {@code ctx.integer}.
+ * Mock-host test (docs/architecture.md §1.3): the {@code effect} handle arrives as the interned id the
+ * compiler resolved (§9), read via {@code ctx.integer}.
  */
 class PotionEffectTest {
 
@@ -38,9 +35,8 @@ class PotionEffectTest {
     }
 
     /**
-     * §B lifecycle teardown (ADR-0022): on a HELD/PASSIVE source unequip the engine calls {@link
-     * PotionEffect#stop}, which must emit the exact inverse — a {@code removePotion} of the same handle —
-     * for every target, and nothing else (amplifier/duration are irrelevant to a clear).
+     * §B lifecycle teardown (ADR-0022): on HELD/PASSIVE unequip, {@code stop} must emit the exact inverse —
+     * a {@code removePotion} of the same handle for every target, and nothing else.
      */
     @Test
     void stopRemovesThePotionItApplied() {

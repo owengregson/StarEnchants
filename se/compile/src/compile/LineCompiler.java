@@ -14,21 +14,17 @@ import java.util.Optional;
 
 /**
  * Compiles one authored effect/condition line into a validated {@link CompiledLine}:
- * resolve the head to a {@link ParamSpec} → validate arguments into typed {@link Args}.
+ * resolve the head to a {@link ParamSpec}, then validate arguments into typed {@link Args}
+ * (docs/architecture.md §3.3, §10). The seam between {@code se-schema} and {@code se-compile}.
  *
- * <p>This is the smallest end-to-end slice of the content compiler and the seam
- * between {@code se-schema} (the typed language) and the rest of {@code se-compile}.
- * It never throws — an unknown head and every argument fault are reported as
- * file/line {@link schema.diag.Diagnostic}s
- * (docs/architecture.md §3.3, §10). An unknown head is warn-and-skipped (the op
- * is dropped, returns empty); a known head with bad arguments still returns the
- * line so the caller can decide, having checked {@link Diagnostics#hasErrors()}.
+ * <p>Never throws. An unknown head is warn-and-skipped (returns empty); a known head with
+ * bad arguments still returns the line so the caller can decide after checking
+ * {@link Diagnostics#hasErrors()}.
  *
- * <p><strong>Terse vs verbose (ADR-0016).</strong> A terse {@link EffectLine} carries positional
- * argument texts; a verbose one carries a {@code named} map. For the verbose form we order the named
- * values into this spec's positional order <em>as a list</em> (never by re-joining on {@code :}), so a
- * string argument containing {@code :} or {@code @} survives intact — then validate through the same
- * {@code ParamSpec.parse} path. Unknown param names and missing required params are named precisely.
+ * <p><strong>Terse vs verbose (ADR-0016).</strong> A verbose line's named values are ordered
+ * into the spec's positional order <em>as a list</em> (never re-joined on {@code :}), so a string
+ * argument containing {@code :} or {@code @} survives intact, then run through the same
+ * {@code ParamSpec.parse} path as a terse line.
  */
 public final class LineCompiler {
 
@@ -58,11 +54,8 @@ public final class LineCompiler {
     }
 
     /**
-     * Validate a verbose (named) line: reject unknown param names and missing required params with
-     * effect- and param-precise diagnostics, then order the provided values into the spec's positional
-     * order and run the normal {@link ParamSpec#parse} for typing/range. Values are placed as whole list
-     * elements — a {@code :} or leading {@code @} inside a string value can never be re-split or mistaken
-     * for a selector (the selector was set explicitly from {@code who:} on the {@link EffectLine}).
+     * Validate a verbose (named) line: reject unknown/missing-required params with precise diagnostics,
+     * then order the values into positional order and run {@link ParamSpec#parse} for typing/range.
      */
     private static Args parseVerbose(ParamSpec spec, EffectLine line, Diagnostics diags) {
         Map<String, String> named = line.named();
@@ -88,12 +81,10 @@ public final class LineCompiler {
                 missingRequired = true;
             }
         }
-        // A required param is missing → its precise E_MISSING_ARG is already recorded; skip the positional
-        // parse so toPositional's fabricated "" for that slot does not raise a confusing second (type) error.
+        // Skip the positional parse so toPositional's fabricated "" doesn't raise a second (type) error.
         if (missingRequired) {
             return Args.empty();
         }
-        // All required present: toPositional fills omitted optionals with their default, then parse types each.
         return spec.parse(spec.toPositional(named), line.source(), diags);
     }
 }

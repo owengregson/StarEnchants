@@ -14,10 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for the canonical {@code SPAWN_ENTITY} (which replaced SPAWN/TNT): it spawns at each
- * resolved target's location, and falls back to the activation location when no target resolves.
- */
+/** Mock-host SPAWN_ENTITY test: spawns at each target's location, falling back to the activation location when none resolve. */
 class SpawnEntityEffectTest {
 
     @Test
@@ -36,7 +33,7 @@ class SpawnEntityEffectTest {
         Sink sink = mock(Sink.class);
         new SpawnEntityEffect().run(ctx, sink);
 
-        verify(sink).spawnEntity(loc, 5, 3, 0, 20.0, null); // owner=none → no owner
+        verify(sink).spawnEntity(loc, 5, 3, 0, 20.0, null);
         verifyNoMoreInteractions(sink);
     }
 

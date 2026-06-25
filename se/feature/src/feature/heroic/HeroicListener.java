@@ -11,10 +11,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The heroic upgrade gesture UX (docs/v3-directives.md §F): holding a heroic upgrade on the CURSOR and
- * clicking a piece of gear attempts the upgrade. Bukkit-thin glue — all logic is in {@link HeroicService};
- * this only recognises the gesture, cancels the vanilla click, and commits the mutated cursor/slot.
- * Folia-correct: an {@code InventoryClickEvent} fires on the clicking player's own region thread.
+ * Heroic upgrade gesture glue (docs/v3-directives.md §F); logic lives in {@link HeroicService}.
+ * Folia-correct: {@code InventoryClickEvent} fires on the clicking player's own region thread.
  */
 public final class HeroicListener implements Listener {
 
@@ -39,14 +37,14 @@ public final class HeroicListener implements Listener {
         }
         ItemStack cursor = event.getCursor();
         if (!service.isUpgrade(cursor)) {
-            return; // the cursor is not a heroic upgrade — leave the click alone
+            return;
         }
         ItemStack target = event.getCurrentItem();
         if (target == null || target.getType() == Material.AIR || service.isUpgrade(target)) {
-            return; // no target, or upgrade-onto-upgrade (meaningless)
+            return; // upgrade-onto-upgrade is meaningless
         }
 
-        event.setCancelled(true); // we own this interaction now
+        event.setCancelled(true);
         HeroicResult result = service.applyTo(cursor, target);
         if (result.commit()) {
             event.setCursor(cursor.getAmount() <= 0 ? null : cursor);

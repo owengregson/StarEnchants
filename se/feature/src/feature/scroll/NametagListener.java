@@ -14,12 +14,9 @@ import org.bukkit.inventory.ItemStack;
 import platform.sched.Scheduling;
 
 /**
- * The item-nametag UX (docs/v3-directives.md §I): dragging a nametag onto gear begins a rename, and the
- * player's next chat line becomes the item's display name (blacklisted words rejected). Bukkit-thin glue —
- * all logic is in {@link NametagService}; this recognises the gesture, captures the chat line, and clears
- * a pending rename on quit. The {@code InventoryClickEvent} fires on the clicking player's region thread,
- * but {@code AsyncPlayerChatEvent} fires async — so the inventory mutation is hopped back to the player's
- * region thread (Folia-correct).
+ * Item-nametag gesture + chat-capture glue (docs/v3-directives.md §I); logic lives in
+ * {@link NametagService}. Folia footgun: {@code AsyncPlayerChatEvent} fires async, so the inventory
+ * mutation is hopped back to the player's region thread.
  */
 public final class NametagListener implements Listener {
 
@@ -51,9 +48,9 @@ public final class NametagListener implements Listener {
             return; // no target, or nametag-onto-nametag (meaningless)
         }
 
-        event.setCancelled(true); // we own this interaction now
-        // Capture the target's IDENTITY first; begin() refuses (returns null) if a rename is already pending,
-        // so a second nametag is never consumed for nothing (and the first rename is not clobbered).
+        event.setCancelled(true);
+        // begin() refuses (null) if a rename is already pending, so a second nametag isn't consumed for
+        // nothing and the first rename isn't clobbered.
         String prompt = service.begin(player.getUniqueId(), target);
         if (prompt == null) {
             player.sendMessage(service.busyMessage()); // §L lang.yml scroll.nametag.busy

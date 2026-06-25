@@ -11,20 +11,17 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code MODIFY_EXP} — the canonical experience primitive (docs/v3-directives.md §C), collapsing
- * {@code GIVE_EXP} and adding take/steal via the {@code transfer} mode:
+ * {@code MODIFY_EXP} — canonical experience primitive (docs/v3-directives.md §C):
  *
  * <ul>
  *   <li>{@code give} — grant {@code amount} experience to each resolved player target;</li>
- *   <li>{@code take} — withdraw {@code amount} experience from each resolved player target;</li>
+ *   <li>{@code take} — withdraw {@code amount} from each resolved player target;</li>
  *   <li>{@code transfer} — withdraw from each target AND grant the total to the ACTIVATOR (steal).</li>
  * </ul>
  *
- * <p>The transfer counterpart is fixed to the activator rather than a second selector, because an
- * effect resolves a single selector — the selector picks the "other" party, the actor is the constant
- * end (mirrors {@link MoneyEffect}). This REPLACED the now-deleted {@code GIVE_EXP} kind (collapse =
- * delete the redundant head). {@link Affinity#TARGET_ENTITY}: granting/removing XP mutates the target,
- * so the {@code Sink} routes each intent to the owning player's region thread (§3.6).
+ * <p>Transfer's counterpart is fixed to the activator, not a second selector: an effect resolves one
+ * selector (the "other" party), the actor is the constant end (mirrors {@link MoneyEffect}).
+ * {@link Affinity#TARGET_ENTITY} (§3.6).
  */
 public final class ExpEffect implements EffectKind {
 

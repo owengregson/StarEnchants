@@ -50,14 +50,11 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The economy seam, live (docs/architecture.md §2, §7): a {@link EconomyProvider} registered through
- * the {@code ServicesManager}, discovered via {@link EconomyService#discover}, is driven by a
- * MODIFY_MONEY ATTACK enchant — proving the whole chain end-to-end on Paper and Folia (provider discovery
- * → EconomyService → the MODIFY_MONEY effect → the sink's global-thread money intent) with a fake
- * in-memory economy, since no real economy plugin exists on the matrix. A fake-player attacker hits a
- * cow; MODIFY_MONEY:@Self deposits to the attacker, and the recorded balance is asserted. Mojang-mapped
- * only (needs the fake attacker). MODIFY_MONEY:@Self (not MODIFY_MONEY:@Victim) because a money target must
- * be a player, and a player victim cannot take a programmatic hit (PvP/peaceful gating, see CombatSuite).
+ * The economy seam, live (docs/architecture.md §2, §7): a fake in-memory {@link EconomyProvider}
+ * registered through the {@code ServicesManager} and discovered via {@link EconomyService#discover},
+ * driven by a MODIFY_MONEY ATTACK enchant — proving discovery → service → effect → sink's global-thread
+ * money intent on Paper and Folia. MODIFY_MONEY:@Self not @Victim because a money target must be a player,
+ * and a player victim can't take a programmatic hit (PvP/peaceful gating, see CombatSuite). Mojang-mapped only.
  */
 public final class EconomySuite implements Harness.Scenario {
 
@@ -96,8 +93,8 @@ public final class EconomySuite implements Harness.Scenario {
             return;
         }
 
-        // A fake in-memory economy registered the way a real economy plugin would, then discovered
-        // through the SAME ServicesManager path the bootstrap uses — so this exercises discovery too.
+        // Registered and discovered through the same ServicesManager path the bootstrap uses, so this
+        // exercises discovery too.
         FakeEconomy bank = new FakeEconomy();
         plugin.getServer().getServicesManager().register(EconomyProvider.class, bank, plugin, ServicePriority.Normal);
         EconomyService economy = EconomyService.discover(plugin.getServer(), System.getLogger("se.test.economy"));
@@ -146,8 +143,8 @@ public final class EconomySuite implements Harness.Scenario {
                 Scheduling.onEntity(attacker, () -> {
                     attacker.getInventory().setItemInMainHand(sword);
                     worn.refresh(attacker, library.snapshot());
-                    victim.damage(1.0, attacker); // ATTACK → MODIFY_MONEY:@Self deposits to the attacker
-                    // The deposit is routed to the global thread; 10 ticks is ample for it to land.
+                    victim.damage(1.0, attacker);
+                    // Deposit routes to the global thread; 10 ticks is ample for it to land.
                     Scheduling.onEntityLater(victim, 10L, () -> {
                         h.guard("economy.giveMoneyDepositsToActor", () -> {
                             double balance = bank.balance(attackerId);
@@ -171,7 +168,7 @@ public final class EconomySuite implements Harness.Scenario {
         Files.writeString(file, yaml, StandardCharsets.UTF_8);
     }
 
-    /** A thread-safe in-memory economy — deposits land on the global thread, the balance is read on the entity thread. */
+    /** Thread-safe: deposits land on the global thread, balance is read on the entity thread. */
     private static final class FakeEconomy implements EconomyProvider {
         private final ConcurrentHashMap<UUID, Double> balances = new ConcurrentHashMap<>();
         final java.util.concurrent.atomic.AtomicInteger deposits = new java.util.concurrent.atomic.AtomicInteger();

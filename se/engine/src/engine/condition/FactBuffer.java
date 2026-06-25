@@ -17,7 +17,7 @@ import java.util.function.UnaryOperator;
  */
 public final class FactBuffer {
 
-    /** The maximum number of boolean flags (two {@code long} bitsets — v3.1 §A widened from one). */
+    /** Max boolean flags: two {@code long} bitsets (v3.1 §A). */
     public static final int MAX_FLAGS = 2 * Long.SIZE;
 
     private final double[] numbers;
@@ -83,7 +83,7 @@ public final class FactBuffer {
         return papi.apply(token);
     }
 
-    /** Reset every slot for reuse on the next activation (thread-local pooling). */
+    /** Reset all slots; called once per activation for thread-local reuse. */
     public void clear() {
         Arrays.fill(numbers, 0.0);
         Arrays.fill(strings, null);

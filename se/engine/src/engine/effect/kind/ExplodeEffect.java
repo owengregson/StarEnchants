@@ -11,10 +11,8 @@ import schema.spec.D;
 
 /**
  * {@code EXPLODE} — create an explosion at the target(s) (docs/architecture.md §7).
- * Stateless; emits an {@code explode} intent at each resolved target's location and
- * never touches the world directly. {@link Affinity#REGION}: an explosion mutates the
- * world (and optionally breaks blocks), so on Folia the {@code Sink} routes each
- * intent to the owning region's thread — declaring it here is all an author does.
+ * {@link Affinity#REGION}: an explosion mutates the world (and optionally breaks blocks), so on Folia
+ * it routes to the owning region's thread.
  */
 public final class ExplodeEffect implements EffectKind {
 

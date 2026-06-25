@@ -4,14 +4,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The configurable likeness + mechanics of the SCROLL family (docs/v3-directives.md §I) — the aggregate of
- * the scroll-family members, each authored in its OWN top-level file ({@code items/black-scroll.yml},
- * {@code items/randomizer-scroll.yml}, {@code items/transmog-scroll.yml}, {@code items/holy-white-scroll.yml},
- * {@code items/nametag.yml}, {@code items/godly-transmog.yml}) and assembled here by {@link ItemsLoader}.
- * One physical item per file (matching every other item in {@code items/}); this record is purely the
- * internal grouping the scroll services consume, since the members share item-data machinery
- * ({@code ScrollCodec}). Immutable; lives in the {@link ItemsConfig} snapshot the runtime reads and
- * {@code /se reload} swaps.
+ * The configurable likeness + mechanics of the SCROLL family (§I). Each member is authored in its OWN
+ * top-level file (one physical item per file, matching every other {@code items/} entry); this record is
+ * purely the internal grouping the scroll services consume, since the members share item-data machinery
+ * ({@code ScrollCodec}). Immutable; lives in the {@link ItemsConfig} snapshot {@code /se reload} swaps.
  *
  * @param black      the black scroll (extract one enchant from gear into a book)
  * @param randomizer the randomizer scroll (reroll a book's success chance)
@@ -64,7 +60,6 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
     /**
      * The transmog scroll: dragged onto enchanted gear, it reorders the item's enchant lore (cosmetic — the
      * combat behaviour is order-independent) and appends a configurable {@code nameSuffix} to the item name.
-     * Godly (manual) transmog is the reorder GUI (§K), a later wave.
      */
     public record Transmog(String material, String name, List<String> lore, String nameSuffix) {
         public Transmog {

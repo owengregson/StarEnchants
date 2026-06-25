@@ -18,7 +18,7 @@ class KeepOnDeathEffectTest {
     @Test
     void emitsKeepOnDeathForPlayerTargetsOnly() {
         Player player = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // skipped — only players have an inventory to keep
+        LivingEntity mob = mock(LivingEntity.class); // only players have an inventory to keep
 
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.integer("duration")).thenReturn(200);

@@ -9,13 +9,11 @@ import migrate.model.MigratedCondition;
 import migrate.model.MigratedEffect;
 
 /**
- * The legacy → unified vocabulary tables (docs/architecture.md §10): trigger names, item-application
- * groups, effect-target tokens, and a curated per-head effect translator. Triggers and applies map
- * almost 1:1 (the unified vocabulary deliberately kept the EE/EA names). Effects are the hard part —
- * legacy arg shapes differ (EE {@code DAMAGE:MIN:MAX:TARGET} ranges, {@code FLAME:SECONDS} vs
- * StarEnchants {@code IGNITE:TICKS}), so only effects whose semantics were VERIFIED against the legacy
- * source are translated faithfully; every other head is returned as a {@link MigratedEffect#todo}
- * (flagged for manual porting), never guessed.
+ * The legacy → unified vocabulary tables (docs/architecture.md §10): triggers, item-application groups,
+ * effect-target tokens, and a per-head effect translator. Triggers/applies map almost 1:1 (the unified
+ * vocabulary kept the EE/EA names). Effects are the hard part — legacy arg shapes differ — so only heads
+ * VERIFIED against the legacy source are translated; every other head becomes a {@link MigratedEffect#todo},
+ * never guessed.
  */
 public final class Mappings {
 
@@ -389,12 +387,9 @@ public final class Mappings {
                                 + (parts.length >= 3 ? intArg(parts[2]) * 20 : 100) + ":@Self",
                                 "EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)")
                         : MigratedEffect.todo(token, "unexpected IMMUNE arg shape");
-                // SMELT → auto-smelt the mined block (MINE-side).
                 case "SMELT" -> MigratedEffect.mapped(token, "SMELT", "EE SMELT → SMELT (auto-smelt on MINE)");
-                // TELEPORT_DROPS → mined drops to the breaker's inventory (MINE-side).
                 case "TELEPORT_DROPS" -> MigratedEffect.mapped(token, "TELEPORT_DROPS",
                         "EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)");
-                // AUTO_LOCK → home the fired arrow onto the nearest target (BOW_FIRE-side).
                 case "AUTO_LOCK" -> MigratedEffect.mapped(token, "SEEK",
                         "EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)");
                 // DRAIN_SOULS_CONSTANT:TIME:AMOUNT → debit AMOUNT souls from the activator (the short EE durations
@@ -432,7 +427,7 @@ public final class Mappings {
             durTicks = intArg(parts[4]) * 20;
             note = "EE seconds → ticks (x20)";
         } else {
-            durTicks = 200; // EE omitted the duration (a held-buff form) — default 10s; review for held enchants
+            durTicks = 200; // EE omitted the duration (a held-buff form) — default 10s
             note = "EE omitted duration — defaulted to 200t (10s); review for held buffs";
         }
         return MigratedEffect.mapped(token, "POTION:" + type + ":" + level + ":" + durTicks
@@ -475,7 +470,6 @@ public final class Mappings {
                     .replace("playerHealth", "%actor.health%")
                     .replace("targetHealth", "%victim.health%")
                     .replace("targetDistance", "%distance%");
-            // EE multiplies the hit by the equation result; DAMAGE_MOD:add is a percent, so (result - 1) * 100.
             return MigratedEffect.mapped(token, "DAMAGE_MOD:attack:add:(" + expr + " - 1) * 100",
                     "EE DAMAGE_INCREASE equation → expression-valued DAMAGE_MOD percent ((expr - 1) * 100)");
         }
@@ -580,10 +574,9 @@ public final class Mappings {
         }
     }
 
-    // ── AdvancedEnchantments (AE) ─────────────────────────────────────────────────────────────────
-    // AE differs from EE: its `type` vocabulary is larger, `applies` uses ALL_<TYPE> material groups,
-    // and effects are "HEAD:args %target%" / "HEAD:args @Selector{…}" (a SPACE-separated target, not a
-    // trailing :TARGET). We map the confident overlap and TODO the rest (AE's rich effect/selector DSL).
+    // AdvancedEnchantments. AE differs from EE: larger `type` vocabulary, `applies` uses ALL_<TYPE>
+    // material groups, and effects are "HEAD:args %target%" / "HEAD:args @Selector{…}" (a SPACE-separated
+    // target, not a trailing :TARGET).
 
     /** A {@code %variable%} token; group 1 = the inner name (which may contain spaces, AE-style). */
     private static final Pattern VAR = Pattern.compile("%([^%]+)%");
@@ -689,13 +682,6 @@ public final class Mappings {
         return List.copyOf(out);
     }
 
-    /**
-     * Translate one AE effect token to a {@link MigratedEffect}. AE writes the target as a trailing
-     * space-separated {@code %victim%}/{@code %attacker%}/{@code %player%} (or an {@code @Selector{…}});
-     * we peel it, convert it to a StarEnchants {@code @Selector}, and translate the confident effect
-     * overlap ({@code DAMAGE}, {@code ADD_HEALTH}/{@code HEAL}, {@code POTION}, {@code MESSAGE},
-     * {@code ACTIONBAR}, money) faithfully. Everything else (and any non-trivial AE selector) is a TODO.
-     */
     /** Translate an AE effect token, defaulting to the ATTACK direction (the wielder is the aggressor). */
     public static MigratedEffect aeEffect(String legacyToken) {
         return aeEffect(legacyToken, false);

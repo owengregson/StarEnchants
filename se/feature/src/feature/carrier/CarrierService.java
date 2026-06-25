@@ -18,17 +18,17 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * The book/dust/white-scroll application economy (ADR-0016; ADR-0019) — the cold path that MINTS these
- * carrier items and APPLIES them to gear. Every carrier is built from a top-level {@code items/*.yml}
- * likeness (the general enchant book, the success dust, the white scroll), read LIVE so a {@code /se reload}
- * re-tunes it. Carrier identity lives in PDC ({@link CarrierCodec}) — never decoded on the combat hot path.
+ * carriers and APPLIES them to gear. Each is built from a top-level {@code items/*.yml} likeness read LIVE
+ * so a {@code /se reload} re-tunes it. Carrier identity lives in PDC ({@link CarrierCodec}) — never decoded
+ * on the combat hot path.
  *
- * <p>A book rolls its success chance and, on success, applies its granted enchant through the shared
- * {@link ItemEnchanter}; on failure it destroys the gear (when the enchant-book likeness sets
- * {@code destroy-on-fail}) unless a white-scroll guard spared it. The WHITE SCROLL stamps that guard. The
- * SUCCESS DUST is the one carrier→carrier interaction: dragging it onto an enchant book raises the book's
- * stored bonus (clamped so effective success never exceeds 100%); a normal dust rolls a random bonus in the
- * configured {@code [min, max]} range, a fixed-percent dust (minted via {@code /se dust <percent>}) confers
- * exactly its baked amount. The apply/dust rolls are the only non-determinism, injected as a {@link Random}.
+ * <p>A book rolls its success and on success applies its enchant through the shared {@link ItemEnchanter};
+ * on failure it destroys the gear (when the likeness sets {@code destroy-on-fail}) unless a white-scroll
+ * guard spared it. The WHITE SCROLL stamps that guard. The SUCCESS DUST is the one carrier&rarr;carrier
+ * interaction: dragging it onto a book raises the book's stored bonus (clamped so effective success never
+ * exceeds 100%); a random dust rolls within the configured {@code [min, max]}, a fixed-percent dust
+ * ({@code /se dust <percent>}) confers exactly its baked amount. The apply/dust rolls are the only
+ * non-determinism, injected as a {@link Random}.
  */
 public final class CarrierService {
 
@@ -61,8 +61,8 @@ public final class CarrierService {
     }
 
     /**
-     * Canonical form (the composition root): the live likeness suppliers for the general enchant book, the
-     * top-level success dust, and the white scroll — each re-read on use so a {@code /se reload} re-tunes them.
+     * Canonical form (composition root): live likeness suppliers for the enchant book, success dust, and
+     * white scroll — each re-read on use so a {@code /se reload} re-tunes them.
      */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
@@ -78,17 +78,16 @@ public final class CarrierService {
     }
 
     /**
-     * Mint a RANDOM-bonus SUCCESS DUST from the {@code items/dust.yml} likeness (§I; ADR-0019) — when combined
-     * onto an enchant book it rolls a bonus in the configured {@code [min, max]} range. {@code {BONUS}} renders
-     * as that range. Used by {@code /se dust} (no percent), drops, etc.
+     * Mint a RANDOM-bonus SUCCESS DUST from the {@code items/dust.yml} likeness (§I; ADR-0019) — combined onto
+     * a book it rolls a bonus in the configured {@code [min, max]}. {@code {BONUS}} renders as that range.
      */
     public ItemStack mintDust() {
         return buildDust(0); // 0 baked → roll [min, max] from config at apply time
     }
 
     /**
-     * Mint a FIXED-percent SUCCESS DUST that confers exactly {@code fixedPercent}, bypassing the random roll
-     * (§I) — used by {@code /se dust <percent>}. The percent is baked onto the item (so it is reload-stable).
+     * Mint a FIXED-percent SUCCESS DUST that confers exactly {@code fixedPercent}, bypassing the roll (§I).
+     * The percent is baked onto the item, so it is reload-stable.
      */
     public ItemStack mintDust(int fixedPercent) {
         return buildDust(clampPercent(fixedPercent));
@@ -106,7 +105,7 @@ public final class CarrierService {
         }
         ItemStack stack = ItemFactory.build(ItemFactory.material(cfg.material(), Material.GLOWSTONE_DUST),
                 subDust(cfg.name(), label, min, max), lore);
-        // The dust carries its FIXED bonus in the successBonus field (0 = random — roll from config on apply).
+        // successBonus carries the FIXED bonus; 0 = random, rolled from config on apply.
         codec.write(stack, new CarrierData(DUST_KEY, "", 0, fixedBonus));
         return stack;
     }
@@ -116,8 +115,8 @@ public final class CarrierService {
     }
 
     /**
-     * Mint a WHITE SCROLL from the {@code items/white-scroll.yml} likeness (§I) — drag onto gear to protect it
-     * from enchant destruction once. Grants no content; it stamps the guard marker on apply.
+     * Mint a WHITE SCROLL from the {@code items/white-scroll.yml} likeness (§I) — protects gear from enchant
+     * destruction once. Grants no content; stamps the guard marker on apply.
      */
     public ItemStack mintWhiteScroll() {
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
@@ -127,9 +126,8 @@ public final class CarrierService {
     }
 
     /**
-     * Apply the carrier {@code carrier} to {@code target}, mutating both (the grant lands on the target, one
-     * carrier use is consumed) and returning the outcome. A no-op (not a carrier / ineligible target /
-     * unsupported kind) leaves both stacks untouched.
+     * Apply {@code carrier} to {@code target}, mutating both (grant lands, one use consumed). A no-op (not a
+     * carrier / ineligible target / unsupported kind) leaves both stacks untouched.
      */
     public CarrierResult applyTo(ItemStack carrier, ItemStack target) {
         CarrierData data = codec.read(carrier);
@@ -139,14 +137,13 @@ public final class CarrierService {
         if (target == null || target.getType() == Material.AIR) {
             return CarrierResult.noop("§cApply the carrier onto an item.");
         }
-        // ONE carrier affects ONE item — never a whole stack (a single book must not enchant or destroy
-        // 64 swords at once: that would be a dupe / mass-loss exploit). Split the stack first.
+        // ONE carrier affects ONE item — applying to a stack would be a dupe / mass-loss exploit.
         if (target.getAmount() > 1) {
             return CarrierResult.noop("§cApply the carrier to a single item — split the stack first.");
         }
 
-        // Success dust: the one carrier-onto-carrier interaction (ADR-0019). A fixed dust confers its baked
-        // bonus; a random dust rolls [min, max] from the live config.
+        // Success dust: the one carrier-onto-carrier interaction (ADR-0019). Fixed dust confers its baked
+        // bonus; random dust rolls [min, max] from the live config.
         if (DUST_KEY.equals(data.itemKey())) {
             compile.load.DustConfig cfg = dustConfig.get();
             int bonus = data.successBonus() > 0 ? data.successBonus() : rolledDustBonus(cfg);
@@ -190,16 +187,14 @@ public final class CarrierService {
         return CarrierResult.consumed("§eThe enchant failed — the item is unharmed.");
     }
 
-    /** A random success-chance bonus in the dust's configured {@code [min, max]} range. */
     private int rolledDustBonus(compile.load.DustConfig cfg) {
         int span = cfg.maxBonus() - cfg.minBonus();
         return span <= 0 ? cfg.minBonus() : cfg.minBonus() + random.nextInt(span + 1);
     }
 
     /**
-     * Mint an enchant BOOK for an arbitrary enchant from the GENERAL {@code items/enchant-book.yml} likeness —
-     * the enchant's display name fills {@code {ENCHANT}}, the level fills {@code {LEVEL}}. It applies with the
-     * default success (always succeeds, never destroys). Used by {@code /se give book}, combine, etc.
+     * Mint an enchant BOOK from the GENERAL {@code items/enchant-book.yml} likeness ({@code {ENCHANT}},
+     * {@code {LEVEL}} substituted). Applies with default success — always succeeds, never destroys.
      */
     public ItemStack mintBook(String enchantKey, int level) {
         ItemStack stack = bookLikeness(enchantKey, level, -1);
@@ -208,9 +203,9 @@ public final class CarrierService {
     }
 
     /**
-     * Mint an enchant BOOK that applies at an explicit {@code successChance} (§I) — used by the unopened/
-     * randomized book. Like {@link #mintBook(String, int)} but the likeness's {@code success-lore} (with
-     * {@code {SUCCESS}}) is appended and the book carries a base-success override.
+     * Mint an enchant BOOK that applies at an explicit {@code successChance} (§I, the unopened/randomized
+     * book). Like {@link #mintBook(String, int)} but appends the {@code success-lore} ({@code {SUCCESS}}) and
+     * carries a base-success override.
      */
     public ItemStack mintBook(String enchantKey, int level, int successChance) {
         int chance = clampPercent(successChance);
@@ -255,10 +250,9 @@ public final class CarrierService {
     }
 
     /**
-     * Combine two enchant books into one of the next level — the Alchemist's upgrade (docs/v3-directives.md
-     * §K). Both must grant the SAME enchant at the SAME level, below that enchant's max. Returns the minted
-     * level+1 book, or empty when the pair is not combinable (the menu then leaves both inputs untouched). A
-     * mint of an existing item type — NOT a new economy data model (cf. ADR-0019).
+     * Combine two enchant books into one of the next level — the Alchemist's upgrade (§K). Both must grant
+     * the SAME enchant at the SAME level, below its max. Empty when not combinable (menu leaves inputs
+     * untouched). A mint of an existing item type — NOT a new economy data model (cf. ADR-0019).
      */
     public java.util.Optional<ItemStack> combineBooks(ItemStack a, ItemStack b) {
         java.util.Optional<BookContents> ca = bookContents(a);
@@ -290,7 +284,6 @@ public final class CarrierService {
         return Math.max(1, bookLevel);
     }
 
-    /** The catalog {@link EnchantDef} for {@code key}, or {@code null} if no such enchant. */
     private EnchantDef enchantDef(String key) {
         for (EnchantDef def : content.library().catalog()) {
             if (def.key().equals(key)) {
@@ -300,14 +293,13 @@ public final class CarrierService {
         return null;
     }
 
-    /** What an enchant book grants: the enchant key and the level it applies. */
     public record BookContents(String enchantKey, int level) {
     }
 
     /**
-     * Reroll the success chance of an enchant {@code book} to {@code targetPercent} (§I randomizer scroll) —
-     * sets an explicit base-success override, clears any accumulated dust bonus, and re-renders the book's lore
-     * from state. A no-op (not an enchant book) leaves the stack untouched.
+     * Reroll {@code book}'s success to {@code targetPercent} (§I randomizer scroll) — sets a base-success
+     * override, clears any dust bonus, re-renders lore from state. No-op (not an enchant book) leaves it
+     * untouched.
      */
     public CarrierResult rerollSuccess(ItemStack book, int targetPercent) {
         CarrierData data = codec.read(book);
@@ -321,10 +313,9 @@ public final class CarrierService {
     }
 
     /**
-     * Whether {@code cursor} is a dust that would LEGALLY combine onto {@code target} — a success dust onto an
-     * enchant book. The interaction layer claims the otherwise-forbidden carrier-onto-carrier gesture only when
-     * this holds (ADR-0019), so a dust dropped onto a scroll / another dust / non-content carrier falls through
-     * to the vanilla click instead of becoming a dead, cancelled no-op.
+     * Whether {@code cursor} is a dust that would LEGALLY combine onto {@code target} (a success dust onto an
+     * enchant book). The interaction layer claims the otherwise-forbidden carrier-onto-carrier gesture only
+     * when this holds (ADR-0019); otherwise it falls through to the vanilla click.
      */
     public boolean canCombineDust(ItemStack cursor, ItemStack target) {
         CarrierData cursorData = codec.read(cursor);
@@ -341,9 +332,9 @@ public final class CarrierService {
     }
 
     /**
-     * Raise {@code book}'s stored success bonus by {@code bonus}, clamped so its effective success can never
-     * exceed 100%, re-render its lore from state, and consume the {@code dust}. A no-op (target not an enchant
-     * book, no bonus, or the book already at 100%) leaves both stacks untouched.
+     * Raise {@code book}'s stored bonus by {@code bonus} (clamped so effective success never exceeds 100%),
+     * re-render lore from state, and consume the {@code dust}. No-op (not an enchant book, no bonus, or
+     * already at 100%) leaves both untouched.
      */
     private CarrierResult applyDustBonus(ItemStack dust, ItemStack book, int bonus, String sound,
                                          java.util.List<String> particles) {
@@ -378,9 +369,9 @@ public final class CarrierService {
     }
 
     /**
-     * Re-render an enchant book's lore from the general likeness + the book's current state — so a dust combine
-     * or a randomizer reroll visibly updates the shown success chance (lore is rendered from state, never parsed
-     * back). Always shows the success line (the book now has a meaningful effective success).
+     * Re-render an enchant book's lore from the likeness + current state, so a dust combine or reroll
+     * visibly updates the shown success (lore is rendered from state, never parsed back). Always shows the
+     * success line.
      */
     @SuppressWarnings("deprecation") // setLore(List): the floor-stable item-meta path
     private void reRenderBookLore(ItemStack book, CarrierData data) {
@@ -415,9 +406,9 @@ public final class CarrierService {
     }
 
     /**
-     * The base success chance for a book: its explicit {@link CarrierData#baseSuccess()} override (§I — an
-     * unopened-book output or a randomizer reroll) when present, else {@code 100} (a plain {@code /se book}
-     * always succeeds). The bonus is added on top by callers.
+     * A book's base success: its explicit {@link CarrierData#baseSuccess()} override (§I, an unopened-book
+     * output or reroll) when present, else {@code 100} (a plain book always succeeds). Bonus added on top by
+     * callers.
      */
     private static int baseSuccessOf(CarrierData data) {
         return data.hasBaseSuccess() ? data.baseSuccess() : 100;

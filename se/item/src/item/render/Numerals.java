@@ -1,10 +1,8 @@
 package item.render;
 
 /**
- * Roman-numeral formatting for enchant levels (docs/architecture.md §4.2) — the conventional
- * {@code Sharpness V} style. Pure and allocation-light; no Bukkit. Levels outside the classic
- * Roman range (1–3999) fall back to the plain Arabic number, so an absurd level can never throw
- * or render garbage.
+ * Roman-numeral formatting for enchant levels (§4.2). Levels outside the Roman range (1–3999) fall back to
+ * the Arabic number, so an absurd level can't throw or render garbage.
  */
 public final class Numerals {
 
@@ -14,7 +12,6 @@ public final class Numerals {
     private Numerals() {
     }
 
-    /** {@code value} as an uppercase Roman numeral, or the plain Arabic number if out of range. */
     public static String roman(int value) {
         if (value < 1 || value > 3999) {
             return Integer.toString(value);

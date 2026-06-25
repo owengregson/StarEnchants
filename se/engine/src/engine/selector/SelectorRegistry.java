@@ -12,14 +12,11 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * The explicit, greppable registry of selector kinds (docs/architecture.md §7) — the
- * selector counterpart of {@link engine.effect.EffectRegistry}. Heads are matched
- * case-insensitively and a duplicate head fails fast at build time.
+ * Registry of selector kinds (docs/architecture.md §7). Heads match case-insensitively; a
+ * duplicate head fails fast at build time.
  *
- * <p>{@link #specRegistry()} exposes each selector's {@link ParamSpec} so the (pure)
- * compiler can validate inline selector arguments without depending on
- * {@code se-engine}; the engine builds the registry at boot and injects this view —
- * the same seam the effect registry uses to keep the compiler pure (§2.1).
+ * <p>{@link #specRegistry()} exposes each selector's {@link ParamSpec} so the pure compiler can
+ * validate inline selector arguments without depending on {@code se-engine} (§2.1).
  */
 public final class SelectorRegistry {
 
@@ -33,7 +30,7 @@ public final class SelectorRegistry {
         return new Builder();
     }
 
-    /** The kind registered under {@code head} (case-insensitive), if any. */
+    /** Case-insensitive head lookup. */
     public Optional<SelectorKind> lookup(String head) {
         return Optional.ofNullable(byHead.get(head.toUpperCase(Locale.ROOT)));
     }
@@ -43,15 +40,11 @@ public final class SelectorRegistry {
         return byHead.keySet();
     }
 
-    /** Every registered kind. */
     public Collection<SelectorKind> kinds() {
         return byHead.values();
     }
 
-    /**
-     * A {@link SpecRegistry} view backed by each kind's {@link ParamSpec}, for
-     * injection into the compiler's selector lowering.
-     */
+    /** {@link SpecRegistry} view over each kind's {@link ParamSpec}, for the compiler's selector lowering. */
     public SpecRegistry specRegistry() {
         ParamSpec[] specs = byHead.values().stream()
                 .map(k -> k.spec().paramSpec())

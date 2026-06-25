@@ -14,6 +14,5 @@ package feature.menu;
 @FunctionalInterface
 public interface ClickAction {
 
-    /** Handle a click on the button this action is bound to. */
     void onClick(MenuClick click);
 }

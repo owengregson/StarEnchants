@@ -6,12 +6,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Marks / detects a SLOT EXPANDER (orb) item (docs/v3-directives.md §H) — a one-shot consumable dragged
- * onto gear to raise its enchant-slot count. The stored value is the {@code +N} this orb grants (its
- * configured amount). A simple PDC {@code INTEGER} under
- * {@link ItemKeys#slotItem()}, separate from the combat blob (identity, never on the hot path). The
- * granted slots themselves persist in the gear's {@link CombatState#added()} field, not here. Reading is
- * null-safe.
+ * Marks / detects a SLOT EXPANDER orb (§H), storing the {@code +N} it grants as a PDC {@code INTEGER}
+ * under {@link ItemKeys#slotItem()}, off the combat hot path. The granted slots themselves persist in
+ * the gear's {@link CombatState#added()} field, not here. Reading is null-safe.
  */
 public final class SlotItemCodec {
 

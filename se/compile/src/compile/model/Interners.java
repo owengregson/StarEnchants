@@ -1,15 +1,10 @@
 package compile.model;
 
 /**
- * The bundle of name&harr;id tables a {@link Snapshot} is built against — one
- * {@link Interner} per interned namespace (docs/architecture.md §4.1, §8). Bit
- * positions in {@link Ability#triggerMask()} and {@link Ability#worldBlacklist()}
- * are ids drawn from {@link #triggers} and {@link #worlds} respectively, so the
- * snapshot must carry these tables to translate a runtime world/trigger back to its
- * id (and vice-versa) and to render ids in diagnostics.
- *
- * <p>Frozen after erasure: the eraser populates the interners, the snapshot holds
- * them read-only.
+ * The name&harr;id tables a {@link Snapshot} is built against — one {@link Interner} per namespace
+ * (docs/architecture.md §4.1, §8). Bit positions in {@link Ability#triggerMask()} and
+ * {@link Ability#worldBlacklist()} are ids from {@link #triggers}/{@link #worlds}, so the snapshot
+ * carries these tables to translate runtime worlds/triggers and render ids in diagnostics. Frozen after erasure.
  *
  * @param worlds         world name &harr; id (bit position in {@code worldBlacklist}; cap 64)
  * @param triggers       trigger name &harr; id (bit position in {@code triggerMask}; cap 32)

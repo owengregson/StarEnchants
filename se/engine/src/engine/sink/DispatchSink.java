@@ -71,18 +71,16 @@ import schema.spec.HandleCategory;
  *       only safe routing; the declared affinity is advisory, not a licence to skip the hop.</li>
  * </ul>
  *
- * <p>Version-volatile referents arrive as interned handle ids and are resolved to live Bukkit
- * objects through {@link RuntimeHandles} at apply time — on the correct thread, cached after the
- * first lookup, never on the inline combat path's critical section (§9). An id that does not
- * resolve on this version yields a {@code null} object and that one intent is silently skipped:
- * the "warn" half of §9's warn-and-skip already fired at compile time, where the resolver reports
- * an unknown token against the same {@code RegistrySupport} lookup — so an interned id failing to
- * resolve at runtime is a can't-happen on a stable server, not a config error worth re-logging.
+ * <p>Version-volatile referents arrive as interned handle ids, resolved to live Bukkit objects through
+ * {@link RuntimeHandles} at apply time — on the correct thread, cached after first lookup, never on the
+ * inline combat critical section (§9). An id that does not resolve yields {@code null} and that one
+ * intent is silently skipped: the §9 "warn" already fired at compile time against the same lookup, so a
+ * runtime resolve miss is a can't-happen on a stable server, not a config error worth re-logging.
  *
- * <p>Lifecycle: one instance per event. {@link #fold()} and {@link #cancelled()} accumulate across
- * all of the event's abilities; {@link #flush()} is called once, last. Not thread-safe by design —
- * it is filled and flushed on the single firing thread (§6); the batches it schedules run later on
- * their own threads over immutable captured primitives.
+ * <p>Lifecycle: one instance per event. {@link #fold()} and {@link #cancelled()} accumulate across all
+ * of the event's abilities; {@link #flush()} is called once, last. Not thread-safe by design — filled
+ * and flushed on the single firing thread (§6); scheduled batches run later on their own threads over
+ * immutable captured primitives.
  */
 public final class DispatchSink implements Sink {
 
@@ -110,10 +108,8 @@ public final class DispatchSink implements Sink {
 
     /**
      * §N anti-cheat movement exemption (ADR-0027): invoked just before StarEnchants moves a PLAYER
-     * (VELOCITY / TELEPORT) so a bundled anti-cheat bridge can briefly exempt them from movement checks,
-     * preventing false flags on engine-applied motion. A static, boot-configured no-op by default (set once
-     * via {@link #movementExemption}, mirroring how cross-cutting platform concerns like {@code Scheduling}
-     * are installed) — so it adds nothing to the per-event sink construction and is inert in tests.
+     * (VELOCITY / TELEPORT) so a bundled anti-cheat bridge can briefly exempt them, preventing false flags
+     * on engine-applied motion. Boot-configured static no-op by default (inert in tests, free per event).
      */
     private static volatile java.util.function.Consumer<org.bukkit.entity.Player> movementExemption = player -> { };
 
@@ -139,23 +135,13 @@ public final class DispatchSink implements Sink {
         this(handles, economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
     }
 
-    /**
-     * Convenience ctor: economy + soul debit + shared {@link VarStore}/{@link SuppressionStore} but a
-     * throwaway {@link KnockbackControlStore}. Defaulting the knockback store here keeps every existing
-     * call site (tests + the §C SUPPRESS-era six-arg sites) compiling unchanged while the production
-     * dispatchers reach for the full ctor below to share the real knockback store with its listener.
-     */
+    /** Economy + soul debit + shared {@link VarStore}/{@link SuppressionStore}; throwaway knockback store. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, LongSupplier nowTicks) {
         this(handles, economy, souls, vars, suppression, new KnockbackControlStore(), nowTicks);
     }
 
-    /**
-     * Convenience ctor: a shared {@link KnockbackControlStore} but a throwaway {@link KeepOnDeathStore}.
-     * Defaulting the keep store here keeps the §C KNOCKBACK_CONTROL-era seven-arg call sites compiling
-     * unchanged while the production dispatchers reach for the full ctor below to share the real keep store
-     * with the death listener.
-     */
+    /** Shared {@link KnockbackControlStore}; throwaway {@link KeepOnDeathStore}. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
                         LongSupplier nowTicks) {
@@ -163,11 +149,10 @@ public final class DispatchSink implements Sink {
     }
 
     /**
-     * The full sink: economy + soul debit + a shared per-player {@link VarStore} + a shared
-     * {@link SuppressionStore} + a shared {@link KnockbackControlStore} + a shared {@link KeepOnDeathStore}
-     * + the current-tick supply the timed var/suppression/knockback/keep TTLs read. The production
-     * dispatchers build one of these per event so the KNOCKBACK_CONTROL / KEEP_ON_DEATH flags a hit writes
-     * are visible to the (separate) knockback / death events' listeners.
+     * Economy + soul debit + shared {@link VarStore}/{@link SuppressionStore}/{@link KnockbackControlStore}/
+     * {@link KeepOnDeathStore} + the current-tick supply the timed TTLs read. Sharing the stores is what
+     * makes the KNOCKBACK_CONTROL / KEEP_ON_DEATH flags a hit writes visible to the separate
+     * knockback / death events' listeners.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
@@ -177,10 +162,9 @@ public final class DispatchSink implements Sink {
     }
 
     /**
-     * As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
-     * §F/ADR-0021) threaded into this event's {@link DamageFold}. The production dispatchers pass
-     * {@code () -> master.config().heroic().maxOutgoingFactor()} so a {@code /se reload} re-tunes the bound;
-     * the eight-arg ctor above defaults it to {@link DamageFold#DEFAULT_MAX_HEROIC_OUTGOING_FACTOR}.
+     * Adds the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
+     * §F/ADR-0021) into this event's {@link DamageFold}. Pass a supplier so {@code /se reload} re-tunes the
+     * bound; the eight-arg ctor defaults it to {@link DamageFold#DEFAULT_MAX_HEROIC_OUTGOING_FACTOR}.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
@@ -191,11 +175,9 @@ public final class DispatchSink implements Sink {
     }
 
     /**
-     * The full sink, additionally sharing the {@link TeleblockStore} and {@link ImmuneStore} the
-     * TELEBLOCK / IMMUNE flags write — read back by the teleport / damage listeners on their separate Bukkit
-     * events. The production dispatchers pass the shared instances; every shorter ctor above defaults them to
-     * throwaways (so those flags are inert unless the real stores are threaded in), exactly as the
-     * knockback/keep-on-death stores were introduced.
+     * The full sink, also sharing the {@link TeleblockStore}/{@link ImmuneStore} the TELEBLOCK / IMMUNE
+     * flags write — read back by the teleport / damage listeners on their separate Bukkit events. Shorter
+     * ctors default these to throwaways, so those flags are inert unless the real stores are threaded in.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
@@ -397,10 +379,8 @@ public final class DispatchSink implements Sink {
 
     @Override
     public void knockback(Entity target, Location from, double strength) {
-        // `from` is the activator's location on the firing thread. Clone it: a WAIT tier can defer this
-        // closure to a LATER tick, so the captured origin must be an owned snapshot, not a Location the
-        // caller might mutate/reuse in the meantime. We read `target.getLocation()` inside the body,
-        // which is correct because the body runs on the target's own thread (entityOp).
+        // Clone `from`: a WAIT tier can defer this to a later tick, so the captured origin must be an owned
+        // snapshot. `target.getLocation()` is read inside the body, which runs on the target's own thread.
         Location origin = from.clone();
         entityOp(target, () -> {
             exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied knockback
@@ -446,8 +426,7 @@ public final class DispatchSink implements Sink {
     @Override
     public void addMaxHealth(LivingEntity target, double amount) {
         entityOp(target, () -> {
-            // The unequip restoration of this delta is wired when the WornState resolver lands
-            // (§5.5); for now the base value is shifted directly so the effect is observable.
+            // Shifts the base value directly; unequip restoration of this delta lands with WornState (§5.5).
             AttributeInstance maxHealth = maxHealthAttribute(target);
             if (maxHealth != null) {
                 maxHealth.setBaseValue(Math.max(1.0, maxHealth.getBaseValue() + amount));
@@ -520,7 +499,7 @@ public final class DispatchSink implements Sink {
     @Override
     public void removeArmor(LivingEntity target) {
         // Runs on the target's own thread (entityOp): reading its equipment + dropping at its location is
-        // region-correct. Picks one random non-empty armour slot, clears it, and drops the piece (REMOVE_ARMOR).
+        // region-correct.
         entityOp(target, () -> {
             EntityEquipment equipment = target.getEquipment();
             if (equipment == null) {
@@ -705,8 +684,7 @@ public final class DispatchSink implements Sink {
 
     @Override
     public void blockChange(Location at, int blockDataId) {
-        // The floor behaviour treats the handle as a Material; full BlockData (with states) is a
-        // compat-modern follow-up (the doc's "BlockData sends"). Materials cover the common case.
+        // Handle is treated as a Material (covers the common case); full BlockData with states is a follow-up.
         regionOp(at, () -> {
             Material material = handles.material(blockDataId);
             if (material != null && material.isBlock()) {
@@ -843,8 +821,8 @@ public final class DispatchSink implements Sink {
     @Override
     @SuppressWarnings("deprecation") // sendTitle(String, String, int, int, int): deprecated-not-removed across the whole range.
     public void title(Player target, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        // The 5-arg String sendTitle is the one title path stable across the whole 1.17.1 → 26.1.x range
-        // (the Adventure Title API is not present on the spigot-mapped floor's bundled api).
+        // 5-arg String sendTitle is the one title path stable across the range (no Adventure Title API on
+        // the spigot-mapped floor).
         entityOp(target, () -> target.sendTitle(title, subtitle, fadeIn, stay, fadeOut));
     }
 

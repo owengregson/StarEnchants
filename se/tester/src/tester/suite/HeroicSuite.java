@@ -44,13 +44,11 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Heroic percent stats, proven live end-to-end (docs/architecture.md §6, §6.1; §F/ADR-0021): an item
- * carries a passive {@code HeroicStat} percent that is summed across worn/held pieces at equip time and
- * applied as the bounded MULTIPLICATIVE stage on top of the additive damage fold, UNCONDITIONALLY (no
- * chance/trigger gate). Here a fake-player attacker holds a weapon with a large heroic outgoing-damage
- * percent and NO enchants; the hit on a cow is amplified by ×(1+percent), observable as a health delta.
- * Exercises the whole heroic path: stamp HeroicStat into PDC → equip → WornResolver sums → CombatDispatch
- * contributes to the fold's heroic stage. Mojang-mapped only.
+ * Heroic percent stats, proven live end-to-end (docs/architecture.md §6, §6.1; §F/ADR-0021): a passive
+ * {@code HeroicStat} percent summed across worn/held pieces at equip and applied as the bounded
+ * multiplicative stage on the additive damage fold, unconditionally (no chance/trigger gate). A fake-player
+ * attacker with a heroic-damage weapon and no enchants amplifies a hit on a cow by ×(1+percent), observed
+ * as a health delta. Mojang-mapped only.
  */
 public final class HeroicSuite implements Harness.Scenario {
 
@@ -118,14 +116,12 @@ public final class HeroicSuite implements Harness.Scenario {
                     attacker.getInventory().setItemInMainHand(sword);
                     worn.refresh(attacker, library.snapshot());
                     double before = victim.getHealth();
-                    victim.damage(1.0, attacker); // base 1.0; heroic ×(1+HEROIC_PERCENT) → ~3.0 total
+                    victim.damage(1.0, attacker);
                     Scheduling.onEntityLater(victim, 10L, () -> {
                         h.guard("heroic.percentDamageAmplifiesHit", () -> {
                             double dealt = before - victim.getHealth();
-                            // Base hit is 1.0; the heroic stage multiplies by (1 + 2.0) = 3.0 → ~3.0 dealt
-                            // (a cow has no armour/resistance). Require the delta near the expected value —
-                            // catching both "heroic never applied" (~1.0) and "heroic double-applied"
-                            // (1.0 × 3.0 × 3.0 = ~9, which would near-kill the 10-HP cow).
+                            // Bound the delta both ways: catches "never applied" (~1.0) and "double-applied"
+                            // (~9, near-killing the 10-HP cow). A cow has no armour/resistance.
                             double base = 1.0;
                             double expected = base * (1.0 + HEROIC_PERCENT);
                             if (dealt < expected - 0.5) {

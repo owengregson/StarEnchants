@@ -12,10 +12,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds the
- * resolved potion-handle id + targets, and a mocked {@link Sink} records the emitted
- * intents — so the effect's behavior is verified with no server. The {@code effect}
- * arg arrives as an already-interned int (resolved at compile time, §9).
+ * Mock-host test (docs/architecture.md §1.3): the {@code effect} arg arrives as an already-interned int
+ * (resolved at compile time, §9).
  */
 class RemovePotionEffectTest {
 

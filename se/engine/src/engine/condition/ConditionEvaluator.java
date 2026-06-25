@@ -31,8 +31,6 @@ public final class ConditionEvaluator {
         if (condition == null) {
             return ConditionResult.CONTINUE;
         }
-        // Evaluate the boolean root, then apply the authored outcome: a bare gate is
-        // CONTINUE/STOP, a clause carries its own whenTrue flow (+ chance delta) and CONTINUE on fail.
         if (test(condition.root(), facts)) {
             return ConditionResult.of(flow(condition.whenTrue()), condition.chanceDelta());
         }
@@ -49,11 +47,7 @@ public final class ConditionEvaluator {
         };
     }
 
-    /**
-     * Evaluate a boolean condition node directly to its truth value. Uses
-     * {@code instanceof} pattern chains rather than a switch over the sealed type,
-     * because switch type patterns are not available at the Java 17 floor (§11).
-     */
+    // instanceof chains, not a switch over the sealed type: type patterns aren't at the Java 17 floor (§11).
     public static boolean test(Cond node, FactBuffer f) {
         if (node instanceof Cond.And a) {
             return test(a.left(), f) && test(a.right(), f);
@@ -93,7 +87,7 @@ public final class ConditionEvaluator {
     }
 
     private static double num(NumExpr e, FactBuffer f) {
-        // The numeric walk (incl. arithmetic) is shared with expression-valued effect arguments (§3.4).
+        // Shared with expression-valued effect arguments (§3.4).
         return NumExprEval.eval(e, f);
     }
 
@@ -125,11 +119,7 @@ public final class ConditionEvaluator {
         return a == null ? b == null : a.equalsIgnoreCase(b);
     }
 
-    /**
-     * {@code contains} membership: true if {@code haystack} contains any {@code |}-separated alternative
-     * in {@code needles} (case-insensitive). A {@code null} operand or only-empty alternatives is false
-     * (fail-closed on missing data, matching the numeric/placeholder semantics).
-     */
+    /** True if {@code haystack} contains any {@code |}-separated alternative (case-insensitive); null/empty is fail-closed false. */
     private static boolean containsAny(String haystack, String needles) {
         if (haystack == null || needles == null) {
             return false;

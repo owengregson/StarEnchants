@@ -31,7 +31,6 @@ class EffectSpecTest {
         assertEquals("Lightning + AoE damage near the target.", spec.doc());
         assertEquals("SMITE:25:6", spec.example());
 
-        // The wrapped ParamSpec still validates arguments into typed values.
         Diagnostics d = new Diagnostics();
         Args args = spec.paramSpec().parse(List.of("25", "6"), Source.UNKNOWN, d);
         assertFalse(d.hasErrors());

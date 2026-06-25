@@ -27,9 +27,9 @@ class MasterConfigLoaderTest {
         assertEquals(0, config.reload().autoSeconds());
         assertTrue(config.lore().roman());
         assertEquals("&7", config.lore().enchantColor());
-        assertTrue(config.commandTrigger().enabled());          // §B COMMAND trigger command on by default
+        assertTrue(config.commandTrigger().enabled()); // §B COMMAND trigger on by default
         assertEquals("cast", config.commandTrigger().name());
-        // §L new sections default to "all on / no caps / no prefix".
+        // §L sections default to all-on / no-caps / no-prefix
         assertTrue(config.features().enchants() && config.features().sets() && config.features().crystals()
                 && config.features().heroic() && config.features().slots() && config.features().souls()
                 && config.features().scrolls());
@@ -64,7 +64,7 @@ class MasterConfigLoaderTest {
         assertFalse(config.features().enchants());
         assertFalse(config.features().crystals());
         assertFalse(config.features().souls());
-        assertTrue(config.features().sets());        // omitted feature stays on
+        assertTrue(config.features().sets()); // omitted feature stays on
         assertTrue(config.features().heroic());
         assertEquals(5.0, config.combat().maxBonusDamage());
         assertEquals(0.8, config.combat().maxBonusReduction());
@@ -123,9 +123,9 @@ class MasterConfigLoaderTest {
         assertEquals("&8?", config.lore().unknownLabel());
         assertFalse(config.integrations().protection());
         assertFalse(config.integrations().economy());
-        assertFalse(config.integrations().enabled("worldguard")); // listed false
-        assertTrue(config.integrations().enabled("vault"));        // listed true
-        assertTrue(config.integrations().enabled("oraxen"));       // unlisted ⇒ enabled
+        assertFalse(config.integrations().enabled("worldguard"));
+        assertTrue(config.integrations().enabled("vault"));
+        assertTrue(config.integrations().enabled("oraxen")); // unlisted integration defaults enabled
         assertFalse(config.reload().reResolvePlayers());
         assertEquals(600, config.reload().autoSeconds());
         assertFalse(config.commandTrigger().enabled());
@@ -144,8 +144,8 @@ class MasterConfigLoaderTest {
         MasterConfig config = MasterConfigLoader.load(file);
 
         assertFalse(config.hasErrors());
-        assertEquals(7, config.slots().base());                 // the one set value
-        assertEquals(1, config.crystals().slots());             // every other section is its default
+        assertEquals(7, config.slots().base());
+        assertEquals(1, config.crystals().slots());
         assertEquals(4.0, config.heroic().maxOutgoingFactor());
         assertTrue(config.integrations().economy());
     }
@@ -160,7 +160,7 @@ class MasterConfigLoaderTest {
 
         MasterConfig config = MasterConfigLoader.load(file);
 
-        assertFalse(config.hasErrors()); // a bad number is a WARNING, not a blocking error
+        assertFalse(config.hasErrors()); // a bad number warns, never blocks
         assertEquals(9, config.slots().base());
         assertTrue(config.diagnostics().stream().anyMatch(d -> d.code().equals("W_CONFIG_NUM")));
     }

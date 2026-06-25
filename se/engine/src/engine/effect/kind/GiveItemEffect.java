@@ -11,11 +11,9 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code GIVE_ITEM} — give a material to the player target(s) (docs/v3-directives.md §C). Stateless; emits one
- * {@code giveItem} intent per resolved player target and never touches an inventory directly — the {@link Sink}
- * adds to the inventory on the target's own thread and drops any overflow at their feet. The {@code material} is
- * a handle arg resolved to an interned id at compile time (§9). {@link Affinity#TARGET_ENTITY}: routed to each
- * target's region thread.
+ * {@code GIVE_ITEM} — give a material to the player target(s) (docs/v3-directives.md §C). The {@link Sink}
+ * adds to the inventory on the target's own thread and drops overflow at their feet. {@code material} is a
+ * handle arg interned at compile time (§9). {@link Affinity#TARGET_ENTITY}.
  */
 public final class GiveItemEffect implements EffectKind {
 

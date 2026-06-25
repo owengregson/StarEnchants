@@ -7,9 +7,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit-pins {@link KeepOnDeathStore}: a flag is armed within its TTL (lazy-evicted on read), re-arming
- * extends the window, and clear/clearAll forget it — the §C KEEP_ON_DEATH "while worn" flag re-armed each
- * tick by a REPEATING ability and lapsing after unequip.
+ * Models the §C KEEP_ON_DEATH "while worn" flag: re-armed each tick by a REPEATING ability so it lapses
+ * shortly after unequip — hence re-arm must extend (never shorten) the window.
  */
 class KeepOnDeathStoreTest {
 
@@ -34,8 +33,8 @@ class KeepOnDeathStoreTest {
     @Test
     void reArmExtendsTheWindow() {
         UUID player = UUID.randomUUID();
-        store.keep(player, 0L, 100);   // expires at 100
-        store.keep(player, 50L, 100);  // re-armed: expires at 150 (the later expiry wins)
+        store.keep(player, 0L, 100);
+        store.keep(player, 50L, 100);  // re-arm to a later expiry (150): the later one wins
         assertTrue(store.shouldKeep(player, 120L), "a later re-arm extends past the original expiry");
         store.keep(player, 60L, 10);   // a shorter fresh arm (expiry 70) must NOT cut the window short
         assertTrue(store.shouldKeep(player, 120L));

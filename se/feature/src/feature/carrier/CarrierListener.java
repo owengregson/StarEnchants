@@ -13,11 +13,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The carrier application UX (ADR-0016): holding a carrier on the CURSOR and clicking a target item
- * applies it (the standard "drag the book onto the item"). Bukkit-thin glue — all logic is in
- * {@link CarrierService}; this only recognises the gesture, cancels the vanilla click, drives the
- * apply, and commits the mutated cursor/slot. Folia-correct: an {@code InventoryClickEvent} fires on
- * the clicking player's own region thread, so mutating that player's cursor/inventory is in-thread.
+ * The carrier application UX (ADR-0016): a carrier on the CURSOR clicked onto a target item applies it
+ * ("drag the book onto the item"). Bukkit-thin glue — all logic is in {@link CarrierService}.
+ * Folia-correct: {@code InventoryClickEvent} fires on the clicking player's own region thread, so
+ * mutating their cursor/inventory is in-thread.
  */
 public final class CarrierListener implements Listener {
 
@@ -41,9 +40,9 @@ public final class CarrierListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        // Only a plain LEFT/RIGHT place onto a slot in the player's OWN inventory grid — never shift/
-        // number/double clicks (dupe + double-click-collect misfires) nor another container/GUI's slots
-        // (so we never touch a chest or a region-owned inventory on Folia).
+        // Plain LEFT/RIGHT onto the player's OWN inventory grid only — never shift/number/double clicks
+        // (dupe + collect misfires) nor another container's slots (would touch a region-owned inventory
+        // on Folia).
         if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT) {
             return;
         }
@@ -53,15 +52,14 @@ public final class CarrierListener implements Listener {
         }
         ItemStack cursor = event.getCursor();
         if (codec.read(cursor) == null) {
-            return; // the cursor is not a carrier — leave the click alone
+            return; // cursor is not a carrier
         }
         ItemStack target = event.getCurrentItem();
         if (target == null || target.getType() == Material.AIR) {
-            return; // no target
+            return;
         }
-        // A carrier-onto-carrier gesture is only meaningful for dust onto a content book (ADR-0019); any
-        // other carrier dropped onto a carrier (a book onto a book, a dust onto a scroll/dust) is left to
-        // the vanilla click rather than swallowed as a dead, cancelled no-op.
+        // Carrier-onto-carrier is only meaningful for dust onto a content book (ADR-0019); any other such
+        // pairing falls through to the vanilla click rather than being swallowed as a cancelled no-op.
         if (codec.read(target) != null && !service.canCombineDust(cursor, target)) {
             return;
         }
@@ -72,7 +70,7 @@ public final class CarrierListener implements Listener {
             event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
             event.setCurrentItem(target.getAmount() <= 0 ? null : target);
             player.updateInventory();
-            // §I apply-feedback (dust): play on the player's own region thread — the event fires there.
+            // §I dust apply-feedback: in-thread, the event fires on the player's own region thread.
             if (result.sound() != null && !result.sound().isBlank()) {
                 player.playSound(player.getLocation(), result.sound(), 1.0f, 1.0f);
             }

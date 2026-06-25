@@ -187,20 +187,12 @@ public final class FakePlayers {
             return null;
         });
 
-        // 1.17.1/1.18.2: complete the async pending-join deterministically. placeNewPlayer parked the player
-        // in pendingPlayers and (chunk already FULL) set PlayerConnection.playerJoinReady — a Runnable that
-        // moves the player into the live list. Its natural trigger is PlayerConnection.tick(), but our fake
-        // connection is never registered with ServerConnection and so is never ticked; we run the callback
-        // ourselves on this (region/main) thread. The field is absent on 1.19.4 (synchronous join) — a no-op.
-        // Complete the join DETERMINISTICALLY. On 1.19.4 placeNewPlayer joins synchronously (already
-        // online). On 1.17.1/1.18.2 it parks the player in pendingPlayers and defers the live registration
-        // behind a chunk-FULL future whose completion callback sets PlayerConnection.playerJoinReady (a
-        // Runnable) — but only when the ChunkProviderServer main-thread task processor is drained, and that
-        // Runnable is normally invoked by PlayerConnection.tick(), which never fires for our unregistered
-        // connection. So we do the work ourselves, on this (region/main) thread, in a bounded loop that does
-        // NOT depend on tick timing: drain the processor (runs the future's callback ⇒ sets playerJoinReady),
-        // run playerJoinReady, and re-check — with a brief yield as a safety net for any off-thread chunk
-        // stage to post back. This was flaky under concurrent matrix load when it relied on a single drain.
+        // Complete the join deterministically without depending on tick timing. 1.19.4 joins synchronously.
+        // 1.17.1/1.18.2 park the player in pendingPlayers and defer live registration behind a chunk-FULL
+        // future whose callback sets PlayerConnection.playerJoinReady (a Runnable normally run by
+        // PlayerConnection.tick() — which never fires for our unregistered connection). So drain the chunk
+        // processor (runs that callback), run playerJoinReady, re-check; a brief yield covers off-thread
+        // chunk stages. A bounded loop, not a single drain — one drain was flaky under concurrent matrix load.
         step("complete the join (online)", () -> {
             Class<?> playerConnectionClass = Class.forName("net.minecraft.server.network.PlayerConnection");
             for (int attempt = 0; attempt < 100; attempt++) {
@@ -279,8 +271,7 @@ public final class FakePlayers {
         return connection;
     }
 
-    /** A fresh {@link EmbeddedChannel} whose outbound is voided — every packet released and its promise
-     * completed, so the server's send/track/keep-alive paths neither leak buffers nor block. */
+    /** The void {@link EmbeddedChannel} shared by both connection variants (outbound dropped + completed). */
     private static EmbeddedChannel voidChannel() {
         EmbeddedChannel channel = new EmbeddedChannel();
         channel.pipeline().addFirst("se-void-outbound", new ChannelOutboundHandlerAdapter() {
@@ -307,8 +298,6 @@ public final class FakePlayers {
             // best-effort: spawning and surviving does not require it; not all versions expose the setter
         }
     }
-
-    // ── reflection helpers ───────────────────────────────────────────────────────────────────────
 
     @FunctionalInterface
     private interface Step {

@@ -10,14 +10,13 @@ import org.bukkit.Location;
 
 /**
  * The per-event context one ability is evaluated against by the {@link ActivationPipeline}
- * (docs/architecture.md §3.3). A trigger listener builds one of these per Bukkit event
- * (capturing the activator, world, trigger, and the facts/suppression for this hit) and
- * the firing System runs every candidate ability through the pipeline against it.
+ * (docs/architecture.md §3.3). A trigger listener builds one per Bukkit event (capturing the activator,
+ * world, trigger, and the facts/suppression for this hit); the firing System runs every candidate
+ * ability through the pipeline against it.
  *
- * <p>Everything here is either an immutable per-event input or a reference to scratch
- * the firing thread owns ({@link FactBuffer}, {@link SuppressionSet}); the long-lived
- * stores (cooldowns, souls) belong to the pipeline, not the activation. Built via
- * {@link #builder(UUID, int, int, long)}.
+ * <p>Everything here is an immutable per-event input or a reference to scratch the firing thread owns
+ * ({@link FactBuffer}, {@link SuppressionSet}); the long-lived stores (cooldowns, souls) belong to the
+ * pipeline, not the activation.
  */
 public final class Activation {
 
@@ -97,20 +96,18 @@ public final class Activation {
     }
 
     /**
-     * Where this activation lands — the captured firing location (gate 2 protection/region). Captured
-     * on the firing thread (the event's own region on Folia), so the protection {@code Guard} may read
-     * it and query the owning region safely. {@code null} for a non-positional activation (or in tests),
-     * which the protection guard treats as "allow" (nothing to check).
+     * The captured firing location (gate 2 protection/region), snapshotted on the firing thread (its own
+     * region on Folia) so the protection {@code Guard} may query the owning region safely. {@code null}
+     * for a non-positional activation (or in tests), which the guard treats as "allow".
      */
     public Location location() {
         return location;
     }
 
     /**
-     * Builds an {@link Activation}. Sensible defaults keep tests and non-combat triggers
-     * terse: an empty {@link FactBuffer} and {@link SuppressionSet}, a chance roll that
-     * always returns {@code 0.0} (so any positive chance passes — production must install
-     * a {@code ThreadLocalRandom}-backed roll), and no soul mode.
+     * Builds an {@link Activation}. Defaults keep tests/non-combat triggers terse: empty
+     * {@link FactBuffer}/{@link SuppressionSet}, no soul mode, and a chance roll that always returns
+     * {@code 0.0} so any positive chance passes — production MUST install a random-backed roll.
      */
     public static final class Builder {
 

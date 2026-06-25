@@ -12,32 +12,29 @@ import migrate.model.MigratedLevel;
 
 /**
  * Reads an AdvancedEnchantments {@code enchantments.yml} into {@link MigratedEnchant}s
- * (docs/architecture.md §10). Unlike EliteEnchantments, AE keeps each enchant at the document ROOT
- * (no {@code Enchants:} wrapper), its {@code type}/{@code applies}/effects use AE's own vocabulary
- * (mapped through {@link Mappings} {@code ae*}), and effects carry a space-separated target. AE's
- * condition DSL ({@code conditions: "%victim health% > 5 : %stop%"}) is translated where it maps to a
- * StarEnchants allow-gate (an {@code %allow%}/{@code %continue%} or negated {@code %stop%} result over
- * mappable variables); a {@code %force%}/{@code %chance%} result or an unmappable variable becomes a
- * {@code # TODO} comment, never a silently-wrong gate. Parses with SnakeYAML directly via {@link LegacyYaml}.
+ * (docs/architecture.md §10). Unlike EliteEnchantments: AE keeps each enchant at the document ROOT (no
+ * {@code Enchants:} wrapper), uses its own {@code type}/{@code applies}/effect vocabulary (mapped via
+ * {@link Mappings} {@code ae*}), and gives effects a space-separated target. Conditions translate where
+ * they map to an SE gate; an unmappable result/variable becomes a {@code # TODO}, never a silently-wrong
+ * gate.
  */
 public final class AdvancedEnchantmentsReader {
 
     private AdvancedEnchantmentsReader() {
     }
 
-    /** Parse the AE {@code enchantments.yml} content into the intermediate model. */
     public static List<MigratedEnchant> read(String yaml) {
         Map<?, ?> root = LegacyYaml.parse(yaml);
         List<MigratedEnchant> out = new ArrayList<>();
         for (Map.Entry<?, ?> entry : root.entrySet()) {
             if (!(entry.getValue() instanceof Map<?, ?> e)) {
-                continue; // a non-mapping top-level node (not an enchant) — skip
+                continue; // not an enchant mapping
             }
             String id = String.valueOf(entry.getKey());
             String legacyType = LegacyYaml.string(e, "type", null);
             List<String> applies = LegacyYaml.stringList(e, "applies");
-            // AE @Victim/@Attacker name opposite entities on DEFENSE vs ATTACK; the effect/selector mapping
-            // must know the direction, derived from the enchant's mapped trigger.
+            // AE @Victim/@Attacker name opposite entities on DEFENSE vs ATTACK, so effect/selector mapping
+            // is direction-aware, derived from the mapped trigger.
             boolean defenseDirection = "DEFENSE".equals(Mappings.aeTrigger(legacyType));
             out.add(new MigratedEnchant(
                     id,
@@ -63,7 +60,7 @@ public final class AdvancedEnchantmentsReader {
             try {
                 level = Integer.parseInt(String.valueOf(entry.getKey()).trim());
             } catch (NumberFormatException notALevel) {
-                continue; // a non-numeric level key — skip it
+                continue;
             }
             if (!(entry.getValue() instanceof Map<?, ?> lvl)) {
                 continue;
@@ -72,9 +69,8 @@ public final class AdvancedEnchantmentsReader {
             for (String token : LegacyYaml.stringList(lvl, "effects")) {
                 effects.add(Mappings.aeEffect(token, defenseDirection));
             }
-            // AE conditions are per-level (a scalar or a list of `LEFT : RESULT` lines). Plain boolean gates
-            // combine with `&&`; a flow/chance clause is top-level-only (a condition admits at most one), so
-            // if any clause is present it is emitted alone and every other line is demoted to a TODO.
+            // Plain boolean gates combine with `&&`; a flow/chance clause is top-level-only (a condition
+            // admits at most one), so if any clause is present it is emitted alone and the rest become TODOs.
             List<String> mappedGates = new ArrayList<>();
             List<String> mappedClauses = new ArrayList<>();
             List<String> conditionTodos = new ArrayList<>();

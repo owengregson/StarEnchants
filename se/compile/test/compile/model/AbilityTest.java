@@ -22,8 +22,8 @@ class AbilityTest {
 
     @Test
     void aNonInternedWorldIsNeverBlocked() {
-        // worldId -1 = a world named in no blacklist; must never be blocked, and must not let the
-        // undefined 1L<<-1 (masked to bit 63) wrongly match an all-bits blacklist.
+        // worldId -1 (named in no blacklist) must never match — guard against 1L<<-1
+        // masking to bit 63 and wrongly matching an all-bits blacklist
         assertFalse(withWorldBlacklist(-1L).blockedInWorld(-1));
         assertFalse(withWorldBlacklist(0L).blockedInWorld(-1));
     }

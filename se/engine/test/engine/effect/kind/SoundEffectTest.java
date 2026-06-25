@@ -11,10 +11,8 @@ import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds the
- * typed args + activation location, and a mocked {@link Sink} records the emitted
- * intent — so the effect's behavior is verified with no server. The {@code sound}
- * handle arrives already resolved to an interned id (§9).
+ * Mock-host effect test (docs/architecture.md §1.3): mocked EffectCtx in, Sink intents verified.
+ * The {@code sound} handle arrives already resolved to an interned id (§9).
  */
 class SoundEffectTest {
 

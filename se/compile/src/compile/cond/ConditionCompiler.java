@@ -33,8 +33,8 @@ import java.util.regex.PatternSyntaxException;
  *       error ("compare it").</li>
  * </ul>
  *
- * <p>Never throws: on any type error it records a diagnostic and returns empty, so the
- * ability lowers with no condition rather than aborting the load (§7, §10).
+ * <p>Never throws: a type error records a diagnostic and returns empty, so the ability lowers with
+ * no condition rather than aborting the load (§7, §10).
  */
 public final class ConditionCompiler {
 
@@ -51,19 +51,14 @@ public final class ConditionCompiler {
 
     /**
      * Lower a parsed expression as a <em>numeric</em> value into the {@link NumExpr} IR — the entry point
-     * for an expression-valued effect argument (docs/architecture.md §3.4). Variables resolve to dense
-     * {@code FactBuffer} slots, arithmetic lowers to {@link NumExpr.Bin}/{@link NumExpr.Neg}, and an unknown
-     * variable becomes a PlaceholderAPI token; a string/boolean operand (or a comparison) is a type error.
-     * Returns empty (with a diagnostic recorded) on any such error, so the caller keeps the constant default.
+     * for an expression-valued effect argument (docs/architecture.md §3.4). A string/boolean operand or a
+     * comparison is a type error; returns empty (diagnostic recorded) so the caller keeps the constant default.
      */
     public Optional<NumExpr> numeric(Expr expr, Diagnostics diags) {
         return num(expr, diags);
     }
 
-    // ── Lower an expression expected to yield a boolean (the gate) ──
-
-    // instanceof pattern chains rather than switch type patterns (the Java 17 floor
-    // does not have switch patterns; §11).
+    // instanceof chains, not switch type patterns: the Java 17 floor lacks them (§11).
     private Optional<Cond> bool(Expr e, Diagnostics diags) {
         if (e instanceof Expr.And a) {
             return both(a.left(), a.right(), diags, Cond.And::new);
@@ -104,8 +99,6 @@ public final class ConditionCompiler {
         }
         throw new IllegalStateException("unknown expression: " + e);
     }
-
-    // ── Lower an expression expected to yield a number (a numeric operand or an expression-valued arg) ──
 
     private Optional<NumExpr> num(Expr e, Diagnostics diags) {
         if (e instanceof Expr.NumberLit n) {
@@ -193,8 +186,6 @@ public final class ConditionCompiler {
                     "compare it, e.g. %" + token(v) + "% == \"x\"");
         };
     }
-
-    // ── Comparison lowering with operand typing + coercion ──
 
     private Optional<Cond> compare(Expr.Compare c, Diagnostics diags) {
         Operand l = operand(c.left(), diags);

@@ -9,15 +9,12 @@ import schema.spec.Param;
 import schema.spec.ParamSpec;
 
 /**
- * Renders a migrated StarEnchants effect token as a content-format-v2 effects-list ITEM (ADR-0016) —
- * the verbose {@code { HEAD: { param: value, who: "@Sel" } }} single-key map when the head's
- * {@link ParamSpec} is known (so migrated configs are stored in the unified v2 format, not terse), or a
- * quoted terse string as a safe fallback (no spec available, an unknown head, {@code WAIT}, or an arg
- * count that does not line up). Returns the item WITHOUT the leading {@code "- "} (the writer adds it).
+ * Renders a migrated SE effect token as a content-format-v2 effects-list ITEM (ADR-0016): the verbose
+ * {@code { HEAD: { param: value, who: "@Sel" } }} map when the head's {@link ParamSpec} is known, else a
+ * quoted terse string as a safe fallback. Returns the item WITHOUT the leading {@code "- "}.
  *
- * <p>The terse token (e.g. {@code DAMAGE:6:@Victim}) is re-lexed with the existing {@link EffectLine}
- * parser; its positional args map onto the spec's params by order, and an inline {@code @Selector}
- * becomes the reserved {@code who:} key. String values are quoted; plain numbers stay bare.
+ * <p>The terse token is re-lexed with {@link EffectLine}; positional args map onto the spec's params by
+ * order, and an inline {@code @Selector} becomes the reserved {@code who:} key.
  */
 final class V2Effects {
 

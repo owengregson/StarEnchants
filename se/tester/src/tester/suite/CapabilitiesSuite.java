@@ -6,11 +6,8 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 
 /**
- * Live checks for the boot-time platform probe: the Minecraft version parses to something real,
- * and {@code Scheduling.init} selected the backend that matches what the probe detected (the
- * Folia backend on a threaded-regions server, the Bukkit backend on Paper). This is the cheapest
- * proof that {@link Capabilities} and {@link Scheduling} agree on the platform before any
- * scheduling behaviour is exercised.
+ * Live checks that the boot-time platform probe and the installed {@link Scheduling} backend agree
+ * (Folia backend on threaded-regions, Bukkit backend on Paper) before any scheduling is exercised.
  */
 public final class CapabilitiesSuite implements Harness.Scenario {
 

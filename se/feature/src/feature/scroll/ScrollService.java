@@ -20,14 +20,11 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The scroll-family cold path (docs/v3-directives.md §I) — MINTS the book-economy scrolls and APPLIES one
- * onto a target by its kind. The black scroll extracts one (random) enchant from gear into an enchant
- * book; the randomizer scroll rerolls an enchant book's success chance. Both are one-shot consumables.
- *
- * <p>Gear/book mutation reuses the shared authorities ({@link CombatCodec} + {@link LoreRenderer} for gear,
- * {@link CarrierService} for minting the extracted book and rerolling a book's success). The roll is the
- * only non-determinism, injected as a {@link Random} for testability. Folia-correct: a gesture fires on
- * the clicking player's own region thread, so mutating their cursor/inventory is in-thread.
+ * Scroll-family cold path (docs/v3-directives.md §I) — mints the book-economy scrolls and applies one onto
+ * a target by its kind (black: extract a random enchant to a book; randomizer: reroll a book's success;
+ * transmog: reorder enchant lore). Gear/book mutation reuses the shared authorities ({@link CombatCodec} +
+ * {@link LoreRenderer}, {@link CarrierService}). The roll is injected for tests. Folia-correct: a gesture
+ * fires on the clicking player's own region thread.
  */
 public final class ScrollService {
 
@@ -121,10 +118,7 @@ public final class ScrollService {
         return stack;
     }
 
-    /**
-     * Handle a scroll-on-target gesture: dispatch by the cursor scroll's kind. A kind this service does not
-     * handle leaves both stacks untouched (the listener falls through).
-     */
+    /** Dispatch a scroll-on-target gesture by the cursor scroll's kind. */
     public ScrollResult interact(ItemStack cursor, ItemStack target) {
         String kind = scrolls.kind(cursor);
         if (BLACK.equals(kind)) {
@@ -153,7 +147,7 @@ public final class ScrollService {
         if (current.enchants().isEmpty()) {
             return ScrollResult.unchanged(messages.format("scroll.transmog.no-enchants"));
         }
-        // Reorder the enchant display (cosmetic — combat behaviour is order-independent). One line per slot.
+        // Cosmetic reorder — combat behaviour is order-independent.
         List<Map.Entry<String, Integer>> entries = new ArrayList<>(current.enchants().entrySet());
         java.util.Collections.shuffle(entries, random);
         Map<String, Integer> reordered = new LinkedHashMap<>();
@@ -164,17 +158,15 @@ public final class ScrollService {
                 current.omni(), current.heroic(), current.added());
         combat.write(gear, next);
         lore.apply(gear, next); // re-render the enchant lore in the new order
-        appendNameSuffix(gear, cfg.nameSuffix()); // the applied-name suffix
+        appendNameSuffix(gear, cfg.nameSuffix());
         consume(cursor);
         return ScrollResult.committed(gear, null, messages.format("scroll.transmog.success"));
     }
 
     /**
-     * Rebuild {@code gear}'s enchant display order to exactly {@code orderedKeys} — the deterministic reorder
-     * behind the Godly Transmog GUI (vs {@link #applyTransmog}'s random shuffle). Combat behaviour is
-     * order-independent; this only re-renders the cosmetic enchant lore. Returns {@code false} (a no-op) when
-     * {@code orderedKeys} is not a permutation of the gear's current enchant keys, so an enchant can never be
-     * dropped or duplicated. The caller (the reorder menu) runs on the player's region thread.
+     * Deterministic enchant reorder behind the Godly Transmog GUI (vs {@link #applyTransmog}'s shuffle);
+     * cosmetic only. No-op {@code false} when {@code orderedKeys} isn't a permutation of the current keys,
+     * so an enchant can't be dropped or duplicated. Caller (the reorder menu) runs on the region thread.
      */
     public boolean reorder(ItemStack gear, List<String> orderedKeys) {
         if (gear == null || gear.getType() == Material.AIR || gear.getAmount() > 1) {
@@ -191,14 +183,14 @@ public final class ScrollService {
     }
 
     /**
-     * The reordered enchant map for {@code orderedKeys}, or empty when {@code orderedKeys} is not exactly a
-     * permutation of {@code current}'s keys. Pure (no item / server) so the permutation guard is unit-tested.
+     * The reordered enchant map, or empty when {@code orderedKeys} isn't a permutation of {@code current}'s
+     * keys. Pure (no item/server) so the permutation guard is unit-tested.
      */
     public static java.util.Optional<Map<String, Integer>> reorderedEnchants(
             Map<String, Integer> current, List<String> orderedKeys) {
         if (orderedKeys.size() != current.size()
                 || !new java.util.HashSet<>(orderedKeys).equals(current.keySet())) {
-            return java.util.Optional.empty(); // not a permutation — refuse rather than lose/duplicate an enchant
+            return java.util.Optional.empty(); // refuse rather than lose/duplicate an enchant
         }
         Map<String, Integer> reordered = new LinkedHashMap<>();
         for (String key : orderedKeys) {
@@ -239,7 +231,6 @@ public final class ScrollService {
         if (current.enchants().isEmpty()) {
             return ScrollResult.unchanged(messages.format("scroll.black.no-enchants"));
         }
-        // Pick one enchant to (attempt to) extract — random across the item's enchants.
         List<String> keys = new ArrayList<>(current.enchants().keySet());
         String key = keys.get(random.nextInt(keys.size()));
         int level = current.enchants().get(key);

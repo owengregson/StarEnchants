@@ -19,10 +19,9 @@ import platform.protect.ProtectionProvider;
  * <p>Bundled but SOFT: the FactionsUUID API ({@code com.massivecraft.factions}) is {@code compileOnly} and
  * {@link integrate.Integrations} only loads this class when Factions is present.
  *
- * <p><b>Resolution.</b> Unclaimed wilderness and the system zones (safezone / warzone) allow everything;
- * inside a player faction's claim the actor is allowed only when its relation to that faction is at least
- * {@code TRUCE} (i.e. member, ally or truce — but not neutral or enemy). This mirrors how Factions itself
- * gates building in foreign territory. Never throws — a Factions hiccup degrades to allow.
+ * <p>Wilderness and the system zones (safezone / warzone) allow everything; inside a player faction's claim
+ * the actor is allowed only when its relation is at least {@code TRUCE} (member/ally/truce, not neutral or
+ * enemy), mirroring how Factions gates building in foreign territory. Never throws — a hiccup degrades to allow.
  */
 public final class FactionsProvider implements ProtectionProvider {
 
@@ -40,10 +39,9 @@ public final class FactionsProvider implements ProtectionProvider {
     }
 
     /**
-     * Whether {@code at} is a player-faction claim whose access must be checked — split out for unit testing
+     * Whether {@code at} is a player-faction claim whose access must be checked. Split out for unit testing
      * without the Factions singletons (the {@code Relation} enum's static init needs the running plugin, so
-     * the relation comparison itself can only be verified live). Wilderness and the system zones (safezone /
-     * warzone) are <em>not</em> gated; a normal player faction's claim is.
+     * the relation comparison itself can only be verified live). Wilderness/safezone/warzone are not gated.
      */
     static boolean isClaimGated(Faction at) {
         return at != null && !at.isWilderness() && !at.isSafeZone() && !at.isWarZone();

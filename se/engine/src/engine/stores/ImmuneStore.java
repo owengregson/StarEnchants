@@ -6,13 +6,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-player timed damage immunity by cause (docs/architecture.md §5.4, § combat-flags): while armed, the
- * player ignores hits of a given {@link Type}. The {@code IMMUNE} effect writes it through the per-event
- * {@link engine.sink.Sink}; a damage listener — a SEPARATE Bukkit event from the hit that armed it — reads
- * it back and cancels matching damage. The same store-bridges-two-events shape as {@link KnockbackControlStore}.
+ * player ignores hits of a given {@link Type}. The {@code IMMUNE} effect arms it via the {@link
+ * engine.sink.Sink}; a damage listener — a SEPARATE Bukkit event from the arming hit — reads it back and
+ * cancels matching damage (the store bridges the two events; cf. {@link KnockbackControlStore}).
  *
- * <p>Concurrent and UUID-keyed for Folia. Each player holds an expiry tick per immunity type (a small fixed
- * array), so independent immunities (e.g. SWORD and PROJECTILE) coexist; {@link Type#ALL} covers every cause.
- * Time is an explicit tick count from the caller (never wall-clock) — deterministic, Folia-correct, testable.
+ * <p>Concurrent, UUID-keyed (Folia). Each player holds one expiry tick per type (a small fixed array), so
+ * independent immunities coexist; {@link Type#ALL} covers every cause. Time is an explicit caller-supplied
+ * tick, never wall-clock — deterministic, Folia-correct, testable.
  */
 public final class ImmuneStore {
 

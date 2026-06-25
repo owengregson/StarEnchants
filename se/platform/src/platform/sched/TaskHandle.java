@@ -22,7 +22,6 @@ public interface TaskHandle {
     TaskHandle CANCELLED = new TaskHandle() {
         @Override
         public void cancel() {
-            // already cancelled
         }
 
         @Override

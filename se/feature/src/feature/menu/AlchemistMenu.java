@@ -71,9 +71,9 @@ public final class AlchemistMenu extends FormMenu {
             messages.send(player, "menu.alchemist.cant-combine");
             return;
         }
-        holder.getInventory().setItem(LEFT_INPUT, null);   // consume both inputs
+        holder.getInventory().setItem(LEFT_INPUT, null);
         holder.getInventory().setItem(RIGHT_INPUT, null);
-        MenuItems.giveOrDrop(player, combined.get());       // give the upgraded book
+        MenuItems.giveOrDrop(player, combined.get());
         messages.send(player, "menu.alchemist.combined");
     }
 }

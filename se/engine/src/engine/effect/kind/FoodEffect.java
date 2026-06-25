@@ -11,18 +11,14 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code MODIFY_FOOD} — the canonical hunger primitive (docs/v3-directives.md §C), collapsing
- * {@code FEED} into a give/take kind:
+ * {@code MODIFY_FOOD} — canonical hunger primitive (docs/v3-directives.md §C):
  *
  * <ul>
  *   <li>{@code give} — restore {@code amount} food points to each resolved player target (clamped to 20);</li>
  *   <li>{@code take} — drain {@code amount} food points from each resolved player target (clamped to 0).</li>
  * </ul>
  *
- * <p>Only players have a hunger bar, so non-player targets are silently skipped. This REPLACED the
- * now-deleted {@code FEED} kind (collapse = delete the redundant head). {@link Affinity#TARGET_ENTITY}:
- * feeding/draining mutates the target, so the {@code Sink} routes each intent to the target's region
- * thread (§3.6).
+ * <p>Only players have a hunger bar; non-player targets are silently skipped. {@link Affinity#TARGET_ENTITY} (§3.6).
  */
 public final class FoodEffect implements EffectKind {
 

@@ -9,23 +9,19 @@ import java.util.function.Supplier;
 import org.bukkit.entity.Player;
 
 /**
- * The Bukkit send-boundary facade over the live {@link Lang} catalogue (docs/v3-directives.md §L). It looks
- * up a message key, substitutes its {@code {TOKEN}} placeholders (in {@link Lang}, pure), then translates the
- * legacy {@code &} colour codes to {@code §} via {@link ItemFactory#color} — the one step that needs the
- * server API, which is why {@link Lang} itself stays Bukkit-free in {@code compile}.
+ * Bukkit send-boundary over the live {@link Lang} catalogue (§L): looks up a key, fills its {@code {TOKEN}}
+ * placeholders (in {@link Lang}, pure), then translates {@code &}→{@code §} via {@link ItemFactory#color} —
+ * the only server-API step, which is why {@link Lang} stays Bukkit-free in {@code compile}.
  *
- * <p>Constructed once over a {@code Supplier<Lang>} reading the published {@code LangHolder}, so a
- * {@code /se reload} that swaps the catalogue is reflected on the next {@link #format} with no re-wiring.
- * {@link #defaults()} wraps {@link Lang#defaults()} for tests/fixtures and the delegating service ctors, so
- * existing call sites that gain a {@code Messages} parameter compile unchanged and render the same text.
+ * <p>Reads its {@code Supplier<Lang>} live, so a {@code /se reload} that swaps the catalogue takes effect on
+ * the next {@link #format}.
  */
 public final class Messages {
 
     private final Supplier<Lang> lang;
     private final Supplier<String> prefix;                       // §L config.yml messages.prefix (live)
     private final java.util.function.BooleanSupplier feedback;   // §L config.yml messages.feedback (live)
-    // §N optional PlaceholderAPI passthrough (ADR-0027): resolves other plugins' %…% in a message for its
-    // target player. Identity by default (PAPI absent / tests); the composition root injects the live one.
+    // §N PlaceholderAPI passthrough (ADR-0027): identity by default (PAPI absent/tests); root injects live.
     private final java.util.function.BiFunction<Player, String, String> placeholders;
 
     /** No-prefix, feedback-on, no-passthrough form (tests/fixtures + the delegating service ctors). */
@@ -39,10 +35,9 @@ public final class Messages {
     }
 
     /**
-     * Canonical form (the composition root): {@code prefix} is prepended to every {@link #format} result,
-     * {@code feedback} gates {@link #send} (the keyed gameplay-feedback channel), and {@code placeholders}
-     * resolves other plugins' tokens in a sent message for its target player (identity when PlaceholderAPI is
-     * absent). All read live, so a {@code /se reload} re-tunes them.
+     * Canonical form (composition root): {@code prefix} is prepended to every {@link #format}, {@code feedback}
+     * gates {@link #send}, {@code placeholders} resolves other plugins' tokens for the target player (identity
+     * when PlaceholderAPI is absent). All read live so a {@code /se reload} re-tunes them.
      */
     public Messages(Supplier<Lang> lang, Supplier<String> prefix, java.util.function.BooleanSupplier feedback,
                     java.util.function.BiFunction<Player, String, String> placeholders) {
@@ -52,28 +47,22 @@ public final class Messages {
         this.placeholders = Objects.requireNonNull(placeholders, "placeholders");
     }
 
-    /** A messages facade over the built-in {@link Lang#defaults()} — the test/fixture/default-ctor source. */
+    /** Facade over the built-in {@link Lang#defaults()} — test/fixture/default-ctor source. */
     public static Messages defaults() {
         return new Messages(Lang::defaults);
     }
 
-    /**
-     * The colour-translated message for {@code key} with {@code {TOKEN}} placeholders filled from {@code kv},
-     * prepended with the configured {@code messages.prefix} (empty by default). Used for all single-line
-     * player feedback — never for item names or lore (those render through {@code LoreRenderer}).
-     */
+    /** Single-line player feedback only — item names/lore go through {@code LoreRenderer}, never here. */
     public String format(String key, Object... kv) {
         String p = prefix.get();
         String body = lang.get().format(key, kv);
         return ItemFactory.color(p == null || p.isEmpty() ? body : p + body);
     }
 
-    /** Whether the keyed gameplay-feedback channel ({@link #send}) is enabled (config.yml messages.feedback). */
     public boolean feedbackEnabled() {
         return feedback.getAsBoolean();
     }
 
-    /** The colour-translated multi-line block for {@code key}, placeholders filled from {@code kv}. */
     public List<String> lines(String key, Object... kv) {
         List<String> raw = lang.get().lines(key, kv);
         List<String> out = new ArrayList<>(raw.size());
@@ -83,17 +72,12 @@ public final class Messages {
         return out;
     }
 
-    /**
-     * Send {@code key} to {@code player} on the keyed gameplay-feedback channel — a no-op when
-     * {@code messages.feedback} is off (a quiet server). Caller is responsible for being on the player's
-     * region thread.
-     */
+    /** No-op when {@code messages.feedback} is off. Caller must be on the player's region thread (Folia). */
     public void send(Player player, String key, Object... kv) {
         if (!feedback.getAsBoolean()) {
             return;
         }
-        // Resolve any other-plugin %…% placeholders for this player (§N PlaceholderAPI passthrough); identity
-        // when PAPI is absent, so this is a no-op cost on a server without it.
+        // §N PlaceholderAPI passthrough; identity (no-op cost) when PAPI is absent.
         player.sendMessage(placeholders.apply(player, format(key, kv)));
     }
 }

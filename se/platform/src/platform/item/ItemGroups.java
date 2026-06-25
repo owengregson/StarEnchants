@@ -75,7 +75,7 @@ public final class ItemGroups {
         define(table, "BOOTS", armor("BOOTS"));
         define(table, "ELYTRA", "ELYTRA");
 
-        // Composite groups: unions of the primitives already resolved above.
+        // Composites: unions of the primitives resolved above.
         define(table, "ARMOR", union(table, "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"));
         define(table, "WEAPON", union(table, "SWORD", "AXE", "BOW", "CROSSBOW", "TRIDENT", "MACE"));
         define(table, "TOOL", union(table, "PICKAXE", "AXE", "SHOVEL", "HOE"));

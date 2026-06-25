@@ -17,8 +17,7 @@ import platform.caps.Capabilities;
  * rate"): a flat paged list of every catalog enchant; clicking one mints a <strong>guaranteed
  * (100%-success) level-1 book</strong> of that enchant and gives it to the admin. The privileged
  * counterpart of the read-only {@link EnchantsBrowserMenu}; gated by {@code starenchants.admin} (a real
- * permission node, not an {@code isOp()} check — §K). A level picker is a follow-up (consistent with the
- * direct-apply menu).
+ * permission node, not an {@code isOp()} check — §K).
  */
 public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
 

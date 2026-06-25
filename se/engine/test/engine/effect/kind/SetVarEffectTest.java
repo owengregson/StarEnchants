@@ -12,10 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code SET_VAR}: it emits one {@code setVar} per resolved PLAYER target with the
- * name/value/ttl, skipping non-players.
- */
+/** Mock-host SET_VAR test: one setVar per resolved PLAYER target; non-players skipped. */
 class SetVarEffectTest {
 
     @Test

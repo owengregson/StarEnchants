@@ -9,14 +9,10 @@ import schema.spec.D;
 import java.util.List;
 
 /**
- * {@code @Nearest{r=5}} — the single closest living entity within {@code r} blocks of
- * the activation centre, excluding the activator (docs/architecture.md §7). Returns at
- * most one target; an empty list when nothing is in range. The radius defaults to
- * {@code 5} so the no-argument form is a valid default target.
- *
- * <p>An optional {@code filter} restricts the candidates
- * ({@code ALL}/{@code PLAYERS}/{@code MONSTERS}/{@code MOBS}; default {@code ALL}), so
- * {@code @Nearest{filter=PLAYERS}} is the "nearest player" selector (v3.1 §A).
+ * {@code @Nearest{r=5}} — the single closest living entity within {@code r} of the centre, except the
+ * activator (docs/architecture.md §7); at most one target. Optional {@code filter}
+ * ({@code ALL}/{@code PLAYERS}/{@code MONSTERS}/{@code MOBS}) restricts candidates, e.g.
+ * {@code @Nearest{filter=PLAYERS}} (v3.1 §A).
  */
 public final class NearestSelector implements SelectorKind {
 

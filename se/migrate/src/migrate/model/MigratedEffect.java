@@ -1,12 +1,10 @@
 package migrate.model;
 
 /**
- * One legacy effect token after translation (docs/architecture.md §10). Either it MAPPED — {@code se}
- * holds a valid StarEnchants effect token (e.g. {@code DAMAGE:6:@Victim}) — or it did not, in which
- * case {@code se} is {@code null} and {@link #mapped()} is false (the writer emits a {@code # TODO}
- * line instead of a list entry, and the {@link migrate.Migrator} records a diagnostic). {@code legacy}
- * is always the original token, and {@code note} explains the translation or why it was skipped, both
- * surfaced as review comments in the emitted YAML.
+ * One legacy effect token after translation (docs/architecture.md §10). Either {@code se} holds a valid
+ * SE effect token (e.g. {@code DAMAGE:6:@Victim}) or it is {@code null} (the writer emits a {@code # TODO}
+ * and {@link migrate.Migrator} records a diagnostic). {@code legacy} is the original token; {@code note}
+ * explains the translation or why it was skipped — both surface as review comments in the emitted YAML.
  */
 public record MigratedEffect(String legacy, String se, String note) {
 
@@ -20,7 +18,6 @@ public record MigratedEffect(String legacy, String se, String note) {
         return new MigratedEffect(legacy, null, note);
     }
 
-    /** Whether this effect translated to a usable StarEnchants token. */
     public boolean mapped() {
         return se != null;
     }

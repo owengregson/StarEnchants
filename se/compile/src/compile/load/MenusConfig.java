@@ -7,10 +7,9 @@ import java.util.Optional;
 import schema.diag.Diagnostic;
 
 /**
- * The compiled snapshot of the top-level {@code menus/} folder (docs/v3-directives.md §L) — per-GUI layout
- * keyed by menu name, loaded as a parallel immutable reference and swapped in the same atomic
- * {@code /se reload} transaction as content + items + config + lang. A menu with no {@code menus/<name>.yml}
- * (or an unset field) keeps its programmatic default; readers always see a fully-built snapshot.
+ * Compiled snapshot of the top-level {@code menus/} folder (§L) — per-GUI layout keyed by menu name, swapped
+ * by reference in the same atomic {@code /se reload} transaction as content + items + config + lang. A menu
+ * with no {@code menus/<name>.yml} (or an unset field) keeps its programmatic default.
  *
  * @param byMenu      layout overrides by lower-cased menu name ({@code apply}, {@code enchanter}, …)
  * @param diagnostics every diagnostic raised loading {@code menus/}

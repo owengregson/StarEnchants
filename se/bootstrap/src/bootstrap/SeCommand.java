@@ -173,7 +173,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 packNamesQuietly());
     }
 
-    /** Pack names for tab-completion — packs/ is tiny; an I/O hiccup completes to nothing, never throws. */
+    /** An I/O hiccup completes to nothing rather than throwing out of tab-completion. */
     private List<String> packNamesQuietly() {
         try {
             return packs.list().stream().map(PackStore.PackInfo::name).toList();
@@ -182,30 +182,26 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /** As the canonical form with no tier/menu completions (legacy 3-arg form). */
+    /** Arity shims onto the canonical {@code complete}, each defaulting the trailing key lists to empty. */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys) {
         return complete(args, enchantKeys, crystalKeys, List.of());
     }
 
-    /** As the canonical form with no menu-name completions (4-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames) {
         return complete(args, enchantKeys, crystalKeys, tierNames, List.of());
     }
 
-    /** As the canonical form with no player completions (5-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames) {
         return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, List.of());
     }
 
-    /** As the canonical form with no set completions (6-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames, List<String> playerNames) {
         return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, List.of());
     }
 
-    /** As the canonical form with no pack-name completions (7-arg form). */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames,
                                  List<String> playerNames, List<String> setKeys) {
@@ -213,11 +209,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * Pure tab-completion: the subcommand at {@code args[0]}; then context-sensitive completions for the
-     * flat verbs, the §J {@code give <type> <player> [type-arg]} tree (type at arg 1, online player at
-     * arg 2, type-specific key at arg 3, and {@code give book <player> random <tier>} at arg 4), and the
-     * §packs {@code pack <action> [name]} tree (action at arg 1, pack name at arg 2). Extracted from
-     * Bukkit so it is unit-tested without a server.
+     * Pure tab-completion (extracted from Bukkit so it is unit-tested without a server): subcommand at
+     * {@code args[0]}, then the §J {@code give <type> <player> [type-arg]} tree and the §packs
+     * {@code pack <action> [name]} tree.
      */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames,
@@ -266,7 +260,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return List.of();
     }
 
-    /** {@code head} followed by {@code rest} — a small helper to offer a sentinel verb alongside a key list. */
     private static List<String> concat(String head, List<String> rest) {
         List<String> out = new java.util.ArrayList<>(rest.size() + 1);
         out.add(head);
@@ -274,7 +267,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return out;
     }
 
-    /** The candidates that start with {@code prefix} (case-insensitive), in order. */
     private static List<String> filter(List<String> candidates, String prefix) {
         String lower = prefix.toLowerCase(Locale.ROOT);
         List<String> out = new ArrayList<>();
@@ -286,7 +278,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return out;
     }
 
-    /** Mint a DISTINCT soul gem from the configured likeness and give it to the sender (on their thread). */
     private void giveGem(CommandSender sender) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(messages.format("command.not-a-player"));
@@ -294,21 +285,19 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack gem = souls.mintGem();
-            // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
+            // Overflow drops at the player's feet (their own region thread) rather than being lost.
             player.getInventory().addItem(gem).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
             player.sendMessage(messages.format("command.give.gem"));
         });
     }
 
-    /** Toggle soul mode based on the gem in the sender's hand (on the sender's own thread). */
     private void toggleSoulMode(CommandSender sender) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
-        // The ENABLED/DISABLED feedback is sent by SoulService from the soul-gem config; only the
-        // no-gem hint is the command's to relay.
+        // SoulService sends the ENABLED/DISABLED feedback; only the no-gem hint is the command's to relay.
         Scheduling.onEntity(player, () -> {
             if (souls.toggle(player) == SoulService.Toggle.NO_GEM) {
                 player.sendMessage(messages.format("command.soul.no-gem"));
@@ -360,7 +349,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** The menu {@code /se menu} (no name) opens — the direct-apply enchant GUI. */
     private static final String DEFAULT_MENU = "apply";
 
-    /** {@code /se menu [name]} — open a registered GUI (on the player's own region thread via the open-hop). */
     private void openMenu(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(messages.format("command.not-a-player"));
@@ -382,9 +370,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se <effects|selectors|triggers|conditions|variables>} — dump one reference category (§J/§M). The
-     * same five live vocabularies the in-game reference browser GUI and the committed {@code docs/reference/}
-     * Markdown read; here as a one-line joined list of the category's heads/names (the GUI is the rich view).
+     * {@code /se <effects|selectors|triggers|conditions|variables>} — a one-line dump of one reference
+     * category (§J/§M); the same live vocabularies the browser GUI and {@code docs/reference/} read.
      */
     private void reference(CommandSender sender, String category) {
         ReferenceCatalog catalog = ReferenceCatalog.build();
@@ -412,8 +399,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         String format = args[1].toLowerCase(Locale.ROOT);
         Path source = Path.of(args[2]);
         sender.sendMessage(messages.format("command.migrate.start", "FORMAT", format, "SOURCE", source));
-        // File I/O runs off the command thread; results route back to the sender's thread. Effects are
-        // written in the verbose v2 form via the live effect-spec lookup (migrateSpecs).
+        // File I/O off the command thread; results route back to the sender. migrateSpecs writes effects
+        // in the verbose v2 form via the live effect-spec lookup.
         Scheduling.async(() -> {
             try {
                 Migrator.Result result = switch (format) {
@@ -454,10 +441,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se pack <list|info|apply|export>} (ADR-0023) — manage config packs: a ZIP snapshot of the
-     * whole config surface (config.yml, lang.yml, content/, items/, menus/). {@code apply} backs up the
-     * current config, swaps in the pack, and reloads transactionally; {@code export} snapshots the live
-     * config into a new pack. All filesystem work runs off the command thread.
+     * {@code /se pack <list|info|apply|export>} (ADR-0023) — config packs are a ZIP snapshot of the whole
+     * config surface (config.yml, lang.yml, content/, items/, menus/). All filesystem work is off-thread.
      */
     private void pack(CommandSender sender, String[] args) {
         String action = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "list";
@@ -514,9 +499,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se pack apply <name>} — back up the current config, swap in the pack on disk, then reload
-     * transactionally so it takes effect live. Boot-gated wiring (souls/slots/scrolls listeners, the
-     * integration toggles, the command-trigger) still needs a restart — reported in the note.
+     * {@code /se pack apply <name>} — back up the current config, swap in the pack, reload transactionally.
+     * Boot-gated wiring (souls/slots/scrolls listeners, integration toggles, command-trigger) still needs
+     * a restart — reported in the apply note.
      */
     private void packApply(CommandSender sender, String[] args) {
         if (args.length < 3) {
@@ -545,8 +530,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 if (!applied.skipped().isEmpty()) {
                     tell(sender, messages.format("command.pack.apply-skipped", "N", applied.skipped().size()));
                 }
-                // Make the swapped config live (the same transactional reload as /se reload). A pack with
-                // a fault keeps the previous in-memory state and reports the diagnostics here.
+                // Same transactional reload as /se reload: a faulty pack keeps the previous in-memory
+                // state and reports its diagnostics here.
                 reloader.reload(result -> report(sender, result));
                 tell(sender, messages.format("command.pack.apply-note"));
             } catch (IOException e) {
@@ -617,9 +602,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             // /se enchant is admin force-give → bypass the §G requires/blacklist relationship gates.
             ApplyResult result = enchanter.applyEnchant(held, key, appliedLevel, false);
             if (result.ok()) {
-                player.getInventory().setItemInMainHand(held); // write the mutated copy back
-                // Re-resolve the cached WornState: mutating the held item in place fires no equip event,
-                // so without this the new enchant is in PDC + lore but inert until a re-equip.
+                player.getInventory().setItemInMainHand(held);
+                // Mutating the held item in place fires no equip event; re-resolve or the new enchant
+                // sits in PDC + lore but inert until a re-equip.
                 refreshWorn.accept(player);
             }
             player.sendMessage(result.message());
@@ -897,13 +882,12 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             ApplyResult result = enchanter.removeEnchant(held, key);
             if (result.ok()) {
                 player.getInventory().setItemInMainHand(held);
-                refreshWorn.accept(player); // mutating in place fires no equip event — re-resolve WornState
+                refreshWorn.accept(player); // in-place mutation fires no equip event — re-resolve WornState
             }
             player.sendMessage(result.message());
         });
     }
 
-    /** Whether {@code sender} is a different entity than {@code target} (so the sender wants a confirmation). */
     private static boolean notSelf(CommandSender sender, Player target) {
         return !(sender instanceof Player p) || !p.getUniqueId().equals(target.getUniqueId());
     }
@@ -925,7 +909,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack crystal = crystals.mint(java.util.List.of(key));
-            // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
+            // Overflow drops at the player's feet rather than being lost.
             player.getInventory().addItem(crystal).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
             player.sendMessage(messages.format("command.give.crystal", "KEY", key));
@@ -1043,7 +1027,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         int bookLevel = level;
         Scheduling.onEntity(player, () -> {
             org.bukkit.inventory.ItemStack book = carriers.mintBook(key, bookLevel);
-            // Drop any overflow at the player's feet (on their own region thread) rather than losing it.
+            // Overflow drops at the player's feet rather than being lost.
             player.getInventory().addItem(book).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
             player.sendMessage(messages.format("command.give.book", "KEY", key, "LEVEL", bookLevel));

@@ -6,40 +6,30 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 /**
- * The actors one activation runs against (docs/architecture.md §3.5): the firing player and the
- * captured victim/attacker/location the selectors and effect contexts read, plus the event payload the
- * combat/block condition facts are sourced from (v3.1 §A). Built once per event by the trigger listener
- * on the firing thread and passed to {@link AbilityExecutor#run}; everything in it is either the
- * firing-thread actor or a snapshot-safe value, never a live cross-region entity (§3.4). Any field may be
- * {@code null}/0 for a non-combat or non-positional activation.
+ * The actors and event payload one activation runs against (docs/architecture.md §3.5; v3.1 §A). Built
+ * once per event on the firing thread; every field is the firing-thread actor or a snapshot-safe value,
+ * never a live cross-region entity (§3.4). Any field may be {@code null}/0 for a non-combat/non-positional
+ * activation.
  *
- * @param actor    the player whose ability fired (may be {@code null} only in tests / synthetic runs)
+ * @param actor    the player whose ability fired ({@code null} only in tests / synthetic runs)
  * @param victim   the combat victim, or {@code null}
  * @param attacker the attacker that hit the activator, or {@code null}
  * @param location the relevant location (AoE centre, block, …), or {@code null}
- * @param damage   the event's damage at fire time (the {@code %damage%} fact), captured pre-fold; 0 if none
- * @param block    the block this activation concerns (the MINE/BREAK block — the {@code %block.type%} /
- *                 {@code %isblock%} facts), region-owned on the firing thread; {@code null} for non-block triggers
- * @param combo    the activator's consecutive-hit streak at fire time (the {@code %combo%} fact); 0 outside
- *                 a tracked attack (the combat dispatch sets it on the attack side from its {@code ComboStore})
+ * @param damage   the {@code %damage%} fact, captured pre-fold; 0 if none
+ * @param block    the MINE/BREAK block ({@code %block.type%}/{@code %isblock%}), region-owned on the firing
+ *                 thread; {@code null} for non-block triggers
+ * @param combo    the {@code %combo%} hit streak; 0 outside a tracked attack
  */
 public record ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                                 double damage, Block block, int combo) {
 
-    /**
-     * The combat/mine activation with a damage/block payload but no combat streak (defense side, MINE, …).
-     * Combo defaults to 0; the attack side uses the canonical constructor to pass the streak count.
-     */
+    /** Damage/block payload, no combat streak (defense side, MINE, …); only the attack side passes combo. */
     public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                              double damage, Block block) {
         this(actor, victim, attacker, location, damage, block, 0);
     }
 
-    /**
-     * The common non-combat, non-block activation: no damage payload, no block, no streak. Keeps every
-     * existing call site terse while the combat/mine dispatchers use the fuller constructors to source
-     * {@code %damage%}/{@code %block.type%}/{@code %combo%}.
-     */
+    /** Non-combat, non-block activation: no damage, block, or streak. */
     public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location) {
         this(actor, victim, attacker, location, 0.0, null, 0);
     }

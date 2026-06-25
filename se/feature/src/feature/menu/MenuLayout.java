@@ -2,11 +2,10 @@ package feature.menu;
 
 /**
  * The config-driven layout of a menu: chest height, title, the filler-pane material, and the bottom-row
- * navigation slot positions (docs/v3-directives.md §K — "paged, filler panes, back/nav, title"). This is
- * the data seam the framework is built against: today every menu supplies a programmatic default
- * ({@link #paged}/{@link #sized}); the §L "menus/" config layer (one file per GUI, atomically reloaded) will
- * later produce {@code MenuLayout}s from YAML and drop them in unchanged — the framework neither knows nor
- * cares where the layout came from.
+ * navigation slot positions (docs/v3-directives.md §K — "paged, filler panes, back/nav, title"). The data
+ * seam the framework is built against: a menu supplies a programmatic default ({@link #paged}/{@link #sized}),
+ * which the §L "menus/" config layer (one file per GUI, atomically reloaded) may override from YAML — the
+ * framework neither knows nor cares where the layout came from.
  *
  * <p>Convention: a paged menu reserves the <em>last row</em> for navigation and uses the rows above it for
  * content. {@link #contentSlots()} is the number of content cells per page; the nav slots ({@code prevSlot}

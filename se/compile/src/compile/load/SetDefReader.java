@@ -65,7 +65,6 @@ final class SetDefReader {
         }
         String description = ContentParse.descriptionOf(root);
 
-        // ── armour members + shared lore + the armour set bonus ──────────────────────────────────────
         YamlNode armor = root.child("armor");
         if (!armor.isMapping()) {
             diags.error("load.set.armor", "set '" + baseKey + "' must declare an 'armor:' block", root.sourceOf("armor"));
@@ -99,7 +98,6 @@ final class SetDefReader {
         List<AbilityDef> abilities = new ArrayList<>();
         abilities.add(ability(baseKey, armor, Math.max(0, complete), fileSource, nextDefId, diags));
 
-        // ── optional weapon member + the additional weapon bonus ─────────────────────────────────────
         SetDef.Member weapon = null;
         List<String> weaponLore = List.of();
         if (root.has("weapon")) {

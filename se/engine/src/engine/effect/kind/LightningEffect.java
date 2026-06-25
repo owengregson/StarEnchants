@@ -10,11 +10,8 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code LIGHTNING} — strike the target(s) with lightning, optionally dealing extra
- * damage (docs/architecture.md §7). Stateless; emits one {@code lightningAndDamage}
- * intent per resolved target and never touches an entity directly. A {@code damage}
- * of {@code 0} is purely cosmetic. {@link Affinity#TARGET_ENTITY}: the strike lands
- * on the target entity's thread.
+ * {@code LIGHTNING} — strike the target(s) with lightning, optionally dealing extra damage
+ * (docs/architecture.md §7). {@code damage=0} is purely cosmetic. {@link Affinity#TARGET_ENTITY}.
  */
 public final class LightningEffect implements EffectKind {
 

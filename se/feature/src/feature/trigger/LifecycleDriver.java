@@ -16,25 +16,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Player;
 
 /**
- * Drives the §B {@code HELD}/{@code PASSIVE} start/stop lifecycle (docs/v3-directives.md §B, ADR-0022) — the
- * deactivation half a Cosmic Enchants-style plugin has and this engine otherwise lacks. Where {@code REPEATING} re-fires on a timer, a
- * HELD/PASSIVE source is a <em>maintained buff</em>: its effects apply once when the source becomes active
- * (equip/hold) and are torn down once when it becomes inactive (unequip/swap-away). This driver computes that
- * transition by DIFFING the player's currently-worn HELD/PASSIVE abilities against the set it last saw, then
- * asking {@link TriggerDispatch#fireLifecycle} to START the newly-worn and STOP the newly-removed.
+ * Drives the §B {@code HELD}/{@code PASSIVE} start/stop lifecycle (§B, ADR-0022). Unlike {@code REPEATING}
+ * (timer re-fire), a HELD/PASSIVE source is a <em>maintained buff</em>: applied once on activate (equip/hold),
+ * torn down once on deactivate (unequip/swap-away). Computes the transition by DIFFING the currently-worn
+ * HELD/PASSIVE abilities against the set last seen, then {@link TriggerDispatch#fireLifecycle} STARTs the
+ * arrivals and STOPs the departures. A Cosmic Enchants-style deactivation half.
  *
- * <p><strong>Keyed by STABLE key, not dense id (§5.3).</strong> The "started" set per player is the set of
- * compiled stable keys ({@code enchants/strength-aura/3}), never dense ids — so it survives a {@code /se reload}
- * (which reassigns every dense id): the same physically-worn item resolves to the same key, the diff comes up
- * empty, and nothing spuriously re-applies. A level swap (strength/2 → strength/3) is naturally a STOP of the
- * old key and a START of the new. List-multiplicity (the same enchant on two worn pieces) is de-duped to one
- * entry per key.
+ * <p><strong>Keyed by STABLE key, not dense id (§5.3).</strong> The per-player "started" set holds compiled
+ * stable keys ({@code enchants/strength-aura/3}), so it survives a reload (which reassigns dense ids): the
+ * same worn item resolves to the same key, the diff is empty, nothing spuriously re-applies. A level swap is
+ * naturally a STOP of the old key + START of the new. List-multiplicity is de-duped to one entry per key.
  *
- * <p><strong>Lifecycle.</strong> {@link #refresh} is called by {@code EquipListener} after every worn-state
- * refresh, on the player's own thread. {@link #clear} drops a player's tracking on quit — no teardown is needed
- * there (the entity is gone and its potion effects vanish; on rejoin {@code refresh} re-applies). {@link
- * #clearAll} drops everything on disable. The per-player set is a {@link ConcurrentHashMap} for the same reason
- * the other stores are (Folia region threads).
+ * <p><strong>Lifecycle.</strong> {@link #refresh} runs after every worn-state refresh, on the player's thread.
+ * {@link #clear} (quit) needs no teardown — the entity is gone and its potion effects vanish; rejoin re-applies.
+ * {@link #clearAll} drops everything on disable. The per-player set is a {@link ConcurrentHashMap} (Folia
+ * region threads).
  */
 public final class LifecycleDriver {
 
@@ -52,10 +48,9 @@ public final class LifecycleDriver {
     }
 
     /**
-     * Diff {@code worn}'s HELD/PASSIVE abilities against what {@code player} last had started, and fire the
-     * transition: STOP every source that left, START every source that arrived. Must be called on the player's
-     * own thread (the equip events are player-owned). A no-op when neither lifecycle trigger exists or the worn
-     * state is stale against the live snapshot (it will be re-driven on the next equip change / reload).
+     * Diff {@code worn} against the player's last-started set and fire the transition (STOP departures, START
+     * arrivals). Must run on the player's own thread (equip events are player-owned). No-op when neither
+     * lifecycle trigger exists, or the worn state is stale against the live snapshot (re-driven next change).
      */
     public void refresh(Player player, WornState worn) {
         UUID id = player.getUniqueId();
@@ -67,7 +62,7 @@ public final class LifecycleDriver {
             return; // worn ids index a different snapshot — skip; the reload re-resolve drives a fresh diff
         }
 
-        // The currently-worn HELD/PASSIVE abilities, keyed by stable key (de-dups list-multiplicity).
+        // keyed by stable key so list-multiplicity de-dups to one entry
         Map<String, Ability> active = new LinkedHashMap<>();
         collect(active, worn, held, snapshot);
         collect(active, worn, passive, snapshot);
@@ -76,7 +71,7 @@ public final class LifecycleDriver {
         List<Ability> stops = new ArrayList<>();
         for (String key : previous) {
             if (!active.containsKey(key)) {
-                Ability ability = snapshot.byStableKey(key); // resolve the now-unworn ability for teardown
+                Ability ability = snapshot.byStableKey(key);
                 if (ability != null) {
                     stops.add(ability);
                 }
@@ -93,12 +88,11 @@ public final class LifecycleDriver {
         started.put(id, new HashSet<>(active.keySet()));
     }
 
-    /** Drop {@code player}'s lifecycle tracking (call on quit) — no teardown, the entity is gone. */
+    /** Drop a player's tracking on quit — no teardown, the entity is gone. */
     public void clear(UUID player) {
         started.remove(player);
     }
 
-    /** Forget every player's lifecycle tracking (call on disable). */
     public void clearAll() {
         started.clear();
     }

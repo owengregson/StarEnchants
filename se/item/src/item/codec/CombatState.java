@@ -41,9 +41,8 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
             new CombatState(Map.of(), List.of(), null, null, false, HeroicStat.NONE, 0);
 
     public CombatState {
-        // Defensive, order-PRESERVING copies → the record is immutable and the encoded blob (and thus
-        // the content-hash cache key) is deterministic. Map.copyOf would not keep insertion order, so
-        // an unmodifiable LinkedHashMap is used instead.
+        // Order-preserving copy keeps the encoded blob (and thus the content-hash cache key) deterministic;
+        // Map.copyOf would drop insertion order, hence an unmodifiable LinkedHashMap.
         enchants = Collections.unmodifiableMap(new LinkedHashMap<>(enchants));
         crystals = List.copyOf(crystals);
         setKey = (setKey == null || setKey.isBlank()) ? null : setKey;

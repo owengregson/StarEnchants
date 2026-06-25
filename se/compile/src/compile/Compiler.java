@@ -23,19 +23,16 @@ import java.util.function.Function;
 
 /**
  * The content compiler: authored {@link AbilityDef}s &rarr; an immutable
- * {@link Snapshot}, by running the pipeline stages in order
- * (docs/architecture.md §2 "se-compile", §3.2).
+ * {@link Snapshot} by running the pipeline stages in order (docs/architecture.md §2, §3.2).
  *
  * <pre>
  *   defs --lower--> LoweredAbility[] --erase--> ErasedContent --snapshot--> Snapshot
  * </pre>
  *
- * <p>The compile never throws on bad content: every fault is collected into the
- * shared {@link Diagnostics}, and the caller decides whether to publish the result
- * by checking {@link Diagnostics#hasErrors()} — a broken edit leaves the previous
- * snapshot live and never reaches the hot path (§10). Stages are injected so each is
- * independently testable and a future stage (cross-version {@code resolve},
- * {@code typecheck}) can be slotted in without touching the others.
+ * <p>Never throws on bad content: faults collect into the shared {@link Diagnostics} and the
+ * caller checks {@link Diagnostics#hasErrors()} before publishing — a broken edit leaves the
+ * previous snapshot live and never reaches the hot path (§10). Stages are injected so each is
+ * independently testable and a future stage can be slotted in without touching the others.
  */
 public final class Compiler {
 
@@ -51,14 +48,7 @@ public final class Compiler {
         this.snapshot = Objects.requireNonNull(snapshot, "snapshot");
     }
 
-    /**
-     * A compiler wired with the default stages and full selector support: each
-     * effect's affinity resolved through {@code affinityOf}, its target through the
-     * {@code selectors} spec registry and {@code defaultSelectorOf} (head &rarr;
-     * declared default selector head; {@code null} &rarr; {@code SELF}), and
-     * version-volatile handles resolved through {@code resolvers}. This is the factory
-     * the engine boot wires, injecting the effect and selector registries' spec views.
-     */
+    /** Default stages with full selector support and handle resolution ({@code defaultSelectorOf} null &rarr; {@code SELF}). */
     public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
                               SpecRegistry selectors, Function<String, String> defaultSelectorOf,
                               PlatformResolvers resolvers) {
@@ -75,12 +65,7 @@ public final class Compiler {
         return of(registry, affinityOf, selectors, defaultSelectorOf, PlatformResolvers.none());
     }
 
-    /**
-     * The full production wiring: effect specs + affinities, selector specs + declared
-     * default targets, the condition variable vocabulary, and version-volatile handle
-     * resolvers. This is what the engine boot injects (effect/selector registries'
-     * spec views, the var vocabulary, and {@code se-platform}'s resolvers).
-     */
+    /** Adds the condition-variable vocabulary to the selector + handle-resolving wiring. */
     public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
                               SpecRegistry selectors, Function<String, String> defaultSelectorOf,
                               VarResolver vars, PlatformResolvers resolvers) {
@@ -99,10 +84,9 @@ public final class Compiler {
     }
 
     /**
-     * The complete production wiring including the canonical trigger vocabulary: content
-     * trigger names are interned to the registry's id order and an unknown trigger is a
-     * diagnostic, so a compiled {@code triggerMask} bit means the same trigger the runtime
-     * routes (§3.7).
+     * Full production wiring incl. the canonical trigger vocabulary, so a compiled
+     * {@code triggerMask} bit means the same trigger the runtime routes; unknown triggers
+     * are diagnostics (§3.7).
      */
     public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
                               SpecRegistry selectors, Function<String, String> defaultSelectorOf,
@@ -123,13 +107,7 @@ public final class Compiler {
                 PlatformResolvers.none());
     }
 
-    /**
-     * A compiler wired with the default stages: each effect's affinity resolved
-     * through {@code affinityOf} (head &rarr; declared {@link Affinity}; {@code null}
-     * &rarr; {@code CONTEXT_LOCAL}) and version-volatile handles resolved through
-     * {@code resolvers}. No selectors are resolvable — every effect targets
-     * {@code SELF}; use the selector-aware overload to enable {@code @Head{...}}.
-     */
+    /** Default stages with handle resolution but no selectors — every effect targets {@code SELF}. */
     public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
                               PlatformResolvers resolvers) {
         return new Compiler(
@@ -156,10 +134,10 @@ public final class Compiler {
     /**
      * Compile a content library into a snapshot.
      *
-     * @param defs       the authored abilities, in the order dense ids should be assigned
-     * @param generation the build counter to stamp into the snapshot (§5.2)
-     * @param diags      the collector for every diagnostic over the whole compile
-     * @return the immutable snapshot (always returned; inspect {@code diags} before publishing)
+     * @param defs       authored abilities, in the order dense ids should be assigned
+     * @param generation build counter stamped into the snapshot (§5.2)
+     * @param diags      collector for every diagnostic over the whole compile
+     * @return the immutable snapshot — always returned; inspect {@code diags} before publishing
      */
     public Snapshot compile(List<AbilityDef> defs, int generation, Diagnostics diags) {
         Objects.requireNonNull(defs, "defs");

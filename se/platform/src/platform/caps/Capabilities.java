@@ -4,20 +4,12 @@ import java.util.Objects;
 import org.bukkit.Server;
 
 /**
- * The boot-time platform probe (docs/architecture.md §9): an immutable snapshot of the
- * few facts the rest of the plugin must branch on — is this <em>Folia</em> (no single main
- * thread, region-sharded; see the {@code folia-scheduling} skill), and which Minecraft
- * version is this, so the floor build can gate the {@code compat-folia}/{@code compat-modern}
- * edges behind a capability instead of a brittle version-string {@code if}.
- *
- * <p>This is a <em>domain-free</em> leaf with no compile dependency on Folia or any
- * newer-than-floor API: Folia is detected by a class probe, the version by parsing the
- * server's reported string. Everything downstream consults the resulting flags
- * ({@link #folia()}, {@link #atLeast(int, int, int)}) — never the raw server again.
- *
- * <p>The version-parsing core ({@link #parseVersion(String)}) is pure and unit-tested; the
- * {@link #probe(Server)} factory is the only part that touches Bukkit, so the matrix is the
- * only place the live probe is exercised.
+ * Boot-time platform probe (docs/architecture.md §9): immutable snapshot of the facts downstream gates
+ * on — is this Folia (region-sharded, no single main thread; {@code folia-scheduling}) and which
+ * Minecraft version — so {@code compat-folia}/{@code compat-modern} edges branch on a capability, not a
+ * version-string {@code if}. Folia is detected by a class probe and the version by string parse, so this
+ * leaf has no compile dependency on Folia or any newer-than-floor API; downstream consults the flags
+ * ({@link #folia()}, {@link #atLeast(int, int, int)}), never the raw server again.
  */
 public final class Capabilities {
 
@@ -72,8 +64,7 @@ public final class Capabilities {
         if (bukkitVersion == null || bukkitVersion.isEmpty()) {
             return out;
         }
-        // Keep only the leading "1.20.6" portion: stop at the first char that is not a
-        // digit or a dot (the "-R0.1-SNAPSHOT" suffix, or a pre-release marker).
+        // Keep only the leading "1.20.6": stop at the first non-digit/non-dot (the "-R0.1-SNAPSHOT" suffix).
         int end = 0;
         while (end < bukkitVersion.length()) {
             char c = bukkitVersion.charAt(end);
@@ -93,7 +84,7 @@ public final class Capabilities {
                 try {
                     out[i] = Integer.parseInt(parts[i]);
                 } catch (NumberFormatException ignored) {
-                    // Leave this component at 0; a trailing dot or empty segment is benign.
+                    // Component stays 0; a trailing dot or empty segment is benign.
                 }
             }
         }
@@ -129,9 +120,8 @@ public final class Capabilities {
     }
 
     /**
-     * Whether this server is mojang-mapped — the 1.20.5 spigot&rarr;mojang flip. The compiled
-     * runtime never needs the mappings (it only touches the Bukkit API), but cross-version
-     * tooling and the reference cache do (see {@code paper-cross-version}).
+     * Whether this server is mojang-mapped (the 1.20.5 flip). The runtime touches only the Bukkit API
+     * and never needs mappings; cross-version tooling and the reference cache do ({@code paper-cross-version}).
      */
     public boolean mojangMapped() {
         return atLeast(1, 20, 5);

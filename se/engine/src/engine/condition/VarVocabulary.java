@@ -49,10 +49,8 @@ public final class VarVocabulary {
     }
 
     /**
-     * Every declared variable, keyed by its canonical {@code "scope.name"} (lower-case), with the binding
-     * carrying its {@link VarKind} and dense slot. An immutable view — the enumeration the {@code /se}
-     * reference (§J) and the in-game reference browser (§K) need to list the variable vocabulary, which
-     * {@link #lookup} alone could not provide.
+     * Every declared variable, keyed by canonical lower-case {@code "scope.name"} (immutable view).
+     * Enumeration for the {@code /se} reference (§J) and in-game browser (§K), which {@link #lookup} can't give.
      */
     public Map<String, VarBinding> bindings() {
         return byKey;

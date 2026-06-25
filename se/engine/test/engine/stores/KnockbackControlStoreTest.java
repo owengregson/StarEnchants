@@ -7,9 +7,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit-pins {@link KnockbackControlStore}: a control is live until its TTL elapses (lazy-evicted on read),
- * the multiplier is clamped at zero, the latest write wins, and clear/clearAll forget entries — the §C
- * KNOCKBACK_CONTROL bridge between a hit and the (separate) knockback event the same tick.
+ * Models the §C KNOCKBACK_CONTROL bridge from a hit to the separate knockback event the same tick: a
+ * short-lived per-victim multiplier (clamped at zero, latest write wins).
  */
 class KnockbackControlStoreTest {
 

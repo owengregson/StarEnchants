@@ -70,7 +70,7 @@ public final class Scheduling {
         }
     }
 
-    // ── Entity-owned ─────────────────────────────────────────────────────────────────────────
+    // Entity-owned
 
     public static void onEntity(Entity entity, Runnable task) {
         backend().onEntity(entity, task);
@@ -84,7 +84,7 @@ public final class Scheduling {
         return backend().repeatingEntity(entity, initialDelayTicks, periodTicks, task);
     }
 
-    // ── Region-owned ─────────────────────────────────────────────────────────────────────────
+    // Region-owned
 
     public static void onRegion(Location location, Runnable task) {
         backend().onRegion(location, task);
@@ -98,7 +98,7 @@ public final class Scheduling {
         return backend().repeatingRegion(location, initialDelayTicks, periodTicks, task);
     }
 
-    // ── Global-owned ─────────────────────────────────────────────────────────────────────────
+    // Global-owned
 
     public static void onGlobal(Runnable task) {
         backend().onGlobal(task);
@@ -112,7 +112,7 @@ public final class Scheduling {
         return backend().repeatingGlobal(initialDelayTicks, periodTicks, task);
     }
 
-    // ── Async ────────────────────────────────────────────────────────────────────────────────
+    // Async
 
     public static void async(Runnable task) {
         backend().async(task);

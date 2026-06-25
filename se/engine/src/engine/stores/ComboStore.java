@@ -5,24 +5,19 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Per-player combat-streak tracker — the source of the {@code %combo%} fact (docs/architecture.md §3.4).
- * Each player attack within a short window of the previous one extends the streak; a gap longer than the
- * window resets it to 1. This is the model a Cosmic Enchants-style {@code RAGE} relied on (a stacking per-hit bonus that
- * decays after ~5s of no hits) and the value a Cosmic Enchants-style plugin exposes as {@code %combo%}; it stays
- * combat-local (only the combat dispatch writes it), so it is owned there rather than threaded through the
- * composition root.
+ * Per-player combat-streak tracker — source of the {@code %combo%} fact (docs/architecture.md §3.4). Each
+ * attack within {@link #windowTicks} of the previous extends the streak; a longer gap resets it to 1.
+ * Combat-local: only the combat dispatch writes it, so it is owned there, not at the composition root.
  *
- * <p>Concurrent and UUID-keyed for Folia (a player's attacks may fire on different region threads as they
- * move). Time is an explicit tick count supplied by the caller (never wall-clock) — deterministic,
- * Folia-correct, and unit-testable without a server. The window defaults to 100 ticks (5s), matching the
- * decay a Cosmic Enchants-style plugin used.
+ * <p>Concurrent, UUID-keyed (Folia: a player's attacks may fire on different region threads as they move).
+ * Time is an explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, server-free
+ * to test.
  */
 public final class ComboStore {
 
-    /** Default streak window: 100 ticks (5 seconds), the decay a Cosmic Enchants-style RAGE used. */
+    /** Default streak window: 100 ticks (5 seconds). */
     public static final long DEFAULT_WINDOW_TICKS = 100L;
 
-    /** A live streak: its current count and the tick of the most recent hit. */
     private record Streak(int count, long lastHit) {
     }
 
@@ -37,11 +32,7 @@ public final class ComboStore {
         this.windowTicks = Math.max(1L, windowTicks);
     }
 
-    /**
-     * Register a hit by {@code player} at {@code nowTicks} and return the resulting consecutive-hit count
-     * (always {@code >= 1}). A hit within {@link #windowTicks} of the previous one extends the streak; a
-     * longer gap restarts it at 1.
-     */
+    /** Register a hit and return the resulting consecutive-hit count (always {@code >= 1}). */
     public int hit(UUID player, long nowTicks) {
         Streak updated = byPlayer.compute(player, (id, prev) -> {
             boolean continues = prev != null && nowTicks - prev.lastHit() <= windowTicks;

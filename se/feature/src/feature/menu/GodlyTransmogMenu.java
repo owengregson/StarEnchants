@@ -120,14 +120,14 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
         int i = order.indexOf(selected);
         int j = order.indexOf(key);
         if (i >= 0 && j >= 0) {
-            Collections.swap(order, i, j); // swap in the working order
+            Collections.swap(order, i, j);
             int slot = binding(holder).slot();
             ItemStack gear = gearAt(click.player(), slot);
             if (scrolls.reorder(gear, order)) {
                 if (slot < 0) {
                     click.player().getInventory().setItemInMainHand(gear);
                 } else {
-                    click.player().getInventory().setItem(slot, gear); // write back to the bound slot
+                    click.player().getInventory().setItem(slot, gear);
                 }
             }
         }

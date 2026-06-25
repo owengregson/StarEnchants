@@ -37,12 +37,8 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The enchant-application GUI, live (docs/architecture.md §7): a fake player opens the {@link EnchantMenu},
- * a click on an enchant icon is dispatched through the real {@link MenuListener}, and the enchant lands
- * on the player's held item — proving menu render + click routing + apply end-to-end on Paper and Folia.
- * Mojang-mapped only (needs the fake player + a server-side open inventory). The click is simulated by
- * firing a real {@code InventoryClickEvent} through the plugin manager, so the registered listener handles
- * it exactly as a player click would.
+ * Enchant-apply GUI, live (docs/architecture.md §7): render + click routing + apply end-to-end through
+ * the real {@link MenuListener}. Mojang-mapped only (needs the fake player + a server-side open inventory).
  */
 public final class MenuSuite implements Harness.Scenario {
 
@@ -77,7 +73,7 @@ public final class MenuSuite implements Harness.Scenario {
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
-            // no WornState store needed for this check; caps drives the cross-version title cap
+            // caps drives the cross-version title cap
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
         } catch (IOException e) {
             h.fail("menu.clickAppliesEnchant", e.toString());
@@ -105,14 +101,12 @@ public final class MenuSuite implements Harness.Scenario {
                 }
                 Scheduling.onEntity(player, () -> {
                     player.getInventory().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
-                    // Render page 0 into a holder server-side and dispatch a real click on slot 0 (the only
-                    // enchant, "keen"). The shared MenuListener routes the click through the holder's menu.
                     MenuHolder menuHolder = new MenuHolder(menu);
                     menu.render(menuHolder);
                     InventoryView view = player.openInventory(menuHolder.getInventory());
                     InventoryClickEvent click = new InventoryClickEvent(view, InventoryType.SlotType.CONTAINER,
                             0, ClickType.LEFT, InventoryAction.PICKUP_ALL);
-                    plugin.getServer().getPluginManager().callEvent(click); // handled inline by MenuListener
+                    plugin.getServer().getPluginManager().callEvent(click);
                     h.guard("menu.clickAppliesEnchant", () -> {
                         if (!click.isCancelled()) {
                             throw new IllegalStateException("menu click was not cancelled — items could be moved");

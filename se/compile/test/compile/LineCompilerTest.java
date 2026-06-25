@@ -47,7 +47,7 @@ class LineCompilerTest {
         Optional<CompiledLine> r = compiler().compile("smite:25:4:6", SRC, d);
         assertFalse(d.hasErrors());
         assertTrue(r.isPresent());
-        assertEquals(0L, r.get().args().lng("cooldown")); // default applied
+        assertEquals(0L, r.get().args().lng("cooldown"));
     }
 
     @Test

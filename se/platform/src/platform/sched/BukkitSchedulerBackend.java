@@ -72,8 +72,7 @@ public final class BukkitSchedulerBackend implements SchedulerBackend {
     }
 
     private void runSync(Runnable task) {
-        // If we are already on the main thread, run inline (the CONTEXT_LOCAL fast path's Paper
-        // equivalent — no needless task churn); otherwise hop onto it.
+        // Already on the main thread: run inline (no needless task churn); else hop onto it.
         if (Bukkit.isPrimaryThread()) {
             task.run();
         } else {

@@ -11,25 +11,21 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code DURABILITY} — the canonical item-durability primitive (docs/v3-directives.md §C), collapsing
- * {@code ADD_DURABILITY} (armor), {@code ADD_DURABILITY_ITEM} / {@code REPAIR} (held item), and
- * {@code DAMAGE_ARMOR} into one parameterized kind:
+ * {@code DURABILITY} — canonical item-durability primitive (docs/v3-directives.md §C):
  *
  * <ul>
  *   <li>{@code mode=restore} (default) — restore durability; {@code amount < 0} fully repairs;</li>
  *   <li>{@code mode=damage} — wear durability down by {@code amount};</li>
- *   <li>{@code target=item} (default) — the held main-hand item (player-only); {@code armor} — worn
- *       armor (any living target); {@code all} — both.</li>
+ *   <li>{@code target=item} (default) — held main-hand item (player-only); {@code armor} — worn armor
+ *       (any living target); {@code all} — both.</li>
  * </ul>
  *
- * <p>A {@code mode} enum carries direction rather than overloading the sign of {@code amount}, because
- * {@code amount < 0} already means "fully repair" on the restore path — so {@code DURABILITY:1:armor:damage}
- * is an unambiguous one-point wear, never confused with the full-repair sentinel.
+ * <p>Direction is a {@code mode} enum, not the sign of {@code amount}, because {@code amount < 0}
+ * already means "fully repair" on the restore path — so {@code DURABILITY:1:armor:damage} is an
+ * unambiguous one-point wear, never the full-repair sentinel.
  *
- * <p>The restore paths are player-only (a held/worn item belongs to a player inventory); armor damage
- * works on any {@link LivingEntity} victim, preserving {@code DAMAGE_ARMOR}'s {@code @Victim} default.
- * Default target is {@code @Self} (matching the three restore kinds); damage content carries an explicit
- * {@code who: "@Victim"}. {@link Affinity#TARGET_ENTITY}: the Sink routes each intent to the owner's thread.
+ * <p>Restore paths are player-only (a held/worn item belongs to a player inventory); armor damage works
+ * on any {@link LivingEntity} victim. {@link Affinity#TARGET_ENTITY}.
  */
 public final class DurabilityEffect implements EffectKind {
 

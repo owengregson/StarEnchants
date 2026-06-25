@@ -8,9 +8,8 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code @Add{x,y,z}} — the activation location offset by a fixed {@code (x, y, z)} (docs/v3-directives.md
- * §A). A pure coordinate offset (no world read) — e.g. {@code SET_BLOCK:GLASS:@Add{y=2}} sets the block
- * two above the activation point.
+ * {@code @Add{x,y,z}} — activation location offset by a fixed {@code (x, y, z)} (docs/v3-directives.md §A).
+ * Pure coordinate offset, no world read.
  */
 public final class AddSelector implements SelectorKind {
 

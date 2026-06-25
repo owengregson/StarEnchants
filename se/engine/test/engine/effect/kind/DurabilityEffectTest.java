@@ -12,11 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for the canonical {@code DURABILITY} (which replaced ADD_DURABILITY/
- * ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR): restore vs damage, across item / armor / all targets.
- * Restore paths are player-only; armor damage works on any living target.
- */
+/** Mock-host DURABILITY test. Asymmetry pinned: restore is player-only, armor damage hits any living target. */
 class DurabilityEffectTest {
 
     @Test
@@ -53,7 +49,7 @@ class DurabilityEffectTest {
 
     @Test
     void damageArmorWearsArmorOnAnyLivingTarget() {
-        LivingEntity victim = mock(LivingEntity.class); // a mob — not a player
+        LivingEntity victim = mock(LivingEntity.class);
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.integer("amount")).thenReturn(50);
         when(ctx.str("target")).thenReturn("armor");

@@ -4,10 +4,10 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * The single published {@link MenusConfig} (mirrors {@link ItemsHolder} for the top-level {@code menus/}
- * folder): an {@link AtomicReference} the menu framework reads and the reload path swaps by reference, on the
- * global thread, in the same transaction as content + items + config + lang. Each menu reads through this
- * holder when it renders, so a {@code /se reload} re-lays-out the next open with no re-registration.
+ * The single published {@link MenusConfig} (mirrors {@link ItemsHolder}): an {@link AtomicReference} the
+ * reload path swaps by reference on the global thread, in the same transaction as content + items + config +
+ * lang. Each menu reads through this holder when it renders, so a {@code /se reload} re-lays-out the next
+ * open with no re-registration.
  */
 public final class MenusHolder {
 

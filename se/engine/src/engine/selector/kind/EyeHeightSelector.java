@@ -7,9 +7,8 @@ import java.util.List;
 import org.bukkit.Location;
 
 /**
- * {@code @EyeHeight} — the activator's eye location (docs/v3-directives.md §A): the actor's position
- * raised to eye level. A pure read of the firing-thread actor (no world scan). Useful as the origin for
- * a block effect placed at the player's line of sight.
+ * {@code @EyeHeight} — the actor's eye location (docs/v3-directives.md §A). Pure read of the firing-thread
+ * actor, no world scan.
  */
 public final class EyeHeightSelector implements SelectorKind {
 

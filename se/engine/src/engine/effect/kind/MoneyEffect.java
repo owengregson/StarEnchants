@@ -11,21 +11,18 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code MODIFY_MONEY} — the canonical economy primitive (docs/v3-directives.md §C), collapsing
- * {@code GIVE_MONEY}/{@code TAKE_MONEY} and adding {@code STEAL_MONEY} via the {@code transfer} mode:
+ * {@code MODIFY_MONEY} — canonical economy primitive (docs/v3-directives.md §C):
  *
  * <ul>
  *   <li>{@code give} — deposit {@code amount} into each resolved player target;</li>
  *   <li>{@code take} — withdraw {@code amount} from each resolved player target;</li>
  *   <li>{@code transfer} — withdraw {@code amount} from each target AND deposit the total into the ACTIVATOR (steal);</li>
  *   <li>{@code steal_percent} — transfer {@code amount} <em>percent</em> (0..100) of each target's CURRENT
- *       balance to the activator (STEAL_MONEY_PERCENT) — here {@code amount} is read as a percentage.</li>
+ *       balance to the activator; here {@code amount} is read as a percentage.</li>
  * </ul>
  *
- * <p>The transfer counterpart is fixed to the activator rather than a second selector, because an effect
- * resolves a single selector — the selector picks the "other" party, the actor is the constant end. This
- * REPLACED the now-deleted {@code GIVE_MONEY}/{@code TAKE_MONEY} kinds (collapse = delete the redundant heads).
- * A no-op without an economy provider. {@link Affinity#TARGET_ENTITY}.
+ * <p>Transfer's counterpart is fixed to the activator, not a second selector (an effect resolves one
+ * selector). No-op without an economy provider. {@link Affinity#TARGET_ENTITY}.
  */
 public final class MoneyEffect implements EffectKind {
 

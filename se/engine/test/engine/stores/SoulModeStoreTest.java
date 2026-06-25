@@ -47,7 +47,7 @@ class SoulModeStoreTest {
 
     @Test
     void deactivateWithNoActiveGemIsANoOp() {
-        store.deactivate(p); // nothing was active
+        store.deactivate(p);
         assertFalse(store.isActive(p));
     }
 

@@ -6,24 +6,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assigns a dense {@code int} id to each distinct string so the hot path compares
- * ids and packs bitsets instead of comparing strings (docs/architecture.md §4.1,
- * §8 "Interning"). The compiler interns worlds, triggers, suppression keys and
- * cooldown scopes while assembling a {@link Snapshot}; the resulting id&harr;name
- * table is then frozen into the immutable snapshot.
+ * Assigns a dense {@code int} id to each distinct string so the hot path compares ids and packs
+ * bitsets instead of strings (docs/architecture.md §4.1, §8). Ids run sequentially from {@code 0} in
+ * first-seen order; the frozen id&harr;name table goes into the {@link Snapshot}.
  *
- * <p>Ids are assigned sequentially from {@code 0} in first-seen order. Callers
- * normalize keys (case-fold, trim) <em>before</em> interning — this stores keys
- * exactly as given, so two spellings that must share an id have to arrive
- * identical. Build-time only and single-thread-confined; a snapshot is assembled on
- * one thread and never mutated afterward.
+ * <p>Callers must normalize keys (case-fold, trim) <em>before</em> interning — keys are stored
+ * verbatim, so spellings that must share an id have to arrive identical. Build-time only and
+ * single-thread-confined.
  */
 public final class Interner {
 
     private final Map<String, Integer> ids = new HashMap<>();
     private final List<String> names = new ArrayList<>();
 
-    /** The id for {@code key}, assigning the next sequential id if it is unseen. */
+    /** The id for {@code key}, assigning the next sequential id if unseen. */
     public int intern(String key) {
         Integer existing = ids.get(key);
         if (existing != null) {
@@ -41,12 +37,10 @@ public final class Interner {
         return id == null ? -1 : id;
     }
 
-    /** The name interned at {@code id}. */
     public String nameOf(int id) {
         return names.get(id);
     }
 
-    /** Count of distinct interned strings. */
     public int size() {
         return names.size();
     }

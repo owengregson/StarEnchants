@@ -9,27 +9,15 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Live checks for the clientless fake-player harness (live-server-testing skill) — the keystone that
- * unlocks every player-driven suite (combat triggers, equipment, GUIs). It proves a real, NMS-backed
- * {@link Player} can be spawned with no client, registered server-wide, and kept alive on a real
- * Paper <em>and</em> Folia server — the headline being that the voided connection channel does not
- * wedge the tick thread (the one genuinely risky NMS edge).
+ * Live checks for the clientless fake-player harness (live-server-testing skill) — the keystone every
+ * player-driven suite depends on. Proves a real NMS-backed {@link Player} spawns with no client, is
+ * registered server-wide, and survives several ticks on Paper and Folia; the risk is the voided
+ * connection channel wedging the tick thread under chunk/tracker/keep-alive sends.
  *
- * <ul>
- *   <li>{@code fakeplayer.spawnOnline} — spawn registers the player: it is online, in a world, and
- *       listed in {@code getOnlinePlayers()}.</li>
- *   <li>{@code fakeplayer.survivesTicks} — the player is still online and valid after several ticks
- *       (the connection's outbound voiding held through chunk/tracker/keep-alive sends), and its
- *       state is readable on its own thread without a wrong-region throw.</li>
- * </ul>
- *
- * <p>Spawn runs on the SPAWN REGION's thread, not the global thread: on Folia {@code placeNewPlayer}
- * reads {@code ServerLevel.getCurrentWorldData()}, which is the data of the region the current thread
- * is ticking and is null on the global thread (Folia's own login flow places a player on its spawn
- * region). So the chunk is force-loaded on the global thread first (Folia requires force-load there)
- * so its region ticks, then the spawn runs via {@code onRegion}; on Paper {@code onRegion} collapses
- * to the main thread, so the one path is correct on both. The survival read runs on the player's own
- * entity thread.
+ * <p>Spawn runs on the spawn region's thread, not the global thread: on Folia {@code placeNewPlayer}
+ * reads {@code getCurrentWorldData()}, null on the global thread. So the chunk is force-loaded on the
+ * global thread first (Folia requires force-load there) to make its region tick, then spawn runs via
+ * {@code onRegion}; on Paper {@code onRegion} collapses to the main thread, so one path serves both.
  */
 public final class FakePlayerSuite implements Harness.Scenario {
 
@@ -49,9 +37,8 @@ public final class FakePlayerSuite implements Harness.Scenario {
         int cx = spawn.getBlockX() >> 4;
         int cz = spawn.getBlockZ() >> 4;
 
-        // Force-load the spawn chunk on the GLOBAL thread (Folia rejects force-load off the global
-        // region) so its region is ticking, THEN spawn the player on that region's thread, where
-        // placeNewPlayer's getCurrentWorldData() is non-null.
+        // Force-load on the global thread (Folia rejects it elsewhere) so the region ticks, then spawn
+        // on that region's thread where placeNewPlayer's getCurrentWorldData() is non-null.
         Scheduling.onGlobal(() -> {
             world.setChunkForceLoaded(cx, cz, true);
             Scheduling.onRegion(spawn, () -> {
@@ -74,11 +61,11 @@ public final class FakePlayerSuite implements Harness.Scenario {
 
                 Player player = spawned[0];
                 if (player == null) {
-                    return; // spawn failed; the guard recorded the FAIL, the survival check times out
+                    return; // spawn failed; guard recorded the FAIL, the survival check times out
                 }
 
-                // Survive several ticks of real server work (chunk sends, entity tracking, keep-alives
-                // all hit the voided channel), then read state on the player's own thread, then clean up.
+                // Survive several ticks (chunk/tracker/keep-alive sends all hit the voided channel), then
+                // read state on the player's own thread.
                 Scheduling.onEntityLater(player, 5L, () -> {
                     h.guard("fakeplayer.survivesTicks", () -> {
                         if (!player.isOnline() || !player.isValid()) {
@@ -88,10 +75,8 @@ public final class FakePlayerSuite implements Harness.Scenario {
                         player.getHealth();
                     });
                     FakePlayers.despawn(player);
-                    // Deliberately do NOT setChunkForceLoaded(cx, cz, false): the spawn chunk is a SHARED
-                    // resource that the other combat suites (which launch on the same tick) also force-load,
-                    // and force-loading is a boolean flag, not a refcount — clearing it here would unload the
-                    // chunk out from under a suite still mid-flight. The run shuts the server down anyway.
+                    // Do NOT clear the spawn-chunk force-load: it's a shared boolean (not a refcount) that
+                    // concurrent combat suites also set, so clearing it would unload a chunk mid-flight.
                 });
             });
         });

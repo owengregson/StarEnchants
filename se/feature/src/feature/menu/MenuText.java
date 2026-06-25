@@ -12,9 +12,6 @@ import platform.caps.Capabilities;
  * only when {@link Capabilities#atLeast} reports a pre-1.20 server, and never splits a trailing {@code §}
  * colour marker (which would leave a dangling control char). The limit counts the <em>translated</em> string
  * the client receives — section signs included — so colour codes are translated first, then measured.
- *
- * <p>This is the one place the 32-char title gap (absent in the original single menu, which had a short fixed
- * title) is handled, so every config-driven menu title is safe across 1.17.1 → 26.1.x.
  */
 public final class MenuText {
 

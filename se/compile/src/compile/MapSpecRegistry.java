@@ -9,12 +9,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * A straightforward {@link SpecRegistry} backed by a case-insensitive map from
- * head name to {@link ParamSpec}.
- *
- * <p>Duplicate heads are a programming error (two kinds claiming the same name),
- * so construction fails fast rather than silently shadowing — the registry is
- * checked-in wiring, not runtime input.
+ * A {@link SpecRegistry} backed by a case-insensitive head&rarr;{@link ParamSpec} map. Duplicate heads
+ * fail fast at construction rather than silently shadowing — this is checked-in wiring, not runtime input.
  */
 public final class MapSpecRegistry implements SpecRegistry {
 

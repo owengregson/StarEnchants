@@ -38,10 +38,8 @@ class VarVocabularyTest {
     @Test
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
-        // v3.1 §A: 13 numeric (the original 9 + actor/victim healthpercent, victim.food, world.time) + 2 for
-        // the exotic-effect port (distance, nearbyenemies) = 15,
-        // 17 flags (the original 9 + onfire/onground, victim sprint/swim/glide, isblock, world raining/thundering),
-        // 8 string (the original 4 + actor.type, victim.helditem, block.type, and v3.7 §N victim.mobtype).
+        // Slot counts are load-bearing: the FactBuffer is sized to them. Breakdown justifying 15/17/8
+        // lives in v3.1 §A (numeric/flag base + exotic-effect port) and v3.7 §N (victim.mobtype string).
         assertEquals(15, v.numberSlots());
         assertEquals(17, v.flagSlots());
         assertEquals(8, v.stringSlots());
@@ -54,7 +52,7 @@ class VarVocabularyTest {
         assertEquals(VarKind.STR, v.lookup("actor", "world").orElseThrow().kind());
         assertEquals(VarKind.STR, v.lookup("victim", "type").orElseThrow().kind());
         assertEquals(VarKind.STR, v.lookup("block", "type").orElseThrow().kind());
-        assertTrue(v.flagSlots() <= FactBuffer.MAX_FLAGS); // within the (now two-long) flag space
+        assertTrue(v.flagSlots() <= FactBuffer.MAX_FLAGS); // must fit the flag bitset
     }
 
     @Test

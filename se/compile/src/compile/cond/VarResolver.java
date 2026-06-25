@@ -8,10 +8,8 @@ import java.util.Optional;
  * empty for an unknown token — which the compiler then treats as a PlaceholderAPI
  * passthrough (docs/architecture.md §3.4).
  *
- * <p>This is the seam that keeps {@code se-compile} pure: the engine declares the
- * vocabulary (which facts exist and which slots they occupy) and injects this facade,
- * exactly as it injects the effect/selector spec registries. The empty vocabulary
- * ({@link #none()}) makes every variable a PlaceholderAPI token.
+ * <p>The seam that keeps {@code se-compile} pure: the engine declares the vocabulary and injects this
+ * facade, like the spec registries. The empty vocabulary ({@link #none()}) makes every variable a PAPI token.
  */
 public interface VarResolver {
 

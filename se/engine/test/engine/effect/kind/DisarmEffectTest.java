@@ -11,11 +11,7 @@ import java.util.List;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds the
- * resolved targets, and a mocked {@link Sink} records one disarm intent per target —
- * verified with no server.
- */
+/** Mock-host effect test (docs/architecture.md §1.3): mocked EffectCtx in, Sink intents verified. */
 class DisarmEffectTest {
 
     @Test

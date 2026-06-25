@@ -45,18 +45,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The §B equipment-lifecycle + COMMAND trigger, proven live (docs/v3-directives.md §B, ADR-0022) — the Cosmic Enchants-style
- * start/stop lifecycle the engine otherwise lacks, which a unit test cannot prove because it depends on the
- * real {@code potion} / {@code removePotion} intents landing on a real player through the {@link
- * LifecycleDriver}/{@link TriggerDispatch} path on Paper AND Folia.
- *
- * <ul>
- *   <li>{@code lifecycle.heldBuffStartsOnEquip} — holding a HELD-trigger sword applies its potion (START).</li>
- *   <li>{@code lifecycle.heldBuffStopsOnUnequip} — putting the sword away removes that potion again (STOP),
- *       proving the deactivation half works (not just a fire-and-forget on equip).</li>
- *   <li>{@code lifecycle.commandFires} — running {@link TriggerDispatch#fireCommand} (the body of the
- *       configured /cast) fires the worn COMMAND enchant's effect.</li>
- * </ul>
+ * The §B equipment-lifecycle + COMMAND trigger, proven live (docs/v3-directives.md §B, ADR-0022): the
+ * start/stop lifecycle the engine otherwise lacks. Depends on real {@code potion}/{@code removePotion}
+ * intents landing on a real player through the {@link LifecycleDriver}/{@link TriggerDispatch} path on
+ * Paper and Folia — including the STOP half (removal on unequip, not fire-and-forget on equip).
  */
 public final class LifecycleSuite implements Harness.Scenario {
 
@@ -150,7 +142,7 @@ public final class LifecycleSuite implements Harness.Scenario {
                     return;
                 }
                 Scheduling.onEntity(p, () -> {
-                    // 1) Equip the Vigor sword and drive the lifecycle → START applies SPEED.
+                    // Equip Vigor → START applies SPEED.
                     p.getInventory().setItemInMainHand(vigorSword);
                     lifecycle.refresh(p, worn.refresh(p, holder.snapshot()));
                     Scheduling.onEntityLater(p, 10L, () -> {
@@ -159,7 +151,7 @@ public final class LifecycleSuite implements Harness.Scenario {
                                 throw new IllegalStateException("HELD buff did not apply on equip");
                             }
                         });
-                        // 2) Put the sword away and re-drive → STOP removes SPEED.
+                        // Unequip → STOP removes SPEED.
                         p.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
                         lifecycle.refresh(p, worn.refresh(p, holder.snapshot()));
                         Scheduling.onEntityLater(p, 10L, () -> {
@@ -168,7 +160,7 @@ public final class LifecycleSuite implements Harness.Scenario {
                                     throw new IllegalStateException("HELD buff was not removed on unequip");
                                 }
                             });
-                            // 3) Hold the Surge sword and fire COMMAND → REGENERATION applies.
+                            // Hold Surge and fire COMMAND → REGENERATION applies.
                             p.getInventory().setItemInMainHand(surgeSword);
                             worn.refresh(p, holder.snapshot());
                             dispatch.fireCommand(p);

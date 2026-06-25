@@ -18,10 +18,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Proves the engine↔compiler loop closes: the engine declares effect kinds, exposes
- * their specs + declared affinities through {@link EffectRegistry}, and the (pure)
- * compiler validates and folds against exactly those — without {@code se-compile}
- * depending on {@code se-engine} (docs/architecture.md §2.1, §3.6).
+ * The compiler validates and folds against engine-declared specs/affinities via {@link EffectRegistry},
+ * with no {@code se-compile} → {@code se-engine} dependency (docs/architecture.md §2.1, §3.6).
  */
 class EngineCompilerBridgeTest {
 

@@ -6,11 +6,11 @@ import java.util.Map;
 import schema.diag.Diagnostics;
 
 /**
- * The rarity-tier registry (ADR-0016 §2), read from {@code content/tiers.yml} — the single source of
- * tier ordering and presentation (lore colour, glint, GUI sort weight) and the default tier. It also
- * answers "is this subfolder a tier?" so the loader can derive a file's tier from its folder. Tiers are
- * data, never hard-coded in the compiler; when {@code tiers.yml} is absent a built-in default registry
- * (common → mythic) applies so the catalog still loads. Immutable.
+ * The rarity-tier registry (ADR-0016 §2), read from {@code content/tiers.yml} — the single source of tier
+ * ordering, presentation (lore colour, glint, GUI sort weight), and the default tier; it also answers
+ * "is this subfolder a tier?" so the loader can derive a file's tier from its folder. Tiers are data,
+ * never hard-coded in the compiler; absent {@code tiers.yml} falls back to {@link #BUILTIN} (common →
+ * mythic) so the catalog still loads. Immutable.
  */
 public final class TierRegistry {
 

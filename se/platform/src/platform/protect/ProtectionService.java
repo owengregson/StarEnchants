@@ -12,11 +12,10 @@ import org.bukkit.Location;
  * nothing to protect. A provider that throws is treated as "allow" and logged once, so a buggy bridge
  * degrades to permissive rather than blocking all enchant activity.
  *
- * <p>Pure and Bukkit-light: it holds an immutable provider list and calls them, nothing more. There is
- * deliberately NO per-tick cache — the providers list is usually tiny (often empty) and adding a
- * tick-scoped cache here was a correctness liability (a stalled global tick froze it stale) for a perf
- * win that belongs in a profiled hot-path pass, not the protection gate. Each provider is invoked on
- * the firing region's thread with the firing {@link Location} (see {@link ProtectionProvider}).
+ * <p>Deliberately NO per-tick cache: the provider list is usually tiny (often empty), and a tick-scoped
+ * cache here is a correctness liability (a stalled global tick freezes it stale) for a perf win that
+ * belongs in a profiled hot-path pass. Each provider is invoked on the firing region's thread with the
+ * firing {@link Location} (see {@link ProtectionProvider}).
  */
 public final class ProtectionService {
 

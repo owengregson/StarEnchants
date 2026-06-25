@@ -19,12 +19,9 @@ import schema.diag.Diagnostic;
 import tester.harness.Harness;
 
 /**
- * Validates the SHIPPED content catalog live (ADR-0014; §10): the whole {@code content/} tree is
- * extracted from the bundled {@code index.txt} manifest and compiled through the production compiler
- * with the REAL cross-version {@link RegistryResolvers}. Structural errors are caught at build time
- * by the bootstrap's {@code CatalogValidationTest}; this is the only place a handle-name typo (a
- * potion/particle/sound/entity token that does not resolve on THIS server version) is caught — and
- * it runs on every matrix target, so a token valid on one version but renamed on another is surfaced.
+ * Compiles the shipped content catalog live with the real {@link RegistryResolvers} (ADR-0014; §10).
+ * Only place a handle token that does not resolve on THIS server version is caught — runs on every
+ * matrix target, so a token renamed between versions is surfaced.
  */
 public final class CatalogSuite implements Harness.Scenario {
 
@@ -62,7 +59,7 @@ public final class CatalogSuite implements Harness.Scenario {
         });
     }
 
-    /** Extract the bundled {@code content/} resources (per index.txt) to a temp dir; returns the content root. */
+    /** Extracts the bundled {@code content/} resources (per index.txt) to a temp dir. */
     private Path extractCatalog() throws IOException {
         Path root = Files.createTempDirectory("se-catalog-suite").resolve("content");
         ClassLoader loader = getClass().getClassLoader();

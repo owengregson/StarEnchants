@@ -8,11 +8,10 @@ import platform.sched.SchedulerBackend;
 import platform.sched.TaskHandle;
 
 /**
- * A {@link SchedulerBackend} for WAIT tests. Immediate hops run inline (like {@link SyncSchedulerBackend}),
- * but every {@code *Later} hop is CAPTURED with its requested delay instead of run — so a test can assert a
- * {@code WAIT} tier was scheduled for the right tick and then fire it deliberately via {@link #runDelayed()},
- * proving the delayed batch neither ran early nor was lost. The repeating hops run inline (no WAIT test needs
- * a repeating timer).
+ * A {@link SchedulerBackend} for WAIT tests: immediate hops run inline, but every {@code *Later} hop is
+ * captured with its requested delay rather than run — so a test can assert a {@code WAIT} tier scheduled at
+ * the right tick, then fire it via {@link #runDelayed()} to prove the batch neither ran early nor was lost.
+ * Repeating hops run inline (no WAIT test needs a repeating timer).
  */
 public final class RecordingSchedulerBackend implements SchedulerBackend {
 

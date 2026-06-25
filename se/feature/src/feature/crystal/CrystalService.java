@@ -59,17 +59,14 @@ public final class CrystalService {
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
-    /** Whether {@code stack} is a physical crystal item. */
     public boolean isCrystal(ItemStack stack) {
         return codec.read(stack) != null;
     }
 
-    /** Whether {@code stack} is a crystal extractor item. */
     public boolean isExtractor(ItemStack stack) {
         return extractorCodec.isExtractor(stack);
     }
 
-    /** Mint a crystal extractor item from the configured likeness. */
     public ItemStack mintExtractor() {
         CrystalConfig cfg = config.get();
         ItemStack stack = ItemFactory.build(
@@ -80,18 +77,15 @@ public final class CrystalService {
         return stack;
     }
 
-    /** Mint a physical crystal item carrying {@code keys} (1 = single, 2 = multi) from the configured likeness. */
+    /** Mint a crystal carrying {@code keys} (1 = single, 2 = multi). */
     public ItemStack mint(List<String> keys) {
         return mint(new CrystalItemData(keys));
     }
 
     /**
-     * Mint a physical crystal item for {@code data}. A SINGLE crystal uses its own per-crystal likeness
-     * (material/name/lore from its {@link compile.load.CrystalDef}, §E — "the lore is different per
-     * crystal so they can explain their effects"), each field falling back to the shared
-     * {@link CrystalConfig} when the crystal omits it. A MERGED multi-crystal carries two effects that
-     * can't share one material, so it takes the shared likeness and concatenates each component's own
-     * lore — the item still explains both effects.
+     * Mint a crystal for {@code data}. A SINGLE uses its own per-crystal likeness (§E: distinct lore per
+     * crystal), each field falling back to the shared {@link CrystalConfig}. A MERGED multi can't share one
+     * material, so it takes the shared likeness and concatenates each component's lore.
      */
     public ItemStack mint(CrystalItemData data) {
         CrystalConfig cfg = config.get();
@@ -130,16 +124,11 @@ public final class CrystalService {
         return out;
     }
 
-    /**
-     * Handle a crystal-on-something gesture: the {@code cursor} is a crystal; if {@code target} is also a
-     * crystal it MERGES (pairs only), otherwise it APPLIES the crystal to {@code target} gear. Both stacks
-     * are mutated in place where applicable; the returned {@link CrystalResult} tells the listener what to
-     * commit. A {@code null} return-via-unchanged leaves both stacks untouched.
-     */
+    /** Crystal-on-something gesture: target crystal → MERGE (pairs only), else APPLY to gear. */
     public CrystalResult interact(ItemStack cursor, ItemStack target) {
         CrystalItemData crystal = codec.read(cursor);
         if (crystal == null) {
-            return CrystalResult.unchanged(null); // not a crystal — listener falls through (defensive)
+            return CrystalResult.unchanged(null); // defensive — listener falls through
         }
         CrystalItemData targetCrystal = codec.read(target);
         if (targetCrystal != null) {
@@ -172,9 +161,8 @@ public final class CrystalService {
     }
 
     /**
-     * Extract the most-recent crystal off {@code gear} using the extractor on the {@code cursor}: pop the
-     * gear's last crystal, mint it back as a whole crystal item to hand the player, and spend the extractor.
-     * A no-op (no consume) when the gear carries no crystal.
+     * Pop {@code gear}'s most-recent crystal, mint it back to hand the player, spend the extractor cursor.
+     * No-op (no consume) when the gear carries no crystal.
      */
     public CrystalResult extract(ItemStack cursor, ItemStack gear) {
         ExtractResult result = enchanter.extractCrystal(gear);

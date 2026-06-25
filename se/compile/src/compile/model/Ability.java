@@ -1,18 +1,16 @@
 package compile.model;
 
 /**
- * The source-erased, compiled unit of behavior — the central data structure of the
- * whole engine (docs/architecture.md §4.1). All five content sources lower to this
- * one immutable record; "this came from a crystal" is the {@link #sourceKind} tag
- * on an otherwise-identical struct. There is deliberately no {@code Effect} class
- * hierarchy: uniform handling is the only thing representable.
+ * The source-erased, compiled unit of behavior — the central engine data structure
+ * (docs/architecture.md §4.1). All five content sources lower to this one immutable record;
+ * "this came from a crystal" is the {@link #sourceKind} tag on an otherwise-identical struct.
+ * There is deliberately no {@code Effect} class hierarchy: uniform handling is the only thing
+ * representable.
  *
- * <p>Everything the hot path touches is a primitive, an interned id, or a bitset, so
- * gates are integer/bitset comparisons rather than string compares
- * (docs/architecture.md §3.3). The architecture spec types several of these fields
- * as {@code byte}/{@code short} for density; we use {@code int} for ergonomics — the
- * memory cost is negligible at catalog scale (thousands of abilities, not millions),
- * and §8 makes steady-state allocation, not field width, the bench-gated contract.
+ * <p>Every hot-path field is a primitive, interned id, or bitset, so gates are integer/bitset
+ * compares not string compares (§3.3). The spec types several fields as {@code byte}/{@code short}
+ * for density; we use {@code int} — negligible at catalog scale, and §8 bench-gates steady-state
+ * allocation, not field width.
  *
  * @param id             dense per-snapshot array index (NOT persisted; items resolve by stable key, §5.3)
  * @param defId          back-reference into the {@link SourceMap} for op-visible diagnostics
@@ -53,15 +51,12 @@ public record Ability(
         int suppressKey,
         int setPieces) {
 
-    /** @return {@code true} if this ability fires on the interned trigger id {@code triggerId}. */
     public boolean firesOn(int triggerId) {
         return (triggerMask & (1 << triggerId)) != 0;
     }
 
-    /** @return {@code true} if this ability is blocked in the interned world id {@code worldId}. */
     public boolean blockedInWorld(int worldId) {
-        // A world named in no blacklist interns to -1 at runtime — it is blocked by no ability.
-        // Guarding it also avoids the undefined {@code 1L << -1} (which Java masks to bit 63).
+        // worldId -1 (never blacklisted) must short-circuit: 1L << -1 wraps to bit 63 in Java.
         return worldId >= 0 && (worldBlacklist & (1L << worldId)) != 0;
     }
 }

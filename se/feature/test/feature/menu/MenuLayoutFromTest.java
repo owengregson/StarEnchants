@@ -29,10 +29,10 @@ class MenuLayoutFromTest {
                 OptionalInt.empty(), Optional.of("&aCustom"), Optional.of("RED_STAINED_GLASS_PANE"),
                 OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty()));
 
-        assertEquals("&aCustom", merged.titleTemplate());          // overridden
+        assertEquals("&aCustom", merged.titleTemplate());
         assertEquals("RED_STAINED_GLASS_PANE", merged.fillerMaterial());
-        assertEquals(6, merged.rows());                            // kept
-        assertEquals(45, merged.prevSlot());                       // kept
+        assertEquals(6, merged.rows());                            // absent override keeps the default
+        assertEquals(45, merged.prevSlot());
         assertEquals(53, merged.nextSlot());
         assertEquals(49, merged.closeSlot());
     }

@@ -16,11 +16,9 @@ import org.bukkit.persistence.PersistentDataType;
  * range; an unrecognised version is treated as empty and re-written modern on next mutation
  * (lazy migration, §4.3), never a crash.
  *
- * <p>The blob format is a pure, self-delimiting string and is exercised by unit tests
- * ({@link #encodeBlob}/{@link #decodeBlob}); the PDC/{@link ItemStack} adapters round-trip on a
- * real server across the mapping flip in the live matrix (PDC is stable Bukkit API since 1.14,
- * but the byte round-trip is verified, not assumed; §11). The blob lives in PDC as a
- * {@link PersistentDataType#STRING}.
+ * <p>The blob is a pure self-delimiting string (unit-tested via {@link #encodeBlob}/{@link #decodeBlob});
+ * the PDC/{@link ItemStack} round-trip is verified on a real server across the mapping flip, not assumed
+ * (§11). Stored in PDC as a {@link PersistentDataType#STRING}.
  *
  * <p>Format: {@code v1 US <label> US <payload> US <label> US <payload> …} where {@code US} is the
  * unit separator and each list payload joins entries with the record separator {@code RS}. Labels:
@@ -44,17 +42,14 @@ public final class CombatCodec {
         this.combatKey = combatKey;
     }
 
-    // ── ItemStack convenience (copy-on-write meta) ───────────────────────────────────────────
-
     /** Decode the combat state on {@code stack}, or {@link CombatState#EMPTY} if it has none. */
     public CombatState read(ItemStack stack) {
         return decode(readBlob(stack));
     }
 
     /**
-     * The raw stored combat blob on {@code stack}, or {@code null} if it carries none. This is the
-     * {@code ItemView} cache key — the full content, read without paying the decode (§5.2). Reading
-     * the blob still clones the copy-on-write meta, but the parse it feeds is what the cache elides.
+     * The raw stored combat blob on {@code stack}, or {@code null} if it carries none — the
+     * {@code ItemView} cache key, read without paying the decode the cache elides (§5.2).
      */
     public String readBlob(ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) {
@@ -72,8 +67,6 @@ public final class CombatCodec {
         write(meta.getPersistentDataContainer(), state);
         stack.setItemMeta(meta);
     }
-
-    // ── PDC level ────────────────────────────────────────────────────────────────────────────
 
     /** Decode the combat state from a container, or {@link CombatState#EMPTY} if absent. */
     public CombatState read(PersistentDataContainer pdc) {
@@ -103,8 +96,6 @@ public final class CombatCodec {
             pdc.set(combatKey, PersistentDataType.STRING, encodeBlob(state));
         }
     }
-
-    // ── Pure blob format (unit-tested; Bukkit-free) ──────────────────────────────────────────
 
     /** Serialise a non-empty {@link CombatState} to its compact stable-key blob. */
     static String encodeBlob(CombatState state) {

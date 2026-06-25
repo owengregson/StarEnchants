@@ -5,51 +5,30 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Per-player stacking charge counters: an interned ability id &rarr; a count and its
- * expiry tick (docs/architecture.md §5.4). Replaces the per-effect maps the originals
- * keep for Rage-style ramps (a Cosmic Enchants-style {@code Rage} stack, per-effect counters), each
- * of which leaked its own unbounded {@code HashMap}.
+ * Per-player stacking charge counters for Rage-style ramps: interned ability id &rarr; count + expiry
+ * tick (docs/architecture.md §5.4).
  *
- * <p>A charge is a count that climbs toward a {@code max} on each {@link #increment} and
- * is reset to zero once it sits idle for longer than its TTL — so a player who keeps
- * triggering an ability builds the stack, and one who stops loses it. The TTL window is
- * sliding: every {@link #increment} refreshes the expiry, so only a genuine pause lets a
- * charge lapse.
+ * <p>The TTL window is sliding — every {@link #increment} refreshes the expiry, so only a genuine pause
+ * lets a charge lapse and reset to zero.
  *
- * <p>Concurrent and UUID-keyed for Folia (any region thread may touch a player's charges),
- * and TTL-evicting: an elapsed entry is dropped lazily on the next access to
- * {@link #count}/{@link #increment}, so the maps stay bounded without a sweeper. Cleared
- * per ability on {@link #reset}, per player on {@link #clear} (quit), and wholesale on
- * {@link #clearAll} (disable).
- *
- * <p>Time is an explicit tick count supplied by the caller (the current server/region
- * tick), never wall-clock — so behaviour is deterministic and Folia-correct, and the
- * store is unit-testable without a server.
+ * <p>Concurrent, UUID-keyed (Folia: any region thread). TTL-evicting: an elapsed entry is dropped lazily
+ * on the next {@link #count}/{@link #increment}, so the maps stay bounded without a sweeper. Time is an
+ * explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, server-free to test.
  */
 public final class ChargeStore {
 
     private final Map<UUID, Map<Integer, Charge>> chargesByPlayer = new ConcurrentHashMap<>();
 
-    /**
-     * One ability's charge: its current {@code count} and the tick at or after which the
-     * count is considered lapsed. Immutable, so an update replaces it atomically rather
-     * than mutating it in place — no torn reads from another region thread.
-     */
+    /** Immutable so an update replaces it atomically — no torn reads from another region thread. */
     private record Charge(int count, long expiry) {
     }
 
     /**
      * Add one to {@code abilityId}'s charge for {@code player} and return the new count.
      *
-     * <p>If the entry is absent or already elapsed ({@code nowTicks >= expiry}) the count
-     * restarts from zero, so a lapsed stack does not resume mid-ramp. The new count is
-     * {@code min(count + 1, max)} clamped to never drop below zero, and the expiry is
-     * refreshed to {@code nowTicks + ttlTicks} — a sliding window that keeps an actively
-     * triggered charge alive.
-     *
-     * <p>A {@code max} below one (or a non-positive {@code ttlTicks}) cannot hold a charge:
-     * the count is clamped to zero and nothing is stored, so the call is a no-op that
-     * reports {@code 0}.
+     * <p>A lapsed entry ({@code nowTicks >= expiry}) restarts from zero rather than resuming mid-ramp;
+     * the new count is {@code min(count + 1, max)} and the expiry slides to {@code nowTicks + ttlTicks}.
+     * A {@code max < 1} or non-positive {@code ttlTicks} holds nothing — no-op returning {@code 0}.
      */
     public int increment(UUID player, int abilityId, int max, long nowTicks, int ttlTicks) {
         Map<Integer, Charge> charges =
@@ -64,7 +43,7 @@ public final class ChargeStore {
             next = 0;
         }
         if (next == 0 || ttlTicks <= 0) {
-            // No charge can be held: don't plant a doomed entry, and drop any prior one.
+            // No charge can be held: drop any prior entry rather than plant a doomed one.
             charges.remove(abilityId);
             return 0;
         }

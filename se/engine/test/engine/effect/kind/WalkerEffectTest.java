@@ -12,10 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code WALKER}: it emits one {@code tempPlatform} intent per target at the target's
- * location, mapping the {@code replace} enum to the Sink's 0/1/2 mode.
- */
+/** Mock-host WALKER test: pins the {@code replace} enum → Sink 0/1/2 mode mapping (one tempPlatform per target). */
 class WalkerEffectTest {
 
     private static EffectCtx ctx(String replace, Location loc, LivingEntity who) {

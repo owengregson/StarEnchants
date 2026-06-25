@@ -6,10 +6,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Marks / detects an UNOPENED / RANDOMIZED book (docs/v3-directives.md §I) and stores the rarity tier it
- * is scoped to. Right-clicking it yields a concrete enchant book of a random enchant from that tier. The
- * tier is a PDC {@code STRING} under {@link ItemKeys#unopened()}, separate from the combat blob (identity,
- * never on the hot path). Reading is null-safe.
+ * Marks / detects an UNOPENED / RANDOMIZED book (§I), storing the tier it is scoped to as a PDC
+ * {@code STRING} under {@link ItemKeys#unopened()}, off the combat hot path. Reading is null-safe.
  */
 public final class UnopenedBookCodec {
 

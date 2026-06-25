@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Pins the gate decision of {@link SuperiorSkyblockProvider} against a mocked {@code Island}: off any island,
  * or with no resolvable BUILD privilege, allows everything; on an island the actor's BUILD privilege decides.
- * End-to-end with real SuperiorSkyblock is verified on a SuperiorSkyblock server out-of-matrix
- * (docs/decisions/0027).
+ * End-to-end with real SuperiorSkyblock is verified out-of-matrix (docs/decisions/0027).
  */
 class SuperiorSkyblockProviderTest {
 
