@@ -396,7 +396,7 @@ scripts/setup-dev.sh          # prereqs + git hooks + build (idempotent)
 
 <p align="center"><img src="assets/headers/license.svg" height="54" alt="License"></p>
 
-Released under the terms in the [LICENSE](LICENSE) file.
+Released under the **GNU Affero General Public License v3.0** (AGPL-3.0) — see [LICENSE](LICENSE).
 
 <br>
 <p align="center"><img src="assets/divider.svg" height="22" alt="✦"></p>
