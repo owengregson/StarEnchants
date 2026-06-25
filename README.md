@@ -70,7 +70,7 @@ WorldGuard, Towny, Lands, SuperiorSkyblock, Factions, Vault, PlaceholderAPI, Men
 <td width="50%" valign="top">
 <img src="assets/icons/migrator.svg" width="40" alt="Migrator"><br>
 <b>Built-in migrator</b><br>
-Bring your existing enchantment &amp; armor configs over from other popular plugins straight into the unified schema — one command, <code>/se migrate</code>.
+Bring your existing EliteEnchantments, EliteArmor &amp; AdvancedEnchantments configs straight into the unified schema — one command, <code>/se migrate</code>.
 </td>
 </tr>
 </table>
@@ -105,7 +105,7 @@ Everything lives under one root command — **`/se`**. Tab-completion guides eve
 | `/se give <type> <player> …` | Give any item — books, scrolls, dust, gems, orbs, crystals, sets, heroics — to a player |
 | `/se menu [name]` | Open an in-game GUI (enchanter, alchemist, tinkerer, transmog, browsers) |
 | `/se pack <list\|info\|apply\|export>` | Manage config-pack snapshots of your whole setup |
-| `/se migrate <ee\|ea\|ae> <path>` | Import configs from another enchantment / armor plugin into the unified schema |
+| `/se migrate <ee\|ea\|ae> <path>` | Import EliteEnchantments, EliteArmor or AdvancedEnchantments configs into the unified schema |
 | `/se effects` · `triggers` · `selectors` · `conditions` · `variables` · `list` | Browse the live DSL reference in chat |
 
 > `/se` is gated by `starenchants.admin` (default: **op**); individual GUIs can declare their own permission node.
@@ -349,7 +349,7 @@ Every player-facing string is a dotted key in `lang.yml` (`command.*`, `apply.*`
 
 ### Migrating from another plugin
 
-Coming from another enchantment or armor plugin? `/se migrate <ee|ea|ae> <path>` reads that plugin's config, maps it onto the unified DSL, and writes ready-to-review YAML into `plugins/StarEnchants/migrated/`. It never overwrites your live content and flags anything it can't translate cleanly, so you review the output before promoting it into `content/`.
+Coming from **EliteEnchantments** (`ee`), **EliteArmor** (`ea`), or **AdvancedEnchantments** (`ae`)? `/se migrate <ee|ea|ae> <path>` reads that plugin's config, maps it onto the unified DSL, and writes ready-to-review YAML into `plugins/StarEnchants/migrated/`. It never overwrites your live content and flags anything it can't translate cleanly, so you review the output before promoting it into `content/`.
 
 <br>
 

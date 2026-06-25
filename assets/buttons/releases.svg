@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="181" height="52" viewBox="0 0 181 52" role="img" aria-label="All releases">
-  <rect x="2" y="2" width="177" height="48" rx="24" fill="#ECE0FF"></rect>
-  <text x="22" y="27" font-family="&#39;Trebuchet MS&#39;,&#39;Segoe UI&#39;,system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#6B4E97" dominant-baseline="central">All releases  →</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="147" height="52" viewBox="0 0 147 52" role="img" aria-label="All releases">
+  <rect x="2" y="2" width="143" height="48" rx="24" fill="#ECE0FF"></rect>
+  <text x="22" y="27" font-family="&#39;Trebuchet MS&#39;,&#39;Segoe UI&#39;,system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#6B4E97" dominant-baseline="central">All releases</text>
+  <g transform="translate(118 27)"><path d="M-6 0 H6 M2 -4 L6 0 L2 4" fill="none" stroke="#6B4E97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g>
 </svg>

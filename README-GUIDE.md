@@ -71,10 +71,11 @@ Open `assets/headers/<name>.svg`. Near the bottom is one line:
 
 Edit the text. **If the new title is noticeably longer/shorter**, also widen/narrow the pill so it
 isn't clipped or over-padded: bump the three numbers that depend on width — the root `width=` /
-`viewBox` last value, and the pill `<rect … width=>`. The pills are sized to the **measured** text
-advance (Trebuchet MS Bold at 25px), with the title starting at `x=72` and ~18px of padding out to
-the pill's right edge. Rough formula: `pillWidth ≈ 85 + (titleChars × 12.5)`, and
-`svgWidth ≈ pillWidth + 14`. (Or just regenerate, §7.)
+`viewBox` last value, and the pill `<rect … width=>`. Pills are **balanced**: the gap from the pill's
+left edge to the icon chip (12px) equals the gap from the title's right edge to the pill's right edge.
+Widths come from the measured text-ink advance (Trebuchet MS Bold @25px) with the title at `x=72`.
+Rough formula: `pillWidth ≈ 78 + (titleChars × 12.5)`, and `svgWidth ≈ pillWidth + 12`. (Or just
+regenerate, §7.)
 
 ---
 
