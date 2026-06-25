@@ -1,0 +1,525 @@
+/* Enchant-creator styles. Brand identity: pink #FF9FCF -> purple #B98CFF,
+   ink #5B3E8E. We lean on Infima theme vars for surfaces/text so dark mode
+   works, and add brand accents locally (this module only, never custom.css). */
+
+.creator {
+  /* brand tokens, scoped to the creator */
+  --se-pink: #ff9fcf;
+  --se-purple: #b98cff;
+  --se-ink: #5b3e8e;
+  --se-accent: var(--se-purple);
+
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.intro {
+  margin: 0 0 1.5rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 0.35rem;
+  background: linear-gradient(90deg, var(--se-pink), var(--se-purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  color: var(--ifm-color-emphasis-700);
+  margin: 0;
+  max-width: 60ch;
+}
+
+/* two-column layout: builder on the left, sticky output on the right */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 996px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  min-width: 0;
+}
+
+.outputColumn {
+  position: sticky;
+  top: calc(var(--ifm-navbar-height) + 1rem);
+}
+
+@media (max-width: 996px) {
+  .outputColumn {
+    position: static;
+  }
+}
+
+/* --- cards / panels --- */
+.panel {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  background: var(--ifm-background-surface-color);
+  padding: 1.1rem 1.25rem 1.25rem;
+  margin: 0 0 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.9rem;
+}
+
+.panelTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--se-ink);
+}
+
+:global([data-theme='dark']) .panelTitle {
+  color: #d6bcff;
+}
+
+/* --- form fields --- */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1rem;
+}
+
+@media (max-width: 600px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.required {
+  color: #d6336c;
+  margin-left: 0.15rem;
+}
+
+.hint {
+  font-size: 0.74rem;
+  color: var(--ifm-color-emphasis-600);
+  line-height: 1.4;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.42rem 0.55rem;
+  border-radius: 7px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  box-sizing: border-box;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--se-purple);
+  box-shadow: 0 0 0 3px rgba(185, 140, 255, 0.25);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 3.5rem;
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.inputError {
+  border-color: #e03131 !important;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 3px rgba(224, 49, 49, 0.2);
+}
+
+.errorText {
+  font-size: 0.74rem;
+  color: #e03131;
+}
+
+:global([data-theme='dark']) .errorText {
+  color: #ff8787;
+}
+
+/* --- multiselect chips for applies-to --- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-emphasis-800);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.chip:hover {
+  border-color: var(--se-purple);
+}
+
+.chipActive {
+  background: linear-gradient(90deg, var(--se-pink), var(--se-purple));
+  border-color: transparent;
+  color: #fff;
+}
+
+.customChipRow {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.customChipRow .input {
+  max-width: 12rem;
+}
+
+/* --- buttons --- */
+.btn {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.42rem 0.85rem;
+  border-radius: 7px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--se-purple);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnPrimary {
+  background: linear-gradient(90deg, var(--se-pink), var(--se-purple));
+  border-color: transparent;
+  color: #fff;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  filter: brightness(1.05);
+  border-color: transparent;
+}
+
+.btnSmall {
+  font-size: 0.76rem;
+  padding: 0.25rem 0.55rem;
+}
+
+.btnIcon {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.45rem;
+  line-height: 1;
+}
+
+.btnDanger {
+  color: #e03131;
+}
+
+.btnDanger:hover:not(:disabled) {
+  border-color: #e03131;
+}
+
+/* --- levels & effects --- */
+.level {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-left: 3px solid var(--se-purple);
+  border-radius: 10px;
+  background: var(--ifm-background-color);
+  padding: 0.9rem 1rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.levelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.levelBadge {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--se-ink);
+}
+
+:global([data-theme='dark']) .levelBadge {
+  color: #d6bcff;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.effect {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 9px;
+  background: var(--ifm-background-surface-color);
+  padding: 0.75rem 0.85rem 0.85rem;
+  margin: 0.6rem 0;
+}
+
+.effectHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.effectHeader .select {
+  flex: 1;
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+}
+
+.effectDoc {
+  font-size: 0.78rem;
+  color: var(--ifm-color-emphasis-700);
+  margin: 0 0 0.6rem;
+  line-height: 1.45;
+}
+
+.paramGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem 0.75rem;
+}
+
+.targetBlock {
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--ifm-color-emphasis-200);
+}
+
+.targetLabel {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ifm-color-emphasis-700);
+  margin: 0 0 0.45rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.targetToken {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  background: rgba(185, 140, 255, 0.15);
+  color: var(--se-ink);
+  padding: 0.05rem 0.4rem;
+  border-radius: 5px;
+}
+
+:global([data-theme='dark']) .targetToken {
+  color: #d6bcff;
+}
+
+.emptyHint {
+  font-size: 0.82rem;
+  color: var(--ifm-color-emphasis-600);
+  font-style: italic;
+  margin: 0.3rem 0 0.6rem;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.checkboxRow input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--se-purple);
+}
+
+/* --- output panel --- */
+.codeBlock {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre;
+  overflow: auto;
+  max-height: 380px;
+  background: var(--ifm-code-background, var(--ifm-color-emphasis-100));
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  margin: 0;
+}
+
+.importCode {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--ifm-code-background, var(--ifm-color-emphasis-100));
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  margin: 0;
+  max-height: 160px;
+  overflow: auto;
+}
+
+.outputActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.codeMeta {
+  font-size: 0.74rem;
+  color: var(--ifm-color-emphasis-600);
+  margin: 0.4rem 0 0;
+}
+
+/* validation summary banner */
+.validBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.84rem;
+  margin: 0 0 0.9rem;
+}
+
+.validOk {
+  background: rgba(64, 192, 87, 0.12);
+  color: #2b8a3e;
+  border: 1px solid rgba(64, 192, 87, 0.3);
+}
+
+:global([data-theme='dark']) .validOk {
+  color: #69db7c;
+}
+
+.validWarn {
+  background: rgba(255, 169, 77, 0.12);
+  color: #b5520b;
+  border: 1px solid rgba(255, 169, 77, 0.35);
+}
+
+:global([data-theme='dark']) .validWarn {
+  color: #ffc078;
+}
+
+.issueList {
+  margin: 0.3rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.8rem;
+}
+
+.issueList li {
+  margin: 0.1rem 0;
+}
+
+/* import box */
+.importRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.copied {
+  color: #2b8a3e;
+  font-weight: 600;
+}
+
+:global([data-theme='dark']) .copied {
+  color: #69db7c;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+
+.tabRow {
+  display: flex;
+  gap: 0.3rem;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.tab {
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: none;
+  color: var(--ifm-color-emphasis-600);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabActive {
+  color: var(--se-ink);
+  border-bottom-color: var(--se-purple);
+}
+
+:global([data-theme='dark']) .tabActive {
+  color: #d6bcff;
+}
