@@ -1,0 +1,143 @@
+---
+id: conditions
+title: Conditions & variables
+description: Gate an ability on game state with %scope.name% variables, comparison operators, and flow/chance clauses — with a cookbook of real examples.
+slug: /reference/conditions
+sidebar_position: 4
+---
+
+import {
+  RelationalOperators,
+  StringOperators,
+  FlowClauses,
+  VariableTables,
+} from '@site/src/components/reference/ConditionTables';
+
+# Conditions & variables
+
+A **condition** is a small boolean expression you add to a level with the `condition:` key. When the condition is **false**, the ability is gated out — it simply doesn't run. When it's **true**, the ability proceeds (then its `chance:` roll happens as usual).
+
+```yaml
+levels:
+  1:
+    chance: 100
+    condition: "%actor.healthpercent% < 30"   # only when you're below 30% HP
+    effects:
+      - "POTION:REGENERATION:2:100"
+```
+
+Conditions are built from three pieces:
+
+1. **Variables** — `%scope.name%` placeholders that read live game state (your health, the victim's type, the weather…).
+2. **Operators** — compare those variables (`<`, `==`, `contains`, …).
+3. **Glue** — combine clauses with `&&` (and), `||` (or), `!` (not), and `( )` for grouping.
+
+## Variables: `%scope.name%`
+
+Every fact you can read is written between percent signs. Most are **scoped** by a prefix (`actor.`, `victim.`, `world.`, `block.`); a handful of bare combat/state facts have no prefix at all.
+
+:::note Scope means "whose fact?"
+`%actor.health%` is *your* health; `%victim.health%` is the health of the entity you hit. The `victim.` and bare combat facts (`%combo%`, `%damage%`, `%distance%`…) only carry meaning on combat triggers (`ATTACK`, `DEFENSE`, `KILL`). On a non-combat trigger there's no victim to read.
+:::
+
+Variables come in three flavours: **numbers** (compare with `<`, `>`, `==`, …), **text** (compare with `==`, `contains`, `matchesregex`), and **true/false** flags (use them on their own, e.g. `%sneaking%`, or negate with `!%sneaking%`).
+
+<VariableTables />
+
+:::tip Variables work in messages and `SET_VAR` too
+The same `%name%` placeholders expand inside a `MESSAGE` effect and as the value of a `SET_VAR`. So you can do `MESSAGE:&7You hit %victim.type% for %damage%` or stash a fact for a later condition.
+:::
+
+## Operators
+
+### Comparing numbers and values
+
+<RelationalOperators />
+
+### Comparing text
+
+<StringOperators />
+
+Text comparisons are handy for things like the held item or mob type:
+
+```yaml
+condition: "%actor.helditem% contains DIAMOND"
+condition: "%victim.type% == ZOMBIE"
+```
+
+## Combining clauses
+
+Glue clauses together with the usual boolean operators, and group with parentheses:
+
+| Glue | Meaning |
+| --- | --- |
+| `&&` | **and** — both sides must be true |
+| <code>&#124;&#124;</code> | **or** — either side may be true |
+| `!` | **not** — flip a clause |
+| `( )` | group, to control precedence |
+
+```yaml
+# Below half health AND either sneaking or it's night
+condition: "%actor.healthpercent% < 50 && (%sneaking% || %world.time% > 13000)"
+```
+
+## Flow & chance clauses
+
+Sometimes you don't want a plain gate — you want the condition to *change the outcome* instead of just blocking it. For that, end the condition with a clause shaped `<test> : <outcome>`: the **outcome** is applied only when the **test** is true.
+
+<FlowClauses />
+
+A bare condition with no clause is just a gate (false = stop). Adding a clause lets you nudge the chance roll or override it:
+
+```yaml
+# Base 20% chance, but when you're below 25% HP, force it through.
+chance: 20
+condition: "%actor.healthpercent% < 25 : %force%"
+
+# Base 10% chance, +40 points while sneaking (so 50% when sneaking).
+chance: 10
+condition: "%sneaking% : +40 %chance%"
+
+# Never fire on players in creative.
+condition: "%actor.gamemode% == CREATIVE : %stop%"
+```
+
+:::tip `%force%` vs `%allow%`
+`%force%` makes the ability fire **and** skips the chance roll entirely. `%allow%` lets it through *regardless* of the chance roll but still respects everything else. Use `%force%` for "this absolutely must happen now," `%allow%` for "don't let the dice block this one."
+:::
+
+## Cookbook
+
+A few complete, copy-pasteable conditions:
+
+```yaml
+# Execute: only against low-health victims.
+condition: "%victim.healthpercent% < 20"
+
+# Combo finisher: reward sustained melee.
+condition: "%combo% >= 5"
+
+# Crowd control: only when outnumbered.
+condition: "%nearbyenemies% >= 3"
+
+# Stormcaller: only fires during a thunderstorm.
+condition: "%world.thundering%"
+
+# Sniper bonus: long-range hits only.
+condition: "%distance% > 25"
+
+# Anti-cheese: skip if the victim is blocking, otherwise normal roll.
+condition: "%victim.blocking% : %stop%"
+
+# Aerial: airborne and gliding with elytra.
+condition: "!%onground% && %gliding%"
+
+# Tank stance: heavy bonus while sneaking and full HP.
+chance: 5
+condition: "%sneaking% && %actor.health% == %actor.maxhealth% : +60 %chance%"
+```
+
+## See also
+
+- [Effects](./effects.mdx) — what runs once a condition passes (`SET_VAR` / `MESSAGE` read these variables too).
+- [Triggers](./triggers.mdx) — which variables are meaningful depends on the trigger.

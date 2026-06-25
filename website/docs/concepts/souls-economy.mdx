@@ -1,0 +1,47 @@
+---
+id: souls-economy
+title: Souls economy
+sidebar_position: 5
+description: The soul gem, banking souls on kills, and spending them on enchants.
+---
+
+# The souls economy
+
+**Souls** are a currency you earn by killing, banked inside a **soul gem**, and spent by enchants
+that demand them. They give you a way to gate powerful effects behind a resource the player has to
+grind for.
+
+## The soul gem
+
+A soul gem is a distinct item players carry. It has two jobs:
+
+- **It banks souls.** With `souls.deposit-on-any-kill` enabled (the default), every kill deposits
+  souls into the carried gem — `souls-per-kill` by default, with optional per-mob overrides (a
+  Wither might be worth 100, a player 10).
+- **It is a spend switch.** Right-click the gem to toggle **soul mode** on or off. Souls only get
+  *spent* while soul mode is on — that is the gate that lets `soul-cost` enchants and the
+  `REMOVE_SOULS` effect draw from your balance.
+
+The gem's lore shows the running total, color-coded by tier (white → green → aqua → pink as the
+count climbs).
+
+## Combining and splitting
+
+Drag one gem onto another to **combine** them — their souls sum into a single gem. Use
+`/se split <amount>` to carve some souls off into a fresh gem. This makes souls tradeable and
+storable.
+
+## Spending souls
+
+An enchant can charge a `soul-cost` per activation, and the `REMOVE_SOULS` effect can debit a
+balance directly. Either way, the player must be in soul mode with enough souls banked, or the
+spend is a no-op and the enchant simply doesn't fire.
+
+## Related concepts
+
+- **[The soul gem item](../items/soul-gems.mdx)** — full config: per-mob values, colors, sounds,
+  particles.
+- **[Configuring an enchant](../configuring/index.mdx)** — adding a `soul-cost` to a level.
+
+The master deposit switch lives at `souls.deposit-on-any-kill` in
+[config.yml](../configuring/index.mdx); the rest of the soul economy is the gem's own item file.

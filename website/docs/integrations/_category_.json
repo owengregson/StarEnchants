@@ -1,0 +1,8 @@
+{
+  "label": "Integrations",
+  "position": 80,
+  "link": {
+    "type": "doc",
+    "id": "integrations/index"
+  }
+}

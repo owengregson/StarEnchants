@@ -1,0 +1,135 @@
+---
+id: scrolls
+title: Scrolls
+sidebar_position: 2
+description: White, holy-white, black, transmog, godly transmog, and randomizer scrolls.
+---
+
+# Scrolls
+
+The **scroll family** is a set of single-purpose tools players drag onto gear (or books) to protect,
+rework, or reroll it. Each is one file under `items/`. Result messages for every scroll live in
+`lang.yml`.
+
+## White Scroll
+
+`items/white-scroll.yml` · `type: white-scroll`
+
+Drag onto gear to **protect it from enchant destruction**: it stamps a one-shot guard so the *next*
+failed enchant apply spares the item instead of shattering it.
+
+```yaml
+type: white-scroll
+material: PAPER
+name: "&fWhite Scroll"
+lore:
+  - "&7Protects an item — a failed"
+  - "&7enchant will spare it once."
+```
+
+:::note Only matters with `destroy-on-fail`
+A White Scroll only does anything when a sub-100% [book](./enchant-books.mdx) could shatter your gear.
+If `destroy-on-fail` is `false`, it has nothing to guard against.
+:::
+
+## Holy White Scroll
+
+`items/holy-white-scroll.yml` · `type: holy-white-scroll`
+
+Carry it (inventory or off-hand) and, on death, with a save-chance roll it **keeps your items and
+levels** — consumed on the saved death. It respects an existing `keepInventory` gamerule (then it is
+neither needed nor spent).
+
+```yaml
+type: holy-white-scroll
+material: TOTEM_OF_UNDYING
+name: "&fHoly White Scroll"
+lore:
+  - "&7Keep your items if you die"
+  - "&7while carrying this (one use)."
+save-chance: 100               # 0–100; 100 = always saves while carried
+```
+
+:::tip White vs. Holy White
+The **White Scroll** protects one item from *enchant destruction*. The **Holy White Scroll** keeps
+*all* your items on *death*. They are different items for different problems.
+:::
+
+## Black Scroll
+
+`items/black-scroll.yml` · `type: black-scroll`
+
+Drag onto enchanted gear to **extract one random enchant into a book**, rolling `success-chance`. On
+failure the scroll is spent and nothing is extracted.
+
+```yaml
+type: black-scroll
+material: INK_SAC
+name: "&8Black Scroll"
+lore:
+  - "&7Drag onto enchanted gear to"
+  - "&7extract one enchant into a book."
+success-chance: 80             # 0–100; on a miss the scroll is consumed, nothing extracted
+```
+
+## Transmog Scroll
+
+`items/transmog-scroll.yml` · `type: transmog-scroll`
+
+Drag onto enchanted gear to **reorder its enchant lore** (cosmetic only — combat is order-independent)
+and append a suffix to the item name.
+
+```yaml
+type: transmog-scroll
+material: PURPLE_DYE
+name: "&5Transmog Scroll"
+lore:
+  - "&7Drag onto enchanted gear to"
+  - "&7reorder its enchant display."
+name-suffix: " &8(Transmogged)"   # appended to the name (only if it already has a custom name)
+```
+
+## Godly Transmog
+
+`items/godly-transmog.yml` · `type: godly-transmog`
+
+A **reusable tool** (not a one-shot scroll): drag onto enchanted gear to open a GUI where you arrange
+the enchant display order *by hand*. Where the Transmog Scroll shuffles randomly, this lets you pick.
+
+```yaml
+type: godly-transmog
+material: NETHER_STAR
+name: "&5Godly Transmog"
+lore:
+  - "&7Drag onto enchanted gear to"
+  - "&7reorder its enchants by hand."
+```
+
+## Randomizer Scroll
+
+`items/randomizer-scroll.yml` · `type: randomizer-scroll`
+
+Drag onto an **enchant book** to reroll its success chance to a random value in
+`[min-percent, max-percent]`.
+
+```yaml
+type: randomizer-scroll
+material: SUGAR
+name: "&eRandomizer Scroll"
+lore:
+  - "&7Drag onto an enchant book to"
+  - "&7reroll its success chance."
+min-percent: 25                # the new chance rolls uniformly in [min, max], each 0–100
+max-percent: 100
+```
+
+## Minting & giving
+
+```text
+/se whitescroll        /se give whitescroll <player>
+/se holy               /se give holy <player>
+/se blackscroll        /se give blackscroll <player>
+/se transmog           /se give transmog <player>
+/se godlytransmog      /se give godlytransmog <player>
+/se randomizer         /se give randomizer <player>
+```

@@ -1,0 +1,71 @@
+---
+id: index
+slug: /migrating
+title: Migrating from another plugin
+sidebar_position: 0
+description: Bring existing EliteEnchantments, EliteArmor, and AdvancedEnchantments configs into the unified schema.
+---
+
+# Migrating from another plugin
+
+Already running an enchantments plugin? The built-in **migrator** reads that plugin's config, maps it
+onto StarEnchants' unified DSL, and writes ready-to-review YAML for you. One command, no manual
+rewriting.
+
+The migrator understands three source formats:
+
+| Source | `/se migrate` arg |
+| --- | --- |
+| **EliteEnchantments** | `ee` |
+| **EliteArmor** | `ea` |
+| **AdvancedEnchantments** | `ae` |
+
+## The command
+
+```text
+/se migrate <ee|ea|ae> <path>
+```
+
+- `<ee|ea|ae>` — which source format to read.
+- `<path>` — the path to that plugin's config (a file or directory, depending on the source).
+
+## The workflow
+
+1. **Run the migrator.** Point it at the other plugin's config:
+
+   ```text
+   /se migrate ae plugins/AdvancedEnchantments/enchantments
+   ```
+
+2. **Review the output.** The migrator writes translated YAML into
+   `plugins/StarEnchants/migrated/` — it **never overwrites your live content**. Anything it can't
+   translate cleanly is flagged so you can see exactly what needs a human eye.
+
+3. **Promote what you want.** Once you've reviewed the migrated files, move the ones you want into
+   `content/enchants/`, `content/sets/`, or `content/crystals/`.
+
+4. **Reload.** Run `/se reload --dry-run` to validate, then `/se reload` to go live.
+
+:::tip Imported content lands in the unified schema
+The migrator's output is ordinary StarEnchants YAML — the exact same
+[enchant](../configuring/index.mdx#an-annotated-enchant) /
+[set](../configuring/index.mdx#defining-a-set) /
+[crystal](../configuring/index.mdx#defining-a-crystal) schema you'd write by hand. There is no
+ongoing "compatibility mode": once migrated, it's just StarEnchants content, with the full effect
+engine and reference behind it.
+:::
+
+:::warning Always review before promoting
+Source formats differ in subtle ways (level scaling, trigger names, effect parameters). The migrator
+does a faithful best-effort translation and flags the rest, but a quick read of the `migrated/` output
+— especially anything flagged — saves surprises in live combat. Use `/se reload --dry-run` to catch
+any leftover schema issues before swapping.
+:::
+
+## After migrating
+
+- Polish the migrated enchants against the [DSL reference](/docs/reference/effects) — you may find
+  effects or selectors that express the original intent more cleanly.
+- Re-tier and re-group as you like; tiers and groups are cosmetic/organizational and never part of an
+  item's identity.
+- Edit any migrated enchant visually in the [Enchant Creator](/creator).

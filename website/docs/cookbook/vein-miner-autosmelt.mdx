@@ -1,0 +1,65 @@
+---
+id: vein-miner-autosmelt
+title: Vein-miner + auto-smelt
+sidebar_position: 4
+description: Break a whole ore vein and smelt the drops in one swing.
+---
+
+# Vein-miner + auto-smelt
+
+A pickaxe enchant that breaks an entire connected ore vein and smelts the results — ore becomes ingots,
+sand becomes glass. This recipe shows the **`MINE`** trigger and block-shape selectors.
+
+```yaml
+# content/enchants/vein-miner.yml
+tier: legendary
+display: "&6Vein Miner"
+description: "Break a whole ore vein and smelt the drops."
+trigger: MINE
+applies-to: [PICKAXE]
+group: mining
+levels:
+  1:
+    chance: 100
+    cooldown: 20
+    effects:
+      - { BREAK_BLOCK: { drops: true, who: "@Vein{limit=16}" } }
+      - { SMELT: {} }
+      - { PARTICLE: { particle: FLAME, count: 6 } }
+  2:
+    chance: 100
+    cooldown: 10
+    effects:
+      - { BREAK_BLOCK: { drops: true, who: "@Vein{limit=32}" } }
+      - { SMELT: {} }
+      - { PARTICLE: { particle: FLAME, count: 8 } }
+  3:
+    chance: 100
+    effects:
+      - { BREAK_BLOCK: { drops: true, who: "@Vein{limit=64}" } }
+      - { SMELT: {} }
+      - { TELEPORT_DROPS: {} }
+      - { PARTICLE: { particle: FLAME, count: 10 } }
+```
+
+## How it works
+
+- **`trigger: MINE`** fires when you break a block.
+- **`BREAK_BLOCK` with `who: "@Vein{limit=N}"`** breaks up to N blocks contiguous with — and matching
+  — the one you broke (a vein miner). `drops: true` makes them drop normally.
+- **`SMELT`** auto-smelts what this `MINE` activation broke (ore → ingot, sand → glass, …).
+- **`TELEPORT_DROPS`** (level 3) sends the drops straight to your inventory instead of the ground.
+
+:::note Block effects respect protection
+`BREAK_BLOCK` carries a `REGION` affinity. If you run a region/claim plugin (WorldGuard, Towny, …),
+the break is gated to places the player could build — see [integrations](../integrations/index.mdx).
+:::
+
+## Variations
+
+- **Tunnel ahead** instead of following a vein, with `@Tunnel{depth=N}`, or carve a face with
+  `@Trench{radius=N}`.
+- **Drop-free clear** (no drops, just remove blocks) with `drops: false`.
+
+See [`BREAK_BLOCK`](/docs/reference/effects), [`SMELT`](/docs/reference/effects), and the
+[`@Vein` / `@Tunnel` / `@Trench` selectors](/docs/reference/selectors).

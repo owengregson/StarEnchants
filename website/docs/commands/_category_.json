@@ -1,0 +1,8 @@
+{
+  "label": "Commands & permissions",
+  "position": 60,
+  "link": {
+    "type": "doc",
+    "id": "commands/index"
+  }
+}

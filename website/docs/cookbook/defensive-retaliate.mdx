@@ -1,0 +1,63 @@
+---
+id: defensive-retaliate
+title: Defensive retaliate
+sidebar_position: 3
+description: Strike back — and knock back — whoever hits you.
+---
+
+# Defensive retaliate
+
+A chestplate enchant that punishes attackers: when you take a hit, there's a chance to deal damage
+straight back and knock them away. This recipe shows a **defensive** trigger and how the target
+defaults flip on defense.
+
+```yaml
+# content/enchants/retaliate.yml
+tier: rare
+display: "&cRetaliate"
+description: "Strike back at whoever hits you."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: defense
+levels:
+  1:
+    chance: 30
+    effects:
+      - { DAMAGE: { amount: 3, who: "@Attacker" } }
+  2:
+    chance: 40
+    effects:
+      - { DAMAGE: { amount: 5, who: "@Attacker" } }
+  3:
+    chance: 50
+    effects:
+      - { DAMAGE: { amount: 7, who: "@Attacker" } }
+      - { VELOCITY: { mode: away, strength: 0.8, who: "@Attacker" } }
+```
+
+## How it works
+
+- **`trigger: DEFENSE`** fires when the wearer *takes* a hit.
+- **`who: "@Attacker"`** is the entity that just hit you. On a defensive trigger, you almost always
+  want to act on the attacker — `DAMAGE` defaults to `@Victim`, so you name `@Attacker` explicitly.
+- **`VELOCITY` with `mode: away`** knocks the attacker back from you, scaled by `strength`.
+
+## Variations
+
+- **Reflect with a buff for yourself** (regen on the wearer — `POTION` defaults to `@Self`):
+
+  ```yaml
+  effects:
+    - { DAMAGE: { amount: 5, who: "@Attacker" } }
+    - { POTION: { effect: REGENERATION, level: 1, duration: 60 } }
+  ```
+
+- **Summon a guardian to fight back** with the [`GUARD`](/docs/reference/effects) effect, which
+  targets the attacker by default:
+
+  ```yaml
+  - { GUARD: { type: IRON_GOLEM, ttl: 200, name: "&bGuardian" } }
+  ```
+
+See the [triggers reference](/docs/reference/triggers) for the full list of defensive triggers
+(`DEFENSE`, `FALL`, `FIRE`).

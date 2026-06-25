@@ -1,0 +1,38 @@
+---
+id: crystals
+title: Crystals
+sidebar_position: 3
+description: Socketable, levelless bonuses you slot into gear.
+---
+
+# Crystals
+
+A **crystal** is a small, **levelless** bonus you socket into a piece of gear. Where an enchant has
+levels and is applied from a book, a crystal is a single flat power — *Ember Crystal: ignite the
+enemy you strike* — that you drag straight onto an item.
+
+A crystal is essentially a one-shot enchant frozen at a single level: it has a trigger, an
+applies-to, a chance, and an effects list, plus its own item likeness (material, name, lore) so the
+physical crystal explains itself.
+
+## Sockets, merging, and stacking
+
+- **Sockets.** Each item has a number of crystal sockets, set by `crystals.slots` in `config.yml`
+  (default **1**). Crystal sockets are a *separate ledger* from enchant slots.
+- **Merging.** Drag one crystal onto another to **merge** them into a single multi-crystal — two
+  effects occupying one socket. A merged crystal's lore is each component's own lore, concatenated.
+- **A hard ceiling.** `crystals.max-stack` (default **16**) is an absolute cap on how many crystals
+  one item may ever hold, distinct from the visible socket count.
+
+## Applying and removing
+
+Players apply a crystal by dragging it onto gear; the apply rolls a `success-chance`, and a failed
+apply may consume the crystal (`consume-on-fail`). A **crystal extractor** pops the last crystal
+back off a socketed item. See [Crystals (item)](../items/crystals.mdx) for the economy details.
+
+## Related concepts
+
+- **[Enchants](./enchants.mdx)** — leveled powers from books.
+- **[Slots](./slots.mdx)** — the separate enchant-slot ledger.
+
+To build one, see **[Defining a crystal](../configuring/index.mdx)**.

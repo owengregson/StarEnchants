@@ -1,0 +1,55 @@
+---
+id: selectors
+title: Selectors & targets
+description: Choose who or what an effect acts on — @Self, @Victim, @Aoe, @Nearest and the rest — with their arguments and examples.
+slug: /reference/selectors
+sidebar_position: 3
+---
+
+import SelectorList from '@site/src/components/reference/SelectorList';
+
+# Selectors & targets
+
+A **selector** answers the question *"who (or what) does this effect act on?"* Effects already have a sensible default target — `DAMAGE` hits the victim, `MODIFY_HEALTH` heals you — but when you want something else, you attach a selector.
+
+There are two equivalent ways to write one, depending on whether it needs arguments:
+
+```yaml
+effects:
+  # No arguments: just the @Name, appended to the token.
+  - "POTION:STRENGTH:1:200:@Self"
+
+  # With arguments: @Name{key=value, key=value}
+  - "DAMAGE:6:@Aoe{r=6, filter=MONSTERS}"
+  - "LIGHTNING:4:@Nearest{r=8, filter=PLAYERS}"
+```
+
+- The `@Name` is the selector (capitalisation is for readability; e.g. `@Aoe`, `@NearestPlayer`).
+- Arguments go in `{ }` as `key=value` pairs, comma-separated. Omit any you don't need — defaults apply.
+
+:::tip A selector carries no behaviour of its own
+A selector only *chooses targets*; it doesn't decide how the effect runs. So an effect that "acts on the world" (like `BREAK_BLOCK`) wants a **block** selector (`@Here`, `@Vein`, `@Trench`), while an effect that "acts on an entity" (like `IGNITE`) wants an **entity** selector (`@Victim`, `@Aoe`, `@Nearest`). Pairing a block effect with an entity selector (or vice-versa) won't do anything useful.
+:::
+
+## Choosing the right one
+
+- **Just the player** — `@Self`. The activating player. The default for most buffs/heals.
+- **The thing you hit** — `@Victim` (combat victim) or `@Attacker` (who hit you, on DEFENSE).
+- **A crowd** — `@Aoe` (all living entities in radius), `@AllPlayers` (players only). Both can be filtered and capped.
+- **One nearby entity** — `@Nearest` / `@NearestPlayer` (closest within radius), or `@EntityInSight` (whatever you're looking at).
+- **A block** — `@Here` (the activation block), `@Block` / `@BlockInDistance` (the block you're looking at), or the mining shapes `@Vein` / `@Tunnel` / `@Trench`.
+- **A location** — `@Add` (an offset from the activation point), `@EyeHeight` (your eyes).
+- **By name** — `@PlayerFromName{name=Steve}` (a specific online player).
+
+:::note `filter` on area selectors
+`@Aoe`, `@Nearest` and friends accept a `filter`: **ALL** (everything living), **PLAYERS** (players only), **MONSTERS** (hostile mobs), or **MOBS** (any non-player mob). The activator is always excluded from area selectors, so you never hit yourself.
+:::
+
+## All selectors
+
+<SelectorList />
+
+## See also
+
+- [Effects](./effects.mdx) — what each effect does, and its default target.
+- [Triggers](./triggers.mdx) — when an effect fires (and whether a victim exists to target).

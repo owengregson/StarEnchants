@@ -1,0 +1,53 @@
+---
+id: triggers
+title: Triggers
+description: Every trigger that can fire a StarEnchants ability, explained in plain language — when it fires, which side it's on, and what it needs.
+slug: /reference/triggers
+sidebar_position: 2
+---
+
+import TriggerTable from '@site/src/components/reference/TriggerTable';
+
+# Triggers
+
+A **trigger** is the event that makes an ability run. Every enchant, set, or crystal declares exactly one trigger with the `trigger:` key, and it answers a single question: *"when should this fire?"*
+
+```yaml
+enchant:
+  trigger: ATTACK     # fire when the wearer lands a melee hit
+  levels:
+    1:
+      chance: 30
+      effects:
+        - "POTION:POISON:1:60"
+```
+
+Triggers take **no arguments** — you just name one. The hard part is picking the right one, so the table below explains each in plain words.
+
+## What the columns mean
+
+- **Side** — which "team" of the combat fold the trigger belongs to:
+  - **Attack** — fires when *you* are dealing damage. Use these for offensive effects (extra damage, debuffs on your victim).
+  - **Defense** — fires when *you* are taking damage. Use these for retaliation, shielding, escape.
+  - **Neutral** — not tied to combat at all (mining, eating, a repeating timer, etc.).
+- **Held item** — *Yes* means the trigger looks at the item **in your hand** (tools, weapons used by hand). When this is the case, the enchant only counts when that item is held.
+- **Scans armour** — *Yes* means the engine checks your **worn equipment** for this enchant, so it can fire from armor (and held gear). This is how passive armor enchants and most combat enchants work.
+- **Needs target** — *Yes* means the event must involve another entity (a victim or attacker). Triggers without a target fire on you/your location alone.
+
+:::tip Match the trigger to the side of your effect
+Defensive effects (`GUARD`, `KNOCKBACK_CONTROL` on yourself, retaliation `DAMAGE`) belong on a **DEFENSE** trigger; offensive ones belong on **ATTACK**. Putting a retaliation effect on `ATTACK` (or vice-versa) is the most common reason an enchant "does nothing."
+:::
+
+:::note `PASSIVE` vs `REPEATING`
+Both are always-on while the item is worn, but they differ:
+
+- **`PASSIVE`** is a continuous state — best for effects that *are* a condition (a permanent potion buff, a `HEALTH` bump). The engine keeps them applied while worn and cleans them up on unequip.
+- **`REPEATING`** runs on a fixed timer — best for periodic upkeep (top up a buff, lay a `WALKER` platform, refresh `KEEP_ON_DEATH`).
+:::
+
+<TriggerTable />
+
+## See also
+
+- [Effects](./effects.mdx) — *what* runs when a trigger fires.
+- [Conditions & variables](./conditions.mdx) — only fire when the situation is right.

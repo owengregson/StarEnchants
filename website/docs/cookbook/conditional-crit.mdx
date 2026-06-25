@@ -1,0 +1,70 @@
+---
+id: conditional-crit
+title: Conditional crit (executioner)
+sidebar_position: 5
+description: Bonus damage that only lands on a wounded foe.
+---
+
+# Conditional crit (executioner)
+
+An execution enchant: extra damage, but only when the victim is near death. This recipe shows
+**conditions** — a boolean gate that must pass before the effects run.
+
+```yaml
+# content/enchants/executioner.yml
+tier: mythic
+display: "&4&lExecutioner"
+description: "Execute foes who are near death."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 30
+    condition: "%victim.health% < 4"
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: flat, amount: 4 } }
+      - { PARTICLE: { particle: CRIT, count: 10 } }
+  2:
+    chance: 40
+    condition: "%victim.health% < 5"
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: flat, amount: 6 } }
+      - { PARTICLE: { particle: CRIT, count: 14 } }
+  3:
+    chance: 50
+    cooldown: 0
+    condition: "%victim.health% < 6"
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: flat, amount: 8 } }
+      - { PARTICLE: { particle: CRIT, count: 18 } }
+      - { MESSAGE: { text: "&4&lExecuted!" } }
+```
+
+## How it works
+
+- **`condition: "%victim.health% < 4"`** gates the whole activation. If the victim has 4 or more
+  health, the enchant does nothing — no roll, no effects.
+- **`DAMAGE_MOD` with `side: attack, mode: flat`** adds raw damage to *this* hit (the damage fold).
+  Use `mode: add` for a *percent* boost instead of a flat amount.
+- The health threshold and bonus both climb with level.
+
+## Conditions in depth
+
+A condition is a boolean over `%scope.name%` [variables](/docs/reference/conditions), combined with
+`&& || ! ( )` and operators like `< > == != contains`:
+
+```yaml
+condition: "%victim.health% < 6 && %onground%"          # wounded AND you're grounded
+condition: "%victim.helditem% contains \"SWORD\""       # victim is holding a sword
+```
+
+A condition can also end in a **flow clause** to nudge the activation instead of just gating it:
+
+```yaml
+condition: "%sneaking% : %force%"        # force the crit while sneaking
+condition: "%victim.health% < 8 : +20 %chance%"   # +20% chance vs. wounded foes
+```
+
+See the [conditions reference](/docs/reference/conditions) for every variable, operator, and flow
+clause (`%stop%`, `%force%`, `%allow%`, `±N %chance%`).

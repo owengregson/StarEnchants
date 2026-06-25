@@ -1,0 +1,43 @@
+---
+id: groups
+title: Groups
+sidebar_position: 8
+description: Shared cooldown and suppression buckets for related enchants.
+---
+
+# Groups
+
+A **group** is a shared bucket that ties related enchants together for **cooldowns** and
+**suppression**. You give an enchant a `group:` (a free-form name like `combat`, `defense`, or
+`mining`), and that name becomes a handle the engine and other effects can act on.
+
+Groups are how you stop a pile of similar enchants from all firing at once, and how one enchant can
+shut another down.
+
+## What a group is for
+
+- **Shared cooldowns.** Enchants in the same group can share a cooldown bucket, so a player can't
+  chain every combat enchant they own on a single swing.
+- **Suppression.** The `SUPPRESS` effect can disable an entire group on a target for a duration —
+  `SUPPRESS:GROUP:combat:200` silences every combat-group enchant on the victim for 200 ticks. (It
+  can also suppress a single `ENCHANT` or a whole item `TYPE`.)
+
+## Choosing group names
+
+Group names are yours to define — there is no fixed list. The default content uses sensible buckets
+like `combat`, `defense`, `mining`, and `utility`. Pick names that describe *what the enchant is
+for*, since that is what suppression and cooldown logic will act on.
+
+:::tip Keep groups meaningful
+Two enchants that should never fire on the same event (say, two different on-hit lifesteal effects)
+belong in the same group. Two unrelated enchants (a mining buff and a defensive shield) should be in
+different groups so they don't fight over a cooldown.
+:::
+
+## Related concepts
+
+- **[Rarity tiers](./rarity-tiers.mdx)** — cosmetic grouping, unrelated to cooldowns.
+- **[Enchants](./enchants.mdx)** — where the `group:` field lives.
+
+For the `SUPPRESS` effect and how suppression resolves, see the
+[effects reference](/docs/reference/effects).

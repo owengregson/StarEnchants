@@ -1,0 +1,48 @@
+---
+id: success-dust
+title: Success dust
+sidebar_position: 3
+description: Raise an enchant book's success chance.
+---
+
+# Success dust
+
+**Success dust** is dragged onto an enchant book to **raise its success chance** by a bonus (clamped
+so a book can never exceed 100%). It is pure economy metadata — it never compiles to an ability.
+
+## The dust — `items/dust.yml`
+
+```yaml
+type: dust
+material: GLOWSTONE_DUST
+name: "&aSuccess Dust"
+lore:
+  - "&7Combine onto an enchant book to"
+  - "&7boost its success by &a+{BONUS}%&7."
+# A normal dust rolls a RANDOM bonus in [min-bonus, max-bonus] when combined onto a book.
+min-bonus: 10
+max-bonus: 25
+# Feedback on a successful combine: a namespaced sound + particle tokens (leave blank/empty for none).
+sound: "block.amethyst_block.chime"
+particles:
+  - HAPPY_VILLAGER
+```
+
+| Token | Renders |
+| --- | --- |
+| `{BONUS}` | the range (e.g. `10–25`) on a random dust, or the exact value on a fixed dust |
+
+:::tip Fixed-value dust
+`/se dust <percent>` mints a dust with an *exact* bonus instead of a random range — handy for crate
+rewards or precise reward tiers.
+:::
+
+## Minting & giving
+
+```text
+/se dust [percent]                 # mint dust to yourself (random range, or a fixed percent)
+/se give dust <player> [percent]
+```
+
+Pair dust with the [Randomizer Scroll](./scrolls.mdx#randomizer-scroll) (which *rerolls* a book's
+chance) for a full success-chance economy on [enchant books](./enchant-books.mdx).

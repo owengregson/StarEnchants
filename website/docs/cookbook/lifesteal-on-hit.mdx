@@ -1,0 +1,54 @@
+---
+id: lifesteal-on-hit
+title: Lifesteal on hit
+sidebar_position: 1
+description: Heal a little every time you land a melee hit.
+---
+
+# Lifesteal on hit
+
+The classic combat enchant: every time you strike an enemy, a chance to heal yourself. This is the
+simplest useful recipe — a single trigger, a chance, and one effect.
+
+```yaml
+# content/enchants/lifesteal.yml
+tier: uncommon
+display: "&cLifesteal"
+description: "Heal when you strike an enemy."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 25, effects: [ { MODIFY_HEALTH: { amount: 2 } } ] }
+  2: { chance: 35, effects: [ { MODIFY_HEALTH: { amount: 4 } } ] }
+  3: { chance: 45, effects: [ { MODIFY_HEALTH: { amount: 6 } } ] }
+```
+
+## How it works
+
+- **`trigger: ATTACK`** fires on a melee hit you deal.
+- **`MODIFY_HEALTH`** in its default `give` mode *heals* the target. It defaults to `@Self`, so the
+  heal lands on you — no `who:` needed.
+- The **`chance`** climbs with level (25 → 45%), and the heal **`amount`** grows too.
+
+## Variations
+
+- **Lifesteal proper** (drain from the victim into you): use `mode: transfer`, which damages the
+  victim and heals you by the same amount.
+
+  ```yaml
+  effects:
+    - { MODIFY_HEALTH: { amount: 4, mode: transfer, who: "@Victim" } }
+  ```
+
+- **Add feedback** with a particle and a message:
+
+  ```yaml
+  effects:
+    - { MODIFY_HEALTH: { amount: 6 } }
+    - { PARTICLE: { particle: HEART, count: 4 } }
+    - { MESSAGE: { channel: actionbar, text: "&c+6 ❤" } }
+  ```
+
+See [`MODIFY_HEALTH`](/docs/reference/effects) for the full mode list (`give`, `take`, `transfer`,
+`set`).

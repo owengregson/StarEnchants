@@ -1,0 +1,34 @@
+---
+id: slots
+title: Slots
+sidebar_position: 6
+description: How many enchants an item can hold, and how to expand it.
+---
+
+# Slots
+
+**Slots** are how many enchants a single item can hold. A fresh item starts with a base number of
+slots, and players can buy more with a **slot-expander orb**.
+
+- **Base slots.** Every item starts with `slots.base` enchant slots (default **9**), set in
+  `config.yml`.
+- **Expanding.** A slot-expander orb adds `+orb-amount` slots when dragged onto gear (default **+3**
+  per orb).
+- **The hard cap.** An item can never exceed a universal ceiling on *total* slots (base + purchased),
+  set by `hard-cap` in the slot-orb item file (default **15**).
+
+:::note Slots vs. crystal sockets
+Enchant slots and [crystal sockets](./crystals.mdx) are two completely separate ledgers. Expanding
+enchant slots does nothing to crystal capacity, and vice versa.
+:::
+
+When an item is full, the next enchant book can't be applied until a slot opens up or an orb is
+added. This gives you a natural lever on how heavily-enchanted gear can get.
+
+## Related concepts
+
+- **[Enchants](./enchants.mdx)** — what fills the slots.
+- **[Slot orbs (item)](../items/index.mdx)** — minting and giving expanders.
+
+Base slots are tuned in [config.yml](../configuring/index.mdx); the orb's `+N` and `hard-cap` live
+in the slot-orb item file.

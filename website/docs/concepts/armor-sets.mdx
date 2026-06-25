@@ -1,0 +1,48 @@
+---
+id: armor-sets
+title: Armor sets
+sidebar_position: 2
+description: Matched armor that rewards wearing the full set.
+---
+
+# Armor sets
+
+An **armor set** is a collection of matched pieces — helmet, chestplate, leggings, boots — that
+grants a bonus only when enough of them are worn at once. Think *Inferno Set: burn attackers and
+shrug off fire when the full set is worn.*
+
+A set declares three things:
+
+- **Its pieces** — the helmet/chestplate/leggings/boots that count toward it, each with its own
+  look (material, name, lore).
+- **A completion threshold** — how many pieces must be worn for the bonus to activate (a set might
+  need 4 of 4, or fire at 3 of 4).
+- **The bonus** — a trigger + effects block, exactly like an enchant's, that fires once the set is
+  complete.
+
+## The matched weapon
+
+A set can optionally include a **matched weapon** — a sword or axe whose bonus fires *only while the
+full set is worn*. The Inferno Set, for example, has an Inferno Blade that sets foes alight on hit,
+but only if you are also wearing the four armor pieces.
+
+## How sets feed the engine
+
+A set bonus is just another source of effects. When the engine resolves what a player is wearing, a
+completed set contributes its effects to exactly the same pipeline that enchants and crystals use —
+the same triggers, the same selectors, the same chance/cooldown gates. Nothing special.
+
+This means multiple completed sets stack: if a player somehow wears two completed sets, both
+contribute. See [feature interactions](../configuring/index.mdx) for how overlapping sources combine.
+
+:::note Sets have no tier
+Unlike enchants and crystals, an armor set has no rarity tier. The tier system is for individual
+enchant/crystal lore; a set's identity is its pieces.
+:::
+
+## Related concepts
+
+- **[Heroic upgrades](./heroic-upgrades.mdx)** — a separate, non-set-bound power-up for any gear.
+- **[Enchants](./enchants.mdx)** — the same trigger/effect model on individual items.
+
+To build one, see **[Defining a set](../configuring/index.mdx)**.

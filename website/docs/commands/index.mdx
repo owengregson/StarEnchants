@@ -1,0 +1,124 @@
+---
+id: index
+slug: /commands
+title: Commands & permissions
+sidebar_position: 0
+description: The full /se command surface and the permission node that guards it.
+---
+
+# Commands & permissions
+
+Everything lives under one root command — **`/se`**. Tab-completion guides every argument, so you can
+explore the surface in-game by pressing Tab after `/se`.
+
+## At a glance
+
+| Command | What it does |
+| --- | --- |
+| `/se reload [--dry-run]` | Rebuild the content library off-thread and hot-swap it in (or just validate) |
+| `/se enchant <key> [level]` · `/se removeenchant <key>` | Apply or strip an enchant on the held item |
+| `/se book` · `crystal` · `gem` · `orb` · `heroic` · `dust` · `nametag` · scrolls… | Mint any item to yourself |
+| `/se give <type> <player> …` | Give any item — books, scrolls, dust, gems, orbs, crystals, sets, heroics — to a player |
+| `/se menu [name]` | Open an in-game GUI (enchanter, alchemist, tinkerer, transmog, browsers) |
+| `/se pack <list\|info\|apply\|export>` | Manage config-pack snapshots of your whole setup |
+| `/se migrate <ee\|ea\|ae> <path>` | Import EliteEnchantments, EliteArmor or AdvancedEnchantments configs |
+| `/se effects` · `triggers` · `selectors` · `conditions` · `variables` · `list` | Browse the live DSL reference in chat |
+
+## Permissions
+
+:::warning One node gates everything
+`/se` is gated by **`starenchants.admin`** (default: **op**). Individual in-game GUIs can declare
+their own permission node, but the command surface as a whole is admin-only.
+:::
+
+The player-facing `/cast` command (the [`COMMAND` trigger](/docs/reference/triggers), name set by
+`command-trigger.name` in `config.yml`) is *not* gated by `starenchants.admin` — it is meant for every
+player to invoke their own COMMAND-trigger enchants.
+
+## Reloading
+
+```text
+/se reload              # rebuild the whole content library and hot-swap it
+/se reload --dry-run    # validate and report diagnostics — do NOT swap
+```
+
+A reload rebuilds `config.yml`, `lang.yml`, `content/`, `items/`, and `menus/` together in one
+transaction, off-thread, and only swaps if it compiles clean. See
+[reloading](../configuring/index.mdx#reloading).
+
+## Stamping enchants directly
+
+```text
+/se enchant <key> [level]        # stamp an enchant onto the held item (no book needed)
+/se removeenchant <key>          # strip it (alias: /se unenchant)
+```
+
+## Minting items (to yourself)
+
+```text
+/se book <enchant> [level] [success]    /se crystal <key>      /se unopened <tier>
+/se gem [souls]                         /se orb                /se heroic
+/se dust [percent]                      /se nametag            /se split <amount>
+/se whitescroll   /se holy   /se blackscroll   /se randomizer   /se transmog   /se godlytransmog
+/se soulmode                            # toggle your own soul mode
+```
+
+## Giving items (to a player)
+
+```text
+/se give book <player> <enchant> [level] [success]
+/se give book <player> random <tier>          # a concrete random book from a tier
+/se give crystal <player> <key>               /se give extractor <player>
+/se give set <player> <key> [piece]           # a set piece (or the whole set)
+/se give unopened <player> <tier>
+/se give gem <player> [souls]                 /se give orb <player>      /se give heroic <player>
+/se give dust <player> [percent]              /se give nametag <player>
+/se give whitescroll <player>   /se give holy <player>   /se give blackscroll <player>
+/se give randomizer <player>    /se give transmog <player>   /se give godlytransmog <player>
+```
+
+## Menus
+
+```text
+/se menu [name]
+```
+
+Open an in-game GUI. Available menus include `enchanter`, `alchemist`, `tinkerer`, `transmog`,
+`apply`, and the browsers `enchants`, `sets`, `crystals`, and `reference` (the live DSL reference).
+Layouts are operator-tweakable under `menus/` (see [configuring](../configuring/index.mdx)).
+
+## Config packs
+
+```text
+/se pack list                    # list saved packs
+/se pack info <name>             # show what a pack contains
+/se pack export <name>           # snapshot your whole config into a portable ZIP under packs/
+/se pack apply <name>            # back up current config, swap the pack in, reload transactionally
+```
+
+A pack snapshots `config.yml`, `lang.yml`, `content/`, `items/`, and `menus/` — making a setup easy
+to share, version, or roll back.
+
+## Migrating
+
+```text
+/se migrate <ee|ea|ae> <path>
+```
+
+Import EliteEnchantments (`ee`), EliteArmor (`ea`), or AdvancedEnchantments (`ae`) configs into the
+unified schema. See the [migrating](../migrating/index.mdx) section.
+
+## Browsing the DSL reference in chat
+
+```text
+/se effects   /se triggers   /se selectors   /se conditions   /se variables   /se list
+```
+
+These print the **live**, always-current vocabularies in chat. For the same content as a navigable
+web page, see the [DSL reference](/docs/reference/effects).
+
+## The Enchant Creator and `/se import`
+
+Build and edit enchants visually in the [Enchant Creator](/creator), then either copy the YAML
+straight into `content/enchants/` or export an **import code** and paste it with `/se import <code>`
+to drop the enchant into your live content.
