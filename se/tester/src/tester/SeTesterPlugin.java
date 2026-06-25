@@ -24,6 +24,7 @@ import tester.suite.FakePlayerSuite;
 import tester.suite.GuiSuite;
 import tester.suite.HeroicApplySuite;
 import tester.suite.HeroicSuite;
+import tester.suite.ImportSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
 import tester.suite.LifecycleSuite;
@@ -79,6 +80,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))
                 .add(new ContentLoaderSuite(this))
+                .add(new ImportSuite(this)) // ADR-0029: SE1 decode → validate → write → live reload
                 .add(new ContentFormatSuite(this))
                 .add(new CarrierSuite(this))
                 .add(new EconomyItemsSuite(this)) // §I slot/black/randomizer/unopened/transmog over real ItemStacks

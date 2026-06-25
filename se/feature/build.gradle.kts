@@ -11,8 +11,13 @@ dependencies {
     api(project(":engine"))
     api(project(":item"))
 
+    // The SE1 import codec (feature.imports, ADR-0029) parses the JSON envelope + serialises content
+    // YAML with SnakeYAML. compileOnly — the server bundles it (same arrangement as :compile, no shading).
+    compileOnly("org.yaml:snakeyaml:2.2")
+
     testImplementation(libs.paper.api.floor)
     testImplementation(libs.mockito.core)
+    testImplementation("org.yaml:snakeyaml:2.2")
 }
 
 // Thin Bukkit FEATURE shells. The combat shell (feature.combat) bridges Bukkit damage/equip events

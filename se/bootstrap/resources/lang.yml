@@ -30,6 +30,12 @@ command.migrate.unknown-format: "&cUnknown format '{FORMAT}' — use &fee&c, &fe
 command.migrate.done: "&aMigrated {N} file(s): &f{WRITTEN}&a written, &f{SKIPPED}&a already present; &f{NOTES}&a review note(s)."
 command.migrate.review: "&7Review the &f# TODO &7markers in &f{TARGET}&7, then move files into content/."
 command.migrate.failed: "&cMigration failed reading &f{SOURCE}&c: {ERROR}"
+# /se import (ADR-0029) — apply a web-creator SE1 paste code. Tokens: {KEY} {N} {LEVELS} {ERROR}.
+command.import.start: "&7StarEnchants: validating import &f{KEY}&7…"
+command.import.bad-code: "&cThat is not a valid import code: &f{ERROR}"
+command.import.invalid: "&cImport &f{KEY}&c has {N} error(s) — nothing written:"
+command.import.write-failed: "&cCould not write &f{KEY}&c: {ERROR}"
+command.import.done: "&aImported enchant &f{KEY}&a ({LEVELS} level(s)) and reloaded."
 command.enchant.usage: "&eUsage: /se enchant <key> [level]"
 command.crystal.usage: "&eUsage: /se crystal <key> &7— a crystal you drag onto gear to apply"
 command.unopened.usage: "&eUsage: /se unopened <tier> &7— right-click it to reveal a random book"
@@ -78,12 +84,16 @@ command.usage:
   - "&e  /se soulmode &7— toggle soul mode for the held gem"
   - "&e  /se split <amount> &7— split souls off the held gem into a new gem"
   - "&e  /se migrate <ee|ea|ae> <path> &7— import legacy EE/EA/AdvancedEnchantments configs"
+  - "&e  /se import <code> &7— apply an enchant from a web-creator SE1 code"
   - "&e  /se pack <list|info|apply|export> &7— manage config packs (swap the whole config)"
 command.migrate.usage:
   - "&eUsage: /se migrate <ee|ea|ae> <sourcePath>"
   - "&7  ee &8— path to EliteEnchantments' enchantments.yml"
   - "&7  ea &8— path to EliteArmor's armor/ directory"
   - "&7  ae &8— path to AdvancedEnchantments' enchantments.yml"
+command.import.usage:
+  - "&eUsage: /se import <code>"
+  - "&7  paste an &fSE1:&7 code from the web enchant creator to apply it live"
 
 # ── Config packs (/se pack — ADR-0023) ─────────────────────────────────────────────────────────────────
 command.pack.usage:

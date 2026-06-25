@@ -510,7 +510,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
-                    scrolls, unopenedBooks, holyScrolls, nametags, packs, messages);
+                    scrolls, unopenedBooks, holyScrolls, nametags, packs, messages, contentRoot);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand);
         }

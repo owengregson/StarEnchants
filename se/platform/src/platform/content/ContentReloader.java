@@ -72,6 +72,72 @@ public final class ContentReloader {
         return LibraryLoader.load(contentRoot, compilerFactory.get(), generation.incrementAndGet());
     }
 
+    /**
+     * Validate a single candidate content file ({@code relativePath}, e.g. {@code enchants/x.yml}) against
+     * the LIVE tree WITHOUT touching disk or publishing — the "would this reload cleanly?" check {@code /se
+     * import} runs before it commits anything (ADR-0029). The live tree is shallow-copied into a throwaway
+     * directory, the candidate overlaid there, and the whole thing run through the real {@link LibraryLoader}
+     * — so the candidate is validated in full context (duplicate-key, {@code requires}/{@code blacklist}
+     * referential integrity, grammar), exactly as the eventual reload would see it. Synchronous; the caller
+     * runs it off-thread. The throwaway tree is deleted before returning.
+     *
+     * @return the candidate's diagnostics as a never-published {@link ReloadResult} (errors → keep disk untouched)
+     */
+    public ReloadResult validateCandidate(String relativePath, String yaml) {
+        Path scratch = null;
+        try {
+            scratch = java.nio.file.Files.createTempDirectory("se-import-validate");
+            Path overlayRoot = scratch.resolve("content");
+            copyTree(contentRoot, overlayRoot);
+            Path candidate = overlayRoot.resolve(relativePath);
+            java.nio.file.Files.createDirectories(candidate.getParent());
+            java.nio.file.Files.writeString(candidate, yaml, java.nio.charset.StandardCharsets.UTF_8);
+            Library library = LibraryLoader.load(overlayRoot, compilerFactory.get(), generation.incrementAndGet());
+            return new ReloadResult(false, true, library.snapshot().generation(),
+                    library.snapshot().abilityCount(), library.diagnostics());
+        } catch (java.io.IOException io) {
+            return ReloadResult.failure(io);
+        } finally {
+            if (scratch != null) {
+                deleteTree(scratch);
+            }
+        }
+    }
+
+    /** Copy the live content tree into {@code dst} so the candidate can be validated alongside it. */
+    private static void copyTree(Path src, Path dst) throws java.io.IOException {
+        java.nio.file.Files.createDirectories(dst);
+        if (!java.nio.file.Files.isDirectory(src)) {
+            return; // first import on a server with no content/ yet — validate the candidate alone
+        }
+        try (var walk = java.nio.file.Files.walk(src)) {
+            for (Path path : walk.toList()) {
+                Path target = dst.resolve(src.relativize(path).toString());
+                if (java.nio.file.Files.isDirectory(path)) {
+                    java.nio.file.Files.createDirectories(target);
+                } else {
+                    java.nio.file.Files.createDirectories(target.getParent());
+                    java.nio.file.Files.copy(path, target);
+                }
+            }
+        }
+    }
+
+    /** Best-effort delete of the throwaway validation tree; a stranded temp dir is harmless. */
+    private static void deleteTree(Path root) {
+        try (var walk = java.nio.file.Files.walk(root)) {
+            walk.sorted(java.util.Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    java.nio.file.Files.deleteIfExists(path);
+                } catch (java.io.IOException ignored) {
+                    // leave it for the OS temp sweep
+                }
+            });
+        } catch (java.io.IOException ignored) {
+            // nothing to clean up
+        }
+    }
+
     /** Reload off-thread; on the global thread publish the build iff it is clean, then report to {@code onDone}. */
     public void reload(Consumer<ReloadResult> onDone) {
         apply(false, onDone);

@@ -5,6 +5,7 @@ import compile.load.CrystalDef;
 import compile.load.EnchantDef;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
+import feature.imports.ImportCode;
 import feature.menu.Menu;
 import feature.menu.MenuItems;
 import feature.menu.MenuRegistry;
@@ -45,8 +46,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb",
                     "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
                     "dust", "whitescroll", "unopened", "soulmode",
-                    "split", "migrate", "pack", "menu", "effects", "selectors", "triggers", "conditions",
-                    "variables", "list");
+                    "split", "migrate", "import", "pack", "menu", "effects", "selectors", "triggers",
+                    "conditions", "variables", "list");
 
     static final List<String> PACK_ACTIONS = List.of("list", "info", "apply", "export");
 
@@ -67,6 +68,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final SoulService souls;
     private final Messages messages;
     private final Path migrationTarget;
+    private final Path contentRoot; // ADR-0029 /se import writes content/enchants/<key>.yml here
     private final MenuRegistry menus;
     private final ContentHolder content;
     private final java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs;
@@ -87,13 +89,14 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
-              PackStore packs, Messages messages) {
+              PackStore packs, Messages messages, Path contentRoot) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
         this.souls = souls;
         this.messages = messages;
         this.migrationTarget = migrationTarget;
+        this.contentRoot = contentRoot;
         this.menus = menus;
         this.content = content;
         this.migrateSpecs = migrateSpecs;
@@ -138,6 +141,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "soulmode" -> toggleSoulMode(sender);
             case "split" -> splitSoul(sender, args);
             case "migrate" -> migrate(sender, args);
+            case "import" -> importCode(sender, args);
             case "pack" -> pack(sender, args);
             case "menu" -> openMenu(sender, args);
             case "effects" -> reference(sender, ReferenceCatalog.EFFECTS);
@@ -411,6 +415,65 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 tell(sender, messages.format("command.migrate.failed", "SOURCE", source, "ERROR", e.getMessage()));
             }
         });
+    }
+
+    /**
+     * {@code /se import <code>} (ADR-0029) — apply an enchant built in the web creator from its {@code SE1:}
+     * paste code: decode it, validate it through the SAME compiler {@code /se reload --dry-run} uses, and —
+     * only if clean — write {@code content/enchants/<key>.yml} (overwriting, so editing an existing enchant
+     * works) and hot-swap via the transactional reloader. Any decode/validation failure leaves disk untouched.
+     */
+    private void importCode(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            messages.lines("command.import.usage").forEach(sender::sendMessage);
+            return;
+        }
+        ImportCode.Envelope envelope;
+        try {
+            envelope = ImportCode.decode(args[1]);
+        } catch (ImportCode.DecodeException bad) {
+            sender.sendMessage(messages.format("command.import.bad-code", "ERROR", bad.getMessage()));
+            return;
+        }
+        String key = envelope.key();
+        String yaml = ImportCode.toYaml(envelope.content());
+        String relative = "enchants/" + key + ".yml";
+        sender.sendMessage(messages.format("command.import.start", "KEY", key));
+        // Validate (off-thread, throwaway tree) BEFORE writing: a faulty content reports its diagnostics
+        // and leaves the live content/ folder untouched. Only a clean candidate is written + reloaded.
+        Scheduling.async(() -> {
+            ReloadResult validation = reloader.validateCandidate(relative, yaml);
+            if (validation.errorCount() != 0) {
+                tell(sender, messages.format("command.import.invalid", "KEY", key, "N", validation.errorCount()));
+                for (Diagnostic diagnostic : validation.diagnostics()) {
+                    if (diagnostic.blocking()) {
+                        tell(sender, messages.format("command.reload.error-line", "DIAGNOSTIC", diagnostic));
+                    }
+                }
+                return;
+            }
+            try {
+                Path target = contentRoot.resolve(relative);
+                Files.createDirectories(target.getParent());
+                Files.writeString(target, yaml, StandardCharsets.UTF_8);
+            } catch (IOException io) {
+                tell(sender, messages.format("command.import.write-failed", "KEY", key, "ERROR", io.getMessage()));
+                return;
+            }
+            int levels = levelCount(envelope.content());
+            // Same transactional hot-swap as /se reload — re-validates the whole tree and publishes atomically.
+            reloader.reload(result -> {
+                report(sender, result);
+                if (result.published()) {
+                    tell(sender, messages.format("command.import.done", "KEY", key, "LEVELS", levels));
+                }
+            });
+        });
+    }
+
+    /** The number of declared levels in a decoded enchant {@code content} map (0 if none/malformed). */
+    private static int levelCount(java.util.Map<String, Object> content) {
+        return content.get("levels") instanceof java.util.Map<?, ?> levels ? levels.size() : 0;
     }
 
     /** Migrate every {@code *.yml} in an EliteArmor armour directory, merging the per-set results. */
