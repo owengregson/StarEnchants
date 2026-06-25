@@ -1,0 +1,12 @@
+{
+  // markdownlint-cli2 ignores (honored by the CI markdownlint-cli2-action). Rule config stays in
+  // .markdownlint.json; cli2 merges the two. Cached third-party reference docs are committed for
+  // offline use but are verbatim copies, so they are NOT held to this project's markdown style.
+  // deobf/ and node_modules/ are gitignored (absent in CI) — listed so local `**/*.md` runs stay clean.
+  "ignores": [
+    "reference/**",
+    "deobf/**",
+    "node_modules/**",
+    "**/node_modules/**"
+  ]
+}
