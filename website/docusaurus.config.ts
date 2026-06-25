@@ -93,8 +93,9 @@ const config: Config = {
         {to: '/creator', label: 'Enchant Creator', position: 'left'},
         {
           href: 'https://github.com/owengregson/StarEnchants',
-          label: 'GitHub',
           position: 'right',
+          className: 'header-github-link',
+          'aria-label': 'StarEnchants on GitHub',
         },
       ],
     },
