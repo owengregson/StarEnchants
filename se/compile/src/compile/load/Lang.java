@@ -110,6 +110,12 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.migrate.review",
                 "&7Review the &f# TODO &7markers in &f{TARGET}&7, then move files into content/.");
         s.put("command.migrate.failed", "&cMigration failed reading &f{SOURCE}&c: {ERROR}");
+        s.put("command.import.start", "&7StarEnchants: validating import &f{KEY}&7…");
+        s.put("command.import.bad-code", "&cThat is not a valid import code: &f{ERROR}");
+        s.put("command.import.invalid",
+                "&cImport &f{KEY}&c has {N} error(s) — nothing written:");
+        s.put("command.import.write-failed", "&cCould not write &f{KEY}&c: {ERROR}");
+        s.put("command.import.done", "&aImported enchant &f{KEY}&a ({LEVELS} level(s)) and reloaded.");
         s.put("command.pack.empty", "&7No config packs found. Create one with &f/se pack export <name>&7.");
         s.put("command.pack.list-header", "&eConfig packs &7({COUNT}):");
         s.put("command.pack.list-entry", "&e  {NAME} &7— {DESC} &8({FILES} files)");
@@ -270,12 +276,16 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&e  /se soulmode &7— toggle soul mode for the held gem",
                 "&e  /se split <amount> &7— split souls off the held gem into a new gem",
                 "&e  /se migrate <ee|ea|ae> <path> &7— import legacy EE/EA/AdvancedEnchantments configs",
+                "&e  /se import <code> &7— apply an enchant from a web-creator SE1 code",
                 "&e  /se pack <list|info|apply|export> &7— manage config packs (swap the whole config)"));
         l.put("command.migrate.usage", List.of(
                 "&eUsage: /se migrate <ee|ea|ae> <sourcePath>",
                 "&7  ee &8— path to EliteEnchantments' enchantments.yml",
                 "&7  ea &8— path to EliteArmor's armor/ directory",
                 "&7  ae &8— path to AdvancedEnchantments' enchantments.yml"));
+        l.put("command.import.usage", List.of(
+                "&eUsage: /se import <code>",
+                "&7  paste an &fSE1:&7 code from the web enchant creator to apply it live"));
         l.put("command.pack.usage", List.of(
                 "&eUsage: /se pack <action>",
                 "&7  list &8— show every available config pack",

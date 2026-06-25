@@ -44,6 +44,12 @@ class SeCommandCompletionTest {
         assertTrue(SeCommand.complete(new String[] {"enchant", "enchants/venom", "2"}, ENCHANTS, CRYSTALS).isEmpty());
     }
 
+    @Test
+    void importIsASubcommandWithNoArgumentCompletion() {
+        assertEquals(List.of("import"), SeCommand.complete(new String[] {"imp"}, ENCHANTS, CRYSTALS));
+        assertTrue(SeCommand.complete(new String[] {"import", "SE1:"}, ENCHANTS, CRYSTALS).isEmpty());
+    }
+
     // §J give-tree + removeenchant completion
 
     private static final List<String> PLAYERS = List.of("Bob", "Alice");
