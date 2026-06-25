@@ -233,6 +233,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // reload re-renders against new content) + the validating enchant/crystal apply service.
         LoreRenderer lore = new LoreRenderer(() -> loreStyle(master.config()),
                 key -> content.library().displayNameOf(key),
+                key -> {                            // per-enchant rarity-tier colour (ADR-0016 §2); null → universal
+                    String tier = content.library().tierOf(key);
+                    if (tier == null) {
+                        return null;
+                    }
+                    compile.load.TierRegistry.Tier t = content.library().tiers().tier(tier);
+                    return t != null && !t.color().isBlank() ? t.color() : null;
+                },
                 new LoreRenderer.SetLore() {        // §6.6 set-member lore, read live from the current library
                     @Override public java.util.List<String> armor(String setKey) {
                         compile.load.SetDef def = content.library().setDefOf(setKey);

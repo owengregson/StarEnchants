@@ -27,6 +27,7 @@ public final class LoreRenderer {
 
     private final Supplier<LoreStyle> style;
     private final Function<String, String> displayNameOf;
+    private final Function<String, String> enchantColorOf;
     private final SetLore setLore;
 
     /**
@@ -53,30 +54,50 @@ public final class LoreRenderer {
         };
     }
 
-    /** Fixed-style renderer (tests, fixtures); the style never changes, no set-member lore. */
+    /** Fixed-style renderer (tests, fixtures); the style never changes, no per-tier colour, no set lore. */
     public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf) {
-        this(() -> Objects.requireNonNull(style, "style"), displayNameOf, SetLore.NONE);
+        this(() -> Objects.requireNonNull(style, "style"), displayNameOf, key -> null, SetLore.NONE);
     }
 
-    /** Live-style renderer with no set-member lore (suites that never mint a set member). */
+    /**
+     * Fixed-style renderer with per-enchant tier colours (tests, fixtures). {@code enchantColorOf} maps
+     * a base key to its tier's legacy {@code '&'}-code, or {@code null}/blank to fall back to the style's
+     * universal {@link LoreStyle#enchantColor()}.
+     */
+    public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf) {
+        this(() -> Objects.requireNonNull(style, "style"), displayNameOf, enchantColorOf, SetLore.NONE);
+    }
+
+    /** Live-style renderer with no per-tier colour and no set-member lore (suites that mint neither). */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
-        this(style, displayNameOf, SetLore.NONE);
+        this(style, displayNameOf, key -> null, SetLore.NONE);
+    }
+
+    /** Live-style renderer with set-member lore but a universal enchant colour (no per-tier colours). */
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf, SetLore setLore) {
+        this(style, displayNameOf, key -> null, setLore);
     }
 
     /**
      * Live-style renderer (the composition root): {@code style} is re-read on every render, so a
      * {@code /se reload} that swaps the master {@code config.yml}'s {@code lore:} section takes effect on
-     * the next render with no re-wiring. {@code setLore} renders each worn set member's authored lore.
+     * the next render with no re-wiring. {@code enchantColorOf} colours each enchant's name by its rarity
+     * tier (base key -> legacy {@code '&'}-code, per ADR-0016 §2; {@code null}/blank → the style's universal
+     * {@link LoreStyle#enchantColor()}). {@code setLore} renders each worn set member's authored lore.
      */
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf, SetLore setLore) {
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf, SetLore setLore) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
+        this.enchantColorOf = Objects.requireNonNull(enchantColorOf, "enchantColorOf");
         this.setLore = Objects.requireNonNull(setLore, "setLore");
     }
 
     /**
      * The lore lines for {@code state}, colour-translated and in stored order: one line per enchant
-     * ({@code name level}) then one per crystal. Empty when the item carries no combat state.
+     * ({@code name level}, the name coloured by its rarity tier) then one per crystal. Empty when the
+     * item carries no combat state.
      */
     public List<String> lines(CombatState state) {
         LoreStyle style = this.style.get(); // resolve the live style once per render (reload-swappable)
@@ -84,7 +105,9 @@ public final class LoreRenderer {
         for (Map.Entry<String, Integer> enchant : state.enchants().entrySet()) {
             String name = nameOr(enchant.getKey(), style);
             String level = style.roman() ? Numerals.roman(enchant.getValue()) : Integer.toString(enchant.getValue());
-            out.add(Colors.translate(style.enchantColor() + name + " " + style.levelColor() + level));
+            String tierColor = enchantColorOf.apply(enchant.getKey());        // per-tier colour (ADR-0016 §2)
+            String color = tierColor != null && !tierColor.isBlank() ? tierColor : style.enchantColor();
+            out.add(Colors.translate(color + name + " " + style.levelColor() + level));
         }
         for (String crystalEntry : state.crystals()) {
             // One line per crystal slot; a multi-crystal entry ("a+b", §E) lists both component names.
