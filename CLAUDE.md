@@ -15,6 +15,7 @@ relevant one BEFORE working in its area:
 | Skill | When |
 | --- | --- |
 | `starenchants-conventions` | writing/reviewing ANY code (principles, invariants) |
+| `code-comments` | writing/reviewing comments or Javadoc — why-not-what, brevity, no history |
 | `paper-cross-version` | code across 1.17.1 → 26.1.x (mapping flip, toolchains) |
 | `cross-version-item-api` | Material/Sound/Particle/Enchantment/Attribute/etc. |
 | `folia-scheduling` | entities/blocks/world/inventories/timers (Paper + Folia) |

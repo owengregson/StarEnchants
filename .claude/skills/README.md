@@ -15,6 +15,7 @@ the relevant skill BEFORE working in its area.**
 | Skill | Use when… |
 | --- | --- |
 | `starenchants-conventions` | writing/reviewing ANY code here (principles, engine boundaries, invariants) |
+| `code-comments` | writing/reviewing comments or Javadoc — comment the *why* not the *what*, brevity, no dev-history narration |
 | `paper-cross-version` | code must behave across 1.17.1 → 26.1.x (API selection, mapping flip, toolchains) |
 | `cross-version-item-api` | referencing Material/Sound/Particle/Enchantment/Attribute/PotionEffectType/EntityType/ItemMeta across versions |
 | `folia-scheduling` | touching entities/blocks/worlds/inventories/timers (must work on Paper AND Folia) |
