@@ -28,6 +28,21 @@ dependencies {
     testImplementation(libs.mockito.core)
 }
 
+// `./gradlew regenDocs` runs the drift tests in regen mode; the engine half rewrites the DSL
+// reference + the docs-site catalog from the live registries.
+tasks.register<Test>("regenDocs") {
+    group = "documentation"
+    description = "Regenerate dsl-reference.md and website catalog.json from the engine registries."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter {
+        includeTestsMatching("*ReferenceDocDriftTest")
+        includeTestsMatching("*ReferenceCatalogDriftTest")
+    }
+    systemProperty("se.doc.regen", "true")
+    outputs.upToDateWhen { false }
+}
+
 // The RUNTIME. Bukkit-aware, FLOOR API only, version-agnostic. Stateless systems
 // (one per trigger family) walk a pre-flattened WornState and execute abilities
 // through the Sink — the single mutation boundary. Holds the effect/condition/

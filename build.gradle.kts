@@ -70,3 +70,12 @@ subprojects {
         }
     }
 }
+
+// One command to rewrite every generated artifact (DSL reference, docs-site catalog + operator
+// surface, content index) from the code/resources. The git pre-commit hook runs this when a source
+// changes; the matching *DriftTest fails `./gradlew build` if a committed artifact is ever stale.
+tasks.register("regenDocs") {
+    group = "documentation"
+    description = "Regenerate all generated docs/data artifacts from the sources."
+    dependsOn(":engine:regenDocs", ":bootstrap:regenDocs")
+}

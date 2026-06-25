@@ -41,6 +41,22 @@ dependencies {
     testImplementation("org.yaml:snakeyaml:2.2")
 }
 
+// The bootstrap half of `./gradlew regenDocs`: rewrites the docs-site operator surface (commands /
+// tiers / items / config.yml) and the content index from the real sources.
+tasks.register<Test>("regenDocs") {
+    group = "documentation"
+    description = "Regenerate website surface.json and content/index.txt from the sources."
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter {
+        includeTestsMatching("*SurfaceCatalogDriftTest")
+        includeTestsMatching("*ContentIndexDriftTest")
+    }
+    systemProperty("se.doc.regen", "true")
+    systemProperty("se.index.regen", "true") // ContentIndexDriftTest's regen flag
+    outputs.upToDateWhen { false }
+}
+
 // Stamp the build version into plugin.yml's ${version} placeholder, and fold the built config-pack
 // archive(s) into the jar under packs/ (alongside the static packs/index.txt manifest).
 tasks.named<ProcessResources>("processResources") {
