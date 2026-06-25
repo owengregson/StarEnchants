@@ -5,30 +5,18 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Per-player ability cooldowns: a packed scope key &rarr; expiry tick
- * (docs/architecture.md §5.4). Replaces a Cosmic Enchants-style {@code Cooldown.cooldowns} and
- * {@code Cooldowns} table. Gate 6 of the pipeline calls {@link #ready}; gate 11 calls
- * {@link #arm} (§3.3).
+ * Per-player ability cooldowns: a packed scope key &rarr; expiry tick (docs/architecture.md §5.4).
+ * Pipeline gate 6 calls {@link #ready}; gate 11 calls {@link #arm} (§3.3).
  *
- * <p>Concurrent and UUID-keyed for Folia (any region thread may touch a player's
- * cooldowns), and TTL-evicting: an expired entry is dropped lazily on the next access
- * to {@link #ready}/{@link #remainingTicks}, so the maps stay bounded without a sweeper
- * (fixing the unbounded {@code HashMap} the originals leak). Cleared on quit
- * ({@link #clear}) and on disable ({@link #clearAll}).
- *
- * <p>Time is an explicit tick count supplied by the caller (the current server/region
- * tick), never wall-clock — so behaviour is deterministic and Folia-correct, and the
- * store is unit-testable without a server.
+ * <p>Concurrent, UUID-keyed (Folia: any region thread). TTL-evicting: an elapsed entry is dropped lazily
+ * on the next {@link #ready}/{@link #remainingTicks}, so the maps stay bounded without a sweeper. Time is
+ * an explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, server-free to test.
  */
 public final class CooldownStore {
 
     private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
 
-    /**
-     * Pack a cooldown scope (its kind and interned id) into the single {@code long}
-     * key this store is indexed by, so the three Cosmic Enchants-style cooldown scopes (enchant / group /
-     * type) never collide.
-     */
+    /** Pack (kind, interned id) into one {@code long} so the three scopes (enchant/group/type) never collide. */
     public static long key(int scopeKind, int scopeId) {
         return ((long) scopeKind << 32) | (scopeId & 0xFFFF_FFFFL);
     }

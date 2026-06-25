@@ -17,8 +17,7 @@ import schema.spec.D;
  * <p>{@code replace} controls what the platform may overwrite: {@code AIR_ONLY}, {@code REPLACEABLE}
  * (air or liquid), or {@code ANY}. The revert is best-effort (no temp-block ledger): re-firing over a
  * still-active platform can capture an already-placed tile as "prior" and leave it permanent — adequate
- * for a transient walk-assist; a durable ledger is a follow-up. Stateless; emits one {@code tempPlatform}
- * intent per resolved target. {@link Affinity#REGION}: block work routes to the location's region thread.
+ * for a transient walk-assist. {@link Affinity#REGION}.
  */
 public final class WalkerEffect implements EffectKind {
 

@@ -11,18 +11,16 @@ import org.bukkit.entity.Player;
  * The {@code %starenchants_…%} PlaceholderAPI expansion (docs/decisions/0027): surfaces StarEnchants
  * player state to scoreboards/holograms/chat through PAPI.
  *
- * <p>Bundled but SOFT: the PAPI API is {@code compileOnly} and {@link integrate.Integrations} only loads and
- * registers this class when PlaceholderAPI is present. It holds no StarEnchants types — the runtime state is
- * read through plain JDK-typed accessor functions the composition root supplies — so this class depends on
- * nothing but PAPI + Bukkit, and PAPI never has to load any StarEnchants internals to evaluate a placeholder.
+ * <p>Bundled but SOFT: the PAPI API is {@code compileOnly} and {@link integrate.Integrations} loads/registers
+ * this class only when PlaceholderAPI is present. It holds no StarEnchants types — runtime state is read
+ * through JDK-typed accessors the composition root supplies — so PAPI never loads StarEnchants internals.
  *
  * <p>Placeholders:
  * <ul>
  *   <li>{@code %starenchants_soulmode%} — {@code on}/{@code off} (the player's soul-mode toggle);</li>
  *   <li>{@code %starenchants_souls%} — the soul balance of the player's active gem (0 when soul mode is off).</li>
  * </ul>
- * Unknown placeholders return {@code null} (PAPI then leaves the raw token). More placeholders are a trivial
- * add — pass another accessor and a case.
+ * Unknown placeholders return {@code null} (PAPI then leaves the raw token).
  */
 public final class SePlaceholderExpansion extends PlaceholderExpansion {
 
@@ -37,8 +35,8 @@ public final class SePlaceholderExpansion extends PlaceholderExpansion {
     }
 
     /**
-     * Construct + register the expansion. Called from the registrar only when PlaceholderAPI is present, so
-     * referencing this class (and thus PAPI) is gated. Returns whether registration succeeded.
+     * Construct + register the expansion; returns whether registration succeeded. Called from the registrar
+     * only when PlaceholderAPI is present, so referencing this class (and thus PAPI) is gated.
      */
     public static boolean install(String version, Predicate<Player> soulMode, ToIntFunction<Player> souls) {
         return new SePlaceholderExpansion(version, soulMode, souls).register();

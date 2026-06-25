@@ -10,16 +10,14 @@ import java.util.Optional;
 import java.util.function.IntPredicate;
 
 /**
- * The canonical trigger vocabulary (docs/architecture.md §3.7) — the single source of
- * truth that assigns each trigger its dense id. It is to triggers what
- * {@code VarVocabulary} is to condition variables: the engine builds it at boot, the
- * compiler interns content trigger names against {@link #names()} so a compiled
- * {@code triggerMask} bit means the same trigger the runtime listener routes — and the
- * runtime classifies abilities into the {@code WornState} combat arrays via
- * {@link #attackTriggers()}/{@link #defenseTriggers()}.
+ * The canonical trigger vocabulary (docs/architecture.md §3.7) — single source of truth
+ * for each trigger's dense id. Built at boot; the compiler interns content trigger names
+ * against {@link #names()} so a compiled {@code triggerMask} bit means the same trigger
+ * the runtime listener routes, and the runtime classifies abilities into the {@code
+ * WornState} combat arrays via {@link #attackTriggers()}/{@link #defenseTriggers()}.
  *
- * <p>Ids are assigned in registration order. The {@code triggerMask} is an {@code int},
- * so at most 32 triggers may be registered.
+ * <p>Ids are assigned in registration order; the {@code triggerMask} is an {@code int},
+ * so at most 32 triggers fit.
  */
 public final class TriggerRegistry {
 

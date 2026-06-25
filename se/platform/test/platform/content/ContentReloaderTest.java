@@ -27,10 +27,9 @@ import schema.spec.D;
 import schema.spec.ParamSpec;
 
 /**
- * Unit tests for the transactional reloader (ADR-0014), with an inline scheduler backend so the
- * off-thread build → global-thread swap runs deterministically and synchronously. They pin the
- * contract: a clean build is published (generation bumped), a build with a blocking diagnostic keeps
- * the old content live, and a dry run never swaps.
+ * Transactional reloader (ADR-0014). An inline scheduler runs the off-thread build → global-thread
+ * swap synchronously so the publish/abort decision is deterministic; a blocking diagnostic anywhere
+ * must keep the old content live.
  */
 class ContentReloaderTest {
 
@@ -57,7 +56,7 @@ class ContentReloaderTest {
 
     @Test
     void reloadPublishesACleanBuild(@TempDir Path root) throws IOException {
-        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0)); // empty initially
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
         ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);
         write(root, "enchants/spark.yml", GOOD);
 
@@ -76,19 +75,19 @@ class ContentReloaderTest {
         ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);
         assertNotNull(holder.snapshot().byStableKey("enchants/good/1"));
 
-        write(root, "enchants/bad.yml", "trigger: ATTACK\n"); // no levels -> blocking diagnostic
+        write(root, "enchants/bad.yml", "trigger: ATTACK\n"); // missing levels is a blocking diagnostic
         ReloadResult[] result = new ReloadResult[1];
         reloader.reload(r -> result[0] = r);
 
         assertFalse(result[0].published());
         assertTrue(result[0].errorCount() > 0);
-        assertEquals(0, holder.snapshot().generation()); // still the original, un-swapped snapshot
+        assertEquals(0, holder.snapshot().generation());
         assertNotNull(holder.snapshot().byStableKey("enchants/good/1"));
     }
 
     @Test
     void dryRunNeverPublishes(@TempDir Path root) throws IOException {
-        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0)); // empty
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
         ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);
         write(root, "enchants/spark.yml", GOOD);
 
@@ -97,7 +96,7 @@ class ContentReloaderTest {
 
         assertTrue(result[0].dryRun());
         assertFalse(result[0].published());
-        assertEquals(0, holder.snapshot().abilityCount()); // holder still the empty initial library
+        assertEquals(0, holder.snapshot().abilityCount());
     }
 
     @Test
@@ -120,9 +119,9 @@ class ContentReloaderTest {
     @Test
     void aStepWithABlockingDiagnosticAbortsTheWholeSwap(@TempDir Path root) throws IOException {
         write(root, "enchants/good.yml", GOOD);
-        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0)); // generation 0
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
         boolean[] sourcePublished = {false};
-        // Content is clean, but a parallel source reports a blocking diagnostic — the transaction must abort.
+        // Clean content but a blocking diagnostic from a parallel source must still abort the transaction.
         ReloadStep brokenStep = () -> new ReloadStep.Built(
                 List.of(schema.diag.Diagnostic.error("X_BAD", "broken config", schema.diag.Source.UNKNOWN)),
                 () -> sourcePublished[0] = true);
@@ -134,7 +133,7 @@ class ContentReloaderTest {
 
         assertFalse(result[0].published(), "a broken source aborts the whole reload");
         assertFalse(sourcePublished[0], "no source is published when the transaction aborts");
-        assertEquals(0, holder.snapshot().generation()); // content kept its previous (un-swapped) snapshot
+        assertEquals(0, holder.snapshot().generation());
         assertTrue(result[0].diagnostics().stream().anyMatch(d -> d.code().equals("X_BAD")),
                 "the source's diagnostic is surfaced in the reload result");
     }

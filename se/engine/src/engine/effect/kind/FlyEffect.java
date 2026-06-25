@@ -12,11 +12,7 @@ import schema.spec.D;
 
 /**
  * {@code FLY} — grant the player target(s) temporary flight for a duration in ticks
- * (docs/architecture.md §7). Stateless; emits a {@code setFlight} intent per resolved
- * player target. Only players can fly, so non-player targets are silently skipped.
- * {@link Affinity#TARGET_ENTITY}: granting flight mutates the target, so on Folia the
- * {@code Sink} routes each intent to the target's region thread — declaring it here is
- * all an author does.
+ * (docs/architecture.md §7). Non-player targets are silently skipped. {@link Affinity#TARGET_ENTITY}.
  */
 public final class FlyEffect implements EffectKind {
 

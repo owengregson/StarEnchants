@@ -58,13 +58,13 @@ class ConditionRoundTripTest {
         FactBuffer f = vocab.newFactBuffer();
         f.setNumber(health, 3.0);
         f.setFlag(sneaking, true);
-        assertTrue(ConditionEvaluator.eval(a.condition(), f).passes()); // 3 < 5 && sneaking
+        assertTrue(ConditionEvaluator.eval(a.condition(), f).passes());
 
-        f.setNumber(health, 10.0); // 10 < 5 is false
+        f.setNumber(health, 10.0);
         assertFalse(ConditionEvaluator.eval(a.condition(), f).passes());
 
         f.setNumber(health, 3.0);
-        f.setFlag(sneaking, false); // not sneaking
+        f.setFlag(sneaking, false);
         assertFalse(ConditionEvaluator.eval(a.condition(), f).passes());
     }
 }

@@ -10,9 +10,8 @@ import org.bukkit.Location;
  * own rules. The engine's gate 2 ({@code ActivationPipeline.Guard}) consults the composed
  * {@link ProtectionService}; register a provider through Bukkit's {@code ServicesManager}.
  *
- * <p>This replaces the brittle bundled bridges of the legacy plugins with one narrow contract — the
- * only question StarEnchants ever asks a protection plugin is whether an enchant effect may fire at a
- * location for a player.
+ * <p>The only question StarEnchants ever asks a protection plugin is whether an enchant effect may fire
+ * at a location for a player — one narrow contract instead of per-plugin bridges.
  *
  * <p><b>Threading (Folia).</b> A provider is invoked on the firing event's region thread, with a
  * {@code where} that region owns — so reading the region/claim at {@code where} is safe. The actor is

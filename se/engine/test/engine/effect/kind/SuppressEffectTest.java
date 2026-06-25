@@ -12,10 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code SUPPRESS}: it emits one {@code suppress} per resolved PLAYER target with the
- * erased (scopeKind, keyId, duration) ints, skipping non-players.
- */
+/** Mock-host SUPPRESS test: one suppress per resolved PLAYER target with the erased (scopeKind, keyId, duration) ints; non-players skipped. */
 class SuppressEffectTest {
 
     @Test

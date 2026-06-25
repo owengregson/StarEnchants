@@ -23,9 +23,9 @@ class RepeatStoreTest {
     @Test
     void putReplacesAndHandsBackThePreviousHandle() {
         store.put(p, 1, "task-a");
-        assertEquals(Optional.of("task-a"), store.put(p, 1, "task-b")); // caller cancels task-a
+        assertEquals(Optional.of("task-a"), store.put(p, 1, "task-b")); // the ousted handle is returned so the caller can cancel it
         assertTrue(store.has(p, 1));
-        assertEquals(Optional.of("task-b"), store.remove(p, 1)); // the replacement survived
+        assertEquals(Optional.of("task-b"), store.remove(p, 1));
     }
 
     @Test

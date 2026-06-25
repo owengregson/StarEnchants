@@ -7,12 +7,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Tags / detects a SCROLL by its kind (docs/v3-directives.md §I) — a one-shot consumable whose behaviour
- * is decided by its kind ({@code BLACK} extract-to-book, {@code RANDOMIZER} reroll-book-success, and later
- * {@code TRANSMOG} / {@code NAMETAG} / {@code HOLY}). The kind is a PDC {@code STRING} under
- * {@link ItemKeys#scroll()}, separate from the combat blob (identity, never on the hot path). The scroll's
- * mechanics/likeness come from the scrolls config, not the item. Reading is null-safe; an unrecognised kind
- * reads as {@code null}.
+ * Tags / detects a SCROLL by kind (§I): a PDC {@code STRING} under {@link ItemKeys#scroll()}, off the
+ * combat hot path. Mechanics come from the scrolls config, not the item. Reading is null-safe; a
+ * blank/absent kind reads as {@code null}.
  */
 public final class ScrollCodec {
 

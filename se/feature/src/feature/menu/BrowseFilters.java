@@ -5,10 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The pure catalog-grouping the browse menus need (docs/v3-directives.md §K — "tier → enchant"). Kept
- * server-free so the tier bucketing / null-tier fallback is unit-tested without a server; the live suite
- * proves the rendered drill-down. There is no pre-built per-tier index in the {@code Library} (the catalog
- * is a flat list), so the browser groups on demand here.
+ * Catalog tier-grouping for the browse menus (docs/v3-directives.md §K — "tier → enchant"). Server-free so
+ * the bucketing / null-tier fallback is unit-tested. The {@code Library} catalog is a flat list with no
+ * per-tier index, so the browser groups on demand here.
  */
 public final class BrowseFilters {
 

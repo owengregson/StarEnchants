@@ -41,12 +41,9 @@ import tester.harness.Harness;
 
 /**
  * Live checks for the §I economy items that mutate real {@link ItemStack}s through the server's item
- * factory (what a unit test cannot prove): the slot expander persists {@code CombatState.added} in real
- * PDC and respects the universal cap; the black scroll extracts an enchant off real gear into a real book;
- * the randomizer rerolls a real book's stored base success; the unopened book mints a concrete book of a
- * tier enchant; and the transmog scroll reorders without losing any enchant and stamps the name suffix.
- * No fake player needed — these are gear/book mutations; the holy/nametag player flows live in
- * {@link ScrollPlayerSuite}. Runs on the global thread with deterministic rolls.
+ * factory: slot expander, black scroll, randomizer, unopened book, transmog scroll. No fake player
+ * needed (gear/book mutations); the holy/nametag player flows live in {@link ScrollPlayerSuite}.
+ * Runs on the global thread with deterministic rolls.
  */
 public final class EconomyItemsSuite implements Harness.Scenario {
 
@@ -121,9 +118,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 UnopenedBookConfig::defaults, new Random(3));
 
         h.guard("economy.slot.persistsAndCaps", () -> {
-            // A config whose maxAdded (hardCap - base = 5) is NOT a multiple of the orb's +3, so the second
-            // orb genuinely OVERSHOOTS the cap and must clamp-and-commit (3 + 3 → clamp to 5), then a further
-            // orb at the cap is a no-op that is not consumed.
+            // maxAdded (5) is not a multiple of the orb's +3, so the second orb overshoots the cap and must
+            // clamp-and-commit (3 + 3 → 5); a further orb at the cap is a no-op and not consumed.
             SlotConfig capCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
                     ItemEnchanter.DEFAULT_BASE_SLOTS + 5);
             SlotService capSlots = new SlotService(slotCodec, combat, lore, () -> capCfg,
@@ -134,14 +130,13 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 throw new IllegalStateException("first orb did not persist +3: " + combat.read(sword).added());
             }
             ItemStack orb = capSlots.mintOrb();
-            SlotResult capped = capSlots.applyTo(orb, sword); // 3 + 3 = 6 > cap 5 → clamp to 5, still commits
+            SlotResult capped = capSlots.applyTo(orb, sword); // 6 > cap 5 → clamp to 5, still commits
             if (combat.read(sword).added() != 5) {
                 throw new IllegalStateException("clamp did not land on the cap (5): " + combat.read(sword).added());
             }
             if (!capped.commit() || orb.getAmount() != 0) {
                 throw new IllegalStateException("the overshooting orb should clamp-and-commit (consuming it): " + capped);
             }
-            // A fully-capped item must reject (and NOT consume) a further orb.
             ItemStack extra = capSlots.mintOrb();
             SlotResult noop = capSlots.applyTo(extra, sword);
             if (noop.commit() || extra.getAmount() != 1 || combat.read(sword).added() != 5) {
@@ -170,8 +165,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         });
 
         h.guard("economy.randomizer.rerollsBase", () -> {
-            ItemStack book = carriers.mintBook("enchants/sharp", 1); // ad-hoc book, base success 100
-            carriers.rerollSuccess(book, 42); // direct, deterministic
+            ItemStack book = carriers.mintBook("enchants/sharp", 1); // base success 100
+            carriers.rerollSuccess(book, 42);
             CarrierData data = carrierCodec.read(book);
             if (data == null || data.baseSuccess() != 42 || data.successBonus() != 0) {
                 throw new IllegalStateException("randomizer did not set base success 42 / reset bonus: " + data);
@@ -205,7 +200,6 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             ItemStack sword = named(Material.DIAMOND_SWORD, "§bMy Blade");
             combat.write(sword, new CombatState(
                     new java.util.LinkedHashMap<>(Map.of("enchants/sharp", 1, "enchants/tough", 1)), List.of()));
-            // A transmog scroll with the default suffix; the scroll kind drives the reorder + suffix.
             ScrollService transmogScrolls = new ScrollService(scrollCodec, combat, lore, carriers, holder,
                     ScrollsConfig::defaults, new Random(7));
             ItemStack scroll = transmogScrolls.mintTransmog();
@@ -226,8 +220,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         });
 
         h.guard("economy.godly.mintsAndReorders", () -> {
-            // The physical godly-transmog tool mints + is detected (its own codec, NOT a scroll), and the
-            // deterministic reorder the menu commits works on an ARBITRARY (bound) gear item, not just the held one.
+            // Godly-transmog is a reusable tool (own codec, not a one-shot scroll), and its menu reorder
+            // commits to an arbitrary bound gear item, not just the held one.
             item.codec.GodlyTransmogCodec godlyCodec = new item.codec.GodlyTransmogCodec(keys.godlyTransmog());
             ScrollService godly = new ScrollService(scrollCodec, combat, lore, carriers, holder,
                     ScrollsConfig::defaults, new Random(8), item.lang.Messages.defaults(), godlyCodec);
@@ -241,12 +235,11 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             if (tool.getType() != Material.NETHER_STAR) {
                 throw new IllegalStateException("godly transmog material: " + tool.getType());
             }
-            // Bound reorder: reorder a specific gear item's enchant order (what the menu does for a clicked piece).
             ItemStack gear = new ItemStack(Material.DIAMOND_BOOTS);
             combat.write(gear, new CombatState(
                     new java.util.LinkedHashMap<>(Map.of("enchants/sharp", 1, "enchants/tough", 1)), List.of()));
             List<String> first = new java.util.ArrayList<>(combat.read(gear).enchants().keySet());
-            java.util.Collections.reverse(first); // the swapped order
+            java.util.Collections.reverse(first);
             if (!godly.reorder(gear, first)) {
                 throw new IllegalStateException("reorder rejected a valid permutation");
             }

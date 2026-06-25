@@ -10,13 +10,10 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code BREAK_BLOCK} — break one or more blocks (docs/v3-directives.md §C/§A). Stateless; emits a
- * {@code breakBlock} intent per target location and never touches the world directly. {@code drops}
- * (default true) controls whether each block yields its drops or is simply cleared. The target slot
- * defaults to {@code @Here} (the activation block, so the bare {@code BREAK_BLOCK} is unchanged) and accepts
- * any block/location selector inline — e.g. {@code BREAK_BLOCK:true:@Vein} clears an ore vein, or
- * {@code @Tunnel}/{@code @Trench} for mining shapes. {@link Affinity#REGION}: each break routes to the
- * region thread owning its location.
+ * {@code BREAK_BLOCK} — break one or more blocks (docs/v3-directives.md §C/§A). {@code drops}
+ * (default true) yields drops vs. clears. Target slot defaults to {@code @Here} (the activation block)
+ * and accepts any block/location selector inline (e.g. {@code @Vein}/{@code @Tunnel}/{@code @Trench}).
+ * {@link Affinity#REGION}: each break routes to the region thread owning its location.
  */
 public final class BreakBlockEffect implements EffectKind {
 

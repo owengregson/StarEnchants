@@ -9,23 +9,18 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The self-describing signature of an effect kind — the SPI's central declaration
- * (docs/architecture.md §7). It wraps the schema's {@link ParamSpec} (the "one
- * declaration used four ways": validate / complete / docs / migrate) and adds the
- * two facts the engine needs that a bare param signature does not carry:
+ * Self-describing signature of an effect kind — the SPI's central declaration
+ * (docs/architecture.md §7). Wraps the schema's {@link ParamSpec} (one declaration → validate /
+ * complete / docs / migrate) and adds the two facts a bare param signature lacks:
  *
  * <ul>
- *   <li>the declared {@link Affinity} — folded by the compiler to the ability level
- *       so the {@code Sink} routes work to the right thread and the author never
- *       schedules (§3.6);</li>
- *   <li>the {@link TargetSpec} slots the effect reads, each bound to a selector
- *       (§7, {@code .target("who", T.AOE)}).</li>
+ *   <li>the declared {@link Affinity} — folded by the compiler so the {@code Sink} routes work to the
+ *       right thread and the author never schedules (§3.6);</li>
+ *   <li>the {@link TargetSpec} slots the effect reads, each bound to a selector.</li>
  * </ul>
  *
- * <p>An effect kind exposes one as a {@code static final EffectSpec SPEC}; the
- * compiler reaches the {@link #paramSpec()} (for validation) and {@link #affinity()}
- * (for the fold) through the engine's registry, which is what keeps the compiler
- * pure while still compile-time-aware of affinity.
+ * <p>An effect kind exposes one as a {@code static final EffectSpec SPEC}; reaching affinity through
+ * the registry is what keeps the compiler pure yet compile-time-aware of affinity.
  */
 public final class EffectSpec {
 
@@ -72,10 +67,8 @@ public final class EffectSpec {
     }
 
     /**
-     * Fluent builder. {@code param}/{@code rule}/{@code doc}/{@code example} delegate
-     * to the underlying {@link ParamSpec.Builder}; {@code target} and {@code affinity}
-     * add the engine-specific facts. Affinity defaults to {@link Affinity#CONTEXT_LOCAL}
-     * (the zero-hop common case) so an effect must opt in to wider routing.
+     * Fluent builder. Affinity defaults to {@link Affinity#CONTEXT_LOCAL} (the zero-hop common case),
+     * so an effect must opt in to wider routing.
      */
     public static final class Builder {
 

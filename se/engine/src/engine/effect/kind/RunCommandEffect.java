@@ -9,9 +9,7 @@ import schema.spec.D;
 
 /**
  * {@code RUN_COMMAND} — run a command from the console (docs/architecture.md §7).
- * Stateless; emits a single {@code consoleCommand} intent and never dispatches the
- * command itself. {@link Affinity#GLOBAL}: command execution is routed to the global
- * thread, not the firing region thread.
+ * {@link Affinity#GLOBAL}: routed to the global thread, not the firing region thread.
  */
 public final class RunCommandEffect implements EffectKind {
 

@@ -7,17 +7,14 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Reads/writes a {@link CarrierData} on an item (ADR-0016), stored as one PDC {@code STRING} under
- * {@link ItemKeys#carrier()} — SEPARATE from the {@link CombatCodec} blob so a carrier never decodes on
+ * Reads/writes a {@link CarrierData} on an item (ADR-0016), one PDC {@code STRING} under
+ * {@link ItemKeys#carrier()} — separate from the {@link CombatCodec} blob so a carrier never decodes on
  * the combat hot path. Format {@code <itemKey>:<grantKey>:<grantLevel>[:<successBonus>[:<baseSuccess>]]};
- * content keys contain {@code /} but never {@code ':'}, so the colons split the fields cleanly. The 4th
- * field (a dust-accumulated success bonus, ADR-0019) is OMITTED when zero, and the 5th (an explicit
- * base-success override, §I) is OMITTED when {@code -1} — so every pre-dust item still encodes
- * byte-for-byte as the original 3-field format, and an old 3/4-field payload decodes with
- * {@code successBonus = 0 / baseSuccess = -1} (no migration). A 5-field payload always carries the 4th
- * (a placeholder {@code 0} when the bonus is zero) since the fields are positional. Also flags/clears
- * the "guarded" protection marker on GEAR ({@link ItemKeys#guarded()}).
- * A null/malformed entry decodes to {@code null} (not a carrier), never an exception.
+ * content keys never contain {@code ':'}, so colons split fields cleanly. Trailing fields are positional:
+ * the 4th (dust success bonus, ADR-0019) is omitted when zero and the 5th (base-success override, §I)
+ * when {@code -1}, so pre-dust items encode byte-for-byte as 3 fields and old 3/4-field payloads decode
+ * with {@code successBonus=0 / baseSuccess=-1} (no migration). A null/malformed entry decodes to
+ * {@code null}, never throws. Also flags/clears the gear "guarded" marker ({@link ItemKeys#guarded()}).
  */
 public final class CarrierCodec {
 
@@ -78,9 +75,8 @@ public final class CarrierCodec {
 
     static String encode(CarrierData data) {
         String base = data.itemKey() + ":" + data.grantKey() + ":" + data.grantLevel();
-        // An explicit base-success override (§I) forces the full 5-field form (the 4th field is positional,
-        // so a zero bonus is written as a placeholder). Otherwise omit the success-bonus field when zero so
-        // a freshly-minted carrier (and every pre-dust item) encodes byte-for-byte as the 3-field format.
+        // A base-success override (§I) forces the 5-field form (4th written as a placeholder if zero, since
+        // fields are positional); else drop a zero bonus so pre-dust items encode byte-for-byte as 3 fields.
         if (data.hasBaseSuccess()) {
             return base + ":" + data.successBonus() + ":" + data.baseSuccess();
         }

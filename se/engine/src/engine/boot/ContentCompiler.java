@@ -13,34 +13,28 @@ import engine.trigger.TriggerRegistry;
 import platform.resolve.RegistryResolvers;
 
 /**
- * Wires the production content {@link Compiler} from the engine's built-in registries
- * (docs/architecture.md §2.1, §7). This is the single place that assembles the effect-spec registry
- * + per-effect affinities + default target selectors, the selector-spec registry, the condition
- * variable vocabulary, the canonical trigger order, and the live Bukkit-backed cross-version handle
- * resolver into one compiler. The shipped {@code bootstrap} plugin and the live content suite both
- * call {@link #production()}, so a content library is compiled <em>identically</em> in production and
- * under test — the live suite is then a faithful check of what the server will actually run.
+ * Single place that wires the production content {@link Compiler} from the engine's built-in
+ * registries (docs/architecture.md §2.1, §7). Both the shipped {@code bootstrap} plugin and the live
+ * suite call {@link #production()}, so a library compiles identically in production and under test.
  *
- * <p>Constructing the compiler resolves nothing (resolution happens during {@code compile}), so this
- * is safe to call off a server; the resolver only touches Bukkit registries when a handle token is
- * actually resolved during a load.
+ * <p>Construction resolves nothing (resolution happens during {@code compile}), so this is safe to
+ * call off a server.
  */
 public final class ContentCompiler {
 
     private ContentCompiler() {
     }
 
-    /** A compiler wired with every built-in kind + a fresh live Bukkit-backed handle resolver. */
+    /** Compiler wired with a fresh live Bukkit-backed handle resolver. */
     public static Compiler production() {
         return production(new RegistryResolvers());
     }
 
     /**
-     * A compiler wired with every built-in kind, using the GIVEN handle {@code resolvers}. The
-     * bootstrap passes a retained {@code RegistryResolvers} and builds the runtime {@code RuntimeHandles}
-     * from the SAME instance, so the §9 round-trip pairs — a handle token interned at compile time
-     * resolves back to its object at runtime (a fresh resolver would not know the interned ids).
-     * Reusing one compiler across reloads is safe because the reload path is single-flight.
+     * Compiler wired with the GIVEN {@code resolvers}. Bootstrap must pass the same
+     * {@code RegistryResolvers} it builds the runtime {@code RuntimeHandles} from, or the §9 round-trip
+     * breaks: a token interned at compile time must resolve back to its object at runtime, and a fresh
+     * resolver would not know the interned ids. Reuse across reloads is safe — the reload path is single-flight.
      */
     public static Compiler production(PlatformResolvers resolvers) {
         EffectRegistry effects = BuiltinEffects.registry();

@@ -3,10 +3,9 @@ package item.render;
 import java.util.Objects;
 
 /**
- * The presentation knobs for {@link LoreRenderer} (docs/architecture.md §4.2) — colours, the
- * level-numeral style, and the label shown for a stored key no longer in the catalog. A pure,
- * immutable value (the colours are legacy {@code '&'} codes, translated at render time), so a
- * server config can later swap a snapshot of this by reference exactly like the content snapshot.
+ * Presentation knobs for {@link LoreRenderer} (§4.2) — colours, numeral style, the label for a stored key
+ * no longer in the catalog. Immutable value (colours are legacy {@code '&'} codes, translated at render
+ * time) so a config snapshot of it can be swapped by reference like the content snapshot.
  *
  * @param enchantColor colour prefix for an enchant's display name (e.g. {@code "&7"})
  * @param levelColor   colour prefix for the level numeral (e.g. {@code "&f"})
@@ -21,7 +20,7 @@ public record LoreStyle(
         boolean roman,
         String unknownLabel) {
 
-    /** The built-in default look (grey enchant, white Roman level, aqua crystals). */
+    /** The built-in default look. */
     public static final LoreStyle DEFAULT = new LoreStyle("&7", "&f", "&b", true, "&8Unknown Enchant");
 
     public LoreStyle {

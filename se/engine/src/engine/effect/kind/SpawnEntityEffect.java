@@ -10,24 +10,20 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code SPAWN_ENTITY} — the canonical entity-spawn primitive (docs/v3-directives.md §C), collapsing
- * {@code SPAWN} (a mob at the activation location) and {@code TNT} (primed TNT at the target) into one
- * parameterized kind:
+ * {@code SPAWN_ENTITY} — canonical entity-spawn primitive (docs/v3-directives.md §C):
  *
  * <ul>
- *   <li>{@code type} — the entity type (e.g. {@code ZOMBIE}, {@code PRIMED_TNT}); resolved cross-version
- *       at compile time, so {@code PRIMED_TNT}/{@code TNT} both work on every server;</li>
+ *   <li>{@code type} — entity type, resolved cross-version at compile time, so {@code PRIMED_TNT}/{@code TNT}
+ *       both work on every server;</li>
  *   <li>{@code count} — how many to spawn (default 1);</li>
- *   <li>{@code ttl} — ticks until each spawned entity is auto-removed (0 = permanent);</li>
+ *   <li>{@code ttl} — ticks until each spawn is auto-removed (0 = permanent);</li>
  *   <li>{@code health} — starting/max health for living spawns (0 = leave the type default);</li>
- *   <li>{@code owner} — {@code none} (default) or {@code activator}: when {@code activator} and the spawn is
- *       {@link org.bukkit.entity.Tameable}, it is tamed to and owned by the activator (an owned summon, e.g. a wolf).</li>
+ *   <li>{@code owner} — {@code activator} tames the spawn (when {@link org.bukkit.entity.Tameable}) to the
+ *       activator; default {@code none}.</li>
  * </ul>
  *
- * <p>Spawns at each resolved target's location (so {@code SPAWN_ENTITY:...:@Victim} reproduces TNT at
- * the victim); with no resolvable target it falls back to the activation location (the old {@code SPAWN}
- * behavior). A primed-TNT spawn auto-primes with the vanilla fuse, matching the old {@code TNT} kind.
- * {@link Affinity#REGION}: spawning is a world mutation at a location, routed to that location's region.
+ * <p>Spawns at each resolved target's location; with no resolvable target it falls back to the activation
+ * location. A primed-TNT spawn auto-primes with the vanilla fuse. {@link Affinity#REGION}.
  */
 public final class SpawnEntityEffect implements EffectKind {
 

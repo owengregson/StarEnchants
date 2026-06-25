@@ -6,15 +6,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 /**
- * Custom-item resolution for ItemsAdder and Oraxen (docs/decisions/0027): a {@code token → ItemStack}
- * function StarEnchants consults when minting an item likeness, so a config can use a custom-textured item
- * (e.g. {@code material: itemsadder:ruby_scroll} or {@code material: oraxen:amethyst_dust}) anywhere a
- * material is accepted. Installed as {@code item.mint.ItemFactory.customItemResolver}.
+ * Custom-item resolution for ItemsAdder and Oraxen (docs/decisions/0027): a {@code token → ItemStack} the
+ * mint consults so a config can use a custom-textured item anywhere a material is accepted. Installed as
+ * {@code item.mint.ItemFactory.customItemResolver}.
  *
  * <p>Prefix-routed: {@code itemsadder:<namespace:id>} → ItemsAdder, {@code oraxen:<id>} → Oraxen; any other
- * token (a vanilla material, etc.) returns {@code null} so the caller falls back to vanilla material
- * resolution. Each backend is only consulted when its plugin is present + enabled, and each bridge is
- * fail-safe, so this never throws on a mint and never loads an absent plugin's API.
+ * token returns {@code null} so the caller falls back to vanilla material resolution. Each backend is consulted
+ * only when present + enabled, and each bridge is fail-safe, so this never throws and never loads an absent
+ * plugin's API.
  */
 public final class CustomItems {
 

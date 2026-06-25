@@ -7,10 +7,9 @@
  *   AbilityDef  --LowerStage-->  LoweredAbility  --EraseStage-->  ErasedContent  --SnapshotStage-->  Snapshot
  * </pre>
  *
- * Because every stage's input and output type is fixed (in {@link compile.model},
- * {@link compile.def}, and here), the stage implementations are independent — each
- * can be written and unit-tested in isolation. {@code resolve} (cross-version handle
- * resolution via the injected {@code PlatformResolvers}) and {@code typecheck} are
- * layered into lowering as the variable vocabulary and selector grammar land.
+ * Because every stage's input and output type is fixed (in {@link compile.model}, {@link compile.def},
+ * and here), the stage implementations are independent — each unit-testable in isolation. A
+ * {@code resolve} stage (cross-version handle resolution via the injected {@code PlatformResolvers})
+ * runs between lowering and erasure.
  */
 package compile.stage;

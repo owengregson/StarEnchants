@@ -13,13 +13,12 @@ import java.util.Objects;
  * lives in the {@link ItemsConfig} snapshot the runtime reads and {@code /se reload} swaps (the range is
  * re-read live, not baked onto a random dust).
  *
- * @param material  the dust item's material token (cross-version resolved at mint time)
- * @param name      the dust item's display name ({@code &} colours); {@code {BONUS}}→range-or-fixed, {@code {MIN}}/{@code {MAX}}
- * @param lore      the dust item's lore lines; same placeholders as {@code name}
- * @param minBonus  the low end of the random success-chance bonus a dust confers ({@code [0, 100]}, ≤ maxBonus)
- * @param maxBonus  the high end of the random success-chance bonus ({@code [0, 100]}, ≥ minBonus)
- * @param sound     the namespaced sound played on a successful combine (range-stable), or blank for none
- * @param particles particle tokens spawned on a successful combine (alias-resolved), or empty for none
+ * @param material  material token (cross-version resolved at mint time)
+ * @param name      display name; {@code {BONUS}}→range-or-fixed, {@code {MIN}}/{@code {MAX}} placeholders
+ * @param minBonus  low end of the random success bonus ({@code [0, 100]}, clamped ≤ maxBonus)
+ * @param maxBonus  high end of the random success bonus ({@code [0, 100]}, clamped ≥ minBonus)
+ * @param sound     combine sound, or blank for none
+ * @param particles combine particle tokens (alias-resolved), or empty for none
  */
 public record DustConfig(String material, String name, List<String> lore, int minBonus, int maxBonus,
                          String sound, List<String> particles) {

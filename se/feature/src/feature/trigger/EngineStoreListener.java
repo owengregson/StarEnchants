@@ -13,14 +13,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * Clears a quitting player's per-player engine store state (docs/architecture.md §5.4) — the central
- * quit hook for the runtime stores whose contract is "cleared on quit": the writable {@link VarStore}
- * ({@code SET_VAR}/{@code INVERT_VAR}), the {@link SuppressionStore} ({@code SUPPRESS}), the
- * {@link KnockbackControlStore} ({@code KNOCKBACK_CONTROL}), the {@link KeepOnDeathStore}
- * ({@code KEEP_ON_DEATH}), the {@link TeleblockStore} ({@code TELEBLOCK}), and the {@link ImmuneStore}
- * ({@code IMMUNE}). All are otherwise self-bounding via lazy TTL eviction on read, so this is the upper
- * bound that frees a player's entries the moment they leave. Runs on the quit event's thread; the stores
- * are concurrent, so the clear is Folia-safe.
+ * Central quit hook clearing a player's per-player engine store state (§5.4): {@link VarStore},
+ * {@link SuppressionStore}, {@link KnockbackControlStore}, {@link KeepOnDeathStore}, {@link TeleblockStore},
+ * {@link ImmuneStore}. All self-bound via lazy TTL eviction on read; this is the upper bound that frees a
+ * player's entries the moment they leave. Folia-safe: the stores are concurrent.
  */
 public final class EngineStoreListener implements Listener {
 

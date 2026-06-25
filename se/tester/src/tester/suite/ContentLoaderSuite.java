@@ -20,18 +20,9 @@ import schema.diag.Source;
 import tester.harness.Harness;
 
 /**
- * Live checks for the content loader + transactional reload (ADR-0014) — the things a unit test
- * cannot prove because they depend on the real server: that the loader's SnakeYAML parsing works on
- * the server's bundled SnakeYAML (1.x vs 2.x varies by version), that a version-volatile handle in an
- * authored effect resolves through the loader's production compiler on THIS version (§9), and that the
- * reloader's off-thread build + global-thread swap is correct on Folia as well as Paper.
- *
- * <ul>
- *   <li>{@code content.load.handleResolves} — an authored {@code POTION:STRENGTH} enchant loads with
- *       no errors and the per-level ability is present: the potion handle resolved at load time.</li>
- *   <li>{@code content.reload.swaps} — adding a file and reloading builds off-thread, resolves another
- *       handle there, and swaps the new snapshot in on the global thread (generation bumped).</li>
- * </ul>
+ * Live checks for the content loader + transactional reload (ADR-0014): parsing on the server's bundled
+ * SnakeYAML (1.x vs 2.x varies by version), version-volatile handle resolution through the production
+ * compiler (§9), and the reloader's off-thread build + global-thread swap on Folia as well as Paper.
  */
 public final class ContentLoaderSuite implements Harness.Scenario {
 
@@ -77,8 +68,7 @@ public final class ContentLoaderSuite implements Harness.Scenario {
             return;
         }
 
-        // accept() runs on the global thread, so the initial load (which resolves the STRENGTH handle
-        // against the live registries) is safe here.
+        // accept() runs on the global thread, so resolving STRENGTH against the live registries is safe.
         Compiler compiler = ContentCompiler.production();
         Library initial = LibraryLoader.load(root, compiler, 0);
         h.guard("content.load.handleResolves", () -> {
@@ -91,7 +81,7 @@ public final class ContentLoaderSuite implements Harness.Scenario {
         });
 
         ContentHolder holder = new ContentHolder(initial);
-        // A fresh compiler per build (clean interners) — never reuse the initial-load compiler.
+        // Fresh compiler per build (clean interners) — never reuse the initial-load one.
         ContentReloader reloader = new ContentReloader(holder, ContentCompiler::production, root, 0);
         try {
             write(root, "enchants/bolt.yml", BOLT);
@@ -99,7 +89,6 @@ public final class ContentLoaderSuite implements Harness.Scenario {
             h.fail("content.reload.swaps", e.toString());
             return;
         }
-        // reload() builds off-thread (resolving the SPEED handle there) and swaps on the global thread.
         reloader.reload(result -> h.guard("content.reload.swaps", () -> {
             if (!result.published()) {
                 throw new IllegalStateException("reload did not publish: " + result.diagnostics());
@@ -116,9 +105,9 @@ public final class ContentLoaderSuite implements Harness.Scenario {
     }
 
     /**
-     * §L-4: the reload is a transaction over content + the parallel config sources. On the REAL backend the
-     * source {@link ReloadStep#build()}s run off-thread and publish on the global thread only when everything
-     * is clean — exercised here on Paper AND Folia, where the inline-backend unit test cannot reach.
+     * §L-4: the reload is a transaction over content + parallel config sources. {@link ReloadStep#build()}s
+     * run off-thread and publish on the global thread only when everything is clean — on Paper and Folia,
+     * where the inline-backend unit test cannot reach.
      */
     private void transactionChecks(Harness h) {
         Path croot;
@@ -133,9 +122,9 @@ public final class ContentLoaderSuite implements Harness.Scenario {
             return;
         }
 
-        // OK case: a clean items step swaps alongside content. The holder starts empty; after the staged
-        // soul-gem.yml is reloaded the source must be published with souls-per-kill = 7.
-        ItemsHolder itemsHolder = new ItemsHolder(ItemsLoader.load(items)); // empty config
+        // OK case: a clean items step swaps alongside content. Holder starts empty; after the staged
+        // soul-gem.yml reloads, the source must publish with souls-per-kill = 7.
+        ItemsHolder itemsHolder = new ItemsHolder(ItemsLoader.load(items));
         ReloadStep itemsStep = () -> {
             var cfg = ItemsLoader.load(items);
             return new ReloadStep.Built(cfg.diagnostics(), () -> itemsHolder.publish(cfg));
@@ -144,7 +133,7 @@ public final class ContentLoaderSuite implements Harness.Scenario {
         ContentReloader okReloader = new ContentReloader(okHolder, ContentCompiler::production, croot, 0,
                 lib -> { }, List.of(itemsStep));
         try {
-            write(items, "soul-gem.yml", SOUL_GEM); // now the source has content to swap in
+            write(items, "soul-gem.yml", SOUL_GEM); // stage content for the source to swap in
         } catch (IOException e) {
             h.fail("content.reload.transaction", e.toString());
         }
@@ -157,8 +146,8 @@ public final class ContentLoaderSuite implements Harness.Scenario {
             }
         }));
 
-        // Abort case: a source that reports a blocking diagnostic must keep the previous state of EVERYTHING
-        // (content NOT bumped, the source NOT published) and surface the fault.
+        // Abort case: a source reporting a blocking diagnostic must keep all prior state (content not bumped,
+        // source not published) and surface the fault.
         ContentHolder abHolder = new ContentHolder(LibraryLoader.load(croot, ContentCompiler.production(), 0));
         boolean[] sourcePublished = {false};
         ReloadStep brokenStep = () -> new ReloadStep.Built(

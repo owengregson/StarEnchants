@@ -12,16 +12,14 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * Spawns the §D soul-gem WHILE-ACTIVE particle aura: a single global repeating task that, each period,
- * spawns {@link SoulGemConfig#particlesActive()} at every player currently in soul mode (read from the
- * shared {@link SoulModeStore}). One global task — not a per-player driver — keeps it free of toggle/join/
- * quit bookkeeping; it simply reads the live mode set each tick. Folia-correct: the task runs on the global
- * thread (where enumerating online players is safe), then hops to each active player's own region via
- * {@link Scheduling#onEntity} to spawn at them. Cosmetic and off the combat hot path.
+ * §D soul-gem while-active particle aura. One global repeating task (not per-player) so it needs no
+ * toggle/join/quit bookkeeping — it reads the live {@link SoulModeStore} each tick. Folia-correct: the task
+ * runs on the global thread (where enumerating players is safe), then hops to each active player's region via
+ * {@link Scheduling#onEntity} to spawn at them.
  */
 public final class SoulParticleDriver {
 
-    /** How often (ticks) the aura re-spawns — ambient, so a coarse period keeps the per-tick cost low. */
+    // ambient aura: a coarse period keeps the per-tick cost low
     private static final int PERIOD_TICKS = 10;
 
     private final SoulModeStore modes;
@@ -42,7 +40,6 @@ public final class SoulParticleDriver {
         }
     }
 
-    /** Stop the aura loop (call on disable). */
     public void stop() {
         if (task != null) {
             task.cancel();

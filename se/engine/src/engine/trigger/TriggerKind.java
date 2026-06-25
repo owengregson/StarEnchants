@@ -1,21 +1,18 @@
 package engine.trigger;
 
 /**
- * One trigger kind — a self-describing event family an ability can fire on
- * (docs/architecture.md §3.7). A {@code TriggerKind} declares its DSL {@code name}
- * (interned to a canonical id by the {@link TriggerRegistry}), its combat
- * {@link Direction} (which pre-flattened {@code WornState} array it feeds), and the
- * three pieces of routing metadata a Cosmic Enchants-style plugin never modelled explicitly — fixing the bug where
- * a helmet enchant could fire on {@code ATTACK} (§1.4 "applies is NOT re-checked").
+ * One trigger kind — an event family an ability can fire on (docs/architecture.md §3.7).
+ * Declares its DSL {@code name} (interned by {@link TriggerRegistry}), combat
+ * {@link Direction}, and routing metadata. The routing flags are what Cosmic Enchants
+ * never modelled, causing a helmet enchant to fire on {@code ATTACK} (§1.4 "applies is
+ * NOT re-checked").
  *
- * <p>The Bukkit event binding (translating an event into an {@code Activation}) is a
- * server-side concern of the listener set, not this SPI — kinds are pure declarations
- * so the vocabulary is unit-testable and add-ons can register new triggers without a
- * server. Same one-interface-one-registration rule as effects/selectors.
+ * <p>Pure declarations — the Bukkit event→{@code Activation} binding lives server-side —
+ * so the vocabulary is unit-testable and add-ons register triggers without a server.
  */
 public interface TriggerKind {
 
-    /** Which combat direction a trigger belongs to (decides the {@code WornState} array it feeds). */
+    /** Combat direction — decides which pre-flattened {@code WornState} array the trigger feeds. */
     enum Direction {
         /** The activator is dealing damage (ATTACK, KILL, BOW, …) — feeds {@code combatAttack}. */
         ATTACK,
@@ -25,18 +22,17 @@ public interface TriggerKind {
         NEUTRAL
     }
 
-    /** The DSL trigger name, e.g. {@code ATTACK} (matched case-insensitively). */
+    /** The DSL trigger name, matched case-insensitively. */
     String name();
 
-    /** This trigger's combat direction. */
     Direction direction();
 
-    /** Whether the ability is read from the <em>held</em> item only (HELD/BREAK/ITEM_DAMAGE). */
+    /** Read the ability from the <em>held</em> item only, not worn equipment. */
     boolean usesHeld();
 
-    /** Whether the ability is read from the player's merged armor + main-hand equipment. */
+    /** Read the ability from the player's merged armor + main-hand equipment. */
     boolean scansEquipment();
 
-    /** Whether this trigger supplies a target entity (so target-directed effects/selectors resolve). */
+    /** Supplies a target entity, so target-directed effects/selectors resolve. */
     boolean needsTarget();
 }

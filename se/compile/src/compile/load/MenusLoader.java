@@ -16,12 +16,10 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads the top-level {@code menus/} folder into an immutable {@link MenusConfig} (docs/v3-directives.md §L) —
- * one {@code .yml} per GUI, the menu name taken from the file stem ({@code menus/enchanter.yml} →
- * {@code enchanter}). Mirrors {@link ItemsLoader}'s per-file pattern over the package-private {@link YamlNode};
- * reads only the surfaceable layout fields and leaves unset fields absent (the framework falls back to the
- * programmatic default per field). Never throws — a missing folder yields {@link MenusConfig#empty()}, an
- * unreadable/malformed file yields a diagnostic and is skipped.
+ * Loads the top-level {@code menus/} folder into an immutable {@link MenusConfig} (§L) — one {@code .yml}
+ * per GUI, menu name from the file stem ({@code menus/enchanter.yml} → {@code enchanter}). Unset fields are
+ * left absent (the framework falls back per field). Never throws — a missing folder yields
+ * {@link MenusConfig#empty()}, an unreadable/malformed file yields a diagnostic and is skipped.
  */
 public final class MenusLoader {
 
@@ -103,7 +101,7 @@ public final class MenusLoader {
         return v == null || v.isBlank() ? null : v;
     }
 
-    /** A filler token; blank/empty is preserved as "" (operator explicitly disabling filler), not nulled. */
+    /** Preserves blank/empty as "" (operator explicitly disabling filler), not nulled. */
     private static String orEmpty(String v) {
         return v == null ? "" : v;
     }

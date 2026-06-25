@@ -82,7 +82,7 @@ class LibraryLoaderTest {
         Library lib = LibraryLoader.load(root, compiler(), 7);
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
-        // The crystal's stable key is the base key itself — no /level suffix (WornResolver looks it up directly).
+        // crystal key is the base key, no /level suffix — WornResolver looks it up directly
         assertNotNull(lib.snapshot().byStableKey("crystals/jolt"));
         assertEquals(0, lib.snapshot().byStableKey("crystals/jolt").level());
         assertNotNull(lib.snapshot().byStableKey("enchants/lifesteal/1"));
@@ -119,8 +119,8 @@ class LibraryLoaderTest {
         compile.model.Ability bonus = lib.snapshot().byStableKey("sets/yeti");
         assertNotNull(bonus);
         assertEquals(compile.model.SourceKind.SET, bonus.sourceKind());
-        assertEquals(4, bonus.setPieces()); // the completion threshold is erased onto the armour ability
-        // The additional weapon bonus is its own ability (gated by the resolver, so setPieces 0).
+        assertEquals(4, bonus.setPieces()); // completion threshold erased onto the armour ability
+        // the weapon bonus is its own ability, resolver-gated → setPieces 0
         compile.model.Ability weapon = lib.snapshot().byStableKey("sets/yeti/weapon");
         assertNotNull(weapon);
         assertEquals(compile.model.SourceKind.SET, weapon.sourceKind());
@@ -148,7 +148,7 @@ class LibraryLoaderTest {
             levels:
               1: { chance: 50, effects: ["HEAL:2"] }
             """);
-        write(root, "enchants/bad.yml", "trigger: ATTACK\n"); // no levels -> a blocking diagnostic
+        write(root, "enchants/bad.yml", "trigger: ATTACK\n");
 
         Library lib = LibraryLoader.load(root, compiler(), 2);
 
@@ -158,7 +158,7 @@ class LibraryLoaderTest {
 
     @Test
     void aFileWithNoNameStemIsReportedNotKeyedEmpty(@TempDir Path root) throws IOException {
-        // A file literally named ".yml" would yield an empty/degenerate base key — reject it.
+        // a file named just ".yml" yields a degenerate empty base key — must be rejected
         write(root, "enchants/.yml", """
             trigger: ATTACK
             levels:

@@ -12,10 +12,9 @@ import schema.spec.D;
 
 /**
  * {@code MOVEMENT_SPEED} — set the player target(s)' walk speed for a span of ticks, then restore the
- * vanilla default (docs/v3-directives.md §C). Stateless; emits one {@code movementSpeed} intent per resolved
- * player target and never touches an entity directly. {@code speed} is the Bukkit walk speed (vanilla default
- * {@code 0.2}, max {@code 1.0}). A PASSIVE (while-worn) speed belongs to the HELD/REPEATING lifecycle; this is
- * the triggered, timed form. {@link Affinity#TARGET_ENTITY}: routed to each target's own thread.
+ * vanilla default (docs/v3-directives.md §C). {@code speed} is the Bukkit walk speed (vanilla default
+ * {@code 0.2}, max {@code 1.0}); this is the triggered, timed form (a while-worn speed belongs to
+ * HELD/REPEATING). {@link Affinity#TARGET_ENTITY}.
  */
 public final class MovementSpeedEffect implements EffectKind {
 

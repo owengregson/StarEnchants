@@ -6,7 +6,7 @@ import java.util.UUID;
  * A first-party economy SPI (docs/architecture.md §1, §2): the narrow contract StarEnchants uses to
  * move money for money enchants (GIVE_MONEY / TAKE_MONEY, a Cosmic Enchants-style "trade"/"tax" family). One
  * implementation bridges one economy backend (Vault, or a server's own); register it through Bukkit's
- * {@code ServicesManager}. Replaces the legacy bundled Vault wiring with a single first-party seam.
+ * {@code ServicesManager}.
  *
  * <p><b>Threading.</b> StarEnchants calls a provider on the server's GLOBAL region thread (the main
  * thread on Paper) — the thread most economy backends expect, and the Folia-consistent analog — never

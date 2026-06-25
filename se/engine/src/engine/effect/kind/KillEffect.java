@@ -9,10 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * {@code KILL} — instantly kill the target(s) (docs/architecture.md §7). Takes no
- * params; stateless, emitting a {@code kill} intent per resolved target and never
- * touching an entity directly. {@link Affinity#TARGET_ENTITY}: killing mutates the
- * target, so the {@code Sink} routes each intent to the owning entity's region thread.
+ * {@code KILL} — instantly kill the target(s) (docs/architecture.md §7). Paramless. {@link Affinity#TARGET_ENTITY}.
  */
 public final class KillEffect implements EffectKind {
 

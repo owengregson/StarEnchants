@@ -22,8 +22,8 @@ import org.mockito.MockedStatic;
 
 /**
  * Pins the Vault {@code Economy} wiring of {@link VaultEconomyProvider} against a mocked backend: the
- * "no partial charge" rule, a successful withdraw/deposit, and graceful no-op behaviour when no economy
- * backend is registered. End-to-end with a real Vault economy is verified out-of-matrix (docs/decisions/0027).
+ * "no partial charge" rule, a successful withdraw/deposit, and graceful no-op when no backend is registered.
+ * End-to-end with a real Vault economy is verified out-of-matrix (docs/decisions/0027).
  */
 class VaultEconomyProviderTest {
 

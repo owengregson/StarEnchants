@@ -21,9 +21,9 @@ import schema.spec.D;
  *       the same tick as the hit, so a tiny window suffices.</li>
  * </ul>
  *
- * <p>Targets {@link T#SELF} by default — a DEFENSE proc controlling the knockback the holder takes. An
- * offensive "your hits knock back harder/softer" authors it on ATTACK with {@code who: victim}. It writes
- * only an in-memory per-victim flag, so it is {@link Affinity#CONTEXT_LOCAL} (no world mutation, no hop).
+ * <p>Targets {@link T#SELF} by default (a DEFENSE proc controlling the holder's knockback); for the
+ * knockback you deal, author on ATTACK with {@code who: victim}. {@link Affinity#CONTEXT_LOCAL}: in-memory
+ * per-victim flag, no hop.
  */
 public final class KnockbackControlEffect implements EffectKind {
 

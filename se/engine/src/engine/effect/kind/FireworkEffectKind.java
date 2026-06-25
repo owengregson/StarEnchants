@@ -10,11 +10,10 @@ import schema.spec.D;
 
 /**
  * {@code FIREWORK} — spawn a cosmetic firework at the activation location (docs/v3-directives.md §C).
- * Stateless; emits one {@code firework} intent and never touches the world directly. {@code power} is the
- * rocket flight duration (0–3 typically). No-op when there is no activation location. {@link Affinity#REGION}:
- * routed to the region thread owning the location.
+ * {@code power} is rocket flight duration (0–3 typically). No-op when there is no activation location.
+ * {@link Affinity#REGION}.
  *
- * <p>Named {@code FireworkEffectKind} (not {@code FireworkEffect}) to avoid colliding with Bukkit's
+ * <p>Named {@code FireworkEffectKind}, not {@code FireworkEffect}, to avoid colliding with Bukkit's
  * {@code org.bukkit.FireworkEffect}.
  */
 public final class FireworkEffectKind implements EffectKind {

@@ -87,7 +87,7 @@ public final class ExprParser {
         if (!check(ExprTok.Kind.COLON)) {
             return test;
         }
-        advance(); // consume ':'
+        advance();
         Expr clause = parseOutcome(test);
         if (check(ExprTok.Kind.COLON)) {
             ExprTok at = peek();
@@ -159,7 +159,7 @@ public final class ExprParser {
             consumeToEnd();
             return test;
         }
-        advance(); // consume the %chance% sentinel
+        advance();
         return new Expr.Clause(test, FlowKind.CONTINUE, sign * magnitude, src);
     }
 

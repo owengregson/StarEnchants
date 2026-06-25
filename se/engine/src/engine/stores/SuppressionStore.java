@@ -5,34 +5,24 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Per-player timed suppression: an interned id &rarr; expiry tick
- * (docs/architecture.md §5.4). This is the home for the {@code DISABLE_*}-with-duration
- * effects — disabling a specific enchant / group / type id for a span of ticks. The
- * per-activation transient suppression set (silencing an id for the remainder of one
- * activation) is a SEPARATE arbiter and does not live here; this store only holds
+ * Per-player timed suppression: an interned id &rarr; expiry tick (docs/architecture.md §5.4). Home for
+ * the {@code DISABLE_*}-with-duration effects (an enchant/group/type id silenced for a span of ticks). The
+ * per-activation transient suppression set is a SEPARATE arbiter, not this; this store holds only
  * suppressions that outlast the activation that created them.
  *
- * <p>Concurrent and UUID-keyed for Folia (any region thread may suppress or query a
- * player's ids), and TTL-evicting: an elapsed suppression is dropped lazily on the next
- * {@link #isSuppressed} call, so the maps stay bounded without a sweeper. Cleared on quit
- * ({@link #clear}) and on disable ({@link #clearAll}).
- *
- * <p>Time is an explicit tick count supplied by the caller (the current server/region
- * tick), never wall-clock — so behaviour is deterministic and Folia-correct, and the
- * store is unit-testable without a server.
+ * <p>Concurrent, UUID-keyed (Folia). TTL-evicting: an elapsed suppression is dropped lazily on the next
+ * {@link #isSuppressed}, so the maps stay bounded without a sweeper. Time is an explicit caller-supplied
+ * tick, never wall-clock — deterministic, Folia-correct, server-free to test.
  */
 public final class SuppressionStore {
 
     private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
 
     /**
-     * Suppress packed scope key {@code id} for {@code durationTicks}, expiring at
-     * {@code nowTicks + durationTicks}. The key is a {@link CooldownStore#key(int, int)}-packed
-     * (scopeKind, scopeId) pair so the three DISABLE scopes (enchant/group/type) never collide —
-     * shared with the gate's cooldown-scope namespace, so a {@code SUPPRESS} keys the same id the
-     * suppressed abilities lower their scope to. A non-positive duration is a no-op. Re-suppressing
-     * an already-suppressed key only ever EXTENDS it (the later expiry wins), so a fresh short
-     * suppression never cuts an in-flight longer one short.
+     * Suppress packed scope key {@code id} for {@code durationTicks}, expiring at {@code nowTicks +
+     * durationTicks}. The key is {@link CooldownStore#key(int, int)}-packed and shares the gate's
+     * cooldown-scope namespace, so a {@code SUPPRESS} keys the same id the suppressed abilities lower their
+     * scope to. Non-positive duration is a no-op; re-suppressing only EXTENDS (later expiry wins).
      */
     public void suppress(UUID player, long id, long nowTicks, int durationTicks) {
         if (durationTicks <= 0) {
@@ -44,10 +34,8 @@ public final class SuppressionStore {
     }
 
     /**
-     * @return {@code true} if {@code id} has an active (non-elapsed) suppression for
-     *     {@code player} at {@code nowTicks}. An elapsed suppression is evicted lazily and
-     *     reported as not suppressed; the expiry tick itself counts as elapsed (the
-     *     suppression covers {@code [start, expiry)}).
+     * @return {@code true} if {@code id} has an active suppression for {@code player} at {@code nowTicks}.
+     *     An elapsed one is evicted lazily; the window is half-open {@code [start, expiry)}.
      */
     public boolean isSuppressed(UUID player, long id, long nowTicks) {
         Map<Long, Long> ids = expiryByPlayer.get(player);

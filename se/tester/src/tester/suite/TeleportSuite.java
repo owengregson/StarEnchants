@@ -45,14 +45,11 @@ import tester.harness.Harness;
 
 /**
  * The TELEPORT effect, live (docs/architecture.md §7; v3.3 §C) — the first user of the Sink's
- * {@code teleport} intent / {@code teleportAsync}, so this proves that path works on Paper and Folia. A
- * fake attacker with a {@code TELEPORT:VICTIM} (ATTACK) enchant hits a cow spawned 5 blocks away; the
- * enchant teleports the attacker (@Self) to the victim, so afterwards the attacker has moved well away
- * from its spawn. The check POLLS the attacker's HORIZONTAL distance-from-spawn each tick until the
- * (async) teleport lands — distance-from-spawn rather than distance-to-cow is robust against the cow
- * drifting, horizontal-only ignores a not-yet-teleported player's gravity fall, and the per-tick poll
- * (vs a fixed one-shot wait) makes it correct under concurrent matrix load where {@code teleportAsync}
- * can resolve several ticks late. Mojang- and spigot-mapped alike (needs the fake-player attacker).
+ * {@code teleport} / {@code teleportAsync} intent. A fake attacker with a {@code TELEPORT:VICTIM} (ATTACK)
+ * enchant hits a cow; the enchant teleports the attacker (@Self) to it. The check POLLS the attacker's
+ * horizontal distance-from-spawn each tick until the async teleport lands — horizontal ignores a falling
+ * player's gravity drift, the per-tick poll tolerates {@code teleportAsync} resolving several ticks late
+ * under matrix load. Mojang- and spigot-mapped alike (fake-player attacker).
  */
 public final class TeleportSuite implements Harness.Scenario {
 
@@ -119,14 +116,11 @@ public final class TeleportSuite implements Harness.Scenario {
                 LivingEntity victim;
                 try {
                     attacker = FakePlayers.spawn(world, "se_tp_atk");
-                    // 8 blocks away (same region) so the teleport is observable but stays in-region. The gap
-                    // is deliberately wider than the bare minimum: on the 1.17.1 floor a teleport into a
-                    // mob's space lands the player a couple of blocks SHORT of the target (collision push-out),
-                    // so a 5-block gap left the move (~2.5) just under the threshold. 8 blocks clears it with
-                    // margin on every platform while a non-teleport still reads ~0.
+                    // 8 blocks (same region, observable). Wider than minimum: on the 1.17.1 floor a teleport
+                    // into a mob's space lands a couple of blocks SHORT (collision push-out), so 8 clears the
+                    // threshold with margin everywhere while a non-teleport still reads ~0.
                     victim = (LivingEntity) world.spawnEntity(spawn.clone().add(0, 0, 8), EntityType.COW);
-                    // Pin the cow: a wandering cow drifts toward the attacker before the hit, shrinking the
-                    // teleport distance below the threshold (the flake that surfaced as "moved 2.12 blocks").
+                    // Pin the cow: a wanderer drifts toward the attacker pre-hit, shrinking the move distance.
                     victim.setAI(false);
                 } catch (Throwable t) {
                     h.fail("teleport.movesActorToVictim", "spawn: " + t);
@@ -137,12 +131,6 @@ public final class TeleportSuite implements Harness.Scenario {
                     attacker.getInventory().setItemInMainHand(sword);
                     worn.refresh(attacker, library.snapshot());
                     victim.damage(1.0, attacker); // programmatic hit (range-independent) → ATTACK → TELEPORT
-                    // teleportAsync resolves a tick or more later (always async on Folia, and later still under
-                    // concurrent matrix load) — so POLL each tick until the move lands rather than asserting once
-                    // at a fixed +10 (which raced the async teleport: a slow run measured only the residual fall
-                    // and read "moved 2.92"). HORIZONTAL distance is used so a not-yet-teleported player's gravity
-                    // fall (pure −Y) can never be mistaken for the teleport (a pure-X/Z hop toward the cow). Tick-
-                    // anchored on the attacker's own scheduler, which follows it across the move.
                     awaitTeleport(attacker, origin, 3.0, 80, h, () -> {
                         victim.remove();
                         FakePlayers.despawn(attacker);
@@ -153,12 +141,9 @@ public final class TeleportSuite implements Harness.Scenario {
     }
 
     /**
-     * Poll, once per game tick on {@code actor}'s own scheduler, until it has moved at least
-     * {@code minHorizontal} blocks HORIZONTALLY from {@code origin} (the teleport landed) — passing
-     * {@code teleport.movesActorToVictim} as soon as it does, or failing it if {@code maxTicks} elapse
-     * first (a real teleport that never resolved). Tick-anchored, not wall-clock, so it is correct under
-     * concurrent matrix load; horizontal-only so a not-yet-teleported player's gravity fall is ignored.
-     * Runs {@code cleanup} (remove the cow, despawn the fake player) exactly once on either outcome.
+     * Poll once per tick on {@code actor}'s own scheduler until it has moved {@code minHorizontal} blocks
+     * horizontally from {@code origin} (pass), or {@code maxTicks} elapse (fail). Tick-anchored, not
+     * wall-clock, so correct under matrix load. Runs {@code cleanup} exactly once on either outcome.
      */
     private static void awaitTeleport(Player actor, Location origin, double minHorizontal, int maxTicks,
                                       Harness h, Runnable cleanup) {

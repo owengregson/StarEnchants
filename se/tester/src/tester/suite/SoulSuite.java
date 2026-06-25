@@ -50,11 +50,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The soul spend loop, proven live end-to-end (docs/architecture.md §6.3): a soul-cost enchant on a
- * weapon that also carries a soul gem, with soul mode ON, fires AND debits the gem by its cost — and
- * the new count persists durably (the durable write deferred to the holder's thread). Exercises the
- * whole loop: gem PDC → toggle (seeds the shared ledger) → gate 10 spends from the SAME ledger the
- * pipeline holds → the deferred PDC write. Mojang-mapped only (needs the fake-player attacker).
+ * Soul spend loop, live end-to-end (docs/architecture.md §6.3): a soul-cost enchant on a weapon that is
+ * also a soul gem (mode ON) fires, debits the gem, and persists the new count durably. Exercises the whole
+ * loop: gem PDC → toggle (seeds the shared ledger) → gate 10 spends from the SAME ledger the pipeline holds
+ * → the deferred PDC write. Mojang-mapped only (fake-player attacker).
  */
 public final class SoulSuite implements Harness.Scenario {
 

@@ -98,7 +98,7 @@ class LowerStageTest {
                 .lower(def(null, line("HEAL:4")), d);
 
         assertFalse(d.hasErrors());
-        assertEquals(0L, lowered.effects().get(0).args().lng("cooldown")); // default applied
+        assertEquals(0L, lowered.effects().get(0).args().lng("cooldown"));
         assertEquals(SourceKind.ENCHANT, lowered.sourceKind());
         assertEquals("test/ability", lowered.stableKey());
         assertEquals(42, lowered.defId());
@@ -136,7 +136,7 @@ class LowerStageTest {
                 .lower(def(null, line("DAMAGE:1"), line("BOGUS:1")), d);
 
         assertTrue(d.hasErrors());
-        assertEquals(1, lowered.effects().size()); // only DAMAGE survived
+        assertEquals(1, lowered.effects().size());
         assertEquals("DAMAGE", lowered.effects().get(0).head());
     }
 
@@ -172,7 +172,7 @@ class LowerStageTest {
         assertTrue(d.hasErrors());
         assertEquals("E_WAIT_ARG", d.all().get(0).code());
         assertEquals("E_WAIT_ARG", d.all().get(1).code());
-        // Both malformed WAITs were ignored, so no delay accrued.
+        // both malformed WAITs ignored → no delay accrued
         assertEquals(0, lowered.effects().get(0).cumulativeWaitTicks());
     }
 
@@ -195,8 +195,8 @@ class LowerStageTest {
         CompiledCondition condition = lowered.condition();
         assertNotNull(condition);
         assertEquals(SRC, condition.source());
-        assertTrue(condition.root() instanceof Cond.And); // top-level && lowered to a typed node
-        // A bare expression is a gate: pass → CONTINUE, fail → STOP, no chance delta.
+        assertTrue(condition.root() instanceof Cond.And);
+        // a bare expression is a gate: pass → CONTINUE, fail → STOP, no chance delta
         assertEquals(FlowKind.CONTINUE, condition.whenTrue());
         assertEquals(FlowKind.STOP, condition.whenFalse());
         assertEquals(0.0, condition.chanceDelta());
@@ -210,14 +210,14 @@ class LowerStageTest {
         DefaultLowerStage stage = new DefaultLowerStage(registry(), head -> Affinity.CONTEXT_LOCAL,
                 MapSpecRegistry.of(), head -> null, vars);
 
-        // A %force% clause: whenTrue=FORCE, whenFalse=CONTINUE (a failing clause never stops).
+        // %force% clause: whenTrue=FORCE, whenFalse=CONTINUE (a failing clause never stops)
         CompiledCondition force = stage.lower(def("%blocking% : %force%", line("DAMAGE:1")), d).condition();
         assertNotNull(force);
         assertEquals(FlowKind.FORCE, force.whenTrue());
         assertEquals(FlowKind.CONTINUE, force.whenFalse());
         assertTrue(force.root() instanceof Cond.BoolVar);
 
-        // A ±N %chance% clause: CONTINUE with the signed delta carried.
+        // ±N %chance% clause: CONTINUE with the signed delta carried
         CompiledCondition chance = stage.lower(def("%blocking% : +40 %chance%", line("DAMAGE:1")), d).condition();
         assertNotNull(chance);
         assertEquals(FlowKind.CONTINUE, chance.whenTrue());
@@ -238,7 +238,7 @@ class LowerStageTest {
     @Test
     void affinityFoldsToTheWidestEffectAffinity() {
         Diagnostics d = new Diagnostics();
-        // DAMAGE -> AOE, HEAL -> CONTEXT_LOCAL; the fold MAX is AOE.
+        // DAMAGE→AOE, HEAL→CONTEXT_LOCAL; fold takes the MAX → AOE
         DefaultLowerStage stage = new DefaultLowerStage(registry(),
                 head -> "DAMAGE".equals(head) ? Affinity.AOE : Affinity.CONTEXT_LOCAL);
 

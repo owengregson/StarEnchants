@@ -11,12 +11,10 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code SET_VAR} — set a per-player named variable (docs/v3-directives.md §A, Cosmic Enchants-style parameterized vars). The
- * value is readable in any later condition as {@code %name%} (the read side rides the unknown-token/PAPI
- * seam, resolving the {@code VarStore} before real PAPI). {@code ttl} bounds its lifetime in ticks
- * ({@code 0} = no expiry). The {@code who} selector picks whose variable is set (default the activator).
- * {@link Affinity#CONTEXT_LOCAL}: per-player in-memory state, no world mutation (the sink writes the
- * concurrent store directly after capturing the target's UUID).
+ * {@code SET_VAR} — set a per-player named variable (docs/v3-directives.md §A), readable in any later
+ * condition as {@code %name%} (the read side rides the unknown-token/PAPI seam, resolving the
+ * {@code VarStore} before real PAPI). {@code ttl} bounds its lifetime in ticks ({@code 0} = no expiry).
+ * {@link Affinity#CONTEXT_LOCAL}.
  */
 public final class SetVarEffect implements EffectKind {
 

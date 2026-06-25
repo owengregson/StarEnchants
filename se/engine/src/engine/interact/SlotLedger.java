@@ -2,14 +2,10 @@ package engine.interact;
 
 /**
  * The slot arbiter: an item's enchant-slot capacity (docs/architecture.md §6.4). An
- * immutable value computed from the item's state — {@code base} default slots plus any
- * {@code added} (from slot-increase items), against the {@code used} count (the number
- * of enchants applied). Fixes the originals' throwaway-copy non-persistence and the
- * 9-vs-10 default split (one unified default).
+ * immutable value derived from item state, with one unified default slot count.
  *
- * <p>Pure arithmetic so it is trivially correct and unit-testable; the values come from
- * an {@code ItemView} and the result is persisted in PDC at apply time (a cold path, not
- * the combat hot path). {@code keepSlots} on transmog/sort reuses the same {@code added}.
+ * <p>Pure arithmetic; values come from an {@code ItemView} and the result is persisted in
+ * PDC at apply time (a cold path). {@code keepSlots} on transmog/sort reuses {@code added}.
  *
  * @param base  the unified default slot count
  * @param added extra slots granted by slot-increase items (never negative)
@@ -23,22 +19,20 @@ public record SlotLedger(int base, int added, int used) {
         }
     }
 
-    /** Total capacity = base + added. */
     public int max() {
         return base + added;
     }
 
-    /** Free capacity = max − used, never negative (an over-filled item reports {@code 0}). */
+    /** Free capacity, never negative — an over-filled item reports {@code 0}. */
     public int remaining() {
         return Math.max(0, max() - used);
     }
 
-    /** @return {@code true} if {@code count} more enchants would fit. */
     public boolean canApply(int count) {
         return count <= remaining();
     }
 
-    /** This ledger with {@code count} more enchants applied (does not change capacity). */
+    /** This ledger with {@code count} more enchants used; capacity unchanged. */
     public SlotLedger withApplied(int count) {
         return new SlotLedger(base, added, used + Math.max(0, count));
     }

@@ -3,16 +3,10 @@ package feature.carrier;
 import java.util.List;
 
 /**
- * The outcome of attempting to apply a carrier (book/scroll/dust) to a target item — whether the carrier
- * was consumed, a player-facing message, and optional §I apply-feedback ({@code sound} + {@code particles})
- * for the interaction layer to play on the player's own thread. {@code consumed} tells the interaction
- * layer whether the carrier was actually used (so it should commit the inventory changes) versus a no-op
- * (bad target, missing def) that leaves both stacks untouched.
- *
- * @param consumed  whether a carrier use was spent (the target and/or carrier were mutated)
- * @param message   the colour-coded message to show the player
- * @param sound     a namespaced sound token to play on success, or {@code null}
- * @param particles particle tokens to spawn at the player on success (may be empty)
+ * The outcome of applying a carrier (book/scroll/dust) to a target — plus optional §I apply-feedback
+ * ({@code sound} + {@code particles}) for the interaction layer to play on the player's own thread.
+ * {@code consumed} tells that layer whether to commit the inventory changes (a use was spent) versus a
+ * no-op (bad target, missing def) that leaves both stacks untouched.
  */
 public record CarrierResult(boolean consumed, String message, String sound, List<String> particles) {
 

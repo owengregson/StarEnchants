@@ -7,12 +7,11 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Reads and writes a {@link CrystalItemData} on a physical crystal item (docs/v3-directives.md §E),
- * stored as one PDC {@code STRING} under {@link ItemKeys#crystalItem()} — separate from the
- * {@link CombatCodec} blob (a crystal item is identity, never decoded on the combat hot path) and from
- * the {@link CarrierCodec} (a crystal is its own item, not a book/scroll). The payload is the component
- * keys joined by {@code '+'} (one key for a single, two for a multi-crystal). A null/empty entry decodes
- * to {@code null} (not a crystal), never an exception.
+ * Reads/writes a {@link CrystalItemData} on a physical crystal item (docs/v3-directives.md §E), one PDC
+ * {@code STRING} under {@link ItemKeys#crystalItem()} — separate from the {@link CombatCodec} blob (a
+ * crystal is identity, off the combat hot path) and from the {@link CarrierCodec} (a crystal is its own
+ * item, not a book/scroll). Payload is the component keys joined by {@code '+'} (one for a single, two for
+ * a multi). A null/empty entry decodes to {@code null}, never throws.
  */
 public final class CrystalItemCodec {
 

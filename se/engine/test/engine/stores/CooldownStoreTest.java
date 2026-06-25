@@ -24,7 +24,7 @@ class CooldownStoreTest {
         assertFalse(store.ready(p, 1L, 100L));
         assertFalse(store.ready(p, 1L, 139L));
         assertEquals(1L, store.remainingTicks(p, 1L, 139L));
-        assertTrue(store.ready(p, 1L, 140L)); // expiry tick is ready
+        assertTrue(store.ready(p, 1L, 140L)); // the expiry tick itself is ready (exclusive upper bound)
     }
 
     @Test

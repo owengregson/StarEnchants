@@ -11,11 +11,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code VELOCITY} — the canonical movement primitive (docs/v3-directives.md §C), which REPLACED the now-deleted
- * {@code THROW}/{@code LAUNCH}/{@code KNOCKBACK} kinds (collapse = delete the redundant heads, authors use this
- * one). {@code mode=add} adds the {@code x/y/z} vector to each target's velocity (what THROW/LAUNCH did);
- * {@code mode=away} shoves each target back from the activator with {@code strength} (what KNOCKBACK did).
- * {@link Affinity#TARGET_ENTITY}: each push routes to the target's own thread.
+ * {@code VELOCITY} — canonical movement primitive (docs/v3-directives.md §C). {@code mode=add} adds the
+ * {@code x/y/z} vector to each target's velocity; {@code mode=away} shoves each target back from the
+ * activator with {@code strength}. {@link Affinity#TARGET_ENTITY}.
  */
 public final class VelocityEffect implements EffectKind {
 
@@ -41,8 +39,7 @@ public final class VelocityEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         String mode = ctx.str("mode");
         if ("away".equalsIgnoreCase(mode)) {
-            // mode=away: knock each target back from the activator (reading actor().getLocation() mirrors the
-            // former KNOCKBACK behavior); the dispatcher derives the away-from-actor direction.
+            // away direction is derived by the dispatcher from the activator's location
             Location from = ctx.actor().getLocation();
             double strength = ctx.dbl("strength");
             for (LivingEntity target : ctx.targets("who")) {

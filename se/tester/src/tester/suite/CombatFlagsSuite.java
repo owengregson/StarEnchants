@@ -25,27 +25,21 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Live checks for the §C combat-flag primitives that carry genuine version / Folia / real-entity risk
- * beyond their unit coverage (docs/v3-directives.md §C):
+ * Live checks for §C combat-flag primitives carrying version/Folia/real-entity risk beyond their unit
+ * coverage (docs/v3-directives.md §C):
  *
  * <ul>
- *   <li><strong>KNOCKBACK_CONTROL</strong> — the applier is a capability-probed version split. This asserts
- *       {@link KnockbackListener#register} picks the right path on THIS server (modern bukkit
- *       {@code EntityKnockbackEvent} on 1.20.6+, else the legacy destroystokyo event) and that the
- *       reflective hook's methods actually exist on a modern server — the real cross-version risk, which a
- *       unit test (compiled against the floor only) cannot reach.</li>
- *   <li><strong>GUARD</strong> — a real {@code Sink.guard} spawns a guardian mob and {@code setTarget}s it
- *       to the attacker on a live server (Paper + Folia), proving the spawn + cross-entity targeting path.
- *       An iron golem is used so the guard survives any difficulty (a hostile mob is culled on peaceful).</li>
- *   <li><strong>KEEP_ON_DEATH</strong> — {@code Sink.keepOnDeath} arms the per-player flag for a real
- *       {@link Player} through the real sink. The death-event handling itself is unit-tested and structurally
- *       identical to the matrix-proven holy-scroll path ({@code ScrollPlayerSuite}); no suite fires a real
- *       player death (it is fragile for a clientless fake player — {@code SoulEconomySuite} likewise drives
- *       {@code onKill} directly), so this pins the effect&rarr;sink&rarr;store half live.</li>
+ *   <li><strong>KNOCKBACK_CONTROL</strong> — capability-probed version split; asserts
+ *       {@link KnockbackListener#register} picks modern ({@code EntityKnockbackEvent}, 1.20.6+) vs legacy
+ *       and that the reflective hook's accessors exist (the unit test compiles against the floor only).</li>
+ *   <li><strong>GUARD</strong> — {@code Sink.guard} spawns a guardian and {@code setTarget}s the attacker.
+ *       Iron golem so the guard survives any difficulty (a hostile mob is culled on peaceful).</li>
+ *   <li><strong>KEEP_ON_DEATH</strong> — {@code Sink.keepOnDeath} arms the per-player flag. No suite fires a
+ *       real player death (fragile for a clientless fake player), so this pins the effect→sink→store half.</li>
  * </ul>
  *
- * Each assertion runs on the relevant region/entity thread, so a wrong-thread access throws and is caught
- * as a failure rather than stalling — the Folia-correctness check.
+ * Each assertion runs on its region/entity thread, so a wrong-thread access throws (caught as a failure,
+ * not a stall) — the Folia-correctness check.
  */
 public final class CombatFlagsSuite implements Harness.Scenario {
 
@@ -71,7 +65,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
         RuntimeHandles handles = new RuntimeHandles(resolvers);
         Capabilities caps = Capabilities.probe(plugin.getServer());
 
-        // 1. KNOCKBACK_CONTROL applier registration — server-wide, no entities needed.
+        // KNOCKBACK_CONTROL registration — server-wide, no entities needed.
         h.guard("combatflags.knockbackApplierRegisters", () -> {
             KnockbackListener.Path path =
                     KnockbackListener.register(plugin, new KnockbackControlStore(), () -> 0L);
@@ -86,8 +80,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                 throw new IllegalStateException("expected LEGACY knockback applier on " + caps + " got " + path);
             }
             if (modern) {
-                // The reflective modern hook depends on these accessors — prove they exist on this version
-                // (the unit test, compiled against the floor, cannot reach the modern event class).
+                // Prove the modern hook's accessors exist here (the floor-compiled unit test can't reach them).
                 Class<?> event = Class.forName(KnockbackListener.MODERN_EVENT);
                 event.getMethod("getFinalKnockback");
                 event.getMethod("setFinalKnockback", Vector.class);
@@ -112,7 +105,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                     return;
                 }
                 Scheduling.onEntity(attacker, () -> {
-                    // 3. KEEP_ON_DEATH: arm the per-player flag for a real Player through the real sink.
+                    // KEEP_ON_DEATH: arm the per-player flag through the real sink.
                     KeepOnDeathStore keepStore = new KeepOnDeathStore();
                     DispatchSink keepSink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE,
                             new VarStore(), new SuppressionStore(), new KnockbackControlStore(), keepStore, () -> 0L);
@@ -126,7 +119,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                         }
                     });
 
-                    // 2. GUARD: summon an iron-golem guard targeting the attacker.
+                    // GUARD: summon an iron-golem guard targeting the attacker.
                     Location guardAt = at.clone();
                     DispatchSink guardSink = new DispatchSink(handles);
                     guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard");
@@ -137,12 +130,9 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                             if (guard == null) {
                                 throw new IllegalStateException("no guard mob spawned near the activation location");
                             }
-                            // findGuard returns a Mob with our custom name ⇒ DispatchSink.guard's
-                            // `spawned instanceof Mob → setTarget(attacker)` branch executed: the GUARD code path
-                            // ran in full. Whether vanilla AI RETAINS a manually-set, non-natural target is
-                            // version-dependent (an iron golem clears a player target faster on 26.1 than on
-                            // 1.21), so the retained target is LOGGED, not gated — gating a test on vanilla mob
-                            // AI is brittle. The spawn + type + name across versions + Folia is the real risk.
+                            // A named guard mob means the setTarget branch ran. Whether vanilla AI retains a
+                            // manually-set target is version-dependent, so it's logged not gated; the spawn +
+                            // type + name across versions + Folia is the real risk.
                             LivingEntity target = guard.getTarget();
                             String targetState = target == null ? "cleared by AI"
                                     : target.getUniqueId().equals(attacker.getUniqueId()) ? "attacker (retained)"

@@ -9,11 +9,10 @@ import com.massivecraft.factions.Faction;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins which territory is gated by {@link FactionsProvider}: wilderness and the system zones (safezone /
- * warzone) are NOT gated (allow everything), while a normal player-faction claim IS. The relation comparison
- * for a gated claim ({@code at.getRelationTo(actor).isAtLeast(TRUCE)}) can only be verified on a live Factions
- * server — referencing the {@code Relation} enum triggers a static initializer that needs the running plugin —
- * so it is verified out-of-matrix (docs/decisions/0027).
+ * Pins which territory {@link FactionsProvider} gates: wilderness and the system zones (safezone / warzone)
+ * are NOT gated, a normal player-faction claim IS. The relation comparison for a gated claim can only be
+ * verified live — referencing the {@code Relation} enum triggers a static initializer that needs the running
+ * plugin — so it is verified out-of-matrix (docs/decisions/0027).
  */
 class FactionsProviderTest {
 

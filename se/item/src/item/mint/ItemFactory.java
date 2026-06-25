@@ -9,15 +9,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * Builds identity/economy {@link ItemStack}s (soul gems, carriers, scrolls, …) from configured tokens
- * — the ONE place that resolves a config material name cross-version and applies a coloured name + lore.
- * Centralises what every minting site (CarrierService, SoulService, …) needs, so the cross-version
- * material concern (cross-version-item-api) lives in a single resolver rather than being re-implemented
- * per site.
+ * Builds identity/economy {@link ItemStack}s (soul gems, carriers, scrolls, …) from config tokens — the one
+ * place that resolves a material name cross-version (cross-version-item-api) and applies a coloured name+lore,
+ * so no minting site re-implements it.
  *
- * <p>Pure construction (no entity/world read) — Folia-safe to call from any thread; the caller decides
- * which thread to GIVE the resulting stack on. Placeholders in the strings must already be substituted
- * by the caller (this layer only colours and assembles).
+ * <p>Pure construction (no entity/world read) — Folia-safe from any thread; the caller picks the GIVE thread.
+ * Placeholders must already be substituted (this layer only colours and assembles).
  */
 public final class ItemFactory {
 
@@ -25,10 +22,9 @@ public final class ItemFactory {
     }
 
     /**
-     * Resolve a config material token to a {@link Material}, cross-version: exact enum name first (e.g.
-     * {@code EMERALD}), then {@link Material#matchMaterial} (namespaced / some legacy spellings), falling
-     * back to {@code fallback} for an unknown/blank token. Never null, never throws — a registry probe
-     * that fails (e.g. a unit test with no server) degrades to the fallback rather than propagating.
+     * Resolve a config material token cross-version: exact enum name, then {@link Material#matchMaterial}
+     * (namespaced/legacy spellings), else {@code fallback}. Never null, never throws — an off-server registry
+     * probe degrades to the fallback rather than propagating.
      */
     public static Material material(String token, Material fallback) {
         Objects.requireNonNull(fallback, "fallback");
@@ -43,7 +39,7 @@ public final class ItemFactory {
         try {
             matched = Material.matchMaterial(token.trim());
         } catch (RuntimeException registryUnavailable) {
-            matched = null; // registry not initialised (off-server) — fall back rather than crash a load
+            matched = null; // registry not initialised (off-server) — fall back, don't crash the load
         }
         return matched != null ? matched : fallback;
     }
@@ -53,20 +49,15 @@ public final class ItemFactory {
         return raw == null ? null : ChatColor.translateAlternateColorCodes('&', raw);
     }
 
-    /**
-     * Build a stack of {@code material} with a coloured display {@code name} and coloured {@code lore}
-     * (each line {@code &}-translated). A blank name or empty lore is simply left unset.
-     */
+    /** Coloured name + {@code &}-translated lore on a {@code material} stack; blank name / empty lore left unset. */
     public static ItemStack build(Material material, String name, List<String> lore) {
         return decorate(new ItemStack(material), name, lore);
     }
 
     /**
-     * §N custom-item resolver (ADR-0027): a bundled ItemsAdder/Oraxen bridge that turns a config material
-     * TOKEN (e.g. {@code itemsadder:ruby_scroll}, {@code oraxen:amethyst_dust}) into its custom {@link
-     * ItemStack}, or {@code null} for a plain/vanilla token. A static, boot-configured no-op by default (set
-     * once via {@link #customItemResolver}, mirroring the other soft hooks) so this module never references an
-     * integration API and is inert without them.
+     * §N custom-item resolver (ADR-0027): ItemsAdder/Oraxen token → custom {@link ItemStack}, or {@code null}
+     * for a vanilla token. Static no-op default so this module never references an integration API and is inert
+     * without them; the root installs the live one via {@link #customItemResolver}.
      */
     private static volatile java.util.function.Function<String, ItemStack> customItemResolver = token -> null;
 
@@ -76,10 +67,8 @@ public final class ItemFactory {
     }
 
     /**
-     * Build an item from a config material TOKEN: if a bundled custom-item integration (ItemsAdder / Oraxen)
-     * recognises the token its custom item is the base, otherwise the token resolves to a vanilla
-     * {@link Material} (cross-version, via {@link #material}). The StarEnchants {@code name}/{@code lore} are
-     * then applied on top (a blank name/lore leaves the custom item's own).
+     * Build from a config TOKEN: a recognised ItemsAdder/Oraxen custom item is the base, else the token resolves
+     * vanilla via {@link #material}. {@code name}/{@code lore} apply on top; blank leaves the custom item's own.
      */
     public static ItemStack build(String token, Material fallback, String name, List<String> lore) {
         ItemStack custom = customItemResolver.apply(token);

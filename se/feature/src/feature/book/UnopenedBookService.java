@@ -15,10 +15,9 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The unopened/randomized book cold path (docs/v3-directives.md §I) — MINTS a tier-scoped unopened book
- * and OPENS one into a concrete enchant book of a random enchant from that tier, at a random level and a
- * random success chance. The opened book is minted through {@link CarrierService#mintBook(String, int, int)}
- * so it carries an explicit base success.
+ * The unopened/randomized book cold path (§I) — MINTS a tier-scoped unopened book and OPENS one into a
+ * concrete enchant book of a random tier enchant at a random level + success, minted through
+ * {@link CarrierService#mintBook(String, int, int)} so it carries an explicit base success.
  *
  * <p>The roll is the only non-determinism, injected as a {@link Random} for testability. Folia-correct: a
  * right-click interact fires on the player's own region thread, so reading their held item is in-thread.
@@ -48,12 +47,11 @@ public final class UnopenedBookService {
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
-    /** Whether {@code stack} is an unopened book. */
     public boolean isUnopened(ItemStack stack) {
         return codec.isUnopened(stack);
     }
 
-    /** Mint an unopened book scoped to {@code tier} (its likeness rendered from config with {@code {TIER}}). */
+    /** Mint an unopened book scoped to {@code tier} ({@code {TIER}} substituted into the config likeness). */
     public ItemStack mint(String tier) {
         UnopenedBookConfig cfg = config.get();
         ItemStack stack = ItemFactory.build(
@@ -65,9 +63,9 @@ public final class UnopenedBookService {
     }
 
     /**
-     * Open the unopened {@code book}: roll a random enchant from its tier, a random level, and a random
-     * success chance, and mint the concrete enchant book. A tier with no enchants yields nothing (the
-     * unopened book is preserved); otherwise one unopened book is consumed and the rolled book produced.
+     * Open the unopened {@code book}: roll a random tier enchant, level, and success, and mint the concrete
+     * book. An empty tier yields nothing and preserves the book; otherwise one is consumed and the rolled
+     * book produced.
      */
     public UnopenedResult open(ItemStack book) {
         String tier = codec.tierOf(book);
@@ -85,15 +83,14 @@ public final class UnopenedBookService {
     }
 
     /**
-     * Roll a CONCRETE enchant book of a random enchant from {@code tier} (random level + success), the same
-     * roll {@link #open} performs — for the §J {@code /se give book <player> random <tier>} form. Empty when
-     * the tier has no enchants.
+     * The same roll {@link #open} performs, exposed for the §J {@code /se give book ... random <tier>} form.
+     * Empty when the tier has no enchants.
      */
     public java.util.Optional<ItemStack> roll(String tier) {
         return rollDetailed(tier).map(Rolled::book);
     }
 
-    /** The shared tier→concrete-book roll: pick a random enchant from the tier, roll its level + success, mint it. */
+    /** The shared tier&rarr;concrete-book roll behind both {@link #open} and {@link #roll}. */
     private java.util.Optional<Rolled> rollDetailed(String tier) {
         UnopenedBookConfig cfg = config.get();
         List<EnchantDef> pool = new ArrayList<>();

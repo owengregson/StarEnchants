@@ -12,9 +12,8 @@ import schema.spec.D;
 
 /**
  * {@code REMOVE_ITEM} — remove up to {@code count} of a material from the player target(s)' inventory
- * (docs/v3-directives.md §C). Stateless; emits one {@code removeItem} intent per resolved player target and
- * never touches an inventory directly. The {@code material} is a handle arg resolved to an interned id at
- * compile time (§9). {@link Affinity#TARGET_ENTITY}: routed to each target's region thread.
+ * (docs/v3-directives.md §C). {@code material} is a handle arg interned at compile time (§9).
+ * {@link Affinity#TARGET_ENTITY}.
  */
 public final class RemoveItemEffect implements EffectKind {
 

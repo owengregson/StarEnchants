@@ -11,12 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test (docs/architecture.md §1.3): a mocked {@link EffectCtx} feeds typed
- * args + resolved targets, and a mocked {@link Sink} records the emitted intents — so
- * the effect's behavior is verified with no server. This is the template every effect
- * kind's unit test follows.
- */
+/** Mock-host effect test (docs/architecture.md §1.3): mocked EffectCtx in, Sink intents verified — the template every effect-kind test follows. */
 class DamageEffectTest {
 
     @Test

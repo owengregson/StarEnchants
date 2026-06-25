@@ -12,9 +12,9 @@ import java.util.Objects;
  * piece, optionally swaps its material to a configured upgrade, and the "heroic piece" lore marker is
  * rendered from state; on failure it consumes the upgrade and never harms the gear.
  *
+ * <p>Success/fail messages live in {@code lang.yml} ({@code heroic.success} / {@code heroic.fail}), not here (§L).
+ *
  * @param material         the upgrade item's material token (resolved cross-version at use)
- * @param name             the upgrade item's display name ({@code &} colours)
- * @param lore             the upgrade item's lore lines
  * @param successMin       low end of the per-attempt success-chance range, 0..100
  * @param successMax       high end of the per-attempt success-chance range, 0..100
  * @param percentDamage    heroic outgoing-damage fraction granted on success (e.g. {@code 0.10})
@@ -22,9 +22,6 @@ import java.util.Objects;
  * @param durability       heroic item-damage-cancel probability granted on success ({@code 0..1})
  * @param materialUpgrades input-material token → upgraded-material token (within-category, e.g. DIAMOND→NETHERITE)
  * @param reductionScope   {@code ENTITY} (PvP/entity only, default) or {@code ALL} (all damage causes)
- *
- * <p>The success/fail messages now live in {@code lang.yml} ({@code heroic.success} / {@code heroic.fail}) —
- * §L centralised them out of this likeness config.
  */
 public record HeroicConfig(
         String material,

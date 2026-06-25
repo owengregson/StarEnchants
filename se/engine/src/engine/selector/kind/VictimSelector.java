@@ -7,8 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import java.util.List;
 
 /**
- * {@code @Victim} — the combat victim (the defender on the activator's hit), or no
- * target for a non-combat activation (docs/architecture.md §7).
+ * {@code @Victim} — the combat victim, or no target for a non-combat activation (docs/architecture.md §7).
  */
 public final class VictimSelector implements SelectorKind {
 

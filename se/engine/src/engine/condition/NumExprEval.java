@@ -4,16 +4,14 @@ import compile.model.cond.NumExpr;
 
 /**
  * Evaluates a compiled {@link NumExpr} to a {@code double} over a primitive {@link FactBuffer}
- * (docs/architecture.md §3.4). The one numeric-expression walker shared by both consumers — a condition's
- * comparison operands ({@link ConditionEvaluator}) and an <em>expression-valued effect argument</em>
- * (the runtime {@code EffectCtx}). A pure tree walk: variables and literals are pre-resolved at compile
- * time, so there is no string parsing on the hot path (only an unresolved PlaceholderAPI token is parsed,
- * and only if reached), no allocation, and no boxing.
+ * (docs/architecture.md §3.4). The one numeric-expression walker shared by condition operands
+ * ({@link ConditionEvaluator}) and expression-valued effect arguments (the runtime {@code EffectCtx}).
+ * Variables and literals are pre-resolved at compile time, so the hot path does no parsing (only an
+ * unresolved PlaceholderAPI token, and only if reached), no allocation, no boxing.
  *
- * <p>Fail-safe arithmetic: an unresolved placeholder reads as {@code NaN} (so a numeric comparison
- * fails closed, matching the rest of the condition system), and division by zero yields {@code 0}
- * rather than {@code NaN}/an exception — a scaled effect argument degrades to "no contribution" instead
- * of poisoning the damage fold with {@code NaN}.
+ * <p>Fail-safe arithmetic: an unresolved placeholder reads {@code NaN} (numeric comparisons then fail
+ * closed), and division by zero yields {@code 0} rather than {@code NaN}/an exception — a scaled effect
+ * argument degrades to "no contribution" instead of poisoning the damage fold with {@code NaN}.
  */
 public final class NumExprEval {
 

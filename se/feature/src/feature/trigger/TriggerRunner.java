@@ -20,14 +20,11 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 /**
- * The single "run one trigger pass for one actor into a {@link DispatchSink}" primitive shared by
- * every trigger dispatcher (docs/architecture.md §3.3) — combat ({@code CombatDispatch}) and the
- * non-combat event listeners ({@code TriggerDispatch}) alike. It reads the actor's PRE-RESOLVED
- * {@link WornState} (the safe cross-region read, §3.4), contributes the actor's passive heroic percent
- * stat to the fold (§F), walks the trigger's candidate abilities through the {@link AbilityExecutor} into
- * the caller's sink, and arms the soul gate from the actor's active gem. The caller owns the sink's
- * lifecycle (fold-onto-event / cancel / flush), since how a sink's read-backs apply differs per
- * event (a combat hit folds damage; a block-break only cancels + flushes).
+ * The "run one trigger pass for one actor into a {@link DispatchSink}" primitive shared by every dispatcher
+ * (§3.3) — combat and non-combat alike. Reads the actor's PRE-RESOLVED {@link WornState} (the safe cross-region
+ * read, §3.4), contributes the passive heroic percent to the fold (§F), walks the candidate abilities through
+ * the {@link AbilityExecutor}, and arms the soul gate from the active gem. The CALLER owns the sink lifecycle
+ * (fold/cancel/flush), since read-back application differs per event.
  */
 public final class TriggerRunner {
 
@@ -37,7 +34,6 @@ public final class TriggerRunner {
     private final LongSupplier nowTicks;
     private final FactPopulator factPopulator;
 
-    /** A runner populating conditions from the built-in variable vocabulary (the production default). */
     public TriggerRunner(AbilityExecutor executor, WornStateStore worn,
                          Function<Player, Optional<SoulBinding>> soulBinder, LongSupplier nowTicks) {
         this(executor, worn, soulBinder, nowTicks, FactPopulator.builtin());
@@ -55,11 +51,9 @@ public final class TriggerRunner {
     }
 
     /**
-     * Run {@code actor}'s {@code triggerId} abilities into {@code sink}. {@code attackSide} selects
-     * which passive heroic percent stat contributes (outgoing damage vs reduction, §F); on a non-damage
-     * event the fold is simply never read, so the contribution is a harmless no-op there. {@code stableKeys} is
-     * the SAME snapshot's key index as {@code abilities} (pass {@code snapshot.stableKeys()}), used by
-     * the executor to name an activated ability for the {@code ActivationListener}.
+     * Run {@code actor}'s {@code triggerId} abilities into {@code sink}. {@code attackSide} selects which heroic
+     * percent contributes (outgoing vs reduction, §F); harmless on a non-damage event (the fold is never read).
+     * {@code stableKeys} MUST be the same snapshot's key index as {@code abilities}.
      */
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                     Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys) {
@@ -67,26 +61,24 @@ public final class TriggerRunner {
     }
 
     /**
-     * As {@link #run} but with explicit control over the §F passive-heroic contribution: {@code applyHeroic}
-     * false runs the trigger's abilities WITHOUT adding the worn heroic outgoing/reduction percent to the
-     * sink. The environmental damage path (FALL/FIRE) passes {@code reduction-scope == ALL} so heroic
-     * reduction softens non-entity damage only when configured to (the entity/PvP path always passes true).
+     * As {@link #run} but {@code applyHeroic} false runs the abilities WITHOUT adding the worn heroic percent
+     * to the sink — the environmental path (FALL/FIRE) passes {@code reduction-scope == ALL} so heroic softens
+     * non-entity damage only when configured; the entity/PvP path always passes true (§F).
      */
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                     Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
                     boolean applyHeroic) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != generation) {
-            return; // not resolved yet (or stale across a reload) — this actor contributes nothing
+            return; // unresolved or stale across a reload — contribute nothing
         }
         runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
                 wornState, wornState.byTrigger(triggerId), applyHeroic);
     }
 
     /**
-     * Contribute ONLY the worn heroic reduction to {@code sink} (no trigger abilities) — for environmental
-     * damage causes that have no StarEnchants trigger but should still be softened by heroic reduction when
-     * {@code reduction-scope: ALL} (§F). A no-op until the actor's {@link WornState} is resolved.
+     * Contribute ONLY the worn heroic reduction to {@code sink} (no trigger abilities) — environmental damage
+     * with no trigger, softened under {@code reduction-scope: ALL} (§F). No-op until the WornState is resolved.
      */
     public void contributeHeroicReduction(int generation, Player actor, DispatchSink sink) {
         WornState wornState = worn.get(actor.getUniqueId());
@@ -96,17 +88,16 @@ public final class TriggerRunner {
     }
 
     /**
-     * Run an EXPLICIT candidate id list for {@code actor} (the §B REPEATING driver supplies a single
-     * ability id from its timer). Same WornState gen-check + heroic fold + activation build as {@link #run},
-     * but the caller chooses the candidates rather than {@code byTrigger(triggerId)} — the caller is
-     * responsible that they fire on {@code triggerId} (gate 3 still enforces it).
+     * Run an EXPLICIT candidate id list (the §B REPEATING driver supplies one ability id from its timer).
+     * Caller chooses the candidates rather than {@code byTrigger(triggerId)} and is responsible they fire on
+     * {@code triggerId} (gate 3 still enforces it).
      */
     public void runCandidates(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                               Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
                               int[] candidates) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != generation) {
-            return; // gone or stale across a reload — a repeating task no-ops until re-armed
+            return; // gone or stale — a repeating task no-ops until re-armed
         }
         runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
                 wornState, candidates, true);

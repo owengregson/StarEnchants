@@ -8,16 +8,12 @@ import java.util.List;
 import java.util.function.IntPredicate;
 
 /**
- * Pre-flattens a player's already-resolved active abilities into the immutable
- * {@link WornState} arrays (docs/architecture.md §5.5) — the "killer move" that makes
- * source unification cost nothing per hit. The server-bound resolver collects the
- * active ability ids (enchants + active-set bonuses + crystals + heroic + weapon) from
- * the worn items; this pure step organises them into the per-trigger index and the two
- * combat-direction arrays the systems walk.
+ * Pre-flattens already-resolved active ability ids into the immutable {@link WornState} arrays (§5.5)
+ * so source unification costs nothing per hit: this pure step organises the merged ids into the
+ * per-trigger index and the two combat-direction arrays the systems walk.
  *
- * <p>Multiplicity is preserved: a stacked crystal contributes its ability id more than
- * once, so it runs (and contributes to the fold) once per stack — the list semantics of
- * §6.5. Ordering follows {@code activeAbilityIds}, the merge order the resolver chose.
+ * <p>Multiplicity is preserved — a stacked crystal contributes its id once per stack, running (and
+ * folding) once per stack (§6.5). Order follows {@code activeAbilityIds}, the resolver's merge order.
  */
 public final class WornFlattener {
 

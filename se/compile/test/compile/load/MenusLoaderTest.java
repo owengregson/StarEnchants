@@ -39,7 +39,7 @@ class MenusLoaderTest {
         assertEquals("BLACK_STAINED_GLASS_PANE", apply.filler().orElseThrow());
         assertEquals(5, apply.rows().orElseThrow());
         assertEquals(36, apply.prevSlot().orElseThrow());
-        assertTrue(apply.nextSlot().isEmpty());      // unset field stays absent → framework keeps the default
+        assertTrue(apply.nextSlot().isEmpty()); // unset stays absent → framework keeps its default
         assertTrue(config.forMenu("enchanter").orElseThrow().title().isPresent());
     }
 
@@ -51,7 +51,7 @@ class MenusLoaderTest {
 
         MenusConfig config = MenusLoader.load(dir);
 
-        assertFalse(config.hasErrors()); // a bad number is a warning, not blocking
+        assertFalse(config.hasErrors()); // a bad number warns, never blocks
         assertTrue(config.forMenu("apply").orElseThrow().rows().isEmpty());
         assertTrue(config.diagnostics().stream().anyMatch(d -> d.code().equals("W_MENU_NUM")));
     }

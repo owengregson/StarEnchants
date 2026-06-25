@@ -14,10 +14,9 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 
 /**
- * Smoke test for the production compiler wiring (no server): building it must succeed (every built-in
- * kind has a unique head, the registries fit together), and it must compile a hand-built ability that
- * uses a real built-in effect + the canonical trigger vocabulary down to a resolvable snapshot entry.
- * This catches a wiring regression (a duplicate head, a missing default selector) before any load.
+ * Smoke test for the production compiler wiring (no server): catches a wiring regression — a duplicate kind
+ * head, a missing default selector — before any load. Building must succeed and a hand-built ability using a
+ * real built-in effect + the canonical trigger vocabulary must compile to a resolvable snapshot entry.
  */
 class ContentCompilerTest {
 

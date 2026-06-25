@@ -16,15 +16,13 @@ import schema.grammar.EffectLine;
 /**
  * Reads one authored enchant file (a composed {@link YamlNode} mapping) into its metadata
  * {@link EnchantDef} plus one {@link AbilityDef} per level (docs/architecture.md §10; ADR-0014). The
- * stable key is path-derived — the base key plus {@code /<level>} — so an item storing
- * {@code (enchants/lifesteal, 3)} resolves to {@code enchants/lifesteal/3}.
+ * stable key is path-derived — base key plus {@code /<level>} — so {@code (enchants/lifesteal, 3)}
+ * resolves to {@code enchants/lifesteal/3}.
  *
- * <p>One authoring shape: every level is declared explicitly under {@code levels: { 1: {chance,
- * effects}, … }}. The level set is exactly the declared level keys; each level reads its own
- * effects and its own knobs ({@code chance}/{@code cooldown}/{@code soul-cost}/{@code condition}),
- * falling back to a same-named root knob as a shared default. Effects may be terse {@code "HEAD:arg"}
- * strings or verbose {@code HEAD: { … }} maps (ADR-0016). Every fault is a {@code file:line:col}
- * diagnostic; a bad field/level is warned-and-skipped, never thrown (§7, §10).
+ * <p>Every level is declared explicitly under {@code levels:}; the level set is exactly those keys. Each
+ * level reads its own knobs ({@code chance}/{@code cooldown}/{@code soul-cost}/{@code condition}), falling
+ * back to a same-named root knob as a shared default. A bad field/level is warned-and-skipped as a
+ * {@code file:line:col} diagnostic, never thrown (§7, §10).
  */
 final class EnchantDefReader {
 
@@ -85,7 +83,7 @@ final class EnchantDefReader {
         }
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
 
-        // Gather the declared level nodes (each must be a mapping); the level set is exactly those keys.
+        // Each level node must be a mapping; non-mappings/bad keys are skipped with a diagnostic.
         Map<Integer, YamlNode> levelNodes = new LinkedHashMap<>();
         for (YamlNode.Entry entry : root.entries("levels")) {
             Integer level = ContentParse.parseInt(entry.key());
@@ -152,10 +150,7 @@ final class EnchantDefReader {
         return lvl != null && lvl.has(key) ? lvl : root;
     }
 
-    /**
-     * The effects for one level: the level's own {@code effects:} list. A level with no effects is
-     * warned (a no-op ability is almost always a mistake).
-     */
+    /** The level's own {@code effects:} list; an empty list warns (a no-op ability is almost always a mistake). */
     private static List<EffectLine> effectsFor(String baseKey, int level, YamlNode lvl, Diagnostics diags) {
         List<EffectLine> effects = lvl.has("effects")
                 ? ContentParse.effectItems(lvl, "effects", diags)

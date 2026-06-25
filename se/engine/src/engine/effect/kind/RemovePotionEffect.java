@@ -10,13 +10,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code REMOVE_POTION} — clear a potion effect from the target(s)
- * (docs/architecture.md §7). Stateless; emits one {@code removePotion} intent per
- * resolved target and never touches an entity directly. The {@code effect} arg is a
- * version-volatile handle: authored as a token (e.g. {@code POISON}) and resolved to
- * an interned id at compile time, so the runtime never sees a renamed constant (§9).
- * {@link Affinity#TARGET_ENTITY}: the {@code Sink} routes each intent to the owning
- * entity's thread.
+ * {@code REMOVE_POTION} — clear a potion effect from the target(s) (docs/architecture.md §7). The
+ * {@code effect} arg is a version-volatile handle interned at compile time, so the runtime never sees a
+ * renamed constant (§9). {@link Affinity#TARGET_ENTITY}.
  */
 public final class RemovePotionEffect implements EffectKind {
 

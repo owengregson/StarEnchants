@@ -28,12 +28,10 @@ import schema.diag.Source;
  * fault (unreadable file, malformed YAML, bad field) is a {@code file:line:col} diagnostic; the load
  * never throws on content, only on a genuine I/O failure walking the tree.
  *
- * <p><strong>Tier folders (ADR-0016).</strong> Source directories may be organised into tier
- * subfolders ({@code enchants/mythic/thunderstrike.yml}). The tier subfolder is NOT part of the stable
- * key — the key is {@code <source>/<filename>} ({@code enchants/thunderstrike}) regardless of folder —
- * so moving/re-tiering a file never changes the PDC-stamped identity of live gear. The tier is derived
- * from the immediate subfolder when it is a registered tier (else the registry default), and an in-file
- * {@code tier:} overrides it. Two files yielding the same key (same filename across tiers) are an
+ * <p><strong>Tier folders (ADR-0016).</strong> The tier subfolder ({@code enchants/mythic/x.yml}) is NOT
+ * part of the stable key ({@code <source>/<filename>}), so moving/re-tiering a file never changes the
+ * PDC-stamped identity of live gear. Tier is the immediate subfolder when it is a registered tier (else the
+ * registry default); an in-file {@code tier:} overrides it. Two files yielding the same key are an
  * {@code E_DUPLICATE_KEY} error. Tiers come from {@code content/tiers.yml} ({@link TierRegistry}).
  */
 public final class LibraryLoader {
@@ -115,11 +113,10 @@ public final class LibraryLoader {
     }
 
     /**
-     * Whole-library referential-integrity pass (§G): every {@code requires}/{@code blacklist} reference must
-     * name an enchant that exists. A typo'd {@code requires} silently blocks the enchant forever at apply
-     * time; a typo'd {@code blacklist} silently never matches — both become a blocking diagnostic here so the
-     * bad content is rejected rather than mis-loaded. Runs after the enchant catalog is fully built (the only
-     * point at which every key is visible — a per-file reader cannot see other keys).
+     * Whole-library referential-integrity pass (§G): every {@code requires}/{@code blacklist} must name an
+     * existing enchant. Otherwise a typo'd {@code requires} silently blocks the enchant at apply time and a
+     * typo'd {@code blacklist} silently never matches — both become blocking diagnostics here. Must run after
+     * the catalog is fully built; a per-file reader cannot see other keys.
      */
     private static void validateRelationships(List<EnchantDef> catalog, Diagnostics diags) {
         Set<String> keys = new HashSet<>();
@@ -144,15 +141,11 @@ public final class LibraryLoader {
         }
     }
 
-    /** The path-and-tier of a source file: a tier-folder-stripped key and the resolved folder tier. */
+    /** A source file's tier-folder-stripped key and resolved folder tier. */
     private record KeyTier(String key, String tier) {
     }
 
-    /**
-     * Derive a source file's stable key and folder tier (ADR-0016). The key is {@code <source>/<stem>}
-     * — the tier subfolder is NOT part of it. The folder tier is the immediate subfolder under the
-     * source root when it is a registered tier, else the registry default.
-     */
+    /** Derive a source file's stable key ({@code <source>/<stem>}) and folder tier (ADR-0016). */
     private static KeyTier keyTierOf(Path contentRoot, String source, Path file, TierRegistry tiers) {
         String key = source + "/" + stripExtension(file.getFileName().toString());
         String tier = tiers.defaultTier();

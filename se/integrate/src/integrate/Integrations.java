@@ -26,18 +26,14 @@ import platform.economy.EconomyProvider;
 import platform.protect.ProtectionProvider;
 
 /**
- * Selects the third-party integration bridges that are active on THIS server (docs/decisions/0027). All
- * bridges are bundled in the core jar, but each is SOFT: it loads only when its plugin is present and is not
- * disabled in config. The composition root calls this at boot and feeds the results to the protection/economy
- * services.
+ * Selects the third-party integration bridges active on THIS server (docs/decisions/0027). Bridges are
+ * bundled in the core jar but SOFT: each loads only when its plugin is present and not disabled in config.
  *
- * <p><b>Lazy classloading is load-bearing.</b> Each bridge references its plugin's API types, which exist on
- * the classpath only when that plugin is installed. The guard in {@link #active} touches only Strings + the
- * core {@code Plugin} type, and every bridge factory ({@code create()}/{@code fromServices()}) is declared to
- * return the first-party SPI <em>interface</em> — so the JVM never needs to load a bridge class (and thus its
- * absent plugin's API) to verify or run this registrar. A bridge class loads only when its guarded factory
- * call actually executes, i.e. only when its plugin is present. This is why the bundled-but-optional model
- * works from one jar with no hard dependency on any integration plugin.
+ * <p>Lazy classloading is load-bearing: a bridge references its plugin's API types, present on the classpath
+ * only when that plugin is installed. The guard in {@link #active} touches only Strings + the core
+ * {@code Plugin} type, and every factory returns the first-party SPI interface, so the JVM only loads a bridge
+ * class when its guarded factory actually runs — i.e. only when its plugin is present. This is what lets the
+ * bundled-but-optional model work from one jar with no hard dependency on any integration plugin.
  *
  * <p>External {@code ProtectionProvider}/{@code EconomyProvider}s registered through Bukkit's
  * {@code ServicesManager} still compose alongside these — the composition root unions both.
@@ -85,11 +81,10 @@ public final class Integrations {
 
     /**
      * Register the {@code %starenchants_…%} PlaceholderAPI expansion when PlaceholderAPI is present + enabled
-     * (a no-op otherwise). The expansion reads state through the supplied JDK-typed accessors, so PAPI never
-     * loads any StarEnchants internals.
+     * (else a no-op). The expansion reads state through JDK-typed accessors, so PAPI never loads StarEnchants
+     * internals.
      *
-     * @param soulMode whether the player has soul mode on
-     * @param souls    the player's active-gem soul balance (0 when soul mode is off)
+     * @param souls the player's active-gem soul balance (0 when soul mode is off)
      */
     public static void registerPlaceholders(Plugin plugin, Predicate<String> enabled,
                                             Predicate<Player> soulMode, ToIntFunction<Player> souls) {
@@ -105,7 +100,7 @@ public final class Integrations {
      */
     public static BiFunction<Player, String, String> placeholderResolver(Plugin plugin, Predicate<String> enabled) {
         if (!active(plugin, enabled, "PlaceholderAPI", "placeholderapi")) {
-            return (player, text) -> text; // identity — PAPI absent
+            return (player, text) -> text; // identity: PAPI absent
         }
         return PapiPassthrough.resolver();
     }

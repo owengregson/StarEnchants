@@ -10,23 +10,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 /**
- * GrimAC compatibility (docs/decisions/0027) — the {@code packet/anticheat reference plugin + StarEnchants + GrimAC} combo in
- * particular. Grim is a prediction-based anti-cheat with no per-action exemption (by design it uses setbacks,
- * not exemptions); blunt check-disabling would weaken it. Instead this is <em>surgical</em>: it subscribes to
- * Grim's own {@code FlagEvent} through the GrimAPI {@code EventBus} and cancels a flag <strong>only</strong>
- * for a player StarEnchants itself just moved (a {@code VELOCITY} / {@code TELEPORT} effect), within a tight
- * window — so an engine-applied motion Grim can't predict never produces a false flag, while every other
- * check stays fully active.
+ * GrimAC compatibility (docs/decisions/0027). Grim is prediction-based with no per-action exemption (it uses
+ * setbacks by design); blunt check-disabling would weaken it. So this is surgical: subscribe to Grim's
+ * {@code FlagEvent} via the GrimAPI {@code EventBus} and cancel a flag only for a player StarEnchants itself
+ * just moved (VELOCITY/TELEPORT) within a tight window — an engine motion Grim can't predict never produces a
+ * false flag, every other check stays active.
  *
- * <p><b>Why this shape.</b> SE applies velocity/teleport through the server events Grim already predicts, and
- * that reference plugin's knockback combo with SE delivers its final vector through that plugin's authoritative pipeline (ADR 0026)
- * that Grim verifies against — so most motion needs nothing. This catches the residual edge (a
- * {@code KNOCKBACK_CONTROL}-corrected pre-delivered knockback, a sudden engine launch/teleport) where
- * prediction can briefly disagree.
+ * <p>Most motion needs nothing: SE applies velocity/teleport through the server events Grim already predicts,
+ * and the Mental knockback combo delivers its vector through Mental's authoritative pipeline (ADR 0026) that
+ * Grim verifies against. This catches the residual edge (a {@code KNOCKBACK_CONTROL}-corrected pre-delivered
+ * knockback, a sudden engine launch/teleport) where prediction can briefly disagree.
  *
- * <p>Compiled against the real GrimAPI ({@code FlagEvent}, the {@code EventBus}), so a renamed/removed
- * accessor is a compile error here. Loaded only when GrimAC is present (gated by the registrar), so the core
- * never needs the Grim classes on a server without it.
+ * <p>Compiled against the real GrimAPI, so a renamed/removed accessor is a compile error here. Loaded only
+ * when GrimAC is present (gated by the registrar), so the core never needs the Grim classes without it.
  */
 final class Grim {
 
@@ -39,14 +35,14 @@ final class Grim {
     }
 
     /**
-     * Subscribe the Grim flag-cancellation listener (via the GrimAPI EventBus) and return the "StarEnchants
-     * just moved this player" recorder to fold into the anti-cheat movement-exemption hook. Called by the
-     * registrar only when GrimAC is present, so referencing this class (and the Grim API) is gated.
+     * Subscribe the flag-cancellation listener and return the "StarEnchants just moved this player" recorder
+     * to fold into the movement-exemption hook. Called by the registrar only when GrimAC is present, so
+     * referencing this class (and the Grim API) is gated.
      */
-    @SuppressWarnings("deprecation") // the class-keyed subscribe is the simplest stable form, kept by GrimAPI
+    @SuppressWarnings("deprecation") // class-keyed subscribe is the simplest stable form, kept by GrimAPI
     static Consumer<Player> install(Plugin plugin, System.Logger log) {
         Grim grim = new Grim();
-        // getAsync resolves once Grim's API is published (robust to load order); subscribe FlagEvent then.
+        // getAsync resolves once Grim's API is published — robust to load order.
         GrimAPIProvider.getAsync().thenAccept(api ->
                 api.getEventBus().subscribe(plugin, FlagEvent.class, grim::onFlag));
         log.log(System.Logger.Level.INFO, "anti-cheat: GrimAC flag-cancellation active for engine-applied"
@@ -55,12 +51,11 @@ final class Grim {
         return grim::record;
     }
 
-    /** Mark that StarEnchants just applied movement to {@code player}. */
     void record(Player player) {
         recentMotionUntil.put(player.getName().toLowerCase(Locale.ROOT), System.currentTimeMillis() + WINDOW_MILLIS);
     }
 
-    /** GrimAPI {@code GrimEventListener<FlagEvent>}: cancel a flag StarEnchants' own movement just caused. */
+    /** Cancel a flag StarEnchants' own movement just caused. */
     void onFlag(FlagEvent event) {
         if (event.getUser() == null) {
             return;

@@ -75,11 +75,9 @@ public final class CombatDispatch {
     private final int tridentTriggerId; // −1 ⇒ no distinct trident trigger; trident hits fall back to ATTACK
 
     /**
-     * §N friendly-fire gate (ADR-0027): when both combatants are players this decides whether they are
-     * "friendly" (e.g. the same mcMMO party) — if so StarEnchants applies NO combat effects between them
-     * (neither attack nor defense), respecting the party's friendly-fire-off expectation. A static,
-     * boot-configured no-op by default (set once via {@link #friendlyFire}, mirroring the sink's anti-cheat
-     * hook) so it adds nothing to the per-event path and is inert in tests / without mcMMO.
+     * §N friendly-fire gate (ADR-0027): two friendly players (e.g. same mcMMO party) get NO SE combat
+     * effects either way. Static + boot-configured no-op by default so it stays off the per-event path and
+     * is inert in tests / without mcMMO.
      */
     private static volatile java.util.function.BiPredicate<Player, Player> friendlyFire = (attacker, victim) -> false;
 
@@ -117,9 +115,8 @@ public final class CombatDispatch {
     }
 
     /**
-     * Full combat dispatch: distinct BOW/TRIDENT attacker triggers + soul binder + economy. A bow-arrow
-     * hit fires {@code bowTriggerId} and a thrown-trident hit fires {@code tridentTriggerId} (the Cosmic Enchants-style model
-     * where ATTACK is melee-only); either id at {@code -1} falls those hits back to {@code attackTriggerId}.
+     * Full combat dispatch: distinct BOW/TRIDENT attacker triggers + soul binder + economy. Cosmic Enchants-style
+     * melee-only ATTACK; either trigger id at {@code -1} falls those hits back to {@code attackTriggerId}.
      */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
@@ -134,8 +131,7 @@ public final class CombatDispatch {
 
     /**
      * As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
-     * §F) threaded into each per-event {@link DispatchSink}. The composition root passes
-     * {@code () -> master.config().heroic().maxOutgoingFactor()}; the ctor above defaults it.
+     * §F) threaded into each per-event {@link DispatchSink}; the ctor above defaults it.
      */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
@@ -151,11 +147,10 @@ public final class CombatDispatch {
     }
 
     /**
-     * As above, plus the live cross-cutting combat caps (config.yml {@code combat.*}, §L): the additive
-     * bonus ceilings ({@code maxBonusDamage}/{@code maxBonusReduction}, {@code < 0} ⇒ uncapped) threaded onto
-     * each event's fold, and the {@code pvp}/{@code pve} gates that decide whether a side's effects apply by
-     * the victim's player-ness. The composition root passes live config suppliers; the ctor above defaults
-     * them (uncapped, both contexts on).
+     * As above, plus the live cross-cutting combat caps (config.yml {@code combat.*}, §L): additive bonus
+     * ceilings ({@code maxBonusDamage}/{@code maxBonusReduction}, {@code < 0} ⇒ uncapped) threaded onto each
+     * event's fold, and the {@code pvp}/{@code pve} gates keyed on the victim's player-ness. The ctor above
+     * defaults them (uncapped, both contexts on).
      */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
@@ -199,9 +194,8 @@ public final class CombatDispatch {
         Snapshot snapshot = content.snapshot();
         Ability[] abilities = snapshot.abilities();
         Entity rawDamager = event.getDamager();
-        // A projectile (bow/trident/snowball) attributes the hit to its shooter for ability purposes;
-        // reading the projectile's shooter reference is safe (the projectile is in the firing region).
-        // The RAW damager type still decides which attacker trigger fires (melee=ATTACK, arrow=BOW, …).
+        // A projectile attributes the hit to its shooter (the shooter ref is region-safe — projectile is in
+        // the firing region), but the RAW damager type still decides which attacker trigger fires.
         Entity damager = rawDamager;
         if (rawDamager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter) {
             damager = shooter;
@@ -219,14 +213,12 @@ public final class CombatDispatch {
                 teleblock, immune, nowTicks, maxHeroicOutgoing);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
 
-        // PvP/PvE gates (config.yml combat.pvp/pve): a side whose context is disabled contributes nothing to
-        // the fold. The context is decided by the VICTIM's player-ness — a player victim is PvP, else PvE.
+        // PvP/PvE context (config.yml combat.pvp/pve) is decided by the VICTIM's player-ness.
         boolean victimIsPlayer = victimEntity instanceof Player;
         // §N friendly-fire: skip ALL SE combat effects between two friendly players (e.g. same mcMMO party).
         boolean friendly = damager instanceof Player a && victimEntity instanceof Player v && friendlyFire.test(a, v);
 
-        // Attack side: the player damager's abilities act on the victim (self = the attacker). The trigger
-        // is melee ATTACK, or the distinct BOW/TRIDENT trigger when the hit came via that projectile.
+        // Attack side: self = attacker, target = victim; trigger is ATTACK or the BOW/TRIDENT projectile trigger.
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
             // Extend the attacker's consecutive-hit streak for the %combo% fact (RAGE-style scaling, §3.4).
@@ -236,8 +228,7 @@ public final class CombatDispatch {
                     new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null, streak), sink,
                     snapshot.stableKeys());
         }
-        // Defense side: the player victim's DEFENSE abilities retaliate against the attacker. A player victim
-        // always implies the PvP gate when the attacker is a player, else the PvE gate.
+        // Defense side: self = victim, target = attacker; context keyed on whether the attacker is a player.
         if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player) && !friendly) {
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
                     defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at, incomingDamage, null),

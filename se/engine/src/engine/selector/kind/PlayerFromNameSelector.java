@@ -9,10 +9,9 @@ import schema.spec.D;
 import java.util.List;
 
 /**
- * {@code @PlayerFromName{name=Steve}} — the named online player, or an empty result if no player by that
- * exact name is online (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). The roster lookup goes through the
- * injected world-access seam (so the kind stays pure and unit-testable); the effect that acts on the
- * returned player routes to that player's region thread via its own affinity.
+ * {@code @PlayerFromName{name=Steve}} — the online player with that exact name, else empty
+ * (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). Roster lookup via the world-access seam
+ * so the kind stays pure; the consuming effect routes to the player's region thread via its own affinity.
  */
 public final class PlayerFromNameSelector implements SelectorKind {
 

@@ -8,14 +8,11 @@ import org.bukkit.plugin.Plugin;
 
 /**
  * MythicMobs integration (docs/decisions/0027): resolves an entity's MythicMob internal name, exposed to
- * conditions as the {@code %victim.mobtype%} variable so an enchant can react to a specific custom mob
- * (e.g. {@code victim.mobtype == SkeletalKnight}). StarEnchants already damages/targets MythicMobs (they are
- * ordinary {@code LivingEntity}s); this adds detection.
+ * conditions as {@code %victim.mobtype%} so an enchant can react to a specific custom mob.
  *
- * <p>Compiled against the real MythicMobs API ({@code io.lumine:Mythic-Dist}, {@code compileOnly}) so a
- * renamed accessor is a compile error. Loaded only when MythicMobs is present (gated by the registrar), and
- * fail-safe — a non-MythicMob, or any hiccup, yields {@code ""} (an empty fact), never an exception in the
- * condition hot path.
+ * <p>Compiled against the real MythicMobs API ({@code compileOnly}) so a renamed accessor is a compile error.
+ * Loaded only when MythicMobs is present (gated by the registrar), and fail-safe — a non-MythicMob or any
+ * hiccup yields {@code ""}, never an exception in the condition hot path.
  */
 public final class MythicMobs {
 

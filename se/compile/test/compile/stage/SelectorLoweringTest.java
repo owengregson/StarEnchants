@@ -67,7 +67,7 @@ class SelectorLoweringTest {
         assertFalse(d.hasErrors());
         CompiledEffect e = lowered.effects().get(0);
         assertEquals("AOE", e.target().head());
-        assertEquals(4.0, e.target().args().dbl("r")); // selector arg default
+        assertEquals(4.0, e.target().args().dbl("r"));
     }
 
     @Test

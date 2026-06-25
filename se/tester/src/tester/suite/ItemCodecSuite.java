@@ -12,17 +12,9 @@ import item.codec.ItemKeys;
 import tester.harness.Harness;
 
 /**
- * Live checks for the on-item PDC codec (docs/architecture.md §4.2, §5.1). The pure blob format is
- * unit-tested; what only a real server can prove is that the blob survives in an {@code ItemStack}'s
- * PersistentDataContainer — and, crucially, that it persists through serialization identically
- * <em>across the spigot&rarr;mojang mapping flip</em> (§11; cross-version-item-api skill). PDC is
- * stable Bukkit API since 1.14, but the byte round-trip is verified, never assumed.
- *
- * <ul>
- *   <li>{@code item.codec.roundtrip} — write state to a real item, read it straight back.</li>
- *   <li>{@code item.codec.persist} — write, serialize()&rarr;deserialize(), read back equal (the save/load path).</li>
- *   <li>{@code item.codec.empty} — a plain item reads EMPTY, and writing EMPTY leaves it empty.</li>
- * </ul>
+ * Live checks for the on-item PDC codec (docs/architecture.md §4.2, §5.1). The blob format is unit-tested;
+ * only a real server proves the blob survives an {@code ItemStack}'s PersistentDataContainer through
+ * serialization identically across the spigot→mojang mapping flip (§11; cross-version-item-api skill).
  */
 public final class ItemCodecSuite implements Harness.Scenario {
 

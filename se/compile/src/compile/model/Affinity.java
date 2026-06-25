@@ -7,10 +7,8 @@ package compile.model;
  * value, so an effect author never names a scheduler and cannot, structurally,
  * write a Folia bug.
  *
- * <p>The constants are ordered by increasing dispatch reach: {@link #CONTEXT_LOCAL}
- * runs inline on the firing region thread (zero scheduler hop), each later constant
- * implies more routing. Because the order is meaningful, folding an effect list to
- * an ability-level affinity is a simple {@link #max(Affinity)} reduction.
+ * <p>Constants are ordered by increasing dispatch reach, so folding an effect list to an
+ * ability-level affinity is a simple {@link #max(Affinity)} reduction.
  */
 public enum Affinity {
 
@@ -32,10 +30,7 @@ public enum Affinity {
     /** Off the main threads entirely (async-safe work only). */
     ASYNC;
 
-    /**
-     * The wider-reaching of {@code this} and {@code other} — the reduction used to
-     * fold an ability's effects down to a single ability-level affinity.
-     */
+    /** The wider-reaching of {@code this} and {@code other}; folds an ability's effects to one affinity. */
     public Affinity max(Affinity other) {
         return this.ordinal() >= other.ordinal() ? this : other;
     }

@@ -15,9 +15,8 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test for {@code REMOVE_SOULS}: it debits the activator's active gem when {@code @Self} targets
- * the activator and they are in soul mode, drains a victim's own gem when {@code @Victim} targets another
- * player, and is a no-op otherwise. Exactly ONE debit intent is emitted (the dupe-risk subsystem).
+ * Mock-host test for {@code REMOVE_SOULS}: debits the activator's active gem ({@code @Self} in soul mode),
+ * drains a victim's own gem ({@code @Victim}), else no-op. Exactly ONE debit ever — guards the dupe risk.
  */
 class RemoveSoulsEffectTest {
 
@@ -58,7 +57,7 @@ class RemoveSoulsEffectTest {
     void noOpWhenNotInSoulMode() {
         Player holder = mock(Player.class);
         EffectCtx ctx = mock(EffectCtx.class);
-        when(ctx.activeGem()).thenReturn(null); // no active gem
+        when(ctx.activeGem()).thenReturn(null); // not in soul mode → debit must be suppressed
         when(ctx.actor()).thenReturn(holder);
         when(ctx.integer("amount")).thenReturn(5);
         when(ctx.targets("who")).thenReturn(List.of(holder));

@@ -168,11 +168,9 @@ class MigratorTest {
     @Test
     void flagsUnmappedEffectsWithoutFailing() {
         Migrator.Result result = Migrator.eliteEnchantments(EE);
-        // The full EE effect vocabulary now translates (the exotic-effect port), so the fixture migrates with
-        // no effect warnings and never errors.
         assertFalse(result.diagnostics().hasErrors(), "an unmapped effect is a warning, never an error");
-        // The warn-and-skip safety net still flags a genuinely-unknown effect head (a TODO, never a guess) —
-        // so a future/custom EE effect with no SE equivalent degrades gracefully rather than crashing the load.
+        // A genuinely-unknown head still degrades to a TODO, never a guess — a future/custom EE effect with no
+        // SE equivalent must not crash the load.
         assertFalse(Mappings.effect("TOTALLY_UNKNOWN_EFFECT:1").mapped(),
                 "an unrecognised effect head must be a TODO, never guessed");
     }
@@ -187,7 +185,7 @@ class MigratorTest {
         assertEquals("DAMAGE_MOD:defense:add:1.85", Mappings.effect("REDUCTION:1.85").se());     // decimal kept
         assertEquals("DAMAGE_MOD:defense:add:100", Mappings.effect("REDUCTION:150").se());       // clamped to 100
         assertEquals("DAMAGE_MOD:attack:add:25", Mappings.effect("DAMAGE_INCREASE:25").se());
-        assertEquals("DAMAGE_MOD:attack:add:-50", Mappings.effect("DAMAGE_INCREASE:-50").se()); // negative self-nerf now maps
+        assertEquals("DAMAGE_MOD:attack:add:-50", Mappings.effect("DAMAGE_INCREASE:-50").se()); // negative self-nerf
         assertEquals("REMOVE_POTION:POISON:@Self", Mappings.effect("CURE:POISON:true").se());
         assertEquals("SOUND:ENTITY_GENERIC_EXPLODE:2:5", Mappings.effect("SOUND:ENTITY_GENERIC_EXPLODE:2:5").se());
         assertEquals("PARTICLE:FLAME", Mappings.effect("PARTICLE:FLAME").se());
@@ -350,7 +348,7 @@ class MigratorTest {
                 .map(Diagnostic::toString).collect(Collectors.joining("\n  "));
         assertFalse(library.hasErrors(), () -> "migrated AE output should compile clean:\n  " + blocking);
         assertEquals(2, library.snapshot().abilityCount(), "two levels ⇒ two compiled abilities");
-        // STEAL_MONEY now maps to the canonical MODIFY_MONEY transfer mode (§C collapse) — no longer a TODO.
+        // STEAL_MONEY maps to the canonical MODIFY_MONEY transfer mode (§C collapse).
         String venom = result.files().get("enchants/venomaura.yml");
         assertTrue(venom.contains("MODIFY_MONEY") && venom.contains("transfer"),
                 "expected STEAL_MONEY migrated to MODIFY_MONEY (transfer): " + venom);
@@ -368,8 +366,8 @@ class MigratorTest {
         assertEquals("POTION:POISON:1:60:@Self", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se()); // §C: AE amplifier 0 → SE level 1
         assertEquals("MODIFY_HEALTH:2:give:@Self", Mappings.aeEffect("ADD_HEALTH:2 @Self").se()); // AE add-health → MODIFY_HEALTH (give)
         assertEquals("DAMAGE:6:@Victim", Mappings.aeEffect("DAMAGE:6:@Victim").se()); // colon-attached selector
-        // Legacy %victim% form still maps; large money values survive (not int-capped). Money collapsed to
-        // the canonical MODIFY_MONEY (§C): add→give, remove→take, and STEAL now maps to transfer mode.
+        // Legacy %victim% form maps; large money values survive (not int-capped). §C collapses money to
+        // MODIFY_MONEY: add→give, remove→take, STEAL→transfer.
         assertEquals("MODIFY_MONEY:5000000000:give:@Self", Mappings.aeEffect("ADD_MONEY:5000000000 @Self").se());
         assertEquals("MODIFY_MONEY:100:transfer:@Victim", Mappings.aeEffect("STEAL_MONEY:100 @Victim").se());
         // §C: STEAL_MONEY_PERCENT now maps to the steal_percent mode (a % of the target's balance).
@@ -438,7 +436,7 @@ class MigratorTest {
         assertEquals("%sneaking% == true", Mappings.aeCondition("%player is sneaking% = true : %allow%").expr());
         assertEquals("%combo% > 0 && %combo% < 5",
                 Mappings.aeCondition("%combo% > 0 && %combo% < 5 : %continue%").expr());
-        // Flow/chance results now map to clause forms (v3.1 §A) — flagged as clauses so the reader does not &&-join them.
+        // Flow/chance results map to clause forms (v3.1 §A), flagged as clauses so the reader does not &&-join them.
         MigratedCondition force = Mappings.aeCondition("%victim health% > 5 : %force%");
         assertEquals("%victim.health% > 5 : %force%", force.expr());
         assertTrue(force.clauseForm(), "a %force% result is a clause, not a joinable gate");

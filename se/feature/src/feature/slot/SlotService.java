@@ -13,14 +13,10 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The slot-economy cold path (docs/v3-directives.md §H) — MINTS the upgrade orb (a configurable {@code +N})
- * and APPLIES it onto a piece of gear, raising the gear's purchased {@link CombatState#added()} slot count,
- * clamped to one universal {@link SlotConfig#hardCap() cap} on the TOTAL slots (base + added) any item may
- * reach, so a stack of orbs cannot grow an item without bound.
- *
- * <p>The granted slots persist in the gear's combat blob; the slot item itself is identity-only
- * ({@link SlotItemCodec}), off the combat hot path. Deterministic (no roll). Folia-correct: a gesture fires
- * on the clicking player's own region thread, so mutating their cursor/inventory is in-thread.
+ * Slot-economy cold path (§H): mints the upgrade orb and applies it onto gear, raising the gear's purchased
+ * {@link CombatState#added()} count. Clamped to {@link SlotConfig#hardCap()} on TOTAL slots (base + added),
+ * so a stack of orbs can't grow an item without bound. Granted slots persist in the gear's combat blob; the
+ * orb itself is identity-only ({@link SlotItemCodec}), off the combat hot path.
  */
 public final class SlotService {
 
@@ -28,8 +24,8 @@ public final class SlotService {
     private final CombatCodec combat;
     private final LoreRenderer lore;
     private final Supplier<SlotConfig> config;
-    private final IntSupplier baseSlots; // §H config.yml slots.base — read live so the cap math tracks a reload
-    private final item.lang.Messages messages; // §L lang.yml — apply/at-cap + guards
+    private final IntSupplier baseSlots; // read live so the cap math tracks a reload of config.yml slots.base (§H)
+    private final item.lang.Messages messages;
 
     /** Fixed base-slots + default messages form (tests/fixtures). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
@@ -44,10 +40,8 @@ public final class SlotService {
     }
 
     /**
-     * Canonical form (the composition root): {@code baseSlots} is read live, so the universal cap math
-     * ({@code hardCap - base}, the cap itself staying in {@code items/slots.yml} per §H) re-tunes on a
-     * {@code /se reload} that changes {@code config.yml}'s {@code slots.base}; {@code messages} sources the
-     * apply/at-cap chat from {@code lang.yml} (§L).
+     * Canonical form (composition root): {@code baseSlots} is read live so the cap math ({@code hardCap - base})
+     * re-tunes when a reload changes {@code config.yml} slots.base (§H).
      */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, IntSupplier baseSlots, item.lang.Messages messages) {
@@ -59,12 +53,10 @@ public final class SlotService {
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
-    /** Whether {@code stack} is a slot expander (orb) item. */
     public boolean isSlotItem(ItemStack stack) {
         return codec.isSlotItem(stack);
     }
 
-    /** Mint an upgrade orb (grants the configured {@code +N}). */
     public ItemStack mintOrb() {
         SlotConfig cfg = config.get();
         String amount = Integer.toString(cfg.orbAmount());
@@ -77,9 +69,8 @@ public final class SlotService {
     }
 
     /**
-     * Apply the slot item {@code slotItem} onto {@code gear}, raising its purchased slot count by the item's
-     * granted {@code +N} (clamped to the universal hard cap). The slot item is consumed only when it actually
-     * raises the count; an item already at the cap is a no-op (the slot item is preserved).
+     * Applies {@code slotItem} onto {@code gear} (clamped to the hard cap). The slot item is consumed only
+     * when it actually raises the count; gear already at the cap is a no-op that preserves the slot item.
      */
     public SlotResult applyTo(ItemStack slotItem, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {

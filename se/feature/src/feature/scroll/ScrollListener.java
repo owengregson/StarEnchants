@@ -11,10 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The scroll gesture UX (docs/v3-directives.md §I): holding a black/randomizer scroll on the CURSOR and
- * clicking a target applies it. Bukkit-thin glue — all logic is in {@link ScrollService}; this only
- * recognises the gesture, cancels the vanilla click, commits the mutated cursor/slot, and drops any
- * produced item (the black scroll's extracted book) into the player's inventory. Folia-correct: an
+ * Scroll gesture glue (docs/v3-directives.md §I); logic lives in {@link ScrollService}. Folia-correct:
  * {@code InventoryClickEvent} fires on the clicking player's own region thread.
  */
 public final class ScrollListener implements Listener {
@@ -40,14 +37,14 @@ public final class ScrollListener implements Listener {
         }
         ItemStack cursor = event.getCursor();
         if (!service.isScroll(cursor)) {
-            return; // the cursor is not a scroll — leave the click alone
+            return;
         }
         ItemStack target = event.getCurrentItem();
         if (target == null || target.getType() == Material.AIR || service.isScroll(target)) {
-            return; // no target, or scroll-onto-scroll (meaningless)
+            return; // scroll-onto-scroll is meaningless
         }
 
-        event.setCancelled(true); // we own this interaction now
+        event.setCancelled(true);
         ScrollResult result = service.interact(cursor, target);
         if (result.commit()) {
             event.setCursor(cursor.getAmount() <= 0 ? null : cursor);

@@ -13,8 +13,8 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host test for the canonical {@code MODIFY_FOOD} (which replaced FEED): give feeds each player
- * target, take drains them, and non-players are skipped (only players have a hunger bar).
+ * Mock-host test for {@code MODIFY_FOOD}: give feeds each player target, take drains them, and
+ * non-players are skipped (only players have a hunger bar).
  */
 class FoodEffectTest {
 

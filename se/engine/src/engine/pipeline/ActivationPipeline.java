@@ -11,18 +11,15 @@ import java.util.Objects;
 
 /**
  * The activation pipeline: the fixed Cosmic Enchants-style gate sequence (docs/architecture.md §3.3),
- * preserved exactly and identically for every source — which is what prevents the
- * enchant-path/armor-path drift that broke the originals. Each gate is a compiled
- * integer/bitset/primitive check, not a string op. A System walks the candidate
- * abilities for a trigger and runs each through {@link #evaluate}; an {@link GateOutcome#ACTIVATED}
- * result means the caller should run the ability's effects (gate 12).
+ * identical for every source so no per-source path can drift. Each gate is a compiled
+ * integer/bitset/primitive check, not a string op. A System walks the candidate abilities for a trigger
+ * and runs each through {@link #evaluate}; {@link GateOutcome#ACTIVATED} means the caller runs the
+ * ability's effects (gate 12).
  *
- * <p>Gates 1, 3–8, 10, 11 are pure logic over the {@link Ability} and {@link Activation};
- * gate 2 (protection) and gate 9 ({@code PreActivate}) are injected {@link Guard}s
- * (default allow) so the cross-version/Bukkit edges stay outside this pure core. Gates 10
- * (soul debit) and 11 (cooldown arm) have side effects on the {@link SoulLedger} and
- * {@link CooldownStore} — performed only once every preceding gate has passed, matching
- * the Cosmic Enchants-style ordering (souls are spent after {@code PreActivate}, cooldown armed last).
+ * <p>Gates 1, 3–8, 10, 11 are pure logic over the {@link Ability} and {@link Activation}; gate 2
+ * (protection) and gate 9 ({@code PreActivate}) are injected {@link Guard}s (default allow) so the
+ * cross-version/Bukkit edges stay outside this pure core. The side-effecting gates run only after every
+ * preceding gate passes: souls debit (gate 10) AFTER {@code PreActivate}, cooldown armed last (gate 11).
  */
 public final class ActivationPipeline {
 
@@ -114,9 +111,9 @@ public final class ActivationPipeline {
     }
 
     /**
-     * Whether any of {@code ability}'s three scopes is under an active timed {@code DISABLE_*} for the
-     * activator — mirrors {@link #cooldownsReady} (gate 6) over the SAME packed scope keys, so a
-     * {@code SUPPRESS:ENCHANT|GROUP|TYPE:key} silences exactly the abilities whose scope lowered to that key.
+     * Whether any of {@code ability}'s three scopes is under an active timed {@code DISABLE_*} — mirrors
+     * {@link #cooldownsReady} over the SAME packed scope keys, so {@code SUPPRESS:ENCHANT|GROUP|TYPE:key}
+     * silences exactly the abilities whose scope lowered to that key.
      */
     private boolean suppressed(Ability ability, Activation act) {
         return scopeSuppressed(ability.cdScopeEnchant(), SCOPE_ENCHANT, act)

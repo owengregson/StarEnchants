@@ -8,9 +8,8 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code @BlockInDistance{distance}} — the first solid block along the activator's line of sight, within a
- * configurable (typically longer) {@code distance} (docs/v3-directives.md §A; default 30). Same world
- * raytrace as {@code @Block} but reaching far beyond arm's length; empty if nothing is in sight.
+ * {@code @BlockInDistance{distance}} — first solid block along the actor's line of sight, within a longer
+ * {@code distance} than {@code @Block} (docs/v3-directives.md §A); empty if nothing is in sight.
  */
 public final class BlockInDistanceSelector implements SelectorKind {
 

@@ -159,13 +159,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getLogger().info("StarEnchants — " + caps + ", scheduling "
                 + Scheduling.backend().getClass().getSimpleName());
 
-        // bStats (id 32197): anonymous usage metrics. The vendored single-file Metrics (package-relocated
-        // to bstats/) runs its own daemon submit thread and is Folia-aware (it skips the Bukkit-scheduler
-        // hop when Folia is present), so it is correct on Paper AND Folia. Server owners opt out via the
-        // global plugins/bStats/config.yml the class writes on first run.
+        // bStats (id 32197): the vendored single-file Metrics is Folia-aware (skips the Bukkit-scheduler
+        // hop when Folia is present), so it is correct on both. Owners opt out via plugins/bStats/config.yml.
         metrics = new bstats.Metrics(this, 32197);
 
-        // A monotonic game-tick counter (floor-safe) for cooldown timing.
+        // Monotonic game-tick counter (floor-safe) for cooldown timing.
         AtomicLong tick = new AtomicLong();
         Scheduling.repeatingGlobal(0L, 1L, tick::incrementAndGet);
 
@@ -190,31 +188,29 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         content = new ContentHolder(initial);
         logLoad(initial);
 
-        // Item likeness/config (soul gem, …) — a parallel immutable snapshot of the top-level items/ folder,
-        // published alongside content in the same /se reload transaction (the onPublished hook below).
+        // Item likeness/config (soul gem, …): a parallel immutable snapshot of items/, published alongside
+        // content in the same /se reload transaction (the onPublished hook below).
         ItemsHolder items = new ItemsHolder(ItemsLoader.load(itemsRoot));
         logItems(items.config());
 
-        // Master config.yml (§L) — the sectioned cross-cutting knobs (slots/souls/crystals/heroic/lore/
-        // integrations/reload). Another parallel immutable reference swapped in the same reload transaction;
-        // services read its values through suppliers, so a reload re-tunes them live.
+        // Master config.yml (§L) — the cross-cutting knobs (slots/souls/crystals/heroic/lore/integrations/
+        // reload). Parallel immutable reference, swapped in the same reload transaction; services read it
+        // through suppliers, so a reload re-tunes them live.
         MasterConfigHolder master = new MasterConfigHolder(MasterConfigLoader.load(configFile));
         logMaster(master.config());
 
-        // lang.yml (§L) — every player-facing message, another parallel immutable reference swapped in the
-        // same reload transaction. The Messages facade colour-translates + substitutes at the send boundary
-        // and reads the holder live, so a reload re-texts everything.
+        // lang.yml (§L) — every player-facing message. The Messages facade colour-translates + substitutes
+        // at the send boundary and reads the holder live, so a reload re-texts everything.
         LangHolder lang = new LangHolder(LangLoader.load(langFile));
         Messages messages = new Messages(lang::lang,
-                () -> master.config().messages().prefix(),         // §L config.yml messages.prefix (live)
-                () -> master.config().messages().feedback(),       // §L config.yml messages.feedback (live)
-                // §N PlaceholderAPI passthrough (ADR-0027): resolve other plugins' %…% in sent messages when
-                // PAPI is present; identity otherwise. Decided once at boot (integration discovery is boot-time).
+                () -> master.config().messages().prefix(),
+                () -> master.config().messages().feedback(),
+                // §N PlaceholderAPI passthrough (ADR-0027): resolve other plugins' %…% when PAPI is present,
+                // identity otherwise. Decided once (integration discovery is boot-time).
                 Integrations.placeholderResolver(this, master.config().integrations()::enabled));
 
-        // menus/ (§L) — per-GUI layout overrides, one file per menu; another parallel immutable reference
-        // swapped in the same reload transaction. Each menu merges its programmatic default with this holder's
-        // override at render time, so a reload re-lays-out the next open.
+        // menus/ (§L) — per-GUI layout overrides, one file per menu. Each menu merges its programmatic
+        // default with this holder's override at render time, so a reload re-lays-out the next open.
         MenusHolder menusHolder = new MenusHolder(MenusLoader.load(menusRoot));
 
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
@@ -258,8 +254,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().crystals().maxStack(),   // §E crystal sanity cap
                 messages);                                     // §L ApplyResult reason strings
 
-        // Carrier economy (ADR-0016): mint + apply books/scrolls onto gear. Cold path — the carrier PDC is
-        // separate from the combat blob, so it never decodes on the hot path. Random for the success roll.
+        // Carrier economy (ADR-0016): mint + apply books/scrolls onto gear. The carrier PDC is separate
+        // from the combat blob, so it never decodes on the hot path.
         CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of(this).carrier(), ItemKeys.of(this).guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
                 () -> items.config().enchantBookOrDefault(),   // §I general enchant-book likeness, live-reloaded
@@ -267,45 +263,44 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().whiteScrollOrDefault());  // §I white scroll (items/white-scroll.yml), live
 
         // Physical crystal items (§E): mint + drag-apply (success roll + consume) + multi-crystal merge.
-        // The crystal-item PDC is separate from the combat blob; the applied crystal becomes one crystal-slot
-        // entry on the gear (a multi-crystal is encoded "a+b" — one slot, both abilities).
+        // An applied crystal is one crystal-slot entry on the gear (a multi-crystal encodes "a+b" — one
+        // slot, both abilities).
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of(this).crystalItem());
         item.codec.CrystalExtractorCodec crystalExtractorCodec =
                 new item.codec.CrystalExtractorCodec(ItemKeys.of(this).crystalExtractor());
         CrystalService crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, enchanter, content,
                 () -> items.config().crystalOrDefault(), new java.util.Random(), messages);
 
-        // Heroic upgrades (§F): mint + drag-apply onto armour/weapon (small success roll, material swap,
-        // "heroic piece" lore rendered from state). Reuses the combat codec + lore renderer.
+        // Heroic upgrades (§F): mint + drag-apply onto armour/weapon (success roll, material swap, "heroic
+        // piece" lore from state). Reuses the combat codec + lore renderer.
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of(this).heroicUpgrade());
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
                 () -> items.config().heroicOrDefault(), new java.util.Random(), messages);
 
-        // Slot economy (§H): mint + drag-apply the upgrade orb (+N) onto gear, raising its
-        // persisted CombatState.added slot count (clamped to the config's universal hard cap). baseSlots
-        // matches the ItemEnchanter default so the cap is computed against the same base capacity.
+        // Slot economy (§H): mint + drag-apply the upgrade orb (+N) onto gear, raising its persisted
+        // CombatState.added slot count (clamped to the universal hard cap). base matches the ItemEnchanter
+        // default so the cap is computed against the same base capacity.
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of(this).slotItem());
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(),
                 (java.util.function.IntSupplier) () -> master.config().slots().base(), messages);
 
         // Book-economy scrolls (§I): black scroll extracts an enchant from gear into a book; randomizer
-        // scroll rerolls a book's success. Reuse the combat codec + lore (gear) and CarrierService (mint
-        // the extracted book / reroll book success). Distinct 'scroll' PDC tag, off the combat hot path.
+        // rerolls a book's success. Distinct 'scroll' PDC tag, off the combat hot path.
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of(this).scroll());
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
                 new item.codec.GodlyTransmogCodec(ItemKeys.of(this).godlyTransmog());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
                 () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec);
 
-        // Unopened/randomized book (§I): right-click yields a concrete enchant book of a random enchant
-        // from its tier, at a random level + success. Mints through CarrierService's explicit-success book.
+        // Unopened/randomized book (§I): right-click yields a concrete book of a random enchant from its
+        // tier, at a random level + success.
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of(this).unopened());
         UnopenedBookService unopenedBooks = new UnopenedBookService(unopenedCodec, carriers, content,
                 () -> items.config().unopenedBookOrDefault(), new java.util.Random(), messages);
 
-        // Survival + cosmetic scrolls (§I): holy scroll keeps items on a death (PlayerDeathEvent scan);
-        // item nametag renames gear via a chat-capture flow. Both share the 'scroll' PDC tag + scrolls config.
+        // Survival + cosmetic scrolls (§I): holy scroll keeps items on death; item nametag renames gear via
+        // chat capture. Both share the 'scroll' PDC tag + scrolls config.
         HolyScrollService holyScrolls = new HolyScrollService(scrollCodec,
                 () -> items.config().scrollsOrDefault(), new java.util.Random(), messages);
         NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(), messages);
@@ -317,8 +312,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulService soulService = new SoulService(souls, soulModes,
                 new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault(),
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
-        // §N PlaceholderAPI expansion (ADR-0027): surface %starenchants_soulmode% / %starenchants_souls% when
-        // PAPI is present. Accessors are plain JDK-typed, so PAPI never loads StarEnchants internals.
+        // §N PlaceholderAPI expansion (ADR-0027): surface %starenchants_soulmode% / %starenchants_souls%
+        // when PAPI is present. Accessors are plain JDK-typed, so PAPI never loads StarEnchants internals.
         Integrations.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),
                 player -> soulService.bindingFor(player).map(b -> souls.peek(b.gemId()).orElse(0)).orElse(0));
@@ -327,30 +322,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 soulModes, () -> items.config().soulGemOrDefault(), particleFx);
         soulParticles.start();
 
-        // One shared writable variable store (§A): the SET_VAR/INVERT_VAR effects write it through the
-        // per-event sink, and conditions read it back as %name% through the dispatchers' FactPopulator.
-        VarStore vars = new VarStore();
-        // One shared suppression store (§C SUPPRESS): the SUPPRESS effect writes it through the per-event
-        // sink, and gate 5 of the pipeline reads it across the three DISABLE scopes. Same instance both ends.
-        SuppressionStore suppression = new SuppressionStore();
-        // One shared knockback-control store (§C KNOCKBACK_CONTROL): the effect writes a short-TTL per-victim
-        // multiplier through the per-event sink, and the knockback listener (a SEPARATE event the same tick)
-        // reads it to cancel/scale the launch. Same instance both ends.
-        KnockbackControlStore knockback = new KnockbackControlStore();
-        // One shared keep-on-death store (§C KEEP_ON_DEATH): the effect arms a short-TTL per-player flag
-        // through the per-event sink; the death listener reads it on PlayerDeathEvent to keep items+levels.
-        // Same instance both ends.
-        KeepOnDeathStore keepOnDeath = new KeepOnDeathStore();
-        // Shared TELEBLOCK / IMMUNE stores (Cosmic Enchants exotic-effect ports): the effects arm a per-player timed flag
-        // through the per-event sink; the teleport / damage listeners (separate Bukkit events) read it back.
+        // Each store below is ONE shared instance: an effect writes it through the per-event sink and a
+        // separate reader (a pipeline gate, or a different Bukkit event the same tick) reads it back.
+        VarStore vars = new VarStore();                  // §A SET_VAR/INVERT_VAR → conditions' %name%
+        SuppressionStore suppression = new SuppressionStore(); // §C SUPPRESS → gate 5 across DISABLE scopes
+        KnockbackControlStore knockback = new KnockbackControlStore(); // §C KNOCKBACK_CONTROL → knockback listener
+        KeepOnDeathStore keepOnDeath = new KeepOnDeathStore();        // §C KEEP_ON_DEATH → PlayerDeathEvent
+        // TELEBLOCK / IMMUNE (Cosmic Enchants exotic-effect ports): per-player timed flag → teleport / damage listeners.
         TeleblockStore teleblock = new TeleblockStore();
         ImmuneStore immune = new ImmuneStore();
 
-        // Protection / region gate (gate 2): compose the BUNDLED integration ProtectionProviders for the
-        // land/region plugins present on this server (§N — bundled in this jar and soft, ADR-0027) together
-        // with any registered through the ServicesManager (the open first-party SPI). A server with none
-        // allows everything. The guard passes the firing location (captured on the Activation, owned by the
-        // firing region) and the actor's UUID — no live-Player lookup, so no cross-region read on Folia.
+        // Protection / region gate (gate 2): compose the BUNDLED integration providers (§N, ADR-0027) with
+        // any registered through the ServicesManager (the open first-party SPI); none ⇒ allow everything.
+        // The guard passes the firing location (captured on the Activation) and the actor's UUID — no
+        // live-Player lookup, so no cross-region read on Folia.
         List<ProtectionProvider> protectionProviders = new ArrayList<>();
         if (master.config().integrations().protection()) {
             protectionProviders.addAll(
@@ -367,18 +352,16 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             return where == null || protection.allows(activation.actor(), where);
         };
 
-        // Runtime executor + combat dispatch (the soul binder arms gate 10 from an actor's active gem).
-        // The activation listener fires the public EnchantActivateEvent for each proc — Bukkit-aware
-        // here, so the engine itself stays event-API-free (it only calls the callback).
+        // Runtime executor + combat dispatch. fireActivation (passed as the activation listener) fires the
+        // public EnchantActivateEvent per proc — Bukkit-aware here, so the engine stays event-API-free.
         engine.effect.EffectRegistry effects = BuiltinEffects.registry();
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), souls, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
                 areaScan(), this::fireActivation);
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
-        // Economy bridge (gate-free): the MODIFY_MONEY effect deposits/withdraws/transfers through the sink,
-        // routed to the global thread. Prefer the BUNDLED Vault bridge when Vault is present (§N, ADR-0027);
-        // otherwise fall back to any EconomyProvider registered via the ServicesManager. Absent ⇒ no-ops.
+        // Economy bridge for MODIFY_MONEY (routed to the global thread): prefer the BUNDLED Vault bridge
+        // (§N, ADR-0027), else any ServicesManager-registered EconomyProvider; absent ⇒ no-ops.
         EconomyService economy;
         if (master.config().integrations().economy()) {
             EconomyProvider bundled = Integrations.economyProvider(this, master.config().integrations()::enabled);
@@ -391,20 +374,16 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (economy.present()) {
             getLogger().info("economy provider active");
         }
-        // §N anti-cheat exemption (ADR-0027): install the sink's movement-exemption hook so engine-applied
-        // VELOCITY/TELEPORT briefly exempt the player from a supported anti-cheat's movement checks. No-op
-        // when no actionable anti-cheat is present. Set once at boot (a static cross-cutting hook).
+        // §N soft integration hooks (ADR-0027), all set once at boot and no-op when the target is absent:
+        // anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT,
         engine.sink.DispatchSink.movementExemption(Integrations.antiCheatExemption(
                 this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat")));
-        // §N mcMMO friendly-fire (ADR-0027): SE applies no combat effects between two players in the same
-        // mcMMO party. Installed as the combat dispatch's friendly-fire gate (no-op when mcMMO is absent).
+        // mcMMO friendly-fire gate (no combat effects between same-party players),
         CombatDispatch.friendlyFire(Integrations.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
-        // §N MythicMobs (ADR-0027): source the %victim.mobtype% condition fact from MythicMobs' internal name
-        // (empty when absent). A boot-installed soft hook on the engine's FactPopulator (no engine→MythicMobs dep).
+        // %victim.mobtype% sourced from MythicMobs' internal name (no engine→MythicMobs dep),
         engine.run.FactPopulator.entityTypeResolver(
                 Integrations.mythicMobType(this, master.config().integrations()::enabled));
-        // §N ItemsAdder/Oraxen (ADR-0027): let item-likeness + menu configs use custom-item materials
-        // (itemsadder:… / oraxen:…). A boot-installed soft hook on the item factory (no item→IA/Oraxen dep).
+        // and itemsadder:… / oraxen:… custom-item materials in item-likeness + menu configs (no item dep).
         item.mint.ItemFactory.customItemResolver(
                 Integrations.customItem(this, master.config().integrations()::enabled));
         CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
@@ -423,17 +402,16 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 keepOnDeath, teleblock, immune,
                 () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
         // §B REPEATING lifecycle: one entity-owned repeating task per (player, repeating ability), armed by
-        // EquipListener on every equip change and torn down on quit/disable. RepeatStore owns the mapping.
+        // EquipListener on every equip change, torn down on quit/disable; RepeatStore owns the mapping.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
                 new RepeatStore<TaskHandle>());
-        // §B HELD/PASSIVE start/stop lifecycle: maintained buffs that turn on at equip and off at unequip,
-        // driven by EquipListener diffing the worn HELD/PASSIVE abilities each equip change (ADR-0022).
+        // §B HELD/PASSIVE buffs that turn on at equip and off at unequip, driven by EquipListener diffing
+        // the worn HELD/PASSIVE abilities each equip change (ADR-0022).
         lifecycle = new LifecycleDriver(triggerDispatch, content,
                 triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
 
-        // §L per-feature master toggles: slots/souls/scrolls gate their apply/interaction listeners at boot
-        // (these subsystems register event handlers, which cannot be cleanly re-bound mid-run, so — like the
-        // integration toggles — a change to these three takes effect on the next server start).
+        // §L per-feature master toggles gate listener registration at boot: event handlers cannot be cleanly
+        // re-bound mid-run, so — like the integration toggles — a change takes effect on the next start.
         MasterConfig.FeaturesSection features = master.config().features();
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
@@ -449,22 +427,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope())), this); // §F reduction-scope
         getServer().getPluginManager().registerEvents(
                 new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune), this);
-        // §C KEEP_ON_DEATH: keep items+levels on a death while the flag is armed. NORMAL priority — earlier
-        // than HolyScrollListener (HIGH) — so an enchant-kept death never spends a holy scroll.
+        // §C KEEP_ON_DEATH at NORMAL priority — earlier than HolyScrollListener (HIGH) — so an enchant-kept
+        // death never spends a holy scroll.
         getServer().getPluginManager().registerEvents(new KeepOnDeathListener(keepOnDeath, tick::get), this);
-        // Cosmic Enchants exotic-effect ports: TELEBLOCK (cancel ender-pearl/chorus teleport while flagged) and IMMUNE
-        // (cancel matching damage while flagged) read their per-event flags back on the separate events.
+        // Cosmic Enchants exotic-effect ports: TELEBLOCK cancels ender-pearl/chorus teleport while flagged,
+        // IMMUNE cancels matching damage while flagged — each on its own Bukkit event.
         getServer().getPluginManager().registerEvents(new TeleblockListener(teleblock, tick::get), this);
         getServer().getPluginManager().registerEvents(new ImmuneListener(immune, tick::get), this);
         // §C KNOCKBACK_CONTROL: hook whichever knockback event this server fires (modern bukkit / legacy
-        // destroystokyo), capability-probed. A no-op on a server with neither (the effect is simply inert).
+        // destroystokyo), capability-probed; inert on a server with neither.
         KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
-        // §N packet/anticheat reference-plugin integration: with that knockback plugin installed it OWNS player
-        // knockback (it overwrites the velocity event with its own residual-computed vector), so the vanilla applier
-        // above is discarded for players. Bind its KnockbackApplyEvent so KNOCKBACK_CONTROL composes onto
-        // that plugin's vector instead of being silently lost. Reflective (no hard dep); honours
-        // integrations.named.mental. See docs/decisions/0026.
+        // §N (ADR-0026): that knockback plugin OWNS player knockback (its own residual-computed vector), so
+        // the vanilla applier above is discarded for players. Bind its KnockbackApplyEvent so
+        // KNOCKBACK_CONTROL composes onto its vector instead of being lost. Reflective (no hard dep).
         MentalKnockbackBridge.Path mentalPath = MentalKnockbackBridge.register(
                 this, knockback, tick::get, master.config().integrations().enabled("mental"));
         getLogger().info("Mental knockback coordination: " + mentalPath);
@@ -489,21 +465,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
 
-        // Arm REPEATING tasks for players already online (a plugin /reload with players on) — a fresh server
-        // boot has none, so this is a no-op there; PlayerJoinEvent arms normal joins via EquipListener.
+        // Arm players already online (a plugin /reload with players on); a fresh boot has none. Normal joins
+        // are armed by EquipListener via PlayerJoinEvent.
         for (Player player : getServer().getOnlinePlayers()) {
             Scheduling.onEntity(player, () -> {
                 var state = worn.refresh(player, content.snapshot());
                 passives.arm(player, state);     // §B REPEATING
-                lifecycle.refresh(player, state); // §B HELD/PASSIVE start/stop
+                lifecycle.refresh(player, state); // §B HELD/PASSIVE
             });
         }
 
-        // The §L parallel config sources, each reloaded in the SAME transaction as content (§L-4): every step
-        // parses OFF the main thread and returns its diagnostics + a global-thread publish; the reloader
-        // commits content AND all sources together only when every one is clean (all-or-nothing), and surfaces
-        // each source's faults through /se reload [--dry-run]. A broken config.yml/lang.yml/menus/ now keeps
-        // the previous state of EVERYTHING and reports the fault, instead of half-swapping.
+        // The §L parallel config sources, reloaded in the SAME transaction as content (§L-4): each step
+        // parses off-thread and returns its diagnostics + a global-thread publish; the reloader commits
+        // content AND all sources only when every one is clean (all-or-nothing), else keeps the previous
+        // state of EVERYTHING and reports the fault through /se reload [--dry-run].
         List<platform.content.ReloadStep> reloadSteps = List.of(
                 () -> { var c = ItemsLoader.load(itemsRoot); return new platform.content.ReloadStep.Built(
                         c.diagnostics(), () -> items.publish(c)); },
@@ -514,16 +489,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> { var c = MenusLoader.load(menusRoot); return new platform.content.ReloadStep.Built(
                         c.diagnostics(), () -> menusHolder.publish(c)); });
 
-        // Reload: one persistent compiler; on a clean swap the sources above are already published, so this
-        // content-coupled hook advances the gen-keyed caches and re-resolves every online player.
+        // One persistent compiler; on a clean swap this content-coupled hook advances the gen-keyed caches
+        // and re-resolves every online player.
         reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
             itemViews.reload(published.snapshot().generation());
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
             if (master.config().reload().reResolvePlayers()) { // §L config.yml reload.re-resolve-players
                 for (Player player : getServer().getOnlinePlayers()) {
-                    // Re-resolve worn state, re-arm repeating tasks (their period may have changed), and
-                    // re-diff the HELD/PASSIVE lifecycle against the new snapshot, per player.
+                    // Re-arm against the new snapshot per player (a repeating task's period may have changed).
                     Scheduling.onEntity(player, () -> {
                         var state = worn.refresh(player, published.snapshot());
                         passives.arm(player, state);
@@ -533,8 +507,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             }
         }, reloadSteps);
 
-        // Optional auto-reload (§L config.yml reload.auto-seconds; ≤ 0 = off). Armed once at boot off the
-        // initial config — changing the interval needs a restart. A recurring /se reload on the global thread.
+        // Optional auto-reload (§L config.yml reload.auto-seconds; ≤ 0 = off). Armed once at boot — changing
+        // the interval needs a restart.
         int autoSeconds = master.config().reload().autoSeconds();
         if (autoSeconds > 0) {
             long period = autoSeconds * 20L;
@@ -542,9 +516,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             getLogger().info("auto-reload armed: every " + autoSeconds + "s");
         }
 
-        // GUIs on the shared menu framework (§K). One listener routes every menu (recognised by MenuHolder);
-        // the registry maps a name → menu so `/se menu <name>` opens any of them. The direct-apply enchant
-        // menu ("apply") is the visual /se enchant. Menus open on the player's region thread (Folia open-hop).
+        // GUIs on the shared menu framework (§K): one listener routes every menu; the registry maps name →
+        // menu for `/se menu <name>`. Menus open on the player's region thread (Folia open-hop).
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
                 player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config);
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
@@ -580,13 +553,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
                     scrolls, unopenedBooks, holyScrolls, nametags, packs, messages);
             command.setExecutor(seCommand);
-            command.setTabCompleter(seCommand); // subcommand + enchant/crystal-key completion
+            command.setTabCompleter(seCommand);
         }
 
-        // §B COMMAND trigger: register the configurable command that fires a player's worn COMMAND enchants.
-        // Registered through the server command map (its name is dynamic, so it cannot live in plugin.yml) and
-        // guarded — a server without an accessible command map simply leaves the trigger unfireable, never
-        // crashing the boot. Read once here, matching the integration toggles (a name change needs a restart).
+        // §B COMMAND trigger: register the command that fires a player's worn COMMAND enchants. Goes through
+        // the server command map (its name is dynamic, so it cannot live in plugin.yml); guarded so a server
+        // without an accessible command map just leaves it unfireable. A name change needs a restart.
         var commandTrigger = master.config().commandTrigger();
         if (commandTrigger.enabled()) {
             try {
@@ -603,9 +575,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Cancel every live REPEATING task so they don't leak across a plugin /reload (§B). The other
-        // per-player stores self-bound via lazy TTL eviction; repeating tasks are the one thing that
-        // outlives the JVM-less reload boundary and must be torn down explicitly.
+        // Cancel every live REPEATING task so they don't leak across a plugin /reload (§B): the other
+        // per-player stores self-evict by TTL, but repeating tasks outlive the reload boundary.
         if (passives != null) {
             passives.disarmAll();
         }
@@ -686,9 +657,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 if (match.isAir()) {
                     return List.of();
                 }
-                // BFS flood-fill over 6-neighbours of the same material, capped at `limit`. Each block read is
-                // guarded: a cross-region/unloaded read on Folia simply truncates the vein (best-effort), and the
-                // BREAK/SET intents route to each block's own region via the Sink regardless (Affinity.REGION).
+                // BFS flood-fill over 6-neighbours of the same material, capped at `limit`. Each read is
+                // guarded — a cross-region/unloaded read on Folia truncates the vein (best-effort) — and the
+                // BREAK/SET intents route to each block's own region via the Sink (Affinity.REGION).
                 List<Location> out = new ArrayList<>();
                 java.util.Set<Long> seen = new java.util.HashSet<>();
                 java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
@@ -793,7 +764,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         for (String relative : shippedPaths(root)) {
             String resource = root + "/" + relative;
             if (Files.exists(dataFolder.resolve(resource))) {
-                continue; // never overwrite an operator's edited copy
+                continue;
             }
             try {
                 saveResource(resource, false);

@@ -17,34 +17,25 @@ import org.bukkit.util.Vector;
  * the integration edge for the one place StarEnchants and that plugin both touch the same thing: a player's
  * incoming knockback.
  *
- * <p><b>Why a bridge is needed.</b> That plugin <em>owns</em> player knockback — its pipeline serves the
- * victim's {@code PlayerVelocityEvent} and {@code setVelocity}s its own residual-computed vector,
- * <em>overwriting</em> whatever vanilla (and therefore {@link KnockbackListener}, which scales the vanilla
- * {@code EntityKnockbackEvent}) produced. So on a server with that plugin, KNOCKBACK_CONTROL silently dies for
- * player victims: the value SE scaled is thrown away a few priorities later. That plugin anticipates exactly
- * this and publishes a seam — a cancellable {@code KnockbackApplyEvent} fired on the victim's owning
- * thread immediately before it applies the vector, with a mutable {@code velocity()}. SE applies its
- * per-victim KNOCKBACK_CONTROL multiplier <em>there</em>, so the effect rides on that plugin's vector instead
- * of fighting it.
+ * <p><b>Why a bridge is needed.</b> That plugin <em>owns</em> player knockback: it {@code setVelocity}s its
+ * own vector, overwriting whatever vanilla (and thus {@link KnockbackListener}'s scaling of the vanilla
+ * {@code EntityKnockbackEvent}) produced — so KNOCKBACK_CONTROL would silently die for player victims. It
+ * publishes a seam: a cancellable {@code KnockbackApplyEvent} on the victim's owning thread with a mutable
+ * {@code velocity()}, where SE applies its multiplier so the effect rides on that plugin's vector.
  *
- * <p><b>No double-scale.</b> SE reads the same short-TTL {@link KnockbackControlStore} from both this hook
- * and {@link KnockbackListener}, but exactly one of them survives to the final velocity per hit: when
- * that plugin owns the hit it overwrites the vanilla event (SE's vanilla scaling is discarded, harmlessly) and
- * this hook is the one that lands; when that plugin yields a hit (OCM ownership, a full block, the module off)
- * it fires no apply event and the vanilla {@link KnockbackListener} path lands; mob victims (which that plugin
- * never touches) always go through the vanilla path. So no extra skip logic is required — the store read is
- * idempotent and only one path's write reaches the client.
+ * <p><b>No double-scale.</b> Both this hook and {@link KnockbackListener} read the same short-TTL
+ * {@link KnockbackControlStore}, but exactly one write reaches the client per hit: a plugin-owned hit
+ * overwrites the vanilla event (SE's vanilla scaling discarded harmlessly) and lands here; a yielded hit
+ * (OCM ownership, full block, module off) fires no apply event and lands via {@link KnockbackListener}; mob
+ * victims always take the vanilla path. The store read is idempotent, so no skip logic is needed.
  *
- * <p><b>Cancel means zero, not "let vanilla stand".</b> A {@code multiplier <= 0} writes a zero velocity
- * (no knockback) rather than cancelling the apply event — cancelling it tells that plugin to "let vanilla
- * velocity stand", which for a plugin-owned hit would leave the player with the normal knockback, the exact
- * opposite of KNOCKBACK_CONTROL:0.
+ * <p><b>Cancel means zero, not "let vanilla stand".</b> {@code multiplier <= 0} writes a zero velocity
+ * rather than cancelling the apply event — cancelling tells that plugin to keep vanilla velocity, the exact
+ * opposite of KNOCKBACK_CONTROL:0 on a plugin-owned hit.
  *
- * <p><b>Reflective, soft, optional.</b> SE compiles against no class from that plugin (mirroring how it binds
- * OldCombatMechanics reflectively, and how {@link KnockbackListener} hooks the modern Bukkit event). The
- * event class is hooked only when present, and {@code integrations.named.mental: false} disables the bridge
- * entirely. Folia-correct: the apply event fires on the victim's region thread and the store is concurrent
- * and UUID-keyed.
+ * <p><b>Reflective, soft, optional.</b> SE compiles against no class from that plugin; the event is hooked
+ * only when present, and {@code integrations.named.mental: false} disables the bridge. Folia-correct: the
+ * apply event fires on the victim's region thread, the store is concurrent and UUID-keyed.
  */
 public final class MentalKnockbackBridge {
 
@@ -65,9 +56,8 @@ public final class MentalKnockbackBridge {
     }
 
     /**
-     * The KNOCKBACK_CONTROL decision applied to that plugin's apply event — the pure, unit-testable core (no
-     * reflection, no server). Mirrors {@link KnockbackControlStore} semantics exactly so SE behaves the
-     * same whether the knockback comes from that plugin or from vanilla.
+     * The pure KNOCKBACK_CONTROL decision for that plugin's apply event — mirrors {@link KnockbackControlStore}
+     * semantics so SE behaves the same whether the knockback came from that plugin or vanilla.
      *
      * @param multiplier the active control for the victim ({@link KnockbackControlStore#NONE} / {@code NaN}
      *     when there is no flag), as returned by {@link KnockbackControlStore#multiplier}

@@ -6,33 +6,29 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The soul arbiter: the <em>single authority</em> for a gem's soul balance at runtime,
- * and the only code that debits or credits souls (docs/architecture.md §6.3). The
- * pipeline calls {@link #tryConsume} at gate 10 (after {@code PreActivate}, Cosmic Enchants-style order
- * preserved).
+ * The soul arbiter: the <em>single authority</em> for a gem's soul balance and the only
+ * code that debits or credits souls (docs/architecture.md §6.3). The pipeline calls
+ * {@link #tryConsume} at gate 10.
  *
- * <p><strong>Why an in-memory authority.</strong> The durable balance lives on the gem
- * item's PDC, but on Folia an {@code ItemStack}/PDC is a per-thread <em>copy</em>: two
- * region threads acting on the same gem each see their own snapshot. Serialising writes
- * to two different snapshots would not prevent a double-spend. So this ledger holds the
- * authoritative count in memory, keyed by the gem's stable UUID — loaded once from the
- * supplied {@link Balance} on first touch, then the source of truth for every
- * affordability decision. Each change is written through to the {@code Balance} (the
- * caller's PDC proxy) so the durable copy stays in sync; because the in-memory count is
- * shared, a second thread sees the first thread's debit even though their PDC snapshots
- * differ. That is what makes "one authority ⇒ no double-spend across region threads"
- * actually hold.
+ * <p><strong>Why in-memory.</strong> The durable balance lives on the gem's PDC, but on
+ * Folia an {@code ItemStack}/PDC is a per-thread <em>copy</em>: two region threads each
+ * see their own snapshot, so serialising writes to two snapshots wouldn't stop a
+ * double-spend. This ledger keeps the authoritative count in memory keyed by the gem's
+ * stable UUID — seeded from {@link Balance} on first touch, then the source of truth —
+ * and writes each change through to the {@code Balance} so the durable copy stays in sync.
+ * Because the count is shared, a second thread sees the first's debit even though their
+ * PDC snapshots differ; that is what makes "one authority ⇒ no double-spend" hold.
  *
- * <p>Reads and writes for a gem are serialised by a <em>fixed</em> array of stripe locks
- * (constant memory, no per-gem monitor accumulation); distinct gems rarely contend, and
- * the same gem always maps to the same stripe so its read-check-write is atomic.
+ * <p>Per-gem reads/writes are serialised by a <em>fixed</em> array of stripe locks
+ * (constant memory, no per-gem monitor accumulation); the same gem always maps to the
+ * same stripe, so its read-check-write is atomic.
  */
 public final class SoulLedger {
 
     /**
-     * A gem's durable soul balance — the caller's PDC proxy. Read once to seed the
-     * in-memory authority and written through on every change. Production backs it with
-     * the gem's PDC; tests with a plain holder.
+     * A gem's durable soul balance — the caller's PDC proxy. Seeds the in-memory authority
+     * once and is written through on every change. Backed by PDC in production, a plain
+     * holder in tests.
      */
     public interface Balance {
         int souls();
@@ -104,10 +100,9 @@ public final class SoulLedger {
     }
 
     /**
-     * The current authority for {@code gemId} WITHOUT seeding it — empty if the gem has never been
-     * touched (or has been forgotten). Unlike {@link #balance}, a peek never primes the authority
-     * from a {@code Balance}, so a caller flushing the durable copy can tell "no authoritative value"
-     * apart from "zero souls" and never accidentally seeds a stale/zero count.
+     * The current authority for {@code gemId} WITHOUT seeding it — empty if untouched or
+     * forgotten. Unlike {@link #balance}, never primes from a {@code Balance}, so a caller
+     * flushing the durable copy can tell "no authoritative value" from "zero souls".
      */
     public OptionalInt peek(UUID gemId) {
         Integer value = authoritative.get(gemId);

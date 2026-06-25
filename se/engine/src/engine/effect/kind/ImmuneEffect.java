@@ -12,11 +12,10 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code IMMUNE} — make the target immune to a damage cause for a duration (the Cosmic Enchants-style {@code IMMUNE} effect,
- * § combat-flags). A combat-flag like {@code KNOCKBACK_CONTROL}: the proc writes a per-player timed flag
- * through the {@link Sink}, and a SEPARATE Bukkit event (future damage) reads it back and cancels matching
- * hits. {@code type} is sword / axe / projectile / potion (magic·poison·wither) / all. Targets the activator
- * by default (a self-protection). Player-only. {@link Affinity#CONTEXT_LOCAL}: an in-memory flag write.
+ * {@code IMMUNE} — make the target immune to a damage cause for a duration (§ combat-flags). The proc
+ * writes a per-player timed flag through the {@link Sink}; a SEPARATE future-damage event reads it back and
+ * cancels matching hits. {@code type} is sword / axe / projectile / potion (magic·poison·wither) / all.
+ * Player-only, defaults to the activator (self-protection). {@link Affinity#CONTEXT_LOCAL}: in-memory flag write.
  */
 public final class ImmuneEffect implements EffectKind {
 

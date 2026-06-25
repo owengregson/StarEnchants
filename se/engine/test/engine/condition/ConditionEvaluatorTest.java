@@ -45,7 +45,7 @@ class ConditionEvaluatorTest {
         f.setFlag(0, true);
         assertEquals(Flow.FORCE, ConditionEvaluator.eval(force, f).flow());
         f.setFlag(0, false);
-        assertEquals(Flow.CONTINUE, ConditionEvaluator.eval(force, f).flow()); // a failing clause never STOPs
+        assertEquals(Flow.CONTINUE, ConditionEvaluator.eval(force, f).flow()); // a failing clause never STOPs, only its on-fail flow
     }
 
     @Test

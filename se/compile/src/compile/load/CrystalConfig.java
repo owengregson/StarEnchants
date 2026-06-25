@@ -15,17 +15,9 @@ import java.util.Objects;
  * in the master {@code config.yml} {@code crystals:} section (§L); until that lands the runtime injects a
  * default. {@code {CRYSTAL}} in the name/lore/messages renders the component crystal display name(s).
  *
- * @param material          the crystal item's material token (resolved cross-version at use)
- * @param name              its display name ({@code &} colours; {@code {CRYSTAL}} placeholder)
- * @param lore              its lore lines ({@code {CRYSTAL}} placeholder)
- * @param successChance     drag-apply success chance, 0..100
- * @param consumeOnFail     whether a failed apply still consumes the crystal
- * @param sounds            master toggle for the apply/remove gesture sounds
- * @param soundApply        the namespaced sound played on a successful apply/merge
- * @param soundRemove       the namespaced sound played on a successful extraction
- * @param extractorMaterial the extractor item's material token (resolved cross-version at use)
- * @param extractorName     the extractor item's display name
- * @param extractorLore     the extractor item's lore lines
+ * @param material          material token (resolved cross-version at use)
+ * @param successChance     drag-apply success chance, clamped 0..100
+ * @param extractorMaterial extractor material token (resolved cross-version at use)
  *
  * <p>The apply/merge/extract messages live in {@code lang.yml} ({@code crystal.apply-success} /
  * {@code crystal.apply-fail} / {@code crystal.no-slots} / {@code crystal.merge} / {@code crystal.extract-success})

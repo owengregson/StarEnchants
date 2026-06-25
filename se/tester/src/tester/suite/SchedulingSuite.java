@@ -12,21 +12,11 @@ import platform.sched.TaskHandle;
 import tester.harness.Harness;
 
 /**
- * Live checks for the {@code Scheduling} abstraction — the heart of the Folia-correctness
- * invariant. Each owner flavour is exercised on a REAL server, and every scheduled body that
- * touches the world/entity is wrapped in {@link Harness#guard}: on Folia a wrong-region or
- * wrong-thread access throws {@code IllegalStateException}, so an incorrectly-routed task surfaces
- * as a recorded FAIL rather than a silent stall. A green Paper run proves nothing here — the same
- * suite must pass on Folia (matrix-gate, folia-scheduling skills).
- *
- * <ul>
- *   <li>{@code sched.global} — a global task runs.</li>
- *   <li>{@code sched.region} — a region task may read the block at its location (region-owned).</li>
- *   <li>{@code sched.entity} — an entity task may MUTATE its entity (entity-owned, the common case).</li>
- *   <li>{@code sched.entityLater} — a delayed entity task actually fires after its delay.</li>
- *   <li>{@code sched.repeating} — a repeating task fires N times and {@code cancel()} stops it.</li>
- *   <li>{@code sched.async} — an async task runs OFF the primary thread.</li>
- * </ul>
+ * The {@code Scheduling} abstraction, live — the heart of the Folia-correctness invariant. Each owner
+ * flavour runs on a REAL server; every body touching world/entity is wrapped in {@link Harness#guard}, so
+ * a wrong-region/wrong-thread access (which throws on Folia) surfaces as a recorded FAIL, not a silent
+ * stall. A green Paper run proves nothing here — the same suite must pass on Folia (matrix-gate,
+ * folia-scheduling skills).
  */
 public final class SchedulingSuite implements Harness.Scenario {
 
@@ -50,24 +40,21 @@ public final class SchedulingSuite implements Harness.Scenario {
         h.expect("sched.async");
 
         Scheduling.onGlobal(() -> h.guard("sched.global", () -> {
-            // World time is global-owned state; touching it here must not throw.
-            world.getFullTime();
+            world.getFullTime(); // global-owned state; must not throw here
         }));
 
-        // A delayed GLOBAL task must fire and may touch global-owned state — the primitive WAIT uses for
-        // deferred global/economy effects (the Folia global-region delayed scheduler, untested elsewhere).
+        // The primitive WAIT uses for deferred global/economy effects — the Folia global-region delayed
+        // scheduler, untested elsewhere.
         Scheduling.onGlobalLater(2L, () -> h.guard("sched.globalLater", world::getFullTime));
 
         Scheduling.onRegion(at, () -> h.guard("sched.region", () ->
                 world.getBlockAt(at).getType()));
 
-        // Entity-owned: the common case (anything done TO an entity). With no players online,
-        // newer servers (26.1.x) cull a freshly-spawned entity within a couple of ticks once its
-        // chunk stops entity-ticking, so the delayed-task check would race culling rather than test
-        // scheduling. We force-load the chunk to keep it ticking — but on Folia force-load modifies
-        // a GLOBAL set ("Cannot modify force loaded chunks off of the global region"), so it must
-        // run on the global thread. So: force-load on global, THEN spawn on the location's region,
-        // THEN schedule on the entity — each step on its correct owning thread.
+        // With no players online, 26.1.x culls a freshly-spawned entity within a couple of ticks once its
+        // chunk stops entity-ticking, so the delayed check would race culling. Force-load keeps it ticking,
+        // but on Folia force-load modifies a GLOBAL set ("Cannot modify force loaded chunks off of the
+        // global region"), so it must run on the global thread: force-load on global, THEN spawn on the
+        // location's region, THEN schedule on the entity — each step on its owning thread.
         int cx = at.getBlockX() >> 4;
         int cz = at.getBlockZ() >> 4;
         Scheduling.onGlobal(() -> {
@@ -79,17 +66,14 @@ public final class SchedulingSuite implements Harness.Scenario {
                 stand.setPersistent(true);
 
                 Scheduling.onEntity(stand, () -> h.guard("sched.entity", () -> {
-                    // Mutating the entity from its own scheduler is the region-correct path.
-                    stand.setCustomName("se-harness");
+                    stand.setCustomName("se-harness"); // mutate from the entity's own scheduler
                     stand.setCustomNameVisible(false);
                 }));
 
                 Scheduling.onEntityLater(stand, 2L, () -> {
-                    // The contract is "the delayed ENTITY task fires" — reaching this body proves it.
-                    // We deliberately do NOT assert the stand is still valid: a playerless entity can be
-                    // culled under tick-stall (the slow floor server under matrix load), yet on Paper the
-                    // delayed task still fires, which is exactly what this check exists to verify. Asserting
-                    // validity tested an incidental, load-sensitive condition, not scheduling.
+                    // The contract is just "the delayed ENTITY task fires" — reaching this body proves it.
+                    // Do NOT assert the stand is still valid: a playerless entity can be culled under
+                    // tick-stall, yet the delayed task still fires, which is what this check verifies.
                     h.guard("sched.entityLater", () -> { /* fired on the entity scheduler — pass */ });
                     stand.remove();
                     Scheduling.onGlobal(() -> world.setChunkForceLoaded(cx, cz, false));

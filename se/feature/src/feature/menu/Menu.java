@@ -54,9 +54,8 @@ public interface Menu {
 
     /**
      * Re-render the holder's (already mutated) navigation state and re-open it on the player's thread — the
-     * primitive behind page turns, drill-down and back. Scheduling the open (rather than calling
-     * {@code openInventory} inline from within the click handler) keeps the swap on a clean tick, the
-     * Folia-safe pattern the original menu used.
+     * primitive behind page turns, drill-down and back. Schedule the open (don't call {@code openInventory}
+     * inline from the click handler) so the swap lands on a clean tick — Folia-safe.
      */
     default void reopen(MenuClick click) {
         render(click.holder());

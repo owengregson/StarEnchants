@@ -23,8 +23,7 @@ final class ContentParse {
 
     /** A {@code [0,100]} activation chance; NaN/out-of-range is a diagnostic, then clamped. */
     static double clampChance(double chance, Source source, Diagnostics diags) {
-        // NaN slips past a naive range check (NaN < 0 and NaN > 100 are both false), so guard it
-        // explicitly — a NaN activation chance must never reach the runtime.
+        // NaN passes a naive range check (NaN < 0 and NaN > 100 are both false); guard it explicitly.
         if (Double.isNaN(chance) || chance < 0.0 || chance > 100.0) {
             diags.error("load.chance", "chance must be a number in [0,100], got " + chance, source);
             return Double.isNaN(chance) ? 0.0 : Math.max(0.0, Math.min(100.0, chance));
@@ -125,8 +124,8 @@ final class ContentParse {
     /**
      * The effects under {@code key} of {@code node} as {@link EffectLine}s: each item is a terse
      * {@code "HEAD:arg"} string OR a verbose {@code HEAD: { param: value, who:, wait: }} map. A
-     * {@code wait:} desugars to a preceding {@code WAIT} line. Both forms produce the same downstream
-     * shape. (A literal {@code $} in a value is preserved verbatim — there is no scale/token grammar.)
+     * {@code wait:} desugars to a preceding {@code WAIT} line. (A literal {@code $} in a value is
+     * preserved verbatim — there is no scale/token grammar.)
      */
     static List<EffectLine> effectItems(YamlNode node, String key, Diagnostics diags) {
         List<EffectLine> out = new ArrayList<>();
@@ -151,7 +150,6 @@ final class ContentParse {
         YamlNode body = head.get(0).value();
 
         if (effectHead.equalsIgnoreCase("WAIT")) {
-            // `- WAIT: 20` — the verbose spelling of a `"WAIT:20"` timing directive.
             String ticks = body.isScalar() ? body.scalar() : null;
             if (ticks == null) {
                 diags.error("E_EFFECT", "WAIT must be written 'WAIT: <ticks>'", item.source());

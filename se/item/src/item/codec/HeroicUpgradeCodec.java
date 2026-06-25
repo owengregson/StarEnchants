@@ -6,9 +6,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 /**
- * Marks / detects a heroic UPGRADE item (docs/v3-directives.md §F) — a one-shot consumable dragged onto
- * gear to attempt a heroic upgrade. A simple PDC {@code BYTE} flag under {@link ItemKeys#heroicUpgrade()},
- * separate from the combat blob (identity, never on the hot path). Reading is null-safe.
+ * Marks / detects a heroic UPGRADE consumable (§F): a PDC {@code BYTE} flag under
+ * {@link ItemKeys#heroicUpgrade()}, off the combat hot path. Reading is null-safe.
  */
 public final class HeroicUpgradeCodec {
 

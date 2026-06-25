@@ -38,7 +38,7 @@ class SelectorCompilerTest {
         CompiledSelector sel = compiler().compileInline("@Aoe", SRC, d);
         assertFalse(d.hasErrors());
         assertEquals("AOE", sel.head());
-        assertEquals(4.0, sel.args().dbl("r")); // spec default
+        assertEquals(4.0, sel.args().dbl("r"));
     }
 
     @Test
@@ -62,9 +62,9 @@ class SelectorCompilerTest {
     void unknownArgWarnsButStillCompilesWithDefaults() {
         Diagnostics d = new Diagnostics();
         CompiledSelector sel = compiler().compileInline("@Aoe{radius=3}", SRC, d);
-        assertFalse(d.hasErrors()); // an unknown arg is a warning, not an error
+        assertFalse(d.hasErrors()); // unknown arg is a warning, not an error
         assertEquals("W_SELECTOR_UNKNOWN_ARG", d.all().get(0).code());
-        assertEquals(4.0, sel.args().dbl("r")); // the real arg fell back to its default
+        assertEquals(4.0, sel.args().dbl("r"));
     }
 
     @Test

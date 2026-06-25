@@ -48,7 +48,7 @@ class SeCommandCompletionTest {
         assertTrue(SeCommand.complete(new String[] {"enchant", "enchants/venom", "2"}, ENCHANTS, CRYSTALS).isEmpty());
     }
 
-    // ── §J give-tree + removeenchant completion ──────────────────────────────────────────────────
+    // §J give-tree + removeenchant completion
 
     private static final List<String> PLAYERS = List.of("Bob", "Alice");
     private static final List<String> SETS = List.of("sets/titan", "sets/yeti");
@@ -60,7 +60,7 @@ class SeCommandCompletionTest {
     @Test
     void giveCompletesTypeThenPlayerThenTypeKey() {
         assertTrue(complete("give", "").containsAll(List.of("gem", "crystal", "book", "dust", "set", "upgrade")));
-        assertTrue(complete("give", "").stream().noneMatch("item"::equals)); // the old ItemDef route is gone
+        assertTrue(complete("give", "").stream().noneMatch("item"::equals)); // no bare "item" type
         assertEquals(List.of("Bob"), complete("give", "crystal", "Bo"));               // arg 2 = online player
         assertEquals(CRYSTALS, complete("give", "crystal", "Bob", ""));                 // arg 3 = crystal key
         assertEquals(List.of("enchants/venom", "enchants/vigor"),
@@ -81,7 +81,7 @@ class SeCommandCompletionTest {
         assertEquals(List.of("sets/yeti"), complete("give", "set", "Bob", "sets/y"));
     }
 
-    // ── §packs (ADR-0023) /se pack completion ──────────────────────────────────────────────────────
+    // §packs (ADR-0023) /se pack completion
 
     private static final List<String> PACKS = List.of("elite-enchantments", "vanilla-plus");
 

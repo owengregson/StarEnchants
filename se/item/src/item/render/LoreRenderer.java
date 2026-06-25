@@ -11,17 +11,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * Renders an item's lore from its {@link CombatState} (docs/architecture.md §4.2) — and never the
- * other way around. Lore is a pure, deterministic projection of the stored state: identity lives
- * in the PDC record, so the rendered text is rebuilt from scratch on every state change and is
- * never parsed back to recover state. A stored stable key absent from the catalog renders as the
- * style's {@code unknownLabel} and is skipped, never crashing the render (§5.3).
+ * Renders lore from {@link CombatState}, never the reverse (§4.2). Lore is a deterministic projection of the
+ * PDC record — rebuilt from scratch on every change, never parsed back to recover state. A stored key absent
+ * from the catalog renders as {@code unknownLabel}, never crashing the render (§5.3).
  *
- * <p>The display-name lookup is injected as a {@code base key -> display} function, so the
- * line-building ({@link #lines}) is pure and unit-testable with no server or {@code Library}; the
- * wiring passes {@code Library::displayNameOf} (which covers enchants AND crystals) as that
- * function. Only {@link #apply} touches Bukkit, through the legacy {@code setLore(List<String>)}
- * that is stable across the whole 1.17.1 → 26.1.x range.
+ * <p>The display-name lookup is injected ({@code base key -> display}) so {@link #lines} is pure and
+ * server-free in tests; the wiring passes {@code Library::displayNameOf} (enchants AND crystals). Only
+ * {@link #apply} touches Bukkit, via legacy {@code setLore(List<String>)} stable across 1.17.1 → 26.1.x.
  */
 public final class LoreRenderer {
 
@@ -31,9 +27,8 @@ public final class LoreRenderer {
     private final SetLore setLore;
 
     /**
-     * The authored lore of a set's members, looked up from state at render time so a worn set piece
-     * keeps its flavour lore even after it is enchanted (lore is rebuilt from scratch on every change).
-     * The wiring passes a {@code Library}-backed lookup; tests/fixtures use {@link #NONE}.
+     * Set members' authored lore, looked up from state at render time so a worn piece keeps its flavour lore
+     * after it is enchanted (render-from-scratch). Wiring uses a {@code Library}-backed lookup; tests {@link #NONE}.
      */
     public interface SetLore {
         /** The lore shared by every armour piece of {@code setKey} (empty if none / unknown). */
@@ -54,36 +49,34 @@ public final class LoreRenderer {
         };
     }
 
-    /** Fixed-style renderer (tests, fixtures); the style never changes, no per-tier colour, no set lore. */
+    /** Fixed-style renderer (tests): no per-tier colour, no set lore. */
     public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf) {
         this(() -> Objects.requireNonNull(style, "style"), displayNameOf, key -> null, SetLore.NONE);
     }
 
     /**
-     * Fixed-style renderer with per-enchant tier colours (tests, fixtures). {@code enchantColorOf} maps
-     * a base key to its tier's legacy {@code '&'}-code, or {@code null}/blank to fall back to the style's
-     * universal {@link LoreStyle#enchantColor()}.
+     * Fixed-style renderer with per-tier enchant colours (tests). {@code enchantColorOf}: base key → tier's
+     * {@code '&'}-code, {@code null}/blank falls back to the style's {@link LoreStyle#enchantColor()}.
      */
     public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf,
             Function<String, String> enchantColorOf) {
         this(() -> Objects.requireNonNull(style, "style"), displayNameOf, enchantColorOf, SetLore.NONE);
     }
 
-    /** Live-style renderer with no per-tier colour and no set-member lore (suites that mint neither). */
+    /** Live-style renderer: no per-tier colour, no set-member lore. */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
         this(style, displayNameOf, key -> null, SetLore.NONE);
     }
 
-    /** Live-style renderer with set-member lore but a universal enchant colour (no per-tier colours). */
+    /** Live-style renderer with set-member lore but a universal enchant colour (no per-tier). */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf, SetLore setLore) {
         this(style, displayNameOf, key -> null, setLore);
     }
 
     /**
-     * Live-style renderer (the composition root): {@code style} is re-read on every render, so a
-     * {@code /se reload} that swaps the master {@code config.yml}'s {@code lore:} section takes effect on
-     * the next render with no re-wiring. {@code enchantColorOf} colours each enchant's name by its rarity
-     * tier (base key -> legacy {@code '&'}-code, per ADR-0016 §2; {@code null}/blank → the style's universal
+     * Canonical renderer (composition root): {@code style} is re-read per render, so a {@code /se reload}
+     * swapping the {@code lore:} section takes effect on the next render. {@code enchantColorOf} colours each
+     * enchant by rarity tier (base key → {@code '&'}-code, ADR-0016 §2; {@code null}/blank → the style's
      * {@link LoreStyle#enchantColor()}). {@code setLore} renders each worn set member's authored lore.
      */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
@@ -94,13 +87,9 @@ public final class LoreRenderer {
         this.setLore = Objects.requireNonNull(setLore, "setLore");
     }
 
-    /**
-     * The lore lines for {@code state}, colour-translated and in stored order: one line per enchant
-     * ({@code name level}, the name coloured by its rarity tier) then one per crystal. Empty when the
-     * item carries no combat state.
-     */
+    /** Lore lines in stored order: one per enchant ({@code name level}), then one per crystal. Empty if no state. */
     public List<String> lines(CombatState state) {
-        LoreStyle style = this.style.get(); // resolve the live style once per render (reload-swappable)
+        LoreStyle style = this.style.get(); // live style, once per render (reload-swappable)
         List<String> out = new ArrayList<>(state.enchants().size() + state.crystals().size());
         for (Map.Entry<String, Integer> enchant : state.enchants().entrySet()) {
             String name = nameOr(enchant.getKey(), style);
@@ -110,7 +99,7 @@ public final class LoreRenderer {
             out.add(Colors.translate(color + name + " " + style.levelColor() + level));
         }
         for (String crystalEntry : state.crystals()) {
-            // One line per crystal slot; a multi-crystal entry ("a+b", §E) lists both component names.
+            // A multi-crystal entry ("a+b", §E) lists both component names on one line.
             List<String> components = item.codec.CrystalItemData.componentsOf(crystalEntry);
             StringBuilder label = new StringBuilder();
             for (String component : components) {
@@ -122,10 +111,10 @@ public final class LoreRenderer {
             out.add(Colors.translate(style.crystalColor() + label));
         }
         if (!state.heroic().isZero()) {
-            out.add(Colors.translate("&6&lHEROIC")); // the §F "heroic piece" marker, rendered from state
+            out.add(Colors.translate("&6&lHEROIC")); // §F heroic-piece marker
         }
         if (state.setKey() != null) {
-            // An armour set member: its set's SHARED armour lore, then the set marker (§6.6) — all from state.
+            // Armour member: shared armour lore, then the set marker (§6.6).
             for (String line : setLore.armor(state.setKey())) {
                 out.add(Colors.translate(line));
             }
@@ -133,7 +122,7 @@ public final class LoreRenderer {
                     + (state.omni() ? " &d(Omni Set)" : " &7(Set)")));
         }
         if (state.setWeaponKey() != null) {
-            // A set WEAPON member: its own lore, then a weapon marker naming its set (§6.6) — all from state.
+            // Weapon member: its own lore, then a weapon marker naming its set (§6.6).
             for (String line : setLore.weapon(state.setWeaponKey())) {
                 out.add(Colors.translate(line));
             }
@@ -142,10 +131,7 @@ public final class LoreRenderer {
         return out;
     }
 
-    /**
-     * Render {@code state} onto {@code stack}'s lore in place; clears the lore when the state is
-     * empty. Returns whether the item could carry meta (false for e.g. an air stack).
-     */
+    /** Render onto {@code stack} in place; clears lore when state is empty. False if the item can't carry meta (air). */
     @SuppressWarnings("deprecation") // setLore(List<String>): deprecated-not-removed across the whole range.
     public boolean apply(ItemStack stack, CombatState state) {
         if (stack == null) {

@@ -10,12 +10,8 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code HEALTH} — add to the target(s) maximum health (docs/architecture.md §7).
- * Stateless; emits an {@code addMaxHealth} intent per resolved target and never touches
- * an entity directly. The bonus is tracked by the dispatcher and restored on unequip.
- * {@link Affinity#TARGET_ENTITY}: changing max health mutates the target, so on Folia the
- * {@code Sink} routes each intent to the target's region thread — declaring it here is all
- * an author does.
+ * {@code HEALTH} — add to the target(s)' MAXIMUM health (docs/architecture.md §7); the bonus is tracked
+ * by the dispatcher and restored on unequip. {@link Affinity#TARGET_ENTITY}.
  */
 public final class HealthEffect implements EffectKind {
 

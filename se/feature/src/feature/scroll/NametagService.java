@@ -15,17 +15,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * The item nametag (docs/v3-directives.md §I) — dragged onto gear it begins a chat-capture rename; the
- * player's next chat line becomes the item's display name unless it contains a blacklisted word. A distinct
- * {@code NAMETAG}-kind scroll ({@link ScrollCodec}).
+ * Item nametag (docs/v3-directives.md §I) — dragged onto gear it begins a chat-capture rename; the next
+ * chat line becomes the display name unless blacklisted. A distinct {@code NAMETAG}-kind scroll
+ * ({@link ScrollCodec}).
  *
- * <p>The pending-rename store is keyed by player UUID and holds a <em>clone of the target item</em>, not a
- * volatile slot index: between the click and the (async) chat line the player may move the item, so the
- * rename re-locates the exact stack by {@link ItemStack#isSimilar(ItemStack) identity} and renames it where
- * it now sits — never whatever later occupies a fixed slot. If the target has vanished the spent nametag is
- * refunded rather than silently lost, and starting a rename while one is pending is rejected (so a second
- * nametag is never consumed for nothing). The store is concurrent because the chat event fires async; the
- * inventory mutation itself is hopped back to the player's region thread by the listener (Folia-correct).
+ * <p>The pending store holds a <em>clone of the target item</em>, not a slot index: the player may move the
+ * item between the click and the (async) chat line, so the rename re-locates the exact stack by
+ * {@link ItemStack#isSimilar(ItemStack) identity} — never whatever later occupies a fixed slot. A vanished
+ * target refunds the nametag rather than losing it; starting a rename while one is pending is rejected. The
+ * store is concurrent because the chat event fires async; the mutation is hopped to the region thread by the
+ * listener (Folia).
  */
 public final class NametagService {
 
@@ -48,12 +47,10 @@ public final class NametagService {
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
-    /** Whether {@code stack} is an item nametag. */
     public boolean isNametag(ItemStack stack) {
         return NAMETAG.equals(scrolls.kind(stack));
     }
 
-    /** Mint an item nametag. */
     public ItemStack mint() {
         ScrollsConfig.Nametag cfg = config.get().nametag();
         ItemStack stack = ItemFactory.build(
@@ -63,14 +60,12 @@ public final class NametagService {
     }
 
     /**
-     * Begin a rename for {@code player} targeting {@code target} (a clone is captured for identity), unless
-     * one is already pending. Returns the prompt message, or {@code null} when a rename is already pending
-     * (the caller must NOT consume a nametag in that case) — both guard against a second nametag being spent
-     * for nothing.
+     * Begin a rename targeting {@code target}, unless one is already pending. Returns the prompt, or
+     * {@code null} when already pending — the caller must NOT consume a nametag in that case.
      */
     public String begin(UUID player, ItemStack target) {
         if (pending.containsKey(player)) {
-            return null; // a rename is already awaiting this player's chat line — don't start (or consume) a second
+            return null;
         }
         pending.put(player, target.clone()); // capture identity, not a volatile slot index
         return messages.format("scroll.nametag.prompt");
@@ -81,7 +76,6 @@ public final class NametagService {
         return messages.format("scroll.nametag.busy");
     }
 
-    /** Whether {@code player} has a rename awaiting a chat line. */
     public boolean isPending(UUID player) {
         return pending.containsKey(player);
     }
@@ -92,10 +86,9 @@ public final class NametagService {
     }
 
     /**
-     * Complete a pending rename for {@code player} with the chat-typed {@code text} — MUST run on the
-     * player's own region thread (it mutates their inventory). Re-locates the captured target by identity
-     * and renames it; on cancel / a blacklisted name / the target having vanished, the spent nametag is
-     * refunded. Returns the message to show, or {@code null} if there was no pending rename.
+     * Complete a pending rename with the chat-typed {@code text} — MUST run on the player's own region
+     * thread (it mutates their inventory). On cancel / blacklisted name / vanished target the nametag is
+     * refunded. Returns the message, or {@code null} when nothing was pending.
      */
     @SuppressWarnings("deprecation") // setDisplayName: the floor-stable item-meta path
     public String complete(Player player, String text) {

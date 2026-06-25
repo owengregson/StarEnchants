@@ -117,7 +117,7 @@ public final class ExprLexer {
 
     /** {@code !=} (inequality) or a bare {@code !} (logical not). */
     private ExprTok bangOrNe(int startCol) {
-        pos++; // consume '!'
+        pos++;
         if (pos < src.length() && src.charAt(pos) == '=') {
             pos++;
             return new ExprTok(ExprTok.Kind.NE, "!=", startCol);
@@ -127,7 +127,7 @@ public final class ExprLexer {
 
     /** A relational operator: {@code <}/{@code <=} or {@code >}/{@code >=}. */
     private ExprTok relational(char base, ExprTok.Kind bare, ExprTok.Kind orEqual, int startCol) {
-        pos++; // consume '<' or '>'
+        pos++;
         if (pos < src.length() && src.charAt(pos) == '=') {
             pos++;
             return new ExprTok(orEqual, base + "=", startCol);
@@ -141,7 +141,7 @@ public final class ExprLexer {
      * token (with the best-effort body) so resolution can proceed.
      */
     private ExprTok variable(int startCol) {
-        pos++; // consume opening '%'
+        pos++;
         int bodyStart = pos;
         while (pos < src.length() && src.charAt(pos) != '%') {
             pos++;
@@ -151,7 +151,7 @@ public final class ExprLexer {
             diags.error("E_PARSE", "unterminated variable (missing closing '%')",
                     lineSource.atColumn(startCol), "close it with a '%', e.g. %victim.health%");
         } else {
-            pos++; // consume closing '%'
+            pos++;
         }
         if (body.isEmpty()) {
             diags.error("E_PARSE", "empty variable '%%'",
@@ -166,7 +166,7 @@ public final class ExprLexer {
      * string is reported but still yields a STRING token with what was read.
      */
     private ExprTok string(char quote, int startCol) {
-        pos++; // consume opening quote
+        pos++;
         StringBuilder sb = new StringBuilder();
         boolean closed = false;
         while (pos < src.length()) {
@@ -175,7 +175,7 @@ public final class ExprLexer {
                 sb.append(src.charAt(pos + 1)); // escaped char taken literally
                 pos += 2;
             } else if (c == quote) {
-                pos++; // consume closing quote
+                pos++;
                 closed = true;
                 break;
             } else {

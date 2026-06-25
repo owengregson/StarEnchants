@@ -11,9 +11,8 @@ import java.util.Map;
  * flattening survivors, and the long-standing potion/enchant renames. Keys and values
  * are upper-cased canonical names; {@link HandleResolver} consults this both ways.
  *
- * <p>This is a living table seeded with the well-known renames; more are appended as the
- * matrix surfaces them. It is the single home for this knowledge — the migrator reuses
- * the same maps to modernise legacy config (§10).
+ * <p>The single home for this knowledge — the migrator reuses the same maps to modernise
+ * legacy config (§10); append more as the matrix surfaces them.
  */
 public final class Aliases {
 
@@ -56,8 +55,8 @@ public final class Aliases {
             Map.entry("ZOMBIE_PIGMAN", "ZOMBIFIED_PIGLIN"),
             Map.entry("SNOWMAN", "SNOW_GOLEM"),
             Map.entry("MUSHROOM_COW", "MOOSHROOM"),
-            // Primed TNT: PRIMED_TNT on the floor, renamed to TNT in modern. One entry resolves both
-            // spellings on both eras (HandleResolver also matches a modern token against an older server).
+            // PRIMED_TNT (floor) → TNT (modern); one entry resolves both spellings on both eras
+            // (HandleResolver also matches a modern token against an older server).
             Map.entry("PRIMED_TNT", "TNT"));
 
     private static final Map<String, String> MATERIAL = Map.ofEntries(

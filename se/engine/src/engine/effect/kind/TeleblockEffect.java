@@ -11,12 +11,10 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code TELEBLOCK} — block the target from teleporting (ender-pearl / chorus) for a duration (the Cosmic Enchants-style
- * {@code TELEBLOCK} effect, § combat-flags). A combat-flag like {@code KNOCKBACK_CONTROL}: the proc writes a
- * per-player timed flag through the {@link Sink}, and a SEPARATE Bukkit event (the projectile launch /
- * teleport) reads it back and cancels. Targets the combat victim by default — a defensive "stop them running"
- * authors {@code who: attacker} on DEFENSE. Player-only (a mob has no ender pearl). {@link Affinity#CONTEXT_LOCAL}:
- * an in-memory flag write, no world mutation, no thread hop.
+ * {@code TELEBLOCK} — block the target from teleporting (ender-pearl / chorus) for a duration (§ combat-flags).
+ * The proc writes a per-player timed flag through the {@link Sink}; a SEPARATE event (projectile launch /
+ * teleport) reads it back and cancels. Default target the combat victim; for "stop them running" author
+ * {@code who: attacker} on DEFENSE. Player-only. {@link Affinity#CONTEXT_LOCAL}.
  */
 public final class TeleblockEffect implements EffectKind {
 

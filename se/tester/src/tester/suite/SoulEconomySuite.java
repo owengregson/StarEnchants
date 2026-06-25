@@ -20,18 +20,16 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Live checks for the §D soul ECONOMY that mutates a real {@link Player} inventory + real gem PDC (a unit
- * test cannot): a kill deposits souls into a carried gem ANYWHERE in the inventory regardless of soul mode
- * ({@link SoulService#onKill}, deferred to the killer's thread); dragging two gems together sums their souls
- * into a fresh gem with a new identity ({@link SoulService#combine}); and {@code /se split} carves a count
- * off the held gem into a new gem, keeping the remainder and refusing to split everything away
- * ({@link SoulService#split}).
+ * §D soul ECONOMY over a real {@link Player} inventory + gem PDC: a kill deposits into a carried gem
+ * anywhere regardless of soul mode ({@link SoulService#onKill}, deferred to the killer's thread); combine
+ * sums two gems into a fresh-identity gem; {@code /se split} carves a count off the held gem, keeps the
+ * remainder, and refuses to split everything away.
  *
- * <p>Also pins two adversarial-review regressions (both would dupe/lose souls): a spend persists to the
- * active gem WHEREVER it sits (not only the main hand — the common combat case where the weapon is held and
- * the gem is in the bag), and toggling soul mode OFF FLUSHES the live authority to PDC before forgetting it
- * (so a just-spent balance is never refunded). Both are driven synchronously through the SHARED ledger this
- * suite owns. Uses a fake player; every assertion runs on that player's own region thread.
+ * <p>Also pins two adversarial-review regressions (both dupe/lose souls): a spend persists to the active
+ * gem wherever it sits (not only the main hand — the combat case of weapon held, gem in the bag), and
+ * toggling soul mode OFF flushes the authority to PDC before forgetting it (else a spent balance refunds).
+ * Both driven synchronously through the SHARED ledger this suite owns. Fake player; assertions on its own
+ * region thread.
  */
 public final class SoulEconomySuite implements Harness.Scenario {
 
@@ -44,7 +42,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
 
         @Override
         public void setSouls(int souls) {
-            // intentionally inert: the test asserts the SERVICE's own write-through, not this proxy
+            // inert: the test asserts the SERVICE's own write-through, not this proxy
         }
     };
 
@@ -86,7 +84,6 @@ public final class SoulEconomySuite implements Harness.Scenario {
                     return;
                 }
                 Scheduling.onEntity(player, () -> {
-                    // All of these are synchronous on this thread.
                     h.guard("soul.combineSumsAndRetires", () -> {
                         player.getInventory().clear();
                         ItemStack a = gem(souls, codec, 5);
@@ -125,9 +122,9 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         }
                     });
 
-                    // Finding #3: a seeded spend must persist to the gem wherever it sits, not only the main
-                    // hand. Seed via toggle-on (main hand), move the gem off-hand, debit the authority, then
-                    // clear() (the quit flush, which calls the same persist() under test) — synchronously.
+                    // Finding #3: a spend must persist to the gem wherever it sits, not only the main hand.
+                    // Seed via toggle-on, move the gem off-hand, debit the authority, then clear() (the quit
+                    // flush, which calls the same persist() under test).
                     h.guard("soul.spendPersistsByIdentity", () -> {
                         player.getInventory().clear();
                         ItemStack g = gem(souls, codec, 10);
@@ -150,7 +147,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
                     });
 
                     // Finding #1: toggling soul mode OFF must flush the just-spent balance to PDC before
-                    // forgetting the authority, else the spend refunds (a dupe). Synchronous.
+                    // forgetting the authority, else the spend refunds (a dupe).
                     h.guard("soul.toggleOffFlushesSpend", () -> {
                         player.getInventory().clear();
                         ItemStack g = gem(souls, codec, 10);

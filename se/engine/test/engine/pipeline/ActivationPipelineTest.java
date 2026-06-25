@@ -26,7 +26,6 @@ class ActivationPipelineTest {
     private final SoulLedger souls = new SoulLedger();
     private final ActivationPipeline pipeline = new ActivationPipeline(cooldowns, souls);
 
-    /** A plain int-backed soul balance for tests. */
     private static final class IntBalance implements SoulLedger.Balance {
         private int souls;
         IntBalance(int souls) { this.souls = souls; }
@@ -34,9 +33,9 @@ class ActivationPipelineTest {
         public void setSouls(int souls) { this.souls = souls; }
     }
 
-    /** A mutable builder for a "vanilla, always-fires on trigger 0" ability, tweaked per test. */
+    /** Mutable builder defaulting to an always-fires-on-trigger-0 ability; each test tweaks one field. */
     private static final class Ab {
-        int triggerMask = 1 << 0;      // fires on trigger 0
+        int triggerMask = 1 << 0;
         int level = 1;
         double baseChance = 100.0;
         int cooldownTicks = 0;
@@ -67,7 +66,6 @@ class ActivationPipelineTest {
         Ab a = new Ab();
         a.worldBlacklist = 1L << 3; // world 3 blacklisted
         assertEquals(GateOutcome.BLOCKED_WORLD, pipeline.evaluate(a.build(), act().build()));
-        // a different world is allowed
         assertEquals(GateOutcome.ACTIVATED,
                 pipeline.evaluate(a.build(), Activation.builder(ACTOR, 5, 0, 100L).build()));
     }
@@ -119,11 +117,8 @@ class ActivationPipelineTest {
         Ab a = new Ab();
         a.cdEnchant = 5;
         a.cooldownTicks = 40;
-        // first activation arms the cooldown
         assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().build()));
-        // immediately after, the same scope is on cooldown
         assertEquals(GateOutcome.ON_COOLDOWN, pipeline.evaluate(a.build(), act().build()));
-        // once it elapses, it fires again
         assertEquals(GateOutcome.ACTIVATED,
                 pipeline.evaluate(a.build(), Activation.builder(ACTOR, 3, 0, 140L).build()));
     }

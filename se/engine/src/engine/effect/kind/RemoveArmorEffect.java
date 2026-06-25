@@ -9,11 +9,9 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * {@code REMOVE_ARMOR} — strip one random worn armour piece from the target and drop it (the Cosmic Enchants-style
- * {@code REMOVE_ARMOR} effect). The armour counterpart of {@link DisarmEffect}: stateless, emits one
- * {@code removeArmor} intent per resolved target, never touches an entity directly.
- * {@link Affinity#TARGET_ENTITY} — the {@code Sink} routes each intent to the owning entity's thread,
- * where reading its equipment and dropping at its location is region-correct.
+ * {@code REMOVE_ARMOR} — strip one random worn armour piece from the target and drop it; the armour
+ * counterpart of {@link DisarmEffect}. {@link Affinity#TARGET_ENTITY}: routed to the owner's thread, where
+ * reading its equipment and dropping at its location is region-correct.
  */
 public final class RemoveArmorEffect implements EffectKind {
 

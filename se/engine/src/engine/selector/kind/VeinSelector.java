@@ -8,10 +8,9 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code @Vein{limit}} — the locations of up to {@code limit} blocks contiguous with, and the same
- * material as, the activation block (docs/v3-directives.md §A; the vein-miner flood fill, default 64).
- * A world scan routed through the injected world-access seam so it is region-correct on Folia; empty when
- * there is no world (unit/synthetic context).
+ * {@code @Vein{limit}} — up to {@code limit} blocks contiguous with, and matching the material of, the
+ * activation block (docs/v3-directives.md §A; vein-miner flood fill). World scan via the world-access seam,
+ * so region-correct on Folia; empty without a world.
  */
 public final class VeinSelector implements SelectorKind {
 

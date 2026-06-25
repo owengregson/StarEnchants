@@ -9,21 +9,17 @@ import org.bukkit.OfflinePlayer;
 import platform.economy.EconomyProvider;
 
 /**
- * An {@link EconomyProvider} bridging a Vault economy backend (docs/decisions/0027): the narrow money
- * contract StarEnchants uses for the {@code MODIFY_MONEY} family, delegated to whatever economy plugin
- * (EssentialsX, CMI, …) is registered with Vault.
+ * An {@link EconomyProvider} bridging a Vault economy backend (docs/decisions/0027) for the
+ * {@code MODIFY_MONEY} family, delegated to whatever economy plugin is registered with Vault.
  *
  * <p>Bundled but SOFT: Vault's API is {@code compileOnly} and {@link integrate.Integrations} only loads this
- * class when Vault is present. Compiling against the real Vault API (not reflection) means a renamed/removed
- * method is a compile error here, not a silent runtime failure.
+ * class when Vault is present, so a renamed/removed method is a compile error here, not a silent runtime fail.
  *
- * <p><b>Lazy backend resolution.</b> The concrete Vault {@code Economy} is resolved from Bukkit's
- * {@code ServicesManager} on first use and cached — the economy backend often registers with Vault after
- * StarEnchants enables. Until a backend is present, balances read {@code 0}, withdrawals fail, deposits
- * no-op (the same graceful degradation {@link platform.economy.EconomyService} applies with no provider).
+ * <p>Lazy backend resolution: the concrete Vault {@code Economy} is resolved from the {@code ServicesManager}
+ * on first use and cached — the backend often registers with Vault after StarEnchants enables. Until then,
+ * balances read {@code 0}, withdrawals fail, deposits no-op (graceful degradation, as with no provider).
  *
- * <p><b>Threading.</b> StarEnchants calls an {@link EconomyProvider} on the global region thread (see the
- * SPI), which is where Vault economy backends expect to be called.
+ * <p>Threading: called on the global region thread (see the SPI), where Vault backends expect to be called.
  */
 public final class VaultEconomyProvider implements EconomyProvider {
 
@@ -37,10 +33,7 @@ public final class VaultEconomyProvider implements EconomyProvider {
         this.backend = backend;
     }
 
-    /**
-     * Factory used by the registrar — returns the SPI type (lazy-load safe) whose backend is the first
-     * {@code Economy} registered with Vault, resolved once and cached.
-     */
+    /** Registrar factory — returns the SPI type (lazy-load safe); backend is the first Vault economy, cached. */
     public static EconomyProvider fromServices() {
         return new VaultEconomyProvider(new Supplier<>() {
             private volatile Economy cached;

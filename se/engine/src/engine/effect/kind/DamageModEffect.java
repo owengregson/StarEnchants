@@ -8,22 +8,18 @@ import engine.spec.EffectSpec;
 import schema.spec.D;
 
 /**
- * {@code DAMAGE_MOD} — the canonical damage-arbiter primitive (docs/v3-directives.md §C), collapsing
- * {@code ADD_DAMAGE} / {@code REDUCE_DAMAGE} / {@code FLAT_DAMAGE} / {@code FLAT_REDUCE} into one
- * parameterized contribution to the additive fold (ADR-0012, §6.1):
+ * {@code DAMAGE_MOD} — canonical damage-arbiter primitive (docs/v3-directives.md §C, ADR-0012, §6.1).
+ * One parameterized contribution to the additive fold:
  *
  * <ul>
- *   <li>{@code side=attack, mode=add} — outgoing-damage percent (was ADD_DAMAGE);</li>
- *   <li>{@code side=defense, mode=add} — damage-reduction percent (was REDUCE_DAMAGE);</li>
- *   <li>{@code side=attack, mode=flat} — flat damage bonus (was FLAT_DAMAGE);</li>
- *   <li>{@code side=defense, mode=flat} — flat damage reduction (was FLAT_REDUCE).</li>
+ *   <li>{@code side=attack, mode=add} — outgoing-damage percent;</li>
+ *   <li>{@code side=defense, mode=add} — damage-reduction percent;</li>
+ *   <li>{@code side=attack, mode=flat} — flat damage bonus;</li>
+ *   <li>{@code side=defense, mode=flat} — flat damage reduction.</li>
  * </ul>
  *
- * <p>Each branch calls the SAME existing {@code Sink} fold method as its old kind, so the additive
- * damage fold is touched byte-identically — this is purely a head rename + dispatch table, never a
- * behavior change. Like the four kinds it replaces, it has no target slot and runs
- * {@link Affinity#CONTEXT_LOCAL} (a fold contribution reads neither targets nor an entity). Percent
- * modes take a 0-100 value (e.g. {@code 25} = +25%); flat modes take a raw damage amount.
+ * <p>No target slot; {@link Affinity#CONTEXT_LOCAL} (a fold contribution reads neither targets nor an
+ * entity). Percent modes take a 0-100 value ({@code 25} = +25%); flat modes take a raw damage amount.
  */
 public final class DamageModEffect implements EffectKind {
 

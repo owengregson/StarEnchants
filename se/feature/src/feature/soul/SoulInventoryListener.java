@@ -13,11 +13,9 @@ import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The soul gem's inventory affordances (docs/v3-directives.md §D): <strong>combine</strong> two gems by
- * dropping one onto the other (their souls sum into a fresh gem, with the configured combine sound), and
- * the <strong>anti-dupe</strong> guards (a gem can never be placed as a block, nor used as a crafting
- * ingredient — a Cosmic Enchants-style {@code SoulgemCraftEvent} analog). All gestures fire on the acting player's own region
- * thread, so the inventory mutations are in-thread and Folia-correct.
+ * Soul gem inventory affordances (§D): combine two gems (souls sum into a fresh gem) plus anti-dupe guards
+ * (a gem can never be placed as a block nor used as a crafting ingredient — a Cosmic Enchants-style
+ * {@code SoulgemCraftEvent} analog). Folia-correct: gestures fire on the acting player's region thread.
  */
 public final class SoulInventoryListener implements Listener {
 
@@ -28,10 +26,8 @@ public final class SoulInventoryListener implements Listener {
     }
 
     /**
-     * Drop a gem (the cursor) onto another gem (the clicked slot) to merge them. A plain LEFT click with
-     * a single gem on the cursor and a single gem under it sums into a fresh gem in the slot and clears
-     * the cursor. Any other shape is left to vanilla (distinct gems never auto-stack, so a normal pickup
-     * is unaffected).
+     * Merge a gem (cursor) onto another (clicked slot) on a plain single-gem LEFT click. Any other shape is
+     * left to vanilla; distinct gems never auto-stack, so a normal pickup is unaffected.
      */
     @EventHandler(ignoreCancelled = true)
     public void onClick(InventoryClickEvent event) {
@@ -41,10 +37,10 @@ public final class SoulInventoryListener implements Listener {
         ItemStack cursor = event.getCursor();
         ItemStack current = event.getCurrentItem();
         if (cursor == null || current == null || cursor.getAmount() != 1 || current.getAmount() != 1) {
-            return; // a stacked gem (impossible for distinct PDC) or a non-merge click — leave it
+            return;
         }
         if (!souls.isGem(cursor) || !souls.isGem(current)) {
-            return; // not two gems — not a merge
+            return;
         }
         ItemStack merged = souls.combine(player, cursor, current);
         if (merged == null) {

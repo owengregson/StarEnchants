@@ -27,25 +27,17 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * The default {@link LowerStage}: turns one authored {@link AbilityDef} into a
- * {@link LoweredAbility} (docs/architecture.md §3.2 "compile, never interpret",
- * §3.4, §3.6, §7).
+ * The default {@link LowerStage}: one authored {@link AbilityDef} &rarr; a
+ * {@link LoweredAbility} (docs/architecture.md §3.2, §3.4, §3.6, §7).
  *
- * <p>Each effect line is validated against its {@code ParamSpec} into a flyweight
- * {@link CompiledEffect} via a reused {@link LineCompiler}; {@code WAIT:n} lines are
- * <em>timing</em>, not effects, so they emit no {@code CompiledEffect} and instead
- * accumulate into the cumulative tick delay stamped on every following effect — the
- * fix for a Cosmic Enchants-style WAIT-overwrite bug (§3.6). The condition string is parsed once into a
- * {@link CompiledCondition}; a blank/absent condition lowers to {@code null}
- * ("always true"). The ability-level {@link Affinity} is the MAX fold over the
- * emitted effects' declared affinities, so the {@code Sink} can route the whole
- * activation without per-effect inspection (§3.6).
+ * <p>{@code WAIT:n} lines are <em>timing</em>, not effects: they emit no {@code CompiledEffect}
+ * and instead accumulate into the cumulative tick delay stamped on every following effect — the
+ * fix for a Cosmic Enchants-style WAIT-overwrite bug (§3.6). The ability-level {@link Affinity} is
+ * the MAX fold over its effects' affinities, so the {@code Sink} routes the whole activation without
+ * per-effect inspection.
  *
- * <p>Never throws: every fault — a malformed {@code WAIT}, an unknown effect head, a
- * condition parse error — is reported into the supplied {@link Diagnostics} and
- * lowering continues, so one bad line yields one precise finding rather than aborting
- * the load (§7, §10). Selectors are deferred to a later increment; every effect
- * lowers with {@link CompiledSelector#SELF}.
+ * <p>Never throws: each fault is one precise diagnostic and lowering continues, so one bad line
+ * doesn't abort the load (§7, §10).
  */
 public final class DefaultLowerStage implements LowerStage {
 
@@ -56,14 +48,9 @@ public final class DefaultLowerStage implements LowerStage {
     private final ConditionCompiler conditionCompiler;
 
     /**
-     * @param registry          the spec registry resolving effect heads to {@code ParamSpec}s
-     * @param affinityOf        maps an effect head to its declared {@link Affinity};
-     *                          a {@code null} result is treated as {@link Affinity#CONTEXT_LOCAL}
-     * @param selectors         the spec registry resolving selector heads to {@code ParamSpec}s
-     * @param defaultSelectorOf maps an effect head to the selector head it targets by
-     *                          default; a {@code null} result means {@code SELF}
-     * @param vars              the condition variable vocabulary (name &rarr; slot+type);
-     *                          unknown variables become PlaceholderAPI tokens
+     * @param affinityOf        effect head &rarr; declared {@link Affinity}; {@code null} &rarr; {@link Affinity#CONTEXT_LOCAL}
+     * @param defaultSelectorOf effect head &rarr; default selector head; {@code null} &rarr; {@code SELF}
+     * @param vars              condition variable vocabulary; unknown variables become PlaceholderAPI tokens
      */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
@@ -82,10 +69,7 @@ public final class DefaultLowerStage implements LowerStage {
         this(registry, affinityOf, selectors, defaultSelectorOf, VarResolver.none());
     }
 
-    /**
-     * Convenience: the given affinity lookup, but no selectors are resolvable — every
-     * effect targets {@code SELF}. Used by tests and the bare {@code Compiler.of}.
-     */
+    /** Convenience: the given affinity lookup, but no selectors — every effect targets {@code SELF}. */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf) {
         this(registry, affinityOf, MapSpecRegistry.of(), head -> null, VarResolver.none());
     }
@@ -151,11 +135,9 @@ public final class DefaultLowerStage implements LowerStage {
     }
 
     /**
-     * Lower any <em>expression-valued</em> numeric argument from its parsed {@link Expr} (var <em>names</em>,
-     * produced by {@code ParamType}) to the slot-resolved {@link NumExpr} IR the runtime evaluates — the same
-     * variable→slot resolution conditions use, applied to effect args (docs/architecture.md §3.4). A constant
-     * numeric argument is a {@link Double}/{@link Long} and passes through untouched; only an {@code Expr}
-     * value is rewritten. A lowering error is recorded (so the load fails) and the value is left as-is.
+     * Lower expression-valued numeric args from their parsed {@link Expr} (var names) to the slot-resolved
+     * {@link NumExpr} IR — the same variable&rarr;slot resolution conditions use (docs/architecture.md §3.4).
+     * Constant numeric args ({@link Double}/{@link Long}) pass through; only an {@code Expr} value is rewritten.
      */
     private Args lowerExprArgs(Args args, Diagnostics diags) {
         Args out = args;
@@ -203,11 +185,10 @@ public final class DefaultLowerStage implements LowerStage {
     }
 
     /**
-     * Parse and lower the raw condition into a typed {@link CompiledCondition}, or
-     * {@code null} when the condition is blank/absent ("always true") or when parsing
-     * or lowering failed (the diagnostic was already recorded). Two passes: the
-     * {@link ExprParser} produces the untyped {@link Expr}; the {@link ConditionCompiler}
-     * resolves variables to {@code FactBuffer} slots and type-checks it (§3.4).
+     * Parse and lower the raw condition into a typed {@link CompiledCondition}, or {@code null} when
+     * it is blank/absent ("always true") or parsing/lowering failed (diagnostic already recorded). The
+     * {@link ExprParser} produces the untyped {@link Expr}; {@link ConditionCompiler} resolves variables
+     * to {@code FactBuffer} slots and type-checks it (§3.4).
      */
     private CompiledCondition lowerCondition(AbilityDef def, Diagnostics diags) {
         String expr = def.conditionExpr();

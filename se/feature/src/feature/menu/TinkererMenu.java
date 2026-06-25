@@ -68,8 +68,8 @@ public final class TinkererMenu extends FormMenu {
             messages.send(player, "menu.tinkerer.not-book");
             return;
         }
-        holder.getInventory().setItem(INPUT, null);   // consume the book
-        player.giveExpLevels(levels.get());            // refund EXP levels (in-thread; safe)
+        holder.getInventory().setItem(INPUT, null);
+        player.giveExpLevels(levels.get());            // click runs on the player's region thread — in-region, Folia-safe
         messages.send(player, "menu.tinkerer.salvaged", "LEVELS", levels.get(), "S", levels.get() == 1 ? "" : "s");
     }
 }

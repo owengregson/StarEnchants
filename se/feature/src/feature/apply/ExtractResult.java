@@ -2,14 +2,9 @@ package feature.apply;
 
 /**
  * The outcome of extracting a crystal back off gear (docs/v3-directives.md §E) — the inverse of
- * {@link ItemEnchanter#applyCrystalEntry}. On success {@code poppedEntry} is the removed gear crystal-list
- * entry ({@code "a"} for a single, {@code "a+b"} for a multi), which the caller mints back into a whole
- * physical crystal item ("extraction returns the multi-crystal as a whole"). {@code message} is the chat
- * feedback either way.
- *
- * @param ok          whether a crystal was extracted
- * @param message     chat feedback
- * @param poppedEntry the removed crystal-list entry (only set when {@code ok}), or {@code null}
+ * {@link ItemEnchanter#applyCrystalEntry}. On success {@code poppedEntry} is the removed crystal-list
+ * entry ({@code "a"} single, {@code "a+b"} multi), which the caller mints back into a whole physical
+ * crystal item; {@code null} otherwise.
  */
 public record ExtractResult(boolean ok, String message, String poppedEntry) {
 

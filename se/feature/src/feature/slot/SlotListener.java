@@ -11,11 +11,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The slot expander / gem gesture UX (docs/v3-directives.md §H): holding a slot item on the CURSOR and
- * clicking a piece of gear raises its enchant-slot count. Bukkit-thin glue — all logic is in
- * {@link SlotService}; this only recognises the gesture, cancels the vanilla click, and commits the
- * mutated cursor/slot. Folia-correct: an {@code InventoryClickEvent} fires on the clicking player's own
- * region thread, so mutating their cursor/inventory is in-thread.
+ * Slot-expander gesture glue (§H): slot item on the cursor + click on gear raises its enchant-slot count.
+ * All logic lives in {@link SlotService}. Folia-correct: {@code InventoryClickEvent} fires on the clicking
+ * player's region thread, so the cursor/inventory mutation is in-thread.
  */
 public final class SlotListener implements Listener {
 
@@ -40,14 +38,14 @@ public final class SlotListener implements Listener {
         }
         ItemStack cursor = event.getCursor();
         if (!service.isSlotItem(cursor)) {
-            return; // the cursor is not a slot item — leave the click alone
+            return;
         }
         ItemStack target = event.getCurrentItem();
         if (target == null || target.getType() == Material.AIR || service.isSlotItem(target)) {
-            return; // no target, or slot-item-onto-slot-item (meaningless)
+            return; // no target, or slot-onto-slot
         }
 
-        event.setCancelled(true); // we own this interaction now
+        event.setCancelled(true);
         SlotResult result = service.applyTo(cursor, target);
         if (result.commit()) {
             event.setCursor(cursor.getAmount() <= 0 ? null : cursor);

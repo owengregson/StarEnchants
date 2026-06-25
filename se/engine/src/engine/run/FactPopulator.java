@@ -15,31 +15,24 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 /**
- * Populates a condition {@link FactBuffer} from one activation's live context (docs/architecture.md
- * §3.4; v3.1 §A) — the runtime half of the condition variable system. The compiler lowers
- * {@code %scope.name%} references to dense {@link FactBuffer} slot indices via a {@link VarVocabulary};
- * this fills those exact slots from the firing player and the combat victim so gate 7 reads real values.
- * Built once at boot from the SAME vocabulary the compiler lowered against (so a compiled condition's
- * slot and the populated buffer agree by construction).
+ * Fills a condition {@link FactBuffer} from one activation's live context (docs/architecture.md §3.4;
+ * v3.1 §A) — the runtime half of the condition variable system. Built once at boot from the SAME
+ * vocabulary the compiler lowered {@code %scope.name%} against, so a compiled condition's slot and the
+ * populated buffer agree by construction.
  *
- * <p><strong>Table-driven.</strong> Each built-in fact is one entry pairing its resolved slot with a
- * pure extractor over the actor ({@link Player}) or victim ({@link LivingEntity}); event-payload facts
- * ({@code damage}, {@code block.type}/{@code isblock}, world weather/time) are filled from the
- * {@link ActivationContext} in {@code populateContext}. Adding a fact is one line here plus its declaration
- * in {@link BuiltinVars}; a fact whose name is absent from the vocabulary is simply skipped. {@code combo}
- * has no entry (no combat-streak tracker exists) so it reads its default (0).
+ * <p><strong>Table-driven.</strong> Each built-in fact pairs its resolved slot with a pure extractor;
+ * adding one is a line here plus a {@link BuiltinVars} declaration. A fact absent from the vocabulary is
+ * skipped (its slot is −1).
  *
- * <p><strong>Thread-local pooling (§3.4).</strong> The buffer is held per worker thread and reused —
- * {@link #populate} clears it and refills, returning the SAME instance — so the per-hit pipeline stays
- * allocation-free. Safe because the buffer never escapes the synchronous pass.
+ * <p><strong>Thread-local pooling (§3.4).</strong> One buffer per worker thread, cleared and refilled in
+ * place — the SAME instance is returned — keeping the per-hit pipeline allocation-free. Safe only because
+ * the buffer never escapes the synchronous pass.
  *
- * <p><strong>Folia.</strong> Every read runs on the firing thread. The firing player's own state and the
- * event's own victim are region-owned there and read safely; an entity owned by ANOTHER region (e.g. a
- * cross-region projectile shooter) cannot be read, and Folia makes that fail hard. Each entity side's
- * reads are wrapped so such a failure leaves that side's facts defaulted rather than aborting the
- * activation. Reads never mutate, so they need no scheduler hop. Caveat (unchanged from the buffer's
- * introduction): a defaulted cross-region fact is a value, not "unknown" — but no shipped content reads
- * actor facts on the ATTACK projectile path or victim facts on the DEFENSE path.
+ * <p><strong>Folia.</strong> Every read runs on the firing thread. An entity owned by ANOTHER region
+ * (e.g. a cross-region projectile shooter) fails hard on read, so each entity side is wrapped to leave
+ * its facts defaulted rather than abort the activation. Reads never mutate, so no scheduler hop. A
+ * defaulted cross-region fact is a value, not "unknown" — but no shipped content reads actor facts on the
+ * ATTACK projectile path or victim facts on the DEFENSE path.
  */
 public final class FactPopulator {
 
@@ -78,10 +71,8 @@ public final class FactPopulator {
     private final UnaryOperator<String> papiDelegate;
 
     /**
-     * §N entity-type resolver (ADR-0027): resolves a victim entity to its integration mob type (MythicMobs'
-     * internal name) for the {@code %victim.mobtype%} fact. A static, boot-configured no-op by default (set
-     * once via {@link #entityTypeResolver}, mirroring the sink/combat soft hooks) so the engine never
-     * references any integration API and tests read an empty fact.
+     * §N entity-type resolver (ADR-0027) for {@code %victim.mobtype%}: a boot-installed soft hook (default
+     * no-op) so the engine never references the MythicMobs API and tests read an empty fact.
      */
     private static volatile java.util.function.Function<org.bukkit.entity.Entity, String> entityTypeResolver =
             entity -> "";
@@ -96,29 +87,29 @@ public final class FactPopulator {
     private final List<VictimNum> victimNum = new ArrayList<>();
     private final List<VictimFlag> victimFlag = new ArrayList<>();
     private final List<VictimStr> victimStr = new ArrayList<>();
-    // Context facts come from the event payload, not an actor/victim entity — resolved slots (−1 if absent).
+    // Context facts come from the event payload, not an actor/victim entity (slot −1 if absent).
     private final int damageSlot;
     private final int blockTypeSlot;
     private final int isBlockSlot;
     private final int worldRainingSlot;
     private final int worldThunderingSlot;
     private final int worldTimeSlot;
-    private final int comboSlot;          // the activator's consecutive-hit streak (from the context)
+    private final int comboSlot;
     private final int distanceSlot;       // actor↔victim distance in blocks (derived, Folia-guarded)
-    private final int nearbyEnemiesSlot;  // living entities within NEARBY_RADIUS of the actor (derived, Folia-guarded)
+    private final int nearbyEnemiesSlot;  // living entities within NEARBY_RADIUS (derived, Folia-guarded)
 
-    /** Search radius for the {@code %nearbyenemies%} fact, in blocks (GANK-style scaling). */
+    /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
 
-    /** A populator with no dynamic-var store and no PAPI (unknown tokens resolve to null) — the lower-level default. */
+    /** No dynamic-var store and no PAPI: unknown tokens resolve to null. */
     public FactPopulator(VarVocabulary vocabulary) {
         this(vocabulary, new VarStore(), t -> null);
     }
 
     /**
-     * A populator backed by a shared {@link VarStore} (the {@code SET_VAR}/{@code INVERT_VAR} write target)
-     * and an optional real-PAPI delegate. An unknown {@code %name%} token resolves: built-in slot (handled
-     * by the compiler/IR) → this player's dynamic var → {@code papiDelegate} → null.
+     * Backed by a shared {@link VarStore} ({@code SET_VAR}/{@code INVERT_VAR} write target) and an optional
+     * PAPI delegate. Unknown {@code %name%} resolution order: built-in slot → player dynamic var →
+     * {@code papiDelegate} → null.
      */
     public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate) {
         Objects.requireNonNull(vocabulary, "vocabulary");
@@ -126,7 +117,6 @@ public final class FactPopulator {
         this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
 
-        // ── Actor (the firing player) ──
         addActorNum(vocabulary, "actor.health", Player::getHealth);
         addActorNum(vocabulary, "actor.maxhealth", FactPopulator::maxHealth);
         addActorNum(vocabulary, "actor.food", actor -> actor.getFoodLevel());
@@ -147,7 +137,6 @@ public final class FactPopulator {
                 actor -> actor.getInventory().getItemInMainHand().getType().name());
         addActorStr(vocabulary, "actor.type", actor -> actor.getType().name());
 
-        // ── Victim (the combat target) ──
         addVictimNum(vocabulary, "victim.health", LivingEntity::getHealth);
         addVictimNum(vocabulary, "victim.maxhealth", FactPopulator::maxHealth);
         addVictimNum(vocabulary, "victim.healthpercent", FactPopulator::healthPercent);
@@ -160,11 +149,9 @@ public final class FactPopulator {
         addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && p.isGliding());
         addVictimStr(vocabulary, "victim.type", v -> v.getType().name());
         addVictimStr(vocabulary, "victim.helditem", FactPopulator::heldItemName);
-        // §N MythicMobs: the victim's MythicMob internal name (empty when not a MythicMob / integration absent),
-        // resolved through the boot-installed soft hook so the engine never references the MythicMobs API.
+        // §N MythicMob internal name via the soft hook; empty when not a MythicMob / integration absent.
         addVictimStr(vocabulary, "victim.mobtype", v -> entityTypeResolver.apply(v));
 
-        // ── Context (event payload: combat damage, the broken block, world weather/time) ──
         this.damageSlot = slot(vocabulary, "damage", VarKind.NUM);
         this.blockTypeSlot = slot(vocabulary, "block.type", VarKind.STR);
         this.isBlockSlot = slot(vocabulary, "isblock", VarKind.BOOL);
@@ -193,12 +180,9 @@ public final class FactPopulator {
 
     /**
      * The thread-local buffer, cleared and repopulated from {@code context} (or just cleared if
-     * {@code context} is {@code null}). One per trigger pass — installed on the {@code Activation} and
-     * read by every candidate ability's condition gate before this method is next called on this thread.
-     *
-     * <p>After the built-in slots are filled, the buffer's unknown-token resolver is installed so a
-     * condition's {@code %name%} resolves the activator's dynamic var (from the {@link VarStore} at
-     * {@code nowTicks}) before falling through to real PAPI — the read side of {@code SET_VAR}.
+     * {@code null}). Returns the shared instance, valid until this method is next called on this thread.
+     * The installed unknown-token resolver reads the activator's dynamic var (at {@code nowTicks}) before
+     * PAPI — the read side of {@code SET_VAR}.
      */
     public FactBuffer populate(ActivationContext context, long nowTicks) {
         FactBuffer facts = buffer.get();
@@ -237,8 +221,7 @@ public final class FactPopulator {
                 facts.setString(f.slot(), f.src().read(actor));
             }
         } catch (RuntimeException unreadable) {
-            // Folia: the actor is owned by another region (e.g. a cross-region projectile shooter on the
-            // ATTACK pass), or some read failed — leave the actor facts defaulted, never abort the hit.
+            // Folia: actor owned by another region (cross-region shooter on ATTACK) — default, never abort.
         }
     }
 
@@ -262,10 +245,9 @@ public final class FactPopulator {
     }
 
     /**
-     * Fill the event-payload facts (combat {@code damage}, the broken {@code block}, world weather/time) from
-     * the {@link ActivationContext}. These are not actor/victim entity reads, so they have their own guards:
-     * {@code damage} is a plain value; the block snapshot is region-owned on the firing thread (MINE); the
-     * world getters are global-region-owned on Folia and wrapped so a wrong-thread read defaults only them.
+     * Fill the event-payload facts ({@code damage}, broken {@code block}, world weather/time). The block is
+     * region-owned on the firing thread (MINE); the world getters are global-region-owned on Folia and so
+     * wrapped, defaulting only themselves on a wrong-thread read.
      */
     private void populateContext(FactBuffer facts, ActivationContext context) {
         if (damageSlot >= 0) {
@@ -310,12 +292,10 @@ public final class FactPopulator {
     }
 
     /**
-     * Derived combat facts that read live entity geometry: {@code distance} (actor↔victim) and
-     * {@code nearbyenemies} (other living entities within {@link #NEARBY_RADIUS} of the actor). Both are
-     * entity reads on the firing thread, so — like the actor/victim facts — they are wrapped: on Folia an
-     * actor owned by another region (e.g. the shooter on a projectile ATTACK pass) cannot be read, and the
-     * fact defaults to 0 rather than aborting the hit. Skipped entirely when neither slot is in the
-     * vocabulary (no shipped content references them).
+     * Derived combat facts over live entity geometry: {@code distance} (actor↔victim) and
+     * {@code nearbyenemies} (living entities within {@link #NEARBY_RADIUS}). Entity reads on the firing
+     * thread, so Folia-wrapped like the actor/victim facts (default to 0 on a cross-region actor). Skipped
+     * when neither slot is in the vocabulary.
      */
     private void populateDerived(FactBuffer facts, ActivationContext context) {
         if (distanceSlot < 0 && nearbyEnemiesSlot < 0) {
@@ -346,25 +326,25 @@ public final class FactPopulator {
         }
     }
 
-    /** Max health via the cross-version-stable {@code getMaxHealth()} (the Attribute API flipped at 1.21.3). */
+    /** Cross-version-stable {@code getMaxHealth()} (the Attribute API flipped at 1.21.3). */
     @SuppressWarnings("deprecation")
     private static double maxHealth(LivingEntity entity) {
         return entity.getMaxHealth();
     }
 
-    /** Health as a percentage of max (0–100), or 0 when max health is non-positive. */
+    /** Health as a percentage of max (0–100); 0 when max health is non-positive. */
     private static double healthPercent(LivingEntity entity) {
         double max = maxHealth(entity);
         return max > 0 ? 100.0 * entity.getHealth() / max : 0.0;
     }
 
-    /** On-ground via the cross-version-stable getter; deprecated-not-removed (client-reported) across the range. */
+    /** Cross-version-stable {@code isOnGround()}; deprecated-not-removed (client-reported) across the range. */
     @SuppressWarnings("deprecation")
     private static boolean onGround(Player player) {
         return player.isOnGround();
     }
 
-    /** The main-hand item's material name for a living victim, or {@code null} if it has no equipment. */
+    /** The victim's main-hand material name, or {@code null} if it has no equipment. */
     private static String heldItemName(LivingEntity victim) {
         return victim.getEquipment() == null ? null
                 : victim.getEquipment().getItemInMainHand().getType().name();

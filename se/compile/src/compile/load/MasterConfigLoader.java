@@ -11,13 +11,11 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads the master {@code config.yml} into an immutable {@link MasterConfig} (docs/v3-directives.md §L).
- * Mirrors {@link ItemsLoader}'s read style but over a single FILE (not a folder): {@code config.yml} is
- * composed with the package-private {@link YamlNode} and each top-level section read by a dedicated
- * {@code read*} helper, falling back per-field to the section default. Reuses the content YAML/diagnostics
- * machinery, so {@code /se reload --dry-run} surfaces config faults the same way. Never throws — an absent
- * or unreadable file yields {@link MasterConfig#defaults()}, a malformed file yields a diagnostic and
- * defaults.
+ * Loads the master {@code config.yml} into an immutable {@link MasterConfig} (§L) — like {@link ItemsLoader}
+ * but over a single FILE: each top-level section read by a {@code read*} helper, falling back per-field to
+ * the section default. Reuses the content diagnostics machinery so {@code /se reload --dry-run} surfaces
+ * config faults the same way. Never throws — absent/unreadable yields {@link MasterConfig#defaults()},
+ * malformed yields a diagnostic plus defaults.
  */
 public final class MasterConfigLoader {
 
@@ -86,7 +84,7 @@ public final class MasterConfigLoader {
 
     private static MasterConfig.MessagesSection readMessages(YamlNode n, Diagnostics diags) {
         MasterConfig.MessagesSection d = MasterConfig.MessagesSection.defaults();
-        // prefix may legitimately be empty, so honour an explicit "" rather than falling back to the default.
+        // honour an explicit "" (a legitimate empty prefix) rather than falling back to the default
         String prefix = n.has("prefix") ? n.string("prefix") : d.prefix();
         return new MasterConfig.MessagesSection(
                 prefix == null ? d.prefix() : prefix,

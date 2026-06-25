@@ -16,9 +16,8 @@ import schema.spec.D;
  * blinks the attacker to the entity they hit) or {@code ACTOR} (e.g. {@code TELEPORT:ACTOR:@Victim} pulls the
  * victim to the attacker). A no-op when the chosen destination party is absent (a non-combat activation).
  *
- * <p>{@link Affinity#TARGET_ENTITY}: the teleport mutates the target's position, so the {@code Sink} routes
- * it to the target's region thread ({@code teleportAsync} on Folia — and on Paper too). The destination
- * location is read from the firing-thread-safe context actors and cloned by the Sink, so a deferred (WAIT)
+ * <p>{@link Affinity#TARGET_ENTITY}: routed to the target's region thread ({@code teleportAsync}). The
+ * destination is read from firing-thread-safe context actors and cloned by the Sink, so a deferred (WAIT)
  * hop still lands on an owned snapshot.
  */
 public final class TeleportEffect implements EffectKind {

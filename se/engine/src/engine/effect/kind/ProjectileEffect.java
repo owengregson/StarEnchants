@@ -9,11 +9,9 @@ import schema.spec.D;
 
 /**
  * {@code PROJECTILE} — launch one or more projectiles of an entity type from the activator's eye
- * (docs/v3-directives.md §C; covers the Cosmic Enchants-style {@code SPAWN_ARROWS} as {@code PROJECTILE:ARROW:<count>}).
- * Stateless; emits one {@code launchProjectile} intent for the firing player and never touches an entity
- * directly. No target slot: the volley spawns from the actor, not a resolved selector. The {@code type} is a
- * handle arg resolved to an interned id at compile time (§9). {@link Affinity#TARGET_ENTITY}: a
- * shooter-context call, routed to the shooter's own thread.
+ * (docs/v3-directives.md §C; covers {@code SPAWN_ARROWS} as {@code PROJECTILE:ARROW:<count>}). No target
+ * slot: the volley spawns from the actor, not a resolved selector. {@code type} is a handle arg interned at
+ * compile time (§9). {@link Affinity#TARGET_ENTITY}: a shooter-context call, routed to the shooter's thread.
  */
 public final class ProjectileEffect implements EffectKind {
 

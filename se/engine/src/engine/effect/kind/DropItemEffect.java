@@ -10,9 +10,8 @@ import schema.spec.D;
 
 /**
  * {@code DROP_ITEM} — drop a material as an item entity at the activation location (docs/v3-directives.md §C).
- * Stateless; emits one {@code dropItem} intent and never touches the world directly. The {@code material} is a
- * handle arg resolved to an interned id at compile time (§9). No-op when there is no activation location.
- * {@link Affinity#REGION}: the drop routes to the region thread owning the location.
+ * {@code material} is a handle arg interned at compile time (§9). No-op when there is no activation
+ * location. {@link Affinity#REGION}: the drop routes to the region thread owning the location.
  */
 public final class DropItemEffect implements EffectKind {
 

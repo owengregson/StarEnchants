@@ -11,10 +11,8 @@ import schema.diag.Source;
  *
  * <p>It expands to one {@code AbilityDef} per bonus — {@code <key>} (armour, carrying
  * {@link #armorComplete} on its {@code setPieces}) and, when {@link #weapon} is present,
- * {@code <key>/weapon} (the weapon bonus, gated by the resolver, not by a piece count). The likeness
- * fields let {@code /se give set} mint each member: every armour piece has its own
- * {@link Member#name()} (sharing {@link #armorLore}), and the weapon has its own name + {@link #weaponLore}.
- * Immutable.
+ * {@code <key>/weapon} (gated by the resolver, not by a piece count). The likeness fields let
+ * {@code /se give set} mint each member. Immutable.
  *
  * @param key          the path-derived base key (e.g. {@code sets/titan}) — stamped on armour members
  * @param display      the set display name (colours intact), for lore/name render + GUI

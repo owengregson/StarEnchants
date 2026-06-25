@@ -8,14 +8,10 @@ import engine.spec.EffectSpec;
 import schema.spec.D;
 
 /**
- * {@code PARTICLE} — spawn a burst of particles at the activation location
- * (docs/architecture.md §7). Stateless; emits one {@code particle} intent at the
- * activation centre and never touches the world directly. No-op when the activation
- * has no location (e.g. a non-positional combat trigger), since {@code ctx.location()}
- * may be {@code null}. {@link Affinity#REGION}: the burst is placed on the thread
- * owning that location's region. The {@code particle} handle is authored as a token
- * and resolved to an interned id at compile time, so the runtime never sees a renamed
- * constant (§9).
+ * {@code PARTICLE} — spawn a burst of particles at the activation location (docs/architecture.md §7).
+ * No-op when the activation has no location ({@code ctx.location()} may be {@code null}). The
+ * {@code particle} handle is interned at compile time, so the runtime never sees a renamed constant (§9).
+ * {@link Affinity#REGION}.
  */
 public final class ParticleEffect implements EffectKind {
 

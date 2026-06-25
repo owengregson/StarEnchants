@@ -18,7 +18,7 @@ class GiveItemEffectTest {
     @Test
     void emitsGiveItemForPlayerTargetsOnly() {
         Player player = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // not a player → skipped
+        LivingEntity mob = mock(LivingEntity.class);
 
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.integer("material")).thenReturn(4);

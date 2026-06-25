@@ -35,15 +35,13 @@ import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 
 /**
- * Dispatches the NON-combat triggers (docs/architecture.md §3.3) — MINE, KILL, FALL, FIRE, INTERACT*
- * — that {@code CombatDispatch} (ATTACK/DEFENSE on {@code EntityDamageByEntityEvent}) does not cover.
- * Each thin Bukkit-event listener resolves the actor and the trigger, then this routes the actor's
- * worn abilities through the shared {@link TriggerRunner} into a per-event {@link DispatchSink}, and
- * applies the sink's read-backs to the firing event: a neutral event ({@link #fire}) only honours a
- * {@code cancelEvent}; a damage event ({@link #fireDamage}) also folds the accumulated deltas onto it.
+ * Dispatches the NON-combat triggers (§3.3) — MINE, KILL, FALL, FIRE, INTERACT* — that {@code CombatDispatch}
+ * (ATTACK/DEFENSE on {@code EntityDamageByEntityEvent}) does not cover. Routes the actor's worn abilities
+ * through the shared {@link TriggerRunner} into a per-event {@link DispatchSink}, then applies its read-backs:
+ * a neutral event ({@link #fire}) honours only a {@code cancelEvent}; a damage event ({@link #fireDamage})
+ * also folds the accumulated deltas onto it.
  *
- * <p>Trigger ids are resolved once at construction; a trigger absent from the vocabulary resolves to
- * {@code -1} and its {@code fire} call is a no-op (the listener still registers, it just never acts).
+ * <p>Trigger ids resolve once at construction; an absent trigger is {@code -1} and its {@code fire} is a no-op.
  */
 public final class TriggerDispatch {
 
@@ -113,9 +111,8 @@ public final class TriggerDispatch {
     }
 
     /**
-     * As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
-     * §F) threaded into each per-event {@link DispatchSink}. The composition root passes
-     * {@code () -> master.config().heroic().maxOutgoingFactor()}; the ctor above defaults it.
+     * Full ctor plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
+     * §F) threaded into each per-event {@link DispatchSink}, read live so a reload re-tunes it.
      */
     public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
@@ -160,9 +157,8 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire a neutral (non-damage) trigger for {@code actor}. {@code cancellable} (the firing event,
-     * or {@code null}) is cancelled iff an effect asked for it. Heroic/fold contributions are inert
-     * here (no damage event reads the fold).
+     * Fire a neutral (non-damage) trigger. {@code cancellable} (the firing event, or {@code null}) is cancelled
+     * iff an effect asked for it. The heroic fold is inert here (no damage event reads it).
      */
     public void fire(Player actor, int triggerId, ActivationContext context, Cancellable cancellable) {
         if (triggerId < 0) {
@@ -179,10 +175,9 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire the MINE trigger for a block break, then apply the inline drop read-backs to {@code event}: a
-     * {@code cancelEvent}, plus {@code SMELT} / {@code TELEPORT_DROPS} which transform the block's drops
-     * (Cosmic Enchants-style parity). Runs on the block's region thread, where the block and the breaker's inventory are
-     * region-owned. Falls back to a plain {@link #fire} when MINE is absent.
+     * Fire MINE for a block break, then apply the drop read-backs to {@code event}: {@code cancelEvent}, plus
+     * {@code SMELT} / {@code TELEPORT_DROPS} (Cosmic Enchants-style parity). Runs on the block's region thread,
+     * where the block and the breaker's inventory are region-owned.
      */
     public void fireMine(Player actor, ActivationContext context, BlockBreakEvent event) {
         if (mine < 0) {
@@ -201,10 +196,9 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire the BOW_FIRE trigger for a bow shot, then start homing the fired projectile onto the nearest
-     * line-of-sight target if a {@code SEEK} (AUTO_LOCK) proc asked for it. The steering task runs on the
-     * projectile's own entity scheduler (Folia-correct). Honours a {@code cancelEvent}. Falls back to a
-     * plain {@link #fire} when BOW_FIRE is absent.
+     * Fire BOW_FIRE for a bow shot, then home the projectile onto the nearest line-of-sight target if a
+     * {@code SEEK} proc asked for it (steering runs on the projectile's entity scheduler — Folia-correct).
+     * Honours a {@code cancelEvent}.
      */
     public void fireBow(Player shooter, ActivationContext context, EntityShootBowEvent event) {
         if (bowFire < 0) {
@@ -224,8 +218,8 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire a damage-direction trigger (FALL/FIRE — defender side) and fold the accumulated deltas onto
-     * {@code event}, so a defensive reduction/heroic-reduction actually softens the fall/fire damage.
+     * Fire a damage-direction trigger (FALL/FIRE — defender side) and fold the deltas onto {@code event}, so a
+     * defensive/heroic reduction actually softens the damage.
      */
     public void fireDamage(Player actor, int triggerId, ActivationContext context,
                            org.bukkit.event.entity.EntityDamageEvent event, boolean applyHeroic) {
@@ -244,9 +238,8 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fold ONLY the worn heroic reduction onto {@code event} — for an environmental damage cause that has
-     * no StarEnchants trigger but should still be softened by heroic when {@code reduction-scope: ALL} (§F).
-     * The caller only invokes this under ALL scope; it runs no trigger abilities.
+     * Fold ONLY the worn heroic reduction onto {@code event} — environmental damage with no trigger, softened
+     * by heroic under {@code reduction-scope: ALL} (§F). Runs no trigger abilities.
      */
     public void fireEnvironmentalHeroic(Player actor, org.bukkit.event.entity.EntityDamageEvent event) {
         Snapshot snapshot = content.snapshot();
@@ -257,10 +250,9 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire ONE repeating ability for {@code actor} — the §B {@link feature.trigger.RepeatingDriver}'s timer
-     * body, run on the player's own (entity) thread. Builds a fresh per-tick sink, runs just that ability
-     * through the full gate sequence on the REPEATING trigger, and flushes. No firing event ⇒ nothing to
-     * cancel; chance/cooldown/condition gates still apply each period.
+     * Fire ONE repeating ability — the §B {@link feature.trigger.RepeatingDriver}'s timer body, on the player's
+     * entity thread. Runs just that ability through the full gate sequence; chance/cooldown/condition gates
+     * still apply each period. No firing event, so nothing to cancel.
      */
     public void fireRepeating(Player actor, int abilityId) {
         if (repeating < 0 || abilityId < 0) {
@@ -275,18 +267,15 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire the §B HELD/PASSIVE lifecycle transition for {@code actor} — the {@link feature.trigger.LifecycleDriver}'s
-     * equip-change body, run on the player's own (entity) thread. {@code stops} are the abilities whose source just
-     * <em>un</em>equipped (their maintained buff is torn down) and {@code starts} the abilities whose source just
-     * equipped (their buff is applied), into ONE sink flushed once. NOT gated: a maintained buff is deterministic, so
-     * there is no chance/cooldown/condition roll. STOP runs before START (so swapping levels of the same enchant
-     * removes the old buff before re-applying), STOP is unconditional (a buff can never leak), and START honours only
-     * the world-blacklist (a world-disabled passive stays off). Inert if neither lifecycle trigger is in the
-     * vocabulary.
+     * Fire the §B HELD/PASSIVE lifecycle transition — the {@link feature.trigger.LifecycleDriver}'s equip-change
+     * body, on the player's entity thread, into ONE sink flushed once. NOT gated: a maintained buff is
+     * deterministic. Ordering invariants: STOP runs before START (level-swap removes the old buff before
+     * re-applying); STOP is unconditional (a buff can never leak); START honours only the world-blacklist (a
+     * world-disabled passive stays off).
      */
     public void fireLifecycle(Player actor, List<Ability> stops, List<Ability> starts) {
         if (held < 0 && passive < 0) {
-            return; // lifecycle triggers absent from the vocabulary — nothing to fire
+            return;
         }
         if (stops.isEmpty() && starts.isEmpty()) {
             return;
@@ -307,11 +296,9 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire the §B COMMAND trigger for {@code actor} — the body of the configured {@code CommandTriggerCommand}.
-     * A COMMAND enchant is a normal triggered activation (the player explicitly invokes it), so it runs through
-     * the full gate sequence (chance/cooldown/condition/souls) exactly like any other trigger; only the entry
-     * point differs. A neutral trigger, so the heroic fold is inert. No-op if COMMAND is absent or the player
-     * has no COMMAND ability worn.
+     * Fire the §B COMMAND trigger — the body of the configured {@code CommandTriggerCommand}. A normal triggered
+     * activation: runs the full gate sequence (chance/cooldown/condition/souls) like any other trigger, only the
+     * entry point differs. Neutral, so the heroic fold is inert.
      */
     public void fireCommand(Player actor) {
         fire(actor, command, new ActivationContext(actor, null, null, actor.getLocation()), null);

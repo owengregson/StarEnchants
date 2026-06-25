@@ -23,8 +23,8 @@ import schema.spec.D;
  * </ul>
  *
  * <p>Targets {@link T#ATTACKER}: with no attacker (a non-combat trigger) it spawns nothing — an untargeted
- * spawn is {@code SPAWN_ENTITY}'s job. {@link Affinity#REGION}: a world mutation routed to the spawn
- * location's region; the mob's target is set on its own (spawn) thread by the {@link Sink}.
+ * spawn is {@code SPAWN_ENTITY}'s job. {@link Affinity#REGION}: routed to the spawn location's region; the
+ * mob's target is set on its own spawn thread by the {@link Sink}.
  */
 public final class GuardEffect implements EffectKind {
 

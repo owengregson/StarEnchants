@@ -32,7 +32,7 @@ class CombatCodecTest {
 
         assertEquals(ench, back.enchants());
         assertEquals(crys, back.crystals());
-        // Order is preserved (the cache key must be deterministic).
+        // Order must survive: the content-hash cache key depends on it.
         assertEquals(new ArrayList<>(ench.keySet()), new ArrayList<>(back.enchants().keySet()));
     }
 
@@ -128,7 +128,7 @@ class CombatCodecTest {
 
     @Test
     void malformedEntriesAreSkippedNotThrown() {
-        // Hand-built blob with a missing level, a non-numeric level, and a good entry.
+        // One bad entry must not drop the good ones: missing level, non-numeric level, then a valid pair.
         String blob = "v1\u001Fe\u001Fbad\u001Egood:4\u001Ealsobad:x\u001Fc\u001F";
         CombatState back = CombatCodec.decodeBlob(blob);
         assertEquals(Map.of("good", 4), back.enchants());

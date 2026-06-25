@@ -17,27 +17,20 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The default {@link EraseStage} (docs/architecture.md §4.1). It walks the lowered
- * abilities once, in id-assignment order, interning every world/trigger/suppression/
- * cooldown-scope name (§8) and bit-packing worlds and triggers into the
- * {@code worldBlacklist} long and {@code triggerMask} int that the hot path gates on
- * (§3.3). The dense id of a kept ability is its position in the output array, so the
- * {@link ErasedContent} invariant {@code abilities[i].id() == i} holds (§5.3); the
- * parallel stable-key list feeds the {@link StableKeyIndex} and the {@code defId}
- * &rarr; origin entries feed the {@link SourceMap}, the last record of authored
- * positions (§10).
+ * The default {@link EraseStage} (docs/architecture.md §4.1, §8). Walks the lowered abilities once in
+ * id-assignment order, interning world/trigger/suppression/cooldown-scope names and bit-packing worlds
+ * and triggers into the {@code worldBlacklist} long and {@code triggerMask} int the hot path gates on
+ * (§3.3). A kept ability's dense id is its output-array position, so the {@link ErasedContent} invariant
+ * {@code abilities[i].id() == i} holds (§5.3); the parallel stable-key list feeds the
+ * {@link StableKeyIndex} and the {@code defId}&rarr;origin entries feed the {@link SourceMap} (§10).
  *
- * <p>Never throws. A duplicate stable key drops the duplicate and reports
- * {@code E_DUP_KEY}; a trigger past bit 31 ({@code E_TRIGGER_OVERFLOW}) or a world
- * past bit 63 ({@code E_WORLD_OVERFLOW}) skips only that one bit — the ability is
- * otherwise erased intact — keeping the whole snapshot loadable from broken content.
+ * <p>Never throws. A duplicate stable key drops the duplicate ({@code E_DUP_KEY}); a trigger past bit 31
+ * or world past bit 63 skips only that one bit (ability otherwise erased intact), keeping a broken
+ * snapshot loadable.
  *
- * <p>When constructed with a <em>canonical trigger vocabulary</em>
- * ({@link #DefaultEraseStage(List)}), trigger names are matched case-insensitively
- * against it: the interner is pre-seeded so every {@code triggerMask} bit means the same
- * trigger the runtime routes (§3.7), and a name outside the vocabulary is reported
- * ({@code E_UNKNOWN_TRIGGER}) and skipped rather than silently interned. With no
- * vocabulary the stage interns trigger names ad-hoc (used by lower-level tests).
+ * <p>With a canonical trigger vocabulary ({@link #DefaultEraseStage(List)}) the interner is pre-seeded so
+ * every {@code triggerMask} bit means the same trigger the runtime routes (§3.7) and an out-of-vocabulary
+ * name is reported, not silently interned. With none, trigger names are interned ad-hoc (lower-level tests).
  */
 public final class DefaultEraseStage implements EraseStage {
 
@@ -70,8 +63,6 @@ public final class DefaultEraseStage implements EraseStage {
         Interner suppress = new Interner();
         Interner cooldownScopes = new Interner();
 
-        // Pre-seed the canonical trigger ids (in order) so a triggerMask bit means the
-        // same trigger the runtime routes; track the vocabulary for unknown-name checks.
         boolean canonicalMode = !canonicalTriggers.isEmpty();
         Set<String> knownTriggers = new HashSet<>();
         if (canonicalMode) {
@@ -176,11 +167,10 @@ public final class DefaultEraseStage implements EraseStage {
     }
 
     /**
-     * Rewrite each {@code SUPPRESS} effect's {@code scope}/{@code key} args from authored strings to ints:
-     * {@code scope} → its kind (enchant 0 / group 1 / type 2) and {@code key} → its id in the SAME
-     * {@code cooldownScopes} interner the abilities lower their {@code cdScope*} into — so the suppression a
-     * {@code SUPPRESS:GROUP:lifesteal} writes shares one namespace with gate 5's reads (the bridge invariant).
-     * Every other effect passes through untouched. Never throws (a malformed SUPPRESS is left as-is).
+     * Rewrite each {@code SUPPRESS} effect's {@code scope}/{@code key} from strings to ints, interning
+     * {@code key} into the SAME {@code cooldownScopes} interner the abilities' {@code cdScope*} use — so a
+     * {@code SUPPRESS} write shares one namespace with gate 5's reads (the bridge invariant). Other effects
+     * pass through; a malformed SUPPRESS is left as-is.
      */
     private static CompiledEffect[] eraseSuppressArgs(List<CompiledEffect> effects, Interner cooldownScopes) {
         CompiledEffect[] out = new CompiledEffect[effects.size()];

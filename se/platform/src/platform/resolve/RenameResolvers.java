@@ -9,13 +9,12 @@ import java.util.OptionalInt;
 import schema.spec.HandleCategory;
 
 /**
- * The shared machinery behind every {@link PlatformResolvers} that resolves version-volatile
- * tokens by cross-version rename (docs/architecture.md §9): it runs each token through
- * {@link HandleResolver} (token &rarr; forward alias &rarr; reverse alias) against a per-category
- * {@code exists} check, then interns the resolved canonical name to a dense id and remembers the
- * id&rarr;name mapping the runtime needs. The only thing a concrete resolver supplies is
- * <em>what "exists" means</em>: a fixed vocabulary set ({@link VocabularyResolvers}, for the pure
- * compiler/tests) or a live server lookup ({@link RegistryResolvers}, in production).
+ * Shared cross-version resolve-and-intern machinery behind every {@link PlatformResolvers}
+ * (docs/architecture.md §9): runs each token through {@link HandleResolver} (token &rarr; forward alias
+ * &rarr; reverse alias) against a per-category {@code exists} check, interns the resolved canonical name
+ * to a dense id, and keeps the id&rarr;name mapping the runtime needs. A concrete resolver supplies only
+ * <em>what "exists" means</em>: a fixed vocabulary ({@link VocabularyResolvers}, pure compiler/tests) or
+ * a live server lookup ({@link RegistryResolvers}, production).
  */
 public abstract class RenameResolvers implements PlatformResolvers {
 

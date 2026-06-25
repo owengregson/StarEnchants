@@ -14,9 +14,8 @@ import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the fail-safe behaviour of {@link AntiCheat}: on a server with no supported anti-cheat installed,
- * the exemption hook is a non-throwing no-op (the common case). The reflective NoCheatPlus path is verified
- * on a server running NoCheatPlus, out-of-matrix (docs/decisions/0027).
+ * Pins the fail-safe behaviour of {@link AntiCheat}: with no supported anti-cheat installed, the exemption
+ * hook is a non-throwing no-op. The reflective NoCheatPlus path is verified out-of-matrix (docs/decisions/0027).
  */
 class AntiCheatTest {
 

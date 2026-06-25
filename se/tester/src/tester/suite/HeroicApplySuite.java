@@ -19,17 +19,9 @@ import tester.harness.Harness;
 
 /**
  * The heroic APPLY path, proven live (docs/v3-directives.md §F): {@link HeroicService#applyTo} stamps the
- * heroic percents on a successful roll (swapping the material when configured), consumes the upgrade on
- * success OR a failed roll, and REJECTS (without consuming) an already-heroic piece or a non-armour/weapon.
- * Item-only (no fake player), so it runs across the WHOLE range. Determinism comes from 100%/0% success
- * configs rather than seed reverse-engineering.
- *
- * <ul>
- *   <li>{@code heroic.apply.success} — a successful roll stamps HeroicStat, swaps DIAMOND→NETHERITE, consumes the upgrade.</li>
- *   <li>{@code heroic.apply.fail} — a failed roll leaves the gear untouched but consumes the upgrade.</li>
- *   <li>{@code heroic.apply.alreadyHeroic} — re-applying to a heroic piece is rejected and does NOT consume.</li>
- *   <li>{@code heroic.apply.notGear} — applying to a non-armour/weapon (STICK) is rejected and does NOT consume.</li>
- * </ul>
+ * percents and swaps the material on a successful roll, consumes the upgrade on success OR a failed roll,
+ * and rejects (without consuming) an already-heroic piece or a non-armour/weapon. Item-only, runs across
+ * the whole range. 100%/0% success configs give determinism without seed reverse-engineering.
  */
 public final class HeroicApplySuite implements Harness.Scenario {
 
@@ -49,8 +41,8 @@ public final class HeroicApplySuite implements Harness.Scenario {
         HeroicUpgradeCodec upgrades = new HeroicUpgradeCodec(ItemKeys.of(plugin).heroicUpgrade());
         CombatCodec combat = new CombatCodec(ItemKeys.of(plugin).combat());
         LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> null);
-        HeroicService always = service(upgrades, combat, lore, 100); // roll always succeeds
-        HeroicService never = service(upgrades, combat, lore, 0);    // roll always fails
+        HeroicService always = service(upgrades, combat, lore, 100); // always succeeds
+        HeroicService never = service(upgrades, combat, lore, 0);    // always fails
 
         h.guard("heroic.apply.success", () -> {
             ItemStack upgrade = always.mint();
@@ -88,7 +80,6 @@ public final class HeroicApplySuite implements Harness.Scenario {
         });
 
         h.guard("heroic.apply.alreadyHeroic", () -> {
-            // Make a piece heroic, then re-apply to the returned heroic stack — the second apply must reject.
             ItemStack heroicGear = always.applyTo(always.mint(), new ItemStack(Material.DIAMOND_CHESTPLATE)).newTarget();
             if (combat.read(heroicGear).heroic().isZero()) {
                 throw new IllegalStateException("setup: the gear should be heroic after the first apply");

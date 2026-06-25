@@ -7,9 +7,9 @@ import compile.model.cond.NumExpr;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit test for {@link NumExprEval} — the numeric-expression walker shared by conditions and
- * expression-valued effect arguments (docs/architecture.md §3.4). Verifies arithmetic over fact slots,
- * literals, negation, operator precedence (already in the tree), and the fail-safe divide-by-zero rule.
+ * {@link NumExprEval} is shared by conditions and expression-valued effect args, so its
+ * divide-by-zero rule must fail safe (0, never NaN) lest a poisoned value reach the fold
+ * (docs/architecture.md §3.4).
  */
 class NumExprEvalTest {
 

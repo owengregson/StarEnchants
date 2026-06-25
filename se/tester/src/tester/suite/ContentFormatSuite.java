@@ -12,18 +12,9 @@ import org.bukkit.plugin.Plugin;
 import tester.harness.Harness;
 
 /**
- * Live checks for the content format — the things a unit test cannot prove because they depend on the
- * REAL effect-spec registry + selector vocabulary + handle resolvers (the unit tests use a tiny
- * hand-built registry). A small content tree is compiled through the production {@link ContentCompiler}
- * on this server, exercising verbose effects against the real {@code ParamSpec}s, the explicit per-level
- * shape, and tier subfolders with key stability.
- *
- * <ul>
- *   <li>{@code content.format.verbose} — a verbose {@code IGNITE: { duration }} / {@code MESSAGE: { text }}
- *       enchant compiles clean against the real specs, and a colon-bearing message text survives.</li>
- *   <li>{@code content.format.levels} — every explicitly-declared level compiles to its own ability.</li>
- *   <li>{@code content.format.tier} — a file under {@code enchants/mythic/} keeps the tier OFF the stable key.</li>
- * </ul>
+ * Live checks for the content format, compiled through the production {@link ContentCompiler} against
+ * the real spec registry + resolvers (unit tests use a hand-built registry): verbose effects, the
+ * explicit per-level shape, and tier subfolders kept off the stable key.
  */
 public final class ContentFormatSuite implements Harness.Scenario {
 
@@ -70,8 +61,7 @@ public final class ContentFormatSuite implements Harness.Scenario {
             return;
         }
 
-        // accept() runs on the global thread, so the load (which resolves handles + selectors against the
-        // live registries) is safe here.
+        // accept() runs on the global thread, so resolving handles/selectors against the live registries is safe.
         Compiler compiler = ContentCompiler.production();
         Library lib = LibraryLoader.load(root, compiler, 0);
 
@@ -83,7 +73,7 @@ public final class ContentFormatSuite implements Harness.Scenario {
             if (level1 == null) {
                 throw new IllegalStateException("enchants/stormcaller/1 missing (verbose effect failed to compile?)");
             }
-            // The MESSAGE is the second effect; its colon-bearing text must have survived as one arg.
+            // Colon-bearing MESSAGE text (2nd effect) must survive as one arg, not be split on the colon.
             String text = level1.effects()[1].args().str("text");
             if (!"Zap: the storm strikes!".equals(text)) {
                 throw new IllegalStateException("verbose MESSAGE text was shredded: '" + text + "'");
@@ -91,7 +81,6 @@ public final class ContentFormatSuite implements Harness.Scenario {
         });
 
         h.guard("content.format.levels", () -> {
-            // Every explicitly-declared level compiles to its own ability.
             for (int level = 1; level <= 3; level++) {
                 if (lib.snapshot().byStableKey("enchants/stormcaller/" + level) == null) {
                     throw new IllegalStateException("level " + level + " missing");
@@ -105,7 +94,7 @@ public final class ContentFormatSuite implements Harness.Scenario {
         });
 
         h.guard("content.format.tier", () -> {
-            // The tier folder is NOT part of the key (live gear keeps resolving); the tier is metadata.
+            // Tier folder must stay out of the key (so live gear keeps resolving); the tier is metadata.
             if (lib.snapshot().byStableKey("enchants/mythic/stormcaller/1") != null) {
                 throw new IllegalStateException("tier folder leaked into the stable key");
             }

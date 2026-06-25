@@ -24,19 +24,8 @@ import platform.item.ItemGroups;
 import tester.harness.Harness;
 
 /**
- * The item-application path, proven live (docs/architecture.md §4.2): the {@link ItemEnchanter}
- * validates against compiled content, writes the {@link CombatState} into a real item's PDC, and
- * re-renders the lore — and rejects an ineligible material without mutating. Item-only (no fake
- * player), so it runs across the WHOLE range including the spigot-mapped floor. This closes the loop
- * an operator uses: {@code /se enchant} on a held item.
- *
- * <ul>
- *   <li>{@code item.apply.enchant} — apply an enchant: PDC carries it and the lore renders the name.</li>
- *   <li>{@code item.apply.crystal} — apply a crystal: it lands in the (stacking) crystal list.</li>
- *   <li>{@code item.apply.appliesTo} — an enchant rejects an ineligible material, leaving the item untouched.</li>
- *   <li>{@code item.apply.removeEnchant} — the §J inverse: a removed enchant leaves the PDC + lore (and frees
- *       its slot), and removing one the item lacks is a clean no-op.</li>
- * </ul>
+ * Item-application path, proven live against a real item factory (docs/architecture.md §4.2).
+ * Item-only (no fake player), so it runs across the whole range including the spigot-mapped floor.
  */
 public final class ApplySuite implements Harness.Scenario {
 
@@ -66,7 +55,7 @@ public final class ApplySuite implements Harness.Scenario {
               1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
             """;
 
-    // §G removes-required: the superior enchant requires Base and strips it on a successful apply (net-zero slot).
+    // §G removes-required: requires Base and strips it on apply (net-zero slot).
     private static final String SUPERIOR = """
             display: Superior
             applies-to: [SWORD]
@@ -77,8 +66,7 @@ public final class ApplySuite implements Harness.Scenario {
               1: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
             """;
 
-    // §6.6 set: 4 armour members (each its own name, shared armour lore) complete the set bonus; the
-    // weapon member grants the ADDITIONAL weapon bonus while the set is complete and held.
+    // §6.6 set: 4 armour members complete the bonus; the weapon member adds its own while the set is held.
     private static final String TITAN = """
             display: "&bTitan"
             complete: 4
@@ -117,7 +105,7 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.mintSet");
 
         ItemEnchanter enchanter;
-        ItemEnchanter capped; // a 1-slot enchanter for the net-zero-slot case
+        ItemEnchanter capped; // 1-slot, for the net-zero-slot case
         CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
         try {
             Path root = Files.createTempDirectory("se-apply-suite");
@@ -135,7 +123,7 @@ public final class ApplySuite implements Harness.Scenario {
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
-            capped = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(), 1); // base = 1 enchant slot
+            capped = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(), 1);
         } catch (IOException e) {
             h.fail("item.apply.enchant", e.toString());
             return;
@@ -228,7 +216,7 @@ public final class ApplySuite implements Harness.Scenario {
         });
 
         h.guard("item.apply.removesRequired.netZeroSlots", () -> {
-            // A 1-slot item: base fills it; the removes-required upgrade frees base, so it nets zero and fits.
+            // Upgrade frees base as it lands, so it nets zero slots and fits at capacity.
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             if (!capped.applyEnchant(sword, "enchants/base", 1).ok()) {
                 throw new IllegalStateException("setup: base did not fill the single slot");
@@ -255,7 +243,7 @@ public final class ApplySuite implements Harness.Scenario {
             if (!piece.getType().name().endsWith("HELMET")) {
                 throw new IllegalStateException("the minted member is not a helmet: " + piece.getType());
             }
-            // The weapon member mints and carries setWeaponKey (NOT setKey — it never counts toward completion).
+            // Weapon carries setWeaponKey not setKey, so it never counts toward completion.
             var weapon = enchanter.mintSetPiece("sets/titan", "weapon");
             if (weapon.isEmpty()) {
                 throw new IllegalStateException("the set weapon member should mint");

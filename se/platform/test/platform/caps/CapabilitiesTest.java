@@ -28,12 +28,12 @@ class CapabilitiesTest {
     @Test
     void atLeastOrdersAcrossComponents() {
         Capabilities v1_20_6 = Capabilities.probe("1.20.6-R0.1-SNAPSHOT", false);
-        assertTrue(v1_20_6.atLeast(1, 20, 6));   // equal
-        assertTrue(v1_20_6.atLeast(1, 20, 5));   // patch below
-        assertTrue(v1_20_6.atLeast(1, 17, 1));   // minor below
-        assertFalse(v1_20_6.atLeast(1, 20, 7));  // patch above
-        assertFalse(v1_20_6.atLeast(1, 21, 0));  // minor above
-        assertFalse(v1_20_6.atLeast(2, 0, 0));   // major above
+        assertTrue(v1_20_6.atLeast(1, 20, 6));
+        assertTrue(v1_20_6.atLeast(1, 20, 5));
+        assertTrue(v1_20_6.atLeast(1, 17, 1));
+        assertFalse(v1_20_6.atLeast(1, 20, 7));
+        assertFalse(v1_20_6.atLeast(1, 21, 0));
+        assertFalse(v1_20_6.atLeast(2, 0, 0));
     }
 
     @Test

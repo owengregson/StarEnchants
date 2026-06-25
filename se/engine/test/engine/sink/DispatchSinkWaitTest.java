@@ -14,13 +14,11 @@ import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 
 /**
- * WAIT-tier tests for the {@link DispatchSink} (docs/architecture.md §3.6). A
- * {@link RecordingSchedulerBackend} runs immediate hops inline but CAPTURES every delayed hop with its
- * tick count, so these pin the policy: a delay-0 intent dispatches on flush; a delay&gt;0 intent is held
- * for exactly its tick count and runs only when that timer fires; distinct {@code WAIT} tiers schedule
- * independently; and inline feedback (the damage fold) ignores the delay because it cannot defer onto a
- * spent event. The Folia-correctness of the per-owner hop itself is the same matrix-verified path the
- * immediate tests use — these add only the deferral.
+ * Pins the {@link DispatchSink} WAIT-tier policy (docs/architecture.md §3.6): a delay-0 intent dispatches
+ * on flush; a delay&gt;0 intent is held for exactly its tick count and runs only when its timer fires;
+ * distinct {@code WAIT} tiers schedule independently; and the damage fold ignores the delay since it cannot
+ * defer onto a spent event. The per-owner hop's Folia-correctness is matrix-verified elsewhere — these add
+ * only the deferral, so a {@link RecordingSchedulerBackend} captures delayed hops for assertion.
  */
 class DispatchSinkWaitTest {
 
@@ -59,13 +57,13 @@ class DispatchSinkWaitTest {
         sink.ignite(later, 80);
         sink.flush();
 
-        verify(immediate).setFireTicks(60);  // the tier-0 effect ran on flush
-        verifyNoInteractions(later);          // the tier-40 effect is captured, not yet applied
+        verify(immediate).setFireTicks(60);
+        verifyNoInteractions(later);
         assertEquals(1, backend.delayed.size(), "exactly one delayed batch scheduled");
         assertEquals(40L, backend.delayed.get(0).delayTicks(), "scheduled for the accumulated WAIT");
 
         backend.runDelayed();
-        verify(later).setFireTicks(80);       // fires only when its timer lands
+        verify(later).setFireTicks(80);       // fires only once its timer lands, never early
     }
 
     @Test
@@ -102,7 +100,7 @@ class DispatchSinkWaitTest {
         sink.ignite(instant, 20);
         sink.flush();
 
-        verify(instant).setFireTicks(20);     // dispatched immediately
+        verify(instant).setFireTicks(20);
         verifyNoInteractions(delayed);
         assertEquals(1, backend.delayed.size());
 
@@ -112,11 +110,11 @@ class DispatchSinkWaitTest {
 
     @Test
     void anIntentWithNoPriorDelayCallDispatchesImmediately() {
-        // Locks the default-tier invariant: the executor sets delay() before every effect, but a sink whose
-        // delay() was never called (e.g. a future direct-emit path) must default to immediate, not a stale tier.
+        // A sink whose delay() was never called (e.g. a future direct-emit path bypassing the executor) must
+        // default to immediate, never a stale tier.
         LivingEntity target = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles); // no sink.delay(...) call at all
+        DispatchSink sink = new DispatchSink(handles);
         sink.ignite(target, 60);
         sink.flush();
 

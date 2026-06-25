@@ -6,11 +6,10 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * Minimal typed accessors over a SnakeYAML-parsed legacy document (docs/architecture.md §10). Parsing
- * uses the version-stable {@code Yaml.load → Map/List/scalar} surface (not Bukkit's
- * {@code YamlConfiguration}, whose internal SnakeYAML calls differ across versions), so the importer
- * runs on whatever SnakeYAML the server bundles. All accessors are null-tolerant and never throw on a
- * missing/mistyped key — a legacy config is untrusted input.
+ * Minimal typed accessors over a SnakeYAML-parsed legacy document (docs/architecture.md §10). Uses the
+ * version-stable {@code Yaml.load → Map/List/scalar} surface, not Bukkit's {@code YamlConfiguration}
+ * (whose internal SnakeYAML calls differ across versions), so the importer runs on whatever SnakeYAML
+ * the server bundles. All accessors are null-tolerant — a legacy config is untrusted input.
  */
 final class LegacyYaml {
 

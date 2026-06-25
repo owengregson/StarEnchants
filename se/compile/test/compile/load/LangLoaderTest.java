@@ -51,9 +51,9 @@ class LangLoaderTest {
         Lang lang = LangLoader.load(file);
 
         assertFalse(lang.hasErrors());
-        assertEquals("&6grab something!", lang.format("apply.hold-item"));                 // overridden
+        assertEquals("&6grab something!", lang.format("apply.hold-item"));
         assertEquals("&agave x lvl 2", lang.format("command.give.book", "KEY", "x", "LEVEL", 2));
-        assertEquals("&cNo such enchant: &fz", lang.format("apply.no-such-enchant", "KEY", "z")); // default kept
+        assertEquals("&cNo such enchant: &fz", lang.format("apply.no-such-enchant", "KEY", "z")); // unrelated default kept
     }
 
     @Test
@@ -66,6 +66,6 @@ class LangLoaderTest {
 
         Lang lang = LangLoader.load(file);
 
-        assertEquals("&6nested!", lang.format("apply.hold-item")); // command.give.* etc. flat or nested both work
+        assertEquals("&6nested!", lang.format("apply.hold-item"));
     }
 }

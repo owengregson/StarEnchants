@@ -30,13 +30,11 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 
 /**
- * Live, end-to-end check of the item → worn-state path (ADR-0014, §5.5): author content → compile a
- * Snapshot → write an enchant onto a real item via the PDC codec → equip a real {@link org.bukkit.entity.LivingEntity}
- * → {@link WornResolver} reads its equipment, composes the path-derived key, resolves it against the
- * snapshot, and flattens it into a {@link WornState}. Uses an armour stand (a LivingEntity that wears
- * equipment on every supported version), so this runs on the spigot-mapped floor too — not just where
- * the mojang-only fake player works. The equipment read happens on the stand's own region thread
- * (Folia-correct).
+ * Item → worn-state path, live end-to-end (ADR-0014, §5.5): write an enchant onto a real item → equip a
+ * {@link org.bukkit.entity.LivingEntity} → {@link WornResolver} reads its equipment, resolves the
+ * path-derived key against the snapshot, and flattens it into a {@link WornState}. Uses an armour stand (a
+ * LivingEntity that wears equipment on every version), so this runs the spigot-mapped floor too — not just
+ * where the mojang-only fake player works. Equipment read on the stand's own region thread (Folia-correct).
  */
 public final class WornResolverSuite implements Harness.Scenario {
 
@@ -59,8 +57,7 @@ public final class WornResolverSuite implements Harness.Scenario {
     public void accept(Harness h) {
         h.expect("worn.resolveFromArmor");
 
-        // Build a snapshot from temp content (MODIFY_HEALTH is handle-free, so loading on the global thread
-        // resolves nothing version-volatile and is safe here).
+        // MODIFY_HEALTH is handle-free, so loading on the global thread resolves nothing version-volatile.
         Snapshot snapshot;
         int expectedId;
         try {

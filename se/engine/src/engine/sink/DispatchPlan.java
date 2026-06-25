@@ -14,30 +14,24 @@ import platform.sched.Scheduling;
 
 /**
  * The deferred half of the {@link Sink} dispatcher (docs/architecture.md §3.5–3.6): the per-event
- * batches of world-mutation intents that could not run inline, grouped by the thread that
- * <em>owns</em> them, and flushed in one pass through {@link Scheduling} after the gate walk. This
- * is where "N hops collapse to ~1 per distinct thread" happens — every intent for the same victim
- * rides one entity-scheduler task; every intent in the same chunk rides one region task.
+ * batches of world-mutation intents that could not run inline, grouped by the thread that <em>owns</em>
+ * them and flushed in one pass through {@link Scheduling} after the gate walk, so N hops collapse to ~1
+ * per distinct owner (one entity-scheduler task per victim, one region task per chunk).
  *
- * <p>Owners come straight from each intent's target, so even a mis-declared {@code Affinity} can
- * never route an entity mutation off the entity's thread (§3.6): an {@link Entity} intent is owned
- * by that entity, a {@link Location} intent by the region ticking its chunk, and the rest by the
- * global region thread. A chunk is the unit of region identity on Folia — two locations in the same
- * chunk are guaranteed the same region — so batching by {@code (world, chunkX, chunkZ)} is exactly
- * one hop per region without needing any Folia internals.
+ * <p>Owners come straight from each intent's target, so even a mis-declared {@code Affinity} can never
+ * route an entity mutation off the entity's thread (§3.6): an {@link Entity} intent is owned by that
+ * entity, a {@link Location} intent by the region ticking its chunk, the rest by the global region
+ * thread. A chunk is the unit of region identity on Folia, so batching by {@code (world, chunkX, chunkZ)}
+ * is exactly one hop per region with no Folia internals.
  *
- * <p><strong>WAIT delays (§3.6).</strong> An intent may carry a delay of N ticks (the {@code WAIT:N}
- * accumulated before its effect). Delay-0 intents are the hot path and use the immediate batches
- * below. A delay&gt;0 intent is held in a per-delay sub-plan (a nested {@code DispatchPlan}, lazily
- * allocated — a WAIT-free event allocates nothing extra) and flushed N ticks later through the
- * {@code Scheduling} {@code *Later} variants, each owner-batch on its OWN thread (the entity's, the
- * region's, the global thread) — so a delayed mutation is as Folia-correct as an immediate one. Only
- * the mutation is deferred; the effect still resolved its targets on the firing thread when it ran.
+ * <p><strong>WAIT delays (§3.6).</strong> An intent may carry an N-tick delay ({@code WAIT:N} accumulated
+ * before its effect). Delay-0 intents are the hot path (immediate batches below). A delay&gt;0 intent is
+ * held in a lazily-allocated per-delay sub-plan and flushed N ticks later through the {@code *Later}
+ * variants, each owner-batch on its OWN thread — so a delayed mutation is as Folia-correct as an
+ * immediate one. Only the mutation is deferred; the effect resolved its targets on the firing thread.
  *
- * <p>Package-private mechanism with no policy: {@link DispatchSink} decides inline-vs-deferred and
- * what each intent does; this only remembers and schedules. Built fresh per event (the intents are
- * freshly-allocated closures, so there is no pooled-carrier aliasing hazard to snapshot around) and
- * flushed once.
+ * <p>Package-private mechanism with no policy: {@link DispatchSink} decides inline-vs-deferred and what
+ * each intent does; this only remembers and schedules. Built fresh per event and flushed once.
  */
 final class DispatchPlan {
 
@@ -63,10 +57,9 @@ final class DispatchPlan {
     private final List<Runnable> asyncBatch = new ArrayList<>();
 
     /**
-     * WAIT tiers: delay (in ticks, &gt;0) → the sub-plan holding that tier's intents, in first-seen
-     * order. Lazily allocated, so a WAIT-free event (the overwhelming common case) allocates nothing
-     * extra and the hot path is unchanged. A sub-plan only ever holds immediate batches — never its
-     * own delayed tiers — because a delayed intent is queued through the sub-plan's delay-0 methods.
+     * WAIT tiers: delay (ticks, &gt;0) → the sub-plan holding that tier's intents, in first-seen order.
+     * Lazily allocated so a WAIT-free event allocates nothing extra. A sub-plan only ever holds immediate
+     * batches, never its own delayed tiers (a delayed intent is queued through its delay-0 methods).
      */
     private Map<Integer, DispatchPlan> delayedTiers;
 
@@ -136,11 +129,10 @@ final class DispatchPlan {
     }
 
     /**
-     * Schedule every batch on its owning thread — one hop per distinct owner — running each batch's
-     * ops in emission order. Immediate (delay-0) batches dispatch now; each {@code WAIT} tier
-     * dispatches on a delayed timer of its own tick count. Called once, on the firing thread, after
-     * the gate walk. An op that throws (e.g. its entity went invalid before the hop landed) is
-     * isolated so it never aborts the rest of the batch: world mutation is best-effort warn-and-skip (§9).
+     * Schedule every batch on its owning thread — one hop per distinct owner — running its ops in emission
+     * order. Immediate batches dispatch now; each {@code WAIT} tier on a delayed timer of its tick count.
+     * Called once, on the firing thread, after the gate walk. A throwing op is isolated so it never aborts
+     * the rest of the batch: world mutation is best-effort warn-and-skip (§9).
      */
     void flush() {
         dispatch(0);
@@ -152,10 +144,9 @@ final class DispatchPlan {
     }
 
     /**
-     * Schedule THIS plan's own (immediate) batches on their owning threads, deferred by
-     * {@code delayTicks} (0 = now, via the non-delayed {@code Scheduling} entry points). The delay is
-     * applied per owner-batch on that owner's own scheduler, so a delayed entity mutation still rides
-     * the entity's region thread (Folia) / the main thread (Paper), never a wrong thread.
+     * Schedule this plan's immediate batches on their owning threads, deferred by {@code delayTicks}
+     * (0 = now). The delay applies per owner-batch on that owner's own scheduler, so a delayed entity
+     * mutation still rides the entity's region thread (Folia) / main thread (Paper), never a wrong one.
      */
     private void dispatch(int delayTicks) {
         for (Map.Entry<Entity, List<Runnable>> batch : entityBatches.entrySet()) {

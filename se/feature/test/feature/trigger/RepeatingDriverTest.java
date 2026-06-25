@@ -120,8 +120,6 @@ class RepeatingDriverTest {
         assertFalse(store.has(uuid, 7));
     }
 
-    // ── fixtures ─────────────────────────────────────────────────────────────────────────────────
-
     private static Ability ability(int id, int repeatTicks) {
         return new Ability(id, id, SourceKind.ENCHANT, 1 << REPEATING, 1, 100.0, 0, 0, 0L,
                 null, new CompiledEffect[0], repeatTicks, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);

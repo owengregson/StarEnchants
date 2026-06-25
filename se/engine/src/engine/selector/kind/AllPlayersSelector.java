@@ -11,11 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@code @AllPlayers{r=32}} — every player within {@code r} blocks of the activation centre, excluding the
- * activator (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). Implemented as a player-filtered region scan
- * over the injected area-scan seam so it stays Folia-correct (the scan runs on the centre's region thread)
- * and never reaches the whole server roster — a server-wide broadcast would need cross-region hops the
- * selector contract does not provide. The radius defaults to {@code 32} so the no-argument form is valid.
+ * {@code @AllPlayers{r=32}} — every player within {@code r} of the centre, except the activator
+ * (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). A radius scan, not the server roster:
+ * server-wide would need cross-region hops the selector contract forbids (Folia: scan runs on the centre's
+ * region thread).
  */
 public final class AllPlayersSelector implements SelectorKind {
 

@@ -24,8 +24,7 @@ import platform.caps.Capabilities;
  * supplies only the catalog, the icon, and the apply-on-click behaviour.
  *
  * <p>Registered as {@code "apply"} (the §K merchant "Enchanter" is a separate buy shop). The book/scroll/
- * dust application <em>economy</em> is a separate gesture surface; this menu is the direct-apply one. A
- * level picker remains a follow-up — clicks apply at level 1.
+ * dust application <em>economy</em> is a separate gesture surface; this menu is the direct-apply one.
  */
 public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
@@ -59,7 +58,7 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     private void applyEnchant(Player player, EnchantDef def) {
         ItemStack held = player.getInventory().getItemInMainHand();
-        ApplyResult result = enchanter.applyEnchant(held, def.key(), 1); // level 1; a level picker is a follow-up
+        ApplyResult result = enchanter.applyEnchant(held, def.key(), 1);
         if (result.ok()) {
             player.getInventory().setItemInMainHand(held); // write the mutated copy back
             refreshWorn.accept(player);                    // re-resolve the cached WornState (no equip event fires)

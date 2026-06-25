@@ -3,21 +3,19 @@ package engine.interact;
 import java.util.BitSet;
 
 /**
- * The suppression arbiter: a per-activation set of interned ids that have been silenced
- * by a {@code DISABLE_ENCHANT}/{@code DISABLE_GROUP}/{@code DISABLE_TYPE} effect
- * (docs/architecture.md §6.2). Gate 5 of the pipeline is a single membership test —
- * {@link #contains}{@code (ability.suppressKey)} — so suppression is O(1) with no string
- * compares (the case-sensitivity divergence of the originals is gone: keys are
- * case-folded to interned ids at compile time).
+ * The suppression arbiter: a per-activation set of interned ids silenced by a {@code
+ * DISABLE_ENCHANT}/{@code DISABLE_GROUP}/{@code DISABLE_TYPE} effect
+ * (docs/architecture.md §6.2). Gate 5 is a single {@link #contains} membership test, so
+ * suppression is O(1) with no string compares — keys are case-folded to interned ids at
+ * compile time.
  *
- * <p>Backed by a {@link BitSet} because interned ids are dense small integers, so a
- * membership test is a single word-and-bit lookup. This is per-activation scratch owned
- * by the firing thread — not thread-safe by design; reuse via {@link #clear}.
+ * <p>Backed by a {@link BitSet} (interned ids are dense small integers). Per-activation
+ * scratch owned by the firing thread; not thread-safe. Reuse via {@link #clear}.
  *
  * <p><strong>Role-correctness</strong> (§6.2) is the pipeline's concern, not this set's:
- * {@code DISABLE_ENCHANT} keys the <em>defender</em> and {@code DISABLE_GROUP} keys the
- * <em>activator</em>, so an activation carries two of these sets (one per role) and each
- * ability checks the set matching the role its {@code suppressKey} was lowered against.
+ * {@code DISABLE_ENCHANT} keys the <em>defender</em>, {@code DISABLE_GROUP} the
+ * <em>activator</em>, so an activation carries one set per role and each ability checks
+ * the set matching the role its {@code suppressKey} was lowered against.
  */
 public final class SuppressionSet {
 

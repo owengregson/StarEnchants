@@ -63,7 +63,7 @@ class ConditionCompilerTest {
         Cond c = lower("%name% contains \"a|b\"", d);
         assertFalse(d.hasErrors());
         Cond.StrContains sc = assertInstanceOf(Cond.StrContains.class, c);
-        assertEquals(new StrExpr.Var(0), sc.left()); // name → string slot 0
+        assertEquals(new StrExpr.Var(0), sc.left());
         assertEquals(new StrExpr.Lit("a|b"), sc.right());
     }
 
@@ -162,7 +162,7 @@ class ConditionCompilerTest {
     @Test
     void papiComparedToBooleanCoercesToBoolean() {
         Diagnostics d = new Diagnostics();
-        // The common idiom %essentials_afk% == true — the placeholder coerces to boolean.
+        // the common %essentials_afk% == true idiom: placeholder coerces to boolean
         Cond.BoolCmp cmp = assertInstanceOf(Cond.BoolCmp.class, lower("%essentials_afk% == true", d));
         assertFalse(d.hasErrors());
         assertEquals(new Cond.BoolPapi("essentials_afk"), cmp.left());
@@ -176,7 +176,7 @@ class ConditionCompilerTest {
         Cond.BoolCmp cmp = assertInstanceOf(Cond.BoolCmp.class, lower("%afk% != %sneaking%", d));
         assertFalse(d.hasErrors());
         assertEquals(new Cond.BoolPapi("afk"), cmp.left());
-        assertFalse(cmp.equal()); // !=
+        assertFalse(cmp.equal());
         assertEquals(new Cond.BoolVar(0), cmp.right());
     }
 

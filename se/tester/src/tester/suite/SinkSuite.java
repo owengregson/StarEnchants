@@ -17,18 +17,10 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 
 /**
- * Live checks for the affinity-routed {@link DispatchSink} (docs/architecture.md §3.6) — the one
- * thing a unit test cannot prove: that intents reach the right thread and mutate the real world,
- * across the cross-region hop only Folia exercises. Every world mutation is deferred to the flush and
- * routed to its owning thread (an entity's region, a location's region), so these emit from the GLOBAL
- * thread (a different thread than the targets' regions on Folia) and assert the state change landed.
- *
- * <ul>
- *   <li>{@code sink.entity.ignite.crossThread} — a handle-free entity intent crosses to the stand's region.</li>
- *   <li>{@code sink.entity.potion.handle} — the §9 round-trip THROUGH the Sink: token→id→live type→applied.</li>
- *   <li>{@code sink.entity.disarm.crossThread} — a disarm intent clears the stand's main hand cross-region.</li>
- *   <li>{@code sink.region.block.handle} — a Material-handle region intent changes a block on its region.</li>
- * </ul>
+ * Affinity-routed {@link DispatchSink}, live (docs/architecture.md §3.6) — proving intents reach the
+ * right thread and mutate the real world across the cross-region hop only Folia exercises. Every mutation
+ * is deferred to flush and routed to its owning thread, so these emit from GLOBAL (a different thread than
+ * the targets' regions on Folia) and assert the state change landed.
  */
 public final class SinkSuite implements Harness.Scenario {
 
@@ -65,8 +57,8 @@ public final class SinkSuite implements Harness.Scenario {
                 }
                 equipment.setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
 
-                // Emit + flush from GLOBAL (a different thread than the victim's region on Folia) — the
-                // Sink must hop each intent to its owning thread.
+                // Emit + flush from GLOBAL (a different thread than the victim's region on Folia) — the Sink
+                // must hop each intent to its owning thread.
                 Scheduling.onGlobal(() -> {
                     int slowId = resolveId(resolvers.potionEffect("SLOW"), "SLOW");
                     int glowstoneId = resolveId(resolvers.material("GLOWSTONE"), "GLOWSTONE");
@@ -115,9 +107,9 @@ public final class SinkSuite implements Harness.Scenario {
                         }
                     }));
 
-                    // WAIT (§3.6) end to end through the real Sink: a delay(10) region intent must NOT apply on
-                    // flush, only after its tick count elapses. Drives DispatchPlan's delayed dispatch over the
-                    // real Scheduling.onRegionLater on this server (the Folia region delayed scheduler included).
+                    // WAIT (§3.6) end-to-end: a delay(10) region intent must NOT apply on flush, only after
+                    // its tick count elapses — driving DispatchPlan's delayed dispatch over the real
+                    // Scheduling.onRegionLater (the Folia region delayed scheduler included).
                     Location waitAt = at.clone().add(2, 3, 0); // distinct from blockAt; air on the flat spawn
                     DispatchSink waitSink = new DispatchSink(handles);
                     waitSink.delay(10);
@@ -128,12 +120,12 @@ public final class SinkSuite implements Harness.Scenario {
                             new java.util.concurrent.atomic.AtomicBoolean();
                     java.util.concurrent.atomic.AtomicInteger probeRan =
                             new java.util.concurrent.atomic.AtomicInteger();
-                    Scheduling.onRegionLater(waitAt, 4L, () -> { // before the WAIT:10 elapses — must still be pending
+                    Scheduling.onRegionLater(waitAt, 4L, () -> { // before WAIT:10 elapses — must still be pending
                         probeRan.incrementAndGet();
                         appliedEarly.set(waitAt.getBlock().getType() == handles.material(glowstoneId));
                     });
-                    // Check well clear of the WAIT:10 (+30, not +16) so a multi-tick stall coalescing the probe,
-                    // the deferred mutation, and the check into one catch-up burst can't reorder them.
+                    // +30 (not +16) so a multi-tick stall coalescing the probe, the deferred mutation, and the
+                    // check into one catch-up burst can't reorder them.
                     Scheduling.onRegionLater(waitAt, 30L, () -> h.guard("sink.wait.deferred", () -> {
                         Material expected = handles.material(glowstoneId);
                         if (probeRan.get() == 0) {
@@ -146,7 +138,7 @@ public final class SinkSuite implements Harness.Scenario {
                             throw new IllegalStateException("WAIT:10 region intent never applied; got "
                                     + waitAt.getBlock().getType());
                         }
-                        waitAt.getBlock().setType(Material.AIR); // tidy up the test block
+                        waitAt.getBlock().setType(Material.AIR);
                     }));
                 });
             });

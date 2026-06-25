@@ -19,7 +19,6 @@ class AreaSelectorsTest {
 
     private static final Location CENTER = mock(Location.class);
 
-    /** A mock context with the given validated selector args and scan result. */
     private static SelectorCtx ctx(Player actor, double r, String filter, int limit, List<LivingEntity> nearby) {
         SelectorCtx ctx = mock(SelectorCtx.class);
         when(ctx.location()).thenReturn(CENTER);
@@ -48,7 +47,7 @@ class AreaSelectorsTest {
 
         SelectorCtx ctx = ctx(actor, 4.0, "ALL", 0, List.of(a, actor, b));
 
-        assertEquals(List.of(a, b), new AoeSelector().resolve(ctx)); // actor excluded, order kept
+        assertEquals(List.of(a, b), new AoeSelector().resolve(ctx)); // actor dropped; scan order preserved
     }
 
     @Test
@@ -70,7 +69,7 @@ class AreaSelectorsTest {
 
         SelectorCtx ctx = ctx(null, 10.0, "ALL", 2, List.of(far, near, mid));
 
-        assertEquals(List.of(near, mid), new AoeSelector().resolve(ctx)); // nearest 2, distance-sorted
+        assertEquals(List.of(near, mid), new AoeSelector().resolve(ctx)); // limit truncates after sorting by distance, not scan order
     }
 
     @Test
@@ -80,7 +79,7 @@ class AreaSelectorsTest {
 
         SelectorCtx ctx = ctx(null, 10.0, "ALL", 0, List.of(a, b));
 
-        assertEquals(List.of(b), new NearestSelector().resolve(ctx)); // b is closer
+        assertEquals(List.of(b), new NearestSelector().resolve(ctx));
     }
 
     @Test
@@ -93,7 +92,7 @@ class AreaSelectorsTest {
 
         SelectorCtx ctx = ctx(null, 10.0, "PLAYERS", 0, List.of(nearMob, farPlayer));
 
-        assertEquals(List.of(farPlayer), new NearestSelector().resolve(ctx)); // mob skipped, player chosen
+        assertEquals(List.of(farPlayer), new NearestSelector().resolve(ctx)); // closer mob skipped: filter runs before distance pick
     }
 
     @Test

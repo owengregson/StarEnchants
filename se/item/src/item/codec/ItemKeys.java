@@ -4,11 +4,9 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 
 /**
- * The plugin's versioned {@link NamespacedKey}s for on-item PDC state (docs/architecture.md §4.2).
- * Keys are owned in one place so the namespace is consistent for the life of an item — the
- * stable string under which the {@link CombatCodec} blob lives must never drift, or an old item
- * stops resolving. Built once from the plugin at boot; the item module never invents a namespace
- * itself (it stays Plugin-free except here, the single key authority).
+ * The plugin's versioned {@link NamespacedKey}s for on-item PDC state (§4.2). Single key authority:
+ * these strings must never drift, or items written under the old namespace stop resolving. Built once
+ * at boot; the rest of the item module stays Plugin-free.
  */
 public final class ItemKeys {
 
@@ -41,7 +39,6 @@ public final class ItemKeys {
         this.godlyTransmog = godlyTransmog;
     }
 
-    /** Build the key set under {@code plugin}'s namespace. */
     public static ItemKeys of(Plugin plugin) {
         return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
                 new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"),
@@ -57,89 +54,78 @@ public final class ItemKeys {
     }
 
     /**
-     * The key the soul-gem state lives under — DELIBERATELY separate from {@link #combat()}: souls
-     * change on every spend/gain, and folding them into the combat blob would thrash the content-hash
-     * {@code ItemView} cache and force a lore re-render on each hit (§5.1, §5.2).
+     * Soul-gem state, separate from {@link #combat()}: souls change every spend/gain, so folding them
+     * into the combat blob would thrash the content-hash {@code ItemView} cache and re-render lore per
+     * hit (§5.1, §5.2).
      */
     public NamespacedKey soul() {
         return soul;
     }
 
     /**
-     * The key that marks an item as an identity/economy CARRIER (a book/scroll/dust/gem that applies an
-     * enchant to OTHER gear) — separate from {@link #combat()} so a carrier never decodes on the combat
-     * hot path (ADR-0016; item-data-model "two records: combat vs identity").
+     * Identity/economy CARRIER (book/scroll/dust/gem that applies an enchant to OTHER gear), separate
+     * from {@link #combat()} so it never decodes on the combat hot path (ADR-0016).
      */
     public NamespacedKey carrier() {
         return carrier;
     }
 
     /**
-     * The key that flags GEAR as protected by a guard scroll — consumed on a failed carrier apply to
-     * spare the item from destruction (the white-scroll economy). Separate from the combat blob.
+     * Flags GEAR as guard-scroll protected: consumed on a failed carrier apply to spare the item from
+     * destruction (white-scroll economy). Off the combat blob.
      */
     public NamespacedKey guarded() {
         return guarded;
     }
 
     /**
-     * The key the physical CRYSTAL item's component keys live under (docs/v3-directives.md §E) — a
-     * crystal is its own item (single or merged multi-crystal), distinct from the {@link #carrier()}
-     * economy and never on the combat hot path.
+     * Physical CRYSTAL item's component keys (§E): its own item (single or merged), distinct from the
+     * {@link #carrier()} economy and off the combat hot path.
      */
     public NamespacedKey crystalItem() {
         return crystalItem;
     }
 
     /**
-     * The key that marks an item as a crystal EXTRACTOR (docs/v3-directives.md §E) — a one-shot consumable
-     * dragged onto crystal-bearing gear to pop its last crystal back into a whole crystal item. An identity
-     * marker, off the combat hot path.
+     * Crystal EXTRACTOR consumable (§E): pops a piece's last crystal back into a whole crystal item.
+     * Identity marker, off the combat hot path.
      */
     public NamespacedKey crystalExtractor() {
         return crystalExtractor;
     }
 
-    /**
-     * The key that marks an item as a HEROIC UPGRADE (docs/v3-directives.md §F) — a one-shot consumable
-     * dragged onto armour/weapon to attempt a heroic upgrade. An identity marker, off the combat hot path.
-     */
+    /** HEROIC UPGRADE consumable (§F): identity marker, off the combat hot path. */
     public NamespacedKey heroicUpgrade() {
         return heroicUpgrade;
     }
 
     /**
-     * The key that marks an item as a SLOT EXPANDER orb (docs/v3-directives.md §H) — a one-shot
-     * consumable dragged onto gear to raise its enchant-slot count, storing the {@code +N} it grants.
-     * An identity marker, off the combat hot path (the granted slots persist in the combat blob's
-     * {@code added} field, not here).
+     * SLOT EXPANDER orb (§H), storing the {@code +N} it grants. Identity marker, off the combat hot
+     * path; the granted slots persist in the gear's combat-blob {@code added} field, not here.
      */
     public NamespacedKey slotItem() {
         return slotItem;
     }
 
     /**
-     * The key that tags a SCROLL by kind (docs/v3-directives.md §I) — a string marker shared by the
-     * scroll family (black / randomizer / and later transmog / holy / nametag). An identity marker, off
-     * the combat hot path; the scroll's mechanics come from the scrolls config, not the item.
+     * Tags a SCROLL by kind (§I): string marker for the scroll family. Identity marker, off the combat
+     * hot path; mechanics come from the scrolls config, not the item.
      */
     public NamespacedKey scroll() {
         return scroll;
     }
 
     /**
-     * The key that marks an UNOPENED / RANDOMIZED book (docs/v3-directives.md §I) and stores the tier it
-     * is scoped to — right-clicking it yields a concrete enchant book of a random enchant from that tier.
-     * An identity marker, off the combat hot path.
+     * UNOPENED / RANDOMIZED book (§I), storing the tier it is scoped to. Identity marker, off the
+     * combat hot path.
      */
     public NamespacedKey unopened() {
         return unopened;
     }
 
     /**
-     * The key that marks an item as a physical GODLY TRANSMOG tool (docs/v3-directives.md §I/§K) — dragged
-     * onto enchanted gear, it opens the deterministic enchant-reorder GUI bound to that piece (it is NOT a
-     * one-shot scroll, so it lives off the {@link #scroll()} consume path). An identity marker, off the hot path.
+     * Physical GODLY TRANSMOG tool (§I/§K). Not consumed, so it lives off the {@link #scroll()} path;
+     * identity marker, off the hot path.
      */
     public NamespacedKey godlyTransmog() {
         return godlyTransmog;

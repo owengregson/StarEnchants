@@ -4,11 +4,9 @@ import engine.selector.SelectorCtx;
 import org.bukkit.Location;
 
 /**
- * Shared centre resolution for the area selectors ({@link AoeSelector},
- * {@link NearestSelector}). The centre is the activation's explicit location (e.g. an
- * AoE centre the engine populated), falling back to the victim's then the actor's
- * location — so an area selector works whether the activation is a combat hit, a
- * block break, or a self-triggered effect.
+ * Centre resolution for area selectors ({@link AoeSelector}, {@link NearestSelector}). Falls back
+ * activation location → victim → actor, so a selector works for a combat hit, a block break, or a
+ * self-triggered effect alike.
  */
 final class Centers {
 

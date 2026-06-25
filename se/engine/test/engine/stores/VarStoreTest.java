@@ -33,7 +33,7 @@ class VarStoreTest {
     void timedVariableEvictsLazilyAtExpiry() {
         store.set(p, "buff", "on", 100L, 40);
         assertEquals("on", store.get(p, "buff", 139L));
-        assertNull(store.get(p, "buff", 140L)); // expiry tick counts as elapsed
+        assertNull(store.get(p, "buff", 140L));
     }
 
     @Test

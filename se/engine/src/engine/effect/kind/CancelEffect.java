@@ -7,10 +7,8 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 
 /**
- * {@code CANCEL} — cancel the Bukkit event that triggered this activation
- * (docs/architecture.md §7). Stateless and paramless; emits a single
- * {@code cancelEvent} intent and never touches the event directly.
- * {@link Affinity#CONTEXT_LOCAL}: it applies on the firing thread.
+ * {@code CANCEL} — cancel the Bukkit event that triggered this activation (docs/architecture.md §7).
+ * Paramless. {@link Affinity#CONTEXT_LOCAL}.
  */
 public final class CancelEffect implements EffectKind {
 

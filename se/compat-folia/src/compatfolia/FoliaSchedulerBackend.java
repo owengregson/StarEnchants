@@ -29,11 +29,9 @@ public final class FoliaSchedulerBackend implements SchedulerBackend {
         this.plugin = plugin;
     }
 
-    // ── Entity-owned ─────────────────────────────────────────────────────────────────────────
-
     @Override
     public void onEntity(Entity entity, Runnable task) {
-        // null retired callback: if the entity is gone before this runs, simply drop it.
+        // null retired-callback: drop the task if the entity is gone before it runs.
         entity.getScheduler().run(plugin, consume(task), null);
     }
 
@@ -48,8 +46,6 @@ public final class FoliaSchedulerBackend implements SchedulerBackend {
                 plugin, consume(task), null, atLeastOne(initialDelayTicks), atLeastOne(periodTicks));
         return handle(t);
     }
-
-    // ── Region-owned ─────────────────────────────────────────────────────────────────────────
 
     @Override
     public void onRegion(Location location, Runnable task) {
@@ -68,8 +64,6 @@ public final class FoliaSchedulerBackend implements SchedulerBackend {
         return handle(t);
     }
 
-    // ── Global-owned ─────────────────────────────────────────────────────────────────────────
-
     @Override
     public void onGlobal(Runnable task) {
         Bukkit.getGlobalRegionScheduler().execute(plugin, task);
@@ -87,14 +81,10 @@ public final class FoliaSchedulerBackend implements SchedulerBackend {
         return handle(t);
     }
 
-    // ── Async ────────────────────────────────────────────────────────────────────────────────
-
     @Override
     public void async(Runnable task) {
         Bukkit.getAsyncScheduler().runNow(plugin, consume(task));
     }
-
-    // ── helpers ──────────────────────────────────────────────────────────────────────────────
 
     /** Adapt a {@code Runnable} to the {@code Consumer<ScheduledTask>} Folia's API expects. */
     private static Consumer<ScheduledTask> consume(Runnable task) {

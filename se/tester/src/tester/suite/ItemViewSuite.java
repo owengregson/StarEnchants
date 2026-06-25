@@ -13,18 +13,9 @@ import org.bukkit.plugin.Plugin;
 import tester.harness.Harness;
 
 /**
- * Live checks for the {@link ItemViewCache} (docs/architecture.md §5.2): the caching policy is unit-
- * tested in {@code se-item}, so this pins the one thing a unit test cannot — that the cache reads the
- * real blob back through a real item's {@code PersistentDataContainer} (the copy-on-write meta the
- * §5.2 design is built around) and keys on content correctly. Player-free and thread-agnostic: an
- * {@code ItemStack}'s PDC is safe to read/write from any thread, so these run inline on the harness.
- *
- * <ul>
- *   <li>{@code itemview.decodeIdentity} — two reads of an unchanged item return the SAME cached view,
- *       and it decodes to exactly what was written (identity over real copy-on-write meta).</li>
- *   <li>{@code itemview.contentChange} — re-enchanting the item changes its blob, so the cache yields
- *       a fresh view rather than serving the stale one.</li>
- * </ul>
+ * Live checks for the {@link ItemViewCache} (docs/architecture.md §5.2): proves the cache reads the real
+ * blob back through an item's {@code PersistentDataContainer} (the copy-on-write meta the §5.2 design is
+ * built around) and keys on content. Thread-agnostic — PDC is safe from any thread — so these run inline.
  */
 public final class ItemViewSuite implements Harness.Scenario {
 
@@ -62,7 +53,7 @@ public final class ItemViewSuite implements Harness.Scenario {
             codec.write(sword, new CombatState(Map.of("sharpness", 1), List.of()));
             ItemView before = cache.of(sword);
 
-            codec.write(sword, new CombatState(Map.of("sharpness", 5), List.of())); // re-enchant in place
+            codec.write(sword, new CombatState(Map.of("sharpness", 5), List.of()));
             ItemView after = cache.of(sword);
 
             if (before == after) {

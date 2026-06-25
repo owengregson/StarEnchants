@@ -46,23 +46,16 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The condition gate, live (docs/architecture.md §3.3, §3.4): proves the runtime FactBuffer is actually
- * POPULATED so a variable-gated enchant fires only when the condition holds — the end-to-end half of
- * v3.1's foundational fix (before it, the buffer was empty and every variable-using condition threw out
- * of gate 7 and was swallowed, so the enchant silently never fired).
- *
- * <p>Two facts, both proven against cow victims (no player-vs-player PvP/peaceful gating):
+ * The condition gate, live (docs/architecture.md §3.3, §3.4): proves the runtime FactBuffer is populated
+ * so a variable-gated enchant fires only when the condition holds (an unpopulated buffer throws out of
+ * gate 7 and the enchant silently never fires). Both facts use cow victims (no PvP/peaceful gating):
  * <ul>
- *   <li><b>victim.health</b> — one {@code LowStrike} enchant (ATTACK, {@code "%victim.health% >= 8"},
- *       chance 100 so only the condition can block) hits a full-health cow (10 ≥ 8 → poisoned) and a cow
- *       pre-damaged to 4 (&lt; 8 → NOT poisoned): proves population AND that the gate discriminates.</li>
- *   <li><b>actor.health</b> — an {@code ActorGate} enchant (ATTACK, {@code "%actor.health% >= 10"}) on a
- *       full-health (20) fake attacker hits a cow and poisons it: proves the actor.health slot populates
- *       and drives a proc (it would have read 0 and not fired before the fix). Covers the fact the three
- *       DEFENSE {@code actor.health} enchants depend on, via the identical direction-blind populate path.</li>
+ *   <li><b>victim.health</b> — LowStrike ({@code "%victim.health% >= 8"}, chance 100) poisons a full cow
+ *       (10 ≥ 8) but not one pre-damaged to 4: proves population AND that the gate discriminates.</li>
+ *   <li><b>actor.health</b> — ActorGate ({@code "%actor.health% >= 10"}) on a full attacker poisons a cow:
+ *       proves the actor.health slot populates; covers the DEFENSE actor.health enchants' shared path.</li>
  * </ul>
- * Each assertion runs on its own victim's entity scheduler, so the reads are region-correct on Folia.
- * Mojang- and spigot-mapped alike (needs the fake-player attacker).
+ * Each assertion runs on its victim's entity scheduler, region-correct on Folia. Needs the fake-player attacker.
  */
 public final class ConditionSuite implements Harness.Scenario {
 
@@ -73,7 +66,7 @@ public final class ConditionSuite implements Harness.Scenario {
               1: { chance: 100, condition: "%victim.health% >= 8", effects: ["POTION:POISON:1:80:@Victim"] }
             """;
 
-    // Gates on a numeric ACTOR fact AND a string VICTIM fact, so one hit proves both slot kinds populate.
+    // Gates on a numeric actor fact AND a string victim fact, so one hit proves both slot kinds populate.
     private static final String ACTOR_GATE = """
             display: ActorGate
             trigger: ATTACK
@@ -169,9 +162,9 @@ public final class ConditionSuite implements Harness.Scenario {
                     int candidates = wornState == null ? -1 : wornState.byTrigger(attackId).length;
                     plugin.getLogger().info("[condition-suite] lowstrike candidates = " + candidates);
 
-                    cowUnmet.setHealth(4.0);            // below the >= 8 threshold (read before the 1.0 hit)
-                    cowMet.damage(1.0, victimAttacker);   // health 10 ≥ 8 → poisoned
-                    cowUnmet.damage(1.0, victimAttacker); // health 4  < 8 → NOT poisoned
+                    cowUnmet.setHealth(4.0);              // below the >= 8 threshold, read before the hit
+                    cowMet.damage(1.0, victimAttacker);   // 10 ≥ 8 → poisoned
+                    cowUnmet.damage(1.0, victimAttacker); // 4 < 8 → not poisoned
 
                     Scheduling.onEntityLater(cowMet, 10L, () -> {
                         h.guard("condition.firesWhenMet", () -> {

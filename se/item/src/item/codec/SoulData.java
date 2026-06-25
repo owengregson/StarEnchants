@@ -3,11 +3,10 @@ package item.codec;
 import java.util.UUID;
 
 /**
- * A soul-gem's on-item state (docs/architecture.md §4.2, §6.3): a stable {@code gemId} (the key the
- * {@code SoulLedger} tracks its in-memory authority under, so two stacks can never share a balance)
- * and the current {@code souls} count. Stored under {@link ItemKeys#soul()}, SEPARATE from the
- * {@link CombatState} blob — souls change on every kill/spend, so keeping them out of the combat
- * blob avoids invalidating the content-hash {@code ItemView} cache (and re-rendering lore) per hit.
+ * A soul-gem's on-item state (§4.2, §6.3): a stable {@code gemId} (the {@code SoulLedger} key, so two
+ * stacks can never share a balance) and the current {@code souls} count. Stored under
+ * {@link ItemKeys#soul()}, separate from the {@link CombatState} blob so per-kill/spend changes don't
+ * invalidate the content-hash {@code ItemView} cache (or re-render lore) per hit.
  *
  * @param gemId the stable per-item gem identity (the ledger key); never {@code null}
  * @param souls the current soul balance ({@code >= 0})
@@ -26,7 +25,6 @@ public record SoulData(UUID gemId, int souls) {
         return new SoulData(gemId, 0);
     }
 
-    /** This gem with a new soul count. */
     public SoulData withSouls(int next) {
         return new SoulData(gemId, next);
     }

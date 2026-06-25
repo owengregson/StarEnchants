@@ -48,17 +48,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The end-to-end combat spine, live (ADR-0014; §3.3, §3.6): a fake player wielding an enchanted weapon
- * hits a victim, and the enchant's effect lands — exercising the WHOLE runtime in one shot, on a real
- * server, on Paper and Folia. The enchant is {@code Venom} (ATTACK, {@code POTION:POISON:1:80:@Victim}),
- * so it also proves the §9 RESOLVER PAIRING: the potion handle is interned at compile time and resolved
- * back to a live {@code PotionEffectType} at runtime through the SAME retained {@code RegistryResolvers}.
- *
- * <p>Flow: compile Venom with a retained resolver → wire the executor + {@link CombatDispatch} with the
- * paired {@link RuntimeHandles} → register {@link CombatListener} → spawn a cow victim and a fake-player
- * attacker holding a Venom sword → resolve the attacker's WornState → {@code victim.damage(1, attacker)}
- * fires a real {@code EntityDamageByEntityEvent} → the listener dispatches → POTION:@Victim routes to the
- * victim's thread → the victim is poisoned. Mojang-mapped only (needs the fake-player attacker).
+ * End-to-end combat spine, live (ADR-0014; §3.3, §3.6): a fake player wielding a Venom sword hits a cow
+ * and the victim is poisoned, exercising the whole runtime on Paper and Folia. Also proves §9 resolver
+ * pairing: the POTION handle interned at compile time resolves back to a live {@code PotionEffectType}
+ * through the SAME retained {@link RegistryResolvers}. Mojang-mapped only (needs the fake-player attacker).
  */
 public final class CombatSuite implements Harness.Scenario {
 
@@ -80,7 +73,7 @@ public final class CombatSuite implements Harness.Scenario {
         h.expect("combat.enchantFiresOnHit");
         h.expect("combat.enchantActivateEventFired");
 
-        // Wire the runtime with a retained resolver so the runtime handle round-trip pairs.
+        // Retained resolver so the compile→runtime handle round-trip pairs.
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
         RuntimeHandles handles = new RuntimeHandles(resolvers);
@@ -111,10 +104,8 @@ public final class CombatSuite implements Harness.Scenario {
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornStateStore worn = new WornStateStore(
                 new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
-        // A probe receives the public EnchantActivateEvent; the executor's activation listener fires it
-        // per proc (the §13 api seam) exactly as the composition root does — resolving the stable key
-        // against the live snapshot. Firing happens on the firing thread (the entity's region on Folia),
-        // so this also proves the event survives a region-thread dispatch.
+        // §13 api seam: the executor fires EnchantActivateEvent per proc, as the composition root does.
+        // Fires on the entity's region thread (Folia), so this also proves region-thread dispatch survives.
         EventProbe probe = new EventProbe();
         plugin.getServer().getPluginManager().registerEvents(probe, plugin);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
@@ -143,11 +134,9 @@ public final class CombatSuite implements Harness.Scenario {
         Scheduling.onGlobal(() -> {
             world.setChunkForceLoaded(cx, cz, true);
             Scheduling.onRegion(at, () -> {
-                // Attacker = fake player (must carry a WornState). Victim = a passive, non-undead mob
-                // (a cow): a normal mob takes the standard LivingEntity hurt path, so a programmatic
-                // damage() fires a real EntityDamageByEntityEvent — unlike a player victim (PvP/peaceful
-                // gating rejects the hit before the event) or an armour stand (custom hurt handling).
-                // A cow is not undead, so POISON actually applies and is observable.
+                // Cow victim: a normal mob's hurt path fires a real EntityDamageByEntityEvent (a player
+                // victim is gated by PvP/peaceful; an armour stand has custom hurt handling), and it's not
+                // undead so POISON actually applies and is observable.
                 Player attacker;
                 LivingEntity victim;
                 try {
@@ -164,7 +153,7 @@ public final class CombatSuite implements Harness.Scenario {
                     WornState wornState = worn.get(attacker.getUniqueId());
                     int candidates = wornState == null ? -1 : wornState.byTrigger(attackId).length;
                     plugin.getLogger().info("[combat-suite] venom candidates for attacker = " + candidates);
-                    // Same spawn location ⇒ same region as the victim; the hit fires a real EDBE.
+                    // Same spawn location, so same region as the victim; the hit fires a real EDBE.
                     victim.damage(1.0, attacker);
                     Scheduling.onEntityLater(victim, 10L, () -> {
                         h.guard("combat.enchantFiresOnHit", () -> {
@@ -177,8 +166,8 @@ public final class CombatSuite implements Harness.Scenario {
                                         + " but victim not poisoned — EDBE/dispatch issue");
                             }
                         });
-                        // The proc fired EnchantActivateEvent synchronously during victim.damage(...),
-                        // so by this delayed tick the probe has already received it (one proc → one event).
+                        // The proc fired the event synchronously during victim.damage(...), so by this
+                        // delayed tick the probe has it (one proc → one event).
                         h.guard("combat.enchantActivateEventFired", () -> {
                             if (probe.count() != 1) {
                                 throw new IllegalStateException("expected exactly 1 EnchantActivateEvent, got "
@@ -207,9 +196,8 @@ public final class CombatSuite implements Harness.Scenario {
     }
 
     /**
-     * A Bukkit listener that records {@link EnchantActivateEvent} deliveries — proves the public api event
-     * actually reaches a registered handler end-to-end. Fields are concurrent/volatile because on Folia the
-     * event fires on the activating entity's region thread, which may differ from the asserting thread.
+     * Records {@link EnchantActivateEvent} deliveries. Fields are concurrent/volatile: on Folia the event
+     * fires on the activating entity's region thread, which may differ from the asserting thread.
      */
     private static final class EventProbe implements org.bukkit.event.Listener {
         private final AtomicInteger count = new AtomicInteger();

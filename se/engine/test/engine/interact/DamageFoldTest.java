@@ -87,7 +87,7 @@ class DamageFoldTest {
         b.addReduction(0.2);
         b.addOutgoing(0.1);
 
-        assertEquals(a.apply(8.0), b.apply(8.0), EPS); // same inputs, different order → same result
+        assertEquals(a.apply(8.0), b.apply(8.0), EPS);
     }
 
     @Test

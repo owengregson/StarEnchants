@@ -34,21 +34,18 @@ import platform.sched.Scheduling;
 import schema.spec.Args;
 
 /**
- * Tests for the {@link AbilityExecutor} — the gate-walk + effect-execution glue (docs/architecture.md
- * §3.3, §3.5). These wire the REAL engine components (effect/selector registries, the gate pipeline,
- * the {@code IgniteEffect}/{@code VictimSelector}/{@code SelfSelector} kinds, and a real
- * {@link DispatchSink}) — only the Bukkit entities are mocked — so the selector→context→effect→sink
- * wiring is exercised end to end without a server. No live matrix run is needed: the executor adds no
- * Bukkit/version/thread surface of its own (the dispatcher's routing is already matrix-verified, the
- * selectors are pure, and the pipeline is unit-tested elsewhere).
+ * {@link AbilityExecutor} — the gate-walk + effect-execution glue (docs/architecture.md §3.3, §3.5). Wires
+ * REAL engine components (registries, pipeline, real kinds, a real {@link DispatchSink}) and mocks only the
+ * Bukkit entities, exercising selector→context→effect→sink end to end without a server. Why no live matrix
+ * run: the executor adds no Bukkit/version/thread surface of its own — dispatcher routing is matrix-verified,
+ * selectors are pure, the pipeline is unit-tested elsewhere.
  */
 class AbilityExecutorTest {
 
     private static final UUID ACTOR = UUID.randomUUID();
     private static final int TRIGGER = 0;
-    // This test only ever activates ability id 0; the index maps that dense id to its compiled per-level
-    // stable key, which the executor reduces to the BASE key (enchants/test) for the ActivationListener
-    // since the fixtures build level-1 abilities (the §13 api seam).
+    // Maps dense id 0 to its per-level key; the executor reduces that to the BASE key (enchants/test) for
+    // the ActivationListener (§13 seam), since the fixtures all build level-1 abilities.
     private static final StableKeyIndex KEYS = new StableKeyIndex(java.util.List.of("enchants/test/1"));
 
     private RuntimeHandles handles;
@@ -67,7 +64,6 @@ class AbilityExecutorTest {
         executor = new AbilityExecutor(effects, selectors, pipeline, AreaScan.NONE);
     }
 
-    /** IGNITE:@Victim — the activated ability resolves the victim and ignites it through the sink. */
     @Test
     void activatedAbilityRunsItsEffectOnTheResolvedTarget() {
         LivingEntity victim = mock(LivingEntity.class);
@@ -81,7 +77,6 @@ class AbilityExecutorTest {
         verify(victim).setFireTicks(60);
     }
 
-    /** An ability that does not fire on this trigger never runs its effect. */
     @Test
     void nonMatchingTriggerDoesNotActivate() {
         LivingEntity victim = mock(LivingEntity.class);
@@ -98,7 +93,7 @@ class AbilityExecutorTest {
         verifyNoInteractions(victim);
     }
 
-    /** Affinity no longer routes the Sink: an effect applies on flush regardless of its declared affinity. */
+    /** Affinity is not a Sink routing key: an effect applies on flush regardless of its declared affinity. */
     @Test
     void effectAppliesOnFlushRegardlessOfAffinity() {
         LivingEntity victim = mock(LivingEntity.class);
@@ -110,7 +105,6 @@ class AbilityExecutorTest {
         verify(victim).setFireTicks(40);
     }
 
-    /** @Self resolves to the actor, so the effect targets the firing player. */
     @Test
     void selfSelectorResolvesToTheActor() {
         Player actor = mock(Player.class);
@@ -124,10 +118,9 @@ class AbilityExecutorTest {
     }
 
     /**
-     * The activation listener is invoked once per ACTIVATED ability (the public-event seam, §13) with the
-     * BASE content key: the executor resolves the ability's compiled per-level key against the run's own
-     * index, then strips the {@code /<level>} suffix — so a level-1 {@code enchants/test/1} surfaces as
-     * {@code enchants/test}, never a dense id re-resolved against a possibly-swapped live snapshot.
+     * Listener (public-event seam, §13) fires once per ACTIVATED ability with the BASE key: resolve the
+     * per-level key against the run's OWN index, then strip {@code /<level>} — never re-resolve a dense id
+     * against the live (possibly swapped) snapshot, which a reload could mismatch.
      */
     @Test
     void notifiesTheActivationListenerWithTheBaseStableKey() {
@@ -166,7 +159,7 @@ class AbilityExecutorTest {
         assertEquals(java.util.Collections.singletonList(null), seen);
     }
 
-    /** A bad effect head is skipped; the good effect on the same ability still runs (per-effect isolation). */
+    /** Per-effect isolation: an unresolvable effect head is skipped, not propagated to abort its siblings. */
     @Test
     void aFailingEffectDoesNotAbortTheOthers() {
         LivingEntity victim = mock(LivingEntity.class);
@@ -185,7 +178,6 @@ class AbilityExecutorTest {
         verify(victim).setFireTicks(60);
     }
 
-    /** Out-of-range candidate ids are skipped defensively rather than throwing. */
     @Test
     void outOfRangeCandidateIdsAreSkipped() {
         LivingEntity victim = mock(LivingEntity.class);
@@ -227,8 +219,6 @@ class AbilityExecutorTest {
         recording.runDelayed();
         verify(victim).setFireTicks(60);                       // ignites after the delay
     }
-
-    // ── fixtures ─────────────────────────────────────────────────────────────────────────────────
 
     private static Activation activation() {
         return Activation.builder(ACTOR, 0, TRIGGER, 0L).build(); // world 0, trigger 0, tick 0

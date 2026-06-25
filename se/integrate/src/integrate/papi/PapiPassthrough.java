@@ -5,17 +5,15 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.entity.Player;
 
 /**
- * PlaceholderAPI <em>passthrough</em> (docs/decisions/0027): resolves other plugins' {@code %…%} placeholders
- * inside StarEnchants player-facing chat messages, so an admin can write e.g. {@code %vault_eco_balance%} in a
- * lang.yml message and have it filled.
+ * PlaceholderAPI passthrough (docs/decisions/0027): fills other plugins' {@code %…%} placeholders inside
+ * StarEnchants player-facing chat messages.
  *
- * <p>Bundled but SOFT: this class references the PAPI API, so {@link integrate.Integrations} only loads it
- * (via {@link #resolver()}) when PlaceholderAPI is present — otherwise the composition root installs an
- * identity resolver and StarEnchants never touches PAPI.
+ * <p>Bundled but SOFT: this class references the PAPI API, so {@link integrate.Integrations} loads it (via
+ * {@link #resolver()}) only when PlaceholderAPI is present — otherwise an identity resolver is installed and
+ * StarEnchants never touches PAPI.
  *
- * <p>Scope is deliberately chat messages only. Item lore and menu text render from immutable state and are
- * cached on a content hash (see the item-data-model invariant), so injecting live, per-player placeholders
- * there would break that cache; lore passthrough is intentionally out of scope.
+ * <p>Chat messages only by design: lore/menu text renders from immutable state cached on a content hash (the
+ * item-data-model invariant), so live per-player placeholders there would break that cache.
  */
 public final class PapiPassthrough {
 

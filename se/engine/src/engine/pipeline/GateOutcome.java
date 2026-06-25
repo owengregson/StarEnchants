@@ -1,13 +1,10 @@
 package engine.pipeline;
 
 /**
- * The result of running an ability through the activation pipeline
- * (docs/architecture.md §3.3): either it activated, or it stopped at a specific gate.
- * The stop reason names the gate so a runtime trace / {@code /se problems} can explain
- * why an ability did or did not fire, and tests can assert the exact gate.
- *
- * <p>The order of the failure constants mirrors the gate order, so the enum reads as the
- * pipeline does.
+ * The result of running an ability through the activation pipeline (docs/architecture.md §3.3): either
+ * it activated, or it stopped at a specific gate. Naming the stop gate lets a runtime trace /
+ * {@code /se problems} explain why an ability fired or not, and lets tests assert the exact gate.
+ * Constants are ordered to mirror the gate sequence.
  */
 public enum GateOutcome {
 
@@ -44,7 +41,6 @@ public enum GateOutcome {
     /** Activated: every gate passed; souls were debited and cooldowns armed (gates 10–11). */
     ACTIVATED;
 
-    /** @return {@code true} only for {@link #ACTIVATED}. */
     public boolean activated() {
         return this == ACTIVATED;
     }

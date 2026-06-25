@@ -25,12 +25,11 @@ import org.bukkit.inventory.PlayerInventory;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit-pins the runtime half of the condition variable system: mapping a live {@link ActivationContext}
- * to the dense {@link FactBuffer} slots the compiler lowered against. Slots are resolved from the SAME
- * {@link BuiltinVars} vocabulary the populator uses, so this also guards against name/kind drift between
- * the populator's extractor table and the declared vocabulary. The Folia cross-region behaviour (a
- * wrong-region read fails hard, leaving that side defaulted) is pinned against a synthetic
- * {@link RuntimeException}; the end-to-end gate is proven live in {@code ConditionSuite}.
+ * Pins the runtime half of the condition variable system: mapping a live {@link ActivationContext} to the
+ * dense {@link FactBuffer} slots the compiler lowered against. Slots resolve from the SAME {@link BuiltinVars}
+ * vocabulary the populator uses, so this also guards against name/kind drift between the extractor table and
+ * the declared vocabulary. Folia cross-region reads (which fail hard, defaulting that side) are pinned with a
+ * synthetic {@link RuntimeException}; the end-to-end gate is proven live in {@code ConditionSuite}.
  */
 class FactPopulatorTest {
 
@@ -225,7 +224,7 @@ class FactPopulatorTest {
     void vocabularyAcceptsMoreThan64Flags() {
         VarVocabulary.Builder b = VarVocabulary.builder();
         for (int i = 0; i < 80; i++) {
-            b.flag("f" + i); // 80 > the old 64-flag ceiling, under the new 128
+            b.flag("f" + i); // 80 flags: exceeds one 64-bit word, within the 128-flag ceiling
         }
         assertEquals(80, b.build().flagSlots());
     }

@@ -47,13 +47,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The gate-2 protection seam, live (docs/architecture.md §2, §3.3): the SAME Venom ATTACK enchant is
- * blocked at a "protected" block and allowed one block over, driven by a {@link ProtectionService}
- * with a fake {@link ProtectionProvider} that denies a single block. This proves the whole protection
- * chain end-to-end on a real Paper + Folia server — the firing {@code Location} is captured on the
- * {@code Activation}, the gate-2 {@code Guard} consults the composed service, and a deny stops the
- * effect from ever landing (no poison) while an allow lets it through (poison) — without needing a
- * real land-protection plugin (none exist on the matrix). Mojang-mapped only (needs the fake attacker).
+ * Gate-2 protection seam, live (docs/architecture.md §2, §3.3): the same Venom ATTACK enchant is blocked
+ * at a protected block and allowed one block over, via a fake {@link ProtectionProvider} that denies a
+ * single block (no real land-protection plugin exists on the matrix). Mojang-mapped only (fake attacker).
  */
 public final class ProtectionSuite implements Harness.Scenario {
 
@@ -109,8 +105,7 @@ public final class ProtectionSuite implements Harness.Scenario {
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
-        // The protected block is where the FIRST victim stands; the second victim stands a few blocks
-        // over (same chunk, so both load together). The provider denies exactly the protected block.
+        // Both victims in the spawn chunk so they load together; the provider denies only the protected block.
         Location protectedAt = at.clone();
         Location allowedAt = at.clone().add(4, 0, 0);
         int protX = protectedAt.getBlockX();
@@ -119,8 +114,7 @@ public final class ProtectionSuite implements Harness.Scenario {
         ProtectionProvider denyProtectedBlock = (actor, where) ->
                 !(where.getBlockX() == protX && where.getBlockZ() == protZ);
         ProtectionService protection = new ProtectionService(List.of(denyProtectedBlock));
-        // Identical shape to the bootstrap's gate-2 guard (UUID-based, reads the firing location) — so
-        // this exercises the real composition-root wiring, not a test-only shortcut.
+        // Mirrors the bootstrap's gate-2 guard so this exercises real wiring, not a test-only shortcut.
         ActivationPipeline.Guard guard = (ability, activation) -> {
             Location where = activation.location();
             return where == null || protection.allows(activation.actor(), where);
@@ -158,10 +152,9 @@ public final class ProtectionSuite implements Harness.Scenario {
                 Scheduling.onEntity(attacker, () -> {
                     attacker.getInventory().setItemInMainHand(sword);
                     worn.refresh(attacker, library.snapshot());
-                    var wornState = worn.get(attacker.getUniqueId()); // log-only sanity on candidate resolution
+                    var wornState = worn.get(attacker.getUniqueId());
                     plugin.getLogger().info("[protection-suite] venom candidates = "
                             + (wornState == null ? -1 : wornState.byTrigger(attackId).length));
-                    // Same region as both victims (spawn chunk) — each hit fires a real EDBE.
                     protectedVictim.damage(1.0, attacker);
                     allowedVictim.damage(1.0, attacker);
                     Scheduling.onEntityLater(allowedVictim, 10L, () -> {

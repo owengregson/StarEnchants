@@ -140,11 +140,10 @@ class EraseStageTest {
         Ability a = erased.abilities()[0];
         Ability b = erased.abilities()[1];
 
-        // Same suppress key across two abilities -> same id.
         assertEquals(a.suppressKey(), b.suppressKey());
         assertTrue(a.suppressKey() >= 0);
 
-        // Same group scope -> same id; absent scopes -> -1.
+        // absent scopes intern to -1, not 0 (0 is a valid id)
         assertEquals(a.cdScopeGroup(), b.cdScopeGroup());
         assertTrue(a.cdScopeEnchant() >= 0);
         assertTrue(a.cdScopeType() >= 0);
@@ -158,8 +157,8 @@ class EraseStageTest {
 
     @Test
     void suppressEffectKeyInternsToTheSameScopeIdItsTargetAbilityLowersTo() {
-        // SUPPRESS:GROUP:lifesteal — its key must intern to the SAME cooldownScopes id the
-        // suppressed abilities lower their group scope to, so gate 5 matches them (the bridge invariant).
+        // bridge invariant: a SUPPRESS:GROUP:lifesteal key must intern to the SAME
+        // cooldownScopes id its targets lower their group scope to, so gate 5 matches
         Args suppressArgs = Args.empty()
                 .with("scope", "GROUP").with("key", "lifesteal").with("duration", 200L);
         CompiledEffect suppress = new CompiledEffect(
@@ -180,8 +179,7 @@ class EraseStageTest {
         CompiledEffect erasedSuppress = suppressorAbility.effects()[0];
 
         assertEquals(1L, erasedSuppress.args().lng("scope")); // GROUP → kind 1
-        assertEquals(200L, erasedSuppress.args().lng("duration")); // untouched
-        // the bridge: SUPPRESS key == the victim's group scope id == the cooldownScopes id of "lifesteal"
+        assertEquals(200L, erasedSuppress.args().lng("duration"));
         assertEquals((long) victimAbility.cdScopeGroup(), erasedSuppress.args().lng("key"));
         assertEquals(erased.interners().cooldownScopes().idOf("lifesteal"), victimAbility.cdScopeGroup());
     }
@@ -194,16 +192,15 @@ class EraseStageTest {
                 lowered("other", 2),
                 lowered("dup", 3)), d);
 
-        // Three lowered, one dropped -> two kept.
         assertEquals(2, erased.abilities().length);
         assertTrue(d.hasErrors());
         assertEquals("E_DUP_KEY", d.all().get(0).code());
 
-        // Dense ids stay contiguous over the kept abilities.
+        // dense ids stay contiguous across the kept abilities
         assertEquals(0, erased.abilities()[0].id());
         assertEquals(1, erased.abilities()[1].id());
 
-        // The dropped duplicate's defId is not in the source map.
+        // dropped duplicate's defId is absent from the source map
         assertNotNull(erased.sourceMap().lookup(1));
         assertNotNull(erased.sourceMap().lookup(2));
         assertNull(erased.sourceMap().lookup(3));

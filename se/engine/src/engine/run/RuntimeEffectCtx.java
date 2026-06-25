@@ -13,18 +13,15 @@ import org.bukkit.entity.Player;
 import schema.spec.Args;
 
 /**
- * The concrete {@link EffectCtx} the {@link AbilityExecutor} builds per effect: the effect's typed
- * {@link Args}, the activation's actors (from the {@link ActivationContext}), the selector targets
- * already resolved into each declared slot, and the ability level (docs/architecture.md §3.5, §7).
- * An effect reads facts from here and emits results through the {@code Sink}; there is no parsing and
- * no entity touch on the hot path.
+ * The concrete {@link EffectCtx} the {@link AbilityExecutor} builds per effect (docs/architecture.md
+ * §3.5, §7): typed {@link Args}, the activation's actors, the resolved per-slot targets, and the level.
+ * No parsing, no entity touch on the hot path.
  *
- * <p>A numeric argument may be an <em>expression</em> over {@code %variables%} (a compiled {@link NumExpr},
- * docs/architecture.md §3.4): {@link #dbl}/{@link #integer}/{@link #lng} evaluate it against the activation's
- * {@link FactBuffer} on read, so e.g. {@code DAMAGE_MOD:attack:add:%combo% * 10} scales per hit. A constant
- * argument is the parsed {@link Double}/{@link Long} as before, read with no work. The fact buffer is the
- * one populated for this activation's condition gate; it is {@code null} only on the lifecycle path
- * (HELD/PASSIVE start/stop), where an expression argument has no combat facts and evaluates to {@code 0}.
+ * <p>A numeric argument may be a compiled {@link NumExpr} over {@code %variables%} (§3.4):
+ * {@link #dbl}/{@link #integer}/{@link #lng} evaluate it against the activation's {@link FactBuffer} on
+ * read (so {@code DAMAGE_MOD:attack:add:%combo% * 10} scales per hit); a constant is read with no work.
+ * {@code facts} is {@code null} only on the lifecycle path (HELD/PASSIVE start/stop), where an expression
+ * has no combat facts and evaluates to {@code 0}.
  */
 final class RuntimeEffectCtx implements EffectCtx {
 

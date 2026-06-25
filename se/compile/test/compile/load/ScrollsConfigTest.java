@@ -14,7 +14,6 @@ class ScrollsConfigTest {
         ScrollsConfig d = ScrollsConfig.defaults();
         assertTrue(d.black().successChance() >= 0 && d.black().successChance() <= 100);
         assertTrue(d.randomizer().minPercent() <= d.randomizer().maxPercent());
-        // The survival/cosmetic scrolls are present with sane bounds.
         assertTrue(d.holy().saveChance() >= 0 && d.holy().saveChance() <= 100);
         assertTrue(d.transmog().nameSuffix() != null);
         assertTrue(d.nametag().blacklist() != null);
@@ -34,7 +33,7 @@ class ScrollsConfigTest {
 
     @Test
     void randomizerOrdersAndClampsRange() {
-        // Reversed + out-of-range bounds are clamped to [0,100] and ordered low..high.
+        // reversed, out-of-range bounds clamp to [0,100] and reorder low..high
         ScrollsConfig.Randomizer r = new ScrollsConfig.Randomizer("M", "n", List.of(), 120, -5);
         assertEquals(0, r.minPercent());
         assertEquals(100, r.maxPercent());

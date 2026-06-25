@@ -32,10 +32,10 @@ import org.junit.jupiter.api.Test;
  * changed only the authoring surface, never behaviour. Tiers/folders are metadata and (by design) do
  * not change the stable key, so the two snapshots must match exactly.
  *
- * <p>Gated on two system properties so it is a deliberate local verification, never a CI test:
- * {@code -Dse.equiv.old=<v1 dir> -Dse.equiv.new=<v2 dir>}. A single shared, deterministically-interning
- * resolver is used for BOTH loads so a handle token (potion/sound/material name) interns to the same id
- * in each — meaning a CHANGED token surfaces as an arg mismatch rather than being masked.
+ * <p>Gated on {@code -Dse.equiv.old=<v1 dir> -Dse.equiv.new=<v2 dir>} so it is a deliberate local
+ * verification, never CI. One shared deterministically-interning resolver loads BOTH so a handle token
+ * (potion/sound/material) interns to the same id in each — a CHANGED token surfaces as an arg mismatch
+ * rather than being masked.
  */
 class CatalogEquivalenceTest {
 

@@ -7,9 +7,8 @@ import org.bukkit.entity.LivingEntity;
 import java.util.List;
 
 /**
- * {@code @Attacker} — the entity that damaged the activator (the aggressor on an
- * incoming hit), or no target when the activation is not an incoming hit
- * (docs/architecture.md §7). The defender's counter-attack target.
+ * {@code @Attacker} — the entity that damaged the activator, or no target unless this is an incoming hit
+ * (docs/architecture.md §7).
  */
 public final class AttackerSelector implements SelectorKind {
 

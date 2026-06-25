@@ -12,18 +12,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import tester.harness.Harness;
 
 /**
- * Live checks for lore rendering from item state (docs/architecture.md §4.2). The line-building is
- * pure and unit-tested; what only a real server can prove is that {@code ItemMeta.setLore} accepts
- * the legacy §-coded lines and that {@code getLore} reads them back IDENTICALLY — and that they
- * survive serialization unchanged <em>across the spigot&rarr;mojang mapping flip</em> (a version
- * that rewrote legacy codes through a component layer would corrupt the round-trip). This suite is
- * item-only (no fake player), so it runs across the WHOLE range including the spigot-mapped floor.
- *
- * <ul>
- *   <li>{@code item.render.lore} — render state onto a real item, read the lore straight back.</li>
- *   <li>{@code item.render.persist} — render, serialize()&rarr;deserialize(), read back identical.</li>
- *   <li>{@code item.render.empty} — rendering empty state clears the managed lore.</li>
- * </ul>
+ * Lore rendering from item state, live (docs/architecture.md §4.2). Only a real server proves that legacy
+ * §-coded lines survive {@code setLore}/{@code getLore} and serialization round-trips identically across the
+ * spigot&rarr;mojang mapping flip (a version routing legacy codes through a component layer would corrupt
+ * them). Item-only (no fake player), so it runs the whole range including the spigot-mapped floor.
  */
 public final class RenderSuite implements Harness.Scenario {
 
@@ -55,8 +47,8 @@ public final class RenderSuite implements Harness.Scenario {
 
         h.guard("item.render.empty", () -> {
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-            renderer.apply(sword, venom); // first give it managed lore
-            renderer.apply(sword, CombatState.EMPTY); // then clear it from empty state
+            renderer.apply(sword, venom);
+            renderer.apply(sword, CombatState.EMPTY);
             List<String> lore = loreOf(sword);
             if (lore != null && !lore.isEmpty()) {
                 throw new IllegalStateException("empty state did not clear the lore: " + lore);

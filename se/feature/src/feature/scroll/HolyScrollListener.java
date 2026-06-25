@@ -8,11 +8,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 /**
- * The holy / death scroll death hook (docs/v3-directives.md §I): on a player death, a carried holy scroll
- * has a chance to keep their items + levels. Bukkit-thin glue — the scan/roll/consume is in
- * {@link HolyScrollService}; this applies the keep flags + clears drops on a save. Respects an existing
- * keepInventory gamerule (then the scroll is neither needed nor spent). Folia-correct: the event fires on
- * the dying player's own region thread.
+ * Holy/death scroll death hook (docs/v3-directives.md §I); scan/roll/consume lives in
+ * {@link HolyScrollService}. Respects an existing keepInventory gamerule (the scroll is then neither
+ * needed nor spent). Folia-correct: the event fires on the dying player's own region thread.
  */
 public final class HolyScrollListener implements Listener {
 

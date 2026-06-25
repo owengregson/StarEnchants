@@ -9,9 +9,8 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code @Trench{radius}} — the square of block locations in the plane PERPENDICULAR to the activator's
- * facing, centred on the activation block (docs/v3-directives.md §A; {@code radius=1} → a 3×3 face, the
- * mining trench). Pure shape computation; the consuming effect breaks/sets the resolved locations.
+ * {@code @Trench{radius}} — square of blocks in the plane PERPENDICULAR to the actor's facing, centred on
+ * the activation block (docs/v3-directives.md §A; {@code radius=1} → 3×3). Pure shape computation.
  */
 public final class TrenchSelector implements SelectorKind {
 

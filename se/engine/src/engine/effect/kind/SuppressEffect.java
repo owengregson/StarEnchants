@@ -12,15 +12,12 @@ import schema.spec.D;
 
 /**
  * {@code SUPPRESS} — temporarily disable a target player's enchant / group / type for a span of ticks
- * (docs/v3-directives.md §C, covering a Cosmic Enchants-style DISABLE_ENCHANT / DISABLE_GROUP / DISABLE_TYPE). {@code scope}
- * selects which identifier {@code key} names, and {@code key} is the enchant base key, group, or type the
- * suppressed abilities lower their cooldown-scope to — so the suppression keys the SAME interned scope id
- * gate 5 reads (the bridge invariant). Default target is the {@link T#VICTIM combat victim} (an attacker
- * silencing the defender); {@code @Self} silences the activator.
+ * (docs/v3-directives.md §C). {@code scope} selects what {@code key} names; the suppression keys the SAME
+ * interned scope id gate 5 reads (the bridge invariant). Default target is the {@link T#VICTIM combat
+ * victim} (an attacker silencing the defender).
  *
- * <p>The {@code key} is interned into the cooldown-scope namespace at compile time (the {@code EraseStage}),
- * and {@code scope} to its kind int — so {@code run} reads both as ints. {@link Affinity#CONTEXT_LOCAL}:
- * per-player in-memory state, no world mutation (the sink writes the concurrent suppression store).
+ * <p>{@code key} is interned into the cooldown-scope namespace at compile time (the {@code EraseStage}) and
+ * {@code scope} to its kind int, so {@code run} reads both as ints. {@link Affinity#CONTEXT_LOCAL}.
  */
 public final class SuppressEffect implements EffectKind {
 
