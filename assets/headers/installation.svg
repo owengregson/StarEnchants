@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="286" height="72" viewBox="0 0 286 72" role="img" aria-label="Installation">
+  <defs>
+    <linearGradient id="pill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFD9EC"></stop><stop offset="1" stop-color="#EAD9FF"></stop>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF9FCF"></stop><stop offset="1" stop-color="#B98CFF"></stop>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#B98CFF" flood-opacity="0.22"></feDropShadow>
+    </filter>
+  </defs>
+  <rect x="6" y="8" width="272" height="56" rx="28" fill="url(#pill)" filter="url(#sh)"></rect>
+  <rect x="18" y="16" width="40" height="40" rx="13" fill="url(#chip)"></rect>
+  <g transform="translate(27.00 25.00) scale(0.9167)"><path d="M12 3v12M7 11l5 5 5-5M5 21h14" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g>
+  <text x="72" y="37" font-family="&#39;Trebuchet MS&#39;,&#39;Segoe UI&#39;,system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="25" font-weight="700" fill="#5B3E8E" dominant-baseline="central">Installation</text>
+</svg>

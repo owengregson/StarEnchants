@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="24" viewBox="0 0 220 24" role="img" aria-label="divider">
+  <path d="M0 12h78" stroke="#E6D6F5" stroke-width="2" stroke-linecap="round"></path>
+  <path d="M220 12h-78" stroke="#E6D6F5" stroke-width="2" stroke-linecap="round"></path>
+  <path d="M110 3.5c.5 3.6 2 5.1 5.6 5.6-3.6.5-5.1 2-5.6 5.6-.5-3.6-2-5.1-5.6-5.6 3.6-.5 5.1-2 5.6-5.6Z" fill="#C79BFF" transform="translate(0 3)"></path>
+  <path d="M96 9.5c.3 2 1.1 2.8 3.1 3.1-2 .3-2.8 1.1-3.1 3.1-.3-2-1.1-2.8-3.1-3.1 2-.3 2.8-1.1 3.1-3.1Z" fill="#FFC75A"></path>
+  <path d="M124 9.5c.3 2 1.1 2.8 3.1 3.1-2 .3-2.8 1.1-3.1 3.1-.3-2-1.1-2.8-3.1-3.1 2-.3 2.8-1.1 3.1-3.1Z" fill="#FF9FCF"></path>
+</svg>
