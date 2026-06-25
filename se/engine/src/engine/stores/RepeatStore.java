@@ -9,8 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-player repeating-task handles: a player &rarr; (ability id &rarr; opaque task handle)
- * table (docs/architecture.md §5.4). New in StarEnchants — backs AE's {@code RepeatingTrigger}
- * and the soul-drain timers ({@code DRAIN_SOULS_CONSTANT}, dead in EE; §6), which schedule one
+ * table (docs/architecture.md §5.4). New in StarEnchants — backs a Cosmic Enchants-style {@code RepeatingTrigger}
+ * and the soul-drain timers ({@code DRAIN_SOULS_CONSTANT}, dead in a Cosmic Enchants-style plugin; §6), which schedule one
  * recurring task per active {@code (player, ability)} pair.
  *
  * <p>The handle type {@code H} is the platform's scheduled-task handle (Paper's
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Concurrent and UUID-keyed for Folia (any region thread may arm or disarm a player's repeats),
  * and self-bounding: {@link #put} replaces — never accumulates — the handle for an ability, so at
  * most one live task exists per {@code (player, ability)}; the returned previous handle is the
- * caller's signal to cancel the task it just superseded (otherwise it leaks, like the EE/EA timers
+ * caller's signal to cancel the task it just superseded (otherwise it leaks, like the Cosmic Enchants-style timers
  * neither original tears down). Drained on quit ({@link #removeAll}) and on disable
  * ({@link #removeEverything}).
  *

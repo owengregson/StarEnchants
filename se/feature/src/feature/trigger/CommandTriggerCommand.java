@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 /**
  * The configurable standalone command that fires the §B {@code COMMAND} trigger (docs/v3-directives.md §B,
- * ADR-0022). EE lets a server bind a custom command (e.g. {@code /cast}) that activates a player's
+ * ADR-0022). A Cosmic Enchants-style plugin lets a server bind a custom command (e.g. {@code /cast}) that activates a player's
  * COMMAND-type enchants; this is that command. Its name/description come from {@code config.yml}
  * ({@code command-trigger.*}) and it is registered once at boot through the server command map, so it works
  * even though the name is dynamic (not declarable in {@code plugin.yml}).

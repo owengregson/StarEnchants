@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Mock-host smoke tests for the EE exotic-effect ports (REMOVE_ARMOR / TELEBLOCK / IMMUNE / SMELT /
+ * Mock-host smoke tests for the Cosmic Enchants exotic-effect ports (REMOVE_ARMOR / TELEBLOCK / IMMUNE / SMELT /
  * TELEPORT_DROPS / SEEK): each emits exactly its one intent through the {@link Sink} and touches no entity
  * directly (the {@link Sink} owns the thread hop). The combat-flag/inline-read-back behaviour itself is
  * verified live in the integration suites; this pins the effect→sink wiring.

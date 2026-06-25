@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Pure tests for soul-gem lore rendering + the configurable economy knobs — no Bukkit. Pins the
  * {@code {AMOUNT}} / {@code {SOUL-COLOR}} placeholder substitution (lore is rendered from state, never
- * parsed back), the now-CONFIGURABLE soul-colour tiers ({@link SoulGemConfig#colorFor}, EE hard-coded
+ * parsed back), the now-CONFIGURABLE soul-colour tiers ({@link SoulGemConfig#colorFor}, a Cosmic Enchants-style plugin hard-coded
  * these), and the per-mob deposit resolution ({@link SoulGemConfig#soulsFor}). Returned lore lines stay
  * {@code &}-coded — the {@code ItemFactory} colours them.
  */

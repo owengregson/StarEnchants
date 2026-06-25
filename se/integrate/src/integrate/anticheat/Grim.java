@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 /**
- * GrimAC compatibility (docs/decisions/0027) — the {@code Mental + StarEnchants + GrimAC} combo in
+ * GrimAC compatibility (docs/decisions/0027) — the {@code packet/anticheat reference plugin + StarEnchants + GrimAC} combo in
  * particular. Grim is a prediction-based anti-cheat with no per-action exemption (by design it uses setbacks,
  * not exemptions); blunt check-disabling would weaken it. Instead this is <em>surgical</em>: it subscribes to
  * Grim's own {@code FlagEvent} through the GrimAPI {@code EventBus} and cancels a flag <strong>only</strong>
@@ -19,7 +19,7 @@ import org.bukkit.plugin.Plugin;
  * check stays fully active.
  *
  * <p><b>Why this shape.</b> SE applies velocity/teleport through the server events Grim already predicts, and
- * the Mental+SE knockback combo delivers its final vector through Mental's authoritative pipeline (ADR 0026)
+ * that reference plugin's knockback combo with SE delivers its final vector through that plugin's authoritative pipeline (ADR 0026)
  * that Grim verifies against — so most motion needs nothing. This catches the residual edge (a
  * {@code KNOCKBACK_CONTROL}-corrected pre-delivered knockback, a sudden engine launch/teleport) where
  * prediction can briefly disagree.

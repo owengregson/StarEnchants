@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * The combat-relevant on-item state (docs/architecture.md §4.2, §5.1): which enchant definitions an
  * item carries (by <em>stable string key</em> &rarr; level), which crystal definitions are applied
- * (a LIST of stable keys — crystals stack, fixing EA's last-of-type collapse), which armour-set the
+ * (a LIST of stable keys — crystals stack, fixing a Cosmic Enchants-style last-of-type collapse), which armour-set the
  * item belongs to ({@code setKey}, or {@code null}), and whether it is an <em>omni</em> wildcard
  * piece (counts toward any partially-worn set, §6.6). This is the record decoded on the combat hot
  * path; identity/economy state (scrolls, dust, crates) lives in a separate record.

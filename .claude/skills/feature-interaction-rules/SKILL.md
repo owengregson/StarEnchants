@@ -1,6 +1,6 @@
 ---
 name: feature-interaction-rules
-description: Use when two or more features interact — damage/reduction stacking, DISABLE_ENCHANT/GROUP/TYPE suppression, souls, slots, crystal stacking, omni/multi-set completion, or EE-on-EA enchant stamping.
+description: Use when two or more features interact — damage/reduction stacking, DISABLE_ENCHANT/GROUP/TYPE suppression, souls, slots, crystal stacking, omni/multi-set completion, or custom-enchant stamping onto gear.
 ---
 
 # Feature-interaction rules
@@ -31,7 +31,7 @@ allocation budget is in **performance-hot-paths**; cross-region commit rules in
 | Slots | `SlotLedger` (§6.4) | `max = base + addedSlots`, `used`, `remaining`; computed from `ItemView` and **persisted in PDC**. |
 | Crystals | list semantics (§6.5) | Crystals are a **LIST** of keys; N crystals → N `Ability`s. No last-of-type collapse. |
 | Omni / multi-set | `WornState` resolver (§5.5, §6.6) | Omni = wildcard resolved **synchronously, read-time** inside the ONE resolver; `activeSets` is a SET. |
-| EE-on-EA stamping | `ItemDataService` (§6.7) | Custom-enchant stamping is **synchronous, one write path** in the build path — never fire-and-forget. |
+| Custom-enchant stamping | `ItemDataService` (§6.7) | Custom-enchant stamping is **synchronous, one write path** in the build path — never fire-and-forget. |
 
 ## Damage: fully-additive, one fold (ADR-0012, §6.1)
 
@@ -55,9 +55,9 @@ The DISABLE op's lowering records, per op, *whose* suppression it keys:
 - **`DISABLE_GROUP`** keys the **activator** (`equals` → interned).
 
 `Ability.suppressKey` (interned enchant|group|type) makes gate 5 (SUPPRESSION) an
-int compare — case folded at compile time, killing the EE case-sensitivity
+int compare — case folded at compile time, killing a Cosmic Enchants-style case-sensitivity
 divergence. Because crystals are first-class `Ability` sources,
-crystal-`DISABLE_ENCHANT` works (dead in EA). A cancellable `PreActivate` event
+crystal-`DISABLE_ENCHANT` works (dead in a Cosmic Enchants-style design). A cancellable `PreActivate` event
 remains for add-on interception.
 
 ## Example: an effect contributes, never commits

@@ -9,7 +9,7 @@ export const meta = {
 }
 
 const SECTIONS = [
-  { key: 'A', title: 'Unified conditions / variables / selectors', focus: 'condition AST, variable vocabulary, selector kinds, AE parity; se/engine condition/selector, compile resolvers' },
+  { key: 'A', title: 'Unified conditions / variables / selectors', focus: 'condition AST, variable vocabulary, selector kinds, Cosmic Enchants-style parity; se/engine condition/selector, compile resolvers' },
   { key: 'B', title: 'Triggers wired plus lifecycle', focus: 'all triggers wired, REPEATING timer, HELD/PASSIVE start+stop lifecycle, COMMAND; se/engine trigger, feature/trigger, EquipListener' },
   { key: 'C', title: 'Effects maximal collapse plus new primitives', focus: 'parameterized primitives (VELOCITY, MODIFY_MONEY/EXP/HEALTH/FOOD, DURABILITY, DAMAGE_MOD, MESSAGE); new primitives (KNOCKBACK_CONTROL, GUARD, KEEP_ON_DEATH, WALKER); se/engine/effect/kind + BuiltinEffects' },
   { key: 'D', title: 'Soul gem', focus: 'soul gem item, deposit-on-any-kill, combine/split/give, soul-cost gate, colour tiers; items/soul-gem.yml, feature/soul' },
@@ -68,7 +68,7 @@ function auditPrompt(s) {
   return [
     'You are auditing the StarEnchants v3 re-architecture for DELIVERY GAPS in ONE section. Repo root is cwd.',
     'Authoritative spec: ' + DIRECTIVE + ' (find heading "## ' + s.key + '."). Section: ' + s.key + ' — ' + s.title + '.',
-    'Secondary cross-reference: ' + PARITY + ' (the EE+EA+AE feature inventory) for related features.',
+    'Secondary cross-reference: ' + PARITY + ' (the Cosmic Enchants-style feature inventory) for related features.',
     '',
     'For section ' + s.key + ':',
     '1. Read the directive section fully and list everything it REQUIRES.',

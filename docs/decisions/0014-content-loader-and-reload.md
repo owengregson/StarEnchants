@@ -23,7 +23,7 @@ a runtime ability property.
 
 **Level model — per-level entries → one ability each.** Each `levels:` entry
 produces one `AbilityDef`. Arbitrary (even non-linear) per-level data; matches the
-compiled model (level baked into each `Ability`) and how EE/EA author.
+compiled model (level baked into each `Ability`) and how Cosmic Enchants-style plugins author.
 
 **Stable-key scheme — path-derived.** Base key = the path under `content/` minus
 extension (`enchants/lifesteal`); per-level enchant abilities append `/<level>`
@@ -63,6 +63,6 @@ content against a fake `PlatformResolvers`, failing the build on blocking diagno
 - Level as a runtime parameter (one ability per enchant) — rejected: the compiled
   model bakes level into each `Ability`, and per-level-distinct data is awkward as
   formulas.
-- Grouped files per source (EE/EA style) — rejected: huge, conflict-prone files.
+- Grouped files per source (Cosmic Enchants-style) — rejected: huge, conflict-prone files.
 - Reload/holder in `api` or a new `content` module — rejected: `se-compile` already
   holds the pure pieces; only the `Scheduling`-backed reloader needs to live higher.

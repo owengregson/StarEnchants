@@ -1,4 +1,4 @@
-# ADR 0001: Merge EliteEnchantments + EliteArmor into one plugin
+# ADR 0001: Combine custom enchants and armor sets into one plugin
 
 - **Status:** Accepted
 - **Date:** 2026-06-15
@@ -6,10 +6,10 @@
 
 ## Context
 
-StarEnchants must include ALL features of EliteEnchantments (custom enchant
-engine) and EliteArmor (armor sets, set bonuses, crystals/modifiers, heroic,
-omni, crafting, crates) — fully intertwined. The originals are two plugins by
-the same author that already cross-call each other.
+StarEnchants must include ALL features of a custom enchant engine and an
+armor-set system (armor sets, set bonuses, crystals/modifiers, heroic,
+omni, crafting, crates) — fully intertwined. Cosmic Enchants-style setups
+typically split these across two plugins that cross-call each other.
 
 ## Decision
 

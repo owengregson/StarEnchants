@@ -16,7 +16,7 @@ import org.bukkit.inventory.ItemStack;
  * The soul gem's inventory affordances (docs/v3-directives.md §D): <strong>combine</strong> two gems by
  * dropping one onto the other (their souls sum into a fresh gem, with the configured combine sound), and
  * the <strong>anti-dupe</strong> guards (a gem can never be placed as a block, nor used as a crafting
- * ingredient — AE's {@code SoulgemCraftEvent} analog). All gestures fire on the acting player's own region
+ * ingredient — a Cosmic Enchants-style {@code SoulgemCraftEvent} analog). All gestures fire on the acting player's own region
  * thread, so the inventory mutations are in-thread and Folia-correct.
  */
 public final class SoulInventoryListener implements Listener {

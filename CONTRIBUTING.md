@@ -11,9 +11,9 @@ cd StarEnchants
 scripts/setup-hooks.sh          # enable shared git hooks (conventional commits, hygiene)
 ```
 
-The reverse-engineering workspace (`deobf/`) is **local-only** and gitignored —
-it holds decompiled third-party plugins used only to understand *what* to build,
-never *how*. Don't commit it.
+The local analysis workspace (`deobf/`) is **local-only** and gitignored — it
+holds notes on a Cosmic Enchants-style reference used only to understand *what* to
+build, never *how*. Don't commit it.
 
 ## Branching & PR model
 

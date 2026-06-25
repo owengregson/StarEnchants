@@ -6,7 +6,7 @@
 
 ## Context
 
-EE/EA parse effect/condition strings by `:`/space-splitting on EVERY activation,
+Cosmic Enchants-style plugins parse effect/condition strings by `:`/space-splitting on EVERY activation,
 with no validation (malformed lines throw at runtime), 16 discrete condition
 classes, and per-effect ad-hoc targeting.
 

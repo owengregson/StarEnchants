@@ -12,8 +12,8 @@
 (DEATH, BOW_FIRE, FISHING, EAT, ITEM_DAMAGE, BREAK, a distinct BOW/TRIDENT) and the timer-driven
 REPEATING. Three were left, and they are not "add a Bukkit listener" jobs:
 
-- **HELD** and **PASSIVE** are *maintained buffs* — "while you hold this / wear this, you have X." EE
-  applies the effect when the item is equipped/held and **removes it** when it is unequipped/swapped away.
+- **HELD** and **PASSIVE** are *maintained buffs* — "while you hold this / wear this, you have X." A
+  Cosmic Enchants-style plugin applies the effect when the item is equipped/held and **removes it** when it is unequipped/swapped away.
   Our engine is intent-based: an `EffectKind.run` emits a one-shot intent (`apply potion`, `deal damage`)
   and there was **no deactivation path at all** — the `KEEP_ON_DEATH` doc even said "the engine has no
   unequip teardown." A `WornState` refresh on equip change only replaced the cached snapshot; nothing fired,
@@ -64,7 +64,7 @@ command map just leaves the trigger unfireable, never crashing the boot.
 
 ## Consequences
 
-- HELD/PASSIVE finally have the EE deactivation half: a worn "Strength while held" turns on at equip and off
+- HELD/PASSIVE finally have the Cosmic Enchants-style deactivation half: a worn "Strength while held" turns on at equip and off
   the instant the weapon is put away, with no buff leak across world changes, swaps, or reloads.
 - Folia-correct: the lifecycle fires on the player's own thread (equip events are player-owned) and the buff
   intents route through the same `Scheduling`/`DispatchSink` path as everything else.

@@ -9,9 +9,9 @@ import engine.trigger.TriggerKind.Direction;
  * trigger is one line here plus its Bukkit event binding in the (server-side) listener
  * set — no other code changes (§3.7 "no router edit, no other trigger touched").
  *
- * <p>Combat direction follows EE's {@code getPvPEffects} (ATTACK/KILL/BOW/BOW_FIRE/
+ * <p>Combat direction follows a Cosmic Enchants-style {@code getPvPEffects} (ATTACK/KILL/BOW/BOW_FIRE/
  * TRIDENT are attacker-side; DEFENSE/FALL/FIRE are defender-side); the rest are neutral.
- * Routing metadata (held / scans-equipment / needs-target) is the fix for EE's
+ * Routing metadata (held / scans-equipment / needs-target) is the fix for a Cosmic Enchants-style
  * never-re-checked {@code applies} (§1.4).
  */
 public final class BuiltinTriggers {

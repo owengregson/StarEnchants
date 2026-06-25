@@ -36,8 +36,8 @@ before running the live matrix. On non-macOS, point it at them with
   skipping anything already cached). Decompile to browsable source with
   `scripts/setup-dev.sh --with-decompile` (or `scripts/decompile-reference.sh`).
   See the `reference-cache` and `nms-archaeology` skills.
-- `deobf/` — the reverse-engineering workspace (decompiled third-party plugins +
-  the Vineflower jar the decompile step uses). Populated by hand, never
+- `deobf/` — the local analysis workspace (gitignored) for a Cosmic Enchants-style
+  reference plus the Vineflower jar the analysis step uses. Populated by hand, never
   committed; it informs *what* to build, never *how*. The `pre-commit` hook
   refuses to commit anything under it.
 

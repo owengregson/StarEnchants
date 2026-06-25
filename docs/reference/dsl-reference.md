@@ -45,7 +45,7 @@ Deal a flat amount of extra damage to the target.
 
 ### DAMAGE_MOD
 
-Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage (the EE negative DAMAGE_INCREASE). Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.
+Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage. Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `DAMAGE_MOD:<side:enum{attack|defense}>[:mode:enum{add|flat}=add]:<amount:double>`

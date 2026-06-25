@@ -13,8 +13,8 @@ entirely** (`MigratedLevel.condition` was always null), TODO-ing every selector 
 features — its `@Selector{args}` targeting and its `Fractor` condition engine — were therefore lost on
 import, forcing operators to re-author them by hand with no machine help.
 
-The exact AE syntax was reverse-engineered from the decompiled source (`deobf/`, local-only; informs WHAT
-the config looks like, never HOW to build the engine). That archaeology **corrected several assumptions**:
+The exact AE syntax was determined by analyzing a Cosmic Enchants-style reference config (`deobf/`, local-only; informs WHAT
+the config looks like, never HOW to build the engine). That analysis **corrected several assumptions**:
 AE has no `FEED`/`GIVE_EXP`/`KNOCKBACK`/`IGNITE`/`COMMAND` heads — fire is `BURN:<seconds>` (×20 → ticks),
 food is `ADD_FOOD`, xp is `EXP`, `LIGHTNING` takes a boolean `real` (not damage), commands are
 `CONSOLE_COMMAND`/`PLAYER_COMMAND`, the AoE filter value is `MOBS` (not `MONSTERS`), and condition

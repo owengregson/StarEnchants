@@ -45,7 +45,7 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The §B equipment-lifecycle + COMMAND trigger, proven live (docs/v3-directives.md §B, ADR-0022) — the EE
+ * The §B equipment-lifecycle + COMMAND trigger, proven live (docs/v3-directives.md §B, ADR-0022) — the Cosmic Enchants-style
  * start/stop lifecycle the engine otherwise lacks, which a unit test cannot prove because it depends on the
  * real {@code potion} / {@code removePotion} intents landing on a real player through the {@link
  * LifecycleDriver}/{@link TriggerDispatch} path on Paper AND Folia.

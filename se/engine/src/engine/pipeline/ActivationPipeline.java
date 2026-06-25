@@ -10,9 +10,9 @@ import engine.stores.SuppressionStore;
 import java.util.Objects;
 
 /**
- * The activation pipeline: the fixed EE gate sequence (docs/architecture.md §3.3),
+ * The activation pipeline: the fixed Cosmic Enchants-style gate sequence (docs/architecture.md §3.3),
  * preserved exactly and identically for every source — which is what prevents the
- * EE-path/EA-path drift that broke the originals. Each gate is a compiled
+ * enchant-path/armor-path drift that broke the originals. Each gate is a compiled
  * integer/bitset/primitive check, not a string op. A System walks the candidate
  * abilities for a trigger and runs each through {@link #evaluate}; an {@link GateOutcome#ACTIVATED}
  * result means the caller should run the ability's effects (gate 12).
@@ -22,7 +22,7 @@ import java.util.Objects;
  * (default allow) so the cross-version/Bukkit edges stay outside this pure core. Gates 10
  * (soul debit) and 11 (cooldown arm) have side effects on the {@link SoulLedger} and
  * {@link CooldownStore} — performed only once every preceding gate has passed, matching
- * the EE ordering (souls are spent after {@code PreActivate}, cooldown armed last).
+ * the Cosmic Enchants-style ordering (souls are spent after {@code PreActivate}, cooldown armed last).
  */
 public final class ActivationPipeline {
 

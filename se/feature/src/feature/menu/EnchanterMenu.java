@@ -18,8 +18,8 @@ import platform.caps.Capabilities;
  * input), so it needs no interactive-slot handling.
  *
  * <p><strong>In-scope economy only.</strong> This is the modernized StarEnchants Enchanter — buy an
- * {@link UnopenedBookService unopened book} per tier. EE's separate console-command / money-priced slots are
- * a config concern (§L, which will replace these EXP-priced tier defaults with authored offers); EE's dust
+ * {@link UnopenedBookService unopened book} per tier. A Cosmic Enchants-style separate console-command / money-priced slots are
+ * a config concern (§L, which will replace these EXP-priced tier defaults with authored offers); a Cosmic Enchants-style dust
  * rarity-tinkering is out of scope (ADR-0019). Default pricing comes from {@link EnchanterOffers}.
  */
 public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {

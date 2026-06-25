@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-player ability cooldowns: a packed scope key &rarr; expiry tick
- * (docs/architecture.md §5.4). Replaces EE's {@code Cooldown.cooldowns} and EA's
+ * (docs/architecture.md §5.4). Replaces a Cosmic Enchants-style {@code Cooldown.cooldowns} and
  * {@code Cooldowns} table. Gate 6 of the pipeline calls {@link #ready}; gate 11 calls
  * {@link #arm} (§3.3).
  *
@@ -26,7 +26,7 @@ public final class CooldownStore {
 
     /**
      * Pack a cooldown scope (its kind and interned id) into the single {@code long}
-     * key this store is indexed by, so the three EE cooldown scopes (enchant / group /
+     * key this store is indexed by, so the three Cosmic Enchants-style cooldown scopes (enchant / group /
      * type) never collide.
      */
     public static long key(int scopeKind, int scopeId) {

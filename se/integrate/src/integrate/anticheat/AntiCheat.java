@@ -24,7 +24,7 @@ import platform.sched.Scheduling;
  * ({@code NCPExemptionManager.exemptPermanently(UUID, CheckType.MOVING)} + {@code unexempt}), implemented
  * reflectively here. <strong>GrimAC</strong> is open-source with a real API: {@link Grim} compiles against
  * GrimAPI and surgically cancels its {@code FlagEvent} for a player StarEnchants just moved (the
- * Mental+SE+Grim combo). Vulcan, Matrix and Spartan are closed/premium and expose no runtime exemption API
+ * packet/anticheat-reference-plugin+SE+Grim combo). Vulcan, Matrix and Spartan are closed/premium and expose no runtime exemption API
  * that can be implemented without risking a no-op that pretends to work; this class <em>detects</em> them and
  * logs guidance (each handles server-applied velocity/teleport natively, with its own bypass settings)
  * rather than shipping unverifiable reflection. Adding a real one later is a localized addition.

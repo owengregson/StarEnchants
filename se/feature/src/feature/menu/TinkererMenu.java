@@ -15,7 +15,7 @@ import platform.caps.Capabilities;
  * Salvage to break it down for an EXP-level refund (the book's level, at least one). A {@link FormMenu};
  * an unconsumed input is returned on close.
  *
- * <p>In-scope economy only — a salvage to EXP via {@link CarrierService#salvageLevels}. EE's salvage-to-XP-
+ * <p>In-scope economy only — a salvage to EXP via {@link CarrierService#salvageLevels}. A Cosmic Enchants-style salvage-to-XP-
  * bottle item and book↔dust conversion are NOT built (no data model — ADR-0019); this is the modernized
  * StarEnchants salvage (a direct EXP refund, no new carrier item).
  */

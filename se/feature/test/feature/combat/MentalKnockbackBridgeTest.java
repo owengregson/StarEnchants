@@ -8,11 +8,11 @@ import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the pure KNOCKBACK_CONTROL → Mental-velocity DECISION of {@link MentalKnockbackBridge}: no flag
- * leaves Mental's vector untouched, a non-positive multiplier zeroes the knockback (a full cancel, not a
+ * Pins the pure KNOCKBACK_CONTROL → reference-plugin-velocity DECISION of {@link MentalKnockbackBridge}: no flag
+ * leaves that plugin's vector untouched, a non-positive multiplier zeroes the knockback (a full cancel, not a
  * "let vanilla stand" event-cancel), and a positive multiplier scales it — matching
- * {@link KnockbackControlStore} semantics so SE behaves identically whether knockback comes from Mental or
- * vanilla. The reflective registration side is verified on a Mental server out-of-matrix (docs/decisions/0026).
+ * {@link KnockbackControlStore} semantics so SE behaves identically whether knockback comes from that plugin or
+ * vanilla. The reflective registration side is verified on a packet/anticheat reference-plugin server out-of-matrix (docs/decisions/0026).
  */
 class MentalKnockbackBridgeTest {
 

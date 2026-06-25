@@ -14,7 +14,7 @@ import java.util.Objects;
  * <em>any</em> kill ({@link #soulsPerKill}, optionally per-mob via {@link #soulsPerMob}), and the
  * messages narrate the soul-mode toggle + each spend.
  *
- * <p><strong>Soul-colour tiers are configurable</strong> (EE hard-coded them): {@link #colorTiers} maps a
+ * <p><strong>Soul-colour tiers are configurable</strong> (a Cosmic Enchants-style plugin hard-coded them): {@link #colorTiers} maps a
  * minimum soul count to a {@code &}-colour, walked highest-first by {@link #colorFor}; below every tier the
  * {@link #emptyColor} applies. <strong>Sounds</strong> are a master on/off ({@link #sounds}) plus three
  * tokens played through the cross-version {@code playSound(Location, String, …)} overload (no resolver
@@ -59,7 +59,7 @@ public record SoulGemConfig(
 
     /**
      * One soul-colour tier: at {@code min} souls or above (and below the next-higher tier), the gem's
-     * {@code {SOUL-COLOR}} placeholder renders as {@code color} (a {@code &}-code or hex). EE's tiers were
+     * {@code {SOUL-COLOR}} placeholder renders as {@code color} (a {@code &}-code or hex). A Cosmic Enchants-style plugin's tiers were
      * hard-coded; ours come from config.
      *
      * @param min   the minimum soul count this tier covers (≥ 0)

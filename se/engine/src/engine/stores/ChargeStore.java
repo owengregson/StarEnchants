@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Per-player stacking charge counters: an interned ability id &rarr; a count and its
  * expiry tick (docs/architecture.md §5.4). Replaces the per-effect maps the originals
- * keep for Rage-style ramps (EE's {@code Rage} stack, EA's per-effect counters), each
+ * keep for Rage-style ramps (a Cosmic Enchants-style {@code Rage} stack, per-effect counters), each
  * of which leaked its own unbounded {@code HashMap}.
  *
  * <p>A charge is a count that climbs toward a {@code max} on each {@link #increment} and

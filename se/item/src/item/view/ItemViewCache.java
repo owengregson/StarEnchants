@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
  * The item read cache (docs/architecture.md §5.2): {@link #of} reads an item's raw combat blob and
  * returns a cached {@link ItemView} keyed by that blob's <em>full content</em> within the current
  * generation, decoding it exactly once. In combat the same helmet hit 20×/s is parsed once; every
- * later read is a map lookup — this replaces EE's clone-and-Gson-parse per slot per hit, the single
+ * later read is a map lookup — this replaces a Cosmic Enchants-style clone-and-Gson-parse per slot per hit, the single
  * biggest combat CPU win.
  *
  * <p>The key is content + generation, never {@code ItemMeta} identity — meta is copy-on-write, so an
