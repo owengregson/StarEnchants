@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="211" height="52" viewBox="0 0 211 52" role="img" aria-label="Download the JAR">
+<svg xmlns="http://www.w3.org/2000/svg" width="193" height="52" viewBox="0 0 193 52" role="img" aria-label="Download the JAR">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE9A8"></stop><stop offset="1" stop-color="#FFC75A"></stop></linearGradient>
     <filter id="sh" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#E8A23A" flood-opacity="0.4"></feDropShadow></filter>
   </defs>
-  <rect x="2" y="2" width="207" height="48" rx="24" fill="url(#g)" filter="url(#sh)"></rect>
+  <rect x="2" y="2" width="189" height="48" rx="24" fill="url(#g)" filter="url(#sh)"></rect>
   <g transform="translate(17.0 17.0) scale(0.75)"><path d="M12 3v12M7 11l5 5 5-5M5 21h14" fill="none" stroke="#3A2160" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></g>
-  <text x="46" y="27" font-family="&#39;Trebuchet MS&#39;,&#39;Segoe UI&#39;,system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#3A2160" dominant-baseline="central">Download the JAR</text>
+  <text x="46" y="27" font-family="&#39;Trebuchet MS&#39;,&#39;Segoe UI&#39;,system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="17" font-weight="700" fill="#3A2160" dominant-baseline="central">Download latest</text>
 </svg>

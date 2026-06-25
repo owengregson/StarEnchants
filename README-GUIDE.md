@@ -56,10 +56,10 @@ All of it is Markdown in `README.md`. Edit in place:
 ### 🔗 Change the repo / download / version
 
 The repo URL appears in `README.md` (buttons + links) and the **version** appears in `assets/hero.svg`
-and `assets/hero-dark.svg` (the `release` badge text `v0.1.0`).
+and `assets/hero-dark.svg` (the `release` badge text `v1.0.0-beta`).
 
 - Find-and-replace `owengregson/StarEnchants` everywhere to point at a different repo.
-- To bump the version, edit the `v0.1.0` `<text>` in **both** hero SVGs (see §5).
+- To bump the version, edit the `v1.0.0-beta` `<text>` in **both** hero SVGs (see §5).
 
 ### 🏷️ Change a section title
 
@@ -112,7 +112,7 @@ Gradients are defined inside each SVG's `<defs><linearGradient>` / `<radialGradi
 5. **Wordmark** — `<text … fill="url(#wm)">StarEnchants</text>`.
 6. **Tagline / sub-tagline** — three `<text>` lines.
 7. **Badge row** — five pills, each a white `<rect>` + a colored left `<path>` + two `<text>` labels
-   (`release v0.1.0`, `paper …`, `folia …`, `java 17+`, `license …`).
+   (`release v1.0.0-beta`, `paper …`, `folia supported`, `java 17+`, `license AGPL 3.0`).
 
 Edit `<text>` values to change wording; edit fills to recolor. The badge pills are **positioned by
 hand** (x coordinates run left→right), so changing a label's length will misalign the row — for badge
