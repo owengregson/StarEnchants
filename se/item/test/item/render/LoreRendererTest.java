@@ -34,6 +34,24 @@ class LoreRendererTest {
     }
 
     @Test
+    void coloursEachEnchantNameByItsRarityTier() {
+        // The wiring supplies a base key -> tier '&'-code lookup; a blank/absent code falls back to
+        // the style's universal enchantColor (&7). venom = legendary gold (&6); lifesteal has no tier
+        // colour, so its &7 fallback prefixes its own self-coloured (&a) display.
+        Function<String, String> tierColors = Map.of(
+                "enchants/venom", "&6",
+                "enchants/lifesteal", "")::get;
+        Map<String, Integer> enchants = new LinkedHashMap<>();
+        enchants.put("enchants/venom", 3);
+        enchants.put("enchants/lifesteal", 1);
+        CombatState state = new CombatState(enchants, List.of());
+
+        List<String> lines = new LoreRenderer(LoreStyle.DEFAULT, NAMES, tierColors).lines(state);
+
+        assertEquals(List.of("§6Venom §fIII", "§7§aLifesteal §fI"), lines);
+    }
+
+    @Test
     void rendersUnknownLabelForAStoredKeyAbsentFromTheCatalog() {
         CombatState state = new CombatState(Map.of("enchants/ghost", 2), List.of());
 
