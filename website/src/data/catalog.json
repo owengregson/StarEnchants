@@ -1,0 +1,2489 @@
+{
+"version": 1,
+"effects": [
+  {
+    "head": "BREAK_BLOCK",
+    "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.",
+    "affinity": "REGION",
+    "usage": "BREAK_BLOCK[:drops:bool=true]",
+    "example": "BREAK_BLOCK:true",
+    "params": [
+      {
+        "name": "drops",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "at",
+        "selector": "HERE"
+        }
+      ]
+    },
+  {
+    "head": "CANCEL",
+    "doc": "Cancel the Bukkit event that triggered this activation.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "CANCEL",
+    "example": "CANCEL",
+    "params": [],
+    "targets": []
+    },
+  {
+    "head": "CURE",
+    "doc": "Clear every active potion effect from the target(s).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "CURE",
+    "example": "CURE",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "DAMAGE",
+    "doc": "Deal a flat amount of extra damage to the target.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "DAMAGE:<amount:double[0..]>",
+    "example": "DAMAGE:6",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "DAMAGE_MOD",
+    "doc": "Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage. Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "DAMAGE_MOD:<side:enum{attack|defense}>[:mode:enum{add|flat}=add]:<amount:double>",
+    "example": "DAMAGE_MOD:attack:add:25",
+    "params": [
+      {
+        "name": "side",
+        "kind": "ENUM",
+        "label": "enum{attack|defense}",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "attack",
+          "defense"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{add|flat}",
+        "required": false,
+        "default": "add",
+        "min": null,
+        "max": null,
+        "enum": [
+          "add",
+          "flat"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "DISARM",
+    "doc": "Make the target(s) drop their held (main-hand) item.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "DISARM",
+    "example": "DISARM",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "DROP_ITEM",
+    "doc": "Drop a material as an item at the activation location. No-op if there is no location.",
+    "affinity": "REGION",
+    "usage": "DROP_ITEM:<material:material>[:count:int[1..]=1]",
+    "example": "DROP_ITEM:DIAMOND:1",
+    "params": [
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "DURABILITY",
+    "doc": "Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) or damage. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "DURABILITY[:amount:int=-1][:target:enum{item|armor|all}=item][:mode:enum{restore|damage}=restore]",
+    "example": "DURABILITY:-1:item",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int",
+        "required": false,
+        "default": "-1",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "durability points; negative fully restores (restore mode)"
+        },
+      {
+        "name": "target",
+        "kind": "ENUM",
+        "label": "enum{item|armor|all}",
+        "required": false,
+        "default": "item",
+        "min": null,
+        "max": null,
+        "enum": [
+          "item",
+          "armor",
+          "all"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{restore|damage}",
+        "required": false,
+        "default": "restore",
+        "min": null,
+        "max": null,
+        "enum": [
+          "restore",
+          "damage"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "EXPLODE",
+    "doc": "Create an explosion at the target.",
+    "affinity": "REGION",
+    "usage": "EXPLODE:<power:double[0..]>[:breakBlocks:bool=false]",
+    "example": "EXPLODE:4:false",
+    "params": [
+      {
+        "name": "power",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "breakBlocks",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "EXTINGUISH",
+    "doc": "Put out the target's fire.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "EXTINGUISH",
+    "example": "EXTINGUISH",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "FILL_OXYGEN",
+    "doc": "Refill the target's air supply.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "FILL_OXYGEN",
+    "example": "FILL_OXYGEN",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "FIREWORK",
+    "doc": "Spawn a cosmetic firework at the activation location. No-op if there is no location.",
+    "affinity": "REGION",
+    "usage": "FIREWORK[:power:int[0..3]=1]",
+    "example": "FIREWORK:1",
+    "params": [
+      {
+        "name": "power",
+        "kind": "INT",
+        "label": "int[0..3]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": 3,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "FLY",
+    "doc": "Grant the player temporary flight.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "FLY[:ticks:ticks[0..]=200]",
+    "example": "FLY:200",
+    "params": [
+      {
+        "name": "ticks",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "GIVE_ITEM",
+    "doc": "Give a material to the player target(s); overflow drops at their feet.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "GIVE_ITEM:<material:material>[:count:int[1..]=1]",
+    "example": "GIVE_ITEM:DIAMOND:1:@Self",
+    "params": [
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "GUARD",
+    "doc": "Summon count guardian mobs of type at the activation location, each targeting the attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom name. A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.",
+    "affinity": "REGION",
+    "usage": "GUARD:<type:entity_type>[:count:int[1..]=1][:ttl:ticks[0..]=200][:name:string=]",
+    "example": "GUARD:IRON_GOLEM:1:200:&bGuardian",
+    "params": [
+      {
+        "name": "type",
+        "kind": "HANDLE",
+        "label": "entity_type",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "ENTITY_TYPE",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "ATTACKER"
+        }
+      ]
+    },
+  {
+    "head": "HEALTH",
+    "doc": "Add to the target's maximum health (restored on unequip).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "HEALTH:<amount:double[0..]>",
+    "example": "HEALTH:4",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "IGNITE",
+    "doc": "Set the target(s) on fire for a duration in ticks.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "IGNITE:<duration:ticks[0..]>",
+    "example": "IGNITE:60",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "IGNORE_ARMOR",
+    "doc": "Make the triggering hit ignore the victim's armor and enchant-protection reduction.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "IGNORE_ARMOR",
+    "example": "IGNORE_ARMOR",
+    "params": [],
+    "targets": []
+    },
+  {
+    "head": "IMMUNE",
+    "doc": "Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for duration ticks.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "IMMUNE:<type:enum{sword|axe|projectile|potion|all}>[:duration:ticks[0..]=100]",
+    "example": "IMMUNE:potion:100",
+    "params": [
+      {
+        "name": "type",
+        "kind": "ENUM",
+        "label": "enum{sword|axe|projectile|potion|all}",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "sword",
+          "axe",
+          "projectile",
+          "potion",
+          "all"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "INVERT_VAR",
+    "doc": "Numerically invert a per-player variable (0↔1), preserving its remaining TTL.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "INVERT_VAR:<name:string>",
+    "example": "INVERT_VAR:rage:@Self",
+    "params": [
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "INVINCIBLE",
+    "doc": "Make the target invulnerable for a span of ticks, then restore.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "INVINCIBLE[:ticks:ticks[0..]=100]",
+    "example": "INVINCIBLE:100",
+    "params": [
+      {
+        "name": "ticks",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "KEEP_ON_DEATH",
+    "doc": "Keep the target's items + levels (no drops) if they die within duration ticks (default 200). Author on trigger REPEATING for an always-on death-keep while worn, or fire on a trigger for a timed grace window. A kept death never spends a holy scroll.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "KEEP_ON_DEATH[:duration:ticks[0..]=200]",
+    "example": "KEEP_ON_DEATH:200",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "KILL",
+    "doc": "Instantly kill the target.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "KILL",
+    "example": "KILL",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "KNOCKBACK_CONTROL",
+    "doc": "Scale the target's incoming knockback for duration ticks: 0 cancels it, 0.5 halves it, 2 doubles it (default: cancel for 2 ticks). Use on DEFENSE for your own knockback, or on ATTACK with who: victim for the knockback you deal.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "KNOCKBACK_CONTROL[:multiplier:double[0..]=0][:duration:ticks[0..]=2]",
+    "example": "KNOCKBACK_CONTROL:0",
+    "params": [
+      {
+        "name": "multiplier",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "2",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "LIGHTNING",
+    "doc": "Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmetic).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "LIGHTNING[:damage:double[0..]=0]",
+    "example": "LIGHTNING:6",
+    "params": [
+      {
+        "name": "damage",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "MESSAGE",
+    "doc": "Send feedback to the activating player on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Replaces ACTIONBAR/TITLE.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "MESSAGE:<text:string>[:channel:enum{chat|actionbar|title}=chat][:subtitle:string=][:fadeIn:ticks[0..]=10][:stay:ticks[0..]=70][:fadeOut:ticks[0..]=20]",
+    "example": "MESSAGE:&aCritical hit!",
+    "params": [
+      {
+        "name": "text",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "channel",
+        "kind": "ENUM",
+        "label": "enum{chat|actionbar|title}",
+        "required": false,
+        "default": "chat",
+        "min": null,
+        "max": null,
+        "enum": [
+          "chat",
+          "actionbar",
+          "title"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "subtitle",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "title channel only"
+        },
+      {
+        "name": "fadeIn",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "10",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "title channel only"
+        },
+      {
+        "name": "stay",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "70",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "title channel only"
+        },
+      {
+        "name": "fadeOut",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "title channel only"
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "MODIFY_EXP",
+    "doc": "Modify a player target's experience: give to them, take from them, or transfer (take from the target and grant the total to the activator). Replaces GIVE_EXP.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "MODIFY_EXP:<amount:int[0..]>[:mode:enum{give|take|transfer}=give]",
+    "example": "MODIFY_EXP:50:give:@Self",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{give|take|transfer}",
+        "required": false,
+        "default": "give",
+        "min": null,
+        "max": null,
+        "enum": [
+          "give",
+          "take",
+          "transfer"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "MODIFY_FOOD",
+    "doc": "Modify a player target's hunger: give food points (clamped to 20) or take them (clamped to 0). Replaces FEED.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "MODIFY_FOOD:<amount:int[0..]>[:mode:enum{give|take}=give]",
+    "example": "MODIFY_FOOD:6:give:@Self",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{give|take}",
+        "required": false,
+        "default": "give",
+        "min": null,
+        "max": null,
+        "enum": [
+          "give",
+          "take"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "MODIFY_HEALTH",
+    "doc": "Modify a target's health: give heals them, take deals direct health damage, transfer (lifesteal) damages the target and heals the activator by the same amount, set forces their health to the amount. Replaces HEAL.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "MODIFY_HEALTH:<amount:double[0..]>[:mode:enum{give|take|transfer|set}=give]",
+    "example": "MODIFY_HEALTH:4:give:@Self",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{give|take|transfer|set}",
+        "required": false,
+        "default": "give",
+        "min": null,
+        "max": null,
+        "enum": [
+          "give",
+          "take",
+          "transfer",
+          "set"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "MODIFY_MONEY",
+    "doc": "Modify a player target's balance: give to them, take from them, transfer (take from the target and give the total to the activator), or steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].",
+    "affinity": "TARGET_ENTITY",
+    "usage": "MODIFY_MONEY:<amount:double[0..]>[:mode:enum{give|take|transfer|steal_percent}=give]",
+    "example": "MODIFY_MONEY:100:give:@Self",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{give|take|transfer|steal_percent}",
+        "required": false,
+        "default": "give",
+        "min": null,
+        "max": null,
+        "enum": [
+          "give",
+          "take",
+          "transfer",
+          "steal_percent"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "MOVEMENT_SPEED",
+    "doc": "Set the player target's walk speed for a span of ticks, then restore the default (0.2).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "MOVEMENT_SPEED:<speed:double[-1..1]>[:ticks:ticks[0..]=200]",
+    "example": "MOVEMENT_SPEED:0.4:200",
+    "params": [
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[-1..1]",
+        "required": true,
+        "default": null,
+        "min": -1,
+        "max": 1,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ticks",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "PARTICLE",
+    "doc": "Spawn particles at the activation location. No-op if there is no location.",
+    "affinity": "REGION",
+    "usage": "PARTICLE:<particle:particle>[:count:int[0..]=1]",
+    "example": "PARTICLE:FLAME:20",
+    "params": [
+      {
+        "name": "particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "POTION",
+    "doc": "Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "POTION:<effect:potion_effect>:<level:int[1..]>:<duration:ticks[0..]>",
+    "example": "POTION:STRENGTH:1:100",
+    "params": [
+      {
+        "name": "effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "level",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "PROJECTILE",
+    "doc": "Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS as PROJECTILE:ARROW).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "PROJECTILE:<type:entity_type>[:count:int[1..]=1][:speed:double[0..]=1.5]",
+    "example": "PROJECTILE:ARROW:3:1.5",
+    "params": [
+      {
+        "name": "type",
+        "kind": "HANDLE",
+        "label": "entity_type",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "ENTITY_TYPE",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "REMOVE_ARMOR",
+    "doc": "Strip one random worn armour piece from the target(s) and drop it.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "REMOVE_ARMOR",
+    "example": "REMOVE_ARMOR",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "REMOVE_ITEM",
+    "doc": "Remove up to count of a material from the player target(s)' inventory.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "REMOVE_ITEM:<material:material>[:count:int[1..]=1]",
+    "example": "REMOVE_ITEM:DIAMOND:1:@Self",
+    "params": [
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "REMOVE_POTION",
+    "doc": "Remove a potion effect from the target(s).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "REMOVE_POTION:<effect:potion_effect>",
+    "example": "REMOVE_POTION:POISON",
+    "params": [
+      {
+        "name": "effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "REMOVE_SOULS",
+    "doc": "Debit souls from a soul gem: @Self (default) charges the activator's active gem, @Victim drains the target's own gem. A no-op when that player is not in soul mode.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "REMOVE_SOULS:<amount:int[1..]>",
+    "example": "REMOVE_SOULS:5",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "RUN_COMMAND",
+    "doc": "Run a command from the console. Affinity GLOBAL — runs on the global thread.",
+    "affinity": "GLOBAL",
+    "usage": "RUN_COMMAND:<command:string>",
+    "example": "RUN_COMMAND:eco give %player% 100",
+    "params": [
+      {
+        "name": "command",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "SEEK",
+    "doc": "Make the projectile fired by this BOW_FIRE activation home onto the nearest target in sight.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "SEEK",
+    "example": "SEEK",
+    "params": [],
+    "targets": []
+    },
+  {
+    "head": "SET_BLOCK",
+    "doc": "Set the target block(s) to a material (default @Here = the activation block).",
+    "affinity": "REGION",
+    "usage": "SET_BLOCK:<material:material>",
+    "example": "SET_BLOCK:OBSIDIAN",
+    "params": [
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "at",
+        "selector": "HERE"
+        }
+      ]
+    },
+  {
+    "head": "SET_VAR",
+    "doc": "Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "SET_VAR:<name:string>[:value:string=][:ttl:ticks[0..]=0]",
+    "example": "SET_VAR:rage:1:200:@Self",
+    "params": [
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "value",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "SMELT",
+    "doc": "Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, …).",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "SMELT",
+    "example": "SMELT",
+    "params": [],
+    "targets": []
+    },
+  {
+    "head": "SOUND",
+    "doc": "Play a sound at the activation location. No-op if the activation has no location.",
+    "affinity": "REGION",
+    "usage": "SOUND:<sound:sound>[:volume:double[0..]=1][:pitch:double[0..]=1]",
+    "example": "SOUND:ENTITY_GENERIC_EXPLODE:1:1",
+    "params": [
+      {
+        "name": "sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        },
+      {
+        "name": "volume",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "pitch",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "SPAWN_ENTITY",
+    "doc": "Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. Replaces SPAWN/TNT.",
+    "affinity": "REGION",
+    "usage": "SPAWN_ENTITY:<type:entity_type>[:count:int[1..]=1][:ttl:ticks[0..]=0][:health:double[0..]=0][:owner:enum{none|activator}=none]",
+    "example": "SPAWN_ENTITY:WOLF:1:0:0:activator",
+    "params": [
+      {
+        "name": "type",
+        "kind": "HANDLE",
+        "label": "entity_type",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "ENTITY_TYPE",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "health",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "owner",
+        "kind": "ENUM",
+        "label": "enum{none|activator}",
+        "required": false,
+        "default": "none",
+        "min": null,
+        "max": null,
+        "enum": [
+          "none",
+          "activator"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "SUPPRESS",
+    "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE). Default target the combat victim.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "SUPPRESS:<scope:enum{ENCHANT|GROUP|TYPE}>:<key:string>[:duration:ticks[0..]=200]",
+    "example": "SUPPRESS:GROUP:lifesteal:200:@Victim",
+    "params": [
+      {
+        "name": "scope",
+        "kind": "ENUM",
+        "label": "enum{ENCHANT|GROUP|TYPE}",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "ENCHANT",
+          "GROUP",
+          "TYPE"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "key",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "TELEBLOCK",
+    "doc": "Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "TELEBLOCK[:duration:ticks[0..]=400]",
+    "example": "TELEBLOCK:400",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "400",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "TELEPORT",
+    "doc": "Teleport the target to the actor's or the victim's location.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "TELEPORT[:to:enum{VICTIM|ACTOR}=VICTIM]",
+    "example": "TELEPORT:VICTIM",
+    "params": [
+      {
+        "name": "to",
+        "kind": "ENUM",
+        "label": "enum{VICTIM|ACTOR}",
+        "required": false,
+        "default": "VICTIM",
+        "min": null,
+        "max": null,
+        "enum": [
+          "VICTIM",
+          "ACTOR"
+          ],
+        "handle": null,
+        "doc": "destination party: the victim or the actor"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "TELEPORT_DROPS",
+    "doc": "Send the block's drops straight to the breaker's inventory (this MINE activation).",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "TELEPORT_DROPS",
+    "example": "TELEPORT_DROPS",
+    "params": [],
+    "targets": []
+    },
+  {
+    "head": "VELOCITY",
+    "doc": "Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "VELOCITY[:mode:enum{add|away}=add][:x:double=0][:y:double=0][:z:double=0][:strength:double[0..]=0]",
+    "example": "VELOCITY:add:0:1.2:0",
+    "params": [
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{add|away}",
+        "required": false,
+        "default": "add",
+        "min": null,
+        "max": null,
+        "enum": [
+          "add",
+          "away"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "x",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "y",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "z",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "strength",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "WALKER",
+    "doc": "Lay a temporary platform of a material under the target for a duration (then revert), out to a radius. replace = AIR_ONLY | REPLACEABLE (air/liquid) | ANY.",
+    "affinity": "REGION",
+    "usage": "WALKER:<material:material>[:ticks:ticks[0..]=60][:radius:int[0..4]=1][:replace:enum{AIR_ONLY|REPLACEABLE|ANY}=REPLACEABLE]",
+    "example": "WALKER:ICE:80:1",
+    "params": [
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "ticks",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "radius",
+        "kind": "INT",
+        "label": "int[0..4]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": 4,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "replace",
+        "kind": "ENUM",
+        "label": "enum{AIR_ONLY|REPLACEABLE|ANY}",
+        "required": false,
+        "default": "REPLACEABLE",
+        "min": null,
+        "max": null,
+        "enum": [
+          "AIR_ONLY",
+          "REPLACEABLE",
+          "ANY"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    }
+  ],
+"selectors": [
+  {
+    "head": "ADD",
+    "doc": "The activation location offset by (x, y, z).",
+    "usage": "ADD[:x:double=0][:y:double=0][:z:double=0]",
+    "example": "@Add{y=2}",
+    "params": [
+      {
+        "name": "x",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "x offset in blocks"
+        },
+      {
+        "name": "y",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "y offset in blocks"
+        },
+      {
+        "name": "z",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "z offset in blocks"
+        }
+      ]
+    },
+  {
+    "head": "ALLPLAYERS",
+    "doc": "Every player within r blocks of the target, except the activator.",
+    "usage": "ALLPLAYERS[:r:double[0..]=32]",
+    "example": "@AllPlayers{r=32}",
+    "params": [
+      {
+        "name": "r",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "32",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "search radius in blocks"
+        }
+      ]
+    },
+  {
+    "head": "AOE",
+    "doc": "Living entities within r blocks of the target, except the activator; optionally filtered and capped.",
+    "usage": "AOE[:r:double[0..]=4][:filter:enum{ALL|PLAYERS|MONSTERS|MOBS}=ALL][:limit:int[0..]=0]",
+    "example": "@Aoe{r=6, filter=MONSTERS}",
+    "params": [
+      {
+        "name": "r",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "4",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "radius in blocks"
+        },
+      {
+        "name": "filter",
+        "kind": "ENUM",
+        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS}",
+        "required": false,
+        "default": "ALL",
+        "min": null,
+        "max": null,
+        "enum": [
+          "ALL",
+          "PLAYERS",
+          "MONSTERS",
+          "MOBS"
+          ],
+        "handle": null,
+        "doc": "which entities to include"
+        },
+      {
+        "name": "limit",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "max targets, nearest first (0 = unlimited)"
+        }
+      ]
+    },
+  {
+    "head": "ATTACKER",
+    "doc": "The entity that damaged the activator (for defensive effects).",
+    "usage": "ATTACKER",
+    "example": "@Attacker",
+    "params": []
+    },
+  {
+    "head": "BLOCK",
+    "doc": "The first solid block the activator is looking at, within distance.",
+    "usage": "BLOCK[:distance:double[0..]=5]",
+    "example": "@Block",
+    "params": [
+      {
+        "name": "distance",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "max look distance in blocks"
+        }
+      ]
+    },
+  {
+    "head": "BLOCKINDISTANCE",
+    "doc": "The first solid block along the activator's line of sight, within distance.",
+    "usage": "BLOCKINDISTANCE[:distance:double[0..]=30]",
+    "example": "@BlockInDistance{distance=50}",
+    "params": [
+      {
+        "name": "distance",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "30",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "max look distance in blocks"
+        }
+      ]
+    },
+  {
+    "head": "ENTITYINSIGHT",
+    "doc": "The living entity the activator is looking at within r blocks, or nothing.",
+    "usage": "ENTITYINSIGHT[:r:double[0..]=16]",
+    "example": "@EntityInSight{r=16}",
+    "params": [
+      {
+        "name": "r",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "16",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "maximum line-of-sight distance in blocks"
+        }
+      ]
+    },
+  {
+    "head": "EYEHEIGHT",
+    "doc": "The activator's eye location (their position at eye level).",
+    "usage": "EYEHEIGHT",
+    "example": "@EyeHeight",
+    "params": []
+    },
+  {
+    "head": "HERE",
+    "doc": "The activation block location itself — the default target of block effects.",
+    "usage": "HERE",
+    "example": "@Here",
+    "params": []
+    },
+  {
+    "head": "NEAREST",
+    "doc": "The single nearest living entity within r blocks (optionally filtered), except the activator.",
+    "usage": "NEAREST[:r:double[0..]=5][:filter:enum{ALL|PLAYERS|MONSTERS|MOBS}=ALL]",
+    "example": "@Nearest{r=5, filter=PLAYERS}",
+    "params": [
+      {
+        "name": "r",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "search radius in blocks"
+        },
+      {
+        "name": "filter",
+        "kind": "ENUM",
+        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS}",
+        "required": false,
+        "default": "ALL",
+        "min": null,
+        "max": null,
+        "enum": [
+          "ALL",
+          "PLAYERS",
+          "MONSTERS",
+          "MOBS"
+          ],
+        "handle": null,
+        "doc": "which entities to consider"
+        }
+      ]
+    },
+  {
+    "head": "NEARESTPLAYER",
+    "doc": "The single nearest player within r blocks, except the activator.",
+    "usage": "NEARESTPLAYER[:r:double[0..]=16]",
+    "example": "@NearestPlayer{r=16}",
+    "params": [
+      {
+        "name": "r",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "16",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "search radius in blocks"
+        }
+      ]
+    },
+  {
+    "head": "PLAYERFROMNAME",
+    "doc": "The online player with the given exact name, or nothing if they are not online.",
+    "usage": "PLAYERFROMNAME:<name:string>",
+    "example": "@PlayerFromName{name=Steve}",
+    "params": [
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the exact name of the online player to target"
+        }
+      ]
+    },
+  {
+    "head": "SELF",
+    "doc": "The activating player themself.",
+    "usage": "SELF",
+    "example": "@Self",
+    "params": []
+    },
+  {
+    "head": "TRENCH",
+    "doc": "The square of blocks perpendicular to the look direction, centred on the activation block.",
+    "usage": "TRENCH[:radius:int[0..]=1]",
+    "example": "@Trench{radius=1}",
+    "params": [
+      {
+        "name": "radius",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "half-width of the face (1 = 3x3)"
+        }
+      ]
+    },
+  {
+    "head": "TUNNEL",
+    "doc": "The blocks directly ahead of the activation block, along the look direction.",
+    "usage": "TUNNEL[:depth:int[1..]=3]",
+    "example": "@Tunnel{depth=4}",
+    "params": [
+      {
+        "name": "depth",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "3",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks ahead along the look direction"
+        }
+      ]
+    },
+  {
+    "head": "VEIN",
+    "doc": "Up to `limit` blocks contiguous with and matching the activation block (vein miner).",
+    "usage": "VEIN[:limit:int[1..]=64]",
+    "example": "@Vein{limit=32}",
+    "params": [
+      {
+        "name": "limit",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "64",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "max blocks in the vein"
+        }
+      ]
+    },
+  {
+    "head": "VICTIM",
+    "doc": "The combat victim (the entity the activator hit).",
+    "usage": "VICTIM",
+    "example": "@Victim",
+    "params": []
+    }
+  ],
+"triggers": [
+  {
+    "name": "ATTACK",
+    "direction": "ATTACK",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": true
+    },
+  {
+    "name": "BOW",
+    "direction": "ATTACK",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": true
+    },
+  {
+    "name": "TRIDENT",
+    "direction": "ATTACK",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": true
+    },
+  {
+    "name": "KILL",
+    "direction": "ATTACK",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": true
+    },
+  {
+    "name": "BOW_FIRE",
+    "direction": "ATTACK",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "DEFENSE",
+    "direction": "DEFENSE",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": true
+    },
+  {
+    "name": "FALL",
+    "direction": "DEFENSE",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "FIRE",
+    "direction": "DEFENSE",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "PASSIVE",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "MINE",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "DEATH",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "HELD",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "BREAK",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "ITEM_DAMAGE",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "EAT",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "FISHING",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "INTERACT",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "INTERACT_LEFT",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "INTERACT_RIGHT",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
+    },
+  {
+    "name": "REPEATING",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "COMMAND",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    }
+  ],
+"conditions": {
+  "relational": [
+    {
+      "symbol": "==",
+      "name": "eq"
+      },
+    {
+      "symbol": "!=",
+      "name": "ne"
+      },
+    {
+      "symbol": "<",
+      "name": "lt"
+      },
+    {
+      "symbol": "<=",
+      "name": "le"
+      },
+    {
+      "symbol": ">",
+      "name": "gt"
+      },
+    {
+      "symbol": ">=",
+      "name": "ge"
+      }
+    ],
+  "string": [
+    {
+      "symbol": "contains",
+      "name": "contains"
+      },
+    {
+      "symbol": "matchesregex",
+      "name": "matches_regex"
+      }
+    ],
+  "flow": [
+    {
+      "token": "%continue%",
+      "doc": "proceed to the chance roll as normal"
+      },
+    {
+      "token": "%stop%",
+      "doc": "block this activation"
+      },
+    {
+      "token": "%force%",
+      "doc": "force activation, skipping the chance roll"
+      },
+    {
+      "token": "%allow%",
+      "doc": "allow activation regardless of the chance roll"
+      },
+    {
+      "token": "±N %chance%",
+      "doc": "add N percentage points to the chance roll"
+      }
+    ]
+  },
+"variables": [
+  {
+    "name": "actor.food",
+    "type": "NUM"
+    },
+  {
+    "name": "actor.gamemode",
+    "type": "STR"
+    },
+  {
+    "name": "actor.health",
+    "type": "NUM"
+    },
+  {
+    "name": "actor.healthpercent",
+    "type": "NUM"
+    },
+  {
+    "name": "actor.helditem",
+    "type": "STR"
+    },
+  {
+    "name": "actor.level",
+    "type": "NUM"
+    },
+  {
+    "name": "actor.maxhealth",
+    "type": "NUM"
+    },
+  {
+    "name": "actor.totalexp",
+    "type": "NUM"
+    },
+  {
+    "name": "actor.type",
+    "type": "STR"
+    },
+  {
+    "name": "actor.world",
+    "type": "STR"
+    },
+  {
+    "name": "block.type",
+    "type": "STR"
+    },
+  {
+    "name": "blocking",
+    "type": "BOOL"
+    },
+  {
+    "name": "combo",
+    "type": "NUM"
+    },
+  {
+    "name": "damage",
+    "type": "NUM"
+    },
+  {
+    "name": "distance",
+    "type": "NUM"
+    },
+  {
+    "name": "flying",
+    "type": "BOOL"
+    },
+  {
+    "name": "gliding",
+    "type": "BOOL"
+    },
+  {
+    "name": "isblock",
+    "type": "BOOL"
+    },
+  {
+    "name": "nearbyenemies",
+    "type": "NUM"
+    },
+  {
+    "name": "onfire",
+    "type": "BOOL"
+    },
+  {
+    "name": "onground",
+    "type": "BOOL"
+    },
+  {
+    "name": "sneaking",
+    "type": "BOOL"
+    },
+  {
+    "name": "sprinting",
+    "type": "BOOL"
+    },
+  {
+    "name": "swimming",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.blocking",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.flying",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.food",
+    "type": "NUM"
+    },
+  {
+    "name": "victim.gliding",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.health",
+    "type": "NUM"
+    },
+  {
+    "name": "victim.healthpercent",
+    "type": "NUM"
+    },
+  {
+    "name": "victim.helditem",
+    "type": "STR"
+    },
+  {
+    "name": "victim.maxhealth",
+    "type": "NUM"
+    },
+  {
+    "name": "victim.mobtype",
+    "type": "STR"
+    },
+  {
+    "name": "victim.sneaking",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.sprinting",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.swimming",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.type",
+    "type": "STR"
+    },
+  {
+    "name": "world.raining",
+    "type": "BOOL"
+    },
+  {
+    "name": "world.thundering",
+    "type": "BOOL"
+    },
+  {
+    "name": "world.time",
+    "type": "NUM"
+    }
+  ]
+}
