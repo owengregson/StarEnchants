@@ -1,57 +1,109 @@
 import type {ReactNode} from 'react';
 import clsx from 'clsx';
+import Link from '@docusaurus/Link';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import Heading from '@theme/Heading';
 import styles from './styles.module.css';
 
 type FeatureItem = {
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
+  icon: string;
+  to?: string;
   description: ReactNode;
 };
 
+// Every feature pulls from the README so the marketing copy stays in lock-step.
 const FeatureList: FeatureItem[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    title: 'One unified engine',
+    icon: 'img/icons/engine.svg',
+    to: '/docs/reference/effects',
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        Enchantments, armor-set bonuses, and crystals all feed <em>one</em>{' '}
+        engine — <strong>51 effects</strong>, <strong>21 triggers</strong>,{' '}
+        <strong>17 selectors</strong>, and a conditions DSL over{' '}
+        <strong>40 live variables</strong>.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
+    title: 'Armor sets & crystals',
+    icon: 'img/icons/armor.svg',
+    to: '/docs/concepts/armor-sets',
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Full armor sets with completion bonuses and matched weapons, Heroic
+        upgrades, and socketable crystals — each just another source of effects.
       </>
     ),
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
+    title: 'Souls economy',
+    icon: 'img/icons/souls.svg',
+    to: '/docs/concepts/souls-economy',
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        A built-in souls economy with soul gems that bank kills, plus slot orbs,
+        success dust, and a full item progression loop.
+      </>
+    ),
+  },
+  {
+    title: 'Items & scrolls',
+    icon: 'img/icons/book.svg',
+    to: '/docs/configuring',
+    description: (
+      <>
+        Enchant books, white &amp; holy-white scrolls, black, transmog, and
+        randomizer scrolls, dust, nametags, and slot orbs — each its own YAML.
+      </>
+    ),
+  },
+  {
+    title: 'Built-in migrator',
+    icon: 'img/icons/migrator.svg',
+    to: '/docs/configuring',
+    description: (
+      <>
+        Bring EliteEnchantments, EliteArmor, and AdvancedEnchantments configs
+        straight into the unified schema with <code>/se migrate</code>.
+      </>
+    ),
+  },
+  {
+    title: 'Paper + Folia, one jar',
+    icon: 'img/icons/install.svg',
+    to: '/docs/intro',
+    description: (
+      <>
+        One universal jar runs Paper <strong>1.17.1 → 26.1.x</strong> and Folia
+        — version-agnostic core, Folia-safe scheduling, zero per-version builds.
       </>
     ),
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, icon, description, to}: FeatureItem) {
+  const iconUrl = useBaseUrl(icon);
+  const card = (
+    <div className={styles.card}>
+      <img className={styles.cardIcon} src={iconUrl} alt="" aria-hidden="true" />
+      <Heading as="h3" className={styles.cardTitle}>
+        {title}
+      </Heading>
+      <p className={styles.cardText}>{description}</p>
+    </div>
+  );
   return (
-    <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
-      </div>
+    <div className={clsx('col col--4', styles.col)}>
+      {to ? (
+        <Link to={to} className={styles.cardLink}>
+          {card}
+        </Link>
+      ) : (
+        card
+      )}
     </div>
   );
 }
@@ -60,6 +112,15 @@ export default function HomepageFeatures(): ReactNode {
   return (
     <section className={styles.features}>
       <div className="container">
+        <div className={styles.sectionHead}>
+          <Heading as="h2" className={styles.sectionTitle}>
+            Everything in one drop-in jar
+          </Heading>
+          <p className={styles.sectionSubtitle}>
+            Custom enchantments, armor sets, crystals, and a full item economy
+            under one config schema — with a built-in migrator.
+          </p>
+        </div>
         <div className="row">
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />

@@ -9,7 +9,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'StarEnchants',
   tagline: 'Legendary custom enchantments & armor sets for Paper + Folia',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.svg',
 
   future: {
     v4: true,
@@ -22,9 +22,15 @@ const config: Config = {
   projectName: 'StarEnchants',
   trailingSlash: false,
 
-  // 'warn' while pages are authored in parallel; tighten to 'throw' once the IA is stable.
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  // The IA is stable and the build is link-clean, so broken links/anchors fail the build.
+  onBrokenLinks: 'throw',
+  onBrokenAnchors: 'throw',
+
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   i18n: {
     defaultLocale: 'en',
@@ -49,9 +55,27 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/social-card.png',
+    image: 'img/social-card.svg',
+    metadata: [
+      {
+        name: 'keywords',
+        content:
+          'minecraft, paper, folia, custom enchantments, armor sets, plugin, ' +
+          'cosmic enchants, spigot, server, enchantments',
+      },
+      {name: 'theme-color', content: '#b98cff'},
+      {name: 'twitter:card', content: 'summary_large_image'},
+    ],
     colorMode: {
       respectPrefersColorScheme: true,
+    },
+    announcementBar: {
+      id: 'se_beta',
+      content:
+        '✦ StarEnchants is in active development — one universal jar for Paper 1.17.1 → 26.1.x and Folia.',
+      backgroundColor: '#b98cff',
+      textColor: '#1b1430',
+      isCloseable: true,
     },
     navbar: {
       title: 'StarEnchants',
@@ -100,7 +124,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `StarEnchants — open-source. NOT AN OFFICIAL MINECRAFT PRODUCT. Built with Docusaurus.`,
+      copyright: `✦ StarEnchants ${new Date().getFullYear()} — open-source under AGPL-3.0. NOT AN OFFICIAL MINECRAFT PRODUCT. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.oneLight,

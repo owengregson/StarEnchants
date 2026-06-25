@@ -1,23 +1,159 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
+/* StarEnchants landing — branded hero on a soft pink→purple wash. */
 
-.heroBanner {
-  padding: 4rem 0;
-  text-align: center;
+.hero {
   position: relative;
   overflow: hidden;
+  text-align: center;
+  padding: 5rem 1rem 4.5rem;
+  background:
+    radial-gradient(60% 90% at 50% -10%, rgba(255, 159, 207, 0.22), transparent 60%),
+    radial-gradient(60% 90% at 80% 0%, rgba(185, 140, 255, 0.2), transparent 55%),
+    var(--ifm-background-color);
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
+[data-theme='dark'] .hero {
+  background:
+    radial-gradient(60% 90% at 50% -10%, rgba(255, 159, 207, 0.16), transparent 60%),
+    radial-gradient(60% 90% at 80% 0%, rgba(185, 140, 255, 0.22), transparent 55%),
+    var(--ifm-background-color);
+}
+
+.heroGlow {
+  position: absolute;
+  inset: -40% 0 auto 0;
+  height: 480px;
+  background: radial-gradient(
+    closest-side,
+    rgba(185, 140, 255, 0.16),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+}
+
+.heroLogo {
+  width: 88px;
+  height: 88px;
+  margin-bottom: 1.25rem;
+  filter: drop-shadow(0 12px 26px rgba(185, 140, 255, 0.5));
+  animation: floaty 6s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
   }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroLogo {
+    animation: none;
+  }
+}
+
+.heroTitle {
+  font-size: clamp(2.6rem, 6vw, 4rem);
+  line-height: 1.05;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(120deg, #ff7fbf 0%, #b98cff 55%, #8fb6ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.heroTagline {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-size: clamp(1.05rem, 2.4vw, 1.4rem);
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.85rem;
+}
+
+.heroSub {
+  max-width: 40rem;
+  margin: 0 auto 1.9rem;
+  font-size: 1.1rem;
+  color: var(--ifm-color-content-secondary);
 }
 
 .buttons {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 0.75rem;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 2rem;
+}
+
+.badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--se-ink);
+  background: var(--se-gradient-soft);
+  border-radius: 999px;
+  padding: 0.32rem 0.85rem;
+}
+
+[data-theme='dark'] .badge {
+  color: #efe7ff;
+  background: rgba(185, 140, 255, 0.16);
+}
+
+/* ── What is StarEnchants ─────────────────────────────────────────────────── */
+.whatIs {
+  padding: 1rem 1rem 5rem;
+}
+
+.whatIsCard {
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 2.5rem;
+  border-radius: 1.25rem;
+  background: var(--se-surface);
+  border: 1px solid var(--se-border);
+  box-shadow: var(--se-card-shadow);
+}
+
+.whatIsTitle {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.whatIsCard p {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--ifm-color-content-secondary);
+}
+
+.whatIsLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  font-weight: 700;
+}
+
+@media screen and (max-width: 996px) {
+  .hero {
+    padding: 3.5rem 1rem 3rem;
+  }
+  .whatIsCard {
+    padding: 1.75rem;
+  }
 }
