@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="172" viewBox="0 0 420 172" role="img" aria-label="StarEnchants">
+  <defs>
+    
+    <radialGradient id="lGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.85"></stop>
+      <stop offset="0.5" stop-color="#E9C9FF" stop-opacity="0.4"></stop>
+      <stop offset="1" stop-color="#E9C9FF" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="lStar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD6EE"></stop><stop offset="0.5" stop-color="#D6B0FF"></stop><stop offset="1" stop-color="#A8C2FF"></stop>
+    </linearGradient>
+    <linearGradient id="lGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE9A8"></stop><stop offset="1" stop-color="#FFC75A"></stop>
+    </linearGradient>
+    <linearGradient id="lwm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF6FB5"></stop><stop offset="0.52" stop-color="#B98CFF"></stop><stop offset="1" stop-color="#7FA8FF"></stop>
+    </linearGradient>
+  </defs>
+  <g transform="translate(162.44 10.44) scale(0.82)">
+    <circle cx="58" cy="58" r="55" fill="url(#lGlow)"></circle>
+    <path d="M58 13 C61 44 72 55 103 58 C72 61 61 72 58 103 C55 72 44 61 13 58 C44 55 55 44 58 13 Z" fill="url(#lStar)"></path>
+    <path d="M58 31 C60 51 66 56 85 58 C66 60 60 65 58 85 C56 65 50 60 31 58 C50 56 56 51 58 31 Z" fill="#FFFFFF" opacity="0.4"></path>
+    <circle cx="49" cy="47" r="5" fill="#FFFFFF" opacity="0.95"></circle>
+    <path d="M97 24 C98 31 100 33 107 34 C100 35 98 37 97 44 C96 37 94 35 87 34 C94 33 96 31 97 24 Z" fill="url(#lGold)"></path>
+    <path d="M21 84 C22 89 23.5 90.5 28 91 C23.5 91.5 22 93 21 98 C20 93 18.5 91.5 14 91 C18.5 90.5 20 89 21 84 Z" fill="#FFB3DD"></path>
+  </g>
+  <text x="210" y="150" font-family="&#39;Trebuchet MS&#39;,&#39;Segoe UI&#39;,system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="46" font-weight="700" fill="url(#lwm)" text-anchor="middle" dominant-baseline="alphabetic">StarEnchants</text>
+</svg>
