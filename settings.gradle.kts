@@ -34,6 +34,10 @@ listOf(
     "compat-modern", // profile/head API, component commands, Brigadier, BlockData sends
     // Live Paper + Folia in-server matrix harness.
     "tester",
+    // Tool-only (like tester, NOT shipped in the plugin jar): a Java2D generator that renders item
+    // tooltips + GUIs to committable PNGs, reusing the plugin's own LoreRenderer so previews can't drift
+    // (docs/screenshot-rendering.md). Run via `./gradlew :imagegen:renderImages`.
+    "imagegen",
     // Third-party plugin integrations — bundled INTO the core fat jar and active out of the box, but
     // SOFT: each plugin's API is compileOnly (never bundled) and each bridge only loads when its plugin is
     // present, so no integration plugin is ever required (docs/decisions/0027, superseding 0017).
