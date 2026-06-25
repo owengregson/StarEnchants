@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="226" height="72" viewBox="0 0 226 72" role="img" aria-label="Features">
+<svg xmlns="http://www.w3.org/2000/svg" width="201" height="72" viewBox="0 0 201 72" role="img" aria-label="Features">
   <defs>
     <linearGradient id="pill" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#FFD9EC"></stop><stop offset="1" stop-color="#EAD9FF"></stop>
@@ -10,7 +10,7 @@
       <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#B98CFF" flood-opacity="0.22"></feDropShadow>
     </filter>
   </defs>
-  <rect x="6" y="8" width="212" height="56" rx="28" fill="url(#pill)" filter="url(#sh)"></rect>
+  <rect x="6" y="8" width="187" height="56" rx="28" fill="url(#pill)" filter="url(#sh)"></rect>
   <rect x="18" y="16" width="40" height="40" rx="13" fill="url(#chip)"></rect>
   <g transform="translate(27.00 25.00) scale(0.9167)"><path d="M12 2.5c.7 4.8 2.7 6.8 7.5 7.5-4.8.7-6.8 2.7-7.5 7.5-.7-4.8-2.7-6.8-7.5-7.5C9.3 9.3 11.3 7.3 12 2.5Z" fill="#fff"></path></g>
   <text x="72" y="37" font-family="&#39;Trebuchet MS&#39;,&#39;Segoe UI&#39;,system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="25" font-weight="700" fill="#5B3E8E" dominant-baseline="central">Features</text>
