@@ -11,21 +11,10 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code DURABILITY} — canonical item-durability primitive (docs/v3-directives.md §C):
- *
- * <ul>
- *   <li>{@code mode=restore} (default) — restore durability; {@code amount < 0} fully repairs;</li>
- *   <li>{@code mode=damage} — wear durability down by {@code amount};</li>
- *   <li>{@code target=item} (default) — held main-hand item (player-only); {@code armor} — worn armor
- *       (any living target); {@code all} — both.</li>
- * </ul>
- *
- * <p>Direction is a {@code mode} enum, not the sign of {@code amount}, because {@code amount < 0}
- * already means "fully repair" on the restore path — so {@code DURABILITY:1:armor:damage} is an
- * unambiguous one-point wear, never the full-repair sentinel.
- *
- * <p>Restore paths are player-only (a held/worn item belongs to a player inventory); armor damage works
- * on any {@link LivingEntity} victim. {@link Affinity#TARGET_ENTITY}.
+ * {@code DURABILITY} — canonical item-durability primitive (§C). Direction is the {@code mode} enum, not the
+ * sign of {@code amount}, since {@code amount < 0} already means "fully repair" on restore — so
+ * {@code DURABILITY:1:armor:damage} is an unambiguous one-point wear, never the full-repair sentinel.
+ * Restore is player-only (held/worn item); armor damage works on any {@link LivingEntity} victim.
  */
 public final class DurabilityEffect implements EffectKind {
 

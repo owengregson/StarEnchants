@@ -19,17 +19,11 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The crystal item economy (docs/v3-directives.md §E) — the cold path that MINTS physical crystal items
- * from a configured likeness, drag-APPLIES them to gear (a {@link CrystalConfig#successChance} roll,
- * optionally {@link CrystalConfig#consumeOnFail}), and MERGES two single crystals into a multi-crystal
- * (pairs only). Identity lives in PDC ({@link CrystalItemCodec}); the applied crystal becomes one
- * {@link item.codec.CombatState} crystal-slot entry (a single key, or {@code "a+b"} for a multi), so a
- * multi-crystal occupies one slot but contributes both abilities — the additive fold sums overlaps.
- *
- * <p>Gear mutation + slot/eligibility validation are delegated to {@link ItemEnchanter} (the one apply
- * authority); this layer owns the roll, the consume, the merge, and the configured messaging. The roll
- * is the only non-determinism, injected as a {@link Random} for testability. Folia-correct: a gesture
- * fires on the clicking player's own region thread, so mutating their cursor/inventory is in-thread.
+ * The crystal item economy (docs/v3-directives.md §E) — mints crystals, APPLIES them to gear (a
+ * {@link CrystalConfig#successChance} roll, optionally {@link CrystalConfig#consumeOnFail}), and MERGES two
+ * singles into a multi-crystal (pairs only). A multi applies as one {@code "a+b"} slot entry, so it occupies
+ * one slot yet contributes both abilities — the additive fold sums overlaps. Gear mutation + slot validation
+ * delegate to {@link ItemEnchanter}; the roll is injected as a {@link Random} for testability.
  */
 public final class CrystalService {
 
@@ -39,7 +33,7 @@ public final class CrystalService {
     private final ContentHolder content;
     private final Supplier<CrystalConfig> config;
     private final Random random;
-    private final item.lang.Messages messages; // §L lang.yml — apply/merge/extract result messages
+    private final item.lang.Messages messages; // §L lang.yml
 
     /** Default-messages form (tests/fixtures). */
     public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
@@ -77,15 +71,14 @@ public final class CrystalService {
         return stack;
     }
 
-    /** Mint a crystal carrying {@code keys} (1 = single, 2 = multi). */
     public ItemStack mint(List<String> keys) {
         return mint(new CrystalItemData(keys));
     }
 
     /**
-     * Mint a crystal for {@code data}. A SINGLE uses its own per-crystal likeness (§E: distinct lore per
-     * crystal), each field falling back to the shared {@link CrystalConfig}. A MERGED multi can't share one
-     * material, so it takes the shared likeness and concatenates each component's lore.
+     * Mint a crystal for {@code data}. A SINGLE uses its own per-crystal likeness (§E), falling back to the
+     * shared {@link CrystalConfig}; a MERGED multi can't share one material, so it takes the shared likeness
+     * and concatenates each component's lore.
      */
     public ItemStack mint(CrystalItemData data) {
         CrystalConfig cfg = config.get();
@@ -112,7 +105,6 @@ public final class CrystalService {
         return stack;
     }
 
-    /** The concatenated per-component lore of a merged multi-crystal (each rendered with its own name). */
     private List<String> mergedLore(List<String> keys, CrystalConfig cfg) {
         List<String> out = new ArrayList<>();
         for (String key : keys) {
@@ -128,7 +120,7 @@ public final class CrystalService {
     public CrystalResult interact(ItemStack cursor, ItemStack target) {
         CrystalItemData crystal = codec.read(cursor);
         if (crystal == null) {
-            return CrystalResult.unchanged(null); // defensive — listener falls through
+            return CrystalResult.unchanged(null);
         }
         CrystalItemData targetCrystal = codec.read(target);
         if (targetCrystal != null) {
@@ -137,7 +129,6 @@ public final class CrystalService {
         return apply(cursor, crystal, target);
     }
 
-    /** Apply {@code crystal} to {@code gear}: pre-check eligibility/slots, roll, consume, mutate. */
     private CrystalResult apply(ItemStack cursor, CrystalItemData crystal, ItemStack gear) {
         CrystalConfig cfg = config.get();
         ApplyResult eligible = enchanter.checkCrystalEntry(gear, crystal.keys());
@@ -149,7 +140,7 @@ public final class CrystalService {
         }
         String label = labelOf(crystal.keys());
         if (random.nextInt(100) < cfg.successChance()) {
-            enchanter.applyCrystalEntry(gear, crystal.keys(), true); // re-validates + appends one slot entry
+            enchanter.applyCrystalEntry(gear, crystal.keys(), true);
             consume(cursor);
             return CrystalResult.committed(gear, applySound(cfg), messages.format("crystal.apply-success", "CRYSTAL", label));
         }
@@ -160,10 +151,7 @@ public final class CrystalService {
         return CrystalResult.unchanged(messages.format("crystal.apply-fail"));
     }
 
-    /**
-     * Pop {@code gear}'s most-recent crystal, mint it back to hand the player, spend the extractor cursor.
-     * No-op (no consume) when the gear carries no crystal.
-     */
+    /** Pop {@code gear}'s most-recent crystal and mint it back to the player; no-op when gear carries none. */
     public CrystalResult extract(ItemStack cursor, ItemStack gear) {
         ExtractResult result = enchanter.extractCrystal(gear);
         if (!result.ok()) {
@@ -171,12 +159,12 @@ public final class CrystalService {
         }
         List<String> components = CrystalItemData.componentsOf(result.poppedEntry());
         ItemStack minted = mint(new CrystalItemData(components));
-        consume(cursor); // spend the extractor
+        consume(cursor);
         return CrystalResult.extracted(gear, minted, removeSound(config.get()),
                 messages.format("crystal.extract-success", "CRYSTAL", labelOf(components)));
     }
 
-    /** Merge two SINGLE crystals into a multi-crystal (pairs only): the target slot becomes the multi. */
+    /** Merge two single crystals into a multi (pairs only). */
     private CrystalResult merge(ItemStack cursor, CrystalItemData a, ItemStack target, CrystalItemData b) {
         if (target.getAmount() > 1) {
             return CrystalResult.unchanged(messages.format("crystal.merge-single"));
@@ -191,17 +179,15 @@ public final class CrystalService {
                 messages.format("crystal.merge", "CRYSTAL", labelOf(merged.keys())));
     }
 
-    /** The configured apply/merge sound token, or {@code null} when sounds are disabled. */
     private static String applySound(CrystalConfig cfg) {
         return cfg.sounds() ? cfg.soundApply() : null;
     }
 
-    /** The configured extract sound token, or {@code null} when sounds are disabled. */
     private static String removeSound(CrystalConfig cfg) {
         return cfg.sounds() ? cfg.soundRemove() : null;
     }
 
-    /** The component crystal display names joined for a {@code {CRYSTAL}} placeholder ({@code "Jolt + Frost"}). */
+    /** Component display names joined for the {@code {CRYSTAL}} placeholder ({@code "Jolt + Frost"}). */
     private String labelOf(List<String> keys) {
         StringBuilder out = new StringBuilder();
         for (String key : keys) {

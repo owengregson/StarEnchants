@@ -15,24 +15,16 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 /**
- * Fills a condition {@link FactBuffer} from one activation's live context (docs/architecture.md §3.4;
- * v3.1 §A) — the runtime half of the condition variable system. Built once at boot from the SAME
- * vocabulary the compiler lowered {@code %scope.name%} against, so a compiled condition's slot and the
- * populated buffer agree by construction.
+ * Fills a condition {@link FactBuffer} from one activation's live context (docs/architecture.md §3.4).
+ * Built once at boot from the same vocabulary the compiler lowered {@code %scope.name%} against, so a
+ * compiled condition's slot and the buffer agree by construction.
  *
- * <p><strong>Table-driven.</strong> Each built-in fact pairs its resolved slot with a pure extractor;
- * adding one is a line here plus a {@link BuiltinVars} declaration. A fact absent from the vocabulary is
- * skipped (its slot is −1).
+ * <p>One buffer per worker thread, cleared and refilled in place (the SAME instance is returned), keeping
+ * the per-hit pipeline allocation-free — safe only because the buffer never escapes the synchronous pass.
  *
- * <p><strong>Thread-local pooling (§3.4).</strong> One buffer per worker thread, cleared and refilled in
- * place — the SAME instance is returned — keeping the per-hit pipeline allocation-free. Safe only because
- * the buffer never escapes the synchronous pass.
- *
- * <p><strong>Folia.</strong> Every read runs on the firing thread. An entity owned by ANOTHER region
- * (e.g. a cross-region projectile shooter) fails hard on read, so each entity side is wrapped to leave
- * its facts defaulted rather than abort the activation. Reads never mutate, so no scheduler hop. A
- * defaulted cross-region fact is a value, not "unknown" — but no shipped content reads actor facts on the
- * ATTACK projectile path or victim facts on the DEFENSE path.
+ * <p>Folia: every read runs on the firing thread; an entity owned by another region (e.g. a cross-region
+ * projectile shooter) fails hard on read, so each entity side is wrapped to leave its facts defaulted
+ * rather than abort the activation.
  */
 public final class FactPopulator {
 
@@ -70,14 +62,11 @@ public final class FactPopulator {
     private final VarStore vars;
     private final UnaryOperator<String> papiDelegate;
 
-    /**
-     * §N entity-type resolver (ADR-0027) for {@code %victim.mobtype%}: a boot-installed soft hook (default
-     * no-op) so the engine never references the MythicMobs API and tests read an empty fact.
-     */
+    /** {@code %victim.mobtype%} soft hook (ADR-0027): boot-installed so the engine never references the MythicMobs API. */
     private static volatile java.util.function.Function<org.bukkit.entity.Entity, String> entityTypeResolver =
             entity -> "";
 
-    /** Install the entity-type ({@code victim.mobtype}) resolver (boot-time). A {@code null} resets to empty. */
+    /** A {@code null} resets to empty. */
     public static void entityTypeResolver(java.util.function.Function<org.bukkit.entity.Entity, String> resolver) {
         entityTypeResolver = resolver == null ? entity -> "" : resolver;
     }
@@ -173,16 +162,14 @@ public final class FactPopulator {
         return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null);
     }
 
-    /** The thread-local buffer for {@code context}, with timed dynamic vars read at tick {@code 0}. */
     public FactBuffer populate(ActivationContext context) {
         return populate(context, 0L);
     }
 
     /**
-     * The thread-local buffer, cleared and repopulated from {@code context} (or just cleared if
-     * {@code null}). Returns the shared instance, valid until this method is next called on this thread.
-     * The installed unknown-token resolver reads the activator's dynamic var (at {@code nowTicks}) before
-     * PAPI — the read side of {@code SET_VAR}.
+     * The thread-local buffer, cleared and repopulated from {@code context}. Returns the shared instance,
+     * valid until this method is next called on this thread. The unknown-token resolver reads the
+     * activator's dynamic var (at {@code nowTicks}) before PAPI — the read side of {@code SET_VAR}.
      */
     public FactBuffer populate(ActivationContext context, long nowTicks) {
         FactBuffer facts = buffer.get();
@@ -244,11 +231,7 @@ public final class FactPopulator {
         }
     }
 
-    /**
-     * Fill the event-payload facts ({@code damage}, broken {@code block}, world weather/time). The block is
-     * region-owned on the firing thread (MINE); the world getters are global-region-owned on Folia and so
-     * wrapped, defaulting only themselves on a wrong-thread read.
-     */
+    // World weather/time are global-region-owned on Folia, so wrapped: a wrong-thread read defaults only those facts.
     private void populateContext(FactBuffer facts, ActivationContext context) {
         if (damageSlot >= 0) {
             facts.setNumber(damageSlot, context.damage());
@@ -291,12 +274,7 @@ public final class FactPopulator {
         }
     }
 
-    /**
-     * Derived combat facts over live entity geometry: {@code distance} (actor↔victim) and
-     * {@code nearbyenemies} (living entities within {@link #NEARBY_RADIUS}). Entity reads on the firing
-     * thread, so Folia-wrapped like the actor/victim facts (default to 0 on a cross-region actor). Skipped
-     * when neither slot is in the vocabulary.
-     */
+    // Derived combat geometry (distance, nearbyenemies); Folia-wrapped like the entity facts (default to 0 cross-region).
     private void populateDerived(FactBuffer facts, ActivationContext context) {
         if (distanceSlot < 0 && nearbyEnemiesSlot < 0) {
             return;

@@ -9,11 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code REMOVE_POTION} — clear a potion effect from the target(s) (docs/architecture.md §7). The
- * {@code effect} arg is a version-volatile handle interned at compile time, so the runtime never sees a
- * renamed constant (§9). {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code REMOVE_POTION} — clear a potion effect from the target(s) (§7); {@code effect} interned at compile (§9). */
 public final class RemovePotionEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("REMOVE_POTION")

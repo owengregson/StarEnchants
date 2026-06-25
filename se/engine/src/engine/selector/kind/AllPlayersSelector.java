@@ -12,9 +12,8 @@ import java.util.List;
 
 /**
  * {@code @AllPlayers{r=32}} — every player within {@code r} of the centre, except the activator
- * (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). A radius scan, not the server roster:
- * server-wide would need cross-region hops the selector contract forbids (Folia: scan runs on the centre's
- * region thread).
+ * (Cosmic Enchants-style parity). A radius scan, not the server roster: server-wide would need cross-region
+ * hops the selector contract forbids (Folia: the scan runs on the centre's region thread).
  */
 public final class AllPlayersSelector implements SelectorKind {
 

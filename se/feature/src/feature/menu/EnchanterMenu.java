@@ -12,15 +12,10 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The Enchanter merchant GUI (docs/v3-directives.md §K): a click-to-buy shop. Each slot is an offer — buy a
- * random ("mystery") enchant book of a rarity tier for an EXP-level price; clicking charges the price and
- * gives the unopened book (overflow drops at the feet). A display-only menu on the shared framework (no item
- * input), so it needs no interactive-slot handling.
- *
- * <p><strong>In-scope economy only.</strong> This is the modernized StarEnchants Enchanter — buy an
- * {@link UnopenedBookService unopened book} per tier. A Cosmic Enchants-style separate console-command / money-priced slots are
- * a config concern (§L, which will replace these EXP-priced tier defaults with authored offers); a Cosmic Enchants-style dust
- * rarity-tinkering is out of scope (ADR-0019). Default pricing comes from {@link EnchanterOffers}.
+ * The Enchanter merchant GUI (§K): click an offer to buy a random {@link UnopenedBookService unopened book}
+ * of a rarity tier for an EXP-level price. The EXP-priced tier defaults ({@link EnchanterOffers}) are a §L
+ * placeholder for authored offers; Cosmic Enchants-style console-command / money-priced slots are a config
+ * concern (§L), and Cosmic Enchants-style dust rarity-tinkering is out of scope (ADR-0019).
  */
 public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
 
@@ -67,7 +62,7 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
             messages.send(player, "menu.enchanter.too-poor", "COST", offer.costLevels());
             return;
         }
-        player.setLevel(player.getLevel() - offer.costLevels()); // charge EXP levels (in-thread; safe)
+        player.setLevel(player.getLevel() - offer.costLevels()); // safe: the clicker's own region thread
         MenuItems.giveOrDrop(player, unopenedBooks.mint(offer.tier()));
         messages.send(player, "menu.enchanter.bought", "TIER", offer.tier());
     }

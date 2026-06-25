@@ -11,13 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The Tinkerer salvage bench (docs/v3-directives.md §K): place an enchant book in the input slot and click
- * Salvage to break it down for an EXP-level refund (the book's level, at least one). A {@link FormMenu};
- * an unconsumed input is returned on close.
- *
- * <p>In-scope economy only — a salvage to EXP via {@link CarrierService#salvageLevels}. A Cosmic Enchants-style salvage-to-XP-
- * bottle item and book↔dust conversion are NOT built (no data model — ADR-0019); this is the modernized
- * StarEnchants salvage (a direct EXP refund, no new carrier item).
+ * The Tinkerer salvage bench (docs/v3-directives.md §K): place an enchant book and click Salvage for an
+ * EXP-level refund. A Cosmic Enchants-style salvage-to-XP-bottle item and book↔dust conversion are NOT built
+ * (no data model — ADR-0019); this is a direct EXP refund, no new carrier item.
  */
 public final class TinkererMenu extends FormMenu {
 

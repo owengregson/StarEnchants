@@ -10,11 +10,9 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 
 /**
- * Shared field-parsing helpers for the content readers (ADR-0014) — the typed, diagnostic-emitting
- * primitives every source reader ({@link EnchantDefReader}, {@link CrystalDefReader}, and the
- * later set/heroic readers) uses to turn raw {@link YamlNode} text into validated values. Pure;
- * every fault is a {@code file:line:col} diagnostic, never an exception, so one bad field is
- * warned-and-skipped and the rest of the file still loads (§7, §10).
+ * Shared field-parsing helpers for the content readers (ADR-0014): turn raw {@link YamlNode} text into
+ * validated values. Every fault is a {@code file:line:col} diagnostic, never an exception, so one bad
+ * field is warned-and-skipped and the rest of the file still loads (§7, §10).
  */
 final class ContentParse {
 

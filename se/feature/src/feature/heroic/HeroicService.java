@@ -18,9 +18,8 @@ import platform.item.ItemGroups;
 /**
  * Heroic upgrade economy (docs/v3-directives.md §F; ADR-0021) — mints the upgrade and applies it on a
  * success roll. NOT set-bound: any armour or weapon may be upgraded. On success it stamps the heroic
- * percents onto {@link CombatState} (the marker renders from state) and optionally swaps to a configured
- * within-category material (e.g. diamond→netherite) preserving meta/enchants/PDC; on failure the gear is
- * untouched. Folia-correct: a gesture fires on the player's own region thread. The roll is injected for tests.
+ * percents onto {@link CombatState} and optionally swaps to a configured within-category material
+ * (e.g. diamond→netherite) preserving meta/enchants/PDC. The roll is injected for tests.
  */
 public final class HeroicService {
 
@@ -29,7 +28,7 @@ public final class HeroicService {
     private final LoreRenderer lore;
     private final Supplier<HeroicConfig> config;
     private final Random random;
-    private final item.lang.Messages messages; // §L lang.yml — heroic apply result + guards
+    private final item.lang.Messages messages; // §L lang.yml
     private final ItemGroups groups; // §F: gate applyTo to armour/weapons
 
     /** Default-messages form (tests/fixtures). */
@@ -84,7 +83,7 @@ public final class HeroicService {
         }
         HeroicConfig cfg = config.get();
         int chance = cfg.successMin() + random.nextInt(cfg.successMax() - cfg.successMin() + 1);
-        consume(upgrade); // a heroic upgrade is spent whether the roll succeeds or fails
+        consume(upgrade); // spent whether the roll succeeds or fails
         if (random.nextInt(100) >= chance) {
             return HeroicResult.committed(gear, messages.format("heroic.fail")); // gear untouched, upgrade spent
         }
@@ -94,14 +93,13 @@ public final class HeroicService {
                 current.omni(), new HeroicStat(cfg.percentDamage(), cfg.percentReduction(), cfg.durability()),
                 current.added());
         combat.write(upgraded, next);
-        lore.apply(upgraded, next); // re-render: enchants/crystals + the HEROIC marker, from state
+        lore.apply(upgraded, next); // re-render from state (enchants/crystals + HEROIC marker)
         return HeroicResult.committed(upgraded, messages.format("heroic.success"));
     }
 
     /**
      * Gear with its material swapped to the configured upgrade (meta/enchants/PDC preserved), or the original
-     * when not remapped or the swap is unviable. The meta copy only works within-category (the only mappings
-     * the config should declare); any failure falls back to the original.
+     * when not remapped or the swap is unviable. The meta copy only works within-category.
      */
     private ItemStack withUpgradedMaterial(ItemStack gear, HeroicConfig cfg) {
         String token = cfg.upgradeFor(gear.getType().name());
@@ -114,7 +112,7 @@ public final class HeroicService {
         }
         try {
             ItemStack upgraded = new ItemStack(target, gear.getAmount());
-            if (upgraded.setItemMeta(gear.getItemMeta())) { // copies name/lore/enchants/PDC
+            if (upgraded.setItemMeta(gear.getItemMeta())) {
                 return upgraded;
             }
         } catch (RuntimeException incompatible) {

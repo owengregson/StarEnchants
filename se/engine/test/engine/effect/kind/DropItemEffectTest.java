@@ -11,7 +11,6 @@ import engine.sink.Sink;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host DROP_ITEM test: one dropItem at the location, no-op when none resolved. */
 class DropItemEffectTest {
 
     @Test

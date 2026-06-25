@@ -50,11 +50,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The economy seam, live (docs/architecture.md §2, §7): a fake in-memory {@link EconomyProvider}
- * registered through the {@code ServicesManager} and discovered via {@link EconomyService#discover},
- * driven by a MODIFY_MONEY ATTACK enchant — proving discovery → service → effect → sink's global-thread
- * money intent on Paper and Folia. MODIFY_MONEY:@Self not @Victim because a money target must be a player,
- * and a player victim can't take a programmatic hit (PvP/peaceful gating, see CombatSuite). Mojang-mapped only.
+ * The economy seam, live (§2, §7): a fake {@link EconomyProvider} registered + discovered via
+ * {@link EconomyService#discover}, driven by a MODIFY_MONEY ATTACK enchant — discovery → service → effect →
+ * sink's global-thread money intent. @Self not @Victim: a money target must be a player, and a player victim
+ * can't take a programmatic hit (PvP/peaceful gating, see CombatSuite). Mojang-mapped only.
  */
 public final class EconomySuite implements Harness.Scenario {
 
@@ -93,8 +92,7 @@ public final class EconomySuite implements Harness.Scenario {
             return;
         }
 
-        // Registered and discovered through the same ServicesManager path the bootstrap uses, so this
-        // exercises discovery too.
+        // Same ServicesManager path the bootstrap uses, so this exercises discovery too.
         FakeEconomy bank = new FakeEconomy();
         plugin.getServer().getServicesManager().register(EconomyProvider.class, bank, plugin, ServicePriority.Normal);
         EconomyService economy = EconomyService.discover(plugin.getServer(), System.getLogger("se.test.economy"));

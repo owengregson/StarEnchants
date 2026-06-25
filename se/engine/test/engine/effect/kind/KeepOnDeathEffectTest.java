@@ -12,13 +12,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code KEEP_ON_DEATH}: one keepOnDeath per PLAYER target; non-players skipped. */
 class KeepOnDeathEffectTest {
 
     @Test
     void emitsKeepOnDeathForPlayerTargetsOnly() {
         Player player = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // only players have an inventory to keep
+        LivingEntity mob = mock(LivingEntity.class);
 
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.integer("duration")).thenReturn(200);

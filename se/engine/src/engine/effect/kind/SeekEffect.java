@@ -7,10 +7,8 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 
 /**
- * {@code SEEK} — make the BOW_FIRE projectile home onto the nearest line-of-sight target. An inline
- * read-back like {@code IGNORE_ARMOR}: the proc sets a flag the bow dispatcher reads after the gate walk and
- * applies to the shot, starting a per-projectile steering task on its own thread. Author on BOW_FIRE.
- * {@link Affinity#CONTEXT_LOCAL}.
+ * {@code SEEK} — make the BOW_FIRE projectile home onto the nearest line-of-sight target. An inline read-back
+ * like {@code IGNORE_ARMOR}: sets a flag the bow dispatcher reads after the gate walk to start a steering task.
  */
 public final class SeekEffect implements EffectKind {
 

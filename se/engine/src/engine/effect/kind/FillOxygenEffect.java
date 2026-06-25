@@ -8,9 +8,7 @@ import engine.spec.EffectSpec;
 import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
-/**
- * {@code FILL_OXYGEN} — refill the target(s)' air supply (docs/architecture.md §7). {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code FILL_OXYGEN} — refill the target(s)' air supply (§7). */
 public final class FillOxygenEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("FILL_OXYGEN")

@@ -9,10 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code HEALTH} — add to the target(s)' MAXIMUM health (docs/architecture.md §7); the bonus is tracked
- * by the dispatcher and restored on unequip. {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code HEALTH} — add to the target(s)' MAXIMUM health (§7), restored on unequip; cf. current-health {@code MODIFY_HEALTH}. */
 public final class HealthEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("HEALTH")

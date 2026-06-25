@@ -12,8 +12,8 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Slot-expander gesture glue (§H): slot item on the cursor + click on gear raises its enchant-slot count.
- * All logic lives in {@link SlotService}. Folia-correct: {@code InventoryClickEvent} fires on the clicking
- * player's region thread, so the cursor/inventory mutation is in-thread.
+ * Logic lives in {@link SlotService}. Folia-correct: {@code InventoryClickEvent} fires on the clicking
+ * player's region thread.
  */
 public final class SlotListener implements Listener {
 

@@ -19,10 +19,9 @@ import schema.spec.D;
 import schema.spec.ParamSpec;
 
 /**
- * The crystal reader carries each crystal's own physical likeness (material/name/lore, §E) so the
- * minted item self-explains its effect, and falls back to the shared {@code items/crystal.yml} when a
- * field is omitted. This pins the reader contract; the actual ItemStack rendering (and the merged
- * multi-crystal's concatenated lore) is exercised on a real server by the tester's CrystalSuite.
+ * The crystal reader carries each crystal's own physical likeness (material/name/lore, §E), falling
+ * back to the shared {@code items/crystal.yml} per field when omitted. Rendering is covered on a real
+ * server by the tester's CrystalSuite.
  */
 class CrystalLikenessTest {
 

@@ -4,9 +4,8 @@ import java.util.OptionalInt;
 
 /**
  * The Bukkit-free seam through which the compiler resolves version-volatile names to stable interned
- * handles <em>at compile time</em> (docs/architecture.md §2.1, §9). Injection keeps the compiler pure:
- * production wires {@code se-platform/resolve} (modern &rarr; legacy alias &rarr; Registry &rarr;
- * warn+skip), tests a fake — so the runtime only ever sees the interned ids produced here.
+ * handles <em>at compile time</em> (docs/architecture.md §9). Production wires {@code se-platform/resolve}
+ * (modern &rarr; legacy alias &rarr; Registry &rarr; warn+skip), tests a fake.
  *
  * <p>Each method returns the dense interned id, or empty {@link OptionalInt} when the token is unknown on
  * the target platform — the compiler then diagnoses and warn-and-skips that one op.

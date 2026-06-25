@@ -36,18 +36,11 @@ import platform.sched.Scheduling;
 import schema.diag.Diagnostic;
 
 /**
- * The {@code /se} admin command. {@code /se reload [--dry-run]} rebuilds the content library
- * off-thread and swaps it in transactionally (ADR-0014, §10). {@code /se enchant <key> [level]} and
- * {@code /se crystal <key>} apply content to the item in the sender's main hand through the
- * {@link ItemEnchanter}, which validates against the live content and re-renders the lore (§4.2).
- *
- * <p>Reload results report on the global thread; item commands mutate the player's inventory and
- * message back on the PLAYER's own thread (Folia-correct — {@code /se} runs on the command thread,
- * not the player's region thread).
+ * The {@code /se} admin command (ADR-0014, §10). {@code /se} runs on the command thread, not a region
+ * thread, so item/inventory work hops to the target player's own thread (Folia-correct).
  */
 public final class SeCommand implements CommandExecutor, TabCompleter {
 
-    /** The subcommands, for {@code args[0]} tab-completion + the usage text. */
     static final List<String> SUBCOMMANDS =
             List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb",
                     "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
@@ -55,27 +48,24 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     "split", "migrate", "pack", "menu", "effects", "selectors", "triggers", "conditions",
                     "variables", "list");
 
-    /** The {@code /se pack <action>} actions (ADR-0023), for tab-completion at arg index 1. */
     static final List<String> PACK_ACTIONS = List.of("list", "info", "apply", "export");
 
-    /** The filename-safe timestamp stamped into an auto-backup pack's name on {@code /se pack apply}. */
+    /** Filename-safe stamp for an auto-backup pack name on {@code /se pack apply}. */
     private static final java.time.format.DateTimeFormatter BACKUP_STAMP =
             java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss");
 
-    /** The {@code /se give <type> …} item types (§J), for tab-completion at arg index 1. */
     static final List<String> GIVE_TYPES =
             List.of("gem", "crystal", "extractor", "book", "set", "heroic", "upgrade", "orb",
                     "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
                     "dust", "whitescroll", "unopened");
 
-    /** The set members {@code /se give set <player> <set> <member>} can mint (§6.6). */
     static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
     private final SoulService souls;
-    private final Messages messages; // §L lang.yml — every player-facing /se message
+    private final Messages messages;
     private final Path migrationTarget;
     private final MenuRegistry menus;
     private final ContentHolder content;
@@ -88,7 +78,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.book.UnopenedBookService unopenedBooks;
     private final feature.scroll.HolyScrollService holyScrolls;
     private final feature.scroll.NametagService nametags;
-    private final PackStore packs; // ADR-0023 config packs: list/info/apply/export the config surface
+    private final PackStore packs;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -399,8 +389,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         String format = args[1].toLowerCase(Locale.ROOT);
         Path source = Path.of(args[2]);
         sender.sendMessage(messages.format("command.migrate.start", "FORMAT", format, "SOURCE", source));
-        // File I/O off the command thread; results route back to the sender. migrateSpecs writes effects
-        // in the verbose v2 form via the live effect-spec lookup.
+        // File I/O off the command thread; migrateSpecs writes effects in the verbose v2 form.
         Scheduling.async(() -> {
             try {
                 Migrator.Result result = switch (format) {
@@ -611,13 +600,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
-    /**
-     * {@code /se give <type> <player> [type-args…]} — the §J give-to-player surface. Resolves the target
-     * player, mints the requested item, and delivers it on the TARGET's own region thread (Folia-correct,
-     * overflow dropped at the target's feet via {@link MenuItems#giveOrDrop}); the recipient gets the
-     * item-type hint, the sender a "gave X to PLAYER" confirmation. The flat top-level verbs ({@code /se gem}
-     * etc.) remain as self-give shortcuts.
-     */
+    /** {@code /se give <type> <player> [type-args…]} — the §J give-to-player surface (delivery via {@link #deliver}). */
     private void give(CommandSender sender, String[] args) {
         if (args.length < 3) {
             sender.sendMessage(messages.format("command.give.usage"));
@@ -669,11 +652,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return target;
     }
 
-    /**
-     * Deliver {@code item} to {@code target} on its own region thread (overflow → feet), send the recipient
-     * the per-type hint {@code targetMsgKey}, and — when the sender is not the recipient — confirm to the
-     * sender. {@code itemLabel} names the item in that confirmation.
-     */
+    /** Deliver {@code item} on the target's own region thread (overflow → feet); confirm to a distinct sender. */
     private void deliver(CommandSender sender, Player target, ItemStack item, String targetMsgKey, String itemLabel) {
         Scheduling.onEntity(target, () -> {
             MenuItems.giveOrDrop(target, item);
@@ -705,11 +684,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /**
-     * {@code /se give set <player> <set> <member>} — mint a set member (an armour slot the set declares —
-     * {@code helmet}/{@code chestplate}/{@code leggings}/{@code boots} — or {@code weapon}) from its own
-     * material + name, and give it to the target (§6.6). A member the set does not declare fails cleanly.
-     */
+    /** {@code /se give set <player> <set> <member>} — mint a declared set member (§6.6); undeclared fails cleanly. */
     private void giveSetTo(CommandSender sender, Player target, String[] args) {
         if (args.length < 5) {
             sender.sendMessage(messages.format("command.set.usage"));
@@ -909,7 +884,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack crystal = crystals.mint(java.util.List.of(key));
-            // Overflow drops at the player's feet rather than being lost.
             player.getInventory().addItem(crystal).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
             player.sendMessage(messages.format("command.give.crystal", "KEY", key));
@@ -1027,7 +1001,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         int bookLevel = level;
         Scheduling.onEntity(player, () -> {
             org.bukkit.inventory.ItemStack book = carriers.mintBook(key, bookLevel);
-            // Overflow drops at the player's feet rather than being lost.
             player.getInventory().addItem(book).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
             player.sendMessage(messages.format("command.give.book", "KEY", key, "LEVEL", bookLevel));

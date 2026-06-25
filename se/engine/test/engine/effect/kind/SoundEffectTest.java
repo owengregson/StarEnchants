@@ -10,10 +10,7 @@ import engine.sink.Sink;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host effect test (docs/architecture.md §1.3): mocked EffectCtx in, Sink intents verified.
- * The {@code sound} handle arrives already resolved to an interned id (§9).
- */
+/** The {@code sound} handle arrives already resolved to an interned id (§9). */
 class SoundEffectTest {
 
     @Test

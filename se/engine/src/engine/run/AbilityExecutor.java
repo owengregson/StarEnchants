@@ -21,13 +21,12 @@ import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * The runtime execution path — gate 12 (docs/architecture.md §3.3, §3.5): runs each candidate ability
- * through the {@link ActivationPipeline} and, for every {@link engine.pipeline.GateOutcome#ACTIVATED}
- * one, emits its effects' intents into the {@link DispatchSink} without touching the world.
+ * The runtime execution path — gate 12 (docs/architecture.md §3.3): runs each candidate ability through
+ * the {@link ActivationPipeline} and emits every ACTIVATED one's effect intents into the
+ * {@link DispatchSink} without touching the world. The caller flushes once after the gate walk.
  *
- * <p>Stateless and shareable; per-event state is passed in. The caller flushes the sink once after the
- * gate walk (§3.6). Failures are isolated per effect and per ability so one bad unit never aborts the
- * rest (§9 warn-and-skip).
+ * <p>Stateless and shareable. Failures are isolated per effect and per ability so one bad unit never
+ * aborts the rest (§9 warn-and-skip).
  */
 public final class AbilityExecutor {
 
@@ -55,12 +54,10 @@ public final class AbilityExecutor {
     }
 
     /**
-     * Evaluate each candidate ability against {@code activation} and run the effects of every ACTIVATED
-     * one into {@code sink}. {@code candidateIds} are dense ids into {@code abilities}. {@code stableKeys}
-     * MUST pair with {@code abilities} (this snapshot's index) so a listener key names the ability that
-     * fired even if a reload concurrently swaps the live snapshot; {@code null} when no listener is wired.
-     * Does NOT flush — the caller flushes once after this and any sibling passes into the same sink (e.g.
-     * the attack- and defense-side abilities of one hit).
+     * Evaluate each candidate ability and run every ACTIVATED one's effects into {@code sink}.
+     * {@code stableKeys} MUST pair with {@code abilities} (this snapshot's index) so a listener key names
+     * the right ability even if a reload concurrently swaps the live snapshot; {@code null} when no
+     * listener is wired. Does NOT flush — the caller flushes once after sibling passes into the same sink.
      *
      * @return the number of abilities that activated
      */
@@ -85,12 +82,8 @@ public final class AbilityExecutor {
         return activated;
     }
 
-    /**
-     * Notify the activation listener, isolating any failure so a misbehaving observer never aborts the
-     * hit. The key is resolved against {@code stableKeys} (the run's own snapshot — never a live holder a
-     * reload could swap) and reduced to the ability's BASE content key for the public seam (the level is
-     * carried on {@link Ability#level()}); see {@link #baseKey}.
-     */
+    // Failure isolated so a bad observer never aborts the hit. Key resolved against the run's own snapshot
+    // (never a live holder a reload could swap) and reduced to the BASE content key — level is on Ability.
     private void notifyActivation(Ability ability, ActivationContext context, StableKeyIndex stableKeys) {
         if (listener == ActivationListener.NONE) {
             return; // hot-path no-op: skip key resolution when no observer is wired
@@ -103,11 +96,7 @@ public final class AbilityExecutor {
         }
     }
 
-    /**
-     * Strip the trailing {@code /<level>} from an enchant's compiled stable key to recover the base
-     * identity an item/config names ({@code enchants/venom/1} → {@code enchants/venom}). Level-less
-     * sources ({@code level <= 0} — crystals, sets) are already base-keyed and pass through.
-     */
+    /** {@code enchants/venom/1} → {@code enchants/venom}; level-less sources (crystals, sets) pass through. */
     private static String baseKey(String stableKey, int level) {
         if (stableKey == null || level <= 0) {
             return stableKey;
@@ -117,12 +106,10 @@ public final class AbilityExecutor {
     }
 
     /**
-     * Run ONE HELD/PASSIVE ability's effects as a lifecycle transition (§B, ADR-0022) — NOT through the
-     * gate pipeline: a maintained buff is deterministic, so chance/cooldown/condition/soul gates do not
-     * apply. {@code stopping} selects {@link EffectKind#stop} (teardown) over {@link EffectKind#run}; STOP
-     * is unconditional so a buff can never leak. No {@code WAIT} deferral — teardown must land with the
-     * unequip, not ticks later — and no listener notification (not a gated activation). Failures isolated
-     * per effect, like {@link #runEffects}.
+     * Run ONE HELD/PASSIVE ability's effects as a lifecycle transition (ADR-0022), NOT through the gate
+     * pipeline: a maintained buff is deterministic, so chance/cooldown/condition/soul gates do not apply.
+     * {@code stopping} selects {@link EffectKind#stop} (teardown) over {@link EffectKind#run}; STOP is
+     * unconditional so a buff can never leak. No {@code WAIT} deferral — teardown must land with the unequip.
      */
     public void runLifecycle(Ability ability, ActivationContext context, DispatchSink sink, boolean stopping) {
         for (CompiledEffect effect : ability.effects()) {
@@ -139,7 +126,7 @@ public final class AbilityExecutor {
                 List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), null, null);
-                sink.delay(0); // immediate: a buff turns on/off with the equip change, never deferred
+                sink.delay(0);
                 if (stopping) {
                     kind.stop(ctx, sink);
                 } else {

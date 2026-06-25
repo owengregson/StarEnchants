@@ -35,12 +35,11 @@ public final class WornStateStore {
         return byPlayer.get(id);
     }
 
-    /** Forget one player's worn state (on quit). */
     public void remove(UUID id) {
         byPlayer.remove(id);
     }
 
-    /** Forget every player's worn state (on reload — the new snapshot's ids supersede the old). */
+    /** Cleared wholesale on reload — the new snapshot's ids supersede the old. */
     public void clear() {
         byPlayer.clear();
     }

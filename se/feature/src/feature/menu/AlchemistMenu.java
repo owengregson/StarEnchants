@@ -11,14 +11,8 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The Alchemist combine bench (docs/v3-directives.md §K): place two <strong>identical</strong> enchant books
- * (same enchant, same level, below that enchant's max) in the two input slots and click Combine to fuse them
- * into one book of the next level. A {@link FormMenu} — the inputs are real item slots; an unconsumed input
- * is returned on close.
- *
- * <p>In-scope economy only: a mint of an existing item type via {@link CarrierService#combineBooks}. A Cosmic Enchants-style
- * magic-dust rarity-tinkering (combine two dusts → a next-rarity dust) is NOT built — ADR-0019 excludes it
- * (no data model).
+ * The Alchemist combine bench (§K): fuse two identical enchant books (same enchant + level, below max) into
+ * one of the next level. A Cosmic Enchants-style magic-dust rarity-tinkering is excluded (ADR-0019).
  */
 public final class AlchemistMenu extends FormMenu {
 

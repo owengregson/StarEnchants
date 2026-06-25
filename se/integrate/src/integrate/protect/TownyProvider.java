@@ -11,21 +11,18 @@ import org.bukkit.entity.Player;
 import platform.protect.ProtectionProvider;
 
 /**
- * A {@link ProtectionProvider} bridging Towny's {@code BUILD} permission (docs/decisions/0027): an enchant
- * effect may act at {@code where} iff Towny would let {@code actor} build there.
- *
- * <p>Bundled but SOFT: Towny's API is {@code compileOnly} and {@link integrate.Integrations} only loads this
- * class when Towny is present. Outside a Towny world everything is allowed; inside one Towny's per-player BUILD
- * cache for the block at {@code where} decides. An offline/unknown actor is allowed (no resolvable player ⇒ no
- * deny — the SPI's permissive stance). Towny is Paper-only, so the region-owned block read at {@code where} is
- * safe. Never throws — a hiccup degrades to allow.
+ * A {@link ProtectionProvider} bridging Towny's {@code BUILD} permission (docs/decisions/0027): outside a
+ * Towny world everything is allowed; inside one Towny's per-player BUILD cache for the block at {@code where}
+ * decides. An offline/unknown actor is allowed (no resolvable player ⇒ no deny — SPI's permissive stance).
+ * Towny is Paper-only, so the region-owned block read at {@code where} is safe. Never throws — a hiccup
+ * degrades to allow.
  */
 public final class TownyProvider implements ProtectionProvider {
 
     private final System.Logger log = System.getLogger("StarEnchants.Towny");
     private final AtomicBoolean warned = new AtomicBoolean();
 
-    /** Factory used by the registrar — returns the SPI type so referencing it never eagerly loads this class. */
+    /** Registrar factory; returns the SPI type so referencing it never eagerly loads this class. */
     public static ProtectionProvider create() {
         return new TownyProvider();
     }

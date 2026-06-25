@@ -12,16 +12,12 @@ import platform.sched.Scheduling;
 
 /**
  * Anti-cheat movement exemption (docs/decisions/0027): when StarEnchants applies VELOCITY/TELEPORT itself,
- * briefly tell the installed anti-cheat to ignore the motion so engine knockback/launch/teleport doesn't
- * trip movement false-flags. The composed {@link Consumer} is installed once as the sink's exemption hook.
+ * briefly tell the installed anti-cheat to ignore the motion so engine knockback/launch/teleport doesn't trip
+ * movement false-flags.
  *
- * <p>Reflective + fail-safe for the closed/premium anti-cheats (no compile dependency); every call is
- * wrapped so a missing/changed method just means "not exempted", never a throw in the combat path.
- *
- * <p>Coverage: NoCheatPlus via its stable {@code NCPExemptionManager} (reflective, here); GrimAC via
- * {@link Grim} (compiled against GrimAPI, surgical {@code FlagEvent} cancel). Vulcan/Matrix/Spartan expose
- * no runtime exemption API we can implement without a fake no-op, so they are only detected + logged (each
- * handles server velocity/teleport natively); adding a real one later is a localized addition.
+ * <p>Coverage: NoCheatPlus via reflective {@code NCPExemptionManager} (here); GrimAC via {@link Grim}.
+ * Vulcan/Matrix/Spartan expose no runtime exemption API, so they are only detected + logged (each handles
+ * server velocity/teleport natively).
  */
 public final class AntiCheat {
 
@@ -31,7 +27,7 @@ public final class AntiCheat {
     private AntiCheat() {
     }
 
-    /** One anti-cheat's exempt/unexempt pair; both calls swallow reflective errors. */
+    /** One anti-cheat's exempt/unexempt pair; both calls swallow reflective errors (fail-safe). */
     interface Exempter {
         void exempt(Player player);
 
@@ -44,10 +40,8 @@ public final class AntiCheat {
      * scheduler (Folia-correct).
      */
     public static Consumer<Player> exemption(Plugin plugin, Predicate<String> enabled, System.Logger log) {
-        // Exempt now, auto-unexempt after the window (NoCheatPlus).
-        List<Exempter> windowed = new ArrayList<>();
-        // Fire-and-forget motion recorders; a flag listener cancels coinciding flags (GrimAC).
-        List<Consumer<Player>> recorders = new ArrayList<>();
+        List<Exempter> windowed = new ArrayList<>(); // exempt now, auto-unexempt after the window (NoCheatPlus)
+        List<Consumer<Player>> recorders = new ArrayList<>(); // record motion; a flag listener cancels it (GrimAC)
 
         if (present(plugin, "NoCheatPlus") && enabled.test("nocheatplus")) {
             Exempter ncp = NoCheatPlusExempter.tryCreate();
@@ -59,7 +53,6 @@ public final class AntiCheat {
         if (present(plugin, "GrimAC") && enabled.test("grim")) {
             recorders.add(Grim.install(plugin, log));
         }
-        // Detected-but-unsupported: log guidance rather than ship unverifiable reflection.
         noteUnsupported(plugin, enabled, log, "Vulcan", "vulcan");
         noteUnsupported(plugin, enabled, log, "Matrix", "matrix");
         noteUnsupported(plugin, enabled, log, "Spartan", "spartan");
@@ -100,11 +93,7 @@ public final class AntiCheat {
         return found != null && found.isEnabled();
     }
 
-    /**
-     * NoCheatPlus exemption via its public {@code NCPExemptionManager}, reflective so the core never compiles
-     * against NCP. Resolves the {@code exemptPermanently}/{@code unexempt} handles and {@code CheckType.MOVING}
-     * once; {@link #tryCreate} returns null if NCP's API isn't as expected (then NCP simply isn't exempted).
-     */
+    /** NoCheatPlus exemption via its {@code NCPExemptionManager}; {@link #tryCreate} declines if its API differs. */
     private static final class NoCheatPlusExempter implements Exempter {
 
         private final Method exempt;

@@ -44,15 +44,14 @@ public final class ConditionCompiler {
         this.vars = Objects.requireNonNull(vars, "vars");
     }
 
-    /** Lower a parsed expression into a boolean {@link Cond}, or empty on a type error. */
+    /** Lower into a boolean {@link Cond}, or empty on a type error. */
     public Optional<Cond> compile(Expr expr, Diagnostics diags) {
         return bool(expr, diags);
     }
 
     /**
-     * Lower a parsed expression as a <em>numeric</em> value into the {@link NumExpr} IR — the entry point
-     * for an expression-valued effect argument (docs/architecture.md §3.4). A string/boolean operand or a
-     * comparison is a type error; returns empty (diagnostic recorded) so the caller keeps the constant default.
+     * Lower as a numeric value into {@link NumExpr} — the entry point for an expression-valued effect
+     * argument (§3.4). Empty on a type error (e.g. a comparison or string operand) so the caller keeps its constant default.
      */
     public Optional<NumExpr> numeric(Expr expr, Diagnostics diags) {
         return num(expr, diags);

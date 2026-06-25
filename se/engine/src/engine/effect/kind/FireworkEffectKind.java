@@ -9,12 +9,8 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code FIREWORK} — spawn a cosmetic firework at the activation location (docs/v3-directives.md §C).
- * {@code power} is rocket flight duration (0–3 typically). No-op when there is no activation location.
- * {@link Affinity#REGION}.
- *
- * <p>Named {@code FireworkEffectKind}, not {@code FireworkEffect}, to avoid colliding with Bukkit's
- * {@code org.bukkit.FireworkEffect}.
+ * {@code FIREWORK} — spawn a cosmetic firework at the activation location (§C). Named {@code FireworkEffectKind},
+ * not {@code FireworkEffect}, to avoid colliding with Bukkit's {@code org.bukkit.FireworkEffect}.
  */
 public final class FireworkEffectKind implements EffectKind {
 

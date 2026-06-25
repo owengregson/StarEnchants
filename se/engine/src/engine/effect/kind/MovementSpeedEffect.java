@@ -11,10 +11,8 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code MOVEMENT_SPEED} — set the player target(s)' walk speed for a span of ticks, then restore the
- * vanilla default (docs/v3-directives.md §C). {@code speed} is the Bukkit walk speed (vanilla default
- * {@code 0.2}, max {@code 1.0}); this is the triggered, timed form (a while-worn speed belongs to
- * HELD/REPEATING). {@link Affinity#TARGET_ENTITY}.
+ * {@code MOVEMENT_SPEED} — set the player target(s)' walk speed for a span of ticks, then restore the vanilla
+ * default (§C). The triggered, timed form; a while-worn speed belongs to HELD/REPEATING.
  */
 public final class MovementSpeedEffect implements EffectKind {
 

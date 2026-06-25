@@ -20,11 +20,9 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Scroll-family cold path (docs/v3-directives.md §I) — mints the book-economy scrolls and applies one onto
- * a target by its kind (black: extract a random enchant to a book; randomizer: reroll a book's success;
- * transmog: reorder enchant lore). Gear/book mutation reuses the shared authorities ({@link CombatCodec} +
- * {@link LoreRenderer}, {@link CarrierService}). The roll is injected for tests. Folia-correct: a gesture
- * fires on the clicking player's own region thread.
+ * Scroll-family cold path (§I): mints the book-economy scrolls and applies one onto a target by its kind
+ * (black: extract a random enchant to a book; randomizer: reroll a book's success; transmog: reorder
+ * enchant lore). The roll is injected for tests.
  */
 public final class ScrollService {
 
@@ -40,8 +38,8 @@ public final class ScrollService {
     private final ContentHolder content;
     private final Supplier<ScrollsConfig> config;
     private final Random random;
-    private final item.lang.Messages messages; // §L lang.yml — black/randomizer/transmog result messages + guards
-    private final item.codec.GodlyTransmogCodec godlyCodec; // §I/§K physical godly-transmog marker; null in tests
+    private final item.lang.Messages messages;
+    private final item.codec.GodlyTransmogCodec godlyCodec; // null in tests that never mint the godly tool
 
     /** Default-messages form (tests/fixtures). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
@@ -67,10 +65,9 @@ public final class ScrollService {
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
-        this.godlyCodec = godlyCodec; // nullable: tests that never mint the godly tool omit it
+        this.godlyCodec = godlyCodec;
     }
 
-    /** Whether {@code stack} is a drag-onto-target scroll handled by this service (black / randomizer / transmog). */
     public boolean isScroll(ItemStack stack) {
         String kind = scrolls.kind(stack);
         return BLACK.equals(kind) || RANDOMIZER.equals(kind) || TRANSMOG.equals(kind);
@@ -157,16 +154,16 @@ public final class ScrollService {
         CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
                 current.omni(), current.heroic(), current.added());
         combat.write(gear, next);
-        lore.apply(gear, next); // re-render the enchant lore in the new order
+        lore.apply(gear, next);
         appendNameSuffix(gear, cfg.nameSuffix());
         consume(cursor);
         return ScrollResult.committed(gear, null, messages.format("scroll.transmog.success"));
     }
 
     /**
-     * Deterministic enchant reorder behind the Godly Transmog GUI (vs {@link #applyTransmog}'s shuffle);
-     * cosmetic only. No-op {@code false} when {@code orderedKeys} isn't a permutation of the current keys,
-     * so an enchant can't be dropped or duplicated. Caller (the reorder menu) runs on the region thread.
+     * Deterministic enchant reorder behind the Godly Transmog GUI (vs {@link #applyTransmog}'s shuffle).
+     * No-op {@code false} unless {@code orderedKeys} is a permutation of the current keys, so an enchant
+     * can't be dropped or duplicated.
      */
     public boolean reorder(ItemStack gear, List<String> orderedKeys) {
         if (gear == null || gear.getType() == Material.AIR || gear.getAmount() > 1) {
@@ -177,7 +174,7 @@ public final class ScrollService {
             CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
                     current.omni(), current.heroic(), current.added());
             combat.write(gear, next);
-            lore.apply(gear, next); // re-render the enchant lore in the chosen order
+            lore.apply(gear, next);
             return true;
         }).orElse(false);
     }
@@ -243,7 +240,7 @@ public final class ScrollService {
         CombatState next = new CombatState(remaining, current.crystals(), current.setKey(),
                 current.omni(), current.heroic(), current.added());
         combat.write(gear, next);
-        lore.apply(gear, next); // re-render the gear's lore from the reduced state
+        lore.apply(gear, next);
         ItemStack book = carriers.mintBook(key, level); // the extracted enchant, as an enchant book
         return ScrollResult.committed(gear, book, messages.format("scroll.black.success", "ENCHANT", displayOf(key)));
     }

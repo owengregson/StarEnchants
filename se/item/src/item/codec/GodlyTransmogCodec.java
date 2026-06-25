@@ -8,8 +8,7 @@ import org.bukkit.persistence.PersistentDataType;
 /**
  * Marks / detects a physical GODLY TRANSMOG tool (§I/§K): a PDC {@code BYTE} flag under
  * {@link ItemKeys#godlyTransmog()}, off both the combat hot path and the scroll consume path
- * (it opens a reorder GUI rather than being consumed). Mirrors {@link CrystalExtractorCodec};
- * reading is null-safe.
+ * (it opens a reorder GUI rather than being consumed). Mirrors {@link CrystalExtractorCodec}.
  */
 public final class GodlyTransmogCodec {
 
@@ -19,13 +18,11 @@ public final class GodlyTransmogCodec {
         this.key = key;
     }
 
-    /** Whether {@code stack} is a godly transmog tool. */
     public boolean isGodlyTransmog(ItemStack stack) {
         return stack != null && stack.hasItemMeta()
                 && stack.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.BYTE);
     }
 
-    /** Stamp the godly-transmog marker onto {@code stack}. */
     public void mark(ItemStack stack) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {

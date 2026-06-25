@@ -22,12 +22,9 @@ public sealed interface NumExpr permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, 
      */
     record Papi(String raw) implements NumExpr {}
 
-    /** A binary arithmetic node ({@code left op right}) over numeric operands, evaluated at activation. */
     record Bin(NumExpr left, Op op, NumExpr right) implements NumExpr {}
 
-    /** Numeric negation of an operand. */
     record Neg(NumExpr operand) implements NumExpr {}
 
-    /** The binary arithmetic operators a {@link Bin} can carry. */
     enum Op { ADD, SUBTRACT, MULTIPLY, DIVIDE }
 }

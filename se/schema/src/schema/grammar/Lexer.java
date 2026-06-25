@@ -4,33 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The low-level lexing primitive: split a line on a delimiter at the <em>top
- * level only</em>, ignoring delimiters nested inside brackets or quotes.
- *
- * <p>An effect line is colon-separated ({@code HEAD:arg:arg}), but arguments may
- * themselves contain colons inside an inline tag ({@code <random 1-3>}), a
- * selector body ({@code @Sel{r=5}}), or a quoted string ({@code "a:b"}). A naive
- * {@code String.split(":")} would shred those; this lexer respects the nesting of
- * {@code () [] {} <>} and single/double quotes (with backslash escapes), and
- * tracks the 1-based column of every segment for diagnostics
- * (docs/architecture.md §2, se-schema/grammar).
+ * Splits a line on a delimiter at the top level only, respecting nesting of
+ * {@code () [] {} <>} and quotes (backslash escapes) so colons inside inline tags,
+ * selector bodies, or quoted strings survive a naive split. Tracks 1-based columns
+ * for diagnostics (docs/architecture.md §2).
  */
 public final class Lexer {
 
     private Lexer() {
     }
 
-    /**
-     * Split {@code input} on {@code delim}, but only where bracket depth is zero
-     * and not inside a quote. Always returns at least one token (possibly empty);
-     * consecutive delimiters yield empty segments, preserving positional meaning.
-     */
+    /** Always returns >=1 token; consecutive delimiters yield empty segments, preserving position. */
     public static List<Tok> splitTop(String input, char delim) {
         List<Tok> out = new ArrayList<>();
         int round = 0, square = 0, curly = 0, angle = 0;
         char quote = 0;
         StringBuilder cur = new StringBuilder();
-        int segStartCol = 1; // 1-based column of the current segment's first char
+        int segStartCol = 1;
 
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
@@ -38,7 +28,7 @@ public final class Lexer {
             if (quote != 0) {
                 cur.append(c);
                 if (c == '\\' && i + 1 < input.length()) {
-                    cur.append(input.charAt(++i)); // escaped char taken literally
+                    cur.append(input.charAt(++i));
                 } else if (c == quote) {
                     quote = 0;
                 }

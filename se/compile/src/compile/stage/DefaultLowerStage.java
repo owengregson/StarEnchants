@@ -27,17 +27,12 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
- * The default {@link LowerStage}: one authored {@link AbilityDef} &rarr; a
- * {@link LoweredAbility} (docs/architecture.md §3.2, §3.4, §3.6, §7).
- *
- * <p>{@code WAIT:n} lines are <em>timing</em>, not effects: they emit no {@code CompiledEffect}
- * and instead accumulate into the cumulative tick delay stamped on every following effect — the
- * fix for a Cosmic Enchants-style WAIT-overwrite bug (§3.6). The ability-level {@link Affinity} is
- * the MAX fold over its effects' affinities, so the {@code Sink} routes the whole activation without
- * per-effect inspection.
- *
- * <p>Never throws: each fault is one precise diagnostic and lowering continues, so one bad line
- * doesn't abort the load (§7, §10).
+ * The default {@link LowerStage}: one authored {@link AbilityDef} &rarr; a {@link LoweredAbility}
+ * (docs/architecture.md §3.2, §3.6). {@code WAIT:n} lines are <em>timing</em>, not effects: they
+ * accumulate into the tick delay stamped on every following effect — the fix for a Cosmic Enchants-style
+ * WAIT-overwrite bug. The ability-level {@link Affinity} is the MAX fold over its effects' affinities, so
+ * the {@code Sink} routes the whole activation without per-effect inspection. Never throws: one bad line
+ * is one diagnostic, not an aborted load.
  */
 public final class DefaultLowerStage implements LowerStage {
 
@@ -135,9 +130,8 @@ public final class DefaultLowerStage implements LowerStage {
     }
 
     /**
-     * Lower expression-valued numeric args from their parsed {@link Expr} (var names) to the slot-resolved
-     * {@link NumExpr} IR — the same variable&rarr;slot resolution conditions use (docs/architecture.md §3.4).
-     * Constant numeric args ({@link Double}/{@link Long}) pass through; only an {@code Expr} value is rewritten.
+     * Rewrites expression-valued numeric args to the slot-resolved {@link NumExpr} IR via the same
+     * variable&rarr;slot resolution conditions use (§3.4); constant numeric args pass through.
      */
     private Args lowerExprArgs(Args args, Diagnostics diags) {
         Args out = args;
@@ -152,11 +146,7 @@ public final class DefaultLowerStage implements LowerStage {
         return out;
     }
 
-    /**
-     * Validate a {@code WAIT} line into its non-negative tick count, or return
-     * {@code null} (recording an {@code E_WAIT_ARG} diagnostic) for any fault: a
-     * wrong argument count, a non-integer, or a negative value.
-     */
+    /** A {@code WAIT} line's non-negative tick count, or {@code null} (with an {@code E_WAIT_ARG}) on any fault. */
     private static Integer parseWait(EffectLine line, Diagnostics diags) {
         List<String> argTexts = line.argTexts();
         if (argTexts.size() != 1) {
@@ -185,10 +175,8 @@ public final class DefaultLowerStage implements LowerStage {
     }
 
     /**
-     * Parse and lower the raw condition into a typed {@link CompiledCondition}, or {@code null} when
-     * it is blank/absent ("always true") or parsing/lowering failed (diagnostic already recorded). The
-     * {@link ExprParser} produces the untyped {@link Expr}; {@link ConditionCompiler} resolves variables
-     * to {@code FactBuffer} slots and type-checks it (§3.4).
+     * The typed {@link CompiledCondition}, or {@code null} when blank/absent ("always true") or
+     * parsing/lowering failed (diagnostic already recorded).
      */
     private CompiledCondition lowerCondition(AbilityDef def, Diagnostics diags) {
         String expr = def.conditionExpr();
@@ -211,12 +199,7 @@ public final class DefaultLowerStage implements LowerStage {
         return lowered.map(c -> CompiledCondition.gate(c, def.source())).orElse(null);
     }
 
-    /**
-     * The target selector for an effect line: the author's inline {@code @Head{...}}
-     * selector if present, otherwise the effect kind's declared default target
-     * (falling back to {@code SELF}). Faults fall back to {@code SELF} after a
-     * diagnostic (§3.5, §7).
-     */
+    /** Inline {@code @Head{...}} selector if present, else the effect kind's declared default (§3.5). */
     private CompiledSelector resolveSelector(EffectLine line, String effectHead, Diagnostics diags) {
         Optional<String> inline = line.selectorToken();
         if (inline.isPresent()) {
@@ -225,7 +208,6 @@ public final class DefaultLowerStage implements LowerStage {
         return selectorCompiler.defaultFor(defaultSelectorOf.apply(effectHead), line.source(), diags);
     }
 
-    /** The declared affinity for {@code head}, defaulting to {@link Affinity#CONTEXT_LOCAL}. */
     private Affinity affinityOf(String head) {
         Affinity a = affinityOf.apply(head);
         return a != null ? a : Affinity.CONTEXT_LOCAL;

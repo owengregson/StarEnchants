@@ -4,17 +4,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The general likeness shared by EVERY enchant book (docs/v3-directives.md §I), loaded from the top-level
- * {@code items/enchant-book.yml}: there is no per-enchant book config — enchant/level/success are filled
- * in via placeholders. Immutable; lives in the {@link ItemsConfig} snapshot {@code /se reload} swaps.
+ * The likeness shared by EVERY enchant book (§I), loaded from {@code items/enchant-book.yml}: no per-enchant
+ * config — {@code {ENCHANT}}/{@code {LEVEL}}/{@code {SUCCESS}} are filled via placeholders.
  *
- * <p>Placeholders: {@code {ENCHANT}} = display name, {@code {LEVEL}} = granted level, {@code {SUCCESS}} =
- * apply success chance (only meaningful in {@link #successLore}, appended when the book overrides success).
- *
- * @param material      the book item's material token (resolved cross-version; default ENCHANTED_BOOK)
- * @param successLore   extra lore appended when the book carries an explicit success chance ({@code {SUCCESS}})
- * @param destroyOnFail whether a FAILED book apply destroys the gear (a White Scroll spares it). Only a
- *                      sub-100 roll (unopened/randomized book) can fail; a 100%-success book never reaches this.
+ * @param successLore   appended when the book carries an explicit {@code {SUCCESS}} chance
+ * @param destroyOnFail whether a FAILED apply destroys the gear (a White Scroll spares it). Only a sub-100
+ *                      roll (unopened/randomized book) can fail; a 100%-success book never reaches this.
  */
 public record EnchantBookConfig(String material, String name, List<String> lore, List<String> successLore,
                                 boolean destroyOnFail) {
@@ -26,10 +21,7 @@ public record EnchantBookConfig(String material, String name, List<String> lore,
         successLore = List.copyOf(successLore);
     }
 
-    /**
-     * Built-in likeness used when {@code items/enchant-book.yml} is absent. {@code destroyOnFail} defaults
-     * to {@code false} (safe with no config); the shipped yml enables it so the White Scroll has a purpose.
-     */
+    /** {@code destroyOnFail} defaults to {@code false} (safe with no config); the shipped yml enables it so the White Scroll has a purpose. */
     public static EnchantBookConfig defaults() {
         return new EnchantBookConfig(
                 "ENCHANTED_BOOK",

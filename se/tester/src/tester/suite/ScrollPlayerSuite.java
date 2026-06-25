@@ -18,10 +18,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * §I player-bound scrolls that need a real {@link Player} inventory: holy-scroll death-save (scans
- * storage + off-hand, rolls, consumes one); item nametag re-locates its target by IDENTITY (survives the
- * item moving between click and chat line), refunds a cancelled rename, refuses a second concurrent one.
- * Fake player; each assertion on that player's own region thread (Folia-correct).
+ * §I player-bound scrolls needing a real {@link Player} inventory: holy-scroll death-save, and item nametag
+ * that re-locates its target by IDENTITY (survives the item moving between click and chat line), refunds a
+ * cancelled rename, refuses a second concurrent one. Fake player; assertions on its own region thread.
  */
 public final class ScrollPlayerSuite implements Harness.Scenario {
 

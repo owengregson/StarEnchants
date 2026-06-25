@@ -9,11 +9,7 @@ import engine.effect.EffectCtx;
 import engine.sink.Sink;
 import org.junit.jupiter.api.Test;
 
-/**
- * Pins that each unified DAMAGE_MOD (side, mode) pair routes to the same fold method as its old
- * kind (ADD/REDUCE/FLAT_DAMAGE, FLAT_REDUCE), so the additive damage fold is untouched; percent
- * modes divide by 100.
- */
+/** Each unified DAMAGE_MOD (side, mode) pair routes to the same fold method as its old kind; percent modes divide by 100. */
 class DamageModEffectTest {
 
     private static EffectCtx ctx(String side, String mode, double amount) {

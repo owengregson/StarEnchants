@@ -8,11 +8,7 @@ import engine.spec.EffectSpec;
 import org.bukkit.Location;
 import schema.spec.D;
 
-/**
- * {@code SOUND} — play a sound at the activation location (docs/architecture.md §7). No-op when the
- * activation carries no location ({@link EffectCtx#location()} may be {@code null}). The {@code sound} handle
- * is interned at compile time, so the runtime never sees a renamed constant (§9). {@link Affinity#REGION}.
- */
+/** {@code SOUND} — play a sound at the activation location (§7); {@code sound} interned at compile (§9). */
 public final class SoundEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("SOUND")

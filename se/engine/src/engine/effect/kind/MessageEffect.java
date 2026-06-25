@@ -8,18 +8,9 @@ import engine.spec.EffectSpec;
 import schema.spec.D;
 
 /**
- * {@code MESSAGE} — canonical player-feedback primitive (docs/v3-directives.md §C):
- *
- * <ul>
- *   <li>{@code chat} (default) — a chat line;</li>
- *   <li>{@code actionbar} — the action bar;</li>
- *   <li>{@code title} — a centered title + {@code subtitle}, with {@code fadeIn}/{@code stay}/{@code fadeOut}
- *       timings (ticks). For the title channel, {@code text} is the title line.</li>
- * </ul>
- *
- * <p>{@code channel} is declared AFTER {@code text} so the terse form {@code MESSAGE:<text>} parses as a
- * chat message (channel defaults to {@code chat}); colon-bearing or title messages need the verbose form.
- * {@link Affinity#CONTEXT_LOCAL}.
+ * {@code MESSAGE} — canonical player-feedback primitive (§C): chat / actionbar / title. {@code channel} is
+ * declared AFTER {@code text} so the terse {@code MESSAGE:<text>} parses as a chat line (default channel);
+ * colon-bearing or title messages need the verbose form.
  */
 public final class MessageEffect implements EffectKind {
 

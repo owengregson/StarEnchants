@@ -9,9 +9,8 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * {@code DISARM} — make the target(s) drop their main-hand item (docs/architecture.md §7).
- * {@link Affinity#TARGET_ENTITY}: routed to the owner's thread, where reading its equipment and
- * dropping at its location is region-correct.
+ * {@code DISARM} — make the target(s) drop their main-hand item (§7). {@link Affinity#TARGET_ENTITY} so the
+ * equipment read + drop runs on the owner's thread (region-correct on Folia).
  */
 public final class DisarmEffect implements EffectKind {
 

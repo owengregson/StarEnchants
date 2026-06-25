@@ -10,10 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import schema.spec.D;
 
-/**
- * {@code FLY} — grant the player target(s) temporary flight for a duration in ticks
- * (docs/architecture.md §7). Non-player targets are silently skipped. {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code FLY} — grant the player target(s) temporary flight for a duration in ticks (§7). */
 public final class FlyEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("FLY")

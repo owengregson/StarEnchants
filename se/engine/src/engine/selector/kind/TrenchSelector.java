@@ -8,10 +8,7 @@ import java.util.List;
 import org.bukkit.Location;
 import schema.spec.D;
 
-/**
- * {@code @Trench{radius}} — square of blocks in the plane PERPENDICULAR to the actor's facing, centred on
- * the activation block (docs/v3-directives.md §A; {@code radius=1} → 3×3). Pure shape computation.
- */
+/** {@code @Trench{radius}} — square of blocks perpendicular to the actor's facing, centred on the activation block. */
 public final class TrenchSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("TRENCH")

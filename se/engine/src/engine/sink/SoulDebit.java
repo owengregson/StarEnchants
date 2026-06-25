@@ -4,12 +4,10 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 
 /**
- * The soul collaborator {@link DispatchSink} calls for {@code REMOVE_SOULS} — the engine-side seam to the
- * feature soul system, mirroring {@code EconomyService} for money (docs/v3-directives.md §D,
- * docs/architecture.md §6.3). A debit is addressed by gem IDENTITY: charged against the in-memory
- * {@code SoulLedger} authority and written through to the gem's PDC <em>on the holder's own thread</em>
- * (the gem lives in the holder's inventory; off-region PDC writes are a Folia cross-region bug, so the
- * sink routes through {@code entityOp(holder, …)} before calling this).
+ * The soul collaborator {@link DispatchSink} calls for {@code REMOVE_SOULS} — the seam to the feature soul
+ * system, mirroring {@code EconomyService} for money (§D, §6.3). A debit is charged against the in-memory
+ * {@code SoulLedger} and written through to the gem's PDC <em>on the holder's own thread</em>: the gem lives
+ * in the holder's inventory, so an off-region PDC write would be a Folia cross-region bug.
  */
 @FunctionalInterface
 public interface SoulDebit {

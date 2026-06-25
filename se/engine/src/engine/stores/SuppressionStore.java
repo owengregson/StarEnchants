@@ -9,10 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * the {@code DISABLE_*}-with-duration effects (an enchant/group/type id silenced for a span of ticks). The
  * per-activation transient suppression set is a SEPARATE arbiter, not this; this store holds only
  * suppressions that outlast the activation that created them.
- *
- * <p>Concurrent, UUID-keyed (Folia). TTL-evicting: an elapsed suppression is dropped lazily on the next
- * {@link #isSuppressed}, so the maps stay bounded without a sweeper. Time is an explicit caller-supplied
- * tick, never wall-clock — deterministic, Folia-correct, server-free to test.
  */
 public final class SuppressionStore {
 

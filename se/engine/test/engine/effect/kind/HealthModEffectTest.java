@@ -12,10 +12,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code MODIFY_HEALTH}: give heals each target, take deals direct health damage,
- * and transfer (lifesteal) damages each target and heals the activator by the same total.
- */
 class HealthModEffectTest {
 
     @Test

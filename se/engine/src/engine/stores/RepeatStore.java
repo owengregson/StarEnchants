@@ -9,22 +9,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-player repeating-task handles: player &rarr; (ability id &rarr; opaque task handle)
- * (docs/architecture.md §5.4). Backs {@code RepeatingTrigger} and the soul-drain timers
- * ({@code DRAIN_SOULS_CONSTANT}; §6), one recurring task per active {@code (player, ability)} pair.
+ * (docs/architecture.md §5.4). One recurring task per active {@code (player, ability)} pair; the handle
+ * type {@code H} is opaque so the store stays version- and platform-agnostic.
  *
- * <p>The handle type {@code H} is the platform's scheduled-task handle (Paper {@code BukkitTask}, Folia
- * {@code ScheduledTask}, …), opaque so this store stays version- and platform-agnostic.
- * <strong>This store never cancels a task</strong> — it owns the <em>mapping</em>, not the lifecycle.
- * Every removal hands the handle(s) back so the caller cancels on the correct thread via the scheduling
- * abstraction; that is what keeps the store a plain, side-effect-free map under Folia's region model.
- *
- * <p>Concurrent, UUID-keyed (Folia: any region thread may arm or disarm). Self-bounding: {@link #put}
- * replaces rather than accumulates, so at most one live task per {@code (player, ability)}; the returned
- * previous handle is the caller's signal to cancel the superseded task (or it leaks). Drained on quit
- * ({@link #removeAll}) and disable ({@link #removeEverything}).
- *
- * <p>No time dependency: a handle is live until explicitly removed, so no tick parameter and no TTL —
- * expiry is the scheduled task's concern, not the map's.
+ * <p><strong>This store never cancels a task</strong> — it owns the <em>mapping</em>, not the lifecycle.
+ * Every removal (and a superseding {@link #put}) hands the handle(s) back so the caller cancels on the
+ * correct thread via the scheduling abstraction, keeping the store a plain map under Folia's region model.
+ * No TTL or tick parameter — a handle is live until explicitly removed; expiry is the task's concern.
  */
 public final class RepeatStore<H> {
 

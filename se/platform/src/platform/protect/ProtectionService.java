@@ -6,16 +6,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Location;
 
 /**
- * The composed protection gate the engine consults (docs/architecture.md §2, §3.3 gate 2). ANDs every
- * registered {@link ProtectionProvider}: an action is allowed iff <em>all</em> providers allow it
- * (deny is authoritative). With no providers it allows everything — a server with no land plugin has
- * nothing to protect. A provider that throws is treated as "allow" and logged once, so a buggy bridge
- * degrades to permissive rather than blocking all enchant activity.
+ * The composed protection gate the engine consults (docs/architecture.md §3.3 gate 2). ANDs every
+ * {@link ProtectionProvider} (deny is authoritative); no providers ⇒ allow-all. A provider that throws is
+ * treated as "allow" and logged once, so a buggy bridge degrades to permissive rather than blocking play.
  *
- * <p>Deliberately NO per-tick cache: the provider list is usually tiny (often empty), and a tick-scoped
- * cache here is a correctness liability (a stalled global tick freezes it stale) for a perf win that
- * belongs in a profiled hot-path pass. Each provider is invoked on the firing region's thread with the
- * firing {@link Location} (see {@link ProtectionProvider}).
+ * <p>Deliberately NO per-tick cache: the list is usually tiny, and a tick-scoped cache is a correctness
+ * liability (a stalled global tick freezes it stale) for a perf win that belongs in a profiled hot-path pass.
  */
 public final class ProtectionService {
 

@@ -10,14 +10,9 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 /**
- * The §M drift guard (docs/v3-directives.md §M): the committed {@code docs/reference/dsl-reference.md} must
- * exactly equal {@link ReferenceDoc#render()}. This runs in {@code ./gradlew build}, so adding or changing an
- * effect/selector/trigger/operator/variable without regenerating the doc fails the build — the reference can
- * never silently drift from the code.
- *
- * <p>Regenerate after an intended change with
- * {@code ./gradlew :engine:test --tests "*ReferenceDocDriftTest" -Dse.doc.regen=true} (the root build forwards
- * {@code -Dse.*} into the test JVM); the regen branch writes the file and passes, the normal branch asserts.
+ * The §M drift guard: the committed {@code docs/reference/dsl-reference.md} must equal {@link ReferenceDoc#render()},
+ * so changing any effect/selector/trigger/operator/variable without regenerating the doc fails {@code ./gradlew build}.
+ * Regenerate with {@code -Dse.doc.regen=true} (the root build forwards {@code -Dse.*} into the test JVM).
  */
 class ReferenceDocDriftTest {
 

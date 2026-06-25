@@ -6,10 +6,7 @@ import engine.spec.SelectorSpec;
 import java.util.List;
 import org.bukkit.Location;
 
-/**
- * {@code @EyeHeight} — the actor's eye location (docs/v3-directives.md §A). Pure read of the firing-thread
- * actor, no world scan.
- */
+/** {@code @EyeHeight} — the actor's eye location; pure read of the firing-thread actor, no world scan. */
 public final class EyeHeightSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("EYEHEIGHT")

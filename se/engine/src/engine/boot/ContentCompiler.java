@@ -13,12 +13,9 @@ import engine.trigger.TriggerRegistry;
 import platform.resolve.RegistryResolvers;
 
 /**
- * Single place that wires the production content {@link Compiler} from the engine's built-in
- * registries (docs/architecture.md §2.1, §7). Both the shipped {@code bootstrap} plugin and the live
- * suite call {@link #production()}, so a library compiles identically in production and under test.
- *
- * <p>Construction resolves nothing (resolution happens during {@code compile}), so this is safe to
- * call off a server.
+ * Wires the production content {@link Compiler} from the built-in registries. Both the shipped
+ * {@code bootstrap} plugin and the live suite call {@link #production()}, so a library compiles
+ * identically in production and under test. Construction resolves nothing, so it is safe off a server.
  */
 public final class ContentCompiler {
 

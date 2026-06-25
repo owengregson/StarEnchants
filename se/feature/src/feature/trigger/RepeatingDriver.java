@@ -13,17 +13,13 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * Drives §B {@code REPEATING} abilities (§B): one entity-owned repeating task per {@code (player, ability)},
- * each on its own {@code repeat:} period ({@link Ability#repeatTicks()}). Armed on every equip change, torn
- * down on quit ({@link #disarm}) / disable ({@link #disarmAll}).
+ * Drives {@code REPEATING} abilities (§B): one entity-owned repeating task per {@code (player, ability)},
+ * each on its own {@code repeat:} period in ticks ({@link Ability#repeatTicks()}).
  *
- * <p><strong>Folia-correct.</strong> Tasks run via {@link Scheduling#repeatingEntity} and follow the player
- * across regions/teleports. The {@link RepeatStore} owns the {@code (player, abilityId) → handle} mapping
- * (concurrent) but never cancels — this driver cancels each handle on the correct thread (store contract, §5.4).
- *
- * <p><strong>Lifecycle.</strong> {@link #arm} disarms then re-schedules from the fresh {@code WornState}, so a
- * dropped ability's task is cancelled and a re-periodised one rescheduled with no diff bookkeeping.
- * List-multiplicity is de-duped (one task per ability). Must run on the player's own thread.
+ * <p>Folia-correct: tasks run via {@link Scheduling#repeatingEntity} and follow the player across regions.
+ * The {@link RepeatStore} owns the {@code (player, abilityId) → handle} map (concurrent) but never cancels —
+ * this driver cancels each handle on the correct thread (store contract, §5.4). {@link #arm} disarms then
+ * re-schedules from the fresh {@code WornState}, needing no diff bookkeeping. Must run on the player's own thread.
  */
 public final class RepeatingDriver {
 

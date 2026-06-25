@@ -10,14 +10,9 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 
 /**
- * Reads one authored crystal file (a composed {@link YamlNode} mapping) into its metadata
- * {@link CrystalDef} plus exactly ONE {@link AbilityDef} (docs/architecture.md §6.5; ADR-0014,
- * ADR-0016). A crystal has no levels — its trigger / chance / cooldown / effects live at the top of
- * the file — and its stable key is the path-derived base key itself (e.g. {@code crystals/jolt}), the
- * key an item stores in its crystal list; it must NOT carry a {@code /level} suffix.
- *
- * <p>Effects may be terse strings or verbose {@code HEAD: { … }} maps (ADR-0016). Every fault is a
- * {@code file:line:col} diagnostic; a bad field is warned-and-skipped, never thrown.
+ * Reads one authored crystal file into its {@link CrystalDef} plus exactly ONE {@link AbilityDef}
+ * (ADR-0014, ADR-0016). A crystal has no levels; its stable key is the base key an item stores in its
+ * crystal list and must NOT carry a {@code /level} suffix. A bad field is warned-and-skipped, never thrown.
  */
 final class CrystalDefReader {
 
@@ -28,7 +23,6 @@ final class CrystalDefReader {
     private CrystalDefReader() {
     }
 
-    /** One crystal's parsed output: its metadata and the single ability it expands into. */
     record Parsed(CrystalDef def, List<AbilityDef> abilities) {
     }
 
@@ -37,7 +31,6 @@ final class CrystalDefReader {
         return read(baseKey, null, root, nextDefId, diags);
     }
 
-    /** Parse one crystal. {@code baseKey} is the path-derived key, e.g. {@code crystals/jolt}. */
     static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {

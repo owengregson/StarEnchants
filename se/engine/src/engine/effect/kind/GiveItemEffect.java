@@ -10,11 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import schema.spec.D;
 
-/**
- * {@code GIVE_ITEM} — give a material to the player target(s) (docs/v3-directives.md §C). The {@link Sink}
- * adds to the inventory on the target's own thread and drops overflow at their feet. {@code material} is a
- * handle arg interned at compile time (§9). {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code GIVE_ITEM} — give a material to the player target(s) (§C); {@code material} interned at compile (§9). */
 public final class GiveItemEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("GIVE_ITEM")

@@ -10,20 +10,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code KNOCKBACK_CONTROL} — scale or cancel an entity's incoming knockback (docs/v3-directives.md §C
- * combat-flags). The proc flags the target through the per-event {@link Sink}; the server's knockback
- * event (a separate Bukkit event the same tick) reads the flag and applies it:
- *
- * <ul>
- *   <li>{@code multiplier} — {@code 0} cancels the knockback, {@code 0.5} halves it, {@code 2} doubles
- *       it; defaults to a full cancel (the classic "no knockback" armor effect);</li>
- *   <li>{@code duration} — ticks the flag stays armed; defaults to {@code 2}, since the knockback lands
- *       the same tick as the hit, so a tiny window suffices.</li>
- * </ul>
- *
- * <p>Targets {@link T#SELF} by default (a DEFENSE proc controlling the holder's knockback); for the
- * knockback you deal, author on ATTACK with {@code who: victim}. {@link Affinity#CONTEXT_LOCAL}: in-memory
- * per-victim flag, no hop.
+ * {@code KNOCKBACK_CONTROL} — scale or cancel an entity's incoming knockback (§C combat-flags). The server's
+ * knockback event (a separate Bukkit event the same tick) reads the per-victim flag this arms; {@code duration}
+ * defaults to {@code 2} ticks since that knockback lands the same tick as the hit.
  */
 public final class KnockbackControlEffect implements EffectKind {
 

@@ -9,11 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * the next knockback an entity takes, with a short TTL. The {@code KNOCKBACK_CONTROL} effect writes it via
  * the {@link engine.sink.Sink} when a hit lands; the knockback event — a SEPARATE Bukkit event from the
  * damage hit, same tick — reads it back and cancels ({@code multiplier <= 0}) or scales. The two events
- * are decoupled, so an inline read-back cannot carry the flag across; this store bridges them.
- *
- * <p>Concurrent, UUID-keyed (Folia: the firing region's thread may differ from the knockback-event
- * thread). TTL-evicting on read; the TTL is normally a couple of ticks, so it self-bounds almost at once.
- * Time is an explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, testable.
+ * are decoupled (and on Folia may be on different region threads), so this store bridges them; an inline
+ * read-back cannot carry the flag across.
  */
 public final class KnockbackControlStore {
 

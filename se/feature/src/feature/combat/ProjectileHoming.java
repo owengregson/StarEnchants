@@ -11,17 +11,13 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * The {@code SEEK} (Cosmic Enchants-style {@code AUTO_LOCK}) homing engine: pick the best line-of-sight target for a freshly
- * fired projectile and steer it toward that target each tick until it lands, dies, loses the target, or
- * flies out of range. Started by the bow dispatcher after a {@code SEEK} proc; the steering runs on the
- * projectile's OWN entity scheduler ({@link Scheduling#repeatingEntity}) so it is Folia-region-correct for
- * the arrow.
+ * The {@code SEEK} (Cosmic Enchants-style {@code AUTO_LOCK}) homing engine: steers a freshly fired
+ * projectile toward the best line-of-sight target each tick on the projectile's OWN entity scheduler
+ * ({@link Scheduling#repeatingEntity}), Folia-region-correct for the arrow.
  *
- * <p>Folia caveat: reading the target's location each tick is region-correct only while the target shares
- * the arrow's region (the common case for short-range homing). A cross-region read throws on Folia, so each
- * steering tick is wrapped — a failure simply cancels the homing (the arrow continues ballistically) rather
- * than aborting. On Paper every read is on the one thread, so homing is exact. A faithful port of a Cosmic Enchants-style
- * {@code AutoLockTask} (angle-limited velocity steering, slowed near a blocking target).
+ * <p>Folia caveat: reading the target's location is region-correct only while it shares the arrow's region;
+ * a cross-region read throws, so each steering tick is wrapped and a failure just cancels the homing (the
+ * arrow flies ballistic). A faithful port of a Cosmic Enchants-style {@code AutoLockTask}.
  */
 public final class ProjectileHoming {
 

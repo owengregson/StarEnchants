@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 import schema.spec.Args;
 
-/** The v3.1 §A entity selectors: {@code @AllPlayers}, {@code @NearestPlayer}, {@code @PlayerFromName}, {@code @EntityInSight}. */
 class EntitySelectorsTest {
 
     private static final Location CENTER = mock(Location.class);

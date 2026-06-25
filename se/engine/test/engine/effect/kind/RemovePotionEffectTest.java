@@ -11,10 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test (docs/architecture.md §1.3): the {@code effect} arg arrives as an already-interned int
- * (resolved at compile time, §9).
- */
+/** The {@code effect} arg arrives as an already-interned int (resolved at compile time, §9). */
 class RemovePotionEffectTest {
 
     @Test

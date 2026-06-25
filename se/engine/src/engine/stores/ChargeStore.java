@@ -5,15 +5,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Per-player stacking charge counters for Rage-style ramps: interned ability id &rarr; count + expiry
- * tick (docs/architecture.md §5.4).
- *
- * <p>The TTL window is sliding — every {@link #increment} refreshes the expiry, so only a genuine pause
- * lets a charge lapse and reset to zero.
- *
- * <p>Concurrent, UUID-keyed (Folia: any region thread). TTL-evicting: an elapsed entry is dropped lazily
- * on the next {@link #count}/{@link #increment}, so the maps stay bounded without a sweeper. Time is an
- * explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, server-free to test.
+ * Per-player stacking charge counters for Rage-style ramps: interned ability id &rarr; count + expiry tick
+ * (docs/architecture.md §5.4). The TTL window is sliding — every {@link #increment} refreshes the expiry,
+ * so only a genuine pause lets a charge lapse and reset to zero.
  */
 public final class ChargeStore {
 

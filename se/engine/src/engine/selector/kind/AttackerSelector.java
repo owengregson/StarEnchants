@@ -6,10 +6,7 @@ import engine.spec.SelectorSpec;
 import org.bukkit.entity.LivingEntity;
 import java.util.List;
 
-/**
- * {@code @Attacker} — the entity that damaged the activator, or no target unless this is an incoming hit
- * (docs/architecture.md §7).
- */
+/** {@code @Attacker} — the entity that damaged the activator; no target unless this is an incoming hit. */
 public final class AttackerSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("ATTACKER")

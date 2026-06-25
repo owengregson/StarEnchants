@@ -21,7 +21,6 @@ public record HeroicStat(double percentDamage, double percentReduction, double d
         return percentDamage == 0.0 && percentReduction == 0.0 && durability == 0.0;
     }
 
-    /** Component-wise sum, used to pre-sum across worn pieces at equip. */
     public HeroicStat plus(HeroicStat other) {
         return new HeroicStat(percentDamage + other.percentDamage,
                 percentReduction + other.percentReduction,

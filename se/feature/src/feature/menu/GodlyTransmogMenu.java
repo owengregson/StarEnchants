@@ -16,16 +16,10 @@ import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 
 /**
- * The Godly Transmog reorder GUI (docs/v3-directives.md §K, §I): reorder the enchant lore lines of the
- * player's held gear by hand. One button per enchant on the item, in its current display order; click an
- * enchant to <em>select</em> it (it glows), then click another to <strong>swap</strong> their positions —
- * the swap is written to the item immediately (combat is order-independent, so this is purely cosmetic lore
- * order). Unlike the plain transmog scroll (a one-shot <em>random</em> shuffle), this is the deterministic,
- * player-chosen reorder.
- *
- * <p>The working order + the picked enchant are per-open state on the {@link MenuHolder} (its payload + its
- * selection). The held item is captured and reordered on the player's own region thread (the open-hop and
- * the click handler both run there), so the inventory reads/writes are Folia-correct.
+ * The Godly Transmog reorder GUI (§K, §I): click two enchants to swap their lore positions (purely cosmetic —
+ * combat is order-independent), the deterministic player-chosen counterpart to the scroll's random shuffle.
+ * Working order + picked enchant are per-open {@link MenuHolder} state; the gear is captured and reordered on
+ * the player's own region thread (the open-hop and click handler both run there), so the I/O is Folia-correct.
  */
 public final class GodlyTransmogMenu extends PagedMenu<String> {
 
@@ -60,8 +54,7 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
      * godly-transmog tool uses this to reorder the gear it was dragged onto, not whatever is held.
      */
     public void open(Player player, int slot) {
-        // Capture the bound item's enchant order on the player's region thread (a cross-region read off the
-        // command/click thread would be unsafe on Folia), then open inline.
+        // Open-hop to the player's region thread: the gear read/write below would be unsafe off it on Folia.
         Scheduling.onEntity(player, () -> {
             MenuHolder holder = new MenuHolder(this);
             CombatState state = combat.read(gearAt(player, slot));
@@ -108,12 +101,12 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
         List<String> order = items(holder);
         String selected = holder.selection();
         if (selected == null) {
-            holder.setSelection(key); // first pick — highlight on re-render
+            holder.setSelection(key); // first pick
             reopen(click);
             return;
         }
         if (selected.equals(key)) {
-            holder.setSelection(null); // clicked the picked enchant again → deselect
+            holder.setSelection(null); // re-clicked the pick → deselect
             reopen(click);
             return;
         }

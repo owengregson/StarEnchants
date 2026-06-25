@@ -9,10 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code IGNITE} — set the target(s) on fire for a duration in ticks (docs/architecture.md §7).
- * {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code IGNITE} — set the target(s) on fire for a duration in ticks (§7). */
 public final class IgniteEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("IGNITE")

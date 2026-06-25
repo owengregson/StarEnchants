@@ -10,9 +10,9 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Heroic durability (docs/v3-directives.md §F): cancel each item-damage event with the item's heroic
- * chance. Reads the SPECIFIC damaged item's stat, not the worn sum. Not the combat hot path, so a direct
- * decode is acceptable. Folia-correct: {@code PlayerItemDamageEvent} fires on the player's own region thread.
+ * Heroic durability (docs/v3-directives.md §F): cancel each item-damage event with the SPECIFIC damaged
+ * item's heroic chance, not the worn sum. Folia-correct: {@code PlayerItemDamageEvent} fires on the
+ * player's own region thread.
  */
 public final class HeroicDurabilityListener implements Listener {
 

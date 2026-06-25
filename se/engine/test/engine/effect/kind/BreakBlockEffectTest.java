@@ -12,7 +12,6 @@ import java.util.List;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host BREAK_BLOCK test: one breakBlock per resolved target location, no-op when none. */
 class BreakBlockEffectTest {
 
     @Test
@@ -20,7 +19,7 @@ class BreakBlockEffectTest {
         Location a = mock(Location.class);
         Location b = mock(Location.class);
         EffectCtx ctx = mock(EffectCtx.class);
-        when(ctx.targetLocations("at")).thenReturn(List.of(a, b)); // e.g. an @Vein resolved to two blocks
+        when(ctx.targetLocations("at")).thenReturn(List.of(a, b));
         when(ctx.bool("drops")).thenReturn(false);
 
         Sink sink = mock(Sink.class);

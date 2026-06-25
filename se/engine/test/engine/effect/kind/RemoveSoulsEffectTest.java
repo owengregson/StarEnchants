@@ -14,10 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code REMOVE_SOULS}: debits the activator's active gem ({@code @Self} in soul mode),
- * drains a victim's own gem ({@code @Victim}), else no-op. Exactly ONE debit ever — guards the dupe risk.
- */
+/** Exactly ONE debit ever, against the gem the target owns ({@code @Self}'s active, {@code @Victim}'s own) — guards the dupe risk. */
 class RemoveSoulsEffectTest {
 
     @Test

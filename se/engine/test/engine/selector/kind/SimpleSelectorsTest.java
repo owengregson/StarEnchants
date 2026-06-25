@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** The actor-relative selectors {@code @Self}, {@code @Victim}, {@code @Attacker}. */
 class SimpleSelectorsTest {
 
     @Test

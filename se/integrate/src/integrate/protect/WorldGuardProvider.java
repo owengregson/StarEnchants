@@ -15,30 +15,20 @@ import org.bukkit.entity.Player;
 import platform.protect.ProtectionProvider;
 
 /**
- * A {@link ProtectionProvider} bridging WorldGuard's {@code BUILD} flag (docs/decisions/0027): an enchant
- * effect may act at {@code where} iff WorldGuard would let {@code actor} build there — the one question the
- * engine's gate 2 asks (see {@link ProtectionProvider}).
+ * A {@link ProtectionProvider} bridging WorldGuard's {@code BUILD} flag (docs/decisions/0027): for an online
+ * actor the check is per-player (member or bypass allowed, non-member in a protected region denied); an
+ * offline/unknown actor is allowed, since with no resolvable player there is no membership to establish and the
+ * SPI only ever denies.
  *
- * <p>Bundled but SOFT: WorldGuard's API is {@code compileOnly} and the {@link integrate.Integrations}
- * registrar only instantiates this class when WorldGuard is present, so its WorldGuard-typed references never
- * load without it. Compiling against the real API means a renamed/removed method is a compile error, not a
- * silent fail-open.
- *
- * <p>For an online {@code actor} the check is per-player (region member or region-bypass allowed, non-member
- * in a protected region denied). An offline/unknown actor is allowed: with no resolvable player there is no
- * way to establish membership, hence no deny (the SPI only ever denies).
- *
- * <p>Threading: invoked on {@code where}'s region thread, so the region read is safe. Resolving the actor
- * reads player state that on Folia could be owned by another region — acceptable only because WorldGuard is
- * not Folia-aware and does not run on Folia (the registrar gates on its presence). Never throws — a hiccup
- * degrades to allow (logged once).
+ * <p>Resolving the actor reads player state that on Folia could be owned by another region — acceptable only
+ * because WorldGuard is not Folia-aware and does not run on Folia. Never throws — a hiccup degrades to allow.
  */
 public final class WorldGuardProvider implements ProtectionProvider {
 
     private final System.Logger log = System.getLogger("StarEnchants.WorldGuard");
     private final AtomicBoolean warned = new AtomicBoolean();
 
-    /** Factory used by the registrar — returns the SPI type so referencing it never eagerly loads this class. */
+    /** Registrar factory; returns the SPI type so referencing it never eagerly loads this class. */
     public static ProtectionProvider create() {
         return new WorldGuardProvider();
     }
@@ -51,15 +41,14 @@ public final class WorldGuardProvider implements ProtectionProvider {
     @Override
     public boolean allows(UUID actor, Location where) {
         if (where == null || where.getWorld() == null) {
-            return true; // nothing locatable to protect
+            return true;
         }
         try {
             Player player = actor == null ? null : Bukkit.getPlayer(actor);
             WorldGuardPlugin wgPlugin = WorldGuardPlugin.inst();
             if (player == null || wgPlugin == null) {
-                // No live player (offline/unknown) or WorldGuard not fully initialised → no membership to
-                // establish, so allow (SPI stance). A null subject would be treated as a NON-member and
-                // wrongly deny build in every member-owned region.
+                // No membership to establish → allow (SPI stance); a null subject is treated as a NON-member
+                // and would wrongly deny build in every member-owned region.
                 return true;
             }
             RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
@@ -81,10 +70,7 @@ public final class WorldGuardProvider implements ProtectionProvider {
         }
     }
 
-    /**
-     * Does WorldGuard's {@code BUILD} flag allow the wrapped {@code subject} at {@code at}? Extracted so the
-     * flag wiring is unit-testable against a mocked {@link RegionQuery} without the WorldGuard singletons.
-     */
+    /** Does WorldGuard's {@code BUILD} flag allow {@code subject} at {@code at}? (split out for unit testing) */
     static boolean buildAllowed(RegionQuery query, com.sk89q.worldedit.util.Location at, LocalPlayer subject) {
         return query.testState(at, subject, Flags.BUILD);
     }

@@ -12,13 +12,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code MOVEMENT_SPEED}: one movementSpeed per PLAYER target; non-players skipped. */
 class MovementSpeedEffectTest {
 
     @Test
     void emitsMovementSpeedForPlayerTargetsOnly() {
         Player player = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // skipped
+        LivingEntity mob = mock(LivingEntity.class);
 
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.dbl("speed")).thenReturn(0.4);

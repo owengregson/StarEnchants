@@ -9,9 +9,8 @@ import migrate.model.MigratedEnchant;
 import migrate.model.MigratedLevel;
 
 /**
- * Reads an EliteEnchantments {@code enchantments.yml} (the {@code Enchants:} map of per-enchant
- * definitions) into {@link MigratedEnchant}s, mapping triggers/applies/effects through {@link Mappings}
- * (docs/architecture.md §10). Parses with SnakeYAML directly via {@link LegacyYaml}.
+ * Reads an EliteEnchantments {@code enchantments.yml} (the {@code Enchants:} map) into
+ * {@link MigratedEnchant}s, mapping triggers/applies/effects through {@link Mappings}.
  */
 public final class EliteEnchantmentsReader {
 

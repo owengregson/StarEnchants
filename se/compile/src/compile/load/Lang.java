@@ -7,19 +7,11 @@ import java.util.Objects;
 import schema.diag.Diagnostic;
 
 /**
- * The compiled snapshot of {@code lang.yml} (docs/v3-directives.md §L) — every player-facing message, keyed
- * by a namespaced dotted key ({@code command.give.book}, {@code apply.hold-item}, {@code menu.enchanter.bought}).
- * A parallel immutable reference to the content {@link Library}, swapped in the same atomic {@code /se reload}
- * transaction; readers look up a key and substitute {@code {TOKEN}} placeholders.
- *
- * <p>Pure (no Bukkit): {@link #format}/{@link #lines} return the raw legacy {@code &}-coded template with
- * placeholders filled — the {@code &}→{@code §} colour translation happens at the Bukkit send boundary (the
- * {@code item.lang.Messages} facade), since {@code compile} carries no server API. A missing key renders as a
- * visible {@code &c<key>?} marker (never an exception, never a silent blank) so a typo surfaces in-game.
- *
- * <p>{@link #defaults()} is the shipped English catalogue; {@code lang.yml} overrides any subset of it.
- * {@link #singles} holds one-line messages, {@link #lists} multi-line blocks (the {@code /se} usage help,
- * the migrate usage).
+ * Compiled snapshot of {@code lang.yml} (§L) — player-facing messages keyed by dotted key, swapped in the
+ * same atomic {@code /se reload} transaction as content. {@code &}→{@code §} translation happens at the
+ * Bukkit send boundary, not here. A missing key renders as a visible {@code &c<key>?} marker (never an
+ * exception, never a silent blank) so a typo surfaces in-game; {@code lang.yml} overrides any subset of
+ * {@link #defaults()}.
  */
 public record Lang(Map<String, String> singles, Map<String, List<String>> lists, List<Diagnostic> diagnostics) {
 
@@ -29,19 +21,18 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         diagnostics = List.copyOf(diagnostics);
     }
 
-    /** An empty catalogue (every lookup is the missing-key marker) — used only as a degenerate fallback. */
+    /** An empty catalogue (every lookup is the missing-key marker) — the degenerate fallback. */
     public static Lang empty() {
         return new Lang(Map.of(), Map.of(), List.of());
     }
 
-    /** Whether any blocking diagnostic was raised loading {@code lang.yml}. */
     public boolean hasErrors() {
         return diagnostics.stream().anyMatch(Diagnostic::blocking);
     }
 
     /**
-     * The {@code &}-coded template for {@code key} with {@code {TOKEN}} placeholders substituted from
-     * {@code kv} (alternating {@code "TOKEN", value, …}). An unknown key returns the {@code &c<key>?} marker.
+     * The template for {@code key} with {@code {TOKEN}} placeholders substituted from {@code kv} (alternating
+     * {@code "TOKEN", value, …}). An unknown key returns the {@code &c<key>?} marker.
      */
     public String format(String key, Object... kv) {
         String template = singles.get(key);
@@ -64,7 +55,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         return out;
     }
 
-    /** Whether {@code key} is a known single-line message (for callers that branch on presence). */
+    /** Whether {@code key} is a known single-line message. */
     public boolean has(String key) {
         return singles.containsKey(key);
     }
@@ -86,11 +77,10 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         return Map.copyOf(out);
     }
 
-    /** The shipped English catalogue — the single source of default message text. */
+    /** The shipped English catalogue. */
     public static Lang defaults() {
         Map<String, String> s = new LinkedHashMap<>();
 
-        // /se command (SeCommand)
         s.put("command.not-a-player", "&cThat command can only be run by a player.");
         s.put("command.give.gem", "&aSoul gem minted. &7Right-click it (or /se soulmode) to toggle soul mode.");
         s.put("command.soul.no-gem", "&cHold a soul gem first (/se gem).");
@@ -161,7 +151,6 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.book", "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a.");
         s.put("command.reference.header", "&e{CATEGORY} &7({COUNT}): &f{ITEMS}");
         s.put("command.reference.list", "&eReference: &f{CATEGORIES} &7— /se effects|selectors|triggers|conditions|variables");
-        // §J give-to-player surface + the inverse removeenchant
         s.put("command.give.usage",
                 "&eUsage: /se give <type> <player> [args] &7— type: gem [amount] | crystal <key> | book <enchant> "
                         + "[level] [success] | heroic | upgrade | orb | blackscroll | randomizer | transmog | "
@@ -175,7 +164,6 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.error.no-such-player", "&cNo online player named &f{PLAYER}&c.");
         s.put("command.removeenchant.usage", "&eUsage: /se removeenchant <enchant> &7— strips it from the held item");
 
-        // ItemEnchanter ApplyResult reasons
         s.put("apply.no-such-enchant", "&cNo such enchant: &f{KEY}");
         s.put("apply.level-range", "&cLevel must be 1–{MAX} for &f{KEY}");
         s.put("apply.level-undefined", "&cLevel {LEVEL} of &f{KEY} &cis not defined.");
@@ -200,7 +188,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("apply.crystal.none", "&cThat item carries no crystal to extract.");
         s.put("apply.crystal.extracted", "&aExtracted the crystal.");
 
-        // Hardcoded gesture/service guards (no items/ home; not the config-backed *Config messages)
+        // Hardcoded gesture/service guards: no items/ home, not the config-backed *Config messages.
         s.put("common.single-item", "&cApply to a single item — split the stack first.");
         s.put("crystal.merge-single", "&cMerge onto a single crystal — split the stack first.");
         s.put("crystal.merge-pairs", "&cMulti-crystals are pairs — you cannot merge a multi-crystal further.");
@@ -216,7 +204,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
                 "&cThe item to rename is no longer there — your nametag was returned.");
         s.put("scroll.nametag.cannot-rename", "&cThat item cannot be renamed — your nametag was returned.");
 
-        // Menu chat feedback (the GUI's chat replies; titles/labels are menu LAYOUT, see menus/)
+        // Menu chat replies only; menu titles/labels are LAYOUT (menus/), not here.
         s.put("menu.alchemist.bad-input", "&cPlace a single enchant book in each slot.");
         s.put("menu.alchemist.cant-combine",
                 "&cThose books can't be combined — they must be the same enchant and level (below max).");
@@ -257,7 +245,6 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("book.unopened.open", "&aYou revealed &f{ENCHANT} {LEVEL}&a (&f{PERCENT}%&a success)!");
         s.put("book.unopened.empty-tier", "&cThere are no enchants in that tier to reveal.");
 
-        // Multi-line blocks
         Map<String, List<String>> l = new LinkedHashMap<>();
         l.put("command.usage", List.of(
                 "&eStarEnchants commands:",

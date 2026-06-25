@@ -9,10 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code LIGHTNING} — strike the target(s) with lightning, optionally dealing extra damage
- * (docs/architecture.md §7). {@code damage=0} is purely cosmetic. {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code LIGHTNING} — strike the target(s) with lightning, optionally dealing extra damage (§7). */
 public final class LightningEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("LIGHTNING")

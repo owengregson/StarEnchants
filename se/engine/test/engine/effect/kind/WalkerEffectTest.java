@@ -12,7 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host WALKER test: pins the {@code replace} enum → Sink 0/1/2 mode mapping (one tempPlatform per target). */
+/** Pins the {@code replace} enum → Sink 0/1/2 mode mapping. */
 class WalkerEffectTest {
 
     private static EffectCtx ctx(String replace, Location loc, LivingEntity who) {

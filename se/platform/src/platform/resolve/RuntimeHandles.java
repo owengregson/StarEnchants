@@ -13,17 +13,11 @@ import org.bukkit.potion.PotionEffectType;
 import schema.spec.HandleCategory;
 
 /**
- * The runtime side of cross-version resolution (docs/architecture.md §9): turns the interned handle
- * ids the compiled effects carry back into the live Bukkit objects the {@code Sink} dispatcher
- * mutates the world with — the inverse of {@link RenameResolvers}, completing the round-trip
- * <em>token &rarr; id (compile) &rarr; live object (runtime)</em>. The id&rarr;name step uses the
- * same resolver instance that interned the ids (so the names are exactly the ones it resolved for
- * this server); the name&rarr;object step reuses {@link RegistrySupport}'s version-adaptive lookup.
- *
- * <p>Bound to one resolver instance for its lifetime and caches id&rarr;object so the version-volatile
- * reflective lookup happens at most once per handle, never on the combat hot path. Concurrent —
- * combat reads it from many region threads on Folia. A handle that does not resolve on this version
- * returns {@code null}, and the caller skips that one op (warn-and-skip, never a crash).
+ * The runtime side of cross-version resolution (docs/architecture.md §9): turns interned handle ids back
+ * into live Bukkit objects, completing the round-trip <em>token &rarr; id (compile) &rarr; object (runtime)</em>.
+ * The id&rarr;name step uses the same resolver that interned the ids. Caches id&rarr;object so the volatile
+ * reflective lookup happens at most once per handle, off the hot path. Concurrent — Folia reads it from many
+ * region threads. An unresolved handle returns {@code null} and the caller warn-and-skips, never crashes.
  */
 public final class RuntimeHandles {
 
@@ -38,19 +32,15 @@ public final class RuntimeHandles {
     }
 
     /**
-     * The live object an already-alias-resolved canonical {@code name} denotes in {@code category},
-     * or {@code null} if it does not resolve on this version. The name-keyed companion to
-     * {@link #resolve(HandleCategory, int)} for the handful of referents the {@code Sink} dispatcher
-     * needs by their well-known name rather than an interned id (e.g. the implicit max-health
-     * attribute behind {@code addMaxHealth}). It funnels through the same single version-adaptive
-     * {@link RegistrySupport} lookup, so there is still exactly one cross-version resolution body.
-     * Not cached: the dispatcher calls it for cold, non-hot-path intents only.
+     * The live object a canonical {@code name} denotes, or {@code null}. Name-keyed companion to
+     * {@link #resolve(HandleCategory, int)} for referents the dispatcher needs by well-known name (e.g.
+     * the implicit max-health attribute behind {@code addMaxHealth}). Not cached: cold path only.
      */
     public Object resolveByName(HandleCategory category, String name) {
         return RegistrySupport.lookup(category, name);
     }
 
-    /** The live object for an interned handle id in {@code category}, or {@code null} if unresolved. */
+    /** The live object for an interned handle id, or {@code null} if unresolved. */
     public Object resolve(HandleCategory category, int id) {
         Map<Integer, Object> categoryCache = cache.get(category);
         Object cached = categoryCache.get(id);

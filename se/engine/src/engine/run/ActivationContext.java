@@ -6,10 +6,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 /**
- * The actors and event payload one activation runs against (docs/architecture.md §3.5; v3.1 §A). Built
- * once per event on the firing thread; every field is the firing-thread actor or a snapshot-safe value,
- * never a live cross-region entity (§3.4). Any field may be {@code null}/0 for a non-combat/non-positional
- * activation.
+ * The actors and event payload one activation runs against (docs/architecture.md §3.5). Built once per
+ * event on the firing thread; every field is a firing-thread actor or a snapshot-safe value, never a live
+ * cross-region entity. Any field may be {@code null}/0 for a non-combat/non-positional activation.
  *
  * @param actor    the player whose ability fired ({@code null} only in tests / synthetic runs)
  * @param victim   the combat victim, or {@code null}

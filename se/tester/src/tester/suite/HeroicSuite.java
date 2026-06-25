@@ -44,11 +44,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Heroic percent stats, proven live end-to-end (docs/architecture.md §6, §6.1; §F/ADR-0021): a passive
- * {@code HeroicStat} percent summed across worn/held pieces at equip and applied as the bounded
- * multiplicative stage on the additive damage fold, unconditionally (no chance/trigger gate). A fake-player
- * attacker with a heroic-damage weapon and no enchants amplifies a hit on a cow by ×(1+percent), observed
- * as a health delta. Mojang-mapped only.
+ * Heroic percent stats, live (§6, §6.1; §F/ADR-0021): a passive {@code HeroicStat} percent, summed at equip
+ * and applied as the bounded multiplicative stage on the additive damage fold, unconditionally (no
+ * chance/trigger gate). Observed as a ×(1+percent) health delta on a cow. Mojang-mapped only.
  */
 public final class HeroicSuite implements Harness.Scenario {
 

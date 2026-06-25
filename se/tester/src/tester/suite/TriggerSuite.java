@@ -47,11 +47,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Non-combat triggers, live (docs/architecture.md §3.3): MINE fires on block break, the v3.2 BREAK trigger
- * on a held item breaking, each landing its effect through {@link TriggerListeners}/{@link TriggerDispatch}.
- * Proves the non-combat path (Bukkit event → WornState.byTrigger → executor → Sink → world) that
- * {@code CombatDispatch} doesn't exercise. Synthetic events drive the registered listeners. Mojang- and
- * spigot-mapped alike (fake player).
+ * Non-combat triggers, live (§3.3): MINE on block break, BREAK on a held item breaking, through
+ * {@link TriggerListeners}/{@link TriggerDispatch} — the Bukkit event → WornState.byTrigger → executor →
+ * Sink → world path {@code CombatDispatch} doesn't exercise. Synthetic events drive the listeners. Fake player.
  */
 public final class TriggerSuite implements Harness.Scenario {
 
@@ -154,7 +152,6 @@ public final class TriggerSuite implements Harness.Scenario {
                                 throw new IllegalStateException("MINE enchant did not fire on block break");
                             }
                         });
-                        // BREAK trigger: hold the Backlash sword, re-resolve, break it.
                         miner.getInventory().setItemInMainHand(sword);
                         worn.refresh(miner, library.snapshot());
                         plugin.getServer().getPluginManager().callEvent(new PlayerItemBreakEvent(miner, sword));

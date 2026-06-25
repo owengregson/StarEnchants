@@ -10,11 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code VELOCITY} — canonical movement primitive (docs/v3-directives.md §C). {@code mode=add} adds the
- * {@code x/y/z} vector to each target's velocity; {@code mode=away} shoves each target back from the
- * activator with {@code strength}. {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code VELOCITY} — canonical movement primitive (§C): {@code add} an x/y/z vector, or shove {@code away} from the activator. */
 public final class VelocityEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("VELOCITY")
@@ -39,7 +35,6 @@ public final class VelocityEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         String mode = ctx.str("mode");
         if ("away".equalsIgnoreCase(mode)) {
-            // away direction is derived by the dispatcher from the activator's location
             Location from = ctx.actor().getLocation();
             double strength = ctx.dbl("strength");
             for (LivingEntity target : ctx.targets("who")) {

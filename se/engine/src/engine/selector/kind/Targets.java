@@ -7,9 +7,8 @@ import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 
 /**
- * Target filtering for area selectors ({@link AoeSelector}, {@link NearestSelector}; v3.1 §A). {@code filter}
- * is a closed enum so an unknown value is rejected at compile time. The {@code instanceof} checks use
- * {@link Player}/{@link Monster}, stable Bukkit interfaces across the whole version range.
+ * Target filtering for area selectors. {@code filter} is a closed enum so an unknown value is rejected at
+ * compile time. The {@code instanceof} checks use {@link Player}/{@link Monster} — stable across the range.
  */
 final class Targets {
 

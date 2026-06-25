@@ -31,10 +31,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Armour-set resolution, live end-to-end (docs/architecture.md §6.6; ADR-0014): once worn pieces reach
- * the set threshold the bonus ability joins the player's {@link WornState} (active + in the DEFENSE
- * trigger union); below it, it does not. Exercises the whole set path on a real equipped entity (stamp
- * setKey in PDC → equip → {@code WornResolver} → {@code SetResolver}). Mojang-mapped only (fake player).
+ * Armour-set resolution, live (§6.6; ADR-0014): at the set threshold the bonus joins the player's
+ * {@link WornState} (active + in the DEFENSE union), below it not — over the full stamp→equip→
+ * {@code WornResolver}→{@code SetResolver} path on a real entity. Mojang-mapped only (fake player).
  */
 public final class SetSuite implements Harness.Scenario {
 

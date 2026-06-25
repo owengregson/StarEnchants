@@ -11,13 +11,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * Renders lore from {@link CombatState}, never the reverse (§4.2). Lore is a deterministic projection of the
- * PDC record — rebuilt from scratch on every change, never parsed back to recover state. A stored key absent
- * from the catalog renders as {@code unknownLabel}, never crashing the render (§5.3).
- *
- * <p>The display-name lookup is injected ({@code base key -> display}) so {@link #lines} is pure and
- * server-free in tests; the wiring passes {@code Library::displayNameOf} (enchants AND crystals). Only
- * {@link #apply} touches Bukkit, via legacy {@code setLore(List<String>)} stable across 1.17.1 → 26.1.x.
+ * Renders lore from {@link CombatState}, never the reverse (§4.2): a deterministic projection rebuilt from
+ * scratch, never parsed back. An unknown stored key renders as {@code unknownLabel}, never crashing (§5.3).
+ * The display lookup is injected (not Library) so {@link #lines} stays pure and server-free; only {@link #apply}
+ * touches Bukkit.
  */
 public final class LoreRenderer {
 
@@ -49,35 +46,26 @@ public final class LoreRenderer {
         };
     }
 
-    /** Fixed-style renderer (tests): no per-tier colour, no set lore. */
     public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf) {
         this(() -> Objects.requireNonNull(style, "style"), displayNameOf, key -> null, SetLore.NONE);
     }
 
-    /**
-     * Fixed-style renderer with per-tier enchant colours (tests). {@code enchantColorOf}: base key → tier's
-     * {@code '&'}-code, {@code null}/blank falls back to the style's {@link LoreStyle#enchantColor()}.
-     */
     public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf,
             Function<String, String> enchantColorOf) {
         this(() -> Objects.requireNonNull(style, "style"), displayNameOf, enchantColorOf, SetLore.NONE);
     }
 
-    /** Live-style renderer: no per-tier colour, no set-member lore. */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
         this(style, displayNameOf, key -> null, SetLore.NONE);
     }
 
-    /** Live-style renderer with set-member lore but a universal enchant colour (no per-tier). */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf, SetLore setLore) {
         this(style, displayNameOf, key -> null, setLore);
     }
 
     /**
-     * Canonical renderer (composition root): {@code style} is re-read per render, so a {@code /se reload}
-     * swapping the {@code lore:} section takes effect on the next render. {@code enchantColorOf} colours each
-     * enchant by rarity tier (base key → {@code '&'}-code, ADR-0016 §2; {@code null}/blank → the style's
-     * {@link LoreStyle#enchantColor()}). {@code setLore} renders each worn set member's authored lore.
+     * Canonical renderer: {@code style} is re-read per render so a {@code /se reload} takes effect next render;
+     * {@code enchantColorOf} colours each enchant by rarity tier ({@code null}/blank → the style's default).
      */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
             Function<String, String> enchantColorOf, SetLore setLore) {

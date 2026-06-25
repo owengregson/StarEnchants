@@ -8,8 +8,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Tags / detects a SCROLL by kind (§I): a PDC {@code STRING} under {@link ItemKeys#scroll()}, off the
- * combat hot path. Mechanics come from the scrolls config, not the item. Reading is null-safe; a
- * blank/absent kind reads as {@code null}.
+ * combat hot path. Mechanics come from the scrolls config, not the item.
  */
 public final class ScrollCodec {
 
@@ -19,12 +18,11 @@ public final class ScrollCodec {
         this.key = key;
     }
 
-    /** Whether {@code stack} is any scroll. */
     public boolean isScroll(ItemStack stack) {
         return kind(stack) != null;
     }
 
-    /** The scroll kind on {@code stack} (upper-cased), or {@code null} if it is not a scroll. */
+    /** The scroll kind on {@code stack}, upper-cased, or {@code null} if it is not a scroll. */
     public String kind(ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) {
             return null;
@@ -33,7 +31,6 @@ public final class ScrollCodec {
         return raw == null || raw.isBlank() ? null : raw.toUpperCase(Locale.ROOT);
     }
 
-    /** Stamp the scroll kind onto {@code stack}. */
     public void mark(ItemStack stack, String kind) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {

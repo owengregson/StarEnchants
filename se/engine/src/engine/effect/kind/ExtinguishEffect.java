@@ -8,9 +8,7 @@ import engine.spec.EffectSpec;
 import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
-/**
- * {@code EXTINGUISH} — put out the target(s)' fire (docs/architecture.md §7). {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code EXTINGUISH} — put out the target(s)' fire (§7). */
 public final class ExtinguishEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("EXTINGUISH")

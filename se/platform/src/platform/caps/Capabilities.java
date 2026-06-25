@@ -4,16 +4,13 @@ import java.util.Objects;
 import org.bukkit.Server;
 
 /**
- * Boot-time platform probe (docs/architecture.md §9): immutable snapshot of the facts downstream gates
- * on — is this Folia (region-sharded, no single main thread; {@code folia-scheduling}) and which
- * Minecraft version — so {@code compat-folia}/{@code compat-modern} edges branch on a capability, not a
- * version-string {@code if}. Folia is detected by a class probe and the version by string parse, so this
- * leaf has no compile dependency on Folia or any newer-than-floor API; downstream consults the flags
- * ({@link #folia()}, {@link #atLeast(int, int, int)}), never the raw server again.
+ * Boot-time platform probe (docs/architecture.md §9): immutable snapshot of whether this is Folia and
+ * which Minecraft version, so downstream edges gate on a capability, not a version-string {@code if}.
+ * Detection is a class probe + string parse, so this leaf has no compile dependency on Folia or any
+ * newer-than-floor API; downstream consults the flags, never the raw server again.
  */
 public final class Capabilities {
 
-    /** The canonical Folia marker class, present only on a threaded-regions server. */
     static final String FOLIA_MARKER = "io.papermc.paper.threadedregions.RegionizedServer";
 
     private final boolean folia;
@@ -28,22 +25,18 @@ public final class Capabilities {
         this.patch = patch;
     }
 
-    /**
-     * Probe a live server: detect Folia by the threaded-regions marker class and read the
-     * Minecraft version from {@link Server#getBukkitVersion()} (e.g. {@code 1.20.6-R0.1-SNAPSHOT}).
-     */
+    /** Reads the version from {@link Server#getBukkitVersion()} (e.g. {@code 1.20.6-R0.1-SNAPSHOT}). */
     public static Capabilities probe(Server server) {
         Objects.requireNonNull(server, "server");
         return probe(server.getBukkitVersion(), foliaPresent());
     }
 
-    /** Probe from an explicit version string + Folia flag — the seam unit tests drive. */
+    /** Probe from an explicit version + flag — the seam unit tests drive. */
     public static Capabilities probe(String bukkitVersion, boolean folia) {
         int[] v = parseVersion(bukkitVersion);
         return new Capabilities(folia, v[0], v[1], v[2]);
     }
 
-    /** Whether the Folia threaded-regions runtime is present on the classpath. */
     public static boolean foliaPresent() {
         try {
             Class.forName(FOLIA_MARKER);
@@ -54,10 +47,9 @@ public final class Capabilities {
     }
 
     /**
-     * Parse {@code major.minor[.patch]} out of a Bukkit version string, tolerating the
-     * {@code -R0.1-SNAPSHOT} suffix and a missing patch (which Mojang omits on {@code x.y.0}
-     * releases, e.g. {@code 1.21}). Returns {@code {major, minor, patch}}; an unparseable
-     * leading number yields {@code {0, 0, 0}} so a probe never throws on a surprise format.
+     * Parse {@code major.minor[.patch]}, tolerating the {@code -R0.1-SNAPSHOT} suffix and a missing patch
+     * (Mojang omits it on {@code x.y.0}, e.g. {@code 1.21}). An unparseable number yields {@code {0,0,0}}
+     * so a probe never throws on a surprise format.
      */
     public static int[] parseVersion(String bukkitVersion) {
         int[] out = {0, 0, 0};
@@ -91,7 +83,6 @@ public final class Capabilities {
         return out;
     }
 
-    /** True on a Folia (threaded-regions) server; false on Paper/Spigot. */
     public boolean folia() {
         return folia;
     }

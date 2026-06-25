@@ -3,12 +3,9 @@ package schema.spec;
 import java.util.Objects;
 
 /**
- * One named, positional argument of a {@link ParamSpec}: a {@code name}, its
- * {@link ParamType}, and a doc string.
- *
- * <p>The name is how the value is read back from {@link Args} (e.g.
- * {@code args.dbl("damage")}) and how the migrator maps legacy positional args by
- * meaning rather than index (docs/architecture.md §7, §10).
+ * One named, positional {@link ParamSpec} argument. The name reads the value back from
+ * {@link Args} and lets the migrator map legacy positional args by meaning, not index
+ * (docs/architecture.md §10).
  */
 public record Param(String name, ParamType type, String doc) {
 

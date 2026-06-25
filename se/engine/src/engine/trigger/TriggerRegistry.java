@@ -10,14 +10,9 @@ import java.util.Optional;
 import java.util.function.IntPredicate;
 
 /**
- * The canonical trigger vocabulary (docs/architecture.md §3.7) — single source of truth
- * for each trigger's dense id. Built at boot; the compiler interns content trigger names
- * against {@link #names()} so a compiled {@code triggerMask} bit means the same trigger
- * the runtime listener routes, and the runtime classifies abilities into the {@code
- * WornState} combat arrays via {@link #attackTriggers()}/{@link #defenseTriggers()}.
- *
- * <p>Ids are assigned in registration order; the {@code triggerMask} is an {@code int},
- * so at most 32 triggers fit.
+ * The canonical trigger vocabulary (docs/architecture.md §3.7) — single source of truth for each trigger's
+ * dense id, assigned in registration order. The compiler interns content trigger names against
+ * {@link #names()} so a compiled {@code triggerMask} bit means the same trigger the runtime routes.
  */
 public final class TriggerRegistry {
 
@@ -81,7 +76,6 @@ public final class TriggerRegistry {
         return name.trim().toUpperCase(Locale.ROOT);
     }
 
-    /** Builder assigning canonical ids in registration order, rejecting duplicates and overflow. */
     public static final class Builder {
 
         private final List<TriggerKind> byId = new ArrayList<>();

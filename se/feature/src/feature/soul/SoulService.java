@@ -23,22 +23,19 @@ import org.bukkit.inventory.meta.ItemMeta;
 import platform.sched.Scheduling;
 
 /**
- * The soul gameplay loop (docs/architecture.md §6.3, docs/v3-directives.md §D) — the binding between the
- * durable on-item {@link SoulData} and the in-memory {@link SoulLedger} authority, made Folia-correct.
+ * The soul gameplay loop (§6.3, §D) — the binding between the durable on-item {@link SoulData} and the
+ * in-memory {@link SoulLedger} authority, made Folia-correct.
  *
- * <p><strong>The threading discipline.</strong> The ledger's in-memory authority is the live truth
- * during a session; the gem's PDC is the durable backing. The authority is seeded ONCE when a player
- * toggles soul mode on (run on the player's own thread, where reading their held gem is region-safe).
- * From then on every read uses the authority — never a live cross-region item read. A spend debits the
- * authority synchronously under the ledger's stripe lock (any thread), and the durable PDC write is
- * DEFERRED to the gem-holder's own entity thread (combat fires on the victim's region, but the gem is
- * the attacker's — writing it inline would be a cross-region mutation on Folia).
+ * <p><strong>Threading discipline.</strong> The ledger is the live truth during a session; the gem's PDC
+ * is the durable backing. The authority is seeded ONCE at toggle-on (player's own thread, where reading
+ * their held gem is region-safe); thereafter reads use the authority, never a live cross-region item read.
+ * A spend debits synchronously under the ledger's stripe lock (any thread), but the PDC write is DEFERRED
+ * to the gem-holder's entity thread — combat fires on the victim's region while the gem is the attacker's,
+ * so an inline write would be a cross-region mutation on Folia.
  *
- * <p><strong>Deposit on any kill.</strong> Souls accrue on EVERY kill regardless of soul-mode state:
- * {@link #onKill} defers to the killer's thread, locates their carried gem (main hand first, then the bag),
- * and credits it — through the ledger when that gem is the seeded active one, else straight to its PDC.
- * Spending stays gated by soul mode (gate 10 / {@code REMOVE_SOULS}). {@link #combine} and {@link #split}
- * both reconcile the ledger and any active mode whose gem identity they retire.
+ * <p><strong>Deposit on any kill.</strong> Souls accrue on EVERY kill regardless of soul-mode state
+ * ({@link #onKill}); spending stays gated by soul mode (gate 10 / {@code REMOVE_SOULS}). {@link #combine}
+ * and {@link #split} reconcile the ledger and any active mode whose gem identity they retire.
  */
 public final class SoulService implements SoulDebit {
 
@@ -48,7 +45,7 @@ public final class SoulService implements SoulDebit {
     private final Supplier<SoulGemConfig> config;
     private final java.util.function.BooleanSupplier depositOnAnyKill; // read live so a reload can flip it (§D)
     private final item.lang.Messages messages;
-    private final feature.fx.ParticleFx particles; // §D on-activate / on-deactivate spawns (aura is SoulParticleDriver)
+    private final feature.fx.ParticleFx particles; // on-activate/deactivate spawns; the aura is SoulParticleDriver
 
     /** Soul service with deposit-on-any-kill always on + default messages (the common test/fixture form). */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
@@ -67,11 +64,7 @@ public final class SoulService implements SoulDebit {
         this(ledger, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
     }
 
-    /**
-     * Canonical form (composition root): {@code depositOnAnyKill} is read live so a reload can flip the
-     * deposit-on-kill mechanic without a restart (§D). {@code particles} fires at toggle; the while-active
-     * aura is {@code SoulParticleDriver}.
-     */
+    /** Canonical form (composition root). */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
                        feature.fx.ParticleFx particles) {
@@ -96,7 +89,7 @@ public final class SoulService implements SoulDebit {
 
     /**
      * Toggle soul mode from the main-hand gem. MUST run on the player's own thread (reads the held item).
-     * Enabling seeds the ledger authority from the gem's stored count so no later read crosses a region.
+     * Enabling seeds the ledger authority from the gem's count so no later read crosses a region.
      */
     public Toggle toggle(Player player) {
         SoulGemConfig cfg = config.get();
@@ -114,18 +107,17 @@ public final class SoulService implements SoulDebit {
             ledger.forget(gem.gemId());
             message(player, messages.format("soul.deactivate"));
             playSound(player, cfg.soundDeactivate());
-            particles.spawn(player, cfg.particlesDeactivate(), 1); // §D on-deactivate
+            particles.spawn(player, cfg.particlesDeactivate(), 1);
             return Toggle.DISABLED;
         }
         modes.activate(id, gem.gemId());
         seed(gem);
         message(player, messages.format("soul.activate"));
         playSound(player, cfg.soundActivate());
-        particles.spawn(player, cfg.particlesActivate(), 1); // §D on-activate
+        particles.spawn(player, cfg.particlesActivate(), 1);
         return Toggle.ENABLED;
     }
 
-    /** Send a soul-gem message (legacy {@code &} codes translated), unless blank. */
     private static void message(Player player, String raw) {
         if (raw != null && !raw.isBlank()) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', raw));
@@ -133,9 +125,8 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * Play a gem sound iff sounds are enabled and the token is set. Uses the {@code playSound(Location,
-     * String, …)} overload — a namespaced key works across the whole range, dodging the {@code Sound}
-     * constant/interface break at 1.21.3, so no resolver is needed. Must run on the player's own thread.
+     * The {@code playSound(Location, String, …)} string overload takes a namespaced key, dodging the
+     * {@code Sound} constant/interface break at 1.21.3 — no resolver needed. Runs on the player's own thread.
      */
     private void playSound(Player player, String token) {
         SoulGemConfig cfg = config.get();
@@ -146,7 +137,7 @@ public final class SoulService implements SoulDebit {
 
     /**
      * Mint a fresh soul gem (new identity, 0 souls) — a DISTINCT configured item, NOT a stamp onto held gear
-     * (§D). Pure construction (no entity read), so Folia-safe from any thread.
+     * (§D). Pure construction, so Folia-safe from any thread.
      */
     public ItemStack mintGem() {
         return mintGemStack(SoulData.fresh(UUID.randomUUID()));
@@ -171,10 +162,7 @@ public final class SoulService implements SoulDebit {
         return codec.read(stack) != null;
     }
 
-    /**
-     * Render gem lore from config + soul count. Lore is rendered from state, never parsed back (§4.2).
-     * Pure (no Bukkit) — {@link ItemFactory} colours the returned lines.
-     */
+    /** Render gem lore from config + count; rendered from state, never parsed back (§4.2). Pure (no Bukkit). */
     static List<String> renderGemLore(SoulGemConfig cfg, int souls) {
         String amount = Integer.toString(souls);
         String soulColor = cfg.colorFor(souls);
@@ -188,11 +176,11 @@ public final class SoulService implements SoulDebit {
     /**
      * Deposit souls into the killer's carried gem (per-mob amount, else flat per-kill) on ANY kill, regardless
      * of soul mode (§D). Defers to the killer's thread (death fires on the victim's region) where reading their
-     * inventory is region-safe; no-op if the amount is ≤ 0 or they carry no gem.
+     * inventory is region-safe.
      */
     public void onKill(Player killer, org.bukkit.entity.EntityType victimType) {
         if (!depositOnAnyKill.getAsBoolean()) {
-            return; // deposit-on-kill disabled in config (§D)
+            return; // §D toggle off
         }
         int amount = config.get().soulsFor(victimType == null ? null : victimType.name());
         if (amount <= 0) {
@@ -214,8 +202,7 @@ public final class SoulService implements SoulDebit {
         }
         UUID gemId = data.gemId();
         if (ledger.peek(gemId).isPresent()) {
-            // seeded active gem: credit through the ledger so the live authority stays correct; the
-            // write-through persists to the gem wherever it sits
+            // seeded active gem: credit through the ledger so the live authority stays correct (write-through persists)
             ledger.deposit(gemId, balanceFor(killer, gemId), amount);
         } else {
             writeGem(inv, slot, data.withSouls(data.souls() + amount));
@@ -223,9 +210,9 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * Combine two gems into a fresh gem holding the SUM of their souls (authoritative count for a seeded
-     * source, else durable) (§D). Both source identities are retired, so the new gem is the only survivor.
-     * Returns {@code null} if either stack is not a gem. MUST run on {@code player}'s own thread.
+     * Combine two gems into a fresh gem holding the SUM of their souls (§D). Both source identities are
+     * retired, so the new gem is the only survivor. {@code null} if either stack is not a gem. MUST run on
+     * {@code player}'s own thread.
      */
     public ItemStack combine(Player player, ItemStack a, ItemStack b) {
         SoulData da = codec.read(a);
@@ -244,9 +231,8 @@ public final class SoulService implements SoulDebit {
 
     /**
      * Split {@code amount} souls off the main-hand gem into a new gem (never auto-split — only via
-     * {@code /se split}); the new gem goes to the player, overflow dropped. Routes the debit through the
-     * ledger when the held gem is the seeded active one, keeping the live authority correct. MUST run on
-     * {@code player}'s own thread.
+     * {@code /se split}); overflow dropped. Routes the debit through the ledger when the held gem is the
+     * seeded active one. MUST run on {@code player}'s own thread.
      */
     public SplitResult split(Player player, int amount) {
         if (amount <= 0) {
@@ -267,8 +253,7 @@ public final class SoulService implements SoulDebit {
         int remain;
         if (seeded.isPresent()) {
             // `have` was a lock-free peek; a concurrent spend may have dropped the authority below `amount`.
-            // tryConsume re-checks atomically under the stripe lock — mint the carved gem only if the debit
-            // actually happened, else no souls are created.
+            // tryConsume re-checks atomically under the stripe lock, so souls are minted only if it actually debited.
             if (!ledger.tryConsume(gemId, balanceFor(player, gemId), amount)) {
                 return new SplitResult(SplitResult.Status.TOO_MANY, amount, ledger.peek(gemId).orElse(0));
             }
@@ -289,11 +274,11 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * Debit souls from {@code holder}'s gem — the {@code REMOVE_SOULS} effect's collaborator (engine-side
-     * {@link engine.sink.SoulDebit}, §D). Charges the authority atomically ({@link SoulLedger#tryConsume}) and
-     * write-throughs to the gem's PDC <em>wherever it sits</em> (the gem is usually in the bag during combat,
-     * not the main hand). MUST run on {@code holder}'s own thread (the {@code DispatchSink} routes it there).
-     * Spending only ever hits the seeded active gem, so a stale PDC-only gem is never silently drained.
+     * Debit souls from {@code holder}'s gem — the {@code REMOVE_SOULS} effect's collaborator
+     * ({@link engine.sink.SoulDebit}, §D). Charges atomically ({@link SoulLedger#tryConsume}) and
+     * write-throughs to the gem's PDC <em>wherever it sits</em> (usually the bag during combat, not the
+     * main hand). MUST run on {@code holder}'s own thread. Only ever hits the seeded active gem, so a stale
+     * PDC-only gem is never silently drained.
      */
     @Override
     public void debit(Player holder, UUID gemId, int amount) {
@@ -313,10 +298,9 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * Forget a player's soul mode + authority on quit. Flushes the live authority to PDC before forgetting it
-     * (on the quit thread) — else a deferred write still in flight, or one an unloaded Folia entity never
-     * runs, would lose a just-spent balance and refund the souls. Flush-then-forget keeps the durable copy
-     * authoritative.
+     * Forget a player's soul mode + authority on quit. Flushes the live authority to PDC BEFORE forgetting it
+     * — else a deferred write still in flight (or one an unloaded Folia entity never runs) would lose a
+     * just-spent balance and refund the souls.
      */
     public void clear(Player player) {
         UUID id = player.getUniqueId();
@@ -369,7 +353,7 @@ public final class SoulService implements SoulDebit {
     /**
      * A {@link SoulLedger.Balance} that write-throughs the gem WHEREVER it sits — located by identity, not a
      * fixed slot — so a spend/deposit persists when the gem is in the bag, not the main hand (the combat
-     * case). {@code setSouls} must run on the holder's own thread.
+     * case). {@code setSouls} runs on the holder's own thread.
      */
     private SoulLedger.Balance balanceFor(Player holder, UUID gemId) {
         return new SoulLedger.Balance() {
@@ -427,9 +411,8 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * A balance whose writes DEFER to {@code player}'s thread. On a debit it flushes the LIVE authority (not
-     * the captured snapshot) to the gem, so concurrent/out-of-order deferred writes all converge to the same
-     * truth, then sends the soul-use message with the remaining count.
+     * A balance whose writes DEFER to {@code player}'s thread, flushing the LIVE authority (not the captured
+     * snapshot) so concurrent/out-of-order deferred writes all converge to the same truth.
      */
     private SoulLedger.Balance deferredBalance(Player player, UUID gemId) {
         return new SoulLedger.Balance() {
@@ -449,10 +432,9 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * Flush the live authority to the gem (by identity, wherever it sits), iff still carried. Reads via
-     * {@link SoulLedger#peek} with NO seeding, so a forgotten gem is a no-op rather than a 0-seed; writing the
-     * current authority (not a stale snapshot) keeps every deferred write idempotent. Must run on
-     * {@code player}'s own thread.
+     * Flush the live authority to the gem (by identity, wherever it sits), iff still carried. Peeks with NO
+     * seeding, so a forgotten gem is a no-op rather than a 0-seed; writing the current authority (not a stale
+     * snapshot) keeps every deferred write idempotent. Must run on {@code player}'s own thread.
      */
     private void persist(Player player, UUID gemId) {
         OptionalInt authority = ledger.peek(gemId);

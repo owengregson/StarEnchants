@@ -11,15 +11,10 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code KEEP_ON_DEATH} — keep the target's items + levels if they die soon (docs/v3-directives.md §C
- * combat-flags). The proc arms a per-player flag through the per-event {@link Sink} for {@code duration}
- * ticks; the death listener keeps the inventory (and clears drops) if the flag is live when the player
- * dies.
- *
- * <p>The engine has no unequip teardown hook, so an always-on "while worn" death-keep is authored on
- * trigger {@code REPEATING} with {@code duration} &ge; the repeat period — the flag is re-armed each tick
- * it stays equipped and lapses shortly after it is removed. A timed grace window (e.g. on DEFENSE) is the
- * other use. Player-only and {@link Affinity#CONTEXT_LOCAL} (it writes only an in-memory flag).
+ * {@code KEEP_ON_DEATH} — keep the target's items + levels if they die within {@code duration} ticks
+ * (§C combat-flags); a death listener reads the per-player flag this arms. The engine has no unequip
+ * teardown, so an always-on "while worn" keep is authored on {@code REPEATING} with {@code duration} &ge; the
+ * period — re-armed each tick worn, lapsing shortly after removal. Player-only.
  */
 public final class KeepOnDeathEffect implements EffectKind {
 

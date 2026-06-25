@@ -8,8 +8,8 @@ import schema.grammar.expr.Cmp;
  * a thread-local {@code FactBuffer} to gate an activation (docs/architecture.md §3.2, §3.4). Variables are
  * dense slots and literals pre-parsed, so the hot path does no string work and no boxing.
  *
- * <p>Sealed for exhaustive evaluator switching. Comparisons split by operand type because legal operators
- * differ: numbers admit all six comparators, strings and booleans only equality.
+ * <p>Comparisons split by operand type because legal operators differ: numbers admit all six comparators,
+ * strings and booleans only equality.
  */
 public sealed interface Cond
         permits Cond.And, Cond.Or, Cond.Not,
@@ -23,7 +23,6 @@ public sealed interface Cond
     /** Short-circuiting logical OR. */
     record Or(Cond left, Cond right) implements Cond {}
 
-    /** Logical negation. */
     record Not(Cond operand) implements Cond {}
 
     /** A numeric comparison {@code left op right} (any of the six comparators). */
@@ -52,7 +51,6 @@ public sealed interface Cond
     /** A boolean variable resolved to its dense {@code FactBuffer} flag slot. */
     record BoolVar(int slot) implements Cond {}
 
-    /** A boolean literal. */
     record BoolLit(boolean value) implements Cond {}
 
     /**

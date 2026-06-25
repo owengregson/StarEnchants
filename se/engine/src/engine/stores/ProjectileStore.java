@@ -9,14 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Generic per-projectile runtime data: a projectile's {@link UUID} &rarr; its data + expiry tick
  * (docs/architecture.md §5.4). One shared store for all projectiles, not a timer per arrow.
  *
- * <p>Concurrent, UUID-keyed (Folia: a projectile may be spawned, ticked, and resolved on different region
- * threads). The TTL is load-bearing: a projectile can vanish via chunk-unload or despawn without ever
- * firing the hit/land event that would {@link #remove} its entry, so without expiry those orphans would
- * leak; an elapsed entry is instead dropped lazily on the next {@link #get}.
- *
- * <p>Keyed by projectile, not player — hence no per-player {@code clear}; entries leave on {@link #remove},
- * on expiry, or on disable ({@link #clearAll}). Time is an explicit caller-supplied tick, never wall-clock
- * — deterministic, Folia-correct, server-free to test.
+ * <p>The TTL is load-bearing: a projectile can vanish via chunk-unload or despawn without ever firing the
+ * hit/land event that would {@link #remove} its entry, so without expiry those orphans would leak. Keyed
+ * by projectile, not player — hence no per-player {@code clear}; entries leave on {@link #remove}, on
+ * expiry, or on disable.
  *
  * @param <D> the data carried per projectile
  */

@@ -6,21 +6,9 @@ import java.util.Optional;
 import schema.diag.Diagnostic;
 
 /**
- * The compiled snapshot of the top-level {@code items/} config folder (docs/v3-directives.md §L) — the
- * configurable likeness of the interactable items, loaded as a parallel immutable reference to the content
- * {@link Library} and swapped in the SAME atomic {@code /se reload} transaction. Pure (no Bukkit); readers
- * always see a fully-built snapshot. Each entry is empty when its file is absent, falling back to the named
- * {@code defaults()}; the carried diagnostics flow through {@code /se reload --dry-run} like content faults.
- *
- * @param soulGem     soul-gem config; falls back to {@link SoulGemConfig#defaults()}
- * @param crystal     crystal-item config; falls back to {@link CrystalConfig#defaults()}
- * @param heroic      heroic upgrade config; falls back to {@link HeroicConfig#defaults()}
- * @param slots       slot expander/gem config; falls back to {@link SlotConfig#defaults()}
- * @param scrolls     scroll-family config; falls back to {@link ScrollsConfig#defaults()}
- * @param unopenedBook unopened/randomized book config; falls back to {@link UnopenedBookConfig#defaults()}
- * @param enchantBook general enchant-book likeness; falls back to {@link EnchantBookConfig#defaults()}
- * @param dust        success-dust config; falls back to {@link DustConfig#defaults()}
- * @param whiteScroll white-scroll (enchant-protect) config; falls back to {@link WhiteScrollConfig#defaults()}
+ * Compiled snapshot of the {@code items/} folder (§L), swapped in the SAME atomic {@code /se reload}
+ * transaction as the content {@link Library}. Each entry is empty when its file is absent (use {@code xOrDefault()});
+ * carried diagnostics flow through {@code /se reload --dry-run} like content faults.
  */
 public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfig> crystal,
                           Optional<HeroicConfig> heroic, Optional<SlotConfig> slots,
@@ -42,7 +30,6 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
         diagnostics = List.copyOf(diagnostics);
     }
 
-    /** An empty config (no item files present) — every accessor falls back to its {@code defaults()}. */
     public static ItemsConfig empty() {
         return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
@@ -85,7 +72,6 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
         return whiteScroll.orElseGet(WhiteScrollConfig::defaults);
     }
 
-    /** Whether any blocking diagnostic was raised loading the folder. */
     public boolean hasErrors() {
         return diagnostics.stream().anyMatch(Diagnostic::blocking);
     }

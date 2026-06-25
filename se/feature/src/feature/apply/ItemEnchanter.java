@@ -20,12 +20,9 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Applies enchants and crystals to an item (docs/architecture.md §4.2) — the one cold mutation path.
- * Identity stays in PDC; lore is a pure projection rendered here, never parsed back. Validation
- * ({@code check*}) is split from mutation so the eligibility rules are unit-testable with no server;
- * only the {@code apply*} methods touch an {@link ItemStack}.
- *
- * <p>Reads the live library through {@link ContentHolder} on every call, so an apply after a
- * {@code /se reload} validates and renders against the new content.
+ * Validation ({@code check*}) is split from mutation ({@code apply*}) so eligibility is unit-testable with
+ * no server. Reads the live library through {@link ContentHolder} per call, so it validates/renders against
+ * post-reload content.
  */
 public final class ItemEnchanter {
 
@@ -42,10 +39,10 @@ public final class ItemEnchanter {
     private final LoreRenderer lore;
     private final ContentHolder content;
     private final platform.item.ItemGroups groups;
-    private final IntSupplier baseSlots;     // §H slots.base — read live so a reload re-tunes it
-    private final IntSupplier crystalSlots;  // §E crystals.slots — read live
-    private final IntSupplier maxCrystals;   // §E crystals.max-stack — read live
-    private final Messages messages;         // §L lang.yml ApplyResult reason strings
+    private final IntSupplier baseSlots;     // §H slots.base — read live per apply so a reload re-tunes it
+    private final IntSupplier crystalSlots;  // §E crystals.slots
+    private final IntSupplier maxCrystals;   // §E crystals.max-stack
+    private final Messages messages;
 
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups) {
@@ -57,18 +54,14 @@ public final class ItemEnchanter {
         this(codec, lore, content, groups, baseSlots, DEFAULT_CRYSTAL_SLOTS);
     }
 
-    /** Fixed enchant + crystal slot counts and default messages — the common test/fixture form. */
+    /** Fixed slot counts and default messages — the common test/fixture form. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, int baseSlots, int crystalSlots) {
         this(codec, lore, content, groups, () -> Math.max(0, baseSlots), () -> Math.max(0, crystalSlots),
                 () -> DEFAULT_MAX_CRYSTALS, Messages.defaults());
     }
 
-    /**
-     * Canonical ctor (composition root): slot capacities are {@link IntSupplier}s read per apply, so a
-     * {@code /se reload} re-tunes them live with no re-wiring (§H/§E); {@link Messages} sources every
-     * {@link ApplyResult} reason from {@code lang.yml} (§L).
-     */
+    /** Canonical ctor (composition root): slot capacities are read per apply so a reload re-tunes them live. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
                          IntSupplier maxCrystals, Messages messages) {
@@ -102,9 +95,8 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Validate (without mutating) that {@code baseKey} fits in {@code current}'s enchant slots (§H): a
-     * NEW enchant needs a free slot; re-applying a present one (level change) does not. Capacity is
-     * {@code baseSlots} plus any purchased {@code added} slots on the item. This base form ignores
+     * Validate (without mutating) that {@code baseKey} fits in {@code current}'s enchant slots (§H): a NEW
+     * enchant needs a free slot, re-applying a present one does not. This base form ignores
      * {@code removes-required}; player paths use {@link #checkApplicable}, which nets out freed prereqs.
      */
     public ApplyResult checkSlots(CombatState current, String baseKey) {
@@ -124,9 +116,9 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Validate (without mutating) the apply-time relationships (§G) for {@code def} at {@code level} onto
-     * {@code current}: every {@code requires} prereq present at a level &ge; {@code level}, and no
-     * {@code blacklist} pairing — checked <em>bidirectionally</em> (either side may blacklist the other).
+     * Validate (without mutating) the §G relationships for {@code def} at {@code level}: every
+     * {@code requires} prereq present at a level &ge; {@code level}, and no {@code blacklist} pairing —
+     * checked bidirectionally (either side may blacklist the other).
      */
     public ApplyResult checkRelationships(CombatState current, EnchantDef def, int level) {
         Map<String, Integer> present = current.enchants();
@@ -153,9 +145,8 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Full player-facing eligibility for {@code baseKey} at {@code level} onto {@code target} —
-     * material/level/applies-to + relationships (§G) + slots (§H, netting out freed prereqs). Carrier/menu
-     * pre-check this BEFORE consuming a book so a violation never wastes the carrier.
+     * Full player-facing eligibility: material/level/applies-to + §G relationships + §H slots (netting out
+     * freed prereqs). Carrier/menu pre-check this BEFORE consuming a book so a violation never wastes it.
      */
     public ApplyResult checkApplicable(ItemStack target, String baseKey, int level) {
         ApplyResult eligible = checkEnchant(target.getType(), baseKey, level);
@@ -193,10 +184,9 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Apply {@code baseKey} at {@code level} to {@code stack} in place; re-renders lore. When
-     * {@code enforceRelationships} (player paths) the §G {@code requires}/{@code blacklist} gates apply and
-     * a {@code removes-required} upgrade strips its prereqs on success; when {@code false} (admin
-     * force-give) those gates are skipped and the enchant lands verbatim.
+     * Apply {@code baseKey} at {@code level} in place; re-renders lore. {@code enforceRelationships} (player
+     * paths) applies the §G gates and strips a {@code removes-required} upgrade's prereqs; {@code false}
+     * (admin force-give) skips them and the enchant lands verbatim.
      */
     public ApplyResult applyEnchant(ItemStack stack, String baseKey, int level, boolean enforceRelationships) {
         if (stack == null || stack.getType() == Material.AIR) {
@@ -232,9 +222,8 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Remove {@code baseKey} from {@code stack} in place (inverse of {@link #applyEnchant}, §J); re-renders
-     * lore. Preserves all other state (crystals, set tag, omni, heroic, purchased slots); the freed slot is
-     * implicit since occupancy derives from the enchant count. No-op fail when the enchant is absent.
+     * Remove {@code baseKey} in place (inverse of {@link #applyEnchant}, §J); re-renders lore. The freed slot
+     * is implicit since occupancy derives from the enchant count. No-op fail when the enchant is absent.
      */
     public ApplyResult removeEnchant(ItemStack stack, String baseKey) {
         if (stack == null || stack.getType() == Material.AIR) {
@@ -255,8 +244,8 @@ public final class ItemEnchanter {
 
     /**
      * Extract the most-recently-applied crystal ENTRY off {@code gear} in place (inverse of
-     * {@link #applyCrystalEntry}, §E); re-renders lore and frees its slot. Returns the popped entry
-     * ({@code "a"} or {@code "a+b"}) so the caller can mint it back whole. No-op fail when no crystal.
+     * {@link #applyCrystalEntry}, §E); re-renders lore. Returns the popped entry so the caller can mint it
+     * back whole. No-op fail when no crystal.
      */
     public ExtractResult extractCrystal(ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
@@ -267,7 +256,7 @@ public final class ItemEnchanter {
             return ExtractResult.fail(messages.format("apply.crystal.none"));
         }
         List<String> crystals = new ArrayList<>(current.crystals());
-        String popped = crystals.remove(crystals.size() - 1); // the most-recent entry, returned whole
+        String popped = crystals.remove(crystals.size() - 1);
         CombatState next = new CombatState(current.enchants(), crystals,
                 current.setKey(), current.omni(), current.heroic(), current.added());
         codec.write(gear, next);
@@ -276,11 +265,10 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Mint a SET MEMBER item for {@code setKey} (§J). {@code memberToken} names an armour slot the set's
-     * {@code armor.pieces} declares, or {@code weapon}; lore renders from state (docs/v3-directives.md §6.6).
-     * An armour member stamps {@link CombatState#setKey()} (counts toward completion); the weapon stamps
-     * {@link CombatState#setWeaponKey()} (the extra bonus while complete and held). Unknown set/member &rarr;
-     * empty (ADR-0019, no invented data).
+     * Mint a SET MEMBER item for {@code setKey} (§J): {@code memberToken} names a declared armour slot or
+     * {@code weapon}. An armour member stamps {@link CombatState#setKey()} (counts toward completion); the
+     * weapon stamps {@link CombatState#setWeaponKey()} (the extra bonus while complete and held). Unknown
+     * set/member &rarr; empty (ADR-0019, no invented data).
      */
     public java.util.Optional<ItemStack> mintSetPiece(String setKey, String memberToken) {
         compile.load.SetDef def = set(setKey);
@@ -294,7 +282,7 @@ public final class ItemEnchanter {
             ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
             CombatState next = CombatState.weaponMember(setKey);
             codec.write(stack, next);
-            lore.apply(stack, next); // weapon's own lore + (Set Weapon) marker
+            lore.apply(stack, next);
             return java.util.Optional.of(stack);
         }
         for (compile.load.SetDef.Member member : def.armorMembers()) {
@@ -304,7 +292,7 @@ public final class ItemEnchanter {
                 ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
                 CombatState next = new CombatState(Map.of(), List.of(), setKey, false);
                 codec.write(stack, next);
-                lore.apply(stack, next); // set's shared armour lore + (Set) marker
+                lore.apply(stack, next);
                 return java.util.Optional.of(stack);
             }
         }
@@ -342,9 +330,9 @@ public final class ItemEnchanter {
 
     /**
      * Validate (without mutating) that a crystal carrying {@code keys} (1 single, 2 multi-crystal, §E) may
-     * apply to {@code gear}: single-item target, every component eligible, and a free crystal slot
-     * ({@code crystalSlots}, a SEPARATE ledger from enchants). Drag-apply pre-checks this BEFORE its roll so
-     * a violation never wastes the gem.
+     * apply to {@code gear}: single-item target, every component eligible, and a free crystal slot (a
+     * SEPARATE ledger from enchants). Drag-apply pre-checks this BEFORE its roll so a violation never wastes
+     * the gem.
      */
     public ApplyResult checkCrystalEntry(ItemStack gear, List<String> keys) {
         if (gear == null || gear.getType() == Material.AIR) {
@@ -384,8 +372,8 @@ public final class ItemEnchanter {
     /**
      * Append a crystal ENTRY (its 1–2 {@code keys}) to {@code stack} as ONE crystal-slot entry (encoded
      * {@code "a+b"} for a multi-crystal, §E); re-renders lore. {@code enforceSlots} gates the per-item
-     * crystal-slot limit (player paths); the admin force path skips it. Crystals stack as an
-     * order-preserving list, never collapsed (§6.5).
+     * crystal-slot limit (player paths); the admin force path skips it. Crystals stack order-preserving,
+     * never collapsed (§6.5).
      */
     public ApplyResult applyCrystalEntry(ItemStack stack, List<String> keys, boolean enforceSlots) {
         if (stack == null || stack.getType() == Material.AIR) {

@@ -8,10 +8,7 @@ import java.util.List;
 import org.bukkit.Location;
 import schema.spec.D;
 
-/**
- * {@code @Tunnel{depth}} — {@code depth} blocks directly ahead of the activation block along the actor's
- * dominant facing axis (docs/v3-directives.md §A; a 1-wide tunnel). Pure shape computation.
- */
+/** {@code @Tunnel{depth}} — {@code depth} blocks directly ahead along the actor's dominant facing axis (1-wide). */
 public final class TunnelSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("TUNNEL")

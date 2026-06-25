@@ -5,14 +5,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The cross-version rename knowledge (docs/architecture.md §9): per-category
- * legacy&rarr;modern name aliases spanning the 1.17.1 &rarr; 26.1.x range — the
- * 1.20.5 spigot&rarr;mojang flip, the 1.21.x attribute de-prefixing, the 1.13
- * flattening survivors, and the long-standing potion/enchant renames. Keys and values
- * are upper-cased canonical names; {@link HandleResolver} consults this both ways.
- *
- * <p>The single home for this knowledge — the migrator reuses the same maps to modernise
- * legacy config (§10); append more as the matrix surfaces them.
+ * The single home for cross-version rename knowledge (docs/architecture.md §9): per-category
+ * legacy&rarr;modern aliases spanning 1.17.1 &rarr; 26.1.x. Upper-cased canonical names; {@link HandleResolver}
+ * consults this both ways and the migrator reuses it (§10). Append more as the matrix surfaces them.
  */
 public final class Aliases {
 
@@ -84,7 +79,7 @@ public final class Aliases {
             Map.entry("VILLAGER_HAPPY", "HAPPY_VILLAGER"),
             Map.entry("REDSTONE", "DUST"));
 
-    /** The legacy&rarr;modern alias map for a category (empty if the category has none registered). */
+    /** The alias map for a category (empty if none registered). */
     public static Map<String, String> forCategory(HandleCategory category) {
         return switch (category) {
             case POTION_EFFECT -> POTION_EFFECT;
@@ -97,7 +92,6 @@ public final class Aliases {
         };
     }
 
-    /** Normalize a token to its canonical upper-case form. */
     public static String normalize(String token) {
         return token == null ? "" : token.trim().toUpperCase(Locale.ROOT);
     }

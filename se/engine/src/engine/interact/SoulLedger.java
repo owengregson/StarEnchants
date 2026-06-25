@@ -10,18 +10,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * code that debits or credits souls (docs/architecture.md §6.3). The pipeline calls
  * {@link #tryConsume} at gate 10.
  *
- * <p><strong>Why in-memory.</strong> The durable balance lives on the gem's PDC, but on
- * Folia an {@code ItemStack}/PDC is a per-thread <em>copy</em>: two region threads each
- * see their own snapshot, so serialising writes to two snapshots wouldn't stop a
- * double-spend. This ledger keeps the authoritative count in memory keyed by the gem's
- * stable UUID — seeded from {@link Balance} on first touch, then the source of truth —
- * and writes each change through to the {@code Balance} so the durable copy stays in sync.
- * Because the count is shared, a second thread sees the first's debit even though their
- * PDC snapshots differ; that is what makes "one authority ⇒ no double-spend" hold.
+ * <p><strong>Why in-memory.</strong> The durable balance lives on the gem's PDC, but on Folia an
+ * {@code ItemStack}/PDC is a per-thread <em>copy</em>: serialising writes to two thread-local snapshots
+ * wouldn't stop a double-spend. This ledger keeps the authoritative count in memory keyed by the gem's
+ * stable UUID (seeded from {@link Balance} on first touch, then the source of truth) and writes each change
+ * through to the {@code Balance}, so a second thread sees the first's debit despite differing snapshots.
  *
- * <p>Per-gem reads/writes are serialised by a <em>fixed</em> array of stripe locks
- * (constant memory, no per-gem monitor accumulation); the same gem always maps to the
- * same stripe, so its read-check-write is atomic.
+ * <p>Per-gem reads/writes are serialised by a <em>fixed</em> array of stripe locks (constant memory, no
+ * per-gem monitor accumulation); the same gem always maps to the same stripe, so read-check-write is atomic.
  */
 public final class SoulLedger {
 

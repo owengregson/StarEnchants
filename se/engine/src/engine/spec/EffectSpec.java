@@ -9,18 +9,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Self-describing signature of an effect kind — the SPI's central declaration
- * (docs/architecture.md §7). Wraps the schema's {@link ParamSpec} (one declaration → validate /
- * complete / docs / migrate) and adds the two facts a bare param signature lacks:
- *
- * <ul>
- *   <li>the declared {@link Affinity} — folded by the compiler so the {@code Sink} routes work to the
- *       right thread and the author never schedules (§3.6);</li>
- *   <li>the {@link TargetSpec} slots the effect reads, each bound to a selector.</li>
- * </ul>
- *
- * <p>An effect kind exposes one as a {@code static final EffectSpec SPEC}; reaching affinity through
- * the registry is what keeps the compiler pure yet compile-time-aware of affinity.
+ * Self-describing signature of an effect kind — the SPI's central declaration (§7). Wraps the schema's
+ * {@link ParamSpec} and adds the two facts a bare param signature lacks: the declared {@link Affinity}
+ * (folded by the compiler to route work to the right thread, §3.6) and the {@link TargetSpec} slots the
+ * effect reads.
  */
 public final class EffectSpec {
 

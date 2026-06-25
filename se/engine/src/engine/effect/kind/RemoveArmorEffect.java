@@ -9,9 +9,8 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
 /**
- * {@code REMOVE_ARMOR} — strip one random worn armour piece from the target and drop it; the armour
- * counterpart of {@link DisarmEffect}. {@link Affinity#TARGET_ENTITY}: routed to the owner's thread, where
- * reading its equipment and dropping at its location is region-correct.
+ * {@code REMOVE_ARMOR} — strip one random worn armour piece from the target and drop it; armour counterpart of
+ * {@link DisarmEffect}. {@link Affinity#TARGET_ENTITY} so the equipment read + drop runs on the owner's thread.
  */
 public final class RemoveArmorEffect implements EffectKind {
 

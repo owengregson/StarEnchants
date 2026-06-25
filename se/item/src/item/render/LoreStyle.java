@@ -20,7 +20,6 @@ public record LoreStyle(
         boolean roman,
         String unknownLabel) {
 
-    /** The built-in default look. */
     public static final LoreStyle DEFAULT = new LoreStyle("&7", "&f", "&b", true, "&8Unknown Enchant");
 
     public LoreStyle {

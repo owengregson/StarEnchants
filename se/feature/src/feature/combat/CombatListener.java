@@ -6,10 +6,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 /**
- * Bridges Bukkit's {@link EntityDamageByEntityEvent} to {@link CombatDispatch} (§3.7). Registered at
- * {@code HIGH} priority with {@code ignoreCancelled} so StarEnchants folds its damage after the base
- * (and other plugins') calculation and skips an already-cancelled hit. The handler runs on the firing
- * region thread; the dispatch keeps every entity mutation on its correct thread via the Sink.
+ * Bridges {@link EntityDamageByEntityEvent} to {@link CombatDispatch} (§3.7). {@code HIGH} +
+ * {@code ignoreCancelled} so SE folds its damage after the base calculation and skips a cancelled hit.
  */
 public final class CombatListener implements Listener {
 

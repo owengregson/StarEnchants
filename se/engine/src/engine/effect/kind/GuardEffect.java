@@ -10,21 +10,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code GUARD} — spawn guardian mob(s) that target the attacker (docs/v3-directives.md §C combat-flags).
- * A targeted superset of {@code SPAWN_ENTITY}: the mobs spawn at the activation location (the defender on
- * a DEFENSE proc) and each is set to attack the resolved {@code who} target — the attacker — so it is a
- * "summon a defender" retaliation rather than a bare spawn.
- *
- * <ul>
- *   <li>{@code type} — the guardian entity type (resolved cross-version at compile time);</li>
- *   <li>{@code count} — how many to summon (default 1);</li>
- *   <li>{@code ttl} — ticks until each guard is auto-removed (default 200; 0 = permanent);</li>
- *   <li>{@code name} — an optional custom name shown above each guard.</li>
- * </ul>
- *
- * <p>Targets {@link T#ATTACKER}: with no attacker (a non-combat trigger) it spawns nothing — an untargeted
- * spawn is {@code SPAWN_ENTITY}'s job. {@link Affinity#REGION}: routed to the spawn location's region; the
- * mob's target is set on its own spawn thread by the {@link Sink}.
+ * {@code GUARD} — spawn guardian mob(s) that target the attacker (§C combat-flags): a targeted superset of
+ * {@code SPAWN_ENTITY} for retaliation. Targets {@link T#ATTACKER}, so with no attacker (a non-combat
+ * trigger) it spawns nothing — an untargeted spawn is {@code SPAWN_ENTITY}'s job.
  */
 public final class GuardEffect implements EffectKind {
 

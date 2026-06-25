@@ -12,7 +12,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host MODIFY_EXP test. Transfer is a steal: withdraw from each target, grant the total to the activator; non-players skipped. */
 class ExpEffectTest {
 
     @Test

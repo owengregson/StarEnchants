@@ -13,9 +13,8 @@ import me.angeschossen.lands.api.land.Area;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the gate decision of {@link LandsProvider} against a mocked {@code Area}: unclaimed land allows
- * everything; inside a claim the actor's BLOCK_PLACE role-flag (by UUID) decides. End-to-end with real Lands
- * is verified out-of-matrix (docs/decisions/0027).
+ * Pins the gate decision of {@link LandsProvider} against a mocked {@code Area}. End-to-end with real Lands is
+ * verified out-of-matrix (docs/decisions/0027).
  */
 class LandsProviderTest {
 

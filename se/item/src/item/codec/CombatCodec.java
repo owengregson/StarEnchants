@@ -42,15 +42,11 @@ public final class CombatCodec {
         this.combatKey = combatKey;
     }
 
-    /** Decode the combat state on {@code stack}, or {@link CombatState#EMPTY} if it has none. */
     public CombatState read(ItemStack stack) {
         return decode(readBlob(stack));
     }
 
-    /**
-     * The raw stored combat blob on {@code stack}, or {@code null} if it carries none — the
-     * {@code ItemView} cache key, read without paying the decode the cache elides (§5.2).
-     */
+    /** The raw blob — the {@code ItemView} cache key, read without paying the decode the cache elides (§5.2). */
     public String readBlob(ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) {
             return null;
@@ -58,7 +54,7 @@ public final class CombatCodec {
         return readBlob(stack.getItemMeta().getPersistentDataContainer());
     }
 
-    /** Write {@code state} onto {@code stack} (clearing the entry when empty). */
+    /** Clears the entry when {@code state} is empty. */
     public void write(ItemStack stack, CombatState state) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {
@@ -68,27 +64,23 @@ public final class CombatCodec {
         stack.setItemMeta(meta);
     }
 
-    /** Decode the combat state from a container, or {@link CombatState#EMPTY} if absent. */
     public CombatState read(PersistentDataContainer pdc) {
         return decode(readBlob(pdc));
     }
 
-    /** The raw stored combat blob in {@code pdc}, or {@code null} if absent (the cache key). */
     public String readBlob(PersistentDataContainer pdc) {
         return pdc.get(combatKey, PersistentDataType.STRING);
     }
 
-    /** Parse a raw combat blob to a {@link CombatState}; {@code null}/blank/unknown-version → EMPTY. */
     public CombatState decode(String blob) {
         return decodeBlob(blob);
     }
 
-    /** Serialise {@code state} to its compact stable-key blob, or {@code null} for an empty state. */
     public String encode(CombatState state) {
         return (state == null || state.isEmpty()) ? null : encodeBlob(state);
     }
 
-    /** Encode {@code state} into a container; an empty state removes the entry entirely. */
+    /** An empty state removes the entry entirely. */
     public void write(PersistentDataContainer pdc, CombatState state) {
         if (state == null || state.isEmpty()) {
             pdc.remove(combatKey);
@@ -97,7 +89,6 @@ public final class CombatCodec {
         }
     }
 
-    /** Serialise a non-empty {@link CombatState} to its compact stable-key blob. */
     static String encodeBlob(CombatState state) {
         StringBuilder sb = new StringBuilder(VERSION);
         StringBuilder ench = new StringBuilder();
@@ -142,7 +133,6 @@ public final class CombatCodec {
         return sb.toString();
     }
 
-    /** Parse a combat blob back to a {@link CombatState}; null/blank/unknown-version → EMPTY. */
     static CombatState decodeBlob(String blob) {
         if (blob == null || blob.isEmpty()) {
             return CombatState.EMPTY;
@@ -182,7 +172,7 @@ public final class CombatCodec {
         return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
     }
 
-    /** Parse the purchased-slot count (§H); a malformed/negative value yields {@code 0}, never throws. */
+    /** Malformed/negative → {@code 0}, never throws. */
     private static int parseAdded(String payload) {
         try {
             return Math.max(0, Integer.parseInt(payload.trim()));
@@ -191,7 +181,7 @@ public final class CombatCodec {
         }
     }
 
-    /** Parse a {@code damage:reduction:durability} heroic payload; a malformed field yields {@code NONE}. */
+    /** A {@code damage:reduction:durability} payload; any malformed field → {@code NONE}, never throws. */
     private static HeroicStat parseHeroic(String payload) {
         String[] parts = payload.split(java.util.regex.Pattern.quote(String.valueOf(KV)), -1);
         if (parts.length != 3) {

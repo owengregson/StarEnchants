@@ -10,9 +10,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Right-click a held soul gem to toggle soul mode (§D); the primary affordance, {@code /se soulmode} is an
- * alias. Main-hand only so a two-hand interact does not double-toggle. Folia-correct: reads only the
- * player's own held item on their region thread.
+ * Right-click a held soul gem to toggle soul mode (§D); {@code /se soulmode} is an alias. Main-hand only so
+ * a two-hand interact does not double-toggle.
  */
 public final class SoulInteractListener implements Listener {
 

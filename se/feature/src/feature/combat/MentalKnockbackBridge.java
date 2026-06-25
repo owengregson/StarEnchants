@@ -12,30 +12,17 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 /**
- * Coordinates {@code KNOCKBACK_CONTROL} with a <strong>packet/anticheat reference</strong> knockback plugin
- * ({@code me.vexmc.mental}) when it is installed (docs/v3-directives.md §N; docs/decisions/0026). This is
- * the integration edge for the one place StarEnchants and that plugin both touch the same thing: a player's
- * incoming knockback.
+ * Coordinates {@code KNOCKBACK_CONTROL} with the {@code me.vexmc.mental} knockback plugin when installed
+ * (docs/v3-directives.md §N; docs/decisions/0026). That plugin OWNS player knockback — it {@code setVelocity}s
+ * its own vector over the vanilla {@code EntityKnockbackEvent} {@link KnockbackListener} scales — so the
+ * effect would die for player victims; the bridge rides its {@code KnockbackApplyEvent} seam instead.
  *
- * <p><b>Why a bridge is needed.</b> That plugin <em>owns</em> player knockback: it {@code setVelocity}s its
- * own vector, overwriting whatever vanilla (and thus {@link KnockbackListener}'s scaling of the vanilla
- * {@code EntityKnockbackEvent}) produced — so KNOCKBACK_CONTROL would silently die for player victims. It
- * publishes a seam: a cancellable {@code KnockbackApplyEvent} on the victim's owning thread with a mutable
- * {@code velocity()}, where SE applies its multiplier so the effect rides on that plugin's vector.
- *
- * <p><b>No double-scale.</b> Both this hook and {@link KnockbackListener} read the same short-TTL
- * {@link KnockbackControlStore}, but exactly one write reaches the client per hit: a plugin-owned hit
- * overwrites the vanilla event (SE's vanilla scaling discarded harmlessly) and lands here; a yielded hit
- * (OCM ownership, full block, module off) fires no apply event and lands via {@link KnockbackListener}; mob
- * victims always take the vanilla path. The store read is idempotent, so no skip logic is needed.
- *
- * <p><b>Cancel means zero, not "let vanilla stand".</b> {@code multiplier <= 0} writes a zero velocity
- * rather than cancelling the apply event — cancelling tells that plugin to keep vanilla velocity, the exact
- * opposite of KNOCKBACK_CONTROL:0 on a plugin-owned hit.
- *
- * <p><b>Reflective, soft, optional.</b> SE compiles against no class from that plugin; the event is hooked
- * only when present, and {@code integrations.named.mental: false} disables the bridge. Folia-correct: the
- * apply event fires on the victim's region thread, the store is concurrent and UUID-keyed.
+ * <p>No double-scale: exactly one write reaches the client per hit (a plugin-owned hit lands here and
+ * discards SE's harmless vanilla scaling; a yielded hit fires no apply event and lands via
+ * {@link KnockbackListener}; mobs always take the vanilla path). {@code multiplier <= 0} writes a ZERO
+ * velocity, not a cancel — cancelling would tell that plugin to keep vanilla velocity, the opposite of
+ * KNOCKBACK_CONTROL:0. Reflective + optional ({@code integrations.named.mental: false} disables it);
+ * Folia-correct (apply event on the victim's region thread, store concurrent + UUID-keyed).
  */
 public final class MentalKnockbackBridge {
 
@@ -106,9 +93,8 @@ public final class MentalKnockbackBridge {
             return Path.ABSENT;
         }
         EventExecutor executor = (ignored, event) -> apply(event, store, nowTicks, getVictim, getVelocity, setVelocity);
-        // ignoreCancelled = true: a cancelled apply event means that plugin will not override the velocity, so
-        // there is nothing for SE to scale. NORMAL priority: SE is the only expected consumer, and that plugin
-        // reads the final velocity after every handler runs.
+        // ignoreCancelled: a cancelled apply event means no override, so nothing to scale. NORMAL: that plugin
+        // reads the final velocity after every handler.
         plugin.getServer().getPluginManager().registerEvent(
                 eventClass, new Listener() { }, EventPriority.NORMAL, executor, plugin, true);
         return Path.BOUND;
@@ -133,8 +119,7 @@ public final class MentalKnockbackBridge {
                 setVelocity.invoke(event, result);
             }
         } catch (ReflectiveOperationException unexpected) {
-            // Best-effort coordination; a reflective failure here must never break a hit. The class +
-            // accessors were verified at registration, so this should not occur.
+            // Accessors were verified at registration; swallow regardless so a reflective slip never breaks a hit.
         }
     }
 }

@@ -34,18 +34,15 @@ import platform.sched.Scheduling;
 import schema.spec.Args;
 
 /**
- * {@link AbilityExecutor} — the gate-walk + effect-execution glue (docs/architecture.md §3.3, §3.5). Wires
- * REAL engine components (registries, pipeline, real kinds, a real {@link DispatchSink}) and mocks only the
- * Bukkit entities, exercising selector→context→effect→sink end to end without a server. Why no live matrix
- * run: the executor adds no Bukkit/version/thread surface of its own — dispatcher routing is matrix-verified,
- * selectors are pure, the pipeline is unit-tested elsewhere.
+ * Wires REAL engine components (registries, pipeline, kinds, a real {@link DispatchSink}), mocking only the
+ * Bukkit entities. No live matrix run: the executor adds no Bukkit/version/thread surface of its own —
+ * dispatcher routing is matrix-verified, selectors are pure, the pipeline is unit-tested elsewhere.
  */
 class AbilityExecutorTest {
 
     private static final UUID ACTOR = UUID.randomUUID();
     private static final int TRIGGER = 0;
-    // Maps dense id 0 to its per-level key; the executor reduces that to the BASE key (enchants/test) for
-    // the ActivationListener (§13 seam), since the fixtures all build level-1 abilities.
+    // The executor reduces the per-level key to its BASE for the ActivationListener (§13); fixtures are all level-1.
     private static final StableKeyIndex KEYS = new StableKeyIndex(java.util.List.of("enchants/test/1"));
 
     private RuntimeHandles handles;
@@ -117,11 +114,7 @@ class AbilityExecutorTest {
         verify(actor).setFireTicks(80);
     }
 
-    /**
-     * Listener (public-event seam, §13) fires once per ACTIVATED ability with the BASE key: resolve the
-     * per-level key against the run's OWN index, then strip {@code /<level>} — never re-resolve a dense id
-     * against the live (possibly swapped) snapshot, which a reload could mismatch.
-     */
+    /** Resolves the BASE key against the run's OWN index (§13), never the live snapshot — a reload could swap it and mismatch. */
     @Test
     void notifiesTheActivationListenerWithTheBaseStableKey() {
         Player actor = mock(Player.class);
@@ -191,11 +184,7 @@ class AbilityExecutorTest {
         verify(victim).setFireTicks(60);
     }
 
-    /**
-     * WAIT (§3.6): an effect with accumulated {@code cumulativeWaitTicks} is routed by the executor into
-     * the sink's delay tier, so it neither runs in the gate pass nor on flush — only when its timer fires.
-     * Proves the executor→sink wiring (the deferral mechanism itself is pinned in {@code DispatchSinkWaitTest}).
-     */
+    /** WAIT (§3.6): the executor routes a delayed effect into the sink's delay tier so it runs only on its timer, not on flush. */
     @Test
     void waitDefersTheEffectUntilItsTimerFires() {
         RecordingSchedulerBackend recording = new RecordingSchedulerBackend();
@@ -212,16 +201,16 @@ class AbilityExecutorTest {
         sink.flush();
 
         assertEquals(1, activated);
-        verifyNoInteractions(victim);                          // WAIT:40 — nothing yet
+        verifyNoInteractions(victim);
         assertEquals(1, recording.delayed.size(), "one delayed batch scheduled");
         assertEquals(40L, recording.delayed.get(0).delayTicks());
 
         recording.runDelayed();
-        verify(victim).setFireTicks(60);                       // ignites after the delay
+        verify(victim).setFireTicks(60);
     }
 
     private static Activation activation() {
-        return Activation.builder(ACTOR, 0, TRIGGER, 0L).build(); // world 0, trigger 0, tick 0
+        return Activation.builder(ACTOR, 0, TRIGGER, 0L).build();
     }
 
     private static ActivationContext context(Player actor, LivingEntity victim) {

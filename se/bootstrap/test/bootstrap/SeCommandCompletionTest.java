@@ -6,11 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Pure unit tests for {@link SeCommand#complete} — the {@code /se} tab-completion decision, exercised
- * without a server. Locks subcommand completion + the context-sensitive first-argument completions
- * (enchant/crystal keys, migrate formats, reload flag).
- */
+/** Pure unit tests for {@link SeCommand#complete} — the {@code /se} tab-completion decision, server-free. */
 class SeCommandCompletionTest {
 
     private static final List<String> ENCHANTS = List.of("enchants/venom", "enchants/vigor", "enchants/blast");

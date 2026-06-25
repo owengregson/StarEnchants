@@ -48,85 +48,50 @@ public final class ItemKeys {
                 new NamespacedKey(plugin, "unopened"), new NamespacedKey(plugin, "godlytransmog"));
     }
 
-    /** The single key the combat-state blob is stored under (§5.1). */
     public NamespacedKey combat() {
         return combat;
     }
 
-    /**
-     * Soul-gem state, separate from {@link #combat()}: souls change every spend/gain, so folding them
-     * into the combat blob would thrash the content-hash {@code ItemView} cache and re-render lore per
-     * hit (§5.1, §5.2).
-     */
+    /** Separate from {@link #combat()}: souls change every spend/gain, which would thrash the content-hash cache (§5.2). */
     public NamespacedKey soul() {
         return soul;
     }
 
-    /**
-     * Identity/economy CARRIER (book/scroll/dust/gem that applies an enchant to OTHER gear), separate
-     * from {@link #combat()} so it never decodes on the combat hot path (ADR-0016).
-     */
+    /** Carrier (book/scroll/dust/gem) — separate from {@link #combat()} so it never decodes on the hot path (ADR-0016). */
     public NamespacedKey carrier() {
         return carrier;
     }
 
-    /**
-     * Flags GEAR as guard-scroll protected: consumed on a failed carrier apply to spare the item from
-     * destruction (white-scroll economy). Off the combat blob.
-     */
+    /** Flags gear as guard-scroll protected; consumed on a failed apply to spare the item (white-scroll economy). */
     public NamespacedKey guarded() {
         return guarded;
     }
 
-    /**
-     * Physical CRYSTAL item's component keys (§E): its own item (single or merged), distinct from the
-     * {@link #carrier()} economy and off the combat hot path.
-     */
     public NamespacedKey crystalItem() {
         return crystalItem;
     }
 
-    /**
-     * Crystal EXTRACTOR consumable (§E): pops a piece's last crystal back into a whole crystal item.
-     * Identity marker, off the combat hot path.
-     */
     public NamespacedKey crystalExtractor() {
         return crystalExtractor;
     }
 
-    /** HEROIC UPGRADE consumable (§F): identity marker, off the combat hot path. */
     public NamespacedKey heroicUpgrade() {
         return heroicUpgrade;
     }
 
-    /**
-     * SLOT EXPANDER orb (§H), storing the {@code +N} it grants. Identity marker, off the combat hot
-     * path; the granted slots persist in the gear's combat-blob {@code added} field, not here.
-     */
+    /** Slot-expander orb (§H); the granted slots persist in the gear's combat-blob {@code added} field, not here. */
     public NamespacedKey slotItem() {
         return slotItem;
     }
 
-    /**
-     * Tags a SCROLL by kind (§I): string marker for the scroll family. Identity marker, off the combat
-     * hot path; mechanics come from the scrolls config, not the item.
-     */
     public NamespacedKey scroll() {
         return scroll;
     }
 
-    /**
-     * UNOPENED / RANDOMIZED book (§I), storing the tier it is scoped to. Identity marker, off the
-     * combat hot path.
-     */
     public NamespacedKey unopened() {
         return unopened;
     }
 
-    /**
-     * Physical GODLY TRANSMOG tool (§I/§K). Not consumed, so it lives off the {@link #scroll()} path;
-     * identity marker, off the hot path.
-     */
     public NamespacedKey godlyTransmog() {
         return godlyTransmog;
     }

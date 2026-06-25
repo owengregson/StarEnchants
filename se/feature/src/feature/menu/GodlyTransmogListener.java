@@ -11,11 +11,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The physical godly-transmog gesture (docs/v3-directives.md §I/§K): drag the godly-transmog tool onto an
- * enchanted gear piece in your own inventory to OPEN the deterministic enchant-reorder GUI bound to THAT
- * piece (unlike the transmog SCROLL, which is a one-shot random shuffle consumed on use). Mirrors the
- * crystal/scroll drag gestures (cursor-onto-target, bottom inventory only), but instead of mutating the
- * gear on the spot it just opens the menu — the tool is NOT consumed.
+ * The physical godly-transmog gesture (§I/§K): drag the tool onto enchanted gear in your own inventory to
+ * open the reorder GUI bound to that piece. Unlike the transmog scroll (one-shot random, consumed), the
+ * tool just opens the menu and is NOT consumed.
  */
 public final class GodlyTransmogListener implements Listener {
 
@@ -35,12 +33,12 @@ public final class GodlyTransmogListener implements Listener {
             return;
         }
         switch (event.getClick()) {
-            case LEFT, RIGHT -> { /* a deliberate place-the-tool-onto-gear click */ }
+            case LEFT, RIGHT -> { /* a deliberate place-tool-onto-gear click */ }
             default -> {
                 return;
             }
         }
-        // The gear must be clicked in the player's OWN inventory, with the godly tool on the cursor.
+        // Gesture rule: the gear is clicked in the player's own inventory with the tool on the cursor.
         if (event.getClickedInventory() == null
                 || event.getClickedInventory() != event.getView().getBottomInventory()) {
             return;
@@ -53,12 +51,11 @@ public final class GodlyTransmogListener implements Listener {
         if (target == null || target.getType().isAir()) {
             return;
         }
-        // Only enchanted gear has an order to reorder; on anything else the gesture is a no-op (the tool
-        // stays on the cursor so the player can try another piece).
+        // No enchants = nothing to reorder; no-op, leaving the tool on the cursor for another piece.
         if (combat.read(target).enchants().isEmpty()) {
             return;
         }
-        event.setCancelled(true); // own the interaction; the tool is NOT consumed (it just opens the GUI)
-        menu.open(player, event.getSlot()); // open the reorder GUI bound to the clicked slot (region-hops)
+        event.setCancelled(true); // own the interaction; the tool is NOT consumed
+        menu.open(player, event.getSlot()); // bound to the clicked slot; region-hops
     }
 }

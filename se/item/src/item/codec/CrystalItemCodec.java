@@ -21,7 +21,6 @@ public final class CrystalItemCodec {
         this.key = key;
     }
 
-    /** The crystal-item state on {@code stack}, or {@code null} if it carries none. */
     public CrystalItemData read(ItemStack stack) {
         if (stack == null || !stack.hasItemMeta()) {
             return null;
@@ -34,7 +33,6 @@ public final class CrystalItemCodec {
         return new CrystalItemData(keys);
     }
 
-    /** Write {@code data} onto {@code stack} (clearing the entry when {@code null}). */
     public void write(ItemStack stack, CrystalItemData data) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {

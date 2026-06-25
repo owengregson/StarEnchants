@@ -3,13 +3,11 @@ package compile.cond;
 import java.util.Optional;
 
 /**
- * The compiler's view of the condition variable vocabulary: resolves a
- * {@code %scope.name%} reference to its {@link VarBinding} (type + dense slot), or
- * empty for an unknown token — which the compiler then treats as a PlaceholderAPI
- * passthrough (docs/architecture.md §3.4).
+ * The compiler's view of the condition variable vocabulary: resolves a {@code %scope.name%} reference to
+ * its {@link VarBinding} (type + dense slot), or empty for an unknown token — which the compiler then treats
+ * as a PlaceholderAPI passthrough (docs/architecture.md §3.4).
  *
- * <p>The seam that keeps {@code se-compile} pure: the engine declares the vocabulary and injects this
- * facade, like the spec registries. The empty vocabulary ({@link #none()}) makes every variable a PAPI token.
+ * <p>Injected (like the spec registries) so {@code se-compile} stays pure; the engine declares the vocabulary.
  */
 public interface VarResolver {
 

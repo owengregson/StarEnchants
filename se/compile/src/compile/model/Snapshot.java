@@ -8,11 +8,8 @@ import java.util.List;
  * (docs/architecture.md §4.5, §5.2). Exactly one {@code Snapshot} is live, swapped by a single
  * {@code AtomicReference} after a transactional reload — a bad edit never reaches the hot path (§10).
  *
- * <p>{@link #generation} bumps on every successful (re)build; with a content hash it is the
- * collision-safe key for the item-view cache (§5.2) and the stamp a {@code WornState} records to
- * detect a stale equip snapshot.
- *
- * @param generation  monotonically increasing build counter
+ * @param generation  monotonic build counter; with a content hash it keys the item-view cache and stamps
+ *                    a {@code WornState} to detect a stale equip snapshot (§5.2)
  * @param abilities   the dense ability array; {@code abilities[id].id() == id}
  * @param stableKeys  stable-key &harr; dense-id index (§5.3)
  * @param interners   the frozen name&harr;id tables (§4.1)

@@ -11,7 +11,6 @@ import java.util.List;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code INVINCIBLE}: one invincible intent per resolved target. */
 class InvincibleEffectTest {
 
     @Test

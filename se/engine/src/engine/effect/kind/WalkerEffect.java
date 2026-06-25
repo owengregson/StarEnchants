@@ -10,14 +10,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code WALKER} — lay a temporary platform of blocks beneath the target (docs/v3-directives.md §C), a
- * frost-walker / bridge-style enchant: it places {@code material} in the block layer under the target,
- * out to {@code radius} blocks each way, and reverts to the captured prior blocks after {@code ticks}.
- *
- * <p>{@code replace} controls what the platform may overwrite: {@code AIR_ONLY}, {@code REPLACEABLE}
- * (air or liquid), or {@code ANY}. The revert is best-effort (no temp-block ledger): re-firing over a
- * still-active platform can capture an already-placed tile as "prior" and leave it permanent — adequate
- * for a transient walk-assist. {@link Affinity#REGION}.
+ * {@code WALKER} — lay a temporary frost-walker/bridge platform beneath the target, reverting after {@code ticks}
+ * (§C). The revert is best-effort (no temp-block ledger): re-firing over a still-active platform can capture an
+ * already-placed tile as "prior" and leave it permanent — adequate for a transient walk-assist.
  */
 public final class WalkerEffect implements EffectKind {
 

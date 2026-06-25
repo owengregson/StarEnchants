@@ -8,10 +8,8 @@ import engine.spec.EffectSpec;
 import schema.spec.D;
 
 /**
- * {@code PROJECTILE} — launch one or more projectiles of an entity type from the activator's eye
- * (docs/v3-directives.md §C; covers {@code SPAWN_ARROWS} as {@code PROJECTILE:ARROW:<count>}). No target
- * slot: the volley spawns from the actor, not a resolved selector. {@code type} is a handle arg interned at
- * compile time (§9). {@link Affinity#TARGET_ENTITY}: a shooter-context call, routed to the shooter's thread.
+ * {@code PROJECTILE} — launch projectiles of an entity type from the activator's eye (§C). No target slot:
+ * the volley spawns from the actor, not a resolved selector. {@code type} interned at compile (§9).
  */
 public final class ProjectileEffect implements EffectKind {
 

@@ -30,7 +30,6 @@ public record WornState(
 
     private static final int[] NO_IDS = new int[0];
 
-    /** Worn state for a player with nothing relevant equipped. */
     public static WornState empty(int gen) {
         return new WornState(gen, new BitSet(), NO_IDS, HeroicStat.NONE, new int[0][], NO_IDS, NO_IDS);
     }

@@ -5,11 +5,7 @@ import org.bukkit.entity.Entity;
 import platform.sched.SchedulerBackend;
 import platform.sched.TaskHandle;
 
-/**
- * A {@link SchedulerBackend} that runs every task inline on the calling thread, so a {@link DispatchSink}'s
- * {@link DispatchSink#flush() flush} is unit-testable without a server. Delays run now too — a
- * single-threaded test has no second thread to hop to.
- */
+/** Runs every task inline, delays included — a single-threaded test has no second thread to hop to. */
 public final class SyncSchedulerBackend implements SchedulerBackend {
 
     @Override

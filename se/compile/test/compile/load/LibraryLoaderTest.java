@@ -17,12 +17,7 @@ import org.junit.jupiter.api.io.TempDir;
 import schema.spec.D;
 import schema.spec.ParamSpec;
 
-/**
- * Unit tests for the directory loader (ADR-0014): a {@code content/} tree compiles to a
- * {@link Library} whose {@code Snapshot} resolves the path-derived per-level keys, a malformed file
- * is reported without sinking the valid content, and a missing tree is an empty (clean) library.
- * Uses a real {@link Compiler} wired with a tiny effect-spec registry — no server.
- */
+/** Unit tests for the directory loader (ADR-0014), through a real {@link Compiler} — no server. */
 class LibraryLoaderTest {
 
     private static Compiler compiler() {

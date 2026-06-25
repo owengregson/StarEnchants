@@ -11,7 +11,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Scroll gesture glue (docs/v3-directives.md §I); logic lives in {@link ScrollService}. Folia-correct:
+ * Scroll gesture glue (§I); logic lives in {@link ScrollService}. Folia-correct:
  * {@code InventoryClickEvent} fires on the clicking player's own region thread.
  */
 public final class ScrollListener implements Listener {

@@ -8,14 +8,9 @@ import migrate.model.MigratedSet;
 import schema.spec.ParamSpec;
 
 /**
- * Renders a {@link MigratedEnchant}/{@link MigratedSet} to StarEnchants content YAML
- * (docs/architecture.md §10; ADR-0016): loadable content for everything that mapped, the legacy token
- * kept as a trailing comment, and anything unmapped emitted as {@code # TODO port manually} (never a
- * silently-wrong value). Output is meant to be reviewed before shipping.
- *
- * <p>Effects render in the v2 <strong>verbose</strong> form when a {@code specs} lookup (head →
- * {@link ParamSpec}) is supplied, else fall back to the terse quoted string (still valid v2, and usable
- * without the engine's effect registry).
+ * Renders a {@link MigratedEnchant}/{@link MigratedSet} to StarEnchants content YAML (ADR-0016): loadable
+ * content for everything that mapped, the legacy token kept as a trailing comment, and anything unmapped
+ * emitted as {@code # TODO port manually} — never a silently-wrong value. Review before shipping.
  */
 public final class SchemaWriter {
 

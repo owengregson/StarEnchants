@@ -6,20 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The typed result of validating a DSL line against a {@link ParamSpec}: argument
- * name → already-parsed value ({@link Double}, {@link Long}, {@link Boolean} or
- * {@link String}).
- *
- * <p>This is the bridge from authored text to the compiled runtime. Effect/
- * condition implementations read it by name with no parsing on the hot path
- * (docs/architecture.md §7); the compiler lowers these values into the typed-args
- * record of a {@code CompiledEffect}.
- *
- * <p>An {@code Args} is only meaningful when validation produced no errors. When
- * a value failed to parse it is simply absent — callers that have already checked
- * {@link schema.diag.Diagnostics#hasErrors()} can read present
- * values safely; the typed accessors throw on a missing/mismatched key to surface
- * programming errors loudly.
+ * Typed result of validating a DSL line against a {@link ParamSpec}: argument name →
+ * parsed value (docs/architecture.md §7). Only meaningful when validation produced no
+ * errors; a failed value is simply absent. Typed accessors throw on a missing key.
  */
 public final class Args {
 
@@ -29,7 +18,6 @@ public final class Args {
         this.values = new LinkedHashMap<>(values);
     }
 
-    /** An empty argument set (e.g. a head with no parameters). */
     public static Args empty() {
         return new Args(Map.of());
     }
@@ -46,7 +34,6 @@ public final class Args {
         return ((Number) require(name)).longValue();
     }
 
-    /** A whole-number argument narrowed to {@code int}. */
     public int integer(String name) {
         return Math.toIntExact(lng(name));
     }
@@ -63,19 +50,14 @@ public final class Args {
         return Optional.ofNullable(values.get(name));
     }
 
-    /**
-     * A copy of this bag with {@code name} set to {@code value}, leaving this
-     * instance unchanged. The compiler's resolve stage uses it to rewrite a handle
-     * argument from its authored token to the interned int it resolved to
-     * (docs/architecture.md §9), preserving immutability.
-     */
+    /** A copy with {@code name} set; resolve uses it to rewrite a handle token to its interned int (§9), immutably. */
     public Args with(String name, Object value) {
         Map<String, Object> copy = new LinkedHashMap<>(values);
         copy.put(name, value);
         return new Args(copy);
     }
 
-    /** An immutable view of every parsed value, in declaration order. */
+    /** Immutable view, in declaration order. */
     public Map<String, Object> asMap() {
         return Collections.unmodifiableMap(values);
     }

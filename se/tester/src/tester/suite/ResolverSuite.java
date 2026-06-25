@@ -6,12 +6,9 @@ import platform.resolve.RegistryResolvers;
 import tester.harness.Harness;
 
 /**
- * Production cross-version resolver, live (docs/architecture.md §9; cross-version-item-api skill) — the
- * reason the version matrix exists: a token authored in any era must resolve to a handle that exists on
- * THIS server, across the 1.20.5 spigot&rarr;mojang flip, 1.21.3 attribute de-prefixing, and the
- * enum&rarr;interface transitions. One check per token pinpoints the exact (category, token) that fails.
- * Both legacy and modern spellings of representative renames are asserted, proving the resolver
- * bidirectional on every version.
+ * Production cross-version resolver, live (§9) — the reason the matrix exists: a token from any era must
+ * resolve on THIS server, across the 1.20.5 spigot→mojang flip, 1.21.3 attribute de-prefixing, and the
+ * enum→interface transitions. Legacy + modern spellings are both asserted (bidirectional); one check per token.
  */
 public final class ResolverSuite implements Harness.Scenario {
 

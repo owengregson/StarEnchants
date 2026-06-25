@@ -17,13 +17,11 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * A thin, position-preserving view over a composed SnakeYAML node (docs/architecture.md §10) — the ONLY
- * class in the loader that touches SnakeYAML. Carries each value's {@code file:line:col} {@link Source}
- * (from SnakeYAML {@link Mark}s) so every diagnostic points where the operator wrote it; a malformed
- * document is reported into {@link Diagnostics}, never thrown.
- *
- * <p>Uses only the {@code compose()}/{@code Node}/{@code Mark} API, stable across SnakeYAML 1.x and 2.x,
- * so the plugin uses the server-provided SnakeYAML without shading. (cross-version)
+ * The ONLY loader class that touches SnakeYAML (§10): a position-preserving view carrying each value's
+ * {@code file:line:col} {@link Source} so diagnostics point where the operator wrote it; a malformed
+ * document is diagnosed into {@link Diagnostics}, never thrown. Uses only the {@code compose()}/{@code Node}/
+ * {@code Mark} API — stable across SnakeYAML 1.x and 2.x — so it runs against the server-provided SnakeYAML
+ * unshaded. (cross-version)
  */
 final class YamlNode {
 
@@ -149,7 +147,7 @@ final class YamlNode {
         return new YamlNode(file, fields.get(key));
     }
 
-    /** Whether this node is a scalar (a leaf value, not a mapping/sequence). */
+    /** Whether this node is a scalar leaf. */
     boolean isScalar() {
         return node instanceof ScalarNode;
     }

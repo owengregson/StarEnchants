@@ -7,14 +7,10 @@ import java.util.Objects;
 import schema.diag.Diagnostic;
 
 /**
- * Compiled snapshot of the master {@code config.yml} (§L) — cross-cutting knobs that are neither a single
- * item's likeness ({@code items/}) nor messages ({@code lang.yml}). Swapped by reference in the same atomic
- * {@code /se reload} transaction as content + items. Pure (no Bukkit); readers always see a fully-built
- * snapshot.
- *
- * <p>Every section is mandatory and resolves to <em>some</em> value (a nested record + {@code defaults()}
- * factory, not an {@link java.util.Optional}). Absent/unreadable {@code config.yml} yields
- * {@link #defaults()}; a malformed file yields a diagnostic and defaults for the faulted section.
+ * Compiled snapshot of the master {@code config.yml} (§L) — cross-cutting knobs, swapped by reference in
+ * the same atomic {@code /se reload} transaction as content + items. Every section is mandatory and resolves
+ * to some value: absent/unreadable yields {@link #defaults()}; a malformed file yields a diagnostic and
+ * defaults for the faulted section.
  */
 public record MasterConfig(FeaturesSection features, CombatSection combat, MessagesSection messages,
                            SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
@@ -51,8 +47,8 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Base enchant-slot capacity (§H). Only the base is cross-cutting; the hard cap on TOTAL slots
-     * (base + purchased) lives in the expander's {@code items/slots.yml} ({@code SlotConfig.hardCap}).
+     * Base enchant-slot capacity (§H). The hard cap on TOTAL slots (base + purchased) lives instead in
+     * the expander's {@code items/slots.yml} ({@code SlotConfig.hardCap}).
      *
      * @param base base enchant slots every item starts with (≥ 0)
      */
@@ -67,8 +63,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Cross-cutting soul toggles (§D). The concrete soul economy lives in {@code items/soul-gem.yml}; only
-     * the master deposit toggle is cross-cutting.
+     * Cross-cutting soul toggle (§D); the concrete soul economy lives in {@code items/soul-gem.yml}.
      *
      * @param depositOnAnyKill souls deposit into a carried gem on ANY kill; {@code false} disables
      *                         deposit-on-kill entirely (give/combine/split still work)
@@ -114,8 +109,8 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Lore render style (§L). Mirrors {@code item.render.LoreStyle} field-for-field; the bridge is built at
-     * the composition root since {@code compile} does not depend on {@code item}.
+     * Lore render style (§L). Mirrors {@code item.render.LoreStyle} field-for-field; bridged at the
+     * composition root since {@code compile} does not depend on {@code item}.
      *
      * @param enchantColor enchant-name colour prefix (legacy {@code &} code)
      * @param levelColor   level-numeral colour prefix (legacy {@code &} code)

@@ -14,8 +14,8 @@ import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the fail-safe behaviour of {@link AntiCheat}: with no supported anti-cheat installed, the exemption
- * hook is a non-throwing no-op. The reflective NoCheatPlus path is verified out-of-matrix (docs/decisions/0027).
+ * With no supported anti-cheat installed, the exemption hook is a non-throwing no-op. The reflective
+ * NoCheatPlus path is verified out-of-matrix (docs/decisions/0027).
  */
 class AntiCheatTest {
 
@@ -26,7 +26,7 @@ class AntiCheatTest {
         PluginManager pm = mock(PluginManager.class);
         when(plugin.getServer()).thenReturn(server);
         when(server.getPluginManager()).thenReturn(pm);
-        when(pm.getPlugin(anyString())).thenReturn(null); // nothing installed
+        when(pm.getPlugin(anyString())).thenReturn(null);
 
         Consumer<Player> exemption = AntiCheat.exemption(plugin, id -> true, System.getLogger("test"));
         assertNotNull(exemption);

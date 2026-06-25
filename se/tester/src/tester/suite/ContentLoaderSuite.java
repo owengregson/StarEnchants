@@ -20,9 +20,9 @@ import schema.diag.Source;
 import tester.harness.Harness;
 
 /**
- * Live checks for the content loader + transactional reload (ADR-0014): parsing on the server's bundled
- * SnakeYAML (1.x vs 2.x varies by version), version-volatile handle resolution through the production
- * compiler (§9), and the reloader's off-thread build + global-thread swap on Folia as well as Paper.
+ * Content loader + transactional reload (ADR-0014): parsing on the server's bundled SnakeYAML (1.x vs 2.x
+ * varies by version), handle resolution through the production compiler (§9), and the reloader's off-thread
+ * build + global-thread swap on Folia.
  */
 public final class ContentLoaderSuite implements Harness.Scenario {
 
@@ -105,9 +105,8 @@ public final class ContentLoaderSuite implements Harness.Scenario {
     }
 
     /**
-     * §L-4: the reload is a transaction over content + parallel config sources. {@link ReloadStep#build()}s
-     * run off-thread and publish on the global thread only when everything is clean — on Paper and Folia,
-     * where the inline-backend unit test cannot reach.
+     * §L-4: the reload is a transaction over content + parallel config sources, beyond the inline-backend unit
+     * test's reach — {@link ReloadStep#build()}s run off-thread and publish on the global thread only when clean.
      */
     private void transactionChecks(Harness h) {
         Path croot;

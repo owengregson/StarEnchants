@@ -45,10 +45,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The §B equipment-lifecycle + COMMAND trigger, proven live (docs/v3-directives.md §B, ADR-0022): the
- * start/stop lifecycle the engine otherwise lacks. Depends on real {@code potion}/{@code removePotion}
- * intents landing on a real player through the {@link LifecycleDriver}/{@link TriggerDispatch} path on
- * Paper and Folia — including the STOP half (removal on unequip, not fire-and-forget on equip).
+ * §B equipment-lifecycle + COMMAND trigger, live (§B, ADR-0022): the start/stop lifecycle the engine
+ * otherwise lacks, through {@link LifecycleDriver}/{@link TriggerDispatch} — including the STOP half (removal
+ * on unequip, not fire-and-forget on equip).
  */
 public final class LifecycleSuite implements Harness.Scenario {
 
@@ -142,7 +141,6 @@ public final class LifecycleSuite implements Harness.Scenario {
                     return;
                 }
                 Scheduling.onEntity(p, () -> {
-                    // Equip Vigor → START applies SPEED.
                     p.getInventory().setItemInMainHand(vigorSword);
                     lifecycle.refresh(p, worn.refresh(p, holder.snapshot()));
                     Scheduling.onEntityLater(p, 10L, () -> {
@@ -151,7 +149,6 @@ public final class LifecycleSuite implements Harness.Scenario {
                                 throw new IllegalStateException("HELD buff did not apply on equip");
                             }
                         });
-                        // Unequip → STOP removes SPEED.
                         p.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
                         lifecycle.refresh(p, worn.refresh(p, holder.snapshot()));
                         Scheduling.onEntityLater(p, 10L, () -> {
@@ -160,7 +157,6 @@ public final class LifecycleSuite implements Harness.Scenario {
                                     throw new IllegalStateException("HELD buff was not removed on unequip");
                                 }
                             });
-                            // Hold Surge and fire COMMAND → REGENERATION applies.
                             p.getInventory().setItemInMainHand(surgeSword);
                             worn.refresh(p, holder.snapshot());
                             dispatch.fireCommand(p);

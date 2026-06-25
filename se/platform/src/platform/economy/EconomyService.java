@@ -6,18 +6,12 @@ import org.bukkit.Server;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 /**
- * The economy facade the runtime calls for money effects (docs/architecture.md §2). Wraps the single
- * registered {@link EconomyProvider} (economy is singular per server) and isolates its faults: a
- * provider that throws is logged once and treated as "no money moved", so a misbehaving economy bridge
- * never aborts a hit. With no provider present, withdraw fails and deposit is a no-op — a money effect
- * simply does nothing on a server without an economy, rather than erroring.
- *
- * <p>Calls arrive on the global region thread (see {@link EconomyProvider}); this class itself holds no
- * mutable per-call state and is safe to share.
+ * The economy facade the runtime calls for money effects (docs/architecture.md §2), wrapping the single
+ * registered {@link EconomyProvider}. Isolates faults: a provider that throws is logged once and treated
+ * as "no money moved", so a broken bridge never aborts a hit. Absent provider ⇒ a money effect no-ops.
  */
 public final class EconomyService {
 
-    /** The absent economy — no provider; withdraw always fails, deposit no-ops. */
     public static final EconomyService NONE = new EconomyService(null);
 
     private final EconomyProvider provider; // nullable = absent
@@ -80,9 +74,8 @@ public final class EconomyService {
     }
 
     /**
-     * The economy wrapping the first {@link EconomyProvider} registered via the server's
-     * {@code ServicesManager}, or {@link #NONE} when none is registered (a region/economy plugin
-     * registers one; it must do so before StarEnchants enables).
+     * Wraps the first {@link EconomyProvider} registered via the {@code ServicesManager}, or {@link #NONE}.
+     * A provider must register before StarEnchants enables.
      */
     public static EconomyService discover(Server server, System.Logger log) {
         RegisteredServiceProvider<EconomyProvider> reg =

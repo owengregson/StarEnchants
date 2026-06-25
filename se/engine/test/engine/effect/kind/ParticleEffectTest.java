@@ -10,10 +10,7 @@ import engine.sink.Sink;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test (docs/architecture.md §1.3): the {@code particle} arg arrives already lowered to an
- * interned id, so the effect reads it via {@code ctx.integer} and the Sink intent carries that int.
- */
+/** The {@code particle} arg arrives already lowered to an interned id, read via {@code ctx.integer}. */
 class ParticleEffectTest {
 
     @Test

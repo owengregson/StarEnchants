@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 class SoulLedgerTest {
 
-    /** A simple in-memory balance; all access happens under the ledger's per-gem lock. */
+    /** An in-memory balance; all access happens under the ledger's per-gem lock. */
     private static final class IntBalance implements SoulLedger.Balance {
         private int souls;
 

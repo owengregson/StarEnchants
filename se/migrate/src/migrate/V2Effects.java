@@ -9,19 +9,16 @@ import schema.spec.Param;
 import schema.spec.ParamSpec;
 
 /**
- * Renders a migrated SE effect token as a content-format-v2 effects-list ITEM (ADR-0016): the verbose
+ * Renders a migrated SE effect token as a content-format-v2 effects-list item (ADR-0016): the verbose
  * {@code { HEAD: { param: value, who: "@Sel" } }} map when the head's {@link ParamSpec} is known, else a
- * quoted terse string as a safe fallback. Returns the item WITHOUT the leading {@code "- "}.
- *
- * <p>The terse token is re-lexed with {@link EffectLine}; positional args map onto the spec's params by
- * order, and an inline {@code @Selector} becomes the reserved {@code who:} key.
+ * quoted terse string as a safe fallback. Positional args map onto the spec's params by order; an inline
+ * {@code @Selector} becomes the reserved {@code who:} key.
  */
 final class V2Effects {
 
     private V2Effects() {
     }
 
-    /** The v2 effects-list item for one mapped SE token, verbose when {@code specs} resolves its head. */
     static String item(String seToken, Function<String, ParamSpec> specs) {
         EffectLine line = EffectLine.parse(seToken, Source.ofFile("migrate"));
         String head = line.head();

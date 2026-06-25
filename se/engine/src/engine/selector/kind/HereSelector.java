@@ -6,10 +6,7 @@ import engine.spec.SelectorSpec;
 import java.util.List;
 import org.bukkit.Location;
 
-/**
- * {@code @Here} — the activation's own block location (docs/v3-directives.md §A); the location analogue of
- * {@code @Self}. Default target of block effects, so a bare {@code SET_BLOCK:OBSIDIAN} acts here.
- */
+/** {@code @Here} — the activation's own block location; the location analogue of {@code @Self} and the default for block effects. */
 public final class HereSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("HERE")

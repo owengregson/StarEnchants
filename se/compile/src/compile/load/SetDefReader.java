@@ -11,21 +11,10 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 
 /**
- * Reads one authored armour-set file into its metadata {@link SetDef} plus its bonus abilities
- * (docs/architecture.md §6.6; docs/v3-directives.md §6.6). A set has no tier and TWO bonuses:
- *
- * <ul>
- *   <li>the ARMOUR set bonus under {@code armor:} — its {@code pieces:} declare each member's slot +
- *       material + name (sharing {@code armor.lore}), and its trigger/chance/effects fire once
- *       {@code complete} pieces are worn. Compiled to {@code <key>} with {@code complete} on
- *       {@code setPieces}.</li>
- *   <li>an optional ADDITIONAL WEAPON bonus under {@code weapon:} — its own material/name/lore and its
- *       own trigger/chance/effects. Compiled to {@code <key>/weapon} ({@code setPieces} 0); the resolver
- *       fires it only while the armour set is complete AND the weapon is held.</li>
- * </ul>
- *
- * <p>Every fault is a {@code file:line:col} diagnostic; a missing trigger or a non-positive completion
- * count is blocking, but the reader still parses the rest for reporting.
+ * Reads one authored armour-set file into its {@link SetDef} plus its bonus abilities (ADR-0014): the
+ * {@code armor:} bonus compiled to {@code <key>} (its {@code complete} count on {@code setPieces}) and the
+ * optional {@code weapon:} bonus to {@code <key>/weapon} ({@code setPieces} 0, resolver-gated). A fault is
+ * a diagnostic; a missing trigger or non-positive completion count blocks, but the rest still parses.
  */
 final class SetDefReader {
 
@@ -41,16 +30,14 @@ final class SetDefReader {
     private SetDefReader() {
     }
 
-    /** One set's parsed output: its metadata and the 1–2 bonus abilities it expands into. */
     record Parsed(SetDef def, List<AbilityDef> abilities) {
     }
 
-    /** Test/convenience entry: no folder-derived tier (sets are tierless anyway). */
+    /** Test/convenience entry: no folder-derived tier (sets are tierless). */
     static Parsed read(String baseKey, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         return read(baseKey, null, root, nextDefId, diags);
     }
 
-    /** Parse one set. {@code baseKey} is the path-derived key, e.g. {@code sets/titan}. */
     static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {
@@ -119,7 +106,6 @@ final class SetDefReader {
         return new Parsed(def, abilities);
     }
 
-    /** Build one SET bonus ability from a bonus block ({@code armor:} or {@code weapon:}). */
     private static AbilityDef ability(String stableKey, YamlNode node, int setPieces, Source fileSource,
                                       IntSupplier nextDefId, Diagnostics diags) {
         List<String> triggers = node.stringList("trigger");

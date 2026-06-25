@@ -13,18 +13,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Compiles one authored effect/condition line into a validated {@link CompiledLine}:
- * resolve the head to a {@link ParamSpec}, then validate arguments into typed {@link Args}
- * (docs/architecture.md §3.3, §10). The seam between {@code se-schema} and {@code se-compile}.
+ * Compiles one authored effect/condition line into a validated {@link CompiledLine}: resolve the
+ * head to a {@link ParamSpec}, then validate arguments into typed {@link Args} (docs/architecture.md §3.3, §10).
  *
- * <p>Never throws. An unknown head is warn-and-skipped (returns empty); a known head with
- * bad arguments still returns the line so the caller can decide after checking
- * {@link Diagnostics#hasErrors()}.
+ * <p>Never throws: an unknown head returns empty; a known head with bad arguments still returns the
+ * line so the caller can decide after checking {@link Diagnostics#hasErrors()}.
  *
- * <p><strong>Terse vs verbose (ADR-0016).</strong> A verbose line's named values are ordered
- * into the spec's positional order <em>as a list</em> (never re-joined on {@code :}), so a string
- * argument containing {@code :} or {@code @} survives intact, then run through the same
- * {@code ParamSpec.parse} path as a terse line.
+ * <p>Terse vs verbose (ADR-0016): a verbose line's named values are ordered into positional order
+ * <em>as a list</em> (never re-joined on {@code :}), so an argument containing {@code :} or {@code @}
+ * survives intact, then run through the same {@code ParamSpec.parse} path as a terse line.
  */
 public final class LineCompiler {
 
@@ -34,7 +31,6 @@ public final class LineCompiler {
         this.registry = Objects.requireNonNull(registry, "registry");
     }
 
-    /** Compile an already-lexed line. */
     public Optional<CompiledLine> compile(EffectLine line, Diagnostics diags) {
         Optional<ParamSpec> spec = registry.lookup(line.head());
         if (spec.isEmpty()) {
@@ -48,15 +44,11 @@ public final class LineCompiler {
         return Optional.of(new CompiledLine(spec.get().head(), args, line.source()));
     }
 
-    /** Lex {@code raw} and compile it — the convenience entry point. */
     public Optional<CompiledLine> compile(String raw, Source source, Diagnostics diags) {
         return compile(EffectLine.parse(raw, source), diags);
     }
 
-    /**
-     * Validate a verbose (named) line: reject unknown/missing-required params with precise diagnostics,
-     * then order the values into positional order and run {@link ParamSpec#parse} for typing/range.
-     */
+    /** Reject unknown/missing-required named params, then order into positional order and {@link ParamSpec#parse} for typing/range. */
     private static Args parseVerbose(ParamSpec spec, EffectLine line, Diagnostics diags) {
         Map<String, String> named = line.named();
         List<Param> params = spec.params();

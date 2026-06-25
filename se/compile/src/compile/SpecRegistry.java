@@ -5,9 +5,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Resolves a kind's head name (e.g. {@code DAMAGE}, {@code SMITE}) to its {@link ParamSpec}.
- * The explicit, greppable registration the architecture mandates over annotation-processor codegen
- * (docs/architecture.md §7, §13.2). Lookup is case-insensitive, matching the originals' tolerant head matching.
+ * Resolves a kind's head name (e.g. {@code DAMAGE}) to its {@link ParamSpec} — the explicit, greppable
+ * registration the architecture mandates over annotation-processor codegen (docs/architecture.md §7, §13.2).
  */
 public interface SpecRegistry {
 

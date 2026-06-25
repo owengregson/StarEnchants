@@ -3,10 +3,9 @@ package feature.carrier;
 import java.util.List;
 
 /**
- * The outcome of applying a carrier (book/scroll/dust) to a target — plus optional §I apply-feedback
- * ({@code sound} + {@code particles}) for the interaction layer to play on the player's own thread.
- * {@code consumed} tells that layer whether to commit the inventory changes (a use was spent) versus a
- * no-op (bad target, missing def) that leaves both stacks untouched.
+ * The outcome of applying a carrier to a target, with optional §I sound/particle feedback. {@code consumed}
+ * tells the interaction layer whether to commit the inventory changes (a use was spent) or leave both
+ * stacks untouched (no-op).
  */
 public record CarrierResult(boolean consumed, String message, String sound, List<String> particles) {
 

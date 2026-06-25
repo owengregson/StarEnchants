@@ -5,15 +5,10 @@ import schema.spec.ParamSpec;
 import schema.spec.ParamType;
 
 /**
- * Self-describing signature of a selector kind (docs/architecture.md §7). A selector resolves an
- * effect's target set at activation time; its {@code SPEC} declares the named arguments it accepts
- * (e.g. {@code @Aoe{r=4}}).
- *
- * <p>Unlike {@link EffectSpec} a selector carries no {@link compile.model.Affinity} (routing follows
- * the <em>effect's</em> affinity) and no nested target slots (a selector <em>is</em> a target).
- *
- * <p>A builtin used as an effect's <em>default</em> target must keep every argument optional (give it
- * a {@code def(...)}) so the no-argument default path validates cleanly.
+ * Self-describing signature of a selector kind (§7). Unlike {@link EffectSpec} a selector carries no
+ * {@link compile.model.Affinity} (routing follows the <em>effect's</em>) and no nested target slots (a
+ * selector <em>is</em> a target). A builtin used as an effect's <em>default</em> target must keep every
+ * argument optional (a {@code def(...)}) so the no-argument default path validates cleanly.
  */
 public final class SelectorSpec {
 

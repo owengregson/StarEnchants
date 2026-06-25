@@ -10,10 +10,8 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code SET_BLOCK} — set one or more blocks to a material (docs/v3-directives.md §C/§A). {@code material} is
- * a handle arg interned at compile time, read with {@link EffectCtx#integer} (§9). Target slot defaults to
- * {@code @Here} (the activation block) and accepts any block/location selector inline (e.g. {@code @Trench}).
- * {@link Affinity#REGION}: each change routes to the region thread owning its location.
+ * {@code SET_BLOCK} — set the target block(s) to a material (§C/§A); {@code material} interned at compile (§9).
+ * Slot defaults to {@code @Here} and accepts any block/location selector inline (e.g. {@code @Trench}).
  */
 public final class SetBlockEffect implements EffectKind {
 

@@ -15,8 +15,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * Slot-economy cold path (§H): mints the upgrade orb and applies it onto gear, raising the gear's purchased
  * {@link CombatState#added()} count. Clamped to {@link SlotConfig#hardCap()} on TOTAL slots (base + added),
- * so a stack of orbs can't grow an item without bound. Granted slots persist in the gear's combat blob; the
- * orb itself is identity-only ({@link SlotItemCodec}), off the combat hot path.
+ * so a stack of orbs can't grow an item without bound.
  */
 public final class SlotService {
 
@@ -39,10 +38,7 @@ public final class SlotService {
         this(codec, combat, lore, config, baseSlots, item.lang.Messages.defaults());
     }
 
-    /**
-     * Canonical form (composition root): {@code baseSlots} is read live so the cap math ({@code hardCap - base})
-     * re-tunes when a reload changes {@code config.yml} slots.base (§H).
-     */
+    /** Canonical form (composition root). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, IntSupplier baseSlots, item.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
@@ -93,7 +89,7 @@ public final class SlotService {
         int newAdded = Math.min(current.added() + grant, maxAdded);
         CombatState next = current.withAdded(newAdded);
         combat.write(gear, next);
-        lore.apply(gear, next); // keep the gear's lore in sync (unchanged enchant/crystal lines re-rendered)
+        lore.apply(gear, next);
         consume(slotItem);
         int total = base + newAdded;
         return SlotResult.committed(gear, messages.format("slot.apply", "SLOTS", total));

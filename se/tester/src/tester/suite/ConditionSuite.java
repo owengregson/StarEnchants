@@ -46,16 +46,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The condition gate, live (docs/architecture.md §3.3, §3.4): proves the runtime FactBuffer is populated
- * so a variable-gated enchant fires only when the condition holds (an unpopulated buffer throws out of
- * gate 7 and the enchant silently never fires). Both facts use cow victims (no PvP/peaceful gating):
- * <ul>
- *   <li><b>victim.health</b> — LowStrike ({@code "%victim.health% >= 8"}, chance 100) poisons a full cow
- *       (10 ≥ 8) but not one pre-damaged to 4: proves population AND that the gate discriminates.</li>
- *   <li><b>actor.health</b> — ActorGate ({@code "%actor.health% >= 10"}) on a full attacker poisons a cow:
- *       proves the actor.health slot populates; covers the DEFENSE actor.health enchants' shared path.</li>
- * </ul>
- * Each assertion runs on its victim's entity scheduler, region-correct on Folia. Needs the fake-player attacker.
+ * The condition gate, live (§3.3, §3.4): proves the runtime FactBuffer populates so a variable-gated enchant
+ * fires only when the condition holds — an unpopulated buffer throws out of gate 7 and the enchant silently
+ * never fires. Cow victims (no PvP/peaceful gating) cover both a victim.health and an actor.health gate; the
+ * actor-health gate also discriminates on a string victim fact. Needs the fake-player attacker.
  */
 public final class ConditionSuite implements Harness.Scenario {
 
@@ -154,7 +148,6 @@ public final class ConditionSuite implements Harness.Scenario {
                     return;
                 }
 
-                // victim.health arm.
                 Scheduling.onEntity(victimAttacker, () -> {
                     victimAttacker.getInventory().setItemInMainHand(victimSword);
                     worn.refresh(victimAttacker, library.snapshot());
@@ -191,7 +184,6 @@ public final class ConditionSuite implements Harness.Scenario {
                     });
                 });
 
-                // actor.health arm.
                 Scheduling.onEntity(actorAttacker, () -> {
                     actorAttacker.getInventory().setItemInMainHand(actorSword);
                     actorAttacker.setHealth(20.0); // ≥ 10 → %actor.health% holds

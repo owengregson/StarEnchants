@@ -10,10 +10,8 @@ import org.bukkit.Location;
 import schema.spec.D;
 
 /**
- * {@code BREAK_BLOCK} — break one or more blocks (docs/v3-directives.md §C/§A). {@code drops}
- * (default true) yields drops vs. clears. Target slot defaults to {@code @Here} (the activation block)
- * and accepts any block/location selector inline (e.g. {@code @Vein}/{@code @Tunnel}/{@code @Trench}).
- * {@link Affinity#REGION}: each break routes to the region thread owning its location.
+ * {@code BREAK_BLOCK} — break the target block(s) (§C/§A). Slot defaults to {@code @Here} and accepts any
+ * block/location selector inline (e.g. {@code @Vein}/{@code @Tunnel}/{@code @Trench}).
  */
 public final class BreakBlockEffect implements EffectKind {
 

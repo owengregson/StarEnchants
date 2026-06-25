@@ -41,7 +41,7 @@ public final class HeroicListener implements Listener {
         }
         ItemStack target = event.getCurrentItem();
         if (target == null || target.getType() == Material.AIR || service.isUpgrade(target)) {
-            return; // upgrade-onto-upgrade is meaningless
+            return;
         }
 
         event.setCancelled(true);

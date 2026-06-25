@@ -6,15 +6,12 @@ import java.util.Map;
 import schema.diag.Diagnostics;
 
 /**
- * The rarity-tier registry (ADR-0016 §2), read from {@code content/tiers.yml} — the single source of tier
- * ordering, presentation (lore colour, glint, GUI sort weight), and the default tier; it also answers
- * "is this subfolder a tier?" so the loader can derive a file's tier from its folder. Tiers are data,
- * never hard-coded in the compiler; absent {@code tiers.yml} falls back to {@link #BUILTIN} (common →
- * mythic) so the catalog still loads. Immutable.
+ * The rarity-tier registry (ADR-0016 §2), read from {@code content/tiers.yml}: tier ordering, presentation,
+ * the default tier, and whether a subfolder names a tier (so the loader derives a file's tier from its
+ * folder). Absent {@code tiers.yml} falls back to {@link #BUILTIN} (common → mythic) so the catalog still loads.
  */
 public final class TierRegistry {
 
-    /** One tier's presentation metadata. */
     public record Tier(String name, String color, int weight, boolean glint) {
     }
 
@@ -34,7 +31,6 @@ public final class TierRegistry {
         return name != null && tiers.containsKey(name);
     }
 
-    /** The default tier applied to a file with no tier folder and no in-file {@code tier:}. */
     public String defaultTier() {
         return defaultTier;
     }
@@ -44,7 +40,6 @@ public final class TierRegistry {
         return tiers.get(name);
     }
 
-    /** Every registered tier, in declared order. */
     public Collection<Tier> tiers() {
         return tiers.values();
     }

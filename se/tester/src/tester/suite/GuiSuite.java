@@ -39,11 +39,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Live checks for the §K interactive merchant benches (docs/v3-directives.md §K) — the GUI code with
- * cross-version/Folia risk beyond unit coverage: input-slot placement vs filler lock, combine/salvage
- * mutations, and close-returns-staged-inputs. Run on a real server through the shared {@link MenuListener},
- * so a wrong-thread access or inventory quirk fails rather than passing vacuously. (Display-menu click→apply
- * is covered by {@link MenuSuite}; pure combine/salvage/pagination logic by unit tests.)
+ * §K interactive merchant benches with cross-version/Folia risk beyond unit coverage: input-slot placement
+ * vs filler lock, combine/salvage mutations, close-returns-staged-inputs — run through the real
+ * {@link MenuListener}. (Display-menu click→apply lives in {@link MenuSuite}; pure logic in unit tests.)
  */
 public final class GuiSuite implements Harness.Scenario {
 
@@ -138,7 +136,6 @@ public final class GuiSuite implements Harness.Scenario {
 
     private void runChecks(Harness h, Player player, CarrierService carriers,
                            AlchemistMenu alchemist, TinkererMenu tinkerer) {
-        // Placement allowed in an input slot, locked everywhere else.
         h.guard("gui.inputSlotPlacementVsLock", () -> {
             InventoryView view = open(player, alchemist);
             if (dispatchClick(view, ALCHEMIST_LEFT).isCancelled()) {
@@ -149,7 +146,6 @@ public final class GuiSuite implements Harness.Scenario {
             }
         });
 
-        // Alchemist: two level-1 books → one level-2 book; inputs consumed.
         h.guard("gui.alchemistCombines", () -> {
             InventoryView view = open(player, alchemist);
             player.getInventory().clear();
@@ -165,7 +161,6 @@ public final class GuiSuite implements Harness.Scenario {
             }
         });
 
-        // Tinkerer: a level-3 book salvages for 3 EXP levels; the book is consumed.
         h.guard("gui.tinkererSalvages", () -> {
             InventoryView view = open(player, tinkerer);
             player.getInventory().clear();
@@ -194,14 +189,12 @@ public final class GuiSuite implements Harness.Scenario {
         });
     }
 
-    /** Renders the menu into a fresh holder and opens it; returns the live view. */
     private static InventoryView open(Player player, feature.menu.Menu menu) {
         MenuHolder holder = new MenuHolder(menu);
         menu.render(holder);
         return player.openInventory(holder.getInventory());
     }
 
-    /** Fires a real left-click on {@code rawSlot} through the plugin manager; returns the event. */
     private InventoryClickEvent dispatchClick(InventoryView view, int rawSlot) {
         InventoryClickEvent click = new InventoryClickEvent(view, InventoryType.SlotType.CONTAINER, rawSlot,
                 ClickType.LEFT, InventoryAction.PICKUP_ALL);

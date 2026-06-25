@@ -13,7 +13,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host VELOCITY test: {@code mode=add} emits a launch per target; {@code mode=away} a knockback from the actor's location. */
 class VelocityEffectTest {
 
     @Test

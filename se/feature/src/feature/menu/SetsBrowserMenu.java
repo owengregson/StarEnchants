@@ -10,12 +10,9 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The read-only armour-set browser + preview (docs/v3-directives.md §K — "Armor-sets browser + preview"):
- * a flat paged list of every armour set; each icon's tooltip is the per-set preview — its description, the
- * rarity tier, the number of worn pieces that completes the set ({@code Required-Items} threshold), and the
- * item groups its pieces may sit on. The {@code SetDef} catalog carries no member-piece list or set-bonus
- * text (the bonus is a single compiled ability keyed by the set), so the preview shows the published set
- * metadata — name / tier / pieces-to-complete / applicable groups.
+ * The read-only armour-set browser (docs/v3-directives.md §K): a flat paged list of every set, each icon's
+ * tooltip the per-set preview. The {@code SetDef} catalog carries no member-piece list or bonus text (the
+ * bonus is one compiled ability keyed by the set), so the preview shows the published metadata only.
  */
 public final class SetsBrowserMenu extends PagedMenu<SetDef> {
 

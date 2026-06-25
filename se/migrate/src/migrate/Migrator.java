@@ -13,14 +13,10 @@ import schema.diag.Source;
 import schema.spec.ParamSpec;
 
 /**
- * The legacy-plugin importer entry point (docs/architecture.md §10). Maps a legacy plugin's configs to
- * the unified vocabulary, producing content-format-v2 YAML keyed by output path plus a {@link Diagnostics}
- * log of everything needing manual attention. The migration NEVER fails on an unmappable construct: it
- * migrates the structure and flags gaps as warnings.
- *
- * <p>Readers: EliteEnchantments, EliteArmor, AdvancedEnchantments. Each entry point has an overload taking
- * an effect-spec lookup ({@code specs}: head → {@link ParamSpec}); when supplied, effects are written in
- * the v2 <strong>verbose</strong> form (ADR-0016), else the terse string (still valid v2).
+ * The legacy-plugin importer entry point (EliteEnchantments, EliteArmor, AdvancedEnchantments). Produces
+ * content-format-v2 YAML keyed by output path plus a {@link Diagnostics} log. NEVER fails on an unmappable
+ * construct: it migrates the structure and flags the gaps as warnings. Each entry point has a {@code specs}
+ * overload that emits the verbose v2 effect form (ADR-0016) instead of the terse string.
  */
 public final class Migrator {
 
@@ -57,34 +53,28 @@ public final class Migrator {
     private Migrator() {
     }
 
-    /** Migrate EliteEnchantments {@code enchantments.yml} into {@code enchants/<id>.yml} (terse effects). */
     public static Result eliteEnchantments(String enchantmentsYaml) {
         return eliteEnchantments(enchantmentsYaml, null);
     }
 
-    /** Migrate EliteEnchantments {@code enchantments.yml}; effects verbose when {@code specs} is supplied. */
     public static Result eliteEnchantments(String enchantmentsYaml, Function<String, ParamSpec> specs) {
         return migrateEnchants(EliteEnchantmentsReader.read(enchantmentsYaml), "EliteEnchantments",
                 "EliteEnchantments/enchantments.yml#", specs);
     }
 
-    /** Migrate an AdvancedEnchantments {@code enchantments.yml} into {@code enchants/<id>.yml} (terse). */
     public static Result advancedEnchantments(String enchantmentsYaml) {
         return advancedEnchantments(enchantmentsYaml, null);
     }
 
-    /** Migrate AdvancedEnchantments {@code enchantments.yml}; effects verbose when {@code specs} is supplied. */
     public static Result advancedEnchantments(String enchantmentsYaml, Function<String, ParamSpec> specs) {
         return migrateEnchants(AdvancedEnchantmentsReader.read(enchantmentsYaml), "AdvancedEnchantments",
                 "AdvancedEnchantments/enchantments.yml#", specs);
     }
 
-    /** Migrate one EliteArmor set file into a {@code sets/<id>.yml} (terse effects). */
     public static Result eliteArmorSet(String id, String setYaml) {
         return eliteArmorSet(id, setYaml, null);
     }
 
-    /** Migrate one EliteArmor set file; effects verbose when {@code specs} is supplied. */
     public static Result eliteArmorSet(String id, String setYaml, Function<String, ParamSpec> specs) {
         Map<String, String> files = new LinkedHashMap<>();
         Diagnostics diagnostics = new Diagnostics();

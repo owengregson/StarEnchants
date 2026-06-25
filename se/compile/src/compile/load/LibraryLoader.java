@@ -18,20 +18,15 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads a whole {@code content/} tree into a {@link Library} (ADR-0014, ADR-0016): walk each
- * source-typed directory, read every {@code .yml} into its {@code AbilityDef}s + metadata, then run the
- * injected {@link Compiler} once over all the defs to produce the immutable {@link Snapshot}. Pure —
- * file I/O + SnakeYAML + the existing grammar/compiler — so it is reused verbatim by
- * {@code validateContent} and is fully unit-testable with zero server.
+ * Loads a whole {@code content/} tree into a {@link Library} (ADR-0014, ADR-0016): walk each source-typed
+ * directory, read each {@code .yml} into its {@code AbilityDef}s + metadata, then run the injected
+ * {@link Compiler} once over all defs. Pure (no server) so it is reused verbatim by {@code validateContent}.
+ * Files are visited in sorted order so dense ability ids are deterministic; every content fault is a
+ * {@code file:line:col} diagnostic, and the load throws only on a genuine I/O failure walking the tree.
  *
- * <p>Files are visited in sorted order so dense ability ids are assigned deterministically. Every
- * fault (unreadable file, malformed YAML, bad field) is a {@code file:line:col} diagnostic; the load
- * never throws on content, only on a genuine I/O failure walking the tree.
- *
- * <p><strong>Tier folders (ADR-0016).</strong> The tier subfolder ({@code enchants/mythic/x.yml}) is NOT
- * part of the stable key ({@code <source>/<filename>}), so moving/re-tiering a file never changes the
- * PDC-stamped identity of live gear. Tier is the immediate subfolder when it is a registered tier (else the
- * registry default); an in-file {@code tier:} overrides it. Two files yielding the same key are an
+ * <p>The tier subfolder ({@code enchants/mythic/x.yml}) is NOT part of the stable key
+ * ({@code <source>/<filename>}), so re-tiering a file never changes the PDC-stamped identity of live gear;
+ * an in-file {@code tier:} overrides the folder. Two files yielding the same key are an
  * {@code E_DUPLICATE_KEY} error. Tiers come from {@code content/tiers.yml} ({@link TierRegistry}).
  */
 public final class LibraryLoader {

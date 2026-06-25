@@ -15,25 +15,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 /**
- * Registers the KNOCKBACK_CONTROL applier for whichever knockback event THIS server fires — the
- * version-specific edge of the {@code KNOCKBACK_CONTROL} effect (docs/v3-directives.md §C combat-flags,
- * {@code paper-cross-version}). The choice is a capability probe (class presence), never a version-string
- * {@code if}:
- *
- * <ul>
- *   <li><strong>Modern</strong> ({@code org.bukkit.event.entity.EntityKnockbackEvent}, 1.20.6+): NOT on
- *       the floor compile classpath, so applied reflectively ({@code getFinalKnockback}/
- *       {@code setFinalKnockback}, {@link Cancellable}). Registered via a dynamic
- *       {@link EventExecutor}.</li>
- *   <li><strong>Legacy</strong> ({@code com.destroystokyo.paper.event.entity.EntityKnockbackByEntityEvent},
- *       floor &rarr; pre-1.20.6): on the floor classpath, a plain {@link LegacyKnockbackListener}.</li>
- * </ul>
- *
- * <p>The modern event is preferred when present (it is the one Paper actually fires post-1.20.6, with the
- * legacy event deprecated), so exactly one applier runs per server — no double-scale. {@link #resolve} is
- * the pure decision (unit-tested); {@link #register} performs the side-effecting registration. The legacy
- * branch is the only place {@link LegacyKnockbackListener} is referenced, so on a modern server that class
- * is never loaded even though its event type happens to still exist there.
+ * Registers the KNOCKBACK_CONTROL applier for whichever knockback event THIS server fires (§C combat-flags,
+ * {@code paper-cross-version}) — chosen by class-presence probe, never a version-string {@code if}: the
+ * modern {@code EntityKnockbackEvent} (1.20.6+, off the floor classpath, hooked reflectively) is preferred
+ * when present, else the legacy {@link LegacyKnockbackListener}. Exactly one applier runs per server, so no
+ * double-scale. {@link #resolve} is the pure (unit-tested) decision; {@link #register} the side effect.
  */
 public final class KnockbackListener {
 

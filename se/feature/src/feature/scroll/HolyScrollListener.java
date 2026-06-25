@@ -8,9 +8,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 /**
- * Holy/death scroll death hook (docs/v3-directives.md §I); scan/roll/consume lives in
- * {@link HolyScrollService}. Respects an existing keepInventory gamerule (the scroll is then neither
- * needed nor spent). Folia-correct: the event fires on the dying player's own region thread.
+ * Holy/death scroll death hook (§I); scan/roll/consume lives in {@link HolyScrollService}. Folia-correct:
+ * the event fires on the dying player's own region thread.
  */
 public final class HolyScrollListener implements Listener {
 

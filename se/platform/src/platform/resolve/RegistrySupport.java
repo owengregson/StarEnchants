@@ -12,22 +12,15 @@ import schema.spec.HandleCategory;
 
 /**
  * The live, cross-version handle lookup behind {@link RegistryResolvers} and {@code RuntimeHandles}
- * (docs/architecture.md §9; cross-version-item-api skill). For a given category and an already-
- * alias-resolved canonical name, {@link #lookup} returns the live Bukkit object (or {@code null}),
- * spanning 1.17.1 &rarr; 26.1.x where the relevant API shifted under us: enums became registry-backed
- * interfaces ({@code Enchantment}/{@code PotionEffectType} at the 1.20.5 flip; {@code Attribute}/
- * {@code Sound} at 1.21.3), the attribute {@code generic.} key prefix was dropped, and the per-version
- * {@code Registry} constants differ (no potion-effect registry on the 1.17.1 floor).
+ * (docs/architecture.md §9; cross-version-item-api). {@link #lookup} returns the live Bukkit object (or
+ * {@code null}) across 1.17.1 &rarr; 26.1.x, where the API shifted: enums became registry-backed interfaces
+ * ({@code Enchantment}/{@code PotionEffectType} at 1.20.5; {@code Attribute}/{@code Sound} at 1.21.3), the
+ * attribute {@code generic.} prefix was dropped, and per-version {@code Registry} constants differ.
  *
- * <p>Existence ({@link #exists}) is simply {@code lookup != null} — one body, used both at compile
- * time (does this token resolve → intern it) and at runtime (give me the object to mutate the world
- * with). Strategy: hard-reference only surfaces stable across the whole range ({@link Registry} and
- * {@link NamespacedKey} themselves, {@link Material#getMaterial}, {@link Enchantment#getByKey}); for
- * everything volatile, look up the {@code Registry} constant by reflection (an absent field is just
- * "not on this version") and fall back to a reflective enum {@code valueOf} (so a type that has since
- * become an interface is never hard-linked). Every probe is wrapped so a missing field/method or a
- * bad key degrades to {@code null} — never a crash. Lookup runs at load time and is cached by callers,
- * so the reflection cost never touches the hot path.
+ * <p>Strategy: hard-reference only surfaces stable across the whole range; for everything volatile, look
+ * up the {@code Registry} constant by reflection (an absent field is just "not on this version") and fall
+ * back to reflective {@code valueOf} so a now-interface type is never hard-linked. Every probe degrades to
+ * {@code null}, never a crash. Runs at load time and is cached by callers, off the hot path.
  */
 final class RegistrySupport {
 
@@ -82,7 +75,6 @@ final class RegistrySupport {
         return null;
     }
 
-    /** The minecraft-namespace registry key for a canonical name (lower-case). */
     private static String key(String canonicalName) {
         return canonicalName.toLowerCase(Locale.ROOT);
     }
@@ -92,10 +84,8 @@ final class RegistrySupport {
     }
 
     /**
-     * Reflectively read {@code Registry.<field>} and look the key up, returning the object or
-     * {@code null}. The field is read by reflection because which {@code Registry} constants exist
-     * varies by version; the {@link Registry}/{@link NamespacedKey} cast and {@code get(NamespacedKey)}
-     * call are safe because those are stable across the range.
+     * Reflectively read {@code Registry.<field>} and look the key up. The field is reflective because which
+     * {@code Registry} constants exist varies by version; the cast and {@code get} are stable across the range.
      */
     private static Object registryLookup(String field, String key) {
         try {
@@ -125,12 +115,10 @@ final class RegistrySupport {
     }
 
     /**
-     * Reflective public static field by name — the cross-era resolution for a type that was an enum
-     * and became a registry-backed <em>interface</em> with the same named constants (Bukkit's
-     * {@code Sound} at 1.21.3+). It correctly resolves a name with multi-word segments
-     * ({@code ENTITY_LIGHTNING_BOLT_THUNDER}) where a naive {@code '_'}&rarr;{@code '.'} registry key
-     * would mangle the boundary, because the interface itself holds the constant under its enum-style
-     * name. Returns {@code null} if there is no such static field on this version.
+     * Reflective public static field by name — the cross-era resolution for a type that became a
+     * registry-backed <em>interface</em> with the same named constants (Bukkit's {@code Sound} at 1.21.3+).
+     * Resolves multi-word names ({@code ENTITY_LIGHTNING_BOLT_THUNDER}) that a naive {@code '_'}&rarr;{@code '.'}
+     * registry key would mangle, because the interface holds the constant under its enum-style name.
      */
     private static Object staticField(String className, String name) {
         try {

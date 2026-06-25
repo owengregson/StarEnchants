@@ -7,10 +7,8 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 
 /**
- * {@code SMELT} — auto-smelt the block broken by the triggering MINE (ore→ingot, sand→glass, …). An inline
- * read-back like {@code IGNORE_ARMOR}: the proc sets a flag the MINE dispatcher reads after the gate walk and
- * applies to the {@code BlockBreakEvent} (drop the smelted result, suppress the raw drop). Author on MINE.
- * {@link Affinity#CONTEXT_LOCAL}.
+ * {@code SMELT} — auto-smelt the block broken by the triggering MINE. An inline read-back like
+ * {@code IGNORE_ARMOR}: sets a flag the MINE dispatcher reads after the gate walk to swap the raw drop.
  */
 public final class SmeltEffect implements EffectKind {
 

@@ -30,11 +30,9 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 
 /**
- * Item → worn-state path, live end-to-end (ADR-0014, §5.5): write an enchant onto a real item → equip a
- * {@link org.bukkit.entity.LivingEntity} → {@link WornResolver} reads its equipment, resolves the
- * path-derived key against the snapshot, and flattens it into a {@link WornState}. Uses an armour stand (a
- * LivingEntity that wears equipment on every version), so this runs the spigot-mapped floor too — not just
- * where the mojang-only fake player works. Equipment read on the stand's own region thread (Folia-correct).
+ * Item → worn-state path, live (ADR-0014, §5.5): write an enchant onto an item → equip → {@link WornResolver}
+ * resolves the path-derived key against the snapshot and flattens it into a {@link WornState}. Uses an armour
+ * stand (wears equipment on every version), so this runs the spigot-mapped floor too — not just the mojang fake player.
  */
 public final class WornResolverSuite implements Harness.Scenario {
 

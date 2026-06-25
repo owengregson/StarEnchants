@@ -69,7 +69,7 @@ class SoulModeStoreTest {
         store.activate(q, UUID.randomUUID());
         store.clear(p);
         assertFalse(store.isActive(p));
-        assertTrue(store.isActive(q)); // other player untouched
+        assertTrue(store.isActive(q));
     }
 
     @Test

@@ -12,10 +12,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code INVERT_VAR}: it emits one {@code invertVar} per resolved PLAYER target, skipping
- * non-players.
- */
 class InvertVarEffectTest {
 
     @Test

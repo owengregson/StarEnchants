@@ -10,19 +10,11 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The {@link InventoryHolder} that tags a StarEnchants menu inventory and carries all per-open state
- * (docs/v3-directives.md §K). The shared {@link MenuListener} recognises one of our menus by
- * {@code event.getView().getTopInventory().getHolder() instanceof MenuHolder} — the VIEW's top inventory,
- * not {@code event.getInventory()} (which is the <em>clicked</em> inventory and would be the player's own
- * grid for a bottom-row click) — so vanilla containers and other plugins' inventories are never touched.
- *
- * <p>The holder owns: the {@link Menu} (so the listener can re-render it), the live {@link Inventory}, the
- * slot→{@link ClickAction} map for the currently-rendered view, and a small navigation cursor
- * ({@link #page}, {@link #view}, {@link #selection}) that drill-down menus advance. The {@code Menu} itself
- * stays stateless and shareable — every mutable bit of an open session lives here.
- *
- * <p>{@link #begin} starts a fresh render (clearing the previous view's action bindings), and {@link #set}
- * places an icon with an optional action. This is the only mutable per-open object in the framework.
+ * The {@link InventoryHolder} tagging a StarEnchants menu inventory and carrying all per-open state
+ * (docs/v3-directives.md §K) — the only mutable per-open object in the framework. The listener recognises
+ * our menus by {@code getView().getTopInventory().getHolder() instanceof MenuHolder}: the VIEW's top
+ * inventory, not {@code event.getInventory()} (the <em>clicked</em> one, which is the player's own grid for
+ * a bottom-row click), so foreign inventories are never touched.
  */
 public final class MenuHolder implements InventoryHolder {
 
@@ -34,22 +26,21 @@ public final class MenuHolder implements InventoryHolder {
     private int page;
     private String view;
     private String selection;
-    private Object payload; // arbitrary menu-specific per-open state (e.g. a working list)
+    private Object payload;
 
     public MenuHolder(Menu menu) {
         this.menu = Objects.requireNonNull(menu, "menu");
     }
 
-    /** The menu this holder belongs to — the listener re-renders/routes through it. */
     public Menu menu() {
         return menu;
     }
 
     /**
-     * Start a fresh render: create a new {@code size}-cell inventory tagged with this holder and titled
-     * {@code title}, and clear the previous view's action bindings. Uses the {@code createInventory(holder,
-     * size, String title)} overload — deprecated-not-removed across 1.17.1 → 26.1.x and the cross-version
-     * title path (the {@code String} title is length-clamped upstream by {@link MenuText}).
+     * Start a fresh render: tag a new {@code size}-cell inventory with this holder and clear the previous
+     * view's action bindings. The {@code createInventory(holder, size, String title)} overload is
+     * deprecated-not-removed across 1.17.1 → 26.1.x and is the cross-version title path ({@link MenuText}
+     * length-clamps {@code title} upstream).
      */
     @SuppressWarnings("deprecation")
     public Inventory begin(int size, String title) {
@@ -58,7 +49,7 @@ public final class MenuHolder implements InventoryHolder {
         return inventory;
     }
 
-    /** Place {@code icon} in {@code slot}, binding {@code action} (may be {@code null} for a decorative cell). */
+    /** Place {@code icon} in {@code slot}, binding {@code action} ({@code null} for a decorative cell). */
     public void set(int slot, ItemStack icon, ClickAction action) {
         if (inventory == null || slot < 0 || slot >= inventory.getSize()) {
             return;
@@ -71,7 +62,6 @@ public final class MenuHolder implements InventoryHolder {
         }
     }
 
-    /** The action bound to {@code slot} in the current view, or {@code null} (a decorative/empty cell). */
     ClickAction actionAt(int slot) {
         return actions.get(slot);
     }
@@ -84,7 +74,7 @@ public final class MenuHolder implements InventoryHolder {
         this.page = page;
     }
 
-    /** The current sub-view id for a drill-down menu (e.g. {@code "tier"} vs {@code "enchant"}), or {@code null}. */
+    /** The current sub-view id for a drill-down menu, or {@code null} for the index. */
     public String view() {
         return view;
     }
@@ -93,7 +83,6 @@ public final class MenuHolder implements InventoryHolder {
         this.view = view;
     }
 
-    /** The currently-selected key in a drill-down menu (e.g. the tier or set being viewed), or {@code null}. */
     public String selection() {
         return selection;
     }
@@ -102,7 +91,7 @@ public final class MenuHolder implements InventoryHolder {
         this.selection = selection;
     }
 
-    /** Arbitrary per-open state a menu attaches (e.g. a working reorder list); {@code null} until set. */
+    /** Arbitrary per-open state a menu attaches (e.g. a working list); {@code null} until set. */
     public Object payload() {
         return payload;
     }
@@ -113,8 +102,7 @@ public final class MenuHolder implements InventoryHolder {
 
     @Override
     public Inventory getInventory() {
-        // Never null in practice (set by begin() before the menu is opened); a defensive empty chest avoids
-        // an NPE if Bukkit queries the holder before the first render.
+        // Defensive empty chest in case Bukkit queries the holder before begin() runs.
         return inventory != null ? inventory : Bukkit.createInventory(this, InventoryType.CHEST);
     }
 }

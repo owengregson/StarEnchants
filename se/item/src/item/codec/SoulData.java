@@ -20,7 +20,6 @@ public record SoulData(UUID gemId, int souls) {
         souls = Math.max(0, souls);
     }
 
-    /** A fresh, empty gem with a new identity. */
     public static SoulData fresh(UUID gemId) {
         return new SoulData(gemId, 0);
     }

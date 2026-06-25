@@ -12,20 +12,17 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 /**
- * Holy/death scroll (docs/v3-directives.md §I) — held in the inventory (incl. off-hand), on death it has a
- * chance to spare the player's items + levels, consuming one scroll only on a saved death. A distinct
- * {@code HOLY}-kind scroll ({@link ScrollCodec}); driven by the death event, not a gesture. The roll is
- * injected for tests. Folia-correct: {@code PlayerDeathEvent} fires on the dying player's own region thread.
+ * Holy/death scroll (§I): carried (incl. off-hand), on death it has a chance to spare the player's
+ * items + levels, consuming one scroll only on a saved death. The roll is injected for tests.
  */
 public final class HolyScrollService {
 
-    /** The scroll kind this service owns. */
     public static final String HOLY = "HOLY";
 
     private final ScrollCodec scrolls;
     private final Supplier<ScrollsConfig> config;
     private final Random random;
-    private final item.lang.Messages messages; // §L lang.yml — the "saved" message
+    private final item.lang.Messages messages;
 
     /** Default-messages form (tests/fixtures). */
     public HolyScrollService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, Random random) {
@@ -54,7 +51,7 @@ public final class HolyScrollService {
 
     /**
      * Attempt to save {@code player}: on a carried scroll + a winning roll, consume one and return the
-     * "saved" message; else {@code null} (no scroll or a lost roll — nothing consumed, the death proceeds).
+     * "saved" message; else {@code null} — nothing consumed, the death proceeds.
      */
     public String trySave(Player player) {
         ScrollsConfig.Holy cfg = config.get().holy();

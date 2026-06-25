@@ -7,10 +7,9 @@ import org.bukkit.entity.Player;
 import schema.spec.Args;
 
 /**
- * Read-only context one effect activation runs against (docs/architecture.md §3.5, §7): typed args,
- * actors, and pre-resolved selector targets, with no parsing on the hot path. An effect reads here and
- * emits through the {@link engine.sink.Sink}; it never touches a live cross-region entity itself (§3.4),
- * so everything reachable here is the firing-thread actor or a snapshot-safe value.
+ * Read-only context one effect activation runs against (§3.5, §7): typed args, actors, and pre-resolved
+ * selector targets, no parsing on the hot path. Everything reachable here is the firing-thread actor or a
+ * snapshot-safe value — an effect never touches a live cross-region entity itself (§3.4).
  */
 public interface EffectCtx {
 

@@ -32,10 +32,8 @@ import schema.spec.ParamSpec;
  *       -Dse.eeport.out=/tmp/ee-port
  * </pre>
  *
- * It runs the production EE migrator, rewrites each file's legacy {@code group:} into a StarEnchants
- * {@code tier:}, writes the enchant tree + a tiers.yml, compiles the result through the real loader, and
- * prints a coverage report (files written, blocking errors, and every unmapped effect head with a count)
- * so the hand-finishing pass knows exactly what is left to port.
+ * <p>It runs the production EE migrator, rewrites each legacy {@code group:} into a {@code tier:}, compiles
+ * the result, and prints a coverage report (unmapped effect heads with counts) for the hand-finishing pass.
  */
 class EePortGenerator {
 

@@ -12,9 +12,8 @@ import item.codec.ItemKeys;
 import tester.harness.Harness;
 
 /**
- * Live checks for the on-item PDC codec (docs/architecture.md §4.2, §5.1). The blob format is unit-tested;
- * only a real server proves the blob survives an {@code ItemStack}'s PersistentDataContainer through
- * serialization identically across the spigot→mojang mapping flip (§11; cross-version-item-api skill).
+ * The on-item PDC codec (§4.2, §5.1). The blob format is unit-tested; only a real server proves it survives
+ * an {@code ItemStack}'s PDC through serialization identically across the spigot→mojang mapping flip (§11).
  */
 public final class ItemCodecSuite implements Harness.Scenario {
 

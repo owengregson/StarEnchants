@@ -8,20 +8,13 @@ import platform.caps.Capabilities;
 
 /**
  * The single scheduling entry point for the whole plugin (docs/architecture.md §3.5–3.6;
- * {@code folia-scheduling} skill). Engine and feature code call these statics and never name a
- * scheduler; the {@link Sink} dispatcher routes intents here by declared {@code Affinity}.
- * Because the door to {@code Bukkit.getScheduler()} is <em>removed</em> rather than discouraged,
- * an effect author cannot write a Folia bug.
- *
- * <p>{@link #init(Plugin, Capabilities)} chooses the backend once at boot. On Folia it
- * reflectively instantiates {@code compatfolia.FoliaSchedulerBackend} — reflection only at
- * construction, so the Folia-API-referencing class is never <em>linked</em> on Paper (where
- * those API classes are absent) and per-call dispatch stays a plain virtual call. On Paper it
- * uses {@link BukkitSchedulerBackend}.
+ * {@code folia-scheduling}). Because the door to {@code Bukkit.getScheduler()} is <em>removed</em> rather
+ * than discouraged, an effect author cannot write a Folia bug. {@link #init} chooses the backend once at
+ * boot; the Folia backend is instantiated reflectively, so its Folia-API-referencing class is never
+ * <em>linked</em> on Paper and per-call dispatch stays a plain virtual call.
  */
 public final class Scheduling {
 
-    /** Fully-qualified name of the Folia backend, loaded reflectively to keep Paper Folia-free. */
     static final String FOLIA_BACKEND = "compatfolia.FoliaSchedulerBackend";
 
     private static volatile SchedulerBackend backend;
@@ -29,11 +22,7 @@ public final class Scheduling {
     private Scheduling() {
     }
 
-    /**
-     * Select and install the scheduling backend for this server. Call once, early in plugin
-     * enable, before anything schedules. Idempotent-by-replacement: a later call swaps the
-     * backend (used by tests).
-     */
+    /** Call once at enable, before anything schedules. A later call swaps the backend (tests). */
     public static void init(Plugin plugin, Capabilities capabilities) {
         Objects.requireNonNull(plugin, "plugin");
         Objects.requireNonNull(capabilities, "capabilities");
@@ -64,13 +53,10 @@ public final class Scheduling {
             Class<?> type = Class.forName(FOLIA_BACKEND);
             return (SchedulerBackend) type.getConstructor(Plugin.class).newInstance(plugin);
         } catch (ReflectiveOperationException | LinkageError e) {
-            // Folia was detected but its backend could not be constructed — this is a packaging
-            // bug (the shaded jar is missing compat-folia), not a recoverable runtime state.
+            // Folia detected but backend not constructible: a packaging bug (jar missing compat-folia), not recoverable.
             throw new IllegalStateException("Folia detected but " + FOLIA_BACKEND + " is unavailable", e);
         }
     }
-
-    // Entity-owned
 
     public static void onEntity(Entity entity, Runnable task) {
         backend().onEntity(entity, task);
@@ -84,8 +70,6 @@ public final class Scheduling {
         return backend().repeatingEntity(entity, initialDelayTicks, periodTicks, task);
     }
 
-    // Region-owned
-
     public static void onRegion(Location location, Runnable task) {
         backend().onRegion(location, task);
     }
@@ -98,8 +82,6 @@ public final class Scheduling {
         return backend().repeatingRegion(location, initialDelayTicks, periodTicks, task);
     }
 
-    // Global-owned
-
     public static void onGlobal(Runnable task) {
         backend().onGlobal(task);
     }
@@ -111,8 +93,6 @@ public final class Scheduling {
     public static TaskHandle repeatingGlobal(long initialDelayTicks, long periodTicks, Runnable task) {
         return backend().repeatingGlobal(initialDelayTicks, periodTicks, task);
     }
-
-    // Async
 
     public static void async(Runnable task) {
         backend().async(task);

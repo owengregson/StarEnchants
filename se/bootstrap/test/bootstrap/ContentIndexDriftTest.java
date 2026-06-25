@@ -13,15 +13,9 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 /**
- * Drift guard for the bundled {@code content/index.txt} extraction manifest. The manifest drives
- * first-boot extraction ({@code StarEnchantsPlugin#extractTree}) and the live {@code CatalogSuite}, so a
- * {@code *.yml} on disk that the manifest omits ships in the jar but is never written to a fresh install
- * and never compiled by the suite (the exact bug that left 5 enchants unreachable). This asserts the
- * manifest lists EXACTLY the content {@code *.yml} files on disk — no more, no less.
- *
- * <p>Regenerate after an intended content add/remove with
- * {@code ./gradlew :bootstrap:test --tests "*ContentIndexDriftTest" -Dse.index.regen=true} (the root build
- * forwards {@code -Dse.*} into the test JVM); the regen branch rewrites the manifest and passes.
+ * Asserts {@code content/index.txt} lists exactly the on-disk {@code *.yml}. A file the manifest omits
+ * ships in the jar but is never extracted or compiled — the bug that once left 5 enchants unreachable.
+ * Regenerate with {@code ./gradlew :bootstrap:test --tests "*ContentIndexDriftTest" -Dse.index.regen=true}.
  */
 class ContentIndexDriftTest {
 

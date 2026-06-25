@@ -10,11 +10,9 @@ import schema.spec.HandleCategory;
 
 /**
  * Shared cross-version resolve-and-intern machinery behind every {@link PlatformResolvers}
- * (docs/architecture.md §9): runs each token through {@link HandleResolver} (token &rarr; forward alias
- * &rarr; reverse alias) against a per-category {@code exists} check, interns the resolved canonical name
- * to a dense id, and keeps the id&rarr;name mapping the runtime needs. A concrete resolver supplies only
- * <em>what "exists" means</em>: a fixed vocabulary ({@link VocabularyResolvers}, pure compiler/tests) or
- * a live server lookup ({@link RegistryResolvers}, production).
+ * (docs/architecture.md §9): runs each token through {@link HandleResolver}, interns the resolved name to
+ * a dense id, and keeps the id&rarr;name mapping. A concrete resolver supplies only what "exists" means —
+ * a fixed vocabulary ({@link VocabularyResolvers}) or a live lookup ({@link RegistryResolvers}).
  */
 public abstract class RenameResolvers implements PlatformResolvers {
 
@@ -27,13 +25,12 @@ public abstract class RenameResolvers implements PlatformResolvers {
     }
 
     /**
-     * Whether {@code canonicalName} (an upper-case Bukkit-style name) actually resolves on the
-     * target platform for {@code category}. Called by {@link HandleResolver} for the token and its
-     * alias forms; must never throw (a concrete resolver swallows lookup failures as {@code false}).
+     * Whether {@code canonicalName} resolves on the target platform. Called by {@link HandleResolver} for
+     * the token and its alias forms; must never throw (swallow lookup failures as {@code false}).
      */
     protected abstract boolean exists(HandleCategory category, String canonicalName);
 
-    /** The canonical name a resolved id maps to (the runtime's id&rarr;handle lookup), or {@code null}. */
+    /** The canonical name a resolved id maps to, or {@code null}. */
     public final String nameOf(HandleCategory category, int id) {
         return interners.get(category).nameOf(id);
     }

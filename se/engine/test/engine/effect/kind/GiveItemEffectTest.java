@@ -12,7 +12,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code GIVE_ITEM}: one giveItem per resolved PLAYER target; non-players skipped. */
 class GiveItemEffectTest {
 
     @Test

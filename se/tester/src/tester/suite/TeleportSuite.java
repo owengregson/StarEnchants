@@ -44,12 +44,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The TELEPORT effect, live (docs/architecture.md §7; v3.3 §C) — the first user of the Sink's
- * {@code teleport} / {@code teleportAsync} intent. A fake attacker with a {@code TELEPORT:VICTIM} (ATTACK)
- * enchant hits a cow; the enchant teleports the attacker (@Self) to it. The check POLLS the attacker's
- * horizontal distance-from-spawn each tick until the async teleport lands — horizontal ignores a falling
- * player's gravity drift, the per-tick poll tolerates {@code teleportAsync} resolving several ticks late
- * under matrix load. Mojang- and spigot-mapped alike (fake-player attacker).
+ * The TELEPORT effect, live (§7; v3.3 §C) — the first user of the Sink's {@code teleport}/
+ * {@code teleportAsync} intent. A {@code TELEPORT:VICTIM} ATTACK enchant teleports the attacker to its cow
+ * victim. POLLS horizontal distance each tick: horizontal ignores gravity drift, the per-tick poll tolerates
+ * {@code teleportAsync} landing several ticks late under matrix load. Fake-player attacker.
  */
 public final class TeleportSuite implements Harness.Scenario {
 

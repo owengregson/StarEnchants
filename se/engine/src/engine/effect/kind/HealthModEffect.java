@@ -10,19 +10,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code MODIFY_HEALTH} — canonical current-health primitive (docs/v3-directives.md §C). Distinct from
- * {@code HEALTH}, which shifts a target's <em>maximum</em> health attribute.
- *
- * <ul>
- *   <li>{@code give} — restore {@code amount} health to each resolved target (heal);</li>
- *   <li>{@code take} — deal {@code amount} direct health damage to each resolved target;</li>
- *   <li>{@code transfer} — damage each target AND heal the ACTIVATOR by the same total (lifesteal);</li>
- *   <li>{@code set} — set each target's current health TO {@code amount} (drop-to-N-HP), clamped to [0, max].</li>
- * </ul>
- *
- * <p>Transfer's counterpart is fixed to the activator, not a second selector (an effect resolves one
- * selector; mirrors {@link MoneyEffect}). {@link Affinity#TARGET_ENTITY} — the wider routing, since a
- * mode can mutate target and/or activator on a different region (§3.6).
+ * {@code MODIFY_HEALTH} — canonical current-health primitive (§C); distinct from {@code HEALTH}, which shifts
+ * the <em>maximum</em>-health attribute. Transfer's counterpart is fixed to the activator, not a second
+ * selector (an effect resolves one selector; mirrors {@link MoneyEffect}).
  */
 public final class HealthModEffect implements EffectKind {
 

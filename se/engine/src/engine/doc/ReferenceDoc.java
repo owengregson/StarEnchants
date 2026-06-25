@@ -24,16 +24,13 @@ import schema.spec.Param;
 import schema.spec.ParamSpec;
 
 /**
- * Generates the StarEnchants DSL reference as Markdown, straight from the five runtime vocabularies
- * (docs/v3-directives.md §M) — the SAME registries the in-game {@code feature.menu.ReferenceCatalog} and the
- * {@code /se effects|…} commands read, so a newly-registered effect/selector/trigger/condition-operator/
- * variable appears here automatically with no hand-editing. Pure and server-free (the {@code Builtin*}
- * registries construct without a server), so it runs in a unit test; the committed
- * {@code docs/reference/dsl-reference.md} is drift-guarded against this output by {@code ReferenceDocDriftTest}.
+ * Generates the StarEnchants DSL reference as Markdown from the five runtime vocabularies — the same
+ * registries the in-game {@code ReferenceCatalog} reads, so a newly-registered effect/selector/trigger/
+ * operator/variable appears here automatically. Pure and server-free, so it runs in a unit test; the
+ * committed {@code docs/reference/dsl-reference.md} is drift-guarded by {@code ReferenceDocDriftTest}.
  *
- * <p>Deterministic by construction (the committed file must not drift on re-render): effects/selectors
- * sorted by head since {@code kinds()} order is not stable across JVMs, triggers in id order, operators in
- * {@code values()} order, variables sorted by key.
+ * <p>Output is deterministic so the committed file does not drift on re-render: heads sorted because
+ * {@code kinds()} order is not stable across JVMs, variables by key, the rest in declared order.
  */
 public final class ReferenceDoc {
 
@@ -90,9 +87,9 @@ public final class ReferenceDoc {
         kinds.sort(Comparator.comparing(k -> k.spec().head()));
         for (SelectorKind kind : kinds) {
             SelectorSpec spec = kind.spec();
-            out.append("### ").append(spec.head()).append("\n\n"); // blank below heading (MD022)
+            out.append("### ").append(spec.head()).append("\n\n");
             if (!spec.doc().isBlank()) {
-                out.append(spec.doc()).append("\n\n"); // blank before the bullet list (MD032)
+                out.append(spec.doc()).append("\n\n");
             }
             out.append("- _usage_: `").append(spec.paramSpec().usage()).append("`\n");
             appendParams(out, spec.paramSpec());

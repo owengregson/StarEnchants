@@ -16,17 +16,15 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads the top-level {@code menus/} folder into an immutable {@link MenusConfig} (§L) — one {@code .yml}
- * per GUI, menu name from the file stem ({@code menus/enchanter.yml} → {@code enchanter}). Unset fields are
- * left absent (the framework falls back per field). Never throws — a missing folder yields
- * {@link MenusConfig#empty()}, an unreadable/malformed file yields a diagnostic and is skipped.
+ * Loads the top-level {@code menus/} folder into an immutable {@link MenusConfig} — one {@code .yml} per GUI,
+ * menu name from the file stem ({@code menus/enchanter.yml} → {@code enchanter}). Unset fields are left absent
+ * (the framework falls back per field). Never throws: a missing/unreadable/malformed input is empty or skipped.
  */
 public final class MenusLoader {
 
     private MenusLoader() {
     }
 
-    /** Load {@code menus/} (or an empty config when the folder is absent). */
     public static MenusConfig load(Path menusRoot) {
         Diagnostics diags = new Diagnostics();
         if (menusRoot == null || !Files.isDirectory(menusRoot)) {

@@ -8,20 +8,13 @@ import java.util.Set;
 import org.bukkit.Material;
 
 /**
- * The built-in named item groups (docs/architecture.md §4.2 {@code applies-to}; cross-version-item-api
- * skill) — the table that answers "may this enchant sit on this item?". An enchant/crystal declares
- * {@code applies-to: [SWORD, AXE]}; this resolves each token to the set of {@link Material}s present
- * <em>on this version</em> and tests membership. Materials are resolved by NAME through
- * {@link Material#getMaterial(String)} (stable across 1.17.1 → 26.1.x) so a material absent on an
- * older/newer server is simply skipped — never a compile-time constant that would fail to link.
- *
- * <p>Groups compose: {@code ARMOR}/{@code WEAPON}/{@code TOOL} are unions of the primitive groups, and
- * the wildcard {@code ALL} matches any item. The table is built once at boot and is immutable; the
- * eligibility check is a cold apply-path concern, never the combat hot path.
+ * The built-in named item groups for {@code applies-to} (docs/architecture.md §4.2; cross-version-item-api).
+ * Resolves each token to the {@link Material}s present <em>on this version</em> by NAME via
+ * {@link Material#getMaterial(String)}, so a material absent on an older/newer server is skipped rather
+ * than a compile-time constant that would fail to link. Built once at boot, immutable; a cold-path check.
  */
 public final class ItemGroups {
 
-    /** The wildcard token that matches any (non-air) item. */
     public static final String ALL = "ALL";
 
     private final Map<String, Set<Material>> groups;

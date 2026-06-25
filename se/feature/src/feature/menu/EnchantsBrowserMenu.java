@@ -14,16 +14,9 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The read-only enchant catalog browser (docs/v3-directives.md §K — "Enchants browser, tier → enchant"):
- * a two-level drill-down on the shared framework. The first view lists the rarity tiers that have at least
- * one enchant (coloured by {@link TierRegistry}); selecting a tier drills into the paged list of that tier's
- * enchants, each icon carrying the per-enchant detail (description, applicable item groups, max level, and
- * the §G requires/blacklist relationships) as its tooltip. Browse-only — clicking an enchant does nothing
- * but is informative; the {@link AdminBrowserMenu} is the privileged grant counterpart.
- *
- * <p>The drill state lives on the {@link MenuHolder}: {@code view} is {@code "tier"} (default) or
- * {@code "enchant"}, and {@code selection} is the tier being viewed. The framework supplies pagination, the
- * back button (enchant view → tier list), and the title.
+ * The read-only enchant catalog browser (§K): a two-level tier→enchant drill-down, browse-only
+ * ({@link AdminBrowserMenu} is the grant counterpart). Drill state lives on the {@link MenuHolder} —
+ * {@code view} is {@code "tier"} (default) or {@code "enchant"}, {@code selection} is the viewed tier.
  */
 public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row> {
 
@@ -64,7 +57,6 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
             }
             return rows;
         }
-        // Default: the tier list.
         TierRegistry tiers = library.tiers();
         List<String> order = tiers.tiers().stream().map(TierRegistry.Tier::name).toList();
         List<Row> rows = new ArrayList<>();
@@ -88,7 +80,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
             holder.setPage(0);
             reopen(click);
         }
-        // An enchant row is browse-only: its tooltip is the detail; clicking does nothing.
+        // Enchant rows are browse-only: the tooltip is the detail, the click is a no-op.
     }
 
     @Override

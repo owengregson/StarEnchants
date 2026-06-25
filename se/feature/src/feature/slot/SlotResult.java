@@ -4,7 +4,7 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Outcome of a slot-expander gesture for {@link SlotListener} to commit (§H). {@code commit} false ==
- * no-op (slot item preserved); {@code message} may be {@code null}.
+ * no-op (slot item preserved).
  */
 public record SlotResult(boolean commit, ItemStack newTarget, String message) {
 

@@ -11,10 +11,8 @@ public final class MenuItems {
     }
 
     /**
-     * Add {@code item} to {@code player}'s inventory, dropping any overflow at their feet — the
-     * inventory-full guard every give-menu needs (§J). MUST be called on the player's own region thread (a
-     * menu click handler runs there), so adding to the inventory and dropping at the player's location are
-     * both in-region — Folia-correct.
+     * Add {@code item} to {@code player}'s inventory, dropping any overflow at their feet. MUST be called on
+     * the player's own region thread (a menu click handler runs there) so the drop is in-region — Folia-safe.
      */
     public static void giveOrDrop(Player player, ItemStack item) {
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(item);

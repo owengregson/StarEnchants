@@ -19,13 +19,7 @@ import schema.spec.ParamSpec;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * End-to-end golden test for the whole compiler pipeline (docs/architecture.md §11
- * "golden YAML&rarr;Snapshot fixtures"): a hand-built {@link AbilityDef} library
- * compiled into one immutable {@link Snapshot}, asserting the seams between all four
- * stages at once — lowering, source erasure across {@link SourceKind}s into one dense
- * array, and snapshot assembly.
- */
+/** End-to-end golden test for the whole compiler pipeline (docs/architecture.md §11). */
 class CompilerTest {
 
     private static ParamSpec damage() {
@@ -48,7 +42,6 @@ class CompilerTest {
                 Source.ofFile("content.yml"), 0);
     }
 
-    /** The full content library, including a deliberate duplicate stable key. */
     private static List<AbilityDef> library() {
         return List.of(
                 def(SourceKind.ENCHANT, "ench/lifesteal", 100, 2, 30.0, 40,
@@ -74,7 +67,6 @@ class CompilerTest {
         Snapshot snap = Compiler.of(MapSpecRegistry.of(damage(), heal()))
                 .compile(library(), 7, diags);
 
-        // duplicate reported, but snapshot still builds
         assertEquals(7, snap.generation());
         assertTrue(snap.diagnostics().stream().anyMatch(d -> d.code().equals("E_DUP_KEY")));
 
@@ -95,14 +87,12 @@ class CompilerTest {
         assertEquals(1, yeti.id());
         assertEquals(2, zap.id());
 
-        // scalars survive erasure
         assertEquals(SourceKind.ENCHANT, lifesteal.sourceKind());
         assertEquals(2, lifesteal.level());
         assertEquals(30.0, lifesteal.baseChance());
         assertEquals(40, lifesteal.cooldownTicks());
         assertEquals(SourceKind.SET, yeti.sourceKind());
 
-        // triggers interned to shared bits across defs
         Interners interners = snap.interners();
         int attack = interners.triggers().idOf("ATTACK");
         int defend = interners.triggers().idOf("DEFEND");
@@ -111,12 +101,11 @@ class CompilerTest {
         assertTrue(yeti.firesOn(defend));
         assertTrue(zap.firesOn(defend));
 
-        // world blacklist interned to a long bit; only yeti has one
+        // only yeti declared a world blacklist
         int nether = interners.worlds().idOf("world_nether");
         assertTrue(yeti.blockedInWorld(nether));
         assertEquals(0L, lifesteal.worldBlacklist());
 
-        // lowering preserved: typed condition + cumulative WAIT across the effect list
         assertNotNull(lifesteal.condition(), "condition expression lowered to an AST");
         assertNull(yeti.condition());
         assertEquals(2, lifesteal.effects().length); // DAMAGE, HEAL (WAIT is timing, not an effect)
@@ -128,7 +117,6 @@ class CompilerTest {
 
         assertEquals(Affinity.CONTEXT_LOCAL, lifesteal.affinity());
 
-        // source map points back at each surviving def's authored origin
         assertEquals(SourceKind.ENCHANT, snap.sourceMap().lookup(100).sourceKind());
         assertEquals("ench/lifesteal", snap.sourceMap().lookup(100).stableKey());
         assertEquals(SourceKind.CRYSTAL, snap.sourceMap().lookup(102).sourceKind());

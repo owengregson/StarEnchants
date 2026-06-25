@@ -4,11 +4,7 @@ import compile.load.EnchantDef;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Catalog tier-grouping for the browse menus (docs/v3-directives.md §K — "tier → enchant"). Server-free so
- * the bucketing / null-tier fallback is unit-tested. The {@code Library} catalog is a flat list with no
- * per-tier index, so the browser groups on demand here.
- */
+/** Tier-grouping for the browse menus (§K); server-free so the bucketing / null-tier fallback is unit-tested. */
 public final class BrowseFilters {
 
     private BrowseFilters() {
@@ -32,9 +28,8 @@ public final class BrowseFilters {
     }
 
     /**
-     * The tier names (from {@code tierOrder}, the registry's declared order) that have at least one enchant
-     * in {@code catalog}, so the tier-list view shows no empty buckets. An enchant whose tier is not in
-     * {@code tierOrder} is bucketed under {@code defaultTier} (defensive — an authored typo never vanishes).
+     * The {@code tierOrder} tiers with at least one enchant, so the tier-list shows no empty buckets. An
+     * enchant whose tier is absent from {@code tierOrder} falls under {@code defaultTier} (no typo vanishes).
      */
     public static List<String> populatedTiers(List<EnchantDef> catalog, List<String> tierOrder, String defaultTier) {
         List<String> out = new ArrayList<>();
@@ -43,8 +38,7 @@ public final class BrowseFilters {
                 out.add(tier);
             }
         }
-        // If the default tier isn't itself a declared tier but caught the untiered enchants, surface it last
-        // so a catalog authored without explicit tiers (all bucketed under the default) still shows a bucket.
+        // Surface the default tier last when it's undeclared yet caught the untiered enchants.
         boolean defaultListed = tierOrder.stream().anyMatch(t -> t.equalsIgnoreCase(defaultTier));
         if (defaultTier != null && !defaultListed && !enchantsOfTier(catalog, defaultTier, defaultTier).isEmpty()) {
             out.add(defaultTier);

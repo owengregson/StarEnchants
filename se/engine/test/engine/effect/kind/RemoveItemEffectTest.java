@@ -11,7 +11,6 @@ import java.util.List;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code REMOVE_ITEM}: one removeItem per resolved player target. */
 class RemoveItemEffectTest {
 
     @Test

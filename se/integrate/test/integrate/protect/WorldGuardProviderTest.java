@@ -12,9 +12,8 @@ import com.sk89q.worldguard.protection.regions.RegionQuery;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the BUILD-flag wiring of {@link WorldGuardProvider} against a mocked {@code RegionQuery} (proving the
- * add-on uses the real WorldGuard API too). End-to-end with WorldGuard installed is verified on a WorldGuard
- * server out-of-matrix (docs/decisions/0027).
+ * Pins the BUILD-flag wiring of {@link WorldGuardProvider} against a mocked {@code RegionQuery}. End-to-end
+ * with WorldGuard installed is verified on a WorldGuard server out-of-matrix (docs/decisions/0027).
  */
 class WorldGuardProviderTest {
 

@@ -13,10 +13,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The carrier application UX (ADR-0016): a carrier on the CURSOR clicked onto a target item applies it
- * ("drag the book onto the item"). Bukkit-thin glue — all logic is in {@link CarrierService}.
- * Folia-correct: {@code InventoryClickEvent} fires on the clicking player's own region thread, so
- * mutating their cursor/inventory is in-thread.
+ * The carrier application UX (ADR-0016): a carrier on the CURSOR clicked onto a target item applies it.
+ * Bukkit-thin glue — logic is in {@link CarrierService}. Folia-correct: {@code InventoryClickEvent} fires
+ * on the clicking player's own region thread, so mutating their cursor/inventory is in-thread.
  */
 public final class CarrierListener implements Listener {
 
@@ -52,7 +51,7 @@ public final class CarrierListener implements Listener {
         }
         ItemStack cursor = event.getCursor();
         if (codec.read(cursor) == null) {
-            return; // cursor is not a carrier
+            return;
         }
         ItemStack target = event.getCurrentItem();
         if (target == null || target.getType() == Material.AIR) {

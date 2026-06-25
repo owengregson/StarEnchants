@@ -8,10 +8,7 @@ import engine.effect.EffectCtx;
 import engine.sink.Sink;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code IGNORE_ARMOR}: paramless, it emits exactly one {@code ignoreArmor} read-back
- * (mirrors {@code CANCEL}). The combat dispatcher's modifier-zeroing is integration-pinned in the live suite.
- */
+/** Pins the {@code ignoreArmor} read-back only; the dispatcher's modifier-zeroing is integration-pinned in the live suite. */
 class IgnoreArmorEffectTest {
 
     @Test

@@ -4,27 +4,17 @@ import java.util.List;
 import schema.diag.Source;
 
 /**
- * The parsed, non-runtime metadata of one authored armour set (docs/architecture.md §6.6; ADR-0014).
- * A set has TWO bonuses (docs/v3-directives.md §6.6): an ARMOUR set bonus that activates once
- * {@link #armorComplete} of its armour pieces are worn, and an optional ADDITIONAL WEAPON bonus that
- * fires only while the armour set is complete AND its weapon is held. Sets have NO rarity tier.
+ * Non-runtime metadata of one authored armour set (ADR-0014). A set is tierless and has TWO bonuses:
+ * an ARMOUR bonus active once {@link #armorComplete} pieces are worn, and an optional WEAPON bonus that
+ * fires only while the armour set is complete AND its weapon is held. It expands to {@code <key>} (armour)
+ * and, when a {@link #weapon} is present, {@code <key>/weapon} (gated by the resolver, not a piece count).
  *
- * <p>It expands to one {@code AbilityDef} per bonus — {@code <key>} (armour, carrying
- * {@link #armorComplete} on its {@code setPieces}) and, when {@link #weapon} is present,
- * {@code <key>/weapon} (gated by the resolver, not by a piece count). The likeness fields let
- * {@code /se give set} mint each member. Immutable.
- *
- * @param key          the path-derived base key (e.g. {@code sets/titan}) — stamped on armour members
- * @param display      the set display name (colours intact), for lore/name render + GUI
- * @param description  a short description for {@code /se docs} + lore; never {@code null} (empty if absent)
- * @param tier         always {@code null} for sets (kept for {@link Library} uniformity)
- * @param armorComplete the number of worn ARMOUR pieces that completes the set ({@code >= 1})
- * @param armorMembers each armour member: its slot, item material, and own display name
- * @param armorLore    the lore SHARED by every armour piece (rendered from state on the worn piece)
- * @param weapon       the weapon member (its own material + name), or {@code null} for an armour-only set
- * @param weaponLore   the weapon's OWN lore (empty when there is no weapon)
- * @param appliesTo    the armour slot tokens this set covers (derived from {@link #armorMembers})
- * @param source       where this set was authored
+ * @param tier          always {@code null} for sets (kept for {@link Library} uniformity)
+ * @param armorComplete worn-piece count that completes the set ({@code >= 1})
+ * @param armorLore     lore SHARED by every armour piece, rendered from state on the worn piece
+ * @param weapon        the weapon member, or {@code null} for an armour-only set
+ * @param weaponLore    the weapon's own lore (empty when there is no weapon)
+ * @param appliesTo     armour slot tokens this set covers, derived from {@link #armorMembers}
  */
 public record SetDef(
         String key,
@@ -46,11 +36,9 @@ public record SetDef(
         appliesTo = List.copyOf(appliesTo);
     }
 
-    /** One member of a set: which slot it occupies ({@code helmet}/{@code weapon}/…), its material, its name. */
     public record Member(String slot, String material, String name) {
     }
 
-    /** Whether this set declares a weapon member (so it has an additional weapon bonus). */
     public boolean hasWeapon() {
         return weapon != null;
     }

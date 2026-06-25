@@ -15,17 +15,15 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads the top-level {@code items/} config folder into an immutable {@link ItemsConfig} (§L): each
- * {@code items/*.yml} is dispatched by its {@code type} field to the matching reader. Produces config only —
- * no abilities, never reaches the compiler. Never throws: a missing folder yields {@link ItemsConfig#empty()};
- * an unreadable/malformed file yields a diagnostic and is skipped (runtime falls back to built-in defaults).
+ * Loads the top-level {@code items/} folder into an immutable {@link ItemsConfig} — each {@code items/*.yml}
+ * dispatched by its {@code type} field to the matching reader. Config only, never reaches the compiler. Never
+ * throws: a missing/unreadable/malformed input is empty or skipped (runtime falls back to built-in defaults).
  */
 public final class ItemsLoader {
 
     private ItemsLoader() {
     }
 
-    /** Load {@code items/} (or an empty config if the folder is absent). */
     public static ItemsConfig load(Path itemsRoot) {
         Diagnostics diags = new Diagnostics();
         Optional<SoulGemConfig> soulGem = Optional.empty();

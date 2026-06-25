@@ -37,8 +37,8 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Enchant-apply GUI, live (docs/architecture.md §7): render + click routing + apply end-to-end through
- * the real {@link MenuListener}. Mojang-mapped only (needs the fake player + a server-side open inventory).
+ * Enchant-apply GUI, live (§7): render + click routing + apply through the real {@link MenuListener}.
+ * Mojang-mapped only (fake player + a server-side open inventory).
  */
 public final class MenuSuite implements Harness.Scenario {
 

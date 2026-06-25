@@ -12,10 +12,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code MODIFY_MONEY} (collapses GIVE_MONEY/TAKE_MONEY): pins the give/take/transfer/
- * steal_percent modes and that non-player targets are skipped.
- */
 class MoneyEffectTest {
 
     @Test
@@ -52,7 +48,7 @@ class MoneyEffectTest {
     void transferModeTakesFromTargetAndGivesToActor() {
         Player victim = mock(Player.class);
         Player actor = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // skipped, not a player
+        LivingEntity mob = mock(LivingEntity.class);
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.dbl("amount")).thenReturn(25.0);
         when(ctx.str("mode")).thenReturn("transfer");
@@ -71,7 +67,7 @@ class MoneyEffectTest {
     void stealPercentTransfersAFractionToTheActor() {
         Player victim = mock(Player.class);
         Player actor = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // skipped, not a player
+        LivingEntity mob = mock(LivingEntity.class);
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.dbl("amount")).thenReturn(50.0); // amount is a percent, not a currency value
         when(ctx.str("mode")).thenReturn("steal_percent");

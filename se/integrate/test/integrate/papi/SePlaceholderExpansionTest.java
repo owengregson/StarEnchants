@@ -8,9 +8,8 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the {@code %starenchants_…%} placeholder lookup of {@link SePlaceholderExpansion}: soul mode renders
- * on/off, souls renders the accessor value, an offline player reads the defaults, and an unknown token returns
- * null (PAPI leaves it raw). Registration against a live PAPI is verified out-of-matrix (docs/decisions/0027).
+ * Pins the {@code %starenchants_…%} placeholder lookup of {@link SePlaceholderExpansion}. Registration against
+ * a live PAPI is verified out-of-matrix (docs/decisions/0027).
  */
 class SePlaceholderExpansionTest {
 

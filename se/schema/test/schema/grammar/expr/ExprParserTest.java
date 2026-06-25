@@ -60,8 +60,6 @@ class ExprParserTest {
         throw new AssertionError("unhandled node: " + e);
     }
 
-    // ----- string operators -----
-
     @Test
     void stringContainsOperatorParsesAtComparisonPrecedence() {
         assertEquals("(contains %name% \"a|b\")", sexpr(parseOk("%name% contains \"a|b\"")));
@@ -82,8 +80,6 @@ class ExprParserTest {
         assertTrue(diags.hasErrors());
         assertEquals("E_PARSE", diags.all().get(0).code());
     }
-
-    // ----- literals & variables -----
 
     @Test
     void numberLiteral() {
@@ -135,8 +131,6 @@ class ExprParserTest {
         assertEquals("SNEAKING", v.name());
     }
 
-    // ----- comparators -----
-
     @Test
     void allComparators() {
         assertEquals("(== %a% #1)", sexpr(parseOk("%a% == 1")));
@@ -151,8 +145,6 @@ class ExprParserTest {
     void comparisonBetweenVariableAndString() {
         assertEquals("(== %pose% \"SNEAKING\")", sexpr(parseOk("%pose% == \"SNEAKING\"")));
     }
-
-    // ----- unary not -----
 
     @Test
     void unaryNot() {
@@ -169,8 +161,6 @@ class ExprParserTest {
         // !%a% == false  parses as  (== (! %a%) F), NOT  (! (== %a% F))
         assertEquals("(== (! %a%) F)", sexpr(parseOk("!%a% == false")));
     }
-
-    // ----- precedence & associativity -----
 
     @Test
     void andBindsTighterThanOr() {
@@ -213,8 +203,6 @@ class ExprParserTest {
                 sexpr(parseOk("%victim.health% < 5 && (%self.sneaking% || !%blocking%)")));
     }
 
-    // ----- source threading -----
-
     @Test
     void emptyInputYieldsEmptyOptional() {
         Diagnostics diags = new Diagnostics();
@@ -237,8 +225,6 @@ class ExprParserTest {
         Expr.Not n = assertInstanceOf(Expr.Not.class, parseOk("  !%x%"));
         assertEquals(3, n.source().col()); // '!' at index 2 -> col 3
     }
-
-    // ----- flow / chance clauses (v3.1 §A) -----
 
     @Test
     void bareExpressionIsNotAClause() {

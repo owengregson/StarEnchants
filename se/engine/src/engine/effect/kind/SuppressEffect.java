@@ -11,13 +11,10 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code SUPPRESS} — temporarily disable a target player's enchant / group / type for a span of ticks
- * (docs/v3-directives.md §C). {@code scope} selects what {@code key} names; the suppression keys the SAME
- * interned scope id gate 5 reads (the bridge invariant). Default target is the {@link T#VICTIM combat
- * victim} (an attacker silencing the defender).
- *
- * <p>{@code key} is interned into the cooldown-scope namespace at compile time (the {@code EraseStage}) and
- * {@code scope} to its kind int, so {@code run} reads both as ints. {@link Affinity#CONTEXT_LOCAL}.
+ * {@code SUPPRESS} — temporarily disable a target player's enchant / group / type (§C). The suppression keys
+ * the SAME interned scope id gate 5 reads (the bridge invariant). {@code key} is interned into the
+ * cooldown-scope namespace at compile (the {@code EraseStage}) and {@code scope} to its kind int, so
+ * {@code run} reads both as ints.
  */
 public final class SuppressEffect implements EffectKind {
 

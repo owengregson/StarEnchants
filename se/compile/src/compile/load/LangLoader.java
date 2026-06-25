@@ -11,16 +11,14 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads {@code lang.yml} (one file, not a folder) into an immutable {@link Lang} (§L). {@link Lang#defaults()}
- * is the base; any key present in the file overrides its default, so a partial {@code lang.yml} is valid.
- * Never throws: an absent/unreadable file yields {@link Lang#defaults()}, a malformed file a diagnostic.
+ * Loads {@code lang.yml} overlaid on {@link Lang#defaults()} — any key present overrides its default, so a
+ * partial file is valid. Never throws: an absent/unreadable file yields defaults, a malformed file a diagnostic.
  */
 public final class LangLoader {
 
     private LangLoader() {
     }
 
-    /** Load {@code lang.yml} overlaid on {@link Lang#defaults()} (or pure defaults if the file is absent). */
     public static Lang load(Path langFile) {
         Diagnostics diags = new Diagnostics();
         Lang defaults = Lang.defaults();

@@ -9,10 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code INVINCIBLE} — make the target(s) invulnerable for a span of ticks, then restore
- * (docs/v3-directives.md §C). {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code INVINCIBLE} — make the target(s) invulnerable for a span of ticks, then restore (§C). */
 public final class InvincibleEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("INVINCIBLE")

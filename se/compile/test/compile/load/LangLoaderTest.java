@@ -53,7 +53,7 @@ class LangLoaderTest {
         assertFalse(lang.hasErrors());
         assertEquals("&6grab something!", lang.format("apply.hold-item"));
         assertEquals("&agave x lvl 2", lang.format("command.give.book", "KEY", "x", "LEVEL", 2));
-        assertEquals("&cNo such enchant: &fz", lang.format("apply.no-such-enchant", "KEY", "z")); // unrelated default kept
+        assertEquals("&cNo such enchant: &fz", lang.format("apply.no-such-enchant", "KEY", "z"));
     }
 
     @Test

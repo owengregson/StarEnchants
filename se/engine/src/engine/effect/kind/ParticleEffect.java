@@ -7,12 +7,7 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import schema.spec.D;
 
-/**
- * {@code PARTICLE} — spawn a burst of particles at the activation location (docs/architecture.md §7).
- * No-op when the activation has no location ({@code ctx.location()} may be {@code null}). The
- * {@code particle} handle is interned at compile time, so the runtime never sees a renamed constant (§9).
- * {@link Affinity#REGION}.
- */
+/** {@code PARTICLE} — spawn a burst of particles at the activation location (§7); {@code particle} interned at compile (§9). */
 public final class ParticleEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("PARTICLE")

@@ -9,21 +9,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * The parsed shape of a target-selector token: a {@code head} (the selector kind,
- * e.g. {@code AOE}) and its <em>named</em> arguments ({@code @Aoe{r=4}} &rarr; head
- * {@code AOE}, args {@code {r=4}}). This is untyped, structural data only — no
- * validation against a {@code ParamSpec} happens here (docs/architecture.md §2,
- * se-schema/grammar "selector grammar {@code @Sel{a=b}}").
- *
- * <p>Selectors use named {@code k=v} arguments rather than the colon-positional form
- * of an effect line, because a selector is usually written terse and out of order
- * ({@code @Aoe{r=4}} reads better than {@code @Aoe:4}); the compiler re-orders them
- * into the kind's {@code ParamSpec} positional order with the same machinery the
- * migrator uses ({@link schema.spec.ParamSpec#toPositional}).
- *
- * <p>Only <em>syntax</em> errors are reported here (a missing {@code @}, an unclosed
- * brace, a {@code k=v} pair with no {@code =}); an unknown head or an out-of-range
- * argument is the compiler's concern, not the parser's.
+ * Untyped parsed shape of a target-selector token: a {@code head} and its named {@code k=v}
+ * arguments ({@code @Aoe{r=4}}). Only syntax errors are reported here; an unknown head or
+ * out-of-range argument is the compiler's concern (docs/architecture.md §2). Named args (not
+ * colon-positional) so selectors read terse and out of order; the compiler reorders them via
+ * {@link schema.spec.ParamSpec#toPositional}.
  */
 public record SelectorAst(String head, Map<String, String> args, Source source) {
 
@@ -31,12 +21,7 @@ public record SelectorAst(String head, Map<String, String> args, Source source) 
         args = Map.copyOf(args);
     }
 
-    /**
-     * Parse a selector token ({@code @Head} or {@code @Head{k=v,k2=v2}}) into a
-     * {@link SelectorAst}, reporting any syntax fault into {@code diags} at
-     * {@code source}. Returns empty (and records a diagnostic) on a hard syntax
-     * error so the caller can fall back to the implicit self-target.
-     */
+    /** Returns empty (and records a diagnostic) on a hard syntax error, so the caller falls back to self-target. */
     public static Optional<SelectorAst> parse(String raw, Source source, Diagnostics diags) {
         String token = raw == null ? "" : raw.trim();
         if (token.isEmpty() || token.charAt(0) != '@') {
@@ -46,7 +31,7 @@ public record SelectorAst(String head, Map<String, String> args, Source source) 
             return Optional.empty();
         }
 
-        String body = token.substring(1); // drop the leading '@'
+        String body = token.substring(1);
         int brace = body.indexOf('{');
         if (brace < 0) {
             String head = body.trim();

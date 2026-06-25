@@ -11,11 +11,7 @@ import java.util.List;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code KNOCKBACK_CONTROL}: one {@code controlKnockback} per living target with the
- * configured multiplier + duration. The cancel/scale of the actual knockback event is integration-pinned
- * in the live suite (it is a separate Bukkit event).
- */
+/** Pins the {@code controlKnockback} intent only; scaling the actual (separate) knockback event is integration-pinned in the live suite. */
 class KnockbackControlEffectTest {
 
     @Test

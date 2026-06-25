@@ -3,11 +3,9 @@ package engine.condition;
 import compile.model.cond.NumExpr;
 
 /**
- * Evaluates a compiled {@link NumExpr} to a {@code double} over a primitive {@link FactBuffer}
- * (docs/architecture.md §3.4). The one numeric-expression walker shared by condition operands
- * ({@link ConditionEvaluator}) and expression-valued effect arguments (the runtime {@code EffectCtx}).
- * Variables and literals are pre-resolved at compile time, so the hot path does no parsing (only an
- * unresolved PlaceholderAPI token, and only if reached), no allocation, no boxing.
+ * Evaluates a compiled {@link NumExpr} to a {@code double} over a {@link FactBuffer} (docs/architecture.md
+ * §3.4). The one numeric-expression walker shared by condition operands and expression-valued effect
+ * arguments.
  *
  * <p>Fail-safe arithmetic: an unresolved placeholder reads {@code NaN} (numeric comparisons then fail
  * closed), and division by zero yields {@code 0} rather than {@code NaN}/an exception — a scaled effect

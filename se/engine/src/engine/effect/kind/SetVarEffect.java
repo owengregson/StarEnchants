@@ -11,10 +11,8 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code SET_VAR} — set a per-player named variable (docs/v3-directives.md §A), readable in any later
- * condition as {@code %name%} (the read side rides the unknown-token/PAPI seam, resolving the
- * {@code VarStore} before real PAPI). {@code ttl} bounds its lifetime in ticks ({@code 0} = no expiry).
- * {@link Affinity#CONTEXT_LOCAL}.
+ * {@code SET_VAR} — set a per-player named variable (§A), readable in later conditions as {@code %name%}: the
+ * read side rides the unknown-token/PAPI seam, resolving the {@code VarStore} before real PAPI.
  */
 public final class SetVarEffect implements EffectKind {
 

@@ -12,11 +12,9 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code REMOVE_SOULS} — debit souls from a soul gem (docs/v3-directives.md §D). {@code @Self} (default)
- * charges YOUR active gem (spends against {@link EffectCtx#activeGem()}); {@code @Victim} drains the ENEMY's
- * own active gem (resolved in the soul service). No-op when the chosen player is not in soul mode or the gem
- * cannot afford it; the spend is atomic in the {@code SoulLedger} and written to the gem's PDC on that
- * player's thread. {@link Affinity#CONTEXT_LOCAL}.
+ * {@code REMOVE_SOULS} — debit souls from a soul gem (§D). {@code @Self} (default) charges the activator's
+ * active gem ({@link EffectCtx#activeGem()}); {@code @Victim} drains the enemy's own gem (resolved in the soul
+ * service). The spend is atomic in the {@code SoulLedger} and the PDC write runs on that player's thread.
  */
 public final class RemoveSoulsEffect implements EffectKind {
 

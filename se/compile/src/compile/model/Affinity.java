@@ -1,14 +1,9 @@
 package compile.model;
 
 /**
- * Where an effect's work is allowed to run — a property declared per effect kind
- * and folded (MAX) to the owning {@link Ability} at compile time
- * (docs/architecture.md §3.6). The engine's {@code Sink} routes intents by this
- * value, so an effect author never names a scheduler and cannot, structurally,
- * write a Folia bug.
- *
- * <p>Constants are ordered by increasing dispatch reach, so folding an effect list to an
- * ability-level affinity is a simple {@link #max(Affinity)} reduction.
+ * Where an effect's work may run; the {@code Sink} routes by this so an effect author never names a
+ * scheduler and cannot structurally write a Folia bug (docs/architecture.md §3.6). Ordered by increasing
+ * dispatch reach so folding an effect list is a {@link #max(Affinity)} (ordinal) reduction.
  */
 public enum Affinity {
 

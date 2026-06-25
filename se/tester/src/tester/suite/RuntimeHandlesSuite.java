@@ -8,11 +8,9 @@ import platform.resolve.RuntimeHandles;
 import tester.harness.Harness;
 
 /**
- * Runtime handle resolver, live (docs/architecture.md §9): the full cross-version round-trip
- * <em>token &rarr; interned id (compile) &rarr; live Bukkit object (runtime)</em> the {@code Sink}
- * dispatcher mutates the world with, on every version through the enum&rarr;interface and registry-key
- * shifts. Rename targets are checked to a stable constant where one exists, non-null otherwise; cache
- * identity is asserted too.
+ * Runtime handle resolver, live (§9): the full round-trip <em>token → interned id (compile) → live Bukkit
+ * object (runtime)</em> the {@code Sink} mutates the world with, across the enum→interface and registry-key
+ * shifts. Rename targets checked to a stable constant where one exists, non-null otherwise.
  */
 public final class RuntimeHandlesSuite implements Harness.Scenario {
 
@@ -57,7 +55,6 @@ public final class RuntimeHandlesSuite implements Harness.Scenario {
         nonNull(h, "handles.sound.ENTITY_PLAYER_LEVELUP", () ->
                 handles.sound(internOrThrow(resolvers.sound("ENTITY_PLAYER_LEVELUP"), "ENTITY_PLAYER_LEVELUP")));
 
-        // Cache identity: the same id must return the very same object instance.
         h.expect("handles.cacheIdentity");
         h.guard("handles.cacheIdentity", () -> {
             int id = internOrThrow(resolvers.material("GUNPOWDER"), "GUNPOWDER");

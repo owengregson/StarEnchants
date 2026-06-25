@@ -16,8 +16,8 @@ class NumExprEvalTest {
     @Test
     void evaluatesArithmeticOverFactSlots() {
         FactBuffer facts = new FactBuffer(2, 0, 0);
-        facts.setNumber(0, 5.0);  // e.g. %combo%
-        facts.setNumber(1, 3.0);  // e.g. %distance%
+        facts.setNumber(0, 5.0);
+        facts.setNumber(1, 3.0);
         // (%combo% * 10) + 2  ->  52
         NumExpr expr = new NumExpr.Bin(
                 new NumExpr.Bin(new NumExpr.Var(0), NumExpr.Op.MULTIPLY, new NumExpr.Lit(10)),

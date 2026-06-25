@@ -13,11 +13,7 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
 
-/**
- * Smoke test for the production compiler wiring (no server): catches a wiring regression — a duplicate kind
- * head, a missing default selector — before any load. Building must succeed and a hand-built ability using a
- * real built-in effect + the canonical trigger vocabulary must compile to a resolvable snapshot entry.
- */
+/** Smoke test catching a production-wiring regression (duplicate kind head, missing default selector) before any load. */
 class ContentCompilerTest {
 
     @Test

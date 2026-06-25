@@ -17,10 +17,9 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 
 /**
- * Affinity-routed {@link DispatchSink}, live (docs/architecture.md §3.6) — proving intents reach the
- * right thread and mutate the real world across the cross-region hop only Folia exercises. Every mutation
- * is deferred to flush and routed to its owning thread, so these emit from GLOBAL (a different thread than
- * the targets' regions on Folia) and assert the state change landed.
+ * Affinity-routed {@link DispatchSink}, live (§3.6): intents reach the right thread and mutate the world
+ * across the cross-region hop only Folia exercises. Emitted from GLOBAL (a different thread than the targets'
+ * regions on Folia) so the Sink must hop each deferred intent to its owning thread.
  */
 public final class SinkSuite implements Harness.Scenario {
 
@@ -57,8 +56,7 @@ public final class SinkSuite implements Harness.Scenario {
                 }
                 equipment.setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
 
-                // Emit + flush from GLOBAL (a different thread than the victim's region on Folia) — the Sink
-                // must hop each intent to its owning thread.
+                // Emit + flush from GLOBAL — a different thread than the victim's region on Folia.
                 Scheduling.onGlobal(() -> {
                     int slowId = resolveId(resolvers.potionEffect("SLOW"), "SLOW");
                     int glowstoneId = resolveId(resolvers.material("GLOWSTONE"), "GLOWSTONE");

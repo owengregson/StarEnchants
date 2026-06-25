@@ -1,11 +1,8 @@
 package engine.interact;
 
 /**
- * The slot arbiter: an item's enchant-slot capacity (docs/architecture.md §6.4). An
- * immutable value derived from item state, with one unified default slot count.
- *
- * <p>Pure arithmetic; values come from an {@code ItemView} and the result is persisted in
- * PDC at apply time (a cold path). {@code keepSlots} on transmog/sort reuses {@code added}.
+ * The slot arbiter: an item's enchant-slot capacity (docs/architecture.md §6.4). An immutable value
+ * derived from item state; pure arithmetic, persisted to PDC at apply time (a cold path).
  *
  * @param base  the unified default slot count
  * @param added extra slots granted by slot-increase items (never negative)

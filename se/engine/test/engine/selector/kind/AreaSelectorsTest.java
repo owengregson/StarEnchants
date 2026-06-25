@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 import schema.spec.Args;
 
-/** The area selectors {@code @Aoe} and {@code @Nearest}, scanning a mocked region — incl. filter + limit. */
 class AreaSelectorsTest {
 
     private static final Location CENTER = mock(Location.class);
@@ -30,7 +29,6 @@ class AreaSelectorsTest {
         return ctx;
     }
 
-    /** A living entity whose squared distance to the centre is {@code distSq}. */
     private static LivingEntity at(double distSq) {
         LivingEntity e = mock(LivingEntity.class);
         Location l = mock(Location.class);
