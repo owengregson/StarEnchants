@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Per-player writable variables (docs/architecture.md §5.4; v3.1 §A) — the runtime home for the
- * {@code SET_VAR} / {@code INVERT_VAR} effects (AE's parameterized dynamic variables). A variable is a
+ * {@code SET_VAR} / {@code INVERT_VAR} effects (a Cosmic Enchants-style plugin's parameterized dynamic variables). A variable is a
  * named string value, scoped to one player and optionally time-limited.
  *
  * <p>This is the <em>writable</em> companion to the read-only built-in fact system: built-in facts

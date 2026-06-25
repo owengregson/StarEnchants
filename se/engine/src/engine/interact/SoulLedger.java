@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * The soul arbiter: the <em>single authority</em> for a gem's soul balance at runtime,
  * and the only code that debits or credits souls (docs/architecture.md §6.3). The
- * pipeline calls {@link #tryConsume} at gate 10 (after {@code PreActivate}, EE order
+ * pipeline calls {@link #tryConsume} at gate 10 (after {@code PreActivate}, Cosmic Enchants-style order
  * preserved).
  *
  * <p><strong>Why an in-memory authority.</strong> The durable balance lives on the gem

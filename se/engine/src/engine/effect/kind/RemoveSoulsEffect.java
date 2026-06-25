@@ -14,7 +14,7 @@ import schema.spec.D;
 /**
  * {@code REMOVE_SOULS} — debit souls from a soul gem (docs/v3-directives.md §D). Targets the activator by
  * default ({@code @Self} — charge YOUR active gem, the original §D behaviour), but a victim target
- * ({@code @Victim}) drains the ENEMY's own active gem instead (the EE {@code REMOVE_SOULS:…:TARGET}). The
+ * ({@code @Victim}) drains the ENEMY's own active gem instead (the Cosmic Enchants-style {@code REMOVE_SOULS:…:TARGET}). The
  * activator path spends against {@link EffectCtx#activeGem()} (the seeded active gem on the activation); a
  * victim path resolves the target's gem inside the {@code Sink}/soul service. A no-op when the chosen player
  * is not in soul mode or the gem cannot afford it; the spend is atomic in the {@code SoulLedger} and written

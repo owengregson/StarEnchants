@@ -33,8 +33,8 @@ public final class DamageModEffect implements EffectKind {
             .param("amount", D.DOUBLE)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). "
-                    + "A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage (the EE "
-                    + "negative DAMAGE_INCREASE). Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.")
+                    + "A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage. "
+                    + "Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.")
             .example("DAMAGE_MOD:attack:add:25")
             .build();
 

@@ -16,7 +16,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
  * {@link TeleblockStore}, their ender-pearl launch and chorus/pearl teleport are cancelled. The block is
  * armed by the effect through the per-event sink on the hit; this reads it back on the SEPARATE
  * launch/teleport events. Both handlers run on the player's own region thread (the event's), reading only
- * the concurrent store by UUID — Folia-safe with no cross-region access. A faithful port of EE's Teleblock
+ * the concurrent store by UUID — Folia-safe with no cross-region access. A faithful port of a Cosmic Enchants-style Teleblock
  * (which cancelled the ender-pearl {@code ProjectileLaunchEvent}), extended to also stop chorus-fruit teleport.
  */
 public final class TeleblockListener implements Listener {

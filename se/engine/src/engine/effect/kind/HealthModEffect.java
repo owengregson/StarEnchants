@@ -18,7 +18,7 @@ import schema.spec.D;
  *   <li>{@code give} — restore {@code amount} health to each resolved target (heal);</li>
  *   <li>{@code take} — deal {@code amount} direct health damage to each resolved target;</li>
  *   <li>{@code transfer} — damage each target AND heal the ACTIVATOR by the same total (lifesteal);</li>
- *   <li>{@code set} — set each target's current health TO {@code amount} (the EE {@code REDUCE_HEARTS}
+ *   <li>{@code set} — set each target's current health TO {@code amount} (the Cosmic Enchants-style {@code REDUCE_HEARTS}
  *       drop-to-N-HP), clamped to [0, max].</li>
  * </ul>
  *

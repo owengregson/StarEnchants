@@ -9,7 +9,7 @@ StarEnchants behavior is verified against the REAL game, not mocks: an
 in-server tester plugin boots inside an actual Paper (and Folia) server,
 stages scenarios, asserts outcomes, writes PASS/FAIL, and the build fails on
 anything but PASS. This is the one practice we deliberately adopt from
-Mental's approach — adapted to our domain (enchants, armor sets, items, GUIs).
+an external project — adapted to our domain (enchants, armor sets, items, GUIs).
 Unit tests pin pure logic (DSL parsing, math, interaction rules); the live
 suite pins that the engine actually does the right thing to the world.
 

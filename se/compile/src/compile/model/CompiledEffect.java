@@ -14,7 +14,7 @@ import schema.spec.Args;
  * @param args                already-parsed, range-checked arguments
  * @param target              the resolved target selector ({@link CompiledSelector#SELF} if none)
  * @param cumulativeWaitTicks ticks of {@code WAIT} accumulated before this effect in
- *                            its ability's effect list (fixes EE's WAIT-overwrite bug, §3.6)
+ *                            its ability's effect list (fixes a Cosmic Enchants-style WAIT-overwrite bug, §3.6)
  * @param affinity            the kind's declared dispatch affinity (§3.6)
  */
 public record CompiledEffect(

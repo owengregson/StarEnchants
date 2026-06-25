@@ -35,7 +35,7 @@ import java.util.function.Function;
  * {@link CompiledEffect} via a reused {@link LineCompiler}; {@code WAIT:n} lines are
  * <em>timing</em>, not effects, so they emit no {@code CompiledEffect} and instead
  * accumulate into the cumulative tick delay stamped on every following effect — the
- * fix for EE's WAIT-overwrite bug (§3.6). The condition string is parsed once into a
+ * fix for a Cosmic Enchants-style WAIT-overwrite bug (§3.6). The condition string is parsed once into a
  * {@link CompiledCondition}; a blank/absent condition lowers to {@code null}
  * ("always true"). The ability-level {@link Affinity} is the MAX fold over the
  * emitted effects' declared affinities, so the {@code Sink} can route the whole

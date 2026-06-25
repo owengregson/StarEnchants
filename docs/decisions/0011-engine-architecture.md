@@ -33,7 +33,7 @@ data-oriented runtime.**
   se-feature, se-platform, se-migrate, se-api, compat-folia, compat-modern,
   se-tester`.
 
-Full detail and the explicit divergences from the StrikeSync-mirror prior are in
+Full detail and the explicit divergences from the packet/anticheat-reference mirror prior are in
 `docs/architecture.md`.
 
 ## Consequences
@@ -50,5 +50,5 @@ Full detail and the explicit divergences from the StrikeSync-mirror prior are in
 ## Alternatives considered
 
 See the five workshop proposals and three critiques (`deobf/analysis/design/`,
-local). The StrikeSync-mirror prior (`api/common/core/compat/tester` split by
+local). The packet/anticheat-reference mirror prior (`api/common/core/compat/tester` split by
 purity) was rejected as the organizing spine — see `docs/architecture.md` §1.

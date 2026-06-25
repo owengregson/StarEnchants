@@ -12,7 +12,7 @@ import platform.caps.Capabilities;
 
 /**
  * The read-only crystals/modifiers browser (docs/v3-directives.md §K — "Crystals/Modifiers browser";
- * EliteArmor called crystals "modifiers"). A flat paged catalog of every crystal; each icon's tooltip shows
+ * a Cosmic Enchants-style plugin called crystals "modifiers"). A flat paged catalog of every crystal; each icon's tooltip shows
  * its description, rarity tier, and the item groups it may sit on. Browse-only: applying / extracting /
  * multi-crystal-merging a crystal stays a drag gesture ({@code CrystalListener}, §E), explicitly NOT a menu
  * action — this surface is the catalog only.

@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Applies the inline MINE-side read-backs {@code SMELT} and {@code TELEPORT_DROPS} (EE parity) to a
+ * Applies the inline MINE-side read-backs {@code SMELT} and {@code TELEPORT_DROPS} (Cosmic Enchants-style parity) to a
  * {@link BlockBreakEvent} after the gate walk: the proc sets a flag on the per-event sink and the MINE
  * dispatcher calls this. Both run on the firing (block's) region thread, where the block and the breaker's
  * inventory are region-owned — no scheduler hop.

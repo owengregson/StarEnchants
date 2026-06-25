@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 
 /**
  * Drives the §B {@code HELD}/{@code PASSIVE} start/stop lifecycle (docs/v3-directives.md §B, ADR-0022) — the
- * deactivation half EE has and this engine otherwise lacks. Where {@code REPEATING} re-fires on a timer, a
+ * deactivation half a Cosmic Enchants-style plugin has and this engine otherwise lacks. Where {@code REPEATING} re-fires on a timer, a
  * HELD/PASSIVE source is a <em>maintained buff</em>: its effects apply once when the source becomes active
  * (equip/hold) and are torn down once when it becomes inactive (unequip/swap-away). This driver computes that
  * transition by DIFFING the player's currently-worn HELD/PASSIVE abilities against the set it last saw, then

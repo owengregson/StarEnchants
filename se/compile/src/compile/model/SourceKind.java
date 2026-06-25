@@ -10,7 +10,7 @@ package compile.model;
  */
 public enum SourceKind {
 
-    /** A custom enchantment level (the merged EE/EA enchant channel). */
+    /** A custom enchantment level (the merged Cosmic Enchants-style enchant channel). */
     ENCHANT,
 
     /** An armor-set bonus. */

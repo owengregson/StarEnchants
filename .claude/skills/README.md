@@ -1,12 +1,12 @@
 # StarEnchants project skills
 
 Hard-won, project-specific knowledge for building StarEnchants (a unified
-EliteEnchantments + EliteArmor plugin, Paper 1.17.1 → 26.1.x + Folia). **Check
+custom-enchant + armor-set plugin, Paper 1.17.1 → 26.1.x + Folia). **Check
 the relevant skill BEFORE working in its area.**
 
 > The architecture is **self-derived and unique to StarEnchants** — not modeled
-> on EliteEnchantments, AdvancedEnchantments, or Mental/StrikeSync. The
-> decompiled analysis informs WHAT to build and HOW features interact, never how
+> on any existing enchantment plugin. Analysis of a Cosmic Enchants-style
+> reference informs WHAT to build and HOW features interact, never how
 > to construct it. The one practice deliberately adopted from elsewhere is
 > real-server (Paper + Folia) testing.
 

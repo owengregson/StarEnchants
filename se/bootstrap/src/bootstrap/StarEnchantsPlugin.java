@@ -341,7 +341,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // through the per-event sink; the death listener reads it on PlayerDeathEvent to keep items+levels.
         // Same instance both ends.
         KeepOnDeathStore keepOnDeath = new KeepOnDeathStore();
-        // Shared TELEBLOCK / IMMUNE stores (EE exotic-effect ports): the effects arm a per-player timed flag
+        // Shared TELEBLOCK / IMMUNE stores (Cosmic Enchants exotic-effect ports): the effects arm a per-player timed flag
         // through the per-event sink; the teleport / damage listeners (separate Bukkit events) read it back.
         TeleblockStore teleblock = new TeleblockStore();
         ImmuneStore immune = new ImmuneStore();
@@ -452,7 +452,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §C KEEP_ON_DEATH: keep items+levels on a death while the flag is armed. NORMAL priority — earlier
         // than HolyScrollListener (HIGH) — so an enchant-kept death never spends a holy scroll.
         getServer().getPluginManager().registerEvents(new KeepOnDeathListener(keepOnDeath, tick::get), this);
-        // EE exotic-effect ports: TELEBLOCK (cancel ender-pearl/chorus teleport while flagged) and IMMUNE
+        // Cosmic Enchants exotic-effect ports: TELEBLOCK (cancel ender-pearl/chorus teleport while flagged) and IMMUNE
         // (cancel matching damage while flagged) read their per-event flags back on the separate events.
         getServer().getPluginManager().registerEvents(new TeleblockListener(teleblock, tick::get), this);
         getServer().getPluginManager().registerEvents(new ImmuneListener(immune, tick::get), this);
@@ -460,10 +460,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // destroystokyo), capability-probed. A no-op on a server with neither (the effect is simply inert).
         KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
-        // §N Mental integration: with the Mental knockback plugin installed it OWNS player knockback (it
-        // overwrites the velocity event with its own residual-computed vector), so the vanilla applier above
-        // is discarded for players. Bind Mental's KnockbackApplyEvent so KNOCKBACK_CONTROL composes onto
-        // Mental's vector instead of being silently lost. Reflective (no hard dep); honours
+        // §N packet/anticheat reference-plugin integration: with that knockback plugin installed it OWNS player
+        // knockback (it overwrites the velocity event with its own residual-computed vector), so the vanilla applier
+        // above is discarded for players. Bind its KnockbackApplyEvent so KNOCKBACK_CONTROL composes onto
+        // that plugin's vector instead of being silently lost. Reflective (no hard dep); honours
         // integrations.named.mental. See docs/decisions/0026.
         MentalKnockbackBridge.Path mentalPath = MentalKnockbackBridge.register(
                 this, knockback, tick::get, master.config().integrations().enabled("mental"));

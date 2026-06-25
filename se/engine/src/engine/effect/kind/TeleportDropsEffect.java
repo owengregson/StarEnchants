@@ -8,7 +8,7 @@ import engine.spec.EffectSpec;
 
 /**
  * {@code TELEPORT_DROPS} — send the drops of the block broken by the triggering MINE straight to the
- * breaker's inventory (the EE {@code TELEPORT_DROPS} effect). An inline read-back like {@code IGNORE_ARMOR}:
+ * breaker's inventory (the Cosmic Enchants-style {@code TELEPORT_DROPS} effect). An inline read-back like {@code IGNORE_ARMOR}:
  * the proc sets a flag the MINE dispatcher reads after the gate walk and applies to the {@code BlockBreakEvent}
  * (add the drops to the player's inventory, suppress the world drop). Author on MINE.
  * {@link Affinity#CONTEXT_LOCAL}.

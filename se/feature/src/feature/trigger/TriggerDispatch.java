@@ -181,7 +181,7 @@ public final class TriggerDispatch {
     /**
      * Fire the MINE trigger for a block break, then apply the inline drop read-backs to {@code event}: a
      * {@code cancelEvent}, plus {@code SMELT} / {@code TELEPORT_DROPS} which transform the block's drops
-     * (EE parity). Runs on the block's region thread, where the block and the breaker's inventory are
+     * (Cosmic Enchants-style parity). Runs on the block's region thread, where the block and the breaker's inventory are
      * region-owned. Falls back to a plain {@link #fire} when MINE is absent.
      */
     public void fireMine(Player actor, ActivationContext context, BlockBreakEvent event) {

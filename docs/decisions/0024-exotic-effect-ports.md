@@ -1,4 +1,4 @@
-# ADR 0024: Expression-valued effect arguments + the exotic EE-effect ports
+# ADR 0024: Expression-valued effect arguments + the exotic Cosmic Enchants-style effect ports
 
 - **Status:** Accepted
 - **Date:** 2026-06-24
@@ -8,10 +8,10 @@
 
 ## Context
 
-The shipped `elite-enchantments` pack (ADR-0023) left ~121 EE effect occurrences as honest `# TODO` lines —
+The shipped `elite-enchantments` pack (ADR-0023) left ~121 Cosmic Enchants-style effect occurrences as honest `# TODO` lines —
 mechanics the migrator could not translate because StarEnchants had no equivalent primitive. The owner asked
-to replicate every one faithfully, creating new engine primitives where genuinely needed (reading the EE
-source to learn what each does, never inventing). Reviewing the EE source split them into three groups:
+to replicate every one faithfully, creating new engine primitives where genuinely needed (analyzing a
+Cosmic Enchants-style reference to learn what each does, never inventing). Reviewing that reference split them into three groups:
 
 1. **Composable** from existing effects + selectors (WRATH = lightning + AoE damage + slow + blind; SHACKLE =
    knockback cancel; FROST = a temporary ice field + debuffs; ROT_DECAY = spawned zombies + wither + armour
@@ -34,7 +34,7 @@ variable→slot pass conditions use); and a shared `NumExprEval` evaluates it. T
 existing handle-resolution seam reused for numbers — schema parses the token to an untyped AST, the compiler
 lowers it to slot-resolved IR, the runtime reads it with no parsing on the hot path. Conditions get
 arithmetic operands for free. Three facts were added/sourced to feed it: `%combo%` (a per-attacker
-`ComboStore` streak — the value EE's RAGE relied on, finally populated), `%distance%` (actor↔victim), and
+`ComboStore` streak — the value a Cosmic Enchants-style RAGE relied on, finally populated), `%distance%` (actor↔victim), and
 `%nearbyenemies%` (a small radial scan), all Folia-guarded in `FactPopulator`.
 
 **New primitives** (one `EffectKind` + `ParamSpec` + registry line each, the §13.2 local-add):
@@ -42,26 +42,26 @@ arithmetic operands for free. Three facts were added/sourced to feed it: `%combo
 with version-probed listeners, the `KNOCKBACK_CONTROL` shape), `SMELT` / `TELEPORT_DROPS` (inline MINE-side
 read-backs the block-break dispatcher applies), and `SEEK` (AUTO_LOCK — an inline BOW_FIRE read-back that
 starts a per-projectile homing task on the arrow's own entity scheduler, Folia-correct, best-effort across
-regions). Small extensions: `MODIFY_HEALTH:…:set` (REDUCE_HEARTS), negative `DAMAGE_MOD` (the EE negative
+regions). Small extensions: `MODIFY_HEALTH:…:set` (REDUCE_HEARTS), negative `DAMAGE_MOD` (the Cosmic Enchants-style negative
 DAMAGE_INCREASE self-nerf), and a `@Victim` target for `REMOVE_SOULS` (drain the enemy's gem, via a
 `SoulDebit.debitTarget` default the soul service overrides).
 
-With these, the migrator translates the **entire** EE effect + condition vocabulary: the regenerated pack has
+With these, the migrator translates the **entire** Cosmic Enchants-style effect + condition vocabulary: the regenerated pack has
 **zero `# TODO` lines** (down from ~121) and compiles to 531 abilities clean. `isTargetHolding <GROUP>` also
 now maps — the `contains` string operator over `%victim.helditem%` is the item-group test.
 
 ## Consequences
 
-- The pack is a faithful, complete EE port: every enchant's every effect does something real, not a stub.
-- Expression arguments are a general capability, not an EE hack: any numeric argument on any effect can scale
+- The pack is a faithful, complete port: every enchant's every effect does something real, not a stub.
+- Expression arguments are a general capability, not a Cosmic Enchants-style hack: any numeric argument on any effect can scale
   with any fact, and conditions can use arithmetic. Evaluation is allocation-free over the existing fact
   buffer; a divide-by-zero or unresolved placeholder degrades to a finite value rather than poisoning a fold.
 - New combat-flag/homing/MINE primitives touch version-specific Bukkit events (ProjectileLaunch, EntityDamage,
   EntityShootBow, BlockBreak) and a Folia-routed per-arrow task, so they are verified on the live matrix; the
   pure pieces (the grammar, `NumExprEval`, the migrator mappings, effect→sink wiring) are unit-tested.
-- `DAMAGE_INCREASE:playerHealth*N` faithfully reproduces EE's literal multiplier (`(expr - 1) * 100` percent),
-  including that at full health it is a very large multiplier — EE's own (arguably over-tuned) behaviour, not
-  reinterpreted. DAMAGE_DISTANCE is a faithful-in-spirit linear falloff (EE's piecewise step is approximated).
+- `DAMAGE_INCREASE:playerHealth*N` faithfully reproduces the Cosmic Enchants-style literal multiplier (`(expr - 1) * 100` percent),
+  including that at full health it is a very large multiplier — the source's own (arguably over-tuned) behaviour, not
+  reinterpreted. DAMAGE_DISTANCE is a faithful-in-spirit linear falloff (the source's piecewise step is approximated).
 
 ## Alternatives considered
 

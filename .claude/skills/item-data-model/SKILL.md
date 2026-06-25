@@ -23,7 +23,7 @@ maps), and **folia-scheduling** (the cross-region victim read).
 | --- | --- | --- |
 | PDC = state only (identity + counters), never DSL/behavior | item names *which* defs by key; programs live in the Snapshot | 4.2 |
 | **Stable string keys** in PDC, never a dense index | dense ids reorder every reload; an old item must still resolve | 4.2, 5.3 |
-| Crystals are a **list** of keys; souls keyed by **PDC UUID** | fixes EA last-of-type collapse and slot-reorg loss | 4.2 |
+| Crystals are a **list** of keys; souls keyed by **PDC UUID** | fixes a Cosmic Enchants-style last-of-type collapse and slot-reorg loss | 4.2 |
 | Cache on **content-hash + generation**, NOT ItemMeta identity | meta is copy-on-write → misses constantly *and* can alias (stale view) | 5.2 |
 | Use a **full (untruncated) hash** or write-gen counter | a truncated hash collision could serve a stale view | 5.2 |
 | Two records: combat vs economy/identity | identity items (scroll/dust/crate) never decode on the combat hot path | 5.1 |

@@ -12,7 +12,7 @@ to gear with a success/destroy roll, plus the white-scroll guard — but left **
 unimplemented: `dust`. The `ItemDef.Grant.successBonus` field, the `dust` kind in `ItemDefReader`, and
 its default material were already in place (inert), explicitly flagged "the one deferred carrier kind."
 
-The decompiled EliteEnchantments analysis (local-only, informs WHAT a feature is, never HOW to build it)
+Analysis of a Cosmic Enchants-style reference (local-only, gitignored; informs WHAT a feature is, never HOW to build it)
 describes a "secret dust" that carries a success-rate modifier and combines onto an enchant book to
 change the book's success chance, plus a separate "magic dust" rarity-tinkering mechanic (combine two to
 get a next-rarity dust; convert a book into a dust). StarEnchants' data model only carries a single flat
@@ -59,4 +59,4 @@ that book's stored success bonus; the book's later book→gear apply rolls again
   dust. Gem/tome remain valid `ItemDef` kinds that mint and apply as content books today.
 - The carrier PDC format is now `itemKey:grantKey:level[:successBonus]`; the optional 4th field is the
   only format change and is fully backward-compatible (omitted when zero).
-- EE's magic-dust rarity-tinkering and book↔dust conversion remain out of scope (no data model for them).
+- The Cosmic Enchants-style magic-dust rarity-tinkering and book↔dust conversion remain out of scope (no data model for them).

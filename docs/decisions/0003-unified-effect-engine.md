@@ -6,8 +6,8 @@
 
 ## Context
 
-The originals run THREE parallel effect frameworks (EE custom effects, EA set
-effects, EA crystal NBT), causing duplicated logic, order-dependent damage
+Cosmic Enchants-style plugins run THREE parallel effect frameworks (custom enchant
+effects, armor-set effects, crystal NBT), causing duplicated logic, order-dependent damage
 compounding, dead crystal-suppression effects, and fragile cross-plugin events.
 
 ## Decision

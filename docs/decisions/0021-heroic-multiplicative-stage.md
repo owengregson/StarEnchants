@@ -12,7 +12,7 @@ all reductions into a parallel factor, so the result is order-independent and th
 multiplicative compounding (the original catalogs' worst combat bug) cannot occur.
 
 The v3 parity work reshapes **heroic** armour from the placeholder *flat* stat (`HeroicStat.flatDamage`/
-`flatReduction`) to **percent multipliers** (EliteArmor's shape): a heroic piece grants `+X%` outgoing
+`flatReduction`) to **percent multipliers** (a Cosmic Enchants-style shape): a heroic piece grants `+X%` outgoing
 damage / `−Y%` incoming. The directive (§F) requires heroic percents to behave as a genuine multiplier
 on the final damage — not to be summed into the additive fold (which would make a "+50% heroic" worth
 less when other additive buffs are present, and would not match player expectations of a distinct

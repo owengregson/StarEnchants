@@ -17,7 +17,7 @@ StarEnchants gate 2 (`ActivationPipeline.Guard`) asks one question of any land/r
 *may the player identified by `actor` have an ability act at `where`?* The architecture answers
 this through a first-party SPI — `platform.protect.ProtectionProvider`, composed by
 `ProtectionService`, discovered from Bukkit's `ServicesManager` — explicitly **instead of** the
-brittle bundled reflection the legacy plugins (EE/EA/AE) used. A correct WorldGuard bridge also has
+brittle bundled reflection that Cosmic Enchants-style plugins used. A correct WorldGuard bridge also has
 two properties that make it a poor fit for the core jar: it must read region state on the firing
 region's thread (Folia), and it cannot be exercised on the live matrix (no WorldGuard runs there).
 

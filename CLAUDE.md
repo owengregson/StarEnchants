@@ -1,6 +1,6 @@
 # StarEnchants — agent & contributor guide
 
-A single Paper/Folia plugin merging EliteEnchantments + EliteArmor (no web
+A single Paper/Folia plugin combining custom enchants and armor sets (no web
 server) into one engine, cross-compatible **Paper 1.17.1 → 26.1.x + Folia**.
 
 > **Status: design & bootstrap.** The unique architecture is being derived (see
@@ -33,10 +33,10 @@ Decision rationale lives in `docs/decisions/` (ADRs). Domain vocabulary is in
 
 ## Non-negotiable invariants
 
-- **Architecture is self-derived** — not modeled on StrikeSync, EliteEnchantments,
-  or AdvancedEnchantments construction. The decompiled analysis (local-only in
-  `deobf/`, gitignored) informs WHAT features exist and HOW they interact, never
-  how to build them. The only borrowed practice is real-server (Paper+Folia)
+- **Architecture is self-derived** — not modeled on the construction of any
+  existing enchantment plugin. Analysis of a Cosmic Enchants-style reference
+  (local-only, gitignored) informs WHAT features exist and HOW they interact,
+  never how to build them. The only borrowed practice is real-server (Paper+Folia)
   testing.
 - **Folia-correct or it doesn't ship** — all entity/world work via the scheduling
   abstraction; no raw `Bukkit.getScheduler()` for entity work.

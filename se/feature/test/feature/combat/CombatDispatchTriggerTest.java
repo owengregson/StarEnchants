@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Pins {@link CombatDispatch#attackTrigger}: which attacker-side trigger a hit fires, by the raw damager
  * type. A bow arrow fires BOW, a thrown trident fires TRIDENT, and melee (or any projectile with no
- * distinct trigger) fires ATTACK — the EE model where ATTACK is melee-only. Staging real projectile hits
+ * distinct trigger) fires ATTACK — the Cosmic Enchants-style model where ATTACK is melee-only. Staging real projectile hits
  * with the fake-player harness is impractical, so the decision is pinned here; the dispatch path itself is
  * the one CombatSuite already proves for melee ATTACK.
  */

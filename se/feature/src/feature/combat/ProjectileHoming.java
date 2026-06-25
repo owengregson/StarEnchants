@@ -11,7 +11,7 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * The {@code SEEK} (EE {@code AUTO_LOCK}) homing engine: pick the best line-of-sight target for a freshly
+ * The {@code SEEK} (Cosmic Enchants-style {@code AUTO_LOCK}) homing engine: pick the best line-of-sight target for a freshly
  * fired projectile and steer it toward that target each tick until it lands, dies, loses the target, or
  * flies out of range. Started by the bow dispatcher after a {@code SEEK} proc; the steering runs on the
  * projectile's OWN entity scheduler ({@link Scheduling#repeatingEntity}) so it is Folia-region-correct for
@@ -20,15 +20,15 @@ import platform.sched.TaskHandle;
  * <p>Folia caveat: reading the target's location each tick is region-correct only while the target shares
  * the arrow's region (the common case for short-range homing). A cross-region read throws on Folia, so each
  * steering tick is wrapped — a failure simply cancels the homing (the arrow continues ballistically) rather
- * than aborting. On Paper every read is on the one thread, so homing is exact. A faithful port of EE's
+ * than aborting. On Paper every read is on the one thread, so homing is exact. A faithful port of a Cosmic Enchants-style
  * {@code AutoLockTask} (angle-limited velocity steering, slowed near a blocking target).
  */
 public final class ProjectileHoming {
 
-    private static final double MAX_DISTANCE = 60.0;   // give up past this range (EE parity)
-    private static final double SEARCH_RANGE = 64.0;   // initial target search box (EE parity)
-    private static final double MAX_CONE = 18.283185307179586; // EE's initial best-angle sentinel
-    private static final double MAX_ROTATION = 0.12;   // per-tick steering cone (radians, EE parity)
+    private static final double MAX_DISTANCE = 60.0;   // give up past this range (Cosmic Enchants-style parity)
+    private static final double SEARCH_RANGE = 64.0;   // initial target search box (Cosmic Enchants-style parity)
+    private static final double MAX_CONE = 18.283185307179586; // a Cosmic Enchants-style initial best-angle sentinel
+    private static final double MAX_ROTATION = 0.12;   // per-tick steering cone (radians, Cosmic Enchants-style parity)
 
     private ProjectileHoming() {
     }
@@ -91,7 +91,7 @@ public final class ProjectileHoming {
             double newSpeed = 0.9 * speed + 0.14;
             if (target instanceof Player player && player.isBlocking()
                     && projectile.getLocation().distance(target.getLocation()) < 8.0) {
-                newSpeed = speed * 0.6; // a blocking target deflects the homing, EE parity
+                newSpeed = speed * 0.6; // a blocking target deflects the homing, Cosmic Enchants-style parity
             }
             Vector steered = angle < MAX_ROTATION
                     ? heading.clone().multiply(newSpeed)

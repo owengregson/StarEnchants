@@ -12,7 +12,7 @@ import schema.spec.D;
 
 /**
  * {@code SUPPRESS} — temporarily disable a target player's enchant / group / type for a span of ticks
- * (docs/v3-directives.md §C, covering AE's DISABLE_ENCHANT / DISABLE_GROUP / DISABLE_TYPE). {@code scope}
+ * (docs/v3-directives.md §C, covering a Cosmic Enchants-style DISABLE_ENCHANT / DISABLE_GROUP / DISABLE_TYPE). {@code scope}
  * selects which identifier {@code key} names, and {@code key} is the enchant base key, group, or type the
  * suppressed abilities lower their cooldown-scope to — so the suppression keys the SAME interned scope id
  * gate 5 reads (the bridge invariant). Default target is the {@link T#VICTIM combat victim} (an attacker

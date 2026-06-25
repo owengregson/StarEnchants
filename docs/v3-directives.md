@@ -3,7 +3,7 @@
 **Status: APPROVED FRAME, per-increment build pending.** This is the single
 reference for the v3 wave. It supersedes the config-v2 design (ADR 0016) and the
 earlier parity-correction notes where they conflict. Decisions here were settled
-2026-06-16/17 from the EE+EA+AE fact-check (`docs/parity/parity-audit.md` +
+2026-06-16/17 from the Cosmic Enchants-style parity fact-check (`docs/parity/parity-audit.md` +
 workflow `wf_96f2aaeb-89d`) and the user's per-item direction.
 
 Rule of thumb baked into every section: **deobf/ informs WHAT a feature is and
@@ -37,23 +37,23 @@ Each numbered increment is itself split into shippable PRs; never one mega-PR.
 
 ## A. Unified conditions / variables / selectors  *(extend, don't greenfield)*
 
-`se/` **already** has the AE-class engine (tokenizer→AST→typed IR→flyweight
+`se/` **already** has the Cosmic Enchants-class engine (tokenizer→AST→typed IR→flyweight
 evaluator; `&& || ! ()` + six comparators; `%scope.name%` vars; `ConditionResult{Flow,chanceDelta}`
 with `Flow CONTINUE/STOP/FORCE/ALLOW`). It is under-built — this increment fills
-it out to **full AE parity**:
+it out to **full Cosmic Enchants-style parity**:
 
 - **Operators**: add `contains` (pipe-OR membership) and `matchesregex`.
 - **Flow/chance authoring grammar**: make the `Flow`/`chanceDelta` types
   *reachable* — a compiler path that emits `%stop% / %force% / %allow%` and
   `±N %chance%` from condition clauses (today they exist but nothing emits them).
-- **Variables**: port AE's full vocabulary (~60 static + dynamic + computed) — and
+- **Variables**: port the full Cosmic Enchants-style vocabulary (~60 static + dynamic + computed) — and
   **populate the runtime `FactBuffer`** (today it's defined but never filled by
   production code; this is the load-bearing fix).
-- **Selectors**: grow from 5 → the full AE set (AllPlayers, NearestPlayer,
+- **Selectors**: grow from 5 → the full Cosmic Enchants-style set (AllPlayers, NearestPlayer,
   PlayerFromName, EntityInSight, BlockInDistance, Block, EyeHeight, Add, and the
   mining shapes Trench/Tunnel/Vein), plus `@Aoe` target-filter + limit args.
 - **Flag representation**: the `FactBuffer` flag space is one 64-bit long
-  (`MAX_FLAGS=64`); AE's full boolean vocab approaches/exceeds it → **widen the
+  (`MAX_FLAGS=64`); the full Cosmic Enchants-style boolean vocab approaches/exceeds it → **widen the
   representation** (promote some booleans to number/string facts, or a second word).
 
 **Reach (for now): abilities only.** Conditions/selectors/variables stay wired to
@@ -74,7 +74,7 @@ pass. The vocabulary is built full now; the *surface* widens later.
   attributing projectile→shooter).
 - **HELD + PASSIVE need a start *and* stop path.** Today `EquipListener` only
   refreshes the WornState cache. Activating on equip/hold and **deactivating** on
-  unequip/swap-away (the EE start/stop lifecycle). This is the deactivation half
+  unequip/swap-away (the Cosmic Enchants-style start/stop lifecycle). This is the deactivation half
   the engine currently lacks.
 - **REPEATING**: promote into the vocabulary and actually schedule it
   (`RepeatStore` + `repeat` field exist but nothing arms the recurring task).
@@ -122,7 +122,7 @@ effect kind + a `suppress()` Sink intent are missing), `SET_VAR` / `INVERT_VAR`
 exist):** SMITE = LIGHTNING@Aoe + DAMAGE_MOD@Aoe; BUTCHER = KILL@Aoe{monsters};
 WRATH = DAMAGE_MOD@Aoe + POTION@Aoe; DODGE / FALL_DAMAGE / HUNGER_LOSS / DURABILITY-
 negate = CANCEL_EVENT under a trigger + chance; DROP_HEAD = DROP_ITEM:head.
-Each new EE/EA/AE effect must pass the "is this a distinct primitive or a
+Each new Cosmic Enchants-style effect must pass the "is this a distinct primitive or a
 compilation?" test before becoming a kind.
 
 POTION uses **`level`** (1-based), never amplifier.
@@ -143,12 +143,12 @@ item, not the current `/se soulmode` command).
 - **Combine**: drag gem-onto-gem sums souls into a new gem (anvil sound). **Split**:
   `/se` split subcommand. Never auto-split.
 - **Config knobs** (soul-gem config file): material, name, lore, format/placeholders
-  (`{AMOUNT}`, `{SOUL-COLOR}`), **configurable soul-color tiers** (EE's were
+  (`{AMOUNT}`, `{SOUL-COLOR}`), **configurable soul-color tiers** (a Cosmic Enchants-style original's were
   hardcoded), **multiple** particles-while-active, **multiple** particles-on-activate,
   **multiple** particles-on-deactivate, messages on activate/deactivate, message on
   soul use, per-kill deposit amount (+ optional per-mob map), sounds on/off.
 - Folia: deferred PDC writes (keep the current `SoulLedger` approach, by gem UUID).
-- Anti-dupe: block placing the gem; guard the crafting grid (AE's `SoulgemCraftEvent` analog).
+- Anti-dupe: block placing the gem; guard the crafting grid (a Cosmic Enchants-style `SoulgemCraftEvent` analog).
 
 ---
 
@@ -160,10 +160,10 @@ item, not the current `/se soulmode` command).
 - **Physical crystal item**, minted via give command. **Drag-apply** onto gear
   (gesture, not a menu) with a **configurable success chance**, **consume-on-fail**,
   and apply/remove **messages & sounds** (all standard, configurable).
-- Keep `se/`'s order-preserving crystal **list** (fixes EA's last-of-type collapse).
+- Keep `se/`'s order-preserving crystal **list** (fixes a Cosmic Enchants-style last-of-type collapse).
 - **Multi-crystal merge**: drag crystal-onto-crystal (SWAP_WITH_CURSOR), **pairs
   only**. Overlapping effect types **SUM** their magnitudes; distinct effects both
-  carry. Extraction returns the multi-crystal **as a whole**. *(Brand-new — EA's
+  carry. Extraction returns the multi-crystal **as a whole**. *(Brand-new — Cosmic Enchants-style
   "multi crystals" were hand-authored static files; we do it at runtime.)*
 - No new armor sets, no omni gems this wave.
 
@@ -171,7 +171,7 @@ item, not the current `/se soulmode` command).
 
 ## F. Heroic  *(own config file)*
 
-- **Percent multipliers** (EA shape) — reshape `HeroicStat` from flat to percent.
+- **Percent multipliers** (Cosmic Enchants-style shape) — reshape `HeroicStat` from flat to percent.
   - **Conflict with ADR-0012 (fully-additive fold):** resolve by making heroic a
     **separate bounded multiplicative stage applied after** the additive enchant/
     set/crystal fold — outgoing `×(1 + Σheroic_damage%)`, incoming
@@ -186,7 +186,7 @@ item, not the current `/se soulmode` command).
 - **On success** (drag-drop onto a piece): change the armor **material** (configured
   per slot/type in heroic config) + add **"heroic piece" lore**.
 - **Reduction scope** *(default — confirm on review)*: entity/PvP damage only,
-  configurable to all-causes (EA applied to all causes, flagged as a likely bug).
+  configurable to all-causes (a Cosmic Enchants-style original applied to all causes, flagged as a likely bug).
 
 ---
 
@@ -240,7 +240,7 @@ just the canonical use of this; the fields are general.)
 
 ## J. Commands — "the StarEnchants way"
 
-Unified under **`/se`** subcommands (not EE/EA/AE's separate root commands), one
+Unified under **`/se`** subcommands (not the Cosmic Enchants-style separate root commands), one
 `starenchants.admin` permission node, live Bukkit tab-completion (`@enchants`,
 `@tiers`, `@items`, `@crystals`, `@sets`, `@players`, `@dusts`). Implement all
 give-commands as SE subcommands:
@@ -343,7 +343,7 @@ EliteBosses/EliteMobs is intentionally out of scope (no usable public API; the u
 
 No custom crafting, no crates/lootboxes, no GKits, no web marketplace/panel, no
 StatTrak, no loot/mob-drop population, no custom-weapon item system. Do not
-replicate EE/EA bugs (multiplicative enchant stacking — except the deliberate
+replicate Cosmic Enchants-style bugs (multiplicative enchant stacking — except the deliberate
 heroic stage §F; last-of-type crystal collapse; silent unknown-effect no-ops;
 fail-open conditions). No `/ee`+`/ea` aliases, no Splodgebox watermark.
 

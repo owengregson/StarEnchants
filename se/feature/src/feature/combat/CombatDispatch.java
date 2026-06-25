@@ -118,7 +118,7 @@ public final class CombatDispatch {
 
     /**
      * Full combat dispatch: distinct BOW/TRIDENT attacker triggers + soul binder + economy. A bow-arrow
-     * hit fires {@code bowTriggerId} and a thrown-trident hit fires {@code tridentTriggerId} (the EE model
+     * hit fires {@code bowTriggerId} and a thrown-trident hit fires {@code tridentTriggerId} (the Cosmic Enchants-style model
      * where ATTACK is melee-only); either id at {@code -1} falls those hits back to {@code attackTriggerId}.
      */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,

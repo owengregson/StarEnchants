@@ -1,7 +1,7 @@
 # Glossary
 
-One name per concept, used identically in code, config, and docs. Pulled from
-the merged EliteEnchantments + EliteArmor domain.
+One name per concept, used identically in code, config, and docs. Drawn from
+the combined custom-enchant + armor-set domain.
 
 ## Engine
 

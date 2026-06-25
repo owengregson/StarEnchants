@@ -7,7 +7,7 @@ description: Use when any StarEnchants code touches entities, blocks, worlds, in
 
 Folia shards the world into independently-ticked regions, each on its own
 thread. There is NO single main thread. Code that assumes one (most Bukkit
-plugins, including EE/EA) throws `IllegalStateException: cannot access ... from
+plugins, including legacy enchant/armor plugins) throws `IllegalStateException: cannot access ... from
 the wrong region/thread` or silently corrupts state on Folia. StarEnchants
 must be correct on Paper AND Folia from one jar.
 

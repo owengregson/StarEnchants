@@ -28,7 +28,7 @@ public interface EffectKind {
 
     /**
      * Tear down this effect for a HELD/PASSIVE source that just became inactive — the deactivation half
-     * of the EE start/stop lifecycle (docs/v3-directives.md §B, ADR-0022). The default is a no-op, because
+     * of the Cosmic Enchants-style start/stop lifecycle (docs/v3-directives.md §B, ADR-0022). The default is a no-op, because
      * most kinds are one-shot and leave no maintained state to undo (a {@code MESSAGE} on equip simply
      * does not un-send on unequip). A <em>maintained-buff</em> kind whose {@link #run} applies a persistent
      * state overrides this to emit the inverse intent — e.g. {@code POTION.stop} removes the potion it

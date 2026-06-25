@@ -20,7 +20,7 @@ import java.util.List;
  * <p>Two optional refinements (v3.1 §A): {@code filter} restricts the result set
  * ({@code ALL}/{@code PLAYERS}/{@code MONSTERS}/{@code MOBS}; default {@code ALL}) and
  * {@code limit} caps it to the nearest N targets ({@code 0} = unlimited). Together they
- * express AE-style area targeting like {@code @Aoe{r=6, filter=MONSTERS}} (a BUTCHER)
+ * express Cosmic Enchants-style area targeting like {@code @Aoe{r=6, filter=MONSTERS}} (a BUTCHER)
  * without a bespoke selector per case.
  */
 public final class AoeSelector implements SelectorKind {

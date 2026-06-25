@@ -5,7 +5,7 @@ package engine.trigger;
  * (docs/architecture.md §3.7). A {@code TriggerKind} declares its DSL {@code name}
  * (interned to a canonical id by the {@link TriggerRegistry}), its combat
  * {@link Direction} (which pre-flattened {@code WornState} array it feeds), and the
- * three pieces of routing metadata EE never modelled explicitly — fixing the bug where
+ * three pieces of routing metadata a Cosmic Enchants-style plugin never modelled explicitly — fixing the bug where
  * a helmet enchant could fire on {@code ATTACK} (§1.4 "applies is NOT re-checked").
  *
  * <p>The Bukkit event binding (translating an event into an {@code Activation}) is a

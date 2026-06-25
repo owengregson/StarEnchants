@@ -16,7 +16,7 @@ import platform.caps.Capabilities;
  * into one book of the next level. A {@link FormMenu} — the inputs are real item slots; an unconsumed input
  * is returned on close.
  *
- * <p>In-scope economy only: a mint of an existing item type via {@link CarrierService#combineBooks}. EE's
+ * <p>In-scope economy only: a mint of an existing item type via {@link CarrierService#combineBooks}. A Cosmic Enchants-style
  * magic-dust rarity-tinkering (combine two dusts → a next-rarity dust) is NOT built — ADR-0019 excludes it
  * (no data model).
  */

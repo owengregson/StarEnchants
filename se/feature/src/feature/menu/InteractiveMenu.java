@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
  *
  * <p>The listener still locks every NON-input slot (buttons + filler) and cancels the slot-crossing actions
  * (shift-click, number-key, drag, …) so an item can only ever land in a declared input slot or the player's
- * own inventory — the dupe/loss guard EE's framework lacked.
+ * own inventory — the dupe/loss guard a Cosmic Enchants-style framework lacked.
  */
 public interface InteractiveMenu {
 

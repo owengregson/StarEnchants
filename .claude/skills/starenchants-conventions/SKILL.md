@@ -5,14 +5,14 @@ description: Use when writing or reviewing ANY code in the StarEnchants repo —
 
 # StarEnchants design principles
 
-StarEnchants merges EliteEnchantments + EliteArmor into ONE plugin with a
+StarEnchants combines custom enchants and armor sets into ONE plugin with a
 single shared engine, cross-compatible Paper 1.17.1 → 26.1.x + Folia. It is a
 deliberately large codebase — optimize for clarity and locality so any one
 feature is small, self-describing, and independently testable.
 
 > **This architecture is StarEnchants' own.** It is NOT derived from the
-> construction of EliteEnchantments, AdvancedEnchantments, or any other plugin.
-> Those decompilations tell us WHAT features exist and HOW they must interact —
+> construction of any existing enchantment plugin. Analysis of a Cosmic
+> Enchants-style reference tells us WHAT features exist and HOW they must interact —
 > never how to build them. The one external practice we deliberately adopt is
 > **real-server (Paper + Folia) integration testing** (`live-server-testing`,
 > `matrix-gate`). When the approved design lands, the concrete module/package
@@ -68,7 +68,7 @@ feature by copying one sibling. This is what keeps a huge codebase legible.
   resolve through boot-time resolvers (`cross-version-item-api`); never
   hard-reference a constant that was renamed in the range.
 - **Modernize freely, but make divergences opt-in & documented.** Best
-  behavior by default; gameplay-changing differences from EE/EA are toggles.
+  behavior by default; gameplay-changing differences from Cosmic Enchants-style behavior are toggles.
 
 ## Style
 

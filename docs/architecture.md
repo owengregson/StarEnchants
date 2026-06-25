@@ -3,14 +3,14 @@
 > **Status: APPROVED 2026-06-15** (ADR-0011; user decisions in §13, ADR-0012, ADR-0013). This
 > is the single architecture StarEnchants is built to. Derived from a multi-lens design
 > workshop (proposals → adversarial critiques → synthesis) — deliberately **not** a
-> StrikeSync / EliteEnchantments / AdvancedEnchantments mirror. Where a proposal's idea
+> packet/anticheat-reference or Cosmic Enchants-style mirror. Where a proposal's idea
 > survived a critique it is adopted; where a critic could detonate it, it is discarded and the
 > replacement is named.
 >
 > Bracketed tags (`[ax]` author-experience, `[do]` data-oriented, `[hf]` hotpath-folia,
 > `[bc]` bounded-context, `[cp]` compiled-program, `[crit:*]` the three critiques) cite the
-> design-workshop proposals/critiques, kept locally under `deobf/analysis/design/` (gitignored).
-> This document is self-contained for implementation.
+> design-workshop proposals/critiques, kept locally under `deobf/analysis/design/` (the local
+> analysis workspace, gitignored). This document is self-contained for implementation.
 
 ---
 
@@ -40,7 +40,7 @@ is a small local change.
 
 ## 1. What we keep from the mirror, and where we DIVERGE
 
-The prior `../ARCHITECTURE.md` ("mirror StrikeSync": `api / common / core / compat-* / tester`)
+The prior `../ARCHITECTURE.md` (the packet/anticheat-reference mirror: `api / common / core / compat-* / tester`)
 is **correct about many mechanisms** and **wrong about the organizing spine**. The user's worry
 — "are we building on an inferior borrowed architecture?" — is answered by being explicit.
 
@@ -55,7 +55,7 @@ is **correct about many mechanisms** and **wrong about the organizing spine**. T
 - **Immutable atomic config snapshot** swapped by reference.
 - **First-party `ProtectionProvider` / `EconomyProvider` SPIs**; drop the brittle bundled bridges.
 - **A live Paper + Folia integration matrix** as a build gate (the one external practice we adopt).
-- **One Paper-native listener set** replacing EE's `EffectListeners` + EA's reflective `registerEvent`.
+- **One Paper-native listener set** replacing a Cosmic Enchants-style per-effect-listener + reflective event-registration scheme.
 
 ### 1.2 Where this design DIVERGES from the mirror (and why each is better for THIS plugin)
 
@@ -144,9 +144,9 @@ starenchants/
 ├── se-engine/         The RUNTIME. Bukkit-aware, FLOOR API only. Version-agnostic.
 │   ├── systems/       Stateless SYSTEMS, one per trigger family (Combat, Break, Interact,
 │   │                  Lifecycle, Passive, Repeat). Walk abilities; do NOT know effects (§3).
-│   ├── pipeline/      The fixed gate sequence (EE order preserved) as kernel-internal stages
+│   ├── pipeline/      The fixed gate sequence (Cosmic Enchants-style order preserved) as kernel-internal stages
 │   │                  consuming abilities; produces a dispatch plan (§3.5).
-│   ├── effect/        EffectKind impls (~115 merged EE+EA+AE). Stateless; declare ParamSpec +
+│   ├── effect/        EffectKind impls (~115 merged Cosmic Enchants-style). Stateless; declare ParamSpec +
 │   │                  Affinity; emit INTENTS into the Sink — never touch entities directly.
 │   ├── condition/     ConditionFn impls + the variable vocabulary (FactBuffer slots) (§3.4).
 │   ├── selector/      SelectorKind impls (Self/Victim/Attacker/Aoe/Nearest/Trench/Vein/...).
@@ -227,7 +227,7 @@ starenchants/
 
 ### 3.1 No per-effect listeners — a fixed set of stateless systems
 
-EE registers ~65 effect classes as `Listener`s; EA reflects into `HandlerList.allLists`. Both are
+Cosmic Enchants-style engines register many effect classes as `Listener`s, or reflect into `HandlerList.allLists`. Both are
 deleted (`[do]`). **One Paper-native listener set** (`se-engine/trigger`) translates each Bukkit
 event into an `Activation` and hands it to exactly one **System** (Combat/Break/Interact/
 Lifecycle/Passive/Repeat). A system's entire job:
@@ -256,10 +256,10 @@ virtual `run(typed ctx, sink)` per effect is plenty fast (`[crit:perf]`: its per
 *smaller* than the IR's per-op affinity-check + `HANDLERS[ordinal]` constant) and a stack trace points
 at `DamageEffect.run`, not an interpreter loop.
 
-### 3.3 The activation pipeline (EE gate order preserved, compiled checks)
+### 3.3 The activation pipeline (Cosmic Enchants-style gate order preserved, compiled checks)
 
-The EE gate order (`CATALOG §1.5`) is a correctness contract and is preserved **exactly**, identical
-for every source (this is what prevents the EE-path/EA-path drift that broke the originals). Each gate
+The Cosmic Enchants-style gate order (`CATALOG §1.5`) is a correctness contract and is preserved **exactly**, identical
+for every source (this is what prevents the per-source path drift that broke the originals). Each gate
 is a compiled check, not a string op:
 
 ```
@@ -286,7 +286,7 @@ bypass) = "start the sequence at gate K" (`[cp]` idea, allocation-free).
 
 The expression engine (`se-schema/grammar` → AST; `se-compile` validates against the variable
 vocabulary) yields a **flow + chance-delta** result (`STOP / FORCE / CONTINUE / ALLOW / ±chanceΔ`) —
-one compiled condition both *gates* and *tunes chance* (`AE-DELTA`). Live facts live in a
+one compiled condition both *gates* and *tunes chance* (the Cosmic Enchants-style chance-delta). Live facts live in a
 **thread-local reusable `FactBuffer` of primitives** (`[do]`; the *safe* version of pooling that
 `[crit:maint]` endorsed): a flat struct (`actorHealth`, `targetHealth`, `damage`, `combo`, a `long`
 flag bitset for `is_sneaking/blocking/flying`) populated **lazily, once per activation**, read by both
@@ -347,7 +347,7 @@ enum Affinity { CONTEXT_LOCAL, TARGET_ENTITY, REGION, AOE, GLOBAL, ASYNC }
   anything deferred (WAIT, cross-region) captures the primitives it needs into an immutable record, so
   a pooled intent is never aliased after return.
 - **WAIT = deferred-intent batches** flushed on the region/entity timer (`[do]`), **not** a continuation
-  over a pooled Frame (`[cp]`, rejected by both critiques). Cumulative WAIT (fixing EE's overwrite bug)
+  over a pooled Frame (`[cp]`, rejected by both critiques). Cumulative WAIT (fixing a Cosmic Enchants-style overwrite bug)
   is computed at compile time into `waitTicks`.
 - **Honest about the DEFENSE side**: defense effects that mutate the victim (heal-on-hit, dodge-cancel,
   warp-behind-attacker) are `TARGET_ENTITY` and **do** cost one hop on Folia (we do not oversell "zero
@@ -357,7 +357,7 @@ enum Affinity { CONTEXT_LOCAL, TARGET_ENTITY, REGION, AOE, GLOBAL, ASYNC }
 ### 3.7 Triggers: bitmask routing, pluggable kinds
 
 One listener set maps each Bukkit event → a `triggerId`; an ability's `triggerMask` is a bitset, so
-"does this ability fire on this trigger" is `(mask & bit) != 0`. New triggers (AE's `RepeatingTrigger`,
+"does this ability fire on this trigger" is `(mask & bit) != 0`. New triggers (a Cosmic Enchants-style `RepeatingTrigger`,
 shield-block, jump, granular fishing) are a `TriggerKind` class declaring the Bukkit event(s) it binds,
 how to populate the `Activation`, and its `uses-held / scans-equipment / needs-target` metadata —
 **no router edit, no other trigger touched.** `RepeatingTrigger` is an entity-scheduled task seeded
@@ -409,7 +409,7 @@ Snapshot, not on the item — the item names *which* defs it has, by **stable st
 |---|---|---|
 | enchants | list of `(stableEnchantKey, level)` | **stable string key**, reorder-proof (§5.3); the merged channel |
 | slots / added / ignore | packed ints | capacity system; computed + persisted (fixes throwaway-copy bug) |
-| crystals | **list** of stable crystal keys | a LIST (fixes EA last-of-type collapse); each = a first-class source |
+| crystals | **list** of stable crystal keys | a LIST (fixes a Cosmic Enchants-style last-of-type collapse); each = a first-class source |
 | set / weapon set | stable set key | was `armor-value`/`weapon-value` |
 | omni / heroic | flags + heroic flat stats | omni = wildcard (§6.6); heroic = a source (§6) |
 | souls (on gem) | count + soul UUID | tracked by **PDC UUID**, not hotbar slot (fixes reorg bug) |
@@ -456,7 +456,7 @@ reload** — explicitly **NOT** ItemMeta identity, which `[crit:perf]` §6 prove
 (meta is copy-on-write per ItemStack) and can alias (a latent correctness bug shared by `[ax]`/`[cp]`/
 `[bc]`). Use a **full (non-truncated) hash or a write-generation counter** so a collision can never
 serve a stale view (`[crit:correct]` watch #4). In combat the same helmet hit 20×/sec decodes **once**;
-every later read is a hash lookup. This replaces EE's `new NBTItem(item)` clone + Gson parse per slot
+every later read is a hash lookup. This replaces a Cosmic Enchants-style `new NBTItem(item)` clone + Gson parse per slot
 per hit — the single biggest CPU win.
 
 ### 5.3 The stable-key ↔ dense-id indirection (forward-compatibility)
@@ -471,15 +471,15 @@ items forward-compatible across the 9-year version range.
 
 The data-oriented discipline: **mutable per-player state is in named, enumerable stores**, not scattered
 in effect objects (`[do]`, `[crit:maint]` graft #7). Every store is concurrent, UUID-keyed, TTL-evicting,
-and cleared on quit + `onDisable` (fixing the EE/EA task/state leaks — neither original tears anything
+and cleared on quit + `onDisable` (fixing the Cosmic Enchants-style task/state leaks — neither original tears anything
 down).
 
 | Store | Holds | Replaces |
 |---|---|---|
-| `CooldownStore` | packed `long` key → expiry tick | `Cooldown.cooldowns`, EA `Cooldowns` table |
+| `CooldownStore` | packed `long` key → expiry tick | Cosmic Enchants-style scattered cooldown maps/tables |
 | `WornStateStore` | uuid → immutable `WornState` (§5.5) | `armorSetApplied`, per-hit full-set rescans |
 | `SoulModeStore` | uuid → active gem **by PDC UUID** | `soulPlayers` (slot-index, fragile) |
-| `SuppressionStore` | uuid → interned-id suppression sets w/ TTL | EA cross-plugin `EnchantActivationEvent` race |
+| `SuppressionStore` | uuid → interned-id suppression sets w/ TTL | a Cosmic Enchants-style cross-plugin `EnchantActivationEvent` race |
 | `ProjectileStore` | projectile id → homing/source data | per-arrow `AutoLockTask` (one timer per arrow) |
 | `ChargeStore` | (uuid, ability) → stacking state | `Rage` per-effect maps |
 | `RepeatStore` | uuid → repeat task handles | (new, for RepeatingTrigger / soul drain) |
@@ -553,20 +553,20 @@ exactly and **role-correctly**: `DISABLE_ENCHANT` keys the **defender** (`equals
 `DISABLE_GROUP` keys the **activator** (`equals` → interned) — the lowering records, per DISABLE op,
 whether it reads actor- or target-suppression (`[crit:correct]` non-negotiable (d), the under-spec it
 docked `[do]` for). Because crystals are first-class `Ability` sources, **crystal-`DISABLE_ENCHANT`
-finally works** (dead in EA). A cancellable `PreActivate` API event remains for add-on interception.
+finally works** (dead in a Cosmic Enchants-style original). A cancellable `PreActivate` API event remains for add-on interception.
 
 ### 6.3 Souls → single ledger authority
 
 `SoulLedger` (in `se-engine/interact`) is the **only** code that debits souls. The pipeline calls it at
-gate 10, after `PreActivate` (EE order preserved). It reads the active gem via **PDC UUID** (not hotbar
+gate 10, after `PreActivate` (Cosmic Enchants-style order preserved). It reads the active gem via **PDC UUID** (not hotbar
 slot), debits atomically (one authority ⇒ no double-spend across region threads), and re-renders the gem
-lore. `DRAIN_SOULS_CONSTANT` (dead in EE) is a `RepeatingTrigger` ability via `RepeatStore`. Soul
+lore. `DRAIN_SOULS_CONSTANT` (dead in a Cosmic Enchants-style original) is a `RepeatingTrigger` ability via `RepeatStore`. Soul
 mutation on *another* player is `TARGET_ENTITY` affinity → routed to that player's thread.
 
 ### 6.4 Slots → single ledger authority, persisted
 
 `SlotLedger` owns `max = base + addedSlots`, `used = enchant count`, `remaining = max − used`, computed
-purely from `ItemView` and **persisted in PDC** (fixes EE's throwaway-copy non-persistence; one unified
+purely from `ItemView` and **persisted in PDC** (fixes a Cosmic Enchants-style throwaway-copy non-persistence; one unified
 default removes the 9-vs-10 split). Applying an enchant debits at *apply time* (a cold-path feature
 action, not the hot path); transmog/sort use `keepSlots`.
 
@@ -586,10 +586,10 @@ per equip change: omni pieces count as a wildcard toward **every** partially-wor
 `activeSets` may contain several sets simultaneously (§5.5). This is a **synchronous read-time
 computation** — explicitly **not** the federation's async `SetSlotContribution` message between contexts,
 which `[crit:correct]` fatal #3 showed introduces an ordering hazard ("did the contribution arrive before
-the resolver ran?") around the catalog's subtlest rule. One resolver, one cache, one truth (fixes EA's
+the resolver ran?") around the catalog's subtlest rule. One resolver, one cache, one truth (fixes a Cosmic Enchants-style
 duplicated, off-by-one `isWearingFullSet`/`getFullSets`).
 
-### 6.7 EE-on-EA enchant stamping → synchronous, one write path
+### 6.7 Enchant-on-armor stamping → synchronous, one write path
 
 When `se-feature/armor` builds an item with `custom-enchants:`, it writes via the shared
 `ItemDataService` **synchronously, in the build path** (`[crit:correct]` fatal #3 — never a fire-and-forget
@@ -667,9 +667,9 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
 - **Interning:** every name (enchant/group/world/material/potion/sound) is a dense int at runtime;
   stable string keys only at the PDC boundary.
 - **Cooldowns/repeaters:** O(1) primitive `long`→tick maps with TTL eviction (bounded, not the unbounded
-  HashMaps EE/EA leak).
+  HashMaps Cosmic Enchants-style engines leak).
 - **`PreActivate`** fired only if a listener is registered (`[hf]`); **`ThreadLocalRandom.current()` per
-  use** (`[ax]`, fixes EE's captured-TLR bug, Folia-safe).
+  use** (`[ax]`, fixes a Cosmic Enchants-style captured-TLR bug, Folia-safe).
 - **Enforcement is a gate, not a hope** (`[hf]`/`[do]`): ArchUnit/CI lint bans `Bukkit.getScheduler()`,
   `new NBTItem`, `ItemStack#clone`, `String#split`, regex compile, and YAML access inside `se-engine`
   hot-path packages; a JMH bench asserts ~0 steady-state allocation on the per-hit pipeline and a
@@ -695,8 +695,8 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
   victim facts captured at event entry on the firing region — never a live cross-region victim read.
 - **Capability probes** (`se-platform/caps`) gate `compat-folia`/`compat-modern` (Brigadier, profile
   heads, `BlockData` sends, trident/dispenser events). The floor build calls `Firework#detonate()`
-  directly (API since 1.19) instead of EE's `InstantFirework` NMS; `SkullCreator` NMS → `compat-modern`
-  `PlayerProfile`/`setOwnerProfile`. EA's reflective `registerEvent` is **deleted** in favor of the one
+  directly (API since 1.19) instead of a Cosmic Enchants-style `InstantFirework` NMS; `SkullCreator` NMS → `compat-modern`
+  `PlayerProfile`/`setOwnerProfile`. A Cosmic Enchants-style reflective `registerEvent` is **deleted** in favor of the one
   Paper-native listener set.
 - **Verified, never assumed:** `se-tester` boots real Paper AND Folia across the matrix (1.17.1 floor,
   both sides of the 1.20.5 flip at 1.20.6, 1.21.x, the 26.1.x ceiling; Folia from ~1.19.4+). A green Paper
@@ -708,14 +708,14 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
 
 - **One unified config surface:** a global `config.yml` + modular per-feature YAML (enchants, groups,
   targets, armor sets, crystals, crates, crafting, menus, items). Group order = rarity (LinkedHashMap
-  insertion order — a good authoring model). Target `parents` resolve **recursively** (fixes EE's
+  insertion order — a good authoring model). Target `parents` resolve **recursively** (fixes a Cosmic Enchants-style
   single-level). YAML is exhaustively commented (conventions style).
 - **The DSL is a typed language** with one `ParamSpec` per kind used four ways (validate / complete /
   `/se docs` / migrate) (`[ax]`, the #1 maintainability graft of both critiques). Diagnostics carry
   `Source(file,line,col)` from the SnakeYAML loader through compile, surfaced op-visibly (console at load,
   in-game summary on `/se reload`, queryable via `/se problems`). Runtime failures reference the same
   `sourceMap` and **auto-quarantine the misbehaving ability** (disable it, log it) instead of aborting the
-  whole activation (fixes EE's "one bad arg kills the enchant").
+  whole activation (fixes a Cosmic Enchants-style "one bad arg kills the enchant").
 - **Transactional, all-or-nothing reload** (`[ax]`, adopt verbatim): `/se reload` builds a new Snapshot
   off-thread; if there are fatal diagnostics, **the old Snapshot stays live and nothing changes** — a
   broken edit never takes the server down. If clean, swap the `AtomicReference` on the global thread.
@@ -785,7 +785,7 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
    config reorders losslessly; the cache is the only collision-safe one in the field.
 
 Each of these is *specific to a huge live content library on Paper+Folia*; none would matter for a
-packet/anticheat plugin — which is precisely why mirroring StrikeSync's spine was the wrong default.
+packet/anticheat plugin — which is precisely why mirroring that reference plugin's spine was the wrong default.
 
 ---
 
@@ -803,8 +803,8 @@ packet/anticheat plugin — which is precisely why mirroring StrikeSync's spine 
    forced sunset.
 5. **PDC format = compact, stable-string-keyed, inspectable via `/se item dump`** (no separate debug-JSON
    mirror).
-6. **Commands = `/se` only** (alias `/star`), merging the full EE+EA surface with `effects | conditions |
-   triggers | selectors | info | problems | reload | migrate | item dump` subcommands; the legacy `/ee`
-   and `/ea` roots are **dropped** (ADR-0013).
-7. **Scope:** AE marquee subsystems (GKits, StatTrak, loot/mob-drop tables) and the web panel are
+6. **Commands = `/se` only** (alias `/star`), merging the full enchant + armor command surface with `effects | conditions |
+   triggers | selectors | info | problems | reload | migrate | item dump` subcommands; the legacy per-feature
+   command roots are **dropped** (ADR-0013).
+7. **Scope:** Cosmic Enchants-style marquee subsystems (GKits, StatTrak, loot/mob-drop tables) and the web panel are
    **excluded**; they remain possible future add-ons via the `se-api` SPI.

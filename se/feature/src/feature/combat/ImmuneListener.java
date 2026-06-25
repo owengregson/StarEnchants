@@ -17,7 +17,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
  * {@link ImmuneStore}, matching hits are cancelled. The immunity is armed by the effect through the
  * per-event sink; this reads it back on the SEPARATE future-damage events. Both handlers run on the
  * victim's own region thread, reading only the concurrent store by UUID — Folia-safe. A faithful port of
- * EE's Immune (SWORD/AXE by the damager's held weapon, PROJECTILE by cause, POTION by magic/poison/wither).
+ * a Cosmic Enchants-style Immune (SWORD/AXE by the damager's held weapon, PROJECTILE by cause, POTION by magic/poison/wither).
  */
 public final class ImmuneListener implements Listener {
 
