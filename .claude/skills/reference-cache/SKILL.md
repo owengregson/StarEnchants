@@ -29,8 +29,10 @@ PaperMC **Fill v3 API** (`fill.papermc.io/v3`); the legacy v2 API caps at 1.21.1
 scripts/fetch-reference.sh      # downloads + extracts the server jars (re-runnable)
 ```
 
-The docs markdown is cached separately. Both live under `reference/` (gitignored;
-large + third-party — never committed).
+The docs markdown is cached separately under `reference/docs/` and **is committed**
+(small, and handy to have the static references always available). The server **jars**
+under `reference/servers/` stay gitignored (large + third-party — never committed);
+re-fetch them locally with the script above.
 
 ## Using it
 
