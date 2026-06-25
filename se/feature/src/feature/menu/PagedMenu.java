@@ -11,11 +11,9 @@ import platform.caps.Capabilities;
 
 /**
  * The reusable base for a paginated list/browse menu (docs/v3-directives.md §K): it owns pagination, the
- * filler nav row, the prev/next/back/close buttons, title rendering + cross-version truncation, and the
- * Folia open-hop — a subclass supplies only the content, the icon for each item, and what a click does.
- * Both a flat catalog (the enchant menu) and a drill-down browser (tier → enchant → detail, built on the
- * holder's {@link MenuHolder#view()}/{@link MenuHolder#selection()} cursor) are expressed as overrides of
- * {@link #items}/{@link #icon}/{@link #onSelect} (+ optional {@link #titleFor}/{@link #showBack}/{@link #onBack}).
+ * filler nav row, the prev/next/back/close buttons, and title rendering. A subclass overrides
+ * {@link #items}/{@link #icon}/{@link #onSelect} (+ optional {@link #titleFor}/{@link #showBack}/{@link #onBack});
+ * a drill-down browser branches those on the holder's {@link MenuHolder#view()} cursor.
  *
  * @param <T> the content row type (an {@code EnchantDef}, {@code SetDef}, a reference entry, …)
  */
@@ -31,9 +29,9 @@ public abstract class PagedMenu<T> implements Menu {
     }
 
     /**
-     * Canonical form (the composition root): {@code menus} supplies the live {@code menus/} config; the
-     * effective layout is {@code defaultLayout} merged with this menu's {@code menus/<name>.yml} override
-     * (§L), re-resolved on every render so a {@code /se reload} re-lays-out the next open.
+     * Canonical form: the effective layout is {@code defaultLayout} merged with this menu's
+     * {@code menus/<name>.yml} override (§L), re-resolved on every render so a {@code /se reload} re-lays-out
+     * the next open.
      */
     protected PagedMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus) {
         this.name = Objects.requireNonNull(name, "name").toLowerCase(java.util.Locale.ROOT);
@@ -52,13 +50,11 @@ public abstract class PagedMenu<T> implements Menu {
         return layout.get();
     }
 
-    /** The content rows to page through for the holder's current view (drill-down menus branch on view()). */
+    /** The content rows to page through for the holder's current view. */
     protected abstract List<T> items(MenuHolder holder);
 
-    /** The icon for one content row; {@code holder} gives the per-open state (e.g. a current selection). */
     protected abstract ItemStack icon(MenuHolder holder, T item);
 
-    /** Handle a click on a content row (apply, drill in, grant, …). */
     protected abstract void onSelect(MenuClick click, T item);
 
     /** The base (page-suffix-free) title for the holder's current view; defaults to the layout title. */
@@ -66,19 +62,18 @@ public abstract class PagedMenu<T> implements Menu {
         return layout().titleTemplate();
     }
 
-    /** Whether a "back" button is shown for the holder's current view (drill-down menus enable it). */
     protected boolean showBack(MenuHolder holder) {
         return false;
     }
 
-    /** Handle a "back" click — default closes; a drill-down menu pops to its parent view and re-renders. */
+    /** Default closes; a drill-down menu pops to its parent view and re-renders. */
     protected void onBack(MenuClick click) {
         click.player().closeInventory();
     }
 
     @Override
     public void render(MenuHolder holder) {
-        MenuLayout layout = layout(); // resolve the live (config-merged) layout once for this render
+        MenuLayout layout = layout(); // resolve the live config-merged layout once per render
         List<T> items = items(holder);
         int perPage = layout.contentSlots();
         int pages = Paging.pageCount(items.size(), perPage);
@@ -110,7 +105,6 @@ public abstract class PagedMenu<T> implements Menu {
         bind(holder, layout.closeSlot(), navIcon("BARRIER", "&cClose"), click -> click.player().closeInventory());
     }
 
-    /** Fill the reserved bottom navigation row with decorative filler panes (config material, by name). */
     private void fillNavRow(MenuHolder holder, MenuLayout layout) {
         Material filler = ItemFactory.material(layout.fillerMaterial(), Material.AIR);
         if (filler == Material.AIR) {
@@ -135,8 +129,7 @@ public abstract class PagedMenu<T> implements Menu {
 
     /**
      * The first of {@code names} that exists on this server (resolved by name — cross-version-safe; never a
-     * hard {@code Material} constant), or {@code STONE} as a last resort. The reusable icon-material idiom for
-     * a menu whose button material is a fixed preference list rather than a config token.
+     * hard {@code Material} constant), or {@code STONE} as a last resort.
      */
     protected static Material material(String... names) {
         for (String name : names) {

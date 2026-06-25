@@ -1,10 +1,9 @@
 package engine.condition;
 
 /**
- * The control-flow outcome of evaluating a compiled condition at gate 7 of the
- * activation pipeline (docs/architecture.md §3.3, §3.4). One condition both gates and
- * tunes the chance roll, so its result is a {@code Flow} plus a chance delta (see
- * {@link ConditionResult}).
+ * The control-flow outcome of a compiled condition at the pipeline's condition gate (docs/architecture.md
+ * §3.3). One condition both gates and tunes the chance roll, so its result pairs a {@code Flow} with a
+ * chance delta (see {@link ConditionResult}).
  */
 public enum Flow {
 

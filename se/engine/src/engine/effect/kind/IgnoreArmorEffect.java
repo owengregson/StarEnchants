@@ -7,10 +7,9 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 
 /**
- * {@code IGNORE_ARMOR} — make the triggering hit bypass the victim's armor (and enchant-protection) damage
- * reduction (docs/v3-directives.md § combat-flags). Paramless. The combat dispatcher honours it by zeroing
- * the event's ARMOR/MAGIC damage modifiers after the fold (the reduction is the server's, not ours). Inert
- * on a non-combat trigger. {@link Affinity#CONTEXT_LOCAL}: feeds back into the firing event, like {@code CANCEL}.
+ * {@code IGNORE_ARMOR} — make the triggering hit bypass the victim's armor + enchant-protection reduction
+ * (§ combat-flags). An inline read-back like {@code CANCEL}: the combat dispatcher honours it by zeroing the
+ * event's ARMOR/MAGIC modifiers after the fold (the reduction is the server's, not ours). Inert off combat.
  */
 public final class IgnoreArmorEffect implements EffectKind {
 

@@ -40,10 +40,8 @@ import platform.item.ItemGroups;
 import tester.harness.Harness;
 
 /**
- * Live checks for the §I economy items that mutate real {@link ItemStack}s through the server's item
- * factory: slot expander, black scroll, randomizer, unopened book, transmog scroll. No fake player
- * needed (gear/book mutations); the holy/nametag player flows live in {@link ScrollPlayerSuite}.
- * Runs on the global thread with deterministic rolls.
+ * §I economy items over real {@link ItemStack}s: slot expander, black scroll, randomizer, unopened book,
+ * transmog. No fake player needed; the holy/nametag player flows live in {@link ScrollPlayerSuite}.
  */
 public final class EconomyItemsSuite implements Harness.Scenario {
 

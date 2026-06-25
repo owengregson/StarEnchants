@@ -16,32 +16,21 @@ import platform.sched.Scheduling;
 import schema.diag.Diagnostic;
 
 /**
- * The transactional content reload (docs/architecture.md §10; ADR-0014). It builds the next
- * {@link Library} OFF the main thread (the {@link LibraryLoader} is pure — file I/O + parse + compile,
- * touching only frozen Bukkit registries, never regionized state), then on the global thread swaps the
- * {@link ContentHolder} by reference ONLY when the build produced no blocking diagnostic. A fatal edit
- * keeps the old content live, so a broken reload never takes the server down; {@link #dryRun} reports
- * without ever swapping.
+ * The transactional content reload (docs/architecture.md §10; ADR-0014). Builds the next {@link Library}
+ * OFF the main thread (the {@link LibraryLoader} is pure — file I/O + parse + compile, touching only
+ * frozen Bukkit registries), then swaps the {@link ContentHolder} by reference on the global thread ONLY
+ * when the build is clean, so a broken reload keeps the old content live; {@link #dryRun} never swaps.
  *
- * <p><strong>The compiler comes from an injected factory.</strong> Per-snapshot interners
- * (worlds/triggers/suppress/cooldown-scopes) are rebuilt fresh each compile, so they stay a clean
- * function of that build's content. The bootstrap supplies a CONSTANT compiler on purpose: its handle
- * resolver is the one {@code RuntimeHandles} pairs with, so a token interned at compile resolves back to
- * its object at runtime (§9) — a fresh resolver per build would break that round-trip. Single-flight
- * (below) makes reuse safe: only the append-only handle interner is shared, never mutated concurrently.
- * (A fresh-compiler-per-call factory is also valid where runtime handle resolution is not needed.)
+ * <p>The bootstrap supplies a CONSTANT compiler on purpose: its handle resolver is the one
+ * {@code RuntimeHandles} pairs with, so a token interned at compile resolves back to its object at runtime
+ * (§9) — a fresh resolver per build would break that round-trip. Single-flight makes reuse safe; only the
+ * append-only handle interner is shared. (A fresh-compiler-per-call factory is also valid where runtime
+ * handle resolution is not needed.)
  *
- * <p><strong>Single-flight.</strong> Only one reload runs at a time; a concurrent {@code /se reload}
- * is rejected with {@link ReloadResult#busy()}, so two builds can never race or publish out of order.
- * Each build stamps the next generation, so a successful reload always publishes a strictly higher
- * generation than the last (every {@code ItemView}/{@code WornState} keyed by it sees a fresh value);
- * a dry-run or a rejected build also consumes a generation number — harmless, since only distinctness
- * (not contiguity) matters.
- *
- * <p>The initial load is done by the caller via {@link LibraryLoader} (generation 0) to seed the
- * holder; this reloader owns generations 1+. An optional {@code onPublished} hook fires on the global
- * thread after a successful swap — the seam a later cycle uses to invalidate gen-keyed runtime caches
- * (e.g. {@code ItemViewCache.reload}) once the engine is wired to the holder.
+ * <p>Single-flight: one reload at a time, a concurrent one rejected with {@link ReloadResult#busy()}, so
+ * builds never race or publish out of order. Each build stamps the next generation; only distinctness, not
+ * contiguity, matters, so a dry-run/rejected build harmlessly consumes one. {@code onPublished} fires on
+ * the global thread after a successful swap — the seam for invalidating gen-keyed runtime caches.
  */
 public final class ContentReloader {
 
@@ -64,10 +53,8 @@ public final class ContentReloader {
     }
 
     /**
-     * As above, plus the parallel {@link ReloadStep config sources} (items/ , config.yml, lang.yml, menus/)
-     * that reload in the SAME transaction as the content Library (§L). Each step builds off-thread; the
-     * transaction commits — swapping content AND every source — only when the content build AND every step
-     * are clean, so a broken config keeps the previous state of everything (true all-or-nothing).
+     * As above, plus parallel {@link ReloadStep config sources} reloaded in the SAME transaction as the
+     * Library (§L): the commit swaps content AND every source only when all are clean (true all-or-nothing).
      */
     public ContentReloader(ContentHolder holder, Supplier<Compiler> compilerFactory,
                            Path contentRoot, int initialGeneration, Consumer<Library> onPublished,

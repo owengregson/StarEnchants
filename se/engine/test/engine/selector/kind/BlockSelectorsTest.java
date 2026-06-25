@@ -13,11 +13,9 @@ import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for the §A block/location selectors and their shared facing/plane math. The pure selectors
- * (Here/Add/EyeHeight) and the delegating ones (Block/BlockInDistance) resolve against a mock
- * {@link SelectorCtx}; the dominant-axis + perpendicular-plane math is pinned directly. The mining-shape
- * selectors (Trench/Tunnel/Vein) snap to the block grid + read the world, so their end-to-end behaviour is
- * exercised live; the SHAPE they compute is pinned here through {@link BlockShapes}.
+ * The block/location selectors and their facing/plane math. Pure (Here/Add/EyeHeight) and delegating
+ * (Block/BlockInDistance) selectors resolve against a mock {@link SelectorCtx}; the mining-shape selectors
+ * (Trench/Tunnel/Vein) read the world live, so only the SHAPE they compute is pinned here via {@link BlockShapes}.
  */
 class BlockSelectorsTest {
 

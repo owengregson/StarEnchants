@@ -12,13 +12,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host SUPPRESS test: one suppress per resolved PLAYER target with the erased (scopeKind, keyId, duration) ints; non-players skipped. */
 class SuppressEffectTest {
 
     @Test
     void suppressesEachPlayerTarget() {
         Player p = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // skipped, not a player
+        LivingEntity mob = mock(LivingEntity.class);
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.integer("scope")).thenReturn(1); // GROUP
         when(ctx.integer("key")).thenReturn(7);    // interned cooldown-scope id

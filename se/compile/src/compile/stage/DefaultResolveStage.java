@@ -17,9 +17,8 @@ import java.util.OptionalInt;
 
 /**
  * The default {@link ResolveStage}: resolves each effect's {@code HANDLE}-typed params from authored
- * tokens to interned ids via the injected {@link PlatformResolvers}, rewriting {@link Args} in place
- * (docs/architecture.md §9). Injection keeps {@code se-compile} Bukkit-free — production wires
- * {@code se-platform}'s resolvers, tests a fake.
+ * tokens to interned ids via the injected {@link PlatformResolvers} (docs/architecture.md §9). Injection
+ * keeps {@code se-compile} Bukkit-free — production wires {@code se-platform}'s resolvers, tests a fake.
  */
 public final class DefaultResolveStage implements ResolveStage {
 

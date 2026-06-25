@@ -25,21 +25,14 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Live checks for §C combat-flag primitives carrying version/Folia/real-entity risk beyond their unit
- * coverage (docs/v3-directives.md §C):
- *
+ * §C combat-flag primitives with version/Folia/real-entity risk beyond their unit coverage:
  * <ul>
- *   <li><strong>KNOCKBACK_CONTROL</strong> — capability-probed version split; asserts
- *       {@link KnockbackListener#register} picks modern ({@code EntityKnockbackEvent}, 1.20.6+) vs legacy
- *       and that the reflective hook's accessors exist (the unit test compiles against the floor only).</li>
- *   <li><strong>GUARD</strong> — {@code Sink.guard} spawns a guardian and {@code setTarget}s the attacker.
- *       Iron golem so the guard survives any difficulty (a hostile mob is culled on peaceful).</li>
- *   <li><strong>KEEP_ON_DEATH</strong> — {@code Sink.keepOnDeath} arms the per-player flag. No suite fires a
- *       real player death (fragile for a clientless fake player), so this pins the effect→sink→store half.</li>
+ *   <li>KNOCKBACK_CONTROL — version split; the modern hook's reflective accessors can't be reached by the
+ *       floor-compiled unit test, so prove them here.</li>
+ *   <li>GUARD — iron golem so it survives any difficulty (a hostile mob is culled on peaceful).</li>
+ *   <li>KEEP_ON_DEATH — pins the effect→sink→store half; no suite fires a real death (fragile for a
+ *       clientless fake player).</li>
  * </ul>
- *
- * Each assertion runs on its region/entity thread, so a wrong-thread access throws (caught as a failure,
- * not a stall) — the Folia-correctness check.
  */
 public final class CombatFlagsSuite implements Harness.Scenario {
 
@@ -65,7 +58,6 @@ public final class CombatFlagsSuite implements Harness.Scenario {
         RuntimeHandles handles = new RuntimeHandles(resolvers);
         Capabilities caps = Capabilities.probe(plugin.getServer());
 
-        // KNOCKBACK_CONTROL registration — server-wide, no entities needed.
         h.guard("combatflags.knockbackApplierRegisters", () -> {
             KnockbackListener.Path path =
                     KnockbackListener.register(plugin, new KnockbackControlStore(), () -> 0L);
@@ -80,7 +72,6 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                 throw new IllegalStateException("expected LEGACY knockback applier on " + caps + " got " + path);
             }
             if (modern) {
-                // Prove the modern hook's accessors exist here (the floor-compiled unit test can't reach them).
                 Class<?> event = Class.forName(KnockbackListener.MODERN_EVENT);
                 event.getMethod("getFinalKnockback");
                 event.getMethod("setFinalKnockback", Vector.class);
@@ -105,7 +96,6 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                     return;
                 }
                 Scheduling.onEntity(attacker, () -> {
-                    // KEEP_ON_DEATH: arm the per-player flag through the real sink.
                     KeepOnDeathStore keepStore = new KeepOnDeathStore();
                     DispatchSink keepSink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE,
                             new VarStore(), new SuppressionStore(), new KnockbackControlStore(), keepStore, () -> 0L);
@@ -119,7 +109,6 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                         }
                     });
 
-                    // GUARD: summon an iron-golem guard targeting the attacker.
                     Location guardAt = at.clone();
                     DispatchSink guardSink = new DispatchSink(handles);
                     guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard");

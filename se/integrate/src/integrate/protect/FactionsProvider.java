@@ -12,23 +12,17 @@ import org.bukkit.Location;
 import platform.protect.ProtectionProvider;
 
 /**
- * A {@link ProtectionProvider} bridging FactionsUUID territory access (docs/decisions/0027): an enchant
- * effect may act at {@code where} iff the {@code actor} is at least on truce terms with the faction owning
- * that land.
- *
- * <p>Bundled but SOFT: the FactionsUUID API ({@code com.massivecraft.factions}) is {@code compileOnly} and
- * {@link integrate.Integrations} only loads this class when Factions is present.
- *
- * <p>Wilderness and the system zones (safezone / warzone) allow everything; inside a player faction's claim
- * the actor is allowed only when its relation is at least {@code TRUCE} (member/ally/truce, not neutral or
- * enemy), mirroring how Factions gates building in foreign territory. Never throws — a hiccup degrades to allow.
+ * A {@link ProtectionProvider} bridging FactionsUUID territory access (docs/decisions/0027): wilderness and
+ * the system zones (safezone / warzone) allow everything; inside a player faction's claim the actor is allowed
+ * only when its relation is at least {@code TRUCE} (member/ally/truce). Never throws — a hiccup degrades to
+ * allow.
  */
 public final class FactionsProvider implements ProtectionProvider {
 
     private final System.Logger log = System.getLogger("StarEnchants.Factions");
     private final AtomicBoolean warned = new AtomicBoolean();
 
-    /** Factory used by the registrar — returns the SPI type so referencing it never eagerly loads this class. */
+    /** Registrar factory; returns the SPI type so referencing it never eagerly loads this class. */
     public static ProtectionProvider create() {
         return new FactionsProvider();
     }
@@ -39,9 +33,9 @@ public final class FactionsProvider implements ProtectionProvider {
     }
 
     /**
-     * Whether {@code at} is a player-faction claim whose access must be checked. Split out for unit testing
-     * without the Factions singletons (the {@code Relation} enum's static init needs the running plugin, so
-     * the relation comparison itself can only be verified live). Wilderness/safezone/warzone are not gated.
+     * Whether {@code at} is a player-faction claim whose access must be checked (split out for unit testing).
+     * The relation comparison itself can only be verified live — the {@code Relation} enum's static init needs
+     * the running plugin.
      */
     static boolean isClaimGated(Faction at) {
         return at != null && !at.isWilderness() && !at.isSafeZone() && !at.isWarZone();
@@ -55,13 +49,12 @@ public final class FactionsProvider implements ProtectionProvider {
         try {
             Faction at = Board.getInstance().getFactionAt(new FLocation(where));
             if (!isClaimGated(at)) {
-                return true; // wilderness / safezone / warzone — nothing to gate
+                return true;
             }
             FPlayer fActor = FPlayers.getInstance().getById(actor.toString());
             if (fActor == null) {
-                return true; // unknown actor — can't establish a relation → allow (SPI stance)
+                return true; // unknown actor — no relation to establish → allow (SPI stance)
             }
-            // Allowed only when at least on truce terms with the owning faction (member/ally/truce).
             return at.getRelationTo(fActor).isAtLeast(Relation.TRUCE);
         } catch (Throwable factionsFailure) {
             if (warned.compareAndSet(false, true)) {

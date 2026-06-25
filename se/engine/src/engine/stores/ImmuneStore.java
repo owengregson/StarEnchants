@@ -10,9 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * engine.sink.Sink}; a damage listener — a SEPARATE Bukkit event from the arming hit — reads it back and
  * cancels matching damage (the store bridges the two events; cf. {@link KnockbackControlStore}).
  *
- * <p>Concurrent, UUID-keyed (Folia). Each player holds one expiry tick per type (a small fixed array), so
- * independent immunities coexist; {@link Type#ALL} covers every cause. Time is an explicit caller-supplied
- * tick, never wall-clock — deterministic, Folia-correct, testable.
+ * <p>Each player holds one expiry tick per type (a small fixed array), so independent immunities coexist;
+ * {@link Type#ALL} covers every cause.
  */
 public final class ImmuneStore {
 

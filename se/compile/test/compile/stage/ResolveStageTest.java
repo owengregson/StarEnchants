@@ -28,7 +28,6 @@ class ResolveStageTest {
 
     private static final Source SRC = Source.of("enchants.yml", 1, 1);
 
-    /** A POTION effect spec with a handle-typed first arg. */
     private static ParamSpec potion() {
         return ParamSpec.of("POTION")
                 .param("effect", D.potionEffect())

@@ -13,11 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test for {@code GUARD}: one {@code guard} intent per attacker target at the activation
- * location with the configured type/count/ttl/name; a no-op when there is no location. The actual spawn +
- * setTarget is integration-pinned in the live suite.
- */
+/** Pins the {@code guard} intent only; the actual spawn + setTarget is integration-pinned in the live suite. */
 class GuardEffectTest {
 
     @Test

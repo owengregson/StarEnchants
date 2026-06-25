@@ -4,10 +4,8 @@ import schema.diag.Source;
 import java.util.Map;
 
 /**
- * Maps an {@link Ability#defId()} back to where it was authored, so a runtime fault
- * can be reported op-visibly and the misbehaving ability auto-quarantined rather
- * than aborting the activation (docs/architecture.md §4.1, §10). Built during
- * snapshot assembly; immutable.
+ * Maps an {@link Ability#defId()} back to where it was authored, so a runtime fault is reported op-visibly
+ * and the misbehaving ability auto-quarantined rather than aborting the activation (docs/architecture.md §4.1, §10).
  */
 public record SourceMap(Map<Integer, Entry> byDefId) {
 
@@ -15,7 +13,6 @@ public record SourceMap(Map<Integer, Entry> byDefId) {
         byDefId = Map.copyOf(byDefId);
     }
 
-    /** Where one def came from. */
     public record Entry(SourceKind sourceKind, String stableKey, Source source) {
     }
 

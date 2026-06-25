@@ -5,10 +5,7 @@ import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
 
-/**
- * Live checks that the boot-time platform probe and the installed {@link Scheduling} backend agree
- * (Folia backend on threaded-regions, Bukkit backend on Paper) before any scheduling is exercised.
- */
+/** Asserts the boot-time platform probe and the installed {@link Scheduling} backend agree. */
 public final class CapabilitiesSuite implements Harness.Scenario {
 
     private final Plugin plugin;
@@ -33,7 +30,6 @@ public final class CapabilitiesSuite implements Harness.Scenario {
         });
 
         h.guard("caps.foliaProbe", () -> {
-            // The probe's flag must agree with an independent class-presence check.
             if (caps.folia() != Capabilities.foliaPresent()) {
                 throw new IllegalStateException("folia flag " + caps.folia()
                         + " disagrees with marker presence " + Capabilities.foliaPresent());

@@ -1,15 +1,9 @@
 package feature.menu;
 
 /**
- * The config-driven layout of a menu: chest height, title, the filler-pane material, and the bottom-row
- * navigation slot positions (docs/v3-directives.md §K — "paged, filler panes, back/nav, title"). The data
- * seam the framework is built against: a menu supplies a programmatic default ({@link #paged}/{@link #sized}),
- * which the §L "menus/" config layer (one file per GUI, atomically reloaded) may override from YAML — the
- * framework neither knows nor cares where the layout came from.
- *
- * <p>Convention: a paged menu reserves the <em>last row</em> for navigation and uses the rows above it for
- * content. {@link #contentSlots()} is the number of content cells per page; the nav slots ({@code prevSlot}
- * etc.) live in the last row. A slot of {@code -1} means "that nav button is not shown".
+ * The config-driven layout of a menu (docs/v3-directives.md §K): a menu supplies a programmatic default
+ * ({@link #paged}/{@link #sized}) that the §L {@code menus/} layer may override from YAML. A paged menu
+ * reserves the last row for navigation; a nav slot of {@code -1} means "not shown".
  *
  * @param rows           chest height in rows, 1..6
  * @param titleTemplate  the base title (legacy {@code &} colour codes); a page suffix is appended when paged
@@ -30,11 +24,10 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial,
     }
 
     /**
-     * Merge an operator's {@link compile.load.MenuLayoutConfig} (from {@code menus/<name>.yml}, §L) onto this
-     * programmatic default: each field the operator set wins, each unset field keeps the default. A
-     * {@code null} override (no {@code menus/} file for this menu) returns {@code this} unchanged. Rows are
-     * clamped to 1..6; any nav slot that would fall outside the resulting inventory (e.g. after shrinking
-     * {@code rows} without moving the buttons) is hidden ({@code -1}) rather than crashing the render.
+     * Merge an operator's {@link compile.load.MenuLayoutConfig} ({@code menus/<name>.yml}, §L) onto {@code def}:
+     * each set field wins, each unset keeps the default; a {@code null} override returns {@code def} unchanged.
+     * Rows clamp to 1..6; a nav slot that would fall outside the resized inventory is hidden ({@code -1})
+     * rather than crashing the render.
      */
     public static MenuLayout from(MenuLayout def, compile.load.MenuLayoutConfig override) {
         if (override == null) {
@@ -52,12 +45,10 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial,
                 fitSlot(override.closeSlot().orElse(def.closeSlot()), size));
     }
 
-    /** A nav slot that does not fit the (possibly resized) inventory is hidden ({@code -1}); {@code -1} stays hidden. */
     private static int fitSlot(int slot, int size) {
         return slot >= 0 && slot < size ? slot : -1;
     }
 
-    /** Total inventory size (cells). */
     public int size() {
         return rows * 9;
     }
@@ -67,7 +58,6 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial,
         return (rows - 1) * 9;
     }
 
-    /** First slot of the reserved bottom navigation row. */
     public int navRowStart() {
         return contentSlots();
     }
@@ -82,7 +72,7 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial,
         return new MenuLayout(6, title, "GRAY_STAINED_GLASS_PANE", 45, 53, 48, 49);
     }
 
-    /** A paged layout of a chosen height (the bottom row is reserved for nav as in {@link #paged}). */
+    /** A paged layout of a chosen height; the bottom row is reserved for nav as in {@link #paged}. */
     public static MenuLayout sized(int rows, String title) {
         int base = (rows - 1) * 9;
         return new MenuLayout(rows, title, "GRAY_STAINED_GLASS_PANE", base, base + 8, base + 3, base + 4);

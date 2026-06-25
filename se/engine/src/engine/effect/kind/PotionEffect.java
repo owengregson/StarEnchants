@@ -10,14 +10,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code POTION} — apply a potion effect to the target(s) for a duration in ticks (docs/architecture.md §7).
- * The {@code effect} arg is a version-volatile handle interned at compile time, so the runtime never sees a
- * renamed constant (§9). {@link Affinity#TARGET_ENTITY}.
- *
- * <p>The canonical maintained buff: lifecycle-aware (§B, ADR-0022), so a HELD/PASSIVE source's deactivation
- * calls {@link #stop} to clear the exact effect this applied — a passive "Speed while worn" is one
- * {@code POTION:SPEED:…} line, no teardown enchant. Author a long {@code duration} (or pair with
- * {@code REPEATING}) so the buff does not lapse mid-wear; {@code stop} guarantees it never outlives the item.
+ * {@code POTION} — apply a potion effect to the target(s) for a duration in ticks (§7); {@code effect} interned
+ * at compile (§9). The canonical maintained buff: lifecycle-aware (§B, ADR-0022), so a HELD/PASSIVE source's
+ * deactivation calls {@link #stop} to clear exactly what it applied — no teardown enchant.
  */
 public final class PotionEffect implements EffectKind {
 

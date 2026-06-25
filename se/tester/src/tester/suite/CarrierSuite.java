@@ -28,9 +28,8 @@ import platform.item.ItemGroups;
 import tester.harness.Harness;
 
 /**
- * Live checks for the carrier application economy (ADR-0016; ADR-0019): books, scrolls, and success
- * dust mutating real {@link ItemStack}s through the server's item factory. Seeded {@link Random} and
- * success-100/success-0 books make the rolls deterministic.
+ * Carrier application economy — books, scrolls, success dust over real {@link ItemStack}s (ADR-0016; ADR-0019).
+ * Seeded {@link Random} + success-100/success-0 books make the rolls deterministic.
  */
 public final class CarrierSuite implements Harness.Scenario {
 

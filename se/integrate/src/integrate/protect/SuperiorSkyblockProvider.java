@@ -10,15 +10,10 @@ import org.bukkit.Location;
 import platform.protect.ProtectionProvider;
 
 /**
- * A {@link ProtectionProvider} bridging SuperiorSkyblock2 island privileges (docs/decisions/0027): an
- * enchant effect may act at {@code where} iff the {@code actor} has the island's {@code BUILD} privilege
- * there.
- *
- * <p>Bundled but SOFT: the SuperiorSkyblock API is {@code compileOnly} and {@link integrate.Integrations}
- * only loads this class when the plugin is present. {@code BUILD} is resolved by name once at construction —
- * SuperiorSkyblock registers its default privileges on enable, before StarEnchants boots. Outside any island
- * everything is allowed; on an island the actor's BUILD privilege decides. Never throws — a hiccup degrades to
- * allow.
+ * A {@link ProtectionProvider} bridging SuperiorSkyblock2 island privileges (docs/decisions/0027): outside any
+ * island everything is allowed; on an island the actor's {@code BUILD} privilege decides. {@code BUILD} is
+ * resolved by name once at construction — SuperiorSkyblock registers its default privileges on enable, before
+ * StarEnchants boots. Never throws — a hiccup degrades to allow.
  */
 public final class SuperiorSkyblockProvider implements ProtectionProvider {
 
@@ -30,7 +25,7 @@ public final class SuperiorSkyblockProvider implements ProtectionProvider {
         this.buildPrivilege = buildPrivilege;
     }
 
-    /** Factory used by the registrar — resolves the BUILD privilege and returns the SPI type (lazy-load safe). */
+    /** Registrar factory; resolves the BUILD privilege and returns the SPI type (lazy-load safe). */
     public static ProtectionProvider create() {
         return new SuperiorSkyblockProvider(IslandPrivilege.getByName("BUILD"));
     }
@@ -40,11 +35,7 @@ public final class SuperiorSkyblockProvider implements ProtectionProvider {
         return "SuperiorSkyblock";
     }
 
-    /**
-     * The gate, split out for unit testing without the SuperiorSkyblock singletons: off any island
-     * ({@code island == null}), or with no resolvable BUILD privilege, allows everything; on an island the
-     * actor's BUILD privilege decides.
-     */
+    /** The gate (split out for unit testing): off any island, or with no BUILD privilege, allows everything. */
     static boolean buildAllowed(Island island, SuperiorPlayer actor, IslandPrivilege buildPrivilege) {
         if (island == null || buildPrivilege == null) {
             return true;
@@ -60,7 +51,7 @@ public final class SuperiorSkyblockProvider implements ProtectionProvider {
         try {
             Island island = SuperiorSkyblockAPI.getGrid().getIslandAt(where);
             if (island == null) {
-                return true; // not on an island → nothing to protect
+                return true;
             }
             return buildAllowed(island, SuperiorSkyblockAPI.getPlayer(actor), buildPrivilege);
         } catch (Throwable ssbFailure) {

@@ -13,10 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * is re-armed continuously by a {@code REPEATING} ability (TTL &ge; the repeat period) while worn, and
  * lapses shortly after re-arming stops — i.e. after unequip. NOT consumed on a kept death; re-arming keeps
  * it live across deaths.
- *
- * <p>Concurrent, UUID-keyed (Folia: armed on the firing thread, read on the dying player's region thread).
- * TTL-evicting on read; re-arm extends (later expiry wins). Time is an explicit caller-supplied tick,
- * never wall-clock — deterministic, server-free to test.
  */
 public final class KeepOnDeathStore {
 

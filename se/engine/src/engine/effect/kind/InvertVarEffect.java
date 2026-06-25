@@ -10,13 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import schema.spec.D;
 
-/**
- * {@code INVERT_VAR} — numerically flip a per-player named variable (docs/v3-directives.md §A): {@code 0}
- * (or an unset/non-numeric value) becomes {@code 1}, any non-zero value becomes {@code 0}, preserving the
- * variable's remaining TTL. The companion to {@link SetVarEffect} for toggling a boolean-style flag without
- * reading its current value. The {@code who} selector picks whose variable is inverted (default the
- * activator). {@link Affinity#CONTEXT_LOCAL}: per-player in-memory state, no world mutation.
- */
+/** {@code INVERT_VAR} — numerically flip a per-player named variable (§A); companion to {@link SetVarEffect} for toggling without a read. */
 public final class InvertVarEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("INVERT_VAR")

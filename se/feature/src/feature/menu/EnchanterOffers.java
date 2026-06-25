@@ -4,22 +4,16 @@ import compile.load.TierRegistry;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * The pure default offer list for the {@link EnchanterMenu} shop — one "mystery book" offer per rarity tier,
- * priced in EXP levels off the tier's GUI {@code weight} (so rarer tiers cost more). Kept server-free and
- * deterministic so the pricing/ordering is unit-tested; the §L {@code menus/} config will later replace this
- * default with authored offers (price, currency, reward) without touching the menu.
- */
+/** Default {@link EnchanterMenu} offers — one mystery-book per tier, priced off tier weight; §L placeholder. */
 public final class EnchanterOffers {
 
-    /** One shop offer: buy a {@code tier} mystery (unopened) book for {@code costLevels} experience levels. */
     public record Offer(String tier, int costLevels) {
     }
 
     private EnchanterOffers() {
     }
 
-    /** Default offers in tier-declaration order: cost = {@code max(1, weight/5)} EXP levels. */
+    /** One offer per tier, in tier-declaration order. */
     public static List<Offer> defaults(TierRegistry tiers) {
         List<Offer> out = new ArrayList<>();
         for (TierRegistry.Tier tier : tiers.tiers()) {

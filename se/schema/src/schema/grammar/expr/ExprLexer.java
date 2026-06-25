@@ -6,26 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The tokenizer for the condition-expression sublanguage (docs/architecture.md §2,
- * §3.4).
- *
- * <p>Unlike the effect-line {@link schema.grammar.Lexer} (which
- * splits a line on {@code :} respecting bracket/quote nesting), this lexer reads
- * the <em>expression</em> grammar: numbers, identifiers ({@code true}/{@code false}
- * and bare enum-ish words), {@code %scope.name%} variables, single- or
- * double-quoted strings (with {@code \} escapes), and the operators
- * {@code && || ! ( ) , < <= > >= == != + - * /}. Whitespace separates tokens and
- * is otherwise discarded.
- *
- * <p>It never throws. Lexical faults (an unterminated string or {@code %…%}, a
- * stray character) are reported into the supplied {@link Diagnostics} with an
- * {@code E_PARSE} code at a precise {@link Source}, and the lexer recovers by
- * taking the construct best-effort or skipping the offending character, so the
- * parser still receives a usable, EOF-terminated token stream.
- *
- * <p>Columns are 1-based relative to the start of the expression text the lexer was
- * given; {@link Source#atColumn(int)} turns a token column into a diagnostic
- * position on the owning line.
+ * Tokenizer for the condition-expression sublanguage (docs/architecture.md §3.4). Never throws:
+ * lexical faults become {@code E_PARSE} diagnostics and recover best-effort, so the parser always
+ * gets a usable, EOF-terminated stream. Columns are 1-based within the expression text.
  */
 public final class ExprLexer {
 
@@ -40,15 +23,7 @@ public final class ExprLexer {
         this.diags = diags;
     }
 
-    /**
-     * Tokenize {@code text}. The returned list always ends with a single
-     * {@link ExprTok.Kind#EOF} token positioned just past the input.
-     *
-     * @param text       the raw expression text (one line, no surrounding YAML)
-     * @param lineSource the source of the line the expression sits on; token
-     *                   columns are applied to it via {@link Source#atColumn(int)}
-     * @param diags      collector for lexical {@code E_PARSE} diagnostics
-     */
+    /** The returned list always ends with a single {@link ExprTok.Kind#EOF} just past the input. */
     public static List<ExprTok> tokenize(String text, Source lineSource, Diagnostics diags) {
         return new ExprLexer(text, lineSource, diags).run();
     }
@@ -89,7 +64,7 @@ public final class ExprLexer {
                                 lineSource.atColumn(startCol),
                                 "the condition language allows numbers, %variables%, "
                                         + "\"strings\", booleans, && || ! ( ) , and comparators");
-                        pos++; // skip and recover
+                        pos++;
                     }
                 }
             }
@@ -98,11 +73,7 @@ public final class ExprLexer {
         return out;
     }
 
-    /**
-     * A doubled operator like {@code &&} or {@code ||} or {@code ==}. If the second
-     * char is missing, report it and still emit the intended token so the parser
-     * can carry on (lone {@code &}/{@code |}/{@code =} are never valid alone here).
-     */
+    /** A doubled operator ({@code && || ==}); a missing second char is reported but the token still emits. */
     private ExprTok twoCharOp(char second, ExprTok.Kind kind, String lexeme, int startCol) {
         char first = src.charAt(pos);
         pos++;
@@ -115,7 +86,6 @@ public final class ExprLexer {
         return new ExprTok(kind, lexeme, startCol);
     }
 
-    /** {@code !=} (inequality) or a bare {@code !} (logical not). */
     private ExprTok bangOrNe(int startCol) {
         pos++;
         if (pos < src.length() && src.charAt(pos) == '=') {
@@ -125,7 +95,6 @@ public final class ExprLexer {
         return new ExprTok(ExprTok.Kind.BANG, "!", startCol);
     }
 
-    /** A relational operator: {@code <}/{@code <=} or {@code >}/{@code >=}. */
     private ExprTok relational(char base, ExprTok.Kind bare, ExprTok.Kind orEqual, int startCol) {
         pos++;
         if (pos < src.length() && src.charAt(pos) == '=') {
@@ -135,11 +104,7 @@ public final class ExprLexer {
         return new ExprTok(bare, String.valueOf(base), startCol);
     }
 
-    /**
-     * A {@code %…%} variable. The body is everything up to the next {@code %}; an
-     * empty body or a missing closing {@code %} is reported but still yields a VAR
-     * token (with the best-effort body) so resolution can proceed.
-     */
+    /** A {@code %…%} variable; an empty or unterminated body is reported but still yields a VAR token. */
     private ExprTok variable(int startCol) {
         pos++;
         int bodyStart = pos;
@@ -160,11 +125,7 @@ public final class ExprLexer {
         return new ExprTok(ExprTok.Kind.VAR, body, startCol);
     }
 
-    /**
-     * A quoted string, single- or double-quoted, with {@code \} escapes. The
-     * returned token text is the unescaped contents (no quotes). An unterminated
-     * string is reported but still yields a STRING token with what was read.
-     */
+    /** A quoted string with {@code \} escapes; token text is the unescaped contents (no quotes). */
     private ExprTok string(char quote, int startCol) {
         pos++;
         StringBuilder sb = new StringBuilder();
@@ -172,7 +133,7 @@ public final class ExprLexer {
         while (pos < src.length()) {
             char c = src.charAt(pos);
             if (c == '\\' && pos + 1 < src.length()) {
-                sb.append(src.charAt(pos + 1)); // escaped char taken literally
+                sb.append(src.charAt(pos + 1));
                 pos += 2;
             } else if (c == quote) {
                 pos++;
@@ -191,7 +152,7 @@ public final class ExprLexer {
         return new ExprTok(ExprTok.Kind.STRING, sb.toString(), startCol);
     }
 
-    /** A number: digits with an optional single decimal point (e.g. {@code 3}, {@code 1.5}). */
+    /** Digits with an optional single decimal point. */
     private ExprTok number(int startCol) {
         int start = pos;
         boolean dot = false;
@@ -209,20 +170,15 @@ public final class ExprLexer {
         return new ExprTok(ExprTok.Kind.NUMBER, src.substring(start, pos), startCol);
     }
 
-    /**
-     * A bare identifier: a letter or {@code _} followed by letters, digits,
-     * {@code _}, {@code -}, or {@code .}. This covers {@code true}/{@code false}
-     * and enum-ish operands; the parser decides what an identifier means.
-     */
+    /** A bare identifier; covers {@code true}/{@code false} and enum-ish operands. */
     private ExprTok ident(int startCol) {
         int start = pos;
-        pos++; // first char already validated by isIdentStart
+        pos++;
         while (pos < src.length() && isIdentPart(src.charAt(pos))) {
             pos++;
         }
         String text = src.substring(start, pos);
-        // The two string operators are reserved words (case-insensitive), recognised here so the parser
-        // sees them as operators rather than bare identifiers; everything else is an ordinary identifier.
+        // contains/matchesregex are case-insensitive reserved words, tokenized as operators not identifiers.
         if (text.equalsIgnoreCase("contains")) {
             return new ExprTok(ExprTok.Kind.CONTAINS, text, startCol);
         }
@@ -244,7 +200,6 @@ public final class ExprLexer {
         return Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.';
     }
 
-    /** The 1-based column on the line for the character at index {@code idx}. */
     private int col(int idx) {
         return idx + 1;
     }

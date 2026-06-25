@@ -14,11 +14,9 @@ import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 
 /**
- * Pins the {@link DispatchSink} WAIT-tier policy (docs/architecture.md §3.6): a delay-0 intent dispatches
- * on flush; a delay&gt;0 intent is held for exactly its tick count and runs only when its timer fires;
- * distinct {@code WAIT} tiers schedule independently; and the damage fold ignores the delay since it cannot
- * defer onto a spent event. The per-owner hop's Folia-correctness is matrix-verified elsewhere — these add
- * only the deferral, so a {@link RecordingSchedulerBackend} captures delayed hops for assertion.
+ * The {@link DispatchSink} WAIT-tier policy (§3.6): a delay&gt;0 intent runs only when its timer fires,
+ * distinct tiers schedule independently, and the damage fold ignores the delay (it cannot defer onto a spent
+ * event). The per-owner hop's Folia-correctness is matrix-verified elsewhere; these add only the deferral.
  */
 class DispatchSinkWaitTest {
 
@@ -63,7 +61,7 @@ class DispatchSinkWaitTest {
         assertEquals(40L, backend.delayed.get(0).delayTicks(), "scheduled for the accumulated WAIT");
 
         backend.runDelayed();
-        verify(later).setFireTicks(80);       // fires only once its timer lands, never early
+        verify(later).setFireTicks(80);
     }
 
     @Test
@@ -96,7 +94,7 @@ class DispatchSinkWaitTest {
         DispatchSink sink = new DispatchSink(handles);
         sink.delay(40);
         sink.ignite(delayed, 10);
-        sink.delay(0); // a later effect with no WAIT accumulated before it
+        sink.delay(0);
         sink.ignite(instant, 20);
         sink.flush();
 
@@ -125,8 +123,8 @@ class DispatchSinkWaitTest {
     @Test
     void damageFoldIgnoresTheDelayAndAppliesToTheFiringEvent() {
         DispatchSink sink = new DispatchSink(handles);
-        sink.delay(40);                 // a WAIT preceding a damage-arbiter contribution
-        sink.addOutgoingDamage(1.0);    // +100% must still fold onto the original hit, not defer
+        sink.delay(40);
+        sink.addOutgoingDamage(1.0);    // must still fold onto the original hit, not defer onto a spent event
 
         assertEquals(20.0, sink.fold().apply(10.0), 1e-9);
         assertTrue(backend.delayed.isEmpty(), "fold contributions never schedule a delayed task");

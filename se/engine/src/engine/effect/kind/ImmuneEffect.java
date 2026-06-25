@@ -12,10 +12,9 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code IMMUNE} — make the target immune to a damage cause for a duration (§ combat-flags). The proc
- * writes a per-player timed flag through the {@link Sink}; a SEPARATE future-damage event reads it back and
- * cancels matching hits. {@code type} is sword / axe / projectile / potion (magic·poison·wither) / all.
- * Player-only, defaults to the activator (self-protection). {@link Affinity#CONTEXT_LOCAL}: in-memory flag write.
+ * {@code IMMUNE} — make the target immune to a damage cause for a duration (§ combat-flags). Writes a
+ * per-player timed flag; a SEPARATE future-damage event reads it back and cancels matching hits. Player-only,
+ * defaults to the activator.
  */
 public final class ImmuneEffect implements EffectKind {
 

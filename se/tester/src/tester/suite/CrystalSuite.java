@@ -46,10 +46,8 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * The crystal source, proven live end-to-end (docs/architecture.md §6.5; ADR-0014): an item carries
- * the crystal key in its crystal LIST (not the enchant map) and the crystal fires on hit. Proves the
- * {@code crystals/} reader + the {@code CombatState.crystals} → WornState union path to a landed effect.
- * Recipe mirrors {@link CombatSuite}. Mojang-mapped only (needs the fake-player attacker).
+ * The crystal source, live (§6.5; ADR-0014): a crystal carried in the LIST (not the enchant map) fires on
+ * hit, proving the {@code CombatState.crystals} → WornState union path. Mojang-mapped only (fake-player attacker).
  */
 public final class CrystalSuite implements Harness.Scenario {
 

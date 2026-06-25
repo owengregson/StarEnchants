@@ -9,8 +9,8 @@ import java.util.List;
 
 /**
  * {@code @EntityInSight{r=16}} — the living entity the actor is looking at within {@code r}, else empty
- * (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). Raytrace via the world-access seam from
- * the actor on its own (firing) region thread, so Folia-correct.
+ * (Cosmic Enchants-style parity). Raytrace via the world-access seam on the actor's own firing region
+ * thread, so Folia-correct.
  */
 public final class EntityInSightSelector implements SelectorKind {
 

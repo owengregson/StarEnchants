@@ -18,14 +18,9 @@ import org.junit.jupiter.api.Test;
 import schema.diag.Diagnostic;
 
 /**
- * The shipped {@code elite-enchantments} config pack (ADR-0023) must be valid, loadable StarEnchants
- * content — not just well-formed YAML. This compiles the pack's {@code content/} tree through the REAL
- * registries and loads its {@code items/} folder, asserting zero blocking diagnostics, exactly as
- * {@link CatalogValidationTest} guards the default catalog. The pack source lives as a reviewable tree
- * under {@code packs-src/elite-enchantments/} and is zipped into the jar at build time; this guards the
- * source so a broken EE port can never ship.
- *
- * <p>Handle tokens resolve permissively (no server); the live suites own cross-version handle existence.
+ * The shipped {@code elite-enchantments} config pack (ADR-0023) must compile clean through the real
+ * registries, like {@link CatalogValidationTest} guards the default catalog — so a broken EE port can
+ * never ship. Tokens resolve permissively (no server); the live suites own handle existence.
  */
 class ElitePackValidationTest {
 

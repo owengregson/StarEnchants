@@ -8,14 +8,9 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The in-game reference browser (docs/v3-directives.md §K — "Effects/reference browser"; §M): a two-level
- * drill-down over the {@link ReferenceCatalog}. The index lists the five categories (Effects, Selectors,
- * Triggers, Conditions, Variables); selecting one drills into its paged entry list, each icon's tooltip
- * carrying that entry's detail (doc, params, example / metadata). Read-only — it mirrors the
- * {@code /se effects|selectors|triggers|conditions|variables} reference commands (§J).
- *
- * <p>The catalog is built once at construction (the registries are deterministic and server-free); the
- * drill state lives on the holder ({@code view} = the category, or {@code null} for the index).
+ * The in-game reference browser (docs/v3-directives.md §K, §M): a read-only two-level drill-down over the
+ * {@link ReferenceCatalog} — category index, then a paged entry list. The holder's {@code view} holds the
+ * selected category, or {@code null} for the index.
  */
 public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.Row> {
 

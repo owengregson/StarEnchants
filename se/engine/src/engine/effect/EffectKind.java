@@ -4,13 +4,10 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 
 /**
- * One stateless, self-describing effect kind (docs/architecture.md §3.1, §7). Systems walk compiled
- * abilities and invoke {@link #run} per effect without knowing what any kind does; adding a kind is
- * implementing this interface and registering it in one place.
- *
- * <p>Implementations MUST be stateless — one shared instance is reused across all activations and
- * threads — and MUST emit every result through the {@link Sink}, never touching entities, blocks,
- * worlds, or schedulers directly (§3.5).
+ * One stateless, self-describing effect kind (§3.1, §7); adding a kind is implementing this interface and
+ * registering it in one place. Implementations MUST be stateless — one shared instance is reused across all
+ * activations and threads — and MUST emit every result through the {@link Sink}, never touching entities,
+ * blocks, worlds, or schedulers directly (§3.5).
  */
 public interface EffectKind {
 

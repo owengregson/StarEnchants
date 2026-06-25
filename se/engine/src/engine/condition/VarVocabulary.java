@@ -10,15 +10,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * The condition variable vocabulary: which {@code %scope.name%} facts exist, their
- * types, and the dense {@link FactBuffer} slot each occupies (docs/architecture.md
- * §3.4). One vocabulary is the single source of truth for both lowering and runtime
- * population — the engine builds it at boot, exposes {@link #asResolver()} to the
- * compiler (so {@code se-compile} stays pure), and sizes {@link #newFactBuffer()} from
- * it, so a compiled condition's slot and the populated buffer always agree.
- *
- * <p>Slots are assigned per kind in registration order: the <i>n</i>th numeric
- * variable gets number slot <i>n</i>, the <i>n</i>th flag gets bit <i>n</i>, etc.
+ * The condition variable vocabulary: which {@code %scope.name%} facts exist, their types, and the dense
+ * {@link FactBuffer} slot each occupies (docs/architecture.md §3.4). The single source of truth for both
+ * lowering ({@link #asResolver()}) and runtime population ({@link #newFactBuffer()}), so a compiled
+ * condition's slot and the populated buffer always agree. Slots are assigned per kind in registration order.
  */
 public final class VarVocabulary {
 
@@ -48,10 +43,7 @@ public final class VarVocabulary {
         return this::lookup;
     }
 
-    /**
-     * Every declared variable, keyed by canonical lower-case {@code "scope.name"} (immutable view).
-     * Enumeration for the {@code /se} reference (§J) and in-game browser (§K), which {@link #lookup} can't give.
-     */
+    /** Every declared variable, keyed by canonical lower-case {@code "scope.name"} — enumeration {@link #lookup} can't give. */
     public Map<String, VarBinding> bindings() {
         return byKey;
     }
@@ -78,7 +70,6 @@ public final class VarVocabulary {
         return raw.toLowerCase(Locale.ROOT);
     }
 
-    /** Builder assigning dense per-kind slots in registration order. */
     public static final class Builder {
 
         private final Map<String, VarBinding> byKey = new LinkedHashMap<>();
@@ -86,17 +77,14 @@ public final class VarVocabulary {
         private int flagSlots;
         private int stringSlots;
 
-        /** Declare a numeric variable (e.g. {@code victim.health}). */
         public Builder number(String key) {
             return add(key, new VarBinding(VarKind.NUM, numberSlots++));
         }
 
-        /** Declare a boolean flag variable (e.g. {@code sneaking}). */
         public Builder flag(String key) {
             return add(key, new VarBinding(VarKind.BOOL, flagSlots++));
         }
 
-        /** Declare a string variable. */
         public Builder string(String key) {
             return add(key, new VarBinding(VarKind.STR, stringSlots++));
         }

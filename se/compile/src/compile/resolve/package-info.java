@@ -1,9 +1,5 @@
 /**
- * The injected cross-version resolution seam.
- *
- * <p>{@link compile.resolve.PlatformResolvers} lets the pure
- * compiler turn version-volatile names into stable interned handles at compile
- * time without depending on Bukkit. Production injects se-platform's resolvers;
- * tests inject a fake (docs/architecture.md §2.1, §9).
+ * The injected cross-version resolution seam ({@link compile.resolve.PlatformResolvers}) that lets the
+ * pure compiler resolve version-volatile names to interned handles without Bukkit (docs/architecture.md §9).
  */
 package compile.resolve;

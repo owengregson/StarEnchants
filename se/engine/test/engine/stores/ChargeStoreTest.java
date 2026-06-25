@@ -43,7 +43,7 @@ class ChargeStoreTest {
     void incrementOnALapsedChargeRestartsFromZero() {
         store.increment(p, 1, 5, 100L, 40);
         store.increment(p, 1, 5, 110L, 40);
-        assertEquals(1, store.increment(p, 1, 5, 200L, 40)); // incrementing after the window lapsed restarts the count, not resumes it
+        assertEquals(1, store.increment(p, 1, 5, 200L, 40));
     }
 
     @Test
@@ -52,9 +52,9 @@ class ChargeStoreTest {
         store.increment(p, 7, 5, 0L, 100);
         store.increment(p, 8, 5, 0L, 100);
         assertEquals(2, store.count(p, 7, 0L));
-        assertEquals(1, store.count(p, 8, 0L)); // same player, different ability
+        assertEquals(1, store.count(p, 8, 0L));
         UUID q = UUID.randomUUID();
-        assertEquals(0, store.count(q, 7, 0L)); // different player, same ability
+        assertEquals(0, store.count(q, 7, 0L));
     }
 
     @Test

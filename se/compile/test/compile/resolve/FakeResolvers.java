@@ -6,10 +6,8 @@ import java.util.Map;
 import java.util.OptionalInt;
 
 /**
- * A pure in-memory {@link PlatformResolvers} for unit tests — the proof that the
- * compiler's cross-version seam needs no Bukkit (docs/architecture.md §2.1).
- * Tokens are matched case-insensitively; unmapped tokens resolve to empty,
- * exercising the compiler's warn-and-skip path.
+ * A pure in-memory {@link PlatformResolvers} for unit tests — proof the compiler's cross-version seam
+ * needs no Bukkit (docs/architecture.md §2.1). Unmapped tokens resolve to empty (warn-and-skip path).
  */
 public final class FakeResolvers implements PlatformResolvers {
 
@@ -75,7 +73,6 @@ public final class FakeResolvers implements PlatformResolvers {
         return v == null ? OptionalInt.empty() : OptionalInt.of(v);
     }
 
-    /** Fluent builder; each entry maps a (case-insensitive) token to an interned id. */
     public static final class Builder {
         private final Map<String, Integer> materials = new HashMap<>();
         private final Map<String, Integer> sounds = new HashMap<>();

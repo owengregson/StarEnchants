@@ -50,37 +50,25 @@ import platform.sched.Scheduling;
 import schema.spec.HandleCategory;
 
 /**
- * The concrete {@link Sink} — the single mutation boundary and the only engine code that knows
- * about threads (docs/architecture.md §3.5–3.6). An {@code EffectKind} emits intents here; this
- * class captures them and routes each to the thread that owns its target, so an effect author can
- * neither schedule nor touch an entity and therefore cannot write a Folia bug.
- *
- * <p>Two kinds of intent:
+ * The concrete {@link Sink} — the single mutation boundary and the only engine code that knows about threads
+ * (§3.5–3.6). Two kinds of intent:
  * <ul>
- *   <li><strong>Inline feedback</strong> — the damage-fold contributions and {@code cancelEvent}
- *       feed back into the very Bukkit event being processed, so they are accumulated synchronously
- *       on the firing thread and read back by the trigger listener (which folds {@link #fold()}
- *       onto the event once and honours {@link #cancelled()}); they never schedule.</li>
- *   <li><strong>World mutations</strong> — everything else. Each is captured into the
- *       {@link DispatchPlan} and routed to the thread that owns its target (the entity's region, the
- *       location's region, or the global thread), flushed batched after the gate walk. A mutation is
- *       NEVER run inline on the firing thread: the target is frequently a <em>different</em> entity or
- *       region than the firing one — a defender retaliating against its attacker, an AoE bystander —
- *       and inlining such a mutation would be a cross-region wrong-thread access on Folia. So the
- *       owning thread (via {@code Scheduling}, which is inline-on-the-main-thread on Paper) is the
- *       only safe routing; the declared affinity is advisory, not a licence to skip the hop.</li>
+ *   <li><strong>Inline feedback</strong> — the damage-fold contributions and {@code cancelEvent} feed back
+ *       into the Bukkit event being processed, so they accumulate synchronously on the firing thread and the
+ *       trigger listener reads them back ({@link #fold()}, {@link #cancelled()}); they never schedule.</li>
+ *   <li><strong>World mutations</strong> — everything else: captured into the {@link DispatchPlan} and routed
+ *       to the thread owning the target, flushed batched after the gate walk. NEVER run inline — the target is
+ *       frequently a different entity/region than the firing one (a defender retaliating, an AoE bystander), so
+ *       inlining would be a cross-region access on Folia. The declared affinity is advisory, not a licence to
+ *       skip the hop.</li>
  * </ul>
  *
- * <p>Version-volatile referents arrive as interned handle ids, resolved to live Bukkit objects through
- * {@link RuntimeHandles} at apply time — on the correct thread, cached after first lookup, never on the
- * inline combat critical section (§9). An id that does not resolve yields {@code null} and that one
- * intent is silently skipped: the §9 "warn" already fired at compile time against the same lookup, so a
- * runtime resolve miss is a can't-happen on a stable server, not a config error worth re-logging.
+ * <p>Version-volatile referents arrive as interned ids, resolved through {@link RuntimeHandles} at apply time
+ * on the correct thread (§9). An id that does not resolve yields {@code null} and that one intent is silently
+ * skipped — the §9 warn already fired at compile time, so a runtime miss is a can't-happen on a stable server.
  *
- * <p>Lifecycle: one instance per event. {@link #fold()} and {@link #cancelled()} accumulate across all
- * of the event's abilities; {@link #flush()} is called once, last. Not thread-safe by design — filled
- * and flushed on the single firing thread (§6); scheduled batches run later on their own threads over
- * immutable captured primitives.
+ * <p>One instance per event; not thread-safe by design — filled and flushed on the single firing thread (§6),
+ * scheduled batches run later on their own threads over immutable captured primitives.
  */
 public final class DispatchSink implements Sink {
 
@@ -107,9 +95,9 @@ public final class DispatchSink implements Sink {
     private int delayTicks;
 
     /**
-     * §N anti-cheat movement exemption (ADR-0027): invoked just before StarEnchants moves a PLAYER
-     * (VELOCITY / TELEPORT) so a bundled anti-cheat bridge can briefly exempt them, preventing false flags
-     * on engine-applied motion. Boot-configured static no-op by default (inert in tests, free per event).
+     * §N anti-cheat movement exemption (ADR-0027): invoked before StarEnchants moves a PLAYER (VELOCITY /
+     * TELEPORT) so a bundled anti-cheat bridge can briefly exempt them, preventing false flags. Static no-op
+     * default (inert in tests, free per event).
      */
     private static volatile java.util.function.Consumer<org.bukkit.entity.Player> movementExemption = player -> { };
 
@@ -125,23 +113,20 @@ public final class DispatchSink implements Sink {
         }
     }
 
-    /** A bare sink — economy/soul intents are no-ops, vars/suppression/knockback write to throwaway stores (the test default). */
+    /** The test default — economy/soul are no-ops, the stores are throwaways. */
     public DispatchSink(RuntimeHandles handles) {
         this(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
     }
 
-    /** A sink with economy but no soul debit; vars/suppression/knockback write to throwaway stores. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy) {
         this(handles, economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
     }
 
-    /** Economy + soul debit + shared {@link VarStore}/{@link SuppressionStore}; throwaway knockback store. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, LongSupplier nowTicks) {
         this(handles, economy, souls, vars, suppression, new KnockbackControlStore(), nowTicks);
     }
 
-    /** Shared {@link KnockbackControlStore}; throwaway {@link KeepOnDeathStore}. */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
                         LongSupplier nowTicks) {
@@ -149,10 +134,8 @@ public final class DispatchSink implements Sink {
     }
 
     /**
-     * Economy + soul debit + shared {@link VarStore}/{@link SuppressionStore}/{@link KnockbackControlStore}/
-     * {@link KeepOnDeathStore} + the current-tick supply the timed TTLs read. Sharing the stores is what
-     * makes the KNOCKBACK_CONTROL / KEEP_ON_DEATH flags a hit writes visible to the separate
-     * knockback / death events' listeners.
+     * Sharing the stores is what makes the KNOCKBACK_CONTROL / KEEP_ON_DEATH flags a hit writes visible to the
+     * separate knockback / death events' listeners.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
@@ -162,9 +145,8 @@ public final class DispatchSink implements Sink {
     }
 
     /**
-     * Adds the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
-     * §F/ADR-0021) into this event's {@link DamageFold}. Pass a supplier so {@code /se reload} re-tunes the
-     * bound; the eight-arg ctor defaults it to {@link DamageFold#DEFAULT_MAX_HEROIC_OUTGOING_FACTOR}.
+     * The heroic outgoing-damage ceiling (§F/ADR-0021) is a supplier so {@code /se reload} re-tunes the bound;
+     * the eight-arg ctor defaults it to {@link DamageFold#DEFAULT_MAX_HEROIC_OUTGOING_FACTOR}.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
@@ -175,9 +157,9 @@ public final class DispatchSink implements Sink {
     }
 
     /**
-     * The full sink, also sharing the {@link TeleblockStore}/{@link ImmuneStore} the TELEBLOCK / IMMUNE
-     * flags write — read back by the teleport / damage listeners on their separate Bukkit events. Shorter
-     * ctors default these to throwaways, so those flags are inert unless the real stores are threaded in.
+     * The full sink. The shared {@link TeleblockStore}/{@link ImmuneStore} the TELEBLOCK / IMMUNE flags write
+     * are read back by the teleport / damage listeners on their separate events; shorter ctors default these to
+     * throwaways, so those flags are inert unless the real stores are threaded in.
      */
     public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,

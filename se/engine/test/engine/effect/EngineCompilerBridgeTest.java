@@ -17,10 +17,7 @@ import schema.grammar.EffectLine;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * The compiler validates and folds against engine-declared specs/affinities via {@link EffectRegistry},
- * with no {@code se-compile} → {@code se-engine} dependency (docs/architecture.md §2.1, §3.6).
- */
+/** The compiler validates/folds against engine-declared specs via {@link EffectRegistry}, with no {@code se-compile} → {@code se-engine} dependency (§2.1, §3.6). */
 class EngineCompilerBridgeTest {
 
     @Test

@@ -3,22 +3,15 @@ package pack;
 import java.util.Objects;
 
 /**
- * The metadata header of a config pack (ADR-0023), stored as {@code pack.yml} at the archive root. It
- * identifies a saved configuration snapshot — its {@code name} (which is also its file stem), a human
- * {@code description}, the {@code author}, the on-disk pack-{@code format} version, an ISO-8601
- * {@code created} timestamp, and the {@code fileCount} of config files the pack carries.
- *
- * <p>The manifest is serialised as a tiny flat YAML document (six scalar keys) with a hand-rolled
- * reader/writer, so the module stays dependency-free. String values are always double-quoted on write
- * (and unescaped on read), which keeps colour codes, colons, and quotes inside a value safe.
+ * A config pack's {@code pack.yml} header (ADR-0023). Hand-rolled flat-YAML codec to stay dependency-free;
+ * string values are always double-quoted on write so colour codes, colons, and quotes survive a round trip.
  */
 public record PackManifest(String name, String description, String author, int format,
                            String created, int fileCount) {
 
-    /** The current on-disk pack format. Bumped only on an incompatible archive-layout change. */
+    /** Bumped only on an incompatible archive-layout change. */
     public static final int CURRENT_FORMAT = 1;
 
-    /** The manifest entry name inside the archive. */
     public static final String ENTRY = "pack.yml";
 
     public PackManifest {
@@ -30,17 +23,14 @@ public record PackManifest(String name, String description, String author, int f
         fileCount = Math.max(0, fileCount);
     }
 
-    /** A minimal manifest for a freshly authored pack (current format, no file count yet). */
     public static PackManifest of(String name, String description, String author, String created) {
         return new PackManifest(name, description, author, CURRENT_FORMAT, created, 0);
     }
 
-    /** This manifest with its file count set (stamped by the archive writer once the entries are known). */
     public PackManifest withFileCount(int count) {
         return new PackManifest(name, description, author, format, created, count);
     }
 
-    /** Serialise to the flat {@code pack.yml} document written at the archive root. */
     public String toYaml() {
         return "# StarEnchants config pack (ADR-0023). Apply with /se pack apply " + name + "\n"
                 + "name: " + quote(name) + "\n"
@@ -51,11 +41,7 @@ public record PackManifest(String name, String description, String author, int f
                 + "files: " + fileCount + "\n";
     }
 
-    /**
-     * Parse a {@code pack.yml} document. Unknown lines are ignored; a missing key falls back to its
-     * default ({@code fallbackName} for an absent/blank name). Never throws on a malformed line — a
-     * pack with a damaged manifest still lists, under its file-derived name.
-     */
+    /** Parse a {@code pack.yml}; never throws so a damaged manifest still lists (under {@code fallbackName}). */
     public static PackManifest fromYaml(String yaml, String fallbackName) {
         String name = fallbackName;
         String description = "";

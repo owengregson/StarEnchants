@@ -9,11 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code EXPLODE} — create an explosion at the target(s) (docs/architecture.md §7).
- * {@link Affinity#REGION}: an explosion mutates the world (and optionally breaks blocks), so on Folia
- * it routes to the owning region's thread.
- */
+/** {@code EXPLODE} — create an explosion at the target(s) (§7). */
 public final class ExplodeEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("EXPLODE")

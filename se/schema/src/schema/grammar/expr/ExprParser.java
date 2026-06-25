@@ -6,11 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A recursive-descent (Pratt-style) parser for the condition-expression
- * sublanguage, producing the untyped {@link Expr} AST (docs/architecture.md §2,
- * §3.2, §3.4).
- *
- * <p><b>Precedence</b>, lowest to highest:
+ * Recursive-descent parser for the condition-expression sublanguage, producing the
+ * untyped {@link Expr} AST (docs/architecture.md §3.4). Never throws — faults become
+ * {@code E_PARSE} diagnostics with best-effort recovery nodes. Precedence, low to high:
  * <pre>
  *   ||  (left-assoc, lowest)
  *   &&  (left-assoc)
@@ -20,20 +18,6 @@ import java.util.Optional;
  *   !  -  (unary prefix)
  *   primary:  ( expr )  |  literal  |  %variable%
  * </pre>
- * Comparators are deliberately non-associative: {@code a < b < c} is reported as a
- * parse error rather than silently chained. Everything is data-only — no typing,
- * no evaluation; that is se-compile's job (docs/architecture.md §2).
- *
- * <p><b>Errors never throw.</b> A malformed input is reported into the supplied
- * {@link Diagnostics} with code {@code E_PARSE} at a precise {@link Source}, and
- * the parser recovers by synthesizing a best-effort node so a single fault yields
- * one finding rather than aborting the whole compile (matching the diagnostics
- * philosophy of the rest of se-schema). The caller checks {@code diags.hasErrors()}
- * to decide whether to use the returned tree.
- *
- * <p>{@link #parse(String, Source, Diagnostics)} returns {@link Optional#empty()}
- * only for blank input (no condition was written); any non-blank input yields a
- * tree (possibly containing recovery placeholders).
  */
 public final class ExprParser {
 
@@ -48,14 +32,7 @@ public final class ExprParser {
         this.diags = diags;
     }
 
-    /**
-     * Parse {@code text} into a condition-expression AST.
-     *
-     * @param text       the raw expression (one line; e.g. {@code %victim.health% < 5 && !%blocking%})
-     * @param lineSource the source of the line the expression sits on
-     * @param diags      collector for {@code E_PARSE} diagnostics
-     * @return the parsed tree, or empty if {@code text} is blank
-     */
+    /** Empty only for blank input; any non-blank input yields a tree (possibly with recovery placeholders). */
     public static Optional<Expr> parse(String text, Source lineSource, Diagnostics diags) {
         if (text == null || text.isBlank()) {
             return Optional.empty();
@@ -65,7 +42,6 @@ public final class ExprParser {
         Expr e = p.parseOr();
         e = p.parseClauseTail(e); // optional ": <%stop%|%force%|%allow%|%continue%|±N %chance%>" outcome
         if (!p.atEnd()) {
-            // Trailing tokens after a complete expression — e.g. "1 2" or "(a) b".
             ExprTok extra = p.peek();
             p.diags.error("E_PARSE",
                     "unexpected '" + describe(extra) + "' after the expression",
@@ -75,13 +51,9 @@ public final class ExprParser {
         return Optional.of(e);
     }
 
-    // ----- clause outcome grammar (the optional top-level flow/chance tail) -----
-
     /**
-     * {@code clause-tail := ( ":" outcome )?} — parse the optional flow/chance clause after a boolean
-     * test. With no {@code :} the {@code test} is returned unchanged (a bare boolean gate). A second
-     * {@code :} (a chained clause) is reported as an error, after which the rest of the line is consumed
-     * so recovery does not produce a spurious trailing-token error.
+     * {@code clause-tail := ( ":" outcome )?} — no {@code :} returns {@code test} unchanged (bare gate).
+     * A second {@code :} is an error; the rest of the line is then consumed to avoid a spurious trailing-token error.
      */
     private Expr parseClauseTail(Expr test) {
         if (!check(ExprTok.Kind.COLON)) {
@@ -99,12 +71,7 @@ public final class ExprParser {
         return clause;
     }
 
-    /**
-     * {@code outcome := flow-sentinel | ( ("+"|"-")? number "%chance%" )} — a flow sentinel
-     * ({@code %stop%}/{@code %force%}/{@code %allow%}/{@code %continue%}) or a signed chance delta.
-     * On a malformed outcome the error is reported, the rest is consumed, and the bare {@code test}
-     * is returned so the tree stays usable.
-     */
+    /** {@code outcome := flow-sentinel | ( ("+"|"-")? number "%chance%" )}; a malformed outcome returns the bare {@code test}. */
     private Expr parseOutcome(Expr test) {
         Source src = test.source();
         if (check(ExprTok.Kind.PLUS) || check(ExprTok.Kind.MINUS) || check(ExprTok.Kind.NUMBER)) {
@@ -163,7 +130,6 @@ public final class ExprParser {
         return new Expr.Clause(test, FlowKind.CONTINUE, sign * magnitude, src);
     }
 
-    /** The {@link FlowKind} for a flow sentinel's {@code %…%} body, or {@code null} if it is not one. */
     private static FlowKind sentinelFlow(String body) {
         if (body.equalsIgnoreCase("stop")) {
             return FlowKind.STOP;
@@ -180,14 +146,12 @@ public final class ExprParser {
         return null;
     }
 
-    /** Consume every remaining token up to EOF, for one-finding error recovery on a malformed clause. */
+    /** Consume to EOF, for one-finding recovery on a malformed clause. */
     private void consumeToEnd() {
         while (!atEnd()) {
             advance();
         }
     }
-
-    // ----- grammar (one method per precedence level) -----
 
     /** {@code or := and ( "||" and )*} — lowest precedence, left-associative. */
     private Expr parseOr() {
@@ -211,12 +175,7 @@ public final class ExprParser {
         return left;
     }
 
-    /**
-     * {@code cmp := unary ( comparator unary )?} — NON-associative: a second
-     * comparator (a chain like {@code a < b < c}) is reported as an error, after
-     * which parsing of the (best-effort) right operand still consumes the chain so
-     * recovery does not loop.
-     */
+    /** {@code cmp := unary ( comparator unary )?} — NON-associative; a chain like {@code a < b < c} is an error. */
     private Expr parseComparison() {
         Expr left = parseAdditive();
         Cmp cmpOp = comparatorAt(peek());
@@ -231,7 +190,6 @@ public final class ExprParser {
                 ? new Expr.Compare(left, cmpOp, right, left.source())
                 : new Expr.StringMatch(left, strOp, right, left.source());
 
-        // Non-associative: a second comparator or string operator is a chain error.
         if (isComparisonOp(peek())) {
             ExprTok chainTok = peek();
             diags.error("E_PARSE",
@@ -272,11 +230,7 @@ public final class ExprParser {
         return left;
     }
 
-    /**
-     * {@code unary := "!" unary | "-" unary | primary} — right-recursive so {@code !!x} works.
-     * {@code !} is boolean negation; {@code -} is numeric negation (se-compile rejects whichever does
-     * not fit the operand's type).
-     */
+    /** {@code unary := "!" unary | "-" unary | primary} — right-recursive so {@code !!x} works. */
     private Expr parseUnary() {
         if (check(ExprTok.Kind.BANG)) {
             ExprTok bang = peek();
@@ -326,13 +280,10 @@ public final class ExprParser {
                 return identifier(t);
             }
             default -> {
-                // No primary where one was required (EOF, a stray operator, ')'…).
                 diags.error("E_PARSE", "expected a value but found '" + describe(t) + "'",
                         lineSource.atColumn(t.col()),
                         "a value is a number, a %variable%, a \"string\", true/false, or a (group)");
-                // Recover WITHOUT consuming: the caller's loop can re-synchronize on
-                // the same token (e.g. a dangling operator), and a sentinel keeps the
-                // tree non-null. A leading operator is consumed to avoid spinning.
+                // Recover without consuming so the caller can re-synchronize; consume a leading operator to avoid spinning.
                 if (isOperatorLike(t)) {
                     advance();
                 }
@@ -341,11 +292,7 @@ public final class ExprParser {
         }
     }
 
-    /**
-     * Build a {@link Expr.VarRef} from a {@code %…%} token. Only the first dot
-     * splits scope from name; a bare {@code %name%} (no dot) has a {@code null}
-     * scope. PAPI/unknown tokens are valid here and resolved later, never rejected.
-     */
+    /** Build a {@link Expr.VarRef}; only the first dot splits scope from name (see {@link Expr.VarRef}). */
     private Expr variable(ExprTok t) {
         String body = t.text();
         Source s = lineSource.atColumn(t.col());
@@ -358,12 +305,7 @@ public final class ExprParser {
         return new Expr.VarRef(scope, name, s);
     }
 
-    /**
-     * Resolve a bare identifier. {@code true}/{@code false} (case-insensitive)
-     * become {@link Expr.BoolLit}; any other identifier is treated as an
-     * (unscoped) variable name so enum-ish operands like {@code SNEAKING} survive
-     * to be resolved later, rather than being rejected at parse time.
-     */
+    /** {@code true}/{@code false} become {@link Expr.BoolLit}; any other identifier is an unscoped variable name, resolved later. */
     private Expr identifier(ExprTok t) {
         Source s = lineSource.atColumn(t.col());
         if (t.text().equalsIgnoreCase("true")) {
@@ -374,8 +316,6 @@ public final class ExprParser {
         }
         return new Expr.VarRef(null, t.text(), s);
     }
-
-    // ----- token helpers -----
 
     private static Cmp comparatorAt(ExprTok t) {
         return switch (t.kind()) {
@@ -397,7 +337,6 @@ public final class ExprParser {
         };
     }
 
-    /** A comparison-precedence operator: a relational comparator or a string operator. */
     private static boolean isComparisonOp(ExprTok t) {
         return comparatorAt(t) != null || strOpAt(t) != null;
     }
@@ -410,7 +349,6 @@ public final class ExprParser {
         };
     }
 
-    /** A human-facing label for a token, used in diagnostic messages. */
     private static String describe(ExprTok t) {
         return t.kind() == ExprTok.Kind.EOF ? "end of expression" : t.text();
     }

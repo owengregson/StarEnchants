@@ -12,7 +12,6 @@ import java.util.List;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host SET_BLOCK test: one blockChange per target location; no-op when none resolve. */
 class SetBlockEffectTest {
 
     @Test
@@ -20,7 +19,7 @@ class SetBlockEffectTest {
         Location a = mock(Location.class);
         Location b = mock(Location.class);
         EffectCtx ctx = mock(EffectCtx.class);
-        when(ctx.targetLocations("at")).thenReturn(List.of(a, b)); // e.g. an @Trench resolved to two blocks
+        when(ctx.targetLocations("at")).thenReturn(List.of(a, b));
         when(ctx.integer("material")).thenReturn(7);
 
         Sink sink = mock(Sink.class);

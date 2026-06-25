@@ -23,24 +23,10 @@ import schema.spec.Param;
 import schema.spec.ParamSpec;
 
 /**
- * The in-game reference dictionary, read straight from the five runtime vocabularies (docs/v3-directives.md
- * §K "Effects/reference browser", §M). Pure and server-free — the {@code Builtin*} registries construct off
- * a server — so it is built once at boot and unit-tested. It surfaces the same vocabulary the {@code /se
- * effects|selectors|triggers|conditions|variables} commands will (§J); the §M auto-doc Markdown is a
- * separate, drift-guarded artefact (task #33) generated from these same registries.
- *
- * <p>Five categories, each a flat list of {@link Entry} (a title + tooltip lore):
- * <ul>
- *   <li><strong>Effects</strong> — head, doc, affinity, each param ({@code name type}), example.</li>
- *   <li><strong>Selectors</strong> — head, doc, params, example (no affinity/targets — routing is the
- *       effect's).</li>
- *   <li><strong>Triggers</strong> — name + the routing metadata (direction / uses-held / scans-equipment /
- *       needs-target); triggers take no DSL args, so there are no params.</li>
- *   <li><strong>Conditions</strong> — the operator vocabulary (relational {@link Cmp} + string {@link StrOp});
- *       conditions are an expression grammar, not a head registry, so this lists the operators a clause uses.</li>
- *   <li><strong>Variables</strong> — every {@code %scope.name%} fact and its type, from the
- *       {@link VarVocabulary} (enumerated via its bindings view).</li>
- * </ul>
+ * The in-game reference dictionary: five categories (Effects, Selectors, Triggers, Conditions, Variables),
+ * each a flat list of {@link Entry}, read straight from the runtime vocabularies (docs/v3-directives.md §K,
+ * §M). Server-free, so it builds once at boot and is unit-tested. Conditions are an expression grammar, not a
+ * head registry, so that category lists the comparison/string operators a clause uses.
  */
 public final class ReferenceCatalog {
 

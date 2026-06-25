@@ -8,10 +8,7 @@ import engine.spec.EffectSpec;
 import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
-/**
- * {@code CURE} — clear every active potion effect from the target(s) (docs/architecture.md §7); a full
- * cleanse, broad counterpart of single-effect {@code REMOVE_POTION}. {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code CURE} — clear every active potion effect from the target(s) (§7); broad counterpart of {@code REMOVE_POTION}. */
 public final class CureEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("CURE")

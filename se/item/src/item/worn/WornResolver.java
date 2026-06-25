@@ -29,9 +29,8 @@ import org.bukkit.inventory.ItemStack;
  * <p>Sets resolve here too: each piece's {@code setKey}/{@code omni} (§6.6) feeds {@link SetResolver},
  * whose active-set {@code BitSet} joins {@link WornState#activeSets()} and contributes each completed
  * set's bonus ability id (a set's dense id is its set id; its threshold is that ability's
- * {@code setPieces}). Heroic flat stats are not yet item-encoded, so that source is {@code NONE}.
- * Trigger metadata is injected to keep {@code se-item} free of an {@code se-engine} dependency; the
- * caller passes the live published {@link Snapshot}, so resolution is reload-correct.
+ * {@code setPieces}). Trigger metadata is injected to keep {@code se-item} free of an {@code se-engine}
+ * dependency; the caller passes the live published {@link Snapshot}, so resolution is reload-correct.
  *
  * <p><strong>Generation invariant.</strong> The caller must pass the {@link Snapshot} whose generation
  * matches the injected {@link ItemViewCache} — both advance together on reload. Resolution is correct
@@ -51,16 +50,12 @@ public final class WornResolver {
         public static final Features ALL = new Features(true, true, true, true);
     }
 
-    /** All-features-on form (tests/fixtures). */
     public WornResolver(ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger) {
         this(itemViews, triggerCount, attackTrigger, defenseTrigger, () -> Features.ALL);
     }
 
-    /**
-     * Canonical form (the composition root): {@code features} is read live per resolve, so a {@code /se reload}
-     * that toggles a feature drops (or restores) that source on the next equip-change re-resolve.
-     */
+    /** Canonical form: {@code features} is read live per resolve, so a {@code /se reload} re-tunes which sources contribute. */
     public WornResolver(ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger,
                         java.util.function.Supplier<Features> features) {

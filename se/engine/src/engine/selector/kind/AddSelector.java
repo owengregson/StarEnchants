@@ -7,10 +7,7 @@ import java.util.List;
 import org.bukkit.Location;
 import schema.spec.D;
 
-/**
- * {@code @Add{x,y,z}} — activation location offset by a fixed {@code (x, y, z)} (docs/v3-directives.md §A).
- * Pure coordinate offset, no world read.
- */
+/** {@code @Add{x,y,z}} — activation location offset by a fixed {@code (x, y, z)}; pure coordinate math, no world read. */
 public final class AddSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("ADD")

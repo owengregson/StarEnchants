@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * An ability after {@link LowerStage} but before {@link EraseStage}: effects and condition compiled,
  * {@link #affinity} folded — but worlds, triggers, suppression and cooldown scopes are still
- * <em>names</em>, not interned ids, and no dense id is assigned (docs/architecture.md §4.1). Erasure
- * does the interning, bit-packing, and id assignment.
+ * <em>names</em>, not interned ids, and no dense id is assigned (docs/architecture.md §4.1).
  *
  * @param level          enchant level; {@code 0} otherwise
  * @param baseChance     activation chance in {@code [0,100)}

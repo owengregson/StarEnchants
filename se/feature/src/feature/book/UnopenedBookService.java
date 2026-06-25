@@ -15,12 +15,9 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The unopened/randomized book cold path (§I) — MINTS a tier-scoped unopened book and OPENS one into a
- * concrete enchant book of a random tier enchant at a random level + success, minted through
- * {@link CarrierService#mintBook(String, int, int)} so it carries an explicit base success.
- *
- * <p>The roll is the only non-determinism, injected as a {@link Random} for testability. Folia-correct: a
- * right-click interact fires on the player's own region thread, so reading their held item is in-thread.
+ * The unopened/randomized book cold path (§I) — mints a tier-scoped unopened book and opens one into a
+ * concrete enchant book (random tier enchant, level, and base success). The roll is the only
+ * non-determinism, injected as a {@link Random} for testability.
  */
 public final class UnopenedBookService {
 
@@ -29,7 +26,7 @@ public final class UnopenedBookService {
     private final ContentHolder content;
     private final Supplier<UnopenedBookConfig> config;
     private final Random random;
-    private final item.lang.Messages messages; // §L lang.yml — reveal/empty-tier messages
+    private final item.lang.Messages messages;
 
     /** Default-messages form (tests/fixtures). */
     public UnopenedBookService(UnopenedBookCodec codec, CarrierService carriers, ContentHolder content,
@@ -63,14 +60,13 @@ public final class UnopenedBookService {
     }
 
     /**
-     * Open the unopened {@code book}: roll a random tier enchant, level, and success, and mint the concrete
-     * book. An empty tier yields nothing and preserves the book; otherwise one is consumed and the rolled
-     * book produced.
+     * Open the unopened {@code book}, minting the rolled concrete book. An empty tier yields nothing and
+     * preserves the book; otherwise one is consumed and the rolled book produced.
      */
     public UnopenedResult open(ItemStack book) {
         String tier = codec.tierOf(book);
         if (tier == null) {
-            return UnopenedResult.nothing(null); // not an unopened book (defensive)
+            return UnopenedResult.nothing(null);
         }
         java.util.Optional<Rolled> rolled = rollDetailed(tier);
         if (rolled.isEmpty()) {
@@ -82,10 +78,7 @@ public final class UnopenedBookService {
         return UnopenedResult.opened(r.book(), message);
     }
 
-    /**
-     * The same roll {@link #open} performs, exposed for the §J {@code /se give book ... random <tier>} form.
-     * Empty when the tier has no enchants.
-     */
+    /** The same roll {@link #open} performs, exposed for the §J {@code /se give book ... random <tier>} form. */
     public java.util.Optional<ItemStack> roll(String tier) {
         return rollDetailed(tier).map(Rolled::book);
     }

@@ -18,11 +18,7 @@ import schema.grammar.EffectLine;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Proves the selector half of the engine↔compiler loop closes: the engine declares
- * selector kinds, exposes their specs through {@link SelectorRegistry}, and the pure
- * compiler validates an inline {@code @Head{...}} against exactly those (§3.5, §7).
- */
+/** The pure compiler validates an inline {@code @Head{...}} against the engine's selector specs, exposed through {@link SelectorRegistry} (§3.5, §7). */
 class SelectorBridgeTest {
 
     private static Compiler compiler() {

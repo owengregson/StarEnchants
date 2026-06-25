@@ -16,13 +16,10 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * Explicit, greppable registry of effect kinds (docs/architecture.md §7, §13.2) — deliberately not
- * annotation-processor codegen, so a contributor can see the wiring. Heads match case-insensitively;
- * a duplicate fails fast at build time.
- *
- * <p>Also the seam that keeps the compiler pure yet affinity-aware: {@link #specRegistry()} and
- * {@link #affinityOf()} are built at boot and injected into the compiler, so {@code se-compile} never
- * depends on {@code se-engine} (§2.1).
+ * Explicit, greppable registry of effect kinds (§7, §13.2); heads match case-insensitively, a duplicate fails
+ * fast at build. Also the seam that keeps the compiler pure yet affinity-aware: {@link #specRegistry()} and
+ * {@link #affinityOf()} are built at boot and injected into the compiler, so {@code se-compile} never depends
+ * on {@code se-engine} (§2.1).
  */
 public final class EffectRegistry {
 

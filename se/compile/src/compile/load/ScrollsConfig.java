@@ -3,19 +3,7 @@ package compile.load;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * The configurable likeness + mechanics of the SCROLL family (§I). Each member is authored in its OWN
- * top-level file (one physical item per file, matching every other {@code items/} entry); this record is
- * purely the internal grouping the scroll services consume, since the members share item-data machinery
- * ({@code ScrollCodec}). Immutable; lives in the {@link ItemsConfig} snapshot {@code /se reload} swaps.
- *
- * @param black      the black scroll (extract one enchant from gear into a book)
- * @param randomizer the randomizer scroll (reroll a book's success chance)
- * @param transmog   the transmog scroll (reorder an item's enchant lore + name suffix)
- * @param holy       the holy white scroll (survive a death once — keeps items/levels)
- * @param nametag    the item nametag (rename gear via chat)
- * @param godly      the physical godly-transmog tool (open the reorder GUI on a clicked piece)
- */
+/** Internal grouping of the SCROLL family (§I), which share item-data machinery; each member is authored in its own {@code items/} file. */
 public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmog, Holy holy, Nametag nametag,
                             Godly godly) {
 
@@ -28,10 +16,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         Objects.requireNonNull(godly, "godly");
     }
 
-    /**
-     * The black scroll: dragged onto enchanted gear, it extracts one (random) enchant into an enchant book
-     * with a {@link #successChance} roll. On failure the scroll is spent and nothing is extracted.
-     */
+    /** Extracts one random enchant from gear into a book on a {@code successChance} roll; spent (extracting nothing) on failure. */
     public record Black(String material, String name, List<String> lore, int successChance) {
         public Black {
             Objects.requireNonNull(material, "material");
@@ -41,10 +26,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         }
     }
 
-    /**
-     * The randomizer scroll: dragged onto an enchant book, it rerolls the book's success chance to a random
-     * value in {@code [minPercent, maxPercent]}.
-     */
+    /** Rerolls a book's success chance to a random value in {@code [minPercent, maxPercent]}. */
     public record Randomizer(String material, String name, List<String> lore, int minPercent, int maxPercent) {
         public Randomizer {
             Objects.requireNonNull(material, "material");
@@ -57,10 +39,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         }
     }
 
-    /**
-     * The transmog scroll: dragged onto enchanted gear, it reorders the item's enchant lore (cosmetic — the
-     * combat behaviour is order-independent) and appends a configurable {@code nameSuffix} to the item name.
-     */
+    /** Reorders an item's enchant lore (cosmetic — combat is order-independent) and appends {@code nameSuffix} to the name. */
     public record Transmog(String material, String name, List<String> lore, String nameSuffix) {
         public Transmog {
             Objects.requireNonNull(material, "material");
@@ -71,9 +50,8 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
     }
 
     /**
-     * The holy / death scroll: held in the inventory (incl. off-hand), on a death with a {@link #saveChance}
-     * roll it keeps the player's items + levels (consumed on the saved death). Respects an existing
-     * keepInventory gamerule (then it is neither needed nor spent).
+     * Held in inventory (incl. off-hand); on death, a {@code saveChance} roll keeps items + levels, consuming the scroll.
+     * Defers to an existing keepInventory gamerule, where it is neither needed nor spent.
      */
     public record Holy(String material, String name, List<String> lore, int saveChance) {
         public Holy {
@@ -84,11 +62,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         }
     }
 
-    /**
-     * The item nametag: dragged onto gear, it prompts the player to type a new name in chat; the name is
-     * rejected if it contains a blacklisted word. {@code blacklist} entries are matched case-insensitively
-     * as substrings of the (colour-stripped) name.
-     */
+    /** Renames gear via chat; rejected if {@code blacklist} entries (matched case-insensitively as substrings of the colour-stripped name) appear. */
     public record Nametag(String material, String name, List<String> lore, List<String> blacklist) {
         public Nametag {
             Objects.requireNonNull(material, "material");
@@ -98,11 +72,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         }
     }
 
-    /**
-     * The physical godly-transmog tool: dragged onto enchanted gear, it OPENS the deterministic
-     * enchant-reorder GUI (§K) bound to that piece — a reusable tool, not a one-shot scroll. Its likeness
-     * is configured here; its marker is the dedicated {@code GodlyTransmogCodec} (off the scroll consume path).
-     */
+    /** Opens the enchant-reorder GUI (§K) on a clicked piece — a reusable tool, not a one-shot scroll (its own {@code GodlyTransmogCodec}, off the consume path). */
     public record Godly(String material, String name, List<String> lore) {
         public Godly {
             Objects.requireNonNull(material, "material");
@@ -111,7 +81,6 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         }
     }
 
-    /** The built-in scroll likenesses used when {@code items/scrolls.yml} is absent or omits fields. */
     public static ScrollsConfig defaults() {
         return new ScrollsConfig(
                 new Black(

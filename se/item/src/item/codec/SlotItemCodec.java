@@ -7,8 +7,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Marks / detects a SLOT EXPANDER orb (§H), storing the {@code +N} it grants as a PDC {@code INTEGER}
- * under {@link ItemKeys#slotItem()}, off the combat hot path. The granted slots themselves persist in
- * the gear's {@link CombatState#added()} field, not here. Reading is null-safe.
+ * under {@link ItemKeys#slotItem()}. The granted slots themselves persist in the gear's
+ * {@link CombatState#added()} field, not here.
  */
 public final class SlotItemCodec {
 
@@ -18,7 +18,6 @@ public final class SlotItemCodec {
         this.key = key;
     }
 
-    /** Whether {@code stack} is a slot expander / gem item. */
     public boolean isSlotItem(ItemStack stack) {
         return stack != null && stack.hasItemMeta()
                 && stack.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.INTEGER);

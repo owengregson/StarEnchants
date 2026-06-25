@@ -9,11 +9,7 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/**
- * {@code DAMAGE} — deal extra damage to the target(s) (docs/architecture.md §7).
- * Stateless; emits a {@code damage} intent per resolved target and never touches an
- * entity directly. {@link Affinity#CONTEXT_LOCAL}: it applies on the firing thread.
- */
+/** {@code DAMAGE} — deal extra damage to the target(s) (§7). */
 public final class DamageEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("DAMAGE")

@@ -7,9 +7,8 @@ import java.util.Map;
 /**
  * The persistent stable-key &harr; dense-id indirection (docs/architecture.md §5.3). Items store stable
  * string keys in PDC; the dense {@link Ability#id()} is a per-snapshot accelerator reassigned freely on
- * reload — so an old item still resolves by its stable key, keeping content hot-swappable and items
- * forward-compatible across the version range. An unknown key resolves to {@code -1} (skipped, never a crash).
- * Immutable; built once during erasure.
+ * reload — so an old item still resolves by its stable key, keeping content hot-swappable. An unknown key
+ * resolves to {@code -1} (skipped, never a crash).
  */
 public final class StableKeyIndex {
 

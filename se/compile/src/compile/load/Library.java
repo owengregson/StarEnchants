@@ -5,16 +5,11 @@ import java.util.List;
 import schema.diag.Diagnostic;
 
 /**
- * The result of loading a content library (ADR-0014, ADR-0016): the compiled runtime {@link Snapshot}
- * the engine walks, the parsed {@link EnchantDef}/{@link CrystalDef}/{@link SetDef} catalogs (display
- * metadata for render/apply), the {@link TierRegistry}, and every {@link Diagnostic} the load produced.
- * Immutable; published by reference through {@link ContentHolder}.
- *
- * <p>A {@code Snapshot} is always present; inspect {@link #hasErrors()} before publishing — a load with
- * blocking diagnostics keeps the previous library live (transactional reload, §10).
- *
- * <p>Carrier items (books, dust, scrolls) are NOT content — minted from {@code items/*.yml}
- * ({@code ItemsConfig}), not authored under {@code content/} — so there is no item catalog here.
+ * The result of loading a content library (ADR-0014, ADR-0016): the runtime {@link Snapshot}, the parsed
+ * def catalogs, the {@link TierRegistry}, and the load's {@link Diagnostic}s. Immutable; published by
+ * reference through {@link ContentHolder}. Inspect {@link #hasErrors()} before publishing — a blocking load
+ * keeps the previous library live (transactional reload, §10). Carrier items (books, dust, scrolls) are not
+ * content and have no catalog here; they are minted from {@code items/*.yml}.
  */
 public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalDef> crystals,
                       List<SetDef> sets, TierRegistry tiers,
@@ -72,15 +67,13 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         return new Library(snapshot, List.of(), List.of(), List.of(), TierRegistry.BUILTIN, diagnostics);
     }
 
-    /** Whether the load produced any blocking diagnostic (the caller then keeps the old library). */
     public boolean hasErrors() {
         return diagnostics.stream().anyMatch(Diagnostic::blocking);
     }
 
     /**
-     * The display name for a stored base key — enchant or crystal — or {@code null} if no content
-     * defines it (the renderer shows such a key as the unknown label, §5.3). A linear scan over the
-     * catalogs: fine for the cold render/apply paths, never the combat hot path.
+     * The display name for a stored base key, or {@code null} if no content defines it (the renderer then
+     * shows the unknown label, §5.3). Linear scan: fine for the cold render/apply paths, never combat.
      */
     public String displayNameOf(String baseKey) {
         for (EnchantDef def : catalog) {

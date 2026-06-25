@@ -39,9 +39,8 @@ import platform.resolve.RuntimeHandles;
  * (ATTACK/DEFENSE on {@code EntityDamageByEntityEvent}) does not cover. Routes the actor's worn abilities
  * through the shared {@link TriggerRunner} into a per-event {@link DispatchSink}, then applies its read-backs:
  * a neutral event ({@link #fire}) honours only a {@code cancelEvent}; a damage event ({@link #fireDamage})
- * also folds the accumulated deltas onto it.
- *
- * <p>Trigger ids resolve once at construction; an absent trigger is {@code -1} and its {@code fire} is a no-op.
+ * also folds the accumulated deltas onto it. Trigger ids resolve once at construction; an absent trigger is
+ * {@code -1} and its {@code fire} is a no-op.
  */
 public final class TriggerDispatch {
 
@@ -176,8 +175,7 @@ public final class TriggerDispatch {
 
     /**
      * Fire MINE for a block break, then apply the drop read-backs to {@code event}: {@code cancelEvent}, plus
-     * {@code SMELT} / {@code TELEPORT_DROPS} (Cosmic Enchants-style parity). Runs on the block's region thread,
-     * where the block and the breaker's inventory are region-owned.
+     * {@code SMELT} / {@code TELEPORT_DROPS} (Cosmic Enchants-style parity). Runs on the block's region thread.
      */
     public void fireMine(Player actor, ActivationContext context, BlockBreakEvent event) {
         if (mine < 0) {
@@ -267,11 +265,9 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Fire the §B HELD/PASSIVE lifecycle transition — the {@link feature.trigger.LifecycleDriver}'s equip-change
-     * body, on the player's entity thread, into ONE sink flushed once. NOT gated: a maintained buff is
-     * deterministic. Ordering invariants: STOP runs before START (level-swap removes the old buff before
-     * re-applying); STOP is unconditional (a buff can never leak); START honours only the world-blacklist (a
-     * world-disabled passive stays off).
+     * Fire the HELD/PASSIVE lifecycle transition (§B) on the player's entity thread, into ONE sink. NOT gated:
+     * a maintained buff is deterministic. Ordering: STOP before START (level-swap removes the old buff before
+     * re-applying); STOP is unconditional (a buff can never leak); START honours only the world-blacklist.
      */
     public void fireLifecycle(Player actor, List<Ability> stops, List<Ability> starts) {
         if (held < 0 && passive < 0) {
@@ -285,7 +281,7 @@ public final class TriggerDispatch {
         int worldId = worldId(snapshot, context);
         DispatchSink sink = newSink();
         for (Ability ability : stops) {
-            executor.runLifecycle(ability, context, sink, true); // unconditional teardown — never world-gated
+            executor.runLifecycle(ability, context, sink, true); // teardown=true: unconditional, never world-gated
         }
         for (Ability ability : starts) {
             if (!ability.blockedInWorld(worldId)) { // gate-1 only: a world-disabled passive does not turn on

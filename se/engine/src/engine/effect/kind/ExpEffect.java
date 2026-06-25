@@ -11,17 +11,8 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code MODIFY_EXP} — canonical experience primitive (docs/v3-directives.md §C):
- *
- * <ul>
- *   <li>{@code give} — grant {@code amount} experience to each resolved player target;</li>
- *   <li>{@code take} — withdraw {@code amount} from each resolved player target;</li>
- *   <li>{@code transfer} — withdraw from each target AND grant the total to the ACTIVATOR (steal).</li>
- * </ul>
- *
- * <p>Transfer's counterpart is fixed to the activator, not a second selector: an effect resolves one
- * selector (the "other" party), the actor is the constant end (mirrors {@link MoneyEffect}).
- * {@link Affinity#TARGET_ENTITY} (§3.6).
+ * {@code MODIFY_EXP} — canonical experience primitive (§C). Transfer's counterpart is fixed to the activator,
+ * not a second selector (an effect resolves one selector; mirrors {@link MoneyEffect}).
  */
 public final class ExpEffect implements EffectKind {
 

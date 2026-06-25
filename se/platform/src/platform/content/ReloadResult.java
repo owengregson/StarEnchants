@@ -5,12 +5,9 @@ import schema.diag.Diagnostic;
 import schema.diag.Source;
 
 /**
- * The outcome of one {@link ContentReloader} attempt, reported to the caller on the global thread so
- * a {@code /se reload} command can message the operator (docs/architecture.md §10). Immutable.
- *
- * <p>{@link #generation} and {@link #abilityCount} describe the <em>candidate</em> build; they are the
- * live values only when {@link #published} is {@code true}. On a rejected build (or {@link #busy}/
- * {@link #failure}) the live content is unchanged and these describe the build that was thrown away.
+ * The outcome of one {@link ContentReloader} attempt (docs/architecture.md §10). Immutable.
+ * {@link #generation}/{@link #abilityCount} describe the <em>candidate</em> build; they are live values
+ * only when {@link #published}, else they describe the build that was thrown away.
  *
  * @param published    whether the new library was swapped in (clean, non-dry-run)
  * @param dryRun       whether this was a {@code --dry-run} (never publishes, only reports)

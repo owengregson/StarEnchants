@@ -34,7 +34,6 @@ public final class CarrierCodec {
         return decode(stack.getItemMeta().getPersistentDataContainer().get(carrierKey, PersistentDataType.STRING));
     }
 
-    /** Mark {@code stack} as the carrier {@code data} (clearing the marker when {@code null}). */
     public void write(ItemStack stack, CarrierData data) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {
@@ -49,7 +48,7 @@ public final class CarrierCodec {
         stack.setItemMeta(meta);
     }
 
-    /** Whether {@code gear} carries a guard-scroll protection marker (spares it from a failed apply). */
+    /** Whether {@code gear} carries a guard-scroll marker that spares it from a failed apply. */
     public boolean isGuarded(ItemStack gear) {
         if (gear == null || !gear.hasItemMeta()) {
             return false;
@@ -58,7 +57,6 @@ public final class CarrierCodec {
         return flag != null && flag != 0;
     }
 
-    /** Set or clear the guard-scroll protection marker on {@code gear}. */
     public void setGuarded(ItemStack gear, boolean guarded) {
         ItemMeta meta = gear.getItemMeta();
         if (meta == null) {

@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * Soul gem inventory affordances (§D): combine two gems (souls sum into a fresh gem) plus anti-dupe guards
  * (a gem can never be placed as a block nor used as a crafting ingredient — a Cosmic Enchants-style
- * {@code SoulgemCraftEvent} analog). Folia-correct: gestures fire on the acting player's region thread.
+ * {@code SoulgemCraftEvent} analog).
  */
 public final class SoulInventoryListener implements Listener {
 

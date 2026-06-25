@@ -45,12 +45,10 @@ public record CarrierData(String itemKey, String grantKey, int grantLevel, int s
         this(itemKey, grantKey, grantLevel, successBonus, -1);
     }
 
-    /** Whether this carrier confers a content grant (an enchant/crystal/set), vs a pure-mechanic scroll. */
     public boolean grants() {
         return !grantKey.isEmpty();
     }
 
-    /** Whether this carrier carries an explicit base-success override (vs deferring to its def). */
     public boolean hasBaseSuccess() {
         return baseSuccess >= 0;
     }

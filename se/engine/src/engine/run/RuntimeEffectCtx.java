@@ -13,15 +13,12 @@ import org.bukkit.entity.Player;
 import schema.spec.Args;
 
 /**
- * The concrete {@link EffectCtx} the {@link AbilityExecutor} builds per effect (docs/architecture.md
- * §3.5, §7): typed {@link Args}, the activation's actors, the resolved per-slot targets, and the level.
- * No parsing, no entity touch on the hot path.
+ * The concrete {@link EffectCtx} the {@link AbilityExecutor} builds per effect (docs/architecture.md §3.5).
  *
- * <p>A numeric argument may be a compiled {@link NumExpr} over {@code %variables%} (§3.4):
- * {@link #dbl}/{@link #integer}/{@link #lng} evaluate it against the activation's {@link FactBuffer} on
- * read (so {@code DAMAGE_MOD:attack:add:%combo% * 10} scales per hit); a constant is read with no work.
- * {@code facts} is {@code null} only on the lifecycle path (HELD/PASSIVE start/stop), where an expression
- * has no combat facts and evaluates to {@code 0}.
+ * <p>A numeric argument may be a compiled {@link NumExpr} over {@code %variables%}:
+ * {@link #dbl}/{@link #integer}/{@link #lng} evaluate it against the {@link FactBuffer} on read (so
+ * {@code DAMAGE_MOD:attack:add:%combo% * 10} scales per hit); a constant reads with no work. {@code facts}
+ * is {@code null} only on the lifecycle path, where an expression has no combat facts and evaluates to 0.
  */
 final class RuntimeEffectCtx implements EffectCtx {
 

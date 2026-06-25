@@ -44,12 +44,11 @@ public final class ItemFactory {
         return matched != null ? matched : fallback;
     }
 
-    /** Translate legacy {@code &} colour codes in {@code raw} (null-safe → null). */
     public static String color(String raw) {
         return raw == null ? null : ChatColor.translateAlternateColorCodes('&', raw);
     }
 
-    /** Coloured name + {@code &}-translated lore on a {@code material} stack; blank name / empty lore left unset. */
+    /** Blank name / empty lore is left unset. */
     public static ItemStack build(Material material, String name, List<String> lore) {
         return decorate(new ItemStack(material), name, lore);
     }
@@ -61,7 +60,6 @@ public final class ItemFactory {
      */
     private static volatile java.util.function.Function<String, ItemStack> customItemResolver = token -> null;
 
-    /** Install the ItemsAdder/Oraxen custom-item resolver (boot-time). A {@code null} resets to no-op. */
     public static void customItemResolver(java.util.function.Function<String, ItemStack> resolver) {
         customItemResolver = resolver == null ? token -> null : resolver;
     }

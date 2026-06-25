@@ -11,11 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * across moves, drops, and re-pickups, so the active selection follows the gem rather than a slot that a
  * rearrange would silently repoint.
  *
- * <p>Concurrent, UUID-keyed (Folia: any region thread may toggle).
- *
- * <p>No time dependency: no TTL, no eviction. The mode is a deliberate toggle that persists until switched
- * off ({@link #deactivate}/{@link #clear}), replaced ({@link #activate}), or the player quits — hence no
- * {@code nowTicks} parameter.
+ * <p>No time dependency: the mode is a deliberate toggle that persists until switched off, replaced, or the
+ * player quits — hence no TTL, no eviction, and no {@code nowTicks} parameter.
  */
 public final class SoulModeStore {
 

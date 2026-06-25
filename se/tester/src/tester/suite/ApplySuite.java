@@ -23,10 +23,7 @@ import org.bukkit.plugin.Plugin;
 import platform.item.ItemGroups;
 import tester.harness.Harness;
 
-/**
- * Item-application path, proven live against a real item factory (docs/architecture.md §4.2).
- * Item-only (no fake player), so it runs across the whole range including the spigot-mapped floor.
- */
+/** Item-application path, live (§4.2). Item-only (no fake player), so it runs the spigot-mapped floor too. */
 public final class ApplySuite implements Harness.Scenario {
 
     private static final String KEEN = """

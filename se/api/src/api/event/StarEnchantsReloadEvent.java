@@ -4,16 +4,10 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * Fired after a content reload has been published (docs/architecture.md §10, §13) — the seam a
- * third-party plugin uses to refresh its own caches keyed by StarEnchants content. Carries the new
- * snapshot's generation and ability count. Fires only on a CLEAN swap (a reload with blocking
- * diagnostics keeps the old content and does not fire this).
- *
- * <p>The published snapshot is already live when this fires, but StarEnchants' own per-player
- * re-resolution (each online player's {@code WornState} is rebuilt on that player's region thread)
- * is dispatched alongside and completes asynchronously — so a listener must NOT assume every online
- * player has been re-resolved against the new generation by the time it runs. On Folia this fires on
- * the global region thread; route any cross-region work through a scheduler.
+ * Fired after a content reload is published (docs/architecture.md §10, §13). Fires only on a CLEAN swap
+ * (a reload with blocking diagnostics keeps the old content and does not fire). The snapshot is live, but
+ * per-player {@code WornState} re-resolution is dispatched alongside and finishes asynchronously — a listener
+ * must NOT assume every player is re-resolved yet. On Folia this fires on the global region thread.
  */
 public final class StarEnchantsReloadEvent extends Event {
 
@@ -27,12 +21,11 @@ public final class StarEnchantsReloadEvent extends Event {
         this.abilityCount = abilityCount;
     }
 
-    /** The published snapshot's generation (strictly higher than the previous one). */
+    /** Strictly higher than the previous one. */
     public int getGeneration() {
         return generation;
     }
 
-    /** How many compiled abilities the new snapshot holds. */
     public int getAbilityCount() {
         return abilityCount;
     }

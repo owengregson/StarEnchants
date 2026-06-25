@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Assigns a dense {@code int} id to each distinct string so the hot path compares ids and packs
- * bitsets instead of strings (docs/architecture.md §4.1, §8). Ids run sequentially from {@code 0} in
- * first-seen order; the frozen id&harr;name table goes into the {@link Snapshot}.
+ * Assigns a dense {@code int} id to each distinct string so the hot path compares ids instead of strings
+ * (docs/architecture.md §4.1, §8). Ids run sequentially from {@code 0} in first-seen order.
  *
  * <p>Callers must normalize keys (case-fold, trim) <em>before</em> interning — keys are stored
  * verbatim, so spellings that must share an id have to arrive identical. Build-time only and

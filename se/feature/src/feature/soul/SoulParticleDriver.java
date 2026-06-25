@@ -12,10 +12,9 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * §D soul-gem while-active particle aura. One global repeating task (not per-player) so it needs no
- * toggle/join/quit bookkeeping — it reads the live {@link SoulModeStore} each tick. Folia-correct: the task
- * runs on the global thread (where enumerating players is safe), then hops to each active player's region via
- * {@link Scheduling#onEntity} to spawn at them.
+ * §D soul-gem while-active particle aura. One global repeating task (not per-player) reading the live
+ * {@link SoulModeStore} each tick. Folia-correct: runs on the global thread (where enumerating players is
+ * safe), then hops to each active player's region via {@link Scheduling#onEntity} to spawn at them.
  */
 public final class SoulParticleDriver {
 

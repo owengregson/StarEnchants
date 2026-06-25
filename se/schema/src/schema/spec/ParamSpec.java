@@ -8,25 +8,10 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * The signature of one DSL kind (effect, condition, selector, trigger): a head
- * name plus an ordered list of typed {@link Param}s, optional {@link CrossRule}s,
- * a doc string, and an example.
- *
- * <p><strong>One declaration, used four ways</strong> — the architecture's #1
- * maintainability win (docs/architecture.md §1.2 D5, §7, §10), which makes it
- * structurally impossible for validation, completion, docs, and migration to
- * drift apart:
- *
- * <ol>
- *   <li><b>validate</b> — {@link #parse} turns authored text into typed {@link Args}
- *       or precise diagnostics;</li>
- *   <li><b>complete</b> — {@link #completions} powers tab-completion per arg;</li>
- *   <li><b>docs</b> — {@link #usage} renders the signature for {@code /se docs};</li>
- *   <li><b>migrate</b> — {@link #toPositional} re-orders legacy named args into
- *       this spec's positional order.</li>
- * </ol>
- *
- * <p>Specs are immutable; build one with {@link #of(String)}.
+ * The signature of one DSL kind: a head plus ordered typed {@link Param}s, optional
+ * {@link CrossRule}s, a doc string, and an example. One declaration drives {@link #parse},
+ * {@link #completions}, {@link #usage}, and {@link #toPositional}, so the four can't drift
+ * (docs/architecture.md §7, §10). Immutable; build via {@link #of(String)}.
  */
 public final class ParamSpec {
 
@@ -66,11 +51,8 @@ public final class ParamSpec {
     }
 
     /**
-     * Validate raw positional arguments into typed {@link Args}, reporting every
-     * fault into {@code diags} at {@code source}. Never throws: missing required
-     * args, type/range errors, and extra args are all diagnostics. The returned
-     * {@code Args} is only meaningful once the caller confirms
-     * {@code !diags.hasErrors()}.
+     * Validate raw positional args into typed {@link Args}; never throws (everything is a diagnostic).
+     * The result is only meaningful once the caller confirms {@code !diags.hasErrors()}.
      */
     public Args parse(List<String> rawArgs, Source source, Diagnostics diags) {
         Objects.requireNonNull(rawArgs, "rawArgs");
@@ -86,7 +68,6 @@ public final class ParamSpec {
                         "missing required argument '" + p.name() + "' (" + p.type().label() + ")",
                         source, "usage: " + usage());
             } else {
-                // Optional with a default → apply it through the same parse path.
                 p.type().defaultRaw().ifPresent(def ->
                         p.type().parse(def, source, diags).ifPresent(v -> values.put(p.name(), v)));
             }
@@ -101,8 +82,7 @@ public final class ParamSpec {
         }
 
         Args args = new Args(values);
-        // Cross-rules only run when all referenced args parsed cleanly, to avoid
-        // cascading noise off a single type error.
+        // Cross-rules only run on a clean parse, to avoid cascading noise off a single type error.
         if (!diags.hasErrors()) {
             for (CrossRule rule : crossRules) {
                 rule.check(args, source, diags);
@@ -139,10 +119,8 @@ public final class ParamSpec {
     }
 
     /**
-     * Re-order a legacy <em>named</em> argument map into this spec's positional
-     * order — the migrator's hook (docs/architecture.md §10). Absent params yield
-     * their default (or an empty token, which {@link #parse} will then flag), so
-     * the emitted line round-trips back through validation.
+     * Re-order a legacy named-arg map into this spec's positional order (the migrator's hook, §10).
+     * Absent params yield their default or an empty token, so the line round-trips back through {@link #parse}.
      */
     public List<String> toPositional(Map<String, String> named) {
         List<String> out = new ArrayList<>(params.size());
@@ -156,7 +134,6 @@ public final class ParamSpec {
         return out;
     }
 
-    /** Builder for an immutable {@link ParamSpec}. */
     public static final class Builder {
         private final String head;
         private final List<Param> params = new ArrayList<>();

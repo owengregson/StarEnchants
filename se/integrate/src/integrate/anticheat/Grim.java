@@ -10,23 +10,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 /**
- * GrimAC compatibility (docs/decisions/0027). Grim is prediction-based with no per-action exemption (it uses
- * setbacks by design); blunt check-disabling would weaken it. So this is surgical: subscribe to Grim's
- * {@code FlagEvent} via the GrimAPI {@code EventBus} and cancel a flag only for a player StarEnchants itself
- * just moved (VELOCITY/TELEPORT) within a tight window — an engine motion Grim can't predict never produces a
- * false flag, every other check stays active.
- *
- * <p>Most motion needs nothing: SE applies velocity/teleport through the server events Grim already predicts,
- * and the Mental knockback combo delivers its vector through Mental's authoritative pipeline (ADR 0026) that
- * Grim verifies against. This catches the residual edge (a {@code KNOCKBACK_CONTROL}-corrected pre-delivered
- * knockback, a sudden engine launch/teleport) where prediction can briefly disagree.
- *
- * <p>Compiled against the real GrimAPI, so a renamed/removed accessor is a compile error here. Loaded only
- * when GrimAC is present (gated by the registrar), so the core never needs the Grim classes without it.
+ * GrimAC compatibility (docs/decisions/0027). Grim is prediction-based with no per-action exemption, so blunt
+ * check-disabling would weaken it; instead, cancel a {@code FlagEvent} only for a player StarEnchants itself
+ * just moved within a tight window — every other check stays active. Catches the residual edge where engine
+ * motion (a {@code KNOCKBACK_CONTROL}-corrected knockback, a sudden launch/teleport; ADR 0026) briefly defeats
+ * prediction.
  */
 final class Grim {
 
-    /** How long after an SE-applied motion a Grim flag for that player is treated as engine-caused. */
     private static final long WINDOW_MILLIS = 600L; // ~12 ticks: tight enough to bound the exploit surface
 
     private final Map<String, Long> recentMotionUntil = new ConcurrentHashMap<>();
@@ -35,9 +26,8 @@ final class Grim {
     }
 
     /**
-     * Subscribe the flag-cancellation listener and return the "StarEnchants just moved this player" recorder
-     * to fold into the movement-exemption hook. Called by the registrar only when GrimAC is present, so
-     * referencing this class (and the Grim API) is gated.
+     * Subscribe the flag-cancellation listener and return the "just moved this player" recorder to fold into
+     * the movement-exemption hook.
      */
     @SuppressWarnings("deprecation") // class-keyed subscribe is the simplest stable form, kept by GrimAPI
     static Consumer<Player> install(Plugin plugin, System.Logger log) {

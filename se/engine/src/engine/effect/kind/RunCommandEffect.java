@@ -7,10 +7,7 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import schema.spec.D;
 
-/**
- * {@code RUN_COMMAND} — run a command from the console (docs/architecture.md §7).
- * {@link Affinity#GLOBAL}: routed to the global thread, not the firing region thread.
- */
+/** {@code RUN_COMMAND} — run a command from the console (§7). */
 public final class RunCommandEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("RUN_COMMAND")

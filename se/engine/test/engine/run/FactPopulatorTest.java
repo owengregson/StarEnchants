@@ -25,11 +25,9 @@ import org.bukkit.inventory.PlayerInventory;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the runtime half of the condition variable system: mapping a live {@link ActivationContext} to the
- * dense {@link FactBuffer} slots the compiler lowered against. Slots resolve from the SAME {@link BuiltinVars}
- * vocabulary the populator uses, so this also guards against name/kind drift between the extractor table and
- * the declared vocabulary. Folia cross-region reads (which fail hard, defaulting that side) are pinned with a
- * synthetic {@link RuntimeException}; the end-to-end gate is proven live in {@code ConditionSuite}.
+ * Slots resolve from the SAME {@link BuiltinVars} vocabulary the populator uses, guarding against name/kind
+ * drift between the extractor table and the declared vocabulary. Folia cross-region reads fail hard and
+ * default that side — pinned here with a synthetic {@link RuntimeException}, proven end-to-end in {@code ConditionSuite}.
  */
 class FactPopulatorTest {
 
@@ -54,7 +52,6 @@ class FactPopulatorTest {
         return b.slot();
     }
 
-    /** A fully-stubbed firing player covering every actor-sourced fact. */
     private static Player actor() {
         Player p = mock(Player.class);
         lenient().when(p.getHealth()).thenReturn(15.0);
@@ -253,8 +250,8 @@ class FactPopulatorTest {
 
         FactBuffer f = populator.populate(new ActivationContext(actor, victim, null, null));
 
-        assertEquals(0.0, f.number(num("actor", "health"))); // actor side defaulted
-        assertEquals(9.0, f.number(num("victim", "health"))); // victim side still read
+        assertEquals(0.0, f.number(num("actor", "health")));
+        assertEquals(9.0, f.number(num("victim", "health")));
     }
 
     @Test

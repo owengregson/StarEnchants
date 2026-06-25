@@ -3,10 +3,9 @@ package migrate.model;
 import java.util.List;
 
 /**
- * A legacy enchant translated to the StarEnchants shape (docs/architecture.md §10). {@code trigger} is
- * {@code null} when the legacy type had no SE equivalent (the writer flags a {@code # TODO}); the
- * {@code legacyTrigger}/{@code legacyApplies} originals are kept for review comments. {@code repeatTicks}
- * is the REPEATING period in ticks (EE's {@code REPEATING-<seconds>}), 0 for a non-repeating enchant.
+ * A legacy enchant translated to the StarEnchants shape. {@code trigger} is {@code null} when the legacy
+ * type had no SE equivalent; the {@code legacy*} originals feed review comments. {@code repeatTicks} is the
+ * REPEATING period in ticks (from EE's {@code REPEATING-<seconds>}), 0 for a non-repeating enchant.
  */
 public record MigratedEnchant(String id, String display, String description, String trigger,
                               List<String> appliesTo, String group, List<MigratedLevel> levels,

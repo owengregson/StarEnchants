@@ -8,9 +8,7 @@ import engine.spec.EffectSpec;
 import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 
-/**
- * {@code KILL} — instantly kill the target(s) (docs/architecture.md §7). Paramless. {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code KILL} — instantly kill the target(s) (§7). */
 public final class KillEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("KILL")

@@ -16,18 +16,13 @@ import org.junit.jupiter.api.Test;
 import schema.diag.Diagnostic;
 
 /**
- * The shipped content catalog must compile clean (ADR-0014; §10). This loads every authored
- * {@code resources/content/} file through the REAL effect/selector/trigger registries — so an
- * unknown effect head, a wrong arg count/type, an unknown trigger, a malformed level, a missing
- * set {@code pieces}, or broken YAML is caught at build time, before the catalog ever ships.
- *
- * <p>Handle tokens (potion/particle/sound/entity names) resolve through a PERMISSIVE resolver here:
- * their real cross-version existence is version-specific and is validated live on each server by the
- * tester's {@code CatalogSuite}. This test owns the structural contract; the live suite owns handles.
+ * The shipped catalog must compile clean through the real registries (ADR-0014; §10). Owns the
+ * structural contract only; handle-token existence is version-specific and validated live by the
+ * tester's {@code CatalogSuite}, so tokens resolve permissively here.
  */
 class CatalogValidationTest {
 
-    /** A resolver that accepts every handle token (id 0) — structural validation only; no server. */
+    /** Accepts every handle token (id 0) — structural validation only, no server. */
     private static final PlatformResolvers PERMISSIVE = new PlatformResolvers() {
         @Override public OptionalInt material(String token) { return OptionalInt.of(0); }
         @Override public OptionalInt sound(String token) { return OptionalInt.of(0); }

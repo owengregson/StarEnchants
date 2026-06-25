@@ -8,15 +8,11 @@ import schema.grammar.expr.Cmp;
 import schema.grammar.expr.FlowKind;
 
 /**
- * Evaluates a compiled condition over a primitive {@link FactBuffer} to a
- * {@link ConditionResult} (docs/architecture.md §3.4). A pure tree walk: no string
- * parsing on the hot path (variables and literals are pre-resolved), no allocation
- * (results are flyweight constants), no boxing.
+ * Evaluates a compiled condition over a primitive {@link FactBuffer} (docs/architecture.md §3.4).
  *
- * <p>Semantics: numeric comparisons use IEEE ordering, so an unresolved PlaceholderAPI
- * value (parsed to {@code NaN}) fails every numeric comparison except {@code !=} —
- * gating is fail-closed on missing data. String comparison is case-insensitive and
- * null-safe.
+ * <p>Numeric comparisons use IEEE ordering, so an unresolved PlaceholderAPI value (parsed to {@code NaN})
+ * fails every numeric comparison except {@code !=} — gating is fail-closed on missing data. String
+ * comparison is case-insensitive and null-safe.
  */
 public final class ConditionEvaluator {
 
@@ -37,7 +33,6 @@ public final class ConditionEvaluator {
         return ConditionResult.of(flow(condition.whenFalse()), 0.0);
     }
 
-    /** Map the schema-layer {@link FlowKind} carried by the compiled condition to the engine {@link Flow}. */
     private static Flow flow(FlowKind kind) {
         return switch (kind) {
             case CONTINUE -> Flow.CONTINUE;
@@ -87,7 +82,6 @@ public final class ConditionEvaluator {
     }
 
     private static double num(NumExpr e, FactBuffer f) {
-        // Shared with expression-valued effect arguments (§3.4).
         return NumExprEval.eval(e, f);
     }
 

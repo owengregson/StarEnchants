@@ -20,10 +20,9 @@ import java.util.List;
  */
 public record CrystalItemData(List<String> keys) {
 
-    /** The delimiter joining a multi-crystal's component keys within a single gear crystal-entry. */
     public static final String DELIMITER = "+";
 
-    /** The maximum components a crystal item may hold — multi-crystals are PAIRS only (§E). */
+    /** Multi-crystals are PAIRS only (§E). */
     public static final int MAX_COMPONENTS = 2;
 
     public CrystalItemData {
@@ -33,17 +32,15 @@ public record CrystalItemData(List<String> keys) {
         }
     }
 
-    /** A single-crystal item. */
     public static CrystalItemData single(String key) {
         return new CrystalItemData(List.of(key));
     }
 
-    /** Whether this is a merged multi-crystal (two components). */
     public boolean isMulti() {
         return keys.size() == MAX_COMPONENTS;
     }
 
-    /** The gear crystal-list ENTRY encoding these keys ({@code "a+b"}, or just {@code "a"} for a single). */
+    /** The gear crystal-list entry encoding these keys ({@code "a+b"}, or just {@code "a"} for a single). */
     public String entry() {
         return String.join(DELIMITER, keys);
     }

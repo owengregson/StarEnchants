@@ -29,7 +29,6 @@ public final class SoulCodec {
         return decode(stack.getItemMeta().getPersistentDataContainer().get(soulKey, PersistentDataType.STRING));
     }
 
-    /** Write {@code data} onto {@code stack} (clearing the entry when {@code null}). */
     public void write(ItemStack stack, SoulData data) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {

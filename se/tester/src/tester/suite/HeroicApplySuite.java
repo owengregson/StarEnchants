@@ -18,10 +18,9 @@ import platform.item.ItemGroups;
 import tester.harness.Harness;
 
 /**
- * The heroic APPLY path, proven live (docs/v3-directives.md §F): {@link HeroicService#applyTo} stamps the
- * percents and swaps the material on a successful roll, consumes the upgrade on success OR a failed roll,
- * and rejects (without consuming) an already-heroic piece or a non-armour/weapon. Item-only, runs across
- * the whole range. 100%/0% success configs give determinism without seed reverse-engineering.
+ * The heroic APPLY path, live (§F): {@link HeroicService#applyTo} stamps + swaps material on success, consumes
+ * the upgrade on success OR a failed roll, rejects (without consuming) an already-heroic piece or non-gear.
+ * Item-only (floor-wide). 100%/0% success configs give determinism without seed reverse-engineering.
  */
 public final class HeroicApplySuite implements Harness.Scenario {
 

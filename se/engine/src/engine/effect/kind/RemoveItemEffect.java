@@ -10,11 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import schema.spec.D;
 
-/**
- * {@code REMOVE_ITEM} — remove up to {@code count} of a material from the player target(s)' inventory
- * (docs/v3-directives.md §C). {@code material} is a handle arg interned at compile time (§9).
- * {@link Affinity#TARGET_ENTITY}.
- */
+/** {@code REMOVE_ITEM} — remove up to {@code count} of a material from the player target(s)' inventory (§C); {@code material} interned at compile (§9). */
 public final class RemoveItemEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("REMOVE_ITEM")

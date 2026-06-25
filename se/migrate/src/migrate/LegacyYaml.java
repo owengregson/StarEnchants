@@ -6,17 +6,15 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 /**
- * Minimal typed accessors over a SnakeYAML-parsed legacy document (docs/architecture.md §10). Uses the
- * version-stable {@code Yaml.load → Map/List/scalar} surface, not Bukkit's {@code YamlConfiguration}
- * (whose internal SnakeYAML calls differ across versions), so the importer runs on whatever SnakeYAML
- * the server bundles. All accessors are null-tolerant — a legacy config is untrusted input.
+ * Null-tolerant typed accessors over a SnakeYAML-parsed legacy document. Uses the version-stable
+ * {@code Yaml.load} surface, not Bukkit's {@code YamlConfiguration} whose internal SnakeYAML calls differ
+ * across versions, so the importer runs on whatever SnakeYAML the server bundles.
  */
 final class LegacyYaml {
 
     private LegacyYaml() {
     }
 
-    /** Parse a YAML document into its root mapping, or an empty map if it is not a mapping. */
     static Map<?, ?> parse(String yaml) {
         LoaderOptions options = new LoaderOptions();
         options.setMaxAliasesForCollections(64);

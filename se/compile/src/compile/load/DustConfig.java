@@ -4,21 +4,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The configurable likeness + mechanics of SUCCESS DUST (docs/v3-directives.md §I; ADR-0019), loaded from
- * the top-level {@code items/dust.yml}. Dust is its own physical item (no category, no tier): dragging it
- * onto an enchant book raises that book's stored success bonus, clamped so the book's effective success can
- * never exceed 100%. A normal dust rolls a RANDOM bonus in {@code [minBonus, maxBonus]} when combined; a
- * dust minted for a FIXED percent (via {@code /se dust <percent>}) confers exactly that, bypassing the roll.
- * Pure economy metadata — it never compiles to an ability and never touches the combat hot path. Immutable;
- * lives in the {@link ItemsConfig} snapshot the runtime reads and {@code /se reload} swaps (the range is
- * re-read live, not baked onto a random dust).
- *
- * @param material  material token (cross-version resolved at mint time)
- * @param name      display name; {@code {BONUS}}→range-or-fixed, {@code {MIN}}/{@code {MAX}} placeholders
- * @param minBonus  low end of the random success bonus ({@code [0, 100]}, clamped ≤ maxBonus)
- * @param maxBonus  high end of the random success bonus ({@code [0, 100]}, clamped ≥ minBonus)
- * @param sound     combine sound, or blank for none
- * @param particles combine particle tokens (alias-resolved), or empty for none
+ * SUCCESS DUST (§I; ADR-0019), loaded from {@code items/dust.yml}: combined onto a book it raises its stored
+ * success bonus, clamped so the book's effective success never exceeds 100%. A normal dust rolls a random
+ * bonus in {@code [minBonus, maxBonus]}; one minted via {@code /se dust <percent>} confers a fixed percent,
+ * bypassing the roll. The range is re-read live, not baked onto a random dust.
  */
 public record DustConfig(String material, String name, List<String> lore, int minBonus, int maxBonus,
                          String sound, List<String> particles) {
@@ -35,12 +24,10 @@ public record DustConfig(String material, String name, List<String> lore, int mi
         maxBonus = Math.max(lo, hi);
     }
 
-    /** The human-readable bonus label for the dust's name/lore: {@code "X"} when fixed, {@code "X–Y"} when a range. */
     public String bonusLabel() {
         return minBonus == maxBonus ? Integer.toString(minBonus) : minBonus + "–" + maxBonus;
     }
 
-    /** The built-in dust likeness used when {@code items/dust.yml} is absent or omits fields. */
     public static DustConfig defaults() {
         return new DustConfig(
                 "GLOWSTONE_DUST",

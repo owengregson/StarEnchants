@@ -13,11 +13,8 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The admin enchant browser (docs/v3-directives.md §K — "Admin browser (all enchants): grant/apply, at 100%
- * rate"): a flat paged list of every catalog enchant; clicking one mints a <strong>guaranteed
- * (100%-success) level-1 book</strong> of that enchant and gives it to the admin. The privileged
- * counterpart of the read-only {@link EnchantsBrowserMenu}; gated by {@code starenchants.admin} (a real
- * permission node, not an {@code isOp()} check — §K).
+ * The admin enchant browser (§K): clicking an enchant mints a guaranteed (100%-success) level-1 book.
+ * Privileged counterpart of {@link EnchantsBrowserMenu}; gated by a real {@code starenchants.admin} node.
  */
 public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
 
@@ -67,7 +64,7 @@ public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
     @Override
     protected void onSelect(MenuClick click, EnchantDef def) {
         Player player = click.player();
-        ItemStack book = carriers.mintBook(def.key(), 1, 100); // 100% success — the admin "guaranteed" book
+        ItemStack book = carriers.mintBook(def.key(), 1, 100); // 100 = guaranteed success
         MenuItems.giveOrDrop(player, book);
         messages.send(player, "menu.admin.granted", "DISPLAY", def.display());
     }

@@ -5,9 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 /**
- * Block-grid + facing math for the mining-shape selectors ({@link TrenchSelector}, {@link TunnelSelector},
- * docs/v3-directives.md §A). Pure computation over facing and a base block, no world read — the consuming
- * effect ({@code BREAK_BLOCK}/{@code SET_BLOCK}) is what touches the world.
+ * Block-grid + facing math for the mining-shape selectors ({@link TrenchSelector}, {@link TunnelSelector}).
+ * Pure computation, no world read — the consuming effect is what touches the world.
  */
 final class BlockShapes {
 

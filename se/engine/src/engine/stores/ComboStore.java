@@ -8,10 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Per-player combat-streak tracker — source of the {@code %combo%} fact (docs/architecture.md §3.4). Each
  * attack within {@link #windowTicks} of the previous extends the streak; a longer gap resets it to 1.
  * Combat-local: only the combat dispatch writes it, so it is owned there, not at the composition root.
- *
- * <p>Concurrent, UUID-keyed (Folia: a player's attacks may fire on different region threads as they move).
- * Time is an explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, server-free
- * to test.
+ * UUID-keyed because a player's attacks may fire on different region threads as they move (Folia).
  */
 public final class ComboStore {
 

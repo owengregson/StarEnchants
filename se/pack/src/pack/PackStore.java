@@ -14,19 +14,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * The on-disk authority over the {@code packs/} directory (ADR-0023). It lists the available packs,
- * {@linkplain #export exports} the live config into a new pack, and {@linkplain #apply applies} a pack
- * over the live config — first snapshotting the current config into a backup pack, then staging the
- * new surface and swapping it in, so a failed write never half-clobbers the live config.
- *
- * <p>Pure filesystem + {@link PackArchive}; it never reloads anything. The composition root pairs
- * {@link #apply} with the transactional content reloader so a swapped pack takes effect live. A pack
- * name is its file stem and must be a safe identifier ({@code [A-Za-z0-9_-]+}); the {@code .zip}
- * extension is implicit.
+ * The on-disk authority over {@code packs/} (ADR-0023): list, export, apply. Pure filesystem +
+ * {@link PackArchive}; it never reloads (the composition root pairs {@link #apply} with the reloader).
  */
 public final class PackStore {
 
-    /** Pack names are plain identifiers — no path separators or dots, so a name can never escape packs/. */
+    /** No path separators or dots, so a pack name can never escape packs/. */
     private static final Pattern SAFE_NAME = Pattern.compile("[A-Za-z0-9_-]+");
 
     private static final String EXTENSION = ".zip";
@@ -35,32 +28,24 @@ public final class PackStore {
     private final Path dataRoot;
     private final Path packsDir;
 
-    /** @param dataRoot the plugin data folder (its surface is the live config; {@code packs/} sits under it). */
     public PackStore(Path dataRoot) {
         this.dataRoot = dataRoot;
         this.packsDir = dataRoot.resolve("packs");
     }
 
-    /** Whether {@code name} is a valid pack identifier (the only names {@link #export}/{@link #apply} accept). */
     public static boolean isValidName(String name) {
         return name != null && SAFE_NAME.matcher(name).matches();
     }
 
-    /** The packs directory this store manages (created lazily on the first export/backup). */
     public Path directory() {
         return packsDir;
     }
 
-    /** Whether a pack of this name exists on disk. */
     public boolean exists(String name) {
         return isValidName(name) && Files.isRegularFile(packFile(name));
     }
 
-    /**
-     * List every {@code *.zip} pack in {@code packs/}, newest manifest first by name, each with its
-     * peeked manifest and on-disk size. A pack with a damaged/absent manifest still lists, under its
-     * filename. An absent {@code packs/} dir yields an empty list.
-     */
+    /** List every {@code *.zip} pack with its peeked manifest and size; a damaged manifest still lists under its filename. */
     public List<PackInfo> list() throws IOException {
         if (!Files.isDirectory(packsDir)) {
             return List.of();
@@ -85,7 +70,6 @@ public final class PackStore {
         return out;
     }
 
-    /** The manifest of one pack, or empty if no such pack exists. */
     public Optional<PackManifest> info(String name) throws IOException {
         if (!exists(name)) {
             return Optional.empty();
@@ -96,8 +80,7 @@ public final class PackStore {
     }
 
     /**
-     * Snapshot the current live config surface into {@code packs/<name>.zip}. Overwrites an existing
-     * pack of the same name (re-export is intentional). {@code createdIso} stamps the manifest.
+     * Snapshot the live surface into {@code packs/<name>.zip}, overwriting any existing pack of that name.
      *
      * @throws IllegalArgumentException if {@code name} is not a safe identifier
      */
@@ -118,12 +101,8 @@ public final class PackStore {
     }
 
     /**
-     * Apply {@code name} over the live config, returning what changed. The sequence is fail-safe:
-     * read the pack (fail fast on a corrupt archive) → stage the new surface in a temp dir (fail
-     * before touching anything live) → back up the current surface into {@code packs/<backupLabel>.zip}
-     * → clear the live surface → promote staging into place. The caller reloads afterwards; a broken
-     * (but well-formed) pack still applies on disk and the reloader reports the faults while keeping
-     * the previous in-memory state.
+     * Apply {@code name} over the live config. The sequence is fail-safe: read → stage in a temp dir →
+     * back up the current surface → clear → promote, so a failed write never half-clobbers the live config.
      *
      * @param backupLabel a safe pack name for the pre-apply backup (e.g. {@code backup-2026-06-23-1430})
      * @param createdIso  the ISO timestamp stamped into the backup manifest
@@ -137,12 +116,11 @@ public final class PackStore {
             pack = PackArchive.read(in);
         }
 
-        // 1. Stage the new surface in a temp dir — if this throws, nothing live has changed yet.
+        // Stage in a temp dir first — if this throws, nothing live has changed yet.
         Path staging = dataRoot.resolve(STAGING);
         PackSurface.deleteRecursively(staging);
         List<String> skipped = PackSurface.writeAll(pack.files(), staging);
 
-        // 2. Back up the current surface (skip if there is nothing to snapshot).
         String backupName = null;
         Map<String, byte[]> current = PackSurface.collect(dataRoot);
         if (!current.isEmpty() && isValidName(backupLabel)) {
@@ -156,7 +134,6 @@ public final class PackStore {
             backupName = backupLabel;
         }
 
-        // 3. Swap: clear the live surface, promote the staged surface, drop staging.
         PackSurface.clear(dataRoot);
         PackSurface.promote(staging, dataRoot);
         PackSurface.deleteRecursively(staging);
@@ -173,25 +150,19 @@ public final class PackStore {
         return file.endsWith(EXTENSION) ? file.substring(0, file.length() - EXTENSION.length()) : file;
     }
 
-    /** A pack listed on disk: its name, peeked manifest, and archive size in bytes. */
     public record PackInfo(String name, PackManifest manifest, long sizeBytes) {
     }
 
-    /** The outcome of {@link #export}: the pack name, the file written, and how many config files it holds. */
     public record ExportResult(String name, Path file, int fileCount) {
     }
 
-    /**
-     * The outcome of {@link #apply}: the applied pack's manifest, how many files it wrote, the backup
-     * pack's name (or {@code null} if nothing was backed up), and any entries skipped as out-of-surface.
-     */
+    /** {@code backupName} is null when the live config was empty; {@code skipped} are out-of-surface entries. */
     public record ApplyResult(PackManifest manifest, int fileCount, String backupName, List<String> skipped) {
 
         public ApplyResult {
             skipped = List.copyOf(skipped);
         }
 
-        /** Whether a pre-apply backup was written (false only when the live config was empty). */
         public boolean hasBackup() {
             return backupName != null;
         }

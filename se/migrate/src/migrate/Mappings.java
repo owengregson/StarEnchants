@@ -9,11 +9,9 @@ import migrate.model.MigratedCondition;
 import migrate.model.MigratedEffect;
 
 /**
- * The legacy → unified vocabulary tables (docs/architecture.md §10): triggers, item-application groups,
- * effect-target tokens, and a per-head effect translator. Triggers/applies map almost 1:1 (the unified
- * vocabulary kept the EE/EA names). Effects are the hard part — legacy arg shapes differ — so only heads
- * VERIFIED against the legacy source are translated; every other head becomes a {@link MigratedEffect#todo},
- * never guessed.
+ * The legacy → unified vocabulary tables: triggers, item-application groups, effect-target tokens, and a
+ * per-head effect translator. Only heads VERIFIED against the legacy source are translated; every other head
+ * becomes a {@link MigratedEffect#todo}, never guessed.
  */
 public final class Mappings {
 
@@ -124,10 +122,8 @@ public final class Mappings {
     }
 
     /**
-     * Translate one EE effect token to the LIST of StarEnchants effects it becomes — usually a singleton
-     * (delegating to {@link #effect(String, boolean)}), but a compound EE effect ({@code WRATH}, {@code FROST},
-     * {@code ROT_DECAY}) expands to several SE effects that together reproduce it. The EE reader flat-maps
-     * these into a level's {@code effects:} list.
+     * Translate one EE token to the LIST of SE effects it becomes — a singleton, except a compound
+     * ({@code WRATH}/{@code FROST}/{@code ROT_DECAY}) that expands to several effects reproducing it.
      */
     public static List<MigratedEffect> effects(String legacyToken, boolean defenseDirection) {
         String token = legacyToken == null ? "" : legacyToken.trim();
@@ -145,11 +141,7 @@ public final class Mappings {
         }
     }
 
-    /**
-     * WRATH:RADIUS:MIN:MAX:(MESSAGE) → a lightning storm in {@code radius}: a cosmetic strike, area damage
-     * (random range → max), and the EE Slowness III + Blindness I debuffs, all on {@code @Aoe}. The per-target
-     * message is dropped (SE messages the actor, not each AoE target).
-     */
+    /** WRATH:RADIUS:MIN:MAX:(MESSAGE) → a lightning storm over {@code @Aoe} (the per-target message is dropped). */
     private static List<MigratedEffect> wrath(String token, String[] parts) {
         if (parts.length < 4) {
             return List.of(MigratedEffect.todo(token, "unexpected WRATH arg shape (RADIUS:MIN:MAX[:MESSAGE])"));
@@ -165,10 +157,7 @@ public final class Mappings {
                 MigratedEffect.mapped(token, "POTION:BLINDNESS:1:260:" + aoe, note));
     }
 
-    /**
-     * FROST → a permafrost field on the foe: a temporary packed-ice platform (WALKER) plus the EE Slowness /
-     * Mining-Fatigue / Nausea debuffs (amplifier 3 → SE level 4) — the slow-the-target essence of EE's Frost.
-     */
+    /** FROST → a permafrost field on the foe: a packed-ice WALKER platform plus the slow/fatigue/nausea debuffs. */
     private static List<MigratedEffect> frost(String token, boolean defenseDir) {
         String foe = foe(defenseDir);
         String note = "EE FROST → WALKER:PACKED_ICE + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe";
@@ -179,10 +168,7 @@ public final class Mappings {
                 MigratedEffect.mapped(token, "POTION:NAUSEA:4:60:" + foe, note));
     }
 
-    /**
-     * ROT_DECAY → spawn 3 rotting corpses (zombies) on the foe, plus the rot (WITHER) and the decay
-     * (armour-durability damage) — the rotting-zombie + decay essence of EE's Rot and Decay.
-     */
+    /** ROT_DECAY → 3 rotting zombies on the foe, plus WITHER (rot) and armour-durability damage (decay). */
     private static List<MigratedEffect> rotDecay(String token, boolean defenseDir) {
         String foe = foe(defenseDir);
         String note = "EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe";
@@ -193,11 +179,8 @@ public final class Mappings {
     }
 
     /**
-     * Translate one EE effect token to a {@link MigratedEffect}, direction-aware: {@code defenseDirection}
-     * flips the foe selector to {@code @Attacker} on a DEFENSE enchant (vs {@code @Victim} on attack). The
-     * verified EE vocabulary is translated faithfully (seconds→ticks ×20, random ranges→max, EE rarity
-     * groups→SE groups, durability/suppress/spawn families); a head with no StarEnchants equivalent
-     * (DROP_HEAD, GANK, ROT_DECAY, SNIPER, …) is a {@link MigratedEffect#todo}, never guessed.
+     * Translate one EE effect token, direction-aware: {@code defenseDirection} flips the foe selector to
+     * {@code @Attacker} on a DEFENSE enchant (vs {@code @Victim} on attack).
      */
     public static MigratedEffect effect(String legacyToken, boolean defenseDirection) {
         String token = legacyToken == null ? "" : legacyToken.trim();
@@ -512,13 +495,7 @@ public final class Mappings {
         return trimNumber(Math.max(0, Math.min(100, pct(s))));
     }
 
-    /**
-     * Translate one EE {@code condition:} string to a {@link MigratedCondition}. EE conditions are a small
-     * fixed vocabulary: {@code isPlayerHealth <op> N} → {@code %actor.health% <op> N}; {@code isTargetHealth
-     * <op> N} → {@code %victim.health% <op> N}; {@code isPlayerBlocking} → {@code %blocking% == true}.
-     * {@code isTargetHolding <ITEM-GROUP>} has no SE fact ({@code %victim.helditem%} is a single material,
-     * not a group test) → a TODO, never a silently-wrong gate.
-     */
+    /** Translate one EE {@code condition:} string to a {@link MigratedCondition}; an unmappable one is a TODO. */
     public static MigratedCondition eeCondition(String line) {
         String raw = line == null ? "" : line.trim();
         if (raw.isEmpty()) {
@@ -549,10 +526,8 @@ public final class Mappings {
     }
 
     /**
-     * Translate one EliteArmor SET-bonus token (a different vocabulary from the combat effects above:
-     * passive percentages, not triggered actions). The migrated set is DEFENSE-triggered, so a
-     * REDUCTION maps cleanly to {@code REDUCE_DAMAGE}; an attack-direction DAMAGE bonus has no place on
-     * a single-trigger defensive set and is flagged for the operator to model as a separate ATTACK set.
+     * Translate one EliteArmor SET-bonus token. The migrated set is DEFENSE-triggered, so REDUCTION maps
+     * cleanly; an attack-direction DAMAGE bonus has no place on it and is flagged as a separate ATTACK set.
      */
     public static MigratedEffect setEffect(String legacyToken) {
         String token = legacyToken == null ? "" : legacyToken.trim();
@@ -811,19 +786,14 @@ public final class Mappings {
 
     /**
      * Convert an AE target token to a StarEnchants selector, or {@code null} for an unmappable one. AE's
-     * {@code @Victim}/{@code @Attacker} name DIFFERENT entities by trigger direction (verified from the AE
-     * triggers): on an ATTACK enchant {@code @Attacker} is the wielder and {@code @Victim} is the foe; on a
-     * DEFENSE enchant {@code @Victim} is the wielder and {@code @Attacker} is the foe. StarEnchants is
-     * role-fixed (actor = wielder; victim = the other entity; attacker is only set on defence), so the
-     * mapping is direction-aware to preserve the TARGETED entity rather than the literal token:
+     * {@code @Victim}/{@code @Attacker} name DIFFERENT entities by trigger direction, so the mapping is
+     * direction-aware to preserve the TARGETED entity rather than the literal token:
      * <ul>
      *   <li>ATTACK: AE @Self/@Attacker → @Self (wielder); AE @Victim → @Victim (foe).</li>
      *   <li>DEFENSE: AE @Self/@Victim → @Self (wielder); AE @Attacker → @Attacker (foe).</li>
      * </ul>
-     * AE's area/mining selectors ({@code @Aoe{…}}, {@code @NearestPlayer}, {@code @Trench}, {@code @Block},
-     * …) have no faithful StarEnchants equivalent — StarEnchants {@code @Aoe} differs in default radius (4
-     * vs AE's 1) and has no entity cap (AE always caps at 20), {@code @Nearest} is any-living not
-     * player-only — so they return {@code null} (the effect becomes a TODO, not a silently-different target).
+     * Area/mining selectors that have no faithful equivalent return {@code null} (the effect becomes a TODO,
+     * not a silently-different target) — see the head-based handling below.
      */
     private static String aeSelector(String aeTarget, boolean defenseDirection) {
         if (aeTarget == null) {
@@ -846,10 +816,9 @@ public final class Mappings {
     }
 
     /**
-     * Translate an AE {@code MESSAGE}/{@code ACTIONBAR} effect. StarEnchants messages the actor, so a body
-     * naming a {@code @selector} target (which AE resolves and sends to) would change the recipient → TODO;
-     * a body with a bare {@code ':'} (which the v2 lowerer would re-split) → TODO; otherwise the free text
-     * maps to the actor. A non-selector {@code @word} (e.g. {@code "contact @admin"}) is left as text.
+     * Translate an AE {@code MESSAGE}/{@code ACTIONBAR} effect (StarEnchants messages the actor). A body that
+     * targets a {@code @selector} (recipient would change) or carries a bare {@code ':'} (the v2 lowerer
+     * re-splits it) is a TODO; a non-selector {@code @word} like {@code "contact @admin"} stays as text.
      */
     private static MigratedEffect aeMessage(String token, String head) {
         int colon = token.indexOf(':');
@@ -921,12 +890,9 @@ public final class Mappings {
     }
 
     /**
-     * Translate one AE condition line ({@code LEFT : RESULT}) to a {@link MigratedCondition}. Now that the
-     * StarEnchants grammar has the flow/chance clause forms (v3.1 §A), every AE result maps:
-     * {@code %allow%}/{@code %continue%} &rarr; the allow-gate {@code LEFT}; {@code %stop%} &rarr; the negated
-     * gate {@code !(LEFT)}; {@code %force%} &rarr; the clause {@code LEFT : %force%}; {@code ±N %chance%} &rarr;
-     * the clause {@code LEFT : ±N %chance%}. Only a LEFT with an unmappable variable/operator (or a chance
-     * result with no parseable {@code ±N}) is a TODO — never a silently-wrong gate.
+     * Translate one AE condition line ({@code LEFT : RESULT}) to a {@link MigratedCondition}: {@code %allow%}/
+     * {@code %continue%} → an allow-gate, {@code %stop%} → a negated gate, {@code %force%} / {@code ±N %chance%}
+     * → a flow/chance clause (v3.1 §A). An unmappable variable/operator is a TODO, never a silently-wrong gate.
      */
     public static MigratedCondition aeCondition(String line) {
         String raw = line == null ? "" : line.trim();
@@ -988,11 +954,9 @@ public final class Mappings {
     }
 
     /**
-     * Translate an AE condition LEFT expression to a StarEnchants {@code Expr} string, or {@code null} if any
-     * variable or operator has no equivalent. Maps every {@code %var%} to a StarEnchants {@code %fact%}, the
-     * word joiners {@code and}/{@code or} to {@code &&}/{@code ||}, and AE's single {@code =} equality to
-     * {@code ==} (leaving {@code >= <= != ==} intact). String operators ({@code contains}/{@code matchesregex})
-     * have no Expr equivalent → {@code null}.
+     * Translate an AE condition LEFT expression to a StarEnchants {@code Expr} string, or {@code null} if a
+     * variable or operator has no equivalent. String operators ({@code contains}/{@code matchesregex}) have
+     * no Expr form → {@code null}.
      */
     private static String aeLeftToSe(String left) {
         String lower = left.toLowerCase(Locale.ROOT);
@@ -1017,11 +981,9 @@ public final class Mappings {
     }
 
     /**
-     * Map one AE condition variable (the lower-cased text inside {@code %...%}, e.g. {@code "victim health"})
-     * to a StarEnchants fact token (without the percents), or {@code null} if it has no StarEnchants fact. AE
-     * scopes a variable with a leading {@code attacker}/{@code victim}/{@code player} word; StarEnchants has
-     * scoped {@code actor}/{@code victim} health and activator-only pose flags, so this assumes the ATTACK
-     * direction (activator = attacker) — correct for the common case; DEFENSE imports should be reviewed.
+     * Map one AE condition variable (the text inside {@code %...%}, e.g. {@code "victim health"}) to a
+     * StarEnchants fact token, or {@code null} if it has none. Pose flags are activator-only, so this assumes
+     * the ATTACK direction (activator = attacker) — correct for the common case; review DEFENSE imports.
      */
     private static String aeVarToSeFact(String inner) {
         String scope = null;

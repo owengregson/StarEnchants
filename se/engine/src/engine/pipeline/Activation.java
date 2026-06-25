@@ -10,13 +10,9 @@ import org.bukkit.Location;
 
 /**
  * The per-event context one ability is evaluated against by the {@link ActivationPipeline}
- * (docs/architecture.md §3.3). A trigger listener builds one per Bukkit event (capturing the activator,
- * world, trigger, and the facts/suppression for this hit); the firing System runs every candidate
- * ability through the pipeline against it.
- *
- * <p>Everything here is an immutable per-event input or a reference to scratch the firing thread owns
- * ({@link FactBuffer}, {@link SuppressionSet}); the long-lived stores (cooldowns, souls) belong to the
- * pipeline, not the activation.
+ * (docs/architecture.md §3.3); a trigger listener builds one per Bukkit event. Everything here is an
+ * immutable per-event input or a reference to scratch the firing thread owns ({@link FactBuffer},
+ * {@link SuppressionSet}); the long-lived stores (cooldowns, souls) belong to the pipeline.
  */
 public final class Activation {
 
@@ -96,9 +92,8 @@ public final class Activation {
     }
 
     /**
-     * The captured firing location (gate 2 protection/region), snapshotted on the firing thread (its own
-     * region on Folia) so the protection {@code Guard} may query the owning region safely. {@code null}
-     * for a non-positional activation (or in tests), which the guard treats as "allow".
+     * The firing location (gate 2), snapshotted on the firing thread (its own region on Folia) so the
+     * protection {@code Guard} can query the owning region safely. {@code null} (non-positional) reads as "allow".
      */
     public Location location() {
         return location;

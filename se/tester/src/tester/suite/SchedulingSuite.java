@@ -12,11 +12,9 @@ import platform.sched.TaskHandle;
 import tester.harness.Harness;
 
 /**
- * The {@code Scheduling} abstraction, live — the heart of the Folia-correctness invariant. Each owner
- * flavour runs on a REAL server; every body touching world/entity is wrapped in {@link Harness#guard}, so
- * a wrong-region/wrong-thread access (which throws on Folia) surfaces as a recorded FAIL, not a silent
- * stall. A green Paper run proves nothing here — the same suite must pass on Folia (matrix-gate,
- * folia-scheduling skills).
+ * The {@code Scheduling} abstraction, live — the heart of the Folia-correctness invariant. Every body
+ * touching world/entity is wrapped in {@link Harness#guard}, so a wrong-region/wrong-thread access (which
+ * throws on Folia) surfaces as a FAIL, not a stall. A green Paper run proves nothing — Folia must pass too.
  */
 public final class SchedulingSuite implements Harness.Scenario {
 
@@ -66,7 +64,7 @@ public final class SchedulingSuite implements Harness.Scenario {
                 stand.setPersistent(true);
 
                 Scheduling.onEntity(stand, () -> h.guard("sched.entity", () -> {
-                    stand.setCustomName("se-harness"); // mutate from the entity's own scheduler
+                    stand.setCustomName("se-harness");
                     stand.setCustomNameVisible(false);
                 }));
 

@@ -7,10 +7,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/**
- * Pure tests for {@link HeroicConfig} (§F) — the success-range clamp/normalisation, the case-insensitive
- * material-upgrade lookup, and reduction-scope normalisation. No Bukkit.
- */
+/** Pure tests for {@link HeroicConfig} (§F) — range clamping and lookup/scope normalisation. */
 final class HeroicConfigTest {
 
     private static HeroicConfig of(int min, int max, String scope, Map<String, String> upgrades) {

@@ -14,7 +14,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host TELEPORT test: verifies destination selection from the {@code to} argument against actor/victim. */
 class TeleportEffectTest {
 
     @Test

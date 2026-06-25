@@ -11,18 +11,9 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code MODIFY_MONEY} — canonical economy primitive (docs/v3-directives.md §C):
- *
- * <ul>
- *   <li>{@code give} — deposit {@code amount} into each resolved player target;</li>
- *   <li>{@code take} — withdraw {@code amount} from each resolved player target;</li>
- *   <li>{@code transfer} — withdraw {@code amount} from each target AND deposit the total into the ACTIVATOR (steal);</li>
- *   <li>{@code steal_percent} — transfer {@code amount} <em>percent</em> (0..100) of each target's CURRENT
- *       balance to the activator; here {@code amount} is read as a percentage.</li>
- * </ul>
- *
- * <p>Transfer's counterpart is fixed to the activator, not a second selector (an effect resolves one
- * selector). No-op without an economy provider. {@link Affinity#TARGET_ENTITY}.
+ * {@code MODIFY_MONEY} — canonical economy primitive (§C); {@code steal_percent} reads {@code amount} as a
+ * 0..100 percentage. Transfer's counterpart is fixed to the activator, not a second selector (an effect
+ * resolves one selector). No-op without an economy provider.
  */
 public final class MoneyEffect implements EffectKind {
 

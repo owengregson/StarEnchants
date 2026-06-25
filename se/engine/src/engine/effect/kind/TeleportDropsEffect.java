@@ -8,9 +8,7 @@ import engine.spec.EffectSpec;
 
 /**
  * {@code TELEPORT_DROPS} — send the triggering MINE's block drops straight to the breaker's inventory. An
- * inline read-back like {@code IGNORE_ARMOR}: the proc sets a flag the MINE dispatcher reads after the gate
- * walk and applies to the {@code BlockBreakEvent} (add to inventory, suppress the world drop). Author on MINE.
- * {@link Affinity#CONTEXT_LOCAL}.
+ * inline read-back like {@code IGNORE_ARMOR}: sets a flag the MINE dispatcher reads after the gate walk.
  */
 public final class TeleportDropsEffect implements EffectKind {
 

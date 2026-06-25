@@ -28,11 +28,9 @@ import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 
 /**
- * Pins the {@link DispatchSink} policy (docs/architecture.md §3.6) with no server: damage-fold and cancel
- * feedback are synchronous, but every world mutation is deferred to flush and routed to its owning thread
- * (never inlined on the firing thread, since the target may be a different entity/region), preserving
- * per-entity emission order. A {@link SyncSchedulerBackend} runs the deferred batches inline so mocks can
- * record them.
+ * The {@link DispatchSink} policy (§3.6): damage-fold and cancel feedback are synchronous, but every world
+ * mutation is deferred to flush and routed to its owning thread (the target may be a different entity/region),
+ * preserving per-entity emission order. A {@link SyncSchedulerBackend} runs the deferred batches inline.
  */
 class DispatchSinkTest {
 
@@ -125,7 +123,7 @@ class DispatchSinkTest {
         sink.ignite(target, 40);
 
         sink.flush();
-        sink.flush(); // a second flush must not re-apply the batch
+        sink.flush();
         verify(target).setFireTicks(40);
     }
 

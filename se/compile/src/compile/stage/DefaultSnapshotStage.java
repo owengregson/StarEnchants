@@ -5,10 +5,9 @@ import schema.diag.Diagnostics;
 import java.util.Objects;
 
 /**
- * The default {@link SnapshotStage}: freezes erased content, diagnostics, and a generation counter into
- * the immutable {@link Snapshot} the runtime swaps in by reference (docs/architecture.md §4.5, §10).
- * The publish boundary — pure assembly (no new diagnostics); the caller discards the result if
- * {@code diags.hasErrors()}, leaving the previous snapshot live.
+ * The default {@link SnapshotStage} (docs/architecture.md §4.5). The publish boundary — pure assembly,
+ * no new diagnostics; the caller discards the result if {@code diags.hasErrors()}, leaving the previous
+ * snapshot live.
  */
 public final class DefaultSnapshotStage implements SnapshotStage {
 

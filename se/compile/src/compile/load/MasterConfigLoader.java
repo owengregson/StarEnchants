@@ -11,18 +11,15 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 
 /**
- * Loads the master {@code config.yml} into an immutable {@link MasterConfig} (§L) — like {@link ItemsLoader}
- * but over a single FILE: each top-level section read by a {@code read*} helper, falling back per-field to
- * the section default. Reuses the content diagnostics machinery so {@code /se reload --dry-run} surfaces
- * config faults the same way. Never throws — absent/unreadable yields {@link MasterConfig#defaults()},
- * malformed yields a diagnostic plus defaults.
+ * Loads the master {@code config.yml} into an immutable {@link MasterConfig} — each top-level section read by
+ * a {@code read*} helper, falling back per-field to the section default. Reuses the content diagnostics so
+ * {@code /se reload --dry-run} surfaces config faults. Never throws: absent/unreadable/malformed yields defaults.
  */
 public final class MasterConfigLoader {
 
     private MasterConfigLoader() {
     }
 
-    /** Load {@code config.yml} (or {@link MasterConfig#defaults()} if the file is absent/unreadable). */
     public static MasterConfig load(Path configFile) {
         Diagnostics diags = new Diagnostics();
         if (configFile == null || !Files.isRegularFile(configFile)) {

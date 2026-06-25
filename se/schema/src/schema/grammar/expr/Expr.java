@@ -3,127 +3,59 @@ package schema.grammar.expr;
 import schema.diag.Source;
 
 /**
- * The untyped condition-expression AST: a small, immutable, data-only tree of
- * flyweight nodes (docs/architecture.md §3.2, §3.4).
- *
- * <p>A StarEnchants condition is an <em>expression</em> in a tiny boolean/relational
- * language — {@code && || ! ( )}, the six comparators, {@code %scope.name%}
- * variables (PlaceholderAPI passthrough included), and number/boolean/string
- * literals. This package produces only the <em>shape</em> of that expression; it
- * carries no types and performs no evaluation. Typing (against the variable
- * vocabulary), name resolution, and lowering to the runtime's pre-built flyweight
- * condition AST are se-compile's job, never the parser's (docs/architecture.md §2,
- * "produces untyped AST (data only)").
- *
- * <p>The hierarchy is sealed so the compiler can exhaustively switch over it:
- * <ul>
- *   <li>{@link Or}, {@link And} — short-circuiting boolean combinators (binary).
- *   <li>{@link Not} — boolean negation (unary).
- *   <li>{@link Compare} — a relational test {@code left op right} with a {@link Cmp}.
- *   <li>{@link VarRef} — a {@code %scope.name%} variable; an unrecognised or
- *       PlaceholderAPI token is still a {@code VarRef}, resolved later, never
- *       rejected here.
- *   <li>{@link NumberLit}, {@link BoolLit}, {@link StringLit} — literals.
- * </ul>
- *
- * <p>Every node carries the {@link Source} of its first character so se-compile can
- * attach an argument-precise {@link schema.diag.Diagnostic} when a
- * later stage rejects, e.g., an unknown variable or a type mismatch.
+ * The untyped condition-expression AST: an immutable, data-only tree of flyweight
+ * nodes (docs/architecture.md §3.2, §3.4). Shape only — typing, name resolution,
+ * and lowering are se-compile's job. Sealed so the compiler can switch exhaustively;
+ * every node carries the {@link Source} of its first character for diagnostics.
  */
 public sealed interface Expr
         permits Expr.Or, Expr.And, Expr.Not, Expr.Compare, Expr.StringMatch,
                 Expr.Arith, Expr.Neg,
                 Expr.VarRef, Expr.NumberLit, Expr.BoolLit, Expr.StringLit, Expr.Clause {
 
-    /** The source position of this node's first character, for diagnostics. */
     Source source();
 
     /**
-     * A top-level condition <em>clause</em>: a boolean {@code test} expression paired with an authored
-     * control-flow outcome (docs/architecture.md §3.4; v3.1 §A). Written {@code <test> : %force%},
-     * {@code <test> : %stop%}, {@code <test> : %allow%}, {@code <test> : %continue%}, or
-     * {@code <test> : ±N %chance%}. A {@code Clause} only ever appears at the root of a condition
-     * (the parser produces it from the optional clause tail of {@link ExprParser#parse}); its
-     * {@code test} is always a plain boolean sub-expression, never another {@code Clause}.
-     *
-     * <p>For a {@code %chance%} clause the {@code flow} is {@link FlowKind#CONTINUE} and
-     * {@code chanceDelta} is the signed adjustment (percentage points) applied to the base chance when
-     * {@code test} is true; for the flow sentinels {@code chanceDelta} is {@code 0}. {@code source}
-     * points at the start of the {@code test}.
+     * A top-level condition clause pairing a boolean {@code test} with a control-flow outcome
+     * (docs/architecture.md §3.4; v3.1 §A). Only ever at a condition's root; {@code test} is never
+     * another {@code Clause}. For a {@code ±N %chance%} clause, {@code flow} is {@link FlowKind#CONTINUE}
+     * and {@code chanceDelta} is the signed percentage-point adjustment; for flow sentinels it is 0.
      */
     record Clause(Expr test, FlowKind flow, double chanceDelta, Source source) implements Expr {}
 
-    /**
-     * Logical OR ({@code ||}) — the lowest-precedence binary operator.
-     *
-     * <p>{@code source} is the position of the left operand (the start of the whole
-     * sub-expression), matching how the parser threads spans.
-     */
+    /** Logical OR ({@code ||}), the lowest-precedence binary operator. */
     record Or(Expr left, Expr right, Source source) implements Expr {}
 
     /** Logical AND ({@code &&}), binding tighter than {@link Or}. */
     record And(Expr left, Expr right, Source source) implements Expr {}
 
-    /**
-     * Logical negation ({@code !}), the unary operator binding tighter than the
-     * comparators. {@code source} points at the {@code !} token.
-     */
+    /** Logical negation ({@code !}), unary, binding tighter than the comparators. */
     record Not(Expr operand, Source source) implements Expr {}
 
-    /**
-     * A relational comparison {@code left op right} (e.g. {@code %victim.health% < 5}).
-     *
-     * <p>Comparators are non-associative in this grammar: {@code a < b < c} is a
-     * parse error rather than a silently-chained expression. {@code source} points
-     * at the start of the left operand.
-     */
+    /** A relational comparison; non-associative ({@code a < b < c} is a parse error). */
     record Compare(Expr left, Cmp op, Expr right, Source source) implements Expr {}
 
-    /**
-     * A string-domain match {@code left op right} (e.g. {@code %name% contains "a|b"} or
-     * {@code %name% matchesregex "[a-z]+"}). Like {@link Compare} it sits at comparison precedence and
-     * is non-associative. Typing (both operands must be string-valued; a {@code matchesregex} pattern
-     * must be a literal) is se-compile's job; {@code source} points at the start of the left operand.
-     */
+    /** A string-domain match ({@code contains}/{@code matchesregex}); non-associative, like {@link Compare}. */
     record StringMatch(Expr left, StrOp op, Expr right, Source source) implements Expr {}
 
-    /**
-     * A binary arithmetic expression {@code left op right} ({@code + - * /}), used wherever a
-     * numeric value is expected. Multiplication/division bind tighter than addition/subtraction;
-     * both are left-associative. Like {@link Compare} it carries no type — se-compile lowers it to
-     * the runtime numeric AST and rejects it in a boolean position. {@code source} points at the
-     * start of the left operand.
-     */
+    /** Binary arithmetic; {@code * /} bind tighter than {@code + -}, both left-associative. */
     record Arith(Expr left, ArithOp op, Expr right, Source source) implements Expr {}
 
-    /**
-     * Numeric negation ({@code -operand}), the unary minus binding tighter than the binary
-     * arithmetic operators. {@code source} points at the {@code -} token.
-     */
+    /** Numeric negation ({@code -operand}), unary, binding tighter than binary arithmetic. */
     record Neg(Expr operand, Source source) implements Expr {}
 
     /**
-     * A {@code %scope.name%} variable reference. The {@code scope} is optional: a
-     * bare {@code %name%} parses with a {@code null} scope. Only the <em>first</em>
-     * dot splits scope from name, so {@code %a.b.c%} yields {@code scope="a"},
-     * {@code name="b.c"} — PlaceholderAPI tokens (which routinely contain dots and
-     * underscores) survive intact for later passthrough resolution.
-     *
-     * <p>This stage never decides whether a variable is known; an unrecognised or
-     * PAPI token is a perfectly valid {@code VarRef} (docs/architecture.md §3.4).
+     * A {@code %scope.name%} variable; bare {@code %name%} has a {@code null} scope. Only the first dot
+     * splits scope from name ({@code %a.b.c%} → scope {@code a}, name {@code b.c}), so PlaceholderAPI
+     * tokens survive intact. Never decides whether a variable is known (docs/architecture.md §3.4).
      */
     record VarRef(String scope, String name, Source source) implements Expr {}
 
-    /** A numeric literal, kept as its raw lexeme (e.g. {@code "3"}, {@code "1.5"}). */
+    /** A numeric literal kept as its raw lexeme. */
     record NumberLit(String raw, Source source) implements Expr {}
 
-    /** A boolean literal: {@code true} or {@code false}. */
     record BoolLit(boolean value, Source source) implements Expr {}
 
-    /**
-     * A quoted string literal with its already-unescaped {@code value} (the
-     * surrounding quotes and {@code \} escapes have been processed by the
-     * tokenizer).
-     */
+    /** A quoted string literal, already unescaped by the tokenizer. */
     record StringLit(String value, Source source) implements Expr {}
 }

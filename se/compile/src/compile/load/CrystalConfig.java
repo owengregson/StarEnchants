@@ -4,24 +4,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The configurable likeness + apply mechanics of the physical CRYSTAL item and its EXTRACTOR
- * (docs/v3-directives.md §E), loaded from the top-level {@code items/crystal.yml}. Immutable; lives in the
- * {@link ItemsConfig} snapshot the runtime reads and {@code /se reload} swaps. A crystal is its own item
- * (distinct from the book/scroll/dust carrier economy): drag-applied to gear with a {@link #successChance}
- * roll (optionally {@link #consumeOnFail}), two crystals merge into a multi-crystal, and a crystal
- * EXTRACTOR pops a crystal back off gear as a whole item.
+ * The CRYSTAL item and its EXTRACTOR (§E), loaded from {@code items/crystal.yml}.
  *
- * <p>Per-item crystal SLOT capacity is intentionally NOT here — it is a cross-cutting knob that belongs
- * in the master {@code config.yml} {@code crystals:} section (§L); until that lands the runtime injects a
- * default. {@code {CRYSTAL}} in the name/lore/messages renders the component crystal display name(s).
- *
- * @param material          material token (resolved cross-version at use)
- * @param successChance     drag-apply success chance, clamped 0..100
- * @param extractorMaterial extractor material token (resolved cross-version at use)
- *
- * <p>The apply/merge/extract messages live in {@code lang.yml} ({@code crystal.apply-success} /
- * {@code crystal.apply-fail} / {@code crystal.no-slots} / {@code crystal.merge} / {@code crystal.extract-success})
- * — §L centralised them.
+ * <p>Per-item crystal SLOT capacity is intentionally NOT here — it is a cross-cutting knob in {@code config.yml}'s
+ * {@code crystals:} section (§L); until that lands the runtime injects a default. {@code {CRYSTAL}} renders the component name(s).
  */
 public record CrystalConfig(
         String material,
@@ -48,7 +34,6 @@ public record CrystalConfig(
         extractorLore = List.copyOf(extractorLore);
     }
 
-    /** The built-in crystal item used when {@code items/crystal.yml} is absent or omits fields. */
     public static CrystalConfig defaults() {
         return new CrystalConfig(
                 "AMETHYST_SHARD",

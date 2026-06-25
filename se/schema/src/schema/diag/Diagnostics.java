@@ -6,15 +6,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A mutable collector for {@link Diagnostic}s, threaded through a compile.
- *
- * <p>Validation never throws — every stage reports into a {@code Diagnostics} and
- * keeps going, so one bad argument yields one precise finding rather than
- * aborting the whole load (docs/architecture.md §7, §10). After a stage the
- * caller checks {@link #hasErrors()} to decide whether to publish.
- *
- * <p>This type is single-thread-confined for the duration of one compile; it is
- * not synchronized.
+ * Mutable {@link Diagnostic} collector threaded through one compile so validation
+ * never throws (docs/architecture.md §10). Not synchronized: single-thread-confined.
  */
 public final class Diagnostics {
 
@@ -45,13 +38,11 @@ public final class Diagnostics {
         return add(Diagnostic.info(code, message, source));
     }
 
-    /** Append every diagnostic from {@code other} into this collector. */
     public Diagnostics merge(Diagnostics other) {
         entries.addAll(other.entries);
         return this;
     }
 
-    /** @return {@code true} if any collected diagnostic is blocking (an error). */
     public boolean hasErrors() {
         for (Diagnostic d : entries) {
             if (d.blocking()) {
@@ -69,12 +60,11 @@ public final class Diagnostics {
         return entries.size();
     }
 
-    /** Count of diagnostics of a given severity. */
     public long count(Severity severity) {
         return entries.stream().filter(d -> d.severity() == severity).count();
     }
 
-    /** An immutable snapshot of all collected diagnostics, in insertion order. */
+    /** Immutable snapshot in insertion order. */
     public List<Diagnostic> all() {
         return Collections.unmodifiableList(new ArrayList<>(entries));
     }

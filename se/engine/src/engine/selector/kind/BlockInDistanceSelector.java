@@ -7,10 +7,7 @@ import java.util.List;
 import org.bukkit.Location;
 import schema.spec.D;
 
-/**
- * {@code @BlockInDistance{distance}} — first solid block along the actor's line of sight, within a longer
- * {@code distance} than {@code @Block} (docs/v3-directives.md §A); empty if nothing is in sight.
- */
+/** {@code @BlockInDistance{distance}} — like {@code @Block} but with a longer default look distance. */
 public final class BlockInDistanceSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("BLOCKINDISTANCE")

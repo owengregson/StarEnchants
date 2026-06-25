@@ -10,7 +10,6 @@ import engine.sink.Sink;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code PROJECTILE}: emits one launchProjectile for the actor with its typed args. */
 class ProjectileEffectTest {
 
     @Test

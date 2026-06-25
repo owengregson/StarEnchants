@@ -11,9 +11,8 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Right-click a held unopened/randomized book to reveal a random enchant book from its tier (§I).
- * Bukkit-thin glue — all logic is in {@link UnopenedBookService}. Folia-correct: fires on the player's
- * own region thread, touching only their own held item. Main-hand only, so a two-hand interact does not
- * double-open.
+ * Bukkit-thin glue — logic is in {@link UnopenedBookService}. Folia-correct: fires on the player's own
+ * region thread, touching only their own held item.
  */
 public final class UnopenedBookListener implements Listener {
 
@@ -41,7 +40,6 @@ public final class UnopenedBookListener implements Listener {
 
         UnopenedResult result = service.open(used);
         if (result.opened()) {
-            // Consume one from the main hand; rolled-book overflow drops at the player's feet.
             ItemStack hand = player.getInventory().getItemInMainHand();
             hand.setAmount(hand.getAmount() - 1);
             player.getInventory().setItemInMainHand(hand.getAmount() <= 0 ? null : hand);

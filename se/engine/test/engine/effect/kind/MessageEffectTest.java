@@ -10,10 +10,7 @@ import engine.sink.Sink;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test (docs/architecture.md §1.3): MESSAGE routes by {@code channel}, collapsing the
- * deleted ACTIONBAR and TITLE kinds — each test pins which Sink intent a channel selects.
- */
+/** MESSAGE routes by {@code channel}, collapsing the deleted ACTIONBAR and TITLE kinds. */
 class MessageEffectTest {
 
     @Test

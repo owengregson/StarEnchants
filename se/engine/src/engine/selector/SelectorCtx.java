@@ -7,12 +7,9 @@ import org.bukkit.entity.Player;
 import schema.spec.Args;
 
 /**
- * Read-only context a {@link SelectorKind} resolves against (docs/architecture.md §3.5, §7).
- * Selectors reach the world only through the helpers here, never a {@code World} directly, so
- * kinds stay uniform and unit-testable.
- *
- * <p>Everything here is firing-thread safe: the actor and the activation's captured
- * victim/attacker/location, never a live cross-region entity (§3.4).
+ * Read-only context a {@link SelectorKind} resolves against (docs/architecture.md §3.5). Selectors reach
+ * the world only through the helpers here, never a {@code World} directly. Everything is firing-thread
+ * safe: the actor and the activation's captured victim/attacker/location, never a live cross-region entity.
  */
 public interface SelectorCtx {
 

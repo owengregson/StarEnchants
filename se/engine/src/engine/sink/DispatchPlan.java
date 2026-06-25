@@ -13,25 +13,21 @@ import org.bukkit.entity.Entity;
 import platform.sched.Scheduling;
 
 /**
- * The deferred half of the {@link Sink} dispatcher (docs/architecture.md §3.5–3.6): the per-event
- * batches of world-mutation intents that could not run inline, grouped by the thread that <em>owns</em>
- * them and flushed in one pass through {@link Scheduling} after the gate walk, so N hops collapse to ~1
- * per distinct owner (one entity-scheduler task per victim, one region task per chunk).
+ * The deferred half of the {@link Sink} dispatcher (§3.5–3.6): per-event world-mutation batches grouped by the
+ * thread that <em>owns</em> them and flushed through {@link Scheduling} after the gate walk, so N hops collapse
+ * to ~1 per distinct owner.
  *
- * <p>Owners come straight from each intent's target, so even a mis-declared {@code Affinity} can never
- * route an entity mutation off the entity's thread (§3.6): an {@link Entity} intent is owned by that
- * entity, a {@link Location} intent by the region ticking its chunk, the rest by the global region
- * thread. A chunk is the unit of region identity on Folia, so batching by {@code (world, chunkX, chunkZ)}
- * is exactly one hop per region with no Folia internals.
+ * <p>Owners come straight from each intent's target, so even a mis-declared {@code Affinity} can never route an
+ * entity mutation off the entity's thread (§3.6): an {@link Entity} intent is owned by that entity, a
+ * {@link Location} intent by the region ticking its chunk, the rest by the global region thread. A chunk is the
+ * unit of region identity on Folia, so batching by {@code (world, chunkX, chunkZ)} is exactly one hop per region.
  *
- * <p><strong>WAIT delays (§3.6).</strong> An intent may carry an N-tick delay ({@code WAIT:N} accumulated
- * before its effect). Delay-0 intents are the hot path (immediate batches below). A delay&gt;0 intent is
- * held in a lazily-allocated per-delay sub-plan and flushed N ticks later through the {@code *Later}
- * variants, each owner-batch on its OWN thread — so a delayed mutation is as Folia-correct as an
- * immediate one. Only the mutation is deferred; the effect resolved its targets on the firing thread.
+ * <p><strong>WAIT delays (§3.6).</strong> A delay&gt;0 intent ({@code WAIT:N} before its effect) is held in a
+ * lazily-allocated per-delay sub-plan and flushed N ticks later through the {@code *Later} variants, each
+ * owner-batch on its OWN thread. Only the mutation is deferred; targets were resolved on the firing thread.
  *
- * <p>Package-private mechanism with no policy: {@link DispatchSink} decides inline-vs-deferred and what
- * each intent does; this only remembers and schedules. Built fresh per event and flushed once.
+ * <p>Package-private mechanism with no policy: {@link DispatchSink} decides inline-vs-deferred; this only
+ * remembers and schedules. Built fresh per event, flushed once.
  */
 final class DispatchPlan {
 
@@ -86,9 +82,8 @@ final class DispatchPlan {
         asyncBatch.add(op);
     }
 
-    // ── delay-aware queueing (delayTicks <= 0 routes to the immediate batch above) ────────────────
+    // ── delay-aware queueing (delayTicks <= 0 routes to the immediate batch above; >0 to a WAIT tier) ──
 
-    /** Queue an entity mutation, deferred by {@code delayTicks} (a {@code WAIT} tier) or immediate when &le; 0. */
     void onEntity(Entity entity, Runnable op, int delayTicks) {
         if (delayTicks <= 0) {
             onEntity(entity, op);
@@ -97,7 +92,6 @@ final class DispatchPlan {
         }
     }
 
-    /** Queue a region mutation, deferred by {@code delayTicks} (a {@code WAIT} tier) or immediate when &le; 0. */
     void onRegion(Location at, Runnable op, int delayTicks) {
         if (delayTicks <= 0) {
             onRegion(at, op);
@@ -106,7 +100,6 @@ final class DispatchPlan {
         }
     }
 
-    /** Queue a global mutation, deferred by {@code delayTicks} (a {@code WAIT} tier) or immediate when &le; 0. */
     void onGlobal(Runnable op, int delayTicks) {
         if (delayTicks <= 0) {
             onGlobal(op);

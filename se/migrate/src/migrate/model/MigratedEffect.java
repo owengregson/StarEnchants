@@ -1,10 +1,9 @@
 package migrate.model;
 
 /**
- * One legacy effect token after translation (docs/architecture.md §10). Either {@code se} holds a valid
- * SE effect token (e.g. {@code DAMAGE:6:@Victim}) or it is {@code null} (the writer emits a {@code # TODO}
- * and {@link migrate.Migrator} records a diagnostic). {@code legacy} is the original token; {@code note}
- * explains the translation or why it was skipped — both surface as review comments in the emitted YAML.
+ * One legacy effect token after translation. {@code se} is a valid SE token or {@code null} (unmapped →
+ * {@code # TODO}); {@code legacy} is the original and {@code note} the rationale — both become review
+ * comments in the emitted YAML.
  */
 public record MigratedEffect(String legacy, String se, String note) {
 

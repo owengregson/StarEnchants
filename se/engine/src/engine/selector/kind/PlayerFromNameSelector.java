@@ -10,8 +10,8 @@ import java.util.List;
 
 /**
  * {@code @PlayerFromName{name=Steve}} — the online player with that exact name, else empty
- * (docs/architecture.md §7; v3.1 §A, Cosmic Enchants-style parity). Roster lookup via the world-access seam
- * so the kind stays pure; the consuming effect routes to the player's region thread via its own affinity.
+ * (Cosmic Enchants-style parity). Roster lookup via the world-access seam so the kind stays pure; the
+ * consuming effect routes to the player's region thread via its own affinity.
  */
 public final class PlayerFromNameSelector implements SelectorKind {
 

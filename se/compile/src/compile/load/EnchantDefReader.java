@@ -14,15 +14,9 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 
 /**
- * Reads one authored enchant file (a composed {@link YamlNode} mapping) into its metadata
- * {@link EnchantDef} plus one {@link AbilityDef} per level (docs/architecture.md §10; ADR-0014). The
- * stable key is path-derived — base key plus {@code /<level>} — so {@code (enchants/lifesteal, 3)}
- * resolves to {@code enchants/lifesteal/3}.
- *
- * <p>Every level is declared explicitly under {@code levels:}; the level set is exactly those keys. Each
- * level reads its own knobs ({@code chance}/{@code cooldown}/{@code soul-cost}/{@code condition}), falling
- * back to a same-named root knob as a shared default. A bad field/level is warned-and-skipped as a
- * {@code file:line:col} diagnostic, never thrown (§7, §10).
+ * Reads one authored enchant file into its {@link EnchantDef} plus one {@link AbilityDef} per level
+ * (ADR-0014). The level set is exactly the keys under {@code levels:}; each level's knobs fall back to a
+ * same-named root knob as a shared default. A bad field/level is warned-and-skipped, never thrown.
  */
 final class EnchantDefReader {
 
@@ -36,20 +30,15 @@ final class EnchantDefReader {
     private EnchantDefReader() {
     }
 
-    /** One enchant's parsed output: its metadata and the per-level abilities it expands into. */
     record Parsed(EnchantDef def, List<AbilityDef> abilities) {
     }
 
-    /** Test/convenience entry: no folder-derived tier (the in-file {@code tier:} or {@code null} applies). */
+    /** Test/convenience entry: no folder-derived tier. */
     static Parsed read(String baseKey, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         return read(baseKey, null, root, nextDefId, diags);
     }
 
-    /**
-     * Parse one enchant. {@code baseKey} is the path-derived key, e.g. {@code enchants/lifesteal};
-     * {@code folderTier} is the tier derived from the file's subfolder (may be {@code null}). The
-     * in-file {@code tier:} overrides it (a mismatch warns).
-     */
+    /** Parse one enchant. The in-file {@code tier:} overrides {@code folderTier} (a mismatch warns). */
     static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {
@@ -72,7 +61,7 @@ final class EnchantDefReader {
         }
         List<String> disabledWorlds = root.stringList("disabled-worlds");
         String group = ContentParse.blankToNull(root.string("group"));
-        // Apply-time enchant relationships (§G) — pure metadata, evaluated by ItemEnchanter at apply.
+        // §G relationships: pure metadata, evaluated by ItemEnchanter at apply.
         List<String> requires = root.stringList("requires");
         List<String> blacklist = root.stringList("blacklist");
         boolean removesRequired = "true".equalsIgnoreCase(root.string("removes-required"));
@@ -83,7 +72,6 @@ final class EnchantDefReader {
         }
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
 
-        // Each level node must be a mapping; non-mappings/bad keys are skipped with a diagnostic.
         Map<Integer, YamlNode> levelNodes = new LinkedHashMap<>();
         for (YamlNode.Entry entry : root.entries("levels")) {
             Integer level = ContentParse.parseInt(entry.key());
@@ -111,7 +99,7 @@ final class EnchantDefReader {
 
         List<AbilityDef> abilities = new ArrayList<>();
         for (int level : levelSet) {
-            YamlNode lvl = levelNodes.get(level); // every level in the set has a declared node
+            YamlNode lvl = levelNodes.get(level); // levelSet derives from levelNodes — never null
             double chance = ContentParse.resolveChance(knobNode(lvl, root, "chance"), "chance", diags);
             int cooldown = ContentParse.resolveInt(knobNode(lvl, root, "cooldown"), "cooldown", 0, diags);
             int soulCost = ContentParse.resolveInt(knobNode(lvl, root, "soul-cost"), "soul-cost", 0, diags);

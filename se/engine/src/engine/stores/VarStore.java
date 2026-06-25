@@ -10,11 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@code SET_VAR} / {@code INVERT_VAR} effects. A variable is a named string value, scoped to one player
  * and optionally time-limited.
  *
- * <p>The <em>writable</em> companion to the read-only built-in fact system: built-in facts are dense
- * compile-time slots in a {@link engine.condition.FactBuffer}; author-named dynamic vars cannot be
+ * <p>The <em>writable</em> companion to the built-in fact slots: author-named dynamic vars can't be
  * enumerated at compile time, so they live here and are read back through the {@code FactBuffer}'s
- * unknown-token (PlaceholderAPI) seam. Resolution order for a {@code %name%}: built-in slot, then this
- * store, then real PAPI — the two var spaces coexist with no compiler or IR change.
+ * unknown-token seam. Resolution order for a {@code %name%}: built-in slot, then this store, then real PAPI.
  *
  * <p>Concurrent, UUID-keyed (Folia). TTL-evicting: an elapsed var is dropped lazily on the next
  * {@link #get}, so the maps stay bounded without a sweeper. Time is an explicit caller-supplied tick,

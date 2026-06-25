@@ -12,9 +12,7 @@ import schema.spec.D;
 
 /**
  * {@code TELEBLOCK} — block the target from teleporting (ender-pearl / chorus) for a duration (§ combat-flags).
- * The proc writes a per-player timed flag through the {@link Sink}; a SEPARATE event (projectile launch /
- * teleport) reads it back and cancels. Default target the combat victim; for "stop them running" author
- * {@code who: attacker} on DEFENSE. Player-only. {@link Affinity#CONTEXT_LOCAL}.
+ * Writes a per-player timed flag; a SEPARATE launch/teleport event reads it back and cancels. Player-only.
  */
 public final class TeleblockEffect implements EffectKind {
 

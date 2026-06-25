@@ -35,18 +35,10 @@ import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 
 /**
- * Turns a Bukkit combat event into ability activations (docs/architecture.md §3.3, §3.6) — the
- * convergence of the whole runtime spine. On an {@link EntityDamageByEntityEvent} it gathers the
- * attacker's {@code ATTACK} abilities and the defender's {@code DEFENSE} abilities from their
- * PRE-RESOLVED {@link WornState}s (read-only — never re-resolving a cross-region entity, §3.4), runs
- * each through the {@link AbilityExecutor} into one per-event {@link DispatchSink}, folds the
- * accumulated damage deltas onto the event a single time (§6.1), honours a {@code cancelEvent}, and
- * flushes the deferred world mutations batched per owning thread.
- *
- * <p>The event handler runs on the firing region thread (the victim's region on Folia); damage
- * folding and cancellation are synchronous read-backs there, while world-mutating effects are routed
- * to their owning threads by the Sink. The actor's {@code RuntimeHandles} are paired with the
- * snapshot's compile resolver so handle-using effects (potions, spawns) resolve correctly.
+ * Turns a Bukkit combat event into ability activations (docs/architecture.md §3.3, §3.6). Reads worn
+ * state read-only (never re-resolving a cross-region entity, §3.4) and folds all damage deltas onto
+ * the event ONCE (§6.1). Runs on the firing region thread; world-mutating effects are routed to their
+ * owning threads by the Sink.
  */
 public final class CombatDispatch {
 
@@ -74,11 +66,7 @@ public final class CombatDispatch {
     private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
     private final int tridentTriggerId; // −1 ⇒ no distinct trident trigger; trident hits fall back to ATTACK
 
-    /**
-     * §N friendly-fire gate (ADR-0027): two friendly players (e.g. same mcMMO party) get NO SE combat
-     * effects either way. Static + boot-configured no-op by default so it stays off the per-event path and
-     * is inert in tests / without mcMMO.
-     */
+    /** §N friendly-fire gate (ADR-0027): two friendly players get NO SE combat effects. No-op by default. */
     private static volatile java.util.function.BiPredicate<Player, Player> friendlyFire = (attacker, victim) -> false;
 
     /** Install the friendly-fire gate (boot-time). A {@code null} predicate resets to "never friendly". */
@@ -114,10 +102,7 @@ public final class CombatDispatch {
                 new KnockbackControlStore(), new KeepOnDeathStore());
     }
 
-    /**
-     * Full combat dispatch: distinct BOW/TRIDENT attacker triggers + soul binder + economy. Cosmic Enchants-style
-     * melee-only ATTACK; either trigger id at {@code -1} falls those hits back to {@code attackTriggerId}.
-     */
+    /** Full dispatch: distinct BOW/TRIDENT triggers + soul binder + economy; either trigger id {@code -1} falls those hits back to the Cosmic Enchants-style melee-only ATTACK. */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
@@ -129,10 +114,7 @@ public final class CombatDispatch {
                 () -> engine.interact.DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
     }
 
-    /**
-     * As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
-     * §F) threaded into each per-event {@link DispatchSink}; the ctor above defaults it.
-     */
+    /** As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor}, §F). */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
@@ -147,10 +129,8 @@ public final class CombatDispatch {
     }
 
     /**
-     * As above, plus the live cross-cutting combat caps (config.yml {@code combat.*}, §L): additive bonus
-     * ceilings ({@code maxBonusDamage}/{@code maxBonusReduction}, {@code < 0} ⇒ uncapped) threaded onto each
-     * event's fold, and the {@code pvp}/{@code pve} gates keyed on the victim's player-ness. The ctor above
-     * defaults them (uncapped, both contexts on).
+     * As above, plus the live combat caps (config.yml {@code combat.*}, §L): additive bonus ceilings
+     * ({@code < 0} ⇒ uncapped) and the {@code pvp}/{@code pve} gates keyed on the victim's player-ness.
      */
     public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
@@ -180,8 +160,7 @@ public final class CombatDispatch {
         this.maxBonusReduction = Objects.requireNonNull(maxBonusReduction, "maxBonusReduction");
         this.pvpEnabled = Objects.requireNonNull(pvpEnabled, "pvpEnabled");
         this.pveEnabled = Objects.requireNonNull(pveEnabled, "pveEnabled");
-        // The runner reads conditions through a populator backed by the shared VarStore, so a condition's
-        // %name% can read a value an earlier SET_VAR wrote (the write side is the per-event DispatchSink below).
+        // Shared VarStore: a condition's %name% reads what an earlier SET_VAR wrote (write side: the per-event sink).
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
@@ -194,8 +173,7 @@ public final class CombatDispatch {
         Snapshot snapshot = content.snapshot();
         Ability[] abilities = snapshot.abilities();
         Entity rawDamager = event.getDamager();
-        // A projectile attributes the hit to its shooter (the shooter ref is region-safe — projectile is in
-        // the firing region), but the RAW damager type still decides which attacker trigger fires.
+        // A projectile attributes the hit to its shooter (region-safe), but RAW type still picks the trigger.
         Entity damager = rawDamager;
         if (rawDamager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter) {
             damager = shooter;
@@ -204,8 +182,7 @@ public final class CombatDispatch {
         LivingEntity victim = victimEntity instanceof LivingEntity living ? living : null;
         LivingEntity attacker = damager instanceof LivingEntity living ? living : null;
         Location at = victimEntity.getLocation();
-        // Capture the incoming damage BEFORE the additive fold mutates it (line ~end), so the %damage% fact
-        // reads the hit's value at activation time, not the post-effect total.
+        // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
@@ -215,20 +192,19 @@ public final class CombatDispatch {
 
         // PvP/PvE context (config.yml combat.pvp/pve) is decided by the VICTIM's player-ness.
         boolean victimIsPlayer = victimEntity instanceof Player;
-        // §N friendly-fire: skip ALL SE combat effects between two friendly players (e.g. same mcMMO party).
+        // §N friendly-fire: skip ALL SE combat effects between two friendly players.
         boolean friendly = damager instanceof Player a && victimEntity instanceof Player v && friendlyFire.test(a, v);
 
-        // Attack side: self = attacker, target = victim; trigger is ATTACK or the BOW/TRIDENT projectile trigger.
+        // Attack side: self = attacker, target = victim.
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
-            // Extend the attacker's consecutive-hit streak for the %combo% fact (RAGE-style scaling, §3.4).
-            int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong());
+            int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong()); // %combo% fact, §3.4
             runner.run(abilities, snapshot.generation(), worldId, attackId, true,
                     attackerPlayer,
                     new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null, streak), sink,
                     snapshot.stableKeys());
         }
-        // Defense side: self = victim, target = attacker; context keyed on whether the attacker is a player.
+        // Defense side: self = victim, target = attacker.
         if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player) && !friendly) {
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
                     defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at, incomingDamage, null),
@@ -238,9 +214,8 @@ public final class CombatDispatch {
         // Fold every damage contribution onto the event ONCE (§6.1); honour a cancel; flush deferred work.
         event.setDamage(sink.fold().apply(event.getDamage()));
         if (sink.armorIgnored()) {
-            // IGNORE_ARMOR: zero the server's armor + enchant-protection reductions AFTER setDamage (which
-            // recomputes all modifiers from base). isApplicable is the cross-version capability probe — a
-            // version/cause without a given modifier is a no-op, so no version gate is needed (§ combat-flags).
+            // IGNORE_ARMOR: zero armor + enchant-protection AFTER setDamage recomputes modifiers from base.
+            // isApplicable is the cross-version probe, so no version gate is needed (§ combat-flags).
             zeroModifier(event, EntityDamageEvent.DamageModifier.ARMOR);
             zeroModifier(event, EntityDamageEvent.DamageModifier.MAGIC);
         }
@@ -264,12 +239,8 @@ public final class CombatDispatch {
     }
 
     /**
-     * The attacker-side trigger for a hit, by the RAW damager type: a thrown trident fires
-     * {@code tridentId}, a bow/crossbow arrow (any {@link AbstractArrow} that is not a trident) fires
-     * {@code bowId}, and everything else (melee, or any projectile with no distinct trigger) fires
-     * {@code attackId}. A {@code bowId}/{@code tridentId} of {@code -1} means "no distinct trigger" and
-     * also falls back to {@code attackId}. {@link Trident} extends {@link AbstractArrow}, so it is tested
-     * first.
+     * The attacker-side trigger for a hit, by RAW damager type; {@code -1} ids fall back to {@code attackId}.
+     * {@link Trident} extends {@link AbstractArrow}, so it is tested first.
      */
     static int attackTrigger(Entity rawDamager, int attackId, int bowId, int tridentId) {
         if (rawDamager instanceof Trident && tridentId >= 0) {

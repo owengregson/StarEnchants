@@ -6,11 +6,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import schema.spec.Args;
 
-/**
- * The concrete {@link SelectorCtx} the {@link AbilityExecutor} builds per effect (docs/architecture.md
- * §3.5): the activation's actors, the selector's typed {@link Args}, and the injected {@link AreaScan}.
- * World access goes through the {@code AreaScan} so the selector kinds stay pure.
- */
+/** The concrete {@link SelectorCtx} per effect; world access routes through {@link AreaScan} so selector kinds stay pure. */
 final class RuntimeSelectorCtx implements SelectorCtx {
 
     private final ActivationContext context;
@@ -70,13 +66,12 @@ final class RuntimeSelectorCtx implements SelectorCtx {
 
     @Override
     public LivingEntity entityInSight(double maxDistance) {
-        // Raytrace from the activator, on its own firing region thread — region-correct.
+        // Raytrace from the activator, on its own firing region thread — region-correct on Folia.
         return context.actor() == null ? null : areaScan.entityInSight(context.actor(), maxDistance);
     }
 
     @Override
     public Location targetBlock(double maxDistance) {
-        // Block raytrace from the activator, on its own firing region thread.
         return context.actor() == null ? null : areaScan.targetBlock(context.actor(), maxDistance);
     }
 

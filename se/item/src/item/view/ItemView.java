@@ -22,12 +22,10 @@ public final class ItemView {
         return gen;
     }
 
-    /** Decoded enchants + crystals by stable key; never {@code null}. */
     public CombatState combat() {
         return combat;
     }
 
-    /** No combat state at all — the common combat miss-path. */
     public boolean isEmpty() {
         return combat.isEmpty();
     }

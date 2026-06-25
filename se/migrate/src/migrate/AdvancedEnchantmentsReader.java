@@ -11,12 +11,10 @@ import migrate.model.MigratedEnchant;
 import migrate.model.MigratedLevel;
 
 /**
- * Reads an AdvancedEnchantments {@code enchantments.yml} into {@link MigratedEnchant}s
- * (docs/architecture.md §10). Unlike EliteEnchantments: AE keeps each enchant at the document ROOT (no
- * {@code Enchants:} wrapper), uses its own {@code type}/{@code applies}/effect vocabulary (mapped via
- * {@link Mappings} {@code ae*}), and gives effects a space-separated target. Conditions translate where
- * they map to an SE gate; an unmappable result/variable becomes a {@code # TODO}, never a silently-wrong
- * gate.
+ * Reads an AdvancedEnchantments {@code enchantments.yml} into {@link MigratedEnchant}s. Unlike
+ * EliteEnchantments: AE keeps each enchant at the document ROOT (no {@code Enchants:} wrapper), has its own
+ * {@code type}/{@code applies}/effect vocabulary (mapped via {@link Mappings} {@code ae*}), and gives effects
+ * a space-separated target.
  */
 public final class AdvancedEnchantmentsReader {
 

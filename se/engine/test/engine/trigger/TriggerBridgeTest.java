@@ -20,12 +20,7 @@ import schema.grammar.EffectLine;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Proves the trigger half of the engine↔compiler loop closes: content trigger names are
- * interned against the engine's canonical {@link TriggerRegistry}, so a compiled
- * {@code triggerMask} bit means exactly the trigger the runtime routes (§3.7), and an
- * unknown trigger is a diagnostic rather than a silently-interned ghost.
- */
+/** Trigger names intern against the canonical {@link TriggerRegistry} so a {@code triggerMask} bit means the trigger the runtime routes (§3.7); an unknown trigger is a diagnostic, not a silent ghost. */
 class TriggerBridgeTest {
 
     private final TriggerRegistry triggers = BuiltinTriggers.registry();

@@ -6,9 +6,7 @@ import engine.spec.SelectorSpec;
 import org.bukkit.entity.LivingEntity;
 import java.util.List;
 
-/**
- * {@code @Victim} — the combat victim, or no target for a non-combat activation (docs/architecture.md §7).
- */
+/** {@code @Victim} — the combat victim, or no target for a non-combat activation. */
 public final class VictimSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("VICTIM")

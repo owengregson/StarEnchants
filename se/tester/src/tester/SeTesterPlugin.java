@@ -43,14 +43,11 @@ import tester.suite.SinkSuite;
 import tester.suite.WornResolverSuite;
 
 /**
- * The live matrix harness plugin (docs/architecture.md §11; live-server-testing, matrix-gate skills).
- * Booted inside a real Paper/Folia server by {@code scripts/run-matrix.sh}: probe the platform, install the
- * scheduling backend, run the in-server suites across game ticks, write a fresh {@code test-results.txt},
- * and shut down. The runner fails the gate on anything but a fresh PASS.
+ * The live matrix harness plugin (§11), booted by {@code scripts/run-matrix.sh}: probe, install the
+ * scheduling backend, run the in-server suites, write a fresh {@code test-results.txt}, shut down.
  *
- * <p>Suites start on {@link ServerLoadEvent}, not {@code onEnable}: only a fully-initialised server is
- * stable footing for scenarios that spawn entities or await a delayed task — mid-startup the world is still
- * loading and a freshly-spawned entity may not survive a few ticks (a flake seen on the slow ceiling build).
+ * <p>Suites start on {@link ServerLoadEvent}, not {@code onEnable}: mid-startup the world is still loading
+ * and a freshly-spawned entity may not survive a few ticks (a flake seen on the slow ceiling build).
  */
 public final class SeTesterPlugin extends JavaPlugin implements Listener {
 
@@ -87,8 +84,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new EconomyItemsSuite(this)) // §I slot/black/randomizer/unopened/transmog over real ItemStacks
                 .add(new WornResolverSuite(this));
 
-        // The fake-player harness spans the whole range via FakePlayers' two paths (ADR 0018): mojang-mapped
-        // (1.20.5+) and the spigot-mapped floor (1.17.1–1.19.4), so the combat-path suites run floor-wide.
+        // The fake-player harness spans the whole range via FakePlayers' two paths (ADR 0018), so the
+        // combat-path suites run floor-wide.
         harness.add(new FakePlayerSuite(this));
         harness.add(new CombatSuite(this));
         harness.add(new CombatFlagsSuite(this)); // §C: KNOCKBACK_CONTROL version-split, GUARD spawn+target, KEEP_ON_DEATH
@@ -111,7 +108,6 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
     }
 
-    /** Begin the suites once the server is fully loaded (fires once per startup). */
     @EventHandler
     public void onServerLoad(ServerLoadEvent event) {
         if (started) {

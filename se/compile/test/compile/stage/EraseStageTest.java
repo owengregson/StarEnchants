@@ -21,11 +21,7 @@ import schema.spec.Args;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests for {@link DefaultEraseStage} — the source-erasure stage that interns names,
- * bit-packs the trigger mask and world bitset, assigns dense ids, and builds the
- * {@link StableKeyIndex} and {@link SourceMap} (docs/architecture.md §4.1, §5.3, §8).
- */
+/** Tests for {@link DefaultEraseStage} — the source-erasure stage (docs/architecture.md §4.1, §5.3, §8). */
 class EraseStageTest {
 
     private static final EraseStage STAGE = new DefaultEraseStage();
@@ -34,10 +30,6 @@ class EraseStageTest {
         return new CompiledEffect("X", Args.empty(), CompiledSelector.SELF, 0, Affinity.CONTEXT_LOCAL);
     }
 
-    /**
-     * A lowered fixture with sensible defaults — only the fields a test cares about
-     * are passed in; everything structural (level, chances, condition) is neutral.
-     */
     private static LoweredAbility lowered(
             String stableKey,
             int defId,
@@ -70,7 +62,6 @@ class EraseStageTest {
                 0);
     }
 
-    /** A minimal fixture: a stable key + defId, no names. */
     private static LoweredAbility lowered(String stableKey, int defId) {
         return lowered(stableKey, defId, List.of(), List.of(), null, null, null, null, Source.UNKNOWN);
     }

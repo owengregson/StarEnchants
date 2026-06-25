@@ -20,16 +20,10 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * §D soul ECONOMY over a real {@link Player} inventory + gem PDC: a kill deposits into a carried gem
- * anywhere regardless of soul mode ({@link SoulService#onKill}, deferred to the killer's thread); combine
- * sums two gems into a fresh-identity gem; {@code /se split} carves a count off the held gem, keeps the
- * remainder, and refuses to split everything away.
- *
- * <p>Also pins two adversarial-review regressions (both dupe/lose souls): a spend persists to the active
- * gem wherever it sits (not only the main hand — the combat case of weapon held, gem in the bag), and
- * toggling soul mode OFF flushes the authority to PDC before forgetting it (else a spent balance refunds).
- * Both driven synchronously through the SHARED ledger this suite owns. Fake player; assertions on its own
- * region thread.
+ * §D soul ECONOMY over a real {@link Player} inventory + gem PDC: deposit-on-any-kill (deferred to the
+ * killer's thread), combine, and {@code /se split}. Also pins two adversarial-review dupe/lose regressions:
+ * a spend persists to the active gem wherever it sits (not only the main hand), and toggling soul mode OFF
+ * flushes the authority to PDC before forgetting it (else the spend refunds). Fake player.
  */
 public final class SoulEconomySuite implements Harness.Scenario {
 

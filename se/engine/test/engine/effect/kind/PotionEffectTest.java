@@ -11,10 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Mock-host test (docs/architecture.md §1.3): the {@code effect} handle arrives as the interned id the
- * compiler resolved (§9), read via {@code ctx.integer}.
- */
+/** The {@code effect} handle arrives as the interned id the compiler resolved (§9), read via {@code ctx.integer}. */
 class PotionEffectTest {
 
     @Test
@@ -34,10 +31,7 @@ class PotionEffectTest {
         verifyNoMoreInteractions(sink);
     }
 
-    /**
-     * §B lifecycle teardown (ADR-0022): on HELD/PASSIVE unequip, {@code stop} must emit the exact inverse —
-     * a {@code removePotion} of the same handle for every target, and nothing else.
-     */
+    /** §B lifecycle teardown (ADR-0022): on unequip, {@code stop} emits the exact inverse — a {@code removePotion} of the same handle, nothing else. */
     @Test
     void stopRemovesThePotionItApplied() {
         LivingEntity a = mock(LivingEntity.class);
@@ -52,6 +46,6 @@ class PotionEffectTest {
 
         verify(sink).removePotion(a, 7);
         verify(sink).removePotion(b, 7);
-        verifyNoMoreInteractions(sink); // never re-applies, never reads amplifier/duration
+        verifyNoMoreInteractions(sink);
     }
 }

@@ -15,25 +15,21 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * Item nametag (docs/v3-directives.md §I) — dragged onto gear it begins a chat-capture rename; the next
- * chat line becomes the display name unless blacklisted. A distinct {@code NAMETAG}-kind scroll
- * ({@link ScrollCodec}).
+ * Item nametag (§I): dragged onto gear it begins a chat-capture rename; the next chat line becomes the
+ * display name unless blacklisted.
  *
  * <p>The pending store holds a <em>clone of the target item</em>, not a slot index: the player may move the
  * item between the click and the (async) chat line, so the rename re-locates the exact stack by
- * {@link ItemStack#isSimilar(ItemStack) identity} — never whatever later occupies a fixed slot. A vanished
- * target refunds the nametag rather than losing it; starting a rename while one is pending is rejected. The
- * store is concurrent because the chat event fires async; the mutation is hopped to the region thread by the
- * listener (Folia).
+ * {@link ItemStack#isSimilar(ItemStack) identity}. Concurrent because the chat event fires async; the
+ * mutation is hopped to the region thread by the listener (Folia).
  */
 public final class NametagService {
 
-    /** The scroll kind this service owns. */
     public static final String NAMETAG = "NAMETAG";
 
     private final ScrollCodec scrolls;
     private final Supplier<ScrollsConfig> config;
-    private final item.lang.Messages messages; // §L lang.yml — rename prompt/result + guards
+    private final item.lang.Messages messages;
     private final ConcurrentHashMap<UUID, ItemStack> pending = new ConcurrentHashMap<>();
 
     /** Default-messages form (tests/fixtures). */
@@ -71,7 +67,6 @@ public final class NametagService {
         return messages.format("scroll.nametag.prompt");
     }
 
-    /** The "a rename is already pending" message (§L lang.yml) — the listener shows it when {@link #begin} refuses. */
     public String busyMessage() {
         return messages.format("scroll.nametag.busy");
     }
@@ -80,15 +75,14 @@ public final class NametagService {
         return pending.containsKey(player);
     }
 
-    /** Drop any pending rename for {@code player} (called on quit, so a stale capture is never reused). */
+    /** Drop any pending rename (called on quit, so a stale capture is never reused). */
     public void clear(UUID player) {
         pending.remove(player);
     }
 
     /**
      * Complete a pending rename with the chat-typed {@code text} — MUST run on the player's own region
-     * thread (it mutates their inventory). On cancel / blacklisted name / vanished target the nametag is
-     * refunded. Returns the message, or {@code null} when nothing was pending.
+     * thread (mutates their inventory). Cancel / blacklisted name / vanished target all refund the nametag.
      */
     @SuppressWarnings("deprecation") // setDisplayName: the floor-stable item-meta path
     public String complete(Player player, String text) {
@@ -138,7 +132,7 @@ public final class NametagService {
         return -1;
     }
 
-    /** Return one nametag to the player (overflow drops at their feet) — they aborted, so it was not used. */
+    /** Return one nametag to the player; overflow drops at their feet. */
     private void refund(Player player) {
         player.getInventory().addItem(mint()).values()
                 .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));

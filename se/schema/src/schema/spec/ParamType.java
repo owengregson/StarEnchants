@@ -10,24 +10,13 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 
 /**
- * The type of a single DSL argument — the atom of the StarEnchants type system.
- *
- * <p>A {@code ParamType} is an <em>immutable</em> value with optional constraints
- * (numeric bounds, an enum value set, a default). The fluent "wither" methods
- * ({@link #min}, {@link #max}, {@link #def}, {@link #optional}) each return a new
- * instance, so the shared bases on {@link D} (e.g. {@code D.DOUBLE}) can be reused
- * freely:
- *
- * <pre>{@code D.DOUBLE.min(0).max(100)}</pre>
- *
- * <p>One declaration drives all four uses (docs/architecture.md §1.2 D5, §7):
- * {@link #parse} validates authored text into a typed value (collecting a precise
- * {@link schema.diag.Diagnostic} on failure), {@link #usage}
- * documents it, and {@link #completions} powers tab-completion.
+ * The type of a single DSL argument. Immutable with optional constraints; the fluent
+ * wither methods ({@link #min}, {@link #def}, …) each return a new instance, so the
+ * shared {@link D} bases ({@code D.DOUBLE.min(0).max(100)}) are reused freely. One
+ * declaration drives parse, doc, and {@link #completions} (docs/architecture.md §7).
  */
 public final class ParamType {
 
-    /** The underlying value kind. */
     public enum Kind {
         DOUBLE, INT, BOOL, STRING, ENUM,
         /** A non-negative integer count of ticks (a typed INT for durations). */
@@ -56,8 +45,7 @@ public final class ParamType {
     }
 
     static ParamType of(Kind kind) {
-        // Required by default; a TICKS value is implicitly floored at 0.
-        Double lo = kind == Kind.TICKS ? 0.0 : null;
+        Double lo = kind == Kind.TICKS ? 0.0 : null; // TICKS implicitly floored at 0
         return new ParamType(kind, true, lo, null, null, null, null);
     }
 
@@ -91,26 +79,21 @@ public final class ParamType {
         return with(null, lo, hi, null, null);
     }
 
-    /**
-     * A default value, which also makes the argument optional. The default is
-     * stored as raw text and validated through the same {@link #parse} path, so a
-     * bad default is itself a diagnostic rather than a special case.
-     */
+    /** A default value (also makes the arg optional); stored as raw text and run through {@link #parse}, so a bad default is a diagnostic. */
     public ParamType def(Object value) {
         return with(false, null, null, String.valueOf(value), null);
     }
 
-    /** Mark the argument optional with no default (absent → not present in args). */
+    /** Optional with no default (absent → not present in args). */
     public ParamType optional() {
         return with(false, null, null, null, null);
     }
 
-    /** Mark the argument required (the default state); included for readability. */
     public ParamType requiredArg() {
         return with(true, null, null, null, null);
     }
 
-    /** Restrict an {@code ENUM} type to a fixed, case-insensitive value set. */
+    /** Restrict an {@code ENUM} to a fixed, case-insensitive value set. */
     ParamType allowing(String... values) {
         return with(null, null, null, null, List.of(values));
     }
@@ -144,14 +127,7 @@ public final class ParamType {
         return allowed == null ? List.of() : allowed;
     }
 
-    /**
-     * Validate a raw argument token into a typed value, reporting any fault into
-     * {@code diags} at {@code source}.
-     *
-     * @return the typed value ({@link Double}, {@link Long}, {@link Boolean} or
-     *     {@link String}), or empty if the token was invalid (a diagnostic was
-     *     recorded).
-     */
+    /** Validate a raw token into a typed value ({@link Double}/{@link Long}/{@link Boolean}/{@link String}), or empty if invalid (diagnostic recorded). */
     public Optional<Object> parse(String raw, Source source, Diagnostics diags) {
         return switch (kind) {
             case DOUBLE -> parseDouble(raw, source, diags);
@@ -169,9 +145,7 @@ public final class ParamType {
             diags.error("E_TYPE", "expected a " + handleCategory.label() + " name but got an empty token", source);
             return Optional.empty();
         }
-        // The token survives lowering verbatim; the resolve stage interns it to a
-        // platform handle id (docs/architecture.md §9). Unknown tokens are caught
-        // there (warn-and-skip), not here.
+        // Token survives verbatim; resolve interns it (§9) and warns-and-skips unknowns, not here.
         return Optional.of(t);
     }
 
@@ -181,8 +155,7 @@ public final class ParamType {
         try {
             v = Double.parseDouble(t);
         } catch (NumberFormatException e) {
-            // Not a plain literal: a {@code %var%}/arithmetic expression is a valid numeric argument,
-            // evaluated per-activation (docs/architecture.md §3.4). Anything else is a type error.
+            // A %var%/arithmetic expression is a valid numeric argument, evaluated per-activation (§3.4).
             if (looksLikeExpression(t)) {
                 return numericExpression(t, source, diags);
             }
@@ -203,8 +176,7 @@ public final class ParamType {
         try {
             v = Long.parseLong(t);
         } catch (NumberFormatException e) {
-            // An expression is admissible here too; its evaluated value is narrowed to a whole number
-            // at read time (a TICKS/INT arg can scale with a variable just like a DOUBLE).
+            // An expression is admissible here too; its value is narrowed to a whole number at read time.
             if (looksLikeExpression(t)) {
                 return numericExpression(t, source, diags);
             }
@@ -217,10 +189,8 @@ public final class ParamType {
     }
 
     /**
-     * Whether a numeric token that failed literal parsing is an <em>expression</em> rather than a typo —
-     * it names a {@code %variable%} or applies an arithmetic operator. A leading sign alone never reaches
-     * here (a signed literal parses), so an interior {@code +}/{@code -} (or any {@code *}/{@code /}) marks
-     * arithmetic.
+     * Whether a non-literal numeric token is an expression (a {@code %var%} or arithmetic). A leading
+     * sign alone never reaches here (a signed literal parses), so only an interior op marks arithmetic.
      */
     private static boolean looksLikeExpression(String t) {
         return t.indexOf('%') >= 0 || t.indexOf('*') >= 0 || t.indexOf('/') >= 0
@@ -228,10 +198,8 @@ public final class ParamType {
     }
 
     /**
-     * Parse a numeric-argument token as an expression over {@code %variables%} and arithmetic, producing the
-     * untyped {@link Expr} AST. se-compile's lower stage resolves its variables to dense fact slots (the same
-     * pass that lowers conditions), and the runtime evaluates it per-activation against the fact buffer. Range
-     * bounds cannot be checked statically on an expression, so they are not — the author owns the value.
+     * Parse a numeric-argument token as an expression, producing the untyped {@link Expr} AST.
+     * Range bounds cannot be checked statically on an expression, so they are not — the author owns the value.
      */
     private static Optional<Object> numericExpression(String token, Source source, Diagnostics diags) {
         return ExprParser.parse(token, source, diags).map(expr -> expr);
@@ -273,7 +241,7 @@ public final class ParamType {
         return Optional.empty();
     }
 
-    /** Tab-completion candidates for a partial token (enums + booleans). */
+    /** Tab-completion candidates for a partial token (enums + booleans only). */
     public List<String> completions(String prefix) {
         String p = prefix == null ? "" : prefix.toLowerCase(Locale.ROOT);
         return switch (kind) {

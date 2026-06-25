@@ -48,10 +48,9 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * End-to-end combat spine, live (ADR-0014; §3.3, §3.6): a fake player wielding a Venom sword hits a cow
- * and the victim is poisoned, exercising the whole runtime on Paper and Folia. Also proves §9 resolver
- * pairing: the POTION handle interned at compile time resolves back to a live {@code PotionEffectType}
- * through the SAME retained {@link RegistryResolvers}. Mojang-mapped only (needs the fake-player attacker).
+ * End-to-end combat spine, live (ADR-0014; §3.3, §3.6): a fake player's Venom sword poisons a cow. Also
+ * proves §9 resolver pairing — the compile-interned POTION handle resolves back through the SAME retained
+ * {@link RegistryResolvers}. Mojang-mapped only (fake-player attacker).
  */
 public final class CombatSuite implements Harness.Scenario {
 
@@ -104,8 +103,8 @@ public final class CombatSuite implements Harness.Scenario {
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornStateStore worn = new WornStateStore(
                 new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
-        // §13 api seam: the executor fires EnchantActivateEvent per proc, as the composition root does.
-        // Fires on the entity's region thread (Folia), so this also proves region-thread dispatch survives.
+        // §13 api seam: the executor fires EnchantActivateEvent per proc on the entity's region thread (Folia),
+        // so this also proves region-thread dispatch survives.
         EventProbe probe = new EventProbe();
         plugin.getServer().getPluginManager().registerEvents(probe, plugin);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),

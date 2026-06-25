@@ -11,33 +11,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-/**
- * Defines and manipulates the <em>config surface</em> a pack captures (ADR-0023): the top-level
- * {@code config.yml} + {@code lang.yml} files and the {@code content/}, {@code items/}, {@code menus/}
- * trees — exactly what {@code StarEnchantsPlugin.saveDefaults()} extracts on first boot. Everything
- * else in the data folder (the {@code packs/} dir itself, {@code migrated/}, staging, dotfiles) is
- * outside the surface and is never collected or overwritten.
- *
- * <p>All paths are keyed forward-slash, relative to a root. {@link #writeAll} validates every entry
- * stays within the surface (no {@code ..}, no absolute path, no foreign top-level), so applying an
- * untrusted pack can never write outside {@code content/items/menus/config/lang}.
- */
+/** The files/dirs a pack captures (ADR-0023). {@link #writeAll} rejects escapes (.., absolute, foreign top-level). */
 final class PackSurface {
 
-    /** Top-level single files in the surface. */
     static final List<String> FILES = List.of("config.yml", "lang.yml");
 
-    /** Top-level recursive directories in the surface. */
     static final List<String> DIRS = List.of("content", "items", "menus");
 
     private PackSurface() {
     }
 
-    /**
-     * Collect the live config surface under {@code root} into a path→bytes map. Dotfiles (e.g.
-     * {@code .DS_Store}) are skipped so a pack never carries OS junk. An absent file/dir contributes
-     * nothing (a pack faithfully omits what the config does not have).
-     */
+    /** Collect the live surface under {@code root} into a path→bytes map; dotfiles skipped, absent entries omitted. */
     static Map<String, byte[]> collect(Path root) throws IOException {
         Map<String, byte[]> files = new LinkedHashMap<>();
         for (String name : FILES) {
@@ -65,11 +49,7 @@ final class PackSurface {
         return files;
     }
 
-    /**
-     * Materialise {@code files} under {@code target} (creating parents). Entries that escape the
-     * surface (a {@code ..}, an absolute path, or a top-level name that is not a surface file/dir) are
-     * skipped and returned, so the caller can report a sanitised count.
-     */
+    /** Write {@code files} under {@code target}; out-of-surface entries are skipped and returned. */
     static List<String> writeAll(Map<String, byte[]> files, Path target) throws IOException {
         List<String> skipped = new ArrayList<>();
         Path base = target.normalize();
@@ -90,7 +70,6 @@ final class PackSurface {
         return skipped;
     }
 
-    /** Delete the live surface under {@code root} (the surface files + the surface dirs, recursively). */
     static void clear(Path root) throws IOException {
         for (String name : FILES) {
             Files.deleteIfExists(root.resolve(name));
@@ -100,11 +79,7 @@ final class PackSurface {
         }
     }
 
-    /**
-     * Move every surface root present in {@code staging} into {@code root}, replacing what is there.
-     * Within one filesystem this is a per-root rename (effectively atomic), so the swap is fast and
-     * leaves no half-written tree.
-     */
+    /** Move each surface root from {@code staging} into {@code root}; a per-root rename within one filesystem (~atomic). */
     static void promote(Path staging, Path root) throws IOException {
         for (String name : FILES) {
             moveIfPresent(staging.resolve(name), root.resolve(name));
@@ -114,7 +89,6 @@ final class PackSurface {
         }
     }
 
-    /** Whether a relative entry path is inside the surface (a surface file, or under a surface dir). */
     private static boolean withinSurface(String rel) {
         if (rel.isEmpty() || rel.startsWith("/") || rel.contains("..")) {
             return false;

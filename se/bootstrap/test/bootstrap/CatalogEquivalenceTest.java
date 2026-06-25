@@ -26,20 +26,13 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 /**
- * A ONE-OFF equivalence gate for the v1→v2 catalog migration (ADR-0016): the v2 catalog must compile
- * to byte-identical ABILITIES as the v1 catalog — same stable keys, same per-ability chance/cooldown/
- * soul-cost/triggers/condition/effects (head + typed args + selector + WAIT) — proving the rewrite
- * changed only the authoring surface, never behaviour. Tiers/folders are metadata and (by design) do
- * not change the stable key, so the two snapshots must match exactly.
- *
- * <p>Gated on {@code -Dse.equiv.old=<v1 dir> -Dse.equiv.new=<v2 dir>} so it is a deliberate local
- * verification, never CI. One shared deterministically-interning resolver loads BOTH so a handle token
- * (potion/sound/material) interns to the same id in each — a CHANGED token surfaces as an arg mismatch
- * rather than being masked.
+ * One-off v1→v2 catalog equivalence gate (ADR-0016): both must compile to byte-identical abilities.
+ * Gated on {@code -Dse.equiv.old/-Dse.equiv.new} (never CI). One shared interning resolver loads both
+ * so a changed handle token surfaces as an arg mismatch instead of being masked.
  */
 class CatalogEquivalenceTest {
 
-    /** Interns each distinct token to a stable per-category id; shared across both loads → consistent ids. */
+    /** Interns each token to a stable per-category id, shared across both loads for consistent ids. */
     private static final class InterningResolvers implements PlatformResolvers {
         private final Map<String, Map<String, Integer>> byCategory = new LinkedHashMap<>();
         private final int[] next = {1};
@@ -79,7 +72,7 @@ class CatalogEquivalenceTest {
         TreeSet<String> keysB = stableKeys(v2);
         assertEquals(keysA, keysB, "the v2 catalog must define exactly the same stable keys as v1");
 
-        // Collect EVERY mismatch in one pass so a single run lists all problem files to fix.
+        // One pass collects every mismatch so a single run lists all problem files.
         List<String> diffs = new ArrayList<>();
         for (String key : keysA) {
             Ability a = v1.snapshot().byStableKey(key);
@@ -125,12 +118,11 @@ class CatalogEquivalenceTest {
         return keys;
     }
 
-    /** The condition's LOGIC (its compiled tree), excluding its source position (which differs by file/line). */
+    /** The compiled condition tree, excluding source position (which differs by file/line). */
     private static String conditionSig(Ability ability) {
         return ability.condition() == null ? "none" : String.valueOf(ability.condition().root());
     }
 
-    /** A stable, order-preserving signature of an ability's effects: head, typed args, selector, WAIT. */
     private static List<String> effectSig(Ability ability) {
         List<String> sig = new ArrayList<>();
         for (CompiledEffect e : ability.effects()) {

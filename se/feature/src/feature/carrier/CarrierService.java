@@ -17,35 +17,26 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * The book/dust/white-scroll application economy (ADR-0016; ADR-0019) — the cold path that MINTS these
- * carriers and APPLIES them to gear. Each is built from a top-level {@code items/*.yml} likeness read LIVE
- * so a {@code /se reload} re-tunes it. Carrier identity lives in PDC ({@link CarrierCodec}) — never decoded
- * on the combat hot path.
- *
- * <p>A book rolls its success and on success applies its enchant through the shared {@link ItemEnchanter};
- * on failure it destroys the gear (when the likeness sets {@code destroy-on-fail}) unless a white-scroll
- * guard spared it. The WHITE SCROLL stamps that guard. The SUCCESS DUST is the one carrier&rarr;carrier
- * interaction: dragging it onto a book raises the book's stored bonus (clamped so effective success never
- * exceeds 100%); a random dust rolls within the configured {@code [min, max]}, a fixed-percent dust
- * ({@code /se dust <percent>}) confers exactly its baked amount. The apply/dust rolls are the only
- * non-determinism, injected as a {@link Random}.
+ * The book/dust/white-scroll application economy (ADR-0016; ADR-0019) — the cold path that mints these
+ * carriers and applies them to gear. Each is built from a top-level {@code items/*.yml} likeness read LIVE
+ * so a {@code /se reload} re-tunes it. The success dust is the one carrier&rarr;carrier interaction
+ * (dragging it onto a book raises the book's bonus). The apply/dust rolls are the only non-determinism,
+ * injected as a {@link Random}.
  */
 public final class CarrierService {
 
-    /** Stable PDC item-key for the top-level success dust (items/dust.yml). */
     public static final String DUST_KEY = "dust";
-    /** Stable PDC item-key for the top-level white scroll (items/white-scroll.yml) — the enchant-protect guard. */
+    /** The white scroll — a one-shot enchant-protect guard, grants no content. */
     public static final String WHITE_SCROLL_KEY = "white-scroll";
-    /** Stable PDC item-key every minted enchant book carries. */
     public static final String BOOK_KEY = "book";
 
     private final CarrierCodec codec;
     private final ItemEnchanter enchanter;
     private final ContentHolder content;
     private final Random random;
-    private final java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig; // §I general book likeness
-    private final java.util.function.Supplier<compile.load.DustConfig> dustConfig; // §I top-level success dust
-    private final java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig; // §I white scroll
+    private final java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig;
+    private final java.util.function.Supplier<compile.load.DustConfig> dustConfig;
+    private final java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig;
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -60,10 +51,7 @@ public final class CarrierService {
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
     }
 
-    /**
-     * Canonical form (composition root): live likeness suppliers for the enchant book, success dust, and
-     * white scroll — each re-read on use so a {@code /se reload} re-tunes them.
-     */
+    /** Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes them. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
@@ -77,18 +65,12 @@ public final class CarrierService {
         this.whiteScrollConfig = Objects.requireNonNull(whiteScrollConfig, "whiteScrollConfig");
     }
 
-    /**
-     * Mint a RANDOM-bonus SUCCESS DUST from the {@code items/dust.yml} likeness (§I; ADR-0019) — combined onto
-     * a book it rolls a bonus in the configured {@code [min, max]}. {@code {BONUS}} renders as that range.
-     */
+    /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
     public ItemStack mintDust() {
         return buildDust(0); // 0 baked → roll [min, max] from config at apply time
     }
 
-    /**
-     * Mint a FIXED-percent SUCCESS DUST that confers exactly {@code fixedPercent}, bypassing the roll (§I).
-     * The percent is baked onto the item, so it is reload-stable.
-     */
+    /** Mint a FIXED-percent SUCCESS DUST conferring exactly {@code fixedPercent} (§I) — baked, so reload-stable. */
     public ItemStack mintDust(int fixedPercent) {
         return buildDust(clampPercent(fixedPercent));
     }
@@ -114,10 +96,7 @@ public final class CarrierService {
         return s.replace("{BONUS}", bonus).replace("{MIN}", min).replace("{MAX}", max);
     }
 
-    /**
-     * Mint a WHITE SCROLL from the {@code items/white-scroll.yml} likeness (§I) — protects gear from enchant
-     * destruction once. Grants no content; stamps the guard marker on apply.
-     */
+    /** Mint a WHITE SCROLL from its {@code items/*.yml} likeness (§I). */
     public ItemStack mintWhiteScroll() {
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
         ItemStack stack = ItemFactory.build(material(cfg.material()), cfg.name(), cfg.lore());
@@ -126,8 +105,8 @@ public final class CarrierService {
     }
 
     /**
-     * Apply {@code carrier} to {@code target}, mutating both (grant lands, one use consumed). A no-op (not a
-     * carrier / ineligible target / unsupported kind) leaves both stacks untouched.
+     * Apply {@code carrier} to {@code target}, mutating both. A no-op (not a carrier / ineligible target /
+     * unsupported kind) leaves both stacks untouched.
      */
     public CarrierResult applyTo(ItemStack carrier, ItemStack target) {
         CarrierData data = codec.read(carrier);
@@ -149,7 +128,6 @@ public final class CarrierService {
             int bonus = data.successBonus() > 0 ? data.successBonus() : rolledDustBonus(cfg);
             return applyDustBonus(carrier, target, bonus, cfg.sound(), cfg.particles());
         }
-        // White scroll: stamp the one-shot protect guard.
         if (WHITE_SCROLL_KEY.equals(data.itemKey())) {
             return applyProtect(carrier, target);
         }
@@ -192,10 +170,7 @@ public final class CarrierService {
         return span <= 0 ? cfg.minBonus() : cfg.minBonus() + random.nextInt(span + 1);
     }
 
-    /**
-     * Mint an enchant BOOK from the GENERAL {@code items/enchant-book.yml} likeness ({@code {ENCHANT}},
-     * {@code {LEVEL}} substituted). Applies with default success — always succeeds, never destroys.
-     */
+    /** Mint an enchant BOOK from the general likeness. Default success — always succeeds, never destroys. */
     public ItemStack mintBook(String enchantKey, int level) {
         ItemStack stack = bookLikeness(enchantKey, level, -1);
         codec.write(stack, new CarrierData(BOOK_KEY, enchantKey, level));
@@ -204,8 +179,7 @@ public final class CarrierService {
 
     /**
      * Mint an enchant BOOK that applies at an explicit {@code successChance} (§I, the unopened/randomized
-     * book). Like {@link #mintBook(String, int)} but appends the {@code success-lore} ({@code {SUCCESS}}) and
-     * carries a base-success override.
+     * book) — appends the success-lore and carries a base-success override.
      */
     public ItemStack mintBook(String enchantKey, int level, int successChance) {
         int chance = clampPercent(successChance);
@@ -244,15 +218,15 @@ public final class CarrierService {
     public java.util.Optional<BookContents> bookContents(ItemStack stack) {
         CarrierData data = codec.read(stack);
         if (data == null || !isEnchantBook(data)) {
-            return java.util.Optional.empty(); // not a carrier, no grant, or the grant is not a catalog enchant
+            return java.util.Optional.empty();
         }
         return java.util.Optional.of(new BookContents(data.grantKey(), data.grantLevel()));
     }
 
     /**
      * Combine two enchant books into one of the next level — the Alchemist's upgrade (§K). Both must grant
-     * the SAME enchant at the SAME level, below its max. Empty when not combinable (menu leaves inputs
-     * untouched). A mint of an existing item type — NOT a new economy data model (cf. ADR-0019).
+     * the SAME enchant at the SAME level, below its max; empty otherwise. A mint of an existing item type —
+     * NOT a new economy data model (cf. ADR-0019).
      */
     public java.util.Optional<ItemStack> combineBooks(ItemStack a, ItemStack b) {
         java.util.Optional<BookContents> ca = bookContents(a);
@@ -298,8 +272,7 @@ public final class CarrierService {
 
     /**
      * Reroll {@code book}'s success to {@code targetPercent} (§I randomizer scroll) — sets a base-success
-     * override, clears any dust bonus, re-renders lore from state. No-op (not an enchant book) leaves it
-     * untouched.
+     * override, clears any dust bonus, re-renders lore. No-op (not an enchant book) leaves it untouched.
      */
     public CarrierResult rerollSuccess(ItemStack book, int targetPercent) {
         CarrierData data = codec.read(book);
@@ -313,9 +286,9 @@ public final class CarrierService {
     }
 
     /**
-     * Whether {@code cursor} is a dust that would LEGALLY combine onto {@code target} (a success dust onto an
-     * enchant book). The interaction layer claims the otherwise-forbidden carrier-onto-carrier gesture only
-     * when this holds (ADR-0019); otherwise it falls through to the vanilla click.
+     * Whether {@code cursor} is a success dust that would LEGALLY combine onto {@code target} (an enchant
+     * book). The listener claims the otherwise-forbidden carrier-onto-carrier gesture only when this holds
+     * (ADR-0019), else falls through to the vanilla click.
      */
     public boolean canCombineDust(ItemStack cursor, ItemStack target) {
         CarrierData cursorData = codec.read(cursor);
@@ -333,8 +306,8 @@ public final class CarrierService {
 
     /**
      * Raise {@code book}'s stored bonus by {@code bonus} (clamped so effective success never exceeds 100%),
-     * re-render lore from state, and consume the {@code dust}. No-op (not an enchant book, no bonus, or
-     * already at 100%) leaves both untouched.
+     * re-render lore, and consume the {@code dust}. No-op (not a book, no bonus, already at 100%) leaves both
+     * untouched.
      */
     private CarrierResult applyDustBonus(ItemStack dust, ItemStack book, int bonus, String sound,
                                          java.util.List<String> particles) {
@@ -368,11 +341,7 @@ public final class CarrierService {
         return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
     }
 
-    /**
-     * Re-render an enchant book's lore from the likeness + current state, so a dust combine or reroll
-     * visibly updates the shown success (lore is rendered from state, never parsed back). Always shows the
-     * success line.
-     */
+    /** Re-render an enchant book's lore from state (never parsed back), so a dust combine or reroll shows the new success. */
     @SuppressWarnings("deprecation") // setLore(List): the floor-stable item-meta path
     private void reRenderBookLore(ItemStack book, CarrierData data) {
         ItemMeta meta = book.getItemMeta();
@@ -405,11 +374,7 @@ public final class CarrierService {
         return Math.max(0, Math.min(100, base + Math.max(0, bonus)));
     }
 
-    /**
-     * A book's base success: its explicit {@link CarrierData#baseSuccess()} override (§I, an unopened-book
-     * output or reroll) when present, else {@code 100} (a plain book always succeeds). Bonus added on top by
-     * callers.
-     */
+    /** A book's base success: its explicit {@code baseSuccess} override (§I) when present, else 100 (always succeeds). */
     private static int baseSuccessOf(CarrierData data) {
         return data.hasBaseSuccess() ? data.baseSuccess() : 100;
     }

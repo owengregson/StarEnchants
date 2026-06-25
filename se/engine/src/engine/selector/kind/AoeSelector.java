@@ -11,12 +11,9 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * {@code @Aoe{r=4}} — every living entity within {@code r} of the centre, except the activator
- * (docs/architecture.md §7). Centre is the activation location, else the victim's, else the actor's.
- *
- * <p>Optional {@code filter} ({@code ALL}/{@code PLAYERS}/{@code MONSTERS}/{@code MOBS}) and {@code limit}
- * (nearest N, {@code 0} = unlimited) express Cosmic Enchants-style area targeting without a bespoke
- * selector per case (v3.1 §A).
+ * {@code @Aoe{r=4}} — every living entity within {@code r} of the centre, except the activator. Centre is
+ * the activation location, else the victim's, else the actor's. The {@code filter}/{@code limit} params
+ * express Cosmic Enchants-style area targeting without a bespoke selector per case.
  */
 public final class AoeSelector implements SelectorKind {
 

@@ -22,17 +22,12 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * The content compiler: authored {@link AbilityDef}s &rarr; an immutable
- * {@link Snapshot} by running the pipeline stages in order (docs/architecture.md §2, §3.2).
- *
- * <pre>
- *   defs --lower--> LoweredAbility[] --erase--> ErasedContent --snapshot--> Snapshot
- * </pre>
+ * The content compiler: authored {@link AbilityDef}s &rarr; an immutable {@link Snapshot} via the
+ * injected lower / resolve / erase / snapshot stages (docs/architecture.md §2, §3.2).
  *
  * <p>Never throws on bad content: faults collect into the shared {@link Diagnostics} and the
- * caller checks {@link Diagnostics#hasErrors()} before publishing — a broken edit leaves the
- * previous snapshot live and never reaches the hot path (§10). Stages are injected so each is
- * independently testable and a future stage can be slotted in without touching the others.
+ * caller checks {@link Diagnostics#hasErrors()} before publishing, so a broken edit leaves the
+ * previous snapshot live and never reaches the hot path (§10).
  */
 public final class Compiler {
 
@@ -83,11 +78,7 @@ public final class Compiler {
         return of(registry, affinityOf, selectors, defaultSelectorOf, vars, PlatformResolvers.none());
     }
 
-    /**
-     * Full production wiring incl. the canonical trigger vocabulary, so a compiled
-     * {@code triggerMask} bit means the same trigger the runtime routes; unknown triggers
-     * are diagnostics (§3.7).
-     */
+    /** Full wiring incl. the canonical trigger vocabulary, so a {@code triggerMask} bit means the trigger the runtime routes; unknowns are diagnostics (§3.7). */
     public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
                               SpecRegistry selectors, Function<String, String> defaultSelectorOf,
                               VarResolver vars, List<String> canonicalTriggers,

@@ -14,7 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host SPAWN_ENTITY test: spawns at each target's location, falling back to the activation location when none resolve. */
+/** Falls back to the activation location when no target resolves. */
 class SpawnEntityEffectTest {
 
     @Test

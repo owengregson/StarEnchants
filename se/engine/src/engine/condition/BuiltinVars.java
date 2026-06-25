@@ -1,14 +1,9 @@
 package engine.condition;
 
 /**
- * The greppable vocabulary of built-in condition variables (docs/architecture.md §3.4; v3.1 §A) —
- * the single source of truth for slot assignment. The compiler lowers against
- * {@link #vocabulary()}{@code .asResolver()} and {@code engine.run.FactPopulator} populates the same
- * {@link #vocabulary()}, so a compiled condition's slot and the populated buffer agree by construction
- * (a drift-guard test pins every populated fact to a slot declared here).
- *
- * <p>Variables are written {@code %scope.name%}; {@code actor} is the activating player, {@code victim}
- * the combat target, and a bare name (e.g. {@code %sneaking%}) is the activator.
+ * The greppable vocabulary of built-in condition variables (docs/architecture.md §3.4). Variables are
+ * written {@code %scope.name%}; {@code actor} is the activating player, {@code victim} the combat target,
+ * a bare name (e.g. {@code %sneaking%}) the activator.
  *
  * <p>Slots are assigned per kind in registration order, so new facts must be <strong>appended</strong> —
  * reordering drifts a previously-compiled condition's slot from the populated buffer.
@@ -19,7 +14,6 @@ public final class BuiltinVars {
     }
 
     public static VarVocabulary vocabulary() {
-        // Append-only within each kind; see class doc.
         return VarVocabulary.builder()
                 .number("actor.health")
                 .number("victim.health")

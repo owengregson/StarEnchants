@@ -1,10 +1,6 @@
 package feature.menu;
 
-/**
- * The pure pagination arithmetic behind every paged menu (docs/v3-directives.md §K). Kept server-free so
- * the page/index/clamp edges are unit-tested without booting a server — the live suite proves render +
- * click routing end-to-end, but the wrap/overflow boundaries are pinned here.
- */
+/** Pure pagination arithmetic behind every paged menu (docs/v3-directives.md §K); server-free for unit tests. */
 public final class Paging {
 
     private Paging() {

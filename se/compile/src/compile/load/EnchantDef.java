@@ -4,20 +4,14 @@ import java.util.List;
 import schema.diag.Source;
 
 /**
- * Parsed, non-runtime metadata of one authored enchant (docs/architecture.md §4.2; ADR-0014). Retained in
- * the {@link Library} catalog for render/apply cycles; the runtime {@code Snapshot} carries only the
- * {@code AbilityDef}s this enchant expands into. Immutable.
+ * Non-runtime metadata of one authored enchant (ADR-0014); the runtime {@code Snapshot} carries only the
+ * {@code AbilityDef}s it expands into. The relationship fields gate player apply paths (book/menu/carrier)
+ * but never admin force-give (docs/v3-directives.md §G).
  *
- * <p>The relationship fields are the general apply-time mechanism of docs/v3-directives.md §G — they gate
- * player apply paths (book/menu/carrier) but never admin force-give. See per-{@code @param} contracts below.
- *
- * @param key        the path-derived base key (e.g. {@code enchants/lifesteal})
- * @param description short description for {@code /se docs} + lore; never {@code null} (empty if absent)
- * @param tier       rarity tier (ADR-0016) for lore colour/glint/GUI sort; may be {@code null}
- * @param appliesTo  item target groups this enchant may sit on (named groups, not raw materials)
- * @param maxLevel   highest level offered (defaults to the highest declared level)
- * @param requires   prerequisite enchant base keys that must be present at a level &ge; this one's (§G)
- * @param blacklist  enchant base keys this one cannot coexist with — bidirectional at apply (§G)
+ * @param tier            rarity tier (ADR-0016); may be {@code null}
+ * @param appliesTo       named item target groups, not raw materials
+ * @param requires        prerequisite enchant keys, each present at a level &ge; this one's (§G)
+ * @param blacklist       enchant keys this one cannot coexist with — bidirectional at apply (§G)
  * @param removesRequired whether a successful apply removes all {@code requires} (net-zero slots, §G)
  */
 public record EnchantDef(

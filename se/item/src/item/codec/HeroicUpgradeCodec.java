@@ -7,7 +7,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Marks / detects a heroic UPGRADE consumable (§F): a PDC {@code BYTE} flag under
- * {@link ItemKeys#heroicUpgrade()}, off the combat hot path. Reading is null-safe.
+ * {@link ItemKeys#heroicUpgrade()}, off the combat hot path.
  */
 public final class HeroicUpgradeCodec {
 
@@ -17,13 +17,11 @@ public final class HeroicUpgradeCodec {
         this.key = key;
     }
 
-    /** Whether {@code stack} is a heroic upgrade item. */
     public boolean isUpgrade(ItemStack stack) {
         return stack != null && stack.hasItemMeta()
                 && stack.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.BYTE);
     }
 
-    /** Stamp the heroic-upgrade marker onto {@code stack}. */
     public void mark(ItemStack stack) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {

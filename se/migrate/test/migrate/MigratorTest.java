@@ -26,11 +26,9 @@ import schema.diag.Diagnostic;
 import schema.spec.ParamSpec;
 
 /**
- * The importer's contract (docs/architecture.md §10): the structure migrates and the verified core
- * effects translate to valid StarEnchants tokens — proven by compiling the importer's OWN output
- * through the real production compiler — while unmapped effects are flagged (a warning + a {@code # TODO}
- * line) without failing the migration. Handle tokens resolve permissively here (no server); the live
- * CatalogSuite owns cross-version handle existence.
+ * The importer's contract: the structure migrates and the verified core effects translate to valid tokens —
+ * proven by compiling the importer's OWN output through the real production compiler — while unmapped effects
+ * are flagged without failing. Handles resolve permissively here (no server); CatalogSuite owns existence.
  */
 class MigratorTest {
 

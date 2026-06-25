@@ -7,11 +7,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
- * The floor-API ({@code Bukkit.getScheduler()}) backend used on Paper/Spigot, where there is
- * one main thread and the four ownership flavours of {@link SchedulerBackend} all collapse to
- * it. Delays/periods are in game ticks, matching Folia. This is the <em>only</em> place in the
- * plugin that is allowed to call {@code Bukkit.getScheduler()} (the engine ban is enforced by
- * lint; docs/architecture.md §3.5).
+ * The floor-API ({@code Bukkit.getScheduler()}) backend for Paper/Spigot, where the four owner flavours
+ * of {@link SchedulerBackend} collapse to one main thread. The <em>only</em> place allowed to call
+ * {@code Bukkit.getScheduler()} (lint-enforced; docs/architecture.md §3.5). Delays/periods are game ticks.
  */
 public final class BukkitSchedulerBackend implements SchedulerBackend {
 
@@ -90,7 +88,6 @@ public final class BukkitSchedulerBackend implements SchedulerBackend {
         return new BukkitTaskHandle(bukkitTask);
     }
 
-    /** Adapts a {@link BukkitTask} to the platform-neutral {@link TaskHandle}. */
     private static final class BukkitTaskHandle implements TaskHandle {
         private final BukkitTask task;
 

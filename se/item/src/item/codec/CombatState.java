@@ -36,7 +36,6 @@ import java.util.Map;
 public record CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey,
                           String setWeaponKey, boolean omni, HeroicStat heroic, int added) {
 
-    /** An item with no StarEnchants combat state. */
     public static final CombatState EMPTY =
             new CombatState(Map.of(), List.of(), null, null, false, HeroicStat.NONE, 0);
 
@@ -51,23 +50,19 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         added = Math.max(0, added);
     }
 
-    /** Back-compat constructor for state with no set membership or heroic stats (enchants + crystals only). */
     public CombatState(Map<String, Integer> enchants, List<String> crystals) {
         this(enchants, crystals, null, null, false, HeroicStat.NONE, 0);
     }
 
-    /** Constructor for state with armour-set membership but no heroic stats. */
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni) {
         this(enchants, crystals, setKey, null, omni, HeroicStat.NONE, 0);
     }
 
-    /** Constructor for state with armour-set membership + heroic but no purchased slots (the common case). */
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
                        HeroicStat heroic) {
         this(enchants, crystals, setKey, null, omni, heroic, 0);
     }
 
-    /** Back-compat constructor (no weapon-set membership): the pre-weapon-bonus 6-field shape. */
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
                        HeroicStat heroic, int added) {
         this(enchants, crystals, setKey, null, omni, heroic, added);
@@ -78,12 +73,10 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         return new CombatState(Map.of(), List.of(), null, weaponSetKey, false, HeroicStat.NONE, 0);
     }
 
-    /** This state with {@code added} purchased enchant slots (slot expander / gem, §H). */
     public CombatState withAdded(int added) {
         return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
     }
 
-    /** Whether this item carries no combat state at all (the common miss-path case). */
     public boolean isEmpty() {
         return enchants.isEmpty() && crystals.isEmpty() && setKey == null && setWeaponKey == null
                 && !omni && heroic.isZero() && added == 0;

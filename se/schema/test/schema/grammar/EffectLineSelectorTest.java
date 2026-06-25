@@ -43,7 +43,7 @@ class EffectLineSelectorTest {
         EffectLine line = EffectLine.parse("DAMAGE:3:5", SRC);
         assertFalse(line.selectorToken().isPresent());
         assertEquals(List.of("3", "5"), line.argTexts());
-        assertEquals(SRC, line.selectorSource()); // falls back to the line source
+        assertEquals(SRC, line.selectorSource());
     }
 
     @Test

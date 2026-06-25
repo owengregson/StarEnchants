@@ -14,8 +14,8 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Crystal gesture glue (docs/v3-directives.md §E); logic lives in {@link CrystalService}. Folia-correct:
- * {@code InventoryClickEvent} fires on the clicking player's own region thread, so mutating their
- * cursor/inventory and playing a sound at their location is in-thread.
+ * {@code InventoryClickEvent} fires on the clicking player's own region thread, so the cursor/inventory
+ * mutation here is in-thread.
  */
 public final class CrystalListener implements Listener {
 
@@ -31,8 +31,7 @@ public final class CrystalListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        // LEFT/RIGHT place or SWAP_WITH_CURSOR (crystal-onto-crystal merge), player's own grid only — never
-        // shift/number/double clicks nor other GUIs.
+        // SWAP_WITH_CURSOR is the crystal-onto-crystal merge gesture; shift/number/double clicks excluded.
         boolean ours = event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT
                 || event.getAction() == InventoryAction.SWAP_WITH_CURSOR;
         if (!ours) {
@@ -49,7 +48,7 @@ public final class CrystalListener implements Listener {
         }
         boolean extractor = service.isExtractor(cursor);
         if (!extractor && !service.isCrystal(cursor)) {
-            return; // cursor is neither crystal nor extractor — leave the click alone
+            return;
         }
 
         event.setCancelled(true);
@@ -59,7 +58,6 @@ public final class CrystalListener implements Listener {
             event.setCurrentItem(result.newTarget() != null && result.newTarget().getAmount() <= 0
                     ? null : result.newTarget());
             if (result.give() != null) {
-                // Hand over the extracted crystal; overflow drops at the player's feet (in-thread on Folia).
                 Map<Integer, ItemStack> overflow = player.getInventory().addItem(result.give());
                 overflow.values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
             }

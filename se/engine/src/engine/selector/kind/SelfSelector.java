@@ -6,9 +6,7 @@ import engine.spec.SelectorSpec;
 import org.bukkit.entity.LivingEntity;
 import java.util.List;
 
-/**
- * {@code @Self} — the activating player (docs/architecture.md §7); the default for self-directed effects.
- */
+/** {@code @Self} — the activating player; the default for self-directed effects. */
 public final class SelfSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("SELF")

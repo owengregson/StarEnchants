@@ -80,7 +80,7 @@ class ConditionEvaluatorTest {
         f.setFlag(0, false);
         ConditionResult miss = ConditionEvaluator.eval(chance, f);
         assertEquals(Flow.CONTINUE, miss.flow());
-        assertEquals(0.0, miss.chanceDelta()); // no delta when the test fails
+        assertEquals(0.0, miss.chanceDelta());
     }
 
     @Test
@@ -139,7 +139,7 @@ class ConditionEvaluatorTest {
     void containsIsCaseInsensitiveSubstringWithPipeOr() {
         FactBuffer f = new FactBuffer(0, 0, 1);
         f.setString(0, "Diamond Sword");
-        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("sword")), f)); // case-insensitive
+        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("sword")), f));
         assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("axe|sword")), f)); // pipe-OR, 2nd hits
         assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("axe|bow")), f));
         f.setString(0, null);
@@ -194,6 +194,6 @@ class ConditionEvaluatorTest {
         Cond c = new Cond.StrCmp(new StrExpr.Papi("world"), true, new StrExpr.Lit("nether"));
         FactBuffer f = new FactBuffer(0, 0, 0);
         f.papiResolver(t -> "NETHER");
-        assertTrue(pass(c, f)); // case-insensitive
+        assertTrue(pass(c, f));
     }
 }

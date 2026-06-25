@@ -8,19 +8,14 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 /**
- * The {@code %starenchants_…%} PlaceholderAPI expansion (docs/decisions/0027): surfaces StarEnchants
- * player state to scoreboards/holograms/chat through PAPI.
+ * The {@code %starenchants_…%} PlaceholderAPI expansion (docs/decisions/0027): surfaces StarEnchants player
+ * state to scoreboards/holograms/chat. State is read through JDK-typed accessors only, so PAPI never loads
+ * StarEnchants internals.
  *
- * <p>Bundled but SOFT: the PAPI API is {@code compileOnly} and {@link integrate.Integrations} loads/registers
- * this class only when PlaceholderAPI is present. It holds no StarEnchants types — runtime state is read
- * through JDK-typed accessors the composition root supplies — so PAPI never loads StarEnchants internals.
- *
- * <p>Placeholders:
  * <ul>
  *   <li>{@code %starenchants_soulmode%} — {@code on}/{@code off} (the player's soul-mode toggle);</li>
  *   <li>{@code %starenchants_souls%} — the soul balance of the player's active gem (0 when soul mode is off).</li>
  * </ul>
- * Unknown placeholders return {@code null} (PAPI then leaves the raw token).
  */
 public final class SePlaceholderExpansion extends PlaceholderExpansion {
 
@@ -34,10 +29,7 @@ public final class SePlaceholderExpansion extends PlaceholderExpansion {
         this.souls = souls;
     }
 
-    /**
-     * Construct + register the expansion; returns whether registration succeeded. Called from the registrar
-     * only when PlaceholderAPI is present, so referencing this class (and thus PAPI) is gated.
-     */
+    /** Construct + register the expansion; returns whether registration succeeded. */
     public static boolean install(String version, Predicate<Player> soulMode, ToIntFunction<Player> souls) {
         return new SePlaceholderExpansion(version, soulMode, souls).register();
     }
@@ -72,9 +64,8 @@ public final class SePlaceholderExpansion extends PlaceholderExpansion {
     }
 
     /**
-     * The pure placeholder lookup, split out for unit testing without constructing a PAPI expansion. A null
-     * {@code player} (offline) reads the off/zero defaults; an unknown token returns {@code null} (PAPI then
-     * leaves the raw token). Case-insensitive.
+     * The pure placeholder lookup (split out for unit testing). Case-insensitive; a null {@code player} reads
+     * the off/zero defaults; an unknown token returns {@code null} so PAPI leaves the raw token.
      */
     static String resolve(String params, Player player, Predicate<Player> soulMode, ToIntFunction<Player> souls) {
         if (params == null) {

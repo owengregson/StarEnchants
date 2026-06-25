@@ -104,7 +104,6 @@ public final class DamageFold {
 
     /** Fold {@code base} with every contribution into the final damage, never negative (§6.1). */
     public double apply(double base) {
-        // Caps ceil the summed additive fractions before the fold; +inf = uncapped.
         double cappedOutgoing = Math.min(outgoingPercent, maxBonusOutgoing);
         double cappedReduction = Math.min(reductionPercent, maxBonusReduction);
         double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing) + flatDamage;

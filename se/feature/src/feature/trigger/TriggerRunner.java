@@ -21,10 +21,9 @@ import org.bukkit.entity.Player;
 
 /**
  * The "run one trigger pass for one actor into a {@link DispatchSink}" primitive shared by every dispatcher
- * (§3.3) — combat and non-combat alike. Reads the actor's PRE-RESOLVED {@link WornState} (the safe cross-region
- * read, §3.4), contributes the passive heroic percent to the fold (§F), walks the candidate abilities through
- * the {@link AbilityExecutor}, and arms the soul gate from the active gem. The CALLER owns the sink lifecycle
- * (fold/cancel/flush), since read-back application differs per event.
+ * (§3.3), combat and non-combat alike. Reads the actor's PRE-RESOLVED {@link WornState} (the safe
+ * cross-region read, §3.4), contributes the passive heroic percent to the fold (§F), and arms the soul gate
+ * from the active gem. The CALLER owns the sink lifecycle, since read-back application differs per event.
  */
 public final class TriggerRunner {
 
@@ -62,8 +61,8 @@ public final class TriggerRunner {
 
     /**
      * As {@link #run} but {@code applyHeroic} false runs the abilities WITHOUT adding the worn heroic percent
-     * to the sink — the environmental path (FALL/FIRE) passes {@code reduction-scope == ALL} so heroic softens
-     * non-entity damage only when configured; the entity/PvP path always passes true (§F).
+     * to the sink — the environmental path (FALL/FIRE) only softens non-entity damage under
+     * {@code reduction-scope == ALL}; the entity/PvP path always passes true (§F).
      */
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                     Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,

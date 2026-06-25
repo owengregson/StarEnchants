@@ -17,15 +17,10 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * The in-server suite driver (live-server-testing, matrix-gate skills). A {@link Scenario} declares its
- * checks ({@link #expect}) and kicks off the work that resolves them ({@link #pass}/{@link #fail}/
- * {@link #guard}). A global timer launches every scenario on the first tick, then polls each tick until all
- * checks resolve (finish early) or the deadline hits (fail the unresolved). On finish it writes FRESH
- * {@code test-results.txt}/{@code test-failures.txt} and shuts the server down, so the runner sees a clean
- * exit and a fresh result, never a stale banner.
- *
- * <p>Timing is GAME-TICK anchored, never wall-clock — correct under concurrent matrix load. The result map
- * is concurrent because checks resolve from entity/region/async threads on Folia.
+ * The in-server suite driver. Launches every {@link Scenario} on the first tick, polls each tick until all
+ * declared checks resolve or the deadline hits, then writes FRESH result files and shuts down — so the runner
+ * never sees a stale banner. Timing is GAME-TICK anchored, never wall-clock (correct under matrix load); the
+ * result map is concurrent because checks resolve from entity/region/async threads on Folia.
  */
 public final class Harness {
 
@@ -51,7 +46,6 @@ public final class Harness {
         this.deadlineTicks = deadlineTicks;
     }
 
-    /** Register a scenario to launch on the first tick. */
     public Harness add(Scenario scenario) {
         scenarios.add(scenario);
         return this;

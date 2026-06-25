@@ -14,20 +14,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Applies the inline MINE-side read-backs {@code SMELT} and {@code TELEPORT_DROPS} (Cosmic Enchants-style parity) to a
- * {@link BlockBreakEvent} after the gate walk: the proc sets a flag on the per-event sink and the MINE
- * dispatcher calls this. Both run on the firing (block's) region thread, where the block and the breaker's
- * inventory are region-owned — no scheduler hop.
- *
- * <ul>
- *   <li>{@code SMELT} — if the broken block has a smelted form (ore→ingot, sand→glass, …), the drop becomes
- *       the smelted item; otherwise the natural drop is kept.</li>
- *   <li>{@code TELEPORT_DROPS} — the (possibly smelted) drops go straight to the breaker's inventory, with
- *       any overflow dropped at the block.</li>
- * </ul>
- *
- * <p>Either flag suppresses the vanilla drop ({@link BlockBreakEvent#setDropItems(boolean)}, present across
- * the whole 1.17.1→26.1.x range) and places the effective drops itself, so there is no duplication.
+ * Applies the MINE-side {@code SMELT} (block→smelted product) and {@code TELEPORT_DROPS} (drops to breaker's
+ * inventory) read-backs (Cosmic Enchants-style parity) to a {@link BlockBreakEvent}, on the firing block's
+ * region thread. Either flag suppresses the vanilla drop ({@link BlockBreakEvent#setDropItems(boolean)},
+ * whole 1.17.1→26.1.x range) and places the effective drops itself, so there is no duplication.
  */
 public final class MineDrops {
 
@@ -55,7 +45,7 @@ public final class MineDrops {
                 player.getInventory().addItem(drop).values()
                         .forEach(overflow -> world.dropItemNaturally(block.getLocation(), overflow));
             }
-        } else { // smelt only — drop the smelted item in the world, centred on the block
+        } else { // smelt only — drop in-world, centred on the block
             Location at = block.getLocation().add(0.5, 0.5, 0.5);
             for (ItemStack drop : drops) {
                 world.dropItemNaturally(at, drop);
@@ -93,7 +83,6 @@ public final class MineDrops {
         return map;
     }
 
-    /** Add a block→product entry, resolving both by name so a material absent on this version is skipped. */
     private static void put(Map<Material, Material> map, String block, String product) {
         Material from = Material.matchMaterial(block);
         Material to = Material.matchMaterial(product);

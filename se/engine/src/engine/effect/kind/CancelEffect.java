@@ -6,10 +6,7 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 
-/**
- * {@code CANCEL} — cancel the Bukkit event that triggered this activation (docs/architecture.md §7).
- * Paramless. {@link Affinity#CONTEXT_LOCAL}.
- */
+/** {@code CANCEL} — cancel the Bukkit event that triggered this activation (§7). */
 public final class CancelEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("CANCEL")

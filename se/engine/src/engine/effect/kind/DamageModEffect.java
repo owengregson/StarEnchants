@@ -8,18 +8,8 @@ import engine.spec.EffectSpec;
 import schema.spec.D;
 
 /**
- * {@code DAMAGE_MOD} — canonical damage-arbiter primitive (docs/v3-directives.md §C, ADR-0012, §6.1).
- * One parameterized contribution to the additive fold:
- *
- * <ul>
- *   <li>{@code side=attack, mode=add} — outgoing-damage percent;</li>
- *   <li>{@code side=defense, mode=add} — damage-reduction percent;</li>
- *   <li>{@code side=attack, mode=flat} — flat damage bonus;</li>
- *   <li>{@code side=defense, mode=flat} — flat damage reduction.</li>
- * </ul>
- *
- * <p>No target slot; {@link Affinity#CONTEXT_LOCAL} (a fold contribution reads neither targets nor an
- * entity). Percent modes take a 0-100 value ({@code 25} = +25%); flat modes take a raw damage amount.
+ * {@code DAMAGE_MOD} — canonical damage-arbiter primitive: one parameterized contribution to the additive
+ * fold (ADR-0012, §6.1). Percent modes take a 0-100 value ({@code 25} = +25%); flat modes take a raw amount.
  */
 public final class DamageModEffect implements EffectKind {
 

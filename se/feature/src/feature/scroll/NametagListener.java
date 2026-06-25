@@ -14,9 +14,8 @@ import org.bukkit.inventory.ItemStack;
 import platform.sched.Scheduling;
 
 /**
- * Item-nametag gesture + chat-capture glue (docs/v3-directives.md §I); logic lives in
- * {@link NametagService}. Folia footgun: {@code AsyncPlayerChatEvent} fires async, so the inventory
- * mutation is hopped back to the player's region thread.
+ * Item-nametag gesture + chat-capture glue (§I); logic lives in {@link NametagService}. Folia footgun:
+ * {@code AsyncPlayerChatEvent} fires async, so the inventory mutation is hopped back to the player's region thread.
  */
 public final class NametagListener implements Listener {
 
@@ -49,8 +48,7 @@ public final class NametagListener implements Listener {
         }
 
         event.setCancelled(true);
-        // begin() refuses (null) if a rename is already pending, so a second nametag isn't consumed for
-        // nothing and the first rename isn't clobbered.
+        // begin() refuses (null) when a rename is already pending, so a second nametag isn't consumed for nothing.
         String prompt = service.begin(player.getUniqueId(), target);
         if (prompt == null) {
             player.sendMessage(service.busyMessage()); // §L lang.yml scroll.nametag.busy

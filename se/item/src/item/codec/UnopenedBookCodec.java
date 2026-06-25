@@ -7,7 +7,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Marks / detects an UNOPENED / RANDOMIZED book (§I), storing the tier it is scoped to as a PDC
- * {@code STRING} under {@link ItemKeys#unopened()}, off the combat hot path. Reading is null-safe.
+ * {@code STRING} under {@link ItemKeys#unopened()}, off the combat hot path.
  */
 public final class UnopenedBookCodec {
 
@@ -17,7 +17,6 @@ public final class UnopenedBookCodec {
         this.key = key;
     }
 
-    /** Whether {@code stack} is an unopened book. */
     public boolean isUnopened(ItemStack stack) {
         return tierOf(stack) != null;
     }
@@ -31,7 +30,6 @@ public final class UnopenedBookCodec {
         return raw == null || raw.isBlank() ? null : raw;
     }
 
-    /** Stamp the unopened-book marker onto {@code stack}, scoping it to {@code tier}. */
     public void mark(ItemStack stack, String tier) {
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) {

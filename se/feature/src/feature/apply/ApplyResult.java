@@ -1,10 +1,6 @@
 package feature.apply;
 
-/**
- * The outcome of an {@link ItemEnchanter} apply attempt — mutated-or-not plus a colour-coded message
- * for the command to relay (docs/architecture.md §4.2). A value object so validation is testable
- * without a server.
- */
+/** The outcome of an {@link ItemEnchanter} apply attempt — ok-or-not plus a message for the command to relay. */
 public record ApplyResult(boolean ok, String message) {
 
     public static ApplyResult ok(String message) {

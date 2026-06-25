@@ -1,16 +1,9 @@
 package compile.model;
 
 /**
- * The source-erased, compiled unit of behavior — the central engine data structure
- * (docs/architecture.md §4.1). All five content sources lower to this one immutable record;
- * "this came from a crystal" is the {@link #sourceKind} tag on an otherwise-identical struct.
- * There is deliberately no {@code Effect} class hierarchy: uniform handling is the only thing
- * representable.
- *
- * <p>Every hot-path field is a primitive, interned id, or bitset, so gates are integer/bitset
- * compares not string compares (§3.3). The spec types several fields as {@code byte}/{@code short}
- * for density; we use {@code int} — negligible at catalog scale, and §8 bench-gates steady-state
- * allocation, not field width.
+ * The source-erased, compiled unit of behavior all five content sources lower to (docs/architecture.md §4.1);
+ * the source is the {@link #sourceKind} tag, not a subtype. Hot-path fields are primitives/interned ids/bitsets
+ * so gates are integer compares, never string compares.
  *
  * @param id             dense per-snapshot array index (NOT persisted; items resolve by stable key, §5.3)
  * @param defId          back-reference into the {@link SourceMap} for op-visible diagnostics

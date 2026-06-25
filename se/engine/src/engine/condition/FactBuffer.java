@@ -4,16 +4,11 @@ import java.util.Arrays;
 import java.util.function.UnaryOperator;
 
 /**
- * A thread-local, reusable buffer of activation facts as <em>primitives</em>
- * (docs/architecture.md §3.4) — the safe form of pooling: a flat struct of numeric,
- * boolean (a {@code long} bitset), and string slots, read by both conditions and
- * effect arguments by compiled slot index. Populated lazily, once per activation, so
- * the hot path does zero string parsing and zero boxing.
- *
- * <p>Slot indices are assigned by the {@link VarVocabulary} the compiler lowered
- * against, so a compiled condition's {@code slot} and this buffer agree by
- * construction. Not thread-safe by design — one buffer per worker thread, cleared and
- * repopulated per activation via {@link #clear()}.
+ * A reusable buffer of activation facts as primitives (docs/architecture.md §3.4): numeric, boolean
+ * (a {@code long} bitset), and string slots read by compiled slot index, so the hot path does zero string
+ * parsing and zero boxing. Slot indices come from the {@link VarVocabulary} the compiler lowered against,
+ * so a condition's {@code slot} and this buffer agree by construction. Not thread-safe — one buffer per
+ * worker thread, cleared and repopulated per activation via {@link #clear()}.
  */
 public final class FactBuffer {
 
@@ -67,18 +62,12 @@ public final class FactBuffer {
         return strings[slot];
     }
 
-    /**
-     * Install the PlaceholderAPI resolver for this activation (typically bound to the
-     * acting player). A {@code null}-returning resolver (the default) means "no PAPI".
-     */
+    /** Install the per-activation PlaceholderAPI resolver; {@code null} (the default) means "no PAPI". */
     public void papiResolver(UnaryOperator<String> resolver) {
         this.papi = resolver == null ? t -> null : resolver;
     }
 
-    /**
-     * Resolve a PlaceholderAPI token (the {@code %...%} text without the percents), or
-     * {@code null} if PlaceholderAPI is absent or the placeholder is unknown.
-     */
+    /** Resolve a PAPI token (the {@code %...%} text without the percents); {@code null} if PAPI absent or unknown. */
     public String resolvePapi(String token) {
         return papi.apply(token);
     }

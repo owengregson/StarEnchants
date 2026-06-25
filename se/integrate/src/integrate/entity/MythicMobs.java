@@ -8,18 +8,14 @@ import org.bukkit.plugin.Plugin;
 
 /**
  * MythicMobs integration (docs/decisions/0027): resolves an entity's MythicMob internal name, exposed to
- * conditions as {@code %victim.mobtype%} so an enchant can react to a specific custom mob.
- *
- * <p>Compiled against the real MythicMobs API ({@code compileOnly}) so a renamed accessor is a compile error.
- * Loaded only when MythicMobs is present (gated by the registrar), and fail-safe — a non-MythicMob or any
- * hiccup yields {@code ""}, never an exception in the condition hot path.
+ * conditions as {@code %victim.mobtype%}. Fail-safe — a non-MythicMob or any hiccup yields {@code ""}, never
+ * an exception in the condition hot path.
  */
 public final class MythicMobs {
 
     private MythicMobs() {
     }
 
-    /** {@code entity → MythicMob internal name}, or {@code ""} when not a MythicMob / MythicMobs unavailable. */
     public static Function<Entity, String> mobType(Plugin plugin) {
         if (plugin.getServer().getPluginManager().getPlugin("MythicMobs") == null) {
             return entity -> "";

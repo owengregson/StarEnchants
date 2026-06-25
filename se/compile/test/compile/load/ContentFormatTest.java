@@ -20,13 +20,9 @@ import schema.spec.D;
 import schema.spec.ParamSpec;
 
 /**
- * Content-format tests run end to end through the production compile path: a real
- * {@link Compiler} (tiny HEAL/MESSAGE/POTION registry, no server) and the real
- * {@link LibraryLoader}. Covers verbose effects, literal-{@code $} survival, tier
- * folders with stable keys, in-file tier override, and duplicate-key detection.
- *
- * <p>There is exactly ONE authoring shape — every level declared explicitly under
- * {@code levels:}; a {@code $} is always a literal (no scale/token grammar).
+ * Content-format tests run end to end through the real {@link Compiler} and {@link LibraryLoader}.
+ * The one authoring shape: every level declared explicitly under {@code levels:}; a {@code $} is
+ * always a literal (no scale/token grammar).
  */
 class ContentFormatTest {
 

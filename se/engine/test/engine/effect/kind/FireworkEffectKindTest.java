@@ -11,7 +11,6 @@ import engine.sink.Sink;
 import org.bukkit.Location;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host test for {@code FIREWORK}: emits one firework at the location, no-op without one. */
 class FireworkEffectKindTest {
 
     @Test

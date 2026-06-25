@@ -7,12 +7,7 @@ import java.util.Map;
 import migrate.model.MigratedEffect;
 import migrate.model.MigratedSet;
 
-/**
- * Reads one EliteArmor armour-set file into a {@link MigratedSet} (docs/architecture.md §10). The
- * migrated SE set is DEFENSE-triggered, so a {@code REDUCTION} maps cleanly while attack-direction or
- * named bonuses are flagged for manual porting (see {@link Mappings#setEffect}); {@code Required-Items}
- * becomes the piece threshold.
- */
+/** Reads one EliteArmor armour-set file into a {@link MigratedSet}; effects map via {@link Mappings#setEffect}. */
 public final class EliteArmorReader {
 
     private EliteArmorReader() {

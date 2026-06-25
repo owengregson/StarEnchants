@@ -20,10 +20,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * End-to-end proof that the variable vocabulary is the single source of truth: an
- * authored condition is compiled to slot-resolved IR using {@code vocabulary.asResolver()},
- * then evaluated over a {@code FactBuffer} the same vocabulary sized and whose slots it
- * names — so compile-time slots and runtime population agree by construction (§3.4).
+ * The vocabulary is the single source of truth: compiling against {@code vocabulary.asResolver()} and
+ * evaluating over a buffer the same vocabulary sized makes compile-time slots and runtime population agree
+ * by construction (§3.4).
  */
 class ConditionRoundTripTest {
 

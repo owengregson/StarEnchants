@@ -23,8 +23,7 @@ import org.bukkit.inventory.EquipmentSlot;
 /**
  * Maps non-combat Bukkit events to {@link TriggerDispatch} (§3.3): break → MINE, kill → KILL, interact →
  * INTERACT(+direction), fall/fire → FALL/FIRE. Each handler runs on its firing region thread; the dispatch
- * reads the pre-resolved WornState and routes mutations through the Sink, so no handler touches a cross-region
- * entity directly.
+ * routes mutations through the Sink, so no handler touches a cross-region entity directly.
  */
 public final class TriggerListeners implements Listener {
 

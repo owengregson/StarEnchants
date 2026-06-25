@@ -12,13 +12,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host SET_VAR test: one setVar per resolved PLAYER target; non-players skipped. */
 class SetVarEffectTest {
 
     @Test
     void setsTheVariableForEachPlayerTarget() {
         Player p = mock(Player.class);
-        LivingEntity mob = mock(LivingEntity.class); // skipped, not a player
+        LivingEntity mob = mock(LivingEntity.class);
         EffectCtx ctx = mock(EffectCtx.class);
         when(ctx.str("name")).thenReturn("rage");
         when(ctx.str("value")).thenReturn("1");

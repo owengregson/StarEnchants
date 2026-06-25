@@ -52,7 +52,7 @@ class RepeatStoreTest {
 
         assertEquals(Optional.of("p-one"), store.remove(p, 1));
         assertFalse(store.has(p, 1));
-        assertTrue(store.has(p, 2)); // sibling ability untouched
+        assertTrue(store.has(p, 2));
         assertTrue(store.has(q, 1)); // other player, same ability id, untouched
     }
 
@@ -69,7 +69,7 @@ class RepeatStoreTest {
         assertTrue(drained.contains("p-two"));
         assertFalse(store.has(p, 1));
         assertFalse(store.has(p, 2));
-        assertTrue(store.has(q, 1)); // other player survives
+        assertTrue(store.has(q, 1));
 
         assertTrue(store.removeAll(p).isEmpty()); // draining an absent player yields nothing
     }

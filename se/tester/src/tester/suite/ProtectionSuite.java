@@ -47,9 +47,8 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * Gate-2 protection seam, live (docs/architecture.md §2, §3.3): the same Venom ATTACK enchant is blocked
- * at a protected block and allowed one block over, via a fake {@link ProtectionProvider} that denies a
- * single block (no real land-protection plugin exists on the matrix). Mojang-mapped only (fake attacker).
+ * Gate-2 protection seam, live (§2, §3.3): a Venom ATTACK enchant blocked at a protected block, allowed one
+ * over, via a fake {@link ProtectionProvider} (no real land-protection plugin on the matrix). Mojang-mapped only.
  */
 public final class ProtectionSuite implements Harness.Scenario {
 

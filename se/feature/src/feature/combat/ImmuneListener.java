@@ -13,11 +13,10 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 /**
- * The {@code IMMUNE} applier (§ combat-flags): while a player holds a damage-type immunity in the
- * {@link ImmuneStore}, matching hits are cancelled. The immunity is armed by the effect through the
- * per-event sink; this reads it back on the SEPARATE future-damage events. Both handlers run on the
- * victim's own region thread, reading only the concurrent store by UUID — Folia-safe. A faithful port of
- * a Cosmic Enchants-style Immune (SWORD/AXE by the damager's held weapon, PROJECTILE by cause, POTION by magic/poison/wither).
+ * The {@code IMMUNE} applier (§ combat-flags): cancels matching hits while a player holds a damage-type
+ * immunity in the {@link ImmuneStore}. The effect arms it through the per-event sink; this reads it back
+ * on the SEPARATE future-damage events, on the victim's own region thread (concurrent store, UUID-keyed —
+ * Folia-safe). A faithful port of a Cosmic Enchants-style Immune.
  */
 public final class ImmuneListener implements Listener {
 
@@ -71,7 +70,7 @@ public final class ImmuneListener implements Listener {
                 }
             }
             default -> {
-                // Other causes are only cancelled by a blanket immunity (Type.ALL), checked against any type.
+                // Other causes: cancelled only by a blanket Type.ALL immunity.
                 if (store.isImmune(victim.getUniqueId(), ImmuneStore.Type.ALL, now)) {
                     event.setCancelled(true);
                 }

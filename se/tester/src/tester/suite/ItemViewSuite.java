@@ -13,9 +13,8 @@ import org.bukkit.plugin.Plugin;
 import tester.harness.Harness;
 
 /**
- * Live checks for the {@link ItemViewCache} (docs/architecture.md §5.2): proves the cache reads the real
- * blob back through an item's {@code PersistentDataContainer} (the copy-on-write meta the §5.2 design is
- * built around) and keys on content. Thread-agnostic — PDC is safe from any thread — so these run inline.
+ * The {@link ItemViewCache} (§5.2): reads the real blob back through an item's PDC (the copy-on-write meta the
+ * design rests on) and keys on content. Thread-agnostic — PDC is safe from any thread — so these run inline.
  */
 public final class ItemViewSuite implements Harness.Scenario {
 

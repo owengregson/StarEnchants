@@ -11,14 +11,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code TELEPORT} — teleport the target(s) to the actor or the victim (docs/architecture.md §7; v3.3 §C).
- * The {@code to} argument picks the destination party: {@code VICTIM} (default — e.g. {@code TELEPORT:VICTIM}
- * blinks the attacker to the entity they hit) or {@code ACTOR} (e.g. {@code TELEPORT:ACTOR:@Victim} pulls the
- * victim to the attacker). A no-op when the chosen destination party is absent (a non-combat activation).
- *
- * <p>{@link Affinity#TARGET_ENTITY}: routed to the target's region thread ({@code teleportAsync}). The
- * destination is read from firing-thread-safe context actors and cloned by the Sink, so a deferred (WAIT)
- * hop still lands on an owned snapshot.
+ * {@code TELEPORT} — teleport the target(s) to the actor's or the victim's location (§7, §C); no-op when that
+ * destination party is absent. The destination is read from firing-thread-safe context actors and cloned by
+ * the Sink, so a deferred (WAIT) hop still lands on an owned snapshot.
  */
 public final class TeleportEffect implements EffectKind {
 

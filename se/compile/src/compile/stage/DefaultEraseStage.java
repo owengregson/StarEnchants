@@ -17,20 +17,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The default {@link EraseStage} (docs/architecture.md §4.1, §8). Walks the lowered abilities once in
- * id-assignment order, interning world/trigger/suppression/cooldown-scope names and bit-packing worlds
- * and triggers into the {@code worldBlacklist} long and {@code triggerMask} int the hot path gates on
- * (§3.3). A kept ability's dense id is its output-array position, so the {@link ErasedContent} invariant
- * {@code abilities[i].id() == i} holds (§5.3); the parallel stable-key list feeds the
- * {@link StableKeyIndex} and the {@code defId}&rarr;origin entries feed the {@link SourceMap} (§10).
+ * The default {@link EraseStage} (docs/architecture.md §4.1). A kept ability's dense id is its
+ * output-array position, so the {@link ErasedContent} invariant {@code abilities[i].id() == i} holds.
+ * Never throws — every fault is reported and survivable (a duplicate key dropped, an overflowed bit
+ * skipped), keeping a broken snapshot loadable.
  *
- * <p>Never throws. A duplicate stable key drops the duplicate ({@code E_DUP_KEY}); a trigger past bit 31
- * or world past bit 63 skips only that one bit (ability otherwise erased intact), keeping a broken
- * snapshot loadable.
- *
- * <p>With a canonical trigger vocabulary ({@link #DefaultEraseStage(List)}) the interner is pre-seeded so
- * every {@code triggerMask} bit means the same trigger the runtime routes (§3.7) and an out-of-vocabulary
- * name is reported, not silently interned. With none, trigger names are interned ad-hoc (lower-level tests).
+ * <p>With a canonical trigger vocabulary the interner is pre-seeded so every {@code triggerMask} bit
+ * means the same trigger the runtime routes (§3.7); an out-of-vocabulary name is reported, not silently
+ * interned. With none, trigger names are interned ad-hoc (lower-level tests).
  */
 public final class DefaultEraseStage implements EraseStage {
 
@@ -47,11 +41,7 @@ public final class DefaultEraseStage implements EraseStage {
         this(List.of());
     }
 
-    /**
-     * Canonical mode (when {@code canonicalTriggers} is non-empty): trigger names are
-     * matched case-insensitively against this vocabulary, interned to its id order, and
-     * an unknown name is a diagnostic.
-     */
+    /** Canonical mode: trigger names match this vocabulary case-insensitively, interned to its id order. */
     public DefaultEraseStage(List<String> canonicalTriggers) {
         this.canonicalTriggers = List.copyOf(canonicalTriggers);
     }
@@ -167,10 +157,9 @@ public final class DefaultEraseStage implements EraseStage {
     }
 
     /**
-     * Rewrite each {@code SUPPRESS} effect's {@code scope}/{@code key} from strings to ints, interning
-     * {@code key} into the SAME {@code cooldownScopes} interner the abilities' {@code cdScope*} use — so a
-     * {@code SUPPRESS} write shares one namespace with gate 5's reads (the bridge invariant). Other effects
-     * pass through; a malformed SUPPRESS is left as-is.
+     * Interns each {@code SUPPRESS} effect's {@code key} into the SAME {@code cooldownScopes} interner the
+     * abilities' {@code cdScope*} use, so a {@code SUPPRESS} write shares one namespace with gate 5's reads
+     * (the bridge invariant). A malformed SUPPRESS is left as-is.
      */
     private static CompiledEffect[] eraseSuppressArgs(List<CompiledEffect> effects, Interner cooldownScopes) {
         CompiledEffect[] out = new CompiledEffect[effects.size()];

@@ -7,22 +7,14 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 /**
- * The single mutation boundary (docs/architecture.md §3.5, §3.6). An
- * {@code EffectKind.run} never touches an entity, block, or scheduler directly — it
- * emits <em>intents</em> through this interface. The implementation accumulates them
- * into a per-event dispatch plan and flushes them batched, routed by the ability's
- * declared {@link compile.model.Affinity}, on the correct Folia thread.
+ * The single mutation boundary (§3.5, §3.6). An {@code EffectKind.run} never touches an entity, block, or
+ * scheduler directly — it emits <em>intents</em> here; the implementation batches them and flushes routed by
+ * the ability's declared {@link compile.model.Affinity} on the correct Folia thread. Removing the scheduler
+ * door (rather than discouraging it) makes Folia-correctness structural, not disciplinary (§8 CI lint).
  *
- * <p>Because the scheduler door is <em>removed</em> rather than discouraged, an
- * effect author cannot write a Folia bug: they never schedule and never mutate. A CI
- * lint enforces that nothing under {@code engine/effect} calls
- * {@code Bukkit.getScheduler()} or mutates an entity outside this interface (§3.5,
- * §8).
- *
- * <p>Version-volatile referents (potions, sounds, particles, materials, entity
- * types) are passed as <em>interned ids</em> resolved at compile time — the runtime
- * never sees a renamed constant (§9). Only the "who/where" (entities and locations,
- * pre-resolved by the selector) are Bukkit handles.
+ * <p>Version-volatile referents (potions, sounds, particles, materials, entity types) are passed as
+ * <em>interned ids</em> resolved at compile time, so the runtime never sees a renamed constant (§9). Only the
+ * "who/where" (entities and locations, pre-resolved by the selector) are Bukkit handles.
  */
 public interface Sink {
 

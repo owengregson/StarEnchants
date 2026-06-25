@@ -12,12 +12,9 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * Base for a single-screen "bench" menu with item-input slots (docs/v3-directives.md §K — the merchant
- * combine/salvage benches). Unlike {@link PagedMenu}, a form renders <strong>once</strong> (no pagination,
- * no re-render that would discard staged items): {@link #render} lays out the decorative background + the
- * control buttons and leaves the {@link #inputSlots()} empty for the player to fill. Control buttons act on
- * the live inventory in place (consume the inputs, give the output, message) — never reopening. The shared
- * {@link MenuListener} keeps every non-input slot locked, and {@link #onClose} returns any staged inputs.
+ * Base for a single-screen bench menu with item-input slots (§K). Unlike {@link PagedMenu} it renders once —
+ * no re-render that would discard staged items — and buttons act on the live inventory in place. The shared
+ * {@link MenuListener} locks every non-{@link #inputSlots() input} slot; {@link #onClose} returns staged inputs.
  */
 public abstract class FormMenu implements Menu, InteractiveMenu {
 
@@ -30,11 +27,7 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
         this(name, layout, caps, MenusConfig::empty);
     }
 
-    /**
-     * Canonical form (the composition root): {@code menus} supplies the live {@code menus/} config; the
-     * effective layout (including the title) is {@code defaultLayout} merged with this bench's
-     * {@code menus/<name>.yml} override (§L), re-resolved per render.
-     */
+    /** Canonical form: layout = {@code defaultLayout} merged with the live {@code menus/<name>.yml} (§L), per render. */
     protected FormMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus) {
         this.name = Objects.requireNonNull(name, "name").toLowerCase(java.util.Locale.ROOT);
         Objects.requireNonNull(defaultLayout, "defaultLayout");
@@ -57,13 +50,13 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
 
     @Override
     public void render(MenuHolder holder) {
-        MenuLayout layout = layout(); // resolve the live (config-merged) layout once for this render
-        holder.begin(layout.size(), MenuText.title(layout.titleTemplate(), caps)); // title surfaced (§L)
+        MenuLayout layout = layout();
+        holder.begin(layout.size(), MenuText.title(layout.titleTemplate(), caps));
         fillBackground(holder, layout);
-        layoutControls(holder); // control buttons overwrite the background
+        layoutControls(holder); // overwrites the background
     }
 
-    /** Fill every non-input slot with the decorative filler pane (the input slots stay empty for placement). */
+    /** Fill every non-input slot with the decorative filler pane (inputs stay empty for placement). */
     private void fillBackground(MenuHolder holder, MenuLayout layout) {
         Material filler = ItemFactory.material(layout.fillerMaterial(), Material.AIR);
         if (filler == Material.AIR) {

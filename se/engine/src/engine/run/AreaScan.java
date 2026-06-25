@@ -6,12 +6,10 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 /**
- * The injected world-access seam for selectors that reach beyond the captured activation actors
- * (docs/architecture.md §3.6): area scan, online-player roster, raytraces, vein flood-fill. Injected
- * rather than baked in because these touch {@code World}/server state and must run on the correct Folia
- * region thread — so the Folia-correct impl lives in the server-bound wiring layer while the executor and
- * selector kinds stay pure and unit-testable. The non-area lookups default to "absent" so scan-only and
- * {@link #NONE} providers need no change.
+ * The injected world-access seam for selectors that reach beyond the captured actors (area scan,
+ * raytraces, vein flood-fill). Injected because these touch {@code World}/server state and must run on the
+ * correct Folia region thread, keeping the executor and selector kinds pure. Non-area lookups default to
+ * "absent" so scan-only and {@link #NONE} providers need no change.
  */
 @FunctionalInterface
 public interface AreaScan {

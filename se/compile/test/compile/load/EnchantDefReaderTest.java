@@ -10,11 +10,7 @@ import java.util.function.IntSupplier;
 import org.junit.jupiter.api.Test;
 import schema.diag.Diagnostics;
 
-/**
- * Unit tests for the enchant reader (ADR-0014): an authored YAML mapping expands to one
- * {@code AbilityDef} per level with path-derived keys, and every malformed input is a diagnostic
- * rather than an exception. Pure — no compiler, no server.
- */
+/** Unit tests for the enchant reader (ADR-0014): malformed input is a diagnostic, never an exception. */
 class EnchantDefReaderTest {
 
     private static YamlNode root(String yaml, Diagnostics diags) {

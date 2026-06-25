@@ -12,26 +12,16 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * The pure pack codec (ADR-0023): a tree of config files ↔ a ZIP archive. The manifest is always the
- * FIRST entry ({@code pack.yml}), so {@link #peekManifest(InputStream)} can read a pack's metadata
- * (for {@code /se pack list}) without inflating the whole archive. Entries are written in sorted order
- * with timestamps zeroed, so the same config surface always produces a byte-identical archive
- * (deterministic for review, diffing, and reproducible jars).
- *
- * <p>This class only moves bytes — it never walks a filesystem (that is {@link PackStore}) and never
- * interprets the YAML inside an entry. Directory entries are not written; the relative paths carry the
- * structure and the extractor recreates parents.
+ * The pure pack codec (ADR-0023): config files ↔ ZIP. Two invariants callers rely on: the manifest is
+ * the FIRST entry so {@link #peekManifest} reads metadata without inflating the archive, and entries are
+ * sorted with timestamps zeroed so a given surface yields a byte-identical archive (diffable, reproducible).
  */
 public final class PackArchive {
 
     private PackArchive() {
     }
 
-    /**
-     * Write a pack: the {@code manifest} (with its file count re-stamped from {@code files}) as the
-     * first entry, then every file entry in sorted-path order. Bytes are flushed to {@code out}; the
-     * caller owns closing it.
-     */
+    /** Write the manifest (file count re-stamped) as the first entry, then files in sorted order. Caller closes {@code out}. */
     public static void write(OutputStream out, PackManifest manifest, Map<String, byte[]> files)
             throws IOException {
         Map<String, byte[]> sorted = new TreeMap<>(files);
@@ -44,7 +34,6 @@ public final class PackArchive {
         }
     }
 
-    /** Read an entire pack from {@code in} into memory. {@code pack.yml} becomes the manifest. */
     public static Pack read(InputStream in) throws IOException {
         PackManifest manifest = null;
         Map<String, byte[]> files = new LinkedHashMap<>();
@@ -69,10 +58,7 @@ public final class PackArchive {
         return new Pack(manifest, files);
     }
 
-    /**
-     * Read only the manifest from {@code in}, stopping as soon as {@code pack.yml} is seen (it is the
-     * first entry). Returns a filename-derived manifest if the archive has no {@code pack.yml}.
-     */
+    /** Read only the manifest, stopping at the first ({@code pack.yml}) entry; falls back to a filename-derived manifest. */
     public static PackManifest peekManifest(InputStream in, String fallbackName) throws IOException {
         try (ZipInputStream zip = new ZipInputStream(in)) {
             ZipEntry entry;
@@ -94,7 +80,6 @@ public final class PackArchive {
         zip.closeEntry();
     }
 
-    /** A pack's bytes when a caller wants the whole archive in memory. */
     public static byte[] toBytes(PackManifest manifest, Map<String, byte[]> files) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         write(buffer, manifest, files);

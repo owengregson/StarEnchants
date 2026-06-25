@@ -11,7 +11,6 @@ import java.util.List;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 
-/** Mock-host effect test (docs/architecture.md §1.3): mocked EffectCtx in, Sink intents verified. */
 class CureEffectTest {
 
     @Test

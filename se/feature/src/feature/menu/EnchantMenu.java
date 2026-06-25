@@ -17,14 +17,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import platform.caps.Capabilities;
 
 /**
- * The direct-apply enchant menu, now built on the shared framework ({@link PagedMenu}): each enchant in the
- * published catalog is a clickable icon that applies it (level 1) to the viewer's held item through the
- * {@link ItemEnchanter} — the visual equivalent of {@code /se enchant}. The framework owns pagination,
- * the nav/close buttons, the title (with cross-version truncation) and the Folia open-hop; this subclass
- * supplies only the catalog, the icon, and the apply-on-click behaviour.
- *
- * <p>Registered as {@code "apply"} (the §K merchant "Enchanter" is a separate buy shop). The book/scroll/
- * dust application <em>economy</em> is a separate gesture surface; this menu is the direct-apply one.
+ * The direct-apply enchant menu: clicking an enchant applies it (level 1) to the held item via
+ * {@link ItemEnchanter} — the visual {@code /se enchant}. Registered as {@code "apply"}, distinct from the
+ * §K merchant "Enchanter" buy shop and from the book/scroll/dust application economy.
  */
 public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
@@ -60,8 +55,8 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
         ItemStack held = player.getInventory().getItemInMainHand();
         ApplyResult result = enchanter.applyEnchant(held, def.key(), 1);
         if (result.ok()) {
-            player.getInventory().setItemInMainHand(held); // write the mutated copy back
-            refreshWorn.accept(player);                    // re-resolve the cached WornState (no equip event fires)
+            player.getInventory().setItemInMainHand(held);
+            refreshWorn.accept(player); // no equip event fires, so re-resolve the cached WornState by hand
         }
         player.sendMessage(result.message());
     }
@@ -86,12 +81,11 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
         return item;
     }
 
-    /** The icon Material, resolved by NAME (cross-version-safe; never a hard constant). */
+    /** Resolved by name, never a hard constant (cross-version-safe). */
     private static Material iconMaterial() {
         return firstMaterial("ENCHANTED_BOOK", "BOOK", "PAPER");
     }
 
-    /** The first of {@code names} that exists on this server (resolved by name), or STONE as a last resort. */
     private static Material firstMaterial(String... names) {
         for (String name : names) {
             Material material = Material.getMaterial(name);

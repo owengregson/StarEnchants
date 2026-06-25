@@ -10,16 +10,9 @@ import platform.sched.SchedulerBackend;
 import platform.sched.TaskHandle;
 
 /**
- * The Folia ({@code io.papermc.paper.threadedregions}) implementation of {@link SchedulerBackend}
- * (docs/architecture.md §9; {@code folia-scheduling} skill). Entity work goes through the
- * entity's own scheduler (it follows the entity across regions/teleports/dimensions); region
- * work through the region scheduler for a location; global work through the global region
- * scheduler; async through the async scheduler.
- *
- * <p>This class references Folia-only API and is therefore <em>only ever loaded</em> when
- * {@code Scheduling.init} sees the Folia marker — on Paper it is shaded into the jar but never
- * instantiated, so its Folia references never link. Folia rejects sub-1-tick delays/periods, so
- * delayed and repeating calls clamp to a floor of 1.
+ * The Folia ({@code io.papermc.paper.threadedregions}) {@link SchedulerBackend} (docs/architecture.md §9;
+ * {@code folia-scheduling}). References Folia-only API, so it is loaded ONLY when {@code Scheduling.init} sees
+ * the Folia marker — on Paper it is shaded inert and its Folia references never link.
  */
 public final class FoliaSchedulerBackend implements SchedulerBackend {
 
@@ -86,7 +79,6 @@ public final class FoliaSchedulerBackend implements SchedulerBackend {
         Bukkit.getAsyncScheduler().runNow(plugin, consume(task));
     }
 
-    /** Adapt a {@code Runnable} to the {@code Consumer<ScheduledTask>} Folia's API expects. */
     private static Consumer<ScheduledTask> consume(Runnable task) {
         return scheduledTask -> task.run();
     }
@@ -104,7 +96,6 @@ public final class FoliaSchedulerBackend implements SchedulerBackend {
         return new FoliaTaskHandle(task);
     }
 
-    /** Adapts a Folia {@link ScheduledTask} to the platform-neutral {@link TaskHandle}. */
     private static final class FoliaTaskHandle implements TaskHandle {
         private final ScheduledTask task;
 

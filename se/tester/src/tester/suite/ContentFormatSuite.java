@@ -12,9 +12,8 @@ import org.bukkit.plugin.Plugin;
 import tester.harness.Harness;
 
 /**
- * Live checks for the content format, compiled through the production {@link ContentCompiler} against
- * the real spec registry + resolvers (unit tests use a hand-built registry): verbose effects, the
- * explicit per-level shape, and tier subfolders kept off the stable key.
+ * Content format through the production {@link ContentCompiler} against the real spec registry + resolvers
+ * (unit tests use a hand-built registry): verbose effects, the per-level shape, tier subfolders.
  */
 public final class ContentFormatSuite implements Harness.Scenario {
 
@@ -86,7 +85,6 @@ public final class ContentFormatSuite implements Harness.Scenario {
                     throw new IllegalStateException("level " + level + " missing");
                 }
             }
-            // Level 3 lists three effects (IGNITE, MESSAGE, MODIFY_HEALTH) — the others two.
             int l3 = lib.snapshot().byStableKey("enchants/stormcaller/3").effects().length;
             if (l3 != 3) {
                 throw new IllegalStateException("level 3 effect count wrong; got " + l3);

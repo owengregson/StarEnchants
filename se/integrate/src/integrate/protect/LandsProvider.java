@@ -10,14 +10,10 @@ import org.bukkit.plugin.Plugin;
 import platform.protect.ProtectionProvider;
 
 /**
- * A {@link ProtectionProvider} bridging the Lands {@code BLOCK_PLACE} role-flag (docs/decisions/0027): an
- * enchant effect may act at {@code where} iff Lands would let {@code actor} place a block there.
- *
- * <p>Bundled but SOFT: Lands' API is {@code compileOnly} and {@link integrate.Integrations} only loads this
- * class (and builds the {@link LandsIntegration} handle) when Lands is present. Unclaimed land allows
- * everything; inside a claim the actor's {@code BLOCK_PLACE} role-flag decides, resolved by UUID so there is no
- * offline special-case. Lands IS Folia-aware, so reading the area at {@code where}'s region thread is correct
- * on Folia too. Never throws — a hiccup degrades to allow.
+ * A {@link ProtectionProvider} bridging the Lands {@code BLOCK_PLACE} role-flag (docs/decisions/0027):
+ * unclaimed land allows everything; inside a claim the actor's {@code BLOCK_PLACE} role-flag decides, resolved
+ * by UUID (no offline special-case). Lands is Folia-aware, so the area read at {@code where}'s region thread is
+ * correct on Folia too. Never throws — a hiccup degrades to allow.
  */
 public final class LandsProvider implements ProtectionProvider {
 
@@ -29,7 +25,7 @@ public final class LandsProvider implements ProtectionProvider {
         this.lands = lands;
     }
 
-    /** Factory used by the registrar — builds the API handle and returns the SPI type (lazy-load safe). */
+    /** Registrar factory; builds the API handle and returns the SPI type (lazy-load safe). */
     public static ProtectionProvider create(Plugin plugin) {
         return new LandsProvider(LandsIntegration.of(plugin));
     }
@@ -39,10 +35,7 @@ public final class LandsProvider implements ProtectionProvider {
         return "Lands";
     }
 
-    /**
-     * The gate, split out for unit testing without a live {@code LandsIntegration}: unclaimed land
-     * ({@code area == null}) allows everything; a claim defers to the actor's BLOCK_PLACE role-flag.
-     */
+    /** The gate (split out for unit testing): unclaimed land allows everything, else defer to the role-flag. */
     static boolean buildAllowed(Area area, UUID actor) {
         return area == null || area.hasRoleFlag(actor, Flags.BLOCK_PLACE);
     }

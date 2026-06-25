@@ -9,10 +9,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * Feeds the soul loop (§6.3, §D): a kill deposits souls into the killer's carried gem (on ANY kill); a quit
- * clears their soul mode. {@link SoulService} defers the locate-and-credit to the killer's own thread (death
- * fires on the victim's region, but the gem is the killer's). MONITOR + {@code ignoreCancelled} so only a
- * real death counts.
+ * Feeds the soul loop (§6.3, §D): a kill deposits souls into the killer's carried gem on ANY kill; a quit
+ * clears their soul mode. MONITOR + {@code ignoreCancelled} so only a real death counts.
  */
 public final class SoulListener implements Listener {
 

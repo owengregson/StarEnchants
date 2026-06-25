@@ -12,10 +12,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import tester.harness.Harness;
 
 /**
- * Lore rendering from item state, live (docs/architecture.md §4.2). Only a real server proves that legacy
- * §-coded lines survive {@code setLore}/{@code getLore} and serialization round-trips identically across the
- * spigot&rarr;mojang mapping flip (a version routing legacy codes through a component layer would corrupt
- * them). Item-only (no fake player), so it runs the whole range including the spigot-mapped floor.
+ * Lore rendering from item state, live (§4.2). Only a real server proves legacy §-coded lines survive
+ * {@code setLore}/{@code getLore} + serialization across the spigot→mojang flip (a version routing them
+ * through a component layer would corrupt them). Item-only, so it runs the spigot-mapped floor too.
  */
 public final class RenderSuite implements Harness.Scenario {
 

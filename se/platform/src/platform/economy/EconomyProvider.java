@@ -3,25 +3,18 @@ package platform.economy;
 import java.util.UUID;
 
 /**
- * A first-party economy SPI (docs/architecture.md §1, §2): the narrow contract StarEnchants uses to
- * move money for money enchants (GIVE_MONEY / TAKE_MONEY, a Cosmic Enchants-style "trade"/"tax" family). One
- * implementation bridges one economy backend (Vault, or a server's own); register it through Bukkit's
- * {@code ServicesManager}.
- *
- * <p><b>Threading.</b> StarEnchants calls a provider on the server's GLOBAL region thread (the main
- * thread on Paper) — the thread most economy backends expect, and the Folia-consistent analog — never
- * inline on a combat region thread. Calls must complete promptly (do no blocking I/O on the calling
- * thread); a provider that needs off-thread work schedules it itself.
+ * A first-party economy SPI (docs/architecture.md §2) for money enchants (GIVE_MONEY / TAKE_MONEY, a
+ * Cosmic Enchants-style "trade"/"tax" family). One implementation bridges one backend (Vault, or a
+ * server's own); register through Bukkit's {@code ServicesManager}. Invoked on the GLOBAL region thread
+ * and must complete promptly (no blocking I/O); a provider needing off-thread work schedules it itself.
  */
 public interface EconomyProvider {
 
-    /** The player's current balance. */
     double balance(UUID player);
 
     /**
-     * Withdraw {@code amount} from {@code player}. Returns {@code true} if the full amount was charged,
-     * {@code false} if the player could not afford it (no partial charge) — so a TAKE_MONEY effect only
-     * "lands" what was actually taken. A non-positive amount is a no-op that returns {@code true}.
+     * {@code true} iff the full amount was charged; {@code false} if unaffordable (no partial charge).
+     * A non-positive amount is a no-op that returns {@code true}.
      */
     boolean withdraw(UUID player, double amount);
 

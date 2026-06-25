@@ -19,9 +19,8 @@ import schema.diag.Diagnostic;
 import tester.harness.Harness;
 
 /**
- * Compiles the shipped content catalog live with the real {@link RegistryResolvers} (ADR-0014; §10).
- * Only place a handle token that does not resolve on THIS server version is caught — runs on every
- * matrix target, so a token renamed between versions is surfaced.
+ * Compiles the shipped catalog live with the real {@link RegistryResolvers} (ADR-0014; §10) — the only place
+ * a handle token that does not resolve on THIS server version is caught, run on every matrix target.
  */
 public final class CatalogSuite implements Harness.Scenario {
 
@@ -59,7 +58,6 @@ public final class CatalogSuite implements Harness.Scenario {
         });
     }
 
-    /** Extracts the bundled {@code content/} resources (per index.txt) to a temp dir. */
     private Path extractCatalog() throws IOException {
         Path root = Files.createTempDirectory("se-catalog-suite").resolve("content");
         ClassLoader loader = getClass().getClassLoader();

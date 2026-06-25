@@ -12,11 +12,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Registry of selector kinds (docs/architecture.md §7). Heads match case-insensitively; a
- * duplicate head fails fast at build time.
- *
- * <p>{@link #specRegistry()} exposes each selector's {@link ParamSpec} so the pure compiler can
- * validate inline selector arguments without depending on {@code se-engine} (§2.1).
+ * Registry of selector kinds. Heads match case-insensitively; a duplicate fails fast at build time.
+ * {@link #specRegistry()} exposes each selector's {@link ParamSpec} so the pure compiler can validate
+ * inline arguments without depending on {@code se-engine}.
  */
 public final class SelectorRegistry {
 
@@ -52,7 +50,6 @@ public final class SelectorRegistry {
         return MapSpecRegistry.of(specs);
     }
 
-    /** Builder enforcing unique, case-insensitive heads. */
     public static final class Builder {
 
         private final Map<String, SelectorKind> byHead = new LinkedHashMap<>();

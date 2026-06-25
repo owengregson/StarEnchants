@@ -10,20 +10,9 @@ import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
 /**
- * {@code SPAWN_ENTITY} — canonical entity-spawn primitive (docs/v3-directives.md §C):
- *
- * <ul>
- *   <li>{@code type} — entity type, resolved cross-version at compile time, so {@code PRIMED_TNT}/{@code TNT}
- *       both work on every server;</li>
- *   <li>{@code count} — how many to spawn (default 1);</li>
- *   <li>{@code ttl} — ticks until each spawn is auto-removed (0 = permanent);</li>
- *   <li>{@code health} — starting/max health for living spawns (0 = leave the type default);</li>
- *   <li>{@code owner} — {@code activator} tames the spawn (when {@link org.bukkit.entity.Tameable}) to the
- *       activator; default {@code none}.</li>
- * </ul>
- *
- * <p>Spawns at each resolved target's location; with no resolvable target it falls back to the activation
- * location. A primed-TNT spawn auto-primes with the vanilla fuse. {@link Affinity#REGION}.
+ * {@code SPAWN_ENTITY} — canonical entity-spawn primitive (§C); {@code type} resolved cross-version at compile,
+ * so {@code PRIMED_TNT}/{@code TNT} both work on every server. Spawns at each resolved target's location,
+ * falling back to the activation location when none resolves.
  */
 public final class SpawnEntityEffect implements EffectKind {
 

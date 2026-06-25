@@ -6,9 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pins the gate decision of {@link TownyProvider}: a non-Towny world allows everything; inside a Towny world
- * the BUILD-cache verdict decides. The static Towny side (resolving the player + the cache query) is verified
- * on a Towny server out-of-matrix (docs/decisions/0027).
+ * Pins the gate decision of {@link TownyProvider}. The static Towny side (resolving the player + the cache
+ * query) is verified on a Towny server out-of-matrix (docs/decisions/0027).
  */
 class TownyProviderTest {
 
