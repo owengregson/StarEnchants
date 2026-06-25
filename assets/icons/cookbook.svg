@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44" role="img" aria-label="cookbook">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD06A"></stop><stop offset="1" stop-color="#FF9FCF"></stop></linearGradient></defs>
+  <rect x="2" y="2" width="40" height="40" rx="13" fill="url(#g)"></rect>
+  <g transform="translate(10.50 10.50) scale(0.9583)"><path d="M5 4h12a2 2 0 0 1 2 2v14a2 2 0 0 0-2-2H5z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"></path><path d="M19 6h1.5v14H7a2 2 0 0 1-2-2" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"></path><path d="M12 4v6l-2-1.5L8 10V4" fill="#fff"></path></g>
+</svg>

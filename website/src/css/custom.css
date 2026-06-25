@@ -1,30 +1,262 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * StarEnchants documentation theme.
+ *
+ * Brand: pink (#FF9FCF) → purple (#B98CFF), ink #5B3E8E, on a clean GitBook-style
+ * canvas with generous spacing. Light and dark are both first-class. All colors
+ * derive from the brand SVGs under assets/ so the site, README, and icons agree.
  */
 
-/* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  /* Brand tokens — single source for everything below. */
+  --se-pink: #ff9fcf;
+  --se-purple: #b98cff;
+  --se-blue: #8fd0ff;
+  --se-gold: #ffd06a;
+  --se-ink: #5b3e8e;
+  --se-gradient: linear-gradient(120deg, #ff9fcf 0%, #b98cff 100%);
+  --se-gradient-soft: linear-gradient(120deg, #ffd9ec 0%, #ead9ff 100%);
+
+  /* Primary ramp — a brand purple that reads cleanly as link/accent on white. */
+  --ifm-color-primary: #7c4dcb;
+  --ifm-color-primary-dark: #6f3fc1;
+  --ifm-color-primary-darker: #683bb6;
+  --ifm-color-primary-darkest: #563196;
+  --ifm-color-primary-light: #8a5fd1;
+  --ifm-color-primary-lighter: #9168d4;
+  --ifm-color-primary-lightest: #ab8bdf;
+
+  --ifm-font-family-base: 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system,
+    Helvetica, Arial, sans-serif;
+  --ifm-heading-font-family: var(--ifm-font-family-base);
+  --ifm-font-family-monospace: 'JetBrains Mono', 'SFMono-Regular', ui-monospace,
+    'Cascadia Code', Menlo, Consolas, monospace;
+
+  --ifm-code-font-size: 92%;
+  --ifm-heading-font-weight: 700;
+  --ifm-h1-font-size: 2.4rem;
+  --ifm-global-radius: 0.6rem;
+  --ifm-line-height-base: 1.7;
+
+  --ifm-navbar-shadow: 0 1px 0 rgba(91, 62, 142, 0.08);
+  --ifm-toc-border-color: rgba(91, 62, 142, 0.12);
+  --ifm-color-content-secondary: #6b5a8a;
+
+  --ifm-link-color: #6f3fc1;
+  --ifm-menu-color-active: var(--ifm-color-primary);
+  --ifm-menu-color-background-active: rgba(185, 140, 255, 0.12);
+  --ifm-menu-color-background-hover: rgba(185, 140, 255, 0.08);
+
+  --docusaurus-highlighted-code-line-bg: rgba(185, 140, 255, 0.16);
+
+  --se-surface: #ffffff;
+  --se-border: rgba(91, 62, 142, 0.12);
+  --se-card-shadow: 0 6px 24px -12px rgba(91, 62, 142, 0.28);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  /* Lighter brand purple for contrast on the deep aubergine canvas. */
+  --ifm-color-primary: #cbb0ff;
+  --ifm-color-primary-dark: #b793ff;
+  --ifm-color-primary-darker: #ad85ff;
+  --ifm-color-primary-darkest: #8f5cff;
+  --ifm-color-primary-light: #dccdff;
+  --ifm-color-primary-lighter: #e6dbff;
+  --ifm-color-primary-lightest: #f1eaff;
+
+  --ifm-background-color: #181226;
+  --ifm-background-surface-color: #211934;
+  --ifm-navbar-background-color: rgba(27, 20, 43, 0.85);
+  --ifm-footer-background-color: #140e22;
+  --ifm-color-content: #ece6f7;
+  --ifm-color-content-secondary: #b6a8d4;
+
+  --ifm-link-color: #d9c6ff;
+  --ifm-menu-color-active: var(--ifm-color-primary);
+  --ifm-menu-color-background-active: rgba(185, 140, 255, 0.16);
+  --ifm-menu-color-background-hover: rgba(185, 140, 255, 0.1);
+  --ifm-toc-border-color: rgba(220, 205, 255, 0.14);
+
+  --docusaurus-highlighted-code-line-bg: rgba(185, 140, 255, 0.22);
+
+  --se-surface: #211934;
+  --se-border: rgba(220, 205, 255, 0.12);
+  --se-card-shadow: 0 8px 28px -14px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Headings: gradient-tinted H1, brand-ink rhythm ───────────────────────── */
+.markdown h1:first-child,
+article h1 {
+  letter-spacing: -0.01em;
+}
+
+.markdown > h2 {
+  margin-top: 2.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--se-border);
+}
+
+/* ── Links ────────────────────────────────────────────────────────────────── */
+.markdown a {
+  font-weight: 600;
+  text-decoration-color: rgba(185, 140, 255, 0.45);
+  text-underline-offset: 2px;
+}
+.markdown a:hover {
+  text-decoration-color: var(--ifm-color-primary);
+}
+
+/* ── Inline code & code blocks ────────────────────────────────────────────── */
+code {
+  border-radius: 0.4rem;
+  border: 1px solid var(--se-border);
+}
+:not(pre) > code {
+  background: var(--se-gradient-soft);
+  color: var(--se-ink);
+  padding: 0.12rem 0.36rem;
+}
+[data-theme='dark'] :not(pre) > code {
+  background: rgba(185, 140, 255, 0.14);
+  color: #efe7ff;
+  border-color: rgba(220, 205, 255, 0.16);
+}
+.theme-code-block {
+  box-shadow: var(--se-card-shadow);
+  border-radius: var(--ifm-global-radius);
+}
+
+/* ── Navbar ───────────────────────────────────────────────────────────────── */
+.navbar {
+  backdrop-filter: saturate(140%) blur(8px);
+}
+.navbar__title {
+  font-weight: 700;
+  background: var(--se-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.navbar__brand:hover .navbar__title {
+  opacity: 0.9;
+}
+.navbar__item.navbar__link {
+  font-weight: 600;
+}
+.navbar__link--active {
+  color: var(--ifm-color-primary);
+}
+/* GitHub link → icon */
+.navbar__items--right .navbar__link[href*='github.com'] {
+  font-size: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.navbar__items--right .navbar__link[href*='github.com']::before {
+  content: '';
+  width: 22px;
+  height: 22px;
+  background-color: var(--ifm-navbar-link-color);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8 0 3.2.9.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1 .9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0 0 12 .3'/%3E%3C/svg%3E") no-repeat center;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8 0 3.2.9.8 1.3 1.9 1.3 3.2 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1 .9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0 0 12 .3'/%3E%3C/svg%3E") no-repeat center;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
+.menu {
+  padding: 0.75rem 0.5rem;
+  font-size: 0.94rem;
+}
+.menu__link {
+  border-radius: 0.5rem;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.menu__link--active:not(.menu__link--sublist) {
+  font-weight: 700;
+}
+.menu__list-item-collapsible:hover {
+  background: var(--ifm-menu-color-background-hover);
+  border-radius: 0.5rem;
+}
+
+/* ── Table of contents (right rail) ───────────────────────────────────────── */
+.table-of-contents__link--active {
+  font-weight: 700;
+  color: var(--ifm-color-primary);
+}
+
+/* ── Admonitions: brand-tinted, rounder ───────────────────────────────────── */
+.theme-admonition {
+  border-radius: var(--ifm-global-radius);
+  border-width: 0 0 0 4px;
+}
+.theme-admonition-tip {
+  --ifm-alert-background-color: rgba(185, 140, 255, 0.08);
+  --ifm-alert-border-color: var(--se-purple);
+}
+.theme-admonition-note {
+  --ifm-alert-background-color: rgba(143, 208, 255, 0.1);
+  --ifm-alert-border-color: var(--se-blue);
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+.markdown table thead {
+  background: var(--se-gradient-soft);
+}
+[data-theme='dark'] .markdown table thead {
+  background: rgba(185, 140, 255, 0.12);
+}
+.markdown table thead th {
+  color: var(--se-ink);
+}
+[data-theme='dark'] .markdown table thead th {
+  color: #efe7ff;
+}
+
+/* ── Buttons (used on the landing) ────────────────────────────────────────── */
+.button.button--primary {
+  background: var(--se-gradient);
+  border: none;
+  color: #fff;
+  box-shadow: 0 8px 20px -10px rgba(185, 140, 255, 0.8);
+}
+.button.button--primary:hover {
+  filter: brightness(1.04);
+  color: #fff;
+}
+.button.button--secondary {
+  background: transparent;
+  color: var(--ifm-color-primary);
+  border: 1.5px solid var(--ifm-color-primary);
+}
+.button.button--secondary:hover {
+  background: var(--ifm-menu-color-background-active);
+  color: var(--ifm-color-primary);
+}
+
+/* ── Pagination cards ─────────────────────────────────────────────────────── */
+.pagination-nav__link {
+  border-radius: var(--ifm-global-radius);
+  border-color: var(--se-border);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.pagination-nav__link:hover {
+  border-color: var(--se-purple);
+  box-shadow: var(--se-card-shadow);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.footer--dark {
+  --ifm-footer-background-color: #140e22;
+  --ifm-footer-link-hover-color: var(--se-pink);
+}
+.footer__title {
+  color: var(--se-pink);
+}
+
+/* ── Search hint ──────────────────────────────────────────────────────────── */
+.DocSearch-Button {
+  border-radius: 0.6rem;
 }

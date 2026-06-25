@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="StarEnchants — custom enchantments and armor sets for Paper and Folia">
+  <defs>
+    <radialGradient id="card" cx="50%" cy="0%" r="118%">
+      <stop offset="0" stop-color="#6E3F9E"></stop><stop offset="0.48" stop-color="#4A2C7A"></stop><stop offset="1" stop-color="#2A1B4A"></stop>
+    </radialGradient>
+    <linearGradient id="wm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFC4E6"></stop><stop offset="0.5" stop-color="#FFE9A8"></stop><stop offset="1" stop-color="#C9B6FF"></stop>
+    </linearGradient>
+    <radialGradient id="hGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.9"></stop>
+      <stop offset="0.5" stop-color="#E9C9FF" stop-opacity="0.42"></stop>
+      <stop offset="1" stop-color="#E9C9FF" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="hStar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD6EE"></stop><stop offset="0.5" stop-color="#D6B0FF"></stop><stop offset="1" stop-color="#A8C2FF"></stop>
+    </linearGradient>
+    <linearGradient id="hGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFE9A8"></stop><stop offset="1" stop-color="#FFC75A"></stop>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF9FCF"></stop><stop offset="1" stop-color="#B98CFF"></stop>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="630" fill="url(#card)"></rect>
+  <rect x="16" y="16" width="1168" height="598" rx="34" fill="none" stroke="#FFD676" stroke-opacity="0.4" stroke-width="2"></rect>
+  <rect x="26" y="26" width="1148" height="578" rx="28" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="6"></rect>
+
+  <path transform="translate(170 120) scale(0.7)" d="M0 -10 C0.7 -3 3 -0.7 10 0 C3 0.7 0.7 3 0 10 C-0.7 3 -3 0.7 -10 0 C-3 -0.7 -0.7 -3 0 -10 Z" fill="#FFB3DD" opacity="0.8"></path>
+  <path transform="translate(1030 140) scale(0.8)" d="M0 -10 C0.7 -3 3 -0.7 10 0 C3 0.7 0.7 3 0 10 C-0.7 3 -3 0.7 -10 0 C-3 -0.7 -0.7 -3 0 -10 Z" fill="#9FE3FF" opacity="0.8"></path>
+  <path transform="translate(250 510) scale(0.65)" d="M0 -10 C0.7 -3 3 -0.7 10 0 C3 0.7 0.7 3 0 10 C-0.7 3 -3 0.7 -10 0 C-3 -0.7 -0.7 -3 0 -10 Z" fill="#FFE9A8" opacity="0.7"></path>
+  <path transform="translate(980 500) scale(0.65)" d="M0 -10 C0.7 -3 3 -0.7 10 0 C3 0.7 0.7 3 0 10 C-0.7 3 -3 0.7 -10 0 C-3 -0.7 -0.7 -3 0 -10 Z" fill="#FFB3DD" opacity="0.7"></path>
+
+  <g transform="translate(542 78) scale(1.0)">
+    <circle cx="58" cy="58" r="55" fill="url(#hGlow)"></circle>
+    <path d="M58 13 C61 44 72 55 103 58 C72 61 61 72 58 103 C55 72 44 61 13 58 C44 55 55 44 58 13 Z" fill="url(#hStar)"></path>
+    <path d="M58 31 C60 51 66 56 85 58 C66 60 60 65 58 85 C56 65 50 60 31 58 C50 56 56 51 58 31 Z" fill="#FFFFFF" opacity="0.4"></path>
+    <circle cx="49" cy="47" r="5" fill="#FFFFFF" opacity="0.95"></circle>
+    <path d="M97 24 C98 31 100 33 107 34 C100 35 98 37 97 44 C96 37 94 35 87 34 C94 33 96 31 97 24 Z" fill="url(#hGold)"></path>
+    <path d="M21 84 C22 89 23.5 90.5 28 91 C23.5 91.5 22 93 21 98 C20 93 18.5 91.5 14 91 C18.5 90.5 20 89 21 84 Z" fill="#FFB3DD"></path>
+  </g>
+
+  <text x="600" y="300" font-family="'Trebuchet MS','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="86" font-weight="700" fill="url(#wm)" text-anchor="middle">StarEnchants</text>
+  <text x="600" y="348" font-family="Georgia,'Times New Roman',serif" font-size="30" font-style="italic" fill="#F0DEFF" text-anchor="middle">Legendary Open-Source Cosmic Enchantments</text>
+  <text x="600" y="398" font-family="'Trebuchet MS','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="22" font-weight="600" fill="#C6AEE6" text-anchor="middle">A deeply-unified custom-enchantments &amp; armor-sets plugin — one jar for Paper 1.17.1 → 26.1.x and Folia.</text>
+
+  <g transform="translate(600 480)" text-anchor="middle" font-family="'Trebuchet MS','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="22" font-weight="700">
+    <rect x="-410" y="-26" width="170" height="52" rx="26" fill="#FFFFFF" opacity="0.08"></rect>
+    <text x="-325" y="6" fill="#FFD6EE">51 effects</text>
+    <rect x="-220" y="-26" width="200" height="52" rx="26" fill="#FFFFFF" opacity="0.08"></rect>
+    <text x="-120" y="6" fill="#E3D2FF">armor sets</text>
+    <rect x="0" y="-26" width="210" height="52" rx="26" fill="#FFFFFF" opacity="0.08"></rect>
+    <text x="105" y="6" fill="#C9E8FF">souls economy</text>
+    <rect x="230" y="-26" width="180" height="52" rx="26" fill="#FFFFFF" opacity="0.08"></rect>
+    <text x="320" y="6" fill="#FFE9A8">migrator</text>
+  </g>
+</svg>
