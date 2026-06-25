@@ -1,0 +1,68 @@
+---
+id: crystals
+title: Crystals (item)
+sidebar_position: 7
+description: The physical crystal item, merging, and the extractor.
+---
+
+# Crystals (item)
+
+This page covers the **physical crystal item** — applying, merging, and extracting. For what a crystal
+*is* (a levelless socket bonus) and how to define one in `content/crystals/`, see
+[the crystals concept](../concepts/crystals.mdx) and
+[defining a crystal](../configuring/index.mdx#defining-a-crystal).
+
+## The shared crystal item — `items/crystal.yml`
+
+Each crystal in `content/crystals/` declares its own material/name/lore so it self-explains. The
+fields here are the **shared fallback** (used when a crystal omits one) and the look of a **merged**
+multi-crystal, whose two effects can't share one material:
+
+```yaml
+type: crystal
+material: AMETHYST_SHARD
+name: "&d{CRYSTAL} Crystal"
+lore:
+  - "&7Drag onto gear to apply."
+  - "&7Merge two crystals into a multi-crystal."
+success-chance: 75               # apply success roll
+consume-on-fail: true            # a failed apply consumes the crystal
+sounds:
+  enabled: true
+  apply: "block.amethyst_block.chime"
+  remove: "block.amethyst_cluster.break"
+# The crystal EXTRACTOR — drag onto crystal-bearing gear to pop its last crystal back into an item.
+extractor:
+  material: AMETHYST_CLUSTER
+  name: "&dCrystal Extractor"
+  lore:
+    - "&7Drag onto crystal-bearing gear"
+    - "&7to extract its last crystal."
+```
+
+| Token | Renders |
+| --- | --- |
+| `{CRYSTAL}` | the component crystal name(s) |
+
+## Applying, merging, extracting
+
+- **Apply.** Drag a crystal onto gear; the apply rolls `success-chance`. On a miss, `consume-on-fail`
+  decides whether the crystal is lost.
+- **Merge.** Drag one crystal onto another to combine them into a **multi-crystal** — two effects in a
+  single socket. The merged item's lore is each component's own lore, concatenated.
+- **Extract.** The **crystal extractor** pops the last-applied crystal back off socketed gear as a
+  whole item.
+
+:::note Sockets are separate from enchant slots
+How many crystals a piece can hold is governed by `crystals.slots` (default 1) and the absolute
+`crystals.max-stack` (default 16) in [config.yml](../configuring/index.mdx) — a different ledger from
+[enchant slots](../concepts/slots.mdx).
+:::
+
+## Minting & giving
+
+```text
+/se crystal <key>                # mint a specific crystal to yourself (key from content/crystals/)
+/se give crystal <player> <key>
+/se give extractor <player>      # give a crystal extractor
+```

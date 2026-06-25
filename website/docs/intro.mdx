@@ -1,0 +1,107 @@
+---
+id: intro
+title: Introduction
+sidebar_position: 1
+description: What StarEnchants is, how to install it, and how to make your first enchant in 60 seconds.
+---
+
+# StarEnchants
+
+**StarEnchants is a single drop-in jar** that brings legendary custom enchantments, armor sets,
+socketable crystals, and a full item economy to your server — all under **one config schema**, all
+fed through **one engine**. It runs across **Paper 1.17.1 → 26.1.x** and **Folia** from the same
+download: no per-version files, no add-on jars.
+
+If you have run a Cosmic Enchants–style enchantment plugin before, everything here will feel
+familiar — books, scrolls, dust, soul gems, slot orbs — but it is all configured the same way, in
+plain YAML, and reloaded live with one command.
+
+What ships in the box:
+
+- **An effect engine** — **51 effects**, **21 triggers**, **17 selectors**, and a conditions DSL
+  over **40 live variables**. Enchants, armor-set bonuses, and crystals all feed this one engine.
+- **Armor sets** with a completion bonus, an optional matched weapon, and Heroic upgrades.
+- **An item & souls economy** — enchant books, scrolls (white, holy-white, black, transmog, godly
+  transmog, randomizer), success dust, soul gems, slot-expander orbs, and nametags.
+- **A built-in migrator** to bring existing EliteEnchantments, EliteArmor, and AdvancedEnchantments
+  configs into the unified schema.
+- **Optional integrations** — WorldGuard, Towny, Lands, SuperiorSkyblock, Factions, Vault,
+  PlaceholderAPI, GrimAC, mcMMO, MythicMobs, ItemsAdder, Oraxen, and more. All bundled, all
+  optional, none required.
+
+## Requirements
+
+| Need | Detail |
+| --- | --- |
+| Java | **17 or newer** |
+| Server | **Paper 1.17.1 → 26.1.x**, or **Folia** |
+| Everything else | optional |
+
+One universal jar runs the whole version range — there are no per-version downloads.
+
+## Install
+
+1. **Download** the latest `StarEnchants.jar` from the
+   [Releases](https://github.com/owengregson/StarEnchants/releases/latest) page.
+2. Drop it into your server's `plugins/` folder.
+3. *(Optional)* Drop in any supported plugin — Vault, PlaceholderAPI, WorldGuard, GrimAC,
+   MythicMobs, ItemsAdder, … — and StarEnchants wires up to it automatically. None is required.
+4. **Restart** the server. StarEnchants writes its default config into `plugins/StarEnchants/`.
+5. Edit the configs, then run `/se reload` — no restart needed.
+
+:::tip First boot
+StarEnchants ships a complete, playable default content library (dozens of enchants, six armor sets,
+six crystals, every item type). You can start handing items out immediately and customize later.
+:::
+
+## Your first enchant in 60 seconds
+
+Every enchant is **one file** under `content/enchants/`. The file's path *is* the enchant's key — a
+file at `content/enchants/lifesteal.yml` has the key `lifesteal`. Create
+`plugins/StarEnchants/content/enchants/zephyr.yml`:
+
+```yaml
+# content/enchants/zephyr.yml — heal a little every time you land a hit
+tier: uncommon
+display: "&bZephyr"
+description: "Catch a second wind when you strike."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1: { chance: 30, effects: [ { MODIFY_HEALTH: { amount: 2 } } ] }
+  2: { chance: 40, effects: [ { MODIFY_HEALTH: { amount: 3 } } ] }
+  3: { chance: 50, effects: [ { MODIFY_HEALTH: { amount: 4 } } ] }
+```
+
+Then, in-game:
+
+```text
+/se reload
+/se book zephyr 3      # mint a level-III Zephyr book to yourself
+```
+
+Drag the book onto a sword, hit something, and watch yourself heal. That is the whole loop: edit a
+file → `/se reload` → mint and test.
+
+:::note `/se reload` never takes the server down
+A reload rebuilds the entire content library **off-thread** and only swaps it in if it compiles
+clean. A broken edit keeps your running config live and prints diagnostics instead. Use
+`/se reload --dry-run` to validate without swapping.
+:::
+
+## Where to go next
+
+- **[Concepts](./concepts/enchants.mdx)** — what enchants, sets, crystals, heroic, souls, slots,
+  tiers, and groups actually are, in plain language.
+- **[Configuring content](./configuring/index.mdx)** — the data-folder layout and a fully annotated
+  walk-through of every field.
+- **[Items & economy](./items/enchant-books.mdx)** — books, scrolls, dust, soul gems, orbs,
+  nametags, and how to mint or give each.
+- **[Commands](./commands/index.mdx)** — the full `/se` surface and permissions.
+- **[Cookbook](./cookbook/index.mdx)** — complete, copy-paste enchant recipes.
+- **Enchant Creator** — build and edit enchants visually, then export the YAML or an import code:
+  open the [Enchant Creator](/creator).
+
+For the exact catalog of effects, triggers, selectors, and conditions, see the
+[DSL reference](/docs/reference/effects).

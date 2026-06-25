@@ -1,0 +1,59 @@
+---
+id: enchants
+title: Enchants
+sidebar_position: 1
+description: What a custom enchant is in StarEnchants and how one fires.
+---
+
+# Enchants
+
+An **enchant** is a named power you stamp onto a piece of gear. It is the most common thing you will
+create. Every enchant in StarEnchants follows the same simple shape:
+
+> **When** *something happens* (a **trigger**) on the right kind of item, **maybe** (a **chance**)
+> run a list of **effects** on **someone** (a **selector**).
+
+That is the whole model. A sword that heals you on hit, a chestplate that strikes back when you are
+attacked, a pickaxe that showers you with experience — all of them are the same pattern with
+different triggers and effects.
+
+## How an enchant fires
+
+When a triggering event happens (you swing a sword, you take a hit, you break a block), StarEnchants
+runs the enchant through a short sequence of gates:
+
+1. **Trigger match** — does this event match the enchant's `trigger`, and is the enchant on the
+   right kind of item (`applies-to`)?
+2. **Condition** — an optional boolean test (e.g. *only when the victim is below 6 health*). If it
+   fails, the enchant does nothing.
+3. **Chance** — a percentage roll. A 25% enchant fires roughly one swing in four.
+4. **Cooldown** — if the enchant just fired, it may be on cooldown and skip this one.
+5. **Souls** — if the enchant costs souls, the player must have them banked in an active soul gem.
+6. **Effects** — the list of actions finally runs: deal damage, heal, ignite, apply a potion, play
+   a particle, send a message, and so on.
+
+Each of those gates is optional except the trigger and the effects. A simple enchant is just a
+trigger, a chance, and one effect.
+
+## Levels
+
+An enchant has **levels** (often I–III, but you choose). Each level can set its own chance,
+cooldown, condition, and effects — usually getting stronger as the level climbs. Levels do not have
+to be contiguous, so a set like 1, 3, 5 is perfectly fine.
+
+## Where enchants come from
+
+Enchants live on gear as hidden data and render into the item's lore automatically. Players obtain
+them through the item economy — most often by applying an **enchant book** (see
+[Enchant books](../items/enchant-books.mdx)). Admins can stamp one directly with
+`/se enchant <key> [level]`.
+
+## Related concepts
+
+- **[Rarity tiers](./rarity-tiers.mdx)** — the color/glint/sort metadata an enchant carries.
+- **[Groups](./groups.mdx)** — shared cooldown and suppression buckets.
+- **[Crystals](./crystals.mdx)** and **[armor sets](./armor-sets.mdx)** — other sources that feed
+  the same engine.
+
+Ready to write one? See **[Configuring an enchant](../configuring/index.mdx)** for the full,
+annotated schema, or open the [Enchant Creator](/creator) to build one visually.

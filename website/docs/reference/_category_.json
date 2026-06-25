@@ -1,0 +1,9 @@
+{
+  "label": "DSL reference",
+  "position": 40,
+  "link": {
+    "type": "generated-index",
+    "title": "DSL reference",
+    "description": "The complete configurable vocabulary of StarEnchants — effects, triggers, selectors, and conditions — explained in plain language. Every page on this reference is generated from the engine's own catalog, so it can never drift from what the plugin actually does."
+  }
+}

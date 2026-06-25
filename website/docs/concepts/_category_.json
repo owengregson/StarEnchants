@@ -1,0 +1,9 @@
+{
+  "label": "Concepts",
+  "position": 10,
+  "link": {
+    "type": "generated-index",
+    "title": "Concepts",
+    "description": "The big ideas behind StarEnchants — enchants, armor sets, crystals, heroic upgrades, the souls economy, slots, rarity tiers, and groups — explained without YAML."
+  }
+}

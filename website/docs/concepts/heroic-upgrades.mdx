@@ -1,0 +1,41 @@
+---
+id: heroic-upgrades
+title: Heroic upgrades
+sidebar_position: 4
+description: A risky one-shot power-up that boosts damage, reduction, and durability.
+---
+
+# Heroic upgrades
+
+A **Heroic upgrade** is a one-shot power-up you apply to a single piece of gear — any armor piece or
+weapon, *not* tied to a set. It is the high-roller item: a small success chance, consumed whether it
+works or not, but a permanent boost when it lands.
+
+On success a heroic upgrade:
+
+- adds a **percent damage** bonus (for weapons),
+- adds a **percent damage reduction** (for armor),
+- adds a **durability** save chance (a chance to cancel item damage), and
+- can optionally **upgrade the material** (e.g. diamond → netherite).
+
+On failure the gear is unharmed — only the upgrade item is consumed.
+
+## How heroic damage stacks
+
+Heroic damage is special: it is applied as its own stage *after* the additive damage fold (the sum
+of all the percent bonuses from enchants, sets, and crystals). The outgoing multiplier is clamped by
+`heroic.max-outgoing-factor` in `config.yml` (default **4.0** — heroic can at most quadruple your
+output). This keeps stacked heroic gear from running away.
+
+:::tip Tune the risk
+The success chance is drawn from a `[success-min, success-max]` range in the heroic item config
+(defaults: 5–15%). Raise it for a more forgiving server, lower it for a true gamble.
+:::
+
+## Related concepts
+
+- **[Armor sets](./armor-sets.mdx)** — heroic is independent of sets; you can heroic-upgrade set
+  pieces too.
+- **[The heroic item](../items/index.mdx)** — minting and giving heroic upgrades.
+
+For the upgrade item's full config, see **[Items](../items/index.mdx)**.

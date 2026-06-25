@@ -1,0 +1,36 @@
+---
+id: index
+slug: /cookbook
+title: Cookbook
+sidebar_position: 0
+description: Complete, copy-paste enchant recipes you can drop straight into content/enchants/.
+---
+
+# Cookbook
+
+Complete, working enchant recipes you can copy straight into `content/enchants/`. Each one is valid
+against the real schema, with an explanation of how it works and which knobs to turn. Drop the file
+in, run `/se reload`, then mint a book with `/se book <key> <level>` to test.
+
+:::tip Build these visually
+Every recipe here can also be built, tweaked, and exported from the
+[Enchant Creator](/creator) — a visual editor for the same YAML. Start from a recipe, adjust the
+sliders, and export the result.
+:::
+
+## The recipes
+
+1. [Lifesteal on hit](./lifesteal-on-hit.mdx) — heal a little every time you strike.
+2. [AoE cleave](./aoe-cleave.mdx) — your strike spills into nearby enemies.
+3. [Defensive retaliate](./defensive-retaliate.mdx) — strike back at whoever hits you.
+4. [Vein-miner + auto-smelt](./vein-miner-autosmelt.mdx) — mine a whole ore vein and smelt the drops.
+5. [Conditional crit (executioner)](./conditional-crit.mdx) — bonus damage only on a wounded foe.
+6. [Channeled heal (command trigger)](./channeled-heal.mdx) — a `/cast`-activated healing surge.
+
+## How to read a recipe
+
+Every recipe follows the same shape — a [trigger](/docs/reference/triggers), an `applies-to`, a
+[group](../concepts/groups.mdx), and per-level [effects](/docs/reference/effects) with optional
+[chance](../configuring/index.mdx#per-level-keys), `cooldown`, and
+[condition](/docs/reference/conditions). If a field is new to you, the
+[configuring](../configuring/index.mdx) section explains it in full.

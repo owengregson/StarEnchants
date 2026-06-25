@@ -1,0 +1,95 @@
+---
+id: index
+slug: /integrations
+title: Integrations
+sidebar_position: 0
+description: The optional plugin bridges bundled in the one jar — all soft, none required.
+---
+
+# Integrations
+
+StarEnchants integrates with other plugins **out of the box, from the one jar**. Every integration is
+**soft**: it activates only when the other plugin is installed, and *none* is ever required. There are
+no separate add-on jars — the StarEnchants jar carries **zero** third-party plugin bytecode.
+
+A server with none of these plugins runs exactly as if the integration code weren't there. Drop a
+supported plugin in alongside StarEnchants and the matching bridge wires itself up at boot.
+
+## Toggles
+
+Integrations are controlled under `integrations` in `config.yml`:
+
+```yaml
+integrations:
+  protection: true    # consult region/claim plugins for the build gate
+  economy: true       # use an economy backend for money effects
+  named: {}           # per-integration off switch, e.g. named: {worldguard: false}
+```
+
+`named.<id>: false` disables one integration; an unlisted id is enabled. Valid ids: `worldguard`,
+`towny`, `lands`, `superiorskyblock`, `factions`, `vault`, `placeholderapi`, `mental`, `nocheatplus`,
+`grim`, `vulcan`, `matrix`, `spartan`, `mcmmo`, `mythicmobs`, `itemsadder`, `oraxen`.
+
+:::warning Integration discovery is boot-time
+The `integrations` block is read **once at server start**. Toggling an integration takes effect on the
+next restart, not on `/se reload`.
+:::
+
+## Region / claim plugins
+
+When present, an enchant effect is allowed to act at a location only if the player could build there.
+First deny wins; with no protection plugin installed, everything is allowed.
+
+| Plugin | Gate |
+| --- | --- |
+| **WorldGuard** | the `BUILD` flag |
+| **Towny** | the `BUILD` permission (non-Towny worlds are ungated) |
+| **Lands** | the `BLOCK_PLACE` role-flag (unclaimed land is ungated) |
+| **SuperiorSkyblock2** | the island `BUILD` privilege (off-island is ungated) |
+| **Factions (FactionsUUID)** | territory access — wilderness/safezone/warzone ungated; a player claim needs at least truce |
+
+A custom region plugin can register its own protection provider through Bukkit's `ServicesManager`;
+bundled and external providers compose together.
+
+## Economy
+
+| Plugin | Use |
+| --- | --- |
+| **Vault** | money effects (`MODIFY_MONEY`) deposit/withdraw/transfer through the server's Vault economy backend |
+
+The backend resolves lazily, so the economy plugin may load in any order. With no economy installed,
+money effects are simply no-ops. A custom economy provider registered through the `ServicesManager` is
+used when Vault is absent.
+
+## Placeholders — PlaceholderAPI
+
+- **Expansion** — StarEnchants registers `%starenchants_…%` placeholders:
+  - `%starenchants_soulmode%` → `on` / `off`
+  - `%starenchants_souls%` → the soul balance of the player's active gem
+- **Passthrough** — other plugins' `%…%` placeholders are resolved inside StarEnchants chat messages
+  for the target player. (Lore and menu text render from cached state and are intentionally not
+  passthrough targets.)
+
+## Combat & movement
+
+| Plugin | Role |
+| --- | --- |
+| **Mental** | coordinates engine-applied knockback (`KNOCKBACK_CONTROL`) with the Mental knockback plugin |
+| **GrimAC** · **NoCheatPlus** | engine-applied motion is reconciled with the anticheat |
+| **mcMMO** | party friendly-fire awareness |
+
+**Vulcan**, **Matrix**, and **Spartan** are detected and logged — they handle engine-applied motion
+natively, so no special coordination is needed.
+
+## Content
+
+| Plugin | Role |
+| --- | --- |
+| **MythicMobs** | exposes `%victim.mobtype%` for conditions, so enchants can react to a mob's type |
+| **ItemsAdder** · **Oraxen** | custom-item materials resolve as valid `applies-to` / `material` values |
+
+:::tip None of this is required
+Every bridge is optional. You can run StarEnchants entirely standalone, then add Vault for money
+effects, WorldGuard to gate block-breaking enchants, or MythicMobs to tune enchants per mob type —
+each lights up on its own when you install it.
+:::

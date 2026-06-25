@@ -1,0 +1,78 @@
+---
+id: soul-gems
+title: Soul gems & souls
+sidebar_position: 4
+description: Bank a soul currency on kills and spend it on enchants.
+---
+
+# Soul gems & souls
+
+A **soul gem** banks the **souls** currency. Players earn souls by killing, store them in a carried
+gem, and spend them on enchants that demand them. See [the souls economy](../concepts/souls-economy.mdx)
+for the concept; this page covers the gem item's config.
+
+## The gem — `items/soul-gem.yml`
+
+```yaml
+type: soul-gem
+material: EMERALD
+name: "&aSoul Gem"
+lore:
+  - "&7Souls: {SOUL-COLOR}{AMOUNT}"
+  - "&7Right-click to toggle soul mode."
+
+# Acquisition (deposit on any kill).
+souls-per-kill: 1
+# Optional per-mob overrides (EntityType -> amount); anything unlisted uses souls-per-kill.
+souls-per-mob:
+  WITHER: 100
+  ENDER_DRAGON: 250
+  PLAYER: 10
+
+# Soul-colour tiers for {SOUL-COLOR} (min count -> &colour); the highest match wins.
+soul-colors:
+  1: "&f"
+  64: "&a"
+  256: "&b"
+  1024: "&d"
+empty-soul-color: "&7"          # colour shown for an empty gem
+
+sounds:
+  enabled: true
+  activate: "entity.player.levelup"
+  deactivate: "ui.button.click"
+  combine: "block.anvil.use"
+
+particles:
+  active: [SOUL]                 # while-active aura, spawned each tick on players in soul mode
+  on-activate: [SOUL_FIRE_FLAME, HAPPY_VILLAGER]
+  on-deactivate: [SMOKE]
+```
+
+| Token | Renders |
+| --- | --- |
+| `{AMOUNT}` | the gem's current soul count |
+| `{SOUL-COLOR}` | the color for that count, from `soul-colors` |
+
+## How souls flow
+
+- **Earning.** With `souls.deposit-on-any-kill: true` in `config.yml`, every kill banks
+  `souls-per-kill` (or the per-mob override) into the carried gem.
+- **Soul mode.** Right-click the gem to toggle soul mode. Souls are only *spent* while soul mode is
+  on — this is what lets `soul-cost` enchants and the `REMOVE_SOULS` effect draw from your balance.
+- **Combining.** Drag one gem onto another to combine their souls into one.
+
+:::note Master switch
+The deposit-on-kill mechanic is gated by `souls.deposit-on-any-kill` in
+[config.yml](../configuring/index.mdx). Disabling it stops auto-deposits but leaves the give/combine/
+split commands and soul-cost spending working.
+:::
+
+## Minting & giving
+
+```text
+/se gem [souls]                  # mint a gem to yourself (optionally pre-filled with souls)
+/se give gem <player> [souls]
+/se split <amount>               # carve souls off your gem into a new gem
+/se soulmode                     # toggle your own soul mode
+```

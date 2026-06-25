@@ -1,0 +1,78 @@
+---
+id: channeled-heal
+title: Channeled heal (command trigger)
+sidebar_position: 6
+description: A player-activated healing surge bound to the /cast command.
+---
+
+# Channeled heal (command trigger)
+
+Not every enchant fires on combat. This one fires when the *player* chooses — they run `/cast` to
+channel a burst of healing from the weapon, gated by a cooldown so it can't be spammed. This recipe
+shows the **`COMMAND`** trigger.
+
+```yaml
+# content/enchants/channel.yml
+tier: epic
+display: "&dChannel"
+description: "Run /cast to channel a healing surge from the weapon."
+trigger: COMMAND
+applies-to: [WEAPON]
+group: utility
+levels:
+  1:
+    chance: 100
+    cooldown: 600
+    effects:
+      - { MODIFY_HEALTH: { amount: 6 } }
+      - { POTION: { effect: REGENERATION, level: 2, duration: 100, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&dYou channel the weapon's power." } }
+  2:
+    chance: 100
+    cooldown: 500
+    effects:
+      - { MODIFY_HEALTH: { amount: 10 } }
+      - { POTION: { effect: REGENERATION, level: 3, duration: 120, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 200, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_PLAYER_LEVELUP, volume: 1, pitch: 1 } }
+      - { MESSAGE: { text: "&dYou channel the weapon's power." } }
+```
+
+## How it works
+
+- **`trigger: COMMAND`** fires when the player runs the configured command (default `/cast`). It runs
+  through the full gate sequence — chance, cooldown, condition, souls — exactly like `ATTACK`; only
+  the entry point differs.
+- **`cooldown: 600`** ticks (30 seconds) keeps it from being spammed. This is the main balance lever.
+- The effects all target the player (`@Self` defaults), so this is a self-buff.
+
+:::warning The /cast command is registered at boot
+The `COMMAND` trigger relies on `command-trigger` in `config.yml` — `enabled: true` and the command
+`name` (default `cast`). That is read **once at server start**, so if you rename the command, restart
+the server (a `/se reload` won't re-bind it). The command is available to all players, not just admins.
+:::
+
+## Variations
+
+- **A combat utility** — channel a short Strength/Speed before a fight:
+
+  ```yaml
+  effects:
+    - { POTION: { effect: STRENGTH, level: 1, duration: 200 } }
+    - { POTION: { effect: SPEED, level: 1, duration: 200 } }
+  ```
+
+- **Charge it with souls** so the channel costs the player a resource:
+
+  ```yaml
+  1:
+    chance: 100
+    cooldown: 200
+    soul-cost: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: 6 } }
+  ```
+
+See the [triggers reference](/docs/reference/triggers) for `COMMAND` and the other non-combat triggers
+(`REPEATING`, `PASSIVE`, `INTERACT`, …).

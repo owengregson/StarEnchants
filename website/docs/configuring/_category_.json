@@ -1,0 +1,8 @@
+{
+  "label": "Configuring content",
+  "position": 20,
+  "link": {
+    "type": "doc",
+    "id": "configuring/index"
+  }
+}

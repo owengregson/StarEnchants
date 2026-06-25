@@ -1,0 +1,72 @@
+---
+id: index
+slug: /items
+title: Items & economy
+sidebar_position: 0
+description: Every physical item StarEnchants mints, what it does, and how to give it.
+---
+
+# Items & economy
+
+Beyond enchants, sets, and crystals, StarEnchants mints a family of **physical items** that drive the
+player economy — books to apply enchants, scrolls to protect or rework gear, dust and orbs to upgrade,
+and soul gems to bank a currency. Each is one file under `items/`, tagged by `type:`, carrying its
+`material` / `name` / `lore` plus a few type-specific knobs.
+
+These item files describe each item's **look** and its economy settings. They never compile to an
+ability and never touch the combat hot path. An item's identity and counters live in its persistent
+data and render back into lore automatically.
+
+## The item family
+
+| Page | Item | What it does |
+| --- | --- | --- |
+| [Enchant books](./enchant-books.mdx) | book, unopened (mystery) book | apply an enchant to gear |
+| [Scrolls](./scrolls.mdx) | white, holy-white, black, transmog, godly transmog, randomizer | protect, extract, rework, reroll |
+| [Success dust](./success-dust.mdx) | dust | raise a book's success chance |
+| [Soul gems](./soul-gems.mdx) | soul gem | bank and spend souls |
+| [Slot orbs](./slot-orbs.mdx) | slot expander | add enchant slots |
+| [Nametags](./nametags.mdx) | item nametag | rename gear |
+| [Crystals](./crystals.mdx) | crystal, extractor | socket a levelless bonus |
+| Heroic upgrade | heroic | a one-shot power-up (see below) |
+
+## Minting and giving
+
+Two command families produce items:
+
+- **`/se <item>`** mints one **to yourself** — `/se book <enchant> [level]`, `/se gem [souls]`,
+  `/se orb`, `/se heroic`, `/se dust [percent]`, `/se nametag`, `/se whitescroll`, `/se holy`,
+  `/se blackscroll`, `/se randomizer`, `/se transmog`, `/se godlytransmog`, `/se crystal <key>`,
+  `/se unopened <tier>`.
+- **`/se give <type> <player> …`** gives one **to someone else** — books, scrolls, dust, gems, orbs,
+  crystals, extractors, sets, heroics, and unopened books.
+
+See the [commands](../commands/index.mdx) page for the exact argument shapes.
+
+## The heroic upgrade item
+
+The heroic upgrade (`items/heroic.yml`, `type: heroic`) is a one-shot power-up dragged onto any armor
+piece or weapon. It has a small randomized success chance, is consumed either way, and on success
+stamps percent stats and optionally swaps the material:
+
+```yaml
+type: heroic
+material: NETHERITE_SCRAP
+name: "&6&lHeroic Upgrade"
+lore:
+  - "&7Drag onto armour or a weapon to attempt a heroic upgrade."
+  - "&7Small success chance — consumed on use."
+success-min: 5                 # per-attempt success chance is drawn from [min, max] percent
+success-max: 15
+percent-damage: 0.10           # +10% outgoing damage (weapons)
+percent-reduction: 0.10        # -10% incoming damage (armor)
+durability: 0.25               # 25% chance to cancel item damage
+reduction-scope: ENTITY        # ENTITY = PvP/entity only; ALL = every damage cause
+material-upgrades:             # optional within-category material swap on success
+  DIAMOND_HELMET: NETHERITE_HELMET
+  DIAMOND_CHESTPLATE: NETHERITE_CHESTPLATE
+  DIAMOND_SWORD: NETHERITE_SWORD
+```
+
+Mint with `/se heroic`, or give with `/se give heroic <player>`. The damage stacking ceiling lives at
+`heroic.max-outgoing-factor` in `config.yml`. See [Heroic upgrades](../concepts/heroic-upgrades.mdx).

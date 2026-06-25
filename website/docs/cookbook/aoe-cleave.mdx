@@ -1,0 +1,62 @@
+---
+id: aoe-cleave
+title: AoE cleave
+sidebar_position: 2
+description: Your strike spills out into the enemies around your target.
+---
+
+# AoE cleave
+
+A weapon that hits everything near your target, not just the one you swung at. This recipe shows the
+key idea of **selectors** — `who:` decides who an effect lands on, and `@Aoe{r=N}` means "every living
+entity within N blocks."
+
+```yaml
+# content/enchants/cleave.yml
+tier: rare
+display: "&cCleave"
+description: "Strike all foes around your target."
+trigger: ATTACK
+applies-to: [SWORD, AXE]
+group: combat
+levels:
+  1:
+    chance: 25
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=3}" } }
+  2:
+    chance: 35
+    effects:
+      - { DAMAGE: { amount: 3, who: "@Aoe{r=4}" } }
+  3:
+    chance: 45
+    cooldown: 0
+    effects:
+      - { DAMAGE: { amount: 4, who: "@Aoe{r=4}" } }
+      - { PARTICLE: { particle: CRIT, count: 12 } }
+      - { MESSAGE: { text: "&cCleave!" } }
+```
+
+## How it works
+
+- **`DAMAGE`** deals a flat amount of extra damage.
+- **`who: "@Aoe{r=4}"`** redirects it from the default single victim to *everyone within 4 blocks* of
+  the target (excluding you). The radius grows with level.
+- The **`@Aoe`** selector can also filter and cap targets — see below.
+
+## Variations
+
+- **Only hit monsters, cap at 5 targets:**
+
+  ```yaml
+  - { DAMAGE: { amount: 4, who: "@Aoe{r=5, filter=MONSTERS, limit=5}" } }
+  ```
+
+- **Stun the crowd instead of damaging it:**
+
+  ```yaml
+  - { POTION: { effect: SLOWNESS, level: 2, duration: 60, who: "@Aoe{r=4}" } }
+  ```
+
+See the [`@Aoe` selector](/docs/reference/selectors) for `filter` (`ALL` / `PLAYERS` / `MONSTERS` /
+`MOBS`) and `limit`.

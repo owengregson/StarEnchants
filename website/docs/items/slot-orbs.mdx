@@ -1,0 +1,42 @@
+---
+id: slot-orbs
+title: Slot-expander orbs
+sidebar_position: 5
+description: Add enchant slots to a piece of gear.
+---
+
+# Slot-expander orbs
+
+A **slot-expander orb** is dragged onto gear to raise its **enchant-slot** count, up to a universal
+ceiling. It is the lever players use to fit more enchants onto a single item. See
+[Slots](../concepts/slots.mdx) for the concept.
+
+## The orb — `items/slot-orb.yml`
+
+```yaml
+type: slot-orb
+orb-material: ENDER_EYE
+orb-name: "&5Slot Expander &7(+{AMOUNT})"
+orb-lore:
+  - "&7Drag onto gear to add &f{AMOUNT}&7 enchant slots."
+orb-amount: 3                    # +slots this orb grants
+# Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml).
+hard-cap: 15
+```
+
+| Token | Renders |
+| --- | --- |
+| `{AMOUNT}` | the `+N` slots the orb adds |
+
+:::warning Two ceilings to remember
+`slots.base` in [config.yml](../configuring/index.mdx) sets where items *start* (default 9);
+`hard-cap` here sets the absolute *maximum* total (default 15). An orb that would push past the cap
+is rejected, and the player gets the at-cap message (`slot.at-cap` in `lang.yml`).
+:::
+
+## Minting & giving
+
+```text
+/se orb                          # mint a slot expander to yourself
+/se give orb <player>
+```

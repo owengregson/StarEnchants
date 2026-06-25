@@ -1,0 +1,50 @@
+---
+id: effects
+title: Effects
+description: Every effect StarEnchants can run, grouped by family, with plain-language descriptions, argument tables, and copy-paste examples.
+slug: /reference/effects
+sidebar_position: 1
+---
+
+import EffectFamilies from '@site/src/components/reference/EffectFamilies';
+
+# Effects
+
+An **effect** is one action an enchant (or armor set, or crystal) performs when it fires. You list effects under the `effects:` key of a level, and each one is a single token shaped like `HEAD:args`:
+
+```yaml
+levels:
+  1:
+    chance: 25            # 25% chance to fire on the trigger
+    effects:
+      - "DAMAGE:6"        # HEAD = DAMAGE, one arg = 6
+      - "IGNITE:60"       # set the victim on fire for 60 ticks (3s)
+      - "MESSAGE:&cBurn!" # tell the player
+```
+
+- **`HEAD`** is the effect name (always uppercase), e.g. `DAMAGE`, `POTION`, `BREAK_BLOCK`.
+- **`args`** are colon-separated values. Required args come first; optional ones have sensible defaults you can omit.
+- Many effects also accept a **target selector** in `{...}` or as a trailing `@Selector` to change *who* they act on — see [Selectors](./selectors.mdx). When you don't specify one, the effect uses its default target (shown in each card below).
+
+:::tip Ticks are the unit of time
+Anywhere you see a duration, it's measured in **ticks**, and **20 ticks = 1 second**. So `IGNITE:60` burns for 3 seconds, and `FLY:200` grants 10 seconds of flight.
+:::
+
+:::note Reading the "How it runs" line
+Each effect card shows where the effect runs:
+
+- **Runs inline** — happens immediately as part of the triggering event (e.g. adjusting the combat hit). The fastest path.
+- **Acts on an entity** — does something to a living target (heal, ignite, potion).
+- **Acts on the world** — touches blocks or spawns things at a location.
+- **Runs globally** — server-wide work, like console commands.
+
+You don't have to manage any of this — it's just to help you picture what each effect touches.
+:::
+
+<EffectFamilies />
+
+## See also
+
+- [Triggers](./triggers.mdx) — *when* these effects fire.
+- [Selectors](./selectors.mdx) — *who* an effect targets.
+- [Conditions & variables](./conditions.mdx) — gate an effect on game state.

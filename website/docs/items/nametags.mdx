@@ -1,0 +1,41 @@
+---
+id: nametags
+title: Item nametags
+sidebar_position: 6
+description: Rename a piece of gear, with a banned-word filter.
+---
+
+# Item nametags
+
+An **item nametag** lets a player rename a piece of gear: drag the tag onto the item, then type the
+new name in chat. A blacklist filter can reject names containing banned words.
+
+## The nametag — `items/nametag.yml`
+
+```yaml
+type: nametag
+material: NAME_TAG
+name: "&bItem Nametag"
+lore:
+  - "&7Drag onto gear, then type the"
+  - "&7new name in chat."
+# Words a renamed item may not contain (case-insensitive substring of the colour-stripped name).
+blacklist: []                    # empty = allow any name
+```
+
+The blacklist is matched **case-insensitively** as a substring of the color-stripped name, so adding
+`["slur", "admin"]` blocks any name containing those anywhere. An empty list allows anything.
+
+:::tip Curb impersonation and slurs
+Populate `blacklist` with staff role names and any disallowed terms so players can't mint gear named
+to impersonate staff or carry offensive text.
+:::
+
+## Minting & giving
+
+```text
+/se nametag                      # mint a nametag to yourself
+/se give nametag <player>
+```
+
+Result messages live in `lang.yml` under `scroll.nametag.*`.

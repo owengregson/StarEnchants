@@ -1,0 +1,230 @@
+/* Shared styling for the catalog-driven DSL reference cards.
+   Colours lean on Infima theme variables so dark mode just works; the
+   pink->purple brand accents come through --ifm-color-primary. */
+
+.card {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem 1.25rem;
+  margin: 1.25rem 0;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.cardHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.cardTitle {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ifm-color-primary-darkest);
+  scroll-margin-top: calc(var(--ifm-navbar-height) + 1rem);
+}
+
+:global([data-theme='dark']) .cardTitle {
+  color: var(--ifm-color-primary-lightest);
+}
+
+.cardDesc {
+  margin: 0.15rem 0 0.75rem;
+  color: var(--ifm-color-emphasis-800);
+}
+
+/* Small pill badges (affinity, direction, family flags). */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.badgeNeutral {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-800);
+}
+
+.badgeInline {
+  background: rgba(185, 140, 255, 0.18);
+  color: #6b3fa0;
+}
+
+.badgeRegion {
+  background: rgba(255, 159, 207, 0.22);
+  color: #9c2f6b;
+}
+
+.badgeTarget {
+  background: rgba(120, 190, 255, 0.2);
+  color: #1f6aa8;
+}
+
+.badgeGlobal {
+  background: rgba(255, 196, 120, 0.25);
+  color: #9a5a00;
+}
+
+.badgeAttack {
+  background: rgba(255, 120, 120, 0.2);
+  color: #b02525;
+}
+
+.badgeDefense {
+  background: rgba(120, 190, 255, 0.2);
+  color: #1f6aa8;
+}
+
+:global([data-theme='dark']) .badgeInline {
+  background: rgba(185, 140, 255, 0.25);
+  color: #d6bcff;
+}
+
+:global([data-theme='dark']) .badgeRegion {
+  background: rgba(255, 159, 207, 0.22);
+  color: #ffc2e2;
+}
+
+:global([data-theme='dark']) .badgeTarget,
+:global([data-theme='dark']) .badgeDefense {
+  background: rgba(120, 190, 255, 0.22);
+  color: #bfe0ff;
+}
+
+:global([data-theme='dark']) .badgeGlobal {
+  background: rgba(255, 196, 120, 0.22);
+  color: #ffdca6;
+}
+
+:global([data-theme='dark']) .badgeAttack {
+  background: rgba(255, 120, 120, 0.22);
+  color: #ffc2c2;
+}
+
+/* The plain-language affinity / routing hint line under the header. */
+.hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.hint strong {
+  color: var(--ifm-color-emphasis-900);
+}
+
+/* Param tables: tighter than the default doc table, wraps cleanly. */
+.paramTable {
+  width: 100%;
+  display: table;
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.88rem;
+}
+
+.paramTable th {
+  text-align: left;
+  white-space: nowrap;
+}
+
+.paramName {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.req {
+  color: #b02525;
+  font-weight: 600;
+}
+
+.opt {
+  color: var(--ifm-color-emphasis-600);
+}
+
+:global([data-theme='dark']) .req {
+  color: #ff9a9a;
+}
+
+.defaultVal,
+.range {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85em;
+}
+
+.muted {
+  color: var(--ifm-color-emphasis-500);
+}
+
+.noParams {
+  font-size: 0.88rem;
+  color: var(--ifm-color-emphasis-600);
+  font-style: italic;
+  margin: 0.25rem 0 0.75rem;
+}
+
+/* Example line: a copyable inline snippet. */
+.exampleRow {
+  margin-top: 0.4rem;
+}
+
+.exampleLabel {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-600);
+  margin-right: 0.5rem;
+}
+
+.exampleCode {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9rem;
+  background: var(--ifm-code-background);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 6px;
+  padding: 0.15rem 0.45rem;
+}
+
+/* Family section intro blurb. */
+.familyIntro {
+  color: var(--ifm-color-emphasis-700);
+  margin-bottom: 0.5rem;
+}
+
+/* The quick "jump to family" index at the top of the effects page. */
+.familyNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin: 1rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.familyNav li {
+  margin: 0;
+}
+
+.familyNavLink {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.familyNavLink:hover {
+  background: var(--ifm-color-emphasis-200);
+  text-decoration: none;
+}
