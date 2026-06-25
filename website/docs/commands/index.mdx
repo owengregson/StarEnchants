@@ -6,6 +6,8 @@ sidebar_position: 0
 description: The full /se command surface and the permission node that guards it.
 ---
 
+import CommandsTable from '@site/src/components/surface/CommandsTable';
+
 # Commands & permissions
 
 Everything lives under one root command — **`/se`**. Tab-completion guides every argument, so you can
@@ -13,16 +15,10 @@ explore the surface in-game by pressing Tab after `/se`.
 
 ## At a glance
 
-| Command | What it does |
-| --- | --- |
-| `/se reload [--dry-run]` | Rebuild the content library off-thread and hot-swap it in (or just validate) |
-| `/se enchant <key> [level]` · `/se removeenchant <key>` | Apply or strip an enchant on the held item |
-| `/se book` · `crystal` · `gem` · `orb` · `heroic` · `dust` · `nametag` · scrolls… | Mint any item to yourself |
-| `/se give <type> <player> …` | Give any item — books, scrolls, dust, gems, orbs, crystals, sets, heroics — to a player |
-| `/se menu [name]` | Open an in-game GUI (enchanter, alchemist, tinkerer, transmog, browsers) |
-| `/se pack <list\|info\|apply\|export>` | Manage config-pack snapshots of your whole setup |
-| `/se migrate <ee\|ea\|ae> <path>` | Import EliteEnchantments, EliteArmor or AdvancedEnchantments configs |
-| `/se effects` · `triggers` · `selectors` · `conditions` · `variables` · `list` | Browse the live DSL reference in chat |
+Every `/se` command requires the **`starenchants.admin`** permission (default: **op**) — see
+[Permissions](#permissions) below. The table is generated from the plugin, so it is always complete:
+
+<CommandsTable/>
 
 ## Permissions
 

@@ -6,6 +6,10 @@ sidebar_position: 0
 description: The data-folder layout and how the pieces fit together.
 ---
 
+import ConfigBlock from '@site/src/components/surface/ConfigBlock';
+import TiersTable from '@site/src/components/surface/TiersTable';
+import ItemsTable from '@site/src/components/surface/ItemsTable';
+
 # Configuring content
 
 Everything StarEnchants reads lives under `plugins/StarEnchants/` as plain YAML. Edit a file and run
@@ -53,60 +57,7 @@ Most values are re-read live on the next use, so a `/se reload` re-tunes them wi
 exceptions — integration discovery, the auto-reload interval, the command trigger, and the
 slots/souls/scrolls *listeners* — are armed once at boot and noted below).
 
-```yaml
-features:                     # master on/off switches for whole subsystems
-  enchants: true              # enchant effects fire
-  sets: true                  # armor-set bonuses apply
-  crystals: true              # crystal effects fire
-  heroic: true                # heroic flat stats feed the heroic damage stage
-  slots: true                 # the slot orb can be applied (listener armed at boot)
-  souls: true                 # the soul gem system (listener armed at boot)
-  scrolls: true               # scroll-family interactions (listener armed at boot)
-
-combat:
-  max-bonus-damage: -1.0      # ceiling on summed outgoing-damage fraction; <0 = uncapped
-  max-bonus-reduction: -1.0   # ceiling on summed damage-reduction fraction; <0 = uncapped
-  pvp: true                   # apply combat effects in player-vs-player hits
-  pve: true                   # apply combat effects in player-vs-environment hits
-
-messages:
-  prefix: ""                  # e.g. "&8[&dSE&8] " — prepended to plugin chat messages
-  feedback: true              # send keyed gameplay-feedback messages to players
-
-slots:
-  base: 9                     # enchant slots on a fresh item (the hard cap lives in items/slot-orb.yml)
-
-souls:
-  deposit-on-any-kill: true   # banks souls into a carried gem on ANY kill
-
-crystals:
-  slots: 1                    # crystal sockets per item (separate from enchant slots)
-  max-stack: 16               # absolute max crystals one item may ever hold
-
-heroic:
-  max-outgoing-factor: 4.0    # ceiling on the heroic outgoing-damage multiplier (>= 1.0)
-
-lore:
-  enchant-color: "&7"         # an enchant's display name
-  level-color: "&f"           # the level numeral
-  crystal-color: "&b"         # a crystal line
-  roman: true                 # levels as Roman numerals (Venom III) vs Arabic (Venom 3)
-  unknown-label: "&8Unknown Enchant"  # shown for a stored key no longer in the catalog
-
-integrations:
-  protection: true            # discover region/claim plugins for the build gate (boot-time)
-  economy: true               # discover an economy backend for money effects (boot-time)
-  named: {}                   # per-integration off switch, e.g. named: {worldguard: false}
-
-reload:
-  re-resolve-players: true    # re-apply worn state to online players after a content swap
-  auto-seconds: 0             # >0 = periodic auto-reload interval in seconds (armed at boot)
-
-command-trigger:
-  enabled: true               # register a player /cast command for COMMAND-trigger enchants (boot-time)
-  name: cast                  # the command players run (no slash): /cast
-  description: "Trigger your COMMAND enchantments."
-```
+<ConfigBlock/>
 
 :::warning Boot-time vs. live
 `integrations`, `reload.auto-seconds`, `command-trigger`, and the `slots`/`souls`/`scrolls` feature
@@ -231,17 +182,15 @@ Tiers are defined once, in `content/tiers.yml`:
 ```yaml
 default-tier: common
 tiers:
-  common:    { color: "&7",   weight: 10, glint: false }
-  uncommon:  { color: "&a",   weight: 20, glint: false }
-  rare:      { color: "&b",   weight: 30, glint: false }
-  epic:      { color: "&d",   weight: 40, glint: true  }
-  legendary: { color: "&6",   weight: 50, glint: true  }
-  mythic:    { color: "&c&l", weight: 60, glint: true  }
+  <id>: { color: "&7", weight: 10, glint: false }   # one entry per tier
 ```
 
 Each tier id carries a lore `color`, a GUI sort `weight`, and whether items of that tier `glint`.
-`default-tier` is used by any enchant that omits `tier:`. See
-[Rarity tiers](../concepts/rarity-tiers.mdx) for the concept.
+`default-tier` is used by any enchant that omits `tier:`. The tiers StarEnchants ships with:
+
+<TiersTable/>
+
+See [Rarity tiers](../concepts/rarity-tiers.mdx) for the concept.
 
 ## Defining a set
 
@@ -315,25 +264,14 @@ Two crystals can be **merged** into one paired socket. How many sockets an item 
 ## Customizing items
 
 Every physical item is one file under `items/`, tagged by `type:`. These files describe each item's
-**look** (material, name, lore) and its economy knobs — they never compile to an ability. See the
-[Items & economy](../items/index.mdx) section for each item type in detail. A quick map:
+**look** (material, name, lore) and its economy knobs — they never compile to an ability. Every
+physical item StarEnchants ships, with its `type:`, default material, and default name:
 
-| Item file | `type:` | Notable fields |
-| --- | --- | --- |
-| `enchant-book.yml` | `enchant-book` | `success-lore`, `destroy-on-fail`, `{ENCHANT}` / `{LEVEL}` |
-| `white-scroll.yml` | `white-scroll` | protects gear from a failed enchant |
-| `holy-white-scroll.yml` | `holy-white-scroll` | `save-chance` (keep items on death) |
-| `black-scroll.yml` | `black-scroll` | `success-chance` (extract an enchant to a book) |
-| `transmog-scroll.yml` | `transmog-scroll` | `name-suffix` (reorder enchant lore) |
-| `godly-transmog.yml` | `godly-transmog` | reusable hand-pick reorder tool |
-| `randomizer-scroll.yml` | `randomizer-scroll` | `min-percent`, `max-percent` |
-| `unopened-book.yml` | `unopened-book` | `min-success`, `max-success`, `{TIER}` |
-| `dust.yml` | `dust` | `min-bonus`, `max-bonus`, sound, particles |
-| `soul-gem.yml` | `soul-gem` | `souls-per-kill`, `souls-per-mob`, colors, sounds |
-| `crystal.yml` | `crystal` | `success-chance`, `consume-on-fail`, `extractor` |
-| `slot-orb.yml` | `slot-orb` | `orb-amount`, `hard-cap` |
-| `heroic.yml` | `heroic` | `success-min/max`, percents, `material-upgrades` |
-| `nametag.yml` | `nametag` | `blacklist` (banned substrings) |
+<ItemsTable/>
+
+For each item type's economy knobs and notable fields — `success-lore` and `destroy-on-fail` on
+books, `save-chance` on the holy scroll, `souls-per-kill` on the gem, `hard-cap` on the orb, and so
+on — see the [Items & economy](../items/index.mdx) section, which covers each type in detail.
 
 ## Reloading
 

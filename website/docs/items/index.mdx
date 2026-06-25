@@ -6,6 +6,8 @@ sidebar_position: 0
 description: Every physical item StarEnchants mints, what it does, and how to give it.
 ---
 
+import ItemsTable from '@site/src/components/surface/ItemsTable';
+
 # Items & economy
 
 Beyond enchants, sets, and crystals, StarEnchants mints a family of **physical items** that drive the
@@ -29,6 +31,13 @@ data and render back into lore automatically.
 | [Nametags](./nametags.mdx) | item nametag | rename gear |
 | [Crystals](./crystals.mdx) | crystal, extractor | socket a levelless bonus |
 | Heroic upgrade | heroic | a one-shot power-up (see below) |
+
+### Every item file
+
+Each row above maps to one file under `items/`. The complete, generated list — every item's file
+key, `type:`, default material, and default name (shown with raw `&` colour codes) — is:
+
+<ItemsTable/>
 
 ## Minting and giving
 

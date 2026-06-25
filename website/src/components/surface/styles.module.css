@@ -1,0 +1,62 @@
+/* Styling for the generated operator-surface tables (commands, tiers, items).
+   Leans on Infima theme variables so dark mode just works; the pink->purple
+   brand accents come through --ifm-color-primary. */
+
+.cmd,
+.code,
+.swatchCode {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.cmd {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* The dim args fragment after the command name. */
+.cmdArgs {
+  color: var(--ifm-color-emphasis-600);
+  font-weight: 400;
+}
+
+.muted {
+  color: var(--ifm-color-emphasis-500);
+}
+
+/* "alias of …" sub-row under the command it aliases. */
+.aliasRow td {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.aliasNote {
+  font-size: 0.85em;
+  color: var(--ifm-color-emphasis-600);
+  font-style: italic;
+}
+
+/* Tier colour swatch — a small square painted with a literal hex preview
+   plus the raw '&' code beside it as text. */
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.swatchChip {
+  display: inline-block;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 3px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  flex: 0 0 auto;
+}
+
+.swatchCode {
+  font-size: 0.85em;
+}
+
+.center {
+  text-align: center;
+}
