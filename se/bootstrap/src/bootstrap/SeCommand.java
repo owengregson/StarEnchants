@@ -42,12 +42,45 @@ import schema.diag.Diagnostic;
  */
 public final class SeCommand implements CommandExecutor, TabCompleter {
 
-    static final List<String> SUBCOMMANDS =
-            List.of("reload", "give", "enchant", "removeenchant", "unenchant", "crystal", "heroic", "orb",
-                    "gem", "book", "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
-                    "dust", "whitescroll", "unopened", "soulmode",
-                    "split", "migrate", "import", "pack", "menu", "effects", "selectors", "triggers",
-                    "conditions", "variables", "list");
+    /**
+     * Every {@code /se} subcommand. The single source for {@link #SUBCOMMANDS} (completion) and the generated
+     * command docs ({@code website/src/data/surface.json}, via {@code SurfaceCatalogDriftTest}). Order matches
+     * the dispatch switch; adding a command here keeps completion + docs in step.
+     */
+    static final List<CommandInfo> COMMANDS = List.of(
+            CommandInfo.of("reload", "[--dry-run]", "Rebuild the content library off-thread and hot-swap it in (or just validate)."),
+            CommandInfo.of("give", "<type> <player> [args]", "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player."),
+            CommandInfo.of("enchant", "<key> [level]", "Apply an enchant to the held item (admin; bypasses apply rules)."),
+            CommandInfo.of("removeenchant", "<key>", "Strip an enchant from the held item."),
+            CommandInfo.alias("unenchant", "removeenchant"),
+            CommandInfo.of("crystal", "<key>", "Mint a socketable crystal to yourself."),
+            CommandInfo.of("heroic", "", "Mint a Heroic upgrade item to yourself."),
+            CommandInfo.of("orb", "", "Mint a slot-expander orb to yourself."),
+            CommandInfo.of("gem", "", "Mint a soul gem to yourself."),
+            CommandInfo.of("book", "<key> [level]", "Mint an enchant book to yourself."),
+            CommandInfo.of("blackscroll", "", "Mint a black scroll (extracts a random enchant from gear to a book)."),
+            CommandInfo.of("randomizer", "", "Mint a randomizer scroll (rerolls a book's success chance)."),
+            CommandInfo.of("transmog", "", "Mint a transmog scroll (re-skins an item's appearance)."),
+            CommandInfo.of("godlytransmog", "", "Mint a godly transmog tool (reorder an item's enchant lore)."),
+            CommandInfo.of("holy", "", "Mint a holy scroll (keeps items + levels on death)."),
+            CommandInfo.of("nametag", "", "Mint an item nametag."),
+            CommandInfo.of("dust", "[percent]", "Mint success dust (a fixed percent, or a random roll)."),
+            CommandInfo.of("whitescroll", "", "Mint a white scroll (protects an item from a black scroll)."),
+            CommandInfo.of("unopened", "<tier>", "Mint an unopened book of a rarity tier."),
+            CommandInfo.of("soulmode", "", "Toggle your active soul gem's soul mode."),
+            CommandInfo.of("split", "<amount>", "Split souls off your active gem into a new gem."),
+            CommandInfo.of("migrate", "<ee|ea|ae> <path>", "Import EliteEnchantments / EliteArmor / AdvancedEnchantments configs into the unified schema."),
+            CommandInfo.of("import", "<code>", "Import an enchant from an SE1 code (e.g. from the web Enchant Creator) and reload."),
+            CommandInfo.of("pack", "<list|info|apply|export> [name]", "Manage config-pack ZIP snapshots of your whole setup."),
+            CommandInfo.of("menu", "[name]", "Open an in-game GUI (enchanter, alchemist, tinkerer, transmog, browsers)."),
+            CommandInfo.of("effects", "", "Browse the effect reference in chat."),
+            CommandInfo.of("selectors", "", "Browse the selector reference in chat."),
+            CommandInfo.of("triggers", "", "Browse the trigger reference in chat."),
+            CommandInfo.of("conditions", "", "Browse the conditions reference in chat."),
+            CommandInfo.of("variables", "", "Browse the condition variables in chat."),
+            CommandInfo.of("list", "", "List every enchant, set, and crystal."));
+
+    static final List<String> SUBCOMMANDS = COMMANDS.stream().map(CommandInfo::name).toList();
 
     static final List<String> PACK_ACTIONS = List.of("list", "info", "apply", "export");
 

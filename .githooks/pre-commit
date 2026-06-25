@@ -21,4 +21,19 @@ for f in $staged; do
   fi
 done
 
+# Keep the generated docs/data artifacts in step. If a staged file feeds them (the engine/schema/
+# compile registries, the command catalog, or the bundled config/tiers/items/content), regenerate
+# and re-stage — so a contributor never trips the *DriftTest gate in CI. Skip with `git commit -n`.
+if printf '%s\n' "$staged" | grep -Eq '^(se/(engine|schema|compile)/src/|se/bootstrap/src/bootstrap/(SeCommand|CommandInfo)\.java|se/bootstrap/resources/(config\.yml|content/))'; then
+  echo "• regenerating generated docs (a source changed)…" >&2
+  if ./gradlew -q regenDocs >/dev/null 2>&1; then
+    git add docs/reference/dsl-reference.md \
+            website/src/data/catalog.json website/src/data/surface.json \
+            se/bootstrap/resources/content/index.txt 2>/dev/null || true
+  else
+    echo "✗ regenDocs failed — run './gradlew regenDocs' and fix before committing." >&2
+    status=1
+  fi
+fi
+
 exit $status
