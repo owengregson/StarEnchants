@@ -125,7 +125,6 @@ import platform.protect.ProtectionProvider;
 import platform.protect.ProtectionProviders;
 import platform.protect.ProtectionService;
 import platform.resolve.RegistryResolvers;
-import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 import schema.diag.Diagnostic;
@@ -134,8 +133,8 @@ import schema.diag.Diagnostics;
 /**
  * The composition root (ADR-0014; §3): probe → install scheduling → load content → wire the combat
  * spine and feature listeners. One retained {@link RegistryResolvers} pairs compile-time interning with
- * the runtime {@link RuntimeHandles} (§9); reusing one compiler across reloads is safe — reload is
- * single-flight.
+ * the runtime resolver (§9; the modern/legacy split lives behind the {@code bootstrap.compat.Wiring} seam);
+ * reusing one compiler across reloads is safe — reload is single-flight.
  */
 public final class StarEnchantsPlugin extends JavaPlugin {
 
@@ -169,12 +168,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
-        RuntimeHandles handles = new RuntimeHandles(resolvers);
-        // §D/§I particle feedback: token → interner → live Particle, skip-on-miss.
-        feature.fx.ParticleFx particleFx = new feature.fx.ParticleFx(token -> {
-            java.util.OptionalInt id = resolvers.particle(token);
-            return id.isPresent() ? handles.particle(id.getAsInt()) : null;
-        });
+        // Runtime resolver wiring (modern RuntimeHandles vs legacy NMS-by-name) lives behind the overlay seam.
+        bootstrap.compat.Wiring wiring = new bootstrap.compat.Wiring(resolvers);
+        feature.fx.ParticleFx particleFx = wiring.particleFx();
 
         Library initial = loadInitial(compiler, contentRoot);
         content = new ContentHolder(initial);
@@ -357,7 +353,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // itemsadder:… / oraxen:… custom-item materials in item/menu configs.
         item.mint.ItemFactory.customItemResolver(
                 Integrations.customItem(this, master.config().integrations()::enabled));
-        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), content, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, wiring.sinkFactory(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
                 soulService::bindingFor, economy, soulService, vars, suppression, knockback, keepOnDeath,
@@ -368,7 +364,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
                 () -> master.config().combat().pve());                    // §L combat.pve gate (live)
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
-        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, new engine.sink.DispatchSinkFactory(handles), content, worn, triggers,
+        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, wiring.sinkFactory(), content, worn, triggers,
                 tick::get, soulService::bindingFor, economy, soulService, vars, suppression, knockback,
                 keepOnDeath, teleblock, immune,
                 () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
@@ -523,7 +519,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         var commandTrigger = master.config().commandTrigger();
         if (commandTrigger.enabled()) {
             try {
-                getServer().getCommandMap().register("starenchants", new CommandTriggerCommand(
+                bootstrap.compat.Commands.register(getServer(), "starenchants", new CommandTriggerCommand(
                         commandTrigger.name(), commandTrigger.description(), triggerDispatch,
                         messages.format("command.not-a-player")));
                 getLogger().info("command-trigger registered: /" + commandTrigger.name());
@@ -585,7 +581,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 if (from == null) {
                     return null;
                 }
-                Entity hit = from.getTargetEntity((int) Math.ceil(maxDistance));
+                Entity hit = bootstrap.compat.Targets.targetEntity(from, (int) Math.ceil(maxDistance));
                 return hit instanceof LivingEntity living ? living : null;
             }
 
@@ -594,7 +590,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 if (from == null) {
                     return null;
                 }
-                org.bukkit.block.Block block = from.getTargetBlockExact((int) Math.ceil(maxDistance));
+                org.bukkit.block.Block block = bootstrap.compat.Targets.targetBlock(from, (int) Math.ceil(maxDistance));
                 return block == null ? null : block.getLocation();
             }
 
@@ -610,7 +606,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 } catch (RuntimeException offRegion) {
                     return List.of(); // a cross-region/unloaded read on Folia — bail rather than crash
                 }
-                if (match.isAir()) {
+                if (feature.compat.Mats.isAir(match)) {
                     return List.of();
                 }
                 // 6-neighbour flood-fill of the same material, capped at `limit`. Guarded reads mean a
