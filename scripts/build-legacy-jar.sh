@@ -15,7 +15,8 @@
 #       java -jar BuildTools.jar --rev 1.8.8 --compile craftbukkit
 #     (installs org.bukkit:craftbukkit:1.8.8-R0.1-SNAPSHOT into ~/.m2). NOT on any public repo.
 #
-# Output: se/bootstrap/build/libs/StarEnchants-<version>-legacy.jar
+# Usage:   scripts/build-legacy-jar.sh [bootstrap|tester]   (default: bootstrap)
+# Output:  se/<module>/build/libs/StarEnchants[-Tester]-<version>-legacy.jar
 #
 # Live verification (Gate 4) is a SEPARATE, mandatory step: boot a real Spigot 1.8.8 under JDK 8 with this
 # jar and run the legacy smoke suite. Per the §11 ownership precondition, the legacy lane must not ship
@@ -38,11 +39,21 @@ if ! find "$HOME/.m2" -path '*craftbukkit/1.8.8*' -name '*.jar' | grep -q .; the
   exit 2
 fi
 
-echo "[legacy] 1/2  dual-compile + assemble the legacy fat jar (Gate 1 + Gate 1b) ..."
-./gradlew -Pse.target=legacy :bootstrap:jar
-VERSION="$(./gradlew -q -Pse.target=legacy :bootstrap:properties 2>/dev/null | awk -F': ' '/^version:/{print $2}')"
-IN_JAR="$ROOT/se/bootstrap/build/libs/bootstrap-${VERSION}.jar"
-OUT_JAR="$ROOT/se/bootstrap/build/libs/StarEnchants-${VERSION}-legacy.jar"
+# Which module's fat jar to build+downgrade: `bootstrap` (the shipped plugin, default) or `tester` (the
+# in-server smoke harness for Gate 4 — scripts/legacy-smoke.sh). Both pull every module's legacy overlay via
+# -Pse.target=legacy; only the assembled fat jar (and its output name) differs.
+MODULE="${1:-bootstrap}"
+case "$MODULE" in
+  bootstrap) OUT_NAME="StarEnchants" ;;
+  tester)    OUT_NAME="StarEnchants-Tester" ;;
+  *) echo "ERROR: unknown module '$MODULE' (expected: bootstrap | tester)" >&2; exit 2 ;;
+esac
+
+echo "[legacy] 1/2  dual-compile + assemble the legacy ${MODULE} fat jar (Gate 1 + Gate 1b) ..."
+./gradlew -Pse.target=legacy ":${MODULE}:jar"
+VERSION="$(./gradlew -q -Pse.target=legacy ":${MODULE}:properties" 2>/dev/null | awk -F': ' '/^version:/{print $2}')"
+IN_JAR="$ROOT/se/${MODULE}/build/libs/${MODULE}-${VERSION}.jar"
+OUT_JAR="$ROOT/se/${MODULE}/build/libs/${OUT_NAME}-${VERSION}-legacy.jar"
 
 # Fetch the JvmDowngrader CLI once.
 JDG="$WORK/jvmdowngrader-${JDG_VERSION}-all.jar"
