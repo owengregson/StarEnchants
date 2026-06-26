@@ -70,7 +70,7 @@ import schema.spec.HandleCategory;
  * <p>One instance per event; not thread-safe by design — filled and flushed on the single firing thread (§6),
  * scheduled batches run later on their own threads over immutable captured primitives.
  */
-public final class DispatchSink implements Sink {
+public final class DispatchSink implements SinkReadback {
 
     private final RuntimeHandles handles;
     private final EconomyService economy;
