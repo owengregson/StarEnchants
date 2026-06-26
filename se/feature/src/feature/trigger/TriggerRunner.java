@@ -117,7 +117,11 @@ public final class TriggerRunner {
         }
         long now = nowTicks.getAsLong();
         Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
-                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble(100.0))
+                // nextDouble() * 100, NOT nextDouble(100.0): the bounded overload resolves through the JDK-17
+                // RandomGenerator interface, which JvmDowngrader cannot stub for the optional Java-8 (1.8) jar
+                // (it emits a MissingStubError throw). The no-arg nextDouble() is ancient Random API — same
+                // uniform [0,100) result, untouched by the downgrade. Verified live by the legacy smoke combat check.
+                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
                 .facts(factPopulator.populate(context, now)) // gate-7 condition facts, read on the firing thread
                 .location(context.location()); // captured on the firing thread → safe for the gate-2 guard
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
