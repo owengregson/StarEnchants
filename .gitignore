@@ -4,6 +4,8 @@
 
 # Build output
 build/
+# -Pse.target=legacy redirects every module's buildDir here (isolated from the modern build/)
+build-legacy/
 out/
 bin/
 *.class

@@ -2,19 +2,20 @@
 id: legacy-1-8-9
 title: Legacy 1.8.9 support
 sidebar_position: 9
-description: How to run StarEnchants on a Minecraft 1.8.9 server with the optional second jar, what differs from the modern jar, and how the jar is built and gated.
+description: How to run StarEnchants on a Minecraft 1.8.9 server with the same single jar, what differs from the modern range, and how the jar is built and gated.
 ---
 
 # Legacy 1.8.9 support
 
-The main StarEnchants jar is one universal download that runs **Paper 1.17.1 → 26.1.x and Folia**.
-If your server is still on **Minecraft 1.8.9**, there is a **separate optional jar** — built from the
-exact same engine and content — that runs there too.
+The StarEnchants jar is one universal download that runs **Paper 1.17.1 → 26.1.x and Folia**. If your
+server is still on **Minecraft 1.8.9**, the **same single jar** runs there too — no separate download.
 
-:::info One engine, two jars
-The 1.8.9 jar is **not** a different plugin: it is the whole StarEnchants engine compiled against the
-1.8.8 server API and lowered to Java 8. Your `content/` configs, commands, items, and economy are
-identical. Pick the jar that matches your server — never run both.
+:::info One jar, every version
+The 1.8.9 support is **not** a different plugin or a different download: it is the whole StarEnchants
+engine compiled against the 1.8.8 server API and lowered to Java 8, shipped *inside* the same jar. The
+jar is a [Multi-Release JAR](https://openjdk.org/jeps/238): a Java 8 server (1.8.x) automatically loads
+the legacy v52 tree, and a Java 16+ server (1.17.1+) loads the modern v61 tree — the JVM picks the right
+one. Your `content/` configs, commands, items, and economy are identical either way.
 :::
 
 ## Requirements
@@ -22,17 +23,17 @@ identical. Pick the jar that matches your server — never run both.
 | Need | Detail |
 | --- | --- |
 | Server | **Spigot / CraftBukkit / Paper 1.8.8 – 1.8.9** |
-| Java | **Java 8** (the jar is lowered to Java-8 bytecode) |
-| Everything else | optional — same as the modern jar |
+| Java | **Java 8** (the jar's legacy tree is lowered to Java-8 bytecode) |
+| Everything else | optional — same as on the modern range |
 
 ## Install
 
-1. **Download** the `StarEnchants-<version>-1.8.9.jar` asset from the
-   [Releases](https://github.com/owengregson/StarEnchants/releases/latest) page — **not** the plain
-   `StarEnchants-<version>.jar` (that one is the 1.17.1+ universal jar and will not load on 1.8.9).
+1. **Download** the `StarEnchants-<version>.jar` from the
+   [Releases](https://github.com/owengregson/StarEnchants/releases/latest) page — the same jar every
+   server uses.
 2. Drop it into your 1.8.9 server's `plugins/` folder.
 3. **Restart** the server. StarEnchants writes its default config into `plugins/StarEnchants/`, exactly
-   like the modern jar.
+   like on the modern range.
 4. Edit the configs, then run `/se reload`.
 
 Everything in the [Concepts](./concepts/enchants.mdx), [Configuring](./configuring/index.mdx),
@@ -55,21 +56,24 @@ needs any config change — the engine adapts automatically:
   knockback are exact; amplifying it (a multiplier above 1) is best-effort.
 
 Everything else — applying books/scrolls/dust, rendered lore, the combat effect engine, armor sets,
-crystals, souls, slots, and the GUIs — behaves the same as on the modern jar, and is verified live on
+crystals, souls, slots, and the GUIs — behaves the same as on the modern range, and is verified live on
 a real 1.8.8 server on every change (see below).
 
-## For maintainers: building, testing & releasing the 1.8.9 jar
+## For maintainers: building, testing & releasing the 1.8.9 support
 
-The 1.8.9 jar ships **only when its live test gate is green** — there is no untested legacy lane.
+The single jar is a Multi-Release build: `scripts/build-mega-jar.sh` builds the modern v61 tree and the
+downgraded legacy v52 tree, then merges them — the v52 tree at the jar's base and the v61 tree under
+`META-INF/versions/17/`. The 1.8.9 support ships **only when its live test gate is green** — there is no
+untested legacy lane.
 
 **In CI (automatic).** Every push or PR that touches the engine runs the
 [`Legacy 1.8.9` workflow](https://github.com/owengregson/StarEnchants/actions): it compiles
 craftbukkit-1.8.8 on the runner via Spigot BuildTools, dual-compiles the whole plugin against it,
-lowers it to Java 8, boots a **real 1.8.8 server under JDK 8**, and runs the reduced in-server smoke
-suite (item apply + render, the no-PDC NBT-survival check, the material degrade, the combat spine, the
-enchant GUI, and the degraded-feature checks). The release workflow runs the **same** gate and attaches
-`StarEnchants-<version>-1.8.9.jar` to the GitHub release only when it passes — so the legacy jar can
-never ship without a green Gate-4.
+lowers it to Java 8, boots a **real 1.8.8 server under JDK 8** (so the JVM loads the v52 tree), and runs
+the reduced in-server smoke suite (item apply + render, the no-PDC NBT-survival check, the material
+degrade, the combat spine, the enchant GUI, and the degraded-feature checks). The release workflow runs
+the **same** gate and attaches the single `StarEnchants-<version>.jar` to the GitHub release only when it
+passes — so the legacy tree can never ship without a green Gate-4.
 
 **Locally.** You need the 1.8.8 server jar in your local maven and a JDK 8:
 
@@ -77,8 +81,8 @@ never ship without a green Gate-4.
 # One-time: compile craftbukkit-1.8.8 into ~/.m2 (it is on no public repo).
 java -jar BuildTools.jar --rev 1.8.8 --compile craftbukkit
 
-# Build the downgraded 1.8.9 plugin jar → se/bootstrap/build/libs/StarEnchants-<ver>-legacy.jar
-scripts/build-legacy-jar.sh bootstrap
+# Build the single Multi-Release jar (modern v61 + downgraded legacy v52) → se/bootstrap/build/libs/StarEnchants-<ver>.jar
+scripts/build-mega-jar.sh
 
 # Run the live gate: build + downgrade the tester, boot real 1.8.8 under JDK 8, assert the smoke PASSes
 scripts/legacy-smoke.sh

@@ -22,6 +22,33 @@ versioning: [Semantic Versioning](https://semver.org/).
   runtime, derived via a multi-lens design workshop) and ADRs 0011 (architecture),
   0012 (fully-additive damage), 0013 (single `/se` command root).
 
+## [1.1.1-beta] - 2026-06-26
+
+### Changed
+
+- **One jar for every version.** Minecraft 1.8.9 support now ships *inside* the single
+  `StarEnchants-<version>.jar` as a Multi-Release JAR (base = legacy Java-8/v52 tree,
+  `META-INF/versions/17/` = modern Java-17/v61 tree, merged by `scripts/build-mega-jar.sh`):
+  a 1.8.x server's JVM loads the v52 tree automatically, a 1.17.1+ JVM loads the v61 tree.
+  The separate `StarEnchants-<version>-1.8.9.jar` release asset is gone — `release.yml` now
+  publishes exactly one jar. Verified live by booting the same jar on craftbukkit-1.8.8
+  (JDK 8), Paper 1.17.1 (JDK 17), and Paper 26.1.2 (JDK 25) via `scripts/mega-smoke.sh`.
+- **Order-independent cross-version build.** `-Pse.target=legacy` now compiles into a separate
+  `build-legacy/` directory, so the modern and legacy trees can never collide — no clobbered
+  jar, no overlay-swap incremental contamination, no build-order dependency. `build-mega-jar.sh`
+  enforces a soundness gate that refuses to merge any module whose two trees diverge in class
+  set (only the plugin qualifies; the era-specific tester stays two artifacts).
+
+### Fixed
+
+- **1.8 empty-hand condition facts.** The legacy main-hand read NPE'd for an empty-handed
+  entity (1.8 `getItemInHand()` returns null where modern returns AIR), silently corrupting
+  the `helditem` / `actor.type` condition facts; it now normalizes to AIR to match the modern
+  path.
+- **Test-gate jar selection.** `legacy-smoke.sh` and `run-matrix.sh` now pin the tester jar by
+  the canonical project version — a `find | head -1` could pick a stale older-version jar (a
+  false PASS) — and guard an empty-array expansion under `set -u` on non-arm64 macOS.
+
 ## [1.1.0-beta] - 2026-06-26
 
 ### Added

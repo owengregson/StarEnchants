@@ -93,7 +93,7 @@ Bring your existing EliteEnchantments, EliteArmor &amp; AdvancedEnchantments con
 
 <p align="center"><img src="assets/headers/building.svg" height="54" alt="Building from source"></p>
 
-StarEnchants builds with the bundled Gradle wrapper — no global toolchain to install. One universal jar covers the whole range (Paper 1.17.1 → 26.1.x and Folia); a **separate optional jar** built from the same engine runs legacy **Minecraft 1.8.9** (`scripts/build-legacy-jar.sh` + the live `scripts/legacy-smoke.sh` gate — see [docs/legacy-1.8.9-codeshare-design.md](docs/legacy-1.8.9-codeshare-design.md)).
+StarEnchants builds with the bundled Gradle wrapper — no global toolchain to install. One Multi-Release jar built by `scripts/build-mega-jar.sh` covers the whole range *including* legacy **Minecraft 1.8.9** — the JVM auto-selects the modern v61 tree on Paper 1.17.1 → 26.1.x and Folia, and the legacy v52 tree on 1.8.x — gated live by `scripts/legacy-smoke.sh` (see [docs/legacy-1.8.9-codeshare-design.md](docs/legacy-1.8.9-codeshare-design.md)).
 
 ```bash
 git clone https://github.com/owengregson/StarEnchants.git
