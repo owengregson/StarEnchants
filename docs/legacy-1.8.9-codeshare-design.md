@@ -70,6 +70,7 @@ Mechanisms, and why each beats the alternatives the panel rejected:
   wall.
 
 **Explicitly rejected** (killed by the panel and confirmed by red-team):
+
 - The `Sink` `EntityRef` swap — adds a per-hit map lookup, damages invariant 7 (fully
   additive damage on the hot path), zero 1.8 benefit (those Bukkit types exist on 1.8.9).
 - The `EffectCtx`/`SelectorCtx` `Player`/`LivingEntity` ref-purge — ~80 files across 68
@@ -131,6 +132,7 @@ types present on 1.8.9 and stays **un-ported**, proven by the compile gate.
 ## 3. Required parent-codebase changes (Phase 0), ordered by leverage
 
 ### 3.1 `ItemBlobStore` + `ItemFlagStore` — make the one item-data layer physical
+
 - **Change:** the 11 codecs lose their duplicated `getItemMeta()→getPersistentDataContainer()
   →get/set/has/remove→setItemMeta()` plumbing (~23 + 23 PDC statements across 11 files)
   and call the store. The 5 String-payload codecs (`CombatCodec`, `SoulCodec`,
@@ -154,6 +156,7 @@ types present on 1.8.9 and stays **un-ported**, proven by the compile gate.
   `store.read(stack, COMBAT)` instead of `codec.readBlob(stack)`, zero semantic change.
 
 ### 3.2 `ItemTransfer.copyState` — carry only SE-owned state across a cross-Material upgrade
+
 - **Change:** `HeroicService.java:115` does `upgraded.setItemMeta(gear.getItemMeta())` — a
   whole-meta copy from a source Material onto a different-Material fresh stack, dragging
   attribute modifiers / unbreakable / can-destroy / lore when the copy *succeeds*. Replace
@@ -168,6 +171,7 @@ types present on 1.8.9 and stays **un-ported**, proven by the compile gate.
 - **Blast radius:** 1 helper + 1 line. TRIVIAL.
 
 ### 3.3 `EquipSource` — move the off-hand read out of shared `main`
+
 - **Change:** `WornResolver.java:81–82` calls `getItemInMainHand()`/`getItemInOffHand()`
   **unconditionally in shared `main`** (1.9+ symbols; 1.8 uses `getItemInHand()` and has no
   off-hand slot). Extract `EquipSource`; `WornResolver.resolveFrom(List<CombatState>)`
@@ -180,6 +184,7 @@ types present on 1.8.9 and stays **un-ported**, proven by the compile gate.
   a **hot-path behavioral change** — see the Phase-0a/0b split (§9).
 
 ### 3.4 ArchUnit guards — convert invariants from convention to CI
+
 - (a) `RuntimeHandles`' typed accessors are the **only** source of live registry-backed
   objects, consumed only inside `DispatchSink`.
 - (b) Zero `org.bukkit`/`net.minecraft`/`io.papermc` import in `schema`/`compile`/`migrate`/
@@ -200,6 +205,7 @@ types present on 1.8.9 and stays **un-ported**, proven by the compile gate.
   unchecked casts and worsens invariant 4.
 
 ### 3.5 `SinkReadback` — the COMPLETE concrete-readback interface
+
 - **Change:** `DispatchSink` exposes public concrete read-backs consumed cross-module:
   `cancelled()`, `armorIgnored()`, `smeltRequested()`, `teleportDropsRequested()`,
   `seekRequested()` — verified consumers at `TriggerDispatch.java:191` (smelt +
@@ -209,6 +215,7 @@ types present on 1.8.9 and stays **un-ported**, proven by the compile gate.
 - **Blast radius:** 1 interface + the consumers re-typed. LOW.
 
 ### 3.6 Fold the 2 static side-channels into the composition root
+
 - **Change:** `DispatchSink.movementExemption(Consumer<Player>)` and
   `FactPopulator.entityTypeResolver(Function<Entity,String>)` become boot-wired instance
   hooks.
@@ -231,6 +238,7 @@ There is **no runtime-probed `compat-legacy` sibling** of `compat-folia` for the
 that fork (`overlay/legacy/` in `engine`, `item`, `platform`), compile-coupled to `main`.
 
 **Overlay contents (the entire irreducible fork of the core):**
+
 - `engine/overlay/legacy/engine/sink/DispatchSink.java` (~1,075 LOC) — apply bodies via
   `v1_8_R3`: particles via packet, attributes via `setMaxHealth`/NMS `GenericAttributes`,
   no `Damageable` interface, `Effect` instead of `Particle`. Implements the unchanged `Sink`
@@ -310,6 +318,7 @@ Phase-2 100×-render-then-read-blob smoke assertion (§7).
 the §3.3 `EquipSource`/interned-material seam to link on 1.8 — moved out of share-as-is.
 
 **Honest totals:**
+
 - **Cross-version core (22,301 LOC): ~88–90% shareable *after the §3 parent refactors***
   (share-as-is + behind-port), ~2k LOC thin overlay fork. This is **not** "share-as-is" —
   the §3 work is a *precondition* for the number, and `compile`'s share is conditional on
