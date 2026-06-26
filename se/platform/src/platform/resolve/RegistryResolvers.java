@@ -1,5 +1,6 @@
 package platform.resolve;
 
+import java.util.Map;
 import schema.spec.HandleCategory;
 
 /**
@@ -13,5 +14,10 @@ public final class RegistryResolvers extends RenameResolvers {
     @Override
     protected boolean exists(HandleCategory category, String canonicalName) {
         return RegistrySupport.exists(category, canonicalName);
+    }
+
+    @Override
+    protected Map<String, String> fallbackAliases(HandleCategory category) {
+        return RegistrySupport.fallbackAliases(category); // empty on the floor build; legacy degradations on 1.8
     }
 }

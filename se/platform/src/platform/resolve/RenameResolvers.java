@@ -30,6 +30,16 @@ public abstract class RenameResolvers implements PlatformResolvers {
      */
     protected abstract boolean exists(HandleCategory category, String canonicalName);
 
+    /**
+     * Platform-specific, lossy fallbacks merged ON TOP of the shared {@link Aliases} renames for resolution
+     * only — e.g. on the optional 1.8 lane a {@code SOUL} particle (added 1.16) degrades to a 1.8 particle.
+     * These are NOT renames (the migrator must not see them, so they never enter {@link Aliases}); empty by
+     * default, supplied by the live resolver per target.
+     */
+    protected Map<String, String> fallbackAliases(HandleCategory category) {
+        return Map.of();
+    }
+
     /** The canonical name a resolved id maps to, or {@code null}. */
     public final String nameOf(HandleCategory category, int id) {
         return interners.get(category).nameOf(id);
@@ -37,9 +47,20 @@ public abstract class RenameResolvers implements PlatformResolvers {
 
     private OptionalInt resolve(HandleCategory category, String token) {
         Optional<String> resolved = HandleResolver.resolve(
-                token, Aliases.forCategory(category), name -> exists(category, name));
+                token, aliasesFor(category), name -> exists(category, name));
         return resolved.map(name -> OptionalInt.of(interners.get(category).intern(name)))
                 .orElseGet(OptionalInt::empty);
+    }
+
+    private Map<String, String> aliasesFor(HandleCategory category) {
+        Map<String, String> renames = Aliases.forCategory(category);
+        Map<String, String> fallbacks = fallbackAliases(category);
+        if (fallbacks.isEmpty()) {
+            return renames;
+        }
+        Map<String, String> merged = new java.util.HashMap<>(renames);
+        merged.putAll(fallbacks); // platform fallback wins on the rare key clash
+        return merged;
     }
 
     @Override

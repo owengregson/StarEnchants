@@ -1,6 +1,7 @@
 package item.mint;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
@@ -32,5 +33,14 @@ final class ItemFactoryTest {
     void fallsBackOnBlankOrNull() {
         assertEquals(Material.STONE, ItemFactory.material("   ", Material.STONE));
         assertEquals(Material.STONE, ItemFactory.material(null, Material.STONE));
+    }
+
+    @Test
+    void legacyFallbackMapsNewerMaterialsToOlderEquivalents() {
+        // The newer→older degradation table for the optional 1.8 lane (shovels are _SPADE on 1.8).
+        assertEquals("DIAMOND_HELMET", ItemFactory.legacyFallback("NETHERITE_HELMET"));
+        assertEquals("DIAMOND_SWORD", ItemFactory.legacyFallback("NETHERITE_SWORD"));
+        assertEquals("DIAMOND_SPADE", ItemFactory.legacyFallback("NETHERITE_SHOVEL"));
+        assertNull(ItemFactory.legacyFallback("STONE"));
     }
 }
