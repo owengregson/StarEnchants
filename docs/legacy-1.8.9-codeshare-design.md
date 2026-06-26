@@ -10,12 +10,21 @@
 
 ---
 
-## Execution status (2026-06-25) — the fork is BUILT (Phase 1 done; Gate 4 boots)
+## Execution status (2026-06-25) — the fork is SHIPPING (all phases done; Gate 4 live + CI-enforced)
 
-The maintainer greenlit building all phases. The 1.8.9 fork is now **built and compile-verified against a
-real Spigot 1.8.8 (`v1_8_R3`) jar**, and the downgraded plugin **loads and enables on a real
-craftbukkit-1.8.8 server under JDK 8**. Branch `feat/legacy-1.8.9-fork`. The modern build + unit tests stay
-green throughout (no modern regression).
+The maintainer greenlit building all phases AND shipping the optional second jar. The 1.8.9 fork is now
+**built, compile-verified against a real Spigot 1.8.8 (`v1_8_R3`) jar, and FUNCTIONALLY verified live**: a
+downgraded jar boots on a real craftbukkit-1.8.8 server under JDK 8 and the in-server reduced smoke suite
+passes 8/8 (item apply+render, the no-PDC blob-survives-`setItemMeta` NBT trap, the NETHERITE→DIAMOND material
+degrade, the combat spine venom→poison + `EnchantActivateEvent`, the enchant GUI, and the two §6 degrades —
+heroic-save restore + the NMS knockback-resistance hook). Branch `feat/legacy-1.8.9-fork` (PR #156). The modern
+build + unit tests + a Paper/Folia matrix subset stay green throughout (no modern regression).
+
+**Shipping + ownership (§11).** The live smoke is now CI-enforced: `.github/workflows/legacy.yml` compiles
+craftbukkit-1.8.8 via Spigot BuildTools on the runner (cached) and runs the full dual-compile + downgrade +
+JDK-8 boot + smoke on every push/PR touching the engine or the legacy build; `release.yml` runs the SAME gate
+and publishes the `StarEnchants-<ver>-1.8.9.jar` asset only when it is green. The legacy lane therefore cannot
+ship without its Gate-4 green — the §11 ownership precondition, now mechanical rather than a manual promise.
 
 **What changed vs. this blueprint (a better outcome).** The blueprint assumed separate `overlay/legacy`
 *source sets* + a wholesale-forked `:compat-legacy` Bukkit-edge module. In practice the cleaner mechanism is
@@ -44,26 +53,34 @@ not rewritten.
   `StarEnchants-<ver>-legacy.jar`. **Risk R6 resolved**: JDG handles the 126 records + sealed + switch-
   expressions cleanly.
 
-**Phase 2 — Gate 4 (live JDK-8 boot) — PARTIAL (architecture proven):** the downgraded jar boots on a real
-craftbukkit-1.8.8 under JDK 8: `Loading` → `Enabling` → `Capabilities[1.8.8, Paper], scheduling
-BukkitSchedulerBackend`. Gate 4 then surfaced **R2 (library skew)** exactly as predicted —
+**Phase 2 — Gate 4 (live JDK-8 boot + functional smoke) — DONE:** the downgraded jar boots on a real
+craftbukkit-1.8.8 under JDK 8 (`Loading` → `Enabling` → `Capabilities[1.8.8, Paper], scheduling
+BukkitSchedulerBackend`) and the reduced in-server smoke suite (`tester/legacy/LegacySmokeSuite`, driven by
+`LegacySmokePlugin` — the legacy build compiles only that 1.8-safe subset) passes 8/8, run by
+`scripts/legacy-smoke.sh`. Gate 4 surfaced **R2 (library skew)** exactly as predicted —
 `org.yaml.snakeyaml` on 1.8 lacks `LoaderOptions`/the `Yaml(LoaderOptions)` ctor; fixed with a `LinkageError`
-fallback in `YamlNode`/`LegacyYaml` (the legacy fork uses the server's SnakeYAML, no bundle/relocate needed).
+fallback in `YamlNode`/`LegacyYaml` (the legacy fork uses the server's SnakeYAML, no bundle/relocate needed) —
+plus four more: three netty-4.0 incompatibilities in the fake-player void channel, and a PRODUCTION chance-roll
+bug (`ThreadLocalRandom.nextDouble(double)` is JDG-unstubbable → every proc threw on the real 1.8 jar).
 
-**Remaining (honest, bounded — Phase 2/3):**
+**Done since this blueprint (Items 1–4):**
 
-- A **legacy `v1_8_R3` fake-player tester** for the full Gate-4 smoke suite (the in-server functional
-  assertions); only a boot+enable smoke exists today.
-- **Gate 3** legacy resolver-table completeness — the 1.8 particle/attribute name sets + Material aliases are
-  a STARTER set (`RegistrySupport` overlay); the full table is the budgeted R3 work.
-- The **§6 "degrades" features** that need a 1.8 NMS hook (no 1.8 event exists): KNOCKBACK_CONTROL,
-  heroic-durability, the ITEM_DAMAGE trigger, instant armour-change refresh — currently legacy no-op/poll
-  stubs.
+- ✅ **Item 1** — the legacy `v1_8_R3` fake-player tester + reduced smoke suite + the `legacy-smoke.sh` gate.
+- ✅ **Item 2** — the legacy resolver fix (1.8 sound/particle aliases + the NETHERITE→DIAMOND material degrade);
+  boot is `206 abilities, 0 errors`.
+- ✅ **Item 3** — full §6 degrade parity: ITEM_DAMAGE / heroic-durability / instant-armour-refresh via main-
+  thread polls, and KNOCKBACK_CONTROL via a real v1_8_R3 NMS knockback-resistance hook.
+- ✅ **Item 4** — the CI lane (`legacy.yml`) + release gate (`release.yml`) running the live smoke (BuildTools-
+  compiled craftbukkit-1.8.8), so the lane cannot ship without Gate-4 green (§11 ownership, mechanical).
+
+**Remaining (honest, bounded — not blocking the ship):**
+
+- **Gate 3** legacy resolver-table completeness — the 1.8 particle/attribute name sets + Material aliases are a
+  STARTER set (`RegistrySupport` overlay) plus the Item-2 renames; the exhaustive table is follow-up R3 work
+  (an unmapped token degrades gracefully today, it does not crash).
 - The broader **R2 library-skew audit** (Guava/Gson) if more surfaces past SnakeYAML.
-- CI wiring: a `-Pse.target=legacy` lane + the JDK-8 boot gate in `run-matrix.sh`/`release.yml`, behind the
-  §11 ownership commitment.
 
-The rest of this document is the original design/blueprint (the §9 phased plan is largely realised; the
+The rest of this document is the original design/blueprint (the §9 phased plan is realised; the
 `:compat-legacy`-module framing is superseded by the srcDir-overlay above).
 
 ---
