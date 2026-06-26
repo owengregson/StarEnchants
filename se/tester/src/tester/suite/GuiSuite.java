@@ -88,7 +88,7 @@ public final class GuiSuite implements Harness.Scenario {
                 return;
             }
             ContentHolder content = new ContentHolder(library);
-            ItemKeys keys = ItemKeys.of(plugin);
+            ItemKeys keys = ItemKeys.of();
             CombatCodec combat = new CombatCodec(keys.combat());
             LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key));
             ItemEnchanter enchanter = new ItemEnchanter(combat, lore, content, ItemGroups.standard());

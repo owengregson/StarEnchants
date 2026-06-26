@@ -2,10 +2,7 @@ package item.codec;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
  * The single compact codec for an item's combat state (docs/architecture.md §5.1). The whole
@@ -16,8 +13,9 @@ import org.bukkit.persistence.PersistentDataType;
  * (lazy migration, §4.3), never a crash.
  *
  * <p>The blob is a pure self-delimiting string (unit-tested via {@link #encodeBlob}/{@link #decodeBlob});
- * the PDC/{@link ItemStack} round-trip is verified on a real server across the mapping flip, not assumed
- * (§11). Stored in PDC as a {@link PersistentDataType#STRING}.
+ * the on-item round-trip is verified on a real server across the mapping flip, not assumed (§11). The
+ * blob's storage form is owned by the {@link ItemBlobStore} seam (a STRING PDC entry on modern, a raw NMS
+ * tag on the 1.8 legacy fork), so this codec stays version-agnostic.
  *
  * <p>Format: {@code v1 US <label> US <payload> US <label> US <payload> …} where {@code US} is the
  * unit separator and each list payload joins entries with the record separator {@code RS}. Labels:
@@ -35,9 +33,9 @@ public final class CombatCodec {
     private static final char RS = '\u001E'; // record separator — between list entries
     private static final char KV = ':';      // key:level inside an enchant entry
 
-    private final NamespacedKey combatKey;
+    private final String combatKey;
 
-    public CombatCodec(NamespacedKey combatKey) {
+    public CombatCodec(String combatKey) {
         this.combatKey = combatKey;
     }
 
@@ -55,29 +53,12 @@ public final class CombatCodec {
         ItemBlobStore.write(stack, combatKey, encode(state));
     }
 
-    public CombatState read(PersistentDataContainer pdc) {
-        return decode(readBlob(pdc));
-    }
-
-    public String readBlob(PersistentDataContainer pdc) {
-        return pdc.get(combatKey, PersistentDataType.STRING);
-    }
-
     public CombatState decode(String blob) {
         return decodeBlob(blob);
     }
 
     public String encode(CombatState state) {
         return (state == null || state.isEmpty()) ? null : encodeBlob(state);
-    }
-
-    /** An empty state removes the entry entirely. */
-    public void write(PersistentDataContainer pdc, CombatState state) {
-        if (state == null || state.isEmpty()) {
-            pdc.remove(combatKey);
-        } else {
-            pdc.set(combatKey, PersistentDataType.STRING, encodeBlob(state));
-        }
     }
 
     static String encodeBlob(CombatState state) {

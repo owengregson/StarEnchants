@@ -60,7 +60,7 @@ public final class MenuSuite implements Harness.Scenario {
     public void accept(Harness h) {
         h.expect("menu.clickAppliesEnchant");
 
-        CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         EnchantMenu menu;
         try {
             Path root = Files.createTempDirectory("se-menu-suite");

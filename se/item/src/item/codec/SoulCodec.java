@@ -1,7 +1,6 @@
 package item.codec;
 
 import java.util.UUID;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -12,9 +11,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class SoulCodec {
 
-    private final NamespacedKey soulKey;
+    private final String soulKey;
 
-    public SoulCodec(NamespacedKey soulKey) {
+    public SoulCodec(String soulKey) {
         this.soulKey = soulKey;
     }
 

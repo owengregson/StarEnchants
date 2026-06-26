@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.IntPredicate;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -67,19 +66,16 @@ public final class WornResolver {
     }
 
     public WornState resolve(LivingEntity entity, Snapshot snapshot) {
-        EntityEquipment equipment = entity.getEquipment();
-        if (equipment == null) {
+        // The version-specific equipment read (1.9+ off-hand vs 1.8 main-hand-only) lives behind the
+        // EquipSource overlay seam (§3.3); this core stays version-agnostic over the returned array.
+        ItemStack[] gear = EquipSource.snapshot(entity);
+        if (gear == null) {
             return WornState.empty(snapshot.generation());
         }
         List<CombatState> combats = new ArrayList<>();
-        ItemStack[] armor = equipment.getArmorContents(); // null for some non-player entities
-        if (armor != null) {
-            for (ItemStack piece : armor) {
-                addCombat(piece, combats);
-            }
+        for (ItemStack piece : gear) { // armour + held; entries may be null (empty slots) → skipped
+            addCombat(piece, combats);
         }
-        addCombat(equipment.getItemInMainHand(), combats);
-        addCombat(equipment.getItemInOffHand(), combats); // off-hand shields/totems carry enchants too
         return resolveFrom(combats, snapshot.stableKeys(), snapshot.abilities(), snapshot.generation());
     }
 

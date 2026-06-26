@@ -73,7 +73,7 @@ public final class WornResolverSuite implements Harness.Scenario {
             return;
         }
 
-        CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         ItemViewCache itemViews = new ItemViewCache(codec, 0);
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornResolver resolver = new WornResolver(itemViews, triggers.count(),

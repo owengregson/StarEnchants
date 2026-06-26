@@ -31,10 +31,11 @@ import org.junit.jupiter.api.Test;
  */
 class ItemViewCacheTest {
 
-    private static final NamespacedKey KEY = NamespacedKey.minecraft("combat");
+    // The key the modern PDC store derives from the logical key "combat" (namespace = plugin name lowercased).
+    private static final NamespacedKey KEY = NamespacedKey.fromString("starenchants:combat");
 
     private static CombatCodec codec() {
-        return new CombatCodec(KEY);
+        return new CombatCodec("combat");
     }
 
     @Test

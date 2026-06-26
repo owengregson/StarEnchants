@@ -104,7 +104,7 @@ public final class SoulSuite implements Harness.Scenario {
         }
 
         ContentHolder holder = new ContentHolder(library);
-        ItemKeys keys = ItemKeys.of(plugin);
+        ItemKeys keys = ItemKeys.of();
         CombatCodec codec = new CombatCodec(keys.combat());
         SoulCodec soulCodec = new SoulCodec(keys.soul());
         ItemViewCache itemViews = new ItemViewCache(codec, library.snapshot().generation());

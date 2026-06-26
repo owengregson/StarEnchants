@@ -1,6 +1,5 @@
 package item.codec;
 
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -10,9 +9,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class SlotItemCodec {
 
-    private final NamespacedKey key;
+    private final String key;
 
-    public SlotItemCodec(NamespacedKey key) {
+    public SlotItemCodec(String key) {
         this.key = key;
     }
 

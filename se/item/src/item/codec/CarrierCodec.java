@@ -1,6 +1,5 @@
 package item.codec;
 
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -15,10 +14,10 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class CarrierCodec {
 
-    private final NamespacedKey carrierKey;
-    private final NamespacedKey guardedKey;
+    private final String carrierKey;
+    private final String guardedKey;
 
-    public CarrierCodec(NamespacedKey carrierKey, NamespacedKey guardedKey) {
+    public CarrierCodec(String carrierKey, String guardedKey) {
         this.carrierKey = carrierKey;
         this.guardedKey = guardedKey;
     }

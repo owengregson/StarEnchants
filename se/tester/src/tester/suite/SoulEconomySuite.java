@@ -57,7 +57,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
             h.expect(key);
         }
 
-        ItemKeys keys = ItemKeys.of(plugin);
+        ItemKeys keys = ItemKeys.of();
         SoulCodec codec = new SoulCodec(keys.soul());
         SoulLedger ledger = new SoulLedger();
         SoulService souls = new SoulService(ledger, new SoulModeStore(), codec, SoulGemConfig::defaults);
