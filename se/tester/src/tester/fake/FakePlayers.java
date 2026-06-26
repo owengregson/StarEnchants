@@ -68,13 +68,23 @@ public final class FakePlayers {
     private static final boolean MOJANG_MAPPED = classExists("net.minecraft.server.level.ServerPlayer");
 
     /**
+     * Whether the runtime is the optional 1.8.9 lane (NMS {@code v1_8_R3}), whose classes live in the FLAT
+     * {@code net.minecraft.server.v1_8_R3.*} package rather than the Mojang layout the other two paths use.
+     * Probed once; takes precedence over {@link #MOJANG_MAPPED} (both are false-on-the-other-runtime).
+     */
+    private static final boolean LEGACY_1_8 = classExists("net.minecraft.server.v1_8_R3.MinecraftServer");
+
+    /**
      * Spawn a clientless fake player named {@code name} into {@code world} and return the live Bukkit
      * {@link Player}. Must be called on the world's owning thread (Paper main / Folia global region).
-     * Dispatches to the mojang-mapped or spigot-mapped construction path by the runtime mapping.
+     * Dispatches to the 1.8 (v1_8_R3), mojang-mapped, or spigot-mapped construction path by the runtime.
      *
      * @throws IllegalStateException if any reflective construction step fails (message names the step)
      */
     public static Player spawn(World world, String name) {
+        if (LEGACY_1_8) {
+            return spawnLegacy18(world, name);
+        }
         return MOJANG_MAPPED ? spawnMojang(world, name) : spawnSpigot(world, name);
     }
 
@@ -216,6 +226,80 @@ public final class FakePlayers {
         clearSpawnProtection(craftServer);
 
         return (Player) step("EntityPlayer.getBukkitEntity()", () -> call(entityPlayer, "getBukkitEntity"));
+    }
+
+    /**
+     * The 1.8.9 (NMS {@code v1_8_R3}) construction path. Flat {@code net.minecraft.server.v1_8_R3.*}
+     * package, and two divergences from the floor path: the {@code EntityPlayer} ctor is 4-arg (it takes a
+     * {@code PlayerInteractManager}, a class that postdates the floor), and — crucially — 1.8
+     * {@code PlayerList.a(NetworkManager, EntityPlayer)} joins SYNCHRONOUSLY. There is no spawn-chunk future,
+     * no {@code playerJoinReady} Runnable, no {@code ChunkProviderServer} pump, so the entire deferred-join
+     * dance the spigot floor needs is absent — the player is live the instant {@code a(...)} returns.
+     * Reflective like the other paths (the harness compiles against the paper-api floor; v1_8_R3 is provided
+     * by the legacy server). Signatures jar-verified against craftbukkit-1.8.8-R0.1-SNAPSHOT.
+     */
+    private static Player spawnLegacy18(World world, String name) {
+        Object craftServer = Bukkit.getServer();
+        Object mcServer = step("CraftServer.getServer()", () -> call(craftServer, "getServer"));
+        Object playerList = step("CraftServer.getHandle()", () -> call(craftServer, "getHandle"));
+        Object level = step("CraftWorld.getHandle()", () -> call(world, "getHandle")); // WorldServer
+
+        UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(StandardCharsets.UTF_8));
+
+        Object entityPlayer = step("new EntityPlayer(...) [v1_8_R3 4-arg]", () -> {
+            Class<?> gameProfile = Class.forName("com.mojang.authlib.GameProfile");
+            Object profile = gameProfile.getConstructor(UUID.class, String.class).newInstance(uuid, name);
+            Class<?> mcServerClass = Class.forName("net.minecraft.server.v1_8_R3.MinecraftServer");
+            Class<?> worldServerClass = Class.forName("net.minecraft.server.v1_8_R3.WorldServer");
+            Class<?> worldClass = Class.forName("net.minecraft.server.v1_8_R3.World");
+            Class<?> pimClass = Class.forName("net.minecraft.server.v1_8_R3.PlayerInteractManager");
+            Class<?> entityPlayerClass = Class.forName("net.minecraft.server.v1_8_R3.EntityPlayer");
+            // PlayerInteractManager(World) — WorldServer is-a World, so the WorldServer handle is the arg.
+            Object interactManager = pimClass.getConstructor(worldClass).newInstance(level);
+            return entityPlayerClass.getConstructor(mcServerClass, worldServerClass, gameProfile, pimClass)
+                    .newInstance(mcServer, level, profile, interactManager);
+        });
+
+        Object connection = step("new NetworkManager(SERVERBOUND) + void channel [v1_8_R3]",
+                FakePlayers::newVoidConnectionLegacy18);
+
+        step("PlayerList.a(NetworkManager, EntityPlayer) [synchronous join]", () -> {
+            Class<?> networkManagerClass = Class.forName("net.minecraft.server.v1_8_R3.NetworkManager");
+            Class<?> entityPlayerClass = Class.forName("net.minecraft.server.v1_8_R3.EntityPlayer");
+            method(playerList.getClass(), "a", networkManagerClass, entityPlayerClass)
+                    .invoke(playerList, connection, entityPlayer);
+            return null; // joins inline — the player is live on return (no drain/await needed)
+        });
+
+        // Clear the post-spawn login invulnerability (1.8's join protection) so combat suites land hits.
+        step("clear join protection (invulnerableTicks)", () -> {
+            try {
+                setField(entityPlayer, "invulnerableTicks", 0);
+            } catch (NoSuchFieldException absent) {
+                // field not present on this build — spawning + surviving does not require clearing it
+            }
+            return null;
+        });
+        clearSpawnProtection(craftServer);
+
+        return (Player) step("EntityPlayer.getBukkitEntity()", () -> call(entityPlayer, "getBukkitEntity"));
+    }
+
+    /**
+     * The 1.8 variant: {@code net.minecraft.server.v1_8_R3.NetworkManager} over the same void
+     * {@link EmbeddedChannel}. {@code SERVERBOUND} is enum ordinal 0 (stable position); the netty channel +
+     * address fields are located by type ({@code channel} is named, the {@code SocketAddress} is obfuscated)
+     * via {@link #setFieldByType}, each unique on the 1.8 NetworkManager.
+     */
+    private static Object newVoidConnectionLegacy18() throws ReflectiveOperationException {
+        Class<?> networkManagerClass = Class.forName("net.minecraft.server.v1_8_R3.NetworkManager");
+        Class<?> directionClass = Class.forName("net.minecraft.server.v1_8_R3.EnumProtocolDirection");
+        Object serverbound = directionClass.getEnumConstants()[0]; // {SERVERBOUND, CLIENTBOUND}
+        Object connection = networkManagerClass.getConstructor(directionClass).newInstance(serverbound);
+
+        setFieldByType(connection, io.netty.channel.Channel.class, voidChannel());
+        setFieldByType(connection, java.net.SocketAddress.class, new InetSocketAddress("127.0.0.1", 0));
+        return connection;
     }
 
     /** Remove a fake player from the server; best-effort, never fails a test on teardown. */
