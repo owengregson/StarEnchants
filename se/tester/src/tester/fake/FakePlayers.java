@@ -1,5 +1,6 @@
 package tester.fake;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
@@ -86,6 +87,15 @@ public final class FakePlayers {
             return spawnLegacy18(world, name);
         }
         return MOJANG_MAPPED ? spawnMojang(world, name) : spawnSpigot(world, name);
+    }
+
+    /**
+     * Whether this is the optional 1.8.9 (v1_8_R3) lane — the same probe {@link #spawn} dispatches on. The
+     * tester entry point gates its reduced smoke path on this so the curated subset runs IFF the legacy spawn
+     * path is the one in play (the modern matrix never sees it).
+     */
+    public static boolean isLegacy18() {
+        return LEGACY_1_8;
     }
 
     /** The mojang-mapped construction path (Paper/Folia 1.20.6 → 26.1.x). */
@@ -355,15 +365,22 @@ public final class FakePlayers {
         return connection;
     }
 
-    /** The void {@link EmbeddedChannel} shared by both connection variants (outbound dropped + completed). */
+    /** The void {@link EmbeddedChannel} shared by all connection variants (outbound dropped + completed). */
     private static EmbeddedChannel voidChannel() {
-        EmbeddedChannel channel = new EmbeddedChannel();
-        channel.pipeline().addFirst("se-void-outbound", new ChannelOutboundHandlerAdapter() {
+        ChannelHandler voidOutbound = new ChannelOutboundHandlerAdapter() {
             @Override
             public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
                 ReferenceCountUtil.release(msg); // drop the packet and release its buffers
-                if (promise != null && !promise.isVoid()) {
-                    promise.trySuccess(); // complete so the server never blocks waiting on the send
+                if (promise != null) {
+                    // Complete so the server never blocks waiting on the send. We catch rather than pre-check
+                    // promise.isVoid(): that guard exists to avoid trySuccess on a VoidChannelPromise, but
+                    // isVoid() was added in netty 4.1 and the 1.8 lane runs on 4.0.23 (NoSuchMethodError) — and
+                    // a void promise simply rejects trySuccess, which is exactly the no-op we want.
+                    try {
+                        promise.trySuccess();
+                    } catch (RuntimeException voidPromiseRejectsCompletion) {
+                        // nothing to complete on a void promise
+                    }
                 }
             }
 
@@ -371,8 +388,12 @@ public final class FakePlayers {
             public void flush(ChannelHandlerContext ctx) {
                 // swallow — nothing leaves a clientless connection
             }
-        });
-        return channel;
+        };
+        // The handler MUST go through the ctor, not a later addFirst: the no-arg EmbeddedChannel() was added in
+        // netty 4.1, but the 1.8 lane runs on the server's bundled netty 4.0.23 — which has no no-arg ctor AND
+        // whose varargs ctor REJECTS an empty array ("handlers is empty"). The single-handler form's descriptor
+        // exists in both 4.0 and 4.1, and one outbound handler is all the void channel needs.
+        return new EmbeddedChannel(voidOutbound);
     }
 
     private static void clearSpawnProtection(Object craftServer) {

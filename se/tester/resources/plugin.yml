@@ -1,6 +1,6 @@
 name: StarEnchantsTester
 version: '${version}'
-main: tester.SeTesterPlugin
+main: ${mainClass}
 api-version: '1.17'
 # Region-thread safe: the harness schedules every world/entity touch through the
 # platform Scheduling abstraction, so it boots on Folia as well as Paper.

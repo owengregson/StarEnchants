@@ -27,14 +27,32 @@ dependencies {
     compileOnly("io.netty:netty-transport:4.1.100.Final")
 }
 
+// The OPTIONAL 1.8.9 lane (docs/legacy-1.8.9-codeshare-design.md). The dependency modules swap to their legacy
+// overlays under -Pse.target=legacy, but the ~38 modern-API suites + SeTesterPlugin reference modern-only seams
+// (ServerLoadEvent, RuntimeHandles, the RuntimeHandles-arg sink factory) absent from those overlays — so they do
+// not compile against 1.8.8. The legacy build therefore compiles ONLY the 1.8-safe subset (harness + fake player
+// + the tester/legacy reduced smoke), driven by tester.legacy.LegacySmokePlugin; the modern build excludes that
+// legacy-seam package. The tester itself stays floor-compiled + reflective (FakePlayers); the live boot is its
+// 1.8-API net (scripts/legacy-smoke.sh), and the legacy DEPENDENCY jars on the classpath provide the seams.
+val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
+val testerMainClass = if (legacyTarget) "tester.legacy.LegacySmokePlugin" else "tester.SeTesterPlugin"
+sourceSets["main"].java {
+    if (legacyTarget) {
+        setIncludes(listOf("tester/harness/**", "tester/fake/**", "tester/legacy/**"))
+    } else {
+        exclude("tester/legacy/**")
+    }
+}
+
 // Stamp the build version into plugin.yml's ${version} placeholder, and bundle the bootstrap's
 // shipped content catalog (incl. index.txt) so CatalogSuite can validate it live with the REAL
 // cross-version resolver on each matrix server (catching handle-name typos a unit test cannot).
 tasks.named<ProcessResources>("processResources") {
     val pluginVersion = project.version.toString()
     inputs.property("version", pluginVersion)
+    inputs.property("mainClass", testerMainClass)
     filesMatching("plugin.yml") {
-        expand("version" to pluginVersion)
+        expand("version" to pluginVersion, "mainClass" to testerMainClass)
     }
     from(rootProject.file("se/bootstrap/resources/content")) {
         into("content")
