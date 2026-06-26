@@ -30,6 +30,8 @@ public final class KnockbackListener {
     public static final String MODERN_EVENT = "org.bukkit.event.entity.EntityKnockbackEvent";
     /** The legacy destroystokyo knockback event (floor &rarr; pre-1.20.6). */
     public static final String LEGACY_EVENT = "com.destroystokyo.paper.event.entity.EntityKnockbackByEntityEvent";
+    /** The optional 1.8.9 lane marker — it fires no knockback event, so the applier hooks the hit at NMS level. */
+    static final String LEGACY_18_MARKER = "net.minecraft.server.v1_8_R3.MinecraftServer";
 
     private KnockbackListener() {
     }
@@ -53,7 +55,16 @@ public final class KnockbackListener {
             case MODERN -> registerModern(plugin, store, nowTicks);
             case LEGACY -> plugin.getServer().getPluginManager().registerEvents(
                     new LegacyKnockbackListener(store, nowTicks), plugin);
-            case NONE -> { /* no knockback event on this server — nothing to hook */ }
+            case NONE -> {
+                // No Paper knockback event. On the optional 1.8.9 lane the legacy LegacyKnockbackListener hooks
+                // the always-present EntityDamageByEntityEvent and applies the control at the NMS knockback-
+                // resistance source; on any other event-less server KNOCKBACK_CONTROL stays inert as before.
+                if (classPresent(LEGACY_18_MARKER)) {
+                    plugin.getServer().getPluginManager().registerEvents(
+                            new LegacyKnockbackListener(store, nowTicks), plugin);
+                    path = Path.LEGACY;
+                }
+            }
         }
         return path;
     }
