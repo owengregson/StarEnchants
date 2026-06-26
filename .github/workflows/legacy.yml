@@ -87,9 +87,13 @@ jobs:
             https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
           # BuildTools compiles 1.8.8 under JDK 8 and installs org.bukkit:craftbukkit:1.8.8-R0.1-SNAPSHOT to ~/.m2.
           "$JAVA_HOME_8_X64/bin/java" -jar BuildTools.jar --rev 1.8.8 --compile craftbukkit
-          jar="$(find . -maxdepth 2 -name 'craftbukkit-1.8.8*.jar' ! -name '*sources*' ! -name '*remapped*' | head -1)"
-          [ -n "$jar" ] || { echo "::error::BuildTools produced no craftbukkit-1.8.8 jar"; ls -la; exit 1; }
-          cp "$jar" craftbukkit-1.8.8.jar
+          # BuildTools already saves the runnable server jar here as craftbukkit-1.8.8.jar (its default output);
+          # fall back to a find+copy only if a future version names it otherwise (guarded against a same-file cp).
+          if [ ! -f craftbukkit-1.8.8.jar ]; then
+            jar="$(find . -maxdepth 2 -name 'craftbukkit-1.8.8*.jar' ! -name '*sources*' ! -name '*remapped*' | head -1)"
+            [ -n "$jar" ] || { echo "::error::BuildTools produced no craftbukkit-1.8.8 jar"; ls -la; exit 1; }
+            cp "$jar" craftbukkit-1.8.8.jar
+          fi
 
       - name: Provision JDK 8 for the boot
         run: ln -sfn "$JAVA_HOME_8_X64" ~/se-legacy-buildtools/jdk8
