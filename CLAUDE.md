@@ -1,7 +1,9 @@
 # StarEnchants — agent & contributor guide
 
 A single Paper/Folia plugin combining custom enchants and armor sets (no web
-server) into one engine, cross-compatible **Paper 1.17.1 → 26.1.x + Folia**.
+server) into one engine, cross-compatible **Paper 1.17.1 → 26.1.x + Folia**, with
+an optional second jar for **Minecraft 1.8.9** (built from the same engine via the
+`-Pse.target=legacy` overlay; see `docs/legacy-1.8.9-codeshare-design.md`).
 
 > **Status: design & bootstrap.** The unique architecture is being derived (see
 > `docs/decisions/0010`); plugin code starts after it's approved. Do NOT scaffold
