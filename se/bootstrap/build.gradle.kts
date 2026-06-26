@@ -4,6 +4,27 @@ plugins {
     `java-library`
 }
 
+// ── Cross-version overlay (the OPTIONAL 1.8.9 fork) — docs/legacy-1.8.9-codeshare-design.md §4 ──
+// The composition root is ~1.8-clean (no Brigadier/Adventure/PDC — it wires interfaces); only dynamic
+// command registration forks (Server.getCommandMap is absent on 1.8, reached via CraftServer). That single
+// seam lives under overlay/<target>, selected as a srcDir of main by -Pse.target (default modern). So the
+// 1.8 jar is THIS module built with -Pse.target=legacy (which pulls every module's legacy overlay) — there
+// is no separate legacy composition-root module; the overlay mechanism shares the bootstrap too.
+val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
+
+if (legacyTarget) {
+    repositories {
+        mavenLocal {
+            content {
+                includeGroup("org.bukkit")
+                includeGroup("org.spigotmc")
+            }
+        }
+    }
+}
+
+sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/modern")
+
 // Shipped config packs (ADR-0023): each pack lives in the repo as a REVIEWABLE config tree under
 // packs-src/<name>/ and is zipped at build time into packs/<name>.zip inside the jar, so the source is
 // diffable in PRs while the shipped/on-disk artifact is the chosen ZIP format. First boot extracts the
@@ -19,8 +40,13 @@ val packEliteEnchantments by tasks.registering(Zip::class) {
 }
 
 dependencies {
-    // Floor API: the plugin loads on 1.17.1 → 26.1.x; the server provides it.
-    compileOnly(libs.paper.api.floor)
+    // Floor API: the plugin loads on 1.17.1 → 26.1.x; the server provides it. The legacy lane swaps in the
+    // real Spigot 1.8.8 server jar (org.bukkit + CraftServer) so the composition root is javac-checked on 1.8.
+    if (legacyTarget) {
+        compileOnly(libs.craftbukkit.legacy) { isTransitive = false }
+    } else {
+        compileOnly(libs.paper.api.floor)
+    }
 
     // The composition root depends on every runtime layer. feature brings :engine/:item (and thus
     // :compile/:schema/:platform) transitively; they are listed explicitly for clarity of fat-jar contents.

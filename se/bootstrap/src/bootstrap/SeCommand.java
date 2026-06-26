@@ -683,11 +683,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         int appliedLevel = level;
         Scheduling.onEntity(player, () -> {
-            ItemStack held = player.getInventory().getItemInMainHand();
+            ItemStack held = feature.compat.Hands.mainHand(player);
             // /se enchant is admin force-give → bypass the §G requires/blacklist relationship gates.
             ApplyResult result = enchanter.applyEnchant(held, key, appliedLevel, false);
             if (result.ok()) {
-                player.getInventory().setItemInMainHand(held);
+                feature.compat.Hands.setMainHand(player, held);
                 // Mutating the held item in place fires no equip event; re-resolve or the new enchant
                 // sits in PDC + lore but inert until a re-equip.
                 refreshWorn.accept(player);
@@ -949,10 +949,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         String key = normalize(args[1], "enchants/");
         Scheduling.onEntity(player, () -> {
-            ItemStack held = player.getInventory().getItemInMainHand();
+            ItemStack held = feature.compat.Hands.mainHand(player);
             ApplyResult result = enchanter.removeEnchant(held, key);
             if (result.ok()) {
-                player.getInventory().setItemInMainHand(held);
+                feature.compat.Hands.setMainHand(player, held);
                 refreshWorn.accept(player); // in-place mutation fires no equip event — re-resolve WornState
             }
             player.sendMessage(result.message());
