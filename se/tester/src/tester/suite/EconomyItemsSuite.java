@@ -97,7 +97,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             return;
         }
         ContentHolder holder = new ContentHolder(lib);
-        ItemKeys keys = ItemKeys.of(plugin);
+        ItemKeys keys = ItemKeys.of();
         CombatCodec combat = new CombatCodec(keys.combat());
         LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());

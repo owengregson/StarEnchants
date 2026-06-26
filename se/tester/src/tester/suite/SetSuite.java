@@ -62,7 +62,7 @@ public final class SetSuite implements Harness.Scenario {
         h.expect("set.activatesWhenWorn");
 
         Compiler compiler = ContentCompiler.production();
-        CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         int defenseId = triggers.idOf("DEFENSE").orElseThrow();
 

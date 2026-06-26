@@ -37,8 +37,8 @@ public final class HeroicApplySuite implements Harness.Scenario {
         h.expect("heroic.apply.alreadyHeroic");
         h.expect("heroic.apply.notGear");
 
-        HeroicUpgradeCodec upgrades = new HeroicUpgradeCodec(ItemKeys.of(plugin).heroicUpgrade());
-        CombatCodec combat = new CombatCodec(ItemKeys.of(plugin).combat());
+        HeroicUpgradeCodec upgrades = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());
+        CombatCodec combat = new CombatCodec(ItemKeys.of().combat());
         LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> null);
         HeroicService always = service(upgrades, combat, lore, 100); // always succeeds
         HeroicService never = service(upgrades, combat, lore, 0);    // always fails

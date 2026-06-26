@@ -103,7 +103,7 @@ public final class EconomySuite implements Harness.Scenario {
         }
 
         ContentHolder holder = new ContentHolder(library);
-        CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         ItemViewCache itemViews = new ItemViewCache(codec, library.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornStateStore worn = new WornStateStore(

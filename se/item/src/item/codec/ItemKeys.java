@@ -1,31 +1,30 @@
 package item.codec;
 
-import org.bukkit.NamespacedKey;
-import org.bukkit.plugin.Plugin;
-
 /**
- * The plugin's versioned {@link NamespacedKey}s for on-item PDC state (§4.2). Single key authority:
- * these strings must never drift, or items written under the old namespace stop resolving. Built once
- * at boot; the rest of the item module stays Plugin-free.
+ * The plugin's logical key names for on-item state (§4.2). Single key authority: these strings must
+ * never drift, or items written under the old name stop resolving. They are <em>logical</em> names —
+ * the {@link ItemBlobStore}/{@link ItemFlagStore} seam maps each to the platform's native key form
+ * (a {@code starenchants:}-namespaced PDC key on modern; a raw NMS tag name on the 1.8 legacy fork),
+ * so the codecs and this holder stay free of any version-specific key type (PDC {@code NamespacedKey}
+ * does not exist on 1.8.9 — docs/legacy-1.8.9-codeshare-design.md §3.1).
  */
 public final class ItemKeys {
 
-    private final NamespacedKey combat;
-    private final NamespacedKey soul;
-    private final NamespacedKey carrier;
-    private final NamespacedKey guarded;
-    private final NamespacedKey crystalItem;
-    private final NamespacedKey crystalExtractor;
-    private final NamespacedKey heroicUpgrade;
-    private final NamespacedKey slotItem;
-    private final NamespacedKey scroll;
-    private final NamespacedKey unopened;
-    private final NamespacedKey godlyTransmog;
+    private final String combat;
+    private final String soul;
+    private final String carrier;
+    private final String guarded;
+    private final String crystalItem;
+    private final String crystalExtractor;
+    private final String heroicUpgrade;
+    private final String slotItem;
+    private final String scroll;
+    private final String unopened;
+    private final String godlyTransmog;
 
-    private ItemKeys(NamespacedKey combat, NamespacedKey soul, NamespacedKey carrier, NamespacedKey guarded,
-                     NamespacedKey crystalItem, NamespacedKey crystalExtractor, NamespacedKey heroicUpgrade,
-                     NamespacedKey slotItem, NamespacedKey scroll, NamespacedKey unopened,
-                     NamespacedKey godlyTransmog) {
+    private ItemKeys(String combat, String soul, String carrier, String guarded,
+                     String crystalItem, String crystalExtractor, String heroicUpgrade,
+                     String slotItem, String scroll, String unopened, String godlyTransmog) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -39,60 +38,56 @@ public final class ItemKeys {
         this.godlyTransmog = godlyTransmog;
     }
 
-    public static ItemKeys of(Plugin plugin) {
-        return new ItemKeys(new NamespacedKey(plugin, "combat"), new NamespacedKey(plugin, "soul"),
-                new NamespacedKey(plugin, "carrier"), new NamespacedKey(plugin, "guarded"),
-                new NamespacedKey(plugin, "crystalitem"), new NamespacedKey(plugin, "crystalextractor"),
-                new NamespacedKey(plugin, "heroicupgrade"),
-                new NamespacedKey(plugin, "slotitem"), new NamespacedKey(plugin, "scroll"),
-                new NamespacedKey(plugin, "unopened"), new NamespacedKey(plugin, "godlytransmog"));
+    public static ItemKeys of() {
+        return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
+                "heroicupgrade", "slotitem", "scroll", "unopened", "godlytransmog");
     }
 
-    public NamespacedKey combat() {
+    public String combat() {
         return combat;
     }
 
     /** Separate from {@link #combat()}: souls change every spend/gain, which would thrash the content-hash cache (§5.2). */
-    public NamespacedKey soul() {
+    public String soul() {
         return soul;
     }
 
     /** Carrier (book/scroll/dust/gem) — separate from {@link #combat()} so it never decodes on the hot path (ADR-0016). */
-    public NamespacedKey carrier() {
+    public String carrier() {
         return carrier;
     }
 
     /** Flags gear as guard-scroll protected; consumed on a failed apply to spare the item (white-scroll economy). */
-    public NamespacedKey guarded() {
+    public String guarded() {
         return guarded;
     }
 
-    public NamespacedKey crystalItem() {
+    public String crystalItem() {
         return crystalItem;
     }
 
-    public NamespacedKey crystalExtractor() {
+    public String crystalExtractor() {
         return crystalExtractor;
     }
 
-    public NamespacedKey heroicUpgrade() {
+    public String heroicUpgrade() {
         return heroicUpgrade;
     }
 
     /** Slot-expander orb (§H); the granted slots persist in the gear's combat-blob {@code added} field, not here. */
-    public NamespacedKey slotItem() {
+    public String slotItem() {
         return slotItem;
     }
 
-    public NamespacedKey scroll() {
+    public String scroll() {
         return scroll;
     }
 
-    public NamespacedKey unopened() {
+    public String unopened() {
         return unopened;
     }
 
-    public NamespacedKey godlyTransmog() {
+    public String godlyTransmog() {
         return godlyTransmog;
     }
 }

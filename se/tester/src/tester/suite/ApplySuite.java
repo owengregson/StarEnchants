@@ -103,7 +103,7 @@ public final class ApplySuite implements Harness.Scenario {
 
         ItemEnchanter enchanter;
         ItemEnchanter capped; // 1-slot, for the net-zero-slot case
-        CombatCodec codec = new CombatCodec(ItemKeys.of(plugin).combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         try {
             Path root = Files.createTempDirectory("se-apply-suite");
             write(root, "enchants/keen.yml", KEEN);

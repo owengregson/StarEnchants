@@ -20,7 +20,7 @@ public final class ItemCodecSuite implements Harness.Scenario {
     private final CombatCodec codec;
 
     public ItemCodecSuite(Plugin plugin) {
-        this.codec = new CombatCodec(ItemKeys.of(plugin).combat());
+        this.codec = new CombatCodec(ItemKeys.of().combat());
     }
 
     @Override

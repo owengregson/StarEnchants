@@ -1,6 +1,5 @@
 package item.codec;
 
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -12,9 +11,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class CrystalItemCodec {
 
-    private final NamespacedKey key;
+    private final String key;
 
-    public CrystalItemCodec(NamespacedKey key) {
+    public CrystalItemCodec(String key) {
         this.key = key;
     }
 

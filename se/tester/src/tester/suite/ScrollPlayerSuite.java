@@ -41,7 +41,7 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
             h.expect(key);
         }
 
-        ItemKeys keys = ItemKeys.of(plugin);
+        ItemKeys keys = ItemKeys.of();
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
         HolyScrollService holy = new HolyScrollService(scrollCodec, ScrollsConfig::defaults, new Random(1)); // 100%
         NametagService nametags = new NametagService(scrollCodec, ScrollsConfig::defaults);

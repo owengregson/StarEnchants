@@ -199,7 +199,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         MenusHolder menusHolder = new MenusHolder(MenusLoader.load(menusRoot));
 
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
-        CombatCodec codec = new CombatCodec(ItemKeys.of(this).combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         ItemViewCache itemViews = new ItemViewCache(codec, initial.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornResolver wornResolver = new WornResolver(itemViews, triggers.count(),
@@ -239,39 +239,39 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 messages);                                     // §L ApplyResult reason strings
 
         // Carrier economy (ADR-0016). Carrier PDC is separate from the combat blob, so it never decodes hot.
-        CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of(this).carrier(), ItemKeys.of(this).guarded());
+        CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
                 () -> items.config().enchantBookOrDefault(),   // §I enchant book
                 () -> items.config().dustOrDefault(),          // §I success dust
                 () -> items.config().whiteScrollOrDefault());  // §I white scroll
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
-        CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of(this).crystalItem());
+        CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());
         item.codec.CrystalExtractorCodec crystalExtractorCodec =
-                new item.codec.CrystalExtractorCodec(ItemKeys.of(this).crystalExtractor());
+                new item.codec.CrystalExtractorCodec(ItemKeys.of().crystalExtractor());
         CrystalService crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, enchanter, content,
                 () -> items.config().crystalOrDefault(), new java.util.Random(), messages);
 
         // Heroic upgrades (§F).
-        HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of(this).heroicUpgrade());
+        HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
                 () -> items.config().heroicOrDefault(), new java.util.Random(), messages);
 
         // Slot economy (§H). base MUST match the ItemEnchanter default so the cap is computed off the same base.
-        SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of(this).slotItem());
+        SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem());
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(),
                 (java.util.function.IntSupplier) () -> master.config().slots().base(), messages);
 
         // Book-economy scrolls (§I). Distinct 'scroll' PDC tag, off the combat hot path.
-        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of(this).scroll());
+        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll());
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
-                new item.codec.GodlyTransmogCodec(ItemKeys.of(this).godlyTransmog());
+                new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
                 () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec);
 
         // Unopened/randomized book (§I).
-        UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of(this).unopened());
+        UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of().unopened());
         UnopenedBookService unopenedBooks = new UnopenedBookService(unopenedCodec, carriers, content,
                 () -> items.config().unopenedBookOrDefault(), new java.util.Random(), messages);
 
@@ -285,7 +285,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulLedger souls = new SoulLedger();
         SoulModeStore soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
         SoulService soulService = new SoulService(souls, soulModes,
-                new SoulCodec(ItemKeys.of(this).soul()), () -> items.config().soulGemOrDefault(),
+                new SoulCodec(ItemKeys.of().soul()), () -> items.config().soulGemOrDefault(),
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
         Integrations.registerPlaceholders(this, master.config().integrations()::enabled,

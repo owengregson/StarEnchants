@@ -1,7 +1,6 @@
 package item.codec;
 
 import java.util.Locale;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -10,9 +9,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class ScrollCodec {
 
-    private final NamespacedKey key;
+    private final String key;
 
-    public ScrollCodec(NamespacedKey key) {
+    public ScrollCodec(String key) {
         this.key = key;
     }
 

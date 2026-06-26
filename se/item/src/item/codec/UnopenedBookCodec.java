@@ -1,6 +1,5 @@
 package item.codec;
 
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -9,9 +8,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class UnopenedBookCodec {
 
-    private final NamespacedKey key;
+    private final String key;
 
-    public UnopenedBookCodec(NamespacedKey key) {
+    public UnopenedBookCodec(String key) {
         this.key = key;
     }
 

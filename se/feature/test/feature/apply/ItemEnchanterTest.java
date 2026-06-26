@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import platform.item.ItemGroups;
@@ -37,7 +36,7 @@ class ItemEnchanterTest {
 
     private static ItemEnchanter over(Library lib) {
         ContentHolder holder = new ContentHolder(lib);
-        CombatCodec codec = new CombatCodec(new NamespacedKey("starenchants", "combat"));
+        CombatCodec codec = new CombatCodec("combat");
         LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
         return new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
     }
