@@ -7,10 +7,12 @@ name: Release
 # signal that ships a build. `-SNAPSHOT` versions never release; an already-tagged
 # version is a no-op (idempotent). `workflow_dispatch` re-runs the same check by hand.
 #
-# The published artifact is the bootstrap fat jar (the one universal plugin jar,
-# 1.17.1 -> 26.1.x + Folia). The unit gate (`./gradlew build`) runs first; the live
-# Paper+Folia matrix is the LOCAL pre-release gate (it needs the gitignored server
-# reference cache) — run `scripts/run-matrix.sh --all` before bumping the version.
+# The published artifacts are (1) the bootstrap fat jar — the one universal plugin jar, 1.17.1 -> 26.1.x +
+# Folia — and (2) the OPTIONAL 1.8.9 second jar. The unit gate (`./gradlew build`) and the live 1.8.9 smoke
+# (BuildTools-compiled craftbukkit-1.8.8 booted under JDK 8) both run here and GATE the release: per the §11
+# ownership commitment the legacy lane must not ship without its Gate-4 green, so a smoke failure fails the whole
+# release. The live Paper+Folia matrix remains the LOCAL pre-release gate (gitignored reference cache) — run
+# `scripts/run-matrix.sh --all` before bumping the version.
 
 on:
   push:
@@ -73,14 +75,15 @@ jobs:
           # previous tag.
           fetch-depth: 0
 
-      # The core compiles against the Java 17 floor toolchain; 21 is the matrix's
-      # upper toolchain. Install both (mirrors ci.yml) so Gradle's toolchain
-      # detection finds 17; the Foojay resolver auto-provisions anything missing.
-      - name: Set up JDKs 17 + 21
+      # 8 boots the optional 1.8.9 lane's live smoke; 17 is the floor toolchain; 21 the matrix's upper. Listed
+      # so JAVA_HOME (the last) is 21 — Gradle's toolchain detection finds 17 — while JAVA_HOME_8_X64 boots the
+      # downgraded legacy jar. The Foojay resolver auto-provisions anything missing.
+      - name: Set up JDKs 8 + 17 + 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: |
+            8
             17
             21
 
@@ -93,10 +96,45 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
+      # craftbukkit-1.8.8 is on no public maven; Spigot BuildTools compiles it on the runner (legal — never
+      # redistributed). Shared cache key with legacy.yml so a PR run primes it. See legacy.yml for the rationale.
+      - name: Cache craftbukkit-1.8.8
+        id: cb
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.m2/repository/org/bukkit/craftbukkit
+            ~/se-legacy-buildtools/craftbukkit-1.8.8.jar
+          key: craftbukkit-1.8.8-v1
+
+      - name: Compile craftbukkit-1.8.8 via BuildTools (first run only)
+        if: steps.cb.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p ~/se-legacy-buildtools && cd ~/se-legacy-buildtools
+          git config --global user.email "ci@starenchants.invalid"
+          git config --global user.name "StarEnchants CI"
+          curl -fsSL -o BuildTools.jar \
+            https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+          "$JAVA_HOME_8_X64/bin/java" -jar BuildTools.jar --rev 1.8.8 --compile craftbukkit
+          jar="$(find . -maxdepth 2 -name 'craftbukkit-1.8.8*.jar' ! -name '*sources*' ! -name '*remapped*' | head -1)"
+          [ -n "$jar" ] || { echo "::error::BuildTools produced no craftbukkit-1.8.8 jar"; ls -la; exit 1; }
+          cp "$jar" craftbukkit-1.8.8.jar
+
+      - name: Provision JDK 8 for the legacy boot
+        run: ln -sfn "$JAVA_HOME_8_X64" ~/se-legacy-buildtools/jdk8
+
       - name: Build plugin jar (unit gate + fat jar)
         run: ./gradlew build :bootstrap:jar --stacktrace
 
-      - name: Stage release artifact
+      # §11 gate: the 1.8.9 lane must not ship without its live Gate-4 green. A failure here fails the release.
+      - name: Live 1.8.9 smoke gate
+        run: scripts/legacy-smoke.sh
+
+      - name: Build legacy 1.8.9 jar
+        run: scripts/build-legacy-jar.sh bootstrap
+
+      - name: Stage release artifacts
         run: |
           src="se/bootstrap/build/libs/bootstrap-${VERSION}.jar"
           if [ ! -f "$src" ]; then
@@ -107,6 +145,15 @@ jobs:
           cp "$src" "StarEnchants-${VERSION}.jar"
           sha256sum "StarEnchants-${VERSION}.jar" > "StarEnchants-${VERSION}.jar.sha256"
 
+          legacy="se/bootstrap/build/libs/StarEnchants-${VERSION}-legacy.jar"
+          if [ ! -f "$legacy" ]; then
+            echo "::error::Expected legacy jar not found at $legacy"
+            ls -la se/bootstrap/build/libs || true
+            exit 1
+          fi
+          cp "$legacy" "StarEnchants-${VERSION}-1.8.9.jar"
+          sha256sum "StarEnchants-${VERSION}-1.8.9.jar" > "StarEnchants-${VERSION}-1.8.9.jar.sha256"
+
       - name: Create GitHub Release (tag v${{ env.VERSION }})
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -116,4 +163,6 @@ jobs:
             --generate-notes \
             --target "${GITHUB_SHA}" \
             "StarEnchants-${VERSION}.jar" \
-            "StarEnchants-${VERSION}.jar.sha256"
+            "StarEnchants-${VERSION}.jar.sha256" \
+            "StarEnchants-${VERSION}-1.8.9.jar" \
+            "StarEnchants-${VERSION}-1.8.9.jar.sha256"
