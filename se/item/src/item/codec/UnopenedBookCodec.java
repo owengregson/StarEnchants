@@ -2,8 +2,6 @@ package item.codec;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Marks / detects an UNOPENED / RANDOMIZED book (§I), storing the tier it is scoped to as a PDC
@@ -23,19 +21,11 @@ public final class UnopenedBookCodec {
 
     /** The tier {@code stack} is scoped to, or {@code null} if it is not an unopened book. */
     public String tierOf(ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) {
-            return null;
-        }
-        String raw = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+        String raw = ItemBlobStore.read(stack, key);
         return raw == null || raw.isBlank() ? null : raw;
     }
 
     public void mark(ItemStack stack, String tier) {
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, tier);
-        stack.setItemMeta(meta);
+        ItemBlobStore.write(stack, key, tier);
     }
 }

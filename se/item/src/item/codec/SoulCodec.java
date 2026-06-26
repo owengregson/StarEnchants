@@ -3,9 +3,6 @@ package item.codec;
 import java.util.UUID;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Reads/writes {@link SoulData} as one PDC {@code STRING} under {@link ItemKeys#soul()} (§6.3),
@@ -23,24 +20,11 @@ public final class SoulCodec {
 
     /** The gem state on {@code stack}, or {@code null} if it carries none. */
     public SoulData read(ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) {
-            return null;
-        }
-        return decode(stack.getItemMeta().getPersistentDataContainer().get(soulKey, PersistentDataType.STRING));
+        return decode(ItemBlobStore.read(stack, soulKey));
     }
 
     public void write(ItemStack stack, SoulData data) {
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        if (data == null) {
-            pdc.remove(soulKey);
-        } else {
-            pdc.set(soulKey, PersistentDataType.STRING, data.gemId() + ":" + data.souls());
-        }
-        stack.setItemMeta(meta);
+        ItemBlobStore.write(stack, soulKey, data == null ? null : data.gemId() + ":" + data.souls());
     }
 
     /** Parse a {@code <gemId>:<souls>} payload, or {@code null} if absent/malformed. */
