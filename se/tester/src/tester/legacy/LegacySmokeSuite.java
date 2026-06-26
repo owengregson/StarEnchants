@@ -13,16 +13,20 @@ import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
 import engine.sink.DispatchSinkFactory;
 import engine.stores.CooldownStore;
+import engine.stores.KnockbackControlStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.apply.ItemEnchanter;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
+import feature.combat.KnockbackListener;
+import feature.heroic.HeroicDurabilityListener;
 import feature.menu.EnchantMenu;
 import feature.menu.MenuHolder;
 import feature.menu.MenuListener;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
+import item.codec.HeroicStat;
 import item.codec.ItemKeys;
 import item.mint.ItemFactory;
 import item.render.LoreRenderer;
@@ -37,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.bukkit.Location;
@@ -55,6 +60,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 import platform.caps.Capabilities;
 import platform.item.ItemGroups;
 import platform.resolve.RegistryResolvers;
@@ -126,6 +132,99 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         itemChecks(h);
         combatCheck(h);
         guiCheck(h);
+        degradeChecks(h);
+    }
+
+    // ── §6 degrades (Item 3): the heroic-durability poll restores; the NMS knockback-resistance hook reduces ──
+
+    private void degradeChecks(Harness h) {
+        h.expect("legacy.degrade.heroicSave");
+        h.expect("legacy.degrade.knockbackControl");
+
+        World world = plugin.getServer().getWorlds().get(0);
+        Location at = world.getSpawnLocation();
+
+        // Heroic durability save: a per-item heroic chance restores lost durability via the legacy poll. The
+        // poll (started by the ctor) must first record the item's prior durability, then detect the simulated
+        // loss and restore it.
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        new HeroicDurabilityListener(codec, new Random()); // ctor starts the per-tick durability poll
+        Scheduling.onRegion(at, () -> {
+            Player p;
+            try {
+                p = FakePlayers.spawn(world, "se_lc_her");
+            } catch (Throwable t) {
+                h.fail("legacy.degrade.heroicSave", "spawn on 1.8: " + t);
+                return;
+            }
+            Scheduling.onEntity(p, () -> {
+                ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+                // Always-save heroic durability (chance 1.0): nextDouble() ∈ [0,1) is always < 1.0.
+                codec.write(sword, new CombatState(Map.of(), List.of(), null, null, false,
+                        new HeroicStat(0.0, 0.0, 1.0), 0));
+                setHand(p, sword); // durability 0 — the poll records this as the prior over the next few ticks
+                Scheduling.onEntityLater(p, 4L, () -> {
+                    ItemStack held = handItem(p);
+                    held.setDurability((short) 50); // simulate a durability hit
+                    setHand(p, held);
+                    Scheduling.onEntityLater(p, 5L, () -> {
+                        h.guard("legacy.degrade.heroicSave", () -> {
+                            short dur = handItem(p).getDurability();
+                            if (dur != 0) {
+                                throw new IllegalStateException(
+                                        "heroic durability did not restore the item on 1.8 (durability=" + dur + ")");
+                            }
+                        });
+                        FakePlayers.despawn(p);
+                    });
+                });
+            });
+        });
+
+        // KNOCKBACK_CONTROL via the NMS knockback-resistance hook: a cancel flag (multiplier 0) zeroes a hit's
+        // knockback. Compared against an unflagged baseline so the assertion proves the hook acted, not that the
+        // hit simply produced no knockback. Victims are offset from the attacker so the knockback has a direction.
+        KnockbackControlStore store = new KnockbackControlStore();
+        KnockbackListener.register(plugin, store, () -> 0L); // 1.8 → registers the legacy EDBE applier
+        Scheduling.onRegion(at, () -> {
+            Player atk;
+            Player base;
+            Player ctrl;
+            try {
+                atk = FakePlayers.spawn(world, "se_lc_kbA");
+                base = FakePlayers.spawn(world, "se_lc_kbB");
+                ctrl = FakePlayers.spawn(world, "se_lc_kbC");
+            } catch (Throwable t) {
+                h.fail("legacy.degrade.knockbackControl", "spawn on 1.8: " + t);
+                return;
+            }
+            base.teleport(at.clone().add(2.0, 0.0, 0.0));
+            ctrl.teleport(at.clone().add(-2.0, 0.0, 0.0));
+            store.control(ctrl.getUniqueId(), 0.0, 0L, 1000); // cancel knockback on the controlled victim
+            Scheduling.onEntityLater(atk, 2L, () -> { // let the teleports settle so the hit has a direction
+                base.damage(4.0, atk);
+                double baseKb = horizontal(base.getVelocity());
+                ctrl.damage(4.0, atk);
+                double ctrlKb = horizontal(ctrl.getVelocity());
+                h.guard("legacy.degrade.knockbackControl", () -> {
+                    if (baseKb <= 1.0e-4) {
+                        throw new IllegalStateException("baseline hit produced no knockback on 1.8 (can't prove "
+                                + "control); base=" + baseKb);
+                    }
+                    if (ctrlKb >= baseKb * 0.5) {
+                        throw new IllegalStateException("KNOCKBACK_CONTROL cancel did not reduce knockback on 1.8: "
+                                + "base=" + baseKb + " ctrl=" + ctrlKb);
+                    }
+                });
+                FakePlayers.despawn(atk);
+                FakePlayers.despawn(base);
+                FakePlayers.despawn(ctrl);
+            });
+        });
+    }
+
+    private static double horizontal(Vector v) {
+        return Math.sqrt(v.getX() * v.getX() + v.getZ() * v.getZ());
     }
 
     // ── Item path (no player): compile → apply → render → blob survives setItemMeta → 1.8 material degrade ──
