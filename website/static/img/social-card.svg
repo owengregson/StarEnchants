@@ -42,7 +42,7 @@
 
   <text x="600" y="300" font-family="'Trebuchet MS','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="86" font-weight="700" fill="url(#wm)" text-anchor="middle">StarEnchants</text>
   <text x="600" y="348" font-family="Georgia,'Times New Roman',serif" font-size="30" font-style="italic" fill="#F0DEFF" text-anchor="middle">Legendary Open-Source Cosmic Enchantments</text>
-  <text x="600" y="398" font-family="'Trebuchet MS','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="22" font-weight="600" fill="#C6AEE6" text-anchor="middle">A deeply-unified custom-enchantments &amp; armor-sets plugin — one jar for Paper 1.17.1 → 26.1.x and Folia.</text>
+  <text x="600" y="398" font-family="'Trebuchet MS','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="22" font-weight="600" fill="#C6AEE6" text-anchor="middle">A deeply-unified custom-enchantments &amp; armor-sets plugin for Paper 1.8, 1.17.1 → 26.1.x and Folia.</text>
 
   <g transform="translate(600 480)" text-anchor="middle" font-family="'Trebuchet MS','Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif" font-size="22" font-weight="700">
     <rect x="-410" y="-26" width="170" height="52" rx="26" fill="#FFFFFF" opacity="0.08"></rect>

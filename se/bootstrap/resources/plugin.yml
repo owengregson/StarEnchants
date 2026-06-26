@@ -4,7 +4,7 @@ main: bootstrap.StarEnchantsPlugin
 api-version: '1.17'
 # Folia-correct: all entity/world/timer work goes through the platform Scheduling abstraction.
 folia-supported: true
-description: One unified, cross-version Paper/Folia enchantments + armor engine — universal jar for 1.17.1–26.1.x, plus an optional 1.8.9 build.
+description: One unified, cross-version Paper/Folia enchantments + armor engine for Minecraft 1.8 and 1.17.1–26.1.x.
 authors: [StarEnchants]
 # Optional integrations (§N, docs/decisions/0027): every bridge is bundled in THIS jar and active out of the
 # box when the plugin is present — none is required. softdepend = "load after these if installed" so their
