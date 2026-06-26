@@ -10,6 +10,35 @@
 
 ---
 
+## Execution status (2026-06-26)
+
+Reviewed and acted on. **Maintainer decisions:** the 1.8.9 fork is **shelved** — Phases 1–3
+below remain an on-shelf blueprint, *not started*; the new seams ship as **concrete classes**, not
+single-impl interfaces (YAGNI — a fork would extract the interfaces in Phase 1 when the second impl
+exists).
+
+**Phase 0 as executed** = only the changes that improve the *modern* plugin on their own merits:
+
+- ✅ **`item.codec.ItemBlobStore` + `ItemFlagStore`** — the single PDC mutation seam (§3.1), shipped as
+  concrete static utilities; ~10 codecs de-duplicated, behavior-preserving (PR #153).
+- ✅ **ArchUnit purity guard** (§3.4 rule b) — CI-enforces the pure-module (`schema`/`compile`/`migrate`/
+  `pack`) Bukkit-freedom boundary (PR #153).
+
+**Reclassified to Phase 1** (fork-motivated; *no clean modern win* once the fork was shelved, confirmed by
+reading the code):
+
+- `EquipSource` (§3.3) — `WornResolver.resolveFrom(...)` is already pure and unit-testable, and the
+  1.17.1 floor always has off-hand; the seam's real value is the legacy main-hand-only read.
+- `ItemTransfer.copyState` (§3.2) — the `setItemMeta`-strips-NBT trap is 1.8-only; on modern, PDC survives
+  `setItemMeta`, so `HeroicService`'s current whole-meta copy is correct, and a selective copy would risk
+  dropping a player's vanilla enchants/names on a heroic upgrade.
+- `SinkReadback` (§3.5, single-impl interface) and the §3.6 static-hook fold (testability-only,
+  hot-path-adjacent) — land **with** the fork, where they are load-bearing.
+
+The rest of this document is the unchanged design/blueprint.
+
+---
+
 ## TL;DR — the recommendation
 
 Adopt a **Gradle source-set overlay** as the primary fork mechanism, hardened with a
