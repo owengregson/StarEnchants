@@ -17,7 +17,6 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -86,10 +85,7 @@ public final class TriggerListeners implements Listener {
         dispatch.fire(event.getPlayer(), dispatch.eat, self(event.getPlayer()), event);
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onItemDamage(PlayerItemDamageEvent event) {
-        dispatch.fire(event.getPlayer(), dispatch.itemDamage, self(event.getPlayer()), event);
-    }
+    // ITEM_DAMAGE fires from DurabilityTriggerListener (overlay) — PlayerItemDamageEvent is 1.9+ (§4).
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onItemBreak(PlayerItemBreakEvent event) {

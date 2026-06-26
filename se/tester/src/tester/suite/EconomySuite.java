@@ -111,7 +111,7 @@ public final class EconomySuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE);
-        CombatDispatch dispatch = new CombatDispatch(executor, handles, holder, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 tick::incrementAndGet, actor -> Optional.empty(), economy);
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);

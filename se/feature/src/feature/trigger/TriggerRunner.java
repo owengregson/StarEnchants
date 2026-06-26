@@ -7,7 +7,7 @@ import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.FactPopulator;
-import engine.sink.DispatchSink;
+import engine.sink.SinkReadback;
 import feature.soul.SoulBinding;
 import item.worn.WornState;
 import item.worn.WornStateStore;
@@ -20,7 +20,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 /**
- * The "run one trigger pass for one actor into a {@link DispatchSink}" primitive shared by every dispatcher
+ * The "run one trigger pass for one actor into a {@link SinkReadback}" primitive shared by every dispatcher
  * (§3.3), combat and non-combat alike. Reads the actor's PRE-RESOLVED {@link WornState} (the safe
  * cross-region read, §3.4), contributes the passive heroic percent to the fold (§F), and arms the soul gate
  * from the active gem. The CALLER owns the sink lifecycle, since read-back application differs per event.
@@ -55,7 +55,7 @@ public final class TriggerRunner {
      * {@code stableKeys} MUST be the same snapshot's key index as {@code abilities}.
      */
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
-                    Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys) {
+                    Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys) {
         run(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys, true);
     }
 
@@ -65,7 +65,7 @@ public final class TriggerRunner {
      * {@code reduction-scope == ALL}; the entity/PvP path always passes true (§F).
      */
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
-                    Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
+                    Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
                     boolean applyHeroic) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != generation) {
@@ -79,7 +79,7 @@ public final class TriggerRunner {
      * Contribute ONLY the worn heroic reduction to {@code sink} (no trigger abilities) — environmental damage
      * with no trigger, softened under {@code reduction-scope: ALL} (§F). No-op until the WornState is resolved.
      */
-    public void contributeHeroicReduction(int generation, Player actor, DispatchSink sink) {
+    public void contributeHeroicReduction(int generation, Player actor, SinkReadback sink) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState != null && wornState.gen() == generation) {
             sink.addHeroicReduction(wornState.heroic().percentReduction());
@@ -92,7 +92,7 @@ public final class TriggerRunner {
      * {@code triggerId} (gate 3 still enforces it).
      */
     public void runCandidates(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
-                              Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
+                              Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
                               int[] candidates) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != generation) {
@@ -103,7 +103,7 @@ public final class TriggerRunner {
     }
 
     private void runResolved(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
-                             Player actor, ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys,
+                             Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
                              WornState wornState, int[] candidates, boolean applyHeroic) {
         if (applyHeroic) {
             if (attackSide) {

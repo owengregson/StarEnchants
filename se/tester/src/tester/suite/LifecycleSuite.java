@@ -115,7 +115,7 @@ public final class LifecycleSuite implements Harness.Scenario {
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();
-        TriggerDispatch dispatch = new TriggerDispatch(executor, handles, holder, worn, triggers,
+        TriggerDispatch dispatch = new TriggerDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn, triggers,
                 tick::incrementAndGet, actor -> Optional.empty());
         LifecycleDriver lifecycle = new LifecycleDriver(dispatch, holder,
                 triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));

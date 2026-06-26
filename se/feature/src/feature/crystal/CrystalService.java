@@ -6,6 +6,7 @@ import compile.load.CrystalDef;
 import feature.apply.ApplyResult;
 import feature.apply.ExtractResult;
 import feature.apply.ItemEnchanter;
+import feature.compat.Mats;
 import item.codec.CrystalExtractorCodec;
 import item.codec.CrystalItemCodec;
 import item.codec.CrystalItemData;
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -64,7 +64,7 @@ public final class CrystalService {
     public ItemStack mintExtractor() {
         CrystalConfig cfg = config.get();
         ItemStack stack = ItemFactory.build(
-                cfg.extractorMaterial(), Material.AMETHYST_CLUSTER,
+                cfg.extractorMaterial(), Mats.or("AMETHYST_CLUSTER", org.bukkit.Material.PAPER),
                 cfg.extractorName(),
                 cfg.extractorLore());
         extractorCodec.mark(stack);
@@ -98,7 +98,7 @@ public final class CrystalService {
             loreTemplate = mergedLore(keys, cfg);
         }
         ItemStack stack = ItemFactory.build(
-                materialToken, Material.AMETHYST_SHARD,
+                materialToken, Mats.or("AMETHYST_SHARD", org.bukkit.Material.PAPER),
                 nameTemplate.replace("{CRYSTAL}", label),
                 renderLore(loreTemplate, label));
         codec.write(stack, data);

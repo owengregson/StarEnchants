@@ -4,6 +4,7 @@ import compile.load.ContentHolder;
 import compile.load.ScrollsConfig;
 import feature.carrier.CarrierResult;
 import feature.carrier.CarrierService;
+import feature.compat.Mats;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.ScrollCodec;
@@ -77,7 +78,7 @@ public final class ScrollService {
     public ItemStack mintBlack() {
         ScrollsConfig.Black cfg = config.get().black();
         ItemStack stack = ItemFactory.build(
-                cfg.material(), Material.INK_SAC, cfg.name(), cfg.lore());
+                cfg.material(), Mats.or("INK_SAC", Material.PAPER), cfg.name(), cfg.lore());
         scrolls.mark(stack, BLACK);
         return stack;
     }
@@ -95,7 +96,7 @@ public final class ScrollService {
     public ItemStack mintTransmog() {
         ScrollsConfig.Transmog cfg = config.get().transmog();
         ItemStack stack = ItemFactory.build(
-                cfg.material(), Material.PURPLE_DYE, cfg.name(), cfg.lore());
+                cfg.material(), Mats.or("PURPLE_DYE", Material.PAPER), cfg.name(), cfg.lore());
         scrolls.mark(stack, TRANSMOG);
         return stack;
     }

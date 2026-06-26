@@ -1,5 +1,6 @@
 package feature.scroll;
 
+import feature.compat.MenuClicks;
 import java.util.Objects;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -34,8 +35,8 @@ public final class NametagListener implements Listener {
         if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT) {
             return;
         }
-        if (event.getClickedInventory() == null
-                || event.getClickedInventory() != event.getView().getBottomInventory()) {
+        if (MenuClicks.clickedInventory(event) == null
+                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
             return;
         }
         ItemStack cursor = event.getCursor();

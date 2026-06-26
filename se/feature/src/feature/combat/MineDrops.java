@@ -40,7 +40,7 @@ public final class MineDrops {
             return;
         }
         Collection<ItemStack> drops = effectiveDrops(block, player, smelt);
-        event.setDropItems(false); // suppress the vanilla drop; we place the effective drops below
+        feature.compat.Blocks.suppressVanillaDrops(event); // suppress the vanilla drop; we place the effective drops below
         if (teleportDrops) {
             for (ItemStack drop : drops) {
                 player.getInventory().addItem(drop).values()

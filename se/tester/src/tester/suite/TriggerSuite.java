@@ -116,7 +116,7 @@ public final class TriggerSuite implements Harness.Scenario {
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();
-        TriggerDispatch dispatch = new TriggerDispatch(executor, handles, holder, worn, triggers,
+        TriggerDispatch dispatch = new TriggerDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn, triggers,
                 tick::incrementAndGet, actor -> Optional.empty());
         plugin.getServer().getPluginManager().registerEvents(new TriggerListeners(dispatch), plugin);
 

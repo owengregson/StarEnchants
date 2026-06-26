@@ -119,7 +119,7 @@ public final class SoulSuite implements Harness.Scenario {
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), ledger), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();
-        CombatDispatch dispatch = new CombatDispatch(executor, handles, holder, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 tick::incrementAndGet, soulService::bindingFor);
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
