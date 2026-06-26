@@ -8,10 +8,19 @@
 
 allprojects {
     group = "com.starenchants"
-    version = "1.1.0-beta"
+    version = "1.1.1-beta"
 }
 
 subprojects {
+    // Isolate the two cross-version targets into SEPARATE build dirs so a modern build (`build/`) and a
+    // legacy build (`-Pse.target=legacy` → `build-legacy/`) can never collide: no shared jar filename to
+    // clobber, no shared classes dir for Gradle's incremental compiler to mix across the overlay srcDir swap,
+    // and the mega-jar merge becomes order-independent (it reads the modern jar from build/ and the downgraded
+    // legacy jar from build-legacy/). The legacy dir is gitignored. See scripts/build-mega-jar.sh.
+    if ((findProperty("se.target") as String?) == "legacy") {
+        layout.buildDirectory.set(layout.projectDirectory.dir("build-legacy"))
+    }
+
     repositories {
         mavenCentral()
         maven { url = uri("https://repo.papermc.io/repository/maven-public/") }

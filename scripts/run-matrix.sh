@@ -81,10 +81,12 @@ if [ "${#TARGETS[@]}" -eq 0 ]; then
 fi
 
 # ── Build first — rebundle the tester fat jar (matrix-stale-jar-trap) ─────────
-# The tester jar is a FAT jar bundling engine/platform/item/feature/compile/schema. `find`-ing an
-# existing jar without rebuilding silently tests OLD code → a false PASS/FAIL. So rebuild by default:
-# `./gradlew build` recompiles, runs the unit gate, and re-runs :tester:jar (rebundling the fat jar).
-# Set SE_NO_BUILD=1 / pass --no-build ONLY when you have just built in this session (to save time).
+# The tester is a FAT jar bundling the engine; `find`-ing an existing jar without rebuilding silently tests
+# OLD code → a false PASS/FAIL. So rebuild by default: `./gradlew build` recompiles, runs the unit gate, and
+# re-runs :tester:jar. The MODERN matrix boots the MODERN tester (v61); the 1.8 gate (scripts/legacy-smoke.sh)
+# boots the downgraded legacy tester (v52). The tester is NOT a Multi-Release jar — its two trees diverge in
+# their era-specific suites/signatures, which build-mega-jar.sh's soundness gate rejects; only the SHIPPED
+# plugin (identical class sets) is merged into one jar. Set SE_NO_BUILD=1 / --no-build only after a fresh build.
 if [ "$NO_BUILD" = "1" ]; then
   warn "SE_NO_BUILD set — skipping ./gradlew build; the tester jar may be STALE (stale-jar trap)"
 else
@@ -95,10 +97,12 @@ else
   fi
 fi
 
-# ── Locate the tester jar (built by gradle, above) ───────────────────────────
-TESTER_JAR="$(find "$REPO_ROOT/se/tester/build/libs" -name 'tester-*.jar' ! -name '*-sources.jar' 2>/dev/null | head -1)"
-if [ -z "$TESTER_JAR" ]; then
-  err "tester jar not found — run ./gradlew :tester:jar (or drop --no-build / unset SE_NO_BUILD so this script builds it)"
+# ── Locate the modern tester jar, pinned to the canonical version ─────────────
+# build/libs can keep a stale tester-<oldversion>.jar that a bare `find | head -1` would grab by directory order.
+VERSION="$(grep -E '^[[:space:]]*version = "' "$REPO_ROOT/build.gradle.kts" | head -1 | sed -E 's/.*version = "(.*)".*/\1/')"
+TESTER_JAR="$REPO_ROOT/se/tester/build/libs/tester-${VERSION}.jar"
+if [ -z "$VERSION" ] || [ ! -f "$TESTER_JAR" ]; then
+  err "tester jar not found: ${TESTER_JAR#$REPO_ROOT/} — run ./gradlew :tester:jar (or drop --no-build / unset SE_NO_BUILD so this script builds it)"
   exit 2
 fi
 log "tester jar: ${TESTER_JAR#$REPO_ROOT/}"

@@ -16,7 +16,8 @@
 #     (installs org.bukkit:craftbukkit:1.8.8-R0.1-SNAPSHOT into ~/.m2). NOT on any public repo.
 #
 # Usage:   scripts/build-legacy-jar.sh [bootstrap|tester]   (default: bootstrap)
-# Output:  se/<module>/build/libs/StarEnchants[-Tester]-<version>-legacy.jar
+# Output:  se/<module>/build-legacy/libs/StarEnchants[-Tester]-<version>-legacy.jar
+#          (-Pse.target=legacy redirects the buildDir to build-legacy/ so it never collides with build/)
 #
 # Live verification (Gate 4) is a SEPARATE, mandatory step: boot a real Spigot 1.8.8 under JDK 8 with this
 # jar and run the legacy smoke suite. Per the §11 ownership precondition, the legacy lane must not ship
@@ -52,8 +53,10 @@ esac
 echo "[legacy] 1/2  dual-compile + assemble the legacy ${MODULE} fat jar (Gate 1 + Gate 1b) ..."
 ./gradlew -Pse.target=legacy ":${MODULE}:jar"
 VERSION="$(./gradlew -q -Pse.target=legacy ":${MODULE}:properties" 2>/dev/null | awk -F': ' '/^version:/{print $2}')"
-IN_JAR="$ROOT/se/${MODULE}/build/libs/${MODULE}-${VERSION}.jar"
-OUT_JAR="$ROOT/se/${MODULE}/build/libs/${OUT_NAME}-${VERSION}-legacy.jar"
+# -Pse.target=legacy redirects the buildDir to build-legacy/ (root build.gradle.kts), so the legacy lane's
+# artifacts live there — never colliding with the modern build/ jar of the same name.
+IN_JAR="$ROOT/se/${MODULE}/build-legacy/libs/${MODULE}-${VERSION}.jar"
+OUT_JAR="$ROOT/se/${MODULE}/build-legacy/libs/${OUT_NAME}-${VERSION}-legacy.jar"
 
 # Fetch the JvmDowngrader CLI once.
 JDG="$WORK/jvmdowngrader-${JDG_VERSION}-all.jar"

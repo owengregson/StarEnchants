@@ -12,6 +12,12 @@
 
 ## Execution status (2026-06-25) — the fork is SHIPPING (all phases done; Gate 4 live + CI-enforced)
 
+> **[Superseded 2026-06-26] Distribution is now a single Multi-Release mega-jar.** The legacy and modern
+> trees are pre-built and merged into ONE `StarEnchants-<ver>.jar` by `scripts/build-mega-jar.sh` (base =
+> legacy v52 tree, `META-INF/versions/17/` = modern v61 tree, `Multi-Release: true`); the JVM selects the
+> tree at load time. There is no longer a separate `-1.8.9`/`-legacy` release asset — see the §7, §9, and
+> §10 superseded notes below.
+
 The maintainer greenlit building all phases AND shipping the optional second jar. The 1.8.9 fork is now
 **built, compile-verified against a real Spigot 1.8.8 (`v1_8_R3`) jar, and FUNCTIONALLY verified live**: a
 downgraded jar boots on a real craftbukkit-1.8.8 server under JDK 8 and the in-server reduced smoke suite
@@ -510,6 +516,11 @@ emitting `StarEnchants-${VERSION}-legacy.jar` + `.sha256` as a second `gh releas
 The `v1_8_R3` NMS dep is BuildTools-local (not on Central) — a fork-only prerequisite the
 modern build never needs.
 
+> **[Superseded 2026-06-26]** The release now ships ONE Multi-Release jar, not two assets:
+> `scripts/build-mega-jar.sh` merges the modern v61 and downgraded legacy v52 trees into a single
+> `StarEnchants-${VERSION}.jar`, so there is no second `gh release` asset (no `-legacy`/`-1.8.9`
+> classifier). The `v1_8_R3` BuildTools-local prerequisite still applies.
+
 ---
 
 ## 8. Risk register
@@ -563,7 +574,10 @@ lowers + resolves names," not "works."
 Ships: the `v1_8_R3` fake-player tester fork; the JDK-8 Spigot-1.8.8 CI lane (Gate 4); the
 smoke suite (§6) incl. the named `LoreRenderer` 100×-render-read-blob assertion; the second
 release stage + classifier.
-Verified: live 1.8.9 boot + smoke suite green. First point the legacy jar is shippable.
+> **[Superseded 2026-06-26]** No second release stage or classifier ships: the release now emits ONE
+> Multi-Release jar via `scripts/build-mega-jar.sh` (modern v61 + downgraded legacy v52 merged into a
+> single `StarEnchants-<ver>.jar`).
+Verified: live 1.8.9 boot + smoke suite green. First point the legacy tree is shippable.
 Does NOT cover: full feature parity (only smoke-tested `EffectKind` families + main GUI);
 pre-1.9 combat-mechanic fidelity.
 
@@ -610,6 +624,18 @@ two artifacts; reflection cannot rescue a class the Java-8 verifier won't load).
 divergence at compile time — only Gates 3 and 4 can. Per the standing
 `starenchants-legacy-version-feasibility` memory, 1.8.9 is structurally a second product.
 
+> **[Superseded 2026-06-26] One universal jar IS now shipped — via a Multi-Release JAR.** This verdict
+> was correct only *before the legacy fork existed*. Its premise — that a single jar would force the
+> Java-8 verifier to load a modern class — no longer holds now that **both trees are pre-built**. The
+> distribution is one `StarEnchants-<ver>.jar` with `Multi-Release: true`: the **legacy v52 tree at the
+> base** and the **modern v61 tree under `META-INF/versions/17/`** (built and merged by
+> `scripts/build-mega-jar.sh`). Paper opens plugin `JarFile`s with `JarFile.runtimeVersion()` across the
+> whole range, so a Java-8 server reads only the base v52 tree and a Java-16+ server reads the v17 tree —
+> no reflection, and **no class the Java-8 verifier must load**. The "two artifacts" floor is gone; what
+> remains true is that 1.8 is still a separately-compiled tree (a second *build*, just not a second
+> *download*), and the `feature/**` fork, Gate-3/Gate-4 semantic gaps, and second toolchain all still
+> stand exactly as described.
+
 **Does the floor recommendation hold? Yes.** The floor stays **1.17.1**; the primary artifact
 is unchanged. 1.8.9 is an **optional second jar** via `:compat-legacy`. **Execute Phase 0
 now** (it pays for itself on the modern plugin and raises core-share quality by making the
@@ -617,6 +643,11 @@ seams real and CI-enforced). Treat Phases 1–3 as a spec on the shelf — the c
 four-gate design makes the 1.8 fork the **best-structured and safest it can be**, but it does
 not make it free, it does not make it one jar, and it must not be started until the §11
 precondition is answered YES.
+
+> **[Superseded 2026-06-26]** The "it does not make it one jar" clause no longer holds — with both trees
+> pre-built, they now ship as ONE Multi-Release jar (`scripts/build-mega-jar.sh`), so 1.8.9 needs no
+> separate download. Everything else in this verdict stands: the modern floor is still 1.17.1, 1.8 is
+> still a separately-compiled tree, and the fork is not free.
 
 ---
 

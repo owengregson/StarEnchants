@@ -55,6 +55,10 @@ ARCH_PREFIX=()
 if [ "$(uname -s)" = "Darwin" ] && [ "$(uname -m)" = "arm64" ]; then ARCH_PREFIX=(arch -x86_64); fi
 
 # ── 1. Build + downgrade the legacy tester jar ────────────────────────────
+# The tester is NOT a Multi-Release jar: its modern and legacy trees diverge in era-specific suites/signatures,
+# which build-mega-jar.sh's soundness gate rejects — only the SHIPPED plugin (identical class sets) merges into
+# one jar. So the 1.8 gate boots the DOWNGRADED legacy tester (v52); the modern matrix (scripts/run-matrix.sh)
+# boots the modern tester (v61). The shipped MEGA-plugin itself is boot-smoked on both eras by scripts/mega-smoke.sh.
 if [ "$NO_BUILD" = "1" ]; then
   warn "SE_NO_BUILD set — skipping the jar build; the legacy tester jar may be STALE"
 else
@@ -65,9 +69,15 @@ else
   fi
 fi
 
-TESTER_JAR="$(find "$ROOT/se/tester/build/libs" -name 'StarEnchants-Tester-*-legacy.jar' 2>/dev/null | head -1)"
-[ -n "$TESTER_JAR" ] || { err "downgraded tester jar not found under se/tester/build/libs (drop SE_NO_BUILD so this builds it)"; exit 2; }
-log "tester jar: ${TESTER_JAR#$ROOT/}"
+# Pin the legacy tester to the CANONICAL version: build-legacy/libs can retain a stale
+# StarEnchants-Tester-<oldversion>-legacy.jar that a bare `find | head -1` would grab by directory order,
+# silently smoke-testing OLD code (a false PASS). Select the exact current-version filename instead.
+# (-Pse.target=legacy redirects the buildDir to build-legacy/, so the downgraded tester lives there.)
+VERSION="$(grep -E '^[[:space:]]*version = "' "$ROOT/build.gradle.kts" | head -1 | sed -E 's/.*version = "(.*)".*/\1/')"
+[ -n "$VERSION" ] || { err "could not read project version from build.gradle.kts"; exit 2; }
+TESTER_JAR="$ROOT/se/tester/build-legacy/libs/StarEnchants-Tester-${VERSION}-legacy.jar"
+[ -f "$TESTER_JAR" ] || { err "downgraded tester jar not found: ${TESTER_JAR#$ROOT/} (drop SE_NO_BUILD so this builds it)"; exit 2; }
+log "tester jar: ${TESTER_JAR#$ROOT/}  (the downgraded v52 legacy tester)"
 
 # ── 2. Stage a fresh 1.8.8 server ─────────────────────────────────────────
 SRV="$WORK/smoke-server"
@@ -93,11 +103,11 @@ server-port=25710
 EOF
 
 # ── 3. Boot under JDK 8; the harness self-shuts-down once results are written ──
-log "booting craftbukkit 1.8.8 under $("${ARCH_PREFIX[@]}" "$J8" -version 2>&1 | head -1) ..."
+log "booting craftbukkit 1.8.8 under $(${ARCH_PREFIX[@]+"${ARCH_PREFIX[@]}"} "$J8" -version 2>&1 | head -1) ..."
 started="$(date +%s)"
 # Feed nothing on stdin; the in-server Harness calls server.shutdown() itself after writing results. The
 # watchdog below is the fallback if it never gets that far.
-( cd "$SRV" && "${ARCH_PREFIX[@]}" "$J8" -Xmx1024M -Ddisable.watchdog=true \
+( cd "$SRV" && ${ARCH_PREFIX[@]+"${ARCH_PREFIX[@]}"} "$J8" -Xmx1024M -Ddisable.watchdog=true \
     -jar server.jar nogui > "$SRV/boot.log" 2>&1 ) &
 pid=$!
 
