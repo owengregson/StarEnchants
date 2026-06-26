@@ -116,7 +116,15 @@ jobs:
           git config --global user.name "StarEnchants CI"
           curl -fsSL -o BuildTools.jar \
             https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
-          "$JAVA_HOME_8_X64/bin/java" -jar BuildTools.jar --rev 1.8.8 --compile craftbukkit
+          # Retry: BuildTools' jgit clone + downloads occasionally truncate (transient "Premature EOF"); the
+          # work dir persists between attempts so a retry resumes. Once it succeeds the cache makes it moot.
+          ok=0
+          for attempt in 1 2 3; do
+            if "$JAVA_HOME_8_X64/bin/java" -jar BuildTools.jar --rev 1.8.8 --compile craftbukkit; then ok=1; break; fi
+            echo "::warning::BuildTools attempt $attempt failed (transient download?) — retrying in 20s"
+            sleep 20
+          done
+          [ "$ok" = 1 ] || { echo "::error::BuildTools failed after 3 attempts"; exit 1; }
           # BuildTools already saves the runnable server jar here as craftbukkit-1.8.8.jar (its default output);
           # fall back to a find+copy only if a future version names it otherwise (guarded against a same-file cp).
           if [ ! -f craftbukkit-1.8.8.jar ]; then
