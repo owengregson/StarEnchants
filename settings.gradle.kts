@@ -29,9 +29,10 @@ listOf(
     "pack",          // config packs: ZIP snapshot of the whole config surface (export/apply/swap)
     "api",           // public surface: events + the registration SPI + read-only queries
     "bootstrap",     // the StarEnchants JavaPlugin: composition root, content load, /se reload
-    // Newer-than-floor edges, behind a Capabilities probe.
+    // Newer-than-floor edge, behind a Capabilities probe. (A modern-only edge module is
+    // unnecessary: the few newer-than-floor surfaces — Brigadier, profile heads, BlockData
+    // sends — are gated inline via se-platform/caps + the bootstrap overlay.)
     "compat-folia",  // Folia region/entity/global schedulers
-    "compat-modern", // profile/head API, component commands, Brigadier, BlockData sends
     // Live Paper + Folia in-server matrix harness.
     "tester",
     // Tool-only (like tester, NOT shipped in the plugin jar): a Java2D generator that renders item
