@@ -90,6 +90,9 @@ public final class BukkitSchedulerBackend implements SchedulerBackend {
 
     private static final class BukkitTaskHandle implements TaskHandle {
         private final BukkitTask task;
+        // Self-tracked: BukkitTask.isCancelled() does not exist on 1.8.9, and these handles only ever wrap
+        // REPEATING timers (which never finish on their own), so "cancelled" == "cancel() was called".
+        private volatile boolean cancelled;
 
         BukkitTaskHandle(BukkitTask task) {
             this.task = task;
@@ -97,12 +100,13 @@ public final class BukkitSchedulerBackend implements SchedulerBackend {
 
         @Override
         public void cancel() {
+            cancelled = true;
             task.cancel();
         }
 
         @Override
         public boolean isCancelled() {
-            return task.isCancelled();
+            return cancelled;
         }
     }
 }
