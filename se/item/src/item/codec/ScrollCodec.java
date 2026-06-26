@@ -3,8 +3,6 @@ package item.codec;
 import java.util.Locale;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Tags / detects a SCROLL by kind (§I): a PDC {@code STRING} under {@link ItemKeys#scroll()}, off the
@@ -24,19 +22,11 @@ public final class ScrollCodec {
 
     /** The scroll kind on {@code stack}, upper-cased, or {@code null} if it is not a scroll. */
     public String kind(ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) {
-            return null;
-        }
-        String raw = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+        String raw = ItemBlobStore.read(stack, key);
         return raw == null || raw.isBlank() ? null : raw.toUpperCase(Locale.ROOT);
     }
 
     public void mark(ItemStack stack, String kind) {
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, kind.toUpperCase(Locale.ROOT));
-        stack.setItemMeta(meta);
+        ItemBlobStore.write(stack, key, kind.toUpperCase(Locale.ROOT));
     }
 }

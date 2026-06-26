@@ -2,9 +2,6 @@ package item.codec;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Reads/writes a {@link CrystalItemData} on a physical crystal item (docs/v3-directives.md §E), one PDC
@@ -22,11 +19,7 @@ public final class CrystalItemCodec {
     }
 
     public CrystalItemData read(ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) {
-            return null;
-        }
-        String raw = stack.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-        java.util.List<String> keys = CrystalItemData.componentsOf(raw);
+        java.util.List<String> keys = CrystalItemData.componentsOf(ItemBlobStore.read(stack, key));
         if (keys.isEmpty() || keys.size() > CrystalItemData.MAX_COMPONENTS) {
             return null; // absent or malformed → treat as not-a-crystal, never throw
         }
@@ -34,16 +27,6 @@ public final class CrystalItemCodec {
     }
 
     public void write(ItemStack stack, CrystalItemData data) {
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        if (data == null) {
-            pdc.remove(key);
-        } else {
-            pdc.set(key, PersistentDataType.STRING, data.entry());
-        }
-        stack.setItemMeta(meta);
+        ItemBlobStore.write(stack, key, data == null ? null : data.entry());
     }
 }

@@ -4,7 +4,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -48,20 +47,12 @@ public final class CombatCodec {
 
     /** The raw blob — the {@code ItemView} cache key, read without paying the decode the cache elides (§5.2). */
     public String readBlob(ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) {
-            return null;
-        }
-        return readBlob(stack.getItemMeta().getPersistentDataContainer());
+        return ItemBlobStore.read(stack, combatKey);
     }
 
-    /** Clears the entry when {@code state} is empty. */
+    /** Clears the entry when {@code state} is empty (an empty {@code encode} returns {@code null} → remove). */
     public void write(ItemStack stack, CombatState state) {
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        write(meta.getPersistentDataContainer(), state);
-        stack.setItemMeta(meta);
+        ItemBlobStore.write(stack, combatKey, encode(state));
     }
 
     public CombatState read(PersistentDataContainer pdc) {

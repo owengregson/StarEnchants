@@ -2,9 +2,6 @@ package item.codec;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Reads/writes a {@link CarrierData} on an item (ADR-0016), one PDC {@code STRING} under
@@ -28,47 +25,20 @@ public final class CarrierCodec {
 
     /** The carrier state on {@code stack}, or {@code null} if it is not a carrier. */
     public CarrierData read(ItemStack stack) {
-        if (stack == null || !stack.hasItemMeta()) {
-            return null;
-        }
-        return decode(stack.getItemMeta().getPersistentDataContainer().get(carrierKey, PersistentDataType.STRING));
+        return decode(ItemBlobStore.read(stack, carrierKey));
     }
 
     public void write(ItemStack stack, CarrierData data) {
-        ItemMeta meta = stack.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        if (data == null) {
-            pdc.remove(carrierKey);
-        } else {
-            pdc.set(carrierKey, PersistentDataType.STRING, encode(data));
-        }
-        stack.setItemMeta(meta);
+        ItemBlobStore.write(stack, carrierKey, data == null ? null : encode(data));
     }
 
     /** Whether {@code gear} carries a guard-scroll marker that spares it from a failed apply. */
     public boolean isGuarded(ItemStack gear) {
-        if (gear == null || !gear.hasItemMeta()) {
-            return false;
-        }
-        Byte flag = gear.getItemMeta().getPersistentDataContainer().get(guardedKey, PersistentDataType.BYTE);
-        return flag != null && flag != 0;
+        return ItemFlagStore.hasByte(gear, guardedKey);
     }
 
     public void setGuarded(ItemStack gear, boolean guarded) {
-        ItemMeta meta = gear.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        if (guarded) {
-            pdc.set(guardedKey, PersistentDataType.BYTE, (byte) 1);
-        } else {
-            pdc.remove(guardedKey);
-        }
-        gear.setItemMeta(meta);
+        ItemFlagStore.setByte(gear, guardedKey, guarded);
     }
 
     static String encode(CarrierData data) {
