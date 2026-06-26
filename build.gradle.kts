@@ -50,6 +50,9 @@ subprojects {
             add("testImplementation", platform("org.junit:junit-bom:5.11.3"))
             add("testImplementation", "org.junit.jupiter:junit-jupiter")
             add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
+            // ArchUnit — part of the shared test stack. Used today by the pure-module purity
+            // guards (CorePurityArchTest); cheap and inert where a module declares no arch test.
+            add("testImplementation", "com.tngtech.archunit:archunit-junit5:1.3.0")
         }
 
         tasks.withType<JavaCompile>().configureEach {
