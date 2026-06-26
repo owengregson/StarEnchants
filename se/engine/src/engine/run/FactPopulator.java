@@ -115,8 +115,8 @@ public final class FactPopulator {
         addActorFlag(vocabulary, "blocking", Player::isBlocking);
         addActorFlag(vocabulary, "flying", Player::isFlying);
         addActorFlag(vocabulary, "sprinting", Player::isSprinting);
-        addActorFlag(vocabulary, "swimming", Player::isSwimming);
-        addActorFlag(vocabulary, "gliding", Player::isGliding);
+        addActorFlag(vocabulary, "swimming", EntityCompat::isSwimming);
+        addActorFlag(vocabulary, "gliding", EntityCompat::isGliding);
         addActorNum(vocabulary, "actor.healthpercent", actor -> healthPercent(actor));
         addActorFlag(vocabulary, "onfire", actor -> actor.getFireTicks() > 0);
         addActorFlag(vocabulary, "onground", FactPopulator::onGround);
@@ -133,8 +133,8 @@ public final class FactPopulator {
         addVictimFlag(vocabulary, "victim.blocking", v -> v instanceof Player p && p.isBlocking());
         addVictimFlag(vocabulary, "victim.flying", v -> v instanceof Player p && p.isFlying());
         addVictimFlag(vocabulary, "victim.sprinting", v -> v instanceof Player p && p.isSprinting());
-        addVictimFlag(vocabulary, "victim.swimming", v -> v instanceof Player p && p.isSwimming());
-        addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && p.isGliding());
+        addVictimFlag(vocabulary, "victim.swimming", v -> v instanceof Player p && EntityCompat.isSwimming(p));
+        addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && EntityCompat.isGliding(p));
         addVictimStr(vocabulary, "victim.type", v -> v.getType().name());
         addVictimStr(vocabulary, "victim.helditem", FactPopulator::heldItemName);
         // §N MythicMob internal name via the soft hook; empty when not a MythicMob / integration absent.
@@ -246,7 +246,7 @@ public final class FactPopulator {
                     facts.setString(blockTypeSlot, type.name());
                 }
                 if (isBlockSlot >= 0) {
-                    facts.setFlag(isBlockSlot, !type.isAir());
+                    facts.setFlag(isBlockSlot, !EntityCompat.isAir(type));
                 }
             } catch (RuntimeException unreadable) {
                 // A block owned by another region — leave the block facts defaulted.
