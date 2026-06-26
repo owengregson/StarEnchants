@@ -20,11 +20,13 @@ degrade, the combat spine venom→poison + `EnchantActivateEvent`, the enchant G
 heroic-save restore + the NMS knockback-resistance hook). Branch `feat/legacy-1.8.9-fork` (PR #156). The modern
 build + unit tests + a Paper/Folia matrix subset stay green throughout (no modern regression).
 
-**Shipping + ownership (§11).** The live smoke is now CI-enforced: `.github/workflows/legacy.yml` compiles
+**Shipping + ownership (§11).** The live smoke is CI-wired: `.github/workflows/legacy.yml` compiles
 craftbukkit-1.8.8 via Spigot BuildTools on the runner (cached) and runs the full dual-compile + downgrade +
-JDK-8 boot + smoke on every push/PR touching the engine or the legacy build; `release.yml` runs the SAME gate
-and publishes the `StarEnchants-<ver>-1.8.9.jar` asset only when it is green. The legacy lane therefore cannot
-ship without its Gate-4 green — the §11 ownership precondition, now mechanical rather than a manual promise.
+JDK-8 boot + smoke on every push/PR touching the engine or the legacy build — **advisory on PRs** (it runs and
+is visible, but is not in the required-checks list, so it does not block unrelated PRs) — and `release.yml`
+runs the SAME gate and publishes the `StarEnchants-<ver>-1.8.9.jar` asset **only when it is green**, so the
+lane cannot SHIP without its Gate-4 green. The named §11 owner is **@owengregson** (repo maintainer), who owns
+keeping that gate green; the release block makes the precondition mechanical rather than a manual promise.
 
 **What changed vs. this blueprint (a better outcome).** The blueprint assumed separate `overlay/legacy`
 *source sets* + a wholesale-forked `:compat-legacy` Bukkit-edge module. In practice the cleaner mechanism is
