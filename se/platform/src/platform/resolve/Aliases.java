@@ -71,8 +71,15 @@ public final class Aliases {
             Map.entry("GENERIC_LUCK", "LUCK"),
             Map.entry("HORSE_JUMP_STRENGTH", "JUMP_STRENGTH"));
 
+    // The 1.13 "sound flattening" renamed nearly every constant; these are the ones the shipped content
+    // names. Key = the 1.8-era enum constant, value = the modern flattened name — so HandleResolver interns
+    // the 1.8 spelling when a modern token is loaded on a 1.8 server (the legacy fork), and the migrator
+    // normalises a 1.8 config the other way. Append as the matrix surfaces more.
     private static final Map<String, String> SOUND = Map.ofEntries(
-            Map.entry("ENTITY_PLAYER_LEVELUP", "ENTITY_PLAYER_LEVELUP"));
+            Map.entry("EXPLODE", "ENTITY_GENERIC_EXPLODE"),
+            Map.entry("LEVEL_UP", "ENTITY_PLAYER_LEVELUP"),
+            Map.entry("ANVIL_LAND", "BLOCK_ANVIL_LAND"),
+            Map.entry("WITHER_SPAWN", "ENTITY_WITHER_SPAWN"));
 
     private static final Map<String, String> PARTICLE = Map.ofEntries(
             Map.entry("SPELL_WITCH", "WITCH"),

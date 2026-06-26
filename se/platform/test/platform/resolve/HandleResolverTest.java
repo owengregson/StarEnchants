@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 class HandleResolverTest {
 
     private static final Map<String, String> POTIONS = Aliases.forCategory(HandleCategory.POTION_EFFECT);
+    private static final Map<String, String> SOUNDS = Aliases.forCategory(HandleCategory.SOUND);
 
     @Test
     void resolvesAModernTokenThatExistsDirectly() {
@@ -48,5 +49,19 @@ class HandleResolverTest {
     @Test
     void unknownTokenResolvesToEmpty() {
         assertTrue(HandleResolver.resolve("FLIBBERTIGIBBET", POTIONS, Set.of("NAUSEA")::contains).isEmpty());
+    }
+
+    @Test
+    void resolvesModernSoundsBackwardToTheir18NamesOnAnOlderServer() {
+        // The shipped content names the modern (1.13-flattened) sounds; on a 1.8 server only the old enum
+        // constants exist, so the resolver must intern those — the fix for 42 of the 45 legacy boot diagnostics.
+        assertEquals("EXPLODE",
+                HandleResolver.resolve("ENTITY_GENERIC_EXPLODE", SOUNDS, Set.of("EXPLODE")::contains).orElseThrow());
+        assertEquals("LEVEL_UP",
+                HandleResolver.resolve("ENTITY_PLAYER_LEVELUP", SOUNDS, Set.of("LEVEL_UP")::contains).orElseThrow());
+        assertEquals("ANVIL_LAND",
+                HandleResolver.resolve("BLOCK_ANVIL_LAND", SOUNDS, Set.of("ANVIL_LAND")::contains).orElseThrow());
+        assertEquals("WITHER_SPAWN",
+                HandleResolver.resolve("ENTITY_WITHER_SPAWN", SOUNDS, Set.of("WITHER_SPAWN")::contains).orElseThrow());
     }
 }

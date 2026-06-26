@@ -42,6 +42,15 @@ final class RegistrySupport {
             "GENERIC_MAX_HEALTH", "GENERIC_MOVEMENT_SPEED", "GENERIC_ATTACK_DAMAGE",
             "GENERIC_KNOCKBACK_RESISTANCE", "GENERIC_FOLLOW_RANGE", "GENERIC_ATTACK_SPEED");
 
+    /**
+     * Lossy 1.8-only DEGRADATIONS merged on top of the {@link Aliases} renames at resolve time: a token with
+     * no 1.8 equivalent maps to the closest 1.8 constant so the effect still fires (visibly degraded) instead
+     * of being warn-skipped. Kept OUT of {@link Aliases} because these are not renames — the migrator must not
+     * rewrite a modern config through them. {@code SOUL} (1.16) &rarr; the 1.8 large-smoke particle.
+     */
+    private static final java.util.Map<HandleCategory, java.util.Map<String, String>> FALLBACKS_1_8 =
+            java.util.Map.of(HandleCategory.PARTICLE, java.util.Map.of("SOUL", "SMOKE_LARGE"));
+
     /** Whether {@code canonicalName} (1.8-era, upper-case) resolves for {@code category} on 1.8.9. */
     static boolean exists(HandleCategory category, String canonicalName) {
         return switch (category) {
@@ -49,6 +58,11 @@ final class RegistrySupport {
             case ATTRIBUTE -> ATTRIBUTES_1_8.contains(canonicalName);
             default -> lookup(category, canonicalName) != null;
         };
+    }
+
+    /** Legacy-only lossy fallbacks ({@link #FALLBACKS_1_8}) merged on top of {@link Aliases} for resolution. */
+    static java.util.Map<String, String> fallbackAliases(HandleCategory category) {
+        return FALLBACKS_1_8.getOrDefault(category, java.util.Map.of());
     }
 
     /** The live 1.8 Bukkit object {@code canonicalName} denotes, or {@code null} (particle/attribute → NMS-by-name). */

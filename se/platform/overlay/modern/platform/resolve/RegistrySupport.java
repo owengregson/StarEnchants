@@ -32,6 +32,11 @@ final class RegistrySupport {
         return lookup(category, canonicalName) != null;
     }
 
+    /** No lossy fallbacks on the floor build — every modern token resolves directly. */
+    static java.util.Map<String, String> fallbackAliases(HandleCategory category) {
+        return java.util.Map.of();
+    }
+
     /** The live Bukkit object {@code canonicalName} denotes for {@code category}, or {@code null}. */
     static Object lookup(HandleCategory category, String canonicalName) {
         try {
