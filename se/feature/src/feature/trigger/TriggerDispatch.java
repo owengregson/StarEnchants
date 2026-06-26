@@ -6,7 +6,7 @@ import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.FactPopulator;
-import engine.sink.DispatchSink;
+import engine.sink.SinkReadback;
 import engine.sink.SoulDebit;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
@@ -32,12 +32,12 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import platform.economy.EconomyService;
-import platform.resolve.RuntimeHandles;
+import engine.sink.SinkFactory;
 
 /**
  * Dispatches the NON-combat triggers (§3.3) — MINE, KILL, FALL, FIRE, INTERACT* — that {@code CombatDispatch}
  * (ATTACK/DEFENSE on {@code EntityDamageByEntityEvent}) does not cover. Routes the actor's worn abilities
- * through the shared {@link TriggerRunner} into a per-event {@link DispatchSink}, then applies its read-backs:
+ * through the shared {@link TriggerRunner} into a per-event {@link SinkReadback}, then applies its read-backs:
  * a neutral event ({@link #fire}) honours only a {@code cancelEvent}; a damage event ({@link #fireDamage})
  * also folds the accumulated deltas onto it. Trigger ids resolve once at construction; an absent trigger is
  * {@code -1} and its {@code fire} is a no-op.
@@ -46,7 +46,7 @@ public final class TriggerDispatch {
 
     private final TriggerRunner runner;
     private final AbilityExecutor executor; // §B lifecycle runs effects gatelessly, outside the runner's gate path
-    private final RuntimeHandles handles;
+    private final SinkFactory sinkFactory;
     private final ContentHolder content;
     private final EconomyService economy;
     private final SoulDebit souls;
@@ -79,48 +79,48 @@ public final class TriggerDispatch {
     public final int command; // §B COMMAND — fired by the configured CommandTriggerCommand
 
     /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
-    public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder) {
-        this(executor, handles, content, worn, triggers, nowTicks, soulBinder, EconomyService.NONE,
+        this(executor, sinkFactory, content, worn, triggers, nowTicks, soulBinder, EconomyService.NONE,
                 SoulDebit.NONE, new VarStore(), new SuppressionStore(), new KnockbackControlStore(),
                 new KeepOnDeathStore());
     }
 
     /** Trigger dispatch with an economy: GIVE_MONEY/TAKE_MONEY on MINE/KILL/… deposit/withdraw via the sink. */
-    public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
                            SoulDebit souls, VarStore vars, SuppressionStore suppression,
                            KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
-        this(executor, handles, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
+        this(executor, sinkFactory, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
                 suppression, knockback, keepOnDeath,
                 () -> engine.interact.DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
     }
 
     /** As the heroic-ceiling ctor, additionally sharing the TELEBLOCK/IMMUNE stores with their listeners. */
-    public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
                            SoulDebit souls, VarStore vars, SuppressionStore suppression,
                            KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
                            java.util.function.DoubleSupplier maxHeroicOutgoing) {
-        this(executor, handles, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
+        this(executor, sinkFactory, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
                 suppression, knockback, keepOnDeath, new TeleblockStore(), new ImmuneStore(), maxHeroicOutgoing);
     }
 
     /**
      * Full ctor plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
-     * §F) threaded into each per-event {@link DispatchSink}, read live so a reload re-tunes it.
+     * §F) threaded into each per-event {@link SinkReadback}, read live so a reload re-tunes it.
      */
-    public TriggerDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
                            SoulDebit souls, VarStore vars, SuppressionStore suppression,
                            KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
                            TeleblockStore teleblock, ImmuneStore immune,
                            java.util.function.DoubleSupplier maxHeroicOutgoing) {
-        this.handles = Objects.requireNonNull(handles, "handles");
+        this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
@@ -164,7 +164,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = newSink();
+        SinkReadback sink = newSink();
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys());
         if (cancellable != null && sink.cancelled()) {
@@ -182,7 +182,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = newSink();
+        SinkReadback sink = newSink();
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), mine,
                 attackTrigger.test(mine), actor, context, sink, snapshot.stableKeys());
         if (sink.cancelled()) {
@@ -204,7 +204,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = newSink();
+        SinkReadback sink = newSink();
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), bowFire,
                 attackTrigger.test(bowFire), shooter, context, sink, snapshot.stableKeys());
         if (sink.cancelled()) {
@@ -225,7 +225,7 @@ public final class TriggerDispatch {
             return;
         }
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = newSink();
+        SinkReadback sink = newSink();
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys(), applyHeroic);
         event.setDamage(sink.fold().apply(event.getDamage()));
@@ -241,7 +241,7 @@ public final class TriggerDispatch {
      */
     public void fireEnvironmentalHeroic(Player actor, org.bukkit.event.entity.EntityDamageEvent event) {
         Snapshot snapshot = content.snapshot();
-        DispatchSink sink = newSink();
+        SinkReadback sink = newSink();
         runner.contributeHeroicReduction(snapshot.generation(), actor, sink);
         event.setDamage(sink.fold().apply(event.getDamage()));
         sink.flush();
@@ -258,7 +258,7 @@ public final class TriggerDispatch {
         }
         Snapshot snapshot = content.snapshot();
         ActivationContext context = new ActivationContext(actor, null, null, actor.getLocation());
-        DispatchSink sink = newSink();
+        SinkReadback sink = newSink();
         runner.runCandidates(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context),
                 repeating, false, actor, context, sink, snapshot.stableKeys(), new int[]{abilityId});
         sink.flush();
@@ -279,7 +279,7 @@ public final class TriggerDispatch {
         Snapshot snapshot = content.snapshot();
         ActivationContext context = new ActivationContext(actor, null, null, actor.getLocation());
         int worldId = worldId(snapshot, context);
-        DispatchSink sink = newSink();
+        SinkReadback sink = newSink();
         for (Ability ability : stops) {
             executor.runLifecycle(ability, context, sink, true); // teardown=true: unconditional, never world-gated
         }
@@ -300,8 +300,8 @@ public final class TriggerDispatch {
         fire(actor, command, new ActivationContext(actor, null, null, actor.getLocation()), null);
     }
 
-    private DispatchSink newSink() {
-        return new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+    private SinkReadback newSink() {
+        return sinkFactory.create(economy, souls, vars, suppression, knockback, keepOnDeath,
                 teleblock, immune, nowTicks, maxHeroicOutgoing);
     }
 

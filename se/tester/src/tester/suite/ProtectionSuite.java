@@ -122,7 +122,7 @@ public final class ProtectionSuite implements Harness.Scenario {
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), new SoulLedger(), guard, ActivationPipeline.Guard.ALLOW),
                 AreaScan.NONE);
-        CombatDispatch dispatch = new CombatDispatch(executor, handles, holder, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
 

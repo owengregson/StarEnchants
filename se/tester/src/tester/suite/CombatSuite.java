@@ -118,7 +118,7 @@ public final class CombatSuite implements Harness.Scenario {
                             new EnchantActivateEvent(actor, key, ability.level()));
                 });
         AtomicLong tick = new AtomicLong();
-        CombatDispatch dispatch = new CombatDispatch(executor, handles, holder, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
 

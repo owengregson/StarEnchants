@@ -1,5 +1,6 @@
 package feature.menu;
 
+import feature.compat.MenuClicks;
 import feature.scroll.ScrollService;
 import item.codec.CombatCodec;
 import java.util.Objects;
@@ -39,8 +40,8 @@ public final class GodlyTransmogListener implements Listener {
             }
         }
         // Gesture rule: the gear is clicked in the player's own inventory with the tool on the cursor.
-        if (event.getClickedInventory() == null
-                || event.getClickedInventory() != event.getView().getBottomInventory()) {
+        if (MenuClicks.clickedInventory(event) == null
+                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
             return;
         }
         ItemStack cursor = event.getCursor();
@@ -48,7 +49,7 @@ public final class GodlyTransmogListener implements Listener {
             return;
         }
         ItemStack target = event.getCurrentItem();
-        if (target == null || target.getType().isAir()) {
+        if (target == null || feature.compat.Mats.isAir(target.getType())) {
             return;
         }
         // No enchants = nothing to reorder; no-op, leaving the tool on the cursor for another piece.

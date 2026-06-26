@@ -1,5 +1,6 @@
 package feature.crystal;
 
+import feature.compat.MenuClicks;
 import feature.compat.Sounds;
 import java.util.Map;
 import java.util.Objects;
@@ -38,8 +39,8 @@ public final class CrystalListener implements Listener {
         if (!ours) {
             return;
         }
-        if (event.getClickedInventory() == null
-                || event.getClickedInventory() != event.getView().getBottomInventory()) {
+        if (MenuClicks.clickedInventory(event) == null
+                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
             return;
         }
         ItemStack cursor = event.getCursor();

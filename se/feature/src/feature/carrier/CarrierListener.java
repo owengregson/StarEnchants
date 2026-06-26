@@ -1,5 +1,6 @@
 package feature.carrier;
 
+import feature.compat.MenuClicks;
 import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import item.codec.CarrierCodec;
@@ -46,8 +47,8 @@ public final class CarrierListener implements Listener {
         if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT) {
             return;
         }
-        if (event.getClickedInventory() == null
-                || event.getClickedInventory() != event.getView().getBottomInventory()) {
+        if (MenuClicks.clickedInventory(event) == null
+                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
             return;
         }
         ItemStack cursor = event.getCursor();

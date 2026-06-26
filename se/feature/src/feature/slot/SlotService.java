@@ -1,6 +1,7 @@
 package feature.slot;
 
 import compile.load.SlotConfig;
+import feature.compat.Mats;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.SlotItemCodec;
@@ -57,7 +58,7 @@ public final class SlotService {
         SlotConfig cfg = config.get();
         String amount = Integer.toString(cfg.orbAmount());
         ItemStack stack = ItemFactory.build(
-                cfg.orbMaterial(), Material.ENDER_EYE,
+                cfg.orbMaterial(), Mats.or("ENDER_EYE", Material.PAPER),
                 cfg.orbName().replace("{AMOUNT}", amount),
                 renderLore(cfg.orbLore(), amount));
         codec.mark(stack, cfg.orbAmount());

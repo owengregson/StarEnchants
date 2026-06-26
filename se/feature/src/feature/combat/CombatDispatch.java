@@ -6,7 +6,7 @@ import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.FactPopulator;
-import engine.sink.DispatchSink;
+import engine.sink.SinkReadback;
 import engine.sink.SoulDebit;
 import engine.stores.ComboStore;
 import engine.stores.ImmuneStore;
@@ -23,16 +23,15 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import org.bukkit.Location;
-import org.bukkit.entity.AbstractArrow;
+import feature.compat.Projectiles;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.entity.Trident;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import platform.economy.EconomyService;
-import platform.resolve.RuntimeHandles;
+import engine.sink.SinkFactory;
 
 /**
  * Turns a Bukkit combat event into ability activations (docs/architecture.md §3.3, §3.6). Reads worn
@@ -43,7 +42,7 @@ import platform.resolve.RuntimeHandles;
 public final class CombatDispatch {
 
     private final TriggerRunner runner;
-    private final RuntimeHandles handles;
+    private final SinkFactory sinkFactory;
     private final ContentHolder content;
     private final EconomyService economy;
     private final SoulDebit souls;
@@ -75,54 +74,54 @@ public final class CombatDispatch {
     }
 
     /** Combat dispatch with NO soul system (the soul gate is never armed) and no economy. */
-    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks) {
-        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks,
+        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks,
                 actor -> Optional.empty(), EconomyService.NONE, SoulDebit.NONE, new VarStore(),
                 new SuppressionStore(), new KnockbackControlStore(), new KeepOnDeathStore());
     }
 
     /** Combat dispatch with a soul binder (no economy): an actor in soul mode arms gate 10 from their gem. */
-    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
-        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
+        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
                 EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(),
                 new KnockbackControlStore(), new KeepOnDeathStore());
     }
 
     /** Combat dispatch with a soul binder + economy but no distinct BOW/TRIDENT triggers (arrow hits fire ATTACK). */
-    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy) {
-        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
+        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
                 economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(),
                 new KnockbackControlStore(), new KeepOnDeathStore());
     }
 
     /** Full dispatch: distinct BOW/TRIDENT triggers + soul binder + economy; either trigger id {@code -1} falls those hits back to the Cosmic Enchants-style melee-only ATTACK. */
-    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
-        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
+        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
                 nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
                 () -> engine.interact.DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
     }
 
     /** As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor}, §F). */
-    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
                           EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
                           java.util.function.DoubleSupplier maxHeroicOutgoing) {
-        this(executor, handles, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
+        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
                 nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
                 new TeleblockStore(), new ImmuneStore(), maxHeroicOutgoing,
                 () -> -1.0, () -> -1.0, () -> true, () -> true); // combat caps uncapped + PvP/PvE on by default
@@ -132,7 +131,7 @@ public final class CombatDispatch {
      * As above, plus the live combat caps (config.yml {@code combat.*}, §L): additive bonus ceilings
      * ({@code < 0} ⇒ uncapped) and the {@code pvp}/{@code pve} gates keyed on the victim's player-ness.
      */
-    public CombatDispatch(AbilityExecutor executor, RuntimeHandles handles, ContentHolder content,
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
                           LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
@@ -144,7 +143,7 @@ public final class CombatDispatch {
                           java.util.function.DoubleSupplier maxBonusReduction,
                           java.util.function.BooleanSupplier pvpEnabled,
                           java.util.function.BooleanSupplier pveEnabled) {
-        this.handles = Objects.requireNonNull(handles, "handles");
+        this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
@@ -186,7 +185,7 @@ public final class CombatDispatch {
         double incomingDamage = event.getDamage();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
-        DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
+        SinkReadback sink = sinkFactory.create(economy, souls, vars, suppression, knockback, keepOnDeath,
                 teleblock, immune, nowTicks, maxHeroicOutgoing);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
 
@@ -240,13 +239,14 @@ public final class CombatDispatch {
 
     /**
      * The attacker-side trigger for a hit, by RAW damager type; {@code -1} ids fall back to {@code attackId}.
-     * {@link Trident} extends {@link AbstractArrow}, so it is tested first.
+     * A trident is also arrow-like, so it is tested first (the {@link Projectiles} seam encapsulates the
+     * 1.13/1.14 trident/abstract-arrow types, absent on 1.8).
      */
     static int attackTrigger(Entity rawDamager, int attackId, int bowId, int tridentId) {
-        if (rawDamager instanceof Trident && tridentId >= 0) {
+        if (Projectiles.isTrident(rawDamager) && tridentId >= 0) {
             return tridentId;
         }
-        if (rawDamager instanceof AbstractArrow && bowId >= 0) {
+        if (Projectiles.isArrowLike(rawDamager) && bowId >= 0) {
             return bowId;
         }
         return attackId;

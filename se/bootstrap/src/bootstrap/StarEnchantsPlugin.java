@@ -357,7 +357,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // itemsadder:… / oraxen:… custom-item materials in item/menu configs.
         item.mint.ItemFactory.customItemResolver(
                 Integrations.customItem(this, master.config().integrations()::enabled));
-        CombatDispatch dispatch = new CombatDispatch(executor, handles, content, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
                 soulService::bindingFor, economy, soulService, vars, suppression, knockback, keepOnDeath,
@@ -368,7 +368,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
                 () -> master.config().combat().pve());                    // §L combat.pve gate (live)
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
-        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, handles, content, worn, triggers,
+        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, new engine.sink.DispatchSinkFactory(handles), content, worn, triggers,
                 tick::get, soulService::bindingFor, economy, soulService, vars, suppression, knockback,
                 keepOnDeath, teleblock, immune,
                 () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
@@ -394,6 +394,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch,
                 () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope())), this); // §F reduction-scope
+        // ITEM_DAMAGE lives in its own listener (the event is 1.9+; the legacy overlay is a no-op).
+        getServer().getPluginManager().registerEvents(
+                new feature.trigger.DurabilityTriggerListener(triggerDispatch), this);
         getServer().getPluginManager().registerEvents(
                 new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune), this);
         // §C KEEP_ON_DEATH at NORMAL priority — earlier than HolyScrollListener (HIGH) — so an enchant-kept

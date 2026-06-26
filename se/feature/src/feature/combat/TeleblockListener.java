@@ -1,6 +1,7 @@
 package feature.combat;
 
 import engine.stores.TeleblockStore;
+import feature.compat.Causes;
 import java.util.Objects;
 import java.util.function.LongSupplier;
 import org.bukkit.entity.EnderPearl;
@@ -39,7 +40,7 @@ public final class TeleblockListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
         PlayerTeleportEvent.TeleportCause cause = event.getCause();
-        boolean teleportMove = cause == PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT
+        boolean teleportMove = Causes.isChorusFruit(cause)
                 || cause == PlayerTeleportEvent.TeleportCause.ENDER_PEARL;
         if (teleportMove && store.isBlocked(event.getPlayer().getUniqueId(), nowTicks.getAsLong())) {
             event.setCancelled(true);
