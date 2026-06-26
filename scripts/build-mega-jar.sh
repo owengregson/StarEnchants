@@ -136,11 +136,11 @@ fi
 # (so it exists under base AND versions/17), then require the base copy be Java 8 (class v52) and the
 # versions/17 copy be Java 17 (class v61), plus Multi-Release: true. This is module-agnostic and is the
 # real selection criterion, so it catches a botched merge regardless of which class names changed.
+# NB: take the first shared class via bash parameter expansion, NOT `comm … | head -1` — `head` closing the
+# pipe early gives `comm` a SIGPIPE/broken-pipe that `set -o pipefail` turns into a script failure (CI-flaky).
 classmajor() { unzip -p "$ROOT/$MEGA" "$1" | od -An -tu1 -j6 -N2 | awk '{print $2}'; }
-sentinel="$(comm -12 \
-    <(zipinfo -1 "$ROOT/$MEGA" | sed -n 's#^META-INF/versions/17/\(.*\.class\)$#\1#p' | LC_ALL=C sort) \
-    <(zipinfo -1 "$ROOT/$MEGA" | grep '\.class$' | grep -v '^META-INF/versions/' | grep -v '^se_jdg/' | LC_ALL=C sort) \
-  | head -1)"
+shared="$(comm -12 <(printf '%s\n' "$v17_set") <(printf '%s\n' "$base_set"))"
+sentinel="${shared%%$'\n'*}"
 [ -n "$sentinel" ] || { echo "ERROR: no shared sentinel class between base and versions/17 — merge is wrong" >&2; exit 1; }
 base_major="$(classmajor "$sentinel")"
 v17_major="$(classmajor "META-INF/versions/17/$sentinel")"
