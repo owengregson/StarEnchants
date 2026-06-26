@@ -25,30 +25,15 @@ if (legacyTarget) {
 
 sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/modern")
 
-// ── §7 "lowers" gate: downgrade the assembled legacy jar to Java-8 bytecode ──
-// The legacy modules emit Java-17 class files (records/sealed/switch-expressions); a 1.8.9 server runs on
-// JDK 8, so the jar is lowered 61→52 by JvmDowngrader, which also shades its stdlib API stubs for the JDK-9+
-// calls. Produces StarEnchants-<ver>-legacy.jar. Run: `./gradlew -Pse.target=legacy downgradeLegacyJar`.
-// (Verified to handle the 126 records + sealed + switch-expressions — risk R6.)
-if (legacyTarget) {
-    val jdgCli by configurations.creating
-    dependencies { jdgCli("xyz.wagyourtail.jvmdowngrader:jvmdowngrader:1.3.6:all") }
-    tasks.register<JavaExec>("downgradeLegacyJar") {
-        group = "build"
-        description = "Lower the legacy jar 61→52 (JvmDowngrader) + shade its stdlib API → a JDK-8-loadable jar."
-        dependsOn("jar")
-        classpath = files(jdgCli)
-        mainClass.set("xyz.wagyourtail.jvmdg.cli.Main")
-        val input = layout.buildDirectory.file("libs/bootstrap-${project.version}.jar")
-        val output = layout.buildDirectory.file("libs/StarEnchants-${project.version}-legacy.jar")
-        // org.bukkit/NMS/Paper are server-provided externals — JDG need not (and cannot) resolve them.
-        argumentProviders.add {
-            listOf("-c", "52", "-i", "org.bukkit", "-i", "net.minecraft", "-i", "com.destroystokyo",
-                "downgrade", "--target", input.get().asFile.path, "-",
-                "shade", "--prefix", "se_jdg", "--target", "-", output.get().asFile.path)
-        }
-    }
-}
+// ── The OPTIONAL 1.8.9 jar ──
+// `-Pse.target=legacy :bootstrap:jar` here is the dual-compile gate + the (Java-17) legacy fat jar: every
+// module + the overlay/legacy seams compile against the REAL Spigot 1.8.8 jar, so a 1.8-absent symbol is a
+// javac error (Gate 1 + Gate 1b). Lowering it to Java-8 bytecode is a multi-tool step (JvmDowngrader: lower
+// 61→52 + shade its stdlib API AND runtime helpers self-contained), so the full pipeline — verified to boot
+// + enable on a real craftbukkit-1.8.8 under JDK 8 (Gate 4) — lives in scripts/build-legacy-jar.sh. JDG
+// handles the 126 records + sealed + switch-expressions (risk R6); the config compiler falls back to the
+// no-arg SnakeYAML on 1.8's older SnakeYAML (YamlNode/LegacyYaml, §6/R2), so nothing is bundled — the legacy
+// jar uses the server's libraries, like the modern jar.
 
 // Shipped config packs (ADR-0023): each pack lives in the repo as a REVIEWABLE config tree under
 // packs-src/<name>/ and is zipped at build time into packs/<name>.zip inside the jar, so the source is
@@ -69,9 +54,6 @@ dependencies {
     // real Spigot 1.8.8 server jar (org.bukkit + CraftServer) so the composition root is javac-checked on 1.8.
     if (legacyTarget) {
         compileOnly(libs.craftbukkit.legacy) { isTransitive = false }
-        // 1.8.8 bundles SnakeYAML ~1.15 (no LoaderOptions, the §6/R2 library skew); ship a modern SnakeYAML
-        // inside the legacy jar so the config compiler's 2.x API resolves (plugin-classloader precedence).
-        implementation("org.yaml:snakeyaml:2.2")
     } else {
         compileOnly(libs.paper.api.floor)
     }

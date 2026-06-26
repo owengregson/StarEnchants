@@ -45,16 +45,29 @@ final class YamlNode {
     /** Compose the root node of one document; a parse error is a diagnostic and yields an absent node. */
     static YamlNode compose(String file, String yaml, Diagnostics diags) {
         try {
-            LoaderOptions options = new LoaderOptions();
-            // SnakeYAML 2.x rejects duplicate keys; 1.x (older servers) allows them — force "last wins" so
-            // a file parses identically on every server's SnakeYAML. (cross-version)
-            options.setAllowDuplicateKeys(true);
-            return new YamlNode(file, new Yaml(options).compose(new StringReader(yaml)));
+            return new YamlNode(file, newYaml().compose(new StringReader(yaml)));
         } catch (RuntimeException | StackOverflowError malformed) {
             // StackOverflowError too: a pathologically deep doc escapes as an Error; content must never
             // throw out of the loader, only diagnose (§7, §10).
             diags.error("load.yaml", "could not parse YAML: " + rootMessage(malformed), Source.ofFile(file));
             return new YamlNode(file, null);
+        }
+    }
+
+    /**
+     * A SnakeYAML reader, version-tolerant. SnakeYAML 2.x rejects duplicate keys; 1.x (older servers) allows
+     * them — force "last wins" so a file parses identically on every server's SnakeYAML. A 1.8-era server
+     * bundles a SnakeYAML lacking {@code LoaderOptions} / the {@code Yaml(LoaderOptions)} ctor (a
+     * {@link LinkageError}); the legacy fork relies on the server's SnakeYAML, so fall back to the
+     * version-stable no-arg {@code Yaml} (cross-version).
+     */
+    private static Yaml newYaml() {
+        try {
+            LoaderOptions options = new LoaderOptions();
+            options.setAllowDuplicateKeys(true);
+            return new Yaml(options);
+        } catch (LinkageError oldSnakeYaml) {
+            return new Yaml();
         }
     }
 

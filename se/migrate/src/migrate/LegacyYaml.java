@@ -16,10 +16,23 @@ final class LegacyYaml {
     }
 
     static Map<?, ?> parse(String yaml) {
-        LoaderOptions options = new LoaderOptions();
-        options.setMaxAliasesForCollections(64);
-        Object root = new Yaml(options).load(yaml == null ? "" : yaml);
+        Object root = newYaml().load(yaml == null ? "" : yaml);
         return root instanceof Map<?, ?> map ? map : Map.of();
+    }
+
+    /**
+     * A SnakeYAML reader, version-tolerant: the 2.x {@code LoaderOptions} form when present, else the no-arg
+     * {@code Yaml} on a 1.8-era server whose bundled SnakeYAML lacks it (a {@link LinkageError}). The legacy
+     * fork uses the server's SnakeYAML (cross-version).
+     */
+    private static Yaml newYaml() {
+        try {
+            LoaderOptions options = new LoaderOptions();
+            options.setMaxAliasesForCollections(64);
+            return new Yaml(options);
+        } catch (LinkageError oldSnakeYaml) {
+            return new Yaml();
+        }
     }
 
     static Map<?, ?> map(Map<?, ?> parent, String key) {
