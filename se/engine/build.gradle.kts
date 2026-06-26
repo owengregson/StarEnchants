@@ -2,11 +2,36 @@ plugins {
     `java-library`
 }
 
+// ── Cross-version overlay (the OPTIONAL 1.8.9 fork) — docs/legacy-1.8.9-codeshare-design.md §1, §4 ──
+// The concrete Sink impl (DispatchSink) and the main-hand read (HeldItem) fork by server version and live
+// under overlay/<target>, added as a srcDir of `main` by -Pse.target (default `modern`). The Sink +
+// SinkReadback interfaces, the systems, the pipeline, the kinds, AbilityExecutor and FactPopulator stay
+// shared in src/ (1.8-safe). `-Pse.target=legacy` compiles main + overlay/legacy against the real Spigot
+// 1.8.8 server jar, so the legacy DispatchSink's NMS is javac-checked, not assumed.
+val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
+
+if (legacyTarget) {
+    repositories {
+        mavenLocal {
+            content {
+                includeGroup("org.bukkit")
+                includeGroup("org.spigotmc")
+            }
+        }
+    }
+}
+
+sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/modern")
+
 dependencies {
-    // Floor API only: the runtime compiles against paper-api 1.17.1 and emits
-    // Java 17 class files so the one universal jar loads across 1.17.1 → 26.1.x
-    // (docs/architecture.md §1.1, §11). compileOnly — the server provides it.
-    compileOnly(libs.paper.api.floor)
+    // Floor API only for modern; the legacy lane swaps in the real 1.8.8 server jar (org.bukkit + v1_8_R3
+    // NMS) so the legacy DispatchSink is type-checked against the actual 1.8 surface. compileOnly — the
+    // server provides it.
+    if (legacyTarget) {
+        compileOnly(libs.craftbukkit.legacy) { isTransitive = false }
+    } else {
+        compileOnly(libs.paper.api.floor)
+    }
 
     // The compiled world the engine walks: Ability, Snapshot, Affinity, the
     // CompiledEffect/Condition flyweights (brings :schema transitively).

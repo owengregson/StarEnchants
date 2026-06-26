@@ -10,7 +10,7 @@ import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
 import engine.selector.SelectorKind;
 import engine.selector.SelectorRegistry;
-import engine.sink.DispatchSink;
+import engine.sink.SinkReadback;
 import engine.spec.TargetSpec;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
@@ -22,8 +22,8 @@ import org.bukkit.entity.LivingEntity;
 
 /**
  * The runtime execution path — gate 12 (docs/architecture.md §3.3): runs each candidate ability through
- * the {@link ActivationPipeline} and emits every ACTIVATED one's effect intents into the
- * {@link DispatchSink} without touching the world. The caller flushes once after the gate walk.
+ * the {@link ActivationPipeline} and emits every ACTIVATED one's effect intents into the sink
+ * ({@link SinkReadback}) without touching the world. The caller flushes once after the gate walk.
  *
  * <p>Stateless and shareable. Failures are isolated per effect and per ability so one bad unit never
  * aborts the rest (§9 warn-and-skip).
@@ -62,7 +62,7 @@ public final class AbilityExecutor {
      * @return the number of abilities that activated
      */
     public int run(Ability[] abilities, int[] candidateIds, Activation activation,
-                   ActivationContext context, DispatchSink sink, StableKeyIndex stableKeys) {
+                   ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys) {
         int activated = 0;
         for (int id : candidateIds) {
             if (id < 0 || id >= abilities.length) {
@@ -111,7 +111,7 @@ public final class AbilityExecutor {
      * {@code stopping} selects {@link EffectKind#stop} (teardown) over {@link EffectKind#run}; STOP is
      * unconditional so a buff can never leak. No {@code WAIT} deferral — teardown must land with the unequip.
      */
-    public void runLifecycle(Ability ability, ActivationContext context, DispatchSink sink, boolean stopping) {
+    public void runLifecycle(Ability ability, ActivationContext context, SinkReadback sink, boolean stopping) {
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = effects.lookup(effect.head()).orElse(null);
@@ -138,7 +138,7 @@ public final class AbilityExecutor {
         }
     }
 
-    private void runEffects(Ability ability, ActivationContext context, DispatchSink sink, UUID activeGem,
+    private void runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
                             engine.condition.FactBuffer facts) {
         for (CompiledEffect effect : ability.effects()) {
             try {

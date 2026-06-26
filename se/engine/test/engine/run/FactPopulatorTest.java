@@ -77,6 +77,10 @@ class FactPopulatorTest {
         lenient().when(held.getType()).thenReturn(Material.DIAMOND_SWORD);
         lenient().when(inv.getItemInMainHand()).thenReturn(held);
         lenient().when(p.getInventory()).thenReturn(inv);
+        // actor.helditem now reads via the HeldItem seam (getEquipment().getItemInMainHand()).
+        org.bukkit.inventory.EntityEquipment eq = mock(org.bukkit.inventory.EntityEquipment.class);
+        lenient().when(eq.getItemInMainHand()).thenReturn(held);
+        lenient().when(p.getEquipment()).thenReturn(eq);
         return p;
     }
 

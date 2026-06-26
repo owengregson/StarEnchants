@@ -122,8 +122,7 @@ public final class FactPopulator {
         addActorFlag(vocabulary, "onground", FactPopulator::onGround);
         addActorStr(vocabulary, "actor.world", actor -> actor.getWorld().getName());
         addActorStr(vocabulary, "actor.gamemode", actor -> actor.getGameMode().name());
-        addActorStr(vocabulary, "actor.helditem",
-                actor -> actor.getInventory().getItemInMainHand().getType().name());
+        addActorStr(vocabulary, "actor.helditem", HeldItem::mainHandTypeName);
         addActorStr(vocabulary, "actor.type", actor -> actor.getType().name());
 
         addVictimNum(vocabulary, "victim.health", LivingEntity::getHealth);
@@ -322,10 +321,9 @@ public final class FactPopulator {
         return player.isOnGround();
     }
 
-    /** The victim's main-hand material name, or {@code null} if it has no equipment. */
+    /** The victim's main-hand material name, or {@code null} if it has no equipment (via the {@link HeldItem} seam). */
     private static String heldItemName(LivingEntity victim) {
-        return victim.getEquipment() == null ? null
-                : victim.getEquipment().getItemInMainHand().getType().name();
+        return HeldItem.mainHandTypeName(victim);
     }
 
     private void addActorNum(VarVocabulary v, String key, ActorD src) {
