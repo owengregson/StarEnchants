@@ -188,7 +188,6 @@ starenchants/
 │                      trigger/selector/source), read-only item/enchant queries. Add-ons compile here.
 │
 ├── compat-folia/      Folia region/entity/global schedulers (probed by se-platform/sched).
-├── compat-modern/     Profile/head API, component CMD, BlockData sends, Brigadier + completions.
 └── se-tester/         Live Paper + Folia in-server matrix harness.
 ```
 
@@ -218,8 +217,10 @@ starenchants/
 - **`se-platform` is a domain-free leaf** quarantining every volatile surface and the Folia probe, so
   no `se-engine`/`se-feature` file ever references a renamed constant or names a scheduler (`[do]`,
   `[hf]`, conventions invariant).
-- **`compat-folia` / `compat-modern`** hold anything newer than the floor API, behind `Capabilities`
-  — the one part of the mirror that is exactly right, kept verbatim.
+- **`compat-folia`** holds the Folia schedulers, behind `Capabilities` — the version-edge module
+  pattern, the one part of the mirror that is exactly right. The few newer-than-floor *API* surfaces
+  (Brigadier, profile heads, `BlockData` sends) need no dedicated module — they are gated inline via
+  `se-platform/caps` + the bootstrap overlay, so an empty modern-edge stub never accrues.
 
 ---
 
@@ -693,10 +694,11 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
   API exposed. Stores are concurrent + UUID-keyed. **The cross-region combat read is a first-class,
   designed concern** (§3.4, §5.5): victim abilities read from an immutable `WornState` snapshot; dynamic
   victim facts captured at event entry on the firing region — never a live cross-region victim read.
-- **Capability probes** (`se-platform/caps`) gate `compat-folia`/`compat-modern` (Brigadier, profile
-  heads, `BlockData` sends, trident/dispenser events). The floor build calls `Firework#detonate()`
-  directly (API since 1.19) instead of a Cosmic Enchants-style `InstantFirework` NMS; `SkullCreator` NMS → `compat-modern`
-  `PlayerProfile`/`setOwnerProfile`. A Cosmic Enchants-style reflective `registerEvent` is **deleted** in favor of the one
+- **Capability probes** (`se-platform/caps`) gate `compat-folia` and every newer-than-floor API used
+  inline (Brigadier, profile heads, `BlockData` sends, trident/dispenser events). The floor build calls
+  `Firework#detonate()` directly (API since 1.19) instead of a Cosmic Enchants-style `InstantFirework`
+  NMS; a `SkullCreator`-style NMS path is replaced by capability-gated `PlayerProfile`/`setOwnerProfile`.
+  A Cosmic Enchants-style reflective `registerEvent` is **deleted** in favor of the one
   Paper-native listener set.
 - **Verified, never assumed:** `se-tester` boots real Paper AND Folia across the matrix (1.17.1 floor,
   both sides of the 1.20.5 flip at 1.20.6, 1.21.x, the 26.1.x ceiling; Folia from ~1.19.4+). A green Paper

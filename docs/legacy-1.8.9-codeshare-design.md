@@ -82,8 +82,9 @@ Mechanisms, and why each beats the alternatives the panel rejected:
   because `Sink` carries **zero** registry-backed referents across its 54 methods (every
   volatile crossing is an interned `int` id resolved inside `DispatchSink`). Chosen over a
   runtime-probed `compat-legacy` *sibling* (like `compat-folia`) precisely because an
-  unforced leaf rots — `compat-modern` is the cautionary tale (it is an empty stub today,
-  referenced nowhere). Overlay source sets are compile-coupled to `main`: adding a `Sink`
+  unforced leaf rots — `compat-modern` was the cautionary tale (an empty stub referenced
+  nowhere; the lesson was acted on and the module was deleted). Overlay source sets are
+  compile-coupled to `main`: adding a `Sink`
   method is a build error in the legacy overlay until implemented.
 
 - **Dual-compile gate (the decisive safety net, from Strategy C).** The legacy overlay

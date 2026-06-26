@@ -96,7 +96,7 @@ straight: `se/schema/src/schema/diag/Severity.java` is module `schema`, package
 | `engine` | the runtime: stateless systems, the activation pipeline, kinds, the `Sink` |
 | `item` | item state, the PDC codec, the `ItemView` cache, the `WornState` resolver |
 | `feature` | the Bukkit-facing shells (listeners, triggers, commands, GUIs) |
-| `compat-folia` / `compat-modern` | version-specific edges behind capabilities |
+| `compat-folia` | the Folia scheduler edge, behind capabilities |
 | `migrate` | the legacy Cosmic Enchants-style config importer |
 | `pack` | shipped, swappable config packs |
 | `integrate` | bundled soft-depend third-party integrations |

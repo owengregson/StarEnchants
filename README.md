@@ -121,7 +121,7 @@ A flat, single-segment module tree under `se/` — each module's package is one 
 | `pack` | the config-pack (ZIP snapshot) format |
 | `bootstrap` | the Bukkit entry point + composition root (the shaded fat jar) |
 | `tester` | the in-server Paper + Folia integration suites |
-| `api` · `compat-folia` · `compat-modern` | the public event API + capability shims |
+| `api` · `compat-folia` | the public event API + the Folia scheduler shim |
 
 ### Verification gate
 

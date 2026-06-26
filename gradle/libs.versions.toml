@@ -8,8 +8,6 @@
 # and emits Java 17 class files (docs/architecture.md §1.1, §11).
 java-floor = "17"
 paper-floor = "1.17.1-R0.1-SNAPSHOT"
-# A newer API for the compat-modern edge (behind a Capabilities probe).
-paper-modern = "1.21.4-R0.1-SNAPSHOT"
 # Folia scheduler API for the compat-folia edge. Pinned to 1.19.4 — the FLOOR Folia
 # release where the threaded-regions scheduler API was introduced and the last that
 # is Java-17 bytecode (1.21.4's API jar requires JVM 21). The scheduler signatures are
@@ -43,7 +41,6 @@ archunit = "1.3.0"
 
 [libraries]
 paper-api-floor = { module = "io.papermc.paper:paper-api", version.ref = "paper-floor" }
-paper-api-modern = { module = "io.papermc.paper:paper-api", version.ref = "paper-modern" }
 folia-api = { module = "dev.folia:folia-api", version.ref = "folia" }
 worldguard-bukkit = { module = "com.sk89q.worldguard:worldguard-bukkit", version.ref = "worldguard" }
 vault-api = { module = "com.github.MilkBowl:VaultAPI", version.ref = "vault" }

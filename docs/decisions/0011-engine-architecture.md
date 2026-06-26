@@ -30,8 +30,7 @@ data-oriented runtime.**
 - Item state: one PDC codec, **stable string keys**, cache keyed by
   **content-hash + generation**; lore rendered from state.
 - Modules (lifecycle-spined): `se-schema, se-compile, se-engine, se-item,
-  se-feature, se-platform, se-migrate, se-api, compat-folia, compat-modern,
-  se-tester`.
+  se-feature, se-platform, se-migrate, se-api, compat-folia, se-tester`.
 
 Full detail and the explicit divergences from the packet/anticheat-reference mirror prior are in
 `docs/architecture.md`.
