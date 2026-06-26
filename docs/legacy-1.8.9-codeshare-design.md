@@ -10,32 +10,61 @@
 
 ---
 
-## Execution status (2026-06-26)
+## Execution status (2026-06-25) — the fork is BUILT (Phase 1 done; Gate 4 boots)
 
-Reviewed and acted on. **Maintainer decisions:** the 1.8.9 fork is **shelved** — Phases 1–3
-below remain an on-shelf blueprint, *not started*; the new seams ship as **concrete classes**, not
-single-impl interfaces (YAGNI — a fork would extract the interfaces in Phase 1 when the second impl
-exists).
+The maintainer greenlit building all phases. The 1.8.9 fork is now **built and compile-verified against a
+real Spigot 1.8.8 (`v1_8_R3`) jar**, and the downgraded plugin **loads and enables on a real
+craftbukkit-1.8.8 server under JDK 8**. Branch `feat/legacy-1.8.9-fork`. The modern build + unit tests stay
+green throughout (no modern regression).
 
-**Phase 0 as executed** = only the changes that improve the *modern* plugin on their own merits:
+**What changed vs. this blueprint (a better outcome).** The blueprint assumed separate `overlay/legacy`
+*source sets* + a wholesale-forked `:compat-legacy` Bukkit-edge module. In practice the cleaner mechanism is
+the **active overlay folded in as a `main` srcDir** (`-Pse.target=legacy` selects `overlay/legacy`, default
+`overlay/modern`, swapping the `compileOnly` to the real 1.8.8 jar). This eliminates the source-set
+dependency-direction subtleties AND let the overlay absorb the WHOLE plugin — including `feature/**` and the
+**bootstrap composition root** — as SHARED code behind thin same-FQN seams, rather than forking them. **There
+is no `:compat-legacy` module: the 1.8 jar is simply every module built with `-Pse.target=legacy`.** Whole-tree
+share is therefore far above the blueprint's "~60–63% tie" estimate — `feature` and `bootstrap` are shared,
+not rewritten.
 
-- ✅ **`item.codec.ItemBlobStore` + `ItemFlagStore`** — the single PDC mutation seam (§3.1), shipped as
-  concrete static utilities; ~10 codecs de-duplicated, behavior-preserving (PR #153).
-- ✅ **ArchUnit purity guard** (§3.4 rule b) — CI-enforces the pure-module (`schema`/`compile`/`migrate`/
-  `pack`) Bukkit-freedom boundary (PR #153).
+**Phase 1 — links + lowers — DONE (verified):**
 
-**Reclassified to Phase 1** (fork-motivated; *no clean modern win* once the fork was shelved, confirmed by
-reading the code):
+- ✅ `v1_8_R3` obtained via Spigot BuildTools (`org.bukkit:craftbukkit:1.8.8-R0.1-SNAPSHOT` in `~/.m2`).
+- ✅ **Gate 1 + Gate 1b** — every module (`schema/compile/migrate/pack/platform/item/engine/feature/api/
+  integrate/compat-folia/bootstrap`) compiles against the real 1.8.8 jar: `-Pse.target=legacy
+  :bootstrap:compileJava` is green. The dual-compile gate earned its keep immediately (caught
+  `CraftMetaItem` package-private, `BukkitTask.isCancelled` absent, `PlayerItemDamageEvent`/
+  `getClickedInventory`/`getTargetEntity` absent, etc.).
+- ✅ Seams shipped (same-FQN overlay): item codec stores (PDC ↔ NMS-tag via `unhandledTags`, the structural
+  R5 fix), `EquipSource`, `RegistrySupport`, the legacy `DispatchSink` (full `v1_8_R3` NMS — particles via
+  `PacketPlayOutWorldParticles`, attributes via `GenericAttributes`, durability via `ItemStack` durability,
+  titles via packets), `SinkFactory`, and the `feature.compat`/`bootstrap.compat` helper seams
+  (Hands/Sounds/MenuClicks/Causes/Projectiles/Blocks/Mats, Wiring/Targets/Commands).
+- ✅ **§7 "lowers"** — `downgradeLegacyJar` (JvmDowngrader 1.3.6) lowers 61→52 + shades the stdlib API →
+  `StarEnchants-<ver>-legacy.jar`. **Risk R6 resolved**: JDG handles the 126 records + sealed + switch-
+  expressions cleanly.
 
-- `EquipSource` (§3.3) — `WornResolver.resolveFrom(...)` is already pure and unit-testable, and the
-  1.17.1 floor always has off-hand; the seam's real value is the legacy main-hand-only read.
-- `ItemTransfer.copyState` (§3.2) — the `setItemMeta`-strips-NBT trap is 1.8-only; on modern, PDC survives
-  `setItemMeta`, so `HeroicService`'s current whole-meta copy is correct, and a selective copy would risk
-  dropping a player's vanilla enchants/names on a heroic upgrade.
-- `SinkReadback` (§3.5, single-impl interface) and the §3.6 static-hook fold (testability-only,
-  hot-path-adjacent) — land **with** the fork, where they are load-bearing.
+**Phase 2 — Gate 4 (live JDK-8 boot) — PARTIAL (architecture proven):** the downgraded jar boots on a real
+craftbukkit-1.8.8 under JDK 8: `Loading` → `Enabling` → `Capabilities[1.8.8, Paper], scheduling
+BukkitSchedulerBackend`. Gate 4 then surfaced **R2 (library skew)** exactly as predicted —
+`org.yaml.snakeyaml` on 1.8 lacks `LoaderOptions`/the `Yaml(LoaderOptions)` ctor; fixed with a `LinkageError`
+fallback in `YamlNode`/`LegacyYaml` (the legacy fork uses the server's SnakeYAML, no bundle/relocate needed).
 
-The rest of this document is the unchanged design/blueprint.
+**Remaining (honest, bounded — Phase 2/3):**
+
+- A **legacy `v1_8_R3` fake-player tester** for the full Gate-4 smoke suite (the in-server functional
+  assertions); only a boot+enable smoke exists today.
+- **Gate 3** legacy resolver-table completeness — the 1.8 particle/attribute name sets + Material aliases are
+  a STARTER set (`RegistrySupport` overlay); the full table is the budgeted R3 work.
+- The **§6 "degrades" features** that need a 1.8 NMS hook (no 1.8 event exists): KNOCKBACK_CONTROL,
+  heroic-durability, the ITEM_DAMAGE trigger, instant armour-change refresh — currently legacy no-op/poll
+  stubs.
+- The broader **R2 library-skew audit** (Guava/Gson) if more surfaces past SnakeYAML.
+- CI wiring: a `-Pse.target=legacy` lane + the JDK-8 boot gate in `run-matrix.sh`/`release.yml`, behind the
+  §11 ownership commitment.
+
+The rest of this document is the original design/blueprint (the §9 phased plan is largely realised; the
+`:compat-legacy`-module framing is superseded by the srcDir-overlay above).
 
 ---
 
