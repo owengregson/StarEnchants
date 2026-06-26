@@ -1,5 +1,6 @@
 package feature.menu;
 
+import feature.compat.Hands;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -45,7 +46,7 @@ public final class MenuListener implements Listener {
         ClickType type = event.getClick();
         // Cancel every action that could shuttle an item across slots into a locked/button slot.
         if (type.isShiftClick() || type == ClickType.NUMBER_KEY || type == ClickType.DOUBLE_CLICK
-                || type == ClickType.SWAP_OFFHAND || type == ClickType.DROP || type == ClickType.CONTROL_DROP) {
+                || Hands.isOffhandSwap(type) || type == ClickType.DROP || type == ClickType.CONTROL_DROP) {
             event.setCancelled(true);
             return;
         }

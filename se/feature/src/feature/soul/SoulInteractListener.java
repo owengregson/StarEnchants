@@ -1,12 +1,12 @@
 package feature.soul;
 
+import feature.compat.Hands;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -23,7 +23,7 @@ public final class SoulInteractListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) {
+        if (!Hands.isMainHand(event)) {
             return; // main-hand only: the off-hand pass would double-toggle
         }
         Action action = event.getAction();

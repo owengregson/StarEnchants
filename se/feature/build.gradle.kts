@@ -2,9 +2,35 @@ plugins {
     `java-library`
 }
 
+// ── Cross-version overlay (the OPTIONAL 1.8.9 fork) — docs/legacy-1.8.9-codeshare-design.md §4 ──
+// The feature shells are ~90% version-agnostic; the few 1.9+ touch points (off-hand/main-hand item API,
+// the Particle/spawnParticle API, the String playSound overload, the Paper PlayerArmorChangeEvent, the
+// 1.8 knockback event shape) live in same-FQN seam classes / whole-file listeners under overlay/<target>,
+// added as a srcDir of `main` by -Pse.target (default `modern`). This keeps feature SHARED rather than
+// forked wholesale. `-Pse.target=legacy` compiles main + overlay/legacy against the real Spigot 1.8.8.
+val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
+
+if (legacyTarget) {
+    repositories {
+        mavenLocal {
+            content {
+                includeGroup("org.bukkit")
+                includeGroup("org.spigotmc")
+            }
+        }
+    }
+}
+
+sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/modern")
+
 dependencies {
-    // Floor API: feature shells touch Bukkit events/entities; the server provides it.
-    compileOnly(libs.paper.api.floor)
+    // Floor API: feature shells touch Bukkit events/entities; the server provides it. The legacy lane swaps
+    // in the real 1.8.8 server jar so the legacy feature seams are javac-checked against the 1.8 API.
+    if (legacyTarget) {
+        compileOnly(libs.craftbukkit.legacy) { isTransitive = false }
+    } else {
+        compileOnly(libs.paper.api.floor)
+    }
 
     // The runtime + item layers a feature shell calls into. engine brings :compile/:platform/:schema
     // transitively; item brings the codec/ItemView/WornState. A feature shell is thin glue.

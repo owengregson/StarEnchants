@@ -1,6 +1,7 @@
 package feature.combat;
 
 import engine.stores.ImmuneStore;
+import feature.compat.Hands;
 import java.util.Objects;
 import java.util.function.LongSupplier;
 import org.bukkit.entity.LivingEntity;
@@ -42,7 +43,7 @@ public final class ImmuneListener implements Listener {
             return;
         }
         if (event.getDamager() instanceof LivingEntity attacker && attacker.getEquipment() != null) {
-            String held = attacker.getEquipment().getItemInMainHand().getType().name();
+            String held = Hands.mainHand(attacker).getType().name();
             if (held.endsWith("_SWORD") && store.isImmune(victim.getUniqueId(), ImmuneStore.Type.SWORD, now)) {
                 event.setCancelled(true);
             } else if (held.endsWith("_AXE") && store.isImmune(victim.getUniqueId(), ImmuneStore.Type.AXE, now)) {

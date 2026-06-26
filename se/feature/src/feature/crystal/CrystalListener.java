@@ -1,5 +1,6 @@
 package feature.crystal;
 
+import feature.compat.Sounds;
 import java.util.Map;
 import java.util.Objects;
 import org.bukkit.Material;
@@ -64,7 +65,7 @@ public final class CrystalListener implements Listener {
             player.updateInventory();
         }
         if (result.sound() != null) {
-            player.playSound(player.getLocation(), result.sound(), 1.0f, 1.0f);
+            Sounds.play(player, player.getLocation(), result.sound(), 1.0f, 1.0f);
         }
         if (result.message() != null) {
             player.sendMessage(result.message());

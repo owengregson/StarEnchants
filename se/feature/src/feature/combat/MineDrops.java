@@ -1,5 +1,6 @@
 package feature.combat;
 
+import feature.compat.Hands;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -61,7 +62,7 @@ public final class MineDrops {
                 return List.of(new ItemStack(smelted));
             }
         }
-        return new ArrayList<>(block.getDrops(player.getInventory().getItemInMainHand()));
+        return new ArrayList<>(block.getDrops(Hands.mainHand(player)));
     }
 
     private static Map<Material, Material> buildSmeltMap() {

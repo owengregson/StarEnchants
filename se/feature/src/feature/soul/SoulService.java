@@ -4,6 +4,8 @@ import compile.load.SoulGemConfig;
 import engine.interact.SoulLedger;
 import engine.sink.SoulDebit;
 import engine.stores.SoulModeStore;
+import feature.compat.Hands;
+import feature.compat.Sounds;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
 import item.mint.ItemFactory;
@@ -93,7 +95,7 @@ public final class SoulService implements SoulDebit {
      */
     public Toggle toggle(Player player) {
         SoulGemConfig cfg = config.get();
-        SoulData gem = codec.read(player.getInventory().getItemInMainHand());
+        SoulData gem = codec.read(Hands.mainHand(player));
         if (gem == null) {
             return Toggle.NO_GEM;
         }
@@ -131,7 +133,7 @@ public final class SoulService implements SoulDebit {
     private void playSound(Player player, String token) {
         SoulGemConfig cfg = config.get();
         if (cfg.sounds() && token != null && !token.isBlank()) {
-            player.playSound(player.getLocation(), token, 1.0f, 1.0f);
+            Sounds.play(player, player.getLocation(), token, 1.0f, 1.0f);
         }
     }
 
