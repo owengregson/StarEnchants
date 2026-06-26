@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  <code>✦ 51 effects</code> &nbsp;&nbsp; <code>✦ Armor sets &amp; crystals</code> &nbsp;&nbsp; <code>✦ Souls economy</code> &nbsp;&nbsp; <code>✦ Paper + Folia</code>
+  <code>✦ 51 effects</code> &nbsp;&nbsp; <code>✦ Armor sets &amp; crystals</code> &nbsp;&nbsp; <code>✦ Souls economy</code> &nbsp;&nbsp; <code>✦ Paper + Folia</code> &nbsp;&nbsp; <code>✦ Optional 1.8.9 jar</code>
 </p>
 
 <br>
@@ -93,7 +93,7 @@ Bring your existing EliteEnchantments, EliteArmor &amp; AdvancedEnchantments con
 
 <p align="center"><img src="assets/headers/building.svg" height="54" alt="Building from source"></p>
 
-StarEnchants builds with the bundled Gradle wrapper — no global toolchain to install. One universal jar covers the whole range (Paper 1.17.1 → 26.1.x and Folia).
+StarEnchants builds with the bundled Gradle wrapper — no global toolchain to install. One universal jar covers the whole range (Paper 1.17.1 → 26.1.x and Folia); a **separate optional jar** built from the same engine runs legacy **Minecraft 1.8.9** (`scripts/build-legacy-jar.sh` + the live `scripts/legacy-smoke.sh` gate — see [docs/legacy-1.8.9-codeshare-design.md](docs/legacy-1.8.9-codeshare-design.md)).
 
 ```bash
 git clone https://github.com/owengregson/StarEnchants.git
