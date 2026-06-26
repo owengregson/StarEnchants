@@ -1,6 +1,7 @@
 package feature.scroll;
 
 import compile.load.ScrollsConfig;
+import feature.compat.Hands;
 import item.codec.ScrollCodec;
 import item.mint.ItemFactory;
 import java.util.Objects;
@@ -43,8 +44,11 @@ public final class HolyScrollService {
 
     public ItemStack mint() {
         ScrollsConfig.Holy cfg = config.get().holy();
+        // TOTEM_OF_UNDYING is absent on 1.8; resolve by name (== the enum literal on modern, null on 1.8)
+        // and fall back to a floor-stable material so the build() fallback is never null on legacy.
+        Material totem = Material.getMaterial("TOTEM_OF_UNDYING");
         ItemStack stack = ItemFactory.build(
-                cfg.material(), Material.TOTEM_OF_UNDYING, cfg.name(), cfg.lore());
+                cfg.material(), totem != null ? totem : Material.PAPER, cfg.name(), cfg.lore());
         scrolls.mark(stack, HOLY);
         return stack;
     }
@@ -56,8 +60,8 @@ public final class HolyScrollService {
     public String trySave(Player player) {
         ScrollsConfig.Holy cfg = config.get().holy();
         PlayerInventory inv = player.getInventory();
-        int slot = findScrollSlot(inv);
-        boolean offhand = slot < 0 && isHolyScroll(inv.getItemInOffHand());
+        int slot = findScrollSlot(player);
+        boolean offhand = slot < 0 && isHolyScroll(Hands.offHand(player));
         if (slot < 0 && !offhand) {
             return null; // no holy scroll carried
         }
@@ -67,16 +71,16 @@ public final class HolyScrollService {
         if (slot >= 0) {
             consume(inv.getItem(slot), inv, slot);
         } else {
-            ItemStack off = inv.getItemInOffHand();
+            ItemStack off = Hands.offHand(player);
             off.setAmount(off.getAmount() - 1);
-            inv.setItemInOffHand(off.getAmount() <= 0 ? null : off);
+            Hands.setOffHand(player, off.getAmount() <= 0 ? null : off);
         }
         return messages.format("scroll.holy.saved");
     }
 
     /** The first storage slot holding a holy scroll, or {@code -1} if none. */
-    private int findScrollSlot(PlayerInventory inv) {
-        ItemStack[] storage = inv.getStorageContents();
+    private int findScrollSlot(Player player) {
+        ItemStack[] storage = Hands.storageContents(player);
         for (int i = 0; i < storage.length; i++) {
             if (isHolyScroll(storage[i])) {
                 return i;

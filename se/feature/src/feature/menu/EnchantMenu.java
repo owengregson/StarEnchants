@@ -4,6 +4,7 @@ import compile.load.ContentHolder;
 import compile.load.EnchantDef;
 import compile.load.MenusConfig;
 import feature.apply.ApplyResult;
+import feature.compat.Hands;
 import feature.apply.ItemEnchanter;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,10 +53,10 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     }
 
     private void applyEnchant(Player player, EnchantDef def) {
-        ItemStack held = player.getInventory().getItemInMainHand();
+        ItemStack held = Hands.mainHand(player);
         ApplyResult result = enchanter.applyEnchant(held, def.key(), 1);
         if (result.ok()) {
-            player.getInventory().setItemInMainHand(held);
+            Hands.setMainHand(player, held);
             refreshWorn.accept(player); // no equip event fires, so re-resolve the cached WornState by hand
         }
         player.sendMessage(result.message());

@@ -1,6 +1,7 @@
 package feature.trigger;
 
 import engine.run.ActivationContext;
+import feature.compat.Hands;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,7 +19,6 @@ import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.EquipmentSlot;
 
 /**
  * Maps non-combat Bukkit events to {@link TriggerDispatch} (§3.3): break → MINE, kill → KILL, interact →
@@ -99,7 +99,7 @@ public final class TriggerListeners implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) {
+        if (!Hands.isMainHand(event)) {
             return; // one fire per interaction — the off-hand pass is a duplicate of the same click
         }
         Player player = event.getPlayer();

@@ -1,12 +1,12 @@
 package feature.book;
 
+import feature.compat.Hands;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -24,7 +24,7 @@ public final class UnopenedBookListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) {
+        if (!Hands.isMainHand(event)) {
             return; // main-hand only — the off-hand pass of a two-hand interact would double-open
         }
         Action action = event.getAction();
@@ -40,9 +40,9 @@ public final class UnopenedBookListener implements Listener {
 
         UnopenedResult result = service.open(used);
         if (result.opened()) {
-            ItemStack hand = player.getInventory().getItemInMainHand();
+            ItemStack hand = Hands.mainHand(player);
             hand.setAmount(hand.getAmount() - 1);
-            player.getInventory().setItemInMainHand(hand.getAmount() <= 0 ? null : hand);
+            Hands.setMainHand(player, hand.getAmount() <= 0 ? null : hand);
             if (result.produced() != null) {
                 player.getInventory().addItem(result.produced()).values()
                         .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));

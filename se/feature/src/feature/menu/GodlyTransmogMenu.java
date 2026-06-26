@@ -1,6 +1,7 @@
 package feature.menu;
 
 import compile.load.ContentHolder;
+import feature.compat.Hands;
 import feature.scroll.ScrollService;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
@@ -76,7 +77,7 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
 
     /** The bound gear ItemStack: the main hand for {@code slot == -1}, else the inventory slot. */
     private static ItemStack gearAt(Player player, int slot) {
-        return slot < 0 ? player.getInventory().getItemInMainHand() : player.getInventory().getItem(slot);
+        return slot < 0 ? Hands.mainHand(player) : player.getInventory().getItem(slot);
     }
 
     @Override
@@ -118,7 +119,7 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
             ItemStack gear = gearAt(click.player(), slot);
             if (scrolls.reorder(gear, order)) {
                 if (slot < 0) {
-                    click.player().getInventory().setItemInMainHand(gear);
+                    Hands.setMainHand(click.player(), gear);
                 } else {
                     click.player().getInventory().setItem(slot, gear);
                 }

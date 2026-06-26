@@ -1,5 +1,6 @@
 package feature.carrier;
 
+import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import item.codec.CarrierCodec;
 import java.util.Objects;
@@ -71,7 +72,7 @@ public final class CarrierListener implements Listener {
             player.updateInventory();
             // §I dust apply-feedback: in-thread, the event fires on the player's own region thread.
             if (result.sound() != null && !result.sound().isBlank()) {
-                player.playSound(player.getLocation(), result.sound(), 1.0f, 1.0f);
+                Sounds.play(player, player.getLocation(), result.sound(), 1.0f, 1.0f);
             }
             particles.spawn(player, result.particles(), 1);
         }
