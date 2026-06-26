@@ -193,7 +193,9 @@ EOF
   local result="$run/test-results.txt"
   local verdict="FAIL"
   if [ -f "$result" ]; then
-    local mtime; mtime="$(stat -f %m "$result" 2>/dev/null || stat -c %Y "$result" 2>/dev/null)"
+    # GNU stat (-c, Linux) FIRST, BSD stat (-f, macOS) second: on Linux `stat -f` is --file-system (exits 0),
+    # so a BSD-first order never reaches the GNU form there. (This gate runs locally today, but stay portable.)
+    local mtime; mtime="$(stat -c %Y "$result" 2>/dev/null || stat -f %m "$result" 2>/dev/null)"
     if [ -n "$mtime" ] && [ "$mtime" -ge "$started" ]; then
       if head -1 "$result" | grep -qx "PASS"; then verdict="PASS"; fi
     else

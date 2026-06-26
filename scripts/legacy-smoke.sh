@@ -116,7 +116,9 @@ wait "$pid" 2>/dev/null
 RESULT="$SRV/test-results.txt"
 verdict="FAIL"
 if [ -f "$RESULT" ]; then
-  mtime="$(stat -f %m "$RESULT" 2>/dev/null || stat -c %Y "$RESULT" 2>/dev/null)"
+  # GNU stat (-c, Linux/CI) FIRST, BSD stat (-f, macOS) second: on Linux `stat -f` is --file-system (prints
+  # filesystem info and EXITS 0), so a BSD-first order never falls through to the GNU form on a CI runner.
+  mtime="$(stat -c %Y "$RESULT" 2>/dev/null || stat -f %m "$RESULT" 2>/dev/null)"
   if [ -n "$mtime" ] && [ "$mtime" -ge "$started" ]; then
     head -1 "$RESULT" | grep -qx "PASS" && verdict="PASS"
   else
