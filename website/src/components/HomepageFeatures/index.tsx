@@ -72,13 +72,13 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
-    title: 'Paper + Folia, one jar',
+    title: 'Paper, Folia & 1.8',
     icon: 'img/icons/install.svg',
     to: '/docs/intro',
     description: (
       <>
-        One universal jar runs Paper <strong>1.17.1 → 26.1.x</strong> and Folia
-        — version-agnostic core, Folia-safe scheduling, zero per-version builds.
+        Runs on Paper <strong>1.17.1-26.1.2</strong> and Folia, and on Minecraft
+        1.8.x — a version-agnostic core with Folia-safe scheduling.
       </>
     ),
   },
@@ -114,11 +114,11 @@ export default function HomepageFeatures(): ReactNode {
       <div className="container">
         <div className={styles.sectionHead}>
           <Heading as="h2" className={styles.sectionTitle}>
-            Everything in one drop-in jar
+            What's included
           </Heading>
           <p className={styles.sectionSubtitle}>
-            Custom enchantments, armor sets, crystals, and a full item economy
-            under one config schema — with a built-in migrator.
+            Custom enchantments, armor sets, crystals, and a full item economy —
+            configured in plain YAML, with a built-in migrator.
           </p>
         </div>
         <div className="row">
