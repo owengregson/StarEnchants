@@ -4,11 +4,15 @@ import compile.Compiler;
 import compile.load.ContentHolder;
 import compile.load.Library;
 import compile.load.LibraryLoader;
+import compile.load.EnchantDef;
 import engine.boot.ContentCompiler;
 import feature.apply.ItemEnchanter;
+import feature.carrier.CarrierService;
+import feature.menu.AdminBrowserMenu;
 import feature.menu.EnchantMenu;
 import feature.menu.MenuHolder;
 import feature.menu.MenuListener;
+import item.codec.CarrierCodec;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.ItemKeys;
@@ -18,6 +22,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Random;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -74,9 +79,12 @@ public final class MenuSuite implements Harness.Scenario {
     public void accept(Harness h) {
         h.expect("menu.clickAppliesEnchant");
         h.expect("menu.iconShowsTierColorAndDescription");
+        h.expect("menu.adminDrillsDownTierEnchantLevel");
 
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         EnchantMenu menu;
+        AdminBrowserMenu adminMenu;
+        EnchantDef keenDef;
         try {
             Path root = Files.createTempDirectory("se-menu-suite");
             write(root, "enchants/keen.yml", KEEN);
@@ -91,6 +99,12 @@ public final class MenuSuite implements Harness.Scenario {
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
             // caps drives the cross-version title cap
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
+            // Admin browser (§K) — the 3-level tier → enchant → level drill-down.
+            CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
+            CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
+            adminMenu = new AdminBrowserMenu(holder, carriers, Capabilities.probe(plugin.getServer()));
+            keenDef = holder.library().catalog().stream()
+                    .filter(d -> d.key().equals("enchants/keen")).findFirst().orElseThrow();
         } catch (IOException e) {
             h.fail("menu.clickAppliesEnchant", e.toString());
             return;
@@ -135,6 +149,37 @@ public final class MenuSuite implements Harness.Scenario {
                         if (descLines != 2) { // both description lines, each as its OWN lore entry (newlines split)
                             throw new IllegalStateException(
                                     "the two description lines should render as separate lore entries; lore=" + iconLore);
+                        }
+                    });
+                    h.guard("menu.adminDrillsDownTierEnchantLevel", () -> {
+                        // Top level: tier groups (KEEN is epic, so the epic group shows), not a flat enchant list.
+                        MenuHolder tiers = new MenuHolder(adminMenu);
+                        adminMenu.render(tiers);
+                        ItemStack tierIcon = tiers.getInventory().getItem(0);
+                        if (tierIcon == null || !tierIcon.getItemMeta().getDisplayName().contains("Epic")) {
+                            throw new IllegalStateException("admin index should show tier groups; slot0="
+                                    + (tierIcon == null ? "null" : tierIcon.getItemMeta().getDisplayName()));
+                        }
+                        // Drill into the epic tier → its enchants (KEEN).
+                        MenuHolder tierEnchants = new MenuHolder(adminMenu);
+                        tierEnchants.setView("enchants");
+                        tierEnchants.setSelection("epic");
+                        adminMenu.render(tierEnchants);
+                        ItemStack enchIcon = tierEnchants.getInventory().getItem(0);
+                        if (enchIcon == null || !enchIcon.getItemMeta().getDisplayName().contains("Keen")) {
+                            throw new IllegalStateException("tier view should list the tier's enchants; slot0="
+                                    + (enchIcon == null ? "null" : enchIcon.getItemMeta().getDisplayName()));
+                        }
+                        // Drill into KEEN → one icon per level (KEEN declares a single level).
+                        MenuHolder enchantLevels = new MenuHolder(adminMenu);
+                        enchantLevels.setView("levels");
+                        enchantLevels.setPayload(keenDef);
+                        adminMenu.render(enchantLevels);
+                        ItemStack levelIcon = enchantLevels.getInventory().getItem(0);
+                        java.util.List<String> levelLore = levelIcon == null ? null : levelIcon.getItemMeta().getLore();
+                        if (levelLore == null || levelLore.stream().noneMatch(l -> l.contains("guaranteed level"))) {
+                            throw new IllegalStateException("enchant view should show per-level books; slot0 lore="
+                                    + levelLore);
                         }
                     });
                     InventoryView view = player.openInventory(menuHolder.getInventory());

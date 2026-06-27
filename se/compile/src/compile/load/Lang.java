@@ -220,7 +220,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("menu.tinkerer.salvaged", "&aSalvaged for &a{LEVELS} &alevel{S}.");
         s.put("menu.enchanter.too-poor", "&cYou need &a{COST} &clevels to buy that.");
         s.put("menu.enchanter.bought", "&aBought a &f{TIER} &amystery book.");
-        s.put("menu.admin.granted", "&aGranted a guaranteed &f{DISPLAY} &abook.");
+        s.put("menu.admin.granted", "&aGranted a guaranteed &f{DISPLAY} &alevel &f{LEVEL} &abook.");
 
         // Config-backed item messages (centralised here, not in items/*.yml)
         s.put("soul.activate", "&aSoul mode &lON&a.");
