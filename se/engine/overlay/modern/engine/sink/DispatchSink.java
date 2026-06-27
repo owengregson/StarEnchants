@@ -790,22 +790,35 @@ public final class DispatchSink implements SinkReadback {
 
     @Override
     public void message(Player target, String message) {
-        entityOp(target, () -> target.sendMessage(message));
+        // Translate legacy '&' codes to '§' so feedback shows coloured, not literal "&c&l…" — the floor-safe
+        // legacy-code stance, like applyGuardName above (ChatColor here, since the engine module can't see
+        // item.render.Colors; same result for the standard 0-9/a-f/k-o/r codes).
+        String text = legacyColor(message);
+        entityOp(target, () -> target.sendMessage(text));
     }
 
     @Override
     public void actionBar(Player target, String message) {
         // The Spigot chat API is the one action-bar path stable across the whole 1.17.1 → 26.1.x range.
+        // Translate '&' → '§' first — fromLegacyText parses '§', not '&'.
+        String text = legacyColor(message);
         entityOp(target, () -> target.spigot().sendMessage(
-                ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message)));
+                ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text)));
     }
 
     @Override
     @SuppressWarnings("deprecation") // sendTitle(String, String, int, int, int): deprecated-not-removed across the whole range.
     public void title(Player target, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
         // 5-arg String sendTitle is the one title path stable across the range (no Adventure Title API on
-        // the spigot-mapped floor).
-        entityOp(target, () -> target.sendTitle(title, subtitle, fadeIn, stay, fadeOut));
+        // the spigot-mapped floor). Translate '&' → '§' so colour codes render, not show literally.
+        String t = legacyColor(title);
+        String s = legacyColor(subtitle);
+        entityOp(target, () -> target.sendTitle(t, s, fadeIn, stay, fadeOut));
+    }
+
+    /** Legacy '&' → '§' colour translation, null-safe (some title/subtitle paths pass null). */
+    private static String legacyColor(String text) {
+        return text == null ? null : ChatColor.translateAlternateColorCodes('&', text);
     }
 
     @Override
