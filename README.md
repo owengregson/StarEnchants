@@ -15,7 +15,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-    <img src="assets/hero.svg" width="860" alt="StarEnchants — a deeply-unified custom-enchantments &amp; armor-sets plugin for Minecraft 1.8, Paper 1.17.1 → 26.1.x and Folia">
+    <img src="assets/hero.svg" width="860" alt="StarEnchants — a custom-enchantments &amp; armor-sets plugin for Minecraft 1.8, Paper 1.17.1-26.1.2 and Folia">
   </picture>
 </p>
 
@@ -26,12 +26,12 @@
 </p>
 
 <p align="center">
-  <b>A single drop-in jar</b> — legendary, open-source cosmic enchantments for your server.<br>
-  Custom enchantments, armor sets, crystals, and a full item economy under <b>one config schema</b>, with a built-in migrator.
+  <b>Open-source cosmic enchantments for your server.</b><br>
+  Custom enchantments, armor sets, crystals, and a full item economy — configured in plain YAML, with a built-in migrator.
 </p>
 
 <p align="center">
-  <code>✦ 51 effects</code> &nbsp;&nbsp; <code>✦ Armor sets &amp; crystals</code> &nbsp;&nbsp; <code>✦ Souls economy</code> &nbsp;&nbsp; <code>✦ Paper + Folia</code> &nbsp;&nbsp; <code>✦ 1.8, 1.17.1 → 26.1.x</code>
+  <code>✦ 51 effects</code> &nbsp;&nbsp; <code>✦ Armor sets &amp; crystals</code> &nbsp;&nbsp; <code>✦ Souls economy</code> &nbsp;&nbsp; <code>✦ Paper + Folia</code> &nbsp;&nbsp; <code>✦ 1.8, 1.17.1-26.1.2</code>
 </p>
 
 <br>
@@ -67,7 +67,7 @@ Enchanter, alchemist, tinkerer, transmog, and browser menus (enchants, sets, cry
 <td width="50%" valign="top">
 <img src="assets/icons/integrations.svg" width="40" alt="Integrations"><br>
 <b>Integrations</b><br>
-WorldGuard, Towny, Lands, SuperiorSkyblock, Factions, Vault, PlaceholderAPI, Mental, GrimAC, mcMMO, MythicMobs, ItemsAdder &amp; Oraxen — all bundled in the one jar, all optional, none required.
+WorldGuard, Towny, Lands, SuperiorSkyblock, Factions, Vault, PlaceholderAPI, Mental, GrimAC, mcMMO, MythicMobs, ItemsAdder &amp; Oraxen — all optional, none required.
 </td>
 <td width="50%" valign="top">
 <img src="assets/icons/migrator.svg" width="40" alt="Migrator"><br>
@@ -93,7 +93,7 @@ Bring your existing EliteEnchantments, EliteArmor &amp; AdvancedEnchantments con
 
 <p align="center"><img src="assets/headers/building.svg" height="54" alt="Building from source"></p>
 
-StarEnchants builds with the bundled Gradle wrapper — no global toolchain to install. One Multi-Release jar built by `scripts/build-mega-jar.sh` covers the whole range *including* legacy **Minecraft 1.8.9** — the JVM auto-selects the modern v61 tree on Paper 1.17.1 → 26.1.x and Folia, and the legacy v52 tree on 1.8.x — gated live by `scripts/legacy-smoke.sh` (see [docs/legacy-1.8.9-codeshare-design.md](docs/legacy-1.8.9-codeshare-design.md)).
+StarEnchants builds with the bundled Gradle wrapper — no global toolchain to install. `scripts/build-mega-jar.sh` produces one jar that runs on Paper 1.17.1-26.1.2 and Folia (Java 17+) and on Minecraft 1.8.x (Java 8): it is a Multi-Release jar, so each server's JVM loads the matching bytecode tree (modern v61, or the downgraded legacy v52). The 1.8 tree is gated live by `scripts/legacy-smoke.sh` (see [docs/legacy-1.8.9-codeshare-design.md](docs/legacy-1.8.9-codeshare-design.md)).
 
 ```bash
 git clone https://github.com/owengregson/StarEnchants.git

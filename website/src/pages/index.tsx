@@ -24,9 +24,8 @@ function HomepageHeader() {
           Legendary, open-source cosmic enchantments for your server.
         </p>
         <p className={styles.heroSub}>
-          Custom enchantments, armor sets, crystals, and a full item economy
-          under <strong>one config schema</strong> — one universal jar for Paper
-          1.17.1 → 26.1.x and Folia.
+          Custom enchantments, armor sets, crystals, and a full item economy,
+          configured in plain YAML — for Paper 1.17.1-26.1.2 and Folia.
         </p>
         <div className={styles.buttons}>
           <Link className="button button--primary button--lg" to="/docs/intro">
@@ -63,8 +62,8 @@ function WhatIs() {
             What is StarEnchants?
           </Heading>
           <p>
-            StarEnchants is a single drop-in jar that brings deeply-unified
-            custom enchantments and armor sets to modern Minecraft. Enchants,
+            StarEnchants adds custom enchantments and armor sets to modern
+            Minecraft. Enchants,
             set bonuses, Heroic upgrades, and socketable crystals all feed{' '}
             <strong>one effect engine</strong>, so every feature shares the same
             triggers, selectors, conditions, and 40+ live variables.
@@ -92,8 +91,8 @@ export default function Home(): ReactNode {
     <Layout
       title="Custom enchantments & armor sets for Paper + Folia"
       description={
-        'StarEnchants — a deeply-unified custom-enchantments & armor-sets ' +
-        'plugin for Minecraft. One jar for Paper 1.17.1 → 26.1.x and Folia.'
+        'StarEnchants — a custom-enchantments & armor-sets plugin for ' +
+        'Minecraft. For Paper 1.17.1-26.1.2 and Folia, and Minecraft 1.8.x.'
       }>
       <HomepageHeader />
       <main>

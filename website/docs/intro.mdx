@@ -7,10 +7,9 @@ description: What StarEnchants is, how to install it, and how to make your first
 
 # StarEnchants
 
-**StarEnchants is a single drop-in jar** that brings legendary custom enchantments, armor sets,
-socketable crystals, and a full item economy to your server — all under **one config schema**, all
-fed through **one engine**. It runs across **Minecraft 1.8** and **Paper 1.17.1 → 26.1.x** and
-**Folia** from the same download: no per-version files, no add-on jars.
+StarEnchants adds custom enchantments, armor sets, socketable crystals, and an item economy to your
+server. Enchants, set bonuses, and crystals are configured in plain YAML and run through one effect
+engine. It runs on **Paper 1.17.1-26.1.2** and **Folia**, and on **Minecraft 1.8.x**.
 
 If you have run a Cosmic Enchants–style enchantment plugin before, everything here will feel
 familiar — books, scrolls, dust, soul gems, slot orbs — but it is all configured the same way, in
@@ -19,7 +18,7 @@ plain YAML, and reloaded live with one command.
 What ships in the box:
 
 - **An effect engine** — **51 effects**, **21 triggers**, **17 selectors**, and a conditions DSL
-  over **40 live variables**. Enchants, armor-set bonuses, and crystals all feed this one engine.
+  over **40 live variables**. Enchants, armor-set bonuses, and crystals all feed the same engine.
 - **Armor sets** with a completion bonus, an optional matched weapon, and Heroic upgrades.
 - **An item & souls economy** — enchant books, scrolls (white, holy-white, black, transmog, godly
   transmog, randomizer), success dust, soul gems, slot-expander orbs, and nametags.
@@ -33,17 +32,12 @@ What ships in the box:
 
 | Need | Detail |
 | --- | --- |
-| Java | **17 or newer** on modern servers; **Java 8** on Minecraft 1.8.x |
-| Server | **Paper 1.17.1 → 26.1.x** or **Folia**, or **Minecraft 1.8.x** (Spigot/CraftBukkit/Paper) |
+| Java | **17 or newer** on Paper/Folia; **Java 8** on Minecraft 1.8.x |
+| Server | **Paper 1.17.1-26.1.2** or **Folia**, or **Minecraft 1.8.x** (Spigot/CraftBukkit/Paper) |
 | Everything else | optional |
 
-One universal jar runs the whole version range — from **1.8** through 26.1.x — with no per-version
-downloads.
-
-:::note Running Minecraft 1.8.9?
-The **same single jar** runs there too — no separate download. It is a Multi-Release jar, so a 1.8.9
-server automatically loads the legacy tree from it. See **[Legacy 1.8.9 support](/docs/legacy-1-8-9)**.
-:::
+The download is one jar that works across this whole range. For what differs on 1.8.x, see
+[Running on Minecraft 1.8.x](#running-on-minecraft-18x) below.
 
 ## Install
 
@@ -95,6 +89,23 @@ A reload rebuilds the entire content library **off-thread** and only swaps it in
 clean. A broken edit keeps your running config live and prints diagnostics instead. Use
 `/se reload --dry-run` to validate without swapping.
 :::
+
+## Running on Minecraft 1.8.x
+
+The same jar runs on Minecraft 1.8.x (Spigot/CraftBukkit/Paper) under Java 8 — drop it in `plugins/`
+exactly as above. Your `content/` configs, commands, items, and economy are identical to the modern
+range. A few things differ on 1.8, automatically, with no config change:
+
+- Newer materials fall back to their closest 1.8 equivalent — a piece minted as `NETHERITE_HELMET`
+  becomes `DIAMOND_HELMET`; a handful of renamed sounds and particles map to their 1.8 names.
+- Off-hand-only effects do nothing — 1.8 has no off-hand slot. Main-hand and armor work normally.
+- A few event-driven features run on a per-tick poll instead, since 1.8 lacks the events for them:
+  the `ITEM_DAMAGE` trigger, Heroic durability saves, and instant armour-swap detection.
+- Knockback control applies at the server's knockback-resistance level — cancelling and reducing are
+  exact; amplifying above 1× is best-effort.
+
+Everything else — books, scrolls, dust, rendered lore, the combat engine, armor sets, crystals,
+souls, slots, and the GUIs — behaves the same as on Paper.
 
 ## Where to go next
 
