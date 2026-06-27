@@ -35,8 +35,10 @@
 #   --no-build   reuse the existing modern + legacy jars (use only right after a fresh build).
 # Output:  se/<module>/build/libs/StarEnchants[-Tester]-<version>-mega.jar
 #
-# Prereqs (same as the legacy lane): JDK 17+ on PATH, and the BuildTools-local craftbukkit
-# 1.8.8 in ~/.m2 for the legacy dual-compile gate (see scripts/build-legacy-jar.sh).
+# Prereqs (same as the legacy lane): JDK 17+ on PATH, the BuildTools-local craftbukkit
+# 1.8.8 in ~/.m2 for the legacy dual-compile gate, AND a real JDK 8 at $SE_LEGACY_WORK/jdk8 —
+# build-legacy-jar.sh now runs the closed-world JDK-8 API gate (Gate 2) against that baseline.
+# (Set SE_SKIP_JDK8_GATE=1 to bypass it for local iteration only — UNSOUND.) See build-legacy-jar.sh.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

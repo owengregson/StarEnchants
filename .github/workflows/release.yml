@@ -135,7 +135,9 @@ jobs:
             cp "$jar" craftbukkit-1.8.8.jar
           fi
 
-      - name: Provision JDK 8 for the legacy boot
+      # Needed by BOTH later steps: the live 1.8 boot AND the closed-world JDK-8 API gate (Gate 2) that runs
+      # inside build-legacy-jar.sh (invoked by both legacy-smoke.sh and build-mega-jar.sh). Keep it before both.
+      - name: Provision JDK 8 (1.8 boot + JDK-8 API gate baseline)
         run: ln -sfn "$JAVA_HOME_8_X64" ~/se-legacy-buildtools/jdk8
 
       - name: Unit gate (./gradlew build)

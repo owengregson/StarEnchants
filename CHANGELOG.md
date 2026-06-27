@@ -8,6 +8,16 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Closed-world JDK-8 API gate (legacy "Gate 2").** `scripts/jdk8-api-gate.sh` +
+  `scripts/tools/Jdk8ApiGate.java` walk the downgraded Java-8 (v52) jar with ASM and fail the
+  build if any `java.*`/`javax.*` reference is absent from a real JDK 8 — the static net for
+  un-shimmable JDK-9+ stdlib APIs that JvmDowngrader passes through silently (they compile and
+  downgrade green, then `NoSuchMethodError` on a real 1.8 server, where the reduced live smoke
+  can miss them). Embedded in `build-legacy-jar.sh` after the downgrade, so it gates every
+  legacy lane: `legacy-smoke.sh` (PR + push) and `build-mega-jar.sh` (release). Public `java/*`
+  is a hard failure; JDK-internal `sun/jdk/com.sun` warns (`--strict-internal` to promote);
+  `SE_SKIP_JDK8_GATE=1` is a loud, local-only escape hatch.
+
 - Repository foundation: hygiene config (gitignore/gitattributes/editorconfig),
   project agent skills, contributor + development guides, guarded CI workflow,
   PR/issue templates, CODEOWNERS, and conventional-commit git hooks.

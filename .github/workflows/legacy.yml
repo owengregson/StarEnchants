@@ -103,7 +103,9 @@ jobs:
             cp "$jar" craftbukkit-1.8.8.jar
           fi
 
-      - name: Provision JDK 8 for the boot
+      # Needed BOTH to boot the 1.8 server AND as the baseline for the closed-world JDK-8 API gate (Gate 2)
+      # that build-legacy-jar.sh runs after the downgrade. Must precede legacy-smoke.sh (it builds the jar + gates).
+      - name: Provision JDK 8 (1.8 boot + JDK-8 API gate baseline)
         run: ln -sfn "$JAVA_HOME_8_X64" ~/se-legacy-buildtools/jdk8
 
       - name: Live 1.8.9 smoke (dual-compile + downgrade + boot + assert fresh PASS)

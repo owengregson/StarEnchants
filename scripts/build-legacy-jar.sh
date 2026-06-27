@@ -50,7 +50,7 @@ case "$MODULE" in
   *) echo "ERROR: unknown module '$MODULE' (expected: bootstrap | tester)" >&2; exit 2 ;;
 esac
 
-echo "[legacy] 1/2  dual-compile + assemble the legacy ${MODULE} fat jar (Gate 1 + Gate 1b) ..."
+echo "[legacy] 1/3  dual-compile + assemble the legacy ${MODULE} fat jar (Gate 1 + Gate 1b) ..."
 ./gradlew -Pse.target=legacy ":${MODULE}:jar"
 VERSION="$(./gradlew -q -Pse.target=legacy ":${MODULE}:properties" 2>/dev/null | awk -F': ' '/^version:/{print $2}')"
 # -Pse.target=legacy redirects the buildDir to build-legacy/ (root build.gradle.kts), so the legacy lane's
@@ -66,7 +66,7 @@ if [ ! -f "$JDG" ]; then
     "https://repo1.maven.org/maven2/xyz/wagyourtail/jvmdowngrader/jvmdowngrader/${JDG_VERSION}/jvmdowngrader-${JDG_VERSION}-all.jar"
 fi
 
-echo "[legacy] 2/2  lower ${IN_JAR##*/} 61→${TARGET} + shade the JDG api/runtime ..."
+echo "[legacy] 2/3  lower ${IN_JAR##*/} 61→${TARGET} + shade the JDG api/runtime ..."
 # JDG's `shade` bundles the stub api it finds in --api, but NOT its util/runtime helpers — so build a
 # self-contained api jar = the downgraded stub api PLUS JDG's util/* (the downgraded code calls util.Utils).
 API_STUBS="$WORK/jdg-api-${TARGET}.jar"
@@ -86,5 +86,20 @@ cp "$API_STUBS" "$API_FULL"
 java -jar "$JDG" -c "$TARGET" --api "$API_FULL" "${IGNORE[@]}" \
   downgrade --target "$IN_JAR" - \
   shade --prefix "$PREFIX" --target - "$OUT_JAR"
+
+# Gate 2 (§3.4 / R1): the closed-world JDK-8 API check over the just-downgraded jar — the static net for the
+# un-shimmable JDK-9+ stdlib hazard JvmDowngrader passes through silently (an absent java.* API compiles,
+# downgrades and shades green, then NoSuchMethodErrors on a real 1.8 server; the reduced live smoke can't
+# drive every path). This is the single chokepoint, so it gates EVERY legacy-producing lane: legacy-smoke.sh
+# (PR + push) and build-mega-jar.sh (release). SE_SKIP_JDK8_GATE=1 is a loud, local-only escape hatch.
+if [ "${SE_SKIP_JDK8_GATE:-0}" = "1" ]; then
+  echo "[legacy] WARNING: SE_SKIP_JDK8_GATE=1 — skipping the closed-world JDK-8 API gate (UNSOUND; local iteration only)" >&2
+else
+  echo "[legacy] 3/3  closed-world JDK-8 API gate over ${OUT_JAR##*/} ..."
+  if ! scripts/jdk8-api-gate.sh "$OUT_JAR" "$WORK/jdk8"; then
+    echo "[legacy] ERROR: closed-world JDK-8 API gate FAILED — the downgraded jar references APIs absent from Java 8 (see above)." >&2
+    exit 1
+  fi
+fi
 
 echo "[legacy] done → $OUT_JAR"
