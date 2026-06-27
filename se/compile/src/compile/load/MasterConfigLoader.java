@@ -115,7 +115,9 @@ public final class MasterConfigLoader {
         MasterConfig.LoreSection d = MasterConfig.LoreSection.defaults();
         return new MasterConfig.LoreSection(
                 orDefault(n.string("enchant-color"), d.enchantColor()),
-                orDefault(n.string("level-color"), d.levelColor()),
+                // NOT orDefault: a present-but-blank level-color is meaningful (the level inherits the tier
+                // colour), so only fall back to the default when the key is ABSENT.
+                n.has("level-color") ? blankIfNull(n.string("level-color")) : d.levelColor(),
                 orDefault(n.string("crystal-color"), d.crystalColor()),
                 parseBool(n.string("roman"), d.roman()),
                 orDefault(n.string("unknown-label"), d.unknownLabel()));
@@ -192,5 +194,10 @@ public final class MasterConfigLoader {
 
     private static String orDefault(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    /** {@code null} (a present-but-empty scalar, e.g. {@code level-color:}) reads as the empty string. */
+    private static String blankIfNull(String value) {
+        return value == null ? "" : value;
     }
 }

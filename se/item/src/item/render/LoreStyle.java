@@ -8,7 +8,8 @@ import java.util.Objects;
  * time) so a config snapshot of it can be swapped by reference like the content snapshot.
  *
  * @param enchantColor colour prefix for an enchant's display name (e.g. {@code "&7"})
- * @param levelColor   colour prefix for the level numeral (e.g. {@code "&f"})
+ * @param levelColor   colour prefix for the level numeral (e.g. {@code "&f"}); BLANK ({@code ""}) makes the
+ *                     level numeral inherit the enchant's tier colour (the name's colour)
  * @param crystalColor colour prefix for a crystal line (e.g. {@code "&b"})
  * @param roman        whether levels render as Roman numerals ({@code Venom III}) or Arabic ({@code Venom 3})
  * @param unknownLabel the name rendered for a stored stable key absent from the catalog (§5.3)
