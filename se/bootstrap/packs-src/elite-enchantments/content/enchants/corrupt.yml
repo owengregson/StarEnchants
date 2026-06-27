@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: corrupt). Review before shipping.
 display: "Corrupt"
-description: "&eOn hit, deals bonus damage and &edisables the target's Inversion.  &e&lI: &f🎲 1.75% &7| &f▲ 1-2❤ &7| &f⌛ 4s &e&lII: &f🎲 3% &7| &f▲ 1-2❤ &7| &f⌛ 4s &e&lIII: &f🎲 4% &7| &f▲ 1-2❤ &7| &f⌛ 4s &e&lIV: &f🎲 5% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
+description:
+  - "&eOn hit, deals bonus damage and"
+  - "&edisables the target's Inversion."
+  - ""
+  - "&e&lI: &f🎲 1.75% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
+  - "&e&lII: &f🎲 3% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
+  - "&e&lIII: &f🎲 4% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
+  - "&e&lIV: &f🎲 5% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "epic"

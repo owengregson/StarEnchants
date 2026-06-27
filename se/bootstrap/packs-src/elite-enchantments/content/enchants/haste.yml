@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: haste). Review before shipping.
 display: "Haste"
-description: "&7While held, grants Haste, &7increasing mining speed.  &7&lI: &f▲ Lvl I &7&lII: &f▲ Lvl II &7&lIII: &f▲ Lvl III"
+description:
+  - "&7While held, grants Haste,"
+  - "&7increasing mining speed."
+  - ""
+  - "&7&lI: &f▲ Lvl I"
+  - "&7&lII: &f▲ Lvl II"
+  - "&7&lIII: &f▲ Lvl III"
 trigger: HELD
 applies-to: [TOOL]
 group: "common"

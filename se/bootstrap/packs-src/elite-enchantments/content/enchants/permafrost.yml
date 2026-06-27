@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: permafrost). Review before shipping.
 display: "PermaFrost"
-description: "&4When hit, turns the area to snow &4and ice and chills the attacker.  &4&lI: &f🎲 1.5% &7| &f⌛ 20s &4&lII: &f🎲 3.75% &7| &f⌛ 20s &4&lIII: &f🎲 5% &7| &f⌛ 20s &4&lIV: &f🎲 8% &7| &f⌛ 20s &4&lV: &f🎲 11.25% &7| &f⌛ 20s &4&lVI: &f🎲 14% &7| &f⌛ 20s"
+description:
+  - "&4When hit, turns the area to snow"
+  - "&4and ice and chills the attacker."
+  - ""
+  - "&4&lI: &f🎲 1.5% &7| &f⌛ 20s"
+  - "&4&lII: &f🎲 3.75% &7| &f⌛ 20s"
+  - "&4&lIII: &f🎲 5% &7| &f⌛ 20s"
+  - "&4&lIV: &f🎲 8% &7| &f⌛ 20s"
+  - "&4&lV: &f🎲 11.25% &7| &f⌛ 20s"
+  - "&4&lVI: &f🎲 14% &7| &f⌛ 20s"
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "mythic"

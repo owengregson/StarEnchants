@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: unstoppable-momentum). Review before shipping.
 display: "Unstoppable Momentum"
-description: "&dHeroic upgrade for Momentum. &dClears Slowness from yourself &dmore often. &c&l(!)&r &7Requires &eMomentum  &d&lI: &f🎲 4% &7| &f⌛ 3s &d&lII: &f🎲 6% &7| &f⌛ 3s &d&lIII: &f🎲 8% &7| &f⌛ 3s &d&lIV: &f🎲 10% &7| &f⌛ 3s"
+description:
+  - "&dHeroic upgrade for Momentum."
+  - "&dClears Slowness from yourself"
+  - "&dmore often."
+  - "&c&l(!)&r &7Requires &eMomentum"
+  - ""
+  - "&d&lI: &f🎲 4% &7| &f⌛ 3s"
+  - "&d&lII: &f🎲 6% &7| &f⌛ 3s"
+  - "&d&lIII: &f🎲 8% &7| &f⌛ 3s"
+  - "&d&lIV: &f🎲 10% &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "heroic"

@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: hardened). Review before shipping.
 display: "Hardened"
-description: "&bWhen hit, restores durability to &byour armor.  &b&lI: &f🎲 6.25% &7| &f▲ +2 pt. &b&lII: &f🎲 9% &7| &f▲ +2 pt. &b&lIII: &f🎲 11% &7| &f▲ +2 pt."
+description:
+  - "&bWhen hit, restores durability to"
+  - "&byour armor."
+  - ""
+  - "&b&lI: &f🎲 6.25% &7| &f▲ +2 pt."
+  - "&b&lII: &f🎲 9% &7| &f▲ +2 pt."
+  - "&b&lIII: &f🎲 11% &7| &f▲ +2 pt."
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "rare"

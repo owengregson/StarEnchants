@@ -1,6 +1,11 @@
 # Imported from EliteEnchantments (id: springs). Review before shipping.
 display: "Springs"
-description: "&bGrants a permanent Jump Boost.  &b&lI: &f▲ Lvl I &b&lII: &f▲ Lvl II &b&lIII: &f▲ Lvl III"
+description:
+  - "&bGrants a permanent Jump Boost."
+  - ""
+  - "&b&lI: &f▲ Lvl I"
+  - "&b&lII: &f▲ Lvl II"
+  - "&b&lIII: &f▲ Lvl III"
 trigger: PASSIVE
 applies-to: [BOOTS]
 group: "rare"

@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: blood-link). Review before shipping.
 display: "Blood Link"
-description: "&6When you take damage, restores &6some of your health.  &6&lI: &f🎲 2% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lII: &f🎲 3.75% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lIII: &f🎲 5% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lIV: &f🎲 6.5% &7| &f▲ +1-4❤ &7| &f⌛ 3s &6&lV: &f🎲 7.5% &7| &f▲ +1-4❤ &7| &f⌛ 3s"
+description:
+  - "&6When you take damage, restores"
+  - "&6some of your health."
+  - ""
+  - "&6&lI: &f🎲 2% &7| &f▲ +1-4❤ &7| &f⌛ 3s"
+  - "&6&lII: &f🎲 3.75% &7| &f▲ +1-4❤ &7| &f⌛ 3s"
+  - "&6&lIII: &f🎲 5% &7| &f▲ +1-4❤ &7| &f⌛ 3s"
+  - "&6&lIV: &f🎲 6.5% &7| &f▲ +1-4❤ &7| &f⌛ 3s"
+  - "&6&lV: &f🎲 7.5% &7| &f▲ +1-4❤ &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "legendary"

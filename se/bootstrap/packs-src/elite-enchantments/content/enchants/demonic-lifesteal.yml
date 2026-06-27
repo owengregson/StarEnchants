@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: demonic-lifesteal). Review before shipping.
 display: "Demonic Lifesteal"
-description: "&dHeroic upgrade for Lifesteal. &dRestores much more health on &dhit. &c&l(!)&r &7Requires &6Lifesteal  &d&lI: &f🎲 4.5% &7| &f▲ +8❤ &7| &f⌛ 6s &d&lII: &f🎲 6.75% &7| &f▲ +12❤ &7| &f⌛ 6s &d&lIII: &f🎲 9% &7| &f▲ +15❤ &7| &f⌛ 6s"
+description:
+  - "&dHeroic upgrade for Lifesteal."
+  - "&dRestores much more health on"
+  - "&dhit."
+  - "&c&l(!)&r &7Requires &6Lifesteal"
+  - ""
+  - "&d&lI: &f🎲 4.5% &7| &f▲ +8❤ &7| &f⌛ 6s"
+  - "&d&lII: &f🎲 6.75% &7| &f▲ +12❤ &7| &f⌛ 6s"
+  - "&d&lIII: &f🎲 9% &7| &f▲ +15❤ &7| &f⌛ 6s"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "heroic"

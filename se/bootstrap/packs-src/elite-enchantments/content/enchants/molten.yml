@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: molten). Review before shipping.
 display: "Molten"
-description: "&aWhen hit, sets the attacker on &afire.  &a&lI: &f🎲 4% &7| &f⌛ 3s &a&lII: &f🎲 6% &7| &f⌛ 3s &a&lIII: &f🎲 8% &7| &f⌛ 3s &a&lIV: &f🎲 10% &7| &f⌛ 3s"
+description:
+  - "&aWhen hit, sets the attacker on"
+  - "&afire."
+  - ""
+  - "&a&lI: &f🎲 4% &7| &f⌛ 3s"
+  - "&a&lII: &f🎲 6% &7| &f⌛ 3s"
+  - "&a&lIII: &f🎲 8% &7| &f⌛ 3s"
+  - "&a&lIV: &f🎲 10% &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "uncommon"

@@ -37,7 +37,8 @@ public final class AdvancedEnchantmentsReader {
             out.add(new MigratedEnchant(
                     id,
                     LegacyYaml.string(e, "display", id),
-                    String.join(" ", LegacyYaml.stringList(e, "description")), // scalar OR list
+                    // One lore line per source line — join with '\n' (not a space) so each renders separately.
+                    String.join("\n", LegacyYaml.stringList(e, "description")), // scalar OR list
                     Mappings.aeTrigger(legacyType),
                     Mappings.aeAppliesTo(applies),
                     LegacyYaml.string(e, "group", "imported").toLowerCase(Locale.ROOT),

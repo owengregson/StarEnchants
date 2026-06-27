@@ -1,6 +1,17 @@
 # Imported from EliteEnchantments (id: deep-bleed). Review before shipping.
 display: "Deep Bleed"
-description: "&dHeroic upgrade for Bleed. &dDeals more bonus damage and &dapplies stronger Slowness. &c&l(!)&r &7Requires &eBleed  &d&lI: &f🎲 2.25% &7| &f▲ 3% &7| &f⌛ 4s &d&lII: &f🎲 4% &7| &f▲ 5% &7| &f⌛ 4s &d&lIII: &f🎲 5.5% &7| &f▲ 8% &7| &f⌛ 4s &d&lIV: &f🎲 6.25% &7| &f▲ 10% &7| &f⌛ 4s &d&lV: &f🎲 7% &7| &f▲ 12% &7| &f⌛ 4s &d&lVI: &f🎲 8.25% &7| &f▲ 15% &7| &f⌛ 4s"
+description:
+  - "&dHeroic upgrade for Bleed."
+  - "&dDeals more bonus damage and"
+  - "&dapplies stronger Slowness."
+  - "&c&l(!)&r &7Requires &eBleed"
+  - ""
+  - "&d&lI: &f🎲 2.25% &7| &f▲ 3% &7| &f⌛ 4s"
+  - "&d&lII: &f🎲 4% &7| &f▲ 5% &7| &f⌛ 4s"
+  - "&d&lIII: &f🎲 5.5% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&d&lIV: &f🎲 6.25% &7| &f▲ 10% &7| &f⌛ 4s"
+  - "&d&lV: &f🎲 7% &7| &f▲ 12% &7| &f⌛ 4s"
+  - "&d&lVI: &f🎲 8.25% &7| &f▲ 15% &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"

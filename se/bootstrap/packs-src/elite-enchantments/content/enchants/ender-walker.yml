@@ -1,6 +1,16 @@
 # Imported from EliteEnchantments (id: ender-walker). Review before shipping.
 display: "Ender Walker"
-description: "&eGrants immunity to negative &epotion effects. Higher levels &ealso heal you when you take &edamage.  &e&lI: &f🎲 100% &e&lII: &f🎲 100% &e&lIII: &f🎲 100% &7| &f▲ +1-2❤ &e&lIV: &f🎲 100% &7| &f▲ +1-3❤ &e&lV: &f🎲 100% &7| &f▲ +2-4❤"
+description:
+  - "&eGrants immunity to negative"
+  - "&epotion effects. Higher levels"
+  - "&ealso heal you when you take"
+  - "&edamage."
+  - ""
+  - "&e&lI: &f🎲 100%"
+  - "&e&lII: &f🎲 100%"
+  - "&e&lIII: &f🎲 100% &7| &f▲ +1-2❤"
+  - "&e&lIV: &f🎲 100% &7| &f▲ +1-3❤"
+  - "&e&lV: &f🎲 100% &7| &f▲ +2-4❤"
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "epic"

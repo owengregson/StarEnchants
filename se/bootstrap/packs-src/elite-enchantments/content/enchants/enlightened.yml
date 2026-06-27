@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: enlightened). Review before shipping.
 display: "Enlightened"
-description: "&6When hit, restores some of your &6health.  &6&lI: &f🎲 8% &7| &f▲ +1❤ &7| &f⌛ 3s &6&lII: &f🎲 14% &7| &f▲ +1-2❤ &7| &f⌛ 3s &6&lIII: &f🎲 19% &7| &f▲ +1-3❤ &7| &f⌛ 3s"
+description:
+  - "&6When hit, restores some of your"
+  - "&6health."
+  - ""
+  - "&6&lI: &f🎲 8% &7| &f▲ +1❤ &7| &f⌛ 3s"
+  - "&6&lII: &f🎲 14% &7| &f▲ +1-2❤ &7| &f⌛ 3s"
+  - "&6&lIII: &f🎲 19% &7| &f▲ +1-3❤ &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "legendary"

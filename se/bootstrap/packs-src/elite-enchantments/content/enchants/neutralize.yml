@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: neutralize). Review before shipping.
 display: "Neutralize"
-description: "&4On hit, disables all of the &4target's defensive enchantments &4briefly.  &4&lI: &f🎲 1.25% &7| &f⌛ 50s &4&lII: &f🎲 2.95% &7| &f⌛ 50s &4&lIII: &f🎲 4.25% &7| &f⌛ 45s &4&lIV: &f🎲 6% &7| &f⌛ 40s &4&lV: &f🎲 7.5% &7| &f⌛ 35s"
+description:
+  - "&4On hit, disables all of the"
+  - "&4target's defensive enchantments"
+  - "&4briefly."
+  - ""
+  - "&4&lI: &f🎲 1.25% &7| &f⌛ 50s"
+  - "&4&lII: &f🎲 2.95% &7| &f⌛ 50s"
+  - "&4&lIII: &f🎲 4.25% &7| &f⌛ 45s"
+  - "&4&lIV: &f🎲 6% &7| &f⌛ 40s"
+  - "&4&lV: &f🎲 7.5% &7| &f⌛ 35s"
 trigger: ATTACK
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "mythic"

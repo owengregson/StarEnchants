@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: block). Review before shipping.
 display: "Block"
-description: "&eWhen hit, reduces the damage &etaken and deals damage back to &ethe attacker.  &e&lI: &f▲ 50% &7| &f⌛ 4s &e&lII: &f▲ 50% &7| &f⌛ 4s &e&lIII: &f▲ 50% &7| &f⌛ 4s"
+description:
+  - "&eWhen hit, reduces the damage"
+  - "&etaken and deals damage back to"
+  - "&ethe attacker."
+  - ""
+  - "&e&lI: &f▲ 50% &7| &f⌛ 4s"
+  - "&e&lII: &f▲ 50% &7| &f⌛ 4s"
+  - "&e&lIII: &f▲ 50% &7| &f⌛ 4s"
 trigger: DEFENSE
 applies-to: [SWORD]
 group: "epic"

@@ -1,6 +1,20 @@
 # Imported from EliteEnchantments (id: rot-and-decay). Review before shipping.
 display: "Rot and Decay"
-description: "&4On hit, decays the surrounding &4ground and raises zombies that &4damage enemies caught inside.  &4&lI: &f🎲 1% &7| &f⌛ 10s &4&lII: &f🎲 2% &7| &f⌛ 10s &4&lIII: &f🎲 3% &7| &f⌛ 10s &4&lIV: &f🎲 4% &7| &f⌛ 10s &4&lV: &f🎲 5% &7| &f⌛ 10s &4&lVI: &f🎲 6% &7| &f⌛ 10s &4&lVII: &f🎲 7% &7| &f⌛ 10s &4&lVIII: &f🎲 8% &7| &f⌛ 10s &4&lIX: &f🎲 9% &7| &f⌛ 10s &4&lX: &f🎲 10% &7| &f⌛ 10s"
+description:
+  - "&4On hit, decays the surrounding"
+  - "&4ground and raises zombies that"
+  - "&4damage enemies caught inside."
+  - ""
+  - "&4&lI: &f🎲 1% &7| &f⌛ 10s"
+  - "&4&lII: &f🎲 2% &7| &f⌛ 10s"
+  - "&4&lIII: &f🎲 3% &7| &f⌛ 10s"
+  - "&4&lIV: &f🎲 4% &7| &f⌛ 10s"
+  - "&4&lV: &f🎲 5% &7| &f⌛ 10s"
+  - "&4&lVI: &f🎲 6% &7| &f⌛ 10s"
+  - "&4&lVII: &f🎲 7% &7| &f⌛ 10s"
+  - "&4&lVIII: &f🎲 8% &7| &f⌛ 10s"
+  - "&4&lIX: &f🎲 9% &7| &f⌛ 10s"
+  - "&4&lX: &f🎲 10% &7| &f⌛ 10s"
 trigger: ATTACK
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "mythic"

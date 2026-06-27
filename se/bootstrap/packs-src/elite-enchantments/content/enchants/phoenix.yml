@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: phoenix). Review before shipping.
 display: "Phoenix"
-description: "&cA blow that would kill you &cinstead restores you to full &chealth.  &c&lI: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500 &c&lII: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500 &c&lIII: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500"
+description:
+  - "&cA blow that would kill you"
+  - "&cinstead restores you to full"
+  - "&chealth."
+  - ""
+  - "&c&lI: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500"
+  - "&c&lII: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500"
+  - "&c&lIII: &f▲ +40-50❤ &7| &f⌛ 120s &7| &f☄ 500"
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "soul"

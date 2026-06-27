@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: poison). Review before shipping.
 display: "Poison"
-description: "&bOn hit, applies Poison to the &btarget.  &b&lI: &f🎲 5% &7| &f⌛ 3s &b&lII: &f🎲 8% &7| &f⌛ 3s &b&lIII: &f🎲 12% &7| &f⌛ 3s"
+description:
+  - "&bOn hit, applies Poison to the"
+  - "&btarget."
+  - ""
+  - "&b&lI: &f🎲 5% &7| &f⌛ 3s"
+  - "&b&lII: &f🎲 8% &7| &f⌛ 3s"
+  - "&b&lIII: &f🎲 12% &7| &f⌛ 3s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "rare"

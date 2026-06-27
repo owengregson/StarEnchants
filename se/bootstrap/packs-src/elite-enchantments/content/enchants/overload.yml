@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: overload). Review before shipping.
 display: "Overload"
-description: "&6Increases your maximum health &6while worn.  &6&lI: &f▲ Lvl I &6&lII: &f▲ Lvl II &6&lIII: &f▲ Lvl III"
+description:
+  - "&6Increases your maximum health"
+  - "&6while worn."
+  - ""
+  - "&6&lI: &f▲ Lvl I"
+  - "&6&lII: &f▲ Lvl II"
+  - "&6&lIII: &f▲ Lvl III"
 trigger: PASSIVE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "legendary"

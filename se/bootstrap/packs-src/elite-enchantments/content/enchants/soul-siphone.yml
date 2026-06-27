@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: soul-siphone). Review before shipping.
 display: "Soul Siphone"
-description: "&4On hit, drains the target's &4souls, damages their armor, and &4repairs your own gear.  &4&lI: &f🎲 3% &7| &f⌛ 3s &4&lII: &f🎲 5% &7| &f⌛ 3s &4&lIII: &f🎲 7% &7| &f⌛ 3s &4&lIV: &f🎲 10% &7| &f⌛ 3s"
+description:
+  - "&4On hit, drains the target's"
+  - "&4souls, damages their armor, and"
+  - "&4repairs your own gear."
+  - ""
+  - "&4&lI: &f🎲 3% &7| &f⌛ 3s"
+  - "&4&lII: &f🎲 5% &7| &f⌛ 3s"
+  - "&4&lIII: &f🎲 7% &7| &f⌛ 3s"
+  - "&4&lIV: &f🎲 10% &7| &f⌛ 3s"
 trigger: ATTACK
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "mythic"

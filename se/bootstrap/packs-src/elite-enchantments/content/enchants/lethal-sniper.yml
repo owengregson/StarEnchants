@@ -1,6 +1,16 @@
 # Imported from EliteEnchantments (id: lethal-sniper). Review before shipping.
 display: "Lethal Sniper"
-description: "&dHeroic upgrade for Sniper. &dLands more reliable, &dharder-hitting headshots. &c&l(!)&r &7Requires &6Sniper  &d&lI: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 3s &d&lII: &f🎲 7.5% &7| &f▲ 5% &7| &f⌛ 3s &d&lIII: &f🎲 10% &7| &f▲ 5% &7| &f⌛ 3s &d&lIV: &f🎲 12.5% &7| &f▲ 5% &7| &f⌛ 3s &d&lV: &f🎲 15% &7| &f▲ 5% &7| &f⌛ 3s"
+description:
+  - "&dHeroic upgrade for Sniper."
+  - "&dLands more reliable,"
+  - "&dharder-hitting headshots."
+  - "&c&l(!)&r &7Requires &6Sniper"
+  - ""
+  - "&d&lI: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 3s"
+  - "&d&lII: &f🎲 7.5% &7| &f▲ 5% &7| &f⌛ 3s"
+  - "&d&lIII: &f🎲 10% &7| &f▲ 5% &7| &f⌛ 3s"
+  - "&d&lIV: &f🎲 12.5% &7| &f▲ 5% &7| &f⌛ 3s"
+  - "&d&lV: &f🎲 15% &7| &f▲ 5% &7| &f⌛ 3s"
 trigger: BOW
 applies-to: [BOW]
 group: "heroic"

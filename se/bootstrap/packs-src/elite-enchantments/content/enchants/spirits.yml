@@ -1,6 +1,20 @@
 # Imported from EliteEnchantments (id: spirits). Review before shipping.
 display: "Spirits"
-description: "&eWhen hit, summons blazes that &efight for you and grants &eRegeneration.  &e&lI: &f🎲 0.25% &7| &f▲ 1x &7| &f⌛ 15s &e&lII: &f🎲 0.5% &7| &f▲ 1x &7| &f⌛ 15s &e&lIII: &f🎲 0.75% &7| &f▲ 1x &7| &f⌛ 15s &e&lIV: &f🎲 0.85% &7| &f▲ 1x &7| &f⌛ 15s &e&lV: &f🎲 1% &7| &f▲ 1x &7| &f⌛ 15s &e&lVI: &f🎲 2% &7| &f▲ 1x &7| &f⌛ 15s &e&lVII: &f🎲 3% &7| &f▲ 1x &7| &f⌛ 15s &e&lVIII: &f🎲 4% &7| &f▲ 1x &7| &f⌛ 15s &e&lIX: &f🎲 5% &7| &f▲ 1x &7| &f⌛ 15s &e&lX: &f🎲 6% &7| &f▲ 1x &7| &f⌛ 15s"
+description:
+  - "&eWhen hit, summons blazes that"
+  - "&efight for you and grants"
+  - "&eRegeneration."
+  - ""
+  - "&e&lI: &f🎲 0.25% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lII: &f🎲 0.5% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lIII: &f🎲 0.75% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lIV: &f🎲 0.85% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lV: &f🎲 1% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lVI: &f🎲 2% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lVII: &f🎲 3% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lVIII: &f🎲 4% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lIX: &f🎲 5% &7| &f▲ 1x &7| &f⌛ 15s"
+  - "&e&lX: &f🎲 6% &7| &f▲ 1x &7| &f⌛ 15s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "epic"

@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: maliciously-corrupt). Review before shipping.
 display: "Maliciously Corrupt"
-description: "&dHeroic upgrade for Corrupt. &dDeals more damage and suppresses &dInversion for longer. &c&l(!)&r &7Requires &eCorrupt  &d&lI: &f🎲 1.75% &7| &f▲ 2-4❤ &7| &f⌛ 4s &d&lII: &f🎲 3% &7| &f▲ 2-4❤ &7| &f⌛ 4s &d&lIII: &f🎲 4% &7| &f▲ 2-4❤ &7| &f⌛ 4s &d&lIV: &f🎲 5% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
+description:
+  - "&dHeroic upgrade for Corrupt."
+  - "&dDeals more damage and suppresses"
+  - "&dInversion for longer."
+  - "&c&l(!)&r &7Requires &eCorrupt"
+  - ""
+  - "&d&lI: &f🎲 1.75% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
+  - "&d&lII: &f🎲 3% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
+  - "&d&lIII: &f🎲 4% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
+  - "&d&lIV: &f🎲 5% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"

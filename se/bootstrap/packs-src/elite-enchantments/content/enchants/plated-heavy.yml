@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: plated-heavy). Review before shipping.
 display: "Plated Heavy"
-description: "&dHeroic upgrade for Heavy. &dGreatly reduces bow damage. &c&l(!)&r &7Requires &eHeavy  &d&lI: &f▲ 12% &d&lII: &f▲ 14% &d&lIII: &f▲ 16% &d&lIV: &f▲ 18% &d&lV: &f▲ 20%"
+description:
+  - "&dHeroic upgrade for Heavy."
+  - "&dGreatly reduces bow damage."
+  - "&c&l(!)&r &7Requires &eHeavy"
+  - ""
+  - "&d&lI: &f▲ 12%"
+  - "&d&lII: &f▲ 14%"
+  - "&d&lIII: &f▲ 16%"
+  - "&d&lIV: &f▲ 18%"
+  - "&d&lV: &f▲ 20%"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"

@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: pacify). Review before shipping.
 display: "Pacify"
-description: "&eArrows deal no normal damage, &edealing a small fixed amount &einstead.  &e&lI: &f▲ 1-4❤ &7| &f⌛ 3s &e&lII: &f▲ 1-4❤ &7| &f⌛ 3s &e&lIII: &f▲ 1-4❤ &7| &f⌛ 3s &e&lIV: &f▲ 1-4❤ &7| &f⌛ 3s"
+description:
+  - "&eArrows deal no normal damage,"
+  - "&edealing a small fixed amount"
+  - "&einstead."
+  - ""
+  - "&e&lI: &f▲ 1-4❤ &7| &f⌛ 3s"
+  - "&e&lII: &f▲ 1-4❤ &7| &f⌛ 3s"
+  - "&e&lIII: &f▲ 1-4❤ &7| &f⌛ 3s"
+  - "&e&lIV: &f▲ 1-4❤ &7| &f⌛ 3s"
 trigger: BOW
 applies-to: [BOW]
 group: "epic"

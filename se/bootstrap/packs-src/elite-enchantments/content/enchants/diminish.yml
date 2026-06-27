@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: diminish). Review before shipping.
 display: "Diminish"
-description: "&6When hit, halves the damage &6taken.  &6&lI: &f🎲 1.75% &7| &f▲ 50% &7| &f⌛ 4s &6&lII: &f🎲 3% &7| &f▲ 50% &7| &f⌛ 4s &6&lIII: &f🎲 4.5% &7| &f▲ 50% &7| &f⌛ 4s &6&lIV: &f🎲 6% &7| &f▲ 50% &7| &f⌛ 4s &6&lV: &f🎲 7.5% &7| &f▲ 50% &7| &f⌛ 4s &6&lVI: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 4s"
+description:
+  - "&6When hit, halves the damage"
+  - "&6taken."
+  - ""
+  - "&6&lI: &f🎲 1.75% &7| &f▲ 50% &7| &f⌛ 4s"
+  - "&6&lII: &f🎲 3% &7| &f▲ 50% &7| &f⌛ 4s"
+  - "&6&lIII: &f🎲 4.5% &7| &f▲ 50% &7| &f⌛ 4s"
+  - "&6&lIV: &f🎲 6% &7| &f▲ 50% &7| &f⌛ 4s"
+  - "&6&lV: &f🎲 7.5% &7| &f▲ 50% &7| &f⌛ 4s"
+  - "&6&lVI: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 4s"
 trigger: DEFENSE
 applies-to: [CHESTPLATE]
 group: "legendary"

@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: double-strike). Review before shipping.
 display: "Double Strike"
-description: "&6On hit, doubles the damage &6dealt.  &6&lI: &f🎲 2.75% &7| &f▲ 100% &7| &f⌛ 8s &6&lII: &f🎲 4% &7| &f▲ 100% &7| &f⌛ 8s &6&lIII: &f🎲 6% &7| &f▲ 100% &7| &f⌛ 8s"
+description:
+  - "&6On hit, doubles the damage"
+  - "&6dealt."
+  - ""
+  - "&6&lI: &f🎲 2.75% &7| &f▲ 100% &7| &f⌛ 8s"
+  - "&6&lII: &f🎲 4% &7| &f▲ 100% &7| &f⌛ 8s"
+  - "&6&lIII: &f🎲 6% &7| &f▲ 100% &7| &f⌛ 8s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "legendary"

@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: unfocus). Review before shipping.
 display: "Unfocus"
-description: "&eArrows apply Weakness to the &etarget.  &e&lI: &f🎲 5% &7| &f⌛ 10s &e&lII: &f🎲 6% &7| &f⌛ 10s &e&lIII: &f🎲 7% &7| &f⌛ 10s &e&lIV: &f🎲 8% &7| &f⌛ 10s &e&lV: &f🎲 9% &7| &f⌛ 10s"
+description:
+  - "&eArrows apply Weakness to the"
+  - "&etarget."
+  - ""
+  - "&e&lI: &f🎲 5% &7| &f⌛ 10s"
+  - "&e&lII: &f🎲 6% &7| &f⌛ 10s"
+  - "&e&lIII: &f🎲 7% &7| &f⌛ 10s"
+  - "&e&lIV: &f🎲 8% &7| &f⌛ 10s"
+  - "&e&lV: &f🎲 9% &7| &f⌛ 10s"
 trigger: BOW
 applies-to: [BOW]
 group: "epic"

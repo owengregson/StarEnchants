@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: tank). Review before shipping.
 display: "Tank"
-description: "&eReduces damage taken from &eenemies holding an axe.  &e&lI: &f▲ 1.85% &7| &f⌛ 4s &e&lII: &f▲ 3.7% &7| &f⌛ 4s &e&lIII: &f▲ 5.55% &7| &f⌛ 4s &e&lIV: &f▲ 7.4% &7| &f⌛ 4s"
+description:
+  - "&eReduces damage taken from"
+  - "&eenemies holding an axe."
+  - ""
+  - "&e&lI: &f▲ 1.85% &7| &f⌛ 4s"
+  - "&e&lII: &f▲ 3.7% &7| &f⌛ 4s"
+  - "&e&lIII: &f▲ 5.55% &7| &f⌛ 4s"
+  - "&e&lIV: &f▲ 7.4% &7| &f⌛ 4s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "epic"

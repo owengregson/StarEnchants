@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: sabotage). Review before shipping.
 display: "Sabotage"
-description: "&cOn hit, disables the target's &cRocket Escape.  &c&lI: &f⌛ 10s &7| &f☄ 4 &c&lII: &f⌛ 10s &7| &f☄ 4 &c&lIII: &f⌛ 10s &7| &f☄ 4 &c&lIV: &f⌛ 10s &7| &f☄ 4 &c&lV: &f⌛ 10s &7| &f☄ 4"
+description:
+  - "&cOn hit, disables the target's"
+  - "&cRocket Escape."
+  - ""
+  - "&c&lI: &f⌛ 10s &7| &f☄ 4"
+  - "&c&lII: &f⌛ 10s &7| &f☄ 4"
+  - "&c&lIII: &f⌛ 10s &7| &f☄ 4"
+  - "&c&lIV: &f⌛ 10s &7| &f☄ 4"
+  - "&c&lV: &f⌛ 10s &7| &f☄ 4"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "soul"

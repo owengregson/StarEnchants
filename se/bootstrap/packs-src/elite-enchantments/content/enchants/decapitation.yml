@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: decapitation). Review before shipping.
 display: "Decapitation"
-description: "&7Targets you kill drop their own &7head as an item.  &7&lI: &f🎲 15% &7&lII: &f🎲 30% &7&lIII: &f🎲 50%"
+description:
+  - "&7Targets you kill drop their own"
+  - "&7head as an item."
+  - ""
+  - "&7&lI: &f🎲 15%"
+  - "&7&lII: &f🎲 30%"
+  - "&7&lIII: &f🎲 50%"
 trigger: KILL
 applies-to: [AXE]
 group: "common"

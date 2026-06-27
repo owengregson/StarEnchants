@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: anti-gank). Review before shipping.
 display: "Anti Gank"
-description: "&6On hit, deals more damage the &6more enemies are near you.  &6&lI: &f🎲 4.25% &7| &f⌛ 5s &6&lII: &f🎲 6.25% &7| &f⌛ 5s &6&lIII: &f🎲 8.25% &7| &f⌛ 5s &6&lIV: &f🎲 10% &7| &f⌛ 5s"
+description:
+  - "&6On hit, deals more damage the"
+  - "&6more enemies are near you."
+  - ""
+  - "&6&lI: &f🎲 4.25% &7| &f⌛ 5s"
+  - "&6&lII: &f🎲 6.25% &7| &f⌛ 5s"
+  - "&6&lIII: &f🎲 8.25% &7| &f⌛ 5s"
+  - "&6&lIV: &f🎲 10% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "legendary"

@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: inversion). Review before shipping.
 display: "Inversion"
-description: "&6Negates an incoming hit and &6restores health instead.  &6&lI: &f🎲 1.75% &7| &f▲ +1-2❤ &7| &f⌛ 5s &6&lII: &f🎲 2.5% &7| &f▲ +1-2❤ &7| &f⌛ 5s &6&lIII: &f🎲 4% &7| &f▲ +1-2❤ &7| &f⌛ 5s &6&lIV: &f🎲 6% &7| &f▲ +1-2❤ &7| &f⌛ 5s"
+description:
+  - "&6Negates an incoming hit and"
+  - "&6restores health instead."
+  - ""
+  - "&6&lI: &f🎲 1.75% &7| &f▲ +1-2❤ &7| &f⌛ 5s"
+  - "&6&lII: &f🎲 2.5% &7| &f▲ +1-2❤ &7| &f⌛ 5s"
+  - "&6&lIII: &f🎲 4% &7| &f▲ +1-2❤ &7| &f⌛ 5s"
+  - "&6&lIV: &f🎲 6% &7| &f▲ +1-2❤ &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "legendary"

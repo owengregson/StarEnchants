@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: soul-trap). Review before shipping.
 display: "Soul Trap"
-description: "&cOn hit, disables the target's &cstrongest soul enchants.  &c&lI: &f⌛ 5s &7| &f☄ 200 &c&lII: &f⌛ 5s &7| &f☄ 200 &c&lIII: &f⌛ 5s &7| &f☄ 200"
+description:
+  - "&cOn hit, disables the target's"
+  - "&cstrongest soul enchants."
+  - ""
+  - "&c&lI: &f⌛ 5s &7| &f☄ 200"
+  - "&c&lII: &f⌛ 5s &7| &f☄ 200"
+  - "&c&lIII: &f⌛ 5s &7| &f☄ 200"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "soul"

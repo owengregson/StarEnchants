@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: silence). Review before shipping.
 display: "Silence"
-description: "&6On hit, disables all of the &6target's enchantments briefly.  &6&lI: &f🎲 1% &7| &f⌛ 20s &6&lII: &f🎲 2.5% &7| &f⌛ 20s &6&lIII: &f🎲 4% &7| &f⌛ 20s &6&lIV: &f🎲 6% &7| &f⌛ 20s"
+description:
+  - "&6On hit, disables all of the"
+  - "&6target's enchantments briefly."
+  - ""
+  - "&6&lI: &f🎲 1% &7| &f⌛ 20s"
+  - "&6&lII: &f🎲 2.5% &7| &f⌛ 20s"
+  - "&6&lIII: &f🎲 4% &7| &f⌛ 20s"
+  - "&6&lIV: &f🎲 6% &7| &f⌛ 20s"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "legendary"

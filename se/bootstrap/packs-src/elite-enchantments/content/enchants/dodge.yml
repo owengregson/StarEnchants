@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: dodge). Review before shipping.
 display: "Dodge"
-description: "&eWhen hit, has a chance to fully &enegate the attack.  &e&lI: &f🎲 2.75% &7| &f⌛ 4s &e&lII: &f🎲 4.5% &7| &f⌛ 4s &e&lIII: &f🎲 7.25% &7| &f⌛ 4s &e&lIV: &f🎲 9% &7| &f⌛ 4s &e&lV: &f🎲 11% &7| &f⌛ 4s"
+description:
+  - "&eWhen hit, has a chance to fully"
+  - "&enegate the attack."
+  - ""
+  - "&e&lI: &f🎲 2.75% &7| &f⌛ 4s"
+  - "&e&lII: &f🎲 4.5% &7| &f⌛ 4s"
+  - "&e&lIII: &f🎲 7.25% &7| &f⌛ 4s"
+  - "&e&lIV: &f🎲 9% &7| &f⌛ 4s"
+  - "&e&lV: &f🎲 11% &7| &f⌛ 4s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "epic"

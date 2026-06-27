@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: lifesteal). Review before shipping.
 display: "Lifesteal"
-description: "&6On hit, restores some of your &6health.  &6&lI: &f🎲 2% &7| &f▲ +1❤ &7| &f⌛ 5s &6&lII: &f🎲 4% &7| &f▲ +2❤ &7| &f⌛ 5s &6&lIII: &f🎲 6% &7| &f▲ +3❤ &7| &f⌛ 5s &6&lIV: &f🎲 8% &7| &f▲ +4❤ &7| &f⌛ 5s &6&lV: &f🎲 10% &7| &f▲ +5❤ &7| &f⌛ 5s"
+description:
+  - "&6On hit, restores some of your"
+  - "&6health."
+  - ""
+  - "&6&lI: &f🎲 2% &7| &f▲ +1❤ &7| &f⌛ 5s"
+  - "&6&lII: &f🎲 4% &7| &f▲ +2❤ &7| &f⌛ 5s"
+  - "&6&lIII: &f🎲 6% &7| &f▲ +3❤ &7| &f⌛ 5s"
+  - "&6&lIV: &f🎲 8% &7| &f▲ +4❤ &7| &f⌛ 5s"
+  - "&6&lV: &f🎲 10% &7| &f▲ +5❤ &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "legendary"
