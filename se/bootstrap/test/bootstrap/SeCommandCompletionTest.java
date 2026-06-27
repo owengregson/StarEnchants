@@ -107,4 +107,25 @@ class SeCommandCompletionTest {
         assertEquals(List.of("common", "rare"), complete("give", "book", "Bob", "random", ""));  // arg 4 = tier
         assertEquals(List.of("rare"), complete("give", "book", "Bob", "random", "ra"));
     }
+
+    // Context-aware enchant-level completion (enchant key → its valid levels)
+
+    private static final java.util.Map<String, Integer> MAX_LEVELS = java.util.Map.of(
+            "enchants/venom", 3, "enchants/vigor", 5, "enchants/blast", 1);
+
+    private static List<String> completeLv(String... args) {
+        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of("common", "rare"), List.of(), PLAYERS, SETS,
+                List.of(), MAX_LEVELS);
+    }
+
+    @Test
+    void bookEnchantAndGiveBookCompleteTheChosenEnchantsLevels() {
+        assertEquals(List.of("1", "2", "3"), completeLv("book", "enchants/venom", ""));            // /se book <e> <lvl>
+        assertEquals(List.of("1", "2", "3", "4", "5"), completeLv("enchant", "enchants/vigor", "")); // /se enchant
+        assertEquals(List.of("1"), completeLv("book", "enchants/venom", "1"));                     // prefix-filtered
+        assertEquals(List.of("1", "2", "3"),
+                completeLv("give", "book", "Bob", "enchants/venom", ""));                           // give book <e> <lvl>
+        assertTrue(completeLv("book", "enchants/ghost", "").isEmpty());                             // unknown enchant
+        assertEquals(List.of("common", "rare"), completeLv("give", "book", "Bob", "random", ""));   // random → tier
+    }
 }

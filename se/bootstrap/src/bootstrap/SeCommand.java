@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -197,7 +198,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 menus.names(),
                 Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
                 content.library().sets().stream().map(compile.load.SetDef::key).toList(),
-                packNamesQuietly());
+                packNamesQuietly(),
+                // enchant key → max level, so completion can offer the valid levels of a chosen enchant.
+                content.library().catalog().stream()
+                        .collect(Collectors.toMap(EnchantDef::key, EnchantDef::maxLevel, (a, b) -> a)));
     }
 
     /** An I/O hiccup completes to nothing rather than throwing out of tab-completion. */
@@ -235,14 +239,23 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys, List.of());
     }
 
-    /**
-     * Pure tab-completion (extracted from Bukkit so it is unit-tested without a server): subcommand at
-     * {@code args[0]}, then the §J {@code give <type> <player> [type-arg]} tree and the §packs
-     * {@code pack <action> [name]} tree.
-     */
     static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
                                  List<String> tierNames, List<String> menuNames,
                                  List<String> playerNames, List<String> setKeys, List<String> packNames) {
+        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys, packNames,
+                Map.of());
+    }
+
+    /**
+     * Pure tab-completion (extracted from Bukkit so it is unit-tested without a server): subcommand at
+     * {@code args[0]}, then the §J {@code give <type> <player> [type-arg]} tree and the §packs
+     * {@code pack <action> [name]} tree. {@code enchantMaxLevels} (enchant key → max level) drives the
+     * context-aware level suggestions after an enchant arg in the book/enchant flows.
+     */
+    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
+                                 List<String> tierNames, List<String> menuNames,
+                                 List<String> playerNames, List<String> setKeys, List<String> packNames,
+                                 Map<String, Integer> enchantMaxLevels) {
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }
@@ -267,6 +280,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             String action = args[1].toLowerCase(Locale.ROOT); // /se pack <info|apply> <name>
             return action.equals("info") || action.equals("apply") ? filter(packNames, args[2]) : List.of();
         }
+        // /se book <enchant> <level> and /se enchant <key> <level> — offer the chosen enchant's valid levels.
+        if (args.length == 3 && (sub.equals("book") || sub.equals("enchant"))) {
+            return filter(levelsUpTo(maxLevelFor(args[1], enchantMaxLevels)), args[2]);
+        }
         if (sub.equals("give") && args.length == 4) {
             return switch (args[1].toLowerCase(Locale.ROOT)) { // the type-specific key
                 case "crystal" -> filter(crystalKeys, args[3]);
@@ -277,14 +294,30 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             };
         }
         if (sub.equals("give") && args.length == 5) {
-            if (args[1].equalsIgnoreCase("book") && args[3].equalsIgnoreCase("random")) {
-                return filter(tierNames, args[4]); // /se give book <player> random <tier>
+            if (args[1].equalsIgnoreCase("book")) {
+                return args[3].equalsIgnoreCase("random")
+                        ? filter(tierNames, args[4])                                          // give book <player> random <tier>
+                        : filter(levelsUpTo(maxLevelFor(args[3], enchantMaxLevels)), args[4]); // give book <player> <enchant> <level>
             }
             if (args[1].equalsIgnoreCase("set")) {
                 return filter(SET_MEMBERS, args[4]); // /se give set <player> <set> <member>
             }
         }
         return List.of();
+    }
+
+    /** The candidate level numerals {@code "1".."max"} for an enchant (empty when the enchant/levels are unknown). */
+    private static List<String> levelsUpTo(int max) {
+        List<String> out = new ArrayList<>(Math.max(0, max));
+        for (int level = 1; level <= max; level++) {
+            out.add(Integer.toString(level));
+        }
+        return out;
+    }
+
+    /** Max level for a typed enchant arg, prefix-normalised to the {@code enchants/<x>} map keys; 0 if unknown. */
+    private static int maxLevelFor(String enchantArg, Map<String, Integer> enchantMaxLevels) {
+        return enchantMaxLevels.getOrDefault(normalize(enchantArg, "enchants/"), 0);
     }
 
     private static List<String> concat(String head, List<String> rest) {
