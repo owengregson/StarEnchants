@@ -623,7 +623,7 @@ final class SmiteEffect implements EffectKind {
       .target("who", T.AOE)
       .affinity(Affinity.AOE)                       // declared → engine routes; author never schedules
       .doc("Lightning + AoE damage to entities near the target.")
-      .example("SMITE:25:4:6:40");
+      .example("{ SMITE: { chance: 25, radius: 4, damage: 6, cooldown: 40 } }");
 
   @Override public EffectSpec spec() { return SPEC; }
 

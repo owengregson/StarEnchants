@@ -24,7 +24,7 @@ public final class MessageEffect implements EffectKind {
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Send feedback to the activating player on a channel: chat (default), actionbar, or title "
                     + "(with subtitle + fade/stay/fade timings). Replaces ACTIONBAR/TITLE.")
-            .example("MESSAGE:&aCritical hit!")
+            .example("{ MESSAGE: { text: \"&aCritical hit!\" } }")
             .build();
 
     @Override

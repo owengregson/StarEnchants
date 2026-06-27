@@ -15,7 +15,7 @@ public final class TeleportDropsEffect implements EffectKind {
     static final EffectSpec SPEC = EffectSpec.of("TELEPORT_DROPS")
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Send the block's drops straight to the breaker's inventory (this MINE activation).")
-            .example("TELEPORT_DROPS")
+            .example("{ TELEPORT_DROPS: {} }")
             .build();
 
     @Override

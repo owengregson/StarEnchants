@@ -54,8 +54,8 @@ public final class ReferenceDoc {
 
     private static void effects(StringBuilder out) {
         out.append("## Effects\n\n");
-        out.append("The actions an ability runs. Each is a `HEAD:args` token in an enchant/set/crystal's "
-                + "`effects:` list.\n\n");
+        out.append("The actions an ability runs. Each is a block map `{ HEAD: { param: value, who:, wait: } }` "
+                + "in an enchant/set/crystal's `effects:` list.\n\n");
         // Sort by head: the registry's kinds() iteration order is not stable across JVMs, but the doc must be.
         List<EffectKind> kinds = new ArrayList<>(BuiltinEffects.registry().kinds());
         kinds.sort(Comparator.comparing(k -> k.spec().head()));

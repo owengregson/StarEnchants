@@ -17,7 +17,7 @@ public final class LightningEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmetic).")
-            .example("LIGHTNING:6")
+            .example("{ LIGHTNING: { damage: 6 } }")
             .build();
 
     @Override

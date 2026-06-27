@@ -7,11 +7,14 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Untyped parsed shape of one authored effect/condition line (docs/architecture.md
- * §2): {@code head}, colon-separated {@code args}, and an optional trailing target
- * {@code selector}. A final colon-segment beginning with {@code @} is the selector
- * ({@code DAMAGE:6:@Nearest{r=4}}); the marker is unambiguous because no scalar
- * argument type starts with {@code @} (a literal {@code @} in a string must be quoted).
+ * Untyped parsed shape of one effect line (docs/architecture.md §2): {@code head},
+ * colon-separated {@code args}, and an optional trailing target {@code selector}. A final
+ * colon-segment beginning with {@code @} is the selector ({@code DAMAGE:6:@Nearest{r=4}}).
+ *
+ * <p>The colon/terse form ({@link #parse}) is no longer an authorable content syntax — authored
+ * effects are the block {@code HEAD: { param: value, who: }} form ({@link #verbose}). {@code parse}
+ * survives only for the migrator, which reads a terse-like SE token while importing AE/EA/EE configs
+ * and re-renders it as a block map. The content loader rejects terse scalars with {@code E_TERSE_EFFECT}.
  */
 public record EffectLine(String head, int headCol, List<Tok> args, Tok selector, Source source,
                          Map<String, String> named) {
@@ -41,6 +44,11 @@ public record EffectLine(String head, int headCol, List<Tok> args, Tok selector,
                                      String selectorToken, Source source) {
         Tok selector = selectorToken == null ? null : new Tok(selectorToken, headCol);
         return new EffectLine(head, headCol, List.of(), selector, source, named);
+    }
+
+    /** A {@code WAIT <ticks>} line built directly, without the terse colon parser (the {@code wait:} desugar). */
+    public static EffectLine waitLine(String ticks, Source source) {
+        return new EffectLine("WAIT", 1, List.of(new Tok(ticks, 1)), null, source, null);
     }
 
     public boolean isVerbose() {

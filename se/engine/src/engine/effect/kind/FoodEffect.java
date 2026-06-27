@@ -20,7 +20,7 @@ public final class FoodEffect implements EffectKind {
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Modify a player target's hunger: give food points (clamped to 20) or take them "
                     + "(clamped to 0). Replaces FEED.")
-            .example("MODIFY_FOOD:6:give:@Self")
+            .example("{ MODIFY_FOOD: { amount: 6, mode: give, who: \"@Self\" } }")
             .build();
 
     @Override

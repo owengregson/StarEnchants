@@ -15,7 +15,7 @@ public final class SeekEffect implements EffectKind {
     static final EffectSpec SPEC = EffectSpec.of("SEEK")
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Make the projectile fired by this BOW_FIRE activation home onto the nearest target in sight.")
-            .example("SEEK")
+            .example("{ SEEK: {} }")
             .build();
 
     @Override

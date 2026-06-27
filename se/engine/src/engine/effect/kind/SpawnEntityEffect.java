@@ -27,7 +27,7 @@ public final class SpawnEntityEffect implements EffectKind {
             .doc("Spawn count entities of type at the target's (or activation) location; ttl ticks until "
                     + "removal (0 = permanent), optional starting health, and owner=activator to tame an owned "
                     + "summon to the activator. Replaces SPAWN/TNT.")
-            .example("SPAWN_ENTITY:WOLF:1:0:0:activator")
+            .example("{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }")
             .build();
 
     @Override

@@ -17,7 +17,7 @@ public final class InvincibleEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Make the target invulnerable for a span of ticks, then restore.")
-            .example("INVINCIBLE:100")
+            .example("{ INVINCIBLE: { ticks: 100 } }")
             .build();
 
     @Override

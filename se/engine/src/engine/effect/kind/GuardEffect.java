@@ -26,7 +26,7 @@ public final class GuardEffect implements EffectKind {
             .doc("Summon count guardian mobs of type at the activation location, each targeting the "
                     + "attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom "
                     + "name. A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.")
-            .example("GUARD:IRON_GOLEM:1:200:&bGuardian")
+            .example("{ GUARD: { type: IRON_GOLEM, count: 1, ttl: 200, name: \"&bGuardian\" } }")
             .build();
 
     @Override

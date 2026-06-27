@@ -77,8 +77,8 @@ const FeatureList: FeatureItem[] = [
     to: '/docs/intro',
     description: (
       <>
-        Runs on Paper <strong>1.17.1-26.1.2</strong> and Folia, and on Minecraft
-        1.8.x — a version-agnostic core with Folia-safe scheduling.
+        Runs on Paper <strong>1.8, 1.17.1-26.1.2</strong> and Folia — a
+        version-agnostic core with Folia-safe scheduling.
       </>
     ),
   },

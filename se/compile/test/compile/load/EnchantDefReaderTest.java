@@ -32,9 +32,9 @@ class EnchantDefReaderTest {
             applies-to: [SWORD, AXE]
             group: combat
             levels:
-              1: { chance: 10, cooldown: 40, effects: ["HEAL:@Self:2"] }
-              2: { chance: 15, effects: ["HEAL:@Self:4", "MESSAGE:@Self:hi"] }
-              3: { chance: 20, effects: ["HEAL:@Self:6"] }
+              1: { chance: 10, cooldown: 40, effects: [{ HEAL: { amount: 2, who: "@Self" } }] }
+              2: { chance: 15, effects: [{ HEAL: { amount: 4, who: "@Self" } }, { MESSAGE: { text: hi, who: "@Self" } }] }
+              3: { chance: 20, effects: [{ HEAL: { amount: 6, who: "@Self" } }] }
             """;
         EnchantDefReader.Parsed parsed =
                 EnchantDefReader.read("enchants/lifesteal", root(yaml, diags), counter(), diags);
@@ -63,7 +63,7 @@ class EnchantDefReaderTest {
     @Test
     void missingTriggerIsAnError() {
         Diagnostics diags = new Diagnostics();
-        String yaml = "levels:\n  1: { chance: 10, effects: [\"HEAL:2\"] }\n";
+        String yaml = "levels:\n  1: { chance: 10, effects: [{ HEAL: { amount: 2 } }] }\n";
         EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
         assertTrue(diags.hasErrors());
     }
@@ -81,7 +81,7 @@ class EnchantDefReaderTest {
         String yaml = """
             trigger: ATTACK
             levels:
-              1: { chance: 150, effects: ["HEAL:2"] }
+              1: { chance: 150, effects: [{ HEAL: { amount: 2 } }] }
             """;
         EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
         assertTrue(diags.hasErrors());
@@ -95,7 +95,7 @@ class EnchantDefReaderTest {
         String yaml = """
             trigger: ATTACK
             levels:
-              1: { chance: 10, chance: 25, effects: ["HEAL:2"] }
+              1: { chance: 10, chance: 25, effects: [{ HEAL: { amount: 2 } }] }
             """;
         EnchantDefReader.Parsed parsed =
                 EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
@@ -109,7 +109,7 @@ class EnchantDefReaderTest {
         String yaml = """
             trigger: ATTACK
             levels:
-              1: { chance: NaN, effects: ["HEAL:2"] }
+              1: { chance: NaN, effects: [{ HEAL: { amount: 2 } }] }
             """;
         EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
         assertTrue(diags.hasErrors());

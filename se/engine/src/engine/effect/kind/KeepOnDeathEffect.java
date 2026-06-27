@@ -25,7 +25,7 @@ public final class KeepOnDeathEffect implements EffectKind {
             .doc("Keep the target's items + levels (no drops) if they die within duration ticks (default "
                     + "200). Author on trigger REPEATING for an always-on death-keep while worn, or fire on "
                     + "a trigger for a timed grace window. A kept death never spends a holy scroll.")
-            .example("KEEP_ON_DEATH:200")
+            .example("{ KEEP_ON_DEATH: { duration: 200 } }")
             .build();
 
     @Override

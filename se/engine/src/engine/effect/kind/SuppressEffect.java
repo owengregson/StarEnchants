@@ -26,7 +26,7 @@ public final class SuppressEffect implements EffectKind {
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Disable a target's enchant/group/type (the key) for a duration in ticks "
                     + "(DISABLE_ENCHANT/GROUP/TYPE). Default target the combat victim.")
-            .example("SUPPRESS:GROUP:lifesteal:200:@Victim")
+            .example("{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: \"@Victim\" } }")
             .build();
 
     @Override

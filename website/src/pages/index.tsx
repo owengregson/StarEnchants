@@ -24,8 +24,8 @@ function HomepageHeader() {
           Legendary, open-source cosmic enchantments for your server.
         </p>
         <p className={styles.heroSub}>
-          Custom enchantments, armor sets, crystals, and a full item economy,
-          configured in plain YAML — for Paper 1.17.1-26.1.2 and Folia.
+          Deeply unified and performance-focused custom enchantments and armor
+          sets plugin for Modern Minecraft.
         </p>
         <div className={styles.buttons}>
           <Link className="button button--primary button--lg" to="/docs/intro">
@@ -46,7 +46,8 @@ function HomepageHeader() {
           <span className={styles.badge}>✦ 51 effects</span>
           <span className={styles.badge}>✦ Armor sets &amp; crystals</span>
           <span className={styles.badge}>✦ Souls economy</span>
-          <span className={styles.badge}>✦ Paper + Folia</span>
+          <span className={styles.badge}>✦ Paper 1.8, 1.17.1-26.1.2</span>
+          <span className={styles.badge}>✦ Folia</span>
         </div>
       </div>
     </header>

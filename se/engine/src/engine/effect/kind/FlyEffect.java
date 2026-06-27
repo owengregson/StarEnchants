@@ -18,7 +18,7 @@ public final class FlyEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Grant the player temporary flight.")
-            .example("FLY:200")
+            .example("{ FLY: { ticks: 200 } }")
             .build();
 
     @Override

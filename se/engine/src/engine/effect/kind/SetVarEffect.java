@@ -23,7 +23,7 @@ public final class SetVarEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).")
-            .example("SET_VAR:rage:1:200:@Self")
+            .example("{ SET_VAR: { name: rage, value: 1, ttl: 200, who: \"@Self\" } }")
             .build();
 
     @Override

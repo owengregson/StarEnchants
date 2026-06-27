@@ -23,7 +23,7 @@ public final class ExpEffect implements EffectKind {
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Modify a player target's experience: give to them, take from them, or transfer (take "
                     + "from the target and grant the total to the activator). Replaces GIVE_EXP.")
-            .example("MODIFY_EXP:50:give:@Self")
+            .example("{ MODIFY_EXP: { amount: 50, mode: give, who: \"@Self\" } }")
             .build();
 
     @Override

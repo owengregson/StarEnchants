@@ -23,7 +23,7 @@ levels:
     chance: 100
     condition: "%actor.healthpercent% < 30"   # only when you're below 30% HP
     effects:
-      - "POTION:REGENERATION:2:100"
+      - { POTION: { effect: REGENERATION, level: 2, duration: 100 } }
 ```
 
 Conditions are built from three pieces:
@@ -45,7 +45,7 @@ Variables come in three flavours: **numbers** (compare with `<`, `>`, `==`, …)
 <VariableTables />
 
 :::tip Variables work in messages and `SET_VAR` too
-The same `%name%` placeholders expand inside a `MESSAGE` effect and as the value of a `SET_VAR`. So you can do `MESSAGE:&7You hit %victim.type% for %damage%` or stash a fact for a later condition.
+The same `%name%` placeholders expand inside a `MESSAGE` effect and as the value of a `SET_VAR`. So you can write `{ MESSAGE: { text: "&7You hit %victim.type% for %damage%" } }` or stash a fact for a later condition.
 :::
 
 ## Operators

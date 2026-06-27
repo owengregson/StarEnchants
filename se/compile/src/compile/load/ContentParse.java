@@ -120,19 +120,23 @@ final class ContentParse {
     }
 
     /**
-     * The effects under {@code key} of {@code node} as {@link EffectLine}s: each item is a terse
-     * {@code "HEAD:arg"} string OR a verbose {@code HEAD: { param: value, who:, wait: }} map. A
-     * {@code wait:} desugars to a preceding {@code WAIT} line. (A literal {@code $} in a value is
-     * preserved verbatim — there is no scale/token grammar.)
+     * The effects under {@code key} of {@code node} as {@link EffectLine}s: each item is a block
+     * {@code HEAD: { param: value, who:, wait: }} map. A {@code wait:} desugars to a preceding
+     * {@code WAIT} line. The legacy terse {@code "HEAD:arg:@Selector"} string form is no longer a
+     * supported authoring shape — a scalar item is a {@code E_TERSE_EFFECT} diagnostic. (Terse is still
+     * read by the migrator when importing AE/EE/EA configs; it is just not authorable in content.)
      */
     static List<EffectLine> effectItems(YamlNode node, String key, Diagnostics diags) {
         List<EffectLine> out = new ArrayList<>();
         for (YamlNode item : node.items(key)) {
             if (item.isScalar()) {
-                out.add(EffectLine.parse(item.scalar(), item.source()));
-            } else {
-                appendVerbose(item, out, diags);
+                diags.error("E_TERSE_EFFECT",
+                        "terse effect strings are no longer supported; write a block map, e.g."
+                                + " - { HEAD: { param: value, who: \"@Selector\" } } — got '" + item.scalar() + "'",
+                        item.source());
+                continue;
             }
+            appendVerbose(item, out, diags);
         }
         return out;
     }
@@ -152,7 +156,7 @@ final class ContentParse {
             if (ticks == null) {
                 diags.error("E_EFFECT", "WAIT must be written 'WAIT: <ticks>'", item.source());
             } else {
-                out.add(EffectLine.parse("WAIT:" + ticks, item.source()));
+                out.add(EffectLine.waitLine(ticks, item.source()));
             }
             return;
         }
@@ -187,7 +191,7 @@ final class ContentParse {
             }
         }
         if (wait != null && wait > 0) {
-            out.add(EffectLine.parse("WAIT:" + wait, body.source()));
+            out.add(EffectLine.waitLine(String.valueOf(wait), body.source()));
         }
         out.add(EffectLine.verbose(effectHead, 1, named, who, item.source()));
     }

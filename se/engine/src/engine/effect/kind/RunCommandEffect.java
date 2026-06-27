@@ -14,7 +14,7 @@ public final class RunCommandEffect implements EffectKind {
             .param("command", D.STRING)
             .affinity(Affinity.GLOBAL)
             .doc("Run a command from the console. Affinity GLOBAL — runs on the global thread.")
-            .example("RUN_COMMAND:eco give %player% 100")
+            .example("{ RUN_COMMAND: { command: \"eco give %player% 100\" } }")
             .build();
 
     @Override

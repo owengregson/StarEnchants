@@ -25,7 +25,7 @@ public final class ImmuneEffect implements EffectKind {
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for "
                     + "duration ticks.")
-            .example("IMMUNE:potion:100")
+            .example("{ IMMUNE: { type: potion, duration: 100 } }")
             .build();
 
     @Override

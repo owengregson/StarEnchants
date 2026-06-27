@@ -21,7 +21,7 @@ public final class TeleblockEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.")
-            .example("TELEBLOCK:400")
+            .example("{ TELEBLOCK: { duration: 400 } }")
             .build();
 
     @Override

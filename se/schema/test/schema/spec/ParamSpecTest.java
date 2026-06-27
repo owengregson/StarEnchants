@@ -101,7 +101,8 @@ class ParamSpecTest {
     @Test
     void usageRendersTheFullSignature() {
         assertEquals(
-                "SMITE:<chance:double[0..100]>:<radius:double[0..]>:<damage:double[0..]>[:cooldown:ticks[0..]=0]",
+                "{ SMITE: { chance: <double[0..100]>, radius: <double[0..]>, damage: <double[0..]>,"
+                        + " cooldown: <ticks[0..]=0> } }",
                 smite().usage());
     }
 

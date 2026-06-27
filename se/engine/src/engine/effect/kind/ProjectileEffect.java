@@ -18,8 +18,8 @@ public final class ProjectileEffect implements EffectKind {
             .param("count", D.INT.min(1).def(1))
             .param("speed", D.DOUBLE.min(0).def(1.5))
             .affinity(Affinity.TARGET_ENTITY)
-            .doc("Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS as PROJECTILE:ARROW).")
-            .example("PROJECTILE:ARROW:3:1.5")
+            .doc("Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS via the ARROW type).")
+            .example("{ PROJECTILE: { type: ARROW, count: 3, speed: 1.5 } }")
             .build();
 
     @Override

@@ -9,10 +9,12 @@ import schema.spec.Param;
 import schema.spec.ParamSpec;
 
 /**
- * Renders a migrated SE effect token as a content-format-v2 effects-list item (ADR-0016): the verbose
- * {@code { HEAD: { param: value, who: "@Sel" } }} map when the head's {@link ParamSpec} is known, else a
- * quoted terse string as a safe fallback. Positional args map onto the spec's params by order; an inline
- * {@code @Selector} becomes the reserved {@code who:} key.
+ * Renders a migrated SE effect token as a content-format-v2 effects-list item (ADR-0016): always the
+ * block {@code { HEAD: { param: value, who: "@Sel" } }} map (the terse string form is no longer an
+ * authorable content syntax, so migrated output must be block to reload). Positional args map onto the
+ * spec's params by order; an inline {@code @Selector} becomes the reserved {@code who:} key. Returns
+ * {@code null} when the head has no known {@link ParamSpec}, so the caller emits a {@code # TODO}
+ * comment rather than an unreloadable effect.
  */
 final class V2Effects {
 
@@ -24,15 +26,21 @@ final class V2Effects {
         String head = line.head();
         List<String> args = line.argTexts();
         String selector = line.selectorToken().orElse(null);
-        ParamSpec spec = specs == null ? null : specs.apply(head);
 
-        // No spec / WAIT timing directive / more args than params → keep the terse form (still valid v2).
-        if (spec == null || head.equalsIgnoreCase("WAIT") || args.size() > spec.params().size()) {
-            return q(seToken);
+        // WAIT is a timing directive, not a param effect: the v2 block form is the scalar map { WAIT: <ticks> }.
+        if (head.equalsIgnoreCase("WAIT")) {
+            return "{ WAIT: " + (args.isEmpty() ? "0" : scalar(args.get(0))) + " }";
         }
 
-        List<String> kvs = new ArrayList<>(args.size() + 1);
-        for (int i = 0; i < args.size(); i++) {
+        ParamSpec spec = specs == null ? null : specs.apply(head);
+        if (spec == null) {
+            return null; // unknown head → SchemaWriter emits a # TODO (never an unreloadable terse string)
+        }
+
+        // Any extra positional args beyond the spec are dropped (the compiler would warn-and-ignore them anyway).
+        int n = Math.min(args.size(), spec.params().size());
+        List<String> kvs = new ArrayList<>(n + 1);
+        for (int i = 0; i < n; i++) {
             Param param = spec.params().get(i);
             kvs.add(param.name() + ": " + scalar(args.get(i)));
         }

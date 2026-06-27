@@ -48,12 +48,22 @@ class ContentFormatTest {
     }
 
     @Test
-    void verboseEffectLowersToTheSameArgsAsTerse(@TempDir Path root) throws IOException {
+    void terseEffectStringIsRejected(@TempDir Path root) throws IOException {
+        // ADR-0016 update: the terse colon form is no longer an authorable content syntax — a scalar effect
+        // item is a fatal E_TERSE_EFFECT diagnostic; only the block { HEAD: { ... } } form compiles.
         write(root, "enchants/terse.yml", """
             trigger: ATTACK
             levels:
               1: { chance: 100, effects: ["POTION:STRENGTH:1:100"] }
             """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+
+        assertTrue(lib.hasErrors(), () -> lib.diagnostics().toString());
+        assertTrue(hasCode(lib.diagnostics(), "E_TERSE_EFFECT"), () -> lib.diagnostics().toString());
+    }
+
+    @Test
+    void verboseEffectCompilesToNamedArgs(@TempDir Path root) throws IOException {
         write(root, "enchants/verbose.yml", """
             trigger: ATTACK
             levels:
@@ -62,12 +72,10 @@ class ContentFormatTest {
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
-        var terse = lib.snapshot().byStableKey("enchants/terse/1").effects()[0].args();
         var verbose = lib.snapshot().byStableKey("enchants/verbose/1").effects()[0].args();
         assertEquals("STRENGTH", verbose.str("effect"));
         assertEquals(1, verbose.integer("amplifier"));
         assertEquals(100, verbose.integer("duration"));
-        assertEquals(terse.asMap(), verbose.asMap());
     }
 
     @Test
@@ -164,7 +172,7 @@ class ContentFormatTest {
             triggers: ATTACK
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
@@ -177,7 +185,7 @@ class ContentFormatTest {
         write(root, "enchants/mythic/thunderstrike.yml", """
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
@@ -194,7 +202,7 @@ class ContentFormatTest {
             tier: legendary
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
@@ -205,7 +213,7 @@ class ContentFormatTest {
 
     @Test
     void duplicateKeyAcrossTierFoldersIsAnError(@TempDir Path root) throws IOException {
-        String body = "trigger: ATTACK\nlevels:\n  1: { chance: 100, effects: [\"HEAL:2\"] }\n";
+        String body = "trigger: ATTACK\nlevels:\n  1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }\n";
         write(root, "enchants/rare/dup.yml", body);
         write(root, "enchants/mythic/dup.yml", body);
         Library lib = LibraryLoader.load(root, compiler(), 1);
@@ -221,8 +229,8 @@ class ContentFormatTest {
               scrap: { color: "&8", weight: 1, glint: false }
               divine: { color: "&d&l", weight: 99, glint: true }
             """);
-        write(root, "enchants/divine/x.yml", "trigger: ATTACK\nlevels:\n  1: { chance: 100, effects: [\"HEAL:2\"] }\n");
-        write(root, "enchants/plain.yml", "trigger: ATTACK\nlevels:\n  1: { chance: 100, effects: [\"HEAL:2\"] }\n");
+        write(root, "enchants/divine/x.yml", "trigger: ATTACK\nlevels:\n  1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }\n");
+        write(root, "enchants/plain.yml", "trigger: ATTACK\nlevels:\n  1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }\n");
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
@@ -239,7 +247,7 @@ class ContentFormatTest {
               - "Line one."
               - "Line two."
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
 

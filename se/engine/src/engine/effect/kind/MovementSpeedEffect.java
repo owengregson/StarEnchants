@@ -22,7 +22,7 @@ public final class MovementSpeedEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Set the player target's walk speed for a span of ticks, then restore the default (0.2).")
-            .example("MOVEMENT_SPEED:0.4:200")
+            .example("{ MOVEMENT_SPEED: { speed: 0.4, ticks: 200 } }")
             .build();
 
     @Override

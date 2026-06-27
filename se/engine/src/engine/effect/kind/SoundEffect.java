@@ -17,7 +17,7 @@ public final class SoundEffect implements EffectKind {
             .param("pitch", D.DOUBLE.min(0).def(1))
             .affinity(Affinity.REGION)
             .doc("Play a sound at the activation location. No-op if the activation has no location.")
-            .example("SOUND:ENTITY_GENERIC_EXPLODE:1:1")
+            .example("{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }")
             .build();
 
     @Override

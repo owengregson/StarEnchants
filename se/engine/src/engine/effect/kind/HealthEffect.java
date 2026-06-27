@@ -17,7 +17,7 @@ public final class HealthEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Add to the target's maximum health (restored on unequip).")
-            .example("HEALTH:4")
+            .example("{ HEALTH: { amount: 4 } }")
             .build();
 
     @Override

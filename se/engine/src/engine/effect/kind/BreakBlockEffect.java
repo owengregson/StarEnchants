@@ -20,7 +20,7 @@ public final class BreakBlockEffect implements EffectKind {
             .target("at", T.HERE)
             .affinity(Affinity.REGION)
             .doc("Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.")
-            .example("BREAK_BLOCK:true")
+            .example("{ BREAK_BLOCK: { drops: true } }")
             .build();
 
     @Override

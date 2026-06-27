@@ -19,7 +19,7 @@ public final class GiveItemEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Give a material to the player target(s); overflow drops at their feet.")
-            .example("GIVE_ITEM:DIAMOND:1:@Self")
+            .example("{ GIVE_ITEM: { material: DIAMOND, count: 1, who: \"@Self\" } }")
             .build();
 
     @Override
