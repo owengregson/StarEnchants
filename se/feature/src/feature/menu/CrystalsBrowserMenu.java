@@ -2,7 +2,6 @@ package feature.menu;
 
 import compile.load.ContentHolder;
 import compile.load.CrystalDef;
-import compile.load.TierRegistry;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,13 +35,12 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
 
     @Override
     protected ItemStack icon(MenuHolder holder, CrystalDef def) {
-        List<String> lore = new ArrayList<>();
-        if (!def.description().isBlank()) {
-            lore.add("&7" + def.description());
-        }
+        List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8tier: " + tierColor(def.tier()) + tierLabel(def.tier()));
         lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
         lore.add("&8Apply by dragging the crystal onto gear.");
+        // The crystal keeps its own authored name colour (its tier shows on the "tier:" line above), unlike an
+        // enchant whose name is tier-coloured.
         return ItemFactory.build(material("AMETHYST_SHARD", "PRISMARINE_CRYSTALS", "NETHER_STAR", "QUARTZ"),
                 def.display(), lore);
     }
@@ -53,11 +51,7 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
     }
 
     private String tierColor(String tier) {
-        if (tier == null) {
-            return "&7";
-        }
-        TierRegistry.Tier t = content.library().tiers().tier(tier);
-        return t != null && !t.color().isBlank() ? t.color() : "&7";
+        return MenuText.tierColor(content.library().tiers(), tier);
     }
 
     private static String tierLabel(String tier) {

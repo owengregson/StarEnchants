@@ -36,10 +36,7 @@ public final class SetsBrowserMenu extends PagedMenu<SetDef> {
 
     @Override
     protected ItemStack icon(MenuHolder holder, SetDef def) {
-        List<String> lore = new ArrayList<>();
-        if (!def.description().isBlank()) {
-            lore.add("&7" + def.description());
-        }
+        List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8completes at: &7" + def.armorComplete() + " armour piece" + (def.armorComplete() == 1 ? "" : "s"));
         lore.add("&8armour: &7" + String.join(", ", def.appliesTo()));
         if (def.hasWeapon()) {

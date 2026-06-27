@@ -29,6 +29,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import platform.caps.Capabilities;
 import platform.item.ItemGroups;
@@ -42,12 +43,25 @@ import tester.harness.Harness;
  */
 public final class MenuSuite implements Harness.Scenario {
 
+    // Plain display (no own colour code) + an epic tier, so the rendered icon name shows the TIER colour; a
+    // multi-line description proves the icon splits it into separate lore lines.
     private static final String KEEN = """
-            display: "&bKeen"
+            display: "Keen"
+            description:
+              - "&7Strikes fast and"
+              - "&7cuts deep."
             applies-to: [SWORD]
             trigger: ATTACK
+            tier: epic
             levels:
               1: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 1 } }] }
+            """;
+
+    private static final String TIERS = """
+            default-tier: common
+            tiers:
+              common: { color: "&7", weight: 10, glint: false }
+              epic:   { color: "&e", weight: 40, glint: true  }
             """;
 
     private final Plugin plugin;
@@ -59,12 +73,14 @@ public final class MenuSuite implements Harness.Scenario {
     @Override
     public void accept(Harness h) {
         h.expect("menu.clickAppliesEnchant");
+        h.expect("menu.iconShowsTierColorAndDescription");
 
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         EnchantMenu menu;
         try {
             Path root = Files.createTempDirectory("se-menu-suite");
             write(root, "enchants/keen.yml", KEEN);
+            write(root, "tiers.yml", TIERS);
             Library library = LibraryLoader.load(root, ContentCompiler.production(), 0);
             if (library.hasErrors()) {
                 h.fail("menu.clickAppliesEnchant", "content failed to compile: " + library.diagnostics());
@@ -103,6 +119,24 @@ public final class MenuSuite implements Harness.Scenario {
                     player.getInventory().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
                     MenuHolder menuHolder = new MenuHolder(menu);
                     menu.render(menuHolder);
+                    h.guard("menu.iconShowsTierColorAndDescription", () -> {
+                        ItemStack icon = menuHolder.getInventory().getItem(0);
+                        if (icon == null) {
+                            throw new IllegalStateException("no enchant icon rendered at slot 0");
+                        }
+                        ItemMeta meta = icon.getItemMeta();
+                        String name = meta.getDisplayName();
+                        if (!name.startsWith("§e")) { // §e — the epic tier colour, applied to the name
+                            throw new IllegalStateException("icon name should carry the epic tier colour (§e); got: " + name);
+                        }
+                        java.util.List<String> iconLore = meta.getLore();
+                        long descLines = iconLore == null ? 0 : iconLore.stream()
+                                .filter(l -> l.contains("Strikes fast") || l.contains("cuts deep")).count();
+                        if (descLines != 2) { // both description lines, each as its OWN lore entry (newlines split)
+                            throw new IllegalStateException(
+                                    "the two description lines should render as separate lore entries; lore=" + iconLore);
+                        }
+                    });
                     InventoryView view = player.openInventory(menuHolder.getInventory());
                     InventoryClickEvent click = new InventoryClickEvent(view, InventoryType.SlotType.CONTAINER,
                             0, ClickType.LEFT, InventoryAction.PICKUP_ALL);

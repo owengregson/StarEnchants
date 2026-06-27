@@ -26,7 +26,7 @@ public record EnchantBookConfig(String material, String name, List<String> lore,
         return new EnchantBookConfig(
                 "ENCHANTED_BOOK",
                 "{ENCHANT} &7Book",
-                List.of("&7Drag onto a held/worn item to apply &fLevel {LEVEL}&7."),
+                List.of("&7{DESCRIPTION}", "&7Drag onto a held/worn item to apply &fLevel {LEVEL}&7."),
                 List.of("&7Success chance: &f{SUCCESS}%"),
                 false);
     }
