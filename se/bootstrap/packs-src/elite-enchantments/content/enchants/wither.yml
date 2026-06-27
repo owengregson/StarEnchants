@@ -16,26 +16,26 @@ tier: rare
 levels:
   1:
     chance: 3
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   2:
     chance: 5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   3:
     chance: 7
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   4:
     chance: 9
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   5:
     chance: 11
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)

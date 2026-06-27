@@ -14,7 +14,7 @@ tier: uncommon
 levels:
   1:
     chance: 8
-    cooldown: 10
+    cooldown: 200
     condition: "%actor.health% <= 3"
     effects:
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
@@ -22,7 +22,7 @@ levels:
       - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)
   2:
     chance: 10
-    cooldown: 10
+    cooldown: 200
     condition: "%actor.health% <= 3"
     effects:
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
@@ -30,7 +30,7 @@ levels:
       - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)
   3:
     chance: 12
-    cooldown: 10
+    cooldown: 200
     condition: "%actor.health% <= 3"
     effects:
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1

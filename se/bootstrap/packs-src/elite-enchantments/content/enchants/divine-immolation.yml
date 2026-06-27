@@ -15,7 +15,7 @@ group: "soul"
 tier: soul
 levels:
   1:
-    cooldown: 2
+    cooldown: 40
     effects:
       - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15
@@ -25,7 +25,7 @@ levels:
       - { MESSAGE: { text: "&c&l** DIVINE IMMOLATION **" } }  # from MESSAGE:&c&l** DIVINE IMMOLATION **:TARGET — legacy target dropped — StarEnchants messages the actor
       - { REMOVE_SOULS: { amount: 20 } }  # from DRAIN_SOULS_CONSTANT:1:20 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
   2:
-    cooldown: 2
+    cooldown: 40
     effects:
       - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15
@@ -35,7 +35,7 @@ levels:
       - { MESSAGE: { text: "&c&l** DIVINE IMMOLATION **" } }  # from MESSAGE:&c&l** DIVINE IMMOLATION **:TARGET — legacy target dropped — StarEnchants messages the actor
       - { REMOVE_SOULS: { amount: 20 } }  # from DRAIN_SOULS_CONSTANT:1:20 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
   3:
-    cooldown: 2
+    cooldown: 40
     effects:
       - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15
@@ -45,7 +45,7 @@ levels:
       - { MESSAGE: { text: "&c&l** DIVINE IMMOLATION **" } }  # from MESSAGE:&c&l** DIVINE IMMOLATION **:TARGET — legacy target dropped — StarEnchants messages the actor
       - { REMOVE_SOULS: { amount: 20 } }  # from DRAIN_SOULS_CONSTANT:1:20 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
   4:
-    cooldown: 2
+    cooldown: 40
     effects:
       - { PARTICLE: { particle: "FLAME" } }  # from PARTICLE:FLAME — EE particle target dropped (SE spawns at the activation location)
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 15, pitch: 1 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:15

@@ -174,6 +174,34 @@ class MigratorTest {
         assertFalse(yaml.contains("AE line one AE line two"), "lines must not be space-joined onto one line");
     }
 
+    /** EE/AE cooldowns are authored in SECONDS but SE reads the cooldown knob as TICKS — the migrator must ×20. */
+    @Test
+    void eliteEnchantmentsCooldownSecondsBecomeTicks() {
+        String yaml = String.join("\n", Migrator.eliteEnchantments(EE, SPECS).files().values());
+        assertTrue(yaml.contains("cooldown: 100"), () -> "EE 5s cooldown should migrate to 100 ticks, got:\n" + yaml);
+        assertFalse(yaml.contains("cooldown: 5"), "the raw second value must not survive un-converted");
+    }
+
+    @Test
+    void advancedEnchantmentsCooldownSecondsBecomeTicks() {
+        String ae = """
+                cooldowner:
+                  display: 'Cooldowner'
+                  type: ATTACK
+                  group: ELITE
+                  applies:
+                    - ALL_SWORD
+                  levels:
+                    '1':
+                      cooldown: 3
+                      chance: 100
+                      effects:
+                        - 'DAMAGE:4 @Victim'
+                """;
+        String yaml = String.join("\n", Migrator.advancedEnchantments(ae, SPECS).files().values());
+        assertTrue(yaml.contains("cooldown: 60"), () -> "AE 3s cooldown should migrate to 60 ticks, got:\n" + yaml);
+    }
+
     @Test
     void translatesVerifiedCoreEffectsFaithfully() {
         assertEquals("DAMAGE:6:@Victim", Mappings.effect("DAMAGE:1:6:TARGET").se()); // random range → max

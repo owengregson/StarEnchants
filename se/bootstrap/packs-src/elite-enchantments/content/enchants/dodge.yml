@@ -16,26 +16,26 @@ tier: epic
 levels:
   1:
     chance: 2.75
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
   2:
     chance: 4.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
   3:
     chance: 7.25
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
   4:
     chance: 9
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
   5:
     chance: 11
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)

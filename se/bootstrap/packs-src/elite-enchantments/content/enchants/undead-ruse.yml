@@ -21,51 +21,51 @@ tier: rare
 levels:
   1:
     chance: 0.25
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 2, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:2:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   2:
     chance: 0.5
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 2, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:2:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   3:
     chance: 0.75
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:3:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   4:
     chance: 0.85
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:3:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   5:
     chance: 1
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:3:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   6:
     chance: 2
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 4, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:4:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   7:
     chance: 3
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 4, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:4:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   8:
     chance: 4
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 4, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:4:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   9:
     chance: 5
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 4, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:4:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   10:
     chance: 6
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 5, ttl: 200, health: 0, owner: "activator" } }  # from SPAWN:ZOMBIE:10:5:5:&a&l%player%'s Summoned Minions — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)

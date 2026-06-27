@@ -17,7 +17,7 @@ tier: heroic
 levels:
   1:
     chance: 10
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
@@ -33,7 +33,7 @@ levels:
       - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
   2:
     chance: 20
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
@@ -49,7 +49,7 @@ levels:
       - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
   3:
     chance: 30
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
@@ -64,7 +64,7 @@ levels:
       - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
   4:
     chance: 40
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50

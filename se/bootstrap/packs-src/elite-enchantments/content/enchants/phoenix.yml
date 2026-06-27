@@ -14,19 +14,19 @@ group: "soul"
 tier: soul
 levels:
   1:
-    cooldown: 120
+    cooldown: 2400
     condition: "%actor.health% <= 4"
     effects:
       - { MODIFY_HEALTH: { amount: 50, mode: "give", who: "@Self" } }  # from HEAL:ADD:40:50:PLAYER — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
       - { MESSAGE: { text: "&c&l** PHOENIX **" } }  # from MESSAGE:&c&l** PHOENIX **:PLAYER — legacy target dropped — StarEnchants messages the actor
   2:
-    cooldown: 120
+    cooldown: 2400
     condition: "%actor.health% <= 4"
     effects:
       - { MODIFY_HEALTH: { amount: 50, mode: "give", who: "@Self" } }  # from HEAL:ADD:40:50:PLAYER — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
       - { MESSAGE: { text: "&c&l** PHOENIX **" } }  # from MESSAGE:&c&l** PHOENIX **:PLAYER — legacy target dropped — StarEnchants messages the actor
   3:
-    cooldown: 120
+    cooldown: 2400
     condition: "%actor.health% <= 4"
     effects:
       - { MODIFY_HEALTH: { amount: 50, mode: "give", who: "@Self" } }  # from HEAL:ADD:40:50:PLAYER — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

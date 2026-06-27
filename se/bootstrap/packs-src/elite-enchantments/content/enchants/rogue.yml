@@ -13,16 +13,16 @@ tier: soul
 levels:
   1:
     chance: 3.25
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 6.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 8.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

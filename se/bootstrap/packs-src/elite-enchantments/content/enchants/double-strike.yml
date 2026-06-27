@@ -14,16 +14,16 @@ tier: legendary
 levels:
   1:
     chance: 2.75
-    cooldown: 8
+    cooldown: 160
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 4
-    cooldown: 8
+    cooldown: 160
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 6
-    cooldown: 8
+    cooldown: 160
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

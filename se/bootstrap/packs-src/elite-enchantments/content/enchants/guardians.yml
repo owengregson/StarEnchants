@@ -21,51 +21,51 @@ tier: epic
 levels:
   1:
     chance: 0.25
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 1, ttl: 400, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   2:
     chance: 0.5
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 1, ttl: 400, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   3:
     chance: 0.65
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 1, ttl: 400, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   4:
     chance: 0.85
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 1, ttl: 400, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   5:
     chance: 1
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 1, ttl: 400, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   6:
     chance: 2
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 2, ttl: 500, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   7:
     chance: 3
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 2, ttl: 500, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   8:
     chance: 4
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 2, ttl: 500, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   9:
     chance: 5
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 2, ttl: 600, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:30:2:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)
   10:
     chance: 6
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SPAWN_ENTITY: { type: "IRON_GOLEM", count: 3, ttl: 900, health: 0, owner: "activator" } }  # from SPAWN:IRON_GOLEM:45:3:10:&b&l%player%'s Guardians — EE SPAWN → SPAWN_ENTITY (spawn radius + custom name dropped; owned by the activator)

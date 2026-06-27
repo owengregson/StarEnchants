@@ -16,26 +16,26 @@ tier: legendary
 levels:
   1:
     chance: 3.25
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   2:
     chance: 5
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   3:
     chance: 7
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   4:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
   5:
     chance: 12
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)

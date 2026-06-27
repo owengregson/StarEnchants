@@ -15,22 +15,22 @@ group: "epic"
 tier: epic
 levels:
   1:
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
   2:
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
   3:
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
   4:
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max

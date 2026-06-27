@@ -15,26 +15,26 @@ tier: epic
 levels:
   1:
     chance: 4.25
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 6.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 9
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 11.25
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     chance: 14
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7 } }  # from DAMAGE_INCREASE:7 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

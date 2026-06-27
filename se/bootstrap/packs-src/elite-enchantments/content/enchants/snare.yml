@@ -15,25 +15,25 @@ tier: rare
 levels:
   1:
     chance: 4
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
   2:
     chance: 6
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
   3:
     chance: 8
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
   4:
     chance: 10
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)

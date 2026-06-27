@@ -15,19 +15,19 @@ tier: heroic
 levels:
   1:
     chance: 2.25
-    cooldown: 4
+    cooldown: 80
     effects:
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 3.75
-    cooldown: 4
+    cooldown: 80
     effects:
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 5.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

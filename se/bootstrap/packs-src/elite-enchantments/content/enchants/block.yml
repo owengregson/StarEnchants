@@ -14,17 +14,17 @@ group: "epic"
 tier: epic
 levels:
   1:
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
   2:
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
   3:
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max

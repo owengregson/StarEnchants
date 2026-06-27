@@ -18,26 +18,26 @@ tier: heroic
 levels:
   1:
     chance: 3.25
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 3.25, who: "@Aoe" } }  # from DAMAGE_ARC:3.25 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   2:
     chance: 4.75
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 3.5, who: "@Aoe" } }  # from DAMAGE_ARC:3.5 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   3:
     chance: 6
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 3.75, who: "@Aoe" } }  # from DAMAGE_ARC:3.75 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   4:
     chance: 7.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 4, who: "@Aoe" } }  # from DAMAGE_ARC:4 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   5:
     chance: 9
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 4.25, who: "@Aoe" } }  # from DAMAGE_ARC:4.25 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)

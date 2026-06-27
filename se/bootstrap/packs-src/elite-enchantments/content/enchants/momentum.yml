@@ -15,21 +15,21 @@ tier: epic
 levels:
   1:
     chance: 5
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)
   2:
     chance: 7
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)
   3:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)
   4:
     chance: 10
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:false — EE CURE → REMOVE_POTION (self)

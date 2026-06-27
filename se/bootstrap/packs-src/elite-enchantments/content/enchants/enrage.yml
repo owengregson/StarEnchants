@@ -15,19 +15,19 @@ tier: epic
 levels:
   1:
     chance: 3.25
-    cooldown: 5
+    cooldown: 100
     condition: "%actor.health% < 10"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(%actor.health%*2 - 1) * 100" } }  # from DAMAGE_INCREASE:playerHealth*2 — EE DAMAGE_INCREASE equation → expression-valued DAMAGE_MOD percent ((expr - 1) * 100)
   2:
     chance: 5
-    cooldown: 5
+    cooldown: 100
     condition: "%actor.health% < 10"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(%actor.health%*2 - 1) * 100" } }  # from DAMAGE_INCREASE:playerHealth*2 — EE DAMAGE_INCREASE equation → expression-valued DAMAGE_MOD percent ((expr - 1) * 100)
   3:
     chance: 7.5
-    cooldown: 5
+    cooldown: 100
     condition: "%actor.health% < 10"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(%actor.health%*2.5 - 1) * 100" } }  # from DAMAGE_INCREASE:playerHealth*2.5 — EE DAMAGE_INCREASE equation → expression-valued DAMAGE_MOD percent ((expr - 1) * 100)

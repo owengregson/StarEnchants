@@ -22,70 +22,70 @@ tier: mythic
 levels:
   1:
     chance: 1
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   2:
     chance: 2
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   3:
     chance: 3
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   4:
     chance: 4
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   5:
     chance: 5
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   6:
     chance: 6
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   7:
     chance: 7
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   8:
     chance: 8
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   9:
     chance: 9
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { DURABILITY: { amount: 10, target: "armor", mode: "damage", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
   10:
     chance: 10
-    cooldown: 10
+    cooldown: 200
     effects:
       - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER + armour-durability damage on the foe

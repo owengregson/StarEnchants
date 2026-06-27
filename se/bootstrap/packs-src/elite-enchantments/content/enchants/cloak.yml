@@ -16,31 +16,31 @@ tier: legendary
 levels:
   1:
     chance: 2.5
-    cooldown: 3
+    cooldown: 60
     condition: "%actor.health% <= 4"
     effects:
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 60, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:3 — EE seconds → ticks (x20)
   2:
     chance: 3.5
-    cooldown: 3
+    cooldown: 60
     condition: "%actor.health% <= 4"
     effects:
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 100, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:5 — EE seconds → ticks (x20)
   3:
     chance: 4.5
-    cooldown: 3
+    cooldown: 60
     condition: "%actor.health% <= 4"
     effects:
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 100, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:5 — EE seconds → ticks (x20)
   4:
     chance: 5.5
-    cooldown: 3
+    cooldown: 60
     condition: "%actor.health% <= 4"
     effects:
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 100, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:5 — EE seconds → ticks (x20)
   5:
     chance: 6.5
-    cooldown: 3
+    cooldown: 60
     condition: "%actor.health% <= 4"
     effects:
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 140, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:7 — EE seconds → ticks (x20)

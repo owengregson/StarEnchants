@@ -16,22 +16,22 @@ group: "soul"
 tier: soul
 levels:
   1:
-    cooldown: 25
+    cooldown: 500
     effects:
       - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
   2:
-    cooldown: 25
+    cooldown: 500
     effects:
       - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
   3:
-    cooldown: 25
+    cooldown: 500
     effects:
       - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
   4:
-    cooldown: 25
+    cooldown: 500
     effects:
       - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
   5:
-    cooldown: 25
+    cooldown: 500
     effects:
       - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)

@@ -15,25 +15,25 @@ tier: legendary
 levels:
   1:
     chance: 1.75
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 3
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 5
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 7.5
-    cooldown: 4
+    cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

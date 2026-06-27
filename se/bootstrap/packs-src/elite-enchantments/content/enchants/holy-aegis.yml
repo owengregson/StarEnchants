@@ -18,31 +18,31 @@ tier: heroic
 levels:
   1:
     chance: 4
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   2:
     chance: 5
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   3:
     chance: 6
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   4:
     chance: 7
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   5:
     chance: 8
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   6:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25

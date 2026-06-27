@@ -15,21 +15,21 @@ tier: uncommon
 levels:
   1:
     chance: 4
-    cooldown: 3
+    cooldown: 60
     effects:
       - { IGNITE: { duration: 20, who: "@Attacker" } }  # from FLAME:1:TARGET — legacy seconds → ticks (x20)
   2:
     chance: 6
-    cooldown: 3
+    cooldown: 60
     effects:
       - { IGNITE: { duration: 40, who: "@Attacker" } }  # from FLAME:2:TARGET — legacy seconds → ticks (x20)
   3:
     chance: 8
-    cooldown: 3
+    cooldown: 60
     effects:
       - { IGNITE: { duration: 80, who: "@Attacker" } }  # from FLAME:4:TARGET — legacy seconds → ticks (x20)
   4:
     chance: 10
-    cooldown: 3
+    cooldown: 60
     effects:
       - { IGNITE: { duration: 120, who: "@Attacker" } }  # from FLAME:6:TARGET — legacy seconds → ticks (x20)

@@ -17,31 +17,31 @@ tier: legendary
 levels:
   1:
     chance: 1.75
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   2:
     chance: 3
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   3:
     chance: 4.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   4:
     chance: 6
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   5:
     chance: 7.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   6:
     chance: 10
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50

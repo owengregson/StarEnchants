@@ -17,35 +17,35 @@ tier: mythic
 levels:
   1:
     chance: 1.25
-    cooldown: 50
+    cooldown: 1000
     effects:
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_TYPE:DEFENSE:3 — EE disable-type → SUPPRESS:TYPE (seconds → ticks)
       - { MESSAGE: { text: "&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***" } }  # from MESSAGE:&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***:PLAYER — legacy target dropped — StarEnchants messages the actor
       - { MESSAGE: { text: "&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***" } }  # from MESSAGE:&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***:TARGET — legacy target dropped — StarEnchants messages the actor
   2:
     chance: 2.95
-    cooldown: 50
+    cooldown: 1000
     effects:
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_TYPE:DEFENSE:5 — EE disable-type → SUPPRESS:TYPE (seconds → ticks)
       - { MESSAGE: { text: "&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***" } }  # from MESSAGE:&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***:PLAYER — legacy target dropped — StarEnchants messages the actor
       - { MESSAGE: { text: "&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***" } }  # from MESSAGE:&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***:TARGET — legacy target dropped — StarEnchants messages the actor
   3:
     chance: 4.25
-    cooldown: 45
+    cooldown: 900
     effects:
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 140, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_TYPE:DEFENSE:7 — EE disable-type → SUPPRESS:TYPE (seconds → ticks)
       - { MESSAGE: { text: "&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***" } }  # from MESSAGE:&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***:PLAYER — legacy target dropped — StarEnchants messages the actor
       - { MESSAGE: { text: "&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***" } }  # from MESSAGE:&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***:TARGET — legacy target dropped — StarEnchants messages the actor
   4:
     chance: 6
-    cooldown: 40
+    cooldown: 800
     effects:
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 160, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_TYPE:DEFENSE:8 — EE disable-type → SUPPRESS:TYPE (seconds → ticks)
       - { MESSAGE: { text: "&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***" } }  # from MESSAGE:&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***:PLAYER — legacy target dropped — StarEnchants messages the actor
       - { MESSAGE: { text: "&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***" } }  # from MESSAGE:&c&l*** &4&lNEUTRALIZED (&7By {PLAYER}&4&l) &c&l***:TARGET — legacy target dropped — StarEnchants messages the actor
   5:
     chance: 7.5
-    cooldown: 35
+    cooldown: 700
     effects:
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 200, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_TYPE:DEFENSE:10 — EE disable-type → SUPPRESS:TYPE (seconds → ticks)
       - { MESSAGE: { text: "&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***" } }  # from MESSAGE:&a&l*** &2&lNEUTRALIZED (&7{TARGET}&2&l) &a&l***:PLAYER — legacy target dropped — StarEnchants messages the actor

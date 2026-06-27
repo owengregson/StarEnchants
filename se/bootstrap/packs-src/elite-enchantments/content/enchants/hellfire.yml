@@ -16,26 +16,26 @@ tier: epic
 levels:
   1:
     chance: 3
-    cooldown: 4
+    cooldown: 80
     effects:
       - { EXPLODE: { power: 1, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:1:false:TARGET — EE fire flag dropped; breakBlocks=false
   2:
     chance: 6
-    cooldown: 4
+    cooldown: 80
     effects:
       - { EXPLODE: { power: 1, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:1:false:TARGET — EE fire flag dropped; breakBlocks=false
   3:
     chance: 9
-    cooldown: 4
+    cooldown: 80
     effects:
       - { EXPLODE: { power: 2, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:2:false:TARGET — EE fire flag dropped; breakBlocks=false
   4:
     chance: 12
-    cooldown: 4
+    cooldown: 80
     effects:
       - { EXPLODE: { power: 2, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:2:false:TARGET — EE fire flag dropped; breakBlocks=false
   5:
     chance: 15
-    cooldown: 4
+    cooldown: 80
     effects:
       - { EXPLODE: { power: 3, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:3:false:TARGET — EE fire flag dropped; breakBlocks=false
