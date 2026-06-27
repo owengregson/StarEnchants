@@ -71,7 +71,7 @@ fallback in `YamlNode`/`LegacyYaml` (the legacy fork uses the server's SnakeYAML
 plus four more: three netty-4.0 incompatibilities in the fake-player void channel, and a PRODUCTION chance-roll
 bug (`ThreadLocalRandom.nextDouble(double)` is JDG-unstubbable → every proc threw on the real 1.8 jar).
 
-**Done since this blueprint (Items 1–4):**
+**Done since this blueprint (Items 1–5):**
 
 - ✅ **Item 1** — the legacy `v1_8_R3` fake-player tester + reduced smoke suite + the `legacy-smoke.sh` gate.
 - ✅ **Item 2** — the legacy resolver fix (1.8 sound/particle aliases + the NETHERITE→DIAMOND material degrade);
@@ -80,6 +80,22 @@ bug (`ThreadLocalRandom.nextDouble(double)` is JDG-unstubbable → every proc th
   thread polls, and KNOCKBACK_CONTROL via a real v1_8_R3 NMS knockback-resistance hook.
 - ✅ **Item 4** — the CI lane (`legacy.yml`) + release gate (`release.yml`) running the live smoke (BuildTools-
   compiled craftbukkit-1.8.8), so the lane cannot ship without Gate-4 green (§11 ownership, mechanical).
+- ✅ **Item 5 — Gate 2 (the closed-world JDK-8 API static net) — built.** `scripts/jdk8-api-gate.sh` +
+  `scripts/tools/Jdk8ApiGate.java` (a tiny standalone ASM tool, fetched/compiled ad-hoc like the JDG CLI —
+  zero Gradle-build footprint) walk the just-downgraded v52 jar and fail if any `java.*`/`javax.*` reference is
+  absent from a **real JDK 8 baseline** (rt.jar + jre/lib + ext, ~24.6k classes — already provisioned in both
+  CI lanes and locally). It is embedded in `build-legacy-jar.sh` right after the JDG step, so the **one
+  chokepoint gates every legacy-producing lane**: `legacy-smoke.sh` (PR + push) and `build-mega-jar.sh`
+  (release). Severity is tiered — public `java/*` = hard fail (missing class *or* member, with full superclass/
+  interface resolution); `javax/`+`org.w3c/xml/…` member-miss = hard, class-miss = warn (3rd-party `javax.*`);
+  JDK-internal `sun/jdk/com.sun` = warn unless `--strict-internal`. The `se_jdg/` shims and the `-i` server
+  externals are not checked. Validated both ways: **zero violations on the live-proven shipped jar** (no false
+  positives) and a planted probe is caught hard (`String.isBlank/strip/repeat`, `List.of/copyOf`,
+  `Optional.isEmpty`, `java.net.http.HttpClient`, the string-concat `invokedynamic`). This closes the R1 static
+  gap that previously left an un-shimmable API to surface only at runtime. `SE_SKIP_JDK8_GATE=1` is a loud,
+  local-only escape hatch. *(Aside: the §6/Phase-2 example `ThreadLocalRandom.nextDouble(double)` is in fact
+  present in Temurin 8's rt.jar — Gate 2 diffs against the real baseline, not a hand-list, so it is right not to
+  flag it; the original runtime failure's exact cause is unverified.)*
 
 **Remaining (honest, bounded — not blocking the ship):**
 
@@ -283,7 +299,10 @@ types present on 1.8.9 and stays **un-ported**, proven by the compile gate.
   come from an approved shimmed set**, so a stray `String.isBlank()`/`List.copyOf` fails
   the *fast* modern `./gradlew build` every developer runs — not only the slow legacy lane
   (the only thing that survives a solo maintainer six months in; converts R1 from
-  downstream lane-rot into an immediate local failure).
+  downstream lane-rot into an immediate local failure). **[2026-06-26: not built — superseded
+  for correctness by the implemented Gate 2 (Item 5), which catches the *complete* set on the
+  legacy lane with no hand-maintained list. (f) remains an optional future nicety purely for
+  faster local feedback on the modern build.]**
 - **Do-anyway? YES.** Pure upside, zero runtime code. Keep `RuntimeHandles` accessors typed
   — `bootstrap` and `feature.fx.ParticleFx` consume `particle()→Particle`; demotion spreads
   unchecked casts and worsens invariant 4.
@@ -457,6 +476,11 @@ platform errors fail at compile. It does **not** win on the headline percentage.
   The defensible claim is "hundreds of JDK-9+ call sites, compile-heavy; only Gate 2 bounds
   them." §3.4(f) additionally bans the un-shimmable subset on the fast modern build.)*
 
+  > **[Implemented 2026-06-26]** Built as `scripts/jdk8-api-gate.sh` + `scripts/tools/Jdk8ApiGate.java`
+  > (Item 5 in the realised-status above), embedded in `build-legacy-jar.sh` after the JDG step. The
+  > allowlist union is realised as: SE roots / `se_jdg` shims / server externals are simply not
+  > `java.*`/`javax.*` and so are never checked; the baseline is a real JDK 8 (not a static signature file).
+
 - **Gate 3 — legacy resolver-table conformance (config-name wall).** *(Red-team, fatal —
   the gate the synthesis lacked.)* Run the bundled config packs through a **1.8
   `RegistryResolvers`** and assert every authored name resolves or has an explicit legacy
@@ -527,7 +551,7 @@ modern build never needs.
 
 | # | Risk | Severity | Mitigation |
 |---|---|---|---|
-| R1 | **JDK-9+ stdlib shim gap** (hundreds of sites, compile-heavy) — an un-shimmed `List.copyOf`/`isBlank` ships green and `NoSuchMethodError`s at runtime | HIGH | Gate 2 makes it a build break; §3.4(f) ArchUnit ban makes the un-shimmable subset fail the *fast* modern build too. Pin JvmDowngrader exactly; a JDG bump is a gated change requiring a fresh Gate-4 run. |
+| R1 | **JDK-9+ stdlib shim gap** (hundreds of sites, compile-heavy) — an un-shimmed `List.copyOf`/`isBlank` ships green and `NoSuchMethodError`s at runtime | HIGH | **MITIGATED — Gate 2 implemented** (`scripts/jdk8-api-gate.sh`, embedded in `build-legacy-jar.sh`): an un-shimmed `java.*` reference is now a build break in every legacy lane. The §3.4(f) fast-build ArchUnit mirror is deliberately *not* built (Gate 2 is the complete net; the mirror would only add faster local feedback). Pin JvmDowngrader exactly; a JDG bump is a gated change requiring a fresh Gate-4 run. |
 | R2 | **Server-bundled library skew** (1.8 SnakeYAML ~1.15 vs `setAllowDuplicateKeys`@1.18; older Guava/Gson) | HIGH | Gate 1/1b classpath uses the **1.8-bundled** library versions; inventory them when standing up the gate. |
 | R3 | **`compile`-module config-name divergence** (pre-flattening Material/Particle/Attribute tables) — wrong-id intern or resolve diagnostics on 1.8 | HIGH | Gate 3 (resolver-table conformance) + a budgeted legacy alias table (few hundred mappings). Unbudgeted in the headline share. |
 | R4 | **Semantically-wrong legacy mapping** (right method, wrong id) — no static gate catches | MED-HIGH | Gate 4 only; per-category mapping tables unit-tested against a 1.8.9 name list. Non-skippable release dependency. |

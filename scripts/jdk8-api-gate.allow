@@ -1,0 +1,15 @@
+# jdk8-api-gate.allow — allowlist for the closed-world JDK-8 API gate (scripts/jdk8-api-gate.sh).
+#
+# Each non-comment line is matched as a PREFIX of a violation key (key == line, or key startsWith line).
+# A reference whose key matches is treated as OK (and reported as "allow-listed"). The match is anchored at
+# the START of the key, so an entry MUST begin with the METHOD/FIELD/CLASS tag and owner — it cannot be an
+# unanchored substring that silently swallows unrelated misses. To be safe, include the descriptor too.
+# Use ONLY for references provably safe on Java 8 (e.g. a false positive from an unusual descriptor), never
+# to paper over a genuine un-shimmable API — fix those instead.
+#
+# Violation key shapes (so you can write a precise substring):
+#   CLASS  java/net/http/HttpClient
+#   METHOD java/lang/String#isBlank ()Z
+#   FIELD  java/lang/Foo#BAR Ljava/lang/Foo;
+#
+# Keep this empty unless a real, justified exception arises. Document WHY in a comment above each entry.
