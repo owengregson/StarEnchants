@@ -38,14 +38,14 @@ class LibraryLoaderTest {
             display: "&cLifesteal"
             trigger: ATTACK
             levels:
-              1: { chance: 10, effects: ["HEAL:2"] }
-              2: { chance: 20, effects: ["HEAL:4"] }
+              1: { chance: 10, effects: [{ HEAL: { amount: 2 } }] }
+              2: { chance: 20, effects: [{ HEAL: { amount: 4 } }] }
             """);
         write(root, "enchants/herald.yml", """
             display: "Herald"
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["MESSAGE:hi"] }
+              1: { chance: 100, effects: [{ MESSAGE: { text: hi } }] }
             """);
 
         Library lib = LibraryLoader.load(root, compiler(), 1);
@@ -64,14 +64,14 @@ class LibraryLoaderTest {
             display: "Lifesteal"
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """);
         write(root, "crystals/jolt.yml", """
             display: "&bJolt"
             description: "a zap on hit"
             trigger: ATTACK
             chance: 100
-            effects: ["MESSAGE:zap"]
+            effects: [{ MESSAGE: { text: zap } }]
             """);
 
         Library lib = LibraryLoader.load(root, compiler(), 7);
@@ -100,12 +100,12 @@ class LibraryLoaderTest {
                 leggings:   { material: DIAMOND_LEGGINGS,   name: "&bYeti Leggings" }
                 boots:      { material: DIAMOND_BOOTS,      name: "&bYeti Boots" }
               trigger: DEFENSE
-              effects: ["HEAL:1"]
+              effects: [{ HEAL: { amount: 1 } }]
             weapon:
               material: DIAMOND_SWORD
               name: "&bYeti Blade"
               trigger: ATTACK
-              effects: ["HEAL:1"]
+              effects: [{ HEAL: { amount: 1 } }]
             """);
 
         Library lib = LibraryLoader.load(root, compiler(), 8);
@@ -141,7 +141,7 @@ class LibraryLoaderTest {
         write(root, "enchants/good.yml", """
             trigger: ATTACK
             levels:
-              1: { chance: 50, effects: ["HEAL:2"] }
+              1: { chance: 50, effects: [{ HEAL: { amount: 2 } }] }
             """);
         write(root, "enchants/bad.yml", "trigger: ATTACK\n");
 
@@ -157,7 +157,7 @@ class LibraryLoaderTest {
         write(root, "enchants/.yml", """
             trigger: ATTACK
             levels:
-              1: { chance: 50, effects: ["HEAL:2"] }
+              1: { chance: 50, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 4);
         assertTrue(lib.hasErrors());
@@ -171,7 +171,7 @@ class LibraryLoaderTest {
             trigger: ATTACK
             requires: ["enchants/ghost"]
             levels:
-              1: { chance: 100, effects: ["HEAL:1"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 1 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
         assertTrue(lib.hasErrors(), "a requires: naming a non-existent enchant must be a diagnostic");
@@ -184,7 +184,7 @@ class LibraryLoaderTest {
             trigger: ATTACK
             blacklist: ["enchants/phantom"]
             levels:
-              1: { chance: 100, effects: ["HEAL:1"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 1 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
         assertTrue(lib.hasErrors());
@@ -196,7 +196,7 @@ class LibraryLoaderTest {
             display: "Base"
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:1"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 1 } }] }
             """);
         write(root, "enchants/upgrade.yml", """
             display: "Upgrade"
@@ -204,7 +204,7 @@ class LibraryLoaderTest {
             requires: ["enchants/base"]
             blacklist: ["enchants/base"]
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());

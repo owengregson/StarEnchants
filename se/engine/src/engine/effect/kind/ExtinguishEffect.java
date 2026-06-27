@@ -15,7 +15,7 @@ public final class ExtinguishEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Put out the target's fire.")
-            .example("EXTINGUISH")
+            .example("{ EXTINGUISH: {} }")
             .build();
 
     @Override

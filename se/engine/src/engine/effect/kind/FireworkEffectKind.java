@@ -18,7 +18,7 @@ public final class FireworkEffectKind implements EffectKind {
             .param("power", D.INT.min(0).max(3).def(1))
             .affinity(Affinity.REGION)
             .doc("Spawn a cosmetic firework at the activation location. No-op if there is no location.")
-            .example("FIREWORK:1")
+            .example("{ FIREWORK: { power: 1 } }")
             .build();
 
     @Override

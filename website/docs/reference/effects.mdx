@@ -10,24 +10,25 @@ import EffectFamilies from '@site/src/components/reference/EffectFamilies';
 
 # Effects
 
-An **effect** is one action an enchant (or armor set, or crystal) performs when it fires. You list effects under the `effects:` key of a level, and each one is a single token shaped like `HEAD:args`:
+An **effect** is one action an enchant (or armor set, or crystal) performs when it fires. You list effects under the `effects:` key of a level, and each one is a **block map** shaped like `{ HEAD: { param: value } }`:
 
 ```yaml
 levels:
   1:
-    chance: 25            # 25% chance to fire on the trigger
+    chance: 25                            # 25% chance to fire on the trigger
     effects:
-      - "DAMAGE:6"        # HEAD = DAMAGE, one arg = 6
-      - "IGNITE:60"       # set the victim on fire for 60 ticks (3s)
-      - "MESSAGE:&cBurn!" # tell the player
+      - { DAMAGE: { amount: 6 } }         # deal 6 extra damage
+      - { IGNITE: { duration: 60 } }      # set the victim on fire for 60 ticks (3s)
+      - { MESSAGE: { text: "&cBurn!" } }  # tell the player
 ```
 
 - **`HEAD`** is the effect name (always uppercase), e.g. `DAMAGE`, `POTION`, `BREAK_BLOCK`.
-- **`args`** are colon-separated values. Required args come first; optional ones have sensible defaults you can omit.
-- Many effects also accept a **target selector** in `{...}` or as a trailing `@Selector` to change *who* they act on — see [Selectors](./selectors.mdx). When you don't specify one, the effect uses its default target (shown in each card below).
+- The body is a map of **named parameters**. Required params must be set; optional ones have sensible defaults you can omit. Each effect card below lists its parameters.
+- Many effects also accept a **target selector** via the `who:` key to change *who* they act on — e.g. `who: "@Aoe{r=6}"` — see [Selectors](./selectors.mdx). When you don't set one, the effect uses its default target (shown in each card below).
+- An optional `wait: <ticks>` key delays a single effect; the rest of the list keeps running.
 
 :::tip Ticks are the unit of time
-Anywhere you see a duration, it's measured in **ticks**, and **20 ticks = 1 second**. So `IGNITE:60` burns for 3 seconds, and `FLY:200` grants 10 seconds of flight.
+Anywhere you see a duration, it's measured in **ticks**, and **20 ticks = 1 second**. So `{ IGNITE: { duration: 60 } }` burns for 3 seconds, and `{ FLY: { ticks: 200 } }` grants 10 seconds of flight.
 :::
 
 :::note Reading the "How it runs" line

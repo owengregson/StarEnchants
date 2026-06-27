@@ -15,7 +15,7 @@ public final class ParticleEffect implements EffectKind {
             .param("count", D.INT.min(0).def(1))
             .affinity(Affinity.REGION)
             .doc("Spawn particles at the activation location. No-op if there is no location.")
-            .example("PARTICLE:FLAME:20")
+            .example("{ PARTICLE: { particle: FLAME, count: 20 } }")
             .build();
 
     @Override

@@ -60,7 +60,7 @@ public final class IgniteEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Set the target(s) on fire for a duration in ticks.")
-            .example("IGNITE:60")
+            .example("{ IGNITE: { duration: 60 } }")
             .build();
 
     @Override
@@ -108,8 +108,8 @@ Declare a target slot with `.target(name, selectorType)`. The name is what
 `ctx.targets(name)` reads back; the selector type is a constant from
 `se/engine/src/engine/spec/T.java` (`T.SELF`, `T.VICTIM`, `T.ATTACKER`, `T.AOE`,
 `T.NEAREST`, `T.HERE`). The first declared slot becomes the effect's **default**
-selector, so `IGNITE:60` targets the victim with no `@`-selector written; an
-author can still override it inline (`IGNITE:60 @Aoe{r=4}`).
+selector, so `{ IGNITE: { duration: 60 } }` targets the victim with no `who:`
+written; an author can still override it (`{ IGNITE: { duration: 60, who: "@Aoe{r=4}" } }`).
 
 Declare the **affinity** — this is how the compiler routes your intents:
 

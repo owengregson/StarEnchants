@@ -24,7 +24,7 @@ public final class RemoveSoulsEffect implements EffectKind {
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Debit souls from a soul gem: @Self (default) charges the activator's active gem, @Victim "
                     + "drains the target's own gem. A no-op when that player is not in soul mode.")
-            .example("REMOVE_SOULS:5")
+            .example("{ REMOVE_SOULS: { amount: 5 } }")
             .build();
 
     @Override

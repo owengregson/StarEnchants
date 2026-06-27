@@ -72,7 +72,7 @@ const config: Config = {
     announcementBar: {
       id: 'se_beta',
       content:
-        '✦ StarEnchants is in active development — for Paper 1.17.1-26.1.2, Folia, and Minecraft 1.8.x.',
+        '✦ StarEnchants is in active development — for Paper 1.8, 1.17.1-26.1.2 and Folia.',
       backgroundColor: '#b98cff',
       textColor: '#1b1430',
       isCloseable: true,

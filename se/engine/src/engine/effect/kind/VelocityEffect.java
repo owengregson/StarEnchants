@@ -23,7 +23,7 @@ public final class VelocityEffect implements EffectKind {
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the "
                     + "activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.")
-            .example("VELOCITY:add:0:1.2:0")
+            .example("{ VELOCITY: { mode: add, x: 0, y: 1.2, z: 0 } }")
             .build();
 
     @Override

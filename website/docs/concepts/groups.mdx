@@ -19,8 +19,8 @@ shut another down.
 - **Shared cooldowns.** Enchants in the same group can share a cooldown bucket, so a player can't
   chain every combat enchant they own on a single swing.
 - **Suppression.** The `SUPPRESS` effect can disable an entire group on a target for a duration —
-  `SUPPRESS:GROUP:combat:200` silences every combat-group enchant on the victim for 200 ticks. (It
-  can also suppress a single `ENCHANT` or a whole item `TYPE`.)
+  `{ SUPPRESS: { scope: GROUP, key: combat, duration: 200 } }` silences every combat-group enchant on
+  the victim for 200 ticks. (It can also suppress a single `ENCHANT` or a whole item `TYPE`.)
 
 ## Choosing group names
 

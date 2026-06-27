@@ -22,7 +22,7 @@ public final class TeleportEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Teleport the target to the actor's or the victim's location.")
-            .example("TELEPORT:VICTIM")
+            .example("{ TELEPORT: { to: VICTIM } }")
             .build();
 
     @Override

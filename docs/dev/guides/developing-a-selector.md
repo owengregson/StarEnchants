@@ -1,7 +1,7 @@
 # Developing a selector
 
-A **selector** answers *who* (or *where*) an effect acts on. An author writes it
-inline with an `@` head: `IGNITE:60 @Aoe{r=6, filter=MONSTERS}`. The built-ins
+A **selector** answers *who* (or *where*) an effect acts on. An author attaches it
+to an effect via the `who:` key: `{ IGNITE: { duration: 60, who: "@Aoe{r=6, filter=MONSTERS}" } }`. The built-ins
 cover `@Self`, `@Victim`, `@Attacker`, `@Nearest`, `@Aoe`, the player selectors,
 and the block/location selectors. Adding one is, again, **one interface + one
 registration**.

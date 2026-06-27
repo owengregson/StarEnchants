@@ -15,7 +15,7 @@ public final class CureEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Clear every active potion effect from the target(s).")
-            .example("CURE")
+            .example("{ CURE: {} }")
             .build();
 
     @Override

@@ -15,7 +15,7 @@ public final class FillOxygenEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Refill the target's air supply.")
-            .example("FILL_OXYGEN")
+            .example("{ FILL_OXYGEN: {} }")
             .build();
 
     @Override

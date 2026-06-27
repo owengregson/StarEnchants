@@ -118,7 +118,7 @@ class MigratorTest {
 
     @Test
     void migratesEliteEnchantmentsToCompilableContent(@TempDir Path dir) throws IOException {
-        Migrator.Result result = Migrator.eliteEnchantments(EE);
+        Migrator.Result result = Migrator.eliteEnchantments(EE, SPECS);
         Library library = compile(result.files(), dir);
 
         String blocking = library.diagnostics().stream().filter(Diagnostic::blocking)
@@ -313,9 +313,10 @@ class MigratorTest {
                   - 'DAMAGE:35'
                   - 'BLESS'
                 """;
-        Migrator.Result result = Migrator.eliteArmorSet("ancient", ea);
+        Migrator.Result result = Migrator.eliteArmorSet("ancient", ea, SPECS);
         String set = result.files().get("sets/ancient.yml");
-        assertTrue(set.contains("DAMAGE_MOD:defense:add:15"), "REDUCTION:15 should map to DAMAGE_MOD:defense:add:15");
+        assertTrue(set.contains("{ DAMAGE_MOD: { side: \"defense\", mode: \"add\", amount: 15 } }"),
+                "REDUCTION:15 should map to a DAMAGE_MOD block");
         assertTrue(set.contains("# TODO port manually: DAMAGE:35"), "attack-direction DAMAGE should be a TODO");
 
         Library library = compile(result.files(), dir);

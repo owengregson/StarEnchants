@@ -12,7 +12,7 @@ public final class CancelEffect implements EffectKind {
     static final EffectSpec SPEC = EffectSpec.of("CANCEL")
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Cancel the Bukkit event that triggered this activation.")
-            .example("CANCEL")
+            .example("{ CANCEL: {} }")
             .build();
 
     @Override

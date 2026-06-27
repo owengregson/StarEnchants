@@ -17,7 +17,7 @@ public final class RemovePotionEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Remove a potion effect from the target(s).")
-            .example("REMOVE_POTION:POISON")
+            .example("{ REMOVE_POTION: { effect: POISON } }")
             .build();
 
     @Override

@@ -15,7 +15,7 @@ public final class SmeltEffect implements EffectKind {
     static final EffectSpec SPEC = EffectSpec.of("SMELT")
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, …).")
-            .example("SMELT")
+            .example("{ SMELT: {} }")
             .build();
 
     @Override

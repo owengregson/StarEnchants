@@ -21,7 +21,7 @@ public final class DamageModEffect implements EffectKind {
             .doc("Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). "
                     + "A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage. "
                     + "Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.")
-            .example("DAMAGE_MOD:attack:add:25")
+            .example("{ DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }")
             .build();
 
     @Override

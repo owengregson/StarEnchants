@@ -18,7 +18,7 @@ public final class InvertVarEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Numerically invert a per-player variable (0↔1), preserving its remaining TTL.")
-            .example("INVERT_VAR:rage:@Self")
+            .example("{ INVERT_VAR: { name: rage, who: \"@Self\" } }")
             .build();
 
     @Override

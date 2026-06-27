@@ -201,7 +201,7 @@ ParamSpec.of("SMITE")
     .param("radius",   D.DOUBLE.min(0))
     .param("cooldown", D.INT.min(0).def(0))   // optional once it has a default
     .doc("Strike lightning at nearby enemies.")
-    .example("SMITE:25:4")
+    .example("{ SMITE: { chance: 25, radius: 4 } }")
     .build();
 ```
 

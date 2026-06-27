@@ -20,7 +20,7 @@ public final class SetBlockEffect implements EffectKind {
             .target("at", T.HERE)
             .affinity(Affinity.REGION)
             .doc("Set the target block(s) to a material (default @Here = the activation block).")
-            .example("SET_BLOCK:OBSIDIAN")
+            .example("{ SET_BLOCK: { material: OBSIDIAN } }")
             .build();
 
     @Override

@@ -16,7 +16,7 @@ public final class DropItemEffect implements EffectKind {
             .param("count", D.INT.min(1).def(1))
             .affinity(Affinity.REGION)
             .doc("Drop a material as an item at the activation location. No-op if there is no location.")
-            .example("DROP_ITEM:DIAMOND:1")
+            .example("{ DROP_ITEM: { material: DIAMOND, count: 1 } }")
             .build();
 
     @Override

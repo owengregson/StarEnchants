@@ -24,7 +24,7 @@ public final class KnockbackControlEffect implements EffectKind {
             .doc("Scale the target's incoming knockback for duration ticks: 0 cancels it, 0.5 halves it, "
                     + "2 doubles it (default: cancel for 2 ticks). Use on DEFENSE for your own knockback, "
                     + "or on ATTACK with who: victim for the knockback you deal.")
-            .example("KNOCKBACK_CONTROL:0")
+            .example("{ KNOCKBACK_CONTROL: { multiplier: 0 } }")
             .build();
 
     @Override

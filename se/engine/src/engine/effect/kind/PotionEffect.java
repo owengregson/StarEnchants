@@ -25,7 +25,7 @@ public final class PotionEffect implements EffectKind {
             .doc("Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier),"
                     + " for a duration in ticks. The effect name is resolved to a handle at compile time. On a"
                     + " HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).")
-            .example("POTION:STRENGTH:1:100")
+            .example("{ POTION: { effect: STRENGTH, level: 1, duration: 100 } }")
             .build();
 
     @Override

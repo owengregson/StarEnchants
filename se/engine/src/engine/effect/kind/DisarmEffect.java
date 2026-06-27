@@ -18,7 +18,7 @@ public final class DisarmEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Make the target(s) drop their held (main-hand) item.")
-            .example("DISARM")
+            .example("{ DISARM: {} }")
             .build();
 
     @Override

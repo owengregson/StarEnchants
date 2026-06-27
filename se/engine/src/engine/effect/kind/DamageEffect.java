@@ -17,7 +17,7 @@ public final class DamageEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Deal a flat amount of extra damage to the target.")
-            .example("DAMAGE:6")
+            .example("{ DAMAGE: { amount: 6 } }")
             .build();
 
     @Override

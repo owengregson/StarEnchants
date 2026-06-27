@@ -17,7 +17,7 @@ public final class IgniteEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Set the target(s) on fire for a duration in ticks.")
-            .example("IGNITE:60")
+            .example("{ IGNITE: { duration: 60 } }")
             .build();
 
     @Override

@@ -36,7 +36,7 @@ class ContentReloaderTest {
     private static final String GOOD = """
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["HEAL:2"] }
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """;
 
     @BeforeEach

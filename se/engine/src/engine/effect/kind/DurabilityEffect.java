@@ -26,7 +26,7 @@ public final class DurabilityEffect implements EffectKind {
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) "
                     + "or damage. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.")
-            .example("DURABILITY:-1:item")
+            .example("{ DURABILITY: { amount: -1, target: item } }")
             .build();
 
     @Override

@@ -16,7 +16,7 @@ public final class IgnoreArmorEffect implements EffectKind {
     static final EffectSpec SPEC = EffectSpec.of("IGNORE_ARMOR")
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Make the triggering hit ignore the victim's armor and enchant-protection reduction.")
-            .example("IGNORE_ARMOR")
+            .example("{ IGNORE_ARMOR: {} }")
             .build();
 
     @Override

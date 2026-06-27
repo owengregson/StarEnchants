@@ -129,16 +129,15 @@ level shares a cooldown, write `cooldown: 100` at the top level instead of repea
 
 ### Writing effects
 
-Effects accept parameters two equivalent ways:
+Each effect is a **block map** — `{ HEAD: { param: value } }`:
 
 ```yaml
 effects:
-  - "IGNITE:60"                                    # terse — positional args
-  - { IGNITE: { duration: 60 } }                   # verbose — named args
+  - { IGNITE: { duration: 60 } }
   - { POTION: { effect: REGENERATION, level: 1, duration: 60, who: "@Self" } }
 ```
 
-Two parameter names are special in the verbose form:
+Two parameter names are special:
 
 - **`who:`** chooses the [selector](/docs/reference/selectors) — *who* the effect lands on
   (`@Self`, `@Victim`, `@Attacker`, `@Aoe{r=3}`, …). Every effect has a sensible default target if

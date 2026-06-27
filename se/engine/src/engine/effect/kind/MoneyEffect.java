@@ -25,7 +25,7 @@ public final class MoneyEffect implements EffectKind {
             .doc("Modify a player target's balance: give to them, take from them, transfer (take from the target "
                     + "and give the total to the activator), or steal_percent (give the activator that PERCENT of the "
                     + "target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].")
-            .example("MODIFY_MONEY:100:give:@Self")
+            .example("{ MODIFY_MONEY: { amount: 100, mode: give, who: \"@Self\" } }")
             .build();
 
     @Override

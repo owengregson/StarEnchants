@@ -15,7 +15,7 @@ public final class KillEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Instantly kill the target.")
-            .example("KILL")
+            .example("{ KILL: {} }")
             .build();
 
     @Override

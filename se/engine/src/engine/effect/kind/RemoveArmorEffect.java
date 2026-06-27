@@ -18,7 +18,7 @@ public final class RemoveArmorEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Strip one random worn armour piece from the target(s) and drop it.")
-            .example("REMOVE_ARMOR")
+            .example("{ REMOVE_ARMOR: {} }")
             .build();
 
     @Override

@@ -109,27 +109,45 @@ public final class SchemaWriter {
     }
 
     /**
-     * Append the {@code effects:} block at the given key indent: a v2 effect item per mapped effect
-     * (verbose when {@code specs} resolves the head, else terse), a {@code # TODO} comment per unmapped
-     * one. List items / comments are indented two spaces deeper.
+     * Append the {@code effects:} block at the given key indent: a v2 block effect item per renderable
+     * effect, a {@code # TODO} comment per one that can't be rendered (unmapped, or mapped to a head with
+     * no known spec). The list reads {@code effects: []} when nothing renders, so an all-TODO block stays
+     * valid YAML (an empty key would otherwise read back as a stray empty effect). Items/comments are
+     * indented two spaces deeper.
      */
     private static void appendEffects(StringBuilder b, java.util.List<MigratedEffect> effects, String keyIndent,
                                       Function<String, ParamSpec> specs) {
         String itemIndent = keyIndent + "  ";
-        b.append(keyIndent).append("effects:");
-        boolean anyMapped = effects.stream().anyMatch(MigratedEffect::mapped);
-        b.append(anyMapped ? "\n" : " []\n"); // an empty list keeps the YAML valid when all effects are TODOs
+        // Pre-render so the header knows whether ANY effect produced an actual list item (vs all TODO comments).
+        java.util.List<String> rendered = new java.util.ArrayList<>(effects.size());
+        boolean anyItem = false;
         for (MigratedEffect effect : effects) {
-            if (effect.mapped()) {
-                b.append(itemIndent).append("- ").append(V2Effects.item(effect.se(), specs));
+            String item = effect.mapped() ? V2Effects.item(effect.se(), specs) : null;
+            rendered.add(item);
+            anyItem |= item != null;
+        }
+        b.append(keyIndent).append("effects:");
+        b.append(anyItem ? "\n" : " []\n");
+        for (int i = 0; i < effects.size(); i++) {
+            MigratedEffect effect = effects.get(i);
+            String item = rendered.get(i);
+            if (item != null) {
+                b.append(itemIndent).append("- ").append(item);
                 b.append("  # from ").append(effect.legacy());
                 if (!effect.note().isBlank()) {
                     b.append(" — ").append(effect.note());
                 }
                 b.append('\n');
             } else {
-                b.append(itemIndent).append("# TODO port manually: ").append(effect.legacy())
-                        .append(" — ").append(effect.note()).append('\n');
+                // Unmapped, or mapped to a head with no known spec — leave a reviewable comment, never an
+                // unreloadable effect line.
+                String why = effect.note().isBlank()
+                        ? (effect.mapped() ? "no known effect spec for this token" : "") : effect.note();
+                b.append(itemIndent).append("# TODO port manually: ").append(effect.legacy());
+                if (!why.isBlank()) {
+                    b.append(" — ").append(why);
+                }
+                b.append('\n');
             }
         }
     }

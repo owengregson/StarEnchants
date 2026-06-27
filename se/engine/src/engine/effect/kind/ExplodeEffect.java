@@ -18,7 +18,7 @@ public final class ExplodeEffect implements EffectKind {
             .target("who", T.VICTIM)
             .affinity(Affinity.REGION)
             .doc("Create an explosion at the target.")
-            .example("EXPLODE:4:false")
+            .example("{ EXPLODE: { power: 4, breakBlocks: false } }")
             .build();
 
     @Override

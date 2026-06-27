@@ -5,6 +5,12 @@
 - **Deciders:** project owner + engine work
 - **Supersedes:** the v1 ad-hoc content format (still loadable — see Backward compatibility)
 
+> **[Update 2026-06-27]** The terse colon-string effect form is **no longer a supported user-authoring
+> syntax** — the content loader rejects a scalar effect item with `E_TERSE_EFFECT`, and all authored
+> content, generated docs, and examples use the block `{ HEAD: { param: value } }` form only. Terse is
+> still **read by the migrator** when importing AE/EE/EA configs (it re-renders them as block). The
+> "alongside terse" / "v1 terse still loads" statements below are historical.
+
 ## Context
 
 The v1 content files (`se/bootstrap/resources/content/{enchants,crystals,sets}/`) store

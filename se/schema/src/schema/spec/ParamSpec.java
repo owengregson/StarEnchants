@@ -100,22 +100,23 @@ public final class ParamSpec {
     }
 
     /**
-     * The human-readable signature, e.g.
-     * {@code SMITE:<chance:double[0..100]>:<radius:double[0..]>[:cooldown:int[0..]=0]}.
-     * Required params use {@code <…>}; optional params use {@code […]}.
+     * The human-readable block signature, e.g.
+     * {@code { SMITE: { chance: <double[0..100]>, radius: <double[0..]>, cooldown: <int[0..]=0> } }}.
+     * Each param renders {@code name: <type>}; an optional param appends its default ({@code =0}).
+     * (The terse colon form is no longer authorable — see {@code schema.grammar.EffectLine}.)
      */
     public String usage() {
-        StringBuilder sb = new StringBuilder(head);
-        for (Param p : params) {
-            String body = p.name() + ":" + p.type().label();
-            if (p.required()) {
-                sb.append(":<").append(body).append('>');
-            } else {
-                String def = p.type().defaultRaw().map(d -> "=" + d).orElse("");
-                sb.append("[:").append(body).append(def).append(']');
-            }
+        if (params.isEmpty()) {
+            return "{ " + head + ": {} }";
         }
-        return sb.toString();
+        StringBuilder sb = new StringBuilder("{ ").append(head).append(": {");
+        for (int i = 0; i < params.size(); i++) {
+            Param p = params.get(i);
+            String def = p.required() ? "" : p.type().defaultRaw().map(d -> "=" + d).orElse("");
+            sb.append(i == 0 ? " " : ", ")
+                    .append(p.name()).append(": <").append(p.type().label()).append(def).append('>');
+        }
+        return sb.append(" } }").toString();
     }
 
     /**

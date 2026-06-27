@@ -25,7 +25,7 @@ public final class WalkerEffect implements EffectKind {
             .affinity(Affinity.REGION)
             .doc("Lay a temporary platform of a material under the target for a duration (then revert), "
                     + "out to a radius. replace = AIR_ONLY | REPLACEABLE (air/liquid) | ANY.")
-            .example("WALKER:ICE:80:1")
+            .example("{ WALKER: { material: ICE, ticks: 80, radius: 1 } }")
             .build();
 
     @Override

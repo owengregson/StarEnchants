@@ -24,7 +24,7 @@ public final class HealthModEffect implements EffectKind {
             .doc("Modify a target's health: give heals them, take deals direct health damage, transfer "
                     + "(lifesteal) damages the target and heals the activator by the same amount, set forces "
                     + "their health to the amount. Replaces HEAL.")
-            .example("MODIFY_HEALTH:4:give:@Self")
+            .example("{ MODIFY_HEALTH: { amount: 4, mode: give, who: \"@Self\" } }")
             .build();
 
     @Override

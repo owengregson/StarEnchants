@@ -19,7 +19,7 @@ public final class RemoveItemEffect implements EffectKind {
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Remove up to count of a material from the player target(s)' inventory.")
-            .example("REMOVE_ITEM:DIAMOND:1:@Self")
+            .example("{ REMOVE_ITEM: { material: DIAMOND, count: 1, who: \"@Self\" } }")
             .build();
 
     @Override
