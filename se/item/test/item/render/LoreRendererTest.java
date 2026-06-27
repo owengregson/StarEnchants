@@ -52,6 +52,29 @@ class LoreRendererTest {
     }
 
     @Test
+    void levelNumeralInheritsTheTierColourWhenLevelColorIsBlank() {
+        // Blank level-color => the level numeral takes the name's (tier) colour, not a fixed one.
+        LoreStyle inherit = new LoreStyle("&7", "", "&b", true, "&8Unknown Enchant");
+        Function<String, String> tierColors = Map.of("enchants/venom", "&6")::get;
+        CombatState state = new CombatState(Map.of("enchants/venom", 3), List.of());
+
+        List<String> lines = new LoreRenderer(inherit, NAMES, tierColors).lines(state);
+
+        assertEquals(List.of("§6Venom §6III"), lines); // name AND level both gold
+    }
+
+    @Test
+    void blankLevelColorFallsBackToEnchantColorWhenNoTier() {
+        // No tier colour + blank level-color => the level uses the universal enchantColor (&7), like the name.
+        LoreStyle inherit = new LoreStyle("&7", "", "&b", true, "&8Unknown Enchant");
+        CombatState state = new CombatState(Map.of("enchants/venom", 2), List.of());
+
+        List<String> lines = new LoreRenderer(inherit, NAMES).lines(state);
+
+        assertEquals(List.of("§7Venom §7II"), lines);
+    }
+
+    @Test
     void rendersUnknownLabelForAStoredKeyAbsentFromTheCatalog() {
         CombatState state = new CombatState(Map.of("enchants/ghost", 2), List.of());
 

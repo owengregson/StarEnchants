@@ -84,7 +84,10 @@ public final class LoreRenderer {
             String level = style.roman() ? Numerals.roman(enchant.getValue()) : Integer.toString(enchant.getValue());
             String tierColor = enchantColorOf.apply(enchant.getKey());        // per-tier colour (ADR-0016 §2)
             String color = tierColor != null && !tierColor.isBlank() ? tierColor : style.enchantColor();
-            out.add(Colors.translate(color + name + " " + style.levelColor() + level));
+            // A BLANK level-color makes the level numeral inherit the name's (tier) colour (§L config option);
+            // otherwise the numeral uses its own fixed colour.
+            String levelColor = style.levelColor().isBlank() ? color : style.levelColor();
+            out.add(Colors.translate(color + name + " " + levelColor + level));
         }
         for (String crystalEntry : state.crystals()) {
             // A multi-crystal entry ("a+b", §E) lists both component names on one line.

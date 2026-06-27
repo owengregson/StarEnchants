@@ -134,6 +134,26 @@ class MasterConfigLoaderTest {
     }
 
     @Test
+    void blankLevelColorIsPreservedButAnAbsentKeyDefaults(@TempDir Path dir) throws Exception {
+        // A present-but-empty level-color is meaningful (the level inherits the tier colour), so it must NOT
+        // be coerced to the default the way a blank enchant-color would be.
+        Path blank = dir.resolve("blank.yml");
+        Files.writeString(blank, """
+                lore:
+                  level-color: ""
+                """);
+        assertEquals("", MasterConfigLoader.load(blank).lore().levelColor());
+
+        // An ABSENT level-color still falls back to the default.
+        Path absent = dir.resolve("absent.yml");
+        Files.writeString(absent, """
+                lore:
+                  enchant-color: "&3"
+                """);
+        assertEquals("&f", MasterConfigLoader.load(absent).lore().levelColor());
+    }
+
+    @Test
     void omittedSectionsFallBackToDefaults(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("config.yml");
         Files.writeString(file, """
