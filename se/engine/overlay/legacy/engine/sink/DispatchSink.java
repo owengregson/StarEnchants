@@ -807,30 +807,43 @@ public final class DispatchSink implements SinkReadback {
 
     @Override
     public void message(Player target, String message) {
-        entityOp(target, () -> target.sendMessage(message));
+        // Translate legacy '&' codes to '§' so feedback shows coloured, not literal "&c&l…" (mirrors
+        // applyGuardName above; behavioural mirror of the modern overlay).
+        String text = legacyColor(message);
+        entityOp(target, () -> target.sendMessage(text));
     }
 
     @Override
     public void actionBar(Player target, String message) {
-        // 1.8: no spigot()/Adventure — action bar is a chat packet with type byte 2.
+        // 1.8: no spigot()/Adventure — action bar is a chat packet with type byte 2. ChatComponentText
+        // renders '§' codes, so translate '&' → '§' first.
+        String text = legacyColor(message);
         entityOp(target, () -> sendPacket(target,
-                new PacketPlayOutChat(new ChatComponentText(message), (byte) 2)));
+                new PacketPlayOutChat(new ChatComponentText(text), (byte) 2)));
     }
 
     @Override
     public void title(Player target, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
         // 1.8: no 5-arg sendTitle — send the TIMES then the TITLE/SUBTITLE title packets directly.
+        // Translate '&' → '§' so colour codes render, not show literally.
+        String t = legacyColor(title);
+        String s = legacyColor(subtitle);
         entityOp(target, () -> {
             sendPacket(target, new PacketPlayOutTitle(fadeIn, stay, fadeOut));
-            if (title != null) {
+            if (t != null) {
                 sendPacket(target, new PacketPlayOutTitle(
-                        PacketPlayOutTitle.EnumTitleAction.TITLE, new ChatComponentText(title)));
+                        PacketPlayOutTitle.EnumTitleAction.TITLE, new ChatComponentText(t)));
             }
-            if (subtitle != null) {
+            if (s != null) {
                 sendPacket(target, new PacketPlayOutTitle(
-                        PacketPlayOutTitle.EnumTitleAction.SUBTITLE, new ChatComponentText(subtitle)));
+                        PacketPlayOutTitle.EnumTitleAction.SUBTITLE, new ChatComponentText(s)));
             }
         });
+    }
+
+    /** Legacy '&' → '§' colour translation, null-safe (some title/subtitle paths pass null). */
+    private static String legacyColor(String text) {
+        return text == null ? null : ChatColor.translateAlternateColorCodes('&', text);
     }
 
     @Override
