@@ -61,7 +61,7 @@ public final class SoulSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, soul-cost: 1, effects: ["POTION:POISON:1:80:@Victim"] }
+              1: { chance: 100, soul-cost: 1, effects: [{ POTION: { effect: POISON, level: 1, duration: 80, who: "@Victim" } }] }
             """;
 
     private final Plugin plugin;

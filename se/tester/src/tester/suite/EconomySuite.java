@@ -61,7 +61,7 @@ public final class EconomySuite implements Harness.Scenario {
             display: Bounty
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["MODIFY_MONEY:100:give"] }
+              1: { chance: 100, effects: [{ MODIFY_MONEY: { amount: 100, mode: give } }] }
             """;
 
     private final Plugin plugin;

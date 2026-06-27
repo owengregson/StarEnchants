@@ -55,7 +55,7 @@ public final class TeleportSuite implements Harness.Scenario {
             display: Blink
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["TELEPORT:VICTIM"] }
+              1: { chance: 100, effects: [{ TELEPORT: { to: VICTIM } }] }
             """;
 
     private final Plugin plugin;

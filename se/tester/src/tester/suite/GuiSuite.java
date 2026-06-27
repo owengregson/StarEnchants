@@ -51,8 +51,8 @@ public final class GuiSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
-              2: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
+              1: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 1 } }] }
+              2: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 2 } }] }
             """;
 
     private static final String KEY = "enchants/keen";

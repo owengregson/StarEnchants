@@ -58,7 +58,7 @@ public final class TriggerSuite implements Harness.Scenario {
             applies-to: [PICKAXE]
             trigger: MINE
             levels:
-              1: { chance: 100, effects: ["POTION:REGENERATION:1:80:@Self"] }
+              1: { chance: 100, effects: [{ POTION: { effect: REGENERATION, level: 1, duration: 80, who: "@Self" } }] }
             """;
 
     private static final String BACKLASH = """
@@ -66,7 +66,7 @@ public final class TriggerSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: BREAK
             levels:
-              1: { chance: 100, effects: ["POTION:SPEED:1:80:@Self"] }
+              1: { chance: 100, effects: [{ POTION: { effect: SPEED, level: 1, duration: 80, who: "@Self" } }] }
             """;
 
     private final Plugin plugin;
