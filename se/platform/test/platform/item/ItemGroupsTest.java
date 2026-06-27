@@ -1,5 +1,6 @@
 package platform.item;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -47,5 +48,16 @@ class ItemGroupsTest {
         assertTrue(groups.matches(Material.IRON_AXE, List.of("axe")));
         assertFalse(groups.matches(Material.DIAMOND_SWORD, List.of("BANANA")));
         assertFalse(groups.matches(Material.DIAMOND_SWORD, List.of()));
+    }
+
+    @Test
+    void kindsLabelTitleCasesAndSeriallyJoinsTokens() {
+        assertEquals("", ItemGroups.kindsLabel(List.of()));
+        assertEquals("Sword", ItemGroups.kindsLabel(List.of("SWORD")));
+        assertEquals("Sword & Axe", ItemGroups.kindsLabel(List.of("SWORD", "AXE")));
+        // 3+ → Oxford comma before the final item
+        assertEquals("Boots, Leggings, & Helmet", ItemGroups.kindsLabel(List.of("BOOTS", "LEGGINGS", "HELMET")));
+        // underscores become spaces, each word title-cased
+        assertEquals("Fishing Rod", ItemGroups.kindsLabel(List.of("FISHING_ROD")));
     }
 }

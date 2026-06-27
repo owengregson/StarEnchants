@@ -1,20 +1,33 @@
 # Enchant Book (docs/v3-directives.md §I) — the GENERAL likeness of EVERY enchant book. There is no
 # per-enchant book file: a specific book (from /se give book, the unopened/randomized book, combine, or a
 # drop) is minted from this one likeness with the enchant/level/success filled in. Reload with /se reload.
-# Placeholders: {ENCHANT} = the enchant's display name, {LEVEL} = the granted level, {SUCCESS} = the apply
-# success chance (only in success-lore, appended when the book has an explicit success chance),
-# {DESCRIPTION} = the enchant's own description (a {DESCRIPTION} line expands to one lore line per description
-# line, so a multi-line description renders in full; blank for an enchant with no description).
+# Placeholders (usable in name + lore):
+#   {ENCHANT}     = the enchant's display name
+#   {LEVEL}       = the granted level (Roman or Arabic per config.yml lore.roman)
+#   {TIER_COLOR}  = the enchant's rarity-tier colour code (from tiers.yml)
+#   {SUCCESS}     = the apply success chance (a guaranteed book shows 100)
+#   {FAILURE}     = 100 - {SUCCESS}
+#   {KINDS}       = the applies-to kinds, grammatically joined (e.g. "Sword & Axe", "Boots, Leggings, & Helmet")
+#   {DESCRIPTION} = the enchant's description, word-wrapped to `wrap` visible chars (colour codes don't count);
+#                   a {DESCRIPTION} line expands to one lore line per wrapped line, so it renders in full.
 type: enchant-book
 
 material: ENCHANTED_BOOK
-name: "{ENCHANT} &7Book"
+# Bold, tier-coloured "<Name> <Level>". (Colour first, then &l, so the bold actually sticks.)
+name: "{TIER_COLOR}&l{ENCHANT} {LEVEL}"
 lore:
-  - "&7{DESCRIPTION}"
-  - "&7Drag onto a held/worn item to apply &fLevel {LEVEL}&7."
-# Extra line(s) shown only when the book carries an explicit success chance (e.g. from an unopened book).
-success-lore:
-  - "&7Success chance: &f{SUCCESS}%"
+  - ""
+  - "{TIER_COLOR}{DESCRIPTION}"
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
+  - ""
+  - "&7{KINDS} Enchantment"
+  - "&7Drag n' Drop on an item to apply."
+# Word-wrap width (visible chars) for {DESCRIPTION}. Set 0 to disable wrapping.
+wrap: 30
+# The success/failure rate now lives in the main lore above, so success-lore is empty by default. Lines here
+# are appended only to a book minted with an explicit success chance (the unopened/randomized book).
+success-lore: []
 # When a sub-100% book FAILS its apply roll, destroy the gear — unless a White Scroll (items/white-scroll.yml)
 # guards it. Books that always succeed (success 100, e.g. /se book) never fail, so this only bites the
 # unopened/randomized books. Set false to make a failed apply harmless (the White Scroll then has no effect).

@@ -7,7 +7,6 @@ import feature.apply.ItemEnchanter;
 import item.mint.ItemFactory;
 import item.codec.CarrierCodec;
 import item.codec.CarrierData;
-import item.render.Descriptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +37,7 @@ public final class CarrierService {
     private final java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig;
     private final java.util.function.Supplier<compile.load.DustConfig> dustConfig;
     private final java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig;
+    private final java.util.function.BooleanSupplier roman; // §L lore.roman — book level numeral style, read live
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -52,11 +52,23 @@ public final class CarrierService {
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
     }
 
-    /** Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes them. */
+    /** Book-numeral-default form: likeness suppliers supplied; the book level numeral defaults to Roman. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
+        this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true);
+    }
+
+    /**
+     * Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes
+     * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style.
+     */
+    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
+                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
+                          java.util.function.Supplier<compile.load.DustConfig> dustConfig,
+                          java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig,
+                          java.util.function.BooleanSupplier roman) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -64,6 +76,7 @@ public final class CarrierService {
         this.bookConfig = Objects.requireNonNull(bookConfig, "bookConfig");
         this.dustConfig = Objects.requireNonNull(dustConfig, "dustConfig");
         this.whiteScrollConfig = Objects.requireNonNull(whiteScrollConfig, "whiteScrollConfig");
+        this.roman = Objects.requireNonNull(roman, "roman");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -180,7 +193,7 @@ public final class CarrierService {
 
     /**
      * Mint an enchant BOOK that applies at an explicit {@code successChance} (§I, the unopened/randomized
-     * book) — appends the success-lore and carries a base-success override.
+     * book) — the lore shows that success/failure rate and the book carries a base-success override.
      */
     public ItemStack mintBook(String enchantKey, int level, int successChance) {
         int chance = clampPercent(successChance);
@@ -189,45 +202,79 @@ public final class CarrierService {
         return stack;
     }
 
-    /** Build the visible book item from the general likeness (success {@code < 0} omits the success line). */
+    /**
+     * Build the visible book item from the configured spec (§I). {@code successChance < 0} (a plain guaranteed
+     * book) shows a 100% success rate; an explicit chance shows that. The name is the tier-coloured bold
+     * enchant + level; the lore is the word-wrapped description, the success/failure rate, the grammatically-
+     * joined applies-to kinds, and the drag-and-drop footer.
+     */
     private ItemStack bookLikeness(String enchantKey, int level, int successChance) {
         compile.load.EnchantBookConfig cfg = bookConfig.get();
+        EnchantDef def = enchantDef(enchantKey);
         String enchant = displayOf(enchantKey);
-        String display = cfg.name()
-                .replace("{ENCHANT}", enchant)
-                .replace("{LEVEL}", Integer.toString(level));
-        List<String> lore = bookLore(cfg, enchant, descriptionOf(enchantKey), level, successChance);
+        String tierColor = tierColorOf(enchantKey);
+        String levelText = levelNumeral(level);
+        int shown = successChance < 0 ? 100 : clampPercent(successChance);
+        String display = subBook(cfg.name(), enchant, levelText, tierColor, shown, def);
+        List<String> lore = bookLore(cfg, def, enchant, descriptionOf(enchantKey), tierColor, levelText,
+                successChance, shown);
         return ItemFactory.build(ItemFactory.material(cfg.material(), Material.ENCHANTED_BOOK), display, lore);
     }
 
     /**
-     * The raw (untranslated) book lore from the likeness; {@code success < 0} omits the success-lore lines. A
-     * {@code {DESCRIPTION}} line expands to the enchant's description — one lore line per source line, so a
-     * multi-line description renders as multiple lines rather than one entry carrying embedded newlines.
+     * The raw (untranslated) book lore from the likeness. A {@code {DESCRIPTION}} line expands to the enchant's
+     * description word-wrapped to {@code cfg.wrap()} visible chars — one lore entry per wrapped line, so the
+     * full description renders (never one entry with embedded newlines). {@code {SUCCESS}}/{@code {FAILURE}} show
+     * {@code shown}/(100−{@code shown}); the legacy {@code success-lore} block (empty by default) is appended
+     * only for an explicit-success book ({@code successChance >= 0}).
      */
-    private static List<String> bookLore(compile.load.EnchantBookConfig cfg, String enchant, String description,
-                                         int level, int success) {
+    private static List<String> bookLore(compile.load.EnchantBookConfig cfg, EnchantDef def, String enchant,
+                                         String description, String tierColor, String levelText,
+                                         int successChance, int shown) {
         List<String> lore = new ArrayList<>();
         for (String line : cfg.lore()) {
             if (line.contains("{DESCRIPTION}")) {
-                for (String descLine : Descriptions.lines(description)) {
-                    lore.add(subBook(line.replace("{DESCRIPTION}", descLine), enchant, level));
+                for (String descLine : item.render.TextWrap.wrap(description, cfg.wrap())) {
+                    lore.add(subBook(line.replace("{DESCRIPTION}", descLine), enchant, levelText, tierColor, shown, def));
                 }
             } else {
-                lore.add(subBook(line, enchant, level));
+                lore.add(subBook(line, enchant, levelText, tierColor, shown, def));
             }
         }
-        if (success >= 0) {
+        if (successChance >= 0) { // back-compat: a configured success-lore block still appends for explicit books
             for (String line : cfg.successLore()) {
-                lore.add(line.replace("{LEVEL}", Integer.toString(level))
-                        .replace("{SUCCESS}", Integer.toString(success)));
+                lore.add(subBook(line, enchant, levelText, tierColor, shown, def));
             }
         }
         return lore;
     }
 
-    private static String subBook(String line, String enchant, int level) {
-        return line.replace("{ENCHANT}", enchant).replace("{LEVEL}", Integer.toString(level));
+    /** Substitute every book placeholder in {@code line}. {@code def} may be {@code null} (unknown enchant). */
+    private static String subBook(String line, String enchant, String levelText, String tierColor, int shown,
+                                  EnchantDef def) {
+        String kinds = def == null ? "" : platform.item.ItemGroups.kindsLabel(def.appliesTo());
+        return line.replace("{ENCHANT}", enchant)
+                .replace("{LEVEL}", levelText)
+                .replace("{TIER_COLOR}", tierColor)
+                .replace("{TIER-COLOR}", tierColor) // tolerate either spelling
+                .replace("{SUCCESS}", Integer.toString(shown))
+                .replace("{FAILURE}", Integer.toString(100 - shown))
+                .replace("{KINDS}", kinds);
+    }
+
+    /** The enchant's rarity-tier colour code (e.g. {@code &e}), or grey ({@code &7}) for no/unknown tier. */
+    private String tierColorOf(String enchantKey) {
+        String tier = content.library().tierOf(enchantKey);
+        if (tier == null) {
+            return "&7";
+        }
+        compile.load.TierRegistry.Tier t = content.library().tiers().tier(tier);
+        return t != null && !t.color().isBlank() ? t.color() : "&7";
+    }
+
+    /** Render a level as a Roman numeral or Arabic number per the live {@code lore.roman} setting. */
+    private String levelNumeral(int level) {
+        return roman.getAsBoolean() ? item.render.Numerals.roman(level) : Integer.toString(level);
     }
 
     /** The enchant a book grants and at what level, or empty when {@code stack} is not an enchant book. */
@@ -365,8 +412,11 @@ public final class CarrierService {
             return;
         }
         int effective = effectiveSuccess(baseSuccessOf(data), data.successBonus());
-        List<String> raw = bookLore(bookConfig.get(), displayOf(data.grantKey()),
-                descriptionOf(data.grantKey()), data.grantLevel(), effective);
+        // A re-rendered book always has an explicit (effective) success — pass it as both the explicit chance
+        // and the shown value so the success/failure rate updates after a dust combine or reroll.
+        List<String> raw = bookLore(bookConfig.get(), enchantDef(data.grantKey()), displayOf(data.grantKey()),
+                descriptionOf(data.grantKey()), tierColorOf(data.grantKey()), levelNumeral(data.grantLevel()),
+                effective, effective);
         List<String> lore = new ArrayList<>(raw.size());
         for (String line : raw) {
             lore.add(color(line));
