@@ -99,9 +99,14 @@ public final class MenuSuite implements Harness.Scenario {
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
             // caps drives the cross-version title cap
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
-            // Admin browser (§K) — the 3-level tier → enchant → level drill-down.
+            // Admin browser (§K) — the 3-level tier → enchant → level drill-down. Use an EE-style book name
+            // (bold + underline) so the guard can prove the menu icon name mirrors the book's styling.
             CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
-            CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
+            compile.load.EnchantBookConfig underlined = new compile.load.EnchantBookConfig(
+                    "ENCHANTED_BOOK", "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}",
+                    compile.load.EnchantBookConfig.defaults().lore(), java.util.List.of(), false, 30);
+            CarrierService carriers = new CarrierService(
+                    carrierCodec, enchanter, holder, new Random(1), () -> underlined);
             adminMenu = new AdminBrowserMenu(holder, carriers, Capabilities.probe(plugin.getServer()));
             keenDef = holder.library().catalog().stream()
                     .filter(d -> d.key().equals("enchants/keen")).findFirst().orElseThrow();
@@ -166,9 +171,14 @@ public final class MenuSuite implements Harness.Scenario {
                         tierEnchants.setSelection("epic");
                         adminMenu.render(tierEnchants);
                         ItemStack enchIcon = tierEnchants.getInventory().getItem(0);
-                        if (enchIcon == null || !enchIcon.getItemMeta().getDisplayName().contains("Keen")) {
-                            throw new IllegalStateException("tier view should list the tier's enchants; slot0="
-                                    + (enchIcon == null ? "null" : enchIcon.getItemMeta().getDisplayName()));
+                        String enchName = enchIcon == null ? "null" : enchIcon.getItemMeta().getDisplayName();
+                        if (enchIcon == null || !enchName.contains("Keen")) {
+                            throw new IllegalStateException("tier view should list the tier's enchants; slot0=" + enchName);
+                        }
+                        // The icon name must mirror the book's name config — here bold (§l) + underline (§n).
+                        if (!enchName.contains("§l") || !enchName.contains("§n")) {
+                            throw new IllegalStateException(
+                                    "enchant icon name should carry the book's styling (§l§n); got: " + enchName);
                         }
                         // Drill into KEEN → one icon per level (KEEN declares a single level).
                         MenuHolder enchantLevels = new MenuHolder(adminMenu);

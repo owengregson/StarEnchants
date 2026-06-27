@@ -30,6 +30,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     static final String VIEW_ENCHANT = "enchant";
 
     private final ContentHolder content;
+    private final Supplier<String> nameTemplate; // the enchant-book name template — icons match the book (§I/§K)
 
     /** Default-layout form (tests/fixtures). */
     public EnchantsBrowserMenu(ContentHolder content, Capabilities caps) {
@@ -37,13 +38,19 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     }
 
     public EnchantsBrowserMenu(ContentHolder content, Capabilities caps, Supplier<MenusConfig> menus) {
-        this(content, caps, "enchants", "&3Enchants", menus);
+        this(content, caps, menus, () -> compile.load.EnchantBookConfig.defaults().name());
+    }
+
+    public EnchantsBrowserMenu(ContentHolder content, Capabilities caps, Supplier<MenusConfig> menus,
+                               Supplier<String> nameTemplate) {
+        this(content, caps, "enchants", "&3Enchants", menus, nameTemplate);
     }
 
     EnchantsBrowserMenu(ContentHolder content, Capabilities caps, String name, String title,
-                        Supplier<MenusConfig> menus) {
+                        Supplier<MenusConfig> menus, Supplier<String> nameTemplate) {
         super(name, MenuLayout.paged(title), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
+        this.nameTemplate = Objects.requireNonNull(nameTemplate, "nameTemplate");
     }
 
     @Override
@@ -68,7 +75,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
 
     @Override
     protected ItemStack icon(MenuHolder holder, Row row) {
-        return row.isTier() ? tierIcon(row.tier()) : enchantIcon(row.enchant(), content.library().tiers());
+        return row.isTier() ? tierIcon(row.tier()) : enchantIcon(row.enchant());
     }
 
     @Override
@@ -114,7 +121,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     }
 
     /** A rich enchant icon whose tooltip is the per-enchant detail (description, applies-to, level, §G). */
-    static ItemStack enchantIcon(EnchantDef def, TierRegistry tiers) {
+    private ItemStack enchantIcon(EnchantDef def) {
         List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
         lore.add("&8max level: &7" + def.maxLevel());
@@ -124,10 +131,11 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
         if (!def.blacklist().isEmpty()) {
             lore.add("&8conflicts: &7" + String.join(", ", def.blacklist()));
         }
-        // The name's base colour is the enchant's rarity tier (ADR-0016 §2), like the applied-gear lore; a
-        // display carrying its own leading colour code overrides it (EE displays are plain, so the tier shows).
-        return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"),
-                MenuText.tierColor(tiers, def.tier()) + def.display(), lore);
+        // The icon name is styled by the enchant-book name template (tier colour + any bold/underline), so it
+        // matches the unapplied book; level-less in the browser.
+        String name = MenuText.enchantName(nameTemplate.get(),
+                MenuText.tierColor(content.library().tiers(), def.tier()), def.display(), "");
+        return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"), name, lore);
     }
 
     /** The tier's legacy colour code (e.g. {@code &b}), or grey when the tier is unregistered. */
