@@ -55,7 +55,7 @@ public final class CrystalSuite implements Harness.Scenario {
             display: Jolt
             trigger: ATTACK
             chance: 100
-            effects: ["POTION:POISON:1:80:@Victim"]
+            effects: [{ POTION: { effect: POISON, level: 1, duration: 80, who: "@Victim" } }]
             """;
 
     private final Plugin plugin;

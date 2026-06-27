@@ -51,9 +51,9 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["IGNITE:40:@Victim"] }
-              2: { chance: 100, effects: ["IGNITE:40:@Victim"] }
-              3: { chance: 100, effects: ["IGNITE:40:@Victim"] }
+              1: { chance: 100, effects: [{ IGNITE: { duration: 40, who: "@Victim" } }] }
+              2: { chance: 100, effects: [{ IGNITE: { duration: 40, who: "@Victim" } }] }
+              3: { chance: 100, effects: [{ IGNITE: { duration: 40, who: "@Victim" } }] }
             """;
     private static final String TOUGH = """
             display: "&aTough"
@@ -61,7 +61,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["IGNITE:40:@Victim"] }
+              1: { chance: 100, effects: [{ IGNITE: { duration: 40, who: "@Victim" } }] }
             """;
 
     private static final String[] KEYS = {

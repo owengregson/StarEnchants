@@ -38,7 +38,7 @@ public final class CarrierSuite implements Harness.Scenario {
             trigger: ATTACK
             applies-to: [SWORD]
             levels:
-              1: { chance: 100, effects: ["IGNITE:40:@Victim"] }
+              1: { chance: 100, effects: [{ IGNITE: { duration: 40, who: "@Victim" } }] }
             """;
 
     private static final String[] KEYS = {

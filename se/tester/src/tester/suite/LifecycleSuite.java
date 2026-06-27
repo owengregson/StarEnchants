@@ -56,7 +56,7 @@ public final class LifecycleSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: HELD
             levels:
-              1: { chance: 100, effects: ["POTION:SPEED:1:1000000:@Self"] }
+              1: { chance: 100, effects: [{ POTION: { effect: SPEED, level: 1, duration: 1000000, who: "@Self" } }] }
             """;
 
     private static final String SURGE = """
@@ -64,7 +64,7 @@ public final class LifecycleSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: COMMAND
             levels:
-              1: { chance: 100, effects: ["POTION:REGENERATION:1:200:@Self"] }
+              1: { chance: 100, effects: [{ POTION: { effect: REGENERATION, level: 1, duration: 200, who: "@Self" } }] }
             """;
 
     private final Plugin plugin;

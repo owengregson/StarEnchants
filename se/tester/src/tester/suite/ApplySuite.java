@@ -31,9 +31,9 @@ public final class ApplySuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
-              2: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
-              3: { chance: 100, effects: ["MODIFY_HEALTH:3"] }
+              1: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 1 } }] }
+              2: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 2 } }] }
+              3: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 3 } }] }
             """;
 
     private static final String SPARK = """
@@ -41,7 +41,7 @@ public final class ApplySuite implements Harness.Scenario {
             applies-to: [WEAPON]
             trigger: ATTACK
             chance: 100
-            effects: ["MODIFY_HEALTH:1"]
+            effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             """;
 
     private static final String BASE = """
@@ -49,7 +49,7 @@ public final class ApplySuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
+              1: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 1 } }] }
             """;
 
     // §G removes-required: requires Base and strips it on apply (net-zero slot).
@@ -60,7 +60,7 @@ public final class ApplySuite implements Harness.Scenario {
             requires: ["enchants/base"]
             removes-required: true
             levels:
-              1: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
+              1: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 2 } }] }
             """;
 
     // §6.6 set: 4 armour members complete the bonus; the weapon member adds its own while the set is held.
@@ -75,13 +75,13 @@ public final class ApplySuite implements Harness.Scenario {
                 leggings:   { material: DIAMOND_LEGGINGS,   name: "&bTitan Leggings" }
                 boots:      { material: DIAMOND_BOOTS,      name: "&bTitan Boots" }
               trigger: DEFENSE
-              effects: ["MODIFY_HEALTH:1"]
+              effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             weapon:
               material: DIAMOND_SWORD
               name: "&bTitan Blade"
               lore: ["&7Titan Weapon"]
               trigger: ATTACK
-              effects: ["MODIFY_HEALTH:1"]
+              effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             """;
 
     private final Plugin plugin;

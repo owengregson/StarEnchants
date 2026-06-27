@@ -95,8 +95,8 @@ public final class LegacySmokeSuite implements Harness.Scenario {
             applies-to: [SWORD]
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["MODIFY_HEALTH:1"] }
-              2: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
+              1: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 1 } }] }
+              2: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 2 } }] }
             """;
 
     // §6.6 set with NETHERITE armour: on 1.8 those materials do not exist, so minting must DEGRADE them to the
@@ -111,14 +111,14 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 leggings:   { material: NETHERITE_LEGGINGS,   name: "&bVanguard Leggings" }
                 boots:      { material: NETHERITE_BOOTS,      name: "&bVanguard Boots" }
               trigger: DEFENSE
-              effects: ["MODIFY_HEALTH:1"]
+              effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             """;
 
     private static final String VENOM = """
             display: Venom
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["POTION:POISON:1:80:@Victim"] }
+              1: { chance: 100, effects: [{ POTION: { effect: POISON, level: 1, duration: 80, who: "@Victim" } }] }
             """;
 
     private final Plugin plugin;

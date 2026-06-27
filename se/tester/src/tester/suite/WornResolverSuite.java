@@ -40,9 +40,9 @@ public final class WornResolverSuite implements Harness.Scenario {
             display: Lifesteal
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["MODIFY_HEALTH:2"] }
-              2: { chance: 100, effects: ["MODIFY_HEALTH:4"] }
-              3: { chance: 100, effects: ["MODIFY_HEALTH:6"] }
+              1: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 2 } }] }
+              2: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 4 } }] }
+              3: { chance: 100, effects: [{ MODIFY_HEALTH: { amount: 6 } }] }
             """;
 
     private final Plugin plugin;

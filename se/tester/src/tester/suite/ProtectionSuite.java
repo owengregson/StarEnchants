@@ -56,7 +56,7 @@ public final class ProtectionSuite implements Harness.Scenario {
             display: Venom
             trigger: ATTACK
             levels:
-              1: { chance: 100, effects: ["POTION:POISON:1:80:@Victim"] }
+              1: { chance: 100, effects: [{ POTION: { effect: POISON, level: 1, duration: 80, who: "@Victim" } }] }
             """;
 
     private final Plugin plugin;
