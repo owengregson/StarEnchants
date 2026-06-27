@@ -1,7 +1,6 @@
 package feature.menu;
 
 import compile.load.ContentHolder;
-import compile.load.TierRegistry;
 import feature.book.UnopenedBookService;
 import item.lang.Messages;
 import item.mint.ItemFactory;
@@ -68,8 +67,7 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
     }
 
     private String tierColor(String tier) {
-        TierRegistry.Tier t = content.library().tiers().tier(tier);
-        return t != null && !t.color().isBlank() ? t.color() : "&7";
+        return MenuText.tierColor(content.library().tiers(), tier);
     }
 
     private static String capitalize(String s) {

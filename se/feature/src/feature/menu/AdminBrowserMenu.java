@@ -51,14 +51,12 @@ public final class AdminBrowserMenu extends PagedMenu<EnchantDef> {
 
     @Override
     protected ItemStack icon(MenuHolder holder, EnchantDef def) {
-        List<String> lore = new ArrayList<>();
-        if (!def.description().isBlank()) {
-            lore.add("&7" + def.description());
-        }
+        List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
         lore.add("&8max level: &7" + def.maxLevel());
         lore.add("&aClick to receive a guaranteed book.");
-        return ItemFactory.build(EnchantsBrowserMenu.bookMaterial(), def.display(), lore);
+        String name = MenuText.tierColor(content.library().tiers(), def.tier()) + def.display();
+        return ItemFactory.build(EnchantsBrowserMenu.bookMaterial(), name, lore);
     }
 
     @Override

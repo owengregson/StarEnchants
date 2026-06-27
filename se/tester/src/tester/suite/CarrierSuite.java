@@ -35,6 +35,9 @@ public final class CarrierSuite implements Harness.Scenario {
 
     private static final String ZAP = """
             display: "&eZap"
+            description:
+              - "&7Ignites the foe and"
+              - "&7burns for a while."
             trigger: ATTACK
             applies-to: [SWORD]
             levels:
@@ -42,7 +45,7 @@ public final class CarrierSuite implements Harness.Scenario {
             """;
 
     private static final String[] KEYS = {
-        "carrier.book.applies", "carrier.book.stackGuard", "carrier.book.destroyOnFail",
+        "carrier.book.applies", "carrier.book.showsDescription", "carrier.book.stackGuard", "carrier.book.destroyOnFail",
         "carrier.scroll.whiteScrollProtects", "carrier.dust.fixedBoostsBook", "carrier.dust.cappedAndIdempotent",
         "carrier.dust.boostedBookApplies", "carrier.dust.rejectsNonBook", "carrier.dust.gestureEligibility",
         "carrier.dust.randomInRange",
@@ -98,6 +101,20 @@ public final class CarrierSuite implements Harness.Scenario {
             CombatState state = combat.read(sword);
             if (state == null || !state.enchants().containsKey("enchants/zap")) {
                 throw new IllegalStateException("the sword did not gain enchants/zap: " + state);
+            }
+        });
+
+        h.guard("carrier.book.showsDescription", () -> {
+            // The book's lore renders the enchant's own description via the {DESCRIPTION} likeness line — each
+            // description line as its OWN lore entry (the newlines must split, not crowd onto one line).
+            ItemStack book = carriers.mintBook("enchants/zap", 1);
+            org.bukkit.inventory.meta.ItemMeta meta = book.getItemMeta();
+            List<String> bookLore = meta == null ? null : meta.getLore();
+            long descLines = bookLore == null ? 0 : bookLore.stream()
+                    .filter(l -> l.contains("Ignites the foe") || l.contains("burns for a while")).count();
+            if (descLines != 2) {
+                throw new IllegalStateException(
+                        "the book should render the enchant description as separate lore lines; lore=" + bookLore);
             }
         });
 

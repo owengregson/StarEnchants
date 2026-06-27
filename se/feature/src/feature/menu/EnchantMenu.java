@@ -6,15 +6,14 @@ import compile.load.MenusConfig;
 import feature.apply.ApplyResult;
 import feature.compat.Hands;
 import feature.apply.ItemEnchanter;
+import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import platform.caps.Capabilities;
 
 /**
@@ -63,37 +62,14 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     }
 
     @Override
-    @SuppressWarnings("deprecation") // setDisplayName/setLore(String): the floor-stable item-meta path
     protected ItemStack icon(MenuHolder holder, EnchantDef def) {
-        ItemStack item = new ItemStack(iconMaterial());
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(def.display());
-            List<String> lore = new ArrayList<>();
-            if (!def.description().isBlank()) {
-                lore.add("§7" + def.description());
-            }
-            lore.add("§8applies to: §7" + String.join(", ", def.appliesTo()));
-            lore.add("§8max level: §7" + def.maxLevel());
-            lore.add("§eClick to apply to your held item.");
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    /** Resolved by name, never a hard constant (cross-version-safe). */
-    private static Material iconMaterial() {
-        return firstMaterial("ENCHANTED_BOOK", "BOOK", "PAPER");
-    }
-
-    private static Material firstMaterial(String... names) {
-        for (String name : names) {
-            Material material = Material.getMaterial(name);
-            if (material != null) {
-                return material;
-            }
-        }
-        return Material.STONE; // present on every version
+        List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
+        lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
+        lore.add("&8max level: &7" + def.maxLevel());
+        lore.add("&eClick to apply to your held item.");
+        // The name's base colour is the enchant's rarity tier (ADR-0016 §2), like the applied-gear lore; a
+        // display that carries its own leading colour code overrides it (EE displays are plain, so the tier shows).
+        String name = MenuText.tierColor(content.library().tiers(), def.tier()) + def.display();
+        return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"), name, lore);
     }
 }

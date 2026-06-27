@@ -68,7 +68,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
 
     @Override
     protected ItemStack icon(MenuHolder holder, Row row) {
-        return row.isTier() ? tierIcon(row.tier()) : enchantIcon(row.enchant());
+        return row.isTier() ? tierIcon(row.tier()) : enchantIcon(row.enchant(), content.library().tiers());
     }
 
     @Override
@@ -114,11 +114,8 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     }
 
     /** A rich enchant icon whose tooltip is the per-enchant detail (description, applies-to, level, §G). */
-    static ItemStack enchantIcon(EnchantDef def) {
-        List<String> lore = new ArrayList<>();
-        if (!def.description().isBlank()) {
-            lore.add("&7" + def.description());
-        }
+    static ItemStack enchantIcon(EnchantDef def, TierRegistry tiers) {
+        List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
         lore.add("&8max level: &7" + def.maxLevel());
         if (!def.requires().isEmpty()) {
@@ -127,13 +124,15 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
         if (!def.blacklist().isEmpty()) {
             lore.add("&8conflicts: &7" + String.join(", ", def.blacklist()));
         }
-        return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"), def.display(), lore);
+        // The name's base colour is the enchant's rarity tier (ADR-0016 §2), like the applied-gear lore; a
+        // display carrying its own leading colour code overrides it (EE displays are plain, so the tier shows).
+        return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"),
+                MenuText.tierColor(tiers, def.tier()) + def.display(), lore);
     }
 
     /** The tier's legacy colour code (e.g. {@code &b}), or grey when the tier is unregistered. */
     private String tierColor(String tier) {
-        TierRegistry.Tier t = content.library().tiers().tier(tier);
-        return t != null && !t.color().isBlank() ? t.color() : "&7";
+        return MenuText.tierColor(content.library().tiers(), tier);
     }
 
     private static String capitalize(String s) {

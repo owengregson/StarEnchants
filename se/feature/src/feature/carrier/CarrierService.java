@@ -7,6 +7,7 @@ import feature.apply.ItemEnchanter;
 import item.mint.ItemFactory;
 import item.codec.CarrierCodec;
 import item.codec.CarrierData;
+import item.render.Descriptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -195,15 +196,26 @@ public final class CarrierService {
         String display = cfg.name()
                 .replace("{ENCHANT}", enchant)
                 .replace("{LEVEL}", Integer.toString(level));
-        List<String> lore = bookLore(cfg, enchant, level, successChance);
+        List<String> lore = bookLore(cfg, enchant, descriptionOf(enchantKey), level, successChance);
         return ItemFactory.build(ItemFactory.material(cfg.material(), Material.ENCHANTED_BOOK), display, lore);
     }
 
-    /** The raw (untranslated) book lore from the likeness; {@code success < 0} omits the success-lore lines. */
-    private static List<String> bookLore(compile.load.EnchantBookConfig cfg, String enchant, int level, int success) {
+    /**
+     * The raw (untranslated) book lore from the likeness; {@code success < 0} omits the success-lore lines. A
+     * {@code {DESCRIPTION}} line expands to the enchant's description — one lore line per source line, so a
+     * multi-line description renders as multiple lines rather than one entry carrying embedded newlines.
+     */
+    private static List<String> bookLore(compile.load.EnchantBookConfig cfg, String enchant, String description,
+                                         int level, int success) {
         List<String> lore = new ArrayList<>();
         for (String line : cfg.lore()) {
-            lore.add(line.replace("{ENCHANT}", enchant).replace("{LEVEL}", Integer.toString(level)));
+            if (line.contains("{DESCRIPTION}")) {
+                for (String descLine : Descriptions.lines(description)) {
+                    lore.add(subBook(line.replace("{DESCRIPTION}", descLine), enchant, level));
+                }
+            } else {
+                lore.add(subBook(line, enchant, level));
+            }
         }
         if (success >= 0) {
             for (String line : cfg.successLore()) {
@@ -212,6 +224,10 @@ public final class CarrierService {
             }
         }
         return lore;
+    }
+
+    private static String subBook(String line, String enchant, int level) {
+        return line.replace("{ENCHANT}", enchant).replace("{LEVEL}", Integer.toString(level));
     }
 
     /** The enchant a book grants and at what level, or empty when {@code stack} is not an enchant book. */
@@ -349,7 +365,8 @@ public final class CarrierService {
             return;
         }
         int effective = effectiveSuccess(baseSuccessOf(data), data.successBonus());
-        List<String> raw = bookLore(bookConfig.get(), displayOf(data.grantKey()), data.grantLevel(), effective);
+        List<String> raw = bookLore(bookConfig.get(), displayOf(data.grantKey()),
+                descriptionOf(data.grantKey()), data.grantLevel(), effective);
         List<String> lore = new ArrayList<>(raw.size());
         for (String line : raw) {
             lore.add(color(line));
@@ -367,6 +384,12 @@ public final class CarrierService {
     private String displayOf(String enchantKey) {
         String name = content.library().displayNameOf(enchantKey);
         return name != null ? name : enchantKey;
+    }
+
+    /** The description for an enchant key (for a book's {@code {DESCRIPTION}} line), or empty if none/unknown. */
+    private String descriptionOf(String enchantKey) {
+        EnchantDef def = enchantDef(enchantKey);
+        return def != null ? def.description() : "";
     }
 
     /** A base success chance plus an accumulated bonus, clamped to {@code [0, 100]}. */

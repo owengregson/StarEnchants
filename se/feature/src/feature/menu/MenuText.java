@@ -1,5 +1,8 @@
 package feature.menu;
 
+import compile.load.TierRegistry;
+import item.render.Descriptions;
+import java.util.List;
 import org.bukkit.ChatColor;
 import platform.caps.Capabilities;
 
@@ -14,6 +17,25 @@ public final class MenuText {
     static final int LEGACY_TITLE_LIMIT = 32;
 
     private MenuText() {
+    }
+
+    /** A tier's legacy colour code (e.g. {@code &e}), or grey ({@code &7}) when the tier is null/unregistered. */
+    public static String tierColor(TierRegistry tiers, String tier) {
+        if (tier == null) {
+            return "&7";
+        }
+        TierRegistry.Tier t = tiers.tier(tier);
+        return t != null && !t.color().isBlank() ? t.color() : "&7";
+    }
+
+    /**
+     * A (possibly multi-line) description as lore lines, each prefixed with {@code defaultColor} so an
+     * uncoloured line gets a sensible colour and a line carrying its own {@code &} code overrides it. Empty for
+     * a blank description. Splitting here (not one lore entry with embedded {@code '\n'}) is what makes the
+     * newlines render — item lore is a list of lines ({@link Descriptions}).
+     */
+    public static List<String> describe(String description, String defaultColor) {
+        return Descriptions.lines(description).stream().map(line -> defaultColor + line).toList();
     }
 
     /** Translate {@code &} codes and truncate to the server's safe title length. */

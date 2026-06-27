@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 import platform.caps.Capabilities;
@@ -51,5 +52,19 @@ class MenuTextTest {
     void nullCapsDegradesToTheConservativeCap() {
         // A pure context with no probe (caps == null) must still apply the safe 32-char cap.
         assertEquals(32, MenuText.title("y".repeat(50), null).length());
+    }
+
+    @Test
+    void describeSplitsEachDescriptionLineAndPrefixesIt() {
+        // A multi-line description becomes one lore entry PER line (so the newlines render), each carrying the
+        // default colour — a blank separator line is kept (becomes just the colour code).
+        assertEquals(List.of("&7&eIntro", "&7", "&7&e&lI: 5%"),
+                MenuText.describe("&eIntro\n\n&e&lI: 5%", "&7"));
+    }
+
+    @Test
+    void describeIsEmptyForABlankDescription() {
+        assertTrue(MenuText.describe("", "&7").isEmpty());
+        assertTrue(MenuText.describe(null, "&7").isEmpty());
     }
 }
