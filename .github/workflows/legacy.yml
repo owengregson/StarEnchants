@@ -17,6 +17,9 @@ on:
       - 'build.gradle.kts'
       - 'scripts/build-legacy-jar.sh'
       - 'scripts/legacy-smoke.sh'
+      - 'scripts/jdk8-api-gate.sh'
+      - 'scripts/jdk8-api-gate.allow'
+      - 'scripts/tools/**'
       - '.github/workflows/legacy.yml'
   pull_request:
     paths:
@@ -27,6 +30,9 @@ on:
       - 'build.gradle.kts'
       - 'scripts/build-legacy-jar.sh'
       - 'scripts/legacy-smoke.sh'
+      - 'scripts/jdk8-api-gate.sh'
+      - 'scripts/jdk8-api-gate.allow'
+      - 'scripts/tools/**'
       - '.github/workflows/legacy.yml'
   workflow_dispatch:
 
