@@ -32,6 +32,27 @@ versioning: [Semantic Versioning](https://semver.org/).
   runtime, derived via a multi-lens design workshop) and ADRs 0011 (architecture),
   0012 (fully-additive damage), 0013 (single `/se` command root).
 
+## [1.1.3-beta] - 2026-06-27
+
+### Added
+
+- **Enchant descriptions now render on the enchant book.** The general enchant-book likeness
+  (`items/enchant-book.yml`) gained a `{DESCRIPTION}` placeholder that expands to the enchant's own
+  description — one lore line per description line — so an unapplied book shows what it does, not
+  just how to apply it.
+
+### Fixed
+
+- **Tier colours and multi-line descriptions in the lore (EE pack).** Enchant and crystal names in
+  the browse/apply/admin GUIs now render in their rarity-tier colour (epic, legendary, …), matching
+  the applied-gear lore. Multi-line descriptions now render as multiple lore lines everywhere
+  instead of being crammed onto one line: the importers (EliteEnchantments + AdvancedEnchantments)
+  join each source description line with a newline rather than a space, the migrator writes them as
+  a readable YAML list, and every render site (menu icons + the enchant book) splits on the newline
+  (item lore is a list of lines, so an embedded `\n` does not render as a break across the version
+  range). All 122 shipped `elite-enchantments` descriptions were regenerated into the multi-line
+  form.
+
 ## [1.1.2-beta] - 2026-06-26
 
 ### Fixed
