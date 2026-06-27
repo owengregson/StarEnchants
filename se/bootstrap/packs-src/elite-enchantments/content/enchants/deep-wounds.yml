@@ -10,17 +10,17 @@ levels:
     chance: 1.75
     cooldown: 5
     effects:
-      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 3
     cooldown: 5
     effects:
-      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 5
     cooldown: 5
     effects:
-      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

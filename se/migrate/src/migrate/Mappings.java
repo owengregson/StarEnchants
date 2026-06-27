@@ -72,6 +72,19 @@ public final class Mappings {
     }
 
     /**
+     * An EE particle token → a Minecraft particle name. Genuine renames (SMOKE_LARGE → LARGE_SMOKE) are left to
+     * the runtime resolver's cross-version aliases; only EE's vanity names with no Minecraft equivalent are
+     * translated here, so they resolve to a real handle instead of erroring on every server.
+     */
+    private static String eeParticle(String name) {
+        String norm = name == null ? "" : name.trim().toUpperCase(Locale.ROOT);
+        return switch (norm) {
+            case "BLEED" -> "DAMAGE_INDICATOR"; // the dark-red "hurt" particle — faithful to a bleed effect
+            default -> norm;
+        };
+    }
+
+    /**
      * Map a legacy enchant type to a StarEnchants trigger, or {@code null} if it has no equivalent. EE's
      * {@code REPEATING} / {@code REPEATING-<seconds>} both map to the {@code REPEATING} trigger (the period
      * is read separately by {@link #repeatTicks}).
@@ -227,14 +240,22 @@ public final class Mappings {
                         ? MigratedEffect.mapped(token, "REMOVE_POTION:" + parts[1].trim() + ":@Self",
                                 "EE CURE → REMOVE_POTION (self)")
                         : MigratedEffect.todo(token, "unexpected CURE arg shape");
-                // PARTICLE:TYPE[:...] → PARTICLE:<type> at the activation location. An EE block-crack/compound
-                // particle (BLOCK_BREAK;MATERIAL, bleed) has no block-data SE form, so it lowers to a thematic
-                // generic (CRIT) — cosmetic-only, faithful in spirit.
-                case "PARTICLE" -> (parts.length >= 2 && !parts[1].contains(";"))
-                        ? MigratedEffect.mapped(token, "PARTICLE:" + parts[1].trim(),
-                                "EE particle target dropped (SE spawns at the activation location)")
-                        : MigratedEffect.mapped(token, "PARTICLE:CRIT:7",
-                                "EE compound/block-crack particle → a thematic generic (cosmetic only)");
+                // PARTICLE:TYPE[:...] → PARTICLE:<type> at the activation location. A simple name passes through
+                // (the resolver's cross-version aliases handle genuine renames like SMOKE_LARGE), but EE vanity
+                // names with no Minecraft equivalent (BLEED) are remapped to a real particle here — else the token
+                // is an unknown handle on every server. An EE block-crack/compound particle (BLOCK_BREAK;MATERIAL)
+                // has no block-data SE form, so it lowers to a thematic generic (CRIT) — cosmetic-only.
+                case "PARTICLE" -> {
+                    if (parts.length >= 2 && !parts[1].contains(";")) {
+                        String se = eeParticle(parts[1]);
+                        boolean remapped = !se.equals(parts[1].trim().toUpperCase(Locale.ROOT));
+                        yield MigratedEffect.mapped(token, "PARTICLE:" + se, remapped
+                                ? "EE vanity particle '" + parts[1].trim() + "' → " + se + " (cosmetic); target dropped"
+                                : "EE particle target dropped (SE spawns at the activation location)");
+                    }
+                    yield MigratedEffect.mapped(token, "PARTICLE:CRIT:7",
+                            "EE compound/block-crack particle → a thematic generic (cosmetic only)");
+                }
                 // SOUND:NAME:VOLUME[:PITCH] → SOUND:name:volume:pitch (pitch defaults to 1).
                 case "SOUND" -> parts.length >= 3
                         ? MigratedEffect.mapped(token, "SOUND:" + parts[1].trim() + ":" + numArg(parts[2])

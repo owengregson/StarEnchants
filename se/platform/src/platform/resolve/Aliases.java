@@ -79,11 +79,14 @@ public final class Aliases {
             Map.entry("EXPLODE", "ENTITY_GENERIC_EXPLODE"),
             Map.entry("LEVEL_UP", "ENTITY_PLAYER_LEVELUP"),
             Map.entry("ANVIL_LAND", "BLOCK_ANVIL_LAND"),
+            Map.entry("ENDERDRAGON_GROWL", "ENTITY_ENDER_DRAGON_GROWL"),
             Map.entry("WITHER_SPAWN", "ENTITY_WITHER_SPAWN"));
 
     private static final Map<String, String> PARTICLE = Map.ofEntries(
             Map.entry("SPELL_WITCH", "WITCH"),
             Map.entry("VILLAGER_HAPPY", "HAPPY_VILLAGER"),
+            Map.entry("SMOKE_NORMAL", "SMOKE"),
+            Map.entry("SMOKE_LARGE", "LARGE_SMOKE"),
             Map.entry("REDSTONE", "DUST"));
 
     /** The alias map for a category (empty if none registered). */

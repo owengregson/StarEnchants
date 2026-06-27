@@ -32,6 +32,21 @@ versioning: [Semantic Versioning](https://semver.org/).
   runtime, derived via a multi-lens design workshop) and ADRs 0011 (architecture),
   0012 (fully-additive damage), 0013 (single `/se` command root).
 
+## [1.1.2-beta] - 2026-06-26
+
+### Fixed
+
+- **Shipped `elite-enchantments` pack erroring on every affected enchant.** The EE port carried two
+  handle tokens no live server can resolve, so every enchant using them logged `E_UNKNOWN_HANDLE`
+  and lost the effect: the EE-only `BLEED` particle (no Minecraft equivalent) and the pre-1.13
+  `ENDERDRAGON_GROWL` sound. `BLEED` now maps to the real `DAMAGE_INDICATOR` particle (in the pack
+  and in the migrator's particle vocabulary, so re-imports stay clean), and `ENDERDRAGON_GROWL` →
+  `ENTITY_ENDER_DRAGON_GROWL` is registered in the cross-version `Aliases` (with the `SMOKE_LARGE`/
+  `SMOKE_NORMAL` particle renames the same EE vocabulary uses). The `ElitePackValidationTest` now
+  resolves material/sound/particle/entity/attribute tokens *strictly* against the floor (1.17.1)
+  Bukkit enums, so an unresolvable handle in the shipped pack fails `./gradlew build` instead of
+  surfacing only at runtime.
+
 ## [1.1.1-beta] - 2026-06-26
 
 ### Changed

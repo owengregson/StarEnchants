@@ -187,6 +187,8 @@ class MigratorTest {
         assertEquals("REMOVE_POTION:POISON:@Self", Mappings.effect("CURE:POISON:true").se());
         assertEquals("SOUND:ENTITY_GENERIC_EXPLODE:2:5", Mappings.effect("SOUND:ENTITY_GENERIC_EXPLODE:2:5").se());
         assertEquals("PARTICLE:FLAME", Mappings.effect("PARTICLE:FLAME").se());
+        assertEquals("PARTICLE:DAMAGE_INDICATOR", Mappings.effect("PARTICLE:BLEED:TARGET").se()); // EE vanity name → real
+        assertEquals("PARTICLE:CRIT:7", Mappings.effect("PARTICLE:BLOCK_BREAK;CACTUS:PLAYER").se()); // compound → generic
         assertEquals("DURABILITY:10:item:restore", Mappings.effect("ADD_DURABILITY:10").se());
         assertEquals("DURABILITY:2:armor:damage:@Victim", Mappings.effect("DAMAGE_ARMOR:2").se());
         assertEquals("DAMAGE:3.25:@Aoe", Mappings.effect("DAMAGE_ARC:3.25").se());               // decimal arc damage

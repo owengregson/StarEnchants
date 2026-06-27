@@ -13,26 +13,61 @@ import engine.boot.ContentCompiler;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.OptionalInt;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.EntityType;
 import org.junit.jupiter.api.Test;
+import platform.resolve.Aliases;
+import platform.resolve.HandleResolver;
 import schema.diag.Diagnostic;
+import schema.spec.HandleCategory;
 
 /**
  * The shipped {@code elite-enchantments} config pack (ADR-0023) must compile clean through the real
  * registries, like {@link CatalogValidationTest} guards the default catalog — so a broken EE port can
- * never ship. Tokens resolve permissively (no server); the live suites own handle existence.
+ * never ship.
+ *
+ * <p>Unlike the default-catalog test, handle tokens here resolve <em>strictly</em>: each material/sound/
+ * particle/entity/attribute token must exist in the floor ({@code 1.17.1}) Bukkit enums — through the
+ * production {@link HandleResolver} + {@link Aliases}, exactly as the runtime resolves them. This is what
+ * turns "the EE port loaded an EE-only token that no server has" (e.g. the {@code BLEED} particle, the
+ * pre-flattening {@code ENDERDRAGON_GROWL} sound) from a silent runtime {@code E_UNKNOWN_HANDLE} on every
+ * enchant into an offline build failure. Floor enums are the strictest universe (shipped content must run on
+ * the floor too), and they are plain enums on 1.17.1 so resolution needs no server. Registry-backed handles
+ * (potion effects, enchantments) stay permissive offline — their existence is owned by the live matrix.
  */
 class ElitePackValidationTest {
 
-    private static final PlatformResolvers PERMISSIVE = new PlatformResolvers() {
-        @Override public OptionalInt material(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt sound(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt potionEffect(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt particle(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt enchantment(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt entityType(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt attribute(String token) { return OptionalInt.of(0); }
+    private static final PlatformResolvers STRICT = new PlatformResolvers() {
+        @Override public OptionalInt material(String t) { return strict(HandleCategory.MATERIAL, t, n -> enumExists(Material.class, n)); }
+        @Override public OptionalInt sound(String t) { return strict(HandleCategory.SOUND, t, n -> enumExists(Sound.class, n)); }
+        @Override public OptionalInt particle(String t) { return strict(HandleCategory.PARTICLE, t, n -> enumExists(Particle.class, n)); }
+        @Override public OptionalInt entityType(String t) { return strict(HandleCategory.ENTITY_TYPE, t, n -> enumExists(EntityType.class, n)); }
+        @Override public OptionalInt attribute(String t) { return strict(HandleCategory.ATTRIBUTE, t, n -> enumExists(Attribute.class, n)); }
+        // Registry-backed handles can't be enumerated without a live server → permissive offline, live-owned.
+        @Override public OptionalInt potionEffect(String t) { return OptionalInt.of(0); }
+        @Override public OptionalInt enchantment(String t) { return OptionalInt.of(0); }
     };
+
+    /** Resolve {@code token} the way the runtime does, but against the given floor-enum existence test. */
+    private static OptionalInt strict(HandleCategory category, String token, Predicate<String> exists) {
+        return HandleResolver.resolve(token, Aliases.forCategory(category), exists).isPresent()
+                ? OptionalInt.of(0)
+                : OptionalInt.empty();
+    }
+
+    private static <E extends Enum<E>> boolean enumExists(Class<E> type, String name) {
+        try {
+            Enum.valueOf(type, name);
+            return true;
+        } catch (IllegalArgumentException notAConstant) {
+            return false;
+        }
+    }
 
     private static final Path PACK = Path.of("packs-src/elite-enchantments");
 
@@ -41,7 +76,7 @@ class ElitePackValidationTest {
         Path content = PACK.resolve("content");
         assertTrue(Files.isDirectory(content), "EE pack content not found from " + Path.of("").toAbsolutePath());
 
-        Compiler compiler = ContentCompiler.production(PERMISSIVE);
+        Compiler compiler = ContentCompiler.production(STRICT);
         Library library = LibraryLoader.load(content, compiler, 0);
 
         String blocking = library.diagnostics().stream()
