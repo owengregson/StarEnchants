@@ -10,17 +10,17 @@ levels:
     chance: 2.25
     cooldown: 7
     effects:
-      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { POTION: { effect: "SLOW", level: 3, duration: 140, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:7 — EE seconds → ticks (x20)
   2:
     chance: 4
     cooldown: 7
     effects:
-      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { POTION: { effect: "SLOW", level: 3, duration: 140, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:7 — EE seconds → ticks (x20)
   3:
     chance: 6
     cooldown: 7
     effects:
-      - { PARTICLE: { particle: "BLEED" } }  # from PARTICLE:BLEED:TARGET — EE particle target dropped (SE spawns at the activation location)
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { POTION: { effect: "SLOW", level: 3, duration: 140, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:7 — EE seconds → ticks (x20)
