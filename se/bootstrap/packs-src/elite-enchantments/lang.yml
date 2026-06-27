@@ -137,7 +137,7 @@ menu.tinkerer.not-book: "&cThat isn't an enchant book."
 menu.tinkerer.salvaged: "&aSalvaged for &a{LEVELS} &alevel{S}."
 menu.enchanter.too-poor: "&cYou need &a{COST} &clevels to buy that."
 menu.enchanter.bought: "&aBought a &f{TIER} &amystery book."
-menu.admin.granted: "&aGranted a guaranteed &f{DISPLAY} &abook."
+menu.admin.granted: "&aGranted a guaranteed &f{DISPLAY} &alevel &f{LEVEL} &abook."
 
 # ── Gesture/service guards (wired through Messages in a follow-up; shown here for the complete surface) ──
 common.single-item: "&cApply to a single item — split the stack first."
