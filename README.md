@@ -15,7 +15,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
-    <img src="assets/hero.svg" width="860" alt="StarEnchants — a custom-enchantments &amp; armor-sets plugin for Minecraft 1.8, Paper 1.17.1-26.1.2 and Folia">
+    <img src="assets/hero.svg" width="860" alt="StarEnchants — Deeply unified and performance-focused custom enchantments and armor sets plugin for Modern Minecraft.">
   </picture>
 </p>
 

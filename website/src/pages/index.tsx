@@ -91,8 +91,8 @@ export default function Home(): ReactNode {
     <Layout
       title="Custom enchantments & armor sets for Paper + Folia"
       description={
-        'StarEnchants — a custom-enchantments & armor-sets plugin for ' +
-        'Minecraft. For Paper 1.17.1-26.1.2 and Folia, and Minecraft 1.8.x.'
+        'StarEnchants — Deeply unified and performance-focused custom ' +
+        'enchantments and armor sets plugin for Modern Minecraft.'
       }>
       <HomepageHeader />
       <main>
