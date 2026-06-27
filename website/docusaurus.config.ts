@@ -8,7 +8,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'StarEnchants',
-  tagline: 'Legendary custom enchantments & armor sets for Paper + Folia',
+  tagline: 'Deeply unified and performance-focused custom enchantments and armor sets plugin for Modern Minecraft.',
   favicon: 'img/favicon.svg',
 
   future: {
