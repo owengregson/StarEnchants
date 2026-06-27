@@ -14,19 +14,19 @@ tier: uncommon
 levels:
   1:
     chance: 13
-    cooldown: 20
+    cooldown: 400
     condition: "%actor.health% <= 4"
     effects:
       - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 1 } }  # from TNT:1:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)
   2:
     chance: 17
-    cooldown: 20
+    cooldown: 400
     condition: "%actor.health% <= 4"
     effects:
       - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 2 } }  # from TNT:2:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)
   3:
     chance: 22
-    cooldown: 20
+    cooldown: 400
     condition: "%actor.health% <= 4"
     effects:
       - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 3 } }  # from TNT:3:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)

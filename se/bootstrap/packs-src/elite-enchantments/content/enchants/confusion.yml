@@ -14,16 +14,16 @@ tier: common
 levels:
   1:
     chance: 1.05
-    cooldown: 2
+    cooldown: 40
     effects:
       - { POTION: { effect: "CONFUSION", level: 1, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:1:TARGET:3 — EE seconds → ticks (x20)
   2:
     chance: 1.95
-    cooldown: 2
+    cooldown: 40
     effects:
       - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:2:TARGET:3 — EE seconds → ticks (x20)
   3:
     chance: 2.5
-    cooldown: 2
+    cooldown: 40
     effects:
       - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:2:TARGET:3 — EE seconds → ticks (x20)

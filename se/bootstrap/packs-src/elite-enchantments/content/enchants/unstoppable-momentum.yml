@@ -17,21 +17,21 @@ tier: heroic
 levels:
   1:
     chance: 4
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
   2:
     chance: 6
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
   3:
     chance: 8
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
   4:
     chance: 10
-    cooldown: 3
+    cooldown: 60
     effects:
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)

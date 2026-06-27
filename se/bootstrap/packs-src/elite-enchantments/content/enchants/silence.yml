@@ -15,7 +15,7 @@ tier: legendary
 levels:
   1:
     chance: 1
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -28,7 +28,7 @@ levels:
       - { MESSAGE: { text: "&5&l* Silenced [5s] *" } }  # from MESSAGE:&5&l* Silenced [5s] *:TARGET — legacy target dropped — StarEnchants messages the actor
   2:
     chance: 2.5
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -41,7 +41,7 @@ levels:
       - { MESSAGE: { text: "&5&l* Silenced [5s] *" } }  # from MESSAGE:&5&l* Silenced [5s] *:TARGET — legacy target dropped — StarEnchants messages the actor
   3:
     chance: 4
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -54,7 +54,7 @@ levels:
       - { MESSAGE: { text: "&5&l* Silenced [5s] *" } }  # from MESSAGE:&5&l* Silenced [5s] *:TARGET — legacy target dropped — StarEnchants messages the actor
   4:
     chance: 6
-    cooldown: 20
+    cooldown: 400
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)

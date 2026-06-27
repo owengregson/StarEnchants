@@ -17,7 +17,7 @@ tier: heroic
 levels:
   1:
     chance: 4
-    cooldown: 6
+    cooldown: 120
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 300, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:15 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 300, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:15 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -29,7 +29,7 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 300, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:15 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
   2:
     chance: 6
-    cooldown: 6
+    cooldown: 120
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 400, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:20 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 400, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:20 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -41,7 +41,7 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 400, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:20 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
   3:
     chance: 9.25
-    cooldown: 6
+    cooldown: 120
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 500, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:25 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 500, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:25 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -53,7 +53,7 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 500, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:25 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
   4:
     chance: 11
-    cooldown: 6
+    cooldown: 120
     effects:
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 600, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:30 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 600, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:30 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)

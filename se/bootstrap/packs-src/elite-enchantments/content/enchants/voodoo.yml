@@ -17,31 +17,31 @@ tier: rare
 levels:
   1:
     chance: 2.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
   2:
     chance: 4
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
   3:
     chance: 6
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
   4:
     chance: 8
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
   5:
     chance: 10
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)
   6:
     chance: 12.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 80, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:4 — EE seconds → ticks (x20)

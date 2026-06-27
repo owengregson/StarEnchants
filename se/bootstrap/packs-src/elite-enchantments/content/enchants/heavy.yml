@@ -16,31 +16,31 @@ tier: epic
 levels:
   1:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }  # from REDUCTION:2
   2:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 4 } }  # from REDUCTION:4
   3:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 6 } }  # from REDUCTION:6
   4:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 8 } }  # from REDUCTION:8
   5:
     chance: 9
-    cooldown: 3
+    cooldown: 60
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10

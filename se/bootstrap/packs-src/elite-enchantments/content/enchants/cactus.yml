@@ -14,13 +14,13 @@ tier: rare
 levels:
   1:
     chance: 4
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
       - { PARTICLE: { particle: "CRIT", count: 7 } }  # from PARTICLE:BLOCK_BREAK;CACTUS:PLAYER — EE compound/block-crack particle → a thematic generic (cosmetic only)
   2:
     chance: 8
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
       - { PARTICLE: { particle: "CRIT", count: 7 } }  # from PARTICLE:BLOCK_BREAK;CACTUS:PLAYER — EE compound/block-crack particle → a thematic generic (cosmetic only)

@@ -15,21 +15,21 @@ tier: epic
 levels:
   1:
     chance: 9.25
-    cooldown: 5
+    cooldown: 100
     effects:
       - { KILL: { who: "@Victim" } }  # from KILL
   2:
     chance: 12.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { KILL: { who: "@Victim" } }  # from KILL
   3:
     chance: 18.75
-    cooldown: 5
+    cooldown: 100
     effects:
       - { KILL: { who: "@Victim" } }  # from KILL
   4:
     chance: 22.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { KILL: { who: "@Victim" } }  # from KILL

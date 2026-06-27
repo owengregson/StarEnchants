@@ -117,6 +117,16 @@ public final class Mappings {
         }
     }
 
+    /**
+     * Convert a legacy EE/AE cooldown (authored in SECONDS) to the StarEnchants {@code cooldown} unit (TICKS):
+     * the runtime gate arms on a tick counter ({@code AbilityDef.cooldownTicks}, {@code CooldownStore.arm}),
+     * so a 2s legacy cooldown must become 40, not 2. {@code null} (no cooldown) passes through unchanged. Same
+     * seconds→ticks (×20) basis as {@link #repeatTicks}.
+     */
+    public static Integer cooldownTicks(Integer legacySeconds) {
+        return legacySeconds == null ? null : legacySeconds * 20;
+    }
+
     /** Map a legacy applies group to StarEnchants {@code applies-to}, or empty if unknown. */
     public static List<String> appliesTo(String legacyApplies) {
         if (legacyApplies == null) {

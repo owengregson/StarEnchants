@@ -18,43 +18,43 @@ tier: rare
 levels:
   1:
     chance: 1.25
-    cooldown: 6
+    cooldown: 120
     condition: "%victim.health% <= 5"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 2.5
-    cooldown: 6
+    cooldown: 120
     condition: "%victim.health% <= 5"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 3.75
-    cooldown: 6
+    cooldown: 120
     condition: "%victim.health% <= 5"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 5
-    cooldown: 6
+    cooldown: 120
     condition: "%victim.health% <= 5"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     chance: 6.75
-    cooldown: 6
+    cooldown: 120
     condition: "%victim.health% <= 5"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   6:
     chance: 8
-    cooldown: 6
+    cooldown: 120
     condition: "%victim.health% <= 5"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   7:
     chance: 10
-    cooldown: 6
+    cooldown: 120
     condition: "%victim.health% <= 5"
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

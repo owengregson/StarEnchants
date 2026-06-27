@@ -16,26 +16,26 @@ tier: mythic
 levels:
   1:
     chance: 3.25
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   2:
     chance: 5
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   3:
     chance: 7.5
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   4:
     chance: 9
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }  # from HEAL:ADD:5:6 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   5:
     chance: 12
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }  # from HEAL:ADD:5:6 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

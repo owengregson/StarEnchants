@@ -15,21 +15,21 @@ tier: rare
 levels:
   1:
     chance: 1.5
-    cooldown: 7
+    cooldown: 140
     effects:
       - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
   2:
     chance: 2.75
-    cooldown: 7
+    cooldown: 140
     effects:
       - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
   3:
     chance: 4
-    cooldown: 7
+    cooldown: 140
     effects:
       - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
   4:
     chance: 6
-    cooldown: 7
+    cooldown: 140
     effects:
       - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)

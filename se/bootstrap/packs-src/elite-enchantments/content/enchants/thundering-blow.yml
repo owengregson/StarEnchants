@@ -14,16 +14,16 @@ tier: common
 levels:
   1:
     chance: 1.25
-    cooldown: 5
+    cooldown: 100
     effects:
       - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
   2:
     chance: 2.75
-    cooldown: 5
+    cooldown: 100
     effects:
       - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
   3:
     chance: 4
-    cooldown: 5
+    cooldown: 100
     effects:
       - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage

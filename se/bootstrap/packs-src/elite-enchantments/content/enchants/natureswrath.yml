@@ -15,7 +15,7 @@ tier: soul
 levels:
   1:
     chance: 4
-    cooldown: 10
+    cooldown: 200
     effects:
       - { LIGHTNING: { damage: 0, who: "@Aoe{r=3}" } }  # from WRATH:3:1:2:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { DAMAGE: { amount: 2, who: "@Aoe{r=3}" } }  # from WRATH:3:1:2:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
@@ -23,7 +23,7 @@ levels:
       - { POTION: { effect: "BLINDNESS", level: 1, duration: 260, who: "@Aoe{r=3}" } }  # from WRATH:3:1:2:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
   2:
     chance: 8
-    cooldown: 10
+    cooldown: 200
     effects:
       - { LIGHTNING: { damage: 0, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { DAMAGE: { amount: 3, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
@@ -31,7 +31,7 @@ levels:
       - { POTION: { effect: "BLINDNESS", level: 1, duration: 260, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
   3:
     chance: 12
-    cooldown: 10
+    cooldown: 200
     effects:
       - { LIGHTNING: { damage: 0, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { DAMAGE: { amount: 4, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
@@ -39,7 +39,7 @@ levels:
       - { POTION: { effect: "BLINDNESS", level: 1, duration: 260, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
   4:
     chance: 16
-    cooldown: 10
+    cooldown: 200
     effects:
       - { LIGHTNING: { damage: 0, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { DAMAGE: { amount: 4, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe

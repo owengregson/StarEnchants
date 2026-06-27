@@ -14,16 +14,16 @@ tier: mythic
 levels:
   1:
     chance: 12.25
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
   2:
     chance: 15
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 20 } }  # from REDUCTION:20
   3:
     chance: 18.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 30 } }  # from REDUCTION:30

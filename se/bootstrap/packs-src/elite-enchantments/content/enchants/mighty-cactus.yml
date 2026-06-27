@@ -15,11 +15,11 @@ tier: heroic
 levels:
   1:
     chance: 6
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE: { amount: 6, who: "@Attacker" } }  # from DAMAGE:3:6:TARGET — legacy random range 3-6 collapsed to its max
   2:
     chance: 9
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:4:8:TARGET — legacy random range 4-8 collapsed to its max

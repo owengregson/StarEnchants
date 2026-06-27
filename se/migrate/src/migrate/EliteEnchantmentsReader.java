@@ -84,7 +84,8 @@ public final class EliteEnchantmentsReader {
             out.add(new MigratedLevel(
                     level,
                     LegacyYaml.doubleOrNull(lvl, "chance"),
-                    LegacyYaml.intOrNull(lvl, "cooldown"),
+                    // EE cooldown is SECONDS; SE reads it as TICKS — convert (×20) or a 2s cooldown becomes 2 ticks.
+                    Mappings.cooldownTicks(LegacyYaml.intOrNull(lvl, "cooldown")),
                     mappedCondition,
                     conditionTodos,
                     effects));

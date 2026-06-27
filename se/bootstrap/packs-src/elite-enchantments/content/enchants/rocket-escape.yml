@@ -15,21 +15,21 @@ tier: rare
 levels:
   1:
     chance: 30
-    cooldown: 8
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { VELOCITY: { mode: "add", x: 0, y: 5, z: 0, who: "@Self" } }  # from THROW:0:5:0:PLAYER — EE THROW → VELOCITY (add)
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2, pitch: 5 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:2:5
   2:
     chance: 60
-    cooldown: 8
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { VELOCITY: { mode: "add", x: 0, y: 5, z: 0, who: "@Self" } }  # from THROW:0:5:0:PLAYER — EE THROW → VELOCITY (add)
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2, pitch: 5 } }  # from SOUND:ENTITY_GENERIC_EXPLODE:2:5
   3:
     chance: 80
-    cooldown: 8
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { VELOCITY: { mode: "add", x: 0, y: 5, z: 0, who: "@Self" } }  # from THROW:0:5:0:PLAYER — EE THROW → VELOCITY (add)

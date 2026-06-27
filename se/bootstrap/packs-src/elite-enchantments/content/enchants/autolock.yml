@@ -15,22 +15,22 @@ group: "soul"
 tier: soul
 levels:
   1:
-    cooldown: 9
+    cooldown: 180
     effects:
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   2:
-    cooldown: 8
+    cooldown: 160
     effects:
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   3:
-    cooldown: 7
+    cooldown: 140
     effects:
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   4:
-    cooldown: 5
+    cooldown: 100
     effects:
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   5:
-    cooldown: 3
+    cooldown: 60
     effects:
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)

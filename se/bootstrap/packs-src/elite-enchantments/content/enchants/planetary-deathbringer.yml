@@ -15,14 +15,14 @@ group: "heroic"
 tier: heroic
 levels:
   1:
-    cooldown: 20
+    cooldown: 400
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
-    cooldown: 20
+    cooldown: 400
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
-    cooldown: 20
+    cooldown: 400
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

@@ -18,36 +18,36 @@ tier: epic
 levels:
   1:
     chance: 1.75
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 2, who: "@Aoe" } }  # from DAMAGE_ARC:2 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   2:
     chance: 3
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 2, who: "@Aoe" } }  # from DAMAGE_ARC:2 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   3:
     chance: 4.5
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 3, who: "@Aoe" } }  # from DAMAGE_ARC:3 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   4:
     chance: 6
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 3, who: "@Aoe" } }  # from DAMAGE_ARC:3 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   5:
     chance: 7.25
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 4, who: "@Aoe" } }  # from DAMAGE_ARC:4 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   6:
     chance: 8
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 4, who: "@Aoe" } }  # from DAMAGE_ARC:4 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   7:
     chance: 9
-    cooldown: 4
+    cooldown: 80
     effects:
       - { DAMAGE: { amount: 4, who: "@Aoe" } }  # from DAMAGE_ARC:4 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)

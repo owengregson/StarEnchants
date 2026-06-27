@@ -18,31 +18,31 @@ tier: heroic
 levels:
   1:
     chance: 3.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
       - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
   2:
     chance: 4.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
       - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
   3:
     chance: 5.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
       - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
   4:
     chance: 6.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
       - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
   5:
     chance: 7.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
       - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max

@@ -17,31 +17,31 @@ tier: uncommon
 levels:
   1:
     chance: 1.25
-    cooldown: 5
+    cooldown: 100
     effects:
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
   2:
     chance: 2.95
-    cooldown: 5
+    cooldown: 100
     effects:
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
   3:
     chance: 4.5
-    cooldown: 5
+    cooldown: 100
     effects:
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
   4:
     chance: 6
-    cooldown: 5
+    cooldown: 100
     effects:
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
   5:
     chance: 8
-    cooldown: 5
+    cooldown: 100
     effects:
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)

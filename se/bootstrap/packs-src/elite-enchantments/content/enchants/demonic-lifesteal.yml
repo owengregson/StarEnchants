@@ -16,16 +16,16 @@ tier: heroic
 levels:
   1:
     chance: 4.5
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 8, mode: "give", who: "@Self" } }  # from HEAL:ADD:8:8 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   2:
     chance: 6.75
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 12, mode: "give", who: "@Self" } }  # from HEAL:ADD:12:12 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   3:
     chance: 9
-    cooldown: 6
+    cooldown: 120
     effects:
       - { MODIFY_HEALTH: { amount: 15, mode: "give", who: "@Self" } }  # from HEAL:ADD:15:15 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
