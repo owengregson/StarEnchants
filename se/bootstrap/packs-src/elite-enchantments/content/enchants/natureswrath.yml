@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: natureswrath). Review before shipping.
 display: "Natures Wrath"
-description: "&cWhen hit, freezes and knocks &cback nearby enemies.  &c&lI: &f🎲 4% &7| &f⌛ 10s &7| &f☄ 75 &c&lII: &f🎲 8% &7| &f⌛ 10s &7| &f☄ 75 &c&lIII: &f🎲 12% &7| &f⌛ 10s &7| &f☄ 75 &c&lIV: &f🎲 16% &7| &f⌛ 10s &7| &f☄ 75"
+description:
+  - "&cWhen hit, freezes and knocks"
+  - "&cback nearby enemies."
+  - ""
+  - "&c&lI: &f🎲 4% &7| &f⌛ 10s &7| &f☄ 75"
+  - "&c&lII: &f🎲 8% &7| &f⌛ 10s &7| &f☄ 75"
+  - "&c&lIII: &f🎲 12% &7| &f⌛ 10s &7| &f☄ 75"
+  - "&c&lIV: &f🎲 16% &7| &f⌛ 10s &7| &f☄ 75"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "soul"

@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: assassin). Review before shipping.
 display: "Assassin"
-description: "&eOn hit, deals more damage the &ecloser you are to the target.  &e&lI: &f🎲 4.25% &7| &f⌛ 5s &e&lII: &f🎲 7% &7| &f⌛ 5s &e&lIII: &f🎲 9.5% &7| &f⌛ 5s &e&lIV: &f🎲 11% &7| &f⌛ 5s &e&lV: &f🎲 13% &7| &f⌛ 5s"
+description:
+  - "&eOn hit, deals more damage the"
+  - "&ecloser you are to the target."
+  - ""
+  - "&e&lI: &f🎲 4.25% &7| &f⌛ 5s"
+  - "&e&lII: &f🎲 7% &7| &f⌛ 5s"
+  - "&e&lIII: &f🎲 9.5% &7| &f⌛ 5s"
+  - "&e&lIV: &f🎲 11% &7| &f⌛ 5s"
+  - "&e&lV: &f🎲 13% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "epic"

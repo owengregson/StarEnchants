@@ -1,6 +1,8 @@
 # Imported from EliteEnchantments (id: obsidianshield). Review before shipping.
 display: "Obsidian Shield"
-description: "&eGrants permanent Fire &eResistance."
+description:
+  - "&eGrants permanent Fire"
+  - "&eResistance."
 trigger: PASSIVE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "epic"

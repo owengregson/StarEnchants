@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: barbarian). Review before shipping.
 display: "Barbarian"
-description: "&6Deals bonus damage to targets &6holding an axe.  &6&lI: &f🎲 1.75% &7| &f▲ 8% &7| &f⌛ 4s &6&lII: &f🎲 3% &7| &f▲ 8% &7| &f⌛ 4s &6&lIII: &f🎲 5% &7| &f▲ 8% &7| &f⌛ 4s &6&lIV: &f🎲 7.5% &7| &f▲ 8% &7| &f⌛ 4s"
+description:
+  - "&6Deals bonus damage to targets"
+  - "&6holding an axe."
+  - ""
+  - "&6&lI: &f🎲 1.75% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lII: &f🎲 3% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lIII: &f🎲 5% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lIV: &f🎲 7.5% &7| &f▲ 8% &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "legendary"

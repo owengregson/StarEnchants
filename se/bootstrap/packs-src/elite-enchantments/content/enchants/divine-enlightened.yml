@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: divine-enlightened). Review before shipping.
 display: "Divine Enlightened"
-description: "&dHeroic upgrade for Enlightened. &dRestores more health when hit. &c&l(!)&r &7Requires &6Enlightened  &d&lI: &f🎲 7.5% &7| &f▲ +2-4❤ &7| &f⌛ 5s &d&lII: &f🎲 15% &7| &f▲ +2-4❤ &7| &f⌛ 5s &d&lIII: &f🎲 22.5% &7| &f▲ +2-4❤ &7| &f⌛ 5s"
+description:
+  - "&dHeroic upgrade for Enlightened."
+  - "&dRestores more health when hit."
+  - "&c&l(!)&r &7Requires &6Enlightened"
+  - ""
+  - "&d&lI: &f🎲 7.5% &7| &f▲ +2-4❤ &7| &f⌛ 5s"
+  - "&d&lII: &f🎲 15% &7| &f▲ +2-4❤ &7| &f⌛ 5s"
+  - "&d&lIII: &f🎲 22.5% &7| &f▲ +2-4❤ &7| &f⌛ 5s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"

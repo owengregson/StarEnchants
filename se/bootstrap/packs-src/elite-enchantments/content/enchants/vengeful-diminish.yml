@@ -1,6 +1,17 @@
 # Imported from EliteEnchantments (id: vengeful-diminish). Review before shipping.
 display: "Vengeful Diminish"
-description: "&dHeroic upgrade for Diminish. &dHalves incoming damage more &doften. &c&l(!)&r &7Requires &6Diminish  &d&lI: &f🎲 3.75% &7| &f▲ 50% &7| &f⌛ 3s &d&lII: &f🎲 6% &7| &f▲ 50% &7| &f⌛ 3s &d&lIII: &f🎲 8.5% &7| &f▲ 50% &7| &f⌛ 3s &d&lIV: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 3s &d&lV: &f🎲 11.5% &7| &f▲ 50% &7| &f⌛ 3s &d&lVI: &f🎲 13% &7| &f▲ 50% &7| &f⌛ 3s"
+description:
+  - "&dHeroic upgrade for Diminish."
+  - "&dHalves incoming damage more"
+  - "&doften."
+  - "&c&l(!)&r &7Requires &6Diminish"
+  - ""
+  - "&d&lI: &f🎲 3.75% &7| &f▲ 50% &7| &f⌛ 3s"
+  - "&d&lII: &f🎲 6% &7| &f▲ 50% &7| &f⌛ 3s"
+  - "&d&lIII: &f🎲 8.5% &7| &f▲ 50% &7| &f⌛ 3s"
+  - "&d&lIV: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 3s"
+  - "&d&lV: &f🎲 11.5% &7| &f▲ 50% &7| &f⌛ 3s"
+  - "&d&lVI: &f🎲 13% &7| &f▲ 50% &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [CHESTPLATE]
 group: "heroic"

@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: perfect-solitude). Review before shipping.
 display: "Perfect Solitude"
-description: "&dHeroic upgrade for Solitude. &dDisables the target's &denchantments for longer. &c&l(!)&r &7Requires &bSolitude  &d&lI: &f🎲 4% &7| &f⌛ 6s &d&lII: &f🎲 6% &7| &f⌛ 6s &d&lIII: &f🎲 9.25% &7| &f⌛ 6s &d&lIV: &f🎲 11% &7| &f⌛ 6s"
+description:
+  - "&dHeroic upgrade for Solitude."
+  - "&dDisables the target's"
+  - "&denchantments for longer."
+  - "&c&l(!)&r &7Requires &bSolitude"
+  - ""
+  - "&d&lI: &f🎲 4% &7| &f⌛ 6s"
+  - "&d&lII: &f🎲 6% &7| &f⌛ 6s"
+  - "&d&lIII: &f🎲 9.25% &7| &f⌛ 6s"
+  - "&d&lIV: &f🎲 11% &7| &f⌛ 6s"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "heroic"

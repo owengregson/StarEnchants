@@ -1,6 +1,16 @@
 # Imported from EliteEnchantments (id: execute). Review before shipping.
 display: "Execute"
-description: "&bOn hit against a low-health &btarget, deals bonus damage.  &b&lI: &f🎲 1.25% &7| &f▲ 12% &7| &f⌛ 6s &b&lII: &f🎲 2.5% &7| &f▲ 12% &7| &f⌛ 6s &b&lIII: &f🎲 3.75% &7| &f▲ 12% &7| &f⌛ 6s &b&lIV: &f🎲 5% &7| &f▲ 12% &7| &f⌛ 6s &b&lV: &f🎲 6.75% &7| &f▲ 12% &7| &f⌛ 6s &b&lVI: &f🎲 8% &7| &f▲ 12% &7| &f⌛ 6s &b&lVII: &f🎲 10% &7| &f▲ 12% &7| &f⌛ 6s"
+description:
+  - "&bOn hit against a low-health"
+  - "&btarget, deals bonus damage."
+  - ""
+  - "&b&lI: &f🎲 1.25% &7| &f▲ 12% &7| &f⌛ 6s"
+  - "&b&lII: &f🎲 2.5% &7| &f▲ 12% &7| &f⌛ 6s"
+  - "&b&lIII: &f🎲 3.75% &7| &f▲ 12% &7| &f⌛ 6s"
+  - "&b&lIV: &f🎲 5% &7| &f▲ 12% &7| &f⌛ 6s"
+  - "&b&lV: &f🎲 6.75% &7| &f▲ 12% &7| &f⌛ 6s"
+  - "&b&lVI: &f🎲 8% &7| &f▲ 12% &7| &f⌛ 6s"
+  - "&b&lVII: &f🎲 10% &7| &f▲ 12% &7| &f⌛ 6s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "rare"

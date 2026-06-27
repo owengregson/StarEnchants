@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: thundering-blow). Review before shipping.
 display: "Thundering Blow"
-description: "&7On hit, strikes the target with &7a lightning bolt.  &7&lI: &f🎲 1.25% &7| &f⌛ 5s &7&lII: &f🎲 2.75% &7| &f⌛ 5s &7&lIII: &f🎲 4% &7| &f⌛ 5s"
+description:
+  - "&7On hit, strikes the target with"
+  - "&7a lightning bolt."
+  - ""
+  - "&7&lI: &f🎲 1.25% &7| &f⌛ 5s"
+  - "&7&lII: &f🎲 2.75% &7| &f⌛ 5s"
+  - "&7&lIII: &f🎲 4% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "common"

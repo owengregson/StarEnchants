@@ -1,6 +1,19 @@
 # Imported from EliteEnchantments (id: guardians). Review before shipping.
 display: "Guardians"
-description: "&eWhen hit, summons iron golems &ethat fight for you.  &e&lI: &f🎲 0.25% &7| &f▲ 1x &7| &f⌛ 20s &e&lII: &f🎲 0.5% &7| &f▲ 1x &7| &f⌛ 20s &e&lIII: &f🎲 0.65% &7| &f▲ 1x &7| &f⌛ 20s &e&lIV: &f🎲 0.85% &7| &f▲ 1x &7| &f⌛ 20s &e&lV: &f🎲 1% &7| &f▲ 1x &7| &f⌛ 20s &e&lVI: &f🎲 2% &7| &f▲ 2x &7| &f⌛ 20s &e&lVII: &f🎲 3% &7| &f▲ 2x &7| &f⌛ 20s &e&lVIII: &f🎲 4% &7| &f▲ 2x &7| &f⌛ 20s &e&lIX: &f🎲 5% &7| &f▲ 2x &7| &f⌛ 20s &e&lX: &f🎲 6% &7| &f▲ 3x &7| &f⌛ 20s"
+description:
+  - "&eWhen hit, summons iron golems"
+  - "&ethat fight for you."
+  - ""
+  - "&e&lI: &f🎲 0.25% &7| &f▲ 1x &7| &f⌛ 20s"
+  - "&e&lII: &f🎲 0.5% &7| &f▲ 1x &7| &f⌛ 20s"
+  - "&e&lIII: &f🎲 0.65% &7| &f▲ 1x &7| &f⌛ 20s"
+  - "&e&lIV: &f🎲 0.85% &7| &f▲ 1x &7| &f⌛ 20s"
+  - "&e&lV: &f🎲 1% &7| &f▲ 1x &7| &f⌛ 20s"
+  - "&e&lVI: &f🎲 2% &7| &f▲ 2x &7| &f⌛ 20s"
+  - "&e&lVII: &f🎲 3% &7| &f▲ 2x &7| &f⌛ 20s"
+  - "&e&lVIII: &f🎲 4% &7| &f▲ 2x &7| &f⌛ 20s"
+  - "&e&lIX: &f🎲 5% &7| &f▲ 2x &7| &f⌛ 20s"
+  - "&e&lX: &f🎲 6% &7| &f▲ 3x &7| &f⌛ 20s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "epic"

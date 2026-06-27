@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: soul-hardened). Review before shipping.
 display: "Soul Hardened"
-description: "&dHeroic upgrade for Hardened. &dRepairs armor and blocks enemy &dSoul Trap. &c&l(!)&r &7Requires &bHardened  &d&lI: &f🎲 5.25% &7| &f▲ +2 pt. &7| &f⌛ 3s &d&lII: &f🎲 7.5% &7| &f▲ +2 pt. &7| &f⌛ 3s &d&lIII: &f🎲 10% &7| &f▲ +2 pt. &7| &f⌛ 3s"
+description:
+  - "&dHeroic upgrade for Hardened."
+  - "&dRepairs armor and blocks enemy"
+  - "&dSoul Trap."
+  - "&c&l(!)&r &7Requires &bHardened"
+  - ""
+  - "&d&lI: &f🎲 5.25% &7| &f▲ +2 pt. &7| &f⌛ 3s"
+  - "&d&lII: &f🎲 7.5% &7| &f▲ +2 pt. &7| &f⌛ 3s"
+  - "&d&lIII: &f🎲 10% &7| &f▲ +2 pt. &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"

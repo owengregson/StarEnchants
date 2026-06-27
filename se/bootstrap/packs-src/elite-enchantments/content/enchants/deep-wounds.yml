@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: deep-wounds). Review before shipping.
 display: "Deep Wounds"
-description: "&aOn hit, deals bonus melee damage &ato the target.  &a&lI: &f🎲 1.75% &7| &f▲ 5% &7| &f⌛ 5s &a&lII: &f🎲 3% &7| &f▲ 5% &7| &f⌛ 5s &a&lIII: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 5s"
+description:
+  - "&aOn hit, deals bonus melee damage"
+  - "&ato the target."
+  - ""
+  - "&a&lI: &f🎲 1.75% &7| &f▲ 5% &7| &f⌛ 5s"
+  - "&a&lII: &f🎲 3% &7| &f▲ 5% &7| &f⌛ 5s"
+  - "&a&lIII: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "uncommon"

@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: clarity). Review before shipping.
 display: "Clarity"
-description: "&6When hit, cures Blindness and &6briefly prevents it.  &6&lI: &f🎲 50% &6&lII: &f🎲 80% &6&lIII: &f🎲 100%"
+description:
+  - "&6When hit, cures Blindness and"
+  - "&6briefly prevents it."
+  - ""
+  - "&6&lI: &f🎲 50%"
+  - "&6&lII: &f🎲 80%"
+  - "&6&lIII: &f🎲 100%"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "legendary"

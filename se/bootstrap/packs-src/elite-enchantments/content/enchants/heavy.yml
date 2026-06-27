@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: heavy). Review before shipping.
 display: "Heavy"
-description: "&eReduces damage taken from &eenemies holding a bow.  &e&lI: &f🎲 9% &7| &f▲ 2% &7| &f⌛ 3s &e&lII: &f🎲 9% &7| &f▲ 4% &7| &f⌛ 3s &e&lIII: &f🎲 9% &7| &f▲ 6% &7| &f⌛ 3s &e&lIV: &f🎲 9% &7| &f▲ 8% &7| &f⌛ 3s &e&lV: &f🎲 9% &7| &f▲ 10% &7| &f⌛ 3s"
+description:
+  - "&eReduces damage taken from"
+  - "&eenemies holding a bow."
+  - ""
+  - "&e&lI: &f🎲 9% &7| &f▲ 2% &7| &f⌛ 3s"
+  - "&e&lII: &f🎲 9% &7| &f▲ 4% &7| &f⌛ 3s"
+  - "&e&lIII: &f🎲 9% &7| &f▲ 6% &7| &f⌛ 3s"
+  - "&e&lIV: &f🎲 9% &7| &f▲ 8% &7| &f⌛ 3s"
+  - "&e&lV: &f🎲 9% &7| &f▲ 10% &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "epic"

@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: chain-lifesteal). Review before shipping.
 display: "Chain Lifesteal"
-description: "&4On hit, restores a chunk of your &4health.  &4&lI: &f🎲 3.25% &7| &f▲ +2-4❤ &7| &f⌛ 6s &4&lII: &f🎲 5% &7| &f▲ +2-4❤ &7| &f⌛ 6s &4&lIII: &f🎲 7.5% &7| &f▲ +3-4❤ &7| &f⌛ 6s &4&lIV: &f🎲 9% &7| &f▲ +5-6❤ &7| &f⌛ 6s &4&lV: &f🎲 12% &7| &f▲ +5-6❤ &7| &f⌛ 6s"
+description:
+  - "&4On hit, restores a chunk of your"
+  - "&4health."
+  - ""
+  - "&4&lI: &f🎲 3.25% &7| &f▲ +2-4❤ &7| &f⌛ 6s"
+  - "&4&lII: &f🎲 5% &7| &f▲ +2-4❤ &7| &f⌛ 6s"
+  - "&4&lIII: &f🎲 7.5% &7| &f▲ +3-4❤ &7| &f⌛ 6s"
+  - "&4&lIV: &f🎲 9% &7| &f▲ +5-6❤ &7| &f⌛ 6s"
+  - "&4&lV: &f🎲 12% &7| &f▲ +5-6❤ &7| &f⌛ 6s"
 trigger: ATTACK
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "mythic"

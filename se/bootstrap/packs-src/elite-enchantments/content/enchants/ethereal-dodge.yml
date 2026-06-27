@@ -1,6 +1,16 @@
 # Imported from EliteEnchantments (id: ethereal-dodge). Review before shipping.
 display: "Ethereal Dodge"
-description: "&dHeroic upgrade for Dodge. &dNegates an attack and grants &dSpeed. &c&l(!)&r &7Requires &eDodge  &d&lI: &f🎲 2.75% &7| &f▲ 6s &7| &f⌛ 5s &d&lII: &f🎲 4.25% &7| &f▲ 6s &7| &f⌛ 5s &d&lIII: &f🎲 6.25% &7| &f▲ 6s &7| &f⌛ 5s &d&lIV: &f🎲 8.25% &7| &f▲ 6s &7| &f⌛ 5s &d&lV: &f🎲 10% &7| &f▲ 6s &7| &f⌛ 5s"
+description:
+  - "&dHeroic upgrade for Dodge."
+  - "&dNegates an attack and grants"
+  - "&dSpeed."
+  - "&c&l(!)&r &7Requires &eDodge"
+  - ""
+  - "&d&lI: &f🎲 2.75% &7| &f▲ 6s &7| &f⌛ 5s"
+  - "&d&lII: &f🎲 4.25% &7| &f▲ 6s &7| &f⌛ 5s"
+  - "&d&lIII: &f🎲 6.25% &7| &f▲ 6s &7| &f⌛ 5s"
+  - "&d&lIV: &f🎲 8.25% &7| &f▲ 6s &7| &f⌛ 5s"
+  - "&d&lV: &f🎲 10% &7| &f▲ 6s &7| &f⌛ 5s"
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "heroic"

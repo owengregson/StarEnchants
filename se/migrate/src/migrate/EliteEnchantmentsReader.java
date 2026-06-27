@@ -35,7 +35,9 @@ public final class EliteEnchantmentsReader {
             out.add(new MigratedEnchant(
                     id,
                     LegacyYaml.string(e, "name", id),
-                    String.join(" ", LegacyYaml.stringList(e, "description")),
+                    // Each source description line is its own lore line — join with '\n', not a space, so the
+                    // render sites split it back to multiple lines (the loader/render treat '\n' as the separator).
+                    String.join("\n", LegacyYaml.stringList(e, "description")),
                     Mappings.trigger(legacyType),
                     Mappings.appliesTo(legacyApplies),
                     LegacyYaml.string(e, "group", "imported").toLowerCase(java.util.Locale.ROOT),

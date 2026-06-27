@@ -1,6 +1,11 @@
 # Imported from EliteEnchantments (id: gears). Review before shipping.
 display: "Gears"
-description: "&6Grants permanent Speed.  &6&lI: &f▲ Lvl I &6&lII: &f▲ Lvl II &6&lIII: &f▲ Lvl III"
+description:
+  - "&6Grants permanent Speed."
+  - ""
+  - "&6&lI: &f▲ Lvl I"
+  - "&6&lII: &f▲ Lvl II"
+  - "&6&lIII: &f▲ Lvl III"
 trigger: PASSIVE
 applies-to: [BOOTS]
 group: "legendary"

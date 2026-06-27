@@ -127,6 +127,53 @@ class MigratorTest {
         assertEquals(2, library.snapshot().abilityCount(), "two levels ⇒ two compiled abilities");
     }
 
+    /** Each source description line is its own lore line: the importer joins with '\n', and the writer renders
+     *  a readable YAML list — not one space-joined scalar that would crowd onto a single in-game lore line. */
+    @Test
+    void eliteEnchantmentsDescriptionLinesBecomeANewlineSeparatedList() {
+        String ee = """
+                Enchants:
+                  multidesc:
+                    name: "Multi"
+                    description:
+                      - "Line one"
+                      - "Line two"
+                      - ""
+                      - "Line four"
+                    group: "RARE"
+                    applies: "SWORDS"
+                    type: "ATTACK"
+                    levels:
+                      1: { chance: 100, effects: ['FEED:1'] }
+                """;
+        String yaml = String.join("\n", Migrator.eliteEnchantments(ee, SPECS).files().values());
+        assertTrue(yaml.contains("description:\n  - \"Line one\"\n  - \"Line two\"\n  - \"\"\n  - \"Line four\""),
+                () -> "EE description should render as a newline-separated list, got:\n" + yaml);
+        assertFalse(yaml.contains("Line one Line two"), "lines must not be space-joined onto one line");
+    }
+
+    /** AdvancedEnchantments imports the same way: each description line on its own list item. */
+    @Test
+    void advancedEnchantmentsDescriptionLinesBecomeANewlineSeparatedList() {
+        String ae = """
+                multidesc:
+                  display: 'Multi'
+                  description:
+                    - 'AE line one'
+                    - 'AE line two'
+                  type: ATTACK
+                  group: ELITE
+                  applies:
+                    - ALL_SWORD
+                  levels:
+                    '1': { chance: 100, effects: ['DAMAGE:4 @Victim'] }
+                """;
+        String yaml = String.join("\n", Migrator.advancedEnchantments(ae, SPECS).files().values());
+        assertTrue(yaml.contains("description:\n  - \"AE line one\"\n  - \"AE line two\""),
+                () -> "AE description should render as a newline-separated list, got:\n" + yaml);
+        assertFalse(yaml.contains("AE line one AE line two"), "lines must not be space-joined onto one line");
+    }
+
     @Test
     void translatesVerifiedCoreEffectsFaithfully() {
         assertEquals("DAMAGE:6:@Victim", Mappings.effect("DAMAGE:1:6:TARGET").se()); // random range → max

@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: solitude). Review before shipping.
 display: "Solitude"
-description: "&bOn hit, disables all of the &btarget's enchantments for a few &bseconds. A weaker Silence.  &b&lI: &f🎲 4% &7| &f⌛ 6s &b&lII: &f🎲 6% &7| &f⌛ 6s &b&lIII: &f🎲 9.25% &7| &f⌛ 6s &b&lIV: &f🎲 11% &7| &f⌛ 6s"
+description:
+  - "&bOn hit, disables all of the"
+  - "&btarget's enchantments for a few"
+  - "&bseconds. A weaker Silence."
+  - ""
+  - "&b&lI: &f🎲 4% &7| &f⌛ 6s"
+  - "&b&lII: &f🎲 6% &7| &f⌛ 6s"
+  - "&b&lIII: &f🎲 9.25% &7| &f⌛ 6s"
+  - "&b&lIV: &f🎲 11% &7| &f⌛ 6s"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "rare"

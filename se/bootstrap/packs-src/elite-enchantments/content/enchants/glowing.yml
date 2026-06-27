@@ -1,6 +1,7 @@
 # Imported from EliteEnchantments (id: glowing). Review before shipping.
 display: "Glowing"
-description: "&7Grants permanent Night Vision."
+description:
+  - "&7Grants permanent Night Vision."
 trigger: PASSIVE
 applies-to: [HELMET]
 group: "common"

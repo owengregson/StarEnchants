@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: rage). Review before shipping.
 display: "Rage"
-description: "&6Each consecutive hit in a combo &6adds stacking bonus damage.  &6&lI: &f▲ +10% &6&lII: &f▲ +15% &6&lIII: &f▲ +25% &6&lIV: &f▲ +30% &6&lV: &f▲ +35% &6&lVI: &f▲ +40%"
+description:
+  - "&6Each consecutive hit in a combo"
+  - "&6adds stacking bonus damage."
+  - ""
+  - "&6&lI: &f▲ +10%"
+  - "&6&lII: &f▲ +15%"
+  - "&6&lIII: &f▲ +25%"
+  - "&6&lIV: &f▲ +30%"
+  - "&6&lV: &f▲ +35%"
+  - "&6&lVI: &f▲ +40%"
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "legendary"

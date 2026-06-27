@@ -1,6 +1,17 @@
 # Imported from EliteEnchantments (id: insanity). Review before shipping.
 display: "Insanity"
-description: "&6Deals bonus damage to targets &6holding a sword.  &6&lI: &f🎲 1.5% &7| &f▲ 8% &7| &f⌛ 4s &6&lII: &f🎲 2.75% &7| &f▲ 8% &7| &f⌛ 4s &6&lIII: &f🎲 4% &7| &f▲ 8% &7| &f⌛ 4s &6&lIV: &f🎲 5% &7| &f▲ 8% &7| &f⌛ 4s &6&lV: &f🎲 6% &7| &f▲ 8% &7| &f⌛ 4s &6&lVI: &f🎲 7% &7| &f▲ 8% &7| &f⌛ 4s &6&lVII: &f🎲 8% &7| &f▲ 8% &7| &f⌛ 4s &6&lVIII: &f🎲 9% &7| &f▲ 8% &7| &f⌛ 4s"
+description:
+  - "&6Deals bonus damage to targets"
+  - "&6holding a sword."
+  - ""
+  - "&6&lI: &f🎲 1.5% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lII: &f🎲 2.75% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lIII: &f🎲 4% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lIV: &f🎲 5% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lV: &f🎲 6% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lVI: &f🎲 7% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lVII: &f🎲 8% &7| &f▲ 8% &7| &f⌛ 4s"
+  - "&6&lVIII: &f🎲 9% &7| &f▲ 8% &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "legendary"

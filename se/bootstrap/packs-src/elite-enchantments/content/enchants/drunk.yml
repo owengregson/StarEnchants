@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: drunk). Review before shipping.
 display: "Drunk"
-description: "&6Slows your movement and mining &6but grants Strength.  &6&lI: &f▲ Lvl I &6&lII: &f▲ Lvl I &6&lIII: &f▲ Lvl II &6&lIV: &f▲ Lvl II"
+description:
+  - "&6Slows your movement and mining"
+  - "&6but grants Strength."
+  - ""
+  - "&6&lI: &f▲ Lvl I"
+  - "&6&lII: &f▲ Lvl I"
+  - "&6&lIII: &f▲ Lvl II"
+  - "&6&lIV: &f▲ Lvl II"
 trigger: PASSIVE
 applies-to: [HELMET]
 group: "legendary"

@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: telepathy). Review before shipping.
 display: "Telepathy"
-description: "&aSends mined block drops straight &ato your inventory.  &a&lI: &f🎲 40% &a&lII: &f🎲 60% &a&lIII: &f🎲 80% &a&lIV: &f🎲 100%"
+description:
+  - "&aSends mined block drops straight"
+  - "&ato your inventory."
+  - ""
+  - "&a&lI: &f🎲 40%"
+  - "&a&lII: &f🎲 60%"
+  - "&a&lIII: &f🎲 80%"
+  - "&a&lIV: &f🎲 100%"
 trigger: MINE
 applies-to: [TOOL]
 group: "uncommon"

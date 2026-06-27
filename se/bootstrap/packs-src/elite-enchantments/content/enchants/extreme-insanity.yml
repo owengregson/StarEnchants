@@ -1,6 +1,19 @@
 # Imported from EliteEnchantments (id: extreme-insanity). Review before shipping.
 display: "Extreme Insanity"
-description: "&dHeroic upgrade for Insanity. &dDeals scaling bonus damage to &dtargets holding a sword. &c&l(!)&r &7Requires &6Insanity  &d&lI: &f▲ 4% &d&lII: &f▲ 6% &d&lIII: &f▲ 8% &d&lIV: &f▲ 10% &d&lV: &f▲ 12% &d&lVI: &f▲ 14% &d&lVII: &f▲ 16% &d&lVIII: &f▲ 18%"
+description:
+  - "&dHeroic upgrade for Insanity."
+  - "&dDeals scaling bonus damage to"
+  - "&dtargets holding a sword."
+  - "&c&l(!)&r &7Requires &6Insanity"
+  - ""
+  - "&d&lI: &f▲ 4%"
+  - "&d&lII: &f▲ 6%"
+  - "&d&lIII: &f▲ 8%"
+  - "&d&lIV: &f▲ 10%"
+  - "&d&lV: &f▲ 12%"
+  - "&d&lVI: &f▲ 14%"
+  - "&d&lVII: &f▲ 16%"
+  - "&d&lVIII: &f▲ 18%"
 trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"

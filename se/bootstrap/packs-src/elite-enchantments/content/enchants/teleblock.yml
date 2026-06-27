@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: teleblock). Review before shipping.
 display: "Teleblock"
-description: "&cArrows block the target from &cusing ender pearls and remove &ctheir pearls.  &c&lI: &f⌛ 25s &7| &f☄ 6 &c&lII: &f⌛ 25s &7| &f☄ 12 &c&lIII: &f⌛ 25s &7| &f☄ 18 &c&lIV: &f⌛ 25s &7| &f☄ 24 &c&lV: &f⌛ 25s &7| &f☄ 30"
+description:
+  - "&cArrows block the target from"
+  - "&cusing ender pearls and remove"
+  - "&ctheir pearls."
+  - ""
+  - "&c&lI: &f⌛ 25s &7| &f☄ 6"
+  - "&c&lII: &f⌛ 25s &7| &f☄ 12"
+  - "&c&lIII: &f⌛ 25s &7| &f☄ 18"
+  - "&c&lIV: &f⌛ 25s &7| &f☄ 24"
+  - "&c&lV: &f⌛ 25s &7| &f☄ 30"
 trigger: BOW
 applies-to: [BOW]
 group: "soul"

@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: cactus). Review before shipping.
 display: "Cactus"
-description: "&bWhen hit, deals damage back to &bthe attacker; your armor takes &bno durability loss.  &b&lI: &f🎲 4% &7| &f▲ 1-4❤ &7| &f⌛ 5s &b&lII: &f🎲 8% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
+description:
+  - "&bWhen hit, deals damage back to"
+  - "&bthe attacker; your armor takes"
+  - "&bno durability loss."
+  - ""
+  - "&b&lI: &f🎲 4% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
+  - "&b&lII: &f🎲 8% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "rare"

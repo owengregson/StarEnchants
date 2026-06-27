@@ -23,9 +23,7 @@ public final class SchemaWriter {
         b.append("# Imported from ").append(origin).append(" (id: ").append(e.id())
                 .append("). Review before shipping.\n");
         b.append("display: ").append(q(e.display())).append('\n');
-        if (!e.description().isBlank()) {
-            b.append("description: ").append(q(e.description())).append('\n');
-        }
+        appendDescription(b, e.description());
         if (e.trigger() != null) {
             b.append("trigger: ").append(e.trigger()).append('\n');
         } else {
@@ -149,6 +147,26 @@ public final class SchemaWriter {
                 }
                 b.append('\n');
             }
+        }
+    }
+
+    /**
+     * Render the {@code description:} key. A multi-line description (the importers join each source line with
+     * {@code '\n'}) becomes a readable YAML LIST — one quoted item per line, the inverse of how the loader
+     * joins a list back with {@code '\n'} ({@code compile.load.ContentParse}). A single-line one stays an
+     * inline scalar; a blank one is omitted entirely.
+     */
+    private static void appendDescription(StringBuilder b, String description) {
+        if (description == null || description.isBlank()) {
+            return;
+        }
+        if (!description.contains("\n")) {
+            b.append("description: ").append(q(description)).append('\n');
+            return;
+        }
+        b.append("description:\n");
+        for (String line : description.split("\n", -1)) {
+            b.append("  - ").append(q(line)).append('\n');
         }
     }
 

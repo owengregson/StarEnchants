@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: sniper). Review before shipping.
 display: "Sniper"
-description: "&6Arrows deal heavy bonus damage &6on a headshot.  &6&lI: &f🎲 3.25% &7| &f⌛ 3s &6&lII: &f🎲 5% &7| &f⌛ 3s &6&lIII: &f🎲 7% &7| &f⌛ 3s &6&lIV: &f🎲 9% &7| &f⌛ 3s &6&lV: &f🎲 12% &7| &f⌛ 3s"
+description:
+  - "&6Arrows deal heavy bonus damage"
+  - "&6on a headshot."
+  - ""
+  - "&6&lI: &f🎲 3.25% &7| &f⌛ 3s"
+  - "&6&lII: &f🎲 5% &7| &f⌛ 3s"
+  - "&6&lIII: &f🎲 7% &7| &f⌛ 3s"
+  - "&6&lIV: &f🎲 9% &7| &f⌛ 3s"
+  - "&6&lV: &f🎲 12% &7| &f⌛ 3s"
 trigger: BOW
 applies-to: [BOW]
 group: "legendary"

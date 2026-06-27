@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: ender-shift). Review before shipping.
 display: "Ender Shift"
-description: "&aAt low health, when hit, grants &ayou Speed and Absorption.  &a&lI: &f🎲 8% &7| &f▲ 4s &7| &f⌛ 10s &a&lII: &f🎲 10% &7| &f▲ 4s &7| &f⌛ 10s &a&lIII: &f🎲 12% &7| &f▲ 4s &7| &f⌛ 10s"
+description:
+  - "&aAt low health, when hit, grants"
+  - "&ayou Speed and Absorption."
+  - ""
+  - "&a&lI: &f🎲 8% &7| &f▲ 4s &7| &f⌛ 10s"
+  - "&a&lII: &f🎲 10% &7| &f▲ 4s &7| &f⌛ 10s"
+  - "&a&lIII: &f🎲 12% &7| &f▲ 4s &7| &f⌛ 10s"
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "uncommon"

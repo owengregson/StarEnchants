@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: deathbringer). Review before shipping.
 display: "Deathbringer"
-description: "&6On hit, deals a guaranteed &6critical strike for double &6damage.  &6&lI: &f▲ 100% &7| &f⌛ 45s &6&lII: &f▲ 100% &7| &f⌛ 45s &6&lIII: &f▲ 100% &7| &f⌛ 45s"
+description:
+  - "&6On hit, deals a guaranteed"
+  - "&6critical strike for double"
+  - "&6damage."
+  - ""
+  - "&6&lI: &f▲ 100% &7| &f⌛ 45s"
+  - "&6&lII: &f▲ 100% &7| &f⌛ 45s"
+  - "&6&lIII: &f▲ 100% &7| &f⌛ 45s"
 trigger: ATTACK
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "legendary"

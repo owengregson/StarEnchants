@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: bleed). Review before shipping.
 display: "Bleed"
-description: "&eOn hit, deals bonus damage and &eapplies Slowness.  &e&lI: &f🎲 1.25% &7| &f▲ 1-2❤ &7| &f⌛ 5s &e&lII: &f🎲 2.5% &7| &f▲ 1-2❤ &7| &f⌛ 5s &e&lIII: &f🎲 3.75% &7| &f▲ 1-2❤ &7| &f⌛ 5s &e&lIV: &f🎲 5% &7| &f▲ 1-3❤ &7| &f⌛ 5s &e&lV: &f🎲 7.25% &7| &f▲ 1-3❤ &7| &f⌛ 5s &e&lVI: &f🎲 9% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
+description:
+  - "&eOn hit, deals bonus damage and"
+  - "&eapplies Slowness."
+  - ""
+  - "&e&lI: &f🎲 1.25% &7| &f▲ 1-2❤ &7| &f⌛ 5s"
+  - "&e&lII: &f🎲 2.5% &7| &f▲ 1-2❤ &7| &f⌛ 5s"
+  - "&e&lIII: &f🎲 3.75% &7| &f▲ 1-2❤ &7| &f⌛ 5s"
+  - "&e&lIV: &f🎲 5% &7| &f▲ 1-3❤ &7| &f⌛ 5s"
+  - "&e&lV: &f🎲 7.25% &7| &f▲ 1-3❤ &7| &f⌛ 5s"
+  - "&e&lVI: &f🎲 9% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "epic"

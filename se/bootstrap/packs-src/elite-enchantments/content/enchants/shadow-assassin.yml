@@ -1,6 +1,17 @@
 # Imported from EliteEnchantments (id: shadow-assassin). Review before shipping.
 display: "Shadow Assassin"
-description: "&dHeroic upgrade for Assassin. &dDeals more damage the closer you &dare to the target, with a &dshorter cooldown. &c&l(!)&r &7Requires &eAssassin  &d&lI: &f🎲 4.25% &7| &f⌛ 3s &d&lII: &f🎲 7% &7| &f⌛ 3s &d&lIII: &f🎲 9.5% &7| &f⌛ 2s &d&lIV: &f🎲 11% &7| &f⌛ 2s &d&lV: &f🎲 13% &7| &f⌛ 1s"
+description:
+  - "&dHeroic upgrade for Assassin."
+  - "&dDeals more damage the closer you"
+  - "&dare to the target, with a"
+  - "&dshorter cooldown."
+  - "&c&l(!)&r &7Requires &eAssassin"
+  - ""
+  - "&d&lI: &f🎲 4.25% &7| &f⌛ 3s"
+  - "&d&lII: &f🎲 7% &7| &f⌛ 3s"
+  - "&d&lIII: &f🎲 9.5% &7| &f⌛ 2s"
+  - "&d&lIV: &f🎲 11% &7| &f⌛ 2s"
+  - "&d&lV: &f🎲 13% &7| &f⌛ 1s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "heroic"

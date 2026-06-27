@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: immortal). Review before shipping.
 display: "Immortal"
-description: "&cWhen hit, prevents your armor &cfrom losing durability, paid in &csouls.  &c&lI: &f🎲 12% &7| &f☄ 5 &c&lII: &f🎲 19% &7| &f☄ 9 &c&lIII: &f🎲 25% &7| &f☄ 13 &c&lIV: &f🎲 31% &7| &f☄ 20"
+description:
+  - "&cWhen hit, prevents your armor"
+  - "&cfrom losing durability, paid in"
+  - "&csouls."
+  - ""
+  - "&c&lI: &f🎲 12% &7| &f☄ 5"
+  - "&c&lII: &f🎲 19% &7| &f☄ 9"
+  - "&c&lIII: &f🎲 25% &7| &f☄ 13"
+  - "&c&lIV: &f🎲 31% &7| &f☄ 20"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "soul"

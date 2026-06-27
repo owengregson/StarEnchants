@@ -1,6 +1,16 @@
 # Imported from EliteEnchantments (id: bewitched-hex). Review before shipping.
 display: "Bewitched Hex"
-description: "&dHeroic upgrade for Hex. &dDeals more bonus damage and &dweakens the target for longer. &c&l(!)&r &7Requires &6Hex  &d&lI: &f🎲 3.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lII: &f🎲 4.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lIII: &f🎲 5.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lIV: &f🎲 6.5% &7| &f▲ 15% &7| &f⌛ 5s &d&lV: &f🎲 7.5% &7| &f▲ 15% &7| &f⌛ 5s"
+description:
+  - "&dHeroic upgrade for Hex."
+  - "&dDeals more bonus damage and"
+  - "&dweakens the target for longer."
+  - "&c&l(!)&r &7Requires &6Hex"
+  - ""
+  - "&d&lI: &f🎲 3.5% &7| &f▲ 15% &7| &f⌛ 5s"
+  - "&d&lII: &f🎲 4.5% &7| &f▲ 15% &7| &f⌛ 5s"
+  - "&d&lIII: &f🎲 5.5% &7| &f▲ 15% &7| &f⌛ 5s"
+  - "&d&lIV: &f🎲 6.5% &7| &f▲ 15% &7| &f⌛ 5s"
+  - "&d&lV: &f🎲 7.5% &7| &f▲ 15% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"

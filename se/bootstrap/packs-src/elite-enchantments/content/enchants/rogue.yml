@@ -1,6 +1,11 @@
 # Imported from EliteEnchantments (id: rogue). Review before shipping.
 display: "Rogue"
-description: "&cOn hit, deals double damage.  &c&lI: &f🎲 3.25% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100 &c&lII: &f🎲 6.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100 &c&lIII: &f🎲 8.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
+description:
+  - "&cOn hit, deals double damage."
+  - ""
+  - "&c&lI: &f🎲 3.25% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
+  - "&c&lII: &f🎲 6.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
+  - "&c&lIII: &f🎲 8.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
 trigger: ATTACK
 applies-to: [AXE]
 group: "soul"

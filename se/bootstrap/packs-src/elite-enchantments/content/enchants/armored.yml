@@ -1,6 +1,13 @@
 # Imported from EliteEnchantments (id: armored). Review before shipping.
 display: "Armored"
-description: "&6Reduces damage taken from &6enemies holding a sword.  &6&lI: &f▲ 1.85% &7| &f⌛ 2s &6&lII: &f▲ 3.7% &7| &f⌛ 2s &6&lIII: &f▲ 5.55% &7| &f⌛ 2s &6&lIV: &f▲ 7.4% &7| &f⌛ 2s"
+description:
+  - "&6Reduces damage taken from"
+  - "&6enemies holding a sword."
+  - ""
+  - "&6&lI: &f▲ 1.85% &7| &f⌛ 2s"
+  - "&6&lII: &f▲ 3.7% &7| &f⌛ 2s"
+  - "&6&lIII: &f▲ 5.55% &7| &f⌛ 2s"
+  - "&6&lIV: &f▲ 7.4% &7| &f⌛ 2s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "legendary"

@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: eagle-eye). Review before shipping.
 display: "Eagle Eye"
-description: "&eArrows damage the durability of &ethe target's armor.  &e&lI: &f🎲 3.25% &7| &f▲ 1 pt. &7| &f⌛ 5s &e&lII: &f🎲 5.25% &7| &f▲ 1 pt. &7| &f⌛ 5s &e&lIII: &f🎲 7.25% &7| &f▲ 2 pt. &7| &f⌛ 5s &e&lIV: &f🎲 9.25% &7| &f▲ 2 pt. &7| &f⌛ 5s &e&lV: &f🎲 11.25% &7| &f▲ 3 pt. &7| &f⌛ 5s"
+description:
+  - "&eArrows damage the durability of"
+  - "&ethe target's armor."
+  - ""
+  - "&e&lI: &f🎲 3.25% &7| &f▲ 1 pt. &7| &f⌛ 5s"
+  - "&e&lII: &f🎲 5.25% &7| &f▲ 1 pt. &7| &f⌛ 5s"
+  - "&e&lIII: &f🎲 7.25% &7| &f▲ 2 pt. &7| &f⌛ 5s"
+  - "&e&lIV: &f🎲 9.25% &7| &f▲ 2 pt. &7| &f⌛ 5s"
+  - "&e&lV: &f🎲 11.25% &7| &f▲ 3 pt. &7| &f⌛ 5s"
 trigger: BOW
 applies-to: [BOW]
 group: "epic"

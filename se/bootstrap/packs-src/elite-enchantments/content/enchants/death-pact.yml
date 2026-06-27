@@ -1,6 +1,12 @@
 # Imported from EliteEnchantments (id: death-pact). Review before shipping.
 display: "Death Pact"
-description: "&4When hit, reduces the damage &4taken.  &4&lI: &f🎲 12.25% &7| &f▲ 10% &7| &f⌛ 4s &4&lII: &f🎲 15% &7| &f▲ 20% &7| &f⌛ 4s &4&lIII: &f🎲 18.5% &7| &f▲ 30% &7| &f⌛ 4s"
+description:
+  - "&4When hit, reduces the damage"
+  - "&4taken."
+  - ""
+  - "&4&lI: &f🎲 12.25% &7| &f▲ 10% &7| &f⌛ 4s"
+  - "&4&lII: &f🎲 15% &7| &f▲ 20% &7| &f⌛ 4s"
+  - "&4&lIII: &f🎲 18.5% &7| &f▲ 30% &7| &f⌛ 4s"
 trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "mythic"

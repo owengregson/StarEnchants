@@ -1,6 +1,14 @@
 # Imported from EliteEnchantments (id: destruction). Review before shipping.
 display: "Destruction"
-description: "&6When hit, damages the attacker &6and applies Poison and Weakness.  &6&lI: &f🎲 3.5% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lII: &f🎲 5% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lIII: &f🎲 7.5% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lIV: &f🎲 9.75% &7| &f▲ 1❤ &7| &f⌛ 3s &6&lV: &f🎲 11.5% &7| &f▲ 1❤ &7| &f⌛ 3s"
+description:
+  - "&6When hit, damages the attacker"
+  - "&6and applies Poison and Weakness."
+  - ""
+  - "&6&lI: &f🎲 3.5% &7| &f▲ 1❤ &7| &f⌛ 3s"
+  - "&6&lII: &f🎲 5% &7| &f▲ 1❤ &7| &f⌛ 3s"
+  - "&6&lIII: &f🎲 7.5% &7| &f▲ 1❤ &7| &f⌛ 3s"
+  - "&6&lIV: &f🎲 9.75% &7| &f▲ 1❤ &7| &f⌛ 3s"
+  - "&6&lV: &f🎲 11.5% &7| &f▲ 1❤ &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [HELMET]
 group: "legendary"

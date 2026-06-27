@@ -1,6 +1,15 @@
 # Imported from EliteEnchantments (id: mortal-coil). Review before shipping.
 display: "Mortal Coil"
-description: "&4On hit, removes the target's &4Overload bonus hearts for a few &4seconds and deals bonus damage.  &4&lI: &f🎲 1.5% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lII: &f🎲 3% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lIII: &f🎲 4.5% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lIV: &f🎲 6% &7| &f▲ -6❤ &7| &f⌛ 30s &4&lV: &f🎲 7.5% &7| &f▲ -6❤ &7| &f⌛ 30s"
+description:
+  - "&4On hit, removes the target's"
+  - "&4Overload bonus hearts for a few"
+  - "&4seconds and deals bonus damage."
+  - ""
+  - "&4&lI: &f🎲 1.5% &7| &f▲ -6❤ &7| &f⌛ 30s"
+  - "&4&lII: &f🎲 3% &7| &f▲ -6❤ &7| &f⌛ 30s"
+  - "&4&lIII: &f🎲 4.5% &7| &f▲ -6❤ &7| &f⌛ 30s"
+  - "&4&lIV: &f🎲 6% &7| &f▲ -6❤ &7| &f⌛ 30s"
+  - "&4&lV: &f🎲 7.5% &7| &f▲ -6❤ &7| &f⌛ 30s"
 trigger: ATTACK
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "mythic"
