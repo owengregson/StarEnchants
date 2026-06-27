@@ -1,8 +1,10 @@
 package platform.item;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.bukkit.Material;
@@ -39,6 +41,57 @@ public final class ItemGroups {
             }
         }
         return false;
+    }
+
+    /**
+     * A human-readable, grammatically-joined label for {@code applies-to} tokens — each token title-cased
+     * ({@code SWORD}→Sword, {@code FISHING_ROD}→Fishing Rod) and serial-joined with an Oxford comma:
+     * 1→{@code "Sword"}, 2→{@code "Sword & Axe"}, 3+→{@code "Boots, Leggings, & Helmet"}. Empty for no
+     * tokens. Callers append their own suffix (e.g. {@code " Enchantment"}). A cold-path display helper.
+     */
+    public static String kindsLabel(Collection<String> tokens) {
+        List<String> words = new ArrayList<>();
+        if (tokens != null) {
+            for (String token : tokens) {
+                String word = titleCase(token);
+                if (!word.isEmpty()) {
+                    words.add(word);
+                }
+            }
+        }
+        int n = words.size();
+        if (n == 0) {
+            return "";
+        }
+        if (n == 1) {
+            return words.get(0);
+        }
+        if (n == 2) {
+            return words.get(0) + " & " + words.get(1);
+        }
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < n - 1; i++) {
+            out.append(words.get(i)).append(", ");
+        }
+        return out.append("& ").append(words.get(n - 1)).toString(); // Oxford comma before the final item
+    }
+
+    /** Title-case a token, turning {@code _} into spaces: {@code FISHING_ROD} → {@code "Fishing Rod"}. */
+    private static String titleCase(String token) {
+        if (token == null || token.isEmpty()) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder();
+        for (String part : token.toLowerCase(java.util.Locale.ROOT).split("_")) {
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(' ');
+            }
+            out.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return out.toString();
     }
 
     /** The resolved materials of a single group token (empty if the token is unknown on this version). */

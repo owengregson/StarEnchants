@@ -239,7 +239,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
                 () -> items.config().enchantBookOrDefault(),   // §I enchant book
                 () -> items.config().dustOrDefault(),          // §I success dust
-                () -> items.config().whiteScrollOrDefault());  // §I white scroll
+                () -> items.config().whiteScrollOrDefault(),   // §I white scroll
+                () -> master.config().lore().roman());         // book level numeral style (lore.roman, live)
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());

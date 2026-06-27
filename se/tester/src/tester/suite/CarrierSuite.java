@@ -87,7 +87,7 @@ public final class CarrierSuite implements Harness.Scenario {
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
         EnchantBookConfig destroyLikeness = new EnchantBookConfig(
-                "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true);
+                "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true, 30);
         CarrierService destroyer = new CarrierService(
                 carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness);
 
@@ -105,16 +105,27 @@ public final class CarrierSuite implements Harness.Scenario {
         });
 
         h.guard("carrier.book.showsDescription", () -> {
-            // The book's lore renders the enchant's own description via the {DESCRIPTION} likeness line — each
-            // description line as its OWN lore entry (the newlines must split, not crowd onto one line).
+            // The opened book renders the spec (§I): the word-wrapped description (each line its own lore
+            // entry), a success + failure rate, and the grammatically-joined applies-to kinds.
             ItemStack book = carriers.mintBook("enchants/zap", 1);
             org.bukkit.inventory.meta.ItemMeta meta = book.getItemMeta();
             List<String> bookLore = meta == null ? null : meta.getLore();
-            long descLines = bookLore == null ? 0 : bookLore.stream()
+            if (bookLore == null) {
+                throw new IllegalStateException("the book has no lore");
+            }
+            long descLines = bookLore.stream()
                     .filter(l -> l.contains("Ignites the foe") || l.contains("burns for a while")).count();
             if (descLines != 2) {
                 throw new IllegalStateException(
                         "the book should render the enchant description as separate lore lines; lore=" + bookLore);
+            }
+            if (bookLore.stream().noneMatch(l -> l.contains("Success Rate"))
+                    || bookLore.stream().noneMatch(l -> l.contains("Failure Rate"))) {
+                throw new IllegalStateException("the book should show a Success/Failure Rate; lore=" + bookLore);
+            }
+            // ZAP applies-to [SWORD] → "Sword Enchantment".
+            if (bookLore.stream().noneMatch(l -> l.contains("Sword Enchantment"))) {
+                throw new IllegalStateException("the book should show the applies-to kinds; lore=" + bookLore);
             }
         });
 
