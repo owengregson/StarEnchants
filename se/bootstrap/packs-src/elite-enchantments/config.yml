@@ -65,7 +65,7 @@ heroic:
 # Lore render style (§L). Legacy '&' colour codes. Re-read on every lore render, so a reload restyles live.
 lore:
   enchant-color: "&7"      # an enchant's display name
-  level-color: "&f"        # the level numeral
+  level-color: ""          # blank → the level numeral inherits each enchant's tier colour
   crystal-color: "&b"      # a crystal line
   roman: true              # levels as Roman numerals (Venom III) vs Arabic (Venom 3)
   unknown-label: "&8Unknown Enchant"  # shown for a stored key no longer in the catalog

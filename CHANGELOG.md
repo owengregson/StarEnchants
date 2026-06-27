@@ -32,6 +32,43 @@ versioning: [Semantic Versioning](https://semver.org/).
   runtime, derived via a multi-lens design workshop) and ADRs 0011 (architecture),
   0012 (fully-additive damage), 0013 (single `/se` command root).
 
+## [1.1.4-beta] - 2026-06-27
+
+### Added
+
+- **Opened enchant books now show the full spec.** The general enchant-book likeness
+  (`items/enchant-book.yml`) renders a bold tier-coloured `Name Level` (Roman or Arabic per
+  `config.yml` `lore.roman`), the word-wrapped description, an `&a..% Success Rate` /
+  `&c..% Failure Rate` pair, and the applies-to kinds grammatically joined (`Sword`,
+  `Sword & Axe`, `Boots, Leggings, & Helmet`) plus an `Enchantment` suffix. New placeholders `{TIER_COLOR}`,
+  `{SUCCESS}`, `{FAILURE}`, `{KINDS}`, a configurable `wrap` (chars-per-line, colour codes don't
+  count toward width), and a colour-aware word-wrap (`item.render.TextWrap`).
+- **`/se admin` is now a tier → enchant → level drill-down.** Click a rarity tier to see its
+  enchants, click an enchant to see one book per level, click a level to receive that exact
+  guaranteed book (the menu stays open to grab several).
+- **Tab-completable enchant levels.** `/se give book <player> <enchant> [level]`, `/se book
+  <enchant> [level]`, and `/se enchant <key> [level]` now suggest the chosen enchant's valid
+  levels (1..max).
+- **Level numeral can inherit the tier colour.** `config.yml` `lore.level-color: ""` (blank) makes
+  an applied enchant's level render in the enchant's tier colour instead of a fixed colour; the
+  `elite-enchantments` pack ships with it blank.
+
+### Fixed
+
+- **Migrated cooldowns were 20× too short.** EliteEnchantments / AdvancedEnchantments author
+  cooldowns in *seconds*, but StarEnchants reads the `cooldown` knob in *ticks* — so e.g. Divine
+  Immolation imported with a 2-tick cooldown instead of 2 seconds. The migrator now converts
+  seconds → ticks (×20, like the REPEATING period), and all 96 shipped `elite-enchantments`
+  cooldowns were corrected.
+- **Soul gem (and unopened book) ignored the first right-click.** The interact listeners used
+  `ignoreCancelled = true`, so a `RIGHT_CLICK_BLOCK` (which arrives cancelled by default-deny /
+  protection) silently dropped the gesture until `/se soulmode` was run once. They now run at
+  `LOW` priority and read the main-hand item directly, so the first right-click toggles soul mode
+  (and opens an unopened book) reliably.
+- **Enchant chat messages showed raw `&` codes.** The `MESSAGE` effect's chat / actionbar / title
+  output now translates legacy `&` colour codes to `§` (both the modern and 1.8.9 overlays), so a
+  proc message renders coloured instead of printing literal `&c&l…`.
+
 ## [1.1.3-beta] - 2026-06-27
 
 ### Added
