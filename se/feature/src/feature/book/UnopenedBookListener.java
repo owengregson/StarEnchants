@@ -4,6 +4,7 @@ import feature.compat.Hands;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -22,7 +23,10 @@ public final class UnopenedBookListener implements Listener {
         this.service = Objects.requireNonNull(service, "service");
     }
 
-    @EventHandler(ignoreCancelled = true)
+    // priority LOW, NOT ignoreCancelled: a RIGHT_CLICK_BLOCK with a non-use item often arrives already
+    // cancelled (vanilla deny / a protection plugin), which would silently drop the first open. LOW still
+    // precedes TriggerListeners (HIGH), so the book claims the gesture ahead of INTERACT triggers.
+    @EventHandler(priority = EventPriority.LOW)
     public void onInteract(PlayerInteractEvent event) {
         if (!Hands.isMainHand(event)) {
             return; // main-hand only — the off-hand pass of a two-hand interact would double-open
@@ -31,12 +35,13 @@ public final class UnopenedBookListener implements Listener {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        ItemStack used = event.getItem();
+        Player player = event.getPlayer();
+        // Read from the main hand directly (not event.getItem(), which can be null on an air-click).
+        ItemStack used = Hands.mainHand(player);
         if (used == null || !service.isUnopened(used)) {
             return;
         }
         event.setCancelled(true); // claim the gesture: the book does nothing else on right-click
-        Player player = event.getPlayer();
 
         UnopenedResult result = service.open(used);
         if (result.opened()) {
