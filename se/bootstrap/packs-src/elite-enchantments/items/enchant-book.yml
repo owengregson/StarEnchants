@@ -13,8 +13,9 @@
 type: enchant-book
 
 material: ENCHANTED_BOOK
-# Bold, tier-coloured "<Name> <Level>". (Colour first, then &l, so the bold actually sticks.)
-name: "{TIER_COLOR}&l{ENCHANT} {LEVEL}"
+# Bold + underlined, tier-coloured "<Name> <Level>". (Colour first, then &l&n, so the formats stick.)
+# This same name styling is reused for the enchant icons in the in-game menus (apply/browse/admin).
+name: "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}"
 lore:
   - ""
   - "{TIER_COLOR}{DESCRIPTION}"

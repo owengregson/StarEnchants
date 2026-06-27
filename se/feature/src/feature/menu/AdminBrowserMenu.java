@@ -185,17 +185,15 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
             lore.add("&8conflicts: &7" + String.join(", ", def.blacklist()));
         }
         lore.add("&eClick to choose a level.");
-        // The name's base colour is the enchant's rarity tier (ADR-0016 §2); a display carrying its own
-        // leading colour code overrides it (EE displays are plain, so the tier shows).
-        return ItemFactory.build(EnchantsBrowserMenu.bookMaterial(),
-                MenuText.tierColor(content.library().tiers(), def.tier()) + def.display(), lore);
+        // Name styled by the enchant-book likeness (tier colour + any bold/underline), so it matches the book;
+        // level-less in the enchant view.
+        return ItemFactory.build(EnchantsBrowserMenu.bookMaterial(), carriers.bookDisplayName(def.key(), 0), lore);
     }
 
-    /** One level of an enchant — clicking mints a guaranteed book of exactly that level. */
+    /** One level of an enchant — clicking mints a guaranteed book of exactly that level; the icon IS that book's name. */
     private ItemStack levelIcon(EnchantDef def, int level) {
-        String name = MenuText.tierColor(content.library().tiers(), def.tier()) + def.display() + " &7Lv " + level;
         List<String> lore = List.of("&aClick to receive a guaranteed level &f" + level + " &abook.");
-        return ItemFactory.build(EnchantsBrowserMenu.bookMaterial(), name, lore);
+        return ItemFactory.build(EnchantsBrowserMenu.bookMaterial(), carriers.bookDisplayName(def.key(), level), lore);
     }
 
     private String tierColor(String tier) {

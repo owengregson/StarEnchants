@@ -479,13 +479,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
 
         // GUIs on the shared menu framework (§K). Menus open on the player's region thread (Folia open-hop).
+        // Enchant-icon names are styled by the enchant-book name template, so a menu name matches the book.
+        java.util.function.Supplier<String> bookName = () -> items.config().enchantBookOrDefault().name();
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
-                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config);
+                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName);
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
         GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config);
         MenuRegistry menus = new MenuRegistry()
                 .register(applyMenu)
-                .register(new EnchantsBrowserMenu(content, caps, menusHolder::config))   // tier → enchant catalog
+                .register(new EnchantsBrowserMenu(content, caps, menusHolder::config, bookName)) // tier → enchant catalog
                 .register(new SetsBrowserMenu(content, caps, menusHolder::config))       // armour-set browser + preview
                 .register(new CrystalsBrowserMenu(content, caps, menusHolder::config))   // crystals/modifiers catalog
                 .register(new ReferenceBrowserMenu(caps, menusHolder::config))           // effects/selectors/…

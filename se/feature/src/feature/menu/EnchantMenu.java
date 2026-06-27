@@ -1,6 +1,7 @@
 package feature.menu;
 
 import compile.load.ContentHolder;
+import compile.load.EnchantBookConfig;
 import compile.load.EnchantDef;
 import compile.load.MenusConfig;
 import feature.apply.ApplyResult;
@@ -26,6 +27,7 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     private final ContentHolder content;
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
+    private final Supplier<String> nameTemplate; // the enchant-book name template — icons match the book (§I/§K)
 
     /** Default-layout form (tests/fixtures). */
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
@@ -35,10 +37,16 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
                        Capabilities caps, Supplier<MenusConfig> menus) {
+        this(content, enchanter, refreshWorn, caps, menus, () -> EnchantBookConfig.defaults().name());
+    }
+
+    public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
+                       Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate) {
         super("apply", MenuLayout.paged("StarEnchants"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.refreshWorn = Objects.requireNonNull(refreshWorn, "refreshWorn");
+        this.nameTemplate = Objects.requireNonNull(nameTemplate, "nameTemplate");
     }
 
     @Override
@@ -67,9 +75,10 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
         lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
         lore.add("&8max level: &7" + def.maxLevel());
         lore.add("&eClick to apply to your held item.");
-        // The name's base colour is the enchant's rarity tier (ADR-0016 §2), like the applied-gear lore; a
-        // display that carries its own leading colour code overrides it (EE displays are plain, so the tier shows).
-        String name = MenuText.tierColor(content.library().tiers(), def.tier()) + def.display();
+        // The icon name is styled by the enchant-book name template (tier colour + any bold/underline), so it
+        // matches the unapplied book; level-less here (no specific level in the apply menu).
+        String name = MenuText.enchantName(nameTemplate.get(),
+                MenuText.tierColor(content.library().tiers(), def.tier()), def.display(), "");
         return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"), name, lore);
     }
 }

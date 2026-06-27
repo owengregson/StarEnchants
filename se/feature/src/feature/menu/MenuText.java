@@ -29,6 +29,24 @@ public final class MenuText {
     }
 
     /**
+     * An enchant name styled by the enchant-book {@code name:} template, so a menu icon's name matches the
+     * unapplied book (single source of truth). Fills the template's {@code {TIER_COLOR}} / {@code {ENCHANT}} /
+     * {@code {LEVEL}} placeholders; a blank {@code level} drops the {@code " {LEVEL}"} slot (a level-less icon).
+     * The returned string still carries {@code '&'} codes — the caller's {@code ItemFactory.build} translates.
+     */
+    public static String enchantName(String template, String tierColor, String display, String level) {
+        String tc = tierColor == null ? "" : tierColor;
+        String lvl = level == null ? "" : level;
+        String out = template
+                .replace("{TIER_COLOR}", tc)
+                .replace("{TIER-COLOR}", tc)
+                .replace("{ENCHANT}", display);
+        return lvl.isBlank()
+                ? out.replace(" {LEVEL}", "").replace("{LEVEL}", "")
+                : out.replace("{LEVEL}", lvl);
+    }
+
+    /**
      * A (possibly multi-line) description as lore lines, each prefixed with {@code defaultColor} so an
      * uncoloured line gets a sensible colour and a line carrying its own {@code &} code overrides it. Empty for
      * a blank description. Splitting here (not one lore entry with embedded {@code '\n'}) is what makes the

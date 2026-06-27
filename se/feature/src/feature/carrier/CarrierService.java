@@ -262,6 +262,23 @@ public final class CarrierService {
                 .replace("{KINDS}", kinds);
     }
 
+    /**
+     * The styled display name an enchant book carries (tier-coloured, with any bold/underline from the
+     * likeness {@code name:} template), at {@code level}; {@code level <= 0} renders a level-less name (the
+     * trailing {@code " {LEVEL}"} slot is dropped). Lets a menu icon match the unapplied book ({@code &}-coded;
+     * the caller translates).
+     */
+    public String bookDisplayName(String enchantKey, int level) {
+        String tierColor = tierColorOf(enchantKey);
+        String name = bookConfig.get().name()
+                .replace("{TIER_COLOR}", tierColor)
+                .replace("{TIER-COLOR}", tierColor)
+                .replace("{ENCHANT}", displayOf(enchantKey));
+        return level <= 0
+                ? name.replace(" {LEVEL}", "").replace("{LEVEL}", "")
+                : name.replace("{LEVEL}", levelNumeral(level));
+    }
+
     /** The enchant's rarity-tier colour code (e.g. {@code &e}), or grey ({@code &7}) for no/unknown tier. */
     private String tierColorOf(String enchantKey) {
         String tier = content.library().tierOf(enchantKey);

@@ -67,4 +67,20 @@ class MenuTextTest {
         assertTrue(MenuText.describe("", "&7").isEmpty());
         assertTrue(MenuText.describe(null, "&7").isEmpty());
     }
+
+    @Test
+    void enchantNameAppliesTheBookTemplateStylingIncludingUnderline() {
+        // The EE-pack book name template (bold + underline) reused for a menu icon name.
+        String template = "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}";
+        // Level-less icon (apply/browse): the " {LEVEL}" slot is dropped, no trailing space.
+        assertEquals("&e&l&nMolten", MenuText.enchantName(template, "&e", "Molten", ""));
+        // A levelled icon (admin level view): the level fills the slot.
+        assertEquals("&e&l&nMolten III", MenuText.enchantName(template, "&e", "Molten", "III"));
+    }
+
+    @Test
+    void enchantNameToleratesBothPlaceholderSpellingsAndNullColour() {
+        assertEquals("&6Sharpness", MenuText.enchantName("{TIER-COLOR}{ENCHANT} {LEVEL}", "&6", "Sharpness", ""));
+        assertEquals("Sharpness", MenuText.enchantName("{TIER_COLOR}{ENCHANT} {LEVEL}", null, "Sharpness", null));
+    }
 }
