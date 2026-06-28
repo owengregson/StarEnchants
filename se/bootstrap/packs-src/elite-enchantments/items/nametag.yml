@@ -8,7 +8,7 @@ material: NAME_TAG
 name: "&6&lItem Nametag"
 # Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
-  - "&eAllows you to rename and customize your equipment with customizable color and formatting codes"
+  - "&eAllows you to rename and customize your equipment with customizable color and formatting codes."
   - "&7Drag n' Drop on an item to apply."
 # Words a renamed item may not contain (case-insensitive substring match). Empty = allow any name.
 blacklist: []

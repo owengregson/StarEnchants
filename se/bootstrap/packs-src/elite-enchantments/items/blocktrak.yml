@@ -5,10 +5,11 @@
 type: blocktrak
 
 material: SLIME_BALL
-name: "&aBlockTrak Gem"
+name: "&a&lBlockTrak Gem"
 # {KINDS} = the applies-to label; {COUNT} = the live count. Lore auto-wraps at config lore.item-wrap.
 lore:
   - "&eDisplays the amount of blocks broken with the tool since it was forged."
+  - ""
   - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
 applies-to: [TOOL]

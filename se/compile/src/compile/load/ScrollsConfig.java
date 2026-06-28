@@ -115,7 +115,7 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                 new Transmog(
                         "PAPER",
                         "&c&lTransmog Scroll",
-                        List.of("&eOrganizes enchants by &f&nrarity&r&7 on your item and adds the &denchant &bcount &7to the name.",
+                        List.of("&eOrganizes enchants by &f&nrarity&r&e on your item and adds the &denchant &bcount &eto the name.",
                                 "&7Drag n' Drop on an item to apply."),
                         "&r &d[&b&l&n{COUNT}&r&d]"),
                 new Holy(

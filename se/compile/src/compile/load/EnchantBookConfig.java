@@ -29,19 +29,20 @@ public record EnchantBookConfig(String material, String name, List<String> lore,
     }
 
     /**
-     * The built-in spec: a tier-coloured bold name, a blank line, the word-wrapped description, the success
-     * and failure rates, a blank line, the applies-to kinds, and the drag-and-drop footer. {@code destroyOnFail}
-     * defaults to {@code false} (safe with no config); the shipped yml enables it so the White Scroll has a purpose.
+     * The built-in spec: a tier-coloured bold name, the success and failure rates (right below the name), a
+     * blank line, the word-wrapped description, a blank line, the applies-to kinds, and the drag-and-drop
+     * footer. {@code destroyOnFail} defaults to {@code false} (safe with no config); the shipped yml enables it
+     * so the White Scroll has a purpose.
      */
     public static EnchantBookConfig defaults() {
         return new EnchantBookConfig(
                 "ENCHANTED_BOOK",
                 "{TIER_COLOR}&l{ENCHANT} {LEVEL}",
                 List.of(
-                        "",
-                        "{TIER_COLOR}{DESCRIPTION}",
                         "&a{SUCCESS}% Success Rate",
                         "&c{FAILURE}% Failure Rate",
+                        "",
+                        "{TIER_COLOR}{DESCRIPTION}",
                         "",
                         "&7{KINDS} Enchantment",
                         "&7Drag n' Drop on an item to apply."),

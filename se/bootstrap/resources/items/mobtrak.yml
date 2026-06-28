@@ -5,10 +5,11 @@
 type: mobtrak
 
 material: MAGMA_CREAM
-name: "&eMobTrak Gem"
+name: "&e&lMobTrak Gem"
 # {KINDS} expands to the grammatically-joined applies-to label. Lore auto-wraps at config lore.item-wrap.
 lore:
   - "&eDisplays the amount of mobs killed with the weapon since it was forged."
+  - ""
   - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
 # Item-group kinds this gem applies to (and whose lifetime is tracked): e.g. WEAPON, SWORD, AXE, ALL.
