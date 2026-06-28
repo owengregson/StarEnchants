@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import schema.diag.DiagCode;
 
 /** Loads the top-level {@code items/} config folder — parsing, defaults, and the diagnostic cases. */
 class ItemsLoaderTest {
@@ -158,6 +159,39 @@ class ItemsLoaderTest {
         assertEquals("&d{TIER} crate", book.name());
         assertEquals(40, book.minSuccess());
         assertEquals(60, book.maxSuccess());
+    }
+
+    @Test
+    void parsesAnEnchantBookConfig(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("enchant-book.yml"), """
+                type: enchant-book
+                material: BOOK
+                name: "&b{ENCHANT} {LEVEL}"
+                destroy-on-fail: false
+                wrap: 24
+                """);
+
+        EnchantBookConfig book = ItemsLoader.load(dir).enchantBook().orElseThrow();
+        assertEquals("BOOK", book.material());
+        assertEquals("&b{ENCHANT} {LEVEL}", book.name());
+        assertFalse(book.destroyOnFail());
+        assertEquals(24, book.wrap());
+        // an omitted list field falls back to the built-in placeholder spec
+        assertEquals(EnchantBookConfig.defaults().lore(), book.lore());
+    }
+
+    @Test
+    void aSecondConfigOfTheSameTypeWarnsAndKeepsTheFirst(@TempDir Path dir) throws Exception {
+        // two files declare the same type; files load in sorted-name order, so the first wins and the second
+        // is a non-blocking W_ITEM_DUP warning. This skip-second branch repeats for every item type but was
+        // never exercised once.
+        Files.writeString(dir.resolve("a-white.yml"), "type: white-scroll\nname: \"&fFirst\"\n");
+        Files.writeString(dir.resolve("b-white.yml"), "type: white-scroll\nname: \"&fSecond\"\n");
+
+        ItemsConfig config = ItemsLoader.load(dir);
+        assertFalse(config.hasErrors());
+        assertEquals("&fFirst", config.whiteScroll().orElseThrow().name());
+        assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.W_ITEM_DUP)));
     }
 
     @Test
