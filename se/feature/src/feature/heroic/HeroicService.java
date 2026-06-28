@@ -64,7 +64,7 @@ public final class HeroicService {
         // NETHERITE_SCRAP is absent on 1.8; resolve by name (== the enum literal on modern, null on 1.8)
         // and fall back to a floor-stable material so the build() fallback is never null on legacy.
         Material scrap = Material.getMaterial("NETHERITE_SCRAP");
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), scrap != null ? scrap : Material.PAPER, cfg.name(), cfg.lore());
         upgrades.mark(stack);
         return stack;

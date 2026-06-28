@@ -51,7 +51,7 @@ public final class UnopenedBookService {
     /** Mint an unopened book scoped to {@code tier} ({@code {TIER}} substituted into the config likeness). */
     public ItemStack mint(String tier) {
         UnopenedBookConfig cfg = config.get();
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Material.BOOK,
                 cfg.name().replace("{TIER}", tier),
                 renderLore(cfg.lore(), tier));

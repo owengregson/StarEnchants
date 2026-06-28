@@ -57,7 +57,7 @@ public final class SlotService {
     public ItemStack mintOrb() {
         SlotConfig cfg = config.get();
         String amount = Integer.toString(cfg.orbAmount());
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.orbMaterial(), Mats.or("ENDER_EYE", Material.PAPER),
                 cfg.orbName().replace("{AMOUNT}", amount),
                 renderLore(cfg.orbLore(), amount));

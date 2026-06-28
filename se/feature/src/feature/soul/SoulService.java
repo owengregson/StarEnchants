@@ -152,7 +152,7 @@ public final class SoulService implements SoulDebit {
 
     private ItemStack mintGemStack(SoulData data) {
         SoulGemConfig cfg = config.get();
-        ItemStack gem = ItemFactory.build(
+        ItemStack gem = ItemFactory.buildItem(
                 cfg.material(), Material.EMERALD,
                 cfg.name(),
                 renderGemLore(cfg, data.souls()));

@@ -63,7 +63,7 @@ public final class CrystalService {
 
     public ItemStack mintExtractor() {
         CrystalConfig cfg = config.get();
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.extractorMaterial(), Mats.or("AMETHYST_CLUSTER", org.bukkit.Material.PAPER),
                 cfg.extractorName(),
                 cfg.extractorLore());
@@ -97,7 +97,7 @@ public final class CrystalService {
             nameTemplate = cfg.name();
             loreTemplate = mergedLore(keys, cfg);
         }
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 materialToken, Mats.or("AMETHYST_SHARD", org.bukkit.Material.PAPER),
                 nameTemplate.replace("{CRYSTAL}", label),
                 renderLore(loreTemplate, label));
