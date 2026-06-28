@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 
@@ -29,7 +30,7 @@ public final class MasterConfigLoader {
         try {
             yaml = Files.readString(configFile, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            diags.error("E_CONFIG_IO", "could not read config.yml: " + e.getMessage(), Source.ofFile("config.yml"));
+            diags.error(DiagCode.E_CONFIG_IO, "could not read config.yml: " + e.getMessage(), Source.ofFile("config.yml"));
             return new MasterConfig(MasterConfig.FeaturesSection.defaults(), MasterConfig.CombatSection.defaults(),
                     MasterConfig.MessagesSection.defaults(), MasterConfig.BooksSection.defaults(),
                     MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
@@ -40,7 +41,7 @@ public final class MasterConfigLoader {
         }
         YamlNode root = YamlNode.compose("config.yml", yaml, diags);
         if (!root.isMapping()) {
-            diags.error("E_CONFIG_SHAPE", "config.yml is not a YAML mapping", Source.ofFile("config.yml"));
+            diags.error(DiagCode.E_CONFIG_SHAPE, "config.yml is not a YAML mapping", Source.ofFile("config.yml"));
             root = YamlNode.compose("config.yml", "", diags); // an empty mapping → every section defaults
         }
         return new MasterConfig(
@@ -167,7 +168,7 @@ public final class MasterConfigLoader {
         try {
             return Integer.parseInt(raw.trim());
         } catch (NumberFormatException e) {
-            diags.warning("W_CONFIG_NUM", "invalid number '" + raw + "', using " + fallback, at.source());
+            diags.warning(DiagCode.W_CONFIG_NUM, "invalid number '" + raw + "', using " + fallback, at.source());
             return fallback;
         }
     }
@@ -179,7 +180,7 @@ public final class MasterConfigLoader {
         try {
             return Double.parseDouble(raw.trim());
         } catch (NumberFormatException e) {
-            diags.warning("W_CONFIG_NUM", "invalid number '" + raw + "', using " + fallback, at.source());
+            diags.warning(DiagCode.W_CONFIG_NUM, "invalid number '" + raw + "', using " + fallback, at.source());
             return fallback;
         }
     }

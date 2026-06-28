@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -85,7 +86,7 @@ final class ContentParse {
     static void warnUnknownKeys(YamlNode node, Set<String> known, Diagnostics diags) {
         for (YamlNode.Entry entry : node.entries()) {
             if (!known.contains(entry.key())) {
-                diags.warning("W_UNKNOWN_KEY", "unknown key '" + entry.key() + "' (ignored)",
+                diags.warning(DiagCode.W_UNKNOWN_KEY, "unknown key '" + entry.key() + "' (ignored)",
                         node.sourceOf(entry.key()));
             }
         }
@@ -99,7 +100,7 @@ final class ContentParse {
     static String resolveTier(String folderTier, YamlNode root, Diagnostics diags) {
         String inFile = blankToNull(root.string("tier"));
         if (inFile != null && folderTier != null && !inFile.equals(folderTier)) {
-            diags.warning("W_TIER_FOLDER_MISMATCH",
+            diags.warning(DiagCode.W_TIER_FOLDER_MISMATCH,
                     "in-file tier '" + inFile + "' differs from the folder tier '" + folderTier
                             + "'; using '" + inFile + "'", root.sourceOf("tier"));
         }
@@ -130,7 +131,7 @@ final class ContentParse {
         List<EffectLine> out = new ArrayList<>();
         for (YamlNode item : node.items(key)) {
             if (item.isScalar()) {
-                diags.error("E_TERSE_EFFECT",
+                diags.error(DiagCode.E_TERSE_EFFECT,
                         "terse effect strings are no longer supported; write a block map, e.g."
                                 + " - { HEAD: { param: value, who: \"@Selector\" } } — got '" + item.scalar() + "'",
                         item.source());
@@ -145,7 +146,7 @@ final class ContentParse {
     private static void appendVerbose(YamlNode item, List<EffectLine> out, Diagnostics diags) {
         List<YamlNode.Entry> head = item.entries();
         if (head.size() != 1) {
-            diags.error("E_EFFECT", "a verbose effect must be a single-key map 'HEAD: { ... }'", item.source());
+            diags.error(DiagCode.E_EFFECT, "a verbose effect must be a single-key map 'HEAD: { ... }'", item.source());
             return;
         }
         String effectHead = head.get(0).key();
@@ -154,14 +155,14 @@ final class ContentParse {
         if (effectHead.equalsIgnoreCase("WAIT")) {
             String ticks = body.isScalar() ? body.scalar() : null;
             if (ticks == null) {
-                diags.error("E_EFFECT", "WAIT must be written 'WAIT: <ticks>'", item.source());
+                diags.error(DiagCode.E_EFFECT, "WAIT must be written 'WAIT: <ticks>'", item.source());
             } else {
                 out.add(EffectLine.waitLine(ticks, item.source()));
             }
             return;
         }
         if (body.isScalar()) {
-            diags.error("E_EFFECT", "verbose effect '" + effectHead + "' must be a map of named parameters,"
+            diags.error(DiagCode.E_EFFECT, "verbose effect '" + effectHead + "' must be a map of named parameters,"
                     + " e.g. " + effectHead + ": { ... }", item.source());
             return;
         }
@@ -172,7 +173,7 @@ final class ContentParse {
         for (YamlNode.Entry param : body.entries()) {
             String name = param.key();
             if (!param.value().isScalar()) {
-                diags.error("E_EFFECT", "parameter '" + name + "' of '" + effectHead + "' must be a scalar",
+                diags.error(DiagCode.E_EFFECT, "parameter '" + name + "' of '" + effectHead + "' must be a scalar",
                         param.value().source());
                 continue;
             }
@@ -182,7 +183,7 @@ final class ContentParse {
                 case "wait" -> {
                     wait = parseInt(value);
                     if (wait == null || wait < 0) {
-                        diags.error("E_EFFECT", "'wait' of '" + effectHead + "' must be a non-negative integer,"
+                        diags.error(DiagCode.E_EFFECT, "'wait' of '" + effectHead + "' must be a non-negative integer,"
                                 + " got '" + value + "'", param.value().source());
                         wait = null;
                     }

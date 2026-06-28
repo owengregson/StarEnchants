@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Stream;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 
@@ -38,16 +39,16 @@ public final class MenusLoader {
             try {
                 yaml = Files.readString(file, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                diags.error("E_MENU_IO", "could not read " + name + ": " + e.getMessage(), Source.ofFile(name));
+                diags.error(DiagCode.E_MENU_IO, "could not read " + name + ": " + e.getMessage(), Source.ofFile(name));
                 continue;
             }
             YamlNode root = YamlNode.compose(name, yaml, diags);
             if (!root.isMapping()) {
-                diags.error("E_MENU_SHAPE", name + " is not a YAML mapping", Source.ofFile(name));
+                diags.error(DiagCode.E_MENU_SHAPE, name + " is not a YAML mapping", Source.ofFile(name));
                 continue;
             }
             if (byMenu.containsKey(stem)) {
-                diags.warning("W_MENU_DUP", "more than one menus/ file for '" + stem + "' (" + name
+                diags.warning(DiagCode.W_MENU_DUP, "more than one menus/ file for '" + stem + "' (" + name
                         + "); keeping the first", root.source());
                 continue;
             }
@@ -70,7 +71,7 @@ public final class MenusLoader {
         try {
             return OptionalInt.of(Integer.parseInt(raw.trim()));
         } catch (NumberFormatException e) {
-            diags.warning("W_MENU_NUM", "invalid number '" + raw + "' in " + file, Source.ofFile(file));
+            diags.warning(DiagCode.W_MENU_NUM, "invalid number '" + raw + "' in " + file, Source.ofFile(file));
             return OptionalInt.empty();
         }
     }

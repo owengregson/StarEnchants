@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 
@@ -55,24 +56,24 @@ public final class ItemsLoader {
             try {
                 yaml = Files.readString(file, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                diags.error("E_ITEM_IO", "could not read " + name + ": " + e.getMessage(), Source.ofFile(name));
+                diags.error(DiagCode.E_ITEM_IO, "could not read " + name + ": " + e.getMessage(), Source.ofFile(name));
                 continue;
             }
             YamlNode root = YamlNode.compose(name, yaml, diags);
             if (!root.isMapping()) {
-                diags.error("E_ITEM_SHAPE", name + " is not a YAML mapping", Source.ofFile(name));
+                diags.error(DiagCode.E_ITEM_SHAPE, name + " is not a YAML mapping", Source.ofFile(name));
                 continue;
             }
             String type = blankToNull(root.string("type"));
             if (type == null) {
-                diags.error("E_ITEM_TYPE", name + " is missing a 'type'", root.source(),
+                diags.error(DiagCode.E_ITEM_TYPE, name + " is missing a 'type'", root.source(),
                         "add e.g. 'type: soul-gem'");
                 continue;
             }
             switch (type.toLowerCase(Locale.ROOT)) {
                 case "soul-gem", "soul_gem", "soulgem" -> {
                     if (soulGem.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one soul-gem config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one soul-gem config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         soulGem = Optional.of(readSoulGem(root, diags));
@@ -80,7 +81,7 @@ public final class ItemsLoader {
                 }
                 case "crystal" -> {
                     if (crystal.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one crystal config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one crystal config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         crystal = Optional.of(readCrystal(root, diags));
@@ -88,7 +89,7 @@ public final class ItemsLoader {
                 }
                 case "heroic" -> {
                     if (heroic.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one heroic config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one heroic config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         heroic = Optional.of(readHeroic(root, diags));
@@ -96,7 +97,7 @@ public final class ItemsLoader {
                 }
                 case "slot-orb", "slots", "slot", "slot-expander" -> {
                     if (slots.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one slots config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one slots config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         slots = Optional.of(readSlots(root, diags));
@@ -104,7 +105,7 @@ public final class ItemsLoader {
                 }
                 case "black-scroll", "black" -> {
                     if (black.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one black-scroll config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one black-scroll config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         black = Optional.of(readBlack(root, diags));
@@ -112,7 +113,7 @@ public final class ItemsLoader {
                 }
                 case "randomizer-scroll", "randomizer" -> {
                     if (randomizer.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one randomizer-scroll config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one randomizer-scroll config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         randomizer = Optional.of(readRandomizer(root, diags));
@@ -120,7 +121,7 @@ public final class ItemsLoader {
                 }
                 case "transmog-scroll", "transmog" -> {
                     if (transmog.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one transmog-scroll config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one transmog-scroll config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         transmog = Optional.of(readTransmog(root, diags));
@@ -128,7 +129,7 @@ public final class ItemsLoader {
                 }
                 case "holy-white-scroll", "holy-scroll", "holy" -> {
                     if (holy.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one holy-white-scroll config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one holy-white-scroll config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         holy = Optional.of(readHoly(root, diags));
@@ -136,7 +137,7 @@ public final class ItemsLoader {
                 }
                 case "nametag", "item-nametag" -> {
                     if (nametag.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one nametag config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one nametag config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         nametag = Optional.of(readNametag(root, diags));
@@ -144,7 +145,7 @@ public final class ItemsLoader {
                 }
                 case "godly-transmog", "godly" -> {
                     if (godly.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one godly-transmog config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one godly-transmog config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         godly = Optional.of(readGodly(root, diags));
@@ -152,7 +153,7 @@ public final class ItemsLoader {
                 }
                 case "dust", "success-dust" -> {
                     if (dust.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one dust config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one dust config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         dust = Optional.of(readDust(root, diags));
@@ -160,7 +161,7 @@ public final class ItemsLoader {
                 }
                 case "white-scroll", "protect-scroll", "protect" -> {
                     if (whiteScroll.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one white-scroll config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one white-scroll config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         whiteScroll = Optional.of(readWhiteScroll(root, diags));
@@ -168,7 +169,7 @@ public final class ItemsLoader {
                 }
                 case "unopened-book", "unopened", "mystery-book" -> {
                     if (unopenedBook.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one unopened-book config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one unopened-book config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         unopenedBook = Optional.of(readUnopenedBook(root, diags));
@@ -176,7 +177,7 @@ public final class ItemsLoader {
                 }
                 case "enchant-book", "book" -> {
                     if (enchantBook.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one enchant-book config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one enchant-book config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         enchantBook = Optional.of(readEnchantBook(root, diags));
@@ -184,7 +185,7 @@ public final class ItemsLoader {
                 }
                 case "blocktrak", "block-trak", "blocktrak-gem" -> {
                     if (trakBlock.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one blocktrak config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one blocktrak config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         trakBlock = Optional.of(readTrak(root, TraksConfig.defaults().block(), diags));
@@ -192,7 +193,7 @@ public final class ItemsLoader {
                 }
                 case "mobtrak", "mob-trak", "mobtrak-gem" -> {
                     if (trakMob.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one mobtrak config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one mobtrak config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         trakMob = Optional.of(readTrak(root, TraksConfig.defaults().mob(), diags));
@@ -200,7 +201,7 @@ public final class ItemsLoader {
                 }
                 case "soultrak", "soul-trak", "soultrak-gem" -> {
                     if (trakSoul.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one soultrak config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one soultrak config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         trakSoul = Optional.of(readTrak(root, TraksConfig.defaults().soul(), diags));
@@ -208,13 +209,13 @@ public final class ItemsLoader {
                 }
                 case "fishtrak", "fish-trak", "fishtrak-gem" -> {
                     if (trakFish.isPresent()) {
-                        diags.warning("W_ITEM_DUP", "more than one fishtrak config (" + name + "); keeping the first",
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one fishtrak config (" + name + "); keeping the first",
                                 root.source());
                     } else {
                         trakFish = Optional.of(readTrak(root, TraksConfig.defaults().fish(), diags));
                     }
                 }
-                default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
+                default -> diags.warning(DiagCode.W_ITEM_TYPE, "unknown item type '" + type + "' in " + name, root.source());
             }
         }
         // Present iff at least one scroll-family file was read; absent members fall back to ScrollsConfig.defaults().
@@ -398,7 +399,7 @@ public final class ItemsLoader {
         try {
             return Double.parseDouble(raw.trim());
         } catch (NumberFormatException e) {
-            diags.warning("W_ITEM_NUM", "invalid number '" + raw + "', using " + fallback, root.source());
+            diags.warning(DiagCode.W_ITEM_NUM, "invalid number '" + raw + "', using " + fallback, root.source());
             return fallback;
         }
     }
@@ -459,7 +460,7 @@ public final class ItemsLoader {
             try {
                 out.put(entry.key(), Integer.parseInt(raw.trim()));
             } catch (NumberFormatException bad) {
-                diags.warning("W_SOUL_MOB", "souls-per-mob[" + entry.key() + "] is not a number: " + raw,
+                diags.warning(DiagCode.W_SOUL_MOB, "souls-per-mob[" + entry.key() + "] is not a number: " + raw,
                         entry.value().source());
             }
         }
@@ -481,7 +482,7 @@ public final class ItemsLoader {
             try {
                 out.add(new SoulGemConfig.ColorTier(Integer.parseInt(entry.key().trim()), color));
             } catch (NumberFormatException bad) {
-                diags.warning("W_SOUL_TIER", "soul-colors key is not a number: " + entry.key(),
+                diags.warning(DiagCode.W_SOUL_TIER, "soul-colors key is not a number: " + entry.key(),
                         entry.value().source());
             }
         }
@@ -510,7 +511,7 @@ public final class ItemsLoader {
         try {
             return Integer.parseInt(raw.trim());
         } catch (NumberFormatException e) {
-            diags.warning("W_ITEM_NUM", "invalid number '" + raw + "', using " + fallback, root.source());
+            diags.warning(DiagCode.W_ITEM_NUM, "invalid number '" + raw + "', using " + fallback, root.source());
             return fallback;
         }
     }

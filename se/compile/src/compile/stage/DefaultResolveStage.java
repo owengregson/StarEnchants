@@ -3,6 +3,7 @@ package compile.stage;
 import compile.SpecRegistry;
 import compile.model.CompiledEffect;
 import compile.resolve.PlatformResolvers;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.spec.Args;
 import schema.spec.HandleCategory;
@@ -66,7 +67,7 @@ public final class DefaultResolveStage implements ResolveStage {
             }
             OptionalInt id = lookup(type.handleCategory(), token);
             if (id.isEmpty()) {
-                diags.error("E_UNKNOWN_HANDLE",
+                diags.error(DiagCode.E_UNKNOWN_HANDLE,
                         "unknown " + type.handleCategory().label() + " '" + token
                                 + "' for argument '" + p.name() + "' of '" + effect.head() + "'",
                         owner.source(),

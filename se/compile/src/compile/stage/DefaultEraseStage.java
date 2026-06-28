@@ -6,6 +6,7 @@ import compile.model.Interner;
 import compile.model.Interners;
 import compile.model.SourceMap;
 import compile.model.StableKeyIndex;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.spec.Args;
 import java.util.ArrayList;
@@ -70,8 +71,7 @@ public final class DefaultEraseStage implements EraseStage {
 
         for (LoweredAbility la : lowered) {
             if (!seenKeys.add(la.stableKey())) {
-                diags.error(
-                        "E_DUP_KEY",
+                diags.error(DiagCode.E_DUP_KEY,
                         "duplicate stable key '" + la.stableKey() + "' — the second definition is dropped",
                         la.source(),
                         "make every ability's stable key unique across all sources");
@@ -84,8 +84,7 @@ public final class DefaultEraseStage implements EraseStage {
             for (String trigger : la.triggers()) {
                 String name = canonicalMode ? trigger.toUpperCase(Locale.ROOT) : trigger;
                 if (canonicalMode && !knownTriggers.contains(name)) {
-                    diags.error(
-                            "E_UNKNOWN_TRIGGER",
+                    diags.error(DiagCode.E_UNKNOWN_TRIGGER,
                             "unknown trigger '" + trigger + "'",
                             la.source(),
                             "run /se triggers to list available triggers");
@@ -93,8 +92,7 @@ public final class DefaultEraseStage implements EraseStage {
                 }
                 int tid = triggers.intern(name);
                 if (tid >= TRIGGER_BITS) {
-                    diags.error(
-                            "E_TRIGGER_OVERFLOW",
+                    diags.error(DiagCode.E_TRIGGER_OVERFLOW,
                             "trigger '" + trigger + "' is the " + (tid + 1) + "th distinct trigger; "
                                     + "only " + TRIGGER_BITS + " fit in the trigger mask — this trigger is skipped",
                             la.source(),
@@ -108,8 +106,7 @@ public final class DefaultEraseStage implements EraseStage {
             for (String world : la.worldBlacklist()) {
                 int wid = worlds.intern(world);
                 if (wid >= WORLD_BITS) {
-                    diags.error(
-                            "E_WORLD_OVERFLOW",
+                    diags.error(DiagCode.E_WORLD_OVERFLOW,
                             "world '" + world + "' is the " + (wid + 1) + "th distinct blacklisted world; "
                                     + "only " + WORLD_BITS + " fit in the world bitset — this world is skipped",
                             la.source(),

@@ -3,6 +3,7 @@ package compile.cond;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.expr.ArithOp;
@@ -131,7 +132,7 @@ public final class ConditionCompiler {
         try {
             return Optional.of(new NumExpr.Lit(Double.parseDouble(n.raw().trim())));
         } catch (NumberFormatException ex) {
-            diags.error("E_COND_TYPE", "invalid number '" + n.raw() + "'", n.source());
+            diags.error(DiagCode.E_COND_TYPE, "invalid number '" + n.raw() + "'", n.source());
             return Optional.empty();
         }
     }
@@ -158,7 +159,7 @@ public final class ConditionCompiler {
     }
 
     private static Optional<NumExpr> numError(Diagnostics diags, Source src, String message) {
-        diags.error("E_COND_TYPE", message, src, "use a number, a %numeric variable%, or arithmetic over them");
+        diags.error(DiagCode.E_COND_TYPE, message, src, "use a number, a %numeric variable%, or arithmetic over them");
         return Optional.empty();
     }
 
@@ -173,7 +174,7 @@ public final class ConditionCompiler {
     private Optional<Cond> boolVar(Expr.VarRef v, Diagnostics diags) {
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
-            diags.error("E_COND_TYPE", "placeholder '" + token(v) + "' must be compared", v.source(),
+            diags.error(DiagCode.E_COND_TYPE, "placeholder '" + token(v) + "' must be compared", v.source(),
                     "e.g. %" + token(v) + "% == \"yes\"");
             return Optional.empty();
         }
@@ -318,7 +319,7 @@ public final class ConditionCompiler {
 
     /** Record a condition type error and return empty, so callers can {@code return typeError(...)}. */
     private static Optional<Cond> typeError(Diagnostics diags, Source src, String message, String hint) {
-        diags.error("E_COND_TYPE", message, src, hint);
+        diags.error(DiagCode.E_COND_TYPE, message, src, hint);
         return Optional.empty();
     }
 

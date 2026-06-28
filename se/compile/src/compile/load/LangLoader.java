@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 
@@ -29,12 +30,12 @@ public final class LangLoader {
         try {
             yaml = Files.readString(langFile, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            diags.error("E_LANG_IO", "could not read lang.yml: " + e.getMessage(), Source.ofFile("lang.yml"));
+            diags.error(DiagCode.E_LANG_IO, "could not read lang.yml: " + e.getMessage(), Source.ofFile("lang.yml"));
             return new Lang(defaults.singles(), defaults.lists(), diags.all());
         }
         YamlNode root = YamlNode.compose("lang.yml", yaml, diags);
         if (!root.isMapping()) {
-            diags.error("E_LANG_SHAPE", "lang.yml is not a YAML mapping", Source.ofFile("lang.yml"));
+            diags.error(DiagCode.E_LANG_SHAPE, "lang.yml is not a YAML mapping", Source.ofFile("lang.yml"));
             return new Lang(defaults.singles(), defaults.lists(), diags.all());
         }
         Map<String, String> singles = new LinkedHashMap<>(defaults.singles());
