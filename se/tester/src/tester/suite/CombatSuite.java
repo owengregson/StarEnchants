@@ -62,6 +62,9 @@ public final class CombatSuite implements Harness.Scenario {
               1: { chance: 100, effects: [{ POTION: { effect: POISON, level: 1, duration: 80, who: "@Victim" } }] }
             """;
 
+    /** The POTION lands via an {@code onEntity(victim)} hop, not inline in {@code damage()}; poll, don't fix-wait. */
+    private static final int POISON_BUDGET = 60;
+
     private final Plugin plugin;
 
     public CombatSuite(Plugin plugin) {
@@ -128,65 +131,77 @@ public final class CombatSuite implements Harness.Scenario {
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
-        int cx = at.getBlockX() >> 4;
-        int cz = at.getBlockZ() >> 4;
+        int attackId = triggers.idOf("ATTACK").orElseThrow();
 
-        Scheduling.onGlobal(() -> {
-            world.setChunkForceLoaded(cx, cz, true);
-            Scheduling.onRegion(at, () -> {
-                // Cow victim: a normal mob's hurt path fires a real EntityDamageByEntityEvent (a player
-                // victim is gated by PvP/peaceful; an armour stand has custom hurt handling), and it's not
-                // undead so POISON actually applies and is observable.
-                Player attacker;
-                LivingEntity victim;
-                try {
-                    attacker = FakePlayers.spawn(world, "se_combat_atk");
-                    victim = (LivingEntity) world.spawnEntity(at, EntityType.COW);
-                } catch (Throwable t) {
-                    h.fail("combat.enchantFiresOnHit", "victim/attacker spawn: " + t);
-                    return;
-                }
-                int attackId = triggers.idOf("ATTACK").orElseThrow();
-                Scheduling.onEntity(attacker, () -> {
-                    attacker.getInventory().setItemInMainHand(sword);
-                    worn.refresh(attacker, library.snapshot());
-                    WornState wornState = worn.get(attacker.getUniqueId());
-                    int candidates = wornState == null ? -1 : wornState.byTrigger(attackId).length;
-                    plugin.getLogger().info("[combat-suite] venom candidates for attacker = " + candidates);
-                    // Same spawn location, so same region as the victim; the hit fires a real EDBE.
-                    victim.damage(1.0, attacker);
-                    Scheduling.onEntityLater(victim, 10L, () -> {
-                        h.guard("combat.enchantFiresOnHit", () -> {
-                            if (candidates <= 0) {
-                                throw new IllegalStateException("no Venom candidate resolved (candidates=" + candidates
-                                        + ") — worn resolve/equip issue");
-                            }
-                            if (!victim.hasPotionEffect(poison)) {
-                                throw new IllegalStateException("candidates=" + candidates
-                                        + " but victim not poisoned — EDBE/dispatch issue");
-                            }
+        rig.onArena(at, () -> {
+            // Cow victim: a normal mob's hurt path fires a real EntityDamageByEntityEvent (a player victim is
+            // gated by PvP/peaceful; an armour stand has custom hurt handling), and it's not undead so POISON
+            // actually applies and is observable.
+            Player attacker;
+            LivingEntity victim;
+            try {
+                attacker = rig.track(FakePlayers.spawn(world, "se_combat_atk"));
+                victim = rig.spawn(world, at, EntityType.COW, LivingEntity.class);
+            } catch (Throwable t) {
+                h.fail("combat.enchantFiresOnHit", "victim/attacker spawn: " + t);
+                rig.teardown();
+                return;
+            }
+            Scheduling.onEntity(attacker, () -> {
+                attacker.getInventory().setItemInMainHand(sword);
+                worn.refresh(attacker, library.snapshot());
+                WornState wornState = worn.get(attacker.getUniqueId());
+                int candidates = wornState == null ? -1 : wornState.byTrigger(attackId).length;
+                plugin.getLogger().info("[combat-suite] venom candidates for attacker = " + candidates);
+                // Same spawn location, so same region as the victim; the hit fires a real EDBE.
+                victim.damage(1.0, attacker);
+                // The proc fired the event synchronously during damage(); the POISON, by contrast, lands on a
+                // scheduled onEntity(victim) hop — so poll for it (tick-anchored) rather than fix-waiting.
+                awaitPoisoned(victim, poison, 0, POISON_BUDGET,
+                        poisoned -> {
+                            h.guard("combat.enchantFiresOnHit", () -> {
+                                if (candidates <= 0) {
+                                    throw new IllegalStateException("no Venom candidate resolved (candidates="
+                                            + candidates + ") — worn resolve/equip issue");
+                                }
+                                if (!poisoned) {
+                                    throw new IllegalStateException("candidates=" + candidates + " but victim not "
+                                            + "poisoned within " + POISON_BUDGET + " ticks — EDBE/dispatch issue");
+                                }
+                            });
+                            h.guard("combat.enchantActivateEventFired", () -> {
+                                if (probe.count() != 1) {
+                                    throw new IllegalStateException("expected exactly 1 EnchantActivateEvent, got "
+                                            + probe.count());
+                                }
+                                if (!"enchants/venom".equals(probe.lastKey())) {
+                                    throw new IllegalStateException("event carried wrong key: " + probe.lastKey());
+                                }
+                                if (probe.lastLevel() != 1) {
+                                    throw new IllegalStateException("event carried wrong level: " + probe.lastLevel());
+                                }
+                            });
+                            rig.teardown();
                         });
-                        // The proc fired the event synchronously during victim.damage(...), so by this
-                        // delayed tick the probe has it (one proc → one event).
-                        h.guard("combat.enchantActivateEventFired", () -> {
-                            if (probe.count() != 1) {
-                                throw new IllegalStateException("expected exactly 1 EnchantActivateEvent, got "
-                                        + probe.count());
-                            }
-                            if (!"enchants/venom".equals(probe.lastKey())) {
-                                throw new IllegalStateException("event carried wrong key: " + probe.lastKey());
-                            }
-                            if (probe.lastLevel() != 1) {
-                                throw new IllegalStateException("event carried wrong level: " + probe.lastLevel());
-                            }
-                        });
-                        victim.remove();
-                        FakePlayers.despawn(attacker);
-                        rig.teardown(); // unregisters the probe AND the formerly-leaked CombatListener
-                    });
-                });
             });
         });
+    }
+
+    /**
+     * Poll {@code victim} on its own scheduler each tick until it carries {@code poison} (then call back with
+     * {@code true}) or {@code maxTicks} elapse ({@code false}). Tick-anchored — correct under matrix load.
+     */
+    private static void awaitPoisoned(LivingEntity victim, PotionEffectType poison, int tick, int maxTicks,
+                                      java.util.function.Consumer<Boolean> done) {
+        if (victim.hasPotionEffect(poison)) {
+            done.accept(true);
+            return;
+        }
+        if (tick >= maxTicks) {
+            done.accept(false);
+            return;
+        }
+        Scheduling.onEntityLater(victim, 1L, () -> awaitPoisoned(victim, poison, tick + 1, maxTicks, done));
     }
 
     private static void write(Path root, String relative, String yaml) throws IOException {
