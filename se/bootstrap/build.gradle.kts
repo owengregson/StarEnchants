@@ -93,6 +93,15 @@ tasks.register<Test>("regenDocs") {
     outputs.upToDateWhen { false }
 }
 
+// SurfaceCatalogDriftTest compares the rendered surface against the committed website/src/data/surface.json,
+// read via a repo-root walk (not the classpath). Declare it as a content-hashed test input so a hand-edited
+// golden invalidates the cache instead of being hidden FROM-CACHE under org.gradle.caching (the §M drift
+// hole). content/index.txt needs no such declaration — it is a main-resource on the test classpath already.
+tasks.named<Test>("test") {
+    inputs.files(rootProject.file("website/src/data/surface.json"))
+        .withPropertyName("surfaceGolden").optional()
+}
+
 // Stamp the build version into plugin.yml's ${version} placeholder, and fold the built config-pack
 // archive(s) into the jar under packs/ (alongside the static packs/index.txt manifest).
 tasks.named<ProcessResources>("processResources") {
