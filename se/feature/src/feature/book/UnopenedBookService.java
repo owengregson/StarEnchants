@@ -97,7 +97,8 @@ public final class UnopenedBookService {
         }
         EnchantDef chosen = pool.get(random.nextInt(pool.size()));
         int level = 1 + random.nextInt(Math.max(1, chosen.maxLevel()));
-        int success = cfg.minSuccess() + random.nextInt(cfg.maxSuccess() - cfg.minSuccess() + 1);
+        int success = carriers.capBookSuccess( // randomised mint respects the global books.max-success ceiling
+                cfg.minSuccess() + random.nextInt(cfg.maxSuccess() - cfg.minSuccess() + 1));
         return java.util.Optional.of(new Rolled(carriers.mintBook(chosen.key(), level, success),
                 chosen.display(), level, success));
     }

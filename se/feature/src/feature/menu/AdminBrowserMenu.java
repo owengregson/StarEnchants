@@ -130,7 +130,7 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
         }
         // A level row — mint that exact level as a guaranteed book; keep the menu open to grab more.
         Player player = click.player();
-        ItemStack book = carriers.mintBook(row.enchant().key(), row.level(), 100); // 100 = guaranteed success
+        ItemStack book = carriers.mintBook(row.enchant().key(), row.level()); // guaranteed (admin) — exempt from the cap
         MenuItems.giveOrDrop(player, book);
         messages.send(player, "menu.admin.granted", "DISPLAY", row.enchant().display(), "LEVEL", row.level());
     }

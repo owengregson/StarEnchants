@@ -35,6 +35,15 @@ messages:
   prefix: ""        # e.g. "&8[&dSE&8] " — prepended to plugin chat messages
   feedback: true    # send keyed gameplay-feedback messages to players
 
+# Enchant books (§I). The book likeness (name/lore/material/wrap/destroy-on-fail) lives in
+# items/enchant-book.yml; only this global success ceiling is cross-cutting.
+books:
+  # Global maximum success rate (%) a book may reach via RANDOMISED minting (unopened book / randomizer
+  # scroll), the black scroll's conversion roll, or Magic Dust. A dust that would push a book past this snaps
+  # to it. 100 = no practical cap. Does NOT touch guaranteed books (/se book, the admin browser) or an
+  # explicit /se give book <success>, which are admin overrides.
+  max-success: 100
+
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
 slots:
