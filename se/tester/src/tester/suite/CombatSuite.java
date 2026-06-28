@@ -45,6 +45,7 @@ import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
+import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
@@ -105,8 +106,8 @@ public final class CombatSuite implements Harness.Scenario {
                 new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
         // §13 api seam: the executor fires EnchantActivateEvent per proc on the entity's region thread (Folia),
         // so this also proves region-thread dispatch survives.
-        EventProbe probe = new EventProbe();
-        plugin.getServer().getPluginManager().registerEvents(probe, plugin);
+        CombatRig rig = new CombatRig(plugin);
+        EventProbe probe = rig.listen(new EventProbe());
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE,
                 (key, ability, ctx) -> {
@@ -120,7 +121,7 @@ public final class CombatSuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
-        plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
+        rig.listen(new CombatListener(dispatch));
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
         codec.write(sword, new CombatState(Map.of("enchants/venom", 1), List.of()));
@@ -179,9 +180,9 @@ public final class CombatSuite implements Harness.Scenario {
                                 throw new IllegalStateException("event carried wrong level: " + probe.lastLevel());
                             }
                         });
-                        org.bukkit.event.HandlerList.unregisterAll(probe);
                         victim.remove();
                         FakePlayers.despawn(attacker);
+                        rig.teardown(); // unregisters the probe AND the formerly-leaked CombatListener
                     });
                 });
             });

@@ -47,6 +47,7 @@ import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
+import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
@@ -114,7 +115,8 @@ public final class EconomySuite implements Harness.Scenario {
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 tick::incrementAndGet, actor -> Optional.empty(), economy);
-        plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
+        CombatRig rig = new CombatRig(plugin);
+        rig.listen(new CombatListener(dispatch));
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
         codec.write(sword, new CombatState(Map.of("enchants/bounty", 1), List.of()));
@@ -154,6 +156,7 @@ public final class EconomySuite implements Harness.Scenario {
                         plugin.getServer().getServicesManager().unregister(EconomyProvider.class, bank);
                         victim.remove();
                         FakePlayers.despawn(attacker);
+                        rig.teardown();
                     });
                 });
             });

@@ -44,6 +44,7 @@ import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
+import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
@@ -118,7 +119,8 @@ public final class TriggerSuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         TriggerDispatch dispatch = new TriggerDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn, triggers,
                 tick::incrementAndGet, actor -> Optional.empty());
-        plugin.getServer().getPluginManager().registerEvents(new TriggerListeners(dispatch), plugin);
+        CombatRig rig = new CombatRig(plugin);
+        rig.listen(new TriggerListeners(dispatch));
 
         ItemStack pick = new ItemStack(Material.DIAMOND_PICKAXE);
         codec.write(pick, new CombatState(Map.of("enchants/excavate", 1), List.of()));
@@ -162,6 +164,7 @@ public final class TriggerSuite implements Harness.Scenario {
                                 }
                             });
                             FakePlayers.despawn(miner);
+                            rig.teardown();
                         });
                     });
                 });

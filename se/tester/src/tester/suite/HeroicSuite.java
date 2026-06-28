@@ -41,6 +41,7 @@ import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
+import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
@@ -88,7 +89,8 @@ public final class HeroicSuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
-        plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
+        CombatRig rig = new CombatRig(plugin);
+        rig.listen(new CombatListener(dispatch));
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
         codec.write(sword, new CombatState(Map.of(), List.of(), null, false, new HeroicStat(HEROIC_PERCENT, 0.0, 0.0)));
@@ -133,6 +135,7 @@ public final class HeroicSuite implements Harness.Scenario {
                         });
                         victim.remove();
                         FakePlayers.despawn(attacker);
+                        rig.teardown();
                     });
                 });
             });

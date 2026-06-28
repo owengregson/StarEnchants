@@ -59,6 +59,11 @@ public final class CombatFlagsSuite implements Harness.Scenario {
         Capabilities caps = Capabilities.probe(plugin.getServer());
 
         h.guard("combatflags.knockbackApplierRegisters", () -> {
+            // register() picks + installs the version-correct applier but returns only the chosen Path, not the
+            // listener instance — so unlike the CombatListener suites (which now tear down through CombatRig)
+            // there is no handle to unregister. Left registered for the run, it is INERT: it reads THIS empty
+            // KnockbackControlStore, so multiplier() returns NaN for every entity and it never touches another
+            // suite's hit. The cross-suite-contamination risk a leaked listener carries does not apply here.
             KnockbackListener.Path path =
                     KnockbackListener.register(plugin, new KnockbackControlStore(), () -> 0L);
             if (path == KnockbackListener.Path.NONE) {

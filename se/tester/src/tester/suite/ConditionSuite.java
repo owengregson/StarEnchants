@@ -43,6 +43,7 @@ import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
+import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
@@ -116,7 +117,8 @@ public final class ConditionSuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
-        plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
+        CombatRig rig = new CombatRig(plugin);
+        rig.listen(new CombatListener(dispatch));
 
         ItemStack victimSword = new ItemStack(Material.DIAMOND_SWORD);
         codec.write(victimSword, new CombatState(Map.of("enchants/lowstrike", 1), List.of()));
@@ -180,6 +182,7 @@ public final class ConditionSuite implements Harness.Scenario {
                             });
                             cowUnmet.remove();
                             FakePlayers.despawn(victimAttacker);
+                            rig.teardown();
                         });
                     });
                 });
@@ -199,6 +202,7 @@ public final class ConditionSuite implements Harness.Scenario {
                         });
                         cowActor.remove();
                         FakePlayers.despawn(actorAttacker);
+                        rig.teardown();
                     });
                 });
             });
