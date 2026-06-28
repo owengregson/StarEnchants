@@ -17,29 +17,23 @@ class MasterConfigLoaderTest {
     @Test
     void absentFileIsAllDefaults() {
         MasterConfig config = MasterConfigLoader.load(Path.of("/no/such/config.yml"));
+        MasterConfig defaults = MasterConfig.defaults();
         assertFalse(config.hasErrors());
-        assertEquals(9, config.slots().base());
-        assertEquals(1, config.crystals().slots());
-        assertEquals(16, config.crystals().maxStack());
-        assertEquals(4.0, config.heroic().maxOutgoingFactor());
-        assertTrue(config.souls().depositOnAnyKill());
-        assertTrue(config.integrations().protection());
-        assertTrue(config.integrations().economy());
-        assertTrue(config.reload().reResolvePlayers());
-        assertEquals(0, config.reload().autoSeconds());
-        assertTrue(config.lore().roman());
-        assertEquals("&7", config.lore().enchantColor());
-        assertTrue(config.commandTrigger().enabled()); // §B COMMAND trigger on by default
-        assertEquals("cast", config.commandTrigger().name());
-        // §L sections default to all-on / no-caps / no-prefix
-        assertTrue(config.features().enchants() && config.features().sets() && config.features().crystals()
-                && config.features().heroic() && config.features().slots() && config.features().souls()
-                && config.features().scrolls());
-        assertEquals(-1.0, config.combat().maxBonusDamage());
-        assertEquals(-1.0, config.combat().maxBonusReduction());
-        assertTrue(config.combat().pvp() && config.combat().pve());
-        assertEquals("", config.messages().prefix());
-        assertTrue(config.messages().feedback());
+        // An absent file yields EXACTLY the defaults — compare each section to the default source (records,
+        // so value-equal) instead of re-typing two dozen default values that would couple this test to every
+        // retune. A regression where the absent path diverges from defaults() for any section still fails here.
+        assertEquals(defaults.features(), config.features());
+        assertEquals(defaults.combat(), config.combat());
+        assertEquals(defaults.messages(), config.messages());
+        assertEquals(defaults.books(), config.books());
+        assertEquals(defaults.slots(), config.slots());
+        assertEquals(defaults.souls(), config.souls());
+        assertEquals(defaults.crystals(), config.crystals());
+        assertEquals(defaults.heroic(), config.heroic());
+        assertEquals(defaults.lore(), config.lore());
+        assertEquals(defaults.integrations(), config.integrations());
+        assertEquals(defaults.reload(), config.reload());
+        assertEquals(defaults.commandTrigger(), config.commandTrigger());
     }
 
     @Test
