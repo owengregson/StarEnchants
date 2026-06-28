@@ -1,5 +1,7 @@
 package compile.load;
 
+import schema.diag.DiagCode;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -182,7 +184,7 @@ class MasterConfigLoaderTest {
 
         assertFalse(config.hasErrors()); // a bad number warns, never blocks
         assertEquals(9, config.slots().base());
-        assertTrue(config.diagnostics().stream().anyMatch(d -> d.code().equals("W_CONFIG_NUM")));
+        assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.W_CONFIG_NUM)));
     }
 
     @Test
