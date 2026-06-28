@@ -31,6 +31,8 @@ public final class NametagService {
     private final Supplier<ScrollsConfig> config;
     private final item.lang.Messages messages;
     private final ConcurrentHashMap<UUID, ItemStack> pending = new ConcurrentHashMap<>();
+    // Players whose currently-open anvil is OUR rename GUI (modern path), so a real anvil is never hijacked.
+    private final java.util.Set<UUID> anvilSessions = ConcurrentHashMap.newKeySet();
 
     /** Default-messages form (tests/fixtures). */
     public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config) {
@@ -75,9 +77,35 @@ public final class NametagService {
         return pending.containsKey(player);
     }
 
-    /** Drop any pending rename (called on quit, so a stale capture is never reused). */
+    /** The translated title for the anvil rename GUI (§I modern path). */
+    public String anvilTitle() {
+        return ItemFactory.color(messages.format("scroll.nametag.gui-title"));
+    }
+
+    /** Mark / query / end that {@code player}'s open anvil is OUR rename GUI (so a real anvil is never hijacked). */
+    public void markAnvil(UUID player) {
+        anvilSessions.add(player);
+    }
+
+    public boolean inAnvil(UUID player) {
+        return anvilSessions.contains(player);
+    }
+
+    public void endAnvil(UUID player) {
+        anvilSessions.remove(player);
+    }
+
+    /** Drop any pending rename + anvil session (called on quit, so a stale capture is never reused). */
     public void clear(UUID player) {
         pending.remove(player);
+        anvilSessions.remove(player);
+    }
+
+    /** Abort a pending rename, returning the nametag — MUST run on the player's own region thread. */
+    public void cancel(Player player) {
+        if (pending.remove(player.getUniqueId()) != null) {
+            refund(player);
+        }
     }
 
     /**

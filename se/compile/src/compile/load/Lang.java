@@ -251,6 +251,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("scroll.holy.fail", "&eThe holy scroll failed — the item is not protected.");
         s.put("scroll.holy.kept", "&6Your holy-protected item(s) survived your death — &f{AMOUNT}&6 kept.");
         s.put("scroll.nametag.prompt", "&7Type the new item name in chat (or 'cancel').");
+        s.put("scroll.nametag.gui-title", "&8Rename — & colours work");
         s.put("scroll.nametag.renamed", "&aRenamed your item.");
         s.put("scroll.nametag.blacklisted", "&cThat name contains a blacklisted word.");
         s.put("scroll.nametag.cancelled", "&7Rename cancelled.");
