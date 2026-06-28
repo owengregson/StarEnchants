@@ -59,7 +59,7 @@
     { "key": "slot-orb", "type": "slot-orb", "material": null, "name": null },
     { "key": "soul-gem", "type": "soul-gem", "material": "EMERALD", "name": "&aSoul Gem" },
     { "key": "soultrak", "type": "soultrak", "material": "FIRE_CHARGE", "name": "&cSoulTrak Gem" },
-    { "key": "transmog-scroll", "type": "transmog-scroll", "material": "PURPLE_DYE", "name": "&5Transmog Scroll" },
+    { "key": "transmog-scroll", "type": "transmog-scroll", "material": "PAPER", "name": "&c&lTransmog Scroll" },
     { "key": "unopened-book", "type": "unopened-book", "material": "BOOK", "name": "&b{TIER} Mystery Book" },
     { "key": "white-scroll", "type": "white-scroll", "material": "PAPER", "name": "&fWhite Scroll" }
   ],

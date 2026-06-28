@@ -8,8 +8,8 @@ material: MAGMA_CREAM
 name: "&eMobTrak Gem"
 # {KINDS} = the applies-to label; {COUNT} = the live count. Lore auto-wraps at config lore.item-wrap.
 lore:
-  - "&7Displays the amount of mobs killed with the weapon since it was forged."
+  - "&eDisplays the amount of mobs killed with the weapon since it was forged."
   - "&eApplies to: &r&f&n{KINDS}"
-  - "&7Drag and drop onto an item to apply."
+  - "&7Drag n' Drop on an item to apply."
 applies-to: [WEAPON]
 count-format: "&7Mobs Killed: &f{COUNT}"

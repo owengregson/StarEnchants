@@ -113,9 +113,10 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                         25,
                         100),
                 new Transmog(
-                        "PURPLE_DYE",
-                        "&5Transmog Scroll",
-                        List.of("&7Drag onto enchanted gear to", "&7sort its enchants by rarity."),
+                        "PAPER",
+                        "&c&lTransmog Scroll",
+                        List.of("&eOrganizes enchants by &f&nrarity&r&7 on your item and adds the &denchant &bcount &7to the name.",
+                                "&7Drag n' Drop on an item to apply."),
                         "&r &d[&b&l&n{COUNT}&r&d]"),
                 new Holy(
                         "TOTEM_OF_UNDYING",

@@ -7,14 +7,13 @@ type: slot-orb
 orb-material: ENDER_EYE
 orb-name: "&6&lEnchantment Orb [&r&a&n+{AMOUNT}&6&l]"
 orb-lore:
-  - "&a{SUCCESS}% &7Success Rate"
-  - "&c{FAILURE}% &7Failure Rate"
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
   - ""
-  - "&7+{AMOUNT} Enchantment Slot(s)"
+  - "&6+{AMOUNT} Enchantment Slot(s)"
   - ""
-  - "&7Increases the number of enchantment slots on an item by {AMOUNT}, up to a maximum of {MAX}."
-  - ""
-  - "&eDrag and drop onto an item to apply."
+  - "&eIncreases the number of enchantment slots on an item by {AMOUNT}, up to a maximum of {MAX}."
+  - "&7Drag n' Drop on an item to apply."
 orb-amount: 3
 
 # Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base).

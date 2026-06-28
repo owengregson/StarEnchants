@@ -39,25 +39,25 @@ public record TraksConfig(Trak block, Trak mob, Trak soul) {
                 new Trak(
                         "SLIME_BALL",
                         "&aBlockTrak Gem",
-                        List.of("&7Displays the amount of blocks broken with the tool since it was forged.",
+                        List.of("&eDisplays the amount of blocks broken with the tool since it was forged.",
                                 "&eApplies to: &r&f&n{KINDS}",
-                                "&7Drag and drop onto an item to apply."),
+                                "&7Drag n' Drop on an item to apply."),
                         List.of("TOOL"),
                         "&7Blocks Broken: &f{COUNT}"),
                 new Trak(
                         "MAGMA_CREAM",
                         "&eMobTrak Gem",
-                        List.of("&7Displays the amount of mobs killed with the weapon since it was forged.",
+                        List.of("&eDisplays the amount of mobs killed with the weapon since it was forged.",
                                 "&eApplies to: &r&f&n{KINDS}",
-                                "&7Drag and drop onto an item to apply."),
+                                "&7Drag n' Drop on an item to apply."),
                         List.of("WEAPON"),
                         "&7Mobs Killed: &f{COUNT}"),
                 new Trak(
                         "FIRE_CHARGE",
                         "&cSoulTrak Gem",
-                        List.of("&7Displays the amount of players killed with the weapon since it was forged.",
+                        List.of("&eDisplays the amount of players killed with the weapon since it was forged.",
                                 "&eApplies to: &r&f&n{KINDS}",
-                                "&7Drag and drop onto an item to apply."),
+                                "&7Drag n' Drop on an item to apply."),
                         List.of("WEAPON"),
                         "&7Players Killed: &f{COUNT}"));
     }

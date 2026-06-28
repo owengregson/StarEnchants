@@ -10,10 +10,13 @@ material: EMERALD
 # name as well as the lore. Authored lore lines auto-wrap (config lore.item-wrap).
 name: "&c&lSoul Gem [&r{SOUL-COLOR}&n&l{AMOUNT}&r&c&l]"
 lore:
-  - "&7Right-click to toggle soul mode, letting soul-cost enchants spend from this gem."
   - ""
-  - "&7Use &f/splitsouls <amount>&7 to carve souls off into a new gem."
-  - "&7Stack one gem onto another to combine their souls."
+  - "&c* &7Right Click while holding this item to toggle &c&nSoul Mode."
+  - "&7While in Soul  Mode, your equipped soul enchantments can activate and drain souls for as long as this mode is enabled."
+  - ""
+  - "&c* &7Use &c&n/splitsouls &r&7on this item to split souls off of it."
+  - ""
+  - "&c* &7Stack other &c&nSoul Gems&r &7on top of this one to combine their soul counts."
 
 # Acquisition (deposit on any kill).
 souls-per-kill: 1
