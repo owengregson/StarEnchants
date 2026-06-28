@@ -12,16 +12,14 @@ import compile.model.Ability;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import compile.model.Snapshot;
-import compile.model.SourceKind;
 import compile.resolve.FakeResolvers;
 import compile.resolve.PlatformResolvers;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
-import schema.grammar.EffectLine;
 import schema.spec.D;
 import schema.spec.ParamSpec;
-import java.util.ArrayList;
+import testfx.Defs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -42,13 +40,8 @@ class ResolveStageTest {
     }
 
     private static AbilityDef def(String... effectLines) {
-        List<EffectLine> effects = new ArrayList<>();
-        for (String l : effectLines) {
-            effects.add(EffectLine.parse(l, SRC));
-        }
-        return new AbilityDef(SourceKind.ENCHANT, "ench/x", 1, 1, 100.0, 0, 0,
-                List.of("ATTACK"), List.of(), null, effects,
-                null, null, null, null, 0, SRC, 0);
+        // The 18-arg AbilityDef ctor lives once in testfx.Defs now; this test states only what it varies.
+        return Defs.ability().stableKey("ench/x").source(SRC).effectLines(effectLines).build();
     }
 
     private static LoweredAbility lower(SpecRegistry reg, AbilityDef def, Diagnostics d) {

@@ -13,11 +13,16 @@ plugins {
 // the MAIN-source purity boundary is enforced separately by CorePurityArchTest.
 
 dependencies {
-    // The production types the fixtures build against: EffectCtx/EffectSpec/Sink/the stores (engine, which
-    // brings compile→schema and platform transitively), the codec + LoreRenderer (item). api so a consumer
-    // gets them on its test classpath without re-declaring.
-    api(project(":engine"))
-    api(project(":item"))
+    // The production modules the fixtures build against are ALL compileOnly — never transitive. This is
+    // load-bearing: a consumer adds testImplementation(project(":testfx")), and if any of these were `api`,
+    // that consumer ↔ testfx would be a circular project dependency (e.g. compile uses Defs while testfx
+    // builds Defs against compile). compileOnly keeps the task graph acyclic, and each CONSUMER supplies the
+    // production module its fixtures touch (compile tests have compile for Defs/YamlFixture; engine tests
+    // have engine for FakeEffectCtx; item tests have item for RenderGolden) — so it also never drags a heavy
+    // Bukkit module onto a pure module's test classpath.
+    compileOnly(project(":compile"))
+    compileOnly(project(":engine"))
+    compileOnly(project(":item"))
 
     // Fixtures reference Bukkit SPI types (EffectCtx returns LivingEntity/Location, RenderGolden walks an
     // ItemStack). compileOnly — the floor API is server-provided, and every consuming module already adds
