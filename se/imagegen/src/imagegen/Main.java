@@ -33,7 +33,9 @@ public final class Main {
         TooltipRenderer tooltips = new TooltipRenderer(font);
         ChestRenderer chests = new ChestRenderer(font, assets, new ItemSpriteRenderer(), new BlockRenderer(), tooltips);
 
-        for (ItemFixture f : Fixtures.tooltips()) {
+        java.util.List<ItemFixture> items = new java.util.ArrayList<>(Fixtures.tooltips());
+        items.addAll(Fixtures.eeItems()); // §I Elite-Enchantments item-overhaul tooltip previews
+        for (ItemFixture f : items) {
             tooltips.render(f.name(), f.lore()).scaled(scale).writePng(out.resolve(f.id() + ".png"));
             System.out.println("  wrote " + f.id() + ".png");
         }
