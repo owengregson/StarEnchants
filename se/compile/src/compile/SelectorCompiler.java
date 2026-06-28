@@ -1,6 +1,7 @@
 package compile;
 
 import compile.model.CompiledSelector;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.sel.SelectorAst;
@@ -50,7 +51,7 @@ public final class SelectorCompiler {
     private CompiledSelector compile(SelectorAst ast, Source source, Diagnostics diags) {
         Optional<ParamSpec> found = selectors.lookup(ast.head());
         if (found.isEmpty()) {
-            diags.error("E_UNKNOWN_SELECTOR", "unknown selector '@" + ast.head() + "'", source,
+            diags.error(DiagCode.E_UNKNOWN_SELECTOR, "unknown selector '@" + ast.head() + "'", source,
                     "run /se selectors to list available selectors");
             return CompiledSelector.SELF;
         }
@@ -66,7 +67,7 @@ public final class SelectorCompiler {
         Set<String> known = spec.params().stream().map(Param::name).collect(Collectors.toSet());
         for (String name : ast.args().keySet()) {
             if (!known.contains(name)) {
-                diags.warning("W_SELECTOR_UNKNOWN_ARG",
+                diags.warning(DiagCode.W_SELECTOR_UNKNOWN_ARG,
                         "selector '@" + spec.head() + "' has no argument '" + name + "'; it is ignored",
                         source, "known arguments: " + (known.isEmpty() ? "(none)" : String.join(", ", known)));
             }

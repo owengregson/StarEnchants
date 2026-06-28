@@ -13,6 +13,7 @@ import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.grammar.EffectLine;
 import schema.grammar.expr.Expr;
@@ -150,7 +151,7 @@ public final class DefaultLowerStage implements LowerStage {
     private static Integer parseWait(EffectLine line, Diagnostics diags) {
         List<String> argTexts = line.argTexts();
         if (argTexts.size() != 1) {
-            diags.error("E_WAIT_ARG",
+            diags.error(DiagCode.E_WAIT_ARG,
                     "WAIT takes exactly one argument but got " + argTexts.size(),
                     line.source(), "usage: WAIT:<ticks>  (e.g. WAIT:20)");
             return null;
@@ -160,13 +161,13 @@ public final class DefaultLowerStage implements LowerStage {
         try {
             ticks = Integer.parseInt(raw.trim());
         } catch (NumberFormatException e) {
-            diags.error("E_WAIT_ARG",
+            diags.error(DiagCode.E_WAIT_ARG,
                     "WAIT expects a whole number of ticks but got '" + raw + "'",
                     line.source(), "use a non-negative whole number, e.g. WAIT:20");
             return null;
         }
         if (ticks < 0) {
-            diags.error("E_WAIT_ARG",
+            diags.error(DiagCode.E_WAIT_ARG,
                     "WAIT ticks must be non-negative but got " + ticks,
                     line.source(), "use 0 or more, e.g. WAIT:20");
             return null;

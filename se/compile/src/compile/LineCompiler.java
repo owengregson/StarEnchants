@@ -1,5 +1,6 @@
 package compile;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -34,7 +35,7 @@ public final class LineCompiler {
     public Optional<CompiledLine> compile(EffectLine line, Diagnostics diags) {
         Optional<ParamSpec> spec = registry.lookup(line.head());
         if (spec.isEmpty()) {
-            diags.error("E_UNKNOWN_KIND", "unknown effect '" + line.head() + "'", line.source(),
+            diags.error(DiagCode.E_UNKNOWN_KIND, "unknown effect '" + line.head() + "'", line.source(),
                     "run /se docs to list available kinds");
             return Optional.empty();
         }
@@ -59,7 +60,7 @@ public final class LineCompiler {
         }
         for (String key : named.keySet()) {
             if (!validNames.contains(key)) {
-                diags.error("E_UNKNOWN_EFFECT_PARAM",
+                diags.error(DiagCode.E_UNKNOWN_EFFECT_PARAM,
                         "unknown parameter '" + key + "' for '" + spec.head() + "'", line.source(),
                         "valid parameters: " + String.join(", ", validNames));
             }
@@ -67,7 +68,7 @@ public final class LineCompiler {
         boolean missingRequired = false;
         for (Param p : params) {
             if (p.required() && !named.containsKey(p.name())) {
-                diags.error("E_MISSING_ARG",
+                diags.error(DiagCode.E_MISSING_ARG,
                         "missing required parameter '" + p.name() + "' (" + p.type().label() + ") for '"
                                 + spec.head() + "'", line.source(), "usage: " + spec.usage());
                 missingRequired = true;

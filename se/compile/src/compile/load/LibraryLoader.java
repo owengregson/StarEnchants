@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 
@@ -121,14 +122,14 @@ public final class LibraryLoader {
         for (EnchantDef def : catalog) {
             for (String req : def.requires()) {
                 if (!keys.contains(req)) {
-                    diags.error("E_REL_UNKNOWN",
+                    diags.error(DiagCode.E_REL_UNKNOWN,
                             "enchant '" + def.key() + "' requires unknown enchant '" + req + "'",
                             def.source(), "the requires: key must name an existing enchant");
                 }
             }
             for (String black : def.blacklist()) {
                 if (!keys.contains(black)) {
-                    diags.error("E_REL_UNKNOWN",
+                    diags.error(DiagCode.E_REL_UNKNOWN,
                             "enchant '" + def.key() + "' blacklists unknown enchant '" + black + "'",
                             def.source(), "the blacklist: key must name an existing enchant");
                 }
@@ -165,7 +166,7 @@ public final class LibraryLoader {
             return false;
         }
         if (!seen.add(key)) {
-            diags.error("E_DUPLICATE_KEY", "two content files resolve to the same key '" + key
+            diags.error(DiagCode.E_DUPLICATE_KEY, "two content files resolve to the same key '" + key
                     + "' (a filename is reused across tier folders): " + relativePath(contentRoot, file),
                     Source.ofFile(relativePath(contentRoot, file)));
             return false;
