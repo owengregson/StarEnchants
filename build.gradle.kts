@@ -65,10 +65,9 @@ subprojects {
         }
 
         // JaCoCo per module — the coverage LEDGER for the test-suite overhaul: a collapse/merge may not
-        // drop a covered branch (docs/testing-overhaul/testing-overhaul-plan.md). Run on demand
-        // (`./gradlew :<module>:jacocoTestReport`) rather than finalizing every test run, so the inner
-        // loop stays fast; the CSV report makes BRANCH_COVERED counts trivially diffable before/after a
-        // rewrite, and CI turns the diff into a blocking gate (the :infra task).
+        // drop a covered branch (docs/testing-architecture.md). Reports run on demand
+        // (`./gradlew :<module>:jacocoTestReport`) so the inner loop stays fast; the CSV makes
+        // BRANCH_COVERED counts trivially diffable before/after a rewrite.
         pluginManager.apply("jacoco")
         extensions.configure<JacocoPluginExtension> {
             toolVersion = "0.8.12"
@@ -79,6 +78,36 @@ subprojects {
                 csv.required.set(true)
                 html.required.set(true)
             }
+        }
+
+        // ── Branch-coverage floor: the BLOCKING gate ──────────────────────────────────────────────────
+        // A per-module minimum BRANCH ratio, wired into `check` so `./gradlew build` FAILS if a
+        // collapse/merge silently drops covered branches — the structural backstop the overhaul's ledger
+        // existed to enforce. Floors sit a few points under each module's current actual (schema 86.8 /
+        // compile 63.5 / engine 63.1 / item 64.9 %): tight enough to catch a real regression, loose enough
+        // that ordinary churn does not flap the gate. Only the pure-logic modules are listed — the
+        // Bukkit-shell modules (platform/bootstrap/integrate/feature/compat-folia/pack/migrate/api) have
+        // their branches exercised by the LIVE matrix, not unit tests, so a unit branch floor there would
+        // be gamed or perpetually red (writing-tests skill, Rule 4 — live is reserved for what units can't reach).
+        val branchFloor = mapOf(
+            "schema" to "0.84".toBigDecimal(),
+            "compile" to "0.60".toBigDecimal(),
+            "engine" to "0.60".toBigDecimal(),
+            "item" to "0.60".toBigDecimal(),
+        )[project.name]
+        if (branchFloor != null) {
+            tasks.named<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
+                violationRules {
+                    rule {
+                        limit {
+                            counter = "BRANCH"
+                            value = "COVEREDRATIO"
+                            minimum = branchFloor
+                        }
+                    }
+                }
+            }
+            tasks.named("check") { dependsOn("jacocoTestCoverageVerification") }
         }
 
         tasks.withType<JavaCompile>().configureEach {
