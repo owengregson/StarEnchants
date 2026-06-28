@@ -168,6 +168,7 @@ public final class CombatDispatch {
     }
 
     /** Dispatch one entity-on-entity hit: run attacker + defender abilities and fold the result. */
+    @SuppressWarnings("deprecation") // EntityDamageEvent.DamageModifier.ARMOR/MAGIC: deprecated-not-removed across the whole range (the IGNORE_ARMOR primitive).
     public void onDamage(EntityDamageByEntityEvent event) {
         Snapshot snapshot = content.snapshot();
         Ability[] abilities = snapshot.abilities();

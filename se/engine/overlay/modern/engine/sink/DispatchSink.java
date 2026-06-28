@@ -798,6 +798,7 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // spigot().sendMessage(ChatMessageType, BaseComponent): the floor-stable action-bar path.
     public void actionBar(Player target, String message) {
         // The Spigot chat API is the one action-bar path stable across the whole 1.17.1 → 26.1.x range.
         // Translate '&' → '§' first — fromLegacyText parses '§', not '&'.

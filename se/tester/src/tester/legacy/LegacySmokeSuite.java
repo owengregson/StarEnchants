@@ -137,6 +137,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
 
     // ── §6 degrades (Item 3): the heroic-durability poll restores; the NMS knockback-resistance hook reduces ──
 
+    @SuppressWarnings("deprecation") // setDurability/getDurability(short): the 1.8-correct durability API (no ItemMeta Damageable on the legacy tree).
     private void degradeChecks(Harness h) {
         h.expect("legacy.degrade.heroicSave");
         h.expect("legacy.degrade.knockbackControl");

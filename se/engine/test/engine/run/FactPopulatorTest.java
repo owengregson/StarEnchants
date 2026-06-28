@@ -52,6 +52,7 @@ class FactPopulatorTest {
         return b.slot();
     }
 
+    @SuppressWarnings("deprecation") // getMaxHealth()/isOnGround(): deprecated-not-removed cross-version accessors, stubbed on the mock.
     private static Player actor() {
         Player p = mock(Player.class);
         lenient().when(p.getHealth()).thenReturn(15.0);
@@ -124,6 +125,7 @@ class FactPopulatorTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation") // getMaxHealth(): deprecated-not-removed cross-version accessor, stubbed on the mock.
     void populatesVictimFactsIncludingPlayerPose() {
         Player victim = actor(); // a player victim → its pose flags are meaningful
         when(victim.getHealth()).thenReturn(7.0);
@@ -259,6 +261,7 @@ class FactPopulatorTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation") // getMaxHealth(): deprecated-not-removed cross-version accessor, stubbed on the mock.
     void guardCoversTheWholeActorBlockNotJustItsFirstRead() {
         // A throw on a later actor read must not lose the facts read before it, nor propagate.
         Player actor = mock(Player.class);
