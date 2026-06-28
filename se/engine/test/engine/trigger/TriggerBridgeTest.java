@@ -8,15 +8,15 @@ import compile.Compiler;
 import compile.def.AbilityDef;
 import compile.model.Ability;
 import compile.model.Snapshot;
-import compile.model.SourceKind;
 import engine.condition.BuiltinVars;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.BuiltinEffects;
 import engine.selector.SelectorRegistry;
 import engine.selector.kind.BuiltinSelectors;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
-import schema.grammar.EffectLine;
+import testfx.Defs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -34,10 +34,8 @@ class TriggerBridgeTest {
     }
 
     private static AbilityDef ability(String stableKey, List<String> triggerNames) {
-        return new AbilityDef(SourceKind.ENCHANT, stableKey, 1, 1, 100.0, 0, 0,
-                triggerNames, List.of(), null,
-                List.of(EffectLine.parse("DAMAGE:6", Source.of("enchants.yml", 1, 1))),
-                null, null, null, null, 0, Source.ofFile("enchants.yml"), 0);
+        return Defs.ability().stableKey(stableKey).triggers(triggerNames)
+                .effectLines("DAMAGE:6").source(Source.of("enchants.yml", 1, 1)).build();
     }
 
     @Test
@@ -57,6 +55,6 @@ class TriggerBridgeTest {
         Diagnostics d = new Diagnostics();
         compiler().compile(List.of(ability("ench/bad", List.of("flibbertigibbet"))), 1, d);
         assertTrue(d.hasErrors());
-        assertEquals("E_UNKNOWN_TRIGGER", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_UNKNOWN_TRIGGER));
     }
 }
