@@ -131,9 +131,11 @@ jobs:
       # (it is, on Linux). setup-java exposes each install as JAVA_HOME_<major>_X64 — bridge the two names.
       - name: Expose JAVA17_HOME / JAVA21_HOME / JAVA25_HOME
         run: |
-          echo "JAVA17_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
-          echo "JAVA21_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
-          echo "JAVA25_HOME=$JAVA_HOME_25_X64" >> "$GITHUB_ENV"
+          {
+            echo "JAVA17_HOME=$JAVA_HOME_17_X64"
+            echo "JAVA21_HOME=$JAVA_HOME_21_X64"
+            echo "JAVA25_HOME=$JAVA_HOME_25_X64"
+          } >> "$GITHUB_ENV"
 
       - name: Download tester jar
         uses: actions/download-artifact@v4
