@@ -20,6 +20,7 @@ import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.SourceKind;
 import compile.model.cond.Cond;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -147,7 +148,7 @@ class LowerStageTest {
                 .lower(def(null, line("WAIT:-1"), line("DAMAGE:1")), d);
 
         assertTrue(d.hasErrors());
-        assertEquals("E_WAIT_ARG", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_WAIT_ARG));
         assertEquals(1, lowered.effects().size());
         assertEquals(0, lowered.effects().get(0).cumulativeWaitTicks()); // bad WAIT ignored
     }
@@ -159,7 +160,7 @@ class LowerStageTest {
                 .lower(def(null, line("WAIT:abc"), line("DAMAGE:1")), d);
 
         assertTrue(d.hasErrors());
-        assertEquals("E_WAIT_ARG", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_WAIT_ARG));
         assertEquals(0, lowered.effects().get(0).cumulativeWaitTicks());
     }
 
@@ -170,8 +171,8 @@ class LowerStageTest {
                 .lower(def(null, line("WAIT"), line("WAIT:10:20"), line("DAMAGE:1")), d);
 
         assertTrue(d.hasErrors());
-        assertEquals("E_WAIT_ARG", d.all().get(0).code());
-        assertEquals("E_WAIT_ARG", d.all().get(1).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_WAIT_ARG));
+        assertTrue(d.all().get(1).is(DiagCode.E_WAIT_ARG));
         // both malformed WAITs ignored → no delay accrued
         assertEquals(0, lowered.effects().get(0).cumulativeWaitTicks());
     }
