@@ -1,4 +1,4 @@
-# Magic Dust — the Elite-Enchantments LIKENESS of the success dust (docs/v3-directives.md §I; ADR-0019).
+# Magic Dust — the Cosmic Pack likeness of the success dust (docs/v3-directives.md §I; ADR-0019).
 # Drag onto an enchant book to RAISE its success chance by success-bonus, clamped to the global
 # books.max-success ceiling (config.yml). Pure economy metadata — never an ability, never the hot path.
 # Only the name/lore differ from the default item; the mechanic knobs below are global. reload with /se reload.

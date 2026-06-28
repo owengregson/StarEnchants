@@ -1,4 +1,4 @@
-# Black Scroll — the Elite-Enchantments LIKENESS (docs/v3-directives.md §I). Drag onto enchanted gear to
+# Black Scroll — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto enchanted gear to
 # EXTRACT one (random) enchant into a book; the extraction ALWAYS succeeds. The drawn book's CONVERSION
 # success rate is rolled in [min-convert, max-convert] when the scroll is minted (clamped to the global
 # books.max-success ceiling) and shown in the lore below. Only the name/lore differ from the default item;

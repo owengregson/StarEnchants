@@ -6,8 +6,8 @@
 type: soul-gem
 material: EMERALD
 # Placeholders work in BOTH the name and lore and re-render live on every change: {AMOUNT} = the soul count,
-# {SOUL-COLOR} = its tier colour. Put {AMOUNT} in the name to show the count there (the Elite-Enchantments
-# pack does). Lore auto-wraps at config lore.item-wrap.
+# {SOUL-COLOR} = its tier colour. Put {AMOUNT} in the name to show the count there (the Cosmic Pack
+# does). Lore auto-wraps at config lore.item-wrap.
 name: "&aSoul Gem"
 lore:
   - "&7Souls: {SOUL-COLOR}{AMOUNT}"
