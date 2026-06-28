@@ -41,6 +41,10 @@ public final class ItemsLoader {
         Optional<ScrollsConfig.Holy> holy = Optional.empty();
         Optional<ScrollsConfig.Nametag> nametag = Optional.empty();
         Optional<ScrollsConfig.Godly> godly = Optional.empty();
+        // Trak-gem family: each member is its own file, assembled into one TraksConfig below (§I).
+        Optional<TraksConfig.Trak> trakBlock = Optional.empty();
+        Optional<TraksConfig.Trak> trakMob = Optional.empty();
+        Optional<TraksConfig.Trak> trakSoul = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -177,6 +181,30 @@ public final class ItemsLoader {
                         enchantBook = Optional.of(readEnchantBook(root, diags));
                     }
                 }
+                case "blocktrak", "block-trak", "blocktrak-gem" -> {
+                    if (trakBlock.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one blocktrak config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        trakBlock = Optional.of(readTrak(root, TraksConfig.defaults().block(), diags));
+                    }
+                }
+                case "mobtrak", "mob-trak", "mobtrak-gem" -> {
+                    if (trakMob.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one mobtrak config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        trakMob = Optional.of(readTrak(root, TraksConfig.defaults().mob(), diags));
+                    }
+                }
+                case "soultrak", "soul-trak", "soultrak-gem" -> {
+                    if (trakSoul.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one soultrak config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        trakSoul = Optional.of(readTrak(root, TraksConfig.defaults().soul(), diags));
+                    }
+                }
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
@@ -192,8 +220,26 @@ public final class ItemsLoader {
         } else {
             scrolls = Optional.empty();
         }
+        // Present iff at least one trak file was read; absent members fall back to TraksConfig.defaults().
+        TraksConfig td = TraksConfig.defaults();
+        Optional<TraksConfig> traks;
+        if (trakBlock.isPresent() || trakMob.isPresent() || trakSoul.isPresent()) {
+            traks = Optional.of(new TraksConfig(
+                    trakBlock.orElseGet(td::block), trakMob.orElseGet(td::mob), trakSoul.orElseGet(td::soul)));
+        } else {
+            traks = Optional.empty();
+        }
         return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, enchantBook,
-                dust, whiteScroll, diags.all());
+                dust, whiteScroll, traks, diags.all());
+    }
+
+    private static TraksConfig.Trak readTrak(YamlNode root, TraksConfig.Trak d, Diagnostics diags) {
+        return new TraksConfig.Trak(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo(),
+                orDefault(root.string("count-format"), d.countFormat()));
     }
 
     private static ScrollsConfig.Black readBlack(YamlNode root, Diagnostics diags) {

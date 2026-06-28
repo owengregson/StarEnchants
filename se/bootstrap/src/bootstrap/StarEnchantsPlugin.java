@@ -228,7 +228,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         return def != null ? def.weaponLore() : java.util.List.of();
                     }
                 });
-        ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, ItemGroups.standard(),
+        ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
+        ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
                 () -> master.config().crystals().slots(),      // §E per-item crystal slots
                 () -> master.config().crystals().maxStack(),   // §E crystal sanity cap
@@ -282,6 +283,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().scrollsOrDefault(), new java.util.Random(), messages);
         feature.scroll.KeptItemsStore keptItems = new feature.scroll.KeptItemsStore(); // §I holy death→respawn stash
         NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(), messages);
+
+        // Trak gems (§I): block/mob/soul lifetime counters tracked in the background on eligible gear.
+        item.codec.TrakCodec trakCodec = new item.codec.TrakCodec(ItemKeys.of().trakGem(),
+                ItemKeys.of().trakBlocks(), ItemKeys.of().trakMobs(), ItemKeys.of().trakSouls());
+        feature.trak.TrakService traks = new feature.trak.TrakService(trakCodec, appliedSlot, itemGroups,
+                () -> items.config().traksOrDefault(), messages);
 
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
         // gain-on-kill see the same in-memory authority.
@@ -432,6 +439,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
             getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems), this);
             getServer().getPluginManager().registerEvents(new NametagListener(nametags), this);
+            getServer().getPluginManager().registerEvents(new feature.trak.TrakListener(traks), this);
         } else {
             getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");
         }
@@ -520,7 +528,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     player -> worn.refresh(player, content.snapshot()), soulService,
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
-                    scrolls, unopenedBooks, holyScrolls, nametags, packs, messages, contentRoot);
+                    scrolls, unopenedBooks, holyScrolls, nametags, traks, packs, messages, contentRoot);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand);
         }

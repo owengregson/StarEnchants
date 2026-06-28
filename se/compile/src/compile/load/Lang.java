@@ -145,6 +145,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("command.give.godlytransmog", "&5Minted a godly transmog. &7Drag it onto enchanted gear to reorder.");
         s.put("command.give.holy", "&fMinted a holy white scroll. &7Carry it to survive a death once.");
         s.put("command.give.nametag", "&bMinted an item nametag. &7Drag it onto gear, then type the new name.");
+        s.put("command.give.trak", "&aMinted a trak gem. &7Drag it onto eligible gear to reveal its lifetime count.");
         s.put("command.give.blackscroll",
                 "&8Minted a black scroll. &7Drag it onto enchanted gear to extract an enchant.");
         s.put("command.give.randomizer",
@@ -255,6 +256,11 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("scroll.nametag.renamed", "&aRenamed your item.");
         s.put("scroll.nametag.blacklisted", "&cThat name contains a blacklisted word.");
         s.put("scroll.nametag.cancelled", "&7Rename cancelled.");
+        s.put("trak.applied", "&aTrak applied — this item now shows its lifetime count.");
+        s.put("trak.apply-target", "&cApply the trak gem onto an item.");
+        s.put("trak.wrong-kind", "&cThat gem only applies to: &f{KINDS}&c.");
+        s.put("trak.already", "&7That item already has this trak.");
+        s.put("trak.occupied", "&cThat item already has another applied item — only one fits.");
         s.put("book.unopened.open", "&aYou revealed &f{ENCHANT} {LEVEL}&a (&f{PERCENT}%&a success)!");
         s.put("book.unopened.empty-tier", "&cThere are no enchants in that tier to reveal.");
 

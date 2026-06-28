@@ -92,7 +92,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     static final List<String> GIVE_TYPES =
             List.of("gem", "crystal", "extractor", "book", "set", "heroic", "upgrade", "orb",
                     "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
-                    "dust", "whitescroll", "unopened");
+                    "dust", "whitescroll", "unopened", "blocktrak", "mobtrak", "soultrak");
 
     static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
 
@@ -114,6 +114,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.book.UnopenedBookService unopenedBooks;
     private final feature.scroll.HolyScrollService holyScrolls;
     private final feature.scroll.NametagService nametags;
+    private final feature.trak.TrakService traks;
     private final PackStore packs;
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
@@ -123,7 +124,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
-              PackStore packs, Messages messages, Path contentRoot) {
+              feature.trak.TrakService traks, PackStore packs, Messages messages, Path contentRoot) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -142,6 +143,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.unopenedBooks = unopenedBooks;
         this.holyScrolls = holyScrolls;
         this.nametags = nametags;
+        this.traks = traks;
         this.packs = packs;
     }
 
@@ -760,6 +762,12 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
             case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy white scroll");
             case "nametag" -> deliver(sender, target, nametags.mint(), "command.give.nametag", "item nametag");
+            case "blocktrak" -> deliver(sender, target,
+                    traks.mint(item.codec.TrakCodec.Kind.BLOCK), "command.give.trak", "blocktrak gem");
+            case "mobtrak" -> deliver(sender, target,
+                    traks.mint(item.codec.TrakCodec.Kind.MOB), "command.give.trak", "mobtrak gem");
+            case "soultrak" -> deliver(sender, target,
+                    traks.mint(item.codec.TrakCodec.Kind.SOUL), "command.give.trak", "soultrak gem");
             case "dust" -> giveDustTo(sender, target, args);
             case "whitescroll" -> deliver(sender, target, carriers.mintWhiteScroll(),
                     "command.give.whitescroll", "white scroll");
