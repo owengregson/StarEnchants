@@ -138,6 +138,15 @@ public final class ItemFactory {
     }
 
     /**
+     * The §L economy-item wrap applied to already-substituted lore — for re-render paths (e.g. the soul gem
+     * name/count re-render on deposit/spend) that rebuild lore OUTSIDE {@link #buildItem} but must wrap
+     * identically to the mint, else the lore visibly "unwraps" on the first update.
+     */
+    public static List<String> wrapLore(List<String> lore) {
+        return wrapItemLore(lore);
+    }
+
+    /**
      * §N custom-item resolver (ADR-0027): ItemsAdder/Oraxen token → custom {@link ItemStack}, or {@code null}
      * for a vanilla token. Static no-op default so this module never references an integration API and is inert
      * without them; the root installs the live one via {@link #customItemResolver}.
@@ -146,6 +155,36 @@ public final class ItemFactory {
 
     public static void customItemResolver(java.util.function.Function<String, ItemStack> resolver) {
         customItemResolver = resolver == null ? token -> null : resolver;
+    }
+
+    /**
+     * Resolves a vanilla {@link org.bukkit.enchantments.Enchantment} by its modern canonical NAME
+     * ({@code PROTECTION}, {@code UNBREAKING}, {@code SHARPNESS}) cross-version — the modern overlay maps via
+     * the namespaced-key registry, the legacy overlay via the 1.8 names. Installed at the composition root
+     * (behind the {@code Wiring} seam); static no-op default keeps this module server-free for unit tests.
+     */
+    private static volatile java.util.function.Function<String, org.bukkit.enchantments.Enchantment>
+            enchantResolver = name -> null;
+
+    public static void enchantResolver(java.util.function.Function<String, org.bukkit.enchantments.Enchantment> resolver) {
+        enchantResolver = resolver == null ? name -> null : resolver;
+    }
+
+    /**
+     * Apply vanilla enchants by NAME ({@code name → level}) to {@code stack} in place — the cross-version mint
+     * path for set-piece base enchants (Protection/Unbreaking/Sharpness, §6.6). Unknown names (resolver miss)
+     * are skipped, never throwing. {@code addUnsafeEnchantment} bypasses the vanilla level cap.
+     */
+    public static void applyVanillaEnchants(ItemStack stack, Map<String, Integer> nameToLevel) {
+        if (stack == null || nameToLevel == null || nameToLevel.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, Integer> entry : nameToLevel.entrySet()) {
+            org.bukkit.enchantments.Enchantment enchant = enchantResolver.apply(entry.getKey());
+            if (enchant != null) {
+                stack.addUnsafeEnchantment(enchant, Math.max(1, entry.getValue()));
+            }
+        }
     }
 
     /**

@@ -3,7 +3,11 @@ display: "&2&lDruid"
 description: "Channel the life force of the forest to cut through enemies."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&2&lDRUID SET BONUS"
     - "&2* Deal 30% more damage to all enemies"
     - "&2* Terrabender Passive Ability"
@@ -17,6 +21,9 @@ armor:
   chance: 100
   effects: []
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_AXE
   name: "&2&lEarth Splitter&r"
   lore:

@@ -35,6 +35,10 @@ public final class ItemEnchanter {
     /** Default per-item crystal-slot capacity (§E). */
     public static final int DEFAULT_CRYSTAL_SLOTS = 1;
 
+    /** Set-config enchant refs with this prefix are CUSTOM plugin enchants (stamped into combat state); any
+     *  other key is a vanilla enchant NAME applied cross-version at mint (§6.6). */
+    private static final String CUSTOM_PREFIX = "enchants/";
+
     private final CombatCodec codec;
     private final LoreRenderer lore;
     private final ContentHolder content;
@@ -214,8 +218,7 @@ public final class ItemEnchanter {
             def.requires().forEach(enchants::remove); // the superior enchant supersedes its prerequisites
         }
         enchants.put(baseKey, level);
-        CombatState next = new CombatState(enchants, current.crystals(),
-                current.setKey(), current.omni(), current.heroic(), current.added());
+        CombatState next = current.withEnchants(enchants); // preserves setWeaponKey (a set weapon stays a set weapon)
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(messages.format("apply.applied-suffix", "MSG", check.message(), "LEVEL", level));
@@ -235,8 +238,7 @@ public final class ItemEnchanter {
         }
         Map<String, Integer> enchants = new LinkedHashMap<>(current.enchants());
         enchants.remove(baseKey);
-        CombatState next = new CombatState(enchants, current.crystals(),
-                current.setKey(), current.omni(), current.heroic(), current.added());
+        CombatState next = current.withEnchants(enchants); // preserves setWeaponKey
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(messages.format("apply.removed", "KEY", baseKey));
@@ -257,8 +259,7 @@ public final class ItemEnchanter {
         }
         List<String> crystals = new ArrayList<>(current.crystals());
         String popped = crystals.remove(crystals.size() - 1);
-        CombatState next = new CombatState(current.enchants(), crystals,
-                current.setKey(), current.omni(), current.heroic(), current.added());
+        CombatState next = current.withCrystals(crystals); // preserves setWeaponKey
         codec.write(gear, next);
         lore.apply(gear, next);
         return ExtractResult.ok(popped, messages.format("apply.crystal.extracted"));
@@ -280,9 +281,13 @@ public final class ItemEnchanter {
             Material material = item.mint.ItemFactory.material(def.weapon().material(), Material.IRON_SWORD);
             String name = def.weapon().name() != null ? def.weapon().name() : def.display();
             ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
-            CombatState next = CombatState.weaponMember(setKey);
+            // §6.6 configured weapon enchants: custom ones stamp into the combat state (so the engine runs
+            // them while held), vanilla names apply cross-version at mint.
+            CombatState next = new CombatState(customEnchants(def.weaponEnchants()), List.of(), null, setKey,
+                    false, item.codec.HeroicStat.NONE, 0); // weaponMember(setKey) + carried custom enchants
             codec.write(stack, next);
             lore.apply(stack, next);
+            item.mint.ItemFactory.applyVanillaEnchants(stack, vanillaEnchants(def.weaponEnchants()));
             return java.util.Optional.of(stack);
         }
         for (compile.load.SetDef.Member member : def.armorMembers()) {
@@ -290,13 +295,38 @@ public final class ItemEnchanter {
                 Material material = item.mint.ItemFactory.material(member.material(), Material.LEATHER_HELMET);
                 String name = member.name() != null ? member.name() : def.display();
                 ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
-                CombatState next = new CombatState(Map.of(), List.of(), setKey, false);
+                // §6.6 configured armour enchants (applied to every piece): custom ones stamp into the combat
+                // state, vanilla names apply cross-version at mint.
+                CombatState next = new CombatState(customEnchants(def.armorEnchants()), List.of(), setKey, false);
                 codec.write(stack, next);
                 lore.apply(stack, next);
+                item.mint.ItemFactory.applyVanillaEnchants(stack, vanillaEnchants(def.armorEnchants()));
                 return java.util.Optional.of(stack);
             }
         }
         return java.util.Optional.empty();
+    }
+
+    /** The custom plugin enchants ({@code enchants/<id> → level}) from a set's configured enchants, for the combat state. */
+    private static Map<String, Integer> customEnchants(Map<String, Integer> configured) {
+        Map<String, Integer> out = new LinkedHashMap<>();
+        configured.forEach((ref, level) -> {
+            if (ref.startsWith(CUSTOM_PREFIX)) {
+                out.put(ref, level);
+            }
+        });
+        return out;
+    }
+
+    /** The vanilla enchants (NAME → level) from a set's configured enchants, applied cross-version at mint. */
+    private static Map<String, Integer> vanillaEnchants(Map<String, Integer> configured) {
+        Map<String, Integer> out = new LinkedHashMap<>();
+        configured.forEach((ref, level) -> {
+            if (!ref.startsWith(CUSTOM_PREFIX)) {
+                out.put(ref, level);
+            }
+        });
+        return out;
     }
 
     private compile.load.SetDef set(String key) {
@@ -401,8 +431,7 @@ public final class ItemEnchanter {
         }
         List<String> crystals = new ArrayList<>(current.crystals());
         crystals.add(String.join(item.codec.CrystalItemData.DELIMITER, keys)); // ONE entry = ONE slot
-        CombatState next = new CombatState(current.enchants(), crystals,
-                current.setKey(), current.omni(), current.heroic(), current.added());
+        CombatState next = current.withCrystals(crystals); // preserves setWeaponKey
         codec.write(stack, next);
         lore.apply(stack, next);
         return ApplyResult.ok(messages.format("apply.crystal.applied", "LABEL", label));

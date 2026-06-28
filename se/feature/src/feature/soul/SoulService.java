@@ -470,8 +470,10 @@ public final class SoulService implements SoulDebit {
         if (name != null && !name.isBlank()) {
             meta.setDisplayName(ItemFactory.color(name));
         }
-        List<String> lore = renderGemLore(cfg, souls);
-        meta.setLore(lore.isEmpty() ? null : lore.stream().map(ItemFactory::color).toList());
+        // Wrap exactly as the mint path does (ItemFactory.buildItem), else the gem lore visibly unwraps
+        // the first time the count changes (mint wraps; this re-render must too).
+        List<String> lore = ItemFactory.wrapLore(renderGemLore(cfg, souls));
+        meta.setLore(lore == null || lore.isEmpty() ? null : lore.stream().map(ItemFactory::color).toList());
         gem.setItemMeta(meta);
     }
 }

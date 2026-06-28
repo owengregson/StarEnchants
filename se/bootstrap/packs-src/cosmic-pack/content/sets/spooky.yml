@@ -3,7 +3,11 @@ display: "&6&lSpooky"
 description: "Cloak yourself in shadow for heavy defense and a haunting weapon."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&6&lSPOOKY SET BONUS"
     - "&6* Deal 20% more damage to all enemies."
     - "&6* Enemies deal 25% less damage to you."
@@ -19,6 +23,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&6&lGravedigger&r"
   lore:

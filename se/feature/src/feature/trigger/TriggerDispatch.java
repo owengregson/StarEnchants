@@ -18,8 +18,10 @@ import engine.trigger.TriggerRegistry;
 import feature.soul.SoulBinding;
 import item.worn.WornStateStore;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.LongSupplier;
@@ -287,6 +289,26 @@ public final class TriggerDispatch {
             if (!ability.blockedInWorld(worldId)) { // gate-1 only: a world-disabled passive does not turn on
                 executor.runLifecycle(ability, context, sink, false);
             }
+        }
+        sink.flush();
+    }
+
+    /**
+     * Apply/renew the maintained PASSIVE/HELD potion buffs (§B) into ONE sink: each {@code desired} entry
+     * (potion handle id → amplifier) is (re)applied at a permanent duration, each {@code remove} handle is
+     * cleared. The diff is owned by {@link PassiveEffectDriver}; this only executes it. Runs on the player's
+     * own thread.
+     */
+    public void applyPassivePotions(Player player, Map<Integer, Integer> desired, Set<Integer> remove) {
+        if (desired.isEmpty() && remove.isEmpty()) {
+            return;
+        }
+        SinkReadback sink = newSink();
+        for (Map.Entry<Integer, Integer> entry : desired.entrySet()) {
+            sink.potion(player, entry.getKey(), entry.getValue(), PassiveEffectDriver.PERMANENT_TICKS);
+        }
+        for (int handle : remove) {
+            sink.removePotion(player, handle);
         }
         sink.flush();
     }

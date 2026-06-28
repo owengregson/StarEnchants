@@ -4,8 +4,11 @@ import engine.sink.DispatchSinkFactory;
 import engine.sink.SinkFactory;
 import feature.fx.ParticleFx;
 import java.util.OptionalInt;
+import java.util.function.Function;
+import org.bukkit.enchantments.Enchantment;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
+import schema.spec.HandleCategory;
 
 /**
  * Modern composition wiring for the version-specific runtime resolver pieces: {@code RuntimeHandles}
@@ -33,5 +36,13 @@ public final class Wiring {
 
     public SinkFactory sinkFactory() {
         return new DispatchSinkFactory(handles);
+    }
+
+    /**
+     * §6.6 set-piece base enchants: resolve a modern canonical enchant name to a live {@link Enchantment} via
+     * the namespaced-key registry ({@code PROTECTION} → {@code minecraft:protection}). Miss → {@code null}.
+     */
+    public Function<String, Enchantment> enchantResolver() {
+        return name -> (Enchantment) handles.resolveByName(HandleCategory.ENCHANTMENT, name);
     }
 }

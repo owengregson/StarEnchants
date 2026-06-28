@@ -3,7 +3,11 @@ display: "&d&lCupid"
 description: "Wear the Cupid set to strike harder and shrug off blows while wreathed in passion."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&d&lCUPID SET BONUS"
     - "&d* Deal 30% more damage to all enemies"
     - "&d* Enemies deal 20% less damage to you"
@@ -20,6 +24,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&d&lCupid's Dagger&r"
   lore:

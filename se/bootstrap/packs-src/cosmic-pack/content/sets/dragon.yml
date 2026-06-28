@@ -3,6 +3,9 @@ display: "&e&lDragon"
 description: "Unleash the power of ancient dragons to deal more and take less damage."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
     - "&eUnleash the power of ancient dragons with"
     - "&ethe Dragon set, forged in the fires"
@@ -23,6 +26,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&e&lWyvern Claw&r"
   lore:

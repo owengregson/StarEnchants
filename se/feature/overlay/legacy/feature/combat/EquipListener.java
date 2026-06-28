@@ -2,6 +2,7 @@ package feature.combat;
 
 import compile.load.ContentHolder;
 import feature.trigger.LifecycleDriver;
+import feature.trigger.PassiveEffectDriver;
 import feature.trigger.RepeatingDriver;
 import item.worn.WornState;
 import item.worn.WornStateStore;
@@ -18,6 +19,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import platform.sched.Scheduling;
 
@@ -35,15 +37,17 @@ public final class EquipListener implements Listener {
     private final ContentHolder content;
     private final RepeatingDriver repeating;
     private final LifecycleDriver lifecycle;
+    private final PassiveEffectDriver passiveEffects;
     /** Per-player armour signature (material + count of the 4 pieces), last seen by {@link #pollArmour}. */
     private final Map<UUID, String> lastArmour = new ConcurrentHashMap<>();
 
     public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
-                         LifecycleDriver lifecycle) {
+                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects) {
         this.worn = worn;
         this.content = content;
         this.repeating = repeating;
         this.lifecycle = lifecycle;
+        this.passiveEffects = passiveEffects;
         Scheduling.repeatingGlobal(1L, 1L, this::pollArmour);
     }
 
@@ -90,15 +94,24 @@ public final class EquipListener implements Listener {
     }
 
     @EventHandler
+    public void onRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        // Death clears all potion effects; re-derive once respawned so a permanent passive buff returns at once.
+        Scheduling.onEntityLater(player, 1L, () -> refresh(player));
+    }
+
+    @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         worn.remove(event.getPlayer().getUniqueId());
         repeating.disarm(event.getPlayer().getUniqueId());
         lifecycle.clear(event.getPlayer().getUniqueId());
+        passiveEffects.clear(event.getPlayer().getUniqueId());
     }
 
     private void refresh(Player player) {
         WornState state = worn.refresh(player, content.snapshot());
         repeating.arm(player, state);
         lifecycle.refresh(player, state);
+        passiveEffects.refresh(player); // reconcile maintained passive potion buffs LAST — it is the authority
     }
 }

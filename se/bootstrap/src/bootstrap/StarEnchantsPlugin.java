@@ -142,6 +142,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
     private ContentReloader reloader;
     private RepeatingDriver passives;     // §B REPEATING lifecycle
     private LifecycleDriver lifecycle;    // §B HELD/PASSIVE lifecycle
+    private feature.trigger.PassiveEffectDriver passiveEffects; // §B maintained passive POTION buffs (permanent + suppression-aware)
+
+    /** §B passive-potion maintenance sweep period (ticks): the safety-net re-derive cadence; instant paths handle the rest. */
+    private static final long PASSIVE_SWEEP_TICKS = 40L;
     private feature.soul.SoulParticleDriver soulParticles; // §D while-active soul aura
     private bstats.Metrics metrics;       // bStats id 32197
 
@@ -370,6 +374,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 Integrations.customItem(this, master.config().integrations()::enabled));
         // §L universal economy-item lore wrap width (lore.item-wrap), read live so a /se reload re-tunes it.
         item.mint.ItemFactory.itemWrapWidth(() -> master.config().lore().itemWrap());
+        // §6.6 set-piece base enchants (Protection/Unbreaking/Sharpness) resolve cross-version behind the seam.
+        item.mint.ItemFactory.enchantResolver(wiring.enchantResolver());
         CombatDispatch dispatch = new CombatDispatch(executor, wiring.sinkFactory(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
@@ -391,13 +397,28 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §B HELD/PASSIVE buffs that flip on/off at equip/unequip via EquipListener's worn-ability diff (ADR-0022).
         lifecycle = new LifecycleDriver(triggerDispatch, content,
                 triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
+        // §B maintained passive POTION buffs: permanent-while-worn + suppression-aware + self-healing. The
+        // authority for passive potions (runs after the lifecycle diff); re-derives from live worn state each
+        // refresh, so a DISABLE_ENCHANT drops exactly the right effects and the correct set is restored after.
+        passiveEffects = new feature.trigger.PassiveEffectDriver(triggerDispatch, content, worn, suppression,
+                tick::get, triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
 
         // §L feature toggles gate listener registration at BOOT: handlers can't be cleanly re-bound mid-run,
         // so a toggle change needs a restart.
         MasterConfig.FeaturesSection features = master.config().features();
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
-        getServer().getPluginManager().registerEvents(new EquipListener(worn, content, passives, lifecycle), this);
+        getServer().getPluginManager().registerEvents(
+                new EquipListener(worn, content, passives, lifecycle, passiveEffects), this);
+        // §B instant DISABLE: when a player is suppressed, drop their now-disabled passive buffs at once and
+        // schedule their restore at the window's end (the periodic sweep is only the safety net).
+        suppression.onSuppress((playerId, durationTicks) -> {
+            Player target = getServer().getPlayer(playerId);
+            if (target != null) {
+                Scheduling.onEntity(target, () -> passiveEffects.refresh(target));
+                Scheduling.onEntityLater(target, durationTicks + 1L, () -> passiveEffects.refresh(target));
+            }
+        });
         if (features.souls()) {
             getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
             getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
@@ -455,8 +476,19 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 var state = worn.refresh(player, content.snapshot());
                 passives.arm(player, state);     // §B REPEATING
                 lifecycle.refresh(player, state); // §B HELD/PASSIVE
+                passiveEffects.refresh(player);   // §B maintained passive potions
             });
         }
+
+        // §B passive-potion maintenance sweep: re-derive every online player's permanent passive buffs so they
+        // never lapse and self-heal after a death/milk/other clear. The time-critical paths (equip, respawn,
+        // suppression) refresh instantly; this is the safety net. The global task only DISPATCHES per-entity
+        // work (Folia-correct) — it touches no entity itself.
+        Scheduling.repeatingGlobal(PASSIVE_SWEEP_TICKS, PASSIVE_SWEEP_TICKS, () -> {
+            for (Player player : getServer().getOnlinePlayers()) {
+                Scheduling.onEntity(player, () -> passiveEffects.refresh(player));
+            }
+        });
 
         // The §L config sources reload in the SAME transaction as content (§L-4): each parses off-thread,
         // and the reloader commits all-or-nothing — any error keeps the previous state of EVERYTHING.
@@ -482,6 +514,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         var state = worn.refresh(player, published.snapshot());
                         passives.arm(player, state);
                         lifecycle.refresh(player, state);
+                        passiveEffects.refresh(player);
                     });
                 }
             }
@@ -567,6 +600,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
         if (lifecycle != null) {
             lifecycle.clearAll(); // forget started HELD/PASSIVE buffs (the driver is discarded across a reload)
+        }
+        if (passiveEffects != null) {
+            passiveEffects.clearAll(); // forget the maintained-passive owned ledger (re-derived on next sweep)
         }
         if (soulParticles != null) {
             soulParticles.stop(); // cancel the §D while-active soul aura task
@@ -710,12 +746,18 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
     /** Extract the bundled defaults on first boot; never overwrites an operator's edits. */
     private void saveDefaults() {
+        saveDefaultTree("packs"); // ADR-0023: always keep the pack LIBRARY current (newly-shipped packs appear)
+        // When a pack owns the config surface, the bundled defaults must NOT be re-laid over it: the per-file
+        // top-up below would otherwise re-add every default file the pack omits, so the default content
+        // reappears alongside the pack after a restart. The pack is the authority while it is active.
+        if (pack.PackStore.activePack(getDataFolder().toPath()).isPresent()) {
+            return;
+        }
         saveDefaultFile("config.yml");
         saveDefaultFile("lang.yml");
         saveDefaultTree("content");
         saveDefaultTree("items");
         saveDefaultTree("menus");
-        saveDefaultTree("packs"); // ADR-0023: the shipped config packs (e.g. cosmic-pack.zip)
     }
 
     private void saveDefaultFile(String name) {
