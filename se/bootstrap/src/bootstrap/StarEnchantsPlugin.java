@@ -520,6 +520,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             command.setTabCompleter(seCommand);
         }
 
+        // §D /splitsouls — a top-level alias for /se split (the soul gem's lore advertises it). Registered on
+        // the server command map like the command-trigger, so it needs no plugin.yml entry.
+        try {
+            bootstrap.compat.Commands.register(getServer(), "starenchants",
+                    new feature.soul.SplitSoulsCommand("splitsouls", soulService, messages));
+        } catch (Throwable t) {
+            getLogger().warning("could not register /splitsouls (use /se split instead): " + t);
+        }
+
         // §B COMMAND trigger: dynamic name can't live in plugin.yml, so register on the server command map
         // (guarded — an inaccessible map just leaves it unfireable). A name change needs a restart.
         var commandTrigger = master.config().commandTrigger();

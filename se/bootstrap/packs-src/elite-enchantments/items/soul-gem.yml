@@ -1,14 +1,19 @@
 # The soul gem — a DISTINCT item you right-click to toggle soul mode on/off. Souls accrue on ANY kill
 # (souls-per-kill, optionally per-mob) regardless of soul mode; soul mode is the "spend switch" that lets
 # soul-cost enchants and the REMOVE_SOULS effect consume them. Drag one gem onto another to combine (their
-# souls sum into a new gem); /se split <amount> carves souls into a new gem. Everything below is
-# configurable; reload with /se reload.
+# souls sum into a new gem); /splitsouls <amount> (alias of /se split) carves souls into a new gem.
+# This is the Elite-Enchantments LIKENESS: the live soul count rides in the NAME. Everything below the
+# name/lore is the global mechanic (identical to the default item); reload with /se reload.
 type: soul-gem
 material: EMERALD
-name: "&aSoul Gem"
+# (soul_amt) = the live count, (soul_amt_color) = its tier colour; both re-render on every change. The brace
+# spellings {AMOUNT}/{SOUL-COLOR} are equivalent. Authored lore lines auto-wrap (config lore.item-wrap).
+name: "&c&lSoul Gem [&r(soul_amt_color)&n&l(soul_amt)&r&c&l]"
 lore:
-  - "&7Souls: {SOUL-COLOR}{AMOUNT}"
-  - "&7Right-click to toggle soul mode."
+  - "&7Right-click to toggle soul mode, letting soul-cost enchants spend from this gem."
+  - ""
+  - "&7Use &f/splitsouls <amount>&7 to carve souls off into a new gem."
+  - "&7Stack one gem onto another to combine their souls."
 
 # Acquisition (deposit on any kill).
 souls-per-kill: 1
@@ -18,7 +23,7 @@ souls-per-mob:
   ENDER_DRAGON: 250
   PLAYER: 10
 
-# Soul-colour tiers for the {SOUL-COLOR} placeholder (min count -> &colour); the highest match wins.
+# Soul-colour tiers for the (soul_amt_color)/{SOUL-COLOR} placeholder (min count -> &colour); highest wins.
 soul-colors:
   1: "&f"
   64: "&a"
