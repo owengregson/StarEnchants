@@ -262,7 +262,7 @@ public final class ScrollService {
     }
 
     /** The transmog name-count placeholder, substituted into the configured suffix template. */
-    private static final String COUNT_PLACEHOLDER = "{COUNT}";
+    static final String COUNT_PLACEHOLDER = "{COUNT}"; // package-private: ScrollCountSuffixTest references it
 
     /**
      * Stamp the enchant {@code count} into {@code gear}'s name via the configured suffix template (default
@@ -284,18 +284,49 @@ public final class ScrollService {
     /**
      * Strip a previously-applied count suffix from {@code name} (so a re-transmog replaces it). Builds a regex
      * from the translated suffix template with the count region as {@code \d+}, anchored to the end; if the
-     * template carries no placeholder there is nothing to strip.
+     * template carries no placeholder there is nothing to strip. The colour-code runs match TOLERANTLY
+     * ({@link #tolerantColourCodes}) so a suffix strips itself even after Bukkit's ItemMeta normalises its
+     * codes on a round-trip — otherwise the old suffix survives and a re-apply STACKS it ([2] [2], §I).
+     * Package-private for {@code ScrollCountSuffixTest}.
      */
-    private static String stripCountSuffix(String name, String suffixTemplate) {
+    static String stripCountSuffix(String name, String suffixTemplate) {
         String sentinel = "\u0000"; // never appears in a name -> marks the count slot
         String translated = ItemFactory.color(suffixTemplate.replace(COUNT_PLACEHOLDER, sentinel));
         int idx = translated.indexOf(sentinel);
         if (idx < 0) {
             return name;
         }
-        String regex = java.util.regex.Pattern.quote(translated.substring(0, idx))
-                + "\\d+" + java.util.regex.Pattern.quote(translated.substring(idx + sentinel.length())) + "$";
+        // Match the colour-code runs TOLERANTLY: Bukkit normalises codes on a meta round-trip (§r§d -> §d),
+        // so an exact-codes regex would miss the stored name and a re-apply would STACK the suffix ([2] [2]).
+        String regex = tolerantColourCodes(translated.substring(0, idx))
+                + "\\d+" + tolerantColourCodes(translated.substring(idx + sentinel.length())) + "$";
         return name.replaceAll(regex, "");
+    }
+
+    /**
+     * A regex source matching {@code text} regardless of how Bukkit normalises its colour codes on a meta
+     * round-trip: every maximal run of §-codes becomes a tolerant {@code (?:§.)*}; the literal runs (brackets,
+     * spaces) stay {@link java.util.regex.Pattern#quote quoted} as the structural anchors.
+     */
+    private static String tolerantColourCodes(String text) {
+        StringBuilder out = new StringBuilder();
+        int i = 0;
+        int n = text.length();
+        while (i < n) {
+            if (text.charAt(i) == '§' && i + 1 < n) {
+                while (i + 1 < n && text.charAt(i) == '§') {
+                    i += 2; // consume a maximal run of §-code pairs
+                }
+                out.append("(?:§.)*");
+            } else {
+                int start = i;
+                while (i < n && !(text.charAt(i) == '§' && i + 1 < n)) {
+                    i++;
+                }
+                out.append(java.util.regex.Pattern.quote(text.substring(start, i)));
+            }
+        }
+        return out.toString();
     }
 
     /**
