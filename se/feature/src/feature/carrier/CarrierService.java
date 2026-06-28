@@ -111,8 +111,17 @@ public final class CarrierService {
         return stack;
     }
 
-    private static String subDust(String s, String bonus, String min, String max) {
-        return s.replace("{BONUS}", bonus).replace("{MIN}", min).replace("{MAX}", max);
+    /**
+     * Substitute the dust placeholders. {@code {BONUS}}/{@code (percent)} = the conferred success bonus (a fixed
+     * number, or the {@code min–max} range label for a random dust); {@code {MIN}}/{@code {MAX}} = the range
+     * bounds; {@code {MAXSUCCESS}}/{@code (maxsuccessrate)} = the live global {@code books.max-success} ceiling
+     * the boost is clamped to. Paren spellings let the Elite-Enchantments likeness read naturally.
+     */
+    private String subDust(String s, String bonus, String min, String max) {
+        String cap = Integer.toString(clampPercent(maxBookSuccess.getAsInt()));
+        return s.replace("{BONUS}", bonus).replace("(percent)", bonus)
+                .replace("{MIN}", min).replace("{MAX}", max)
+                .replace("{MAXSUCCESS}", cap).replace("(maxsuccessrate)", cap);
     }
 
     /** Mint a WHITE SCROLL with a RANDOM apply-success rolled in the config {@code [min, max]} range (§I). */

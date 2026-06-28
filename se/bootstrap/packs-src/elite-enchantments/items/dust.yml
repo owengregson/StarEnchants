@@ -1,16 +1,17 @@
-# Success Dust (docs/v3-directives.md §I; ADR-0019) — drag onto an enchant book to RAISE its success
-# chance by success-bonus (clamped so a book can never exceed 100%). Its own top-level item (no category,
-# no tier). Pure economy metadata — it never compiles to an ability and never touches the combat hot path.
-# One physical item per file; reload with /se reload.
+# Magic Dust — the Elite-Enchantments LIKENESS of the success dust (docs/v3-directives.md §I; ADR-0019).
+# Drag onto an enchant book to RAISE its success chance by success-bonus, clamped to the global
+# books.max-success ceiling (config.yml). Pure economy metadata — never an ability, never the hot path.
+# Only the name/lore differ from the default item; the mechanic knobs below are global. reload with /se reload.
 type: dust
 
-material: GLOWSTONE_DUST
-name: "&aSuccess Dust"
+material: SUGAR
+# (percent) = the conferred bonus ({BONUS} is equivalent); for a random dust it renders as the "10–25" range,
+# or the exact value on a fixed dust (/se dust <percent>). (maxsuccessrate) = the global success ceiling
+# ({MAXSUCCESS} is equivalent). The single lore line auto-wraps at config lore.item-wrap.
+name: "&f&lMagic Dust [&r&a&n+(percent)%&r&f&l]"
 lore:
-  - "&7Combine onto an enchant book to"
-  - "&7boost its success by &a+{BONUS}%&7."
+  - "&7Increases the success rate of any enchantment book by &a(percent)%&7, up to a maximum of &a(maxsuccessrate)%&7."
 # A normal dust rolls a RANDOM bonus in [min-bonus, max-bonus] (each 0–100) when combined onto a book.
-# {BONUS} renders as the range "10–25" here, or the exact value on a fixed dust (/se dust <percent>).
 min-bonus: 10
 max-bonus: 25
 # Feedback played on a successful combine: a sound (namespaced, range-stable) + particle tokens
