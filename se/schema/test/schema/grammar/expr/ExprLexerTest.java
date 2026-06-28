@@ -48,6 +48,14 @@ class ExprLexerTest {
     }
 
     @Test
+    void tokenizesArithmeticAndClauseOperators() {
+        // the +-*/ and ':' tokens the parser's arithmetic and clause-tail paths consume
+        assertEquals(List.of(ExprTok.Kind.PLUS, ExprTok.Kind.MINUS, ExprTok.Kind.STAR,
+                        ExprTok.Kind.SLASH, ExprTok.Kind.COLON, ExprTok.Kind.EOF),
+                kinds(lexOk("+ - * / :")));
+    }
+
+    @Test
     void tokenizesNumbersIncludingDecimals() {
         List<ExprTok> t = lexOk("3 1.5");
         assertEquals(ExprTok.Kind.NUMBER, t.get(0).kind());
