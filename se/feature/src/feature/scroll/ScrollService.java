@@ -322,7 +322,7 @@ public final class ScrollService {
         Map<String, Integer> remaining = new LinkedHashMap<>(current.enchants());
         remaining.remove(key);
         CombatState next = new CombatState(remaining, current.crystals(), current.setKey(),
-                current.omni(), current.heroic(), current.added());
+                current.setWeaponKey(), current.omni(), current.heroic(), current.added());
         combat.write(gear, next);
         lore.apply(gear, next);
         ItemStack book = carriers.mintBook(key, level, convert); // extracted enchant → a book at the conversion rate

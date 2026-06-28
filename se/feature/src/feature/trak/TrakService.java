@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
+import platform.sched.Scheduling;
 
 /**
  * The trak-gem economy (§I) — three gems (BlockTrak / MobTrak / SoulTrak) that, applied to gear, reveal a
@@ -24,8 +25,11 @@ import platform.item.ItemGroups;
  * a count that starts at zero on application. Applying a gem takes the item's exclusive applied-utility slot
  * ({@link AppliedSlot}); the count line then re-renders on every tracked event.
  *
- * <p>All methods that read/write a held item MUST run on the holder's own region thread — the callers
- * ({@link TrakListener}) are inventory/block/death events, which already fire there (Folia-correct).
+ * <p><strong>Threading.</strong> {@link #trackBlockBreak} and {@link #applyTo} run on the acting player's own
+ * region thread (BlockBreakEvent / InventoryClickEvent fire there). {@link #trackKill} is the exception: a
+ * death event fires on the VICTIM's region, but the inventory it mutates belongs to the KILLER (a different
+ * entity, a different region for ranged/AoE kills), so it hops to the killer's own scheduler before touching
+ * it — the same Folia-correct pattern as {@code SoulService.onKill}.
  */
 public final class TrakService {
 
@@ -105,9 +109,14 @@ public final class TrakService {
         track(player, Kind.BLOCK);
     }
 
-    /** Background kill tracking: a player victim counts toward SoulTrak, any other toward MobTrak. */
+    /**
+     * Background kill tracking: a player victim counts toward SoulTrak, any other toward MobTrak. The death
+     * event fires on the victim's region, so this hops to the KILLER's own thread before touching their
+     * inventory (Folia cross-region safety; cf. {@code SoulService.onKill}).
+     */
     public void trackKill(Player killer, boolean victimIsPlayer) {
-        track(killer, victimIsPlayer ? Kind.SOUL : Kind.MOB);
+        Kind kind = victimIsPlayer ? Kind.SOUL : Kind.MOB;
+        Scheduling.onEntity(killer, () -> track(killer, kind));
     }
 
     private void track(Player player, Kind kind) {
@@ -125,6 +134,12 @@ public final class TrakService {
         Hands.setMainHand(player, tool);
     }
 
+    /**
+     * An invisible double-reset tag prefixed to the count line so a re-render can locate and replace the prior
+     * one regardless of the (reload-mutable) count-format text — a stable marker, not the human-readable prefix.
+     */
+    private static final String COUNT_MARKER = "§r§r";
+
     /** Stamp/refresh the count line on {@code item} for {@code kind}, replacing any prior one (render from state). */
     @SuppressWarnings("deprecation") // getLore/setLore(List): the floor-stable item-meta path
     private void renderCount(ItemStack item, Kind kind) {
@@ -133,21 +148,12 @@ public final class TrakService {
             return;
         }
         TraksConfig.Trak cfg = trakFor(kind);
-        String prefix = ItemFactory.color(prefixOf(cfg.countFormat()));
-        String line = ItemFactory.color(cfg.countFormat().replace("{COUNT}", formatCount(codec.count(item, kind))));
+        String line = COUNT_MARKER + ItemFactory.color(cfg.countFormat().replace("{COUNT}", formatCount(codec.count(item, kind))));
         List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-        if (!prefix.isEmpty()) {
-            lore.removeIf(existing -> existing.startsWith(prefix)); // drop the stale count line
-        }
+        lore.removeIf(existing -> existing.startsWith(COUNT_MARKER)); // drop the stale count line (tag survives a format change)
         lore.add(line);
         meta.setLore(lore);
         item.setItemMeta(meta);
-    }
-
-    /** The literal text of {@code format} before {@code {COUNT}} (used to locate a prior count line). */
-    private static String prefixOf(String format) {
-        int idx = format.indexOf("{COUNT}");
-        return idx < 0 ? format : format.substring(0, idx);
     }
 
     private static String formatCount(int count) {

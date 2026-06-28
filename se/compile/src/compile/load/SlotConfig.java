@@ -25,8 +25,10 @@ public record SlotConfig(
         orbLore = List.copyOf(orbLore);
         orbAmount = Math.max(1, orbAmount);
         hardCap = Math.max(1, hardCap);
-        minSuccess = Math.max(0, Math.min(100, minSuccess));
-        maxSuccess = Math.max(minSuccess, Math.min(100, maxSuccess));
+        int lo = Math.max(0, Math.min(100, minSuccess));
+        int hi = Math.max(0, Math.min(100, maxSuccess));
+        minSuccess = Math.min(lo, hi); // order the pair so [min, max] is always valid (matches the other configs)
+        maxSuccess = Math.max(lo, hi);
     }
 
     public static SlotConfig defaults() {
