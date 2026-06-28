@@ -8,13 +8,12 @@ import compile.Compiler;
 import compile.def.AbilityDef;
 import compile.model.Ability;
 import compile.model.Snapshot;
-import compile.model.SourceKind;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.BuiltinEffects;
 import engine.selector.kind.BuiltinSelectors;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
-import schema.grammar.EffectLine;
+import testfx.Defs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -29,10 +28,8 @@ class SelectorBridgeTest {
     }
 
     private static AbilityDef ability(String stableKey, String effectLine) {
-        return new AbilityDef(SourceKind.ENCHANT, stableKey, 1, 1, 100.0, 0, 0,
-                List.of("ATTACK"), List.of(), null,
-                List.of(EffectLine.parse(effectLine, Source.of("enchants.yml", 1, 1))),
-                null, null, null, null, 0, Source.ofFile("enchants.yml"), 0);
+        return Defs.ability().stableKey(stableKey).effectLines(effectLine)
+                .source(Source.of("enchants.yml", 1, 1)).build();
     }
 
     @Test

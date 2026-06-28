@@ -8,14 +8,13 @@ import compile.Compiler;
 import compile.def.AbilityDef;
 import compile.model.Ability;
 import compile.model.Snapshot;
-import compile.model.SourceKind;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.BuiltinEffects;
 import engine.selector.SelectorRegistry;
 import engine.selector.kind.BuiltinSelectors;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
-import schema.grammar.EffectLine;
+import testfx.Defs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -34,10 +33,8 @@ class ConditionRoundTripTest {
         Compiler compiler = Compiler.of(effects.specRegistry(), effects.affinityOf(),
                 selectors.specRegistry(), effects.defaultSelectorOf(), vocab.asResolver());
 
-        AbilityDef def = new AbilityDef(SourceKind.ENCHANT, "ench/cond", 1, 1, 100.0, 0, 0,
-                List.of("ATTACK"), List.of(), condition,
-                List.of(EffectLine.parse("DAMAGE:6", Source.of("enchants.yml", 1, 1))),
-                null, null, null, null, 0, Source.ofFile("enchants.yml"), 0);
+        AbilityDef def = Defs.ability().stableKey("ench/cond").condition(condition)
+                .effectLines("DAMAGE:6").source(Source.of("enchants.yml", 1, 1)).build();
 
         Diagnostics d = new Diagnostics();
         Snapshot snap = compiler.compile(List.of(def), 1, d);
