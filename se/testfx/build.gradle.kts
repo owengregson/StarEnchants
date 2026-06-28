@@ -6,7 +6,7 @@ plugins {
 // unit-test fixtures (FakeEffectCtx/SpecDrivenCtx, Defs, YamlFixture, RenderGolden, TtlStoreAdapter,
 // CorpusLoader). The flat single-segment layout otherwise forbids cross-module test-source sharing, so
 // without this module every fixture is re-duplicated per module — exactly the copy-paste the test-suite
-// overhaul removes (docs/testing-overhaul/testing-architecture.md, open decision #2).
+// overhaul removes (docs/dev/internals/testing-architecture.md, open decision #2).
 //
 // A consuming module opts in with `testImplementation(project(":testfx"))`. Pure modules (schema, compile)
 // only do so when a test actually needs a fixture; the wider transitive test classpath is harmless because
