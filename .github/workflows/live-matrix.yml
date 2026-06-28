@@ -53,7 +53,7 @@ jobs:
             21
 
       - name: Cache Gradle
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.gradle/caches
@@ -73,7 +73,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Upload tester jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tester-jar
           path: se/tester/build/libs/tester-${{ steps.ver.outputs.version }}.jar
@@ -138,7 +138,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Download tester jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: tester-jar
           path: /tmp/tester
@@ -162,7 +162,7 @@ jobs:
         run: echo "slug=$(echo '${{ matrix.target }}' | tr ':' '-')" >> "$GITHUB_OUTPUT"
 
       - name: Cache reference server (${{ matrix.target }})
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: reference/servers
           key: ref-server-${{ steps.ref.outputs.slug }}-v1

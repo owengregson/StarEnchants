@@ -41,7 +41,7 @@ sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/
 // zip via packs/index.txt; /se pack apply swaps it over the live config. Add a pack by registering a
 // Zip task here and listing its archive in resources/packs/index.txt. Reproducible (sorted entries,
 // zeroed timestamps) so a given source tree yields a byte-identical archive.
-val packCosmicPack by tasks.registering(Zip::class) {
+val packCosmicPack = tasks.register<Zip>("packCosmicPack") {
     from(layout.projectDirectory.dir("packs-src/cosmic-pack"))
     archiveFileName.set("cosmic-pack.zip")
     destinationDirectory.set(layout.buildDirectory.dir("generated-packs"))
