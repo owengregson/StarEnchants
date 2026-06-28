@@ -77,7 +77,7 @@ public final class ScrollService {
     /** Mint a black scroll (extract one enchant from gear into a book). */
     public ItemStack mintBlack() {
         ScrollsConfig.Black cfg = config.get().black();
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Mats.or("INK_SAC", Material.PAPER), cfg.name(), cfg.lore());
         scrolls.mark(stack, BLACK);
         return stack;
@@ -86,7 +86,7 @@ public final class ScrollService {
     /** Mint a randomizer scroll (reroll an enchant book's success chance). */
     public ItemStack mintRandomizer() {
         ScrollsConfig.Randomizer cfg = config.get().randomizer();
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Material.SUGAR, cfg.name(), cfg.lore());
         scrolls.mark(stack, RANDOMIZER);
         return stack;
@@ -95,7 +95,7 @@ public final class ScrollService {
     /** Mint a transmog scroll (reorder an item's enchant lore + append a name suffix). */
     public ItemStack mintTransmog() {
         ScrollsConfig.Transmog cfg = config.get().transmog();
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Mats.or("PURPLE_DYE", Material.PAPER), cfg.name(), cfg.lore());
         scrolls.mark(stack, TRANSMOG);
         return stack;
@@ -110,7 +110,7 @@ public final class ScrollService {
     public ItemStack mintGodlyTransmog() {
         Objects.requireNonNull(godlyCodec, "godlyCodec — this ScrollService was built without the godly codec");
         ScrollsConfig.Godly cfg = config.get().godly();
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Material.NETHER_STAR, cfg.name(), cfg.lore());
         godlyCodec.mark(stack);
         return stack;

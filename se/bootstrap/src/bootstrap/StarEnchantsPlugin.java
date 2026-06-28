@@ -354,6 +354,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // itemsadder:… / oraxen:… custom-item materials in item/menu configs.
         item.mint.ItemFactory.customItemResolver(
                 Integrations.customItem(this, master.config().integrations()::enabled));
+        // §L universal economy-item lore wrap width (lore.item-wrap), read live so a /se reload re-tunes it.
+        item.mint.ItemFactory.itemWrapWidth(() -> master.config().lore().itemWrap());
         CombatDispatch dispatch = new CombatDispatch(executor, wiring.sinkFactory(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,

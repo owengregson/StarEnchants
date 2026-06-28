@@ -99,7 +99,7 @@ public final class CarrierService {
         for (String line : cfg.lore()) {
             lore.add(subDust(line, label, min, max));
         }
-        ItemStack stack = ItemFactory.build(ItemFactory.material(cfg.material(), Material.GLOWSTONE_DUST),
+        ItemStack stack = ItemFactory.buildItem(ItemFactory.material(cfg.material(), Material.GLOWSTONE_DUST),
                 subDust(cfg.name(), label, min, max), lore);
         // successBonus carries the FIXED bonus; 0 = random, rolled from config on apply.
         codec.write(stack, new CarrierData(DUST_KEY, "", 0, fixedBonus));
@@ -113,7 +113,7 @@ public final class CarrierService {
     /** Mint a WHITE SCROLL from its {@code items/*.yml} likeness (§I). */
     public ItemStack mintWhiteScroll() {
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
-        ItemStack stack = ItemFactory.build(material(cfg.material()), cfg.name(), cfg.lore());
+        ItemStack stack = ItemFactory.buildItem(material(cfg.material()), cfg.name(), cfg.lore());
         codec.write(stack, new CarrierData(WHITE_SCROLL_KEY, "", 0));
         return stack;
     }

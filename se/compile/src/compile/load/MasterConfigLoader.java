@@ -120,7 +120,8 @@ public final class MasterConfigLoader {
                 n.has("level-color") ? blankIfNull(n.string("level-color")) : d.levelColor(),
                 orDefault(n.string("crystal-color"), d.crystalColor()),
                 parseBool(n.string("roman"), d.roman()),
-                orDefault(n.string("unknown-label"), d.unknownLabel()));
+                orDefault(n.string("unknown-label"), d.unknownLabel()),
+                parseInt(n.string("item-wrap"), d.itemWrap(), n, diags));
     }
 
     private static MasterConfig.IntegrationsSection readIntegrations(YamlNode n, Diagnostics diags) {

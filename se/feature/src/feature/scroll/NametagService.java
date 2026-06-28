@@ -49,7 +49,7 @@ public final class NametagService {
 
     public ItemStack mint() {
         ScrollsConfig.Nametag cfg = config.get().nametag();
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Material.NAME_TAG, cfg.name(), cfg.lore());
         scrolls.mark(stack, NAMETAG);
         return stack;

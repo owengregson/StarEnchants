@@ -59,6 +59,25 @@ class TextWrapTest {
     }
 
     @Test
+    void wrapAllFlattensEachAuthoredLineAndKeepsBlankSeparators() {
+        // The universal economy-item wrap: a long authored line splits; an authored "" stays one blank line
+        // (plain wrap("") would drop it); a short line passes through unchanged.
+        List<String> out = TextWrap.wrapAll(List.of("&aone two three", "", "&7Drag n' Drop"), 5);
+        assertEquals(List.of("&aone", "&atwo", "&athree", "", "&7Drag", "&7n'", "&7Drop"), out);
+    }
+
+    @Test
+    void wrapAllHonoursEmbeddedNewlinesWithinAnAuthoredLine() {
+        // An authored line may itself carry \n hard breaks (e.g. a directive lore using "\n" for a blank gap).
+        assertEquals(List.of("a", "", "b"), TextWrap.wrapAll(List.of("a\n\nb"), 30));
+    }
+
+    @Test
+    void wrapAllOnNullIsEmpty() {
+        assertEquals(List.of(), TextWrap.wrapAll(null, 30));
+    }
+
+    @Test
     void visibleLengthIgnoresColourCodes() {
         assertEquals(3, TextWrap.visibleLength("&aabc"));
         assertEquals(3, TextWrap.visibleLength("§aabc"));

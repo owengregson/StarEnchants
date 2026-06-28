@@ -34,6 +34,27 @@ public final class TextWrap {
         return out;
     }
 
+    /**
+     * Word-wrap each authored line of {@code lines} to {@code charsPerLine} and flatten — the universal
+     * economy-item lore wrap (§L {@code lore.item-wrap}). A line that is exactly empty stays one BLANK line
+     * (an authored separator), where {@link #wrap} alone would drop it; every other line is wrapped (so a
+     * single long authored line becomes several visible lines, each keeping the active colour).
+     */
+    public static List<String> wrapAll(List<String> lines, int charsPerLine) {
+        if (lines == null) {
+            return List.of();
+        }
+        List<String> out = new ArrayList<>();
+        for (String line : lines) {
+            if (line == null || line.isEmpty()) {
+                out.add("");        // preserve an authored blank separator line
+            } else {
+                out.addAll(wrap(line, charsPerLine));
+            }
+        }
+        return out;
+    }
+
     private static void wrapSegment(String segment, int width, List<String> out) {
         if (width <= 0 || visibleLength(segment) <= width) {
             out.add(segment);

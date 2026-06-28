@@ -117,18 +117,26 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
      * @param crystalColor crystal-line colour prefix (legacy {@code &} code)
      * @param roman        levels render as Roman numerals (else Arabic)
      * @param unknownLabel name rendered for a stored key no longer in the catalog (§5.3)
+     * @param itemWrap     auto-wrap width (visible chars, colour codes excluded) for AUTHORED economy/identity
+     *                     item lore — scrolls, the orb, dust, gems, the trak gems, … — applied once on the
+     *                     {@code item.mint.ItemFactory} mint path so authors write one long line and it
+     *                     word-wraps. {@code 0} disables. NOT part of the {@code LoreStyle} bridge (it governs
+     *                     economy-item lore, not the on-gear enchant lore); the enchant book keeps its own
+     *                     per-file {@code wrap} (items/enchant-book.yml) so its templated {@code DESCRIPTION}
+     *                     never double-wraps.
      */
     public record LoreSection(String enchantColor, String levelColor, String crystalColor,
-                              boolean roman, String unknownLabel) {
+                              boolean roman, String unknownLabel, int itemWrap) {
         public LoreSection {
             Objects.requireNonNull(enchantColor, "enchantColor");
             Objects.requireNonNull(levelColor, "levelColor");
             Objects.requireNonNull(crystalColor, "crystalColor");
             Objects.requireNonNull(unknownLabel, "unknownLabel");
+            itemWrap = Math.max(0, itemWrap);
         }
 
         public static LoreSection defaults() {
-            return new LoreSection("&7", "&f", "&b", true, "&8Unknown Enchant");
+            return new LoreSection("&7", "&f", "&b", true, "&8Unknown Enchant", 30);
         }
     }
 

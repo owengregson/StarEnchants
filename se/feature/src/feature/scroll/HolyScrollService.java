@@ -47,7 +47,7 @@ public final class HolyScrollService {
         // TOTEM_OF_UNDYING is absent on 1.8; resolve by name (== the enum literal on modern, null on 1.8)
         // and fall back to a floor-stable material so the build() fallback is never null on legacy.
         Material totem = Material.getMaterial("TOTEM_OF_UNDYING");
-        ItemStack stack = ItemFactory.build(
+        ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), totem != null ? totem : Material.PAPER, cfg.name(), cfg.lore());
         scrolls.mark(stack, HOLY);
         return stack;

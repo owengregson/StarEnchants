@@ -96,9 +96,44 @@ public final class ItemFactory {
         return raw == null ? null : ChatColor.translateAlternateColorCodes('&', raw);
     }
 
-    /** Blank name / empty lore is left unset. */
+    /**
+     * §L universal economy-item lore wrap (ADR-0019 lineage): the visible width authored economy/identity
+     * item lore auto-wraps to on the {@link #buildItem} mint path. Injected once at the composition root from
+     * {@code config.lore().itemWrap()} (re-read live so a {@code /se reload} re-tunes it), mirroring
+     * {@link #customItemResolver}. Static default {@code 0} (= no wrap) keeps this module inert and every
+     * unit test server-free. {@link #build} is NOT wrapped — menu icons carry curated lore and must not be
+     * re-split.
+     */
+    private static volatile java.util.function.IntSupplier itemWrapWidth = () -> 0;
+
+    public static void itemWrapWidth(java.util.function.IntSupplier supplier) {
+        itemWrapWidth = supplier == null ? () -> 0 : supplier;
+    }
+
+    /** Blank name / empty lore is left unset. Lore is taken verbatim (no wrap) — for menu icons / fixed text. */
     public static ItemStack build(Material material, String name, List<String> lore) {
         return decorate(new ItemStack(material), name, lore);
+    }
+
+    /**
+     * Like {@link #build(Material, String, List)} but AUTO-WRAPS each authored lore line to the injected
+     * {@link #itemWrapWidth} (§L {@code lore.item-wrap}) — the mint path for economy/identity items whose
+     * lore an author writes as single long lines. Authored blank lines are preserved as separators.
+     */
+    public static ItemStack buildItem(Material material, String name, List<String> lore) {
+        return decorate(new ItemStack(material), name, wrapItemLore(lore));
+    }
+
+    /** Token form of {@link #buildItem(Material, String, List)} (custom-item base, else vanilla fallback). */
+    public static ItemStack buildItem(String token, Material fallback, String name, List<String> lore) {
+        ItemStack custom = customItemResolver.apply(token);
+        ItemStack base = custom != null ? custom.clone() : new ItemStack(material(token, fallback));
+        return decorate(base, name, wrapItemLore(lore));
+    }
+
+    /** Word-wrap authored economy-item lore at the injected width; {@code null} stays {@code null}. */
+    private static List<String> wrapItemLore(List<String> lore) {
+        return lore == null ? null : item.render.TextWrap.wrapAll(lore, itemWrapWidth.getAsInt());
     }
 
     /**
