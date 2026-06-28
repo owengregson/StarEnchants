@@ -32,6 +32,7 @@ BASE_PORT="${SE_BASE_PORT:-25730}"
 KEEP_RUNDIR="${SE_KEEP_RUNDIR:-0}"
 NO_BUILD="${SE_NO_BUILD:-0}"
 FLIP="$(grep -E '^se.toolchain.flip=' gradle.properties 2>/dev/null | cut -d= -f2)"; FLIP="${FLIP:-1.20.5}"
+FLIP25="$(grep -E '^se.toolchain.flip25=' gradle.properties 2>/dev/null | cut -d= -f2)"; FLIP25="${FLIP25:-26.1}"
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
   C_RESET=$'\033[0m'; C_DIM=$'\033[2m'; C_GREEN=$'\033[32m'; C_YELLOW=$'\033[33m'; C_RED=$'\033[31m'; C_BOLD=$'\033[1m'
@@ -55,8 +56,8 @@ MEGA="$ROOT/se/bootstrap/build/libs/StarEnchants-${VERSION}-mega.jar"
 log "mega-jar: ${MEGA#$ROOT/}  ($(ls -lh "$MEGA" | awk '{print $5}'))"
 
 # ── JDK pickers ───────────────────────────────────────────────────────────
-ver_lt_flip() { printf '%s\n%s\n' "$1" "$FLIP" | sort -t. -k1,1n -k2,2n -k3,3n | head -1 | grep -qx "$1" && [ "$1" != "$FLIP" ]; }
-jdk_modern()  { local v="$1" want=21; ver_lt_flip "$v" && want=17
+ver_lt() { [ "$1" = "$2" ] && return 1; printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | head -1 | grep -qx "$1"; }
+jdk_modern()  { local v="$1" want=21; ver_lt "$v" "$FLIP" && want=17; ver_lt "$v" "$FLIP25" || want=25
   local h=""
   [ -x /usr/libexec/java_home ] && h="$(/usr/libexec/java_home -v "$want" 2>/dev/null)"        # macOS, exact
   if [ -z "$h" ]; then local envvar="JAVA${want}_HOME"; h="${!envvar:-}"; fi                    # CI: JAVA17_HOME / JAVA21_HOME

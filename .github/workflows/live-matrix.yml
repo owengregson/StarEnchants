@@ -115,20 +115,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up JDKs 17 + 21
+      # Server runtimes span three steps: <1.20.5 boots on 17, 1.20.5..1.21.x on 21, and 26.1+ REFUSES to
+      # boot on anything below 25 ("requires Java 25 or above"). run-matrix.sh selects by version, so all three
+      # must be present here (gradle.properties se.toolchain.flip / flip25 own the boundaries).
+      - name: Set up JDKs 17 + 21 + 25
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: |
             17
             21
+            25
 
       # run-matrix.sh picks the server runtime JDK from JAVA<major>_HOME when /usr/libexec/java_home is absent
       # (it is, on Linux). setup-java exposes each install as JAVA_HOME_<major>_X64 — bridge the two names.
-      - name: Expose JAVA17_HOME / JAVA21_HOME
+      - name: Expose JAVA17_HOME / JAVA21_HOME / JAVA25_HOME
         run: |
           echo "JAVA17_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
           echo "JAVA21_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+          echo "JAVA25_HOME=$JAVA_HOME_25_X64" >> "$GITHUB_ENV"
 
       - name: Download tester jar
         uses: actions/download-artifact@v4
