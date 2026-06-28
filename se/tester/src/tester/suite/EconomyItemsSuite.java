@@ -107,8 +107,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         SlotService slots = new SlotService(slotCodec, combat, lore, SlotConfig::defaults,
                 ItemEnchanter.DEFAULT_BASE_SLOTS);
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
-        // A black scroll that always succeeds, so the extraction outcome is exact.
-        ScrollsConfig alwaysExtract = withBlackSuccess(ScrollsConfig.defaults(), 100);
+        // Extraction always succeeds now; pin the conversion rate so the drawn book's outcome is exact.
+        ScrollsConfig alwaysExtract = withBlackConvert(ScrollsConfig.defaults(), 100, 100);
         ScrollService scrolls = new ScrollService(scrollCodec, combat, lore, carriers, holder,
                 () -> alwaysExtract, new Random(2));
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(keys.unopened());
@@ -248,11 +248,11 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         });
     }
 
-    /** A {@link ScrollsConfig} with the black scroll's success chance overridden (rest unchanged). */
-    private static ScrollsConfig withBlackSuccess(ScrollsConfig base, int chance) {
+    /** A {@link ScrollsConfig} with the black scroll's conversion-rate range pinned (rest unchanged). */
+    private static ScrollsConfig withBlackConvert(ScrollsConfig base, int min, int max) {
         ScrollsConfig.Black b = base.black();
         return new ScrollsConfig(
-                new ScrollsConfig.Black(b.material(), b.name(), b.lore(), chance),
+                new ScrollsConfig.Black(b.material(), b.name(), b.lore(), min, max),
                 base.randomizer(), base.transmog(), base.holy(), base.nametag(), base.godly());
     }
 

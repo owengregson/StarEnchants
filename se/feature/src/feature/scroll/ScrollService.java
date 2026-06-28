@@ -74,13 +74,49 @@ public final class ScrollService {
         return BLACK.equals(kind) || RANDOMIZER.equals(kind) || TRANSMOG.equals(kind);
     }
 
-    /** Mint a black scroll (extract one enchant from gear into a book). */
+    /**
+     * Mint a black scroll. Extraction always succeeds (§I); the scroll's drawn-book CONVERSION success rate is
+     * rolled in the config {@code [min-convert, max-convert]} range (clamped to the global ceiling) and stamped
+     * on the scroll so its lore shows it.
+     */
     public ItemStack mintBlack() {
         ScrollsConfig.Black cfg = config.get().black();
+        int span = cfg.maxConvert() - cfg.minConvert();
+        return buildBlack(span <= 0 ? cfg.minConvert() : cfg.minConvert() + random.nextInt(span + 1));
+    }
+
+    /** Mint a black scroll whose drawn book applies at an EXPLICIT conversion success rate (§J give form). */
+    public ItemStack mintBlack(int fixedConvert) {
+        return buildBlack(fixedConvert);
+    }
+
+    private ItemStack buildBlack(int convert) {
+        ScrollsConfig.Black cfg = config.get().black();
+        int conv = carriers.capBookSuccess(convert); // the drawn book's rate respects the global ceiling (§I)
         ItemStack stack = ItemFactory.buildItem(
-                cfg.material(), Mats.or("INK_SAC", Material.PAPER), cfg.name(), cfg.lore());
+                cfg.material(), Mats.or("INK_SAC", Material.PAPER),
+                subConvert(cfg.name(), conv), subConvertLore(cfg.lore(), conv));
         scrolls.mark(stack, BLACK);
+        scrolls.markConvert(stack, conv);
         return stack;
+    }
+
+    /**
+     * Substitute the black-scroll conversion placeholders. {@code (NewConvpercent)} / {@code {SUCCESS}} /
+     * {@code {CONVERT}} = the new book's success rate; {@code {FAILURE}} = its complement.
+     */
+    private static String subConvert(String s, int convert) {
+        String pct = Integer.toString(convert);
+        return s.replace("(NewConvpercent)", pct).replace("{SUCCESS}", pct).replace("{CONVERT}", pct)
+                .replace("{FAILURE}", Integer.toString(100 - convert));
+    }
+
+    private static List<String> subConvertLore(List<String> lore, int convert) {
+        List<String> out = new ArrayList<>(lore.size());
+        for (String line : lore) {
+            out.add(subConvert(line, convert));
+        }
+        return out;
     }
 
     /** Mint a randomizer scroll (reroll an enchant book's success chance). */
@@ -216,9 +252,12 @@ public final class ScrollService {
         gear.setItemMeta(meta);
     }
 
-    /** Black scroll: extract one random enchant from {@code gear} into a book (success roll). */
+    /**
+     * Black scroll: extract one random enchant from {@code gear} into a book. The extraction ALWAYS succeeds
+     * (§I); the drawn book carries the scroll's stamped conversion success rate (a legacy scroll with no stamp
+     * falls back to the global ceiling). Both the scroll's stamp and the apply re-cap to the live ceiling.
+     */
     private ScrollResult applyBlack(ItemStack cursor, ItemStack gear) {
-        ScrollsConfig.Black cfg = config.get().black();
         if (gear == null || gear.getType() == Material.AIR) {
             return ScrollResult.unchanged(messages.format("scroll.black.apply-target"));
         }
@@ -232,17 +271,15 @@ public final class ScrollService {
         List<String> keys = new ArrayList<>(current.enchants().keySet());
         String key = keys.get(random.nextInt(keys.size()));
         int level = current.enchants().get(key);
-        consume(cursor); // the scroll is spent whether the roll succeeds or fails
-        if (random.nextInt(100) >= cfg.successChance()) {
-            return ScrollResult.committed(gear, null, messages.format("scroll.black.fail")); // gear untouched, scroll spent
-        }
+        int convert = carriers.capBookSuccess(scrolls.convertOf(cursor, carriers.capBookSuccess(100)));
+        consume(cursor);
         Map<String, Integer> remaining = new LinkedHashMap<>(current.enchants());
         remaining.remove(key);
         CombatState next = new CombatState(remaining, current.crystals(), current.setKey(),
                 current.omni(), current.heroic(), current.added());
         combat.write(gear, next);
         lore.apply(gear, next);
-        ItemStack book = carriers.mintBook(key, level); // the extracted enchant, as an enchant book
+        ItemStack book = carriers.mintBook(key, level, convert); // extracted enchant → a book at the conversion rate
         return ScrollResult.committed(gear, book, messages.format("scroll.black.success", "ENCHANT", displayOf(key)));
     }
 

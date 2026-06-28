@@ -1,6 +1,8 @@
-# Black Scroll (docs/v3-directives.md §I) — drag onto enchanted gear to EXTRACT one (random) enchant into
-# an enchant book, rolling success-chance. On failure the scroll is spent and nothing is extracted. One
-# physical item per file; reload with /se reload. Result messages live in lang.yml (scroll.black.*).
+# Black Scroll (docs/v3-directives.md §I) — drag onto enchanted gear to EXTRACT one (random) enchant into an
+# enchant book. The extraction ALWAYS succeeds; what varies is the drawn book's CONVERSION success rate, a
+# value rolled in [min-convert, max-convert] when the scroll is minted (clamped to the global
+# books.max-success ceiling) and stamped on the scroll. /se give blackscroll <player> <percent> mints one at a
+# fixed rate. One physical item per file; reload with /se reload. Messages live in lang.yml (scroll.black.*).
 type: black-scroll
 
 material: INK_SAC
@@ -8,5 +10,8 @@ name: "&8Black Scroll"
 lore:
   - "&7Drag onto enchanted gear to"
   - "&7extract one enchant into a book."
-# Chance (0–100) the extraction succeeds; on a miss the scroll is consumed and nothing is extracted.
-success-chance: 80
+# The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100) when the scroll is
+# minted, then clamped to config.yml books.max-success. Placeholders in the name/lore: (NewConvpercent) (alias
+# {SUCCESS}/{CONVERT}) = that rate, {FAILURE} = its complement.
+min-convert: 50
+max-convert: 100

@@ -20,12 +20,14 @@ public final class ItemKeys {
     private final String slotItem;
     private final String slotSuccess;
     private final String scroll;
+    private final String scrollConvert;
     private final String unopened;
     private final String godlyTransmog;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
-                     String slotItem, String slotSuccess, String scroll, String unopened, String godlyTransmog) {
+                     String slotItem, String slotSuccess, String scroll, String scrollConvert,
+                     String unopened, String godlyTransmog) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -36,13 +38,15 @@ public final class ItemKeys {
         this.slotItem = slotItem;
         this.slotSuccess = slotSuccess;
         this.scroll = scroll;
+        this.scrollConvert = scrollConvert;
         this.unopened = unopened;
         this.godlyTransmog = godlyTransmog;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
-                "heroicupgrade", "slotitem", "slotsuccess", "scroll", "unopened", "godlytransmog");
+                "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
+                "godlytransmog");
     }
 
     public String combat() {
@@ -88,6 +92,11 @@ public final class ItemKeys {
 
     public String scroll() {
         return scroll;
+    }
+
+    /** The black scroll's rolled new-book conversion success rate (§I); paired with {@link #scroll()} on the scroll. */
+    public String scrollConvert() {
+        return scrollConvert;
     }
 
     public String unopened() {
