@@ -54,15 +54,32 @@ public final class SlotService {
         return codec.isSlotItem(stack);
     }
 
+    /** Mint an orb with a RANDOM success rolled in the config {@code [min, max]} range. */
     public ItemStack mintOrb() {
         SlotConfig cfg = config.get();
+        return buildOrb(cfg, rolledSuccess(cfg));
+    }
+
+    /** Mint an orb at an EXPLICIT success (§J {@code /se give orb <player> <percent>}), clamped {@code [0, 100]}. */
+    public ItemStack mintOrb(int fixedSuccess) {
+        SlotConfig cfg = config.get();
+        return buildOrb(cfg, Math.max(0, Math.min(100, fixedSuccess)));
+    }
+
+    private ItemStack buildOrb(SlotConfig cfg, int success) {
         String amount = Integer.toString(cfg.orbAmount());
         ItemStack stack = ItemFactory.buildItem(
                 cfg.orbMaterial(), Mats.or("ENDER_EYE", Material.PAPER),
-                cfg.orbName().replace("{AMOUNT}", amount),
-                renderLore(cfg.orbLore(), amount));
-        codec.mark(stack, cfg.orbAmount());
+                renderOrb(cfg.orbName(), amount, success, cfg.hardCap()),
+                renderLore(cfg.orbLore(), amount, success, cfg.hardCap()));
+        codec.mark(stack, cfg.orbAmount(), success);
         return stack;
+    }
+
+    private static int rolledSuccess(SlotConfig cfg) {
+        int span = cfg.maxSuccess() - cfg.minSuccess();
+        return span <= 0 ? cfg.minSuccess()
+                : cfg.minSuccess() + java.util.concurrent.ThreadLocalRandom.current().nextInt(span + 1);
     }
 
     /**
@@ -85,7 +102,13 @@ public final class SlotService {
         int maxAdded = Math.max(0, cfg.hardCap() - base); // the cap is on TOTAL slots (base + added)
         CombatState current = combat.read(gear);
         if (current.added() >= maxAdded) {
-            return SlotResult.unchanged(messages.format("slot.at-cap"));
+            return SlotResult.unchanged(messages.format("slot.at-cap")); // at-cap is a no-op; the orb is preserved
+        }
+        // Apply roll (§H): a sub-100 orb may fail — the orb is spent but the gear is untouched (never destroyed).
+        int success = codec.successOf(slotItem);
+        if (java.util.concurrent.ThreadLocalRandom.current().nextInt(100) >= success) {
+            consume(slotItem);
+            return SlotResult.failed(messages.format("slot.fail"));
         }
         int newAdded = Math.min(current.added() + grant, maxAdded);
         CombatState next = current.withAdded(newAdded);
@@ -96,12 +119,21 @@ public final class SlotService {
         return SlotResult.committed(gear, messages.format("slot.apply", "SLOTS", total));
     }
 
-    private static java.util.List<String> renderLore(java.util.List<String> lore, String amount) {
+    private static java.util.List<String> renderLore(java.util.List<String> lore, String amount, int success,
+                                                     int hardCap) {
         java.util.List<String> out = new java.util.ArrayList<>(lore.size());
         for (String line : lore) {
-            out.add(line.replace("{AMOUNT}", amount));
+            out.add(renderOrb(line, amount, success, hardCap));
         }
         return out;
+    }
+
+    /** Substitute the orb placeholders: {@code {AMOUNT}} (+N), {@code {SUCCESS}}/{@code {FAILURE}}, {@code {MAX}} (cap). */
+    private static String renderOrb(String s, String amount, int success, int hardCap) {
+        return s.replace("{AMOUNT}", amount)
+                .replace("{SUCCESS}", Integer.toString(success))
+                .replace("{FAILURE}", Integer.toString(100 - success))
+                .replace("{MAX}", Integer.toString(hardCap));
     }
 
     private static void consume(ItemStack stack) {

@@ -9,3 +9,8 @@ name: "&fWhite Scroll"
 lore:
   - "&7Protects an item — a failed"
   - "&7enchant will spare it once."
+# Each minted scroll rolls an apply-success % in [min-success, max-success]; {SUCCESS}/{FAILURE} render in the
+# name/lore. On a failed roll the scroll is consumed WITHOUT protecting (it never destroys the gear).
+# 100/100 = always succeeds (the default — no behaviour change).
+min-success: 100
+max-success: 100

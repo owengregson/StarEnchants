@@ -18,13 +18,14 @@ public final class ItemKeys {
     private final String crystalExtractor;
     private final String heroicUpgrade;
     private final String slotItem;
+    private final String slotSuccess;
     private final String scroll;
     private final String unopened;
     private final String godlyTransmog;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
-                     String slotItem, String scroll, String unopened, String godlyTransmog) {
+                     String slotItem, String slotSuccess, String scroll, String unopened, String godlyTransmog) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -33,6 +34,7 @@ public final class ItemKeys {
         this.crystalExtractor = crystalExtractor;
         this.heroicUpgrade = heroicUpgrade;
         this.slotItem = slotItem;
+        this.slotSuccess = slotSuccess;
         this.scroll = scroll;
         this.unopened = unopened;
         this.godlyTransmog = godlyTransmog;
@@ -40,7 +42,7 @@ public final class ItemKeys {
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
-                "heroicupgrade", "slotitem", "scroll", "unopened", "godlytransmog");
+                "heroicupgrade", "slotitem", "slotsuccess", "scroll", "unopened", "godlytransmog");
     }
 
     public String combat() {
@@ -77,6 +79,11 @@ public final class ItemKeys {
     /** Slot-expander orb (§H); the granted slots persist in the gear's combat-blob {@code added} field, not here. */
     public String slotItem() {
         return slotItem;
+    }
+
+    /** The slot orb's per-item rolled success chance (§H); paired with {@link #slotItem()} on the orb. */
+    public String slotSuccess() {
+        return slotSuccess;
     }
 
     public String scroll() {

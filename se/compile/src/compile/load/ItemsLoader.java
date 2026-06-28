@@ -272,7 +272,9 @@ public final class ItemsLoader {
         return new WhiteScrollConfig(
                 orDefault(root.string("material"), d.material()),
                 orDefault(root.string("name"), d.name()),
-                root.has("lore") ? root.stringList("lore") : d.lore());
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("min-success"), d.minSuccess(), root, diags),
+                parseInt(root.string("max-success"), d.maxSuccess(), root, diags));
     }
 
     private static EnchantBookConfig readEnchantBook(YamlNode root, Diagnostics diags) {
@@ -304,7 +306,9 @@ public final class ItemsLoader {
                 orDefault(root.string("orb-name"), d.orbName()),
                 root.has("orb-lore") ? root.stringList("orb-lore") : d.orbLore(),
                 parseInt(root.string("orb-amount"), d.orbAmount(), root, diags),
-                parseInt(root.string("hard-cap"), d.hardCap(), root, diags));
+                parseInt(root.string("hard-cap"), d.hardCap(), root, diags),
+                parseInt(root.string("min-success"), d.minSuccess(), root, diags),
+                parseInt(root.string("max-success"), d.maxSuccess(), root, diags));
     }
 
     private static HeroicConfig readHeroic(YamlNode root, Diagnostics diags) {
