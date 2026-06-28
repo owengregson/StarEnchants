@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import java.util.Optional;
@@ -57,6 +58,12 @@ class ExprParserTest {
         if (e instanceof Expr.StringLit sl) {
             return "\"" + sl.value() + "\"";
         }
+        if (e instanceof Expr.Arith ar) {
+            return "(" + ar.op().symbol() + " " + sexpr(ar.left()) + " " + sexpr(ar.right()) + ")";
+        }
+        if (e instanceof Expr.Neg ng) {
+            return "(neg " + sexpr(ng.operand()) + ")";
+        }
         throw new AssertionError("unhandled node: " + e);
     }
 
@@ -78,7 +85,7 @@ class ExprParserTest {
         Diagnostics diags = new Diagnostics();
         ExprParser.parse("%a% contains \"x\" contains \"y\"", SRC, diags);
         assertTrue(diags.hasErrors());
-        assertEquals("E_PARSE", diags.all().get(0).code());
+        assertTrue(diags.all().get(0).is(DiagCode.E_PARSE_CHAINED_CMP), () -> diags.all().toString());
     }
 
     @Test
@@ -194,6 +201,40 @@ class ExprParserTest {
     @Test
     void nestedParentheses() {
         assertEquals("(! (|| %a% %b%))", sexpr(parseOk("!((%a% || %b%))")));
+    }
+
+    // ── Arithmetic operands of a comparison (Expr.Arith / Expr.Neg). The grammar ships full +-*/ with
+    // precedence and unary minus; these pin associativity/precedence the parser fully supports.
+
+    @Test
+    void multiplicationBindsTighterThanAddition() {
+        assertEquals("(+ %a% (* #2 #3))", sexpr(parseOk("%a% + 2 * 3")));
+        assertEquals("(+ (* #2 #3) %a%)", sexpr(parseOk("2 * 3 + %a%")));
+    }
+
+    @Test
+    void additiveAndMultiplicativeAreLeftAssociative() {
+        assertEquals("(- (- %a% #2) #3)", sexpr(parseOk("%a% - 2 - 3")));
+        assertEquals("(/ (/ #8 #2) #2)", sexpr(parseOk("8 / 2 / 2")));
+    }
+
+    @Test
+    void unaryMinusBindsTighterThanBinaryArithmetic() {
+        // -%a% * 2  ==  (neg %a%) * 2, NOT  neg(%a% * 2)
+        assertEquals("(* (neg %a%) #2)", sexpr(parseOk("-%a% * 2")));
+        assertEquals("(neg (neg %x%))", sexpr(parseOk("--%x%")));
+    }
+
+    @Test
+    void arithmeticIsAnOperandOfAComparison() {
+        // comparators bind looser than + - * /, so arithmetic forms each side of the comparison
+        assertEquals("(< (+ %a% #1) #5)", sexpr(parseOk("%a% + 1 < 5")));
+        assertEquals("(== %hp% (* %base% #2))", sexpr(parseOk("%hp% == %base% * 2")));
+    }
+
+    @Test
+    void parenthesesOverrideArithmeticPrecedence() {
+        assertEquals("(* (+ %a% #2) #3)", sexpr(parseOk("(%a% + 2) * 3")));
     }
 
     @Test

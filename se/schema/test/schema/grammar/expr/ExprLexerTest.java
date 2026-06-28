@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import java.util.List;
@@ -40,15 +41,10 @@ class ExprLexerTest {
     }
 
     @Test
-    void distinguishesBangFromNotEqual() {
-        assertEquals(List.of(ExprTok.Kind.BANG, ExprTok.Kind.NE, ExprTok.Kind.EOF),
-                kinds(lexOk("! !=")));
-    }
-
-    @Test
-    void distinguishesLtFromLe() {
-        assertEquals(List.of(ExprTok.Kind.LT, ExprTok.Kind.LE, ExprTok.Kind.EOF),
-                kinds(lexOk("< <=")));
+    void distinguishesSingleFromDoubleCharOperatorsWhenAdjacent() {
+        // the one case tokenizesOperatorsAndDelimiters can't cover: a 1-char op next to its 2-char form
+        assertEquals(List.of(ExprTok.Kind.BANG, ExprTok.Kind.NE, ExprTok.Kind.EOF), kinds(lexOk("! !=")));
+        assertEquals(List.of(ExprTok.Kind.LT, ExprTok.Kind.LE, ExprTok.Kind.EOF), kinds(lexOk("< <=")));
     }
 
     @Test
@@ -128,7 +124,7 @@ class ExprLexerTest {
         Diagnostics diags = new Diagnostics();
         List<ExprTok> t = lex("\"oops", diags);
         assertTrue(diags.hasErrors());
-        assertEquals("E_PARSE", diags.all().get(0).code());
+        assertTrue(diags.all().get(0).is(DiagCode.E_PARSE_UNTERMINATED));
         assertEquals(ExprTok.Kind.STRING, t.get(0).kind());
         assertEquals("oops", t.get(0).text()); // best-effort body
     }
@@ -147,33 +143,25 @@ class ExprLexerTest {
         Diagnostics diags = new Diagnostics();
         lex("%%", diags);
         assertTrue(diags.hasErrors());
-        assertEquals("E_PARSE", diags.all().get(0).code());
+        assertTrue(diags.all().get(0).is(DiagCode.E_PARSE_EMPTY_VAR));
     }
 
     @Test
-    void loneAmpersandReportsErrorButYieldsAndToken() {
+    void loneAmpersandReportsHalfOpButYieldsAndToken() {
         Diagnostics diags = new Diagnostics();
         List<ExprTok> t = lex("&", diags);
-        assertTrue(diags.hasErrors());
+        assertTrue(diags.all().get(0).is(DiagCode.E_PARSE_HALF_OP));
         assertEquals(ExprTok.Kind.AND, t.get(0).kind());
     }
 
     @Test
-    void strayCharacterIsReportedAndSkipped() {
+    void strayCharacterIsReportedSkippedAndPositioned() {
         Diagnostics diags = new Diagnostics();
-        List<ExprTok> t = lex("3 @ 5", diags);
-        assertTrue(diags.hasErrors());
-        assertEquals("E_PARSE", diags.all().get(0).code());
-        // The '@' is skipped; 3 and 5 still tokenize.
-        assertEquals(List.of(ExprTok.Kind.NUMBER, ExprTok.Kind.NUMBER, ExprTok.Kind.EOF),
-                kinds(t));
-    }
-
-    @Test
-    void strayCharacterDiagnosticPointsAtTheRightColumn() {
-        Diagnostics diags = new Diagnostics();
-        lex("3 @ 5", diags); // '@' is at index 2 -> col 3
+        List<ExprTok> t = lex("3 @ 5", diags); // '@' at index 2 -> col 3, line 7
+        assertTrue(diags.all().get(0).is(DiagCode.E_PARSE_BAD_CHAR));
         assertEquals(3, diags.all().get(0).source().col());
         assertEquals(7, diags.all().get(0).source().line());
+        // The '@' is skipped; 3 and 5 still tokenize.
+        assertEquals(List.of(ExprTok.Kind.NUMBER, ExprTok.Kind.NUMBER, ExprTok.Kind.EOF), kinds(t));
     }
 }

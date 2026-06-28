@@ -44,7 +44,7 @@ public final class ExprParser {
         e = p.parseClauseTail(e); // optional ": <%stop%|%force%|%allow%|%continue%|±N %chance%>" outcome
         if (!p.atEnd()) {
             ExprTok extra = p.peek();
-            p.diags.error(DiagCode.E_PARSE,
+            p.diags.error(DiagCode.E_PARSE_TRAILING,
                     "unexpected '" + describe(extra) + "' after the expression",
                     p.lineSource.atColumn(extra.col()),
                     "did you forget an operator like '&&', '||', or a comparator?");
@@ -64,7 +64,7 @@ public final class ExprParser {
         Expr clause = parseOutcome(test);
         if (check(ExprTok.Kind.COLON)) {
             ExprTok at = peek();
-            diags.error(DiagCode.E_PARSE, "a condition takes at most one ':' outcome clause",
+            diags.error(DiagCode.E_PARSE_CLAUSE, "a condition takes at most one ':' outcome clause",
                     lineSource.atColumn(at.col()),
                     "write a single '<test> : <%stop%|%force%|%allow%|±N %chance%>'");
             consumeToEnd();
@@ -86,7 +86,7 @@ public final class ExprParser {
             }
         }
         ExprTok at = peek();
-        diags.error(DiagCode.E_PARSE,
+        diags.error(DiagCode.E_PARSE_CLAUSE,
                 "expected a clause outcome after ':' but found '" + describe(at) + "'",
                 lineSource.atColumn(at.col()),
                 "use %stop%, %force%, %allow%, %continue%, or '±N %chance%'");
@@ -105,7 +105,7 @@ public final class ExprParser {
         }
         if (!check(ExprTok.Kind.NUMBER)) {
             ExprTok at = peek();
-            diags.error(DiagCode.E_PARSE, "expected a number before '%chance%' but found '" + describe(at) + "'",
+            diags.error(DiagCode.E_PARSE_CLAUSE, "expected a number before '%chance%' but found '" + describe(at) + "'",
                     lineSource.atColumn(at.col()), "write the delta, e.g. '+50 %chance%'");
             consumeToEnd();
             return test;
@@ -116,13 +116,13 @@ public final class ExprParser {
         try {
             magnitude = Double.parseDouble(numTok.text());
         } catch (NumberFormatException ex) {
-            diags.error(DiagCode.E_PARSE, "invalid number '" + numTok.text() + "'", lineSource.atColumn(numTok.col()));
+            diags.error(DiagCode.E_PARSE_CLAUSE, "invalid number '" + numTok.text() + "'", lineSource.atColumn(numTok.col()));
             consumeToEnd();
             return test;
         }
         if (!(check(ExprTok.Kind.VAR) && peek().text().equalsIgnoreCase("chance"))) {
             ExprTok at = peek();
-            diags.error(DiagCode.E_PARSE, "expected '%chance%' after the delta but found '" + describe(at) + "'",
+            diags.error(DiagCode.E_PARSE_CLAUSE, "expected '%chance%' after the delta but found '" + describe(at) + "'",
                     lineSource.atColumn(at.col()), "write the delta as '±N %chance%'");
             consumeToEnd();
             return test;
@@ -193,7 +193,7 @@ public final class ExprParser {
 
         if (isComparisonOp(peek())) {
             ExprTok chainTok = peek();
-            diags.error(DiagCode.E_PARSE,
+            diags.error(DiagCode.E_PARSE_CHAINED_CMP,
                     "comparators cannot be chained ('" + chainTok.text() + "' after '"
                             + opTok.text() + "')",
                     lineSource.atColumn(chainTok.col()),
@@ -259,7 +259,7 @@ public final class ExprParser {
                     advance();
                 } else {
                     ExprTok at = peek();
-                    diags.error(DiagCode.E_PARSE, "missing closing ')'",
+                    diags.error(DiagCode.E_PARSE_UNCLOSED_GROUP, "missing closing ')'",
                             lineSource.atColumn(at.col()), "add a ')' to close the group");
                 }
                 return inner;
@@ -281,7 +281,7 @@ public final class ExprParser {
                 return identifier(t);
             }
             default -> {
-                diags.error(DiagCode.E_PARSE, "expected a value but found '" + describe(t) + "'",
+                diags.error(DiagCode.E_PARSE_EXPECTED_VALUE, "expected a value but found '" + describe(t) + "'",
                         lineSource.atColumn(t.col()),
                         "a value is a number, a %variable%, a \"string\", true/false, or a (group)");
                 // Recover without consuming so the caller can re-synchronize; consume a leading operator to avoid spinning.
