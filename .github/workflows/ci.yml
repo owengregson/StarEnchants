@@ -47,6 +47,7 @@ jobs:
             echo "::notice::Gradle build not scaffolded yet — skipping (foundation phase)."
           fi
 
-  # The real-server integration matrix (Paper AND Folia across the version
-  # range) is added when the build + tester module land. Tracked in
-  # docs/development.md and the matrix-gate skill.
+  # The real-server integration matrix (Paper AND Folia across the version range) lives in its own
+  # workflow, live-matrix.yml: a curated risk-edge subset on every PR (blocking) + the full range nightly
+  # (advisory). The 1.8.9 lane is legacy.yml. The `./gradlew build` above already enforces the per-module
+  # branch-coverage floor (it rides `check`), so this job is the blocking unit + coverage gate.

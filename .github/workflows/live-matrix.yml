@@ -1,0 +1,155 @@
+name: Live matrix
+
+# The MODERN Paper + Folia live-integration gate — the in-server tester (live-server-testing skill) booted
+# against real servers across the version range, the analogue of the local scripts/run-matrix.sh. Two cadences
+# share one job: a curated risk-edge SUBSET on every PR (blocking), and the FULL range nightly on a cron
+# (advisory — a schedule run is attached to no PR, so it can never gate a merge; it surfaces drift in Actions).
+# The 1.8.9 lane has its own gate (legacy.yml); the per-module branch-coverage floor rides ci.yml's build job.
+
+on:
+  pull_request:
+    paths:
+      - 'se/**'
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - 'scripts/run-matrix.sh'
+      - 'scripts/fetch-reference.sh'
+      - '.github/workflows/live-matrix.yml'
+  schedule:
+    # Nightly at 07:00 UTC — the full supported range, advisory.
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run the full version range instead of the PR subset'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-matrix-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-tester:
+    name: Build tester jar
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # 17 is the floor toolchain Gradle compiles against; 21 is the upper server runtime (1.20.5+).
+      - name: Set up JDKs 17 + 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            21
+
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      # Just the fat tester jar — the unit gate (incl. the JaCoCo branch floor) is ci.yml's job, so don't
+      # re-run it on every matrix shard; the live jobs install THIS artifact and run with --no-build.
+      - name: Build tester jar
+        run: ./gradlew :tester:jar
+
+      - id: ver
+        name: Resolve project version
+        run: |
+          version="$(grep -E '^[[:space:]]*version = "' build.gradle.kts | head -1 | sed -E 's/.*version = "(.*)".*/\1/')"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Upload tester jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: tester-jar
+          path: se/tester/build/libs/tester-${{ steps.ver.outputs.version }}.jar
+          if-no-files-found: error
+
+  prepare:
+    name: Resolve target list
+    needs: build-tester
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.gen.outputs.targets }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: gen
+        name: Choose subset (PR) or full range (nightly / dispatch --full)
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.full }}" = "true" ]; then
+            # The full supported range — gradle.properties is the single source of truth (matrix-gate skill).
+            paper="$(grep -E '^se.matrix.paper=' gradle.properties | cut -d= -f2)"
+            folia="$(grep -E '^se.matrix.folia=' gradle.properties | cut -d= -f2)"
+            targets="$({ for v in ${paper//,/ }; do echo "paper:$v"; done; \
+                         for v in ${folia//,/ }; do echo "folia:$v"; done; } | jq -R . | jq -cs .)"
+          else
+            # The curated risk edges: floor (1.17.1), the 1.20.5 mapping flip on BOTH platforms, the ceiling on
+            # both — enough to catch a version/Folia/mapping break without booting all 13 servers on every PR.
+            targets='["paper:1.17.1","paper:1.20.6","paper:26.1.2","folia:1.20.6","folia:26.1.2"]'
+          fi
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
+          echo "::notice::live matrix targets — $targets"
+
+  matrix:
+    name: ${{ matrix.target }}
+    needs: [ build-tester, prepare ]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(needs.prepare.outputs.targets) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDKs 17 + 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            21
+
+      # run-matrix.sh picks the server runtime JDK from JAVA<major>_HOME when /usr/libexec/java_home is absent
+      # (it is, on Linux). setup-java exposes each install as JAVA_HOME_<major>_X64 — bridge the two names.
+      - name: Expose JAVA17_HOME / JAVA21_HOME
+        run: |
+          echo "JAVA17_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "JAVA21_HOME=$JAVA_HOME_21_X64" >> "$GITHUB_ENV"
+
+      - name: Download tester jar
+        uses: actions/download-artifact@v4
+        with:
+          name: tester-jar
+          path: /tmp/tester
+
+      # Place it where run-matrix.sh --no-build expects it (se/tester/build/libs/tester-<version>.jar),
+      # found regardless of how the artifact preserved its path.
+      - name: Stage tester jar
+        run: |
+          jar="$(find /tmp/tester -name 'tester-*.jar' | head -1)"
+          [ -n "$jar" ] || { echo "::error::tester jar not found in artifact"; exit 1; }
+          mkdir -p se/tester/build/libs
+          cp "$jar" "se/tester/build/libs/tester-${{ needs.build-tester.outputs.version }}.jar"
+
+      # Pull ONLY this shard's cached server jar into reference/servers/ (gitignored), not all 13.
+      - name: Fetch cached server (${{ matrix.target }})
+        run: scripts/fetch-reference.sh "${{ matrix.target }}"
+
+      # Boot the real server, install the tester, assert a FRESH PASS. SE_NO_BUILD=1: the jar is already built
+      # and staged above, so skip the rebuild (the stale-jar trap does not apply — this jar is this run's).
+      - name: Live suite — ${{ matrix.target }}
+        run: SE_NO_BUILD=1 scripts/run-matrix.sh "${{ matrix.target }}"
