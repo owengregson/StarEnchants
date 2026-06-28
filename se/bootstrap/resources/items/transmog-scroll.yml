@@ -1,13 +1,15 @@
-# Transmog Scroll (docs/v3-directives.md §I) — drag onto enchanted gear to REORDER its enchant lore
-# (cosmetic only; combat behaviour is order-independent) and append a configurable suffix to the item name.
-# For a hand-picked order, use the Godly Transmog tool (items/godly-transmog.yml). One physical item per
-# file; reload with /se reload. Result messages live in lang.yml (scroll.transmog.*).
+# Transmog Scroll (docs/v3-directives.md §I) — drag onto enchanted gear to ORGANISE its enchant lore by
+# rarity (highest-weight tier on top; cosmetic, combat is order-independent) and stamp the enchant count into
+# the item name. Real Minecraft enchants render above the lore by the client, so they sit above the custom
+# block. Re-applicable: a second apply re-sorts and REPLACES the count suffix (never stacks it). For a
+# hand-picked order, use the Godly Transmog tool. One physical item per file; reload with /se reload.
 type: transmog-scroll
 
 material: PURPLE_DYE
 name: "&5Transmog Scroll"
 lore:
   - "&7Drag onto enchanted gear to"
-  - "&7reorder its enchant display."
-# Appended to the gear's display name when transmogged (only if it already has a custom name).
-name-suffix: " &8(Transmogged)"
+  - "&7sort its enchants by rarity."
+# Appended to the gear's display name when transmogged; (enchantcount) = the item's total enchant count.
+# A re-transmog strips a prior suffix matching this template and re-stamps, so the count never duplicates.
+name-suffix: "&r &d[&b&l&n(enchantcount)&r&d]"

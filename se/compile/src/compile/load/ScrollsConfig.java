@@ -47,7 +47,11 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         }
     }
 
-    /** Reorders an item's enchant lore (cosmetic — combat is order-independent) and appends {@code nameSuffix} to the name. */
+    /**
+     * ORGANISES an item's enchant lore by rarity-tier weight (cosmetic — combat is order-independent) and
+     * stamps the enchant count into the name via {@code nameSuffix}, whose {@code (enchantcount)} placeholder
+     * is the count. Re-applying replaces the prior count suffix rather than stacking it.
+     */
     public record Transmog(String material, String name, List<String> lore, String nameSuffix) {
         public Transmog {
             Objects.requireNonNull(material, "material");
@@ -111,8 +115,8 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                 new Transmog(
                         "PURPLE_DYE",
                         "&5Transmog Scroll",
-                        List.of("&7Drag onto enchanted gear to", "&7reorder its enchant display."),
-                        " &8(Transmogged)"),
+                        List.of("&7Drag onto enchanted gear to", "&7sort its enchants by rarity."),
+                        "&r &d[&b&l&n(enchantcount)&r&d]"),
                 new Holy(
                         "TOTEM_OF_UNDYING",
                         "&fHoly White Scroll",
