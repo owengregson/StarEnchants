@@ -16,10 +16,10 @@ material: ENCHANTED_BOOK
 # Bold, tier-coloured "<Name> <Level>". (Colour first, then &l, so the bold actually sticks.)
 name: "{TIER_COLOR}&l{ENCHANT} {LEVEL}"
 lore:
-  - ""
-  - "{TIER_COLOR}{DESCRIPTION}"
   - "&a{SUCCESS}% Success Rate"
   - "&c{FAILURE}% Failure Rate"
+  - ""
+  - "{TIER_COLOR}{DESCRIPTION}"
   - ""
   - "&7{KINDS} Enchantment"
   - "&7Drag n' Drop on an item to apply."

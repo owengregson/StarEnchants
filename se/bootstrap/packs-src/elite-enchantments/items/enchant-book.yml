@@ -17,10 +17,10 @@ material: ENCHANTED_BOOK
 # This same name styling is reused for the enchant icons in the in-game menus (apply/browse/admin).
 name: "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}"
 lore:
-  - ""
-  - "{TIER_COLOR}{DESCRIPTION}"
   - "&a{SUCCESS}% Success Rate"
   - "&c{FAILURE}% Failure Rate"
+  - ""
+  - "{TIER_COLOR}{DESCRIPTION}"
   - ""
   - "&7{KINDS} Enchantment"
   - "&7Drag n' Drop on an item to apply."

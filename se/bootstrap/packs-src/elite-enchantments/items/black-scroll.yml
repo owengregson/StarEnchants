@@ -10,7 +10,7 @@ name: "&8&lBlack Scroll"
 # {SUCCESS} = the drawn book's rolled success rate. Lines auto-wrap at config lore.item-wrap.
 lore:
   - ""
-  - "&6=> {SUCCESS}% Success Rate"
+  - "&6{SUCCESS}% Success Rate"
   - ""
   - "&eRemoves a random enchantment from your item and returns it to your inventory with the specified success rate."
   - "&7Drag n' Drop on an item to apply."

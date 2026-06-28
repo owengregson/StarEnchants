@@ -6,10 +6,11 @@
 type: blocktrak
 
 material: SLIME_BALL
-name: "&aBlockTrak Gem"
+name: "&a&lBlockTrak Gem"
 # {KINDS} expands to the grammatically-joined applies-to label. Lore auto-wraps at config lore.item-wrap.
 lore:
   - "&eDisplays the amount of blocks broken with the tool since it was forged."
+  - ""
   - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
 # Item-group kinds this gem applies to (and whose lifetime is tracked): e.g. TOOL, PICKAXE, AXE, ALL.
