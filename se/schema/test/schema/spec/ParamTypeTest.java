@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import java.util.Optional;
@@ -29,18 +30,18 @@ class ParamTypeTest {
         Diagnostics d = new Diagnostics();
         assertTrue(D.DOUBLE.parse("abc", SRC, d).isEmpty());
         assertTrue(d.hasErrors());
-        assertEquals("E_TYPE", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_TYPE), () -> d.all().toString());
     }
 
     @Test
     void doubleEnforcesRange() {
         Diagnostics over = new Diagnostics();
         assertTrue(D.DOUBLE.min(0).max(100).parse("150", SRC, over).isEmpty());
-        assertEquals("E_RANGE", over.all().get(0).code());
+        assertTrue(over.all().get(0).is(DiagCode.E_RANGE), () -> over.all().toString());
 
         Diagnostics under = new Diagnostics();
         assertTrue(D.DOUBLE.min(0).max(100).parse("-1", SRC, under).isEmpty());
-        assertEquals("E_RANGE", under.all().get(0).code());
+        assertTrue(under.all().get(0).is(DiagCode.E_RANGE), () -> under.all().toString());
 
         Diagnostics ok = new Diagnostics();
         assertEquals(0.0, dbl(D.DOUBLE.min(0).max(100).parse("0", SRC, ok)));
@@ -51,7 +52,7 @@ class ParamTypeTest {
     void intRejectsDecimals() {
         Diagnostics d = new Diagnostics();
         assertTrue(D.INT.parse("3.5", SRC, d).isEmpty());
-        assertEquals("E_TYPE", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_TYPE), () -> d.all().toString());
 
         Diagnostics ok = new Diagnostics();
         assertEquals(3L, D.INT.parse("3", SRC, ok).orElseThrow());
@@ -62,7 +63,7 @@ class ParamTypeTest {
     void ticksAreFlooredAtZero() {
         Diagnostics d = new Diagnostics();
         assertTrue(D.TICKS.parse("-1", SRC, d).isEmpty());
-        assertEquals("E_RANGE", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_RANGE), () -> d.all().toString());
     }
 
     @Test
@@ -75,7 +76,7 @@ class ParamTypeTest {
         }
         Diagnostics d = new Diagnostics();
         assertTrue(D.BOOL.parse("maybe", SRC, d).isEmpty());
-        assertEquals("E_TYPE", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_TYPE), () -> d.all().toString());
     }
 
     @Test
@@ -85,7 +86,7 @@ class ParamTypeTest {
 
         Diagnostics d = new Diagnostics();
         assertTrue(shape.parse("triangle", SRC, d).isEmpty());
-        assertEquals("E_ENUM", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_ENUM), () -> d.all().toString());
     }
 
     @Test

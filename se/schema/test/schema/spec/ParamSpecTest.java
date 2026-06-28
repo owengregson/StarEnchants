@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import schema.diag.Diagnostics;
 import schema.diag.Severity;
@@ -16,6 +17,10 @@ class ParamSpecTest {
 
     private static final Source SRC = Source.of("effects.yml", 7, 1);
 
+    // A synthetic cross-rule code owned by this test's smite() fixture (not a production DiagCode), kept in
+    // one place so the rule's emit site and the assertion can't drift.
+    private static final String RADIUS_RULE = "E_RULE";
+
     /** Mirrors the worked example in docs/architecture.md §7. */
     private static ParamSpec smite() {
         return ParamSpec.of("SMITE")
@@ -25,7 +30,7 @@ class ParamSpecTest {
                 .param("cooldown", D.TICKS.def(0))
                 .rule((args, src, diags) -> {
                     if (args.dbl("radius") > 16) {
-                        diags.error("E_RULE", "radius must not exceed 16", src);
+                        diags.error(RADIUS_RULE, "radius must not exceed 16", src);
                     }
                 })
                 .doc("Lightning + AoE damage near the target.")
@@ -33,8 +38,8 @@ class ParamSpecTest {
                 .build();
     }
 
-    private static String firstCode(Diagnostics d) {
-        return d.all().get(0).code();
+    private static Diagnostic first(Diagnostics d) {
+        return d.all().get(0);
     }
 
     @Test
@@ -62,7 +67,7 @@ class ParamSpecTest {
         smite().parse(List.of("25", "4"), SRC, d); // damage missing
         assertTrue(d.hasErrors());
         Diagnostic err = d.all().get(0);
-        assertEquals("E_MISSING_ARG", err.code());
+        assertTrue(err.is(DiagCode.E_MISSING_ARG));
         assertTrue(err.message().contains("damage"), err.message());
     }
 
@@ -71,7 +76,7 @@ class ParamSpecTest {
         Diagnostics d = new Diagnostics();
         smite().parse(List.of("notanumber", "4", "6"), SRC, d);
         assertTrue(d.hasErrors());
-        assertEquals("E_TYPE", firstCode(d));
+        assertTrue(first(d).is(DiagCode.E_TYPE));
     }
 
     @Test
@@ -80,7 +85,7 @@ class ParamSpecTest {
         smite().parse(List.of("25", "4", "6", "40", "99"), SRC, d);
         assertFalse(d.hasErrors());
         assertEquals(1, d.count(Severity.WARNING));
-        assertEquals("W_EXTRA_ARGS", firstCode(d));
+        assertTrue(first(d).is(DiagCode.W_EXTRA_ARGS));
     }
 
     @Test
@@ -89,12 +94,12 @@ class ParamSpecTest {
         Diagnostics d = new Diagnostics();
         smite().parse(List.of("25", "20", "6", "0"), SRC, d);
         assertTrue(d.hasErrors());
-        assertEquals("E_RULE", firstCode(d));
+        assertEquals(RADIUS_RULE, first(d).code());
 
         // A type error short-circuits the cross-rule (no cascading noise).
         Diagnostics d2 = new Diagnostics();
         smite().parse(List.of("25", "notanumber", "6", "0"), SRC, d2);
-        assertEquals("E_TYPE", firstCode(d2));
+        assertTrue(first(d2).is(DiagCode.E_TYPE));
         assertEquals(1L, d2.count(Severity.ERROR)); // exactly one error: the type error, not the rule
     }
 
