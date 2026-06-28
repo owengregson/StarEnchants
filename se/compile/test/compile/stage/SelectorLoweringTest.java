@@ -10,13 +10,12 @@ import compile.def.AbilityDef;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
-import compile.model.SourceKind;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
 import schema.spec.D;
 import schema.spec.ParamSpec;
-import java.util.List;
+import testfx.Defs;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
@@ -39,9 +38,8 @@ class SelectorLoweringTest {
     }
 
     private static AbilityDef def(EffectLine... effects) {
-        return new AbilityDef(SourceKind.ENCHANT, "test/sel", 1, 1, 100.0, 0, 0,
-                List.of("ATTACK"), List.of(), null, List.of(effects),
-                null, null, null, null, 0, SRC, 0);
+        // ENCHANT / defId 1 / level 1 / 100% / single ATTACK trigger are all Defs defaults.
+        return Defs.ability().stableKey("test/sel").source(SRC).effects(effects).build();
     }
 
     @Test
