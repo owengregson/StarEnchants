@@ -19,6 +19,7 @@ import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.spec.Args;
+import testfx.Defs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -41,26 +42,10 @@ class EraseStageTest {
             String cdScopeGroup,
             String cdScopeType,
             Source source) {
-        return new LoweredAbility(
-                SourceKind.ENCHANT,
-                stableKey,
-                defId,
-                0,
-                0.0,
-                0,
-                0,
-                triggers,
-                worldBlacklist,
-                null,
-                List.of(),
-                suppressKey,
-                cdScopeEnchant,
-                cdScopeGroup,
-                cdScopeType,
-                0,
-                Affinity.CONTEXT_LOCAL,
-                source,
-                0);
+        return Defs.lowered()
+                .stableKey(stableKey).defId(defId).triggers(triggers).worldBlacklist(worldBlacklist)
+                .suppressKey(suppressKey).cooldownScope(cdScopeEnchant, cdScopeGroup, cdScopeType).source(source)
+                .build();
     }
 
     private static LoweredAbility lowered(String stableKey, int defId) {
@@ -155,10 +140,7 @@ class EraseStageTest {
                 .with("scope", "GROUP").with("key", "lifesteal").with("duration", 200L);
         CompiledEffect suppress = new CompiledEffect(
                 "SUPPRESS", suppressArgs, CompiledSelector.SELF, 0, Affinity.CONTEXT_LOCAL);
-        LoweredAbility suppressor = new LoweredAbility(
-                SourceKind.ENCHANT, "suppressor", 1, 0, 0.0, 0, 0,
-                List.of(), List.of(), null, List.of(suppress),
-                null, null, null, null, 0, Affinity.CONTEXT_LOCAL, Source.UNKNOWN, 0);
+        LoweredAbility suppressor = Defs.lowered().stableKey("suppressor").effects(suppress).build();
         LoweredAbility victim = lowered(
                 "victim", 2, List.of(), List.of(), null, null, "lifesteal", null, Source.UNKNOWN);
 
@@ -233,26 +215,10 @@ class EraseStageTest {
     @Test
     void passesEffectsConditionAndScalarsThrough() {
         CompiledEffect e = effect();
-        LoweredAbility la = new LoweredAbility(
-                SourceKind.CRYSTAL,
-                "withEffect",
-                5,
-                3,
-                25.0,
-                40,
-                2,
-                List.of(),
-                List.of(),
-                null,
-                List.of(e),
-                null,
-                null,
-                null,
-                null,
-                10,
-                Affinity.CONTEXT_LOCAL,
-                Source.UNKNOWN,
-                0);
+        LoweredAbility la = Defs.lowered()
+                .sourceKind(SourceKind.CRYSTAL).stableKey("withEffect").defId(5).level(3).chance(25.0)
+                .cooldown(40).soulCost(2).repeatTicks(10).effects(e)
+                .build();
 
         Diagnostics d = new Diagnostics();
         ErasedContent erased = STAGE.erase(List.of(la), d);

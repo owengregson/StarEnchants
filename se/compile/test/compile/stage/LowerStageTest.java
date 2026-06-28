@@ -26,6 +26,7 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 import schema.spec.D;
 import schema.spec.ParamSpec;
+import testfx.Defs;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -56,25 +57,11 @@ class LowerStageTest {
     }
 
     private static AbilityDef def(String conditionExpr, EffectLine... effects) {
-        return new AbilityDef(
-                SourceKind.ENCHANT,
-                "test/ability",
-                42,
-                3,
-                25.0,
-                40,
-                0,
-                List.of("ATTACK"),
-                List.of("world_nether"),
-                conditionExpr,
-                List.of(effects),
-                null,
-                null,
-                null,
-                null,
-                0,
-                SRC,
-                0);
+        return Defs.ability()
+                .stableKey("test/ability").defId(42).level(3).chance(25.0).cooldown(40)
+                .triggers("ATTACK").worldBlacklist("world_nether")
+                .condition(conditionExpr).effects(effects).source(SRC)
+                .build();
     }
 
     @Test

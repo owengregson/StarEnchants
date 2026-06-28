@@ -17,6 +17,7 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 import schema.spec.D;
 import schema.spec.ParamSpec;
+import testfx.Defs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -38,9 +39,11 @@ class CompilerTest {
     private static AbilityDef def(
             SourceKind kind, String key, int defId, int level, double chance, int cooldown,
             List<String> triggers, List<String> worlds, String condition, List<EffectLine> effects) {
-        return new AbilityDef(kind, key, defId, level, chance, cooldown, 0,
-                triggers, worlds, condition, effects, null, null, null, null, 0,
-                Source.ofFile("content.yml"), 0);
+        return Defs.ability()
+                .sourceKind(kind).stableKey(key).defId(defId).level(level).chance(chance).cooldown(cooldown)
+                .triggers(triggers).worldBlacklist(worlds).condition(condition).effects(effects)
+                .source(Source.ofFile("content.yml"))
+                .build();
     }
 
     private static List<AbilityDef> library() {
