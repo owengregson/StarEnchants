@@ -174,8 +174,14 @@ server-port=$port
 EOF
 
   local started; started="$(date +%s)"
+  # caffeinate keeps a background JVM awake on macOS (App Nap stalls a server for tens of seconds, which reads
+  # as a tick stall — matrix-gate skill); it does not exist on the Linux CI runners, so prepend it only when
+  # present. Build the launch as an array that ALWAYS starts with java (never empty) so it expands cleanly
+  # under `set -u` even on macOS's bash 3.2, where an empty "${arr[@]}" is an unbound-variable error.
+  local -a launch=("$jdk/bin/java")
+  command -v caffeinate >/dev/null 2>&1 && launch=(caffeinate -i "${launch[@]}")
   log "$platform:$version — booting on $(basename "$jdk") port $port  ($run)"
-  ( cd "$run" && caffeinate -i "$jdk/bin/java" -Xms512M -Xmx1280M \
+  ( cd "$run" && "${launch[@]}" -Xms512M -Xmx1280M \
       -Ddisable.watchdog=true -Dcom.mojang.eula.agree=true \
       -jar paperclip.jar --nogui > boot.log 2>&1 ) &
   local pid=$!

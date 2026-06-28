@@ -69,6 +69,19 @@ fetch() {
   [ -n "$extracted" ] && echo "  javap-ready: $extracted" || echo "  (not extracted)"
 }
 
-for v in "${PAPER_VERSIONS[@]}"; do fetch paper "$v"; done
-for v in "${FOLIA_VERSIONS[@]}"; do fetch folia "$v"; done
+# With no args, fetch the whole supported range (the local-dev default). With explicit `platform:version`
+# targets (the same grammar as run-matrix.sh), fetch ONLY those — so a CI matrix job pulls just the one
+# server jar it boots instead of all 13. Unknown platforms/args fail loud.
+if [ "$#" -eq 0 ]; then
+  for v in "${PAPER_VERSIONS[@]}"; do fetch paper "$v"; done
+  for v in "${FOLIA_VERSIONS[@]}"; do fetch folia "$v"; done
+else
+  for target in "$@"; do
+    case "$target" in
+      paper:*) fetch paper "${target#paper:}" ;;
+      folia:*) fetch folia "${target#folia:}" ;;
+      *) echo "  ! unknown target '$target' (expected paper:<version> or folia:<version>)"; exit 2 ;;
+    esac
+  done
+fi
 echo "DONE"
