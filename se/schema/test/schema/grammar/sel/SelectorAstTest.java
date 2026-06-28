@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class SelectorAstTest {
 
@@ -60,42 +63,20 @@ class SelectorAstTest {
         SelectorAst ast = parse("@Aoe{r=1,r=2}", d).orElseThrow();
         assertFalse(d.hasErrors()); // a duplicate is a warning, not an error
         assertEquals("2", ast.args().get("r"));
-        assertEquals("W_SELECTOR_DUP_ARG", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.W_SELECTOR_DUP_ARG));
     }
 
-    @Test
-    void missingAtSignIsASyntaxError() {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "Aoe{r=4}", // missing leading '@'
+            "@Aoe{r=4", // unclosed brace
+            "@Aoe{r}",  // arg without '='
+            "@Aoe{=4}", // empty arg name
+            "@{r=4}",   // empty head
+    })
+    void malformedSelectorIsRejectedAsASyntaxError(String raw) {
         Diagnostics d = new Diagnostics();
-        assertTrue(parse("Aoe{r=4}", d).isEmpty());
-        assertTrue(d.hasErrors());
-        assertEquals("E_SELECTOR_SYNTAX", d.all().get(0).code());
-    }
-
-    @Test
-    void unclosedBraceIsASyntaxError() {
-        Diagnostics d = new Diagnostics();
-        assertTrue(parse("@Aoe{r=4", d).isEmpty());
-        assertEquals("E_SELECTOR_SYNTAX", d.all().get(0).code());
-    }
-
-    @Test
-    void argWithoutEqualsIsASyntaxError() {
-        Diagnostics d = new Diagnostics();
-        assertTrue(parse("@Aoe{r}", d).isEmpty());
-        assertEquals("E_SELECTOR_SYNTAX", d.all().get(0).code());
-    }
-
-    @Test
-    void emptyArgNameIsASyntaxError() {
-        Diagnostics d = new Diagnostics();
-        assertTrue(parse("@Aoe{=4}", d).isEmpty());
-        assertEquals("E_SELECTOR_SYNTAX", d.all().get(0).code());
-    }
-
-    @Test
-    void emptyHeadIsASyntaxError() {
-        Diagnostics d = new Diagnostics();
-        assertTrue(parse("@{r=4}", d).isEmpty());
-        assertEquals("E_SELECTOR_SYNTAX", d.all().get(0).code());
+        assertTrue(parse(raw, d).isEmpty(), () -> "expected rejection of <" + raw + ">");
+        assertTrue(d.all().get(0).is(DiagCode.E_SELECTOR_SYNTAX), () -> d.all().toString());
     }
 }
