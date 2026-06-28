@@ -1,5 +1,6 @@
 package schema.spec;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.expr.Expr;
@@ -142,7 +143,7 @@ public final class ParamType {
     private Optional<Object> parseHandle(String raw, Source source, Diagnostics diags) {
         String t = raw.trim();
         if (t.isEmpty()) {
-            diags.error("E_TYPE", "expected a " + handleCategory.label() + " name but got an empty token", source);
+            diags.error(DiagCode.E_TYPE, "expected a " + handleCategory.label() + " name but got an empty token", source);
             return Optional.empty();
         }
         // Token survives verbatim; resolve interns it (§9) and warns-and-skips unknowns, not here.
@@ -159,12 +160,12 @@ public final class ParamType {
             if (looksLikeExpression(t)) {
                 return numericExpression(t, source, diags);
             }
-            diags.error("E_TYPE", "expected a number but got '" + raw + "'", source,
+            diags.error(DiagCode.E_TYPE, "expected a number but got '" + raw + "'", source,
                     "use a decimal like 2.5, or a %variable% expression like %combo% * 10");
             return Optional.empty();
         }
         if (!Double.isFinite(v)) {
-            diags.error("E_TYPE", "number must be finite but got '" + raw + "'", source);
+            diags.error(DiagCode.E_TYPE, "number must be finite but got '" + raw + "'", source);
             return Optional.empty();
         }
         return checkRange(v, source, diags) ? Optional.of(v) : Optional.empty();
@@ -182,7 +183,7 @@ public final class ParamType {
             }
             // A decimal where an integer is required is the classic getInt() trap.
             String hint = t.contains(".") ? "use a whole number (no decimal point)" : "use a whole number";
-            diags.error("E_TYPE", "expected a whole number but got '" + raw + "'", source, hint);
+            diags.error(DiagCode.E_TYPE, "expected a whole number but got '" + raw + "'", source, hint);
             return Optional.empty();
         }
         return checkRange((double) v, source, diags) ? Optional.of(v) : Optional.empty();
@@ -207,11 +208,11 @@ public final class ParamType {
 
     private boolean checkRange(double v, Source source, Diagnostics diags) {
         if (min != null && v < min) {
-            diags.error("E_RANGE", "value " + trim(v) + " is below the minimum " + trim(min), source);
+            diags.error(DiagCode.E_RANGE, "value " + trim(v) + " is below the minimum " + trim(min), source);
             return false;
         }
         if (max != null && v > max) {
-            diags.error("E_RANGE", "value " + trim(v) + " is above the maximum " + trim(max), source);
+            diags.error(DiagCode.E_RANGE, "value " + trim(v) + " is above the maximum " + trim(max), source);
             return false;
         }
         return true;
@@ -223,7 +224,7 @@ public final class ParamType {
             case "true", "yes", "on", "1" -> Optional.of(Boolean.TRUE);
             case "false", "no", "off", "0" -> Optional.of(Boolean.FALSE);
             default -> {
-                diags.error("E_TYPE", "expected true or false but got '" + raw + "'", source);
+                diags.error(DiagCode.E_TYPE, "expected true or false but got '" + raw + "'", source);
                 yield Optional.empty();
             }
         };
@@ -236,7 +237,7 @@ public final class ParamType {
                 return Optional.of(canon); // normalize to the canonical spelling
             }
         }
-        diags.error("E_ENUM", "'" + raw + "' is not one of " + allowed(), source,
+        diags.error(DiagCode.E_ENUM, "'" + raw + "' is not one of " + allowed(), source,
                 "allowed values: " + String.join(", ", allowed()));
         return Optional.empty();
     }

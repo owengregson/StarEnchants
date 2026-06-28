@@ -1,5 +1,6 @@
 package schema.spec;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import java.util.ArrayList;
@@ -64,7 +65,7 @@ public final class ParamSpec {
                 p.type().parse(rawArgs.get(i), source, diags)
                         .ifPresent(v -> values.put(p.name(), v));
             } else if (p.required()) {
-                diags.error("E_MISSING_ARG",
+                diags.error(DiagCode.E_MISSING_ARG,
                         "missing required argument '" + p.name() + "' (" + p.type().label() + ")",
                         source, "usage: " + usage());
             } else {
@@ -75,7 +76,7 @@ public final class ParamSpec {
 
         if (rawArgs.size() > params.size()) {
             int extra = rawArgs.size() - params.size();
-            diags.warning("W_EXTRA_ARGS",
+            diags.warning(DiagCode.W_EXTRA_ARGS,
                     "ignored " + extra + " extra argument" + (extra == 1 ? "" : "s")
                             + "; '" + head + "' takes " + params.size(),
                     source, "usage: " + usage());
