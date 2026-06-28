@@ -115,7 +115,9 @@ class FanOutEffectTest {
     @TestFactory
     List<DynamicTest> playerTargetIntents() {
         return List.of(
-                players("FLY → setFlight(ticks)", new FlyEffect(),
+                players("FLY → setFlight(ticks) per player", new FlyEffect(),
+                        c -> c.with("ticks", 200), (s, p) -> verify(s).setFlight(p, 200)),
+                playerOnly("FLY → skips a non-player target (no flight for mobs)", new FlyEffect(),
                         c -> c.with("ticks", 200), (s, p) -> verify(s).setFlight(p, 200)),
                 playerOnly("KEEP_ON_DEATH → keepOnDeath(duration)", new KeepOnDeathEffect(),
                         c -> c.with("duration", 200), (s, p) -> verify(s).keepOnDeath(p, 200)),

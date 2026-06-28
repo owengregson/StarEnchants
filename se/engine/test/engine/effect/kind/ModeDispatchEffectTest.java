@@ -89,6 +89,8 @@ class ModeDispatchEffectTest {
                         c -> c.with("amount", 4.0).with("mode", "give"), (s, t) -> verify(s).heal(t, 4.0)),
                 living("HEALTH_MOD take → damage", new HealthModEffect(),
                         c -> c.with("amount", 6.0).with("mode", "take"), (s, t) -> verify(s).damage(t, 6.0)),
+                living("HEALTH_MOD set → setHealth (forces current health to the amount)", new HealthModEffect(),
+                        c -> c.with("amount", 10.0).with("mode", "set"), (s, t) -> verify(s).setHealth(t, 10.0)),
                 dynamicTest("HEALTH_MOD transfer → damage victim + heal actor (lifesteal)", () -> {
                     LivingEntity victim = mock(LivingEntity.class);
                     Player actor = mock(Player.class);
@@ -98,6 +100,19 @@ class ModeDispatchEffectTest {
                     new HealthModEffect().run(ctx, sink);
                     verify(sink).damage(victim, 5.0);
                     verify(sink).heal(actor, 5.0); // actor gains exactly what was drained
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("HEALTH_MOD transfer with two victims → actor heals by amount × victims hit", () -> {
+                    LivingEntity v1 = mock(LivingEntity.class);
+                    LivingEntity v2 = mock(LivingEntity.class);
+                    Player actor = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("amount", 5.0).with("mode", "transfer").targets("who", v1, v2).actor(actor);
+                    Sink sink = mock(Sink.class);
+                    new HealthModEffect().run(ctx, sink);
+                    verify(sink).damage(v1, 5.0);
+                    verify(sink).damage(v2, 5.0);
+                    verify(sink).heal(actor, 10.0); // one heal of the total drained, not one per victim
                     verifyNoMoreInteractions(sink);
                 }));
     }
