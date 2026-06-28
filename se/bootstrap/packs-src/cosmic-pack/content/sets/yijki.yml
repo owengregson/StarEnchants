@@ -3,7 +3,11 @@ display: "&f&lYijki"
 description: "Ascend to divine heights, taking less damage while wearing the set."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&f&lYIJKI SET BONUS"
     - "&f* Enemies deal 30% less damage to you"
     - "&f* Divine Shield Passive Ability"
@@ -19,6 +23,9 @@ armor:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 30 } }
     - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&f&lDestiny&r"
   lore:

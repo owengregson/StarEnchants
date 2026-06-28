@@ -77,6 +77,22 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
     }
 
+    /** Copy with new enchants, preserving every other field — the safe mutator (the multi-arg ctors silently
+     *  null {@code setWeaponKey}, which once stripped a set weapon's membership when it was enchanted). */
+    public CombatState withEnchants(Map<String, Integer> enchants) {
+        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
+    }
+
+    /** Copy with new crystals, preserving every other field (incl. {@code setWeaponKey}). */
+    public CombatState withCrystals(List<String> crystals) {
+        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
+    }
+
+    /** Copy with new heroic stats, preserving every other field (incl. {@code setWeaponKey}). */
+    public CombatState withHeroic(HeroicStat heroic) {
+        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
+    }
+
     public boolean isEmpty() {
         return enchants.isEmpty() && crystals.isEmpty() && setKey == null && setWeaponKey == null
                 && !omni && heroic.isZero() && added == 0;

@@ -3,7 +3,11 @@ display: "&4&lReaper"
 description: "Embrace the essence of death and fate while wearing the set."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&4&lREAPER SET BONUS"
     - "&4* Deal 30% more damage to all enemies"
     - "&4* Enemies deal 15% less damage to you"
@@ -19,6 +23,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&4&lDeathbringer&r"
   lore:

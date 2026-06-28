@@ -12,7 +12,20 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class SuppressionStore {
 
+    /** Notified whenever a player is freshly suppressed, so a maintained-buff driver can drop the affected
+     *  effects immediately (instant DISABLE) and schedule their restore at the window's end. */
+    @FunctionalInterface
+    public interface SuppressListener {
+        void onSuppress(UUID player, int durationTicks);
+    }
+
     private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
+    private volatile SuppressListener onSuppress = (player, durationTicks) -> { };
+
+    /** Install the listener invoked after each {@link #suppress} (composition root); {@code null} clears it. */
+    public void onSuppress(SuppressListener listener) {
+        this.onSuppress = listener == null ? (player, durationTicks) -> { } : listener;
+    }
 
     /**
      * Suppress packed scope key {@code id} for {@code durationTicks}, expiring at {@code nowTicks +
@@ -27,6 +40,7 @@ public final class SuppressionStore {
         long expiry = nowTicks + durationTicks;
         expiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
                 .merge(id, expiry, Math::max);
+        onSuppress.onSuppress(player, durationTicks); // instant drop + scheduled restore of maintained buffs
     }
 
     /**

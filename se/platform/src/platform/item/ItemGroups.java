@@ -50,6 +50,12 @@ public final class ItemGroups {
      * tokens. Callers append their own suffix (e.g. {@code " Enchantment"}). A cold-path display helper.
      */
     public static String kindsLabel(Collection<String> tokens) {
+        // Collapse common enumerated slot/type sets to one friendly category (order-independent), so an
+        // armour enchant reads "Armor" rather than "Boots, Leggings, Chestplate, & Helmet".
+        String grouped = groupedLabel(tokens);
+        if (grouped != null) {
+            return grouped;
+        }
         List<String> words = new ArrayList<>();
         if (tokens != null) {
             for (String token : tokens) {
@@ -74,6 +80,38 @@ public final class ItemGroups {
             out.append(words.get(i)).append(", ");
         }
         return out.append("& ").append(words.get(n - 1)).toString(); // Oxford comma before the final item
+    }
+
+    /** The four armour slots — when {@code applies-to} is exactly these, the label collapses to "Armor". */
+    private static final Set<String> ARMOR_SLOTS = Set.of("HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS");
+    /** Melee weapons — when exactly these, the label collapses to "Weapon". */
+    private static final Set<String> MELEE = Set.of("SWORD", "AXE");
+
+    /**
+     * A collapsed category label for a recognised enumerated token set, or {@code null} to fall back to the
+     * per-token serial join. Matches as a SET (order-independent): the four armour slots → "Armor",
+     * sword+axe → "Weapon", a lone fishing rod → "Rod".
+     */
+    private static String groupedLabel(Collection<String> tokens) {
+        if (tokens == null) {
+            return null;
+        }
+        Set<String> upper = new java.util.HashSet<>();
+        for (String token : tokens) {
+            if (token != null && !token.isBlank()) {
+                upper.add(token.trim().toUpperCase(java.util.Locale.ROOT));
+            }
+        }
+        if (upper.equals(ARMOR_SLOTS)) {
+            return "Armor";
+        }
+        if (upper.equals(MELEE)) {
+            return "Weapon";
+        }
+        if (upper.equals(Set.of("FISHING_ROD"))) {
+            return "Rod";
+        }
+        return null;
     }
 
     /** Title-case a token, turning {@code _} into spaces: {@code FISHING_ROD} → {@code "Fishing Rod"}. */

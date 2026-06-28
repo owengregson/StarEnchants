@@ -3,6 +3,9 @@ display: "&2&lFantasy"
 description: "Embark on epic adventures with the armaments of mythical heroes."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
     - "&2Embark on epic adventures with the Fantasy"
     - "&2set, armaments of mythical heroes"
@@ -21,6 +24,9 @@ armor:
   chance: 100
   effects: []
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&2&lArcane Blade&r"
   lore:

@@ -3,7 +3,11 @@ display: "&4&lDevil"
 description: "Command the inferno: shrug off damage and strike harder while wearing the set."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&4&lDEVIL SET BONUS"
     - "&4* Deal 25% more damage to all enemies"
     - "&4* Enemies deal 20% less damage to you"
@@ -19,6 +23,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&4&lDevil's Cleaver&r"
   lore:

@@ -20,10 +20,10 @@ final class SetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon");
     private static final Set<String> ARMOR_KEYS = Set.of(
-            "lore", "pieces", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown",
+            "lore", "enchants", "pieces", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown",
             "soul-cost", "condition", "effects");
     private static final Set<String> WEAPON_KEYS = Set.of(
-            "material", "name", "lore", "trigger", "disabled-worlds", "group", "repeat", "chance",
+            "material", "name", "lore", "enchants", "trigger", "disabled-worlds", "group", "repeat", "chance",
             "cooldown", "soul-cost", "condition", "effects");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name");
 
@@ -58,6 +58,7 @@ final class SetDefReader {
         }
         ContentParse.warnUnknownKeys(armor, ARMOR_KEYS, diags);
         List<String> armorLore = armor.stringList("lore");
+        java.util.Map<String, Integer> armorEnchants = readEnchants(armor, baseKey, diags);
         List<SetDef.Member> armorMembers = new ArrayList<>();
         List<String> appliesTo = new ArrayList<>();
         for (YamlNode.Entry entry : armor.entries("pieces")) {
@@ -87,12 +88,14 @@ final class SetDefReader {
 
         SetDef.Member weapon = null;
         List<String> weaponLore = List.of();
+        java.util.Map<String, Integer> weaponEnchants = java.util.Map.of();
         if (root.has("weapon")) {
             YamlNode weaponNode = root.child("weapon");
             ContentParse.warnUnknownKeys(weaponNode, WEAPON_KEYS, diags);
             String material = ContentParse.blankToNull(weaponNode.string("material"));
             String name = ContentParse.blankToNull(weaponNode.string("name"));
             weaponLore = weaponNode.stringList("lore");
+            weaponEnchants = readEnchants(weaponNode, baseKey, diags);
             if (material == null) {
                 diags.error("load.set.weapon", "the weapon of '" + baseKey + "' must declare a 'material'",
                         weaponNode.sourceOf("material"));
@@ -102,8 +105,35 @@ final class SetDefReader {
         }
 
         SetDef def = new SetDef(baseKey, display, description == null ? "" : description, null,
-                Math.max(0, complete), armorMembers, armorLore, weapon, weaponLore, appliesTo, fileSource);
+                Math.max(0, complete), armorMembers, armorLore, weapon, weaponLore, appliesTo,
+                armorEnchants, weaponEnchants, fileSource);
         return new Parsed(def, abilities);
+    }
+
+    /**
+     * Parse an {@code enchants:} block ({@code ref: level}) — the enchants a minted piece carries (§6.6). A
+     * {@code enchants/<id>} ref is a custom plugin enchant (referential integrity is checked library-wide in
+     * {@code LibraryLoader}); any other key is a vanilla enchant NAME resolved cross-version at mint. A
+     * non-numeric level warns and is skipped. Insertion order is preserved.
+     */
+    private static java.util.Map<String, Integer> readEnchants(YamlNode block, String setKey, Diagnostics diags) {
+        java.util.Map<String, Integer> out = new java.util.LinkedHashMap<>();
+        if (!block.has("enchants")) {
+            return out;
+        }
+        for (YamlNode.Entry entry : block.entries("enchants")) {
+            String raw = entry.value().scalar();
+            if (raw == null) {
+                continue;
+            }
+            try {
+                out.put(entry.key(), Integer.parseInt(raw.trim()));
+            } catch (NumberFormatException bad) {
+                diags.warning("W_SET_ENCHANT", "set '" + setKey + "' enchant '" + entry.key()
+                        + "' level is not a number: " + raw, entry.value().source());
+            }
+        }
+        return out;
     }
 
     private static AbilityDef ability(String stableKey, YamlNode node, int setPieces, Source fileSource,

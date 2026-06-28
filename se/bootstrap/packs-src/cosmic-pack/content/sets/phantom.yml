@@ -3,7 +3,11 @@ display: "&c&lPhantom"
 description: "Move like a wraith and strike with spectral force while wearing the set."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&c&lPHANTOM SET BONUS"
     - "&c* Deal 25% more damage to all enemies"
     - "&c* Ghostly Rush Passive Ability"
@@ -20,6 +24,9 @@ armor:
     - { POTION: { effect: INCREASE_DAMAGE, level: 1, duration: 100, who: "@Self" } }
     - { POTION: { effect: FAST_DIGGING, level: 2, duration: 100, who: "@Self" } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&c&lGhastly Scythe&r"
   lore:

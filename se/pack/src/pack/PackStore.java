@@ -25,6 +25,13 @@ public final class PackStore {
     private static final String EXTENSION = ".zip";
     private static final String STAGING = ".pack-staging";
 
+    /**
+     * Marker file naming the currently-applied pack. A dotfile outside {@link PackSurface} (so {@code clear}
+     * /{@code promote}/{@code collect} never touch it), it survives restarts so startup knows a pack owns the
+     * config surface and must NOT re-extract the bundled defaults over it (ADR-0023; the restart-reverts bug).
+     */
+    public static final String ACTIVE_MARKER = ".active-pack";
+
     private final Path dataRoot;
     private final Path packsDir;
 
@@ -138,7 +145,29 @@ public final class PackStore {
         PackSurface.promote(staging, dataRoot);
         PackSurface.deleteRecursively(staging);
 
+        // Record which pack now owns the surface so a restart re-uses it instead of re-laying the defaults.
+        Files.writeString(dataRoot.resolve(ACTIVE_MARKER), name);
+
         return new ApplyResult(pack.manifest(), pack.files().size(), backupName, skipped);
+    }
+
+    /** The name of the pack currently applied over the config surface, or empty if the live config is the bundled default. */
+    public Optional<String> activePack() {
+        return activePack(dataRoot);
+    }
+
+    /** Static form for the composition root, read before {@link PackStore} is constructed. */
+    public static Optional<String> activePack(Path dataRoot) {
+        Path marker = dataRoot.resolve(ACTIVE_MARKER);
+        if (!Files.isRegularFile(marker)) {
+            return Optional.empty();
+        }
+        try {
+            String name = Files.readString(marker).trim();
+            return name.isEmpty() ? Optional.empty() : Optional.of(name);
+        } catch (IOException unreadable) {
+            return Optional.empty();
+        }
     }
 
     private Path packFile(String name) {

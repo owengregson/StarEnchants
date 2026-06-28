@@ -3,7 +3,11 @@ display: "&9&lThor"
 description: "Wield the thunderous might of Thor, forged in the heart of storms."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&9&lTHOR SET BONUS"
     - "&9* Deal 25% more damage to all enemies"
     - "&9* Enemies deal 15% less damage to you"
@@ -19,6 +23,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_AXE
   name: "&9&lMjolnir&r"
   lore:

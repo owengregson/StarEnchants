@@ -34,7 +34,7 @@ public final class LoreRenderer {
         /** The weapon's own lore for {@code setKey} (empty if none / unknown). */
         List<String> weapon(String setKey);
 
-        /** A lookup that renders no member lore (the generic "(Set)" marker still shows). */
+        /** A lookup that renders no member lore at all. */
         SetLore NONE = new SetLore() {
             @Override public List<String> armor(String setKey) {
                 return List.of();
@@ -105,19 +105,17 @@ public final class LoreRenderer {
             out.add(Colors.translate("&6&lHEROIC")); // §F heroic-piece marker
         }
         if (state.setKey() != null) {
-            // Armour member: shared armour lore, then the set marker (§6.6).
+            // Armour member: the set's shared armour lore (§6.6). No auto "(Set)" marker — the authored
+            // lore carries the SET BONUS block that names the set.
             for (String line : setLore.armor(state.setKey())) {
                 out.add(Colors.translate(line));
             }
-            out.add(Colors.translate("&b" + nameOr(state.setKey(), style)
-                    + (state.omni() ? " &d(Omni Set)" : " &7(Set)")));
         }
         if (state.setWeaponKey() != null) {
-            // Weapon member: its own lore, then a weapon marker naming its set (§6.6).
+            // Weapon member: the set weapon's own authored lore (§6.6). No auto "(Set Weapon)" marker.
             for (String line : setLore.weapon(state.setWeaponKey())) {
                 out.add(Colors.translate(line));
             }
-            out.add(Colors.translate("&b" + nameOr(state.setWeaponKey(), style) + " &7(Set Weapon)"));
         }
         return out;
     }

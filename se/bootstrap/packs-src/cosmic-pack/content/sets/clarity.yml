@@ -3,7 +3,11 @@ display: "&d&lClarity"
 description: "Shine with the pure light of the Clarity set."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
+    - ""
     - "&d&lCLARITY SET BONUS"
     - "&d* Deal 15% more damage to all enemies"
     - "&d* Enemies deal 5% less damage to you"
@@ -19,6 +23,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&d&lRadiant Blade&r"
   lore:

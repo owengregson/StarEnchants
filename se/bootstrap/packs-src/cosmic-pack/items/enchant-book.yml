@@ -24,8 +24,9 @@ lore:
   - ""
   - "&7{KINDS} Enchantment"
   - "&7Drag n' Drop on an item to apply."
-# Word-wrap width (visible chars) for {DESCRIPTION}. Set 0 to disable wrapping.
-wrap: 30
+# Word-wrap width (visible chars) for {DESCRIPTION}. The leading prose paragraph reflows to this width
+# (with lone-last-word avoidance); per-level stat lines below the blank stay verbatim. Set 0 to disable.
+wrap: 40
 # The success/failure rate now lives in the main lore above, so success-lore is empty by default. Lines here
 # are appended only to a book minted with an explicit success chance (the unopened/randomized book).
 success-lore: []

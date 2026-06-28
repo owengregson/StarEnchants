@@ -3,6 +3,9 @@ display: "&b&lYeti"
 description: "Harness the frost of the highest peaks to hit harder and take less."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
     - "&bHarness the chilling might of the Yeti set,"
     - "&bgarments imbued with the frost of"
@@ -23,6 +26,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_AXE
   name: "&b&lFrozen Mace&r"
   lore:

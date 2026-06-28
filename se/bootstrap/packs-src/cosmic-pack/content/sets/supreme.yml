@@ -3,6 +3,9 @@ display: "&4&lSupreme"
 description: "Don royal threads of unmatched grandeur to reduce damage taken and strike harder."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
     - "&4Step into the realm of royalty with the"
     - "&4Supreme set, garments woven with threads"
@@ -22,6 +25,9 @@ armor:
   effects:
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&4&lSizable Scepter&r"
   lore:

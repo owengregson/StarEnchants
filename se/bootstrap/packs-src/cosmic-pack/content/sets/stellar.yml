@@ -3,6 +3,9 @@ display: "&5&lStellar"
 description: "Harness the cosmos to outmaneuver any foe while wearing the set."
 complete: 4
 armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
   lore:
     - "&5Harness the power of the cosmos with the"
     - "&5Stellar Set, transcending space and time"
@@ -23,6 +26,9 @@ armor:
     - { POTION: { effect: ABSORPTION, level: 5, duration: 100, who: "@Self" } }
     - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
 weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
   material: DIAMOND_SWORD
   name: "&5&lRift Blade&r"
   lore:

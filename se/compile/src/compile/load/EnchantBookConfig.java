@@ -48,6 +48,6 @@ public record EnchantBookConfig(String material, String name, List<String> lore,
                         "&7Drag n' Drop on an item to apply."),
                 List.of(),
                 false,
-                30);
+                40);
     }
 }

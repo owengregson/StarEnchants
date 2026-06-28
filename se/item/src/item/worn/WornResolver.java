@@ -73,10 +73,33 @@ public final class WornResolver {
             return WornState.empty(snapshot.generation());
         }
         List<CombatState> combats = new ArrayList<>();
-        for (ItemStack piece : gear) { // armour + held; entries may be null (empty slots) → skipped
+        for (int slot = 0; slot < gear.length; slot++) { // 0-3 armour, 4+ hands (EquipSource contract)
+            ItemStack piece = gear[slot];
+            // A held armour piece is NOT equipped, so none of its bonuses (passive effects, combat enchants,
+            // set membership) apply — only armour worn in its slot counts. Non-armour held items (weapons,
+            // tools, shields, the set weapon) keep working while held.
+            if (slot >= ARMOR_SLOTS && isArmorMaterial(piece)) {
+                continue;
+            }
             addCombat(piece, combats);
         }
         return resolveFrom(combats, snapshot.stableKeys(), snapshot.abilities(), snapshot.generation());
+    }
+
+    /** Equipment-array index where the hand slots begin; indices below this are the four armour slots. */
+    private static final int ARMOR_SLOTS = 4;
+
+    /** Whether {@code stack} is a wearable armour piece, by material NAME (cross-version) — a held one is ignored. */
+    private static boolean isArmorMaterial(ItemStack stack) {
+        if (stack == null) {
+            return false;
+        }
+        String name = stack.getType().name();
+        return name.endsWith("_HELMET")     // leather/chain/iron/gold/diamond/netherite/turtle helmets
+                || name.endsWith("_CHESTPLATE")
+                || name.endsWith("_LEGGINGS")
+                || name.endsWith("_BOOTS")
+                || name.equals("ELYTRA");
     }
 
     private void addCombat(ItemStack stack, List<CombatState> out) {

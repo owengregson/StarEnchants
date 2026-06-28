@@ -104,6 +104,7 @@ public final class LibraryLoader {
             defs.addAll(parsed.abilities());
         }
         validateRelationships(catalog, diags); // §G: requires/blacklist must name existing enchants
+        validateSetEnchants(sets, catalog, diags); // §6.6: a set's custom enchant refs must exist (in range)
         Snapshot snapshot = compiler.compile(defs, generation, diags);
         return new Library(snapshot, catalog, crystals, sets, tiers, diags.all());
     }
@@ -133,6 +134,44 @@ public final class LibraryLoader {
                             "enchant '" + def.key() + "' blacklists unknown enchant '" + black + "'",
                             def.source(), "the blacklist: key must name an existing enchant");
                 }
+            }
+        }
+    }
+
+    /**
+     * Whole-library check (§6.6) that every set's CUSTOM enchant ref ({@code enchants/<id>}) names an existing
+     * enchant at a valid level. Vanilla enchant names (any key without the {@code enchants/} prefix) are
+     * resolved cross-version at mint and skip-on-miss, so they are not checked here. Mirrors
+     * {@link #validateRelationships}: a typo'd custom ref would otherwise silently mint a piece missing its
+     * enchant. Must run after the catalog is fully built.
+     */
+    private static void validateSetEnchants(List<SetDef> sets, List<EnchantDef> catalog, Diagnostics diags) {
+        java.util.Map<String, EnchantDef> byKey = new java.util.HashMap<>();
+        for (EnchantDef def : catalog) {
+            byKey.put(def.key(), def);
+        }
+        for (SetDef set : sets) {
+            checkSetEnchantRefs(set, set.armorEnchants(), byKey, diags);
+            checkSetEnchantRefs(set, set.weaponEnchants(), byKey, diags);
+        }
+    }
+
+    private static void checkSetEnchantRefs(SetDef set, java.util.Map<String, Integer> enchants,
+            java.util.Map<String, EnchantDef> byKey, Diagnostics diags) {
+        for (java.util.Map.Entry<String, Integer> entry : enchants.entrySet()) {
+            String ref = entry.getKey();
+            if (!ref.startsWith("enchants/")) {
+                continue; // a vanilla enchant name — resolved at mint, not a library reference
+            }
+            EnchantDef def = byKey.get(ref);
+            if (def == null) {
+                diags.error("E_SET_ENCHANT_UNKNOWN",
+                        "set '" + set.key() + "' applies unknown custom enchant '" + ref + "'",
+                        set.source(), "the enchants: key must name an existing enchant (enchants/<id>) or a vanilla enchant name");
+            } else if (entry.getValue() < 1 || entry.getValue() > def.maxLevel()) {
+                diags.error("E_SET_ENCHANT_LEVEL",
+                        "set '" + set.key() + "' applies '" + ref + "' at level " + entry.getValue()
+                                + " (valid 1.." + def.maxLevel() + ")", set.source());
             }
         }
     }
