@@ -9,9 +9,8 @@ material: MAP
 name: "&6&lHoly White Scroll"
 # Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
-  - "&7Apply this to an item to protect it from being lost when you die."
-  - ""
-  - "&7The marked item is kept on death — consumed once it saves you."
+  - "&eA legendary item that protects an item from being lost from the inventory upon death. This scroll will be consumed and removed from the item upon death."
+  - "&7Drag n' Drop on an item to apply."
 # Each apply rolls a success in [min-success, max-success] (each 0–100). On a failed roll the scroll is spent
 # without protecting (it never destroys gear). 100/100 = always succeeds.
 min-success: 100

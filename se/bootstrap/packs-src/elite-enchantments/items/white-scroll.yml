@@ -8,10 +8,11 @@ type: white-scroll
 material: PAPER
 name: "&f&lWhite Scroll"
 lore:
-  - "&a{SUCCESS}% &7Success Rate"
-  - "&c{FAILURE}% &7Failure Rate"
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
   - ""
-  - "&7Protects an item — a failed enchant will spare it once instead of destroying it."
+  - "&eProtects an item from being destroyed due to a failed Enchantment Book. This scroll will be consumed and removed from the item when an enchant fails."
+  - "&7Drag n' Drop on an item to apply."
 # Each minted scroll rolls an apply-success % in [min-success, max-success]; on a failed roll the scroll is
 # consumed WITHOUT protecting (it never destroys the gear). 100/100 = always succeeds.
 min-success: 100

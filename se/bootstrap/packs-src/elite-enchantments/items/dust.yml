@@ -10,7 +10,8 @@ material: SUGAR
 # at config lore.item-wrap.
 name: "&f&lMagic Dust [&r&a&n+{BONUS}%&r&f&l]"
 lore:
-  - "&7Increases the success rate of any enchantment book by &a{BONUS}%&7, up to a maximum of &a{MAXSUCCESS}%&7."
+  - "&eIncreases the success rate of any enchantment book by {BONUS}%, up to a maximum of {MAXSUCCESS}%."
+  - "&7Drag n' Drop on an item to apply."
 # A normal dust rolls a RANDOM bonus in [min-bonus, max-bonus] (each 0–100) when combined onto a book.
 min-bonus: 10
 max-bonus: 25

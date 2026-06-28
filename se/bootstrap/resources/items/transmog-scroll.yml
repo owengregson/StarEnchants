@@ -5,11 +5,12 @@
 # hand-picked order, use the Godly Transmog tool. One physical item per file; reload with /se reload.
 type: transmog-scroll
 
-material: PURPLE_DYE
-name: "&5Transmog Scroll"
+material: PAPER
+name: "&c&lTransmog Scroll"
+# Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
-  - "&7Drag onto enchanted gear to"
-  - "&7sort its enchants by rarity."
+  - "&eOrganizes enchants by &f&nrarity&r&7 on your item and adds the &denchant &bcount &7to the name."
+  - "&7Drag n' Drop on an item to apply."
 # Appended to the gear's display name when transmogged; {COUNT} = the item's total enchant count.
 # A re-transmog strips a prior suffix matching this template and re-stamps, so the count never duplicates.
 name-suffix: "&r &d[&b&l&n{COUNT}&r&d]"

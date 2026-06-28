@@ -7,13 +7,13 @@ type: black-scroll
 
 material: INK_SAC
 name: "&8&lBlack Scroll"
-# {SUCCESS} = the drawn book's rolled success rate, {FAILURE} = its complement. Lines auto-wrap at
-# config lore.item-wrap.
+# {SUCCESS} = the drawn book's rolled success rate. Lines auto-wrap at config lore.item-wrap.
 lore:
   - ""
   - "&6=> {SUCCESS}% Success Rate"
   - ""
-  - "&7Extracts a random enchant from your gear into a book at the success rate above."
+  - "&eRemoves a random enchantment from your item and returns it to your inventory with the specified success rate."
+  - "&7Drag n' Drop on an item to apply."
 # The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100), then clamped to the
 # global books.max-success ceiling.
 min-convert: 50
