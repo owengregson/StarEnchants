@@ -8,7 +8,7 @@
 
 ## Context
 
-The shipped `elite-enchantments` pack (ADR-0023) left ~121 Cosmic Enchants-style effect occurrences as honest `# TODO` lines —
+The shipped `cosmic-pack` pack (ADR-0023) left ~121 Cosmic Enchants-style effect occurrences as honest `# TODO` lines —
 mechanics the migrator could not translate because StarEnchants had no equivalent primitive. The owner asked
 to replicate every one faithfully, creating new engine primitives where genuinely needed (analyzing a
 Cosmic Enchants-style reference to learn what each does, never inventing). Reviewing that reference split them into three groups:

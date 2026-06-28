@@ -1,4 +1,4 @@
-# Enchantment Slot Orb — the Elite-Enchantments LIKENESS (docs/v3-directives.md §H). Drag onto gear to raise
+# Enchantment Slot Orb — the Cosmic Pack likeness (docs/v3-directives.md §H). Drag onto gear to raise
 # its enchant-slot count by +orb-amount, clamped to a universal maximum TOTAL slots (base + added) = hard-cap.
 # Placeholders: {AMOUNT} = the orb's +N, {SUCCESS}/{FAILURE} = its rolled apply odds, {MAX} = hard-cap. Only
 # the name/lore differ from the default item; the mechanic is global. Lore auto-wraps at config lore.item-wrap.

@@ -1,4 +1,4 @@
-# Holy White Scroll — the Elite-Enchantments LIKENESS (docs/v3-directives.md §I). Drag onto a piece of gear
+# Holy White Scroll — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto a piece of gear
 # to APPLY a one-shot keep-on-death marker to THAT item; when you die the marked item is kept and the marker
 # consumed. An item holds only ONE applied item at a time (holy white scroll / white scroll / blocktrak /
 # mobtrak / soultrak). Only the name/lore/material differ from the default item; the mechanic is global.

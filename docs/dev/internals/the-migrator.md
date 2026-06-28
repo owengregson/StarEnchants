@@ -236,7 +236,7 @@ int written = result.writeTo(migrationTarget);
 The output is written to `<dataFolder>/migrated/` — **not** the live config — so
 an operator reviews the result and resolves every `# TODO` before promoting it.
 A finished port can then be packaged as a swappable config pack (the bundled
-`elite-enchantments` pack is exactly this: the full EE library run through the
+`cosmic-pack` pack is exactly this: the full EE library run through the
 extended migrator — see [config-packs.md](config-packs.md)).
 
 ## Gotchas

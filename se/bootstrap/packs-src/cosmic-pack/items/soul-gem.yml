@@ -2,7 +2,7 @@
 # (souls-per-kill, optionally per-mob) regardless of soul mode; soul mode is the "spend switch" that lets
 # soul-cost enchants and the REMOVE_SOULS effect consume them. Drag one gem onto another to combine (their
 # souls sum into a new gem); /splitsouls <amount> (alias of /se split) carves souls into a new gem.
-# This is the Elite-Enchantments LIKENESS: the live soul count rides in the NAME. Everything below the
+# This is the Cosmic Pack likeness: the live soul count rides in the NAME. Everything below the
 # name/lore is the global mechanic (identical to the default item); reload with /se reload.
 type: soul-gem
 material: EMERALD

@@ -24,7 +24,7 @@ import schema.spec.ParamSpec;
 
 /**
  * One-off generator (NOT a CI test) that bootstraps the EliteEnchantments → StarEnchants enchant port for
- * the {@code elite-enchantments} config pack (ADR-0023). Disabled unless {@code -Dse.eeport.run=true}.
+ * the {@code cosmic-pack} config pack (ADR-0023). Disabled unless {@code -Dse.eeport.run=true}.
  *
  * <pre>
  *   ./gradlew :migrate:test --tests "*EePortGenerator" -Dse.eeport.run=true \

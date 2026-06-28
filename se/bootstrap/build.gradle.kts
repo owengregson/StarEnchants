@@ -41,9 +41,9 @@ sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/
 // zip via packs/index.txt; /se pack apply swaps it over the live config. Add a pack by registering a
 // Zip task here and listing its archive in resources/packs/index.txt. Reproducible (sorted entries,
 // zeroed timestamps) so a given source tree yields a byte-identical archive.
-val packEliteEnchantments by tasks.registering(Zip::class) {
-    from(layout.projectDirectory.dir("packs-src/elite-enchantments"))
-    archiveFileName.set("elite-enchantments.zip")
+val packCosmicPack by tasks.registering(Zip::class) {
+    from(layout.projectDirectory.dir("packs-src/cosmic-pack"))
+    archiveFileName.set("cosmic-pack.zip")
     destinationDirectory.set(layout.buildDirectory.dir("generated-packs"))
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
@@ -101,7 +101,7 @@ tasks.named<ProcessResources>("processResources") {
     filesMatching("plugin.yml") {
         expand("version" to pluginVersion)
     }
-    from(packEliteEnchantments) {
+    from(packCosmicPack) {
         into("packs")
     }
 }

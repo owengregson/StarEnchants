@@ -1,4 +1,4 @@
-# Item Nametag — the Elite-Enchantments LIKENESS (docs/v3-directives.md §I). Drag onto gear to rename it: on
+# Item Nametag — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto gear to rename it: on
 # modern servers an anvil GUI opens to type the new name (legacy & colour codes are parsed); the 1.8.9 fork
 # falls back to chat. A name is rejected if it contains a blacklisted word. Only the name/lore differ from the
 # default item; the mechanic is global. reload with /se reload.

@@ -1,4 +1,4 @@
-# Transmog Scroll — the Elite-Enchantments LIKENESS (docs/v3-directives.md §I). Drag onto enchanted gear to
+# Transmog Scroll — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto enchanted gear to
 # ORGANISE its enchants by rarity and stamp the enchant count into the name. Real Minecraft enchants render
 # above the lore by the client (so they sit on top); custom enchants sort highest-weight tier first.
 # Re-applicable — a second apply re-sorts and REPLACES the count (never stacks it). Only the name/lore/material
