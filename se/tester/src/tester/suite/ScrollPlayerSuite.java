@@ -3,8 +3,11 @@ package tester.suite;
 import compile.load.ScrollsConfig;
 import feature.scroll.HolyScrollService;
 import feature.scroll.NametagService;
+import feature.scroll.ScrollResult;
+import item.codec.AppliedSlot;
 import item.codec.ItemKeys;
 import item.codec.ScrollCodec;
+import java.util.List;
 import java.util.Random;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,14 +21,14 @@ import tester.fake.FakePlayers;
 import tester.harness.Harness;
 
 /**
- * §I player-bound scrolls needing a real {@link Player} inventory: holy-scroll death-save, and item nametag
+ * §I player-bound scrolls needing a real {@link Player} inventory: holy-scroll apply + death-keep, and nametag
  * that re-locates its target by IDENTITY (survives the item moving between click and chat line), refunds a
  * cancelled rename, refuses a second concurrent one. Fake player; assertions on its own region thread.
  */
 public final class ScrollPlayerSuite implements Harness.Scenario {
 
     private static final String[] KEYS = {
-        "scroll.holy.savesAndConsumes", "scroll.holy.noScrollNoSave",
+        "scroll.holy.appliesAndOccupiesSlot", "scroll.holy.keepsMarkedItemOnDeath",
         "scroll.nametag.renamesByIdentity", "scroll.nametag.rejectsDoubleBegin", "scroll.nametag.refundsOnCancel",
     };
 
@@ -43,7 +46,8 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
 
         ItemKeys keys = ItemKeys.of();
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
-        HolyScrollService holy = new HolyScrollService(scrollCodec, ScrollsConfig::defaults, new Random(1)); // 100%
+        AppliedSlot slot = new AppliedSlot(keys.appliedSlot());
+        HolyScrollService holy = new HolyScrollService(scrollCodec, slot, ScrollsConfig::defaults, new Random(1)); // 100%
         NametagService nametags = new NametagService(scrollCodec, ScrollsConfig::defaults);
 
         World world = plugin.getServer().getWorlds().get(0);
@@ -65,22 +69,35 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
                     try {
                         player.getInventory().clear();
 
-                        h.guard("scroll.holy.savesAndConsumes", () -> {
-                            player.getInventory().clear();
-                            player.getInventory().addItem(holy.mint());
-                            String saved = holy.trySave(player); // default 100% → always saves
-                            if (saved == null) {
-                                throw new IllegalStateException("holy scroll did not save at 100% chance");
+                        h.guard("scroll.holy.appliesAndOccupiesSlot", () -> {
+                            ItemStack scroll = holy.mint();
+                            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+                            ScrollResult result = holy.applyTo(scroll, sword); // default 100% → always applies
+                            if (!result.commit()) {
+                                throw new IllegalStateException("holy apply did not commit at 100%: " + result);
                             }
-                            if (countHoly(holy, player) != 0) {
-                                throw new IllegalStateException("the holy scroll was not consumed on the save");
+                            if (scroll.getAmount() != 0) {
+                                throw new IllegalStateException("the holy scroll was not consumed on apply");
+                            }
+                            if (!slot.holds(sword, AppliedSlot.HOLY)) {
+                                throw new IllegalStateException("the sword's applied-slot is not HOLY after apply");
                             }
                         });
 
-                        h.guard("scroll.holy.noScrollNoSave", () -> {
-                            player.getInventory().clear();
-                            if (holy.trySave(player) != null) {
-                                throw new IllegalStateException("a player with no holy scroll must not be saved");
+                        h.guard("scroll.holy.keepsMarkedItemOnDeath", () -> {
+                            ItemStack marked = new ItemStack(Material.DIAMOND_CHESTPLATE);
+                            slot.occupy(marked, AppliedSlot.HOLY);
+                            ItemStack plain = new ItemStack(Material.DIRT);
+                            List<ItemStack> drops = new java.util.ArrayList<>(List.of(marked, plain));
+                            List<ItemStack> kept = holy.keepFromDrops(drops);
+                            if (kept.size() != 1 || kept.get(0).getType() != Material.DIAMOND_CHESTPLATE) {
+                                throw new IllegalStateException("the marked item was not kept: " + kept);
+                            }
+                            if (drops.contains(marked)) {
+                                throw new IllegalStateException("the kept item was not removed from drops");
+                            }
+                            if (slot.holds(kept.get(0), AppliedSlot.HOLY)) {
+                                throw new IllegalStateException("the keep marker was not consumed on death");
                             }
                         });
 
@@ -137,16 +154,6 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
                 });
             });
         });
-    }
-
-    private static int countHoly(HolyScrollService holy, Player player) {
-        int n = 0;
-        for (ItemStack stack : player.getInventory().getContents()) {
-            if (stack != null && holy.isHolyScroll(stack)) {
-                n += stack.getAmount();
-            }
-        }
-        return n;
     }
 
     private static boolean hasNametag(NametagService nametags, Player player) {

@@ -58,15 +58,20 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
     }
 
     /**
-     * Held in inventory (incl. off-hand); on death, a {@code saveChance} roll keeps items + levels, consuming the scroll.
-     * Defers to an existing keepInventory gamerule, where it is neither needed nor spent.
+     * APPLIED to a piece of gear (§I): on a successful apply roll it stamps a one-shot keep-on-death marker on
+     * that item (occupying the exclusive applied-slot); on the owner's death the marked item is kept and the
+     * marker consumed. The apply rolls a success in {@code [minSuccess, maxSuccess]} — a failed roll spends the
+     * scroll without protecting (it never destroys gear). {@code 100/100} (the default) always succeeds.
      */
-    public record Holy(String material, String name, List<String> lore, int saveChance) {
+    public record Holy(String material, String name, List<String> lore, int minSuccess, int maxSuccess) {
         public Holy {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
             lore = List.copyOf(lore);
-            saveChance = Math.max(0, Math.min(100, saveChance));
+            int lo = Math.max(0, Math.min(100, minSuccess));
+            int hi = Math.max(0, Math.min(100, maxSuccess));
+            minSuccess = Math.min(lo, hi);
+            maxSuccess = Math.max(lo, hi);
         }
     }
 
@@ -111,7 +116,8 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                 new Holy(
                         "TOTEM_OF_UNDYING",
                         "&fHoly White Scroll",
-                        List.of("&7Keep your items if you die", "&7while carrying this (one use)."),
+                        List.of("&7Drag onto an item to keep", "&7it when you die (one use)."),
+                        100,
                         100),
                 new Nametag(
                         "NAME_TAG",

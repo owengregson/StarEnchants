@@ -15,15 +15,17 @@ class ScrollsConfigTest {
         assertTrue(d.black().minConvert() >= 0 && d.black().maxConvert() <= 100);
         assertTrue(d.black().minConvert() <= d.black().maxConvert());
         assertTrue(d.randomizer().minPercent() <= d.randomizer().maxPercent());
-        assertTrue(d.holy().saveChance() >= 0 && d.holy().saveChance() <= 100);
+        assertTrue(d.holy().minSuccess() >= 0 && d.holy().maxSuccess() <= 100);
+        assertTrue(d.holy().minSuccess() <= d.holy().maxSuccess());
         assertTrue(d.transmog().nameSuffix() != null);
         assertTrue(d.nametag().blacklist() != null);
     }
 
     @Test
-    void holySaveChanceIsClamped() {
-        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250);
-        assertEquals(100, h.saveChance(), "save chance clamped to 100");
+    void holySuccessRangeOrdersAndClamps() {
+        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250, -5);
+        assertEquals(0, h.minSuccess(), "min clamped to 0");
+        assertEquals(100, h.maxSuccess(), "max clamped to 100");
     }
 
     @Test
