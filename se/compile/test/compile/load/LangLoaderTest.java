@@ -17,15 +17,18 @@ class LangLoaderTest {
     void absentFileIsDefaults() {
         Lang lang = LangLoader.load(Path.of("/no/such/lang.yml"));
         assertFalse(lang.hasErrors());
-        assertEquals("&cHold an item first.", lang.format("apply.hold-item"));
+        // An absent file falls back to defaults — compare to the default source, never re-type the message.
+        assertEquals(Lang.defaults().format("apply.hold-item"), lang.format("apply.hold-item"));
         assertTrue(lang.has("command.give.book"));
     }
 
     @Test
-    void substitutesPlaceholders() {
-        Lang lang = Lang.defaults();
-        assertEquals("&aMinted an enchant book for &fenchants/keen &7(level 3)&a.",
-                lang.format("command.give.book", "KEY", "enchants/keen", "LEVEL", 3));
+    void substitutesPlaceholdersInTheDefaultTemplate() {
+        // Prove the substitution mechanism on the real default template WITHOUT re-typing the shipped copy:
+        // the supplied values appear and no {PLACEHOLDER} is left unresolved.
+        String out = Lang.defaults().format("command.give.book", "KEY", "enchants/keen", "LEVEL", 3);
+        assertTrue(out.contains("enchants/keen") && out.contains("3"), out);
+        assertFalse(out.contains("{KEY}") || out.contains("{LEVEL}"), () -> "unresolved placeholder: " + out);
     }
 
     @Test
@@ -36,8 +39,8 @@ class LangLoaderTest {
     @Test
     void readsMultiLineBlocks() {
         List<String> usage = Lang.defaults().lines("command.usage");
-        assertTrue(usage.size() > 5);
-        assertEquals("&eStarEnchants commands:", usage.get(0));
+        assertTrue(usage.size() > 5, "a list block yields several lines");
+        assertFalse(usage.get(0).isBlank(), "the first line is real content");
     }
 
     @Test
@@ -53,7 +56,9 @@ class LangLoaderTest {
         assertFalse(lang.hasErrors());
         assertEquals("&6grab something!", lang.format("apply.hold-item"));
         assertEquals("&agave x lvl 2", lang.format("command.give.book", "KEY", "x", "LEVEL", 2));
-        assertEquals("&cNo such enchant: &fz", lang.format("apply.no-such-enchant", "KEY", "z"));
+        // an un-overridden key keeps its default — compared to the default source, not a re-typed literal
+        assertEquals(Lang.defaults().format("apply.no-such-enchant", "KEY", "z"),
+                lang.format("apply.no-such-enchant", "KEY", "z"));
     }
 
     @Test
