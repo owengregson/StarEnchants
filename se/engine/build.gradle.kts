@@ -51,6 +51,10 @@ dependencies {
     // Mock-host effect tests: a mocked Sink + mocked entities verify a kind emits
     // the right intents, without a server (docs/architecture.md §1.3).
     testImplementation(libs.mockito.core)
+
+    // Shared fixtures: FakeEffectCtx (a real, strict EffectCtx that throws on an unset param) and
+    // SpecDrivenCtx, used by the collapsed effect-kind wiring tables in place of per-test ctx mocks.
+    testImplementation(project(":testfx"))
 }
 
 // `./gradlew regenDocs` runs the drift tests in regen mode; the engine half rewrites the DSL
