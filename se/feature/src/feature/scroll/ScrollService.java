@@ -167,7 +167,13 @@ public final class ScrollService {
         return ScrollResult.unchanged(null); // not a scroll this service owns (defensive)
     }
 
-    /** Transmog scroll: reorder {@code gear}'s enchant display order and append the configured name suffix. */
+    /**
+     * Transmog scroll: ORGANISE {@code gear}'s enchant display by rarity and stamp the enchant count into the
+     * name (§I redesign). Custom enchants are sorted by tier WEIGHT descending (highest rarity on top), so the
+     * lore reads top-down by rarity; vanilla Minecraft enchants render above the lore by the client, so they
+     * sit above the custom block ("real MC enchants on top"). The name gains a {@code (enchantcount)} suffix —
+     * re-applying replaces that suffix rather than stacking it. Consumable and re-applicable.
+     */
     @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
     private ScrollResult applyTransmog(ItemStack cursor, ItemStack gear) {
         ScrollsConfig.Transmog cfg = config.get().transmog();
@@ -181,20 +187,44 @@ public final class ScrollService {
         if (current.enchants().isEmpty()) {
             return ScrollResult.unchanged(messages.format("scroll.transmog.no-enchants"));
         }
-        // Cosmetic reorder — combat behaviour is order-independent.
-        List<Map.Entry<String, Integer>> entries = new ArrayList<>(current.enchants().entrySet());
-        java.util.Collections.shuffle(entries, random);
-        Map<String, Integer> reordered = new LinkedHashMap<>();
-        for (Map.Entry<String, Integer> e : entries) {
-            reordered.put(e.getKey(), e.getValue());
-        }
+        Map<String, Integer> reordered = sortedByTierWeight(current.enchants());
         CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
-                current.omni(), current.heroic(), current.added());
+                current.setWeaponKey(), current.omni(), current.heroic(), current.added());
         combat.write(gear, next);
         lore.apply(gear, next);
-        appendNameSuffix(gear, cfg.nameSuffix());
+        int count = current.enchants().size() + vanillaEnchantCount(gear); // custom + real MC enchants
+        applyCountName(gear, cfg.nameSuffix(), count);
         consume(cursor);
         return ScrollResult.committed(gear, null, messages.format("scroll.transmog.success"));
+    }
+
+    /** Order custom enchants by rarity-tier weight (highest first); ties broken by key for determinism. */
+    private Map<String, Integer> sortedByTierWeight(Map<String, Integer> enchants) {
+        List<Map.Entry<String, Integer>> entries = new ArrayList<>(enchants.entrySet());
+        entries.sort(java.util.Comparator
+                .comparingInt((Map.Entry<String, Integer> e) -> tierWeightOf(e.getKey())).reversed()
+                .thenComparing(Map.Entry::getKey));
+        Map<String, Integer> out = new LinkedHashMap<>();
+        for (Map.Entry<String, Integer> e : entries) {
+            out.put(e.getKey(), e.getValue());
+        }
+        return out;
+    }
+
+    /** The rarity-tier weight of an enchant key (0 for no/unknown tier). */
+    private int tierWeightOf(String enchantKey) {
+        String tier = content.library().tierOf(enchantKey);
+        if (tier == null) {
+            return 0;
+        }
+        compile.load.TierRegistry.Tier t = content.library().tiers().tier(tier);
+        return t == null ? 0 : t.weight();
+    }
+
+    @SuppressWarnings("deprecation") // getEnchants: the floor-stable item-meta path
+    private static int vanillaEnchantCount(ItemStack gear) {
+        org.bukkit.inventory.meta.ItemMeta meta = gear.getItemMeta();
+        return meta == null ? 0 : meta.getEnchants().size();
     }
 
     /**
@@ -209,7 +239,7 @@ public final class ScrollService {
         CombatState current = combat.read(gear);
         return reorderedEnchants(current.enchants(), orderedKeys).map(reordered -> {
             CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
-                    current.omni(), current.heroic(), current.added());
+                    current.setWeaponKey(), current.omni(), current.heroic(), current.added());
             combat.write(gear, next);
             lore.apply(gear, next);
             return true;
@@ -233,23 +263,41 @@ public final class ScrollService {
         return java.util.Optional.of(reordered);
     }
 
-    /** Append {@code suffix} to {@code gear}'s display name when it has one and is not already suffixed. */
+    /** The transmog name-count placeholder, substituted into the configured suffix template. */
+    private static final String COUNT_PLACEHOLDER = "(enchantcount)";
+
+    /**
+     * Stamp the enchant {@code count} into {@code gear}'s name via the configured suffix template (default
+     * {@code &r &d[&b&l&n(enchantcount)&r&d]}): strip any previously-applied count suffix first so re-applying
+     * REPLACES it rather than stacking. An item with no custom name gets the bare suffix.
+     */
     @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
-    private static void appendNameSuffix(ItemStack gear, String suffix) {
-        String translated = ItemFactory.color(suffix);
-        if (translated.isEmpty()) {
+    private static void applyCountName(ItemStack gear, String suffixTemplate, int count) {
+        org.bukkit.inventory.meta.ItemMeta meta = gear.getItemMeta();
+        if (meta == null) {
             return;
         }
-        org.bukkit.inventory.meta.ItemMeta meta = gear.getItemMeta();
-        if (meta == null || !meta.hasDisplayName()) {
-            return; // no custom name to append to — leave the vanilla name untouched (cross-version-safe)
-        }
-        String name = meta.getDisplayName();
-        if (name.endsWith(translated)) {
-            return; // already transmogged — don't stack suffixes
-        }
-        meta.setDisplayName(name + translated);
+        String base = meta.hasDisplayName() ? stripCountSuffix(meta.getDisplayName(), suffixTemplate) : "";
+        String suffix = ItemFactory.color(suffixTemplate.replace(COUNT_PLACEHOLDER, Integer.toString(count)));
+        meta.setDisplayName(base + suffix);
         gear.setItemMeta(meta);
+    }
+
+    /**
+     * Strip a previously-applied count suffix from {@code name} (so a re-transmog replaces it). Builds a regex
+     * from the translated suffix template with the count region as {@code \d+}, anchored to the end; if the
+     * template carries no placeholder there is nothing to strip.
+     */
+    private static String stripCountSuffix(String name, String suffixTemplate) {
+        String sentinel = "\u0000"; // never appears in a name -> marks the count slot
+        String translated = ItemFactory.color(suffixTemplate.replace(COUNT_PLACEHOLDER, sentinel));
+        int idx = translated.indexOf(sentinel);
+        if (idx < 0) {
+            return name;
+        }
+        String regex = java.util.regex.Pattern.quote(translated.substring(0, idx))
+                + "\\d+" + java.util.regex.Pattern.quote(translated.substring(idx + sentinel.length())) + "$";
+        return name.replaceAll(regex, "");
     }
 
     /**
