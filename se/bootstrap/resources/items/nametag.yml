@@ -1,13 +1,14 @@
-# Item Nametag (docs/v3-directives.md §I) — drag onto gear, then type the new name in chat; the name is
-# rejected if it contains a blacklisted word (matched case-insensitively as a substring of the colour-
-# stripped name). One physical item per file; reload with /se reload. Result messages live in lang.yml
-# (scroll.nametag.*).
+# Item Nametag (docs/v3-directives.md §I) — drag onto gear to rename it. On modern servers this opens an
+# anvil GUI to type the new name (legacy & colour codes are parsed); the 1.8.9 fork falls back to typing the
+# name in chat. The name is rejected if it contains a blacklisted word (matched case-insensitively as a
+# substring of the colour-stripped name). One physical item per file; reload with /se reload. Result messages
+# live in lang.yml (scroll.nametag.*).
 type: nametag
 
 material: NAME_TAG
 name: "&bItem Nametag"
 lore:
-  - "&7Drag onto gear, then type the"
-  - "&7new name in chat."
+  - "&7Drag onto gear to rename it"
+  - "&7(& colour codes work)."
 # Words a renamed item may not contain (case-insensitive substring match). Empty = allow any name.
 blacklist: []

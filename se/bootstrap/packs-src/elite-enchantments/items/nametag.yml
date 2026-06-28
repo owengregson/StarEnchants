@@ -1,13 +1,13 @@
-# Item Nametag (docs/v3-directives.md §I) — drag onto gear, then type the new name in chat; the name is
-# rejected if it contains a blacklisted word (matched case-insensitively as a substring of the colour-
-# stripped name). One physical item per file; reload with /se reload. Result messages live in lang.yml
-# (scroll.nametag.*).
+# Item Nametag — the Elite-Enchantments LIKENESS (docs/v3-directives.md §I). Drag onto gear to rename it: on
+# modern servers an anvil GUI opens to type the new name (legacy & colour codes are parsed); the 1.8.9 fork
+# falls back to chat. A name is rejected if it contains a blacklisted word. Only the name/lore differ from the
+# default item; the mechanic is global. reload with /se reload.
 type: nametag
 
 material: NAME_TAG
-name: "&bItem Nametag"
+name: "&6&lItem Nametag"
+# Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
-  - "&7Drag onto gear, then type the"
-  - "&7new name in chat."
+  - "&7Drag this onto an item to give it a custom name — & colour codes are applied automatically."
 # Words a renamed item may not contain (case-insensitive substring match). Empty = allow any name.
 blacklist: []

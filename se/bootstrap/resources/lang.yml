@@ -193,6 +193,7 @@ scroll.holy.occupied: "&cThat item already has another applied item — only one
 scroll.holy.fail: "&eThe holy scroll failed — the item is not protected."
 scroll.holy.kept: "&6Your holy-protected item(s) survived your death — &f{AMOUNT}&6 kept."
 scroll.nametag.prompt: "&7Type the new item name in chat (or 'cancel')."
+scroll.nametag.gui-title: "&8Rename — & colours work"
 scroll.nametag.renamed: "&aRenamed your item."
 scroll.nametag.blacklisted: "&cThat name contains a blacklisted word."
 scroll.nametag.cancelled: "&7Rename cancelled."
