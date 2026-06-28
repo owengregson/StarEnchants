@@ -11,12 +11,13 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 
 /**
  * Applies the {@code KEEP_ON_DEATH} flag (docs/v3-directives.md §C combat-flags): on a player death with a
- * live keep flag, retains items + levels and clears drops, mirroring {@link feature.scroll.HolyScrollListener}.
+ * live keep flag, retains the WHOLE inventory + levels and clears drops. Distinct from the holy white scroll
+ * ({@link feature.scroll.HolyScrollListener}), which keeps only the single item it was applied to.
  *
- * <p>Runs at {@code NORMAL}, before the scroll's {@code HIGH}: setting {@code keepInventory} here trips the
- * scroll's {@code getKeepInventory()} guard, so the free always-on enchant takes precedence over the
- * consumable (and the same guard makes an earlier keep a no-op). The flag is NOT consumed — the worn
- * REPEATING ability re-arms it each tick, so it keeps across deaths while worn.
+ * <p>Runs at {@code NORMAL}, before the holy scroll's {@code HIGH}: setting {@code keepInventory} here trips
+ * the scroll listener's {@code getKeepInventory()} guard, so this free always-on enchant takes precedence and
+ * a holy scroll is never spent on an already-kept death. The flag is NOT consumed — the worn REPEATING ability
+ * re-arms it each tick, so it keeps across deaths while worn.
  */
 public final class KeepOnDeathListener implements Listener {
 
@@ -37,7 +38,7 @@ public final class KeepOnDeathListener implements Listener {
         if (!store.shouldKeep(player.getUniqueId(), nowTicks.getAsLong())) {
             return;
         }
-        // keepInventory + cleared drops: retained, not duplicated. Mirrors the holy-scroll apply block.
+        // keepInventory + cleared drops: the whole inventory is retained, not duplicated.
         event.setKeepInventory(true);
         event.getDrops().clear();
         event.setKeepLevel(true);

@@ -1,14 +1,17 @@
-# Holy White Scroll (docs/v3-directives.md §I) — carry it (inventory or off-hand) and, on a death, with a
-# save-chance roll it KEEPS your items + levels (consumed on the saved death). Respects an existing
-# keepInventory gamerule (then it is neither needed nor spent). This is distinct from the White Scroll
-# (items/white-scroll.yml), which protects an item from enchant destruction. One physical item per file;
-# reload with /se reload. Result messages live in lang.yml (scroll.holy.*).
+# Holy White Scroll (docs/v3-directives.md §I) — drag it onto a piece of gear to APPLY a one-shot keep-on-
+# death marker to THAT item. When you die, the marked item is kept (the rest of your inventory drops as
+# normal) and the marker is consumed. An item can hold only ONE applied item at a time (holy white scroll /
+# white scroll / blocktrak / mobtrak / soultrak). This is distinct from the always-on KEEP_ON_DEATH enchant
+# (whole inventory) and from the White Scroll (enchant-destruction guard). One physical item per file;
+# reload with /se reload. Messages live in lang.yml (scroll.holy.*).
 type: holy-white-scroll
 
 material: TOTEM_OF_UNDYING
 name: "&fHoly White Scroll"
 lore:
-  - "&7Keep your items if you die"
-  - "&7while carrying this (one use)."
-# Chance (0–100) a death is survived (items + levels kept). 100 = always saves while carried.
-save-chance: 100
+  - "&7Drag onto an item to keep"
+  - "&7it when you die (one use)."
+# Each apply rolls a success in [min-success, max-success] (each 0–100). On a failed roll the scroll is spent
+# without protecting (it never destroys gear). 100/100 = always succeeds (the default — no behaviour change).
+min-success: 100
+max-success: 100

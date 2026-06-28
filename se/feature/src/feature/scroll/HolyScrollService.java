@@ -1,38 +1,46 @@
 package feature.scroll;
 
 import compile.load.ScrollsConfig;
-import feature.compat.Hands;
+import item.codec.AppliedSlot;
 import item.codec.ScrollCodec;
 import item.mint.ItemFactory;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 /**
- * Holy/death scroll (§I): carried (incl. off-hand), on death it has a chance to spare the player's
- * items + levels, consuming one scroll only on a saved death. The roll is injected for tests.
+ * Holy white scroll (§I): APPLIED to a piece of gear (drag onto it) — on a successful apply roll it stamps a
+ * one-shot keep-on-death marker (occupying that item's exclusive applied-slot, {@link AppliedSlot}); on the
+ * owner's death the marked item is kept and the marker consumed. This is per-ITEM, distinct from the
+ * always-on {@code KEEP_ON_DEATH} enchant flag (whole inventory, {@link feature.combat.KeepOnDeathListener}).
+ *
+ * <p>The apply rolls a success in the configured {@code [min, max]} range; a failed roll spends the scroll
+ * without protecting and never destroys the gear (only enchant books destroy). The roll is injected for tests.
  */
 public final class HolyScrollService {
 
     public static final String HOLY = "HOLY";
 
     private final ScrollCodec scrolls;
+    private final AppliedSlot slot;
     private final Supplier<ScrollsConfig> config;
     private final Random random;
     private final item.lang.Messages messages;
 
     /** Default-messages form (tests/fixtures). */
-    public HolyScrollService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, Random random) {
-        this(scrolls, config, random, item.lang.Messages.defaults());
+    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random) {
+        this(scrolls, slot, config, random, item.lang.Messages.defaults());
     }
 
-    public HolyScrollService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, Random random,
+    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
                              item.lang.Messages messages) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
+        this.slot = Objects.requireNonNull(slot, "slot");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
@@ -44,8 +52,8 @@ public final class HolyScrollService {
 
     public ItemStack mint() {
         ScrollsConfig.Holy cfg = config.get().holy();
-        // TOTEM_OF_UNDYING is absent on 1.8; resolve by name (== the enum literal on modern, null on 1.8)
-        // and fall back to a floor-stable material so the build() fallback is never null on legacy.
+        // The default material (TOTEM_OF_UNDYING) is absent on 1.8; resolve by name and fall back to a
+        // floor-stable material so the build fallback is never null on legacy.
         Material totem = Material.getMaterial("TOTEM_OF_UNDYING");
         ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), totem != null ? totem : Material.PAPER, cfg.name(), cfg.lore());
@@ -54,46 +62,59 @@ public final class HolyScrollService {
     }
 
     /**
-     * Attempt to save {@code player}: on a carried scroll + a winning roll, consume one and return the
-     * "saved" message; else {@code null} — nothing consumed, the death proceeds.
+     * Apply the holy scroll {@code cursor} onto {@code gear}: roll the configured success; on success occupy the
+     * gear's exclusive applied-slot with the keep marker and consume the scroll; on a failed roll consume the
+     * scroll without protecting. Refused (nothing consumed) if the target is invalid, already holy-protected, or
+     * its applied-slot is taken by a different item.
      */
-    public String trySave(Player player) {
+    public ScrollResult applyTo(ItemStack cursor, ItemStack gear) {
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ScrollResult.unchanged(messages.format("scroll.holy.apply-target"));
+        }
+        if (gear.getAmount() > 1) {
+            return ScrollResult.unchanged(messages.format("common.single-item"));
+        }
+        if (slot.holds(gear, AppliedSlot.HOLY)) {
+            return ScrollResult.unchanged(messages.format("scroll.holy.already"));
+        }
+        if (!slot.canApply(gear, AppliedSlot.HOLY)) {
+            return ScrollResult.unchanged(messages.format("scroll.holy.occupied"));
+        }
         ScrollsConfig.Holy cfg = config.get().holy();
-        PlayerInventory inv = player.getInventory();
-        int slot = findScrollSlot(player);
-        boolean offhand = slot < 0 && isHolyScroll(Hands.offHand(player));
-        if (slot < 0 && !offhand) {
-            return null; // no holy scroll carried
+        int span = cfg.maxSuccess() - cfg.minSuccess();
+        int success = span <= 0 ? cfg.minSuccess() : cfg.minSuccess() + random.nextInt(span + 1);
+        consume(cursor); // spent whether the roll succeeds or fails
+        if (random.nextInt(100) >= success) {
+            return ScrollResult.committed(gear, null, messages.format("scroll.holy.fail"));
         }
-        if (random.nextInt(100) >= cfg.saveChance()) {
-            return null; // the roll failed — the scroll is NOT consumed; the player dies normally
-        }
-        if (slot >= 0) {
-            consume(inv.getItem(slot), inv, slot);
-        } else {
-            ItemStack off = Hands.offHand(player);
-            off.setAmount(off.getAmount() - 1);
-            Hands.setOffHand(player, off.getAmount() <= 0 ? null : off);
-        }
-        return messages.format("scroll.holy.saved");
+        slot.occupy(gear, AppliedSlot.HOLY);
+        return ScrollResult.committed(gear, null, messages.format("scroll.holy.applied"));
     }
 
-    /** The first storage slot holding a holy scroll, or {@code -1} if none. */
-    private int findScrollSlot(Player player) {
-        ItemStack[] storage = Hands.storageContents(player);
-        for (int i = 0; i < storage.length; i++) {
-            if (isHolyScroll(storage[i])) {
-                return i;
+    /**
+     * Remove every holy-protected item from {@code drops}, clearing each one's keep marker (consumed on death),
+     * and return them so the caller can stash them for re-grant on respawn. Mutates {@code drops}.
+     */
+    public List<ItemStack> keepFromDrops(List<ItemStack> drops) {
+        List<ItemStack> kept = new ArrayList<>();
+        Iterator<ItemStack> it = drops.iterator();
+        while (it.hasNext()) {
+            ItemStack drop = it.next();
+            if (drop != null && slot.holds(drop, AppliedSlot.HOLY)) {
+                slot.release(drop); // the marker is consumed on this death
+                kept.add(drop);
+                it.remove();
             }
         }
-        return -1;
+        return kept;
     }
 
-    private static void consume(ItemStack stack, PlayerInventory inv, int slot) {
-        if (stack == null) {
-            return;
-        }
+    /** The death message for keeping {@code count} holy-protected item(s). */
+    public String keptMessage(int count) {
+        return messages.format("scroll.holy.kept", "AMOUNT", count);
+    }
+
+    private static void consume(ItemStack stack) {
         stack.setAmount(stack.getAmount() - 1);
-        inv.setItem(slot, stack.getAmount() <= 0 ? null : stack);
     }
 }

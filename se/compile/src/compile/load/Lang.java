@@ -244,7 +244,12 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("scroll.randomizer.single-book", "&cApply to a single book — split the stack first.");
         s.put("scroll.transmog.success", "&aReordered the enchant display.");
         s.put("scroll.transmog.no-enchants", "&cThat item has no enchants to transmog.");
-        s.put("scroll.holy.saved", "&fThe holy scroll shattered — your items were spared.");
+        s.put("scroll.holy.applied", "&6Holy protection applied — this item will survive your death once.");
+        s.put("scroll.holy.apply-target", "&cApply the holy white scroll onto an item.");
+        s.put("scroll.holy.already", "&7That item is already holy-protected.");
+        s.put("scroll.holy.occupied", "&cThat item already has another applied item — only one fits.");
+        s.put("scroll.holy.fail", "&eThe holy scroll failed — the item is not protected.");
+        s.put("scroll.holy.kept", "&6Your holy-protected item(s) survived your death — &f{AMOUNT}&6 kept.");
         s.put("scroll.nametag.prompt", "&7Type the new item name in chat (or 'cancel').");
         s.put("scroll.nametag.renamed", "&aRenamed your item.");
         s.put("scroll.nametag.blacklisted", "&cThat name contains a blacklisted word.");

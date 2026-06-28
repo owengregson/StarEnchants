@@ -265,6 +265,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert());
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
                 new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog());
+        // §I the single exclusive applied-utility slot, shared by white/holy scrolls and the trak gems.
+        item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
                 () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec);
 
@@ -274,8 +276,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().unopenedBookOrDefault(), new java.util.Random(), messages);
 
         // Survival + cosmetic scrolls (§I) — both share the 'scroll' PDC tag + scrolls config.
-        HolyScrollService holyScrolls = new HolyScrollService(scrollCodec,
+        HolyScrollService holyScrolls = new HolyScrollService(scrollCodec, appliedSlot,
                 () -> items.config().scrollsOrDefault(), new java.util.Random(), messages);
+        feature.scroll.KeptItemsStore keptItems = new feature.scroll.KeptItemsStore(); // §I holy death→respawn stash
         NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(), messages);
 
         // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
@@ -425,7 +428,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §L scrolls feature gate.
         if (features.scrolls()) {
             getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
-            getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls), this);
+            getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems), this);
             getServer().getPluginManager().registerEvents(new NametagListener(nametags), this);
         } else {
             getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");

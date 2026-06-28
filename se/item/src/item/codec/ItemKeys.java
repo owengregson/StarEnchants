@@ -23,11 +23,12 @@ public final class ItemKeys {
     private final String scrollConvert;
     private final String unopened;
     private final String godlyTransmog;
+    private final String appliedSlot;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
                      String slotItem, String slotSuccess, String scroll, String scrollConvert,
-                     String unopened, String godlyTransmog) {
+                     String unopened, String godlyTransmog, String appliedSlot) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -41,12 +42,13 @@ public final class ItemKeys {
         this.scrollConvert = scrollConvert;
         this.unopened = unopened;
         this.godlyTransmog = godlyTransmog;
+        this.appliedSlot = appliedSlot;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
-                "godlytransmog");
+                "godlytransmog", "appliedslot");
     }
 
     public String combat() {
@@ -105,5 +107,13 @@ public final class ItemKeys {
 
     public String godlyTransmog() {
         return godlyTransmog;
+    }
+
+    /**
+     * The single exclusive APPLIED-UTILITY slot (§I): an item may carry at most one of {white scroll, holy
+     * white scroll, blocktrak, mobtrak, soultrak} at a time. Stores the occupant's kind; see {@link AppliedSlot}.
+     */
+    public String appliedSlot() {
+        return appliedSlot;
     }
 }
