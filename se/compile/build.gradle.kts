@@ -12,6 +12,10 @@ dependencies {
     // The compose()/Node/Mark API used is stable across the server's SnakeYAML 1.x and 2.x.
     compileOnly("org.yaml:snakeyaml:2.2")
     testImplementation("org.yaml:snakeyaml:2.2")
+
+    // Shared compiler-shape builders (Defs) — replaces the per-stage-test def(...) helpers so an
+    // AbilityDef/LoweredAbility record-arity change is a one-place change.
+    testImplementation(project(":testfx"))
 }
 
 // PURE. The COMPILER: authored YAML+DSL → immutable validated Snapshot. Stays
