@@ -1,17 +1,40 @@
-# Testing architecture (target design)
+# Testing architecture
 
-> **Status: proposed — the north star for the test-suite overhaul.** This is the
-> design every test file is rewritten into. The execution plan that gets us here
-> is [testing-overhaul-plan.md](testing-overhaul-plan.md); the durable rules that
-> govern *new* features are [testing-rules.md](testing-rules.md); the evidence
-> behind every claim is [testing-audit-findings.md](testing-audit-findings.md).
->
-> **This document supersedes** the testing guidance previously spread across
-> `writing-a-live-test.md`, `verification-gate.md`, and the `matrix-gate` /
-> `live-server-testing` skills. Those were written for the old, per-instance
-> suite; where they conflict with this design, this design wins. They are folded
-> into this set as part of the overhaul (see the plan). Existing rules are inputs,
-> not constraints — we change them to fit how this plugin *should* be tested.
+> **Status: realized.** This is the design the test-suite overhaul was built into;
+> it is the reference for how tests in this repo are shaped. The durable rules that
+> govern authoring *new* tests are the `writing-tests` skill (in
+> `.claude/skills/writing-tests/`). Where this conflicts with the older
+> `live-server-testing` / `matrix-gate` prose, this wins; those remain the source
+> for live-harness and matrix mechanics.
+
+## What shipped vs. what was deferred
+
+The overhaul realized the high-leverage core and deferred the live-suite refactor as
+a separate, matrix-gated effort (it can only be verified under the slow Paper+Folia
+matrix, so churning it blind was judged not worth the risk on already-passing
+suites). Concretely:
+
+- **Shipped:** `schema.diag.DiagCode` (producers + tests reference the enum; `E_PARSE`
+  split into sub-codes); the `se/testfx` module with `FakeEffectCtx`, `SpecDrivenCtx`,
+  and `Defs` (the ability/lowered builders); the **46 effect-kind tests collapsed
+  into 4 data-driven tables** — `FanOutEffectTest`, `ModeDispatchEffectTest`,
+  `LocationEffectTest`, `FlagAndSoulEffectTest` (every assertion ported as a row);
+  `SpecConformanceTest` (drives every kind from its own spec); the string-coupling
+  fixes across schema/compile (defaults referenced via `.defaults()`, diagnostics via
+  `DiagCode`); per-module JaCoCo reports.
+- **Not built (the design records them; build just-in-time when first needed):**
+  `YamlFixture` — unnecessary, because `YamlNode.compose` is package-private to
+  `compile.load`, so it *is* the in-package fixture; `RenderGolden` / `TtlStoreAdapter`
+  / `CorpusLoader` — the render and store tests were already model-quality, so no
+  fixture was warranted; `CombatRig` / `DeferringSchedulerBackend` — part of the
+  deferred live-suite refactor.
+- **Deferred:** the live-suite hygiene refactor (CombatRig, listener teardown,
+  distinct-chunk staging), the modern live-matrix CI lane, and the JaCoCo
+  covered-branch blocking check. The mentions of these below are forward-looking.
+
+The body below is the design rationale — the *why* behind the shape above; treat the
+fixture table and "open decisions" as the record of the choices, several of which
+resolved to "not needed" as noted.
 
 ## Why a redesign (the one-paragraph case)
 
@@ -165,8 +188,8 @@ so a thin CI lane can run a subset.
 ## Infrastructure this requires
 
 The two-layer gate is sound (honest fresh-PASS reads, a closed stale-jar trap, a
-genuine MRJAR soundness gate). The overhaul needs these infra changes, detailed in
-[testing-audit-findings.md](testing-audit-findings.md#infrastructure):
+genuine MRJAR soundness gate). The infra changes below remain **deferred** — they are
+the next slice of work once the live-suite refactor is scheduled:
 
 - **Close the build-cache hole in the drift guards** (highest-leverage): the four
   golden tests read committed artifacts via an untracked repo-root walk with no
