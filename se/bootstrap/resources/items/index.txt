@@ -1,8 +1,11 @@
 # Manifest of default files extracted to <plugin>/items/ on first boot (one path per line,
 # relative to items/). Operator edits are never overwritten. Reload with /se reload.
 black-scroll.yml
+blocktrak.yml
 crystal.yml
 dust.yml
+mobtrak.yml
+soultrak.yml
 enchant-book.yml
 godly-transmog.yml
 heroic.yml

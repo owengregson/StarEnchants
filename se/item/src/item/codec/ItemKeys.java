@@ -24,11 +24,16 @@ public final class ItemKeys {
     private final String unopened;
     private final String godlyTransmog;
     private final String appliedSlot;
+    private final String trakGem;
+    private final String trakBlocks;
+    private final String trakMobs;
+    private final String trakSouls;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
                      String slotItem, String slotSuccess, String scroll, String scrollConvert,
-                     String unopened, String godlyTransmog, String appliedSlot) {
+                     String unopened, String godlyTransmog, String appliedSlot,
+                     String trakGem, String trakBlocks, String trakMobs, String trakSouls) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -43,12 +48,16 @@ public final class ItemKeys {
         this.unopened = unopened;
         this.godlyTransmog = godlyTransmog;
         this.appliedSlot = appliedSlot;
+        this.trakGem = trakGem;
+        this.trakBlocks = trakBlocks;
+        this.trakMobs = trakMobs;
+        this.trakSouls = trakSouls;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
-                "godlytransmog", "appliedslot");
+                "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls");
     }
 
     public String combat() {
@@ -115,5 +124,25 @@ public final class ItemKeys {
      */
     public String appliedSlot() {
         return appliedSlot;
+    }
+
+    /** Marks an UNAPPLIED trak gem + its kind (§I); distinct from the per-item lifetime counters below. */
+    public String trakGem() {
+        return trakGem;
+    }
+
+    /** Per-item lifetime blocks-broken counter (§I) — tracked in the background, separate from the combat blob. */
+    public String trakBlocks() {
+        return trakBlocks;
+    }
+
+    /** Per-item lifetime mobs-killed counter (§I). */
+    public String trakMobs() {
+        return trakMobs;
+    }
+
+    /** Per-item lifetime players-killed counter (§I). */
+    public String trakSouls() {
+        return trakSouls;
     }
 }

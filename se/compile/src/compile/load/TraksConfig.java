@@ -1,0 +1,64 @@
+package compile.load;
+
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * Internal grouping of the TRAK-gem family (§I) — three gems that, applied to gear, reveal a per-item lifetime
+ * counter tracked in the background: BlockTrak (blocks broken with a tool), MobTrak (mobs killed with a
+ * weapon), SoulTrak (players killed with a weapon). Each member is authored in its own {@code items/} file and
+ * assembled into one {@code TraksConfig}, mirroring the scroll family.
+ */
+public record TraksConfig(Trak block, Trak mob, Trak soul) {
+
+    public TraksConfig {
+        Objects.requireNonNull(block, "block");
+        Objects.requireNonNull(mob, "mob");
+        Objects.requireNonNull(soul, "soul");
+    }
+
+    /**
+     * One trak gem. {@code lore} is the GEM's own description ({@code {KINDS}} expands to the grammatically-
+     * joined applies-to label); {@code countFormat} is the line stamped onto the APPLIED item, with
+     * {@code {COUNT}} the live (comma-grouped) count. {@code appliesTo} are item-group kinds (e.g. {@code TOOL},
+     * {@code WEAPON}) the gem may be applied to and whose lifetime is tracked in the background.
+     */
+    public record Trak(String material, String name, List<String> lore, List<String> appliesTo,
+                       String countFormat) {
+        public Trak {
+            Objects.requireNonNull(material, "material");
+            Objects.requireNonNull(name, "name");
+            Objects.requireNonNull(countFormat, "countFormat");
+            lore = List.copyOf(lore);
+            appliesTo = List.copyOf(appliesTo);
+        }
+    }
+
+    public static TraksConfig defaults() {
+        return new TraksConfig(
+                new Trak(
+                        "SLIME_BALL",
+                        "&aBlockTrak Gem",
+                        List.of("&7Displays the amount of blocks broken with the tool since it was forged.",
+                                "&eApplies to: &r&f&n{KINDS}",
+                                "&7Drag and drop onto an item to apply."),
+                        List.of("TOOL"),
+                        "&7Blocks Broken: &f{COUNT}"),
+                new Trak(
+                        "MAGMA_CREAM",
+                        "&eMobTrak Gem",
+                        List.of("&7Displays the amount of mobs killed with the weapon since it was forged.",
+                                "&eApplies to: &r&f&n{KINDS}",
+                                "&7Drag and drop onto an item to apply."),
+                        List.of("WEAPON"),
+                        "&7Mobs Killed: &f{COUNT}"),
+                new Trak(
+                        "FIRE_CHARGE",
+                        "&cSoulTrak Gem",
+                        List.of("&7Displays the amount of players killed with the weapon since it was forged.",
+                                "&eApplies to: &r&f&n{KINDS}",
+                                "&7Drag and drop onto an item to apply."),
+                        List.of("WEAPON"),
+                        "&7Players Killed: &f{COUNT}"));
+    }
+}

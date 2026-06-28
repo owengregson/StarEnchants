@@ -14,7 +14,7 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
                           Optional<HeroicConfig> heroic, Optional<SlotConfig> slots,
                           Optional<ScrollsConfig> scrolls, Optional<UnopenedBookConfig> unopenedBook,
                           Optional<EnchantBookConfig> enchantBook, Optional<DustConfig> dust,
-                          Optional<WhiteScrollConfig> whiteScroll,
+                          Optional<WhiteScrollConfig> whiteScroll, Optional<TraksConfig> traks,
                           List<Diagnostic> diagnostics) {
 
     public ItemsConfig {
@@ -27,13 +27,14 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
         Objects.requireNonNull(enchantBook, "enchantBook");
         Objects.requireNonNull(dust, "dust");
         Objects.requireNonNull(whiteScroll, "whiteScroll");
+        Objects.requireNonNull(traks, "traks");
         diagnostics = List.copyOf(diagnostics);
     }
 
     public static ItemsConfig empty() {
         return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                List.of());
+                Optional.empty(), List.of());
     }
 
     public SoulGemConfig soulGemOrDefault() {
@@ -70,6 +71,10 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
 
     public WhiteScrollConfig whiteScrollOrDefault() {
         return whiteScroll.orElseGet(WhiteScrollConfig::defaults);
+    }
+
+    public TraksConfig traksOrDefault() {
+        return traks.orElseGet(TraksConfig::defaults);
     }
 
     public boolean hasErrors() {

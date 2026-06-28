@@ -45,7 +45,8 @@ public final class ItemFactory {
             Map.entry("NETHERITE_SHOVEL", "DIAMOND_SPADE"),
             Map.entry("NETHERITE_HOE", "DIAMOND_HOE"),
             Map.entry("NETHERITE_BLOCK", "DIAMOND_BLOCK"),
-            Map.entry("NETHERITE_INGOT", "DIAMOND"));
+            Map.entry("NETHERITE_INGOT", "DIAMOND"),
+            Map.entry("FIRE_CHARGE", "FIREBALL")); // 1.13 rename: the SoulTrak gem's material on the 1.8 lane
 
     /** The closest older-server equivalent of a newer material, or {@code null} if none is registered. */
     static String legacyFallback(String upperToken) {

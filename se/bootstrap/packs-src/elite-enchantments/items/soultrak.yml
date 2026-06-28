@@ -1,0 +1,15 @@
+# SoulTrak Gem — the Elite-Enchantments LIKENESS (docs/v3-directives.md §I). Drag onto a weapon to reveal the
+# LIFETIME number of players killed with it (tracked in the background from first use). An item holds only ONE
+# applied item at a time (blocktrak / mobtrak / soultrak / white scroll / holy white scroll). The mechanic is
+# global; reload with /se reload.
+type: soultrak
+
+material: FIRE_CHARGE
+name: "&cSoulTrak Gem"
+# {KINDS} = the applies-to label; {COUNT} = the live count. Lore auto-wraps at config lore.item-wrap.
+lore:
+  - "&7Displays the amount of players killed with the weapon since it was forged."
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag and drop onto an item to apply."
+applies-to: [WEAPON]
+count-format: "&7Players Killed: &f{COUNT}"
