@@ -16,8 +16,19 @@ package schema.diag;
  */
 public enum DiagCode {
 
-    // Grammar — the expression/condition parser and the selector AST.
+    // Grammar — the expression/condition parser and the selector AST. The condition parser/lexer split
+    // E_PARSE into specific faults so error tests assert a CODE, not an English message substring. Every
+    // sub-code starts with "E_PARSE", so the parse family is recognisable by prefix.
     E_PARSE,
+    E_PARSE_TRAILING,        // a complete expression followed by leftover tokens
+    E_PARSE_CHAINED_CMP,     // a < b < c — comparators / string-ops are non-associative
+    E_PARSE_UNCLOSED_GROUP,  // '(' with no matching ')'
+    E_PARSE_EXPECTED_VALUE,  // a value was required (an empty group, a leading operator, …)
+    E_PARSE_CLAUSE,          // a malformed ':' outcome clause (bad sentinel / ±N %chance% / a second clause)
+    E_PARSE_BAD_CHAR,        // lexer: a character outside the condition alphabet
+    E_PARSE_HALF_OP,         // lexer: a single '&' / '|' / '=' where '&&' / '||' / '==' was meant
+    E_PARSE_UNTERMINATED,    // lexer: an unterminated %variable% or "string"
+    E_PARSE_EMPTY_VAR,       // lexer: '%%' with no variable name
     E_SELECTOR_SYNTAX,
     E_TERSE_EFFECT,
 

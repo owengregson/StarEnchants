@@ -61,7 +61,7 @@ public final class ExprLexer {
                     } else if (isIdentStart(c)) {
                         out.add(ident(startCol));
                     } else {
-                        diags.error(DiagCode.E_PARSE, "unexpected character '" + c + "'",
+                        diags.error(DiagCode.E_PARSE_BAD_CHAR, "unexpected character '" + c + "'",
                                 lineSource.atColumn(startCol),
                                 "the condition language allows numbers, %variables%, "
                                         + "\"strings\", booleans, && || ! ( ) , and comparators");
@@ -81,7 +81,7 @@ public final class ExprLexer {
         if (pos < src.length() && src.charAt(pos) == second) {
             pos++;
         } else {
-            diags.error(DiagCode.E_PARSE, "expected '" + lexeme + "' but found a single '" + first + "'",
+            diags.error(DiagCode.E_PARSE_HALF_OP, "expected '" + lexeme + "' but found a single '" + first + "'",
                     lineSource.atColumn(startCol), "did you mean '" + lexeme + "'?");
         }
         return new ExprTok(kind, lexeme, startCol);
@@ -114,13 +114,13 @@ public final class ExprLexer {
         }
         String body = src.substring(bodyStart, pos);
         if (pos >= src.length()) {
-            diags.error(DiagCode.E_PARSE, "unterminated variable (missing closing '%')",
+            diags.error(DiagCode.E_PARSE_UNTERMINATED, "unterminated variable (missing closing '%')",
                     lineSource.atColumn(startCol), "close it with a '%', e.g. %victim.health%");
         } else {
             pos++;
         }
         if (body.isEmpty()) {
-            diags.error(DiagCode.E_PARSE, "empty variable '%%'",
+            diags.error(DiagCode.E_PARSE_EMPTY_VAR, "empty variable '%%'",
                     lineSource.atColumn(startCol), "name the variable, e.g. %victim.health%");
         }
         return new ExprTok(ExprTok.Kind.VAR, body, startCol);
@@ -146,7 +146,7 @@ public final class ExprLexer {
             }
         }
         if (!closed) {
-            diags.error(DiagCode.E_PARSE, "unterminated string literal",
+            diags.error(DiagCode.E_PARSE_UNTERMINATED, "unterminated string literal",
                     lineSource.atColumn(startCol),
                     "close it with a matching " + quote + " quote");
         }
