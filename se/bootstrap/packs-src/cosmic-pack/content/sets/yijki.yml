@@ -1,0 +1,35 @@
+# Yijki — divine/holy diamond set with damage reduction, Divine Shield, and the Destiny weapon
+display: "&f&lYijki"
+description: "Ascend to divine heights, taking less damage while wearing the set."
+complete: 4
+armor:
+  lore:
+    - "&f&lYIJKI SET BONUS"
+    - "&f* Enemies deal 30% less damage to you"
+    - "&f* Divine Shield Passive Ability"
+    - "&7&o(Requires all four Yijki set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&f&lHalo Helm&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&f&lCelestial Chestplate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&f&lSeraphic Legwear&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&f&lDivine Sandals&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 30 } }
+    - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&f&lDestiny&r"
+  lore:
+    - "&fChannel divine power with Destiny,"
+    - "&fa weapon of holy radiance sworn"
+    - "&fto banish the darkness."
+    - ""
+    - "&f&lYIJKI WEAPON BONUS"
+    - "&f* Deal 5% more damage to all enemies"
+    - "&7&o(Requires all four Yijki set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } }

@@ -1,0 +1,37 @@
+# Spooky — eerie diamond set: defensive bonus plus the Gravedigger weapon.
+display: "&6&lSpooky"
+description: "Cloak yourself in shadow for heavy defense and a haunting weapon."
+complete: 4
+armor:
+  lore:
+    - "&6&lSPOOKY SET BONUS"
+    - "&6* Deal 20% more damage to all enemies."
+    - "&6* Enemies deal 25% less damage to you."
+    - "&6* Scarecrow Passive Ability"
+    - "&7&o(Requires all four Spooky set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&6&lHaunted Headgear&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&6&lMysterious Platemail&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&6&lOminous Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&6&lSpooky Boots&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&6&lGravedigger&r"
+  lore:
+    - "&6Unearth the power of the dead with the"
+    - "&6Gravedigger, a weapon that delves into"
+    - "&6the shadows and stirs the restless spirits."
+    - ""
+    - "&6&lSPOOKY WEAPON BONUS"
+    - "&6* Deal 10% more damage to all enemies"
+    - "&7&o(Requires all four Spooky set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+    - { POTION: { effect: BLINDNESS, level: 2, duration: 100, who: "@Victim" } }
+    - { POTION: { effect: SLOWNESS, level: 1, duration: 100, who: "@Victim" } }

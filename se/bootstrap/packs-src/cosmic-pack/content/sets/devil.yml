@@ -1,0 +1,35 @@
+# Devil — diamond infernal set; defense reduction + a heavy-hitting weapon.
+display: "&4&lDevil"
+description: "Command the inferno: shrug off damage and strike harder while wearing the set."
+complete: 4
+armor:
+  lore:
+    - "&4&lDEVIL SET BONUS"
+    - "&4* Deal 25% more damage to all enemies"
+    - "&4* Enemies deal 20% less damage to you"
+    - "&4* Hell's Kitchen Passive Ability"
+    - "&7&o(Requires all four Devil set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&4&lFlaming Helmet&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&4&lHellforged Chestplate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&4&lInfernal Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&4&lDevil's Claws&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&4&lDevil's Cleaver&r"
+  lore:
+    - "&4Unleash the inferno with the Devil's"
+    - "&4Cleaver, a blade forged in the"
+    - "&4flames of the underworld."
+    - ""
+    - "&4&lDEVIL WEAPON BONUS"
+    - "&4* Deal 5% more damage to all enemies"
+    - "&7&o(Requires all four Devil set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

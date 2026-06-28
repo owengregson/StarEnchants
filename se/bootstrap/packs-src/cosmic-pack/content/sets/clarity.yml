@@ -1,0 +1,35 @@
+# Clarity — radiant diamond set: damage up, reduction, and a Bless passive.
+display: "&d&lClarity"
+description: "Shine with the pure light of the Clarity set."
+complete: 4
+armor:
+  lore:
+    - "&d&lCLARITY SET BONUS"
+    - "&d* Deal 15% more damage to all enemies"
+    - "&d* Enemies deal 5% less damage to you"
+    - "&d* Bless Passive Ability"
+    - "&7&o(Requires all four Clarity set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&d&lShimmering Helm&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&d&lGlistening Armor&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&d&lRadiant Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&d&lLuminous Boots&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&d&lRadiant Blade&r"
+  lore:
+    - "&dA blade forged in the light of clarity,"
+    - "&dpure and unyielding, cutting through"
+    - "&dthe darkness with ease."
+    - ""
+    - "&d&lCLARITY WEAPON BONUS"
+    - "&d* Deal 15% more damage to all enemies"
+    - "&7&o(Requires all four Clarity set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

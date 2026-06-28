@@ -1,0 +1,33 @@
+# Druid — nature-themed diamond set; offensive damage carried on the Earth Splitter axe.
+display: "&2&lDruid"
+description: "Channel the life force of the forest to cut through enemies."
+complete: 4
+armor:
+  lore:
+    - "&2&lDRUID SET BONUS"
+    - "&2* Deal 30% more damage to all enemies"
+    - "&2* Terrabender Passive Ability"
+    - "&7&o(Requires all four Druid set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&2&lNature's Hood&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&2&lEarthbound Plate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&2&lSylvan Pants&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&2&lGrove Trotters&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects: []
+weapon:
+  material: DIAMOND_AXE
+  name: "&2&lEarth Splitter&r"
+  lore:
+    - "&2Wield the Earth Splitter, an axe infused with"
+    - "&2the life force of the forest, cutting through"
+    - "&2enemies with the power of nature."
+    - ""
+    - "&2&lDRUID WEAPON BONUS"
+    - "&2* Deal 5% more damage to all enemies"
+    - "&7&o(Requires all four Druid set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }

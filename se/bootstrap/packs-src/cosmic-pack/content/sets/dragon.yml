@@ -1,0 +1,39 @@
+# Dragon — draconic diamond set: damage reduction + extra bite, plus exotic disable-enchant lore.
+display: "&e&lDragon"
+description: "Unleash the power of ancient dragons to deal more and take less damage."
+complete: 4
+armor:
+  lore:
+    - "&eUnleash the power of ancient dragons with"
+    - "&ethe Dragon set, forged in the fires"
+    - "&eof legend."
+    - ""
+    - "&e&lDRAGON SET BONUS"
+    - "&e* Deal 15% more damage to all enemies."
+    - "&e* Enemies deal 10% less damage to you."
+    - "&e* Dovahkiin Passive Ability"
+    - "&7&o(Requires all four Dragon set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&e&lHorned Helmet&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&e&lWinged Chestplate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&e&lScaled Trousers&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&e&lDraconic Greaves&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&e&lWyvern Claw&r"
+  lore:
+    - "&eUnleash draconic fury with the Wyvern Claw,"
+    - "&ea talon forged from the essence"
+    - "&eof ancient dragons."
+    - ""
+    - "&e&lDRAGON WEAPON BONUS"
+    - "&e* Deal 15% more damage to all enemies"
+    - "&7&o(Requires all four Dragon set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

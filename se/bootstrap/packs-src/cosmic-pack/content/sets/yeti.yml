@@ -1,0 +1,39 @@
+# Yeti — icy diamond set: bites harder, shrugs off blows, slows attackers.
+display: "&b&lYeti"
+description: "Harness the frost of the highest peaks to hit harder and take less."
+complete: 4
+armor:
+  lore:
+    - "&bHarness the chilling might of the Yeti set,"
+    - "&bgarments imbued with the frost of"
+    - "&bthe highest peaks."
+    - ""
+    - "&b&lYETI SET BONUS"
+    - "&b* Deal 10% more damage to all enemies"
+    - "&b* Enemies deal 10% less damage to you"
+    - "&b* Fortified Passive Ability"
+    - "&7&o(Requires all four Yeti set items.)&r"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&b&lFrozen Headgear&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&b&lArctic Plate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&b&lGlacial Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&b&lIcy Stompers&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+weapon:
+  material: DIAMOND_AXE
+  name: "&b&lFrozen Mace&r"
+  lore:
+    - "&bBring the chill of the arctic with the"
+    - "&bFrozen Mace, an icy weapon that"
+    - "&bfreezes all who dare oppose it."
+    - ""
+    - "&b&lYETI WEAPON BONUS"
+    - "&b* Deal 10% more damage to all enemies"
+    - "&7&o(Requires all four Yeti set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
