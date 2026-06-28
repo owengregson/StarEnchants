@@ -1,5 +1,6 @@
 package schema.grammar.sel;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.Lexer;
@@ -25,7 +26,7 @@ public record SelectorAst(String head, Map<String, String> args, Source source) 
     public static Optional<SelectorAst> parse(String raw, Source source, Diagnostics diags) {
         String token = raw == null ? "" : raw.trim();
         if (token.isEmpty() || token.charAt(0) != '@') {
-            diags.error("E_SELECTOR_SYNTAX",
+            diags.error(DiagCode.E_SELECTOR_SYNTAX,
                     "a selector must start with '@' but got '" + token + "'",
                     source, "usage: @Head or @Head{k=v,k=v}, e.g. @Nearest{r=4}");
             return Optional.empty();
@@ -36,7 +37,7 @@ public record SelectorAst(String head, Map<String, String> args, Source source) 
         if (brace < 0) {
             String head = body.trim();
             if (head.isEmpty()) {
-                diags.error("E_SELECTOR_SYNTAX", "selector '" + token + "' has no name",
+                diags.error(DiagCode.E_SELECTOR_SYNTAX, "selector '" + token + "' has no name",
                         source, "usage: @Head or @Head{k=v}, e.g. @Self or @Aoe{r=4}");
                 return Optional.empty();
             }
@@ -44,14 +45,14 @@ public record SelectorAst(String head, Map<String, String> args, Source source) 
         }
 
         if (!body.endsWith("}")) {
-            diags.error("E_SELECTOR_SYNTAX",
+            diags.error(DiagCode.E_SELECTOR_SYNTAX,
                     "selector '" + token + "' is missing its closing '}'",
                     source, "usage: @Head{k=v,k=v}, e.g. @Aoe{r=4}");
             return Optional.empty();
         }
         String head = body.substring(0, brace).trim();
         if (head.isEmpty()) {
-            diags.error("E_SELECTOR_SYNTAX", "selector '" + token + "' has no name before '{'",
+            diags.error(DiagCode.E_SELECTOR_SYNTAX, "selector '" + token + "' has no name before '{'",
                     source, "usage: @Head{k=v}, e.g. @Aoe{r=4}");
             return Optional.empty();
         }
@@ -66,7 +67,7 @@ public record SelectorAst(String head, Map<String, String> args, Source source) 
             }
             int eq = pair.indexOf('=');
             if (eq < 0) {
-                diags.error("E_SELECTOR_SYNTAX",
+                diags.error(DiagCode.E_SELECTOR_SYNTAX,
                         "selector argument '" + pair + "' must be written name=value",
                         source.atColumn(pairTok.col()), "e.g. r=4");
                 ok = false;
@@ -75,13 +76,13 @@ public record SelectorAst(String head, Map<String, String> args, Source source) 
             String key = pair.substring(0, eq).trim();
             String value = pair.substring(eq + 1).trim();
             if (key.isEmpty()) {
-                diags.error("E_SELECTOR_SYNTAX", "selector argument '" + pair + "' has an empty name",
+                diags.error(DiagCode.E_SELECTOR_SYNTAX, "selector argument '" + pair + "' has an empty name",
                         source.atColumn(pairTok.col()), "e.g. r=4");
                 ok = false;
                 continue;
             }
             if (args.put(key, value) != null) {
-                diags.warning("W_SELECTOR_DUP_ARG",
+                diags.warning(DiagCode.W_SELECTOR_DUP_ARG,
                         "selector argument '" + key + "' is set more than once; the last value wins",
                         source.atColumn(pairTok.col()));
             }
