@@ -9,7 +9,7 @@
     { "name": "crystal", "args": "<key>", "description": "Mint a socketable crystal to yourself.", "alias": false },
     { "name": "heroic", "args": "", "description": "Mint a Heroic upgrade item to yourself.", "alias": false },
     { "name": "orb", "args": "", "description": "Mint a slot-expander orb to yourself.", "alias": false },
-    { "name": "gem", "args": "", "description": "Mint a soul gem to yourself.", "alias": false },
+    { "name": "gem", "args": "[amount]", "description": "Mint a soul gem to yourself (optionally pre-loaded with that many souls).", "alias": false },
     { "name": "book", "args": "<key> [level]", "description": "Mint an enchant book to yourself.", "alias": false },
     { "name": "blackscroll", "args": "", "description": "Mint a black scroll (extracts a random enchant from gear to a book).", "alias": false },
     { "name": "randomizer", "args": "", "description": "Mint a randomizer scroll (rerolls a book's success chance).", "alias": false },

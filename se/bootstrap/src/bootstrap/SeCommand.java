@@ -57,7 +57,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("crystal", "<key>", "Mint a socketable crystal to yourself."),
             CommandInfo.of("heroic", "", "Mint a Heroic upgrade item to yourself."),
             CommandInfo.of("orb", "", "Mint a slot-expander orb to yourself."),
-            CommandInfo.of("gem", "", "Mint a soul gem to yourself."),
+            CommandInfo.of("gem", "[amount]", "Mint a soul gem to yourself (optionally pre-loaded with that many souls)."),
             CommandInfo.of("book", "<key> [level]", "Mint an enchant book to yourself."),
             CommandInfo.of("blackscroll", "", "Mint a black scroll (extracts a random enchant from gear to a book)."),
             CommandInfo.of("randomizer", "", "Mint a randomizer scroll (rerolls a book's success chance)."),
@@ -161,7 +161,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "crystal" -> giveCrystal(sender, args);
             case "heroic" -> giveHeroic(sender);
             case "orb" -> giveSlotItem(sender);
-            case "gem" -> giveGem(sender);
+            case "gem" -> giveGem(sender, args);
             case "book" -> giveBook(sender, args);
             case "blackscroll" -> giveScroll(sender, true);
             case "randomizer" -> giveScroll(sender, false);
@@ -340,13 +340,24 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return out;
     }
 
-    private void giveGem(CommandSender sender) {
+    /** {@code /se gem [amount]} — mint a soul gem to yourself, optionally pre-loaded with {@code amount} souls. */
+    private void giveGem(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
+        int amount = 0;
+        if (args.length >= 2) {
+            try {
+                amount = Math.max(0, Integer.parseInt(args[1]));
+            } catch (NumberFormatException bad) {
+                sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[1]));
+                return;
+            }
+        }
+        int startingSouls = amount; // effectively-final for the entity-thread mint
         Scheduling.onEntity(player, () -> {
-            ItemStack gem = souls.mintGem();
+            ItemStack gem = souls.mintGem(startingSouls);
             // Overflow drops at the player's feet (their own region thread) rather than being lost.
             player.getInventory().addItem(gem).values()
                     .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
