@@ -1,0 +1,37 @@
+# Fantasy — diamond set of mythical heroes; arcane weapon and a trap passive.
+display: "&2&lFantasy"
+description: "Embark on epic adventures with the armaments of mythical heroes."
+complete: 4
+armor:
+  lore:
+    - "&2Embark on epic adventures with the Fantasy"
+    - "&2set, armaments of mythical heroes"
+    - "&2and timeless tales."
+    - ""
+    - "&2&lFANTASY SET BONUS"
+    - "&2* Deal 25% more damage to all enemies"
+    - "&2* Fantasy Trap Passive Ability"
+    - "&7&o(Requires all four Fantasy set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&2&lEnchanted Helmet&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&2&lMythic Platemail&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&2&lLost Legwear&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&2&lAdventurer's Boots&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects: []
+weapon:
+  material: DIAMOND_SWORD
+  name: "&2&lArcane Blade&r"
+  lore:
+    - "&2Wield the mysteries of magic with the"
+    - "&2Arcane Blade, a sword infused with"
+    - "&2ancient and powerful spells."
+    - ""
+    - "&2&lFANTASY WEAPON BONUS"
+    - "&2* Deal 5% more damage to all enemies"
+    - "&7&o(Requires all four Fantasy set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

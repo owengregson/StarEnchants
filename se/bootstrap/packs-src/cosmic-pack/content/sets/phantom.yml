@@ -1,0 +1,36 @@
+# Phantom — wraith-themed diamond set; offensive buffs and a haunting scythe.
+display: "&c&lPhantom"
+description: "Move like a wraith and strike with spectral force while wearing the set."
+complete: 4
+armor:
+  lore:
+    - "&c&lPHANTOM SET BONUS"
+    - "&c* Deal 25% more damage to all enemies"
+    - "&c* Ghostly Rush Passive Ability"
+    - "&7&o(Requires all four Phantom set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&c&lSpectral Hood&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&c&lEthereal Cloak&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&c&lWraith Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&c&lShadow Boots&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { POTION: { effect: SPEED, level: 4, duration: 100, who: "@Self" } }
+    - { POTION: { effect: INCREASE_DAMAGE, level: 1, duration: 100, who: "@Self" } }
+    - { POTION: { effect: FAST_DIGGING, level: 2, duration: 100, who: "@Self" } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&c&lGhastly Scythe&r"
+  lore:
+    - "&cReap the souls of the fallen with the"
+    - "&cGhastly Scythe, a weapon shrouded"
+    - "&cin spectral mist and haunting whispers."
+    - ""
+    - "&c&lPHANTOM WEAPON BONUS"
+    - "&c* Deal 10% more damage to all enemies"
+    - "&7&o(Requires all four Phantom set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }

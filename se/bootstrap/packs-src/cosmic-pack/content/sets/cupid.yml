@@ -1,0 +1,36 @@
+# Cupid — love-themed diamond set: damage boost, defensive reduction, bow resistance.
+display: "&d&lCupid"
+description: "Wear the Cupid set to strike harder and shrug off blows while wreathed in passion."
+complete: 4
+armor:
+  lore:
+    - "&d&lCUPID SET BONUS"
+    - "&d* Deal 30% more damage to all enemies"
+    - "&d* Enemies deal 20% less damage to you"
+    - "&d* Bow attacks deal 75% less damage to you"
+    - "&d* Lovestruck Active Ability"
+    - "&7&o(Requires all four Cupid set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&d&lCherubic Crown&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&d&lHeartfelt Armor&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&d&lPassionate Greaves&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&d&lAmorous Sandals&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&d&lCupid's Dagger&r"
+  lore:
+    - "&dWield Cupid's Dagger, a blade forged from"
+    - "&dthe essence of love, capable of"
+    - "&dpiercing hearts with its power."
+    - ""
+    - "&d&lCUPID WEAPON BONUS"
+    - "&d* Deal 5% more damage to all enemies."
+    - "&7&o(Requires all four Cupid set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }

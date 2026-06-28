@@ -1,0 +1,37 @@
+# Reaper — death-themed diamond set: reduce incoming damage, deal extra damage, debuff foes on hit.
+display: "&4&lReaper"
+description: "Embrace the essence of death and fate while wearing the set."
+complete: 4
+armor:
+  lore:
+    - "&4&lREAPER SET BONUS"
+    - "&4* Deal 30% more damage to all enemies"
+    - "&4* Enemies deal 15% less damage to you"
+    - "&4* Mark of the Reaper Passive Ability"
+    - "&7&o(Requires all four Reaper set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&4&lGrim Hood&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&4&lDeathly Shroud&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&4&lMortal Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&4&lGravewalker Boots&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&4&lDeathbringer&r"
+  lore:
+    - "&4Bring doom to your foes with the"
+    - "&4Deathbringer, a blade that embodies"
+    - "&4the essence of mortality and fate."
+    - ""
+    - "&4&lREAPER WEAPON BONUS"
+    - "&4* Deal 5% more damage to all enemies"
+    - "&7&o(Requires all four Reaper set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
+    - { POTION: { effect: WEAKNESS, level: 1, duration: 100, who: "@Victim" } }
+    - { POTION: { effect: WITHER, level: 2, duration: 100, who: "@Victim" } }

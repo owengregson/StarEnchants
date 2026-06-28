@@ -1,0 +1,38 @@
+# Supreme — royal diamond set: 15% damage reduction + 15% extra outgoing damage.
+display: "&4&lSupreme"
+description: "Don royal threads of unmatched grandeur to reduce damage taken and strike harder."
+complete: 4
+armor:
+  lore:
+    - "&4Step into the realm of royalty with the"
+    - "&4Supreme set, garments woven with threads"
+    - "&4of unmatched grandeur."
+    - ""
+    - "&4&lSUPREME SET BONUS"
+    - "&4* Deal 15% more damage to all enemies."
+    - "&4* Gifted Child Passive Ability"
+    - "&7&o(Requires all four Supreme set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "&4&lClassic Cap&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "&4&lGlorious Garment&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "&4&lLuxurious Legs&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "&4&lSupreme Slides&r" }
+  trigger: DEFENSE
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+weapon:
+  material: DIAMOND_SWORD
+  name: "&4&lSizable Scepter&r"
+  lore:
+    - "&4Command authority with the Sizable Scepter,"
+    - "&4a symbol of power and nobility that"
+    - "&4radiates with royal energy."
+    - ""
+    - "&4&lSUPREME WEAPON BONUS"
+    - "&4* Deal 15% more damage to all enemies"
+    - "&7&o(Requires all four Supreme set items.)"
+  trigger: ATTACK
+  chance: 100
+  effects:
+    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
