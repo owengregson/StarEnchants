@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import schema.diag.DiagCode;
 import schema.spec.D;
 import schema.spec.ParamSpec;
 
@@ -207,6 +208,80 @@ class LibraryLoaderTest {
               1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+    }
+
+    @Test
+    void aSetReferencingAnUnknownCustomEnchantIsABlockingError(@TempDir Path root) throws IOException {
+        // §6.6: a custom enchants/<id> ref with no matching enchant would silently mint a piece missing
+        // its enchant — the whole-library check turns the typo into a blocking diagnostic instead.
+        write(root, "sets/frostguard.yml", """
+            display: "Frostguard"
+            complete: 1
+            armor:
+              enchants:
+                enchants/ghost: 1
+              pieces:
+                boots: { material: DIAMOND_BOOTS, name: "Boots" }
+              trigger: DEFENSE
+              effects: [{ HEAL: { amount: 1 } }]
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_SET_ENCHANT_UNKNOWN)),
+                () -> lib.diagnostics().toString());
+        assertTrue(lib.hasErrors());
+    }
+
+    @Test
+    void aSetReferencingACustomEnchantAtAnOutOfRangeLevelIsABlockingError(@TempDir Path root) throws IOException {
+        write(root, "enchants/frost.yml", """
+            display: "Frost"
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: [{ HEAL: { amount: 1 } }] }
+              2: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
+            """);
+        write(root, "sets/frostguard.yml", """
+            display: "Frostguard"
+            complete: 1
+            armor:
+              enchants:
+                enchants/frost: 5
+              pieces:
+                boots: { material: DIAMOND_BOOTS, name: "Boots" }
+              trigger: DEFENSE
+              effects: [{ HEAL: { amount: 1 } }]
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        // enchants/frost tops out at level 2; a level-5 ref is out of range.
+        assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_SET_ENCHANT_LEVEL)),
+                () -> lib.diagnostics().toString());
+    }
+
+    @Test
+    void aSetWithAValidCustomRefAndAVanillaNameCompilesClean(@TempDir Path root) throws IOException {
+        write(root, "enchants/frost.yml", """
+            display: "Frost"
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: [{ HEAL: { amount: 1 } }] }
+              2: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
+            """);
+        write(root, "sets/frostguard.yml", """
+            display: "Frostguard"
+            complete: 1
+            armor:
+              enchants:
+                enchants/frost: 2
+                SHARPNESS: 5
+              pieces:
+                boots: { material: DIAMOND_BOOTS, name: "Boots" }
+              trigger: DEFENSE
+              effects: [{ HEAL: { amount: 1 } }]
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        // enchants/frost at level 2 is in range; SHARPNESS is a vanilla NAME (no enchants/ prefix) resolved
+        // cross-version at mint, so it is skipped here — its "5" must NOT be range-checked against a custom max.
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
     }
 

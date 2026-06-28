@@ -165,11 +165,11 @@ public final class LibraryLoader {
             }
             EnchantDef def = byKey.get(ref);
             if (def == null) {
-                diags.error("E_SET_ENCHANT_UNKNOWN",
+                diags.error(DiagCode.E_SET_ENCHANT_UNKNOWN,
                         "set '" + set.key() + "' applies unknown custom enchant '" + ref + "'",
                         set.source(), "the enchants: key must name an existing enchant (enchants/<id>) or a vanilla enchant name");
             } else if (entry.getValue() < 1 || entry.getValue() > def.maxLevel()) {
-                diags.error("E_SET_ENCHANT_LEVEL",
+                diags.error(DiagCode.E_SET_ENCHANT_LEVEL,
                         "set '" + set.key() + "' applies '" + ref + "' at level " + entry.getValue()
                                 + " (valid 1.." + def.maxLevel() + ")", set.source());
             }

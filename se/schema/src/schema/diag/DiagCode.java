@@ -65,6 +65,11 @@ public enum DiagCode {
     W_UNKNOWN_KEY,
     W_TIER_FOLDER_MISMATCH,
 
+    // Set custom-enchant refs (§6.6) — a set piece's enchants: block.
+    E_SET_ENCHANT_UNKNOWN, // names a custom enchant (enchants/<id>) the library doesn't define
+    E_SET_ENCHANT_LEVEL,   // references an existing custom enchant at an out-of-range level
+    W_SET_ENCHANT,         // a non-numeric enchant level — warned and skipped
+
     // Items loader (per-item config + soul-gem maps).
     E_ITEM_IO,
     E_ITEM_SHAPE,
