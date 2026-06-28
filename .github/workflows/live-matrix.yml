@@ -150,7 +150,25 @@ jobs:
           mkdir -p se/tester/build/libs
           cp "$jar" "se/tester/build/libs/tester-${{ needs.build-tester.outputs.version }}.jar"
 
-      # Pull ONLY this shard's cached server jar into reference/servers/ (gitignored), not all 13.
+      # The reference cache (the paperclip jar PLUS the Mojang server + Maven libraries paperclip extracts on
+      # first boot) is by far the heaviest per-shard cost — ~150MB+ re-downloaded every run without this. Cache
+      # it per target: a warm shard skips fetch-reference's download AND its patchonly extraction entirely, so
+      # the only work left is booting. The slug strips the ':' that cache keys disallow; bump -v1 to force a
+      # refresh to newer server builds (a fixed Minecraft version's API is stable across paper builds).
+      - id: ref
+        name: Reference cache key for ${{ matrix.target }}
+        run: echo "slug=$(echo '${{ matrix.target }}' | tr ':' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache reference server (${{ matrix.target }})
+        uses: actions/cache@v5
+        with:
+          path: reference/servers
+          key: ref-server-${{ steps.ref.outputs.slug }}-v1
+          restore-keys: |
+            ref-server-${{ steps.ref.outputs.slug }}-
+
+      # Pull ONLY this shard's cached server jar into reference/servers/ (gitignored), not all 13. On a cache
+      # hit this is a near no-op (fetch-reference skips an already-downloaded + already-extracted server).
       - name: Fetch cached server (${{ matrix.target }})
         run: scripts/fetch-reference.sh "${{ matrix.target }}"
 
