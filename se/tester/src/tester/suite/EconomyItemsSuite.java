@@ -211,7 +211,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             }
             ItemMeta meta = sword.getItemMeta();
             // two custom enchants, no vanilla → count 2 stamped into the name suffix
-            String suffix = colored(ScrollsConfig.defaults().transmog().nameSuffix().replace("(enchantcount)", "2"));
+            String suffix = colored(ScrollsConfig.defaults().transmog().nameSuffix().replace("{COUNT}", "2"));
             if (meta == null || !meta.hasDisplayName() || !meta.getDisplayName().endsWith(suffix)) {
                 throw new IllegalStateException("transmog did not stamp the enchant-count name: "
                         + (meta == null ? "no meta" : meta.getDisplayName()));

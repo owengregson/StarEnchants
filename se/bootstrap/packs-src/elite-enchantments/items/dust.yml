@@ -5,12 +5,12 @@
 type: dust
 
 material: SUGAR
-# (percent) = the conferred bonus ({BONUS} is equivalent); for a random dust it renders as the "10–25" range,
-# or the exact value on a fixed dust (/se dust <percent>). (maxsuccessrate) = the global success ceiling
-# ({MAXSUCCESS} is equivalent). The single lore line auto-wraps at config lore.item-wrap.
-name: "&f&lMagic Dust [&r&a&n+(percent)%&r&f&l]"
+# {BONUS} = the conferred bonus; for a random dust it renders as the "10–25" range, or the exact value on a
+# fixed dust (/se dust <percent>). {MAXSUCCESS} = the global success ceiling. The single lore line auto-wraps
+# at config lore.item-wrap.
+name: "&f&lMagic Dust [&r&a&n+{BONUS}%&r&f&l]"
 lore:
-  - "&7Increases the success rate of any enchantment book by &a(percent)%&7, up to a maximum of &a(maxsuccessrate)%&7."
+  - "&7Increases the success rate of any enchantment book by &a{BONUS}%&7, up to a maximum of &a{MAXSUCCESS}%&7."
 # A normal dust rolls a RANDOM bonus in [min-bonus, max-bonus] (each 0–100) when combined onto a book.
 min-bonus: 10
 max-bonus: 25

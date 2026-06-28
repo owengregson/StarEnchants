@@ -10,8 +10,8 @@ lore:
   - "&7Combine onto an enchant book to"
   - "&7boost its success by &a+{BONUS}%&7."
 # A normal dust rolls a RANDOM bonus in [min-bonus, max-bonus] (each 0–100) when combined onto a book.
-# {BONUS} (alias (percent)) renders as the range "10–25" here, or the exact value on a fixed dust
-# (/se dust <percent>). {MAXSUCCESS} (alias (maxsuccessrate)) = the global books.max-success ceiling.
+# {BONUS} renders as the range "10–25" here, or the exact value on a fixed dust (/se dust <percent>).
+# {MAXSUCCESS} = the global books.max-success ceiling.
 min-bonus: 10
 max-bonus: 25
 # Feedback played on a successful combine: a sound (namespaced, range-stable) + particle tokens

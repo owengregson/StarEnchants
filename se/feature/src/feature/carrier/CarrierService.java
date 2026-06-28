@@ -39,6 +39,7 @@ public final class CarrierService {
     private final java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig;
     private final java.util.function.BooleanSupplier roman; // §L lore.roman — book level numeral style, read live
     private final java.util.function.IntSupplier maxBookSuccess; // §I books.max-success — global success ceiling, live
+    private final item.codec.AppliedSlot slot; // §I exclusive applied-utility slot a white scroll occupies
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -58,21 +59,24 @@ public final class CarrierService {
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
-        this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100);
+        this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100,
+                new item.codec.AppliedSlot("appliedslot"));
     }
 
     /**
      * Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes
      * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style;
      * {@code maxBookSuccess} (the live {@code books.max-success} setting) is the global success ceiling that
-     * binds randomised minting and dust (guaranteed/admin books are exempt — see {@link #capBookSuccess}).
+     * binds randomised minting and dust (guaranteed/admin books are exempt — see {@link #capBookSuccess});
+     * {@code slot} is the shared exclusive applied-utility slot a white scroll occupies (§I).
      */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig,
                           java.util.function.BooleanSupplier roman,
-                          java.util.function.IntSupplier maxBookSuccess) {
+                          java.util.function.IntSupplier maxBookSuccess,
+                          item.codec.AppliedSlot slot) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -82,6 +86,7 @@ public final class CarrierService {
         this.whiteScrollConfig = Objects.requireNonNull(whiteScrollConfig, "whiteScrollConfig");
         this.roman = Objects.requireNonNull(roman, "roman");
         this.maxBookSuccess = Objects.requireNonNull(maxBookSuccess, "maxBookSuccess");
+        this.slot = Objects.requireNonNull(slot, "slot");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -112,16 +117,14 @@ public final class CarrierService {
     }
 
     /**
-     * Substitute the dust placeholders. {@code {BONUS}}/{@code (percent)} = the conferred success bonus (a fixed
-     * number, or the {@code min–max} range label for a random dust); {@code {MIN}}/{@code {MAX}} = the range
-     * bounds; {@code {MAXSUCCESS}}/{@code (maxsuccessrate)} = the live global {@code books.max-success} ceiling
-     * the boost is clamped to. Paren spellings let the Elite-Enchantments likeness read naturally.
+     * Substitute the dust placeholders. {@code {BONUS}} = the conferred success bonus (a fixed number, or the
+     * {@code min–max} range label for a random dust); {@code {MIN}}/{@code {MAX}} = the range bounds;
+     * {@code {MAXSUCCESS}} = the live global {@code books.max-success} ceiling the boost is clamped to.
      */
     private String subDust(String s, String bonus, String min, String max) {
         String cap = Integer.toString(clampPercent(maxBookSuccess.getAsInt()));
-        return s.replace("{BONUS}", bonus).replace("(percent)", bonus)
-                .replace("{MIN}", min).replace("{MAX}", max)
-                .replace("{MAXSUCCESS}", cap).replace("(maxsuccessrate)", cap);
+        return s.replace("{BONUS}", bonus).replace("{MIN}", min).replace("{MAX}", max)
+                .replace("{MAXSUCCESS}", cap);
     }
 
     /** Mint a WHITE SCROLL with a RANDOM apply-success rolled in the config {@code [min, max]} range (§I). */
@@ -145,6 +148,10 @@ public final class CarrierService {
         return stack;
     }
 
+    /**
+     * Substitute the white-scroll percent placeholders: {@code {SUCCESS}} = the rolled apply success,
+     * {@code {FAILURE}} = its complement.
+     */
     private static String subPercent(String s, int success) {
         return s.replace("{SUCCESS}", Integer.toString(success)).replace("{FAILURE}", Integer.toString(100 - success));
     }
@@ -209,6 +216,7 @@ public final class CarrierService {
         }
         if (codec.isGuarded(target)) {
             codec.setGuarded(target, false);
+            slot.release(target); // §I the white scroll's guard is spent — free the exclusive slot
             return CarrierResult.consumed("§eThe enchant failed — but your protection saved the item.");
         }
         if (destroyOnFail) {
@@ -460,12 +468,16 @@ public final class CarrierService {
         if (codec.isGuarded(target)) {
             return CarrierResult.noop("§7That item is already protected.");
         }
+        if (!slot.canApply(target, item.codec.AppliedSlot.WHITE_SCROLL)) {
+            return CarrierResult.noop("§cThat item already has another applied item — only one fits.");
+        }
         int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
         consume(carrier); // a use is spent whether the roll succeeds or fails
         if (random.nextInt(100) >= success) {
             return CarrierResult.consumed("§eThe White Scroll failed — the item is not protected.");
         }
         codec.setGuarded(target, true);
+        slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I take the exclusive applied slot
         return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
     }
 

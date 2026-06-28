@@ -128,7 +128,10 @@ public final class SlotService {
         return out;
     }
 
-    /** Substitute the orb placeholders: {@code {AMOUNT}} (+N), {@code {SUCCESS}}/{@code {FAILURE}}, {@code {MAX}} (cap). */
+    /**
+     * Substitute the orb placeholders: {@code {AMOUNT}} (+N slots), {@code {SUCCESS}}/{@code {FAILURE}} (the
+     * apply odds), {@code {MAX}} (the total-slots cap).
+     */
     private static String renderOrb(String s, String amount, int success, int hardCap) {
         return s.replace("{AMOUNT}", amount)
                 .replace("{SUCCESS}", Integer.toString(success))

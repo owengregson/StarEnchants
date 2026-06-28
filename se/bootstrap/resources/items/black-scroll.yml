@@ -11,7 +11,7 @@ lore:
   - "&7Drag onto enchanted gear to"
   - "&7extract one enchant into a book."
 # The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100) when the scroll is
-# minted, then clamped to config.yml books.max-success. Placeholders in the name/lore: (NewConvpercent) (alias
-# {SUCCESS}/{CONVERT}) = that rate, {FAILURE} = its complement.
+# minted, then clamped to config.yml books.max-success. Placeholders in the name/lore: {SUCCESS} = that rate,
+# {FAILURE} = its complement.
 min-convert: 50
 max-convert: 100

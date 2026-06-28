@@ -6,9 +6,9 @@
 # name/lore is the global mechanic (identical to the default item); reload with /se reload.
 type: soul-gem
 material: EMERALD
-# (soul_amt) = the live count, (soul_amt_color) = its tier colour; both re-render on every change. The brace
-# spellings {AMOUNT}/{SOUL-COLOR} are equivalent. Authored lore lines auto-wrap (config lore.item-wrap).
-name: "&c&lSoul Gem [&r(soul_amt_color)&n&l(soul_amt)&r&c&l]"
+# {AMOUNT} = the live count, {SOUL-COLOR} = its tier colour; both re-render on every change and work in the
+# name as well as the lore. Authored lore lines auto-wrap (config lore.item-wrap).
+name: "&c&lSoul Gem [&r{SOUL-COLOR}&n&l{AMOUNT}&r&c&l]"
 lore:
   - "&7Right-click to toggle soul mode, letting soul-cost enchants spend from this gem."
   - ""
@@ -23,7 +23,7 @@ souls-per-mob:
   ENDER_DRAGON: 250
   PLAYER: 10
 
-# Soul-colour tiers for the (soul_amt_color)/{SOUL-COLOR} placeholder (min count -> &colour); highest wins.
+# Soul-colour tiers for the {SOUL-COLOR} placeholder (min count -> &colour); highest wins.
 soul-colors:
   1: "&f"
   64: "&a"

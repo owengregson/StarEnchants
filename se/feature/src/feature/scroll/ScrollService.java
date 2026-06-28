@@ -102,13 +102,11 @@ public final class ScrollService {
     }
 
     /**
-     * Substitute the black-scroll conversion placeholders. {@code (NewConvpercent)} / {@code {SUCCESS}} /
-     * {@code {CONVERT}} = the new book's success rate; {@code {FAILURE}} = its complement.
+     * Substitute the black-scroll conversion placeholders: {@code {SUCCESS}} = the drawn book's success rate,
+     * {@code {FAILURE}} = its complement.
      */
     private static String subConvert(String s, int convert) {
-        String pct = Integer.toString(convert);
-        return s.replace("(NewConvpercent)", pct).replace("{SUCCESS}", pct).replace("{CONVERT}", pct)
-                .replace("{FAILURE}", Integer.toString(100 - convert));
+        return s.replace("{SUCCESS}", Integer.toString(convert)).replace("{FAILURE}", Integer.toString(100 - convert));
     }
 
     private static List<String> subConvertLore(List<String> lore, int convert) {
@@ -171,7 +169,7 @@ public final class ScrollService {
      * Transmog scroll: ORGANISE {@code gear}'s enchant display by rarity and stamp the enchant count into the
      * name (§I redesign). Custom enchants are sorted by tier WEIGHT descending (highest rarity on top), so the
      * lore reads top-down by rarity; vanilla Minecraft enchants render above the lore by the client, so they
-     * sit above the custom block ("real MC enchants on top"). The name gains a {@code (enchantcount)} suffix —
+     * sit above the custom block ("real MC enchants on top"). The name gains a {@code {COUNT}} suffix —
      * re-applying replaces that suffix rather than stacking it. Consumable and re-applicable.
      */
     @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
@@ -264,11 +262,11 @@ public final class ScrollService {
     }
 
     /** The transmog name-count placeholder, substituted into the configured suffix template. */
-    private static final String COUNT_PLACEHOLDER = "(enchantcount)";
+    private static final String COUNT_PLACEHOLDER = "{COUNT}";
 
     /**
      * Stamp the enchant {@code count} into {@code gear}'s name via the configured suffix template (default
-     * {@code &r &d[&b&l&n(enchantcount)&r&d]}): strip any previously-applied count suffix first so re-applying
+     * {@code &r &d[&b&l&n{COUNT}&r&d]}): strip any previously-applied count suffix first so re-applying
      * REPLACES it rather than stacking. An item with no custom name gets the bare suffix.
      */
     @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path

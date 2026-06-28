@@ -1,13 +1,26 @@
-# Slot Orb (docs/v3-directives.md §H) — the upgrade orb: drag onto gear to raise its enchant-slot count by
-# +orb-amount, clamped to a universal maximum TOTAL slots (base + added) defined by hard-cap. {AMOUNT}
-# renders the orb's +N. Messages (apply / at-cap) live in lang.yml (slot.apply / slot.at-cap) — §L.
+# Enchantment Slot Orb — the Elite-Enchantments LIKENESS (docs/v3-directives.md §H). Drag onto gear to raise
+# its enchant-slot count by +orb-amount, clamped to a universal maximum TOTAL slots (base + added) = hard-cap.
+# Placeholders: {AMOUNT} = the orb's +N, {SUCCESS}/{FAILURE} = its rolled apply odds, {MAX} = hard-cap. Only
+# the name/lore differ from the default item; the mechanic is global. Lore auto-wraps at config lore.item-wrap.
 type: slot-orb
 
 orb-material: ENDER_EYE
-orb-name: "&5Slot Expander &7(+{AMOUNT})"
+orb-name: "&6&lEnchantment Orb [&r&a&n+{AMOUNT}&6&l]"
 orb-lore:
-  - "&7Drag onto gear to add &f{AMOUNT}&7 enchant slots."
+  - "&a{SUCCESS}% &7Success Rate"
+  - "&c{FAILURE}% &7Failure Rate"
+  - ""
+  - "&7+{AMOUNT} Enchantment Slot(s)"
+  - ""
+  - "&7Increases the number of enchantment slots on an item by {AMOUNT}, up to a maximum of {MAX}."
+  - ""
+  - "&eDrag and drop onto an item to apply."
 orb-amount: 3
 
 # Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base).
 hard-cap: 15
+
+# Each minted orb rolls an apply-success % in [min-success, max-success]. On a failed roll the orb is consumed
+# with no slots added (it never destroys the gear). 100/100 = always succeeds.
+min-success: 100
+max-success: 100

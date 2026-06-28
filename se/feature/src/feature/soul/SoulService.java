@@ -183,14 +183,9 @@ public final class SoulService implements SoulDebit {
         return subSoul(cfg.name(), Integer.toString(souls), cfg.colorFor(souls));
     }
 
-    /**
-     * Substitute the soul placeholders into a name/lore line. Two equivalent spellings are accepted — the brace
-     * form ({@code {AMOUNT}} / {@code {SOUL-COLOR}}) and the paren form ({@code (soul_amt)} /
-     * {@code (soul_amt_color)}) — so an author may use either in the name or lore.
-     */
+    /** Substitute the soul placeholders {@code {AMOUNT}} (the count) and {@code {SOUL-COLOR}} (its tier colour). */
     private static String subSoul(String s, String amount, String soulColor) {
-        return s.replace("{AMOUNT}", amount).replace("(soul_amt)", amount)
-                .replace("{SOUL-COLOR}", soulColor).replace("(soul_amt_color)", soulColor);
+        return s.replace("{AMOUNT}", amount).replace("{SOUL-COLOR}", soulColor);
     }
 
     /**

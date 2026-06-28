@@ -10,5 +10,5 @@ name: "&c&lTransmog Scroll"
 # Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
   - "&7Organizes enchants by &f&nrarity&r&7 on your item and adds the &denchant &bcount &7to the name."
-# Appended to the gear's display name when transmogged; (enchantcount) = the item's total enchant count.
-name-suffix: "&r &d[&b&l&n(enchantcount)&r&d]"
+# Appended to the gear's display name when transmogged; {COUNT} = the item's total enchant count.
+name-suffix: "&r &d[&b&l&n{COUNT}&r&d]"
