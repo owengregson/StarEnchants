@@ -37,6 +37,8 @@ KEEP_RUNDIR="${SE_KEEP_RUNDIR:-0}"
 NO_BUILD="${SE_NO_BUILD:-0}"
 FLIP="$(grep -E '^se.toolchain.flip=' gradle.properties 2>/dev/null | cut -d= -f2)"
 FLIP="${FLIP:-1.20.5}"
+FLIP25="$(grep -E '^se.toolchain.flip25=' gradle.properties 2>/dev/null | cut -d= -f2)"
+FLIP25="${FLIP25:-26.1}"
 
 # ── Logging ──────────────────────────────────────────────────────────────────
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
@@ -108,13 +110,15 @@ fi
 log "tester jar: ${TESTER_JAR#$REPO_ROOT/}"
 
 # ── JDK selection (server runtime only; the plugin is always Java 17 classes) ──
-ver_le_flip() { # returns 0 if version $1 is strictly BELOW the flip
-  printf '%s\n%s\n' "$1" "$FLIP" | sort -t. -k1,1n -k2,2n -k3,3n | head -1 | grep -qx "$1" \
-    && [ "$1" != "$FLIP" ]
+ver_lt() { # returns 0 if dotted version $1 is strictly numerically BELOW $2 (up to 3 fields)
+  [ "$1" = "$2" ] && return 1
+  printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | head -1 | grep -qx "$1"
 }
-jdk_home_for() { # echoes a JDK home appropriate for server version $1
+jdk_home_for() { # echoes a JDK home appropriate for server version $1 (17 / 21 / 25 by version)
   local v="$1" want=21
-  if ver_le_flip "$v"; then want=17; fi
+  if   ver_lt "$v" "$FLIP";     then want=17   # below the mapping flip → JDK 17
+  elif ! ver_lt "$v" "$FLIP25"; then want=25   # 26.1+ → JDK 25 (older JDKs refuse to boot)
+  fi
   local home=""
   if [ -x /usr/libexec/java_home ]; then home="$(/usr/libexec/java_home -v "$want" 2>/dev/null)"; fi
   if [ -z "$home" ]; then
