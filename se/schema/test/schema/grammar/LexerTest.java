@@ -47,6 +47,20 @@ class LexerTest {
     }
 
     @Test
+    void backslashEscapedQuoteInsideAQuoteDoesNotEndItSoTheDelimiterSurvives() {
+        // "x\":y"  — the escaped quote must NOT close the string, so the ':' stays inside the segment.
+        assertEquals(List.of("a", "\"x\\\":y\"", "b"),
+                texts(Lexer.splitTop("a:\"x\\\":y\":b", ':')));
+    }
+
+    @Test
+    void unclosedNestingKeepsTheRemainderInOneSegment() {
+        // depth never returns to 0, so no later ':' splits — the tail stays one best-effort segment.
+        assertEquals(List.of("a", "(b:[c:d"),
+                texts(Lexer.splitTop("a:(b:[c:d", ':')));
+    }
+
+    @Test
     void effectLineParsesHeadAndArgsWithSourceColumns() {
         EffectLine line = EffectLine.parse("DAMAGE:3:5", Source.of("e.yml", 2, 1));
         assertEquals("DAMAGE", line.head());
