@@ -1,0 +1,19 @@
+# FishTrak Gem (docs/v3-directives.md §I) — drag onto a fishing rod to reveal the LIFETIME number of fish
+# caught with it. The count is tracked in the BACKGROUND on every eligible rod from first use, so an applied
+# gem shows a true total. An item holds only ONE applied item at a time (blocktrak / mobtrak / soultrak /
+# fishtrak / white scroll / holy white scroll). One physical item per file; reload with /se reload.
+# Messages: lang.yml trak.*.
+type: fishtrak
+
+material: CLAY_BALL
+name: "&3&lFishTrak Gem"
+# {KINDS} expands to the grammatically-joined applies-to label. Lore auto-wraps at config lore.item-wrap.
+lore:
+  - "&eDisplays the amount of fish caught with the rod since it was forged."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# Item-group kinds this gem applies to (and whose lifetime is tracked): e.g. FISHING_ROD, ALL.
+applies-to: [FISHING_ROD]
+# The line stamped onto the applied item; {COUNT} = the live, comma-grouped count.
+count-format: "&7Fish Caught: &f{COUNT}"

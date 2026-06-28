@@ -50,6 +50,7 @@
     { "key": "crystal", "type": "crystal", "material": "AMETHYST_SHARD", "name": "&d{CRYSTAL} Crystal" },
     { "key": "dust", "type": "dust", "material": "GLOWSTONE_DUST", "name": "&aSuccess Dust" },
     { "key": "enchant-book", "type": "enchant-book", "material": "ENCHANTED_BOOK", "name": "{TIER_COLOR}&l{ENCHANT} {LEVEL}" },
+    { "key": "fishtrak", "type": "fishtrak", "material": "CLAY_BALL", "name": "&3&lFishTrak Gem" },
     { "key": "godly-transmog", "type": "godly-transmog", "material": "NETHER_STAR", "name": "&5Godly Transmog" },
     { "key": "heroic", "type": "heroic", "material": "NETHERITE_SCRAP", "name": "&6&lHeroic Upgrade" },
     { "key": "holy-white-scroll", "type": "holy-white-scroll", "material": "TOTEM_OF_UNDYING", "name": "&fHoly White Scroll" },

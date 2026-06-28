@@ -4,6 +4,7 @@ black-scroll.yml
 blocktrak.yml
 crystal.yml
 dust.yml
+fishtrak.yml
 mobtrak.yml
 soultrak.yml
 enchant-book.yml

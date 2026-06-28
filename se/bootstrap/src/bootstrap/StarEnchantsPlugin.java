@@ -286,7 +286,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // Trak gems (§I): block/mob/soul lifetime counters tracked in the background on eligible gear.
         item.codec.TrakCodec trakCodec = new item.codec.TrakCodec(ItemKeys.of().trakGem(),
-                ItemKeys.of().trakBlocks(), ItemKeys.of().trakMobs(), ItemKeys.of().trakSouls());
+                ItemKeys.of().trakBlocks(), ItemKeys.of().trakMobs(), ItemKeys.of().trakSouls(),
+                ItemKeys.of().trakFish());
         feature.trak.TrakService traks = new feature.trak.TrakService(trakCodec, appliedSlot, itemGroups,
                 () -> items.config().traksOrDefault(), messages);
 
@@ -714,7 +715,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         saveDefaultTree("content");
         saveDefaultTree("items");
         saveDefaultTree("menus");
-        saveDefaultTree("packs"); // ADR-0023: the shipped config packs (e.g. elite-enchantments.zip)
+        saveDefaultTree("packs"); // ADR-0023: the shipped config packs (e.g. cosmic-pack.zip)
     }
 
     private void saveDefaultFile(String name) {

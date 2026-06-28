@@ -92,7 +92,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     static final List<String> GIVE_TYPES =
             List.of("gem", "crystal", "extractor", "book", "set", "heroic", "upgrade", "orb",
                     "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
-                    "dust", "whitescroll", "unopened", "blocktrak", "mobtrak", "soultrak");
+                    "dust", "whitescroll", "unopened", "blocktrak", "mobtrak", "soultrak", "fishtrak");
 
     static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
 
@@ -768,6 +768,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     traks.mint(item.codec.TrakCodec.Kind.MOB), "command.give.trak", "mobtrak gem");
             case "soultrak" -> deliver(sender, target,
                     traks.mint(item.codec.TrakCodec.Kind.SOUL), "command.give.trak", "soultrak gem");
+            case "fishtrak" -> deliver(sender, target,
+                    traks.mint(item.codec.TrakCodec.Kind.FISH), "command.give.trak", "fishtrak gem");
             case "dust" -> giveDustTo(sender, target, args);
             case "whitescroll" -> giveWhiteScrollTo(sender, target, args);
             case "crystal" -> giveCrystalTo(sender, target, args);
