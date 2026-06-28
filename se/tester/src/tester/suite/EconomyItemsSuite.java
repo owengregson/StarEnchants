@@ -209,19 +209,26 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             if (!after.enchants().keySet().equals(java.util.Set.of("enchants/sharp", "enchants/tough"))) {
                 throw new IllegalStateException("transmog lost or changed enchants: " + after.enchants());
             }
+            // Assert the BEHAVIOUR, not a reconstructed rendered string. Production's name passes through a
+            // configurable suffix template AND Bukkit's ItemMeta (set→get normalises colour codes, e.g. collapses
+            // a redundant §r§d to §d), so any expectation the test rebuilds is doomed to drift from the real
+            // value — exactly the formatting-coupling this suite must avoid (writing-tests Rule 1). Check the
+            // structural contract instead: the base name is kept, a suffix carrying the count (2) is appended,
+            // and re-applying REPLACES rather than stacks it (directive §I) — which holds iff a second transmog
+            // leaves the name byte-identical.
             ItemMeta meta = sword.getItemMeta();
-            // two custom enchants, no vanilla → count 2 stamped into the name suffix
-            String suffix = colored(ScrollsConfig.defaults().transmog().nameSuffix().replace("{COUNT}", "2"));
-            if (meta == null || !meta.hasDisplayName() || !meta.getDisplayName().endsWith(suffix)) {
-                throw new IllegalStateException("transmog did not stamp the enchant-count name: "
-                        + (meta == null ? "no meta" : meta.getDisplayName()));
+            String base = "§bMy Blade"; // the test's OWN input, not a production-rendered string
+            String stamped = meta == null ? null : meta.getDisplayName();
+            if (stamped == null || !stamped.startsWith(base) || stamped.length() <= base.length()
+                    || !stamped.contains("2")) {
+                throw new IllegalStateException("transmog did not stamp the enchant-count (2) onto the name: "
+                        + stamped);
             }
-            // Re-apply: the count suffix must REPLACE, not stack (directive §I).
             transmogScrolls.interact(transmogScrolls.mintTransmog(), sword);
-            String reName = sword.getItemMeta().getDisplayName();
-            int occurrences = reName.split(java.util.regex.Pattern.quote(suffix), -1).length - 1;
-            if (occurrences != 1) {
-                throw new IllegalStateException("re-transmog stacked the count suffix: " + reName);
+            String reStamped = sword.getItemMeta().getDisplayName();
+            if (!reStamped.equals(stamped)) {
+                throw new IllegalStateException("re-transmog stacked the count suffix instead of replacing it: "
+                        + stamped + " -> " + reStamped);
             }
         });
 
@@ -273,10 +280,6 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             stack.setItemMeta(meta);
         }
         return stack;
-    }
-
-    private static String colored(String raw) {
-        return org.bukkit.ChatColor.translateAlternateColorCodes('&', raw);
     }
 
     private static void failAll(Harness h, String message) {

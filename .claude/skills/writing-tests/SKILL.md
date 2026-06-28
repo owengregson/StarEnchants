@@ -67,6 +67,20 @@ word-wrap) evaluated over a **test-owned** fixture.
 > is *not* specifically testing that string's transform, the test is coupled. Fix
 > it — reference the constant, or use a synthetic fixture.
 
+**Reconstructing the string is re-typing in disguise — and worse in a live suite.**
+Reading the config template and re-applying the translator yourself
+(`ChatColor.translateAlternateColorCodes`, a renderer) is *not* single-sourcing: in a
+booted server, production also round-trips the value through Bukkit's `ItemMeta`
+(set→get **normalises** colour codes — a redundant `§r§d` collapses to `§d`) and a
+configurable suffix, so the rebuilt expectation can *never* equal the real display
+name. (This is the bug that bit `EconomyItemsSuite`'s transmog check — its `colored()`
+helper was byte-identical to production's translator, yet the assertion still
+diverged.) In a live suite assert the **state** (PDC, counts, booleans) or the
+**structure** of the change (base name kept, the count present, a re-apply idempotent),
+or compare against production's **own** output — never a string the test rebuilt.
+Colour translation lives once, in `item.mint.ItemFactory.color`;
+`RenderingDisciplineArchTest` bans `ChatColor` from the harness so this can't creep back.
+
 ## Rule 2 — A family of one behavior is one data-driven test, not N files
 
 When several tests differ only by input and expected output — the effect-kind wiring
@@ -172,6 +186,10 @@ migration ships).
 ### Anti-patterns — never do these
 
 - Assert an exact lore/menu/command string a production constant defines (Rule 1).
+- **Reconstruct** a production-rendered display name/lore in a live suite (read the
+  template, re-apply the translator) and assert equality — it drifts on Bukkit's
+  `ItemMeta` colour-code normalisation even when your translator is correct; assert
+  state/structure instead (Rule 1, `RenderingDisciplineArchTest`).
 - Assert a diagnostic **message**; assert the **code** via `DiagCode` (Rule 1).
 - One file per effect kind / store / provider when they share a contract (Rule 2).
 - A live suite for pure logic a mocked `Sink` or synthetic event proves (Rule 3/4).
