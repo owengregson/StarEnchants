@@ -45,10 +45,12 @@ import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
- * The TELEPORT effect, live (§7; v3.3 §C) — the first user of the Sink's {@code teleport}/
- * {@code teleportAsync} intent. A {@code TELEPORT:VICTIM} ATTACK enchant teleports the attacker to its cow
- * victim. POLLS horizontal distance each tick: horizontal ignores gravity drift, the per-tick poll tolerates
- * {@code teleportAsync} landing several ticks late under matrix load. Fake-player attacker.
+ * The TELEPORT effect, live (§7; v3.3 §C) — the first user of the Sink's {@code teleport} intent. A
+ * {@code TELEPORT:VICTIM} ATTACK enchant teleports the attacker to its cow victim, here within ONE region.
+ * Asserts the actual semantic — the attacker ends up AT the victim — by polling its proximity to the victim's
+ * captured location each tick (tolerant of collision push-out and of {@code teleportAsync} landing several ticks
+ * late under matrix load). The cross-region hop is proven separately in {@link CrossRegionTeleportSuite}.
+ * Fake-player attacker.
  */
 public final class TeleportSuite implements Harness.Scenario {
 
@@ -58,6 +60,13 @@ public final class TeleportSuite implements Harness.Scenario {
             levels:
               1: { chance: 100, effects: [{ TELEPORT: { to: VICTIM } }] }
             """;
+
+    /** Same region as the attacker, far enough that a real teleport is unambiguous and a no-teleport reads ~8. */
+    private static final int VICTIM_GAP = 8;
+    /** Within this many blocks of the victim counts as "arrived": absorbs the floor's collision push-out. */
+    private static final double ARRIVED = 4.0;
+    /** Generous budget: PASS fires the instant the actor arrives, so a wide cap only lengthens the FAIL path. */
+    private static final int BUDGET_TICKS = 160;
 
     private final Plugin plugin;
 
@@ -106,74 +115,29 @@ public final class TeleportSuite implements Harness.Scenario {
 
         World world = plugin.getServer().getWorlds().get(0);
         Location spawn = world.getSpawnLocation();
-        int cx = spawn.getBlockX() >> 4;
-        int cz = spawn.getBlockZ() >> 4;
 
-        Scheduling.onGlobal(() -> {
-            world.setChunkForceLoaded(cx, cz, true);
-            Scheduling.onRegion(spawn, () -> {
-                Player attacker;
-                LivingEntity victim;
-                try {
-                    attacker = FakePlayers.spawn(world, "se_tp_atk");
-                    // 8 blocks (same region, observable). Wider than minimum: on the 1.17.1 floor a teleport
-                    // into a mob's space lands a couple of blocks SHORT (collision push-out), so 8 clears the
-                    // threshold with margin everywhere while a non-teleport still reads ~0.
-                    victim = (LivingEntity) world.spawnEntity(spawn.clone().add(0, 0, 8), EntityType.COW);
-                    // Pin the cow: a wanderer drifts toward the attacker pre-hit, shrinking the move distance.
-                    victim.setAI(false);
-                } catch (Throwable t) {
-                    h.fail("teleport.movesActorToVictim", "spawn: " + t);
-                    return;
-                }
-                Scheduling.onEntity(attacker, () -> {
-                    Location origin = attacker.getLocation().clone();
-                    attacker.getInventory().setItemInMainHand(sword);
-                    worn.refresh(attacker, library.snapshot());
-                    victim.damage(1.0, attacker); // programmatic hit (range-independent) → ATTACK → TELEPORT
-                    awaitTeleport(attacker, origin, 3.0, 80, h, () -> {
-                        victim.remove();
-                        FakePlayers.despawn(attacker);
-                        rig.teardown();
-                    });
-                });
+        rig.onArena(spawn, () -> {
+            Player attacker;
+            LivingEntity victim;
+            try {
+                attacker = rig.track(FakePlayers.spawn(world, "se_tp_atk"));
+                victim = rig.spawn(world, spawn.clone().add(0, 0, VICTIM_GAP), EntityType.COW, LivingEntity.class);
+                // Pin the cow: a wanderer drifts toward the attacker pre-hit, shrinking the gap we measure.
+                victim.setAI(false);
+            } catch (Throwable t) {
+                h.fail("teleport.movesActorToVictim", "spawn: " + t);
+                rig.teardown();
+                return;
+            }
+            Location victimAt = victim.getLocation().clone(); // captured on the victim's thread; cow is pinned
+            Scheduling.onEntity(attacker, () -> {
+                attacker.getInventory().setItemInMainHand(sword);
+                worn.refresh(attacker, library.snapshot());
+                victim.damage(1.0, attacker); // same-region programmatic hit → ATTACK → TELEPORT to the victim
+                Proximity.awaitWithin(attacker, victimAt, ARRIVED, BUDGET_TICKS, h,
+                        "teleport.movesActorToVictim", rig::teardown);
             });
         });
-    }
-
-    /**
-     * Poll once per tick on {@code actor}'s own scheduler until it has moved {@code minHorizontal} blocks
-     * horizontally from {@code origin} (pass), or {@code maxTicks} elapse (fail). Tick-anchored, not
-     * wall-clock, so correct under matrix load. Runs {@code cleanup} exactly once on either outcome.
-     */
-    private static void awaitTeleport(Player actor, Location origin, double minHorizontal, int maxTicks,
-                                      Harness h, Runnable cleanup) {
-        awaitTeleportStep(actor, origin, minHorizontal, 0, maxTicks, h, cleanup);
-    }
-
-    private static void awaitTeleportStep(Player actor, Location origin, double minHorizontal, int tick,
-                                          int maxTicks, Harness h, Runnable cleanup) {
-        double moved = horizontalDistance(actor.getLocation(), origin);
-        if (moved >= minHorizontal) {
-            h.pass("teleport.movesActorToVictim");
-            cleanup.run();
-            return;
-        }
-        if (tick >= maxTicks) {
-            h.fail("teleport.movesActorToVictim", "attacker did not teleport toward the victim within "
-                    + maxTicks + " ticks (moved " + String.format("%.2f", moved) + " blocks horizontally)");
-            cleanup.run();
-            return;
-        }
-        Scheduling.onEntityLater(actor, 1L,
-                () -> awaitTeleportStep(actor, origin, minHorizontal, tick + 1, maxTicks, h, cleanup));
-    }
-
-    /** Distance between two locations ignoring the Y axis — immune to a falling player's vertical drift. */
-    private static double horizontalDistance(Location a, Location b) {
-        double dx = a.getX() - b.getX();
-        double dz = a.getZ() - b.getZ();
-        return Math.sqrt(dx * dx + dz * dz);
     }
 
     private static void write(Path root, String relative, String yaml) throws IOException {
