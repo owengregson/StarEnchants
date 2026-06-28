@@ -47,6 +47,7 @@ import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
+import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
@@ -122,7 +123,8 @@ public final class SoulSuite implements Harness.Scenario {
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 tick::incrementAndGet, soulService::bindingFor);
-        plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
+        CombatRig rig = new CombatRig(plugin);
+        rig.listen(new CombatListener(dispatch));
 
         // A sword that BOTH bears the drainer enchant and is a soul gem with 5 souls.
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
@@ -175,6 +177,7 @@ public final class SoulSuite implements Harness.Scenario {
                             }
                         });
                         FakePlayers.despawn(attacker);
+                        rig.teardown();
                     });
                 });
             });
