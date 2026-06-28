@@ -20,6 +20,7 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.spec.Args;
 import testfx.Defs;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -236,6 +237,65 @@ class EraseStageTest {
         assertEquals(1, a.effects().length);
         assertSame(e, a.effects()[0]);
         assertEquals(-1, a.suppressKey());
+    }
+
+    @Test
+    void canonicalModeSeedsVocabularyInOrderAndRejectsOutOfVocabularyTriggers() {
+        // production wires the stage with a canonical trigger vocabulary; the ad-hoc no-arg ctor the other
+        // tests use never exercises the seed-and-validate path. The vocabulary is pre-interned in declared
+        // order regardless of which abilities reference which, and an unknown name is a diagnostic, not a bit.
+        EraseStage stage = new DefaultEraseStage(List.of("ATTACK", "DEFEND", "MINE"));
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = stage.erase(List.of(
+                Defs.lowered().stableKey("a").defId(1).triggers("DEFEND").build(),
+                Defs.lowered().stableKey("b").defId(2).triggers("attack", "BOGUS").build()), d);
+
+        assertTrue(d.hasErrors());
+        assertTrue(d.all().get(0).is(DiagCode.E_UNKNOWN_TRIGGER));
+
+        Interners interners = erased.interners();
+        assertEquals(0, interners.triggers().idOf("ATTACK"));
+        assertEquals(1, interners.triggers().idOf("DEFEND"));
+        assertEquals(2, interners.triggers().idOf("MINE"));
+
+        Ability a = erased.abilities()[0];
+        Ability b = erased.abilities()[1];
+        assertTrue(a.firesOn(1));                  // DEFEND
+        assertTrue(b.firesOn(0));                  // lowercase "attack" matched case-insensitively
+        assertFalse(b.firesOn(1), "BOGUS contributed no bit, so b only fires on ATTACK");
+    }
+
+    @Test
+    void aThirtyThirdDistinctTriggerOverflowsTheMaskAndIsReportedNotThrown() {
+        // the trigger mask is a 32-bit int; the 33rd distinct trigger cannot fit and is skipped, but every
+        // ability still survives erasure (skip-the-bit, never drop-the-ability — a broken snapshot stays loadable).
+        List<LoweredAbility> defs = new ArrayList<>();
+        for (int i = 0; i < 33; i++) {
+            defs.add(Defs.lowered().stableKey("t" + i).defId(i).triggers("TRIGGER_" + i).build());
+        }
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = STAGE.erase(defs, d);
+
+        assertTrue(d.hasErrors());
+        assertEquals(1, d.all().stream().filter(x -> x.is(DiagCode.E_TRIGGER_OVERFLOW)).count());
+        assertEquals(33, erased.abilities().length);
+        assertEquals(0, erased.abilities()[32].triggerMask(), "the overflowed trigger wired no bit");
+    }
+
+    @Test
+    void aSixtyFifthDistinctWorldOverflowsTheBitsetAndIsReportedNotThrown() {
+        // the world blacklist is a 64-bit long; the 65th distinct world cannot fit and is skipped.
+        List<LoweredAbility> defs = new ArrayList<>();
+        for (int i = 0; i < 65; i++) {
+            defs.add(Defs.lowered().stableKey("w" + i).defId(i).worldBlacklist("world_" + i).build());
+        }
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = STAGE.erase(defs, d);
+
+        assertTrue(d.hasErrors());
+        assertEquals(1, d.all().stream().filter(x -> x.is(DiagCode.E_WORLD_OVERFLOW)).count());
+        assertEquals(65, erased.abilities().length);
+        assertEquals(0L, erased.abilities()[64].worldBlacklist(), "the overflowed world wired no bit");
     }
 
     @Test
