@@ -15,6 +15,22 @@ UA="StarEnchants-dev (owen@owen.lol)"
 V3="https://fill.papermc.io/v3/projects"
 V2="https://api.papermc.io/v2/projects"
 
+# Server-runtime JDK boundaries (mirrors run-matrix.sh / gradle.properties): a paperclip's patchonly extract
+# runs the server's own bootstrap, so it must use a JDK the server accepts — 26.1+ refuses anything below 25,
+# pre-flip versions want 17. Picking per version makes the extraction (and thus the cached server) reliable
+# across the whole range instead of relying on whatever `java` happens to be on PATH.
+FLIP="$(grep -E '^se.toolchain.flip=' "$ROOT/gradle.properties" 2>/dev/null | cut -d= -f2)"; FLIP="${FLIP:-1.20.5}"
+FLIP25="$(grep -E '^se.toolchain.flip25=' "$ROOT/gradle.properties" 2>/dev/null | cut -d= -f2)"; FLIP25="${FLIP25:-26.1}"
+ver_lt() { [ "$1" = "$2" ] && return 1; printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | head -1 | grep -qx "$1"; }
+java_for() { # echo a java binary appropriate for server version $1 (17/21/25), else plain 'java'
+  local v="$1" want=21
+  ver_lt "$v" "$FLIP" && want=17; ver_lt "$v" "$FLIP25" || want=25
+  local home=""
+  [ -x /usr/libexec/java_home ] && home="$(/usr/libexec/java_home -v "$want" 2>/dev/null)"
+  [ -z "$home" ] && { local envvar="JAVA${want}_HOME"; home="${!envvar:-}"; }
+  if [ -n "$home" ] && [ -x "$home/bin/java" ]; then echo "$home/bin/java"; else echo java; fi
+}
+
 # Newest available is the 26.1 line (26.2 is still RC). The whole supported range:
 PAPER_VERSIONS=(1.17.1 1.18.2 1.19.4 1.20.6 1.21.4 1.21.11 26.1.1 26.1.2)
 FOLIA_VERSIONS=(1.19.4 1.20.6 1.21.4 1.21.11 26.1.2)
@@ -62,7 +78,7 @@ fetch() {
   extracted="$(find "$dir" \( -path '*/versions/*.jar' -o -name 'patched_*.jar' \) 2>/dev/null | head -1)"
   if [ -z "$extracted" ]; then
     echo "[$project $version] extracting (paperclip patchonly)..."
-    ( cd "$dir" && java -Dpaperclip.patchonly=true -jar "$project-$version.jar" >patchonly.log 2>&1 ) \
+    ( cd "$dir" && "$(java_for "$version")" -Dpaperclip.patchonly=true -jar "$project-$version.jar" >patchonly.log 2>&1 ) \
       || echo "  ! patchonly failed (see $dir/patchonly.log) — jar kept; extract later with a matching JDK"
     extracted="$(find "$dir" \( -path '*/versions/*.jar' -o -name 'patched_*.jar' \) 2>/dev/null | head -1)"
   fi
