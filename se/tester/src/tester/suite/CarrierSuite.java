@@ -58,6 +58,7 @@ public final class CarrierSuite implements Harness.Scenario {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // getLore(): the floor-stable String item-meta API the suite asserts against (Component lore is Adventure-only).
     public void accept(Harness h) {
         for (String key : KEYS) {
             h.expect(key);

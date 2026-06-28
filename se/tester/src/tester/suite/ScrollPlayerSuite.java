@@ -39,6 +39,7 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // getDisplayName(): the floor-stable String item-meta API the suite asserts against (Component name is Adventure-only).
     public void accept(Harness h) {
         for (String key : KEYS) {
             h.expect(key);

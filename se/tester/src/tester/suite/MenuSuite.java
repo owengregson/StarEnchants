@@ -76,6 +76,7 @@ public final class MenuSuite implements Harness.Scenario {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // getDisplayName()/getLore(): the floor-stable String item-meta API the suite asserts against (Component API is Adventure-only).
     public void accept(Harness h) {
         h.expect("menu.clickAppliesEnchant");
         h.expect("menu.iconShowsTierColorAndDescription");
