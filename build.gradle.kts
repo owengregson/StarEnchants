@@ -65,7 +65,7 @@ subprojects {
         }
 
         // JaCoCo per module — the coverage LEDGER for the test-suite overhaul: a collapse/merge may not
-        // drop a covered branch (docs/testing-architecture.md). Reports run on demand
+        // drop a covered branch (docs/dev/internals/testing-architecture.md). Reports run on demand
         // (`./gradlew :<module>:jacocoTestReport`) so the inner loop stays fast; the CSV makes
         // BRANCH_COVERED counts trivially diffable before/after a rewrite.
         pluginManager.apply("jacoco")

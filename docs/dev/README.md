@@ -58,6 +58,10 @@ edges behind resolvers).
   Cosmic Enchants-style configs into StarEnchants content.
 - [internals/config-packs.md](internals/config-packs.md) — the shipped, swappable
   config packs.
+- [internals/testing-architecture.md](internals/testing-architecture.md) — how the
+  test suite is shaped (the layer pyramid, one source of truth per string, the
+  data-driven effect-kind tables, the `se/testfx` fixtures); the design rationale
+  behind the `writing-tests` skill.
 
 ## Extending the plugin
 

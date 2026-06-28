@@ -7,7 +7,7 @@ description: Use when writing, reviewing, removing, or restructuring ANY test in
 
 The governing policy for tests in this repo: *whether* a test should exist, *which
 layer* it belongs in, and *how* to write it so it catches real bugs without breaking
-on non-bugs. The target design is [docs/testing-architecture.md](../../../docs/testing-architecture.md).
+on non-bugs. The target design is [docs/dev/internals/testing-architecture.md](../../../docs/dev/internals/testing-architecture.md).
 
 > **This supersedes** the "when to write a live test" guidance and the unit-vs-live
 > notes in the `live-server-testing` / `matrix-gate` skills. When this conflicts with
