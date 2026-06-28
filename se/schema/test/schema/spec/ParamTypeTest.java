@@ -2,11 +2,13 @@ package schema.spec;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
+import schema.grammar.expr.Expr;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -110,5 +112,60 @@ class ParamTypeTest {
         assertEquals(java.util.List.of("CIRCLE"), D.enumOf("CIRCLE", "SQUARE").completions("ci"));
         assertEquals(java.util.List.of("true"), D.BOOL.completions("t"));
         assertTrue(D.DOUBLE.completions("").isEmpty());
+    }
+
+    // ── HANDLE: a version-volatile referent. parse() keeps the token verbatim (resolve interns it later
+    // and warns-and-skips unknowns, §9); only an empty token is a parse error here.
+
+    @Test
+    void handleKeepsTheTokenVerbatimAndTrimmed() {
+        Diagnostics d = new Diagnostics();
+        assertEquals("DIAMOND_SWORD", D.material().parse("DIAMOND_SWORD", SRC, d).orElseThrow());
+        assertEquals("ENTITY_GENERIC_HURT", D.sound().parse("  ENTITY_GENERIC_HURT  ", SRC, d).orElseThrow());
+        assertFalse(d.hasErrors()); // an unknown name is resolve's concern, not a parse error
+    }
+
+    @Test
+    void handleRejectsAnEmptyToken() {
+        Diagnostics d = new Diagnostics();
+        assertTrue(D.material().parse("   ", SRC, d).isEmpty());
+        assertTrue(d.all().get(0).is(DiagCode.E_TYPE), () -> d.all().toString());
+    }
+
+    @Test
+    void handleLabelAndCategoryComeFromTheCategory() {
+        assertEquals("material", D.material().label());
+        assertEquals("potion_effect", D.potionEffect().label());
+        assertEquals("enchantment", D.enchantment().label());
+        assertEquals(HandleCategory.MATERIAL, D.material().handleCategory());
+        assertEquals(HandleCategory.PARTICLE, D.particle().handleCategory());
+    }
+
+    // ── A %var%/arithmetic token is a valid numeric argument: it parses to an Expr AST evaluated per
+    // activation, and its range is deliberately NOT checked statically (the author owns the value, §3.4).
+
+    @Test
+    void numericArgumentAcceptsAVariableExpression() {
+        Diagnostics d = new Diagnostics();
+        Object v = D.DOUBLE.parse("%combo%", SRC, d).orElseThrow();
+        assertInstanceOf(Expr.VarRef.class, v);
+        assertFalse(d.hasErrors());
+    }
+
+    @Test
+    void numericArgumentAcceptsArithmeticForDoubleAndInt() {
+        Diagnostics d = new Diagnostics();
+        assertInstanceOf(Expr.Arith.class, D.DOUBLE.parse("%combo% * 10", SRC, d).orElseThrow());
+        // INT admits an expression too — its value is narrowed to a whole number at read time.
+        assertInstanceOf(Expr.Arith.class, D.INT.parse("%level% + 1", SRC, d).orElseThrow());
+        assertFalse(d.hasErrors());
+    }
+
+    @Test
+    void rangeIsNotCheckedOnAnExpressionArgument() {
+        // %combo% * 1000 could exceed the [0..100] bound, but a bound can't be checked on an expression.
+        Diagnostics d = new Diagnostics();
+        assertInstanceOf(Expr.class, D.DOUBLE.min(0).max(100).parse("%combo% * 1000", SRC, d).orElseThrow());
+        assertFalse(d.hasErrors());
     }
 }
