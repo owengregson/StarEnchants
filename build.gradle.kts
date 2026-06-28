@@ -64,6 +64,23 @@ subprojects {
             add("testImplementation", "com.tngtech.archunit:archunit-junit5:1.3.0")
         }
 
+        // JaCoCo per module — the coverage LEDGER for the test-suite overhaul: a collapse/merge may not
+        // drop a covered branch (docs/testing-overhaul/testing-overhaul-plan.md). Run on demand
+        // (`./gradlew :<module>:jacocoTestReport`) rather than finalizing every test run, so the inner
+        // loop stays fast; the CSV report makes BRANCH_COVERED counts trivially diffable before/after a
+        // rewrite, and CI turns the diff into a blocking gate (the :infra task).
+        pluginManager.apply("jacoco")
+        extensions.configure<JacocoPluginExtension> {
+            toolVersion = "0.8.12"
+        }
+        tasks.withType<JacocoReport>().configureEach {
+            reports {
+                xml.required.set(true)
+                csv.required.set(true)
+                html.required.set(true)
+            }
+        }
+
         tasks.withType<JavaCompile>().configureEach {
             options.encoding = "UTF-8"
             options.compilerArgs.add("-Xlint:all,-processing")
