@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.spec.D;
@@ -56,7 +57,7 @@ class LineCompilerTest {
         Optional<CompiledLine> r = compiler().compile("WHATEVER:1:2", SRC, d);
         assertTrue(r.isEmpty());
         assertTrue(d.hasErrors());
-        assertEquals("E_UNKNOWN_KIND", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_UNKNOWN_KIND));
     }
 
     @Test
@@ -65,7 +66,7 @@ class LineCompilerTest {
         Optional<CompiledLine> r = compiler().compile("SMITE:notanumber:4:6", SRC, d);
         assertTrue(r.isPresent());
         assertTrue(d.hasErrors());
-        assertEquals("E_TYPE", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_TYPE));
     }
 
     @Test

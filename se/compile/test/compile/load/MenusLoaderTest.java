@@ -1,5 +1,7 @@
 package compile.load;
 
+import schema.diag.DiagCode;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,6 +55,6 @@ class MenusLoaderTest {
 
         assertFalse(config.hasErrors()); // a bad number warns, never blocks
         assertTrue(config.forMenu("apply").orElseThrow().rows().isEmpty());
-        assertTrue(config.diagnostics().stream().anyMatch(d -> d.code().equals("W_MENU_NUM")));
+        assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.W_MENU_NUM)));
     }
 }

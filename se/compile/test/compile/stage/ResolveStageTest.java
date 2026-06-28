@@ -15,6 +15,7 @@ import compile.model.Snapshot;
 import compile.model.SourceKind;
 import compile.resolve.FakeResolvers;
 import compile.resolve.PlatformResolvers;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -83,7 +84,7 @@ class ResolveStageTest {
                 new DefaultResolveStage(reg, PlatformResolvers.none()).resolve(lowered, d);
 
         assertTrue(d.hasErrors());
-        assertEquals("E_UNKNOWN_HANDLE", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_UNKNOWN_HANDLE));
         assertTrue(resolved.effects().isEmpty(), "the one unresolved effect is warn-and-skipped");
     }
 

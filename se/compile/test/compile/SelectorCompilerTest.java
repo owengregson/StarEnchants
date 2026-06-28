@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.model.CompiledSelector;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.spec.D;
@@ -46,7 +47,7 @@ class SelectorCompilerTest {
         Diagnostics d = new Diagnostics();
         CompiledSelector sel = compiler().compileInline("@Bogus{r=1}", SRC, d);
         assertTrue(d.hasErrors());
-        assertEquals("E_UNKNOWN_SELECTOR", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_UNKNOWN_SELECTOR));
         assertSame(CompiledSelector.SELF, sel);
     }
 
@@ -55,7 +56,7 @@ class SelectorCompilerTest {
         Diagnostics d = new Diagnostics();
         compiler().compileInline("@Aoe{r=-1}", SRC, d);
         assertTrue(d.hasErrors());
-        assertEquals("E_RANGE", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_RANGE));
     }
 
     @Test
@@ -63,7 +64,7 @@ class SelectorCompilerTest {
         Diagnostics d = new Diagnostics();
         CompiledSelector sel = compiler().compileInline("@Aoe{radius=3}", SRC, d);
         assertFalse(d.hasErrors()); // unknown arg is a warning, not an error
-        assertEquals("W_SELECTOR_UNKNOWN_ARG", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.W_SELECTOR_UNKNOWN_ARG));
         assertEquals(4.0, sel.args().dbl("r"));
     }
 

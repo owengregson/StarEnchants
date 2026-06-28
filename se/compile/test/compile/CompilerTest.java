@@ -11,6 +11,7 @@ import compile.model.Affinity;
 import compile.model.Interners;
 import compile.model.Snapshot;
 import compile.model.SourceKind;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -68,7 +69,7 @@ class CompilerTest {
                 .compile(library(), 7, diags);
 
         assertEquals(7, snap.generation());
-        assertTrue(snap.diagnostics().stream().anyMatch(d -> d.code().equals("E_DUP_KEY")));
+        assertTrue(snap.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_DUP_KEY)));
 
         // four defs in, one dropped → dense ids 0..2 in input order
         assertEquals(3, snap.abilityCount());

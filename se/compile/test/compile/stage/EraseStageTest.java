@@ -15,6 +15,7 @@ import compile.model.Interners;
 import compile.model.SourceKind;
 import compile.model.SourceMap;
 import compile.model.StableKeyIndex;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.spec.Args;
@@ -185,7 +186,7 @@ class EraseStageTest {
 
         assertEquals(2, erased.abilities().length);
         assertTrue(d.hasErrors());
-        assertEquals("E_DUP_KEY", d.all().get(0).code());
+        assertTrue(d.all().get(0).is(DiagCode.E_DUP_KEY));
 
         // dense ids stay contiguous across the kept abilities
         assertEquals(0, erased.abilities()[0].id());
