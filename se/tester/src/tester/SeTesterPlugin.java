@@ -17,6 +17,7 @@ import tester.suite.CombatSuite;
 import tester.suite.ConditionSuite;
 import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
+import tester.suite.CrossRegionTeleportSuite;
 import tester.suite.CrystalSuite;
 import tester.suite.EconomyItemsSuite;
 import tester.suite.EconomySuite;
@@ -106,6 +107,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new TriggerSuite(this));
         harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
         harness.add(new TeleportSuite(this));
+        harness.add(new CrossRegionTeleportSuite(this)); // Folia: TELEPORT must hop the actor's scheduler across regions
 
         getServer().getPluginManager().registerEvents(this, this);
     }
