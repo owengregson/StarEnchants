@@ -234,6 +234,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().crystals().maxStack(),   // §E crystal sanity cap
                 messages);                                     // §L ApplyResult reason strings
 
+        // §I the single exclusive applied-utility slot, shared by white/holy scrolls and the trak gems.
+        item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot());
+
         // Carrier economy (ADR-0016). Carrier PDC is separate from the combat blob, so it never decodes hot.
         CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
@@ -241,7 +244,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().dustOrDefault(),          // §I success dust
                 () -> items.config().whiteScrollOrDefault(),   // §I white scroll
                 () -> master.config().lore().roman(),          // book level numeral style (lore.roman, live)
-                () -> master.config().books().maxSuccess());   // §I global success ceiling (books.max-success, live)
+                () -> master.config().books().maxSuccess(),    // §I global success ceiling (books.max-success, live)
+                appliedSlot);                                  // §I white scroll occupies this
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());
@@ -265,8 +269,6 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert());
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
                 new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog());
-        // §I the single exclusive applied-utility slot, shared by white/holy scrolls and the trak gems.
-        item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
                 () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec);
 

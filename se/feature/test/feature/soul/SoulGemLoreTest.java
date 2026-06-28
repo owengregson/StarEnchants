@@ -38,15 +38,8 @@ final class SoulGemLoreTest {
     }
 
     @Test
-    void parenAliasesAreEquivalentToBraceForms() {
-        List<String> lore = SoulService.renderGemLore(
-                withLore(List.of("&7Souls: (soul_amt_color)(soul_amt)")), 100);
-        assertEquals("&7Souls: &a100", lore.get(0)); // (soul_amt)/(soul_amt_color) == {AMOUNT}/{SOUL-COLOR}
-    }
-
-    @Test
     void renderGemNameCarriesTheLiveCount() {
-        SoulGemConfig cfg = withName("&c&lSoul Gem [&r(soul_amt_color)&n&l(soul_amt)&r&c&l]");
+        SoulGemConfig cfg = withName("&c&lSoul Gem [&r{SOUL-COLOR}&n&l{AMOUNT}&r&c&l]");
         assertEquals("&c&lSoul Gem [&r&a&n&l100&r&c&l]", SoulService.renderGemName(cfg, 100));
         assertEquals("&c&lSoul Gem [&r&7&n&l0&r&c&l]", SoulService.renderGemName(cfg, 0)); // empty → empty colour
     }

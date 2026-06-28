@@ -10,6 +10,6 @@ name: "&5Transmog Scroll"
 lore:
   - "&7Drag onto enchanted gear to"
   - "&7sort its enchants by rarity."
-# Appended to the gear's display name when transmogged; (enchantcount) = the item's total enchant count.
+# Appended to the gear's display name when transmogged; {COUNT} = the item's total enchant count.
 # A re-transmog strips a prior suffix matching this template and re-stamps, so the count never duplicates.
-name-suffix: "&r &d[&b&l&n(enchantcount)&r&d]"
+name-suffix: "&r &d[&b&l&n{COUNT}&r&d]"

@@ -7,11 +7,11 @@ type: black-scroll
 
 material: INK_SAC
 name: "&8&lBlack Scroll"
-# (NewConvpercent) (alias {SUCCESS}/{CONVERT}) = the drawn book's rolled success rate. Lines auto-wrap at
+# {SUCCESS} = the drawn book's rolled success rate, {FAILURE} = its complement. Lines auto-wrap at
 # config lore.item-wrap.
 lore:
   - ""
-  - "&6=> (NewConvpercent)% Success Rate"
+  - "&6=> {SUCCESS}% Success Rate"
   - ""
   - "&7Extracts a random enchant from your gear into a book at the success rate above."
 # The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100), then clamped to the
