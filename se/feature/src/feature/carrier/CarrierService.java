@@ -38,6 +38,7 @@ public final class CarrierService {
     private final java.util.function.Supplier<compile.load.DustConfig> dustConfig;
     private final java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig;
     private final java.util.function.BooleanSupplier roman; // §L lore.roman — book level numeral style, read live
+    private final java.util.function.IntSupplier maxBookSuccess; // §I books.max-success — global success ceiling, live
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -57,18 +58,21 @@ public final class CarrierService {
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
-        this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true);
+        this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100);
     }
 
     /**
      * Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes
-     * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style.
+     * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style;
+     * {@code maxBookSuccess} (the live {@code books.max-success} setting) is the global success ceiling that
+     * binds randomised minting and dust (guaranteed/admin books are exempt — see {@link #capBookSuccess}).
      */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig,
-                          java.util.function.BooleanSupplier roman) {
+                          java.util.function.BooleanSupplier roman,
+                          java.util.function.IntSupplier maxBookSuccess) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -77,6 +81,7 @@ public final class CarrierService {
         this.dustConfig = Objects.requireNonNull(dustConfig, "dustConfig");
         this.whiteScrollConfig = Objects.requireNonNull(whiteScrollConfig, "whiteScrollConfig");
         this.roman = Objects.requireNonNull(roman, "roman");
+        this.maxBookSuccess = Objects.requireNonNull(maxBookSuccess, "maxBookSuccess");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -359,10 +364,11 @@ public final class CarrierService {
         if (data == null || !isEnchantBook(data)) {
             return CarrierResult.noop("§cThe randomizer only works on an enchant book.");
         }
-        CarrierData updated = data.withBaseSuccess(clampPercent(targetPercent));
+        int target = capBookSuccess(targetPercent); // randomizer respects the global ceiling (§I)
+        CarrierData updated = data.withBaseSuccess(target);
         codec.write(book, updated);
         reRenderBookLore(book, updated);
-        return CarrierResult.consumed("§aThe book's success chance is now §f" + clampPercent(targetPercent) + "%§a.");
+        return CarrierResult.consumed("§aThe book's success chance is now §f" + target + "%§a.");
     }
 
     /**
@@ -396,13 +402,14 @@ public final class CarrierService {
             return CarrierResult.noop("§cDust can only boost an enchant book.");
         }
         int base = baseSuccessOf(bookData);
-        if (effectiveSuccess(base, bookData.successBonus()) >= 100) {
-            return CarrierResult.noop("§7That book is already at 100% success.");
+        int cap = capBookSuccess(100); // global ceiling dust may lift a book TO — it snaps, never overflows (§I)
+        if (effectiveSuccess(base, bookData.successBonus()) >= cap) {
+            return CarrierResult.noop("§7That book is already at the §f" + cap + "%§7 success ceiling.");
         }
         if (bonus <= 0) {
             return CarrierResult.noop("§cThis dust confers no success bonus.");
         }
-        int newBonus = Math.max(0, Math.min(bookData.successBonus() + bonus, 100 - base)); // base + bonus ≤ 100
+        int newBonus = Math.max(0, Math.min(bookData.successBonus() + bonus, cap - base)); // base + bonus ≤ cap
         CarrierData updated = bookData.withSuccessBonus(newBonus);
         codec.write(book, updated);
         reRenderBookLore(book, updated);
@@ -479,6 +486,16 @@ public final class CarrierService {
 
     private static int clampPercent(int pct) {
         return Math.max(0, Math.min(100, pct));
+    }
+
+    /**
+     * Clamp {@code pct} to the global {@code books.max-success} ceiling (§I, live) and {@code [0, 100]} — the
+     * cap that binds RANDOMISED minting (unopened book / randomizer scroll), the black scroll conversion, and
+     * dust. Guaranteed books (no base-success override → 100) and admin explicit-success mints are never
+     * routed through here, so they stay uncapped.
+     */
+    public int capBookSuccess(int pct) {
+        return Math.min(clampPercent(pct), clampPercent(maxBookSuccess.getAsInt()));
     }
 
     private static Material material(String token) {

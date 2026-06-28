@@ -240,7 +240,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().enchantBookOrDefault(),   // §I enchant book
                 () -> items.config().dustOrDefault(),          // §I success dust
                 () -> items.config().whiteScrollOrDefault(),   // §I white scroll
-                () -> master.config().lore().roman());         // book level numeral style (lore.roman, live)
+                () -> master.config().lore().roman(),          // book level numeral style (lore.roman, live)
+                () -> master.config().books().maxSuccess());   // §I global success ceiling (books.max-success, live)
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());

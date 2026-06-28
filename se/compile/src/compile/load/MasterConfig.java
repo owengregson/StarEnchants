@@ -13,7 +13,7 @@ import schema.diag.Diagnostic;
  * defaults for the faulted section.
  */
 public record MasterConfig(FeaturesSection features, CombatSection combat, MessagesSection messages,
-                           SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
+                           BooksSection books, SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
                            HeroicSection heroic, LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
                            List<Diagnostic> diagnostics) {
@@ -22,6 +22,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         Objects.requireNonNull(features, "features");
         Objects.requireNonNull(combat, "combat");
         Objects.requireNonNull(messages, "messages");
+        Objects.requireNonNull(books, "books");
         Objects.requireNonNull(slots, "slots");
         Objects.requireNonNull(souls, "souls");
         Objects.requireNonNull(crystals, "crystals");
@@ -36,9 +37,29 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     /** The built-in master config — every section at its default; used when {@code config.yml} is absent. */
     public static MasterConfig defaults() {
         return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MessagesSection.defaults(),
-                SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
+                BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
                 HeroicSection.defaults(), LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), List.of());
+    }
+
+    /**
+     * Global enchant-book success ceiling (§I). The book likeness lives in {@code items/enchant-book.yml};
+     * this is the one cross-cutting knob.
+     *
+     * @param maxSuccess maximum success % a book may reach via RANDOMISED minting (unopened book / randomizer
+     *                   scroll), the black scroll's conversion roll, or Magic Dust (which snaps to it). Clamped
+     *                   to {@code [0, 100]}; {@code 100} = no practical cap. Guaranteed books ({@code /se book},
+     *                   the admin browser) and an explicit {@code /se give book <success>} are admin overrides
+     *                   and are NOT capped.
+     */
+    public record BooksSection(int maxSuccess) {
+        public BooksSection {
+            maxSuccess = Math.max(0, Math.min(100, maxSuccess));
+        }
+
+        public static BooksSection defaults() {
+            return new BooksSection(100);
+        }
     }
 
     /** Whether any blocking diagnostic was raised loading {@code config.yml}. */

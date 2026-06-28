@@ -31,7 +31,7 @@ public final class MasterConfigLoader {
         } catch (IOException e) {
             diags.error("E_CONFIG_IO", "could not read config.yml: " + e.getMessage(), Source.ofFile("config.yml"));
             return new MasterConfig(MasterConfig.FeaturesSection.defaults(), MasterConfig.CombatSection.defaults(),
-                    MasterConfig.MessagesSection.defaults(),
+                    MasterConfig.MessagesSection.defaults(), MasterConfig.BooksSection.defaults(),
                     MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
                     MasterConfig.CrystalsSection.defaults(), MasterConfig.HeroicSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
@@ -47,6 +47,7 @@ public final class MasterConfigLoader {
                 readFeatures(root.child("features"), diags),
                 readCombat(root.child("combat"), diags),
                 readMessages(root.child("messages"), diags),
+                readBooks(root.child("books"), diags),
                 readSlots(root.child("slots"), diags),
                 readSouls(root.child("souls"), diags),
                 readCrystals(root.child("crystals"), diags),
@@ -86,6 +87,11 @@ public final class MasterConfigLoader {
         return new MasterConfig.MessagesSection(
                 prefix == null ? d.prefix() : prefix,
                 parseBool(n.string("feedback"), d.feedback()));
+    }
+
+    private static MasterConfig.BooksSection readBooks(YamlNode n, Diagnostics diags) {
+        MasterConfig.BooksSection d = MasterConfig.BooksSection.defaults();
+        return new MasterConfig.BooksSection(parseInt(n.string("max-success"), d.maxSuccess(), n, diags));
     }
 
     private static MasterConfig.SlotsSection readSlots(YamlNode n, Diagnostics diags) {
