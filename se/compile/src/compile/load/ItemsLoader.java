@@ -202,7 +202,8 @@ public final class ItemsLoader {
                 orDefault(root.string("material"), d.material()),
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
-                parseInt(root.string("success-chance"), d.successChance(), root, diags));
+                parseInt(root.string("min-convert"), d.minConvert(), root, diags),
+                parseInt(root.string("max-convert"), d.maxConvert(), root, diags));
     }
 
     private static ScrollsConfig.Randomizer readRandomizer(YamlNode root, Diagnostics diags) {

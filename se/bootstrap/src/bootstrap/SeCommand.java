@@ -755,7 +755,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             }
             case "heroic", "upgrade" -> deliver(sender, target, heroics.mint(), "command.give.heroic", "heroic upgrade");
             case "orb" -> deliver(sender, target, slots.mintOrb(), "command.give.slot", "slot expander");
-            case "blackscroll" -> deliver(sender, target, scrolls.mintBlack(), "command.give.blackscroll", "black scroll");
+            case "blackscroll" -> giveBlackScrollTo(sender, target, args);
             case "randomizer" -> deliver(sender, target, scrolls.mintRandomizer(), "command.give.randomizer", "randomizer scroll");
             case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
             case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy white scroll");
@@ -770,6 +770,24 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "set" -> giveSetTo(sender, target, args);
             default -> sender.sendMessage(messages.format("command.give.usage"));
         }
+    }
+
+    /** {@code /se give blackscroll <player> [convert-percent]} — a percent fixes the drawn book's success rate. */
+    private void giveBlackScrollTo(CommandSender sender, Player target, String[] args) {
+        ItemStack scroll;
+        if (args.length >= 4) {
+            int pct;
+            try {
+                pct = Integer.parseInt(args[3]);
+            } catch (NumberFormatException bad) {
+                sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[3]));
+                return;
+            }
+            scroll = scrolls.mintBlack(pct);
+        } else {
+            scroll = scrolls.mintBlack();
+        }
+        deliver(sender, target, scroll, "command.give.blackscroll", "black scroll");
     }
 
     /** Resolve an online-player target by exact name, messaging the sender if none matches. */

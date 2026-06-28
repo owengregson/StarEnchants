@@ -16,13 +16,21 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
         Objects.requireNonNull(godly, "godly");
     }
 
-    /** Extracts one random enchant from gear into a book on a {@code successChance} roll; spent (extracting nothing) on failure. */
-    public record Black(String material, String name, List<String> lore, int successChance) {
+    /**
+     * Extracts one random enchant from gear into a book — the extraction ALWAYS succeeds (§I). What varies is
+     * the drawn book's CONVERSION success rate: a value rolled in {@code [minConvert, maxConvert]} when the
+     * scroll is minted (clamped to the global {@code books.max-success} ceiling) and stamped on the scroll so
+     * its lore can show it. The book the scroll draws off the gear carries that success chance.
+     */
+    public record Black(String material, String name, List<String> lore, int minConvert, int maxConvert) {
         public Black {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
             lore = List.copyOf(lore);
-            successChance = Math.max(0, Math.min(100, successChance));
+            int lo = Math.max(0, Math.min(100, minConvert));
+            int hi = Math.max(0, Math.min(100, maxConvert));
+            minConvert = Math.min(lo, hi); // order the pair so [min, max] is always a valid range
+            maxConvert = Math.max(lo, hi);
         }
     }
 
@@ -87,7 +95,8 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                         "INK_SAC",
                         "&8Black Scroll",
                         List.of("&7Drag onto enchanted gear to", "&7extract one enchant into a book."),
-                        80),
+                        50,
+                        100),
                 new Randomizer(
                         "SUGAR",
                         "&eRandomizer Scroll",

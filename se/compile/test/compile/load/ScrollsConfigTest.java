@@ -12,7 +12,8 @@ class ScrollsConfigTest {
     @Test
     void defaultsArePresent() {
         ScrollsConfig d = ScrollsConfig.defaults();
-        assertTrue(d.black().successChance() >= 0 && d.black().successChance() <= 100);
+        assertTrue(d.black().minConvert() >= 0 && d.black().maxConvert() <= 100);
+        assertTrue(d.black().minConvert() <= d.black().maxConvert());
         assertTrue(d.randomizer().minPercent() <= d.randomizer().maxPercent());
         assertTrue(d.holy().saveChance() >= 0 && d.holy().saveChance() <= 100);
         assertTrue(d.transmog().nameSuffix() != null);
@@ -26,9 +27,11 @@ class ScrollsConfigTest {
     }
 
     @Test
-    void blackSuccessIsClamped() {
-        ScrollsConfig.Black b = new ScrollsConfig.Black("M", "n", List.of(), 150);
-        assertEquals(100, b.successChance(), "success chance clamped to 100");
+    void blackConvertRangeOrdersAndClamps() {
+        // reversed, out-of-range bounds clamp to [0,100] and reorder low..high
+        ScrollsConfig.Black b = new ScrollsConfig.Black("M", "n", List.of(), 150, -5);
+        assertEquals(0, b.minConvert(), "min clamped to 0");
+        assertEquals(100, b.maxConvert(), "max clamped to 100");
     }
 
     @Test

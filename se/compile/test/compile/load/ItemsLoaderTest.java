@@ -82,7 +82,8 @@ class ItemsLoaderTest {
                 type: black-scroll
                 material: COAL
                 name: "&8Void Scroll"
-                success-chance: 50
+                min-convert: 40
+                max-convert: 60
                 """);
         Files.writeString(dir.resolve("randomizer-scroll.yml"), """
                 type: randomizer-scroll
@@ -94,7 +95,8 @@ class ItemsLoaderTest {
         ScrollsConfig scrolls = ItemsLoader.load(dir).scrolls().orElseThrow();
         assertEquals("COAL", scrolls.black().material());
         assertEquals("&8Void Scroll", scrolls.black().name());
-        assertEquals(50, scrolls.black().successChance());
+        assertEquals(40, scrolls.black().minConvert());
+        assertEquals(60, scrolls.black().maxConvert());
         assertEquals(ScrollsConfig.defaults().black().lore(), scrolls.black().lore());
         assertEquals("GLOWSTONE_DUST", scrolls.randomizer().material());
         assertEquals(10, scrolls.randomizer().minPercent());

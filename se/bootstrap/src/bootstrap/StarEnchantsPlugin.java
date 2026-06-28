@@ -262,7 +262,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 (java.util.function.IntSupplier) () -> master.config().slots().base(), messages);
 
         // Book-economy scrolls (§I). Distinct 'scroll' PDC tag, off the combat hot path.
-        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll());
+        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert());
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
                 new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
