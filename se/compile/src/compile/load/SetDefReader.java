@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.IntSupplier;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -129,7 +130,7 @@ final class SetDefReader {
             try {
                 out.put(entry.key(), Integer.parseInt(raw.trim()));
             } catch (NumberFormatException bad) {
-                diags.warning("W_SET_ENCHANT", "set '" + setKey + "' enchant '" + entry.key()
+                diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + entry.key()
                         + "' level is not a number: " + raw, entry.value().source());
             }
         }

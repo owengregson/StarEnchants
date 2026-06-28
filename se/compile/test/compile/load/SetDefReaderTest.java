@@ -8,8 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.def.AbilityDef;
 import compile.model.SourceKind;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntSupplier;
 import org.junit.jupiter.api.Test;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 
 /** Unit tests for the armour-set reader (ADR-0014): malformed input is a diagnostic, never an exception. */
@@ -142,6 +144,55 @@ class SetDefReaderTest {
             """;
         SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
         assertTrue(diags.hasErrors());
+    }
+
+    @Test
+    void enchantsBlockParsesToTheRefLevelMapPreservingAuthoredOrder() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              enchants:
+                enchants/frost: 2
+                PROTECTION: 4
+              trigger: DEFEND
+              pieces:
+                boots: { material: DIAMOND_BOOTS }
+              effects: [{ DAMAGE: { amount: 1 } }]
+            weapon:
+              enchants:
+                SHARPNESS: 5
+              material: DIAMOND_SWORD
+              trigger: ATTACK
+              effects: [{ HEAL: { amount: 1 } }]
+            """;
+        SetDefReader.Parsed parsed = SetDefReader.read("sets/frost", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        // ref→level, authored order preserved — it determines the minted piece's enchant lore order
+        assertEquals(List.of("enchants/frost", "PROTECTION"), List.copyOf(parsed.def().armorEnchants().keySet()));
+        assertEquals(2, parsed.def().armorEnchants().get("enchants/frost"));
+        assertEquals(Map.of("SHARPNESS", 5), parsed.def().weaponEnchants());
+    }
+
+    @Test
+    void aNonNumericEnchantLevelWarnsByCodeAndIsSkipped() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              enchants:
+                enchants/frost: nope
+                PROTECTION: 4
+              trigger: DEFEND
+              pieces:
+                boots: { material: DIAMOND_BOOTS }
+              effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDefReader.Parsed parsed = SetDefReader.read("sets/frost", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), "a non-numeric level is a warning, not a blocking error");
+        assertTrue(diags.all().stream().anyMatch(d -> d.is(DiagCode.W_SET_ENCHANT)), () -> diags.all().toString());
+        // the unparseable entry is dropped; its valid sibling survives
+        assertEquals(Map.of("PROTECTION", 4), parsed.def().armorEnchants());
     }
 
     @Test
