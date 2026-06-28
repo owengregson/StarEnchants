@@ -72,6 +72,17 @@ tasks.register<Test>("regenDocs") {
     outputs.upToDateWhen { false }
 }
 
+// The §M drift guards (ReferenceDoc/ReferenceCatalog) read these committed goldens via a repo-root walk, NOT
+// the test classpath — so without declaring them as task inputs, `org.gradle.caching=true` serves a stale
+// FROM-CACHE result and a hand-edited golden's drift is missed by `./gradlew build`. Declaring them (content-
+// hashed) makes an edit invalidate the test task. optional() so a fresh checkout before regen does not error.
+tasks.named<Test>("test") {
+    inputs.files(
+        rootProject.file("docs/reference/dsl-reference.md"),
+        rootProject.file("website/src/data/catalog.json"),
+    ).withPropertyName("driftGoldens").optional()
+}
+
 // The RUNTIME. Bukkit-aware, FLOOR API only, version-agnostic. Stateless systems
 // (one per trigger family) walk a pre-flattened WornState and execute abilities
 // through the Sink — the single mutation boundary. Holds the effect/condition/
