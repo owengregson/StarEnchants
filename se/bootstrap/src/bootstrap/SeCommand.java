@@ -756,7 +756,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 deliver(sender, target, souls.mintGem(amount), "command.give.gem", "soul gem");
             }
             case "heroic", "upgrade" -> deliver(sender, target, heroics.mint(), "command.give.heroic", "heroic upgrade");
-            case "orb" -> deliver(sender, target, slots.mintOrb(), "command.give.slot", "slot expander");
+            case "orb" -> giveOrbTo(sender, target, args);
             case "blackscroll" -> giveBlackScrollTo(sender, target, args);
             case "randomizer" -> deliver(sender, target, scrolls.mintRandomizer(), "command.give.randomizer", "randomizer scroll");
             case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
@@ -769,8 +769,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "soultrak" -> deliver(sender, target,
                     traks.mint(item.codec.TrakCodec.Kind.SOUL), "command.give.trak", "soultrak gem");
             case "dust" -> giveDustTo(sender, target, args);
-            case "whitescroll" -> deliver(sender, target, carriers.mintWhiteScroll(),
-                    "command.give.whitescroll", "white scroll");
+            case "whitescroll" -> giveWhiteScrollTo(sender, target, args);
             case "crystal" -> giveCrystalTo(sender, target, args);
             case "extractor" -> deliver(sender, target, crystals.mintExtractor(), "command.give.extractor", "crystal extractor");
             case "book" -> giveBookTo(sender, target, args);
@@ -796,6 +795,39 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             scroll = scrolls.mintBlack();
         }
         deliver(sender, target, scroll, "command.give.blackscroll", "black scroll");
+    }
+
+    /** {@code /se give orb <player> [success-percent]} — a percent fixes the orb's apply success. */
+    private void giveOrbTo(CommandSender sender, Player target, String[] args) {
+        Integer pct = optionalPercent(sender, args);
+        if (pct == null && args.length >= 4) {
+            return; // a bad number was supplied; optionalPercent messaged the sender
+        }
+        ItemStack orb = pct == null ? slots.mintOrb() : slots.mintOrb(pct);
+        deliver(sender, target, orb, "command.give.slot", "slot expander");
+    }
+
+    /** {@code /se give whitescroll <player> [success-percent]} — a percent fixes the scroll's apply success. */
+    private void giveWhiteScrollTo(CommandSender sender, Player target, String[] args) {
+        Integer pct = optionalPercent(sender, args);
+        if (pct == null && args.length >= 4) {
+            return;
+        }
+        ItemStack scroll = pct == null ? carriers.mintWhiteScroll() : carriers.mintWhiteScroll(pct);
+        deliver(sender, target, scroll, "command.give.whitescroll", "white scroll");
+    }
+
+    /** Parse an optional {@code args[3]} percent: {@code null} when absent OR malformed (the latter is messaged). */
+    private Integer optionalPercent(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(args[3]);
+        } catch (NumberFormatException bad) {
+            sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[3]));
+            return null;
+        }
     }
 
     /** Resolve an online-player target by exact name, messaging the sender if none matches. */

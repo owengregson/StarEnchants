@@ -134,7 +134,7 @@ public final class CarrierService {
         return buildWhiteScroll(span <= 0 ? cfg.minSuccess() : cfg.minSuccess() + random.nextInt(span + 1));
     }
 
-    /** Mint a WHITE SCROLL at an EXPLICIT apply-success (§J {@code /se give white-scroll <player> <percent>}). */
+    /** Mint a WHITE SCROLL at an EXPLICIT apply-success (§J {@code /se give whitescroll <player> <percent>}). */
     public ItemStack mintWhiteScroll(int fixedSuccess) {
         return buildWhiteScroll(clampPercent(fixedSuccess));
     }

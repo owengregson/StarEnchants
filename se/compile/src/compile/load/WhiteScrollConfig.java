@@ -16,8 +16,10 @@ public record WhiteScrollConfig(String material, String name, List<String> lore,
         Objects.requireNonNull(material, "material");
         Objects.requireNonNull(name, "name");
         lore = List.copyOf(lore);
-        minSuccess = Math.max(0, Math.min(100, minSuccess));
-        maxSuccess = Math.max(minSuccess, Math.min(100, maxSuccess));
+        int lo = Math.max(0, Math.min(100, minSuccess));
+        int hi = Math.max(0, Math.min(100, maxSuccess));
+        minSuccess = Math.min(lo, hi); // order the pair so [min, max] is always valid (matches the other configs)
+        maxSuccess = Math.max(lo, hi);
     }
 
     public static WhiteScrollConfig defaults() {
