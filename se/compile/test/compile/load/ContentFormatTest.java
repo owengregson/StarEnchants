@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import schema.spec.D;
 import schema.spec.ParamSpec;
@@ -43,8 +44,8 @@ class ContentFormatTest {
         Files.writeString(file, yaml, StandardCharsets.UTF_8);
     }
 
-    private static boolean hasCode(List<Diagnostic> diags, String code) {
-        return diags.stream().anyMatch(d -> d.code().equals(code));
+    private static boolean hasCode(List<Diagnostic> diags, DiagCode code) {
+        return diags.stream().anyMatch(d -> d.is(code));
     }
 
     @Test
@@ -59,7 +60,7 @@ class ContentFormatTest {
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
         assertTrue(lib.hasErrors(), () -> lib.diagnostics().toString());
-        assertTrue(hasCode(lib.diagnostics(), "E_TERSE_EFFECT"), () -> lib.diagnostics().toString());
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.E_TERSE_EFFECT), () -> lib.diagnostics().toString());
     }
 
     @Test
@@ -118,7 +119,7 @@ class ContentFormatTest {
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
         assertTrue(lib.hasErrors());
-        assertTrue(hasCode(lib.diagnostics(), "E_MISSING_ARG"));
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.E_MISSING_ARG));
         assertTrue(lib.diagnostics().stream().anyMatch(d -> d.message().contains("amplifier")),
                 () -> "expected the missing-param error to name 'amplifier': " + lib.diagnostics());
     }
@@ -132,7 +133,7 @@ class ContentFormatTest {
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
-        assertTrue(hasCode(lib.diagnostics(), "E_UNKNOWN_EFFECT_PARAM"));
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.E_UNKNOWN_EFFECT_PARAM));
     }
 
     @Test
@@ -177,7 +178,7 @@ class ContentFormatTest {
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
-        assertTrue(hasCode(lib.diagnostics(), "W_UNKNOWN_KEY"));
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.W_UNKNOWN_KEY));
     }
 
     @Test
@@ -208,7 +209,7 @@ class ContentFormatTest {
 
         assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
         assertEquals("legendary", lib.tierOf("enchants/x"));
-        assertTrue(hasCode(lib.diagnostics(), "W_TIER_FOLDER_MISMATCH"));
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.W_TIER_FOLDER_MISMATCH));
     }
 
     @Test
@@ -218,7 +219,7 @@ class ContentFormatTest {
         write(root, "enchants/mythic/dup.yml", body);
         Library lib = LibraryLoader.load(root, compiler(), 1);
 
-        assertTrue(hasCode(lib.diagnostics(), "E_DUPLICATE_KEY"));
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.E_DUPLICATE_KEY));
     }
 
     @Test

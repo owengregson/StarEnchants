@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.expr.Cmp;
@@ -16,6 +17,8 @@ import schema.grammar.expr.ExprParser;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ConditionCompilerTest {
 
@@ -85,22 +88,21 @@ class ConditionCompilerTest {
         assertTrue(r.pattern().matcher("abc").matches());
     }
 
-    @Test
-    void matchesRegexRejectsANonLiteralPattern() {
-        Diagnostics d = lowerExpectingError("%name% matchesregex %name%");
-        assertEquals("E_COND_TYPE", d.all().get(0).code());
-    }
-
-    @Test
-    void matchesRegexRejectsAnInvalidPattern() {
-        Diagnostics d = lowerExpectingError("%name% matchesregex \"[\"");
-        assertEquals("E_COND_TYPE", d.all().get(0).code());
-    }
-
-    @Test
-    void stringOperatorRejectsANumericOperand() {
-        Diagnostics d = lowerExpectingError("%damage% contains \"x\""); // damage is numeric
-        assertEquals("E_COND_TYPE", d.all().get(0).code());
+    /** Every ill-typed condition is rejected as E_COND_TYPE — one table instead of eight near-identical tests. */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "%name% matchesregex %name%", // regex pattern must be a literal, not a variable
+            "%name% matchesregex \"[\"",  // invalid regex literal
+            "%damage% contains \"x\"",    // string op on a numeric operand
+            "%name% < \"x\"",             // ordering a string
+            "%damage% == %name%",         // number compared with string
+            "5",                          // a bare number is not a condition
+            "%damage%",                   // a bare numeric variable is not a condition
+            "%some_papi%",                // a bare placeholder must be compared
+    })
+    void illTypedConditionIsRejectedAsCondTypeError(String expr) {
+        Diagnostics d = lowerExpectingError(expr);
+        assertTrue(d.all().get(0).is(DiagCode.E_COND_TYPE), () -> d.all().toString());
     }
 
     @Test
@@ -200,28 +202,4 @@ class ConditionCompilerTest {
         assertInstanceOf(Cond.And.class, or.right());
     }
 
-    @Test
-    void stringOrderingIsATypeError() {
-        assertEquals("E_COND_TYPE", lowerExpectingError("%name% < \"x\"").all().get(0).code());
-    }
-
-    @Test
-    void comparingNumberWithStringIsATypeError() {
-        assertEquals("E_COND_TYPE", lowerExpectingError("%damage% == %name%").all().get(0).code());
-    }
-
-    @Test
-    void bareNumberIsNotACondition() {
-        assertEquals("E_COND_TYPE", lowerExpectingError("5").all().get(0).code());
-    }
-
-    @Test
-    void bareNumericVariableIsNotACondition() {
-        assertEquals("E_COND_TYPE", lowerExpectingError("%damage%").all().get(0).code());
-    }
-
-    @Test
-    void barePlaceholderMustBeCompared() {
-        assertEquals("E_COND_TYPE", lowerExpectingError("%some_papi%").all().get(0).code());
-    }
 }
