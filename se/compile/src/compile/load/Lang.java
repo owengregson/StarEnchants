@@ -235,6 +235,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("heroic.fail", "&cThe heroic upgrade failed — the upgrade was consumed.");
         s.put("slot.apply", "&aSlots increased — this item now has &f{SLOTS}&a total.");
         s.put("slot.at-cap", "&cThat item is already at the maximum slots.");
+        s.put("slot.fail", "&eThe orb failed — no slots were added.");
         s.put("scroll.black.success", "&aExtracted &f{ENCHANT}&a into a book.");
         s.put("scroll.black.fail", "&cThe black scroll crumbled — nothing was extracted.");
         s.put("scroll.black.no-enchants", "&cThat item has no enchants to extract.");

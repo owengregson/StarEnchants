@@ -1,6 +1,7 @@
 # Slot Orb (docs/v3-directives.md §H) — the upgrade orb: drag onto gear to raise its enchant-slot count by
-# +orb-amount, clamped to a universal maximum TOTAL slots (base + added) defined by hard-cap. {AMOUNT}
-# renders the orb's +N. Messages (apply / at-cap) live in lang.yml (slot.apply / slot.at-cap) — §L.
+# +orb-amount, clamped to a universal maximum TOTAL slots (base + added) defined by hard-cap. Placeholders in
+# the name/lore: {AMOUNT} = the orb's +N, {MAX} = hard-cap, {SUCCESS}/{FAILURE} = this orb's rolled apply
+# odds. Messages (apply / at-cap / fail) live in lang.yml (slot.apply / slot.at-cap / slot.fail) — §L.
 type: slot-orb
 
 orb-material: ENDER_EYE
@@ -11,3 +12,8 @@ orb-amount: 3
 
 # Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base).
 hard-cap: 15
+
+# Each minted orb rolls an apply-success % in [min-success, max-success]. On a failed roll the orb is consumed
+# with no slots added (it never destroys the gear). 100/100 = always succeeds (the default — no behaviour change).
+min-success: 100
+max-success: 100

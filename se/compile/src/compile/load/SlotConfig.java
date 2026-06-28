@@ -6,13 +6,18 @@ import java.util.Objects;
 /**
  * The SLOT ORB (§H), loaded from {@code items/slot-orb.yml}: each use raises a piece's slot count by
  * {@code orbAmount}, clamped to {@code hardCap} — the universal maximum TOTAL (base + added), not just added.
+ * Each minted orb rolls a success chance in {@code [minSuccess, maxSuccess]} (default {@code 100/100} = always
+ * succeeds); a failed apply consumes the orb without raising the count and never destroys the gear (only books
+ * destroy). {@code {SUCCESS}}/{@code {FAILURE}}/{@code {MAX}} render in the name/lore alongside {@code {AMOUNT}}.
  */
 public record SlotConfig(
         String orbMaterial,
         String orbName,
         List<String> orbLore,
         int orbAmount,
-        int hardCap) {
+        int hardCap,
+        int minSuccess,
+        int maxSuccess) {
 
     public SlotConfig {
         Objects.requireNonNull(orbMaterial, "orbMaterial");
@@ -20,6 +25,8 @@ public record SlotConfig(
         orbLore = List.copyOf(orbLore);
         orbAmount = Math.max(1, orbAmount);
         hardCap = Math.max(1, hardCap);
+        minSuccess = Math.max(0, Math.min(100, minSuccess));
+        maxSuccess = Math.max(minSuccess, Math.min(100, maxSuccess));
     }
 
     public static SlotConfig defaults() {
@@ -28,6 +35,8 @@ public record SlotConfig(
                 "&5Slot Expander &7(+{AMOUNT})",
                 List.of("&7Drag onto gear to add &f{AMOUNT}&7 enchant slots."),
                 3,
-                15);
+                15,
+                100,
+                100);
     }
 }

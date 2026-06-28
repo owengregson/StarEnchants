@@ -256,7 +256,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().heroicOrDefault(), new java.util.Random(), messages);
 
         // Slot economy (§H). base MUST match the ItemEnchanter default so the cap is computed off the same base.
-        SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem());
+        SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess());
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(),
                 (java.util.function.IntSupplier) () -> master.config().slots().base(), messages);

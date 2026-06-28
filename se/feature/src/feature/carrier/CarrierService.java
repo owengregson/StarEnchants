@@ -115,12 +115,37 @@ public final class CarrierService {
         return s.replace("{BONUS}", bonus).replace("{MIN}", min).replace("{MAX}", max);
     }
 
-    /** Mint a WHITE SCROLL from its {@code items/*.yml} likeness (§I). */
+    /** Mint a WHITE SCROLL with a RANDOM apply-success rolled in the config {@code [min, max]} range (§I). */
     public ItemStack mintWhiteScroll() {
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
-        ItemStack stack = ItemFactory.buildItem(material(cfg.material()), cfg.name(), cfg.lore());
-        codec.write(stack, new CarrierData(WHITE_SCROLL_KEY, "", 0));
+        int span = cfg.maxSuccess() - cfg.minSuccess();
+        return buildWhiteScroll(span <= 0 ? cfg.minSuccess() : cfg.minSuccess() + random.nextInt(span + 1));
+    }
+
+    /** Mint a WHITE SCROLL at an EXPLICIT apply-success (§J {@code /se give white-scroll <player> <percent>}). */
+    public ItemStack mintWhiteScroll(int fixedSuccess) {
+        return buildWhiteScroll(clampPercent(fixedSuccess));
+    }
+
+    private ItemStack buildWhiteScroll(int success) {
+        compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
+        ItemStack stack = ItemFactory.buildItem(material(cfg.material()),
+                subPercent(cfg.name(), success), subPercentLore(cfg.lore(), success));
+        // store the rolled success in the carrier's baseSuccess so applyProtect can roll against it
+        codec.write(stack, new CarrierData(WHITE_SCROLL_KEY, "", 0, 0, success));
         return stack;
+    }
+
+    private static String subPercent(String s, int success) {
+        return s.replace("{SUCCESS}", Integer.toString(success)).replace("{FAILURE}", Integer.toString(100 - success));
+    }
+
+    private static List<String> subPercentLore(List<String> lore, int success) {
+        List<String> out = new ArrayList<>(lore.size());
+        for (String line : lore) {
+            out.add(subPercent(line, success));
+        }
+        return out;
     }
 
     /**
@@ -148,7 +173,7 @@ public final class CarrierService {
             return applyDustBonus(carrier, target, bonus, cfg.sound(), cfg.particles());
         }
         if (WHITE_SCROLL_KEY.equals(data.itemKey())) {
-            return applyProtect(carrier, target);
+            return applyProtect(carrier, target, data);
         }
         if (!data.grants()) {
             return CarrierResult.noop("§cThis carrier grants nothing applicable.");
@@ -418,13 +443,20 @@ public final class CarrierService {
                 + effectiveSuccess(base, newBonus) + "%§a.", sound, particles);
     }
 
-    /** Stamp the one-shot guard marker on {@code target} (white scroll), consuming the carrier. */
-    private CarrierResult applyProtect(ItemStack carrier, ItemStack target) {
+    /**
+     * Stamp the one-shot guard marker on {@code target} (white scroll), rolling the scroll's own success first
+     * (§I): a failed roll spends the scroll WITHOUT protecting and never destroys the gear (only books destroy).
+     */
+    private CarrierResult applyProtect(ItemStack carrier, ItemStack target, CarrierData data) {
         if (codec.isGuarded(target)) {
             return CarrierResult.noop("§7That item is already protected.");
         }
+        int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
+        consume(carrier); // a use is spent whether the roll succeeds or fails
+        if (random.nextInt(100) >= success) {
+            return CarrierResult.consumed("§eThe White Scroll failed — the item is not protected.");
+        }
         codec.setGuarded(target, true);
-        consume(carrier);
         return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
     }
 

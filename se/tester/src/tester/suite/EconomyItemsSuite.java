@@ -103,7 +103,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
-        SlotItemCodec slotCodec = new SlotItemCodec(keys.slotItem());
+        SlotItemCodec slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess());
         SlotService slots = new SlotService(slotCodec, combat, lore, SlotConfig::defaults,
                 ItemEnchanter.DEFAULT_BASE_SLOTS);
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
@@ -119,7 +119,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             // maxAdded (5) is not a multiple of the orb's +3, so the second orb overshoots the cap and must
             // clamp-and-commit (3 + 3 → 5); a further orb at the cap is a no-op and not consumed.
             SlotConfig capCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
-                    ItemEnchanter.DEFAULT_BASE_SLOTS + 5);
+                    ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100); // 100/100 = always succeeds (cap test isolates the cap)
             SlotService capSlots = new SlotService(slotCodec, combat, lore, () -> capCfg,
                     ItemEnchanter.DEFAULT_BASE_SLOTS);
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);

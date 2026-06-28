@@ -48,9 +48,13 @@ public final class SlotListener implements Listener {
 
         event.setCancelled(true);
         SlotResult result = service.applyTo(cursor, target);
-        if (result.commit()) {
+        if (result.consume()) { // success OR a failed roll both spend the orb (applyTo already decremented it)
             event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
+        }
+        if (result.commit()) {
             event.setCurrentItem(result.newTarget());
+        }
+        if (result.consume() || result.commit()) {
             player.updateInventory();
         }
         if (result.message() != null) {
