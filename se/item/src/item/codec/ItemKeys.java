@@ -28,12 +28,13 @@ public final class ItemKeys {
     private final String trakBlocks;
     private final String trakMobs;
     private final String trakSouls;
+    private final String trakFish;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
                      String slotItem, String slotSuccess, String scroll, String scrollConvert,
                      String unopened, String godlyTransmog, String appliedSlot,
-                     String trakGem, String trakBlocks, String trakMobs, String trakSouls) {
+                     String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -52,12 +53,13 @@ public final class ItemKeys {
         this.trakBlocks = trakBlocks;
         this.trakMobs = trakMobs;
         this.trakSouls = trakSouls;
+        this.trakFish = trakFish;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
-                "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls");
+                "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish");
     }
 
     public String combat() {
@@ -144,5 +146,10 @@ public final class ItemKeys {
     /** Per-item lifetime players-killed counter (§I). */
     public String trakSouls() {
         return trakSouls;
+    }
+
+    /** Per-item lifetime fish-caught counter (§I). */
+    public String trakFish() {
+        return trakFish;
     }
 }

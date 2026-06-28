@@ -45,6 +45,7 @@ public final class ItemsLoader {
         Optional<TraksConfig.Trak> trakBlock = Optional.empty();
         Optional<TraksConfig.Trak> trakMob = Optional.empty();
         Optional<TraksConfig.Trak> trakSoul = Optional.empty();
+        Optional<TraksConfig.Trak> trakFish = Optional.empty();
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
@@ -205,6 +206,14 @@ public final class ItemsLoader {
                         trakSoul = Optional.of(readTrak(root, TraksConfig.defaults().soul(), diags));
                     }
                 }
+                case "fishtrak", "fish-trak", "fishtrak-gem" -> {
+                    if (trakFish.isPresent()) {
+                        diags.warning("W_ITEM_DUP", "more than one fishtrak config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        trakFish = Optional.of(readTrak(root, TraksConfig.defaults().fish(), diags));
+                    }
+                }
                 default -> diags.warning("W_ITEM_TYPE", "unknown item type '" + type + "' in " + name, root.source());
             }
         }
@@ -223,9 +232,10 @@ public final class ItemsLoader {
         // Present iff at least one trak file was read; absent members fall back to TraksConfig.defaults().
         TraksConfig td = TraksConfig.defaults();
         Optional<TraksConfig> traks;
-        if (trakBlock.isPresent() || trakMob.isPresent() || trakSoul.isPresent()) {
+        if (trakBlock.isPresent() || trakMob.isPresent() || trakSoul.isPresent() || trakFish.isPresent()) {
             traks = Optional.of(new TraksConfig(
-                    trakBlock.orElseGet(td::block), trakMob.orElseGet(td::mob), trakSoul.orElseGet(td::soul)));
+                    trakBlock.orElseGet(td::block), trakMob.orElseGet(td::mob), trakSoul.orElseGet(td::soul),
+                    trakFish.orElseGet(td::fish)));
         } else {
             traks = Optional.empty();
         }

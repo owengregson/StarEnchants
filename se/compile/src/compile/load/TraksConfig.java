@@ -9,12 +9,13 @@ import java.util.Objects;
  * weapon), SoulTrak (players killed with a weapon). Each member is authored in its own {@code items/} file and
  * assembled into one {@code TraksConfig}, mirroring the scroll family.
  */
-public record TraksConfig(Trak block, Trak mob, Trak soul) {
+public record TraksConfig(Trak block, Trak mob, Trak soul, Trak fish) {
 
     public TraksConfig {
         Objects.requireNonNull(block, "block");
         Objects.requireNonNull(mob, "mob");
         Objects.requireNonNull(soul, "soul");
+        Objects.requireNonNull(fish, "fish");
     }
 
     /**
@@ -62,6 +63,15 @@ public record TraksConfig(Trak block, Trak mob, Trak soul) {
                                 "&eApplies to: &r&f&n{KINDS}",
                                 "&7Drag n' Drop on an item to apply."),
                         List.of("WEAPON"),
-                        "&7Players Killed: &f{COUNT}"));
+                        "&7Players Killed: &f{COUNT}"),
+                new Trak(
+                        "CLAY_BALL",
+                        "&3&lFishTrak Gem",
+                        List.of("&eDisplays the amount of fish caught with the rod since it was forged.",
+                                "",
+                                "&eApplies to: &r&f&n{KINDS}",
+                                "&7Drag n' Drop on an item to apply."),
+                        List.of("FISHING_ROD"),
+                        "&7Fish Caught: &f{COUNT}"));
     }
 }

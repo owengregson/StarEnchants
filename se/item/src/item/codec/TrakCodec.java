@@ -12,19 +12,21 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class TrakCodec {
 
-    /** The three trackable lifetime statistics. */
-    public enum Kind { BLOCK, MOB, SOUL }
+    /** The trackable lifetime statistics. */
+    public enum Kind { BLOCK, MOB, SOUL, FISH }
 
     private final String gemKey;
     private final String blocksKey;
     private final String mobsKey;
     private final String soulsKey;
+    private final String fishKey;
 
-    public TrakCodec(String gemKey, String blocksKey, String mobsKey, String soulsKey) {
+    public TrakCodec(String gemKey, String blocksKey, String mobsKey, String soulsKey, String fishKey) {
         this.gemKey = gemKey;
         this.blocksKey = blocksKey;
         this.mobsKey = mobsKey;
         this.soulsKey = soulsKey;
+        this.fishKey = fishKey;
     }
 
     /** Stamp {@code stack} as an unapplied trak gem of {@code kind}. */
@@ -62,6 +64,7 @@ public final class TrakCodec {
             case BLOCK -> blocksKey;
             case MOB -> mobsKey;
             case SOUL -> soulsKey;
+            case FISH -> fishKey;
         };
     }
 }

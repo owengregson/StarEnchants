@@ -16,7 +16,8 @@ class TraksConfigTest {
         assertEquals("SLIME_BALL", d.block().material());
         assertEquals("MAGMA_CREAM", d.mob().material());
         assertEquals("FIRE_CHARGE", d.soul().material());
-        for (TraksConfig.Trak trak : List.of(d.block(), d.mob(), d.soul())) {
+        assertEquals("CLAY_BALL", d.fish().material());
+        for (TraksConfig.Trak trak : List.of(d.block(), d.mob(), d.soul(), d.fish())) {
             assertFalse(trak.appliesTo().isEmpty(), "a trak gem applies to at least one kind");
             assertTrue(trak.countFormat().contains("{COUNT}"), "the count format carries the {COUNT} placeholder");
         }

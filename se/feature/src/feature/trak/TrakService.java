@@ -109,6 +109,12 @@ public final class TrakService {
         track(player, Kind.BLOCK);
     }
 
+    /** Background fish-catch tracking: bump the held rod's lifetime count. The fish event fires on the
+     * player's own region thread, so (unlike kills) this needs no scheduler hop. */
+    public void trackFishCatch(Player player) {
+        track(player, Kind.FISH);
+    }
+
     /**
      * Background kill tracking: a player victim counts toward SoulTrak, any other toward MobTrak. The death
      * event fires on the victim's region, so this hops to the KILLER's own thread before touching their
@@ -166,6 +172,7 @@ public final class TrakService {
             case BLOCK -> cfg.block();
             case MOB -> cfg.mob();
             case SOUL -> cfg.soul();
+            case FISH -> cfg.fish();
         };
     }
 
@@ -174,6 +181,7 @@ public final class TrakService {
             case BLOCK -> AppliedSlot.BLOCKTRAK;
             case MOB -> AppliedSlot.MOBTRAK;
             case SOUL -> AppliedSlot.SOULTRAK;
+            case FISH -> AppliedSlot.FISHTRAK;
         };
     }
 }

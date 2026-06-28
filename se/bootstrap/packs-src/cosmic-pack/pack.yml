@@ -1,7 +1,7 @@
-# StarEnchants config pack (ADR-0023). Apply with /se pack apply elite-enchantments
-name: "elite-enchantments"
-description: "A faithful StarEnchants port of the default EliteEnchantments configuration."
+# StarEnchants config pack (ADR-0023). Apply with /se pack apply cosmic-pack
+name: "cosmic-pack"
+description: "The Cosmic Pack — a complete set of enchants, armour sets, and economy items."
 author: "StarEnchants"
 format: 1
 created: "2026-06-23T00:00:00"
-files: 144
+files: 145

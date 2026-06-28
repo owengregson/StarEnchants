@@ -19,6 +19,7 @@ public final class AppliedSlot {
     public static final String BLOCKTRAK = "blocktrak";
     public static final String MOBTRAK = "mobtrak";
     public static final String SOULTRAK = "soultrak";
+    public static final String FISHTRAK = "fishtrak";
 
     private final String key;
 
