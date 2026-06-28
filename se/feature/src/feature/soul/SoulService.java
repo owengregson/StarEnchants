@@ -154,7 +154,7 @@ public final class SoulService implements SoulDebit {
         SoulGemConfig cfg = config.get();
         ItemStack gem = ItemFactory.buildItem(
                 cfg.material(), Material.EMERALD,
-                cfg.name(),
+                renderGemName(cfg, data.souls()),
                 renderGemLore(cfg, data.souls()));
         codec.write(gem, data);
         return gem;
@@ -170,9 +170,27 @@ public final class SoulService implements SoulDebit {
         String soulColor = cfg.colorFor(souls);
         List<String> out = new ArrayList<>(cfg.lore().size());
         for (String line : cfg.lore()) {
-            out.add(line.replace("{AMOUNT}", amount).replace("{SOUL-COLOR}", soulColor));
+            out.add(subSoul(line, amount, soulColor));
         }
         return out;
+    }
+
+    /**
+     * Render the gem's display NAME from config + count — the name carries the live soul count (EE likeness),
+     * so it is re-rendered alongside the lore on every deposit/spend/split/combine. Pure (no Bukkit).
+     */
+    static String renderGemName(SoulGemConfig cfg, int souls) {
+        return subSoul(cfg.name(), Integer.toString(souls), cfg.colorFor(souls));
+    }
+
+    /**
+     * Substitute the soul placeholders into a name/lore line. Two equivalent spellings are accepted — the brace
+     * form ({@code {AMOUNT}} / {@code {SOUL-COLOR}}) and the paren form ({@code (soul_amt)} /
+     * {@code (soul_amt_color)}) — so an author may use either in the name or lore.
+     */
+    private static String subSoul(String s, String amount, String soulColor) {
+        return s.replace("{AMOUNT}", amount).replace("(soul_amt)", amount)
+                .replace("{SOUL-COLOR}", soulColor).replace("(soul_amt_color)", soulColor);
     }
 
     /**
@@ -348,7 +366,7 @@ public final class SoulService implements SoulDebit {
             return; // the gem moved out from under us — skip rather than stamp the wrong item
         }
         codec.write(stack, data);
-        reRenderGemLore(stack, data.souls());
+        reRenderGem(stack, data.souls());
         inv.setItem(slot, stack);
     }
 
@@ -381,7 +399,7 @@ public final class SoulService implements SoulDebit {
         SoulData cur = codec.read(stack);
         if (cur != null && cur.gemId().equals(gemId)) {
             codec.write(stack, cur.withSouls(next));
-            reRenderGemLore(stack, next);
+            reRenderGem(stack, next);
             inv.setItem(slot, stack);
         }
     }
@@ -445,14 +463,19 @@ public final class SoulService implements SoulDebit {
         }
     }
 
-    /** Re-render gem lore from config + the new count. Must run on the holder's own thread. */
-    @SuppressWarnings("deprecation") // setLore(List): the floor-stable item-meta path
-    private void reRenderGemLore(ItemStack gem, int souls) {
+    /** Re-render the gem's name + lore from config + the new count. Must run on the holder's own thread. */
+    @SuppressWarnings("deprecation") // setDisplayName/setLore(List): the floor-stable item-meta path
+    private void reRenderGem(ItemStack gem, int souls) {
         ItemMeta meta = gem.getItemMeta();
         if (meta == null) {
             return;
         }
-        List<String> lore = renderGemLore(config.get(), souls);
+        SoulGemConfig cfg = config.get();
+        String name = renderGemName(cfg, souls);
+        if (name != null && !name.isBlank()) {
+            meta.setDisplayName(ItemFactory.color(name));
+        }
+        List<String> lore = renderGemLore(cfg, souls);
         meta.setLore(lore.isEmpty() ? null : lore.stream().map(ItemFactory::color).toList());
         gem.setItemMeta(meta);
     }
