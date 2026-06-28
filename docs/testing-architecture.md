@@ -186,19 +186,39 @@ full set-bonus payoff (wear set → take real DEFENSE damage → REGENERATION on
 wearer); and event-count exactly-once guards where a double-fire is currently
 undetectable.
 
-**Harness hygiene fixes** — *realized* for the listener-leak correctness win, honest
-about the rest. The **10** combat-dispatch suites now register through `CombatRig`,
-whose `teardown()` runs `HandlerList.unregisterAll` per suite — closing the cross-suite
-leak that let a stranded `CombatListener`/`TriggerListeners` dispatch on every later
-suite's hit. **Distinct-chunk / cross-region staging was reconsidered, not forced:**
-the fixture exposes a two-chunk `onArena(primary, secondary, …)`, but the melee/teleport
-suites stage attacker+victim in one region *deliberately* — the triggering
-`victim.damage(attacker)` is itself a cross-region write, illegal from the wrong region
-thread on Folia, so genuine cross-region coverage needs a purpose-built, correctly
-scheduled scenario, not a mechanical offset on an existing suite. Still open (low-risk
-follow-ups): refcount the shared spawn-chunk force-load instead of the raced boolean,
-and suite tags/selection (the CI lane subsets by **version**, which is what the
-mapping-flip / floor / ceiling / Folia risk edges actually need).
+**Harness hygiene fixes** — *realized*. The **10** combat-dispatch suites register through
+`CombatRig`, whose `teardown()` runs `HandlerList.unregisterAll` per suite — closing the
+cross-suite leak that let a stranded `CombatListener`/`TriggerListeners` dispatch on every
+later suite's hit.
+
+**Timing-flake fixes (the class, not the instance).** Two live suites asserted emergent
+server state on a *fixed* tick, which is a latent flake the instant matrix load defers the
+work past the wait — exactly what bit `TeleportSuite` on `paper:1.21.4`. Both are now
+tick-anchored polls of the actual semantic, with generous budgets (a wide cap only lengthens
+the FAIL path; PASS fires the instant the condition holds). `TeleportSuite` polls the
+attacker's **proximity to the victim** (the real claim — "teleported *to* the victim" — and
+tolerant of the floor's collision push-out) instead of "moved ≥ 3 from origin", and reads
+only the actor's own location on the actor's own scheduler. `CombatSuite` polls for the
+POISON, which lands on a scheduled `onEntity(victim)` hop rather than inline in `damage()`,
+so a 10-tick fix-wait was a load-flake-in-waiting. The shared `Proximity.awaitWithin(…)` poll
+is the one place this discipline lives for both teleport suites. Re-ran `paper:1.21.4` four
+times post-fix — clean.
+
+**Genuine cross-region coverage now exists** (`CrossRegionTeleportSuite`). The earlier note
+here claimed `victim.damage(attacker)` was *itself* an illegal cross-region write, so a real
+cross-region scenario was deferred. The matrix corrected that: fired on the **victim's** region
+thread — where Folia actually delivers a combat event, since the victim is the entity being
+mutated — the attacker is only *referenced* for knockback, which Folia permits. So the suite
+stages the attacker at world spawn and the cow 512 blocks away (a distinct Folia region via the
+fixture's two-chunk `onArena(primary, secondary, …)`), fires the hit on the victim's thread,
+and the `TELEPORT:VICTIM` proc must carry the attacker across the boundary via the Sink's
+`onEntity(actor)` hop. A naive *inline* teleport would pass every Paper run and throw a
+wrong-region access on Folia; this is the one suite that proves the hop. **Green on all five
+Folia versions** (1.19.4 → 26.1.2) and all eight Paper versions. Still open (low-risk
+follow-ups): refcount the shared spawn-chunk force-load instead of the raced boolean; suite
+tags/selection (the CI lane subsets by **version**, which is what the mapping-flip / floor /
+ceiling / Folia risk edges actually need); and the same two-chunk pattern could extend to AoE
+bystander effects (`DAMAGE_ARC`, `WRATH`) for cross-region coverage beyond teleport.
 
 ## Infrastructure this requires
 
