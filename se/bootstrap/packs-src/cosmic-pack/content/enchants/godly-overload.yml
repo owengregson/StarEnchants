@@ -13,6 +13,7 @@ trigger: PASSIVE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"
 tier: heroic
+requires: ["enchants/overload"]
 levels:
   1:
     effects:

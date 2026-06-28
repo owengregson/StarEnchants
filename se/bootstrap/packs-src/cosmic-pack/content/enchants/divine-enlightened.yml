@@ -12,6 +12,7 @@ trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"
 tier: heroic
+requires: ["enchants/enlightened"]
 levels:
   1:
     chance: 7.5

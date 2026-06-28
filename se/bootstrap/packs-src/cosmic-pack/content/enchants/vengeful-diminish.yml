@@ -16,6 +16,7 @@ trigger: DEFENSE
 applies-to: [CHESTPLATE]
 group: "heroic"
 tier: heroic
+requires: ["enchants/diminish"]
 levels:
   1:
     chance: 3.75

@@ -13,6 +13,7 @@ trigger: ATTACK
 applies-to: [WEAPON]
 group: "heroic"
 tier: heroic
+requires: ["enchants/lifesteal"]
 levels:
   1:
     chance: 4.5

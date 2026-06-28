@@ -13,6 +13,7 @@ trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"
 tier: heroic
+requires: ["enchants/tank"]
 levels:
   1:
     condition: "%victim.helditem% contains \"AXE\""

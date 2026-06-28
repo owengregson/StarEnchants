@@ -15,6 +15,7 @@ trigger: BOW
 applies-to: [BOW]
 group: "heroic"
 tier: heroic
+requires: ["enchants/sniper"]
 levels:
   1:
     chance: 5
