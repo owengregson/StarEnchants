@@ -38,6 +38,27 @@ public final class Diagnostics {
         return add(Diagnostic.info(code, message, source));
     }
 
+    // DiagCode overloads — producers reference the constant; the wire string stays code.name().
+    public Diagnostics error(DiagCode code, String message, Source source) {
+        return add(Diagnostic.error(code, message, source));
+    }
+
+    public Diagnostics error(DiagCode code, String message, Source source, String fixHint) {
+        return add(Diagnostic.error(code, message, source, fixHint));
+    }
+
+    public Diagnostics warning(DiagCode code, String message, Source source) {
+        return add(Diagnostic.warning(code, message, source));
+    }
+
+    public Diagnostics warning(DiagCode code, String message, Source source, String fixHint) {
+        return add(Diagnostic.warning(code, message, source, fixHint));
+    }
+
+    public Diagnostics info(DiagCode code, String message, Source source) {
+        return add(Diagnostic.info(code, message, source));
+    }
+
     public Diagnostics merge(Diagnostics other) {
         entries.addAll(other.entries);
         return this;

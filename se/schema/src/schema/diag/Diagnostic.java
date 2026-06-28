@@ -35,8 +35,34 @@ public record Diagnostic(Severity severity, String code, String message, Source 
         return new Diagnostic(Severity.INFO, code, message, source, null);
     }
 
+    // DiagCode overloads — the single-source form producers use; the wire string is code.name().
+    public static Diagnostic error(DiagCode code, String message, Source source) {
+        return error(code.name(), message, source);
+    }
+
+    public static Diagnostic error(DiagCode code, String message, Source source, String fixHint) {
+        return error(code.name(), message, source, fixHint);
+    }
+
+    public static Diagnostic warning(DiagCode code, String message, Source source) {
+        return warning(code.name(), message, source);
+    }
+
+    public static Diagnostic warning(DiagCode code, String message, Source source, String fixHint) {
+        return warning(code.name(), message, source, fixHint);
+    }
+
+    public static Diagnostic info(DiagCode code, String message, Source source) {
+        return info(code.name(), message, source);
+    }
+
     public boolean blocking() {
         return severity.blocking();
+    }
+
+    /** True if this finding carries {@code code} — the contract assertion, vs. brittle message matching. */
+    public boolean is(DiagCode code) {
+        return code != null && code.name().equals(this.code);
     }
 
     /**
