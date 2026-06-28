@@ -16,6 +16,7 @@ trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"
 tier: heroic
+requires: ["enchants/bleed"]
 levels:
   1:
     chance: 2.25

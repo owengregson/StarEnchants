@@ -14,6 +14,7 @@ trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"
 tier: heroic
+requires: ["enchants/heavy"]
 levels:
   1:
     condition: "%victim.helditem% contains \"BOW\""

@@ -13,6 +13,7 @@ trigger: ATTACK
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"
 tier: heroic
+requires: ["enchants/deathbringer"]
 levels:
   1:
     cooldown: 400

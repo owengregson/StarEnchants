@@ -18,6 +18,7 @@ trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"
 tier: heroic
+requires: ["enchants/insanity"]
 levels:
   1:
     condition: "%victim.helditem% contains \"SWORD\""

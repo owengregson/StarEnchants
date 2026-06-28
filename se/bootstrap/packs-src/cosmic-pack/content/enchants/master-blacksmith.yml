@@ -15,6 +15,7 @@ trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"
 tier: heroic
+requires: ["enchants/blacksmith"]
 levels:
   1:
     chance: 4.5

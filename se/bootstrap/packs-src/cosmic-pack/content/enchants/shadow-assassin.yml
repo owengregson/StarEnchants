@@ -16,6 +16,7 @@ trigger: ATTACK
 applies-to: [SWORD]
 group: "heroic"
 tier: heroic
+requires: ["enchants/assassin"]
 levels:
   1:
     chance: 4.25

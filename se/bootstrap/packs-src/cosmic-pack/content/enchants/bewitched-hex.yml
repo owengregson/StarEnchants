@@ -15,6 +15,7 @@ trigger: ATTACK
 applies-to: [AXE]
 group: "heroic"
 tier: heroic
+requires: ["enchants/hex"]
 levels:
   1:
     chance: 3.5

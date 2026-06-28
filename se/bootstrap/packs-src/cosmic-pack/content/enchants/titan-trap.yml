@@ -13,6 +13,7 @@ trigger: ATTACK
 applies-to: [SWORD]
 group: "heroic"
 tier: heroic
+requires: ["enchants/trap"]
 levels:
   1:
     chance: 2.25

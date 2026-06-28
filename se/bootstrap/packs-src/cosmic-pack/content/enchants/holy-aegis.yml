@@ -15,6 +15,7 @@ trigger: DEFENSE
 applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
 group: "heroic"
 tier: heroic
+requires: ["enchants/aegis"]
 levels:
   1:
     chance: 4

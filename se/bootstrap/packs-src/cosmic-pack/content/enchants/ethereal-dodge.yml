@@ -15,6 +15,7 @@ trigger: DEFENSE
 applies-to: [BOOTS]
 group: "heroic"
 tier: heroic
+requires: ["enchants/dodge"]
 levels:
   1:
     chance: 2.75
