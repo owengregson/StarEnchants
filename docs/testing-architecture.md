@@ -26,11 +26,18 @@ suites). Concretely:
   `YamlFixture` — unnecessary, because `YamlNode.compose` is package-private to
   `compile.load`, so it *is* the in-package fixture; `RenderGolden` / `TtlStoreAdapter`
   / `CorpusLoader` — the render and store tests were already model-quality, so no
-  fixture was warranted; `CombatRig` / `DeferringSchedulerBackend` — part of the
-  deferred live-suite refactor.
-- **Deferred:** the live-suite hygiene refactor (CombatRig, listener teardown,
-  distinct-chunk staging), the modern live-matrix CI lane, and the JaCoCo
-  covered-branch blocking check. The mentions of these below are forward-looking.
+  fixture was warranted; `DeferringSchedulerBackend` — not needed for the realized
+  live-suite work.
+- **Shipped (the second slice — deferred above, now realized):** the **per-module
+  branch-coverage floor** as a blocking gate (`jacocoTestCoverageVerification` wired
+  into `check` for schema/compile/engine/item, each minimum calibrated just under the
+  module's actual); the **`CombatRig`** live fixture closing the cross-suite listener
+  leaks across **10** combat-dispatch suites (the leak fix is the correctness win —
+  see the distinct-chunk nuance below); the **modern live-matrix CI lane**
+  (`live-matrix.yml`: a risk-edge subset on PR, the full range nightly); and
+  `RenderingDisciplineArchTest`, which bans `ChatColor` from the harness so a suite can
+  never again reconstruct a production-rendered string (the transmog
+  formatting-coupling class — `writing-tests` Rule 1).
 
 The body below is the design rationale — the *why* behind the shape above; treat the
 fixture table and "open decisions" as the record of the choices, several of which
@@ -179,34 +186,43 @@ full set-bonus payoff (wear set → take real DEFENSE damage → REGENERATION on
 wearer); and event-count exactly-once guards where a double-fire is currently
 undetectable.
 
-**Harness hygiene fixes** (not a rewrite): route the 7 combat-style suites through
-`CombatRig` with per-suite `HandlerList.unregisterAll`; stage suites at **distinct
-chunk offsets** (which also closes the cross-region gap); refcount the shared
-spawn-chunk force-load instead of a raced boolean; add suite **tags + a selector**
-so a thin CI lane can run a subset.
+**Harness hygiene fixes** — *realized* for the listener-leak correctness win, honest
+about the rest. The **10** combat-dispatch suites now register through `CombatRig`,
+whose `teardown()` runs `HandlerList.unregisterAll` per suite — closing the cross-suite
+leak that let a stranded `CombatListener`/`TriggerListeners` dispatch on every later
+suite's hit. **Distinct-chunk / cross-region staging was reconsidered, not forced:**
+the fixture exposes a two-chunk `onArena(primary, secondary, …)`, but the melee/teleport
+suites stage attacker+victim in one region *deliberately* — the triggering
+`victim.damage(attacker)` is itself a cross-region write, illegal from the wrong region
+thread on Folia, so genuine cross-region coverage needs a purpose-built, correctly
+scheduled scenario, not a mechanical offset on an existing suite. Still open (low-risk
+follow-ups): refcount the shared spawn-chunk force-load instead of the raced boolean,
+and suite tags/selection (the CI lane subsets by **version**, which is what the
+mapping-flip / floor / ceiling / Folia risk edges actually need).
 
 ## Infrastructure this requires
 
 The two-layer gate is sound (honest fresh-PASS reads, a closed stale-jar trap, a
-genuine MRJAR soundness gate). The infra changes below remain **deferred** — they are
-the next slice of work once the live-suite refactor is scheduled:
+genuine MRJAR soundness gate). Most of the infra below has now **landed**; the
+remaining items are flagged open:
 
-- **Close the build-cache hole in the drift guards** (highest-leverage): the four
-  golden tests read committed artifacts via an untracked repo-root walk with no
-  declared task inputs, so with `org.gradle.caching=true` a hand-edited golden is
-  served `FROM-CACHE` and the drift is missed by `./gradlew build`. Declare the
-  golden paths as task inputs (or mark those tests non-cacheable).
-- **Wire the modern live matrix into CI.** `run-matrix.sh` and `mega-smoke.sh`
-  appear in **no** workflow; `ci.yml` still carries a stale "added when the tester
-  lands" TODO. `legacy.yml` already proves real-server gating in CI is feasible —
-  add a least-cost lane (one Paper + one Folia) on PR and the full `--all` on a
-  schedule.
-- **Boot-gate the modern half of the shipped artifact** (release only legacy-smokes
-  the jar today), **add suite discovery + selection** to `SeTesterPlugin` (34
-  hand-registered `.add()` calls, no filter), **parallelize `run-matrix.sh` boots**,
+- **Done — close the build-cache hole in the drift guards** (highest-leverage): the
+  four golden tests read committed artifacts via an untracked repo-root walk, so with
+  `org.gradle.caching=true` a hand-edited golden was served `FROM-CACHE` and the drift
+  missed by `./gradlew build`. The golden paths are now declared as content-hashed task
+  inputs (commit `3a49ebd`).
+- **Done — wire the modern live matrix into CI.** `live-matrix.yml`: a curated
+  risk-edge subset (floor + the 1.20.5 flip on both platforms + ceiling) on PR, the
+  full range from `gradle.properties` nightly on a cron. `run-matrix.sh` is made
+  Linux-portable (guarded `caffeinate`) and `fetch-reference.sh` takes a single target
+  so a shard pulls only its one server jar. `ci.yml`'s stale TODO is replaced.
+- **Done — wire JaCoCo per module** as a blocking gate: `jacocoTestCoverageVerification`
+  on `check` with a per-module BRANCH floor (schema/compile/engine/item), so a
+  covered-branch regression fails `./gradlew build`.
+- **Open — boot-gate the modern half of the shipped artifact** (release only
+  legacy-smokes the jar today), **add suite discovery + selection** to `SeTesterPlugin`
+  (34 hand-registered `.add()` calls, no filter), **parallelize `run-matrix.sh` boots**,
   and **unify the four drift guards** on one shared golden helper.
-- **Wire JaCoCo per module** as the safe-deletion ledger (see the plan): a
-  covered-branch decrease is a blocking PR check while the swarm replaces every file.
 
 ## Open decisions (with recommendations)
 
