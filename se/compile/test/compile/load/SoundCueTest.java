@@ -46,6 +46,17 @@ class SoundCueTest {
     }
 
     @Test
+    void canonicalMapsEnumFormAndKeyFormToTheSameConstant() {
+        // an enum-form token is already canonical
+        assertEquals("BLOCK_BEACON_POWER_SELECT", SoundCue.canonical("BLOCK_BEACON_POWER_SELECT"));
+        // a resource-key token (dots) maps to the same constant — dots become underscores, uppercased
+        assertEquals("ENTITY_PLAYER_LEVELUP", SoundCue.canonical("entity.player.levelup"));
+        assertEquals("BLOCK_BEACON_POWER_SELECT", SoundCue.canonical("block.beacon.power_select"));
+        // a namespace prefix is stripped
+        assertEquals("ENTITY_PLAYER_LEVELUP", SoundCue.canonical("minecraft:entity.player.levelup"));
+    }
+
+    @Test
     void listReadsEachMappingAndSkipsTheNameless() {
         Diagnostics diags = new Diagnostics();
         YamlNode parent = yaml("""
