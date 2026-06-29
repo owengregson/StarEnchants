@@ -99,6 +99,7 @@ public final class NametagListener implements Listener {
         }
         service.endAnvil(player.getUniqueId());
         String message = service.complete(player, text); // parses &-colours, blacklist, locates target by identity
+        event.getView().getTopInventory().clear(); // §I drop the display clone so the real anvil's close returns no dupe
         Scheduling.onEntity(player, player::closeInventory);
         if (message != null) {
             player.sendMessage(message);
@@ -121,6 +122,9 @@ public final class NametagListener implements Listener {
         if (!service.inAnvil(player.getUniqueId()) || !NametagAnvil.isAnvil(event.getView())) {
             return;
         }
+        // §I Drop the display clone BEFORE vanilla returns the anvil input (the close event fires first), so an
+        // abort never duplicates the item; the real gear stayed in the player's inventory the whole time.
+        event.getView().getTopInventory().clear();
         service.endAnvil(player.getUniqueId());
         // Closed without confirming → abort and return the nametag (deferred so the inventory has settled).
         Scheduling.onEntityLater(player, 1L, () -> service.cancel(player));
