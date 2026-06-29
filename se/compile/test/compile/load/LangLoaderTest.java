@@ -44,6 +44,16 @@ class LangLoaderTest {
     }
 
     @Test
+    void soulModeMessagesAreMultiLineBlocks() {
+        // soul.activate/deactivate/empty live in the lists map (multi-line); the runtime sends them via lines()
+        assertEquals(4, Lang.defaults().lines("soul.activate").size());
+        assertEquals(4, Lang.defaults().lines("soul.deactivate").size());
+        assertEquals(4, Lang.defaults().lines("soul.empty").size());
+        // soul-use stays a single-line template that substitutes the remaining-count placeholder
+        assertTrue(Lang.defaults().format("soul.soul-use", "AMOUNT", 99).contains("99"));
+    }
+
+    @Test
     void fileOverridesADefaultKeyAndKeepsTheRest(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("lang.yml");
         Files.writeString(file, """

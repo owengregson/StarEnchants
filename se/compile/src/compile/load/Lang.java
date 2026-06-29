@@ -3,7 +3,6 @@ package compile.load;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import schema.diag.Diagnostic;
 
 /**
@@ -223,9 +222,8 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("menu.enchanter.bought", "&aBought a &f{TIER} &amystery book.");
         s.put("menu.admin.granted", "&aGranted a guaranteed &f{DISPLAY} &alevel &f{LEVEL} &abook.");
 
-        // Config-backed item messages (centralised here, not in items/*.yml)
-        s.put("soul.activate", "&aSoul mode &lON&a.");
-        s.put("soul.deactivate", "&7Soul mode &lOFF&7.");
+        // Config-backed item messages (centralised here, not in items/*.yml). soul.activate / soul.deactivate /
+        // soul.empty are multi-line blocks (see the lists map `l` below).
         s.put("soul.soul-use", "&7Souls remaining: &a{AMOUNT}");
         s.put("crystal.apply-success", "&aApplied &f{CRYSTAL}&a to your item.");
         s.put("crystal.apply-fail", "&cThe crystal shattered without taking hold.");
@@ -265,6 +263,22 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("book.unopened.empty-tier", "&cThere are no enchants in that tier to reveal.");
 
         Map<String, List<String>> l = new LinkedHashMap<>();
+        // Soul-mode feedback (multi-line). soul.empty shows when /se soulmode is run with no gem held.
+        l.put("soul.activate", List.of(
+                " ",
+                "&a&l** SOUL MODE: &nON&r&a&l **",
+                "&7Your soul enchantments will now drain souls.",
+                " "));
+        l.put("soul.deactivate", List.of(
+                " ",
+                "&c&l** SOUL MODE: &nOFF&r&c&l **",
+                "&7Your soul enchantments will no longer drain souls.",
+                " "));
+        l.put("soul.empty", List.of(
+                " ",
+                "&c&l** SOUL MODE: &nOFF&r&c&l **",
+                "&7You have no soul gems left!",
+                " "));
         l.put("command.usage", List.of(
                 "&eStarEnchants commands:",
                 "&e  /se reload [--dry-run] &7— rebuild content",
