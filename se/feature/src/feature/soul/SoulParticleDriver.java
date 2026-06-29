@@ -53,15 +53,16 @@ public final class SoulParticleDriver {
     private void tick() {
         ParticleSpec idle = config.get().particles().idle();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (modes.active(player.getUniqueId()).isPresent()) {
-                Scheduling.onEntity(player, () -> {
-                    souls.enforceActiveGem(player); // auto-disable soul mode if the active gem is gone/empty
-                    // re-check: enforcement may have just disabled it; only aura a still-active player
-                    if (!idle.isEmpty() && modes.active(player.getUniqueId()).isPresent()) {
-                        fx.spawn(player, idle);
-                    }
-                });
-            }
+            // maintain() runs for EVERY player: the zero-gem cleanup invariant is global, not soul-mode-only. It
+            // then (in soul mode) re-points the drain target at the least-souls gem or auto-disables when none
+            // remain. Hop to each player's region thread (where reading/mutating their inventory is Folia-safe).
+            Scheduling.onEntity(player, () -> {
+                souls.maintain(player);
+                // re-check: maintain() may have just auto-disabled; only aura a still-active player
+                if (!idle.isEmpty() && modes.active(player.getUniqueId()).isPresent()) {
+                    fx.spawn(player, idle);
+                }
+            });
         }
     }
 }

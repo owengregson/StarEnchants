@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Soul mode must auto-disable the moment the active gem is no longer usable — dropped/moved out of the
  * inventory, or drained to zero souls — and on that auto-disable it must play the SAME disable feedback as a
- * manual toggle-off (the disable particle + sound), not just the message. Pins {@link SoulService#enforceActiveGem}.
+ * manual toggle-off (the disable particle + sound), not just the message. Pins {@link SoulService#maintain}.
  */
 class SoulModeEnforcementTest {
 
@@ -44,6 +44,7 @@ class SoulModeEnforcementTest {
 
         PlayerInventory inv = mock(PlayerInventory.class);
         when(inv.getContents()).thenReturn(gemInInventory ? new ItemStack[] {gemStack} : new ItemStack[] {null});
+        when(inv.getItem(0)).thenReturn(gemInInventory ? gemStack : null); // effectiveSouls/persist read the slot
 
         Player player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(playerId);
@@ -76,7 +77,7 @@ class SoulModeEnforcementTest {
     @Test
     void keepsSoulModeWhenTheActiveGemIsPresentWithSouls() {
         Fixture f = setUp(true, 50);
-        f.service().enforceActiveGem(f.player());
+        f.service().maintain(f.player());
         assertTrue(f.modes().isActive(f.playerId()));
         verify(f.player(), never()).sendMessage(anyString());
         verify(f.fx(), never()).spawn(any(Player.class), any(ParticleSpec.class)); // no disable FX while active
@@ -85,7 +86,7 @@ class SoulModeEnforcementTest {
     @Test
     void disablesSoulModeWhenTheActiveGemHasLeftTheInventory() {
         Fixture f = setUp(false, 50); // dropped/moved — gone from the inventory even though it still had souls
-        f.service().enforceActiveGem(f.player());
+        f.service().maintain(f.player());
         assertFalse(f.modes().isActive(f.playerId()));
         verify(f.player(), atLeastOnce()).sendMessage(anyString()); // the "no soul gems left" banner
         // the auto-disable plays the disable particle, not just the message (matches a manual toggle-off)
@@ -95,7 +96,7 @@ class SoulModeEnforcementTest {
     @Test
     void disablesSoulModeWhenTheActiveGemIsDrainedToZero() {
         Fixture f = setUp(true, 0); // present but empty
-        f.service().enforceActiveGem(f.player());
+        f.service().maintain(f.player());
         assertFalse(f.modes().isActive(f.playerId()));
         verify(f.fx()).spawn(eq(f.player()), eq(SoulGemConfig.defaults().particles().disable()));
     }
