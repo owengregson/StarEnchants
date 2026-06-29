@@ -63,9 +63,10 @@ sets:
     - { sound: BLOCK_CHAIN_STEP, volume: 0.6, pitch: 1.0 }
     - { sound: BLOCK_COPPER_GOLEM_STATUE_BREAK, volume: 1, pitch: 1 }
     - { sound: ITEM_LLAMA_CARPET_UNEQUIP, volume: 0.4, pitch: 2 }
-  # A dust cloud at the same density as the soul-gem activate cloud; its colour is replaced per set above.
+  # A dust cloud at the same density as the soul-gem activate cloud. The EQUIP cloud is tinted to each set's
+  # colour (use-set-color above); the UNEQUIP cloud stays gray (&7 = 170,170,170) for every set.
   equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
-  unequip-particle: { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
+  unequip-particle: { particle: REDSTONE, count: 20, color: { r: 170, g: 170, b: 170 }, spread: 1.25, y-offset: 1.0 }
 
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.

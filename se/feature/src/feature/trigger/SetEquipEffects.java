@@ -39,10 +39,14 @@ public final class SetEquipEffects implements SetMessageDriver.SetTransition {
         particles.spawn(player, particleFor(cfg, def, equipped));
     }
 
-    /** The equip/unequip particle, its dust colour overridden to the set's {@code &}-colour when configured. */
+    /**
+     * The equip/unequip particle. Only the EQUIP dust is tinted to the set's {@code &}-colour (when
+     * {@code use-set-color} is on); the UNEQUIP dust keeps its configured colour (the gray cloud), so removing a
+     * set always reads the same regardless of which set it was.
+     */
     static ParticleSpec particleFor(MasterConfig.SetsSection cfg, SetDef def, boolean equipped) {
         ParticleSpec spec = equipped ? cfg.equipParticle() : cfg.unequipParticle();
-        if (cfg.useSetColor()) {
+        if (equipped && cfg.useSetColor()) {
             int[] rgb = ChatColorRgb.of(def.display());
             if (rgb != null) {
                 return new ParticleSpec(spec.type(), rgb[0], rgb[1], rgb[2], spec.amount(), spec.spread(),
