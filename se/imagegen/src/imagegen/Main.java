@@ -7,6 +7,8 @@ import imagegen.fixture.ItemFixture;
 import imagegen.fixture.MenuFixture;
 import imagegen.font.GlyphFont;
 import imagegen.font.MinecraftFont;
+import imagegen.imports.ImportManifest;
+import imagegen.imports.PackImporter;
 import imagegen.render.block.BlockRenderer;
 import imagegen.render.gui.ChestRenderer;
 import imagegen.render.sprite.ItemSpriteRenderer;
@@ -35,6 +37,10 @@ public final class Main {
 
         java.util.List<ItemFixture> items = new java.util.ArrayList<>(Fixtures.tooltips());
         items.addAll(Fixtures.eeItems()); // §I Elite-Enchantments item-overhaul tooltip previews
+        // Items imported from a real content pack, rendered through the plugin's own compiler + LoreRenderer
+        // (the maintainable alternative to hardcoded fixtures). Driven by se/imagegen/imports.yml.
+        Path importsFile = Path.of(System.getProperty("se.imagegen.imports", "se/imagegen/imports.yml"));
+        items.addAll(PackImporter.fixtures(ImportManifest.load(importsFile)));
         for (ItemFixture f : items) {
             tooltips.render(f.name(), f.lore()).scaled(scale).writePng(out.resolve(f.id() + ".png"));
             System.out.println("  wrote " + f.id() + ".png");

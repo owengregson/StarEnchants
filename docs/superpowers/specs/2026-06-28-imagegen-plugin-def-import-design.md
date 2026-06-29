@@ -136,17 +136,15 @@ renders or the run:
 - Compile diagnostics → non-fatal (we read defs, not the snapshot); log a count.
 - Unknown vanilla enchant name → TitleCase fallback, never throws.
 
-## Testing (pure unit, server-free — per `writing-tests`)
+## Testing
 
-- `VanillaEnchantLoreTest`: `PROTECTION/4 → §7Protection IV`, `SHARPNESS/5 →
-  §7Sharpness V`, `UNBREAKING/3 → §7Unbreaking III`, a single-level enchant →
-  no numeral, an unknown token → TitleCase.
-- `PackImporterTest`: compile the real cosmic-pack `content/` root; assert the
-  spooky weapon fixture's lore contains `§7Sharpness V` and the
-  `SPOOKY WEAPON BONUS` line, the armour pieces carry `§7Protection IV`, and each
-  selected set yields exactly 5 fixtures with the expected ids/materials. Guards
-  drift between config and committed PNGs.
-- `ImportManifestTest`: round-trips the `sets: [..]` list and `sets: "*"` forms.
+None. `se/imagegen` is a tool-only, dev-time utility for producing docs-site
+graphics (like `se/tester`'s tooling) — never shipped in the plugin jar and not
+on any runtime path. Per the maintainer, it carries no unit tests; the committed
+PNGs are the reviewed artifact, regenerated deliberately via
+`./gradlew :imagegen:renderImages` when content/display changes. Correctness is
+inherited: the import path reuses the plugin's own `LibraryLoader` +
+`LoreRenderer`, which are themselves unit-tested in `:compile` / `:item`.
 
 ## Scope (YAGNI)
 

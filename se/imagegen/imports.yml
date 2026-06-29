@@ -1,0 +1,19 @@
+# imagegen imports — which real plugin items to render as tooltips, and from where.
+#
+# Each source names a content/ tree (the same layout the plugin loads: enchants/,
+# sets/, tiers.yml) and which sets to render from it. Every set expands to its four
+# armour pieces plus its weapon, rendered exactly as the game mints them (the plugin's
+# own compiler + LoreRenderer, with vanilla enchant lines drawn on top).
+#
+#   sets: [a, b, c]   # explicit set keys (the file names under sets/, no extension)
+#   sets: "*"          # every set in the root
+#
+# Paths resolve against the repo root (the renderImages working dir). Override this
+# file with -Dse.imagegen.imports=<path>. Output PNGs land as set-<key>-<piece>.png.
+sources:
+  - root: se/bootstrap/packs-src/cosmic-pack/content
+    sets: [spooky, clarity, koth]
+
+# Example — also pull every set from the shipped SE default pack:
+#  - root: se/bootstrap/resources/content
+#    sets: "*"
