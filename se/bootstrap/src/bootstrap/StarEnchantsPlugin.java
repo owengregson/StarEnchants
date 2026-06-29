@@ -480,6 +480,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
             getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems), this);
             getServer().getPluginManager().registerEvents(new NametagListener(nametags), this);
+            feature.scroll.NametagAnvil.installPreview(this, nametags); // modern: colour the anvil result preview (no-op on 1.8.9)
             getServer().getPluginManager().registerEvents(new feature.trak.TrakListener(traks), this);
         } else {
             getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");

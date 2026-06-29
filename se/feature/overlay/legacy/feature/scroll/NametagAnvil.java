@@ -3,6 +3,7 @@ package feature.scroll;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Legacy (1.8.9) stub of the anvil-rename seam — {@code AnvilInventory.getRenameText()} does not exist on 1.8
@@ -30,5 +31,10 @@ public final class NametagAnvil {
 
     public static String renameText(InventoryView view) {
         return null;
+    }
+
+    /** No-op on 1.8.9 — {@code PrepareAnvilEvent} does not exist, and chat capture has no result preview. */
+    public static void installPreview(Plugin plugin, NametagService service) {
+        // unsupported on 1.8 — the listener uses chat capture when supported() is false
     }
 }
