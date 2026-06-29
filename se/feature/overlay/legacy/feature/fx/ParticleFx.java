@@ -1,5 +1,6 @@
 package feature.fx;
 
+import compile.load.ParticleSpec;
 import java.util.List;
 import java.util.Locale;
 import net.minecraft.server.v1_8_R3.EnumParticle;
@@ -44,5 +45,28 @@ public final class ParticleFx {
                     0.3f, 0.5f, 0.3f, 0.0f, Math.max(1, count));
             ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
         }
+    }
+
+    /**
+     * Degraded {@link ParticleSpec} spawn on 1.8.9: honours the count, spread, and y-offset, but 1.8 has no
+     * coloured-dust API, so the RGB is dropped (a {@code DUST} token also won't resolve here — 1.8 names it
+     * {@code REDSTONE}). Same signature as the modern twin so the class sets match for the mega-jar merge.
+     */
+    public void spawn(Player player, ParticleSpec spec) {
+        if (player == null || spec == null || spec.isEmpty()) {
+            return;
+        }
+        EnumParticle particle;
+        try {
+            particle = EnumParticle.valueOf(spec.type().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException notA1_8Particle) {
+            return; // unknown on 1.8 → skip, never crash
+        }
+        Location at = player.getLocation();
+        float s = (float) spec.spread();
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
+                particle, true, (float) at.getX(), (float) (at.getY() + spec.yOffset()), (float) at.getZ(),
+                s, s, s, 0.0f, Math.max(1, spec.amount()));
+        ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
     }
 }

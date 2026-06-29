@@ -428,8 +428,6 @@ public final class ItemsLoader {
 
     private static SoulGemConfig readSoulGem(YamlNode root, Diagnostics diags) {
         SoulGemConfig d = SoulGemConfig.defaults();
-        YamlNode sounds = root.child("sounds");
-        YamlNode particles = root.child("particles");
         return new SoulGemConfig(
                 orDefault(root.string("material"), d.material()),
                 orDefault(root.string("name"), d.name()),
@@ -438,14 +436,27 @@ public final class ItemsLoader {
                 readSoulsPerMob(root, diags),
                 readColorTiers(root, diags, d.colorTiers()),
                 orDefault(root.string("empty-soul-color"), d.emptyColor()),
-                root.has("sounds") && sounds.has("enabled")
-                        ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
-                orDefault(sounds.string("activate"), d.soundActivate()),
-                orDefault(sounds.string("deactivate"), d.soundDeactivate()),
-                orDefault(sounds.string("combine"), d.soundCombine()),
-                particles.has("active") ? particles.stringList("active") : d.particlesActive(),
-                particles.has("on-activate") ? particles.stringList("on-activate") : d.particlesActivate(),
-                particles.has("on-deactivate") ? particles.stringList("on-deactivate") : d.particlesDeactivate());
+                readSoulSounds(root.child("sounds"), diags),
+                readSoulParticles(root.child("particles"), diags));
+    }
+
+    /** Per-action sound cue lists in our {@code { sound: NAME, volume: V, pitch: P }} bracket form. */
+    private static SoulGemConfig.Sounds readSoulSounds(YamlNode sounds, Diagnostics diags) {
+        return new SoulGemConfig.Sounds(
+                SoundCue.list(sounds, "toggle-on", diags),
+                SoundCue.list(sounds, "toggle-off", diags),
+                SoundCue.list(sounds, "use", diags),
+                SoundCue.list(sounds, "combine", diags),
+                SoundCue.list(sounds, "split", diags));
+    }
+
+    /** Per-state particle specs in our {@code { particle: NAME, count: N, color: {…}, … }} bracket form. */
+    private static SoulGemConfig.Particles readSoulParticles(YamlNode particles, Diagnostics diags) {
+        return new SoulGemConfig.Particles(
+                ParticleSpec.from(particles.child("enable"), diags),
+                ParticleSpec.from(particles.child("disable"), diags),
+                ParticleSpec.from(particles.child("idle"), diags),
+                ParticleSpec.from(particles.child("use"), diags));
     }
 
     /** Parse the optional {@code souls-per-mob:} map ({@code ENTITY_TYPE: amount}); a bad amount warns + skips. */

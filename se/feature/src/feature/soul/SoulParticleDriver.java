@@ -1,9 +1,9 @@
 package feature.soul;
 
+import compile.load.ParticleSpec;
 import compile.load.SoulGemConfig;
 import engine.stores.SoulModeStore;
 import feature.fx.ParticleFx;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
@@ -47,13 +47,13 @@ public final class SoulParticleDriver {
     }
 
     private void tick() {
-        List<String> tokens = config.get().particlesActive();
-        if (tokens.isEmpty()) {
+        ParticleSpec idle = config.get().particles().idle();
+        if (idle.isEmpty()) {
             return;
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (modes.active(player.getUniqueId()).isPresent()) {
-                Scheduling.onEntity(player, () -> fx.spawn(player, tokens, 1));
+                Scheduling.onEntity(player, () -> fx.spawn(player, idle));
             }
         }
     }

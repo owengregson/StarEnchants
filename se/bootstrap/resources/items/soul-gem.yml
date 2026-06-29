@@ -30,18 +30,30 @@ soul-colors:
 # The colour shown below every tier (an empty gem).
 empty-soul-color: "&7"
 
-# Sounds: a master on/off plus namespaced sound keys (work on every supported version).
+# Sounds — our unified bracket form { sound: NAME, volume: V, pitch: P } (volume/pitch optional, default 1.0),
+# the same shape the effect DSL uses everywhere. Each action takes a LIST, so it can play several sounds at
+# once; an empty/omitted list is silent. Sound names are the server's (work on every supported version).
 sounds:
-  enabled: true
-  activate: "entity.player.levelup"
-  deactivate: "ui.button.click"
-  combine: "block.anvil.use"
+  toggle-on:                                                    # entering soul mode
+    - { sound: BLOCK_RESPAWN_ANCHOR_CHARGE, volume: 1.0, pitch: 0.1 }
+    - { sound: ITEM_CHORUS_FRUIT_TELEPORT, volume: 1.0, pitch: 1.7 }
+  toggle-off:                                                   # leaving soul mode
+    - { sound: BLOCK_GLASS_BREAK, volume: 1.0, pitch: 0.1 }
+  use:                                                          # souls spent by an enchant / REMOVE_SOULS
+    - { sound: ENTITY_GENERIC_EAT, volume: 10.0, pitch: 1.0 }
+  combine:                                                      # stacking one gem onto another
+    - { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.0, pitch: 1.0 }
+  split:                                                        # /splitsouls (or /se split)
+    - { sound: BLOCK_GLASS_BREAK, volume: 1.0, pitch: 1.4 }
 
-# Particles (tokens, alias-resolved). on-activate/on-deactivate spawn at the toggle; `active` is the
-# while-active aura spawned each tick at every player in soul mode. Multiple tokens per knob are allowed.
+# Particles — our unified bracket form { particle: NAME, count: N, color: { r, g, b }, spread: S, y-offset: Y }.
+# `color` applies only to the dust particle (REDSTONE/DUST); `spread` is the scatter radius; `y-offset` raises
+# the spawn above the player's feet. enable/disable fire at the toggle, `idle` is the while-active aura (spawned
+# at each player in soul mode every few ticks), `use` fires when souls are spent. An omitted spec spawns nothing.
 particles:
-  active: [SOUL]
-  on-activate: [SOUL_FIRE_FLAME, HAPPY_VILLAGER]
-  on-deactivate: [SMOKE]
+  enable:  { particle: REDSTONE, count: 20, color: { r: 91,  g: 245, b: 83 }, spread: 1.25, y-offset: 1.0 }
+  disable: { particle: REDSTONE, count: 20, color: { r: 250, g: 55,  b: 74 }, spread: 1.25, y-offset: 1.0 }
+  idle:    { particle: ENCHANTMENT_TABLE, count: 8,  spread: 0.75, y-offset: 1.0 }
+  use:     { particle: SPELL_WITCH,       count: 15, spread: 0.75, y-offset: 1.0 }
 
-# Messages ({AMOUNT} = remaining souls on soul use).
+# Messages (soul mode on/off, soul-use, /splitsouls) live in lang.yml.

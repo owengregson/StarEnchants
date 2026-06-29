@@ -31,9 +31,15 @@ class ItemsLoaderTest {
                   - "&7Souls: {AMOUNT}"
                   - "&7Right-click to toggle."
                 souls-per-kill: 3
-                message-activate: "on"
-                message-deactivate: "off"
-                message-soul-use: "left {AMOUNT}"
+                sounds:
+                  toggle-on:
+                    - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
+                    - { sound: BLOCK_BONE_BLOCK_BREAK, volume: 1, pitch: 1 }
+                  use:
+                    - { sound: ENTITY_GENERIC_EAT, volume: 10.0, pitch: 1.0 }
+                particles:
+                  enable: { particle: REDSTONE, count: 20, color: { r: 91, g: 245, b: 83 }, spread: 1.25, y-offset: 1.0 }
+                  idle: { particle: ENCHANTMENT_TABLE, count: 8, spread: 0.75, y-offset: 1.0 }
                 """);
 
         ItemsConfig config = ItemsLoader.load(dir);
@@ -44,6 +50,26 @@ class ItemsLoaderTest {
         assertEquals("&5Soul Gem", gem.name());
         assertEquals(List.of("&7Souls: {AMOUNT}", "&7Right-click to toggle."), gem.lore());
         assertEquals(3, gem.soulsPerKill());
+
+        // sounds round-trip the unified { sound, volume, pitch } bracket form, in order, as a list
+        assertEquals(2, gem.sounds().toggleOn().size());
+        assertEquals("BLOCK_BEACON_POWER_SELECT", gem.sounds().toggleOn().get(0).name());
+        assertEquals(0.4f, gem.sounds().toggleOn().get(0).volume());
+        assertEquals(2.0f, gem.sounds().toggleOn().get(0).pitch());
+        assertEquals(10.0f, gem.sounds().use().get(0).volume());
+        assertTrue(gem.sounds().combine().isEmpty()); // omitted action → silent
+
+        // particles round-trip the unified { particle, count, color, spread, y-offset } bracket form
+        SoulGemConfig.Particles p = gem.particles();
+        assertEquals("REDSTONE", p.enable().type());
+        assertEquals(91, p.enable().colorR());
+        assertEquals(245, p.enable().colorG());
+        assertEquals(83, p.enable().colorB());
+        assertEquals(20, p.enable().amount());
+        assertEquals(1.25, p.enable().spread());
+        assertEquals(1.0, p.enable().yOffset());
+        assertEquals("ENCHANTMENT_TABLE", p.idle().type());
+        assertTrue(p.disable().isEmpty()); // omitted state → nothing spawned
         // soul-mode messages live in lang.yml (§L), not on the item config
     }
 

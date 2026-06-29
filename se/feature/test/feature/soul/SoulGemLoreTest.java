@@ -19,8 +19,7 @@ final class SoulGemLoreTest {
     private static SoulGemConfig withLore(List<String> lore) {
         SoulGemConfig d = SoulGemConfig.defaults();
         return new SoulGemConfig(d.material(), d.name(), lore, d.soulsPerKill(), d.soulsPerMob(),
-                d.colorTiers(), d.emptyColor(), d.sounds(), d.soundActivate(), d.soundDeactivate(),
-                d.soundCombine(), d.particlesActive(), d.particlesActivate(), d.particlesDeactivate());
+                d.colorTiers(), d.emptyColor(), d.sounds(), d.particles());
     }
 
     @Test
@@ -47,8 +46,7 @@ final class SoulGemLoreTest {
     private static SoulGemConfig withName(String name) {
         SoulGemConfig d = SoulGemConfig.defaults();
         return new SoulGemConfig(d.material(), name, d.lore(), d.soulsPerKill(), d.soulsPerMob(),
-                d.colorTiers(), d.emptyColor(), d.sounds(), d.soundActivate(), d.soundDeactivate(),
-                d.soundCombine(), d.particlesActive(), d.particlesActivate(), d.particlesDeactivate());
+                d.colorTiers(), d.emptyColor(), d.sounds(), d.particles());
     }
 
     @Test
@@ -68,7 +66,7 @@ final class SoulGemLoreTest {
     void customColorTiersAreHonoured() {
         SoulGemConfig cfg = new SoulGemConfig("EMERALD", "&aSoul Gem", List.of("{SOUL-COLOR}{AMOUNT}"), 1,
                 Map.of(), List.of(new SoulGemConfig.ColorTier(10, "&c"), new SoulGemConfig.ColorTier(50, "&6")),
-                "&8", true, "a", "b", "c", List.of(), List.of(), List.of());
+                "&8", SoulGemConfig.Sounds.none(), SoulGemConfig.Particles.none());
         assertEquals("&8", cfg.colorFor(0)); // below every tier → emptyColor
         assertEquals("&8", cfg.colorFor(9));
         assertEquals("&c", cfg.colorFor(10)); // first tier
@@ -81,7 +79,7 @@ final class SoulGemLoreTest {
     void soulsPerMobOverridesFlatAmount() {
         SoulGemConfig cfg = new SoulGemConfig("EMERALD", "g", List.of(), 2,
                 Map.of("wither", 100, "ZOMBIE", 5), List.of(new SoulGemConfig.ColorTier(1, "&f")), "&7",
-                true, "a", "b", "c", List.of(), List.of(), List.of());
+                SoulGemConfig.Sounds.none(), SoulGemConfig.Particles.none());
         assertEquals(100, cfg.soulsFor("WITHER")); // case-insensitive key match
         assertEquals(5, cfg.soulsFor("zombie"));
         assertEquals(2, cfg.soulsFor("CREEPER")); // no entry → flat per-kill
