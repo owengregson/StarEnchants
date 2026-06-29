@@ -14,3 +14,7 @@ lore:
 # 100/100 = always succeeds (the default — no behaviour change).
 min-success: 100
 max-success: 100
+
+# The lore line stamped onto guarded gear — rendered from state while the guard is present (at the bottom of
+# the lore, above any trak lines) and removed when the guard is spent on a failed enchant apply.
+protected-line: "&f&lPROTECTED"

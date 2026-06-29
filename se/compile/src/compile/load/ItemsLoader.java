@@ -289,7 +289,8 @@ public final class ItemsLoader {
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-success"), d.minSuccess(), root, diags),
-                parseInt(root.string("max-success"), d.maxSuccess(), root, diags));
+                parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
+                orDefault(root.string("protected-line"), d.protectedLine()));
     }
 
     private static ScrollsConfig.Nametag readNametag(YamlNode root, Diagnostics diags) {
@@ -333,7 +334,8 @@ public final class ItemsLoader {
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-success"), d.minSuccess(), root, diags),
-                parseInt(root.string("max-success"), d.maxSuccess(), root, diags));
+                parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
+                orDefault(root.string("protected-line"), d.protectedLine()));
     }
 
     private static EnchantBookConfig readEnchantBook(YamlNode root, Diagnostics diags) {

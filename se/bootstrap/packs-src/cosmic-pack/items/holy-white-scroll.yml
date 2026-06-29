@@ -15,3 +15,7 @@ lore:
 # without protecting (it never destroys gear). 100/100 = always succeeds.
 min-success: 100
 max-success: 100
+
+# The lore line stamped onto a holy-protected item — rendered from state while the keep marker is present (at
+# the bottom of the lore, above any trak lines) and removed when the marker is consumed on death.
+protected-line: "&e&l*&f&lHOLY&e&l* &f&lPROTECTED"

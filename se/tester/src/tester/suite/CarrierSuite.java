@@ -81,9 +81,14 @@ public final class CarrierSuite implements Harness.Scenario {
         ContentHolder holder = new ContentHolder(lib);
         ItemKeys keys = ItemKeys.of();
         CombatCodec combat = new CombatCodec(keys.combat());
-        LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k));
-        ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
+        // The PROTECTED-line reader reads the SAME guarded byte the white scroll stamps, so the line tracks state.
+        LoreRenderer lore = new LoreRenderer(() -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k),
+                k -> null, LoreRenderer.SetLore.NONE,
+                stack -> item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack), false,
+                        compile.load.WhiteScrollConfig.defaults().protectedLine(),
+                        compile.load.ScrollsConfig.defaults().holy().protectedLine()));
+        ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
         // Default likeness: books never destroy on fail.
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
@@ -162,12 +167,20 @@ public final class CarrierSuite implements Harness.Scenario {
             if (!carrierCodec.isGuarded(sword)) {
                 throw new IllegalStateException("the white scroll did not mark the sword guarded");
             }
+            if (!hasProtectedLine(sword)) { // the PROTECTED line is stamped from the new guard state
+                throw new IllegalStateException("the white scroll should stamp a PROTECTED lore line; lore="
+                        + sword.getItemMeta().getLore());
+            }
             destroyer.applyTo(destroyer.mintBook("enchants/zap", 1, 0), sword); // forced-fail destroy book
             if (sword.getAmount() != 1) {
                 throw new IllegalStateException("the white scroll should have spared the sword from destruction");
             }
             if (carrierCodec.isGuarded(sword)) {
                 throw new IllegalStateException("the guard should be consumed by the failed apply");
+            }
+            if (hasProtectedLine(sword)) { // and the line goes once the guard is spent (rendered from state)
+                throw new IllegalStateException("the PROTECTED line should be gone once the guard is spent; lore="
+                        + sword.getItemMeta().getLore());
             }
         });
 
@@ -252,6 +265,14 @@ public final class CarrierSuite implements Harness.Scenario {
                 }
             }
         });
+    }
+
+    /** Whether {@code item}'s lore carries a protection line (the white scroll's stamps the visible PROTECTED). */
+    @SuppressWarnings("deprecation") // getLore(): the floor-stable String item-meta API
+    private static boolean hasProtectedLine(ItemStack item) {
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        List<String> lore = meta == null ? null : meta.getLore();
+        return lore != null && lore.stream().anyMatch(l -> l.contains("PROTECTED"));
     }
 
     private static void failAll(Harness h, String message) {

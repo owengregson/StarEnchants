@@ -210,6 +210,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 });
         WornStateStore worn = new WornStateStore(wornResolver::resolve);
 
+        // §I the applied-utility marker set, shared by white/holy scrolls and the trak gems (independent markers).
+        // Built before the renderer because the lore's PROTECTED-line reader closes over both of these.
+        item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot());
+        // Carrier economy (ADR-0016). Carrier PDC is separate from the combat blob, so it never decodes hot.
+        CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
+
         // Cold apply path. Lookups read the CURRENT library, so a reload re-renders against new content.
         LoreRenderer lore = new LoreRenderer(() -> loreStyle(master.config()),
                 key -> content.library().displayNameOf(key),
@@ -231,7 +237,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         compile.load.SetDef def = content.library().setDefOf(setKey);
                         return def != null ? def.weaponLore() : java.util.List.of();
                     }
-                });
+                },
+                stack -> item.render.ProtectionLore.lines(     // §I applied-scroll PROTECTED lines, from marker state
+                        carrierCodec.isGuarded(stack),
+                        appliedSlot.holds(stack, item.codec.AppliedSlot.HOLY),
+                        items.config().whiteScrollOrDefault().protectedLine(),
+                        items.config().scrollsOrDefault().holy().protectedLine()));
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
@@ -239,11 +250,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().crystals().maxStack(),   // §E crystal sanity cap
                 messages);                                     // §L ApplyResult reason strings
 
-        // §I the single exclusive applied-utility slot, shared by white/holy scrolls and the trak gems.
-        item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot());
-
-        // Carrier economy (ADR-0016). Carrier PDC is separate from the combat blob, so it never decodes hot.
-        CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
+        // Carrier economy (ADR-0016) — carrierCodec/appliedSlot built above (the lore PROTECTED-line reader uses them).
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
                 () -> items.config().enchantBookOrDefault(),   // §I enchant book
                 () -> items.config().dustOrDefault(),          // §I success dust
@@ -284,7 +291,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // Survival + cosmetic scrolls (§I) — both share the 'scroll' PDC tag + scrolls config.
         HolyScrollService holyScrolls = new HolyScrollService(scrollCodec, appliedSlot,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages);
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, enchanter::reRender);
         feature.scroll.KeptItemsStore keptItems = new feature.scroll.KeptItemsStore(); // §I holy death→respawn stash
         NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(), messages);
 

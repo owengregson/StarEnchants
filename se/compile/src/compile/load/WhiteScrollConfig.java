@@ -8,13 +8,16 @@ import java.util.Objects;
  * NEXT failed enchant apply spares the item. Distinct from the {@code holy-white-scroll} (item loss on death).
  * Each minted scroll rolls a success chance in {@code [minSuccess, maxSuccess]} (default {@code 100/100} =
  * always succeeds); a failed apply consumes the scroll without stamping the guard and never destroys the gear.
- * {@code {SUCCESS}}/{@code {FAILURE}} render in the name/lore.
+ * {@code {SUCCESS}}/{@code {FAILURE}} render in the name/lore. {@code protectedLine} is the lore line stamped
+ * onto guarded gear (rendered from state while the guard is present, removed when it is spent).
  */
-public record WhiteScrollConfig(String material, String name, List<String> lore, int minSuccess, int maxSuccess) {
+public record WhiteScrollConfig(String material, String name, List<String> lore, int minSuccess, int maxSuccess,
+                                String protectedLine) {
 
     public WhiteScrollConfig {
         Objects.requireNonNull(material, "material");
         Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(protectedLine, "protectedLine");
         lore = List.copyOf(lore);
         int lo = Math.max(0, Math.min(100, minSuccess));
         int hi = Math.max(0, Math.min(100, maxSuccess));
@@ -28,6 +31,7 @@ public record WhiteScrollConfig(String material, String name, List<String> lore,
                 "&fWhite Scroll",
                 List.of("&7Protects an item — a failed", "&7enchant will spare it once."),
                 100,
-                100);
+                100,
+                "&f&lPROTECTED");
     }
 }
