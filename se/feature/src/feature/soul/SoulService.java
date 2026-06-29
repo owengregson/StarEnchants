@@ -108,14 +108,14 @@ public final class SoulService implements SoulDebit {
             persist(player, gem.gemId());
             modes.deactivate(id);
             ledger.forget(gem.gemId());
-            message(player, messages.format("soul.deactivate"));
+            messageLines(player, messages.lines("soul.deactivate"));
             playSounds(player, cfg.sounds().toggleOff());
             particles.spawn(player, cfg.particles().disable());
             return Toggle.DISABLED;
         }
         modes.activate(id, gem.gemId());
         seed(gem);
-        message(player, messages.format("soul.activate"));
+        messageLines(player, messages.lines("soul.activate"));
         playSounds(player, cfg.sounds().toggleOn());
         particles.spawn(player, cfg.particles().enable());
         return Toggle.ENABLED;
@@ -124,6 +124,13 @@ public final class SoulService implements SoulDebit {
     private static void message(Player player, String raw) {
         if (raw != null && !raw.isBlank()) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', raw));
+        }
+    }
+
+    /** Send a multi-line message (already colour-translated by {@code Messages.lines}); a blank line stays blank. */
+    private static void messageLines(Player player, List<String> lines) {
+        for (String line : lines) {
+            player.sendMessage(line);
         }
     }
 

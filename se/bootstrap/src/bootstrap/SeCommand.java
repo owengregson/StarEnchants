@@ -370,10 +370,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(messages.format("command.not-a-player"));
             return;
         }
-        // SoulService sends the ENABLED/DISABLED feedback; only the no-gem hint is the command's to relay.
+        // SoulService sends the ENABLED/DISABLED feedback; only the no-gem case (soul.empty) is the command's.
         Scheduling.onEntity(player, () -> {
             if (souls.toggle(player) == SoulService.Toggle.NO_GEM) {
-                player.sendMessage(messages.format("command.soul.no-gem"));
+                messages.lines("soul.empty").forEach(player::sendMessage);
             }
         });
     }

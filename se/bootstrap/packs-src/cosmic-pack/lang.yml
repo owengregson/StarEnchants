@@ -8,11 +8,11 @@
 # ── /se command ──────────────────────────────────────────────────────────────────────────────────────
 command.not-a-player: "&cThat command can only be run by a player."
 command.give.gem: "&aSoul gem minted. &7Right-click it (or /se soulmode) to toggle soul mode."
-command.soul.no-gem: "&cHold a soul gem first (/se gem)."
-command.soul.split-usage: "&cUsage: /se split <amount> &7— hold the gem to split."
-command.soul.split-ok: "&aSplit off &f{MOVED}&a souls into a new gem &7(this gem keeps {REMAINING})."
+command.soul.no-gem: "&c&l(!)&r &cThis item is not a soul gem!"
+command.soul.split-usage: "&7Usage: &f/splitsouls [amount]&r"
+command.soul.split-ok: "&a&l(!)&r &aSoul gem has been split."
 command.soul.split-bad: "&cThe amount must be a positive number."
-command.soul.split-too-many: "&cThis gem has only &f{REMAINING}&c souls — leave at least one behind."
+command.soul.split-too-many: "&c&l(!)&r &cYou don't have enough souls to do that!"
 command.error.bad-number: "&cThat is not a number: &7{ARG}"
 command.error.bad-level: "&cLevel must be a number, got &f{ARG}"
 command.error.level-range: "&cLevel must be 1–{MAX} for &f{KEY}"
@@ -156,9 +156,23 @@ scroll.nametag.target-gone: "&cThe item to rename is no longer there — your na
 scroll.nametag.cannot-rename: "&cThat item cannot be renamed — your nametag was returned."
 
 # ── Item result messages (soul mode, crystal/heroic/slot apply, scroll/book outcomes) ──────────────────
-soul.activate: "&aSoul mode &lON&a."
-soul.deactivate: "&7Soul mode &lOFF&7."
-soul.soul-use: "&7Souls remaining: &a{AMOUNT}"
+# soul.activate / soul.deactivate are multi-line; soul.empty shows when /se soulmode is run with no gem held.
+soul.activate:
+  - ' '
+  - '&a&l** SOUL MODE: &nON&r&a&l **'
+  - '&7Your soul enchantments will now drain souls.'
+  - ' '
+soul.deactivate:
+  - ' '
+  - '&c&l** SOUL MODE: &nOFF&r&c&l **'
+  - '&7Your soul enchantments will no longer drain souls.'
+  - ' '
+soul.empty:
+  - ' '
+  - '&c&l** SOUL MODE: &nOFF&r&c&l **'
+  - '&7You have no soul gems left!'
+  - ' '
+soul.soul-use: "&e&l** SOULS: &6&n&l{AMOUNT}&r&e&l **"
 crystal.apply-success: "&aApplied &f{CRYSTAL}&a to your item."
 crystal.apply-fail: "&cThe crystal shattered without taking hold."
 crystal.no-slots: "&cThat item has no free crystal slot."
