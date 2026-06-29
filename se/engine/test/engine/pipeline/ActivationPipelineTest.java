@@ -173,11 +173,11 @@ class ActivationPipelineTest {
     }
 
     @Test
-    void soulCostSkippedWhenNotInSoulMode() {
+    void soulCostAbilityNeverFiresOutsideSoulMode() {
         Ab a = new Ab();
         a.soulCost = 3;
-        // no soulMode() → gate 10 does not apply, ability still fires (§3.3 "only if gem active")
-        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().build()));
+        // §J no active gem → a soul-cost ability is BLOCKED (NO_SOULS), never fired for free (the fixed bug).
+        assertEquals(GateOutcome.NO_SOULS, pipeline.evaluate(a.build(), act().build()));
     }
 
     @Test

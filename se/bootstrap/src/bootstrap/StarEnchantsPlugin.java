@@ -333,7 +333,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
         Integrations.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),
-                player -> soulService.bindingFor(player).map(b -> souls.peek(b.gemId()).orElse(0)).orElse(0));
+                // §D total souls across ALL carried gems (cached on the holder thread each tick — thread-safe here)
+                player -> soulService.soulTotal(player.getUniqueId()));
         // §D soul-mode tick: one global task that auto-disables soul mode when a player's active gem is gone or
         // drained to zero, then spawns the configured while-active aura at players still in soul mode.
         soulParticles = new feature.soul.SoulParticleDriver(

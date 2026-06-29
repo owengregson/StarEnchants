@@ -42,7 +42,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
 
     private static final String[] KEYS = {
         "soul.depositOnAnyKill", "soul.combineSumsAndRetires", "soul.splitCarvesAndKeeps",
-        "soul.spendPersistsByIdentity", "soul.toggleOffFlushesSpend",
+        "soul.spendPersistsByIdentity", "soul.toggleOffFlushesSpend", "soul.multiGemDrainsLeastFirstAndCleansUp",
     };
 
     private final Plugin plugin;
@@ -159,6 +159,47 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         }
                     });
 
+                    // §E multi-gem draining: drain the LEAST-souls gem first; an emptied gem is consumed only
+                    // while another gem remains; the LAST gem is never destroyed; soul mode turns off only at
+                    // zero total. The 250/500 example from the spec (no ticks — direct, deterministic).
+                    h.guard("soul.multiGemDrainsLeastFirstAndCleansUp", () -> {
+                        player.getInventory().clear();
+                        ItemStack low = gem(souls, codec, 250);
+                        ItemStack high = gem(souls, codec, 500);
+                        UUID lowId = codec.read(low).gemId();
+                        UUID highId = codec.read(high).gemId();
+                        player.getInventory().setItemInMainHand(low); // a gem with souls in hand → toggle enables
+                        player.getInventory().setItem(18, high);
+                        if (souls.toggle(player) != SoulService.Toggle.ENABLED) {
+                            throw new IllegalStateException("toggle did not enable soul mode");
+                        }
+                        if (!souls.bindingFor(player).map(b -> b.gemId().equals(lowId)).orElse(false)) {
+                            throw new IllegalStateException("did not target the LEAST-souls gem (250) first");
+                        }
+                        // drain the 250 to zero → consumed (the 500 remains), target advances to the 500.
+                        souls.debit(player, lowId, 250);
+                        if (countGems(codec, player) != 1) {
+                            throw new IllegalStateException("emptied gem was not removed while another gem remained: "
+                                    + countGems(codec, player) + " gems");
+                        }
+                        if (!souls.bindingFor(player).map(b -> b.gemId().equals(highId)).orElse(false)) {
+                            throw new IllegalStateException("did not retarget to the 500 gem");
+                        }
+                        // drain the 500 to zero → it is the LAST gem: kept as a zero gem, and soul mode turns off.
+                        souls.debit(player, highId, 500);
+                        if (souls.bindingFor(player).isPresent()) {
+                            throw new IllegalStateException("soul mode did not turn off when total souls hit zero");
+                        }
+                        if (countGems(codec, player) != 1) {
+                            throw new IllegalStateException("the last soul gem must never be destroyed");
+                        }
+                        SoulData last = firstGem(codec, player);
+                        if (last == null || last.souls() != 0) {
+                            throw new IllegalStateException("the surviving lone gem should be a zero gem: "
+                                    + (last == null ? "none" : last.souls()));
+                        }
+                    });
+
                     // Deposit-on-any-kill: onKill DEFERS to the killer's thread, so assert after a few ticks.
                     player.getInventory().clear();
                     player.getInventory().setItem(20, souls.mintGem()); // a gem far from the main hand, 0 souls
@@ -197,6 +238,28 @@ public final class SoulEconomySuite implements Harness.Scenario {
             }
         }
         return n;
+    }
+
+    /** Total soul gems carried, regardless of count. */
+    private static int countGems(SoulCodec codec, Player player) {
+        int n = 0;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (codec.read(stack) != null) {
+                n++;
+            }
+        }
+        return n;
+    }
+
+    /** The first carried soul gem's data, or {@code null} if none. */
+    private static SoulData firstGem(SoulCodec codec, Player player) {
+        for (ItemStack stack : player.getInventory().getContents()) {
+            SoulData data = codec.read(stack);
+            if (data != null) {
+                return data;
+            }
+        }
+        return null;
     }
 
     private static void failAll(Harness h, String message) {

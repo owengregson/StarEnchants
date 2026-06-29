@@ -161,11 +161,12 @@ public final class ActivationPipeline {
 
     private boolean consumeSouls(Ability ability, Activation act) {
         if (ability.soulCost() <= 0) {
-            return true; // free
+            return true; // free — not a soul-cost ability
         }
         if (act.activeGem() == null) {
-            return true; // not in soul mode → the soul cost gate does not apply (§3.3)
+            return false; // §J a soul-cost ability NEVER fires outside soul mode (was: fired free — the bug)
         }
+        // In soul mode: fire only if the active (least-souls) gem can pay — all-or-nothing, no partial spend.
         return souls.tryConsume(act.activeGem(), act.gemBalance(), ability.soulCost());
     }
 }
