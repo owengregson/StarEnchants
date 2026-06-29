@@ -1,8 +1,11 @@
 package feature.fx;
 
+import compile.load.ParticleSpec;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
@@ -34,6 +37,31 @@ public final class ParticleFx {
             if (particle != null) {
                 player.getWorld().spawnParticle(particle, player.getLocation(), Math.max(1, count));
             }
+        }
+    }
+
+    /**
+     * Spawn a configured {@link ParticleSpec} — count + spread + y-offset, and (for the dust/redstone particle)
+     * an RGB colour via {@code DustOptions}, built cross-version off the resolved particle's data type so the
+     * {@code REDSTONE→DUST} rename is transparent. A non-dust particle ignores the colour. The legacy 1.8.9 twin
+     * degrades (no coloured dust API). Call on the player's region thread.
+     */
+    public void spawn(Player player, ParticleSpec spec) {
+        if (player == null || spec == null || spec.isEmpty()) {
+            return;
+        }
+        Particle particle = resolver.apply(spec.type());
+        if (particle == null) {
+            return;
+        }
+        Location at = player.getLocation().add(0.0, spec.yOffset(), 0.0);
+        double s = spec.spread();
+        if (particle.getDataType() == Particle.DustOptions.class) {
+            Particle.DustOptions dust = new Particle.DustOptions(
+                    Color.fromRGB(spec.colorR(), spec.colorG(), spec.colorB()), 1.0f);
+            player.getWorld().spawnParticle(particle, at, spec.amount(), s, s, s, 0.0, dust);
+        } else {
+            player.getWorld().spawnParticle(particle, at, spec.amount(), s, s, s, 0.0);
         }
     }
 }

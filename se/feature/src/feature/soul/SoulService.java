@@ -1,6 +1,7 @@
 package feature.soul;
 
 import compile.load.SoulGemConfig;
+import compile.load.SoundCue;
 import engine.interact.SoulLedger;
 import engine.sink.SoulDebit;
 import engine.stores.SoulModeStore;
@@ -108,15 +109,15 @@ public final class SoulService implements SoulDebit {
             modes.deactivate(id);
             ledger.forget(gem.gemId());
             message(player, messages.format("soul.deactivate"));
-            playSound(player, cfg.soundDeactivate());
-            particles.spawn(player, cfg.particlesDeactivate(), 1);
+            playSounds(player, cfg.sounds().toggleOff());
+            particles.spawn(player, cfg.particles().disable());
             return Toggle.DISABLED;
         }
         modes.activate(id, gem.gemId());
         seed(gem);
         message(player, messages.format("soul.activate"));
-        playSound(player, cfg.soundActivate());
-        particles.spawn(player, cfg.particlesActivate(), 1);
+        playSounds(player, cfg.sounds().toggleOn());
+        particles.spawn(player, cfg.particles().enable());
         return Toggle.ENABLED;
     }
 
@@ -127,13 +128,13 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * The {@code playSound(Location, String, …)} string overload takes a namespaced key, dodging the
+     * Play each configured cue (our {@code { sound, volume, pitch }} bracket form) at the player. The
+     * {@code playSound(Location, String, …)} string overload takes a namespaced/registry sound key, dodging the
      * {@code Sound} constant/interface break at 1.21.3 — no resolver needed. Runs on the player's own thread.
      */
-    private void playSound(Player player, String token) {
-        SoulGemConfig cfg = config.get();
-        if (cfg.sounds() && token != null && !token.isBlank()) {
-            Sounds.play(player, player.getLocation(), token, 1.0f, 1.0f);
+    private void playSounds(Player player, List<SoundCue> cues) {
+        for (SoundCue cue : cues) {
+            Sounds.play(player, player.getLocation(), cue.name(), cue.volume(), cue.pitch());
         }
     }
 
@@ -240,7 +241,7 @@ public final class SoulService implements SoulDebit {
         retire(player, da.gemId());
         retire(player, db.gemId());
         ItemStack gem = mintGemStack(new SoulData(UUID.randomUUID(), total));
-        playSound(player, config.get().soundCombine());
+        playSounds(player, config.get().sounds().combine());
         return gem;
     }
 
@@ -280,6 +281,7 @@ public final class SoulService implements SoulDebit {
         ItemStack fresh = mintGemStack(new SoulData(UUID.randomUUID(), amount));
         inv.addItem(fresh).values()
                 .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+        playSounds(player, config.get().sounds().split());
         return new SplitResult(SplitResult.Status.OK, amount, remain);
     }
 
@@ -440,7 +442,10 @@ public final class SoulService implements SoulDebit {
             public void setSouls(int next) {
                 Scheduling.onEntity(player, () -> {
                     persist(player, gemId);
+                    SoulGemConfig cfg = config.get();
                     message(player, messages.format("soul.soul-use", "AMOUNT", next));
+                    playSounds(player, cfg.sounds().use());
+                    particles.spawn(player, cfg.particles().use());
                 });
             }
         };
