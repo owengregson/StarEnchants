@@ -328,9 +328,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         Integrations.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),
                 player -> soulService.bindingFor(player).map(b -> souls.peek(b.gemId()).orElse(0)).orElse(0));
-        // §D while-active soul aura: one global task spawning the configured particles at players in soul mode.
+        // §D soul-mode tick: one global task that auto-disables soul mode when a player's active gem is gone or
+        // drained to zero, then spawns the configured while-active aura at players still in soul mode.
         soulParticles = new feature.soul.SoulParticleDriver(
-                soulModes, () -> items.config().soulGemOrDefault(), particleFx);
+                soulService, soulModes, () -> items.config().soulGemOrDefault(), particleFx);
         soulParticles.start();
 
         // Each store below is ONE shared instance: an effect writes it through the per-event sink and a

@@ -12,21 +12,25 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
 /**
- * §D soul-gem while-active particle aura. One global repeating task (not per-player) reading the live
- * {@link SoulModeStore} each tick. Folia-correct: runs on the global thread (where enumerating players is
- * safe), then hops to each active player's region via {@link Scheduling#onEntity} to spawn at them.
+ * §D soul-gem while-active periodic tick. One global repeating task (not per-player) reading the live
+ * {@link SoulModeStore} each tick. For every player in soul mode it (1) enforces the active gem — auto-disabling
+ * soul mode when that gem has left the inventory or drained to zero ({@link SoulService#enforceActiveGem}) — then
+ * (2) spawns the while-active aura if one is configured. Folia-correct: runs on the global thread (where
+ * enumerating players is safe), then hops to each active player's region via {@link Scheduling#onEntity}.
  */
 public final class SoulParticleDriver {
 
-    // ambient aura: a coarse period keeps the per-tick cost low
+    // ambient aura + gem-presence check: a coarse period keeps the per-tick cost low (sub-second responsiveness)
     private static final int PERIOD_TICKS = 10;
 
+    private final SoulService souls;
     private final SoulModeStore modes;
     private final Supplier<SoulGemConfig> config;
     private final ParticleFx fx;
     private TaskHandle task;
 
-    public SoulParticleDriver(SoulModeStore modes, Supplier<SoulGemConfig> config, ParticleFx fx) {
+    public SoulParticleDriver(SoulService souls, SoulModeStore modes, Supplier<SoulGemConfig> config, ParticleFx fx) {
+        this.souls = Objects.requireNonNull(souls, "souls");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.config = Objects.requireNonNull(config, "config");
         this.fx = Objects.requireNonNull(fx, "fx");
@@ -48,12 +52,15 @@ public final class SoulParticleDriver {
 
     private void tick() {
         ParticleSpec idle = config.get().particles().idle();
-        if (idle.isEmpty()) {
-            return;
-        }
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (modes.active(player.getUniqueId()).isPresent()) {
-                Scheduling.onEntity(player, () -> fx.spawn(player, idle));
+                Scheduling.onEntity(player, () -> {
+                    souls.enforceActiveGem(player); // auto-disable soul mode if the active gem is gone/empty
+                    // re-check: enforcement may have just disabled it; only aura a still-active player
+                    if (!idle.isEmpty() && modes.active(player.getUniqueId()).isPresent()) {
+                        fx.spawn(player, idle);
+                    }
+                });
             }
         }
     }
