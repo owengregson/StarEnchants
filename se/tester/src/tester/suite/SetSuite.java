@@ -46,8 +46,10 @@ public final class SetSuite implements Harness.Scenario {
                 chestplate: { material: DIAMOND_CHESTPLATE }
                 leggings:   { material: DIAMOND_LEGGINGS }
                 boots:      { material: DIAMOND_BOOTS }
-              trigger: DEFENSE
-              effects: [{ POTION: { effect: REGENERATION, level: 1, duration: 80, who: "@Self" } }]
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ POTION: { effect: REGENERATION, level: 1, duration: 80, who: "@Self" } }]
             """;
 
     private final Plugin plugin;

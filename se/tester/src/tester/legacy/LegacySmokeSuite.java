@@ -110,8 +110,10 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 chestplate: { material: NETHERITE_CHESTPLATE, name: "&bVanguard Chestplate" }
                 leggings:   { material: NETHERITE_LEGGINGS,   name: "&bVanguard Leggings" }
                 boots:      { material: NETHERITE_BOOTS,      name: "&bVanguard Boots" }
-              trigger: DEFENSE
-              effects: [{ MODIFY_HEALTH: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             """;
 
     private static final String VENOM = """
