@@ -43,6 +43,7 @@ public final class CarrierService {
     private final item.codec.AppliedSlot slot; // §I applied-utility marker set a white scroll occupies
     private final java.util.function.Consumer<ItemStack> protectionRefresh; // §I toggle the PROTECTED line, preserving the rest of the lore
     private final ItemGroups groups; // §I applies-to gate — the white scroll only protects the configured item kinds
+    private final item.lang.Messages messages; // §I the applies reject reads common.wrong-applies (single source)
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -63,7 +64,8 @@ public final class CarrierService {
                           java.util.function.Consumer<ItemStack> protectionRefresh) {
         this(codec, enchanter, content, random, bookConfig, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), protectionRefresh, ItemGroups.standard());
+                new item.codec.AppliedSlot("appliedslot"), protectionRefresh, ItemGroups.standard(),
+                item.lang.Messages.defaults());
     }
 
     /** Book-numeral-default form: likeness suppliers supplied; the book level numeral defaults to Roman. */
@@ -72,7 +74,8 @@ public final class CarrierService {
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
         this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard());
+                new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
+                item.lang.Messages.defaults());
     }
 
     /**
@@ -91,7 +94,7 @@ public final class CarrierService {
                           java.util.function.IntSupplier maxBookSuccess,
                           item.codec.AppliedSlot slot,
                           java.util.function.Consumer<ItemStack> protectionRefresh,
-                          ItemGroups groups) {
+                          ItemGroups groups, item.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -104,6 +107,7 @@ public final class CarrierService {
         this.slot = Objects.requireNonNull(slot, "slot");
         this.protectionRefresh = Objects.requireNonNull(protectionRefresh, "protectionRefresh");
         this.groups = Objects.requireNonNull(groups, "groups");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -491,9 +495,9 @@ public final class CarrierService {
             return CarrierResult.noop("§7That item is already protected.");
         }
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
-        if (!groups.matches(target.getType(), cfg.appliesTo())) { // §I gate: only the configured kinds (mirrors common.wrong-applies)
-            return CarrierResult.noop(color("&cThis can only be applied to: &f"
-                    + ItemGroups.kindsLabel(cfg.appliesTo()) + "&c."));
+        if (!groups.matches(target.getType(), cfg.appliesTo())) { // §I gate: only the configured kinds
+            return CarrierResult.noop(messages.format("common.wrong-applies",
+                    "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
         }
         int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
         consume(carrier); // a use is spent whether the roll succeeds or fails

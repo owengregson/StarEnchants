@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 /**
  * The soul collaborator {@link DispatchSink} calls for {@code REMOVE_SOULS} — the seam to the feature soul
  * system, mirroring {@code EconomyService} for money (§D, §6.3). A debit is charged against the in-memory
- * {@code SoulLedger} and written through to the gem's PDC <em>on the holder's own thread</em>: the gem lives
+ * soul pool and drained least-first from the gems' PDC <em>on the holder's own thread</em>: the gems live
  * in the holder's inventory, so an off-region PDC write would be a Folia cross-region bug.
  */
 @FunctionalInterface

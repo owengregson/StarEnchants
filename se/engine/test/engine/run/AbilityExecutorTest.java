@@ -13,7 +13,7 @@ import compile.model.SourceKind;
 import compile.model.StableKeyIndex;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.IgniteEffect;
-import engine.interact.SoulLedger;
+import engine.interact.SoulSpender;
 import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
 import engine.selector.SelectorRegistry;
@@ -57,7 +57,7 @@ class AbilityExecutorTest {
                 .register(new VictimSelector())
                 .register(new SelfSelector())
                 .build();
-        ActivationPipeline pipeline = new ActivationPipeline(new CooldownStore(), new SoulLedger());
+        ActivationPipeline pipeline = new ActivationPipeline(new CooldownStore(), SoulSpender.NONE);
         executor = new AbilityExecutor(effects, selectors, pipeline, AreaScan.NONE);
     }
 
@@ -123,7 +123,7 @@ class AbilityExecutorTest {
         AbilityExecutor observed = new AbilityExecutor(
                 EffectRegistry.builder().register(new IgniteEffect()).build(),
                 SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
-                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE, listener);
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE, listener);
         Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
         DispatchSink sink = new DispatchSink(handles);
 
@@ -141,7 +141,7 @@ class AbilityExecutorTest {
         AbilityExecutor observed = new AbilityExecutor(
                 EffectRegistry.builder().register(new IgniteEffect()).build(),
                 SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
-                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE, listener);
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE, listener);
         Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
         DispatchSink sink = new DispatchSink(handles);
 

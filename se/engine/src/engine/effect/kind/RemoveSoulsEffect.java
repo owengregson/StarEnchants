@@ -14,7 +14,7 @@ import schema.spec.D;
 /**
  * {@code REMOVE_SOULS} — debit souls from a soul gem (§D). {@code @Self} (default) charges the activator's
  * active gem ({@link EffectCtx#activeGem()}); {@code @Victim} drains the enemy's own gem (resolved in the soul
- * service). The spend is atomic in the {@code SoulLedger} and the PDC write runs on that player's thread.
+ * service). The spend is charged to the player's cross-gem soul pool and the gems are drained least-first on that player's thread.
  */
 public final class RemoveSoulsEffect implements EffectKind {
 

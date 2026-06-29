@@ -4,7 +4,7 @@ import compile.model.Ability;
 import engine.condition.ConditionEvaluator;
 import engine.condition.ConditionResult;
 import engine.condition.Flow;
-import engine.interact.SoulLedger;
+import engine.interact.SoulSpender;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
 import java.util.Objects;
@@ -38,24 +38,24 @@ public final class ActivationPipeline {
     private static final int SCOPE_TYPE = 2;
 
     private final CooldownStore cooldowns;
-    private final SoulLedger souls;
+    private final SoulSpender spender;
     private final SuppressionStore suppression;
     private final Guard protection;
     private final Guard preActivate;
 
-    public ActivationPipeline(CooldownStore cooldowns, SoulLedger souls) {
-        this(cooldowns, souls, new SuppressionStore(), Guard.ALLOW, Guard.ALLOW);
+    public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender) {
+        this(cooldowns, spender, new SuppressionStore(), Guard.ALLOW, Guard.ALLOW);
     }
 
-    public ActivationPipeline(CooldownStore cooldowns, SoulLedger souls,
+    public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender,
                               Guard protection, Guard preActivate) {
-        this(cooldowns, souls, new SuppressionStore(), protection, preActivate);
+        this(cooldowns, spender, new SuppressionStore(), protection, preActivate);
     }
 
-    public ActivationPipeline(CooldownStore cooldowns, SoulLedger souls, SuppressionStore suppression,
+    public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
                               Guard protection, Guard preActivate) {
         this.cooldowns = Objects.requireNonNull(cooldowns, "cooldowns");
-        this.souls = Objects.requireNonNull(souls, "souls");
+        this.spender = Objects.requireNonNull(spender, "spender");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.protection = Objects.requireNonNull(protection, "protection");
         this.preActivate = Objects.requireNonNull(preActivate, "preActivate");
@@ -166,7 +166,7 @@ public final class ActivationPipeline {
         if (act.activeGem() == null) {
             return false; // §J a soul-cost ability NEVER fires outside soul mode (was: fired free — the bug)
         }
-        // In soul mode: fire only if the active (least-souls) gem can pay — all-or-nothing, no partial spend.
-        return souls.tryConsume(act.activeGem(), act.gemBalance(), ability.soulCost());
+        // In soul mode: fire only if the player's cross-gem pool can pay — all-or-nothing, no partial spend.
+        return spender.trySpend(act.actor(), ability.soulCost());
     }
 }

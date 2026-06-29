@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 
 import compile.load.ParticleSpec;
 import compile.load.SoulGemConfig;
-import engine.interact.SoulLedger;
+import engine.interact.SoulPool;
 import engine.stores.SoulModeStore;
 import feature.fx.ParticleFx;
 import item.codec.SoulCodec;
@@ -44,34 +44,18 @@ class SoulModeEnforcementTest {
 
         PlayerInventory inv = mock(PlayerInventory.class);
         when(inv.getContents()).thenReturn(gemInInventory ? new ItemStack[] {gemStack} : new ItemStack[] {null});
-        when(inv.getItem(0)).thenReturn(gemInInventory ? gemStack : null); // effectiveSouls/persist read the slot
 
         Player player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(playerId);
         when(player.getInventory()).thenReturn(inv);
 
-        SoulLedger ledger = new SoulLedger();
-        ledger.balance(gemId, seed(souls)); // seed the live authority so peek() == souls (as toggle-on does)
         SoulModeStore modes = new SoulModeStore();
-        modes.activate(playerId, gemId);
+        modes.activate(playerId, playerId); // mark soul mode on; maintain() reads the gem's souls from the codec
 
         ParticleFx fx = mock(ParticleFx.class);
-        SoulService service = new SoulService(ledger, modes, codec, SoulGemConfig::defaults,
+        SoulService service = new SoulService(new SoulPool(), modes, codec, SoulGemConfig::defaults,
                 () -> true, item.lang.Messages.defaults(), fx);
         return new Fixture(service, modes, player, playerId, fx);
-    }
-
-    private static SoulLedger.Balance seed(int souls) {
-        return new SoulLedger.Balance() {
-            @Override
-            public int souls() {
-                return souls;
-            }
-
-            @Override
-            public void setSouls(int next) {
-            }
-        };
     }
 
     @Test

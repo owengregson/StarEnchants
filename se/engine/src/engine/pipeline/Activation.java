@@ -1,7 +1,6 @@
 package engine.pipeline;
 
 import engine.condition.FactBuffer;
-import engine.interact.SoulLedger;
 import engine.interact.SuppressionSet;
 import java.util.Objects;
 import java.util.UUID;
@@ -24,7 +23,6 @@ public final class Activation {
     private final SuppressionSet suppression;
     private final DoubleSupplier chanceRoll;
     private final UUID activeGem;
-    private final SoulLedger.Balance gemBalance;
     private final Location location;
 
     private Activation(Builder b) {
@@ -36,7 +34,6 @@ public final class Activation {
         this.suppression = b.suppression;
         this.chanceRoll = b.chanceRoll;
         this.activeGem = b.activeGem;
-        this.gemBalance = b.gemBalance;
         this.location = b.location;
     }
 
@@ -81,14 +78,9 @@ public final class Activation {
         return chanceRoll;
     }
 
-    /** The active soul gem's id, or {@code null} if the activator is not in soul mode (gate 10). */
+    /** A non-null marker iff the activator is in soul mode (gate 10 + REMOVE_SOULS); {@code null} otherwise. */
     public UUID activeGem() {
         return activeGem;
-    }
-
-    /** The active gem's soul balance proxy, or {@code null} if not in soul mode (gate 10). */
-    public SoulLedger.Balance gemBalance() {
-        return gemBalance;
     }
 
     /**
@@ -114,7 +106,6 @@ public final class Activation {
         private SuppressionSet suppression = new SuppressionSet();
         private DoubleSupplier chanceRoll = () -> 0.0;
         private UUID activeGem;
-        private SoulLedger.Balance gemBalance;
         private Location location;
 
         private Builder(UUID actor, int worldId, int triggerId, long nowTicks) {
@@ -139,10 +130,9 @@ public final class Activation {
             return this;
         }
 
-        /** Put the activator in soul mode with the given gem and its balance proxy. */
-        public Builder soulMode(UUID gemId, SoulLedger.Balance balance) {
-            this.activeGem = Objects.requireNonNull(gemId, "gemId");
-            this.gemBalance = Objects.requireNonNull(balance, "balance");
+        /** Mark the activator as in soul mode (the cross-gem pool is the spend authority — gate 10 / §D). */
+        public Builder soulMode(UUID marker) {
+            this.activeGem = Objects.requireNonNull(marker, "marker");
             return this;
         }
 

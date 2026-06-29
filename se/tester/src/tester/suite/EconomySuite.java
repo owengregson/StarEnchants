@@ -7,7 +7,7 @@ import compile.load.LibraryLoader;
 import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
 import engine.pipeline.ActivationPipeline;
-import engine.interact.SoulLedger;
+import engine.interact.SoulSpender;
 import engine.run.AbilityExecutor;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
@@ -111,7 +111,7 @@ public final class EconomySuite implements Harness.Scenario {
                 new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
         AtomicLong tick = new AtomicLong();
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE);
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 tick::incrementAndGet, actor -> Optional.empty(), economy);
