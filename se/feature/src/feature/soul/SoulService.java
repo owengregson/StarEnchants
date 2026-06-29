@@ -335,6 +335,29 @@ public final class SoulService implements SoulDebit {
         modes.clear(id);
     }
 
+    /**
+     * Auto-disable soul mode when the active gem is no longer usable — gone from the inventory (dropped, moved
+     * to a chest, given away, died) or drained to zero souls — and tell the player ({@code soul.empty}). The
+     * active gem is the one soul mode is bound to; losing it means there is nothing left to drain, so the mode
+     * must not linger on. Called each soul-mode tick on the player's OWN region thread (reads their inventory).
+     */
+    public void enforceActiveGem(Player player) {
+        UUID id = player.getUniqueId();
+        Optional<UUID> active = modes.active(id);
+        if (active.isEmpty()) {
+            return;
+        }
+        UUID gemId = active.get();
+        int slot = locateGemSlotById(player.getInventory(), gemId);
+        int souls = ledger.peek(gemId).orElse(0); // the active gem is seeded at toggle-on, so peek is the truth
+        if (slot < 0 || souls <= 0) {
+            persist(player, gemId); // flush the live count to the gem first (no-op if it is gone)
+            modes.deactivate(id);
+            ledger.forget(gemId);
+            messageLines(player, messages.lines("soul.empty"));
+        }
+    }
+
     /** The authoritative count for {@code gemId} (the live ledger value when seeded, else {@code durable}). */
     private int authoritativeSouls(UUID gemId, int durable) {
         return ledger.peek(gemId).orElse(durable);
