@@ -56,14 +56,19 @@ message-on-activate:
 # color; turn it off to use a fixed color. message-uppercase auto-capitalises the set equip/remove message.
 sets:
   message-uppercase: false  # auto-capitalise the set equip/remove message (colour codes preserved)
-  use-set-color: true       # tint the equip/unequip dust to the set's own & colour
+  use-set-color: true       # tint the EQUIP dust to the set's own & colour (the unequip dust stays as configured)
   equip-sound:
     - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
+    - { sound: BLOCK_BONE_BLOCK_BREAK, volume: 1, pitch: 1 }
     - { sound: ITEM_ARMOR_EQUIP_COPPER, volume: 0.4, pitch: 1 }
   unequip-sound:
     - { sound: BLOCK_GLASS_BREAK, volume: 0.25, pitch: 0.8 }
+    - { sound: BLOCK_CHAIN_STEP, volume: 0.6, pitch: 1.0 }
+    - { sound: BLOCK_COPPER_GOLEM_STATUE_BREAK, volume: 1, pitch: 1 }
+    - { sound: ITEM_LLAMA_CARPET_UNEQUIP, volume: 0.4, pitch: 2 }
+  # The EQUIP cloud is tinted per set (use-set-color); the UNEQUIP cloud stays gray (&7) for every set.
   equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
-  unequip-particle: { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
+  unequip-particle: { particle: REDSTONE, count: 20, color: { r: 170, g: 170, b: 170 }, spread: 1.25, y-offset: 1.0 }
 
 # Enchant books (§I). The book likeness (name/lore/material/wrap/destroy-on-fail) lives in
 # items/enchant-book.yml; only this global success ceiling is cross-cutting.
