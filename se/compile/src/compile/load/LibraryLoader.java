@@ -200,7 +200,7 @@ public final class LibraryLoader {
     /** Claim {@code key}; a second file claiming the same key is an {@code E_DUPLICATE_KEY} error (skip it). */
     private static boolean claim(String key, Path contentRoot, Path file, Set<String> seen, Diagnostics diags) {
         if (key == null || key.isEmpty() || key.endsWith("/")) {
-            diags.error("load.key", "content file has no name stem: " + relativePath(contentRoot, file),
+            diags.error(DiagCode.E_LOAD_KEY, "content file has no name stem: " + relativePath(contentRoot, file),
                     Source.ofFile(relativePath(contentRoot, file)));
             return false;
         }
@@ -278,7 +278,7 @@ public final class LibraryLoader {
         try {
             return Files.readString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            diags.error("load.io", "could not read content file: " + e.getMessage(), Source.ofFile(label));
+            diags.error(DiagCode.E_LOAD_IO, "could not read content file: " + e.getMessage(), Source.ofFile(label));
             return null;
         }
     }

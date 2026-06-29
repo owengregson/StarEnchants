@@ -42,7 +42,7 @@ final class SetDefReader {
     static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {
-            diags.error("load.set", "set file '" + baseKey + "' must be a YAML mapping", fileSource);
+            diags.error(DiagCode.E_LOAD_SET, "set file '" + baseKey + "' must be a YAML mapping", fileSource);
             return new Parsed(null, List.of());
         }
         ContentParse.warnUnknownKeys(root, ROOT_KEYS, diags);
@@ -55,7 +55,7 @@ final class SetDefReader {
 
         YamlNode armor = root.child("armor");
         if (!armor.isMapping()) {
-            diags.error("load.set.armor", "set '" + baseKey + "' must declare an 'armor:' block", root.sourceOf("armor"));
+            diags.error(DiagCode.E_LOAD_SET_ARMOR, "set '" + baseKey + "' must declare an 'armor:' block", root.sourceOf("armor"));
         }
         ContentParse.warnUnknownKeys(armor, ARMOR_KEYS, diags);
         List<String> armorLore = armor.stringList("lore");
@@ -68,19 +68,19 @@ final class SetDefReader {
             String material = ContentParse.blankToNull(entry.value().string("material"));
             String name = ContentParse.blankToNull(entry.value().string("name"));
             if (material == null) {
-                diags.error("load.set.member", "armour piece '" + slot + "' of '" + baseKey
+                diags.error(DiagCode.E_LOAD_SET_MEMBER, "armour piece '" + slot + "' of '" + baseKey
                         + "' must declare a 'material'", entry.value().sourceOf("material"));
             }
             armorMembers.add(new SetDef.Member(slot, material, name));
             appliesTo.add(slot.toUpperCase(java.util.Locale.ROOT));
         }
         if (armorMembers.isEmpty()) {
-            diags.error("load.set.armor", "set '" + baseKey + "' declares no armour pieces (armor.pieces)",
+            diags.error(DiagCode.E_LOAD_SET_ARMOR, "set '" + baseKey + "' declares no armour pieces (armor.pieces)",
                     armor.sourceOf("pieces"));
         }
         int complete = ContentParse.optInt(root, "complete", armorMembers.size(), diags);
         if (complete < 1) {
-            diags.error("load.set.complete", "set '" + baseKey + "' must complete on a positive piece count, got "
+            diags.error(DiagCode.E_LOAD_SET_COMPLETE, "set '" + baseKey + "' must complete on a positive piece count, got "
                     + complete, root.sourceOf("complete"));
         }
 
@@ -98,7 +98,7 @@ final class SetDefReader {
             weaponLore = weaponNode.stringList("lore");
             weaponEnchants = readEnchants(weaponNode, baseKey, diags);
             if (material == null) {
-                diags.error("load.set.weapon", "the weapon of '" + baseKey + "' must declare a 'material'",
+                diags.error(DiagCode.E_LOAD_SET_WEAPON, "the weapon of '" + baseKey + "' must declare a 'material'",
                         weaponNode.sourceOf("material"));
             }
             weapon = new SetDef.Member("weapon", material, name);
@@ -141,7 +141,7 @@ final class SetDefReader {
                                       IntSupplier nextDefId, Diagnostics diags) {
         List<String> triggers = node.stringList("trigger");
         if (triggers.isEmpty()) {
-            diags.error("load.set.trigger", "set bonus '" + stableKey + "' declares no trigger",
+            diags.error(DiagCode.E_LOAD_SET_TRIGGER, "set bonus '" + stableKey + "' declares no trigger",
                     node.sourceOf("trigger"));
         }
         List<String> disabledWorlds = node.stringList("disabled-worlds");
@@ -153,7 +153,7 @@ final class SetDefReader {
         String condition = ContentParse.blankToNull(node.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(node, "effects", diags);
         if (effects.isEmpty()) {
-            diags.warning("load.effects", "set bonus '" + stableKey + "' declares no effects",
+            diags.warning(DiagCode.W_LOAD_EFFECTS, "set bonus '" + stableKey + "' declares no effects",
                     node.sourceOf("effects"));
         }
         return new AbilityDef(

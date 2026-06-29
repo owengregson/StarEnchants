@@ -70,6 +70,29 @@ public enum DiagCode {
     E_SET_ENCHANT_LEVEL,   // references an existing custom enchant at an out-of-range level
     W_SET_ENCHANT,         // a non-numeric enchant level — warned and skipped
 
+    // Content-file loaders (ADR-0014) — one diagnostic per malformed content kind. The wire string is the
+    // constant name; these names supersede the older load.* dotted codes, which carried no severity prefix.
+    E_LOAD_YAML,           // a content file is not parseable YAML
+    E_LOAD_IO,             // a content file could not be read
+    E_LOAD_KEY,            // a content file has no usable name stem
+    E_LOAD_CHANCE,         // a chance: value is outside [0,100] or non-numeric
+    E_LOAD_INT,            // a value that must be an integer is not
+    E_LOAD_DOUBLE,         // a value that must be a number is not
+    E_LOAD_ENCHANT,        // an enchant file is not a YAML mapping
+    E_LOAD_ENCHANT_TRIGGER,// an enchant declares no trigger
+    E_LOAD_ENCHANT_LEVELS, // an enchant declares no levels: map
+    E_LOAD_ENCHANT_LEVEL,  // a single level entry of an enchant is malformed
+    W_LOAD_ENCHANT_RELATIONSHIPS, // a requires/blacklist relationship is suspect (non-blocking)
+    E_LOAD_CRYSTAL,        // a crystal file is not a YAML mapping
+    E_LOAD_CRYSTAL_TRIGGER,// a crystal declares no trigger
+    E_LOAD_SET,            // a set file is not a YAML mapping
+    E_LOAD_SET_ARMOR,      // a set is missing its armor: block or declares no pieces
+    E_LOAD_SET_MEMBER,     // an armour piece declares no material
+    E_LOAD_SET_COMPLETE,   // a set's completion count is not positive
+    E_LOAD_SET_WEAPON,     // a set weapon declares no material
+    E_LOAD_SET_TRIGGER,    // a set bonus declares no trigger
+    W_LOAD_EFFECTS,        // an ability declares no effects — warned, kept
+
     // Items loader (per-item config + soul-gem maps).
     E_ITEM_IO,
     E_ITEM_SHAPE,

@@ -10,6 +10,7 @@ import compile.model.SourceKind;
 import java.util.List;
 import java.util.function.IntSupplier;
 import org.junit.jupiter.api.Test;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 
 /** Unit tests for the crystal reader (ADR-0014/0016): malformed input is a diagnostic, never an exception. */
@@ -22,6 +23,11 @@ class CrystalDefReaderTest {
     private static IntSupplier counter() {
         int[] id = {0};
         return () -> id[0]++;
+    }
+
+    /** Assert a diagnostic with the given code was emitted — the contract, not just "something failed". */
+    private static void assertCode(Diagnostics diags, DiagCode code) {
+        assertTrue(diags.all().stream().anyMatch(d -> d.is(code)), () -> diags.all().toString());
     }
 
     @Test
@@ -79,7 +85,7 @@ class CrystalDefReaderTest {
     void missingTriggerIsAnError() {
         Diagnostics diags = new Diagnostics();
         CrystalDefReader.read("crystals/x", root("effects: [{ DAMAGE: { amount: 1 } }]\n", diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_CRYSTAL_TRIGGER);
     }
 
     @Test
@@ -87,7 +93,7 @@ class CrystalDefReaderTest {
         Diagnostics diags = new Diagnostics();
         CrystalDefReader.read("crystals/x", root("trigger: ATTACK\n", diags), counter(), diags);
         assertFalse(diags.hasErrors());
-        assertFalse(diags.all().isEmpty(), "an effect-less crystal is warned, not silently accepted");
+        assertCode(diags, DiagCode.W_LOAD_EFFECTS); // an effect-less crystal is warned, not silently accepted
     }
 
     @Test
@@ -95,7 +101,7 @@ class CrystalDefReaderTest {
         Diagnostics diags = new Diagnostics();
         CrystalDefReader.Parsed parsed =
                 CrystalDefReader.read("crystals/x", root("- a\n- b\n", diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_CRYSTAL);
         assertNull(parsed.def());
         assertTrue(parsed.abilities().isEmpty());
     }

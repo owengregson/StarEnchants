@@ -24,7 +24,7 @@ final class ContentParse {
     static double clampChance(double chance, Source source, Diagnostics diags) {
         // NaN passes a naive range check (NaN < 0 and NaN > 100 are both false); guard it explicitly.
         if (Double.isNaN(chance) || chance < 0.0 || chance > 100.0) {
-            diags.error("load.chance", "chance must be a number in [0,100], got " + chance, source);
+            diags.error(DiagCode.E_LOAD_CHANCE, "chance must be a number in [0,100], got " + chance, source);
             return Double.isNaN(chance) ? 0.0 : Math.max(0.0, Math.min(100.0, chance));
         }
         return chance;
@@ -39,7 +39,7 @@ final class ContentParse {
         try {
             return Integer.parseInt(raw.trim());
         } catch (NumberFormatException bad) {
-            diags.error("load.int", "'" + key + "' must be an integer, got '" + raw + "'", node.sourceOf(key));
+            diags.error(DiagCode.E_LOAD_INT, "'" + key + "' must be an integer, got '" + raw + "'", node.sourceOf(key));
             return fallback;
         }
     }
@@ -53,7 +53,7 @@ final class ContentParse {
         try {
             return Double.parseDouble(raw.trim());
         } catch (NumberFormatException bad) {
-            diags.error("load.double", "'" + key + "' must be a number, got '" + raw + "'", node.sourceOf(key));
+            diags.error(DiagCode.E_LOAD_DOUBLE, "'" + key + "' must be a number, got '" + raw + "'", node.sourceOf(key));
             return fallback;
         }
     }
@@ -207,7 +207,7 @@ final class ContentParse {
         try {
             chance = Double.parseDouble(raw.trim());
         } catch (NumberFormatException bad) {
-            diags.error("load.double", "'" + key + "' must be a number, got '" + raw + "'", node.sourceOf(key));
+            diags.error(DiagCode.E_LOAD_DOUBLE, "'" + key + "' must be a number, got '" + raw + "'", node.sourceOf(key));
             return 100.0;
         }
         return clampChance(chance, node.sourceOf(key), diags);
@@ -222,7 +222,7 @@ final class ContentParse {
         try {
             return Integer.parseInt(raw.trim());
         } catch (NumberFormatException bad) {
-            diags.error("load.int", "'" + key + "' must be an integer, got '" + raw + "'", node.sourceOf(key));
+            diags.error(DiagCode.E_LOAD_INT, "'" + key + "' must be an integer, got '" + raw + "'", node.sourceOf(key));
             return fallback;
         }
     }
