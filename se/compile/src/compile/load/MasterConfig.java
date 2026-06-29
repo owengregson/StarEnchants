@@ -16,7 +16,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
                            BooksSection books, SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
                            HeroicSection heroic, LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
-                           MessageOnActivateSection messageOnActivate,
+                           MessageOnActivateSection messageOnActivate, SetsSection sets,
                            List<Diagnostic> diagnostics) {
 
     public MasterConfig {
@@ -33,6 +33,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         Objects.requireNonNull(reload, "reload");
         Objects.requireNonNull(commandTrigger, "commandTrigger");
         Objects.requireNonNull(messageOnActivate, "messageOnActivate");
+        Objects.requireNonNull(sets, "sets");
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -42,7 +43,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
                 BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
                 HeroicSection.defaults(), LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
-                List.of());
+                SetsSection.defaults(), List.of());
     }
 
     /**
@@ -304,6 +305,35 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
                     false,
                     "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **",
                     false);
+        }
+    }
+
+    /**
+     * Universal armour-set equip/unequip feedback (§6.6) — ONE config for ALL sets (not per-set). Equipping or
+     * removing a completed set plays the matching sound list and spawns the particle at the player, independent
+     * of whether the set has an announce message. When {@link #useSetColor} is on, the (dust) particle's colour
+     * is overridden by the set's own {@code &}-colour at runtime, so each set's cloud matches its identity.
+     * {@link #messageUppercase} auto-capitalises the set equip/remove message (colour codes preserved).
+     *
+     * @param messageUppercase uppercase the set equip/remove message's visible text
+     * @param useSetColor       tint the equip/unequip dust to the set's own colour
+     * @param equipSound        sounds played on completing a set
+     * @param unequipSound      sounds played on dropping below a set's threshold
+     * @param equipParticle     particle spawned on completing a set
+     * @param unequipParticle   particle spawned on dropping below a set's threshold
+     */
+    public record SetsSection(boolean messageUppercase, boolean useSetColor,
+                              List<SoundCue> equipSound, List<SoundCue> unequipSound,
+                              ParticleSpec equipParticle, ParticleSpec unequipParticle) {
+        public SetsSection {
+            equipSound = List.copyOf(equipSound);
+            unequipSound = List.copyOf(unequipSound);
+            equipParticle = equipParticle == null ? ParticleSpec.none() : equipParticle;
+            unequipParticle = unequipParticle == null ? ParticleSpec.none() : unequipParticle;
+        }
+
+        public static SetsSection defaults() {
+            return new SetsSection(false, true, List.of(), List.of(), ParticleSpec.none(), ParticleSpec.none());
         }
     }
 }

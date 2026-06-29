@@ -433,13 +433,16 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // refresh, so a DISABLE_ENCHANT drops exactly the right effects and the correct set is restored after.
         passiveEffects = new feature.trigger.PassiveEffectDriver(triggerDispatch, content, worn, suppression,
                 tick::get, triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
-        // §6.6 set equip/remove announcements: fire the authored per-set message on a completion transition.
+        // §6.6 set equip/remove: the authored per-set message on a completion transition PLUS the universal
+        // equip/unequip sound+particle (one config for all sets; the dust takes the set's own colour).
         feature.trigger.SetMessageDriver setMessages = new feature.trigger.SetMessageDriver(content,
                 (player, msg) -> { // split on \n (keep trailing empties) so a leading AND trailing blank line both render
                     for (String line : item.mint.ItemFactory.color(msg).split("\n", -1)) {
                         player.sendMessage(line);
                     }
-                });
+                },
+                () -> master.config().sets().messageUppercase(), // read live so a reload can flip it
+                new feature.trigger.SetEquipEffects(() -> master.config().sets(), particleFx));
 
         // §L feature toggles gate listener registration at BOOT: handlers can't be cleanly re-bound mid-run,
         // so a toggle change needs a restart.

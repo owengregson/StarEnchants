@@ -35,6 +35,36 @@ class MasterConfigLoaderTest {
         assertEquals(defaults.reload(), config.reload());
         assertEquals(defaults.commandTrigger(), config.commandTrigger());
         assertEquals(defaults.messageOnActivate(), config.messageOnActivate());
+        assertEquals(defaults.sets(), config.sets());
+    }
+
+    @Test
+    void parsesTheUniversalSetEffects(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                sets:
+                  message-uppercase: true
+                  use-set-color: false
+                  equip-sound:
+                    - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
+                    - { sound: ITEM_ARMOR_EQUIP_COPPER, volume: 0.4, pitch: 1 }
+                  unequip-sound:
+                    - { sound: BLOCK_GLASS_BREAK, volume: 0.25, pitch: 0.8 }
+                  equip-particle: { particle: REDSTONE, count: 20, color: { r: 12, g: 34, b: 56 }, spread: 1.25, y-offset: 1.0 }
+                """);
+
+        MasterConfig.SetsSection sets = MasterConfigLoader.load(file).sets();
+
+        assertTrue(sets.messageUppercase());
+        assertFalse(sets.useSetColor());
+        assertEquals(2, sets.equipSound().size());
+        assertEquals("BLOCK_BEACON_POWER_SELECT", sets.equipSound().get(0).name());
+        assertEquals(2.0f, sets.equipSound().get(0).pitch());
+        assertEquals(1, sets.unequipSound().size());
+        assertEquals("REDSTONE", sets.equipParticle().type());
+        assertEquals(12, sets.equipParticle().colorR());
+        assertEquals(20, sets.equipParticle().amount());
+        assertTrue(sets.unequipParticle().isEmpty()); // omitted → nothing spawned
     }
 
     @Test

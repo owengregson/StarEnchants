@@ -32,6 +32,7 @@ class SetMessageDriverTest {
 
     private Player player;
     private List<String> sent;
+    private ContentHolder content;
     private SetMessageDriver driver;
 
     @BeforeEach
@@ -46,7 +47,7 @@ class SetMessageDriverTest {
         when(library.setDefOf("sets/devil")).thenReturn(setDef("sets/devil", true, "EQUIP devil", "REMOVE devil"));
         when(library.setDefOf("sets/quiet")).thenReturn(setDef("sets/quiet", false, "EQUIP quiet", "REMOVE quiet"));
 
-        ContentHolder content = mock(ContentHolder.class);
+        content = mock(ContentHolder.class);
         when(content.snapshot()).thenReturn(snapshot);
         when(content.library()).thenReturn(library);
 
@@ -84,6 +85,30 @@ class SetMessageDriverTest {
     void aStaleWornStateIsSkipped() {
         driver.refresh(player, wornGen(GEN + 1, 0)); // ids index a different snapshot
         assertTrue(sent.isEmpty());
+    }
+
+    @Test
+    void firesTheTransitionHookOnEveryEquipAndRemoveEvenWhenAnnounceIsOff() {
+        List<String> fx = new ArrayList<>();
+        SetMessageDriver d = new SetMessageDriver(content, (p, msg) -> sent.add(msg), () -> false,
+                (p, def, equipped) -> fx.add((equipped ? "equip:" : "remove:") + def.key()));
+        d.refresh(player, worn(1)); // quiet completes — announce OFF, but the universal FX still fires
+        d.refresh(player, worn()); // quiet drops
+        assertEquals(List.of("equip:sets/quiet", "remove:sets/quiet"), fx);
+        assertTrue(sent.isEmpty(), () -> "announce:false → no message, only FX; got " + sent);
+    }
+
+    @Test
+    void uppercasesTheMessageWhenConfigured() {
+        SetMessageDriver d = new SetMessageDriver(content, (p, msg) -> sent.add(msg), () -> true,
+                SetMessageDriver.SetTransition.NONE);
+        d.refresh(player, worn(0)); // devil completes
+        assertEquals(List.of("EQUIP DEVIL"), sent);
+    }
+
+    @Test
+    void upperPreservingCodesKeepsColourCodesIntact() {
+        assertEquals("&4&lSUPREME &nSET", SetMessageDriver.upperPreservingCodes("&4&lSupreme &nset"));
     }
 
     private static SetDef setDef(String key, boolean announce, String equip, String remove) {

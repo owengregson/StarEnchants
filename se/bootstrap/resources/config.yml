@@ -47,6 +47,24 @@ message-on-activate:
   on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
   uppercase: false    # render the {ENCHANT} name in UPPERCASE
 
+# Universal armour-set equip/unequip feedback (§6.6). ONE config for ALL sets (not per-set): equipping a
+# completed set plays equip-sound + equip-particle at the player, removing it plays unequip-sound +
+# unequip-particle — independent of whether the set has an announce message. Sounds use our unified
+# { sound: NAME, volume: V, pitch: P } bracket form (a LIST, played together); particles our
+# { particle: NAME, count: N, color: { r, g, b }, spread: S, y-offset: Y } form. With use-set-color on, the
+# dust cloud is tinted to each set's own & colour (read from its display name), overriding any configured
+# color; turn it off to use a fixed color. message-uppercase auto-capitalises the set equip/remove message.
+sets:
+  message-uppercase: false  # auto-capitalise the set equip/remove message (colour codes preserved)
+  use-set-color: true       # tint the equip/unequip dust to the set's own & colour
+  equip-sound:
+    - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
+    - { sound: ITEM_ARMOR_EQUIP_COPPER, volume: 0.4, pitch: 1 }
+  unequip-sound:
+    - { sound: BLOCK_GLASS_BREAK, volume: 0.25, pitch: 0.8 }
+  equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
+  unequip-particle: { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
+
 # Enchant books (§I). The book likeness (name/lore/material/wrap/destroy-on-fail) lives in
 # items/enchant-book.yml; only this global success ceiling is cross-cutting.
 books:
