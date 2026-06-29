@@ -2,6 +2,10 @@
 display: "&e&lDragon"
 description: "Unleash the power of ancient dragons to deal more and take less damage."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&e&l** Dragon SET EQUIPPED &e&l**\n"
+remove-message: "\n&7&l** Dragon SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

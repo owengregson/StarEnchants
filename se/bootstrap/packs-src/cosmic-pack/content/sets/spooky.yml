@@ -2,6 +2,10 @@
 display: "&6&lSpooky"
 description: "Cloak yourself in shadow for heavy defense and a haunting weapon."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&6&l** Spooky SET EQUIPPED &6&l**\n"
+remove-message: "\n&7&l** Spooky SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

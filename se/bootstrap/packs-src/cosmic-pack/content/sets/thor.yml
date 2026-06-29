@@ -2,6 +2,10 @@
 display: "&9&lThor"
 description: "Wield the thunderous might of Thor, forged in the heart of storms."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&9&l** Thor SET EQUIPPED &9&l**\n"
+remove-message: "\n&7&l** Thor SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

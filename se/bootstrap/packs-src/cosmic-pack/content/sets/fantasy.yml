@@ -2,6 +2,10 @@
 display: "&2&lFantasy"
 description: "Embark on epic adventures with the armaments of mythical heroes."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&2&l** Fantasy SET EQUIPPED &2&l**\n"
+remove-message: "\n&7&l** Fantasy SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

@@ -4,6 +4,7 @@ import compile.load.ContentHolder;
 import feature.trigger.LifecycleDriver;
 import feature.trigger.PassiveEffectDriver;
 import feature.trigger.RepeatingDriver;
+import feature.trigger.SetMessageDriver;
 import item.worn.WornState;
 import item.worn.WornStateStore;
 import java.util.HashSet;
@@ -38,16 +39,18 @@ public final class EquipListener implements Listener {
     private final RepeatingDriver repeating;
     private final LifecycleDriver lifecycle;
     private final PassiveEffectDriver passiveEffects;
+    private final SetMessageDriver setMessages;
     /** Per-player armour signature (material + count of the 4 pieces), last seen by {@link #pollArmour}. */
     private final Map<UUID, String> lastArmour = new ConcurrentHashMap<>();
 
     public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
-                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects) {
+                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, SetMessageDriver setMessages) {
         this.worn = worn;
         this.content = content;
         this.repeating = repeating;
         this.lifecycle = lifecycle;
         this.passiveEffects = passiveEffects;
+        this.setMessages = setMessages;
         Scheduling.repeatingGlobal(1L, 1L, this::pollArmour);
     }
 
@@ -106,12 +109,14 @@ public final class EquipListener implements Listener {
         repeating.disarm(event.getPlayer().getUniqueId());
         lifecycle.clear(event.getPlayer().getUniqueId());
         passiveEffects.clear(event.getPlayer().getUniqueId());
+        setMessages.clear(event.getPlayer().getUniqueId());
     }
 
     private void refresh(Player player) {
         WornState state = worn.refresh(player, content.snapshot());
         repeating.arm(player, state);
         lifecycle.refresh(player, state);
+        setMessages.refresh(player, state); // §6.6 announce a set becoming complete / dropping below threshold
         passiveEffects.refresh(player); // reconcile maintained passive potion buffs LAST — it is the authority
     }
 }

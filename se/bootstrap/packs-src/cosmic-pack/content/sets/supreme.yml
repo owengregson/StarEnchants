@@ -2,6 +2,10 @@
 display: "&4&lSupreme"
 description: "Don royal threads of unmatched grandeur to reduce damage taken and strike harder."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&4&l** Supreme SET EQUIPPED &4&l**\n"
+remove-message: "\n&7&l** Supreme SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

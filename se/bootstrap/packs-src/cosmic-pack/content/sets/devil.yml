@@ -2,6 +2,10 @@
 display: "&4&lDevil"
 description: "Command the inferno: shrug off damage and strike harder while wearing the set."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&4&l** Devil SET EQUIPPED &4&l**\n"
+remove-message: "\n&7&l** Devil SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

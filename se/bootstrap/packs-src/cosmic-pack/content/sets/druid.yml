@@ -2,6 +2,10 @@
 display: "&2&lDruid"
 description: "Channel the life force of the forest to cut through enemies."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&2&l** Druid SET EQUIPPED &2&l**\n"
+remove-message: "\n&7&l** Druid SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

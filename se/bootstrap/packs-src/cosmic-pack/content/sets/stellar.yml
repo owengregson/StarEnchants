@@ -2,6 +2,10 @@
 display: "&5&lStellar"
 description: "Harness the cosmos to outmaneuver any foe while wearing the set."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&5&l** Stellar SET EQUIPPED &5&l**\n"
+remove-message: "\n&7&l** Stellar SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

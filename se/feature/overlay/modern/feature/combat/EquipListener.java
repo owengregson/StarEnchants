@@ -5,6 +5,7 @@ import compile.load.ContentHolder;
 import feature.trigger.LifecycleDriver;
 import feature.trigger.PassiveEffectDriver;
 import feature.trigger.RepeatingDriver;
+import feature.trigger.SetMessageDriver;
 import item.worn.WornState;
 import item.worn.WornStateStore;
 import org.bukkit.entity.Player;
@@ -29,14 +30,16 @@ public final class EquipListener implements Listener {
     private final RepeatingDriver repeating;
     private final LifecycleDriver lifecycle;
     private final PassiveEffectDriver passiveEffects;
+    private final SetMessageDriver setMessages;
 
     public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
-                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects) {
+                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, SetMessageDriver setMessages) {
         this.worn = worn;
         this.content = content;
         this.repeating = repeating;
         this.lifecycle = lifecycle;
         this.passiveEffects = passiveEffects;
+        this.setMessages = setMessages;
     }
 
     @EventHandler
@@ -70,12 +73,14 @@ public final class EquipListener implements Listener {
         repeating.disarm(event.getPlayer().getUniqueId());
         lifecycle.clear(event.getPlayer().getUniqueId());
         passiveEffects.clear(event.getPlayer().getUniqueId());
+        setMessages.clear(event.getPlayer().getUniqueId());
     }
 
     private void refresh(Player player) {
         WornState state = worn.refresh(player, content.snapshot());
-        repeating.arm(player, state);     // (re)arm REPEATING abilities (§B)
-        lifecycle.refresh(player, state); // START/STOP newly-(un)worn HELD/PASSIVE buffs (§B)
-        passiveEffects.refresh(player);   // reconcile maintained passive potion buffs LAST — it is the authority
+        repeating.arm(player, state);       // (re)arm REPEATING abilities (§B)
+        lifecycle.refresh(player, state);   // START/STOP newly-(un)worn HELD/PASSIVE buffs (§B)
+        setMessages.refresh(player, state); // §6.6 announce a set becoming complete / dropping below threshold
+        passiveEffects.refresh(player);     // reconcile maintained passive potion buffs LAST — it is the authority
     }
 }
