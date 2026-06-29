@@ -22,8 +22,9 @@ import platform.sched.Scheduling;
  * The trak-gem economy (§I) — three gems (BlockTrak / MobTrak / SoulTrak) that, applied to gear, reveal a
  * per-item lifetime counter. The counters are tracked in the BACKGROUND on every eligible tool/weapon from
  * first use ({@link #trackBlockBreak} / {@link #trackKill}), so an applied gem shows a true lifetime total, not
- * a count that starts at zero on application. Applying a gem takes the item's exclusive applied-utility slot
- * ({@link AppliedSlot}); the count line then re-renders on every tracked event.
+ * a count that starts at zero on application. Applying a gem adds its own marker to the item's applied-utility
+ * set ({@link AppliedSlot}); markers are independent, so several traks (and a scroll) coexist and each renders
+ * its own count line, re-stamped on every tracked event.
  *
  * <p><strong>Threading.</strong> {@link #trackBlockBreak} and {@link #applyTo} run on the acting player's own
  * region thread (BlockBreakEvent / InventoryClickEvent fire there). {@link #trackKill} is the exception: a
@@ -73,8 +74,8 @@ public final class TrakService {
 
     /**
      * Apply the trak gem {@code gem} onto {@code gear}: refuse (nothing consumed) if it is the wrong kind of
-     * item, already carries this trak, or its applied-slot is taken; else occupy the slot, stamp the live count
-     * line, and consume the gem.
+     * item or already carries this trak; else add this trak's marker (it never clashes with another trak or a
+     * scroll), stamp the live count line, and consume the gem.
      */
     public TrakResult applyTo(ItemStack gem, ItemStack gear) {
         Kind kind = codec.gemKind(gem);
@@ -95,11 +96,8 @@ public final class TrakService {
         if (slot.holds(gear, slotKind)) {
             return TrakResult.noop(messages.format("trak.already"));
         }
-        if (!slot.canApply(gear, slotKind)) {
-            return TrakResult.noop(messages.format("trak.occupied"));
-        }
         slot.occupy(gear, slotKind);
-        renderCount(gear, kind);
+        renderTraks(gear);
         gem.setAmount(gem.getAmount() - 1);
         return TrakResult.committed(messages.format("trak.applied"));
     }
@@ -135,29 +133,34 @@ public final class TrakService {
         }
         codec.increment(tool, kind);
         if (slot.holds(tool, slotKindOf(kind))) {
-            renderCount(tool, kind); // an applied gem shows the live count
+            renderTraks(tool); // an applied gem shows the live count (re-stamps every applied trak)
         }
         Hands.setMainHand(player, tool);
     }
 
     /**
-     * An invisible double-reset tag prefixed to the count line so a re-render can locate and replace the prior
-     * one regardless of the (reload-mutable) count-format text — a stable marker, not the human-readable prefix.
+     * An invisible double-reset tag prefixed to every trak count line so a re-render can locate and replace the
+     * prior ones regardless of the (reload-mutable) count-format text — a stable marker, not the human-readable
+     * prefix. One shared tag covers all kinds: a re-render drops every marked line and re-stamps one line per
+     * applied trak, so several traks coexist (each its own line) without a per-kind tag.
      */
     private static final String COUNT_MARKER = "§r§r";
 
-    /** Stamp/refresh the count line on {@code item} for {@code kind}, replacing any prior one (render from state). */
+    /** Re-stamp every applied trak's count line on {@code item} from state, replacing any prior ones. */
     @SuppressWarnings("deprecation") // getLore/setLore(List): the floor-stable item-meta path
-    private void renderCount(ItemStack item, Kind kind) {
+    private void renderTraks(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             return;
         }
-        TraksConfig.Trak cfg = trakFor(kind);
-        String line = COUNT_MARKER + ItemFactory.color(cfg.countFormat().replace("{COUNT}", formatCount(codec.count(item, kind))));
         List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-        lore.removeIf(existing -> existing.startsWith(COUNT_MARKER)); // drop the stale count line (tag survives a format change)
-        lore.add(line);
+        lore.removeIf(existing -> existing.startsWith(COUNT_MARKER)); // drop stale count lines (tag survives a format change)
+        for (Kind kind : Kind.values()) { // BLOCK, MOB, SOUL, FISH — a stable, deterministic line order
+            if (slot.holds(item, slotKindOf(kind))) {
+                TraksConfig.Trak cfg = trakFor(kind);
+                lore.add(COUNT_MARKER + ItemFactory.color(cfg.countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
+            }
+        }
         meta.setLore(lore);
         item.setItemMeta(meta);
     }

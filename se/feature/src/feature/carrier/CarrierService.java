@@ -216,7 +216,7 @@ public final class CarrierService {
         }
         if (codec.isGuarded(target)) {
             codec.setGuarded(target, false);
-            slot.release(target); // §I the white scroll's guard is spent — free the exclusive slot
+            slot.release(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I the white scroll's guard is spent
             return CarrierResult.consumed("§eThe enchant failed — but your protection saved the item.");
         }
         if (destroyOnFail) {
@@ -469,16 +469,13 @@ public final class CarrierService {
         if (codec.isGuarded(target)) {
             return CarrierResult.noop("§7That item is already protected.");
         }
-        if (!slot.canApply(target, item.codec.AppliedSlot.WHITE_SCROLL)) {
-            return CarrierResult.noop("§cThat item already has another applied item — only one fits.");
-        }
         int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
         consume(carrier); // a use is spent whether the roll succeeds or fails
         if (random.nextInt(100) >= success) {
             return CarrierResult.consumed("§eThe White Scroll failed — the item is not protected.");
         }
         codec.setGuarded(target, true);
-        slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I take the exclusive applied slot
+        slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I add the white-scroll marker (coexists with traks/holy)
         return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
     }
 

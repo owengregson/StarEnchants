@@ -86,7 +86,7 @@ public final class Fixtures {
                         "&eApplies to: &r&f&nTool",
                         "&7Drag n' Drop on an item to apply.")),
                 ee("tooltip-ee-mobtrak-gem", "MAGMA_CREAM", "&e&lMobTrak Gem", List.of(
-                        "&eDisplays the amount of mobs killed with the weapon since it was forged.",
+                        "&eDisplays the amount of mobs slain with the weapon since it was forged.",
                         "",
                         "&eApplies to: &r&f&nWeapon",
                         "&7Drag n' Drop on an item to apply.")),

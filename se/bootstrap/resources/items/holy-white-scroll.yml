@@ -1,7 +1,7 @@
 # Holy White Scroll (docs/v3-directives.md §I) — drag it onto a piece of gear to APPLY a one-shot keep-on-
 # death marker to THAT item. When you die, the marked item is kept (the rest of your inventory drops as
-# normal) and the marker is consumed. An item can hold only ONE applied item at a time (holy white scroll /
-# white scroll / blocktrak / mobtrak / soultrak). This is distinct from the always-on KEEP_ON_DEATH enchant
+# normal) and the marker is consumed. Applied items are not exclusive — a holy white scroll may sit alongside
+# a white scroll and any trak gems. This is distinct from the always-on KEEP_ON_DEATH enchant
 # (whole inventory) and from the White Scroll (enchant-destruction guard). One physical item per file;
 # reload with /se reload. Messages live in lang.yml (scroll.holy.*).
 type: holy-white-scroll

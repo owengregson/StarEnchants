@@ -1,7 +1,7 @@
 # BlockTrak Gem — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto a tool to reveal the
-# LIFETIME number of blocks broken with it (tracked in the background from first use). An item holds only ONE
-# applied item at a time (blocktrak / mobtrak / soultrak / white scroll / holy white scroll). The mechanic is
-# global; reload with /se reload.
+# LIFETIME number of blocks broken with it (tracked in the background from first use). Applied items are not
+# exclusive — gear may carry several traks (blocktrak / mobtrak / soultrak) and a white/holy scroll at once.
+# The mechanic is global; reload with /se reload.
 type: blocktrak
 
 material: SLIME_BALL

@@ -15,8 +15,9 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Holy white scroll (§I): APPLIED to a piece of gear (drag onto it) — on a successful apply roll it stamps a
- * one-shot keep-on-death marker (occupying that item's exclusive applied-slot, {@link AppliedSlot}); on the
- * owner's death the marked item is kept and the marker consumed. This is per-ITEM, distinct from the
+ * one-shot keep-on-death marker (adding it to that item's applied-utility set, {@link AppliedSlot}, alongside
+ * any traks/white scroll); on the owner's death the marked item is kept and the marker consumed. This is
+ * per-ITEM, distinct from the
  * always-on {@code KEEP_ON_DEATH} enchant flag (whole inventory, {@link feature.combat.KeepOnDeathListener}).
  *
  * <p>The apply rolls a success in the configured {@code [min, max]} range; a failed roll spends the scroll
@@ -62,10 +63,9 @@ public final class HolyScrollService {
     }
 
     /**
-     * Apply the holy scroll {@code cursor} onto {@code gear}: roll the configured success; on success occupy the
-     * gear's exclusive applied-slot with the keep marker and consume the scroll; on a failed roll consume the
-     * scroll without protecting. Refused (nothing consumed) if the target is invalid, already holy-protected, or
-     * its applied-slot is taken by a different item.
+     * Apply the holy scroll {@code cursor} onto {@code gear}: roll the configured success; on success add the
+     * keep marker to the gear's applied-utility set and consume the scroll; on a failed roll consume the scroll
+     * without protecting. Refused (nothing consumed) if the target is invalid or already holy-protected.
      */
     public ScrollResult applyTo(ItemStack cursor, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
@@ -76,9 +76,6 @@ public final class HolyScrollService {
         }
         if (slot.holds(gear, AppliedSlot.HOLY)) {
             return ScrollResult.unchanged(messages.format("scroll.holy.already"));
-        }
-        if (!slot.canApply(gear, AppliedSlot.HOLY)) {
-            return ScrollResult.unchanged(messages.format("scroll.holy.occupied"));
         }
         ScrollsConfig.Holy cfg = config.get().holy();
         int span = cfg.maxSuccess() - cfg.minSuccess();
@@ -101,7 +98,7 @@ public final class HolyScrollService {
         while (it.hasNext()) {
             ItemStack drop = it.next();
             if (drop != null && slot.holds(drop, AppliedSlot.HOLY)) {
-                slot.release(drop); // the marker is consumed on this death
+                slot.release(drop, AppliedSlot.HOLY); // the marker is consumed on this death
                 kept.add(drop);
                 it.remove();
             }
