@@ -37,4 +37,13 @@ public final class NametagAnvil {
     public static void installPreview(Plugin plugin, NametagService service) {
         // unsupported on 1.8 — the listener uses chat capture when supported() is false
     }
+
+    /**
+     * Stub of the modern preview listener: never used on 1.8.9 ({@link #installPreview} is a no-op, and
+     * {@code PrepareAnvilEvent} does not exist here). It exists ONLY so the modern + legacy trees carry the same
+     * class set ({@code NametagAnvil$PreviewListener}), which the Multi-Release mega-jar merge requires
+     * (build-mega-jar.sh's soundness gate rejects a class present in only one era).
+     */
+    private static final class PreviewListener {
+    }
 }
