@@ -71,7 +71,8 @@ public final class MasterConfigLoader {
                 parseBool(n.string("by-enabled"), d.byEnabled()),
                 by == null ? d.byTemplate() : by,
                 parseBool(n.string("on-enabled"), d.onEnabled()),
-                on == null ? d.onTemplate() : on);
+                on == null ? d.onTemplate() : on,
+                parseBool(n.string("uppercase"), d.uppercase()));
     }
 
     private static MasterConfig.FeaturesSection readFeatures(YamlNode n, Diagnostics diags) {

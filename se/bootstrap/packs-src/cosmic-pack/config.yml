@@ -41,9 +41,10 @@ messages:
 # Tokens: {ENCHANT} = display name, {TIER_COLOR} = tier & colour, {VICTIM}/{ATTACKER} = the party names.
 message-on-activate:
   by-enabled: true
-  by-template: "{TIER_COLOR}&l** {ENCHANT} &7ON &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
+  by-template: "{TIER_COLOR}&l** {ENCHANT} &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
   on-enabled: true
   on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
+  uppercase: true   # render the {ENCHANT} name in UPPERCASE
 
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.

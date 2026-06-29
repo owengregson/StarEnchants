@@ -3,8 +3,11 @@ package feature.combat;
 import compile.load.ContentHolder;
 import compile.load.MasterConfig;
 import compile.load.TierRegistry;
+import compile.model.Ability;
+import compile.model.SourceKind;
 import engine.run.ActivationContext;
 import item.mint.ItemFactory;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.bukkit.entity.LivingEntity;
@@ -35,10 +38,13 @@ public final class ActivationMessenger {
      * Send the configured BY/ON lines for an activation of {@code enchantKey} (a base stable key). A no-op when
      * the feature is off or the activation has no other combat party to name.
      */
-    public void onActivate(String enchantKey, ActivationContext context) {
+    public void onActivate(String enchantKey, Ability ability, ActivationContext context) {
         MasterConfig.MessageOnActivateSection cfg = config.get();
         if (!cfg.byEnabled() && !cfg.onEnabled()) {
             return; // feature off — skip the library lookups
+        }
+        if (isPassive(ability)) {
+            return; // set bonuses + always-on flat buffs never announce (like permanent potion enchants)
         }
         Player actor = context.actor();
         LivingEntity other = context.victim(); // the BY-side target AND the ON-side recipient
@@ -46,6 +52,9 @@ public final class ActivationMessenger {
             return; // a non-combat activation has no other party to name
         }
         String display = displayOf(enchantKey);
+        if (cfg.uppercase()) {
+            display = display.toUpperCase(Locale.ROOT); // the NAME only — the party names are left as-is
+        }
         String tierColor = tierColorOf(enchantKey);
 
         if (cfg.byEnabled()) {
@@ -69,6 +78,22 @@ public final class ActivationMessenger {
                 .replace("{VICTIM}", victim)
                 .replace("{ATTACKER}", attacker);
         return ItemFactory.color(out);
+    }
+
+    /**
+     * Whether {@code ability} is a passive/always-on source that should NOT announce per activation: any set
+     * bonus (a set has its own equip/remove message, and "sets/x/w1" in chat is meaningless), or a guaranteed,
+     * cooldown-free, non-repeating flat buff (e.g. a permanent potion or a constant damage modifier) — these
+     * fire on every hit and announcing them is just spam, exactly as those enchants send no message today.
+     */
+    static boolean isPassive(Ability ability) {
+        if (ability == null) {
+            return false;
+        }
+        if (ability.sourceKind() == SourceKind.SET) {
+            return true;
+        }
+        return ability.baseChance() >= 100.0 && ability.cooldownTicks() == 0 && ability.repeatTicks() == 0;
     }
 
     private String displayOf(String enchantKey) {

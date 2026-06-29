@@ -45,6 +45,7 @@ class MasterConfigLoaderTest {
                   by-enabled: true
                   by-template: "by {ENCHANT} {VICTIM}"
                   on-enabled: true
+                  uppercase: true
                 """);
 
         MasterConfig.MessageOnActivateSection moa = MasterConfigLoader.load(file).messageOnActivate();
@@ -52,6 +53,7 @@ class MasterConfigLoaderTest {
         assertTrue(moa.byEnabled());
         assertEquals("by {ENCHANT} {VICTIM}", moa.byTemplate());
         assertTrue(moa.onEnabled());
+        assertTrue(moa.uppercase());
         // an omitted template falls back to the default rather than blanking
         assertEquals(MasterConfig.MessageOnActivateSection.defaults().onTemplate(), moa.onTemplate());
     }
