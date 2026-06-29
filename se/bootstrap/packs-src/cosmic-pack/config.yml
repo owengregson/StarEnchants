@@ -72,6 +72,9 @@ sets:
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
 slots:
   base: 9
+  # The gear lore line shown once a slot-expander orb has ADDED slots (rendered below the enchant/set lines,
+  # above the white-scroll/holy/trak lines). {TOTAL} = base + added slots; {ADDED} = the orb-granted slots.
+  lore-line: "&a&l{TOTAL} Enchantment Slots &r&7(Orb [&a+{ADDED}&7])"
 
 # Souls (§D). The full soul economy — per-kill amount, per-mob overrides, colour tiers, sounds, particles,
 # messages — is the gem's likeness in items/soul-gem.yml. Only the master deposit switch lives here.

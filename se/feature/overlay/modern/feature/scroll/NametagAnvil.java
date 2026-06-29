@@ -1,6 +1,5 @@
 package feature.scroll;
 
-import item.mint.ItemFactory;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -100,7 +99,8 @@ public final class NametagAnvil {
             ItemStack preview = input.clone();
             ItemMeta meta = preview.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName(ItemFactory.color(text)); // &-codes parsed so the preview shows the final colours
+                // &-codes parsed AND the §I enchant-count suffix re-appended, so the preview matches the commit.
+                meta.setDisplayName(service.previewName(input, text));
                 preview.setItemMeta(meta);
             }
             event.setResult(preview);

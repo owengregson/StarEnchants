@@ -256,7 +256,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     }
                 },
                 protectionLinesFn, // §I applied-scroll PROTECTED lines, from marker state
-                trakLineP);        // §I preserve applied-trak count lines across a body re-render
+                trakLineP,         // §I preserve applied-trak count lines across a body re-render
+                () -> items.config().scrollsOrDefault().transmog().nameSuffix(), // §I enchant-count name suffix
+                () -> master.config().slots().base(),       // §H base slots → the orb "Enchantment Slots" total
+                () -> master.config().slots().loreLine());  // §H orb "Enchantment Slots" line template
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
@@ -272,7 +275,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().lore().roman(),          // book level numeral style (lore.roman, live)
                 () -> master.config().books().maxSuccess(),    // §I global success ceiling (books.max-success, live)
                 appliedSlot,                                   // §I white scroll occupies this
-                protectionRefresh);                            // §I toggle PROTECTED without wiping the rest of the lore
+                protectionRefresh,                             // §I toggle PROTECTED without wiping the rest of the lore
+                itemGroups);                                   // §I white-scroll applies-to gate
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());
@@ -290,14 +294,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess());
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(),
-                (java.util.function.IntSupplier) () -> master.config().slots().base(), messages);
+                (java.util.function.IntSupplier) () -> master.config().slots().base(), messages, itemGroups);
 
         // Book-economy scrolls (§I). Distinct 'scroll' PDC tag, off the combat hot path.
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert());
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
                 new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec);
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec, itemGroups);
 
         // Unopened/randomized book (§I).
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of().unopened());
@@ -306,9 +310,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // Survival + cosmetic scrolls (§I) — both share the 'scroll' PDC tag + scrolls config.
         HolyScrollService holyScrolls = new HolyScrollService(scrollCodec, appliedSlot,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, protectionRefresh);
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, protectionRefresh, itemGroups);
         feature.scroll.KeptItemsStore keptItems = new feature.scroll.KeptItemsStore(); // §I holy death→respawn stash
-        NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(), messages);
+        NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(),
+                messages, codec); // §I codec → re-append the enchant-count suffix on rename + preview
 
         // Trak gems (§I): block/mob/soul lifetime counters tracked in the background on eligible gear.
         item.codec.TrakCodec trakCodec = new item.codec.TrakCodec(ItemKeys.of().trakGem(),
@@ -323,7 +328,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulModeStore soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
         SoulService soulService = new SoulService(souls, soulModes,
                 new SoulCodec(ItemKeys.of().soul()), () -> items.config().soulGemOrDefault(),
-                () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
+                () -> master.config().souls().depositOnAnyKill(), messages, particleFx, // §D deposit + §L msgs + particles
+                line -> protectionLineP.test(line) || trakLineP.test(line)); // §I keep scroll/trak lines on gem re-render
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
         Integrations.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),
@@ -489,6 +495,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         MentalKnockbackBridge.Path mentalPath = MentalKnockbackBridge.register(
                 this, knockback, tick::get, master.config().integrations().enabled("mental"));
         getLogger().info("Mental knockback coordination: " + mentalPath);
+        // §I custom items do ONLY their intended action — suppress their vanilla mechanics (the orb's ender-eye
+        // throw, a nametag renaming a mob, a food/potion-material item being consumed). Material-agnostic: keyed
+        // off the OR of every economy/utility codec, NOT the material. Real enchanted GEAR is excluded (swords swing).
+        java.util.function.Predicate<org.bukkit.inventory.ItemStack> isPluginItem = stack -> {
+            if (stack == null || stack.getType() == org.bukkit.Material.AIR) {
+                return false;
+            }
+            return soulService.isGem(stack) || scrolls.isScroll(stack) || scrolls.isGodlyTransmog(stack)
+                    || holyScrolls.isHolyScroll(stack) || nametags.isNametag(stack) || slots.isSlotItem(stack)
+                    || crystals.isCrystal(stack) || crystals.isExtractor(stack) || traks.isTrakGem(stack)
+                    || heroics.isUpgrade(stack) || unopenedBooks.isUnopened(stack)
+                    || carrierCodec.read(stack) != null; // enchant books, magic dust, white scroll
+        };
+        getServer().getPluginManager().registerEvents(new feature.guard.VanillaGuardListener(isPluginItem), this);
         getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx), this);
         getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
         getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);

@@ -6,9 +6,14 @@ type: white-scroll
 
 material: PAPER
 name: "&fWhite Scroll"
+# {KINDS} expands to the grammatically-joined applies-to label.
 lore:
   - "&7Protects an item — a failed"
   - "&7enchant will spare it once."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+# Item-group kinds this scroll may protect: e.g. ARMOR, WEAPON, TOOL, ALL (any item).
+applies-to: [ARMOR, WEAPON, TOOL]
 # Each minted scroll rolls an apply-success % in [min-success, max-success]; {SUCCESS}/{FAILURE} render in the
 # name/lore. On a failed roll the scroll is consumed WITHOUT protecting (it never destroys the gear).
 # 100/100 = always succeeds (the default — no behaviour change).

@@ -75,15 +75,19 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
      * Base enchant-slot capacity (§H). The hard cap on TOTAL slots (base + purchased) lives instead in
      * the expander's {@code items/slots.yml} ({@code SlotConfig.hardCap}).
      *
-     * @param base base enchant slots every item starts with (≥ 0)
+     * @param base     base enchant slots every item starts with (≥ 0)
+     * @param loreLine the gear lore line shown once an orb has ADDED slots (rendered below the body, above the
+     *                 scroll/trak lines). {@code {TOTAL}} = base + added; {@code {ADDED}} = the orb-granted slots.
+     *                 Bridged into {@code item.render.LoreRenderer} at the composition root (like the lore style).
      */
-    public record SlotsSection(int base) {
+    public record SlotsSection(int base, String loreLine) {
         public SlotsSection {
             base = Math.max(0, base);
+            Objects.requireNonNull(loreLine, "loreLine");
         }
 
         public static SlotsSection defaults() {
-            return new SlotsSection(9);
+            return new SlotsSection(9, "&a&l{TOTAL} Enchantment Slots &r&7(Orb [&a+{ADDED}&7])");
         }
     }
 

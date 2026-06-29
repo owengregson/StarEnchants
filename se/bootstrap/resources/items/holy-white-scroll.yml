@@ -8,9 +8,14 @@ type: holy-white-scroll
 
 material: TOTEM_OF_UNDYING
 name: "&fHoly White Scroll"
+# {KINDS} expands to the grammatically-joined applies-to label.
 lore:
   - "&7Drag onto an item to keep"
   - "&7it when you die (one use)."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+# Item-group kinds this scroll may protect: ALL (any item) by default; e.g. ARMOR, WEAPON, TOOL.
+applies-to: [ALL]
 # Each apply rolls a success in [min-success, max-success] (each 0–100). On a failed roll the scroll is spent
 # without protecting (it never destroys gear). 100/100 = always succeeds (the default — no behaviour change).
 min-success: 100

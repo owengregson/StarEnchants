@@ -3,10 +3,11 @@ package compile.load;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/** The scroll-family config (§I) — defaults and the constructor's clamping/ordering invariants. */
+/** The scroll-family config (§I) — defaults and the constructor's clamping/ordering/copy invariants. */
 class ScrollsConfigTest {
 
     @Test
@@ -19,11 +20,13 @@ class ScrollsConfigTest {
         assertTrue(d.holy().minSuccess() <= d.holy().maxSuccess());
         assertTrue(d.transmog().nameSuffix() != null);
         assertTrue(d.nametag().blacklist() != null);
+        assertEquals(List.of("ARMOR", "WEAPON", "TOOL"), d.black().appliesTo(), "the black scroll extracts from armor, weapons, and tools");
+        assertEquals(List.of("ALL"), d.holy().appliesTo(), "the holy white scroll protects any item");
     }
 
     @Test
     void holySuccessRangeOrdersAndClamps() {
-        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250, -5, "&fHOLY");
+        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250, -5, "&fHOLY", List.of("ALL"));
         assertEquals(0, h.minSuccess(), "min clamped to 0");
         assertEquals(100, h.maxSuccess(), "max clamped to 100");
     }
@@ -31,9 +34,17 @@ class ScrollsConfigTest {
     @Test
     void blackConvertRangeOrdersAndClamps() {
         // reversed, out-of-range bounds clamp to [0,100] and reorder low..high
-        ScrollsConfig.Black b = new ScrollsConfig.Black("M", "n", List.of(), 150, -5);
+        ScrollsConfig.Black b = new ScrollsConfig.Black("M", "n", List.of(), 150, -5, List.of("WEAPON"));
         assertEquals(0, b.minConvert(), "min clamped to 0");
         assertEquals(100, b.maxConvert(), "max clamped to 100");
+    }
+
+    @Test
+    void appliesToCopiesAreDefensive() {
+        List<String> mutable = new ArrayList<>(List.of("TOOL"));
+        ScrollsConfig.Black b = new ScrollsConfig.Black("M", "n", List.of(), 0, 100, mutable);
+        mutable.add("WEAPON");
+        assertEquals(List.of("TOOL"), b.appliesTo(), "the record copies applies-to, so later source mutation can't leak in");
     }
 
     @Test

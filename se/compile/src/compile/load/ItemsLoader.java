@@ -260,7 +260,8 @@ public final class ItemsLoader {
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-convert"), d.minConvert(), root, diags),
-                parseInt(root.string("max-convert"), d.maxConvert(), root, diags));
+                parseInt(root.string("max-convert"), d.maxConvert(), root, diags),
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo());
     }
 
     private static ScrollsConfig.Randomizer readRandomizer(YamlNode root, Diagnostics diags) {
@@ -290,7 +291,8 @@ public final class ItemsLoader {
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-success"), d.minSuccess(), root, diags),
                 parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
-                orDefault(root.string("protected-line"), d.protectedLine()));
+                orDefault(root.string("protected-line"), d.protectedLine()),
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo());
     }
 
     private static ScrollsConfig.Nametag readNametag(YamlNode root, Diagnostics diags) {
@@ -335,7 +337,8 @@ public final class ItemsLoader {
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-success"), d.minSuccess(), root, diags),
                 parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
-                orDefault(root.string("protected-line"), d.protectedLine()));
+                orDefault(root.string("protected-line"), d.protectedLine()),
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo());
     }
 
     private static EnchantBookConfig readEnchantBook(YamlNode root, Diagnostics diags) {
@@ -369,7 +372,8 @@ public final class ItemsLoader {
                 parseInt(root.string("orb-amount"), d.orbAmount(), root, diags),
                 parseInt(root.string("hard-cap"), d.hardCap(), root, diags),
                 parseInt(root.string("min-success"), d.minSuccess(), root, diags),
-                parseInt(root.string("max-success"), d.maxSuccess(), root, diags));
+                parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo());
     }
 
     private static HeroicConfig readHeroic(YamlNode root, Diagnostics diags) {

@@ -196,6 +196,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
 
         // Hardcoded gesture/service guards: no items/ home, not the config-backed *Config messages.
         s.put("common.single-item", "&cApply to a single item — split the stack first.");
+        s.put("common.wrong-applies", "&cThis can only be applied to: &f{KINDS}&c.");
         s.put("crystal.merge-single", "&cMerge onto a single crystal — split the stack first.");
         s.put("crystal.merge-pairs", "&cMulti-crystals are pairs — you cannot merge a multi-crystal further.");
         s.put("heroic.not-gear", "&cApply the heroic upgrade onto a piece of gear.");

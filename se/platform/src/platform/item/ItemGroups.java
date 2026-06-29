@@ -102,6 +102,9 @@ public final class ItemGroups {
                 upper.add(token.trim().toUpperCase(java.util.Locale.ROOT));
             }
         }
+        if (upper.equals(Set.of(ALL))) {
+            return "Any Item"; // the wildcard reads as a phrase, not the bare token "All"
+        }
         if (upper.equals(ARMOR_SLOTS)) {
             return "Armor";
         }

@@ -15,6 +15,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import platform.item.ItemGroups;
 
 /**
  * The book/dust/white-scroll application economy (ADR-0016; ADR-0019) — the cold path that mints these
@@ -41,6 +42,7 @@ public final class CarrierService {
     private final java.util.function.IntSupplier maxBookSuccess; // §I books.max-success — global success ceiling, live
     private final item.codec.AppliedSlot slot; // §I applied-utility marker set a white scroll occupies
     private final java.util.function.Consumer<ItemStack> protectionRefresh; // §I toggle the PROTECTED line, preserving the rest of the lore
+    private final ItemGroups groups; // §I applies-to gate — the white scroll only protects the configured item kinds
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -61,7 +63,7 @@ public final class CarrierService {
                           java.util.function.Consumer<ItemStack> protectionRefresh) {
         this(codec, enchanter, content, random, bookConfig, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), protectionRefresh);
+                new item.codec.AppliedSlot("appliedslot"), protectionRefresh, ItemGroups.standard());
     }
 
     /** Book-numeral-default form: likeness suppliers supplied; the book level numeral defaults to Roman. */
@@ -70,7 +72,7 @@ public final class CarrierService {
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
         this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), gear -> { });
+                new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard());
     }
 
     /**
@@ -88,7 +90,8 @@ public final class CarrierService {
                           java.util.function.BooleanSupplier roman,
                           java.util.function.IntSupplier maxBookSuccess,
                           item.codec.AppliedSlot slot,
-                          java.util.function.Consumer<ItemStack> protectionRefresh) {
+                          java.util.function.Consumer<ItemStack> protectionRefresh,
+                          ItemGroups groups) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -100,6 +103,7 @@ public final class CarrierService {
         this.maxBookSuccess = Objects.requireNonNull(maxBookSuccess, "maxBookSuccess");
         this.slot = Objects.requireNonNull(slot, "slot");
         this.protectionRefresh = Objects.requireNonNull(protectionRefresh, "protectionRefresh");
+        this.groups = Objects.requireNonNull(groups, "groups");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -154,25 +158,28 @@ public final class CarrierService {
 
     private ItemStack buildWhiteScroll(int success) {
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
+        String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
         ItemStack stack = ItemFactory.buildItem(material(cfg.material()),
-                subPercent(cfg.name(), success), subPercentLore(cfg.lore(), success));
+                subPercent(cfg.name(), success, kinds), subPercentLore(cfg.lore(), success, kinds));
         // store the rolled success in the carrier's baseSuccess so applyProtect can roll against it
         codec.write(stack, new CarrierData(WHITE_SCROLL_KEY, "", 0, 0, success));
         return stack;
     }
 
     /**
-     * Substitute the white-scroll percent placeholders: {@code {SUCCESS}} = the rolled apply success,
-     * {@code {FAILURE}} = its complement.
+     * Substitute the white-scroll placeholders: {@code {SUCCESS}} = the rolled apply success,
+     * {@code {FAILURE}} = its complement, {@code {KINDS}} = the applies-to label.
      */
-    private static String subPercent(String s, int success) {
-        return s.replace("{SUCCESS}", Integer.toString(success)).replace("{FAILURE}", Integer.toString(100 - success));
+    private static String subPercent(String s, int success, String kinds) {
+        return s.replace("{SUCCESS}", Integer.toString(success))
+                .replace("{FAILURE}", Integer.toString(100 - success))
+                .replace("{KINDS}", kinds);
     }
 
-    private static List<String> subPercentLore(List<String> lore, int success) {
+    private static List<String> subPercentLore(List<String> lore, int success, String kinds) {
         List<String> out = new ArrayList<>(lore.size());
         for (String line : lore) {
-            out.add(subPercent(line, success));
+            out.add(subPercent(line, success, kinds));
         }
         return out;
     }
@@ -482,6 +489,11 @@ public final class CarrierService {
     private CarrierResult applyProtect(ItemStack carrier, ItemStack target, CarrierData data) {
         if (codec.isGuarded(target)) {
             return CarrierResult.noop("§7That item is already protected.");
+        }
+        compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
+        if (!groups.matches(target.getType(), cfg.appliesTo())) { // §I gate: only the configured kinds (mirrors common.wrong-applies)
+            return CarrierResult.noop(color("&cThis can only be applied to: &f"
+                    + ItemGroups.kindsLabel(cfg.appliesTo()) + "&c."));
         }
         int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
         consume(carrier); // a use is spent whether the roll succeeds or fails

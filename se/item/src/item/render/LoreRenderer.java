@@ -3,11 +3,14 @@ package item.render;
 import item.codec.CombatState;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -25,6 +28,9 @@ public final class LoreRenderer {
     private final SetLore setLore;
     private final Function<ItemStack, List<String>> protectionLines;
     private final Predicate<String> trakLine; // identifies an applied-trak count line so a re-render PRESERVES it
+    private final Supplier<String> countSuffix; // §I transmog name suffix template ({COUNT}); null/blank → no suffix
+    private final IntSupplier baseSlots;        // §H base enchant slots, for the orb "Enchantment Slots" line total
+    private final Supplier<String> slotsLine;   // §H orb slots-line template ({TOTAL}/{ADDED}); null/blank → no line
 
     /**
      * Set members' authored lore, looked up from state at render time so a worn piece keeps its flavour lore
@@ -77,6 +83,13 @@ public final class LoreRenderer {
         this(style, displayNameOf, enchantColorOf, setLore, protectionLines, line -> false);
     }
 
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf, SetLore setLore,
+            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine) {
+        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                () -> null, () -> 0, () -> null);
+    }
+
     /**
      * Canonical renderer: {@code style} is re-read per render so a {@code /se reload} takes effect next render;
      * {@code enchantColorOf} colours each enchant by rarity tier ({@code null}/blank → the style's default);
@@ -84,16 +97,26 @@ public final class LoreRenderer {
      * for an unprotected item), appended at the bottom of the body — above any trak count line; {@code trakLine}
      * marks an applied-trak count line so {@link #apply} re-renders the body but PRESERVES the trak lines that a
      * separate system owns (instead of clobbering them on every enchant change).
+     *
+     * <p>{@code countSuffix} is the §I transmog enchant-count name suffix template ({@link EnchantCountSuffix});
+     * when present, {@link #apply} stamps the CUSTOM-enchant count onto the display name (and strips it at zero),
+     * so the count is a fixed part of the name on any enchanted item. {@code baseSlots}/{@code slotsLine} render
+     * the §H "Enchantment Slots" line once an orb has added slots — placed in the body, so it sits below the
+     * enchant/set lines but above the protection + trak lines {@link #apply} appends after.
      */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
             Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine) {
+            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
+            Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
         this.enchantColorOf = Objects.requireNonNull(enchantColorOf, "enchantColorOf");
         this.setLore = Objects.requireNonNull(setLore, "setLore");
         this.protectionLines = Objects.requireNonNull(protectionLines, "protectionLines");
         this.trakLine = Objects.requireNonNull(trakLine, "trakLine");
+        this.countSuffix = Objects.requireNonNull(countSuffix, "countSuffix");
+        this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
+        this.slotsLine = Objects.requireNonNull(slotsLine, "slotsLine");
     }
 
     /** Lore lines in stored order: one per enchant ({@code name level}), then one per crystal. Empty if no state. */
@@ -138,6 +161,17 @@ public final class LoreRenderer {
                 out.add(Colors.translate(line));
             }
         }
+        // §H slot-expander feedback: shown only once an orb has ADDED slots. Emitted last in the body so it sits
+        // below the enchant/set lines but (since apply() appends protection + traks AFTER lines()) above those.
+        if (state.added() > 0) {
+            String template = slotsLine.get();
+            if (template != null && !template.isBlank()) {
+                int total = baseSlots.getAsInt() + state.added();
+                out.add(Colors.translate(template
+                        .replace("{TOTAL}", Integer.toString(total))
+                        .replace("{ADDED}", Integer.toString(state.added()))));
+            }
+        }
         return out;
     }
 
@@ -165,8 +199,50 @@ public final class LoreRenderer {
         lore.addAll(protectionLines.apply(stack)); // applied-scroll PROTECTED lines, from marker state (§4.2)
         lore.addAll(preservedTraks);                // re-stack the trak lines below the body + protection
         meta.setLore(lore.isEmpty() ? null : lore);
+        stampCountSuffix(stack, meta, state.enchants().size());
         stack.setItemMeta(meta);
         return true;
+    }
+
+    /**
+     * §I stamp the CUSTOM-enchant count onto the display name (the transmog suffix) so it is a fixed part of the
+     * name on any enchanted item — rebuilt from state here, so adding/removing an enchant refreshes it and a
+     * drop to ZERO custom enchants strips it. Vanilla enchants never count (the count is {@code state.enchants}
+     * only). An item with no custom name DERIVES a readable name from its material so its identity survives
+     * ("Diamond Sword [3]"); at zero enchants a previously-derived name reverts to the bare vanilla item.
+     */
+    @SuppressWarnings("deprecation") // get/setDisplayName: the floor-stable item-meta path (matches #apply)
+    private void stampCountSuffix(ItemStack stack, ItemMeta meta, int count) {
+        String template = countSuffix.get();
+        if (template == null || template.isBlank()) {
+            return; // suffix feature off (the no-suffix test/fixture ctors)
+        }
+        String current = meta.hasDisplayName() ? meta.getDisplayName() : null;
+        String readable = readableName(stack.getType());
+        if (count > 0) {
+            String base = current != null ? EnchantCountSuffix.strip(current, template) : readable;
+            meta.setDisplayName(EnchantCountSuffix.nameFor(base, template, count));
+        } else if (current != null) {
+            String base = EnchantCountSuffix.strip(current, template);
+            // revert a name we previously DERIVED back to the vanilla item; keep a genuine custom name.
+            meta.setDisplayName(base.isEmpty() || base.equals(readable) ? null : base);
+        }
+    }
+
+    /** A readable display name derived from a material ({@code DIAMOND_SWORD → "Diamond Sword"}). */
+    private static String readableName(Material material) {
+        String[] words = material.name().toLowerCase(Locale.ROOT).split("_");
+        StringBuilder out = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            if (out.length() > 0) {
+                out.append(' ');
+            }
+            out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return out.toString();
     }
 
     private String nameOr(String key, LoreStyle style) {

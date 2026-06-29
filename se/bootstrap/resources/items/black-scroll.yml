@@ -7,9 +7,14 @@ type: black-scroll
 
 material: INK_SAC
 name: "&8Black Scroll"
+# {KINDS} expands to the grammatically-joined applies-to label.
 lore:
   - "&7Drag onto enchanted gear to"
   - "&7extract one enchant into a book."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+# Item-group kinds this scroll may extract from: e.g. ARMOR, WEAPON, TOOL, ALL (any item).
+applies-to: [ARMOR, WEAPON, TOOL]
 # The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100) when the scroll is
 # minted, then clamped to config.yml books.max-success. Placeholders in the name/lore: {SUCCESS} = that rate,
 # {FAILURE} = its complement.

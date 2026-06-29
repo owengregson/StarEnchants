@@ -69,5 +69,9 @@ class ItemGroupsTest {
         assertEquals("Weapon", ItemGroups.kindsLabel(List.of("SWORD", "AXE")));
         // a lone fishing rod → "Rod" (not "Fishing Rod")
         assertEquals("Rod", ItemGroups.kindsLabel(List.of("FISHING_ROD")));
+        // the wildcard reads as a phrase, not the bare token "All"
+        assertEquals("Any Item", ItemGroups.kindsLabel(List.of("ALL")));
+        // the item-economy default (armor + weapon + tool) is not a collapsed set → serial join with Oxford comma
+        assertEquals("Armor, Weapon, & Tool", ItemGroups.kindsLabel(List.of("ARMOR", "WEAPON", "TOOL")));
     }
 }

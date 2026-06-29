@@ -12,7 +12,11 @@ lore:
   - "&c{FAILURE}% Failure Rate"
   - ""
   - "&eProtects an item from being destroyed due to a failed Enchantment Book. This scroll will be consumed and removed from the item when an enchant fails."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
+# Item-group kinds this scroll may protect: e.g. ARMOR, WEAPON, TOOL, ALL (any item). {KINDS} renders the label.
+applies-to: [ARMOR, WEAPON, TOOL]
 # Each minted scroll rolls an apply-success % in [min-success, max-success]; on a failed roll the scroll is
 # consumed WITHOUT protecting (it never destroys the gear). 100/100 = always succeeds.
 min-success: 100

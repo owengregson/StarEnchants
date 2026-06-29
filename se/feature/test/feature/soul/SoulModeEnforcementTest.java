@@ -2,16 +2,20 @@ package feature.soul;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import compile.load.ParticleSpec;
 import compile.load.SoulGemConfig;
 import engine.interact.SoulLedger;
 import engine.stores.SoulModeStore;
+import feature.fx.ParticleFx;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
 import java.util.UUID;
@@ -22,12 +26,12 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Soul mode must auto-disable the moment the active gem is no longer usable — dropped/moved out of the
- * inventory, or drained to zero souls — and tell the player. Pins {@link SoulService#enforceActiveGem} (the
- * fix for soul mode lingering after the last gem was dropped or emptied).
+ * inventory, or drained to zero souls — and on that auto-disable it must play the SAME disable feedback as a
+ * manual toggle-off (the disable particle + sound), not just the message. Pins {@link SoulService#enforceActiveGem}.
  */
 class SoulModeEnforcementTest {
 
-    private record Fixture(SoulService service, SoulModeStore modes, Player player, UUID playerId) {
+    private record Fixture(SoulService service, SoulModeStore modes, Player player, UUID playerId, ParticleFx fx) {
     }
 
     private static Fixture setUp(boolean gemInInventory, int souls) {
@@ -50,7 +54,10 @@ class SoulModeEnforcementTest {
         SoulModeStore modes = new SoulModeStore();
         modes.activate(playerId, gemId);
 
-        return new Fixture(new SoulService(ledger, modes, codec, SoulGemConfig::defaults), modes, player, playerId);
+        ParticleFx fx = mock(ParticleFx.class);
+        SoulService service = new SoulService(ledger, modes, codec, SoulGemConfig::defaults,
+                () -> true, item.lang.Messages.defaults(), fx);
+        return new Fixture(service, modes, player, playerId, fx);
     }
 
     private static SoulLedger.Balance seed(int souls) {
@@ -72,6 +79,7 @@ class SoulModeEnforcementTest {
         f.service().enforceActiveGem(f.player());
         assertTrue(f.modes().isActive(f.playerId()));
         verify(f.player(), never()).sendMessage(anyString());
+        verify(f.fx(), never()).spawn(any(Player.class), any(ParticleSpec.class)); // no disable FX while active
     }
 
     @Test
@@ -80,6 +88,8 @@ class SoulModeEnforcementTest {
         f.service().enforceActiveGem(f.player());
         assertFalse(f.modes().isActive(f.playerId()));
         verify(f.player(), atLeastOnce()).sendMessage(anyString()); // the "no soul gems left" banner
+        // the auto-disable plays the disable particle, not just the message (matches a manual toggle-off)
+        verify(f.fx()).spawn(eq(f.player()), eq(SoulGemConfig.defaults().particles().disable()));
     }
 
     @Test
@@ -87,5 +97,6 @@ class SoulModeEnforcementTest {
         Fixture f = setUp(true, 0); // present but empty
         f.service().enforceActiveGem(f.player());
         assertFalse(f.modes().isActive(f.playerId()));
+        verify(f.fx()).spawn(eq(f.player()), eq(SoulGemConfig.defaults().particles().disable()));
     }
 }

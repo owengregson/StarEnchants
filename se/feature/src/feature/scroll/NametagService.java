@@ -1,8 +1,10 @@
 package feature.scroll;
 
 import compile.load.ScrollsConfig;
+import item.codec.CombatCodec;
 import item.codec.ScrollCodec;
 import item.mint.ItemFactory;
+import item.render.EnchantCountSuffix;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -30,19 +32,31 @@ public final class NametagService {
     private final ScrollCodec scrolls;
     private final Supplier<ScrollsConfig> config;
     private final item.lang.Messages messages;
+    private final CombatCodec combat; // §I reads the item's custom-enchant count to re-append the suffix; null = skip
     private final ConcurrentHashMap<UUID, ItemStack> pending = new ConcurrentHashMap<>();
     // Players whose currently-open anvil is OUR rename GUI (modern path), so a real anvil is never hijacked.
     private final java.util.Set<UUID> anvilSessions = ConcurrentHashMap.newKeySet();
 
-    /** Default-messages form (tests/fixtures). */
+    /** Default-messages, no-suffix form (tests/fixtures that never assert the §I enchant-count suffix). */
     public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config) {
-        this(scrolls, config, item.lang.Messages.defaults());
+        this(scrolls, config, item.lang.Messages.defaults(), null);
     }
 
     public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, item.lang.Messages messages) {
+        this(scrolls, config, messages, null);
+    }
+
+    /**
+     * Canonical form (composition root): {@code combat} reads the renamed item's custom-enchant count so the §I
+     * {@code [N]} suffix is re-appended on rename (and shown in the preview) — the suffix is a fixed part of the
+     * name once any custom enchant is present. A {@code null} {@code combat} skips the suffix (server-free tests).
+     */
+    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, item.lang.Messages messages,
+                          CombatCodec combat) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.config = Objects.requireNonNull(config, "config");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.combat = combat;
     }
 
     public boolean isNametag(ItemStack stack) {
@@ -143,10 +157,32 @@ public final class NametagService {
             refund(player);
             return messages.format("scroll.nametag.cannot-rename");
         }
-        meta.setDisplayName(translated);
+        meta.setDisplayName(withCountSuffix(item, translated)); // §I keep the enchant-count suffix across a rename
         item.setItemMeta(meta);
         player.getInventory().setItem(slot, item);
         return messages.format("scroll.nametag.renamed");
+    }
+
+    /**
+     * The display name a rename to {@code text} would produce on {@code target} — the colour-translated typed
+     * text with the §I enchant-count suffix re-appended (so the modern anvil PREVIEW matches the committed
+     * result). Pure (no inventory mutation).
+     */
+    public String previewName(ItemStack target, String text) {
+        return withCountSuffix(target, ItemFactory.color(text == null ? "" : text));
+    }
+
+    /**
+     * Re-append the §I enchant-count suffix to an already-colour-translated {@code name}, using {@code item}'s
+     * CUSTOM-enchant count (vanilla enchants never count). Returns {@code name} unchanged when the suffix
+     * feature is off (no {@code combat} codec) or the item carries no custom enchants.
+     */
+    private String withCountSuffix(ItemStack item, String name) {
+        if (combat == null) {
+            return name; // no codec wired (server-free test/fixture) → leave the typed name as-is
+        }
+        int count = combat.read(item).enchants().size();
+        return EnchantCountSuffix.nameFor(name, config.get().transmog().nameSuffix(), count);
     }
 
     /** The slot of the first stack matching the captured {@code token} by identity, or {@code -1} if gone. */
