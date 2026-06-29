@@ -39,7 +39,7 @@ public final class AlchemistMenu extends FormMenu {
 
     public AlchemistMenu(CarrierService carriers, Capabilities caps, Messages messages,
                          java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("alchemist", MenuLayout.form(5, "&a&lAlchemist &8• &7Combine Books"), caps, menus);
+        super("alchemist", MenuLayout.form(5, "&a&lAlchemist &8• &7Combine"), caps, menus);
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");
     }

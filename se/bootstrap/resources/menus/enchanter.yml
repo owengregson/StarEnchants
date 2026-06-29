@@ -1,6 +1,6 @@
 # Enchanter merchant GUI — buy a random mystery enchant book with XP levels (/se menu enchanter, or a hub).
 # The offer pricing / buy behaviour stays in code. See menus/apply.yml for the full field list.
 
-title: "&b&lEnchanter &8• &7Mystery Books"
+title: "&b&lEnchanter &8• &7Books"
 frame: "border"
 filler: "LIGHT_BLUE_STAINED_GLASS_PANE"
