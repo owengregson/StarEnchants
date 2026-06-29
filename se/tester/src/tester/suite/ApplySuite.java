@@ -74,14 +74,17 @@ public final class ApplySuite implements Harness.Scenario {
                 chestplate: { material: DIAMOND_CHESTPLATE, name: "&bTitan Chestplate" }
                 leggings:   { material: DIAMOND_LEGGINGS,   name: "&bTitan Leggings" }
                 boots:      { material: DIAMOND_BOOTS,      name: "&bTitan Boots" }
-              trigger: DEFENSE
-              effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             weapon:
               material: DIAMOND_SWORD
               name: "&bTitan Blade"
               lore: ["&7Titan Weapon"]
-              trigger: ATTACK
-              effects: [{ MODIFY_HEALTH: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ MODIFY_HEALTH: { amount: 1 } }]
+              - on: weapon
+                trigger: ATTACK
+                effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             """;
 
     private final Plugin plugin;
