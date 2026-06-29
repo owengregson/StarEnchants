@@ -37,7 +37,7 @@ public final class MasterConfigLoader {
                     MasterConfig.CrystalsSection.defaults(), MasterConfig.HeroicSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
-                    MasterConfig.MessageOnActivateSection.defaults(),
+                    MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
                     diags.all());
         }
         YamlNode root = YamlNode.compose("config.yml", yaml, diags);
@@ -59,7 +59,20 @@ public final class MasterConfigLoader {
                 readReload(root.child("reload"), diags),
                 readCommandTrigger(root.child("command-trigger"), diags),
                 readMessageOnActivate(root.child("message-on-activate"), diags),
+                readSets(root.child("sets"), diags),
                 diags.all());
+    }
+
+    /** Universal armour-set equip/unequip feedback — message-uppercase + use-set-color flags + sound/particle. */
+    private static MasterConfig.SetsSection readSets(YamlNode n, Diagnostics diags) {
+        MasterConfig.SetsSection d = MasterConfig.SetsSection.defaults();
+        return new MasterConfig.SetsSection(
+                parseBool(n.string("message-uppercase"), d.messageUppercase()),
+                parseBool(n.string("use-set-color"), d.useSetColor()),
+                SoundCue.list(n, "equip-sound", diags),
+                SoundCue.list(n, "unequip-sound", diags),
+                ParticleSpec.from(n.child("equip-particle"), diags),
+                ParticleSpec.from(n.child("unequip-particle"), diags));
     }
 
     private static MasterConfig.MessageOnActivateSection readMessageOnActivate(YamlNode n, Diagnostics diags) {

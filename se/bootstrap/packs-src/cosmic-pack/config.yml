@@ -46,6 +46,27 @@ message-on-activate:
   on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
   uppercase: true   # render the {ENCHANT} name in UPPERCASE
 
+# Universal armour-set equip/unequip feedback (§6.6). ONE config for ALL sets (not per-set): equipping a
+# completed set plays equip-sound + equip-particle at the player, removing it plays unequip-sound +
+# unequip-particle. Sounds use our unified { sound, volume, pitch } bracket form; particles our
+# { particle, count, color, spread, y-offset } form. With use-set-color on, the dust cloud is tinted to each
+# set's own & colour (read from its display name), so the supreme set's cloud is dark red, etc.
+sets:
+  message-uppercase: true   # auto-capitalise the set equip/remove message (colour codes preserved)
+  use-set-color: true       # tint the equip/unequip dust to the set's own & colour
+  equip-sound:
+    - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
+    - { sound: BLOCK_BONE_BLOCK_BREAK, volume: 1, pitch: 1 }
+    - { sound: ITEM_ARMOR_EQUIP_COPPER, volume: 0.4, pitch: 1 }
+  unequip-sound:
+    - { sound: BLOCK_GLASS_BREAK, volume: 0.25, pitch: 0.8 }
+    - { sound: BLOCK_CHAIN_STEP, volume: 0.6, pitch: 1.0 }
+    - { sound: BLOCK_COPPER_GOLEM_STATUE_BREAK, volume: 1, pitch: 1 }
+    - { sound: ITEM_LLAMA_CARPET_UNEQUIP, volume: 0.4, pitch: 2 }
+  # A dust cloud at the same density as the soul-gem activate cloud; its colour is replaced per set above.
+  equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
+  unequip-particle: { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
+
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
 slots:
