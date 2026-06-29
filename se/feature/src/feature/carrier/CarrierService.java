@@ -281,7 +281,8 @@ public final class CarrierService {
         List<String> lore = new ArrayList<>();
         for (String line : cfg.lore()) {
             if (line.contains("{DESCRIPTION}")) {
-                for (String descLine : descriptionLines(description, cfg.wrap())) {
+                // Authored newlines are obeyed as hard breaks; a single authored line word-wraps to cfg.wrap().
+                for (String descLine : item.render.TextWrap.wrap(description, cfg.wrap())) {
                     lore.add(subBook(line.replace("{DESCRIPTION}", descLine), enchant, levelText, tierColor, shown, def));
                 }
             } else {
@@ -294,64 +295,6 @@ public final class CarrierService {
             }
         }
         return lore;
-    }
-
-    /**
-     * The {@code {DESCRIPTION}} as lore lines. The leading prose paragraph (every line up to the first blank)
-     * is REFLOWED into flowing text and word-wrapped to {@code width} — so a description authored as narrow
-     * pre-wrapped fragments (the migrated likenesses are) no longer breaks "for no reason" onto a one-word
-     * line. The blank separator and the per-level stat lines after it are emitted verbatim (already one line
-     * each by intent). Lone-last-word ("widow") avoidance keeps a short paragraph from orphaning its final word.
-     */
-    static List<String> descriptionLines(String description, int width) {
-        if (description == null || description.isEmpty()) {
-            return List.of();
-        }
-        String[] raw = description.split("\n", -1);
-        int proseEnd = raw.length;
-        for (int i = 0; i < raw.length; i++) {
-            if (raw[i].isEmpty()) {
-                proseEnd = i; // the leading prose paragraph ends at the first authored blank line
-                break;
-            }
-        }
-        StringBuilder prose = new StringBuilder();
-        for (int i = 0; i < proseEnd; i++) {
-            if (prose.length() > 0) {
-                prose.append(' ');
-            }
-            prose.append(raw[i]); // join the pre-wrapped fragments back into one flowing line
-        }
-        List<String> out = new ArrayList<>(wrapNoWidow(prose.toString(), width));
-        for (int i = proseEnd; i < raw.length; i++) {
-            out.add(raw[i]); // the blank separator + stat lines, kept exactly as authored
-        }
-        return out;
-    }
-
-    /**
-     * Word-wrap {@code text} to {@code width}, then shrink the width until the final line is not a lone word
-     * (a widow) — re-flowing the whole paragraph at a slightly narrower width keeps every line within the
-     * original width while pulling a second word down onto the last line. Gives up at a small floor (a
-     * genuinely unsplittable trailing long word stays alone rather than over-shrinking).
-     */
-    private static List<String> wrapNoWidow(String text, int width) {
-        List<String> wrapped = item.render.TextWrap.wrap(text, width);
-        if (width <= 0) {
-            return wrapped;
-        }
-        for (int w = width - 1; w >= 16 && isWidow(wrapped); w--) {
-            wrapped = item.render.TextWrap.wrap(text, w);
-        }
-        return wrapped;
-    }
-
-    /** Whether the wrapped paragraph ends in a lone word (≥2 lines and the last has no internal space). */
-    private static boolean isWidow(List<String> lines) {
-        if (lines.size() < 2) {
-            return false;
-        }
-        return !lines.get(lines.size() - 1).trim().contains(" "); // colour codes carry no spaces → a space = 2 words
     }
 
     /** Substitute every book placeholder in {@code line}. {@code def} may be {@code null} (unknown enchant). */
