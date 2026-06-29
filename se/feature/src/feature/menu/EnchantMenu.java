@@ -42,7 +42,7 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
                        Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate) {
-        super("apply", MenuLayout.paged("StarEnchants"), caps, menus);
+        super("apply", MenuLayout.paged("&d&lApply Enchant"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.refreshWorn = Objects.requireNonNull(refreshWorn, "refreshWorn");
@@ -67,6 +67,16 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
             refreshWorn.accept(player); // no equip event fires, so re-resolve the cached WornState by hand
         }
         player.sendMessage(result.message());
+    }
+
+    @Override
+    protected String infoTitle(MenuHolder holder) {
+        return "&d&lApply Enchant";
+    }
+
+    @Override
+    protected List<String> infoLore(MenuHolder holder) {
+        return List.of("&7Click an enchant to apply it", "&7straight to your held item.");
     }
 
     @Override

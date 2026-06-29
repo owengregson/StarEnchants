@@ -1,0 +1,6 @@
+# DSL Reference GUI — read-only quick reference for the config DSL.
+# Tiles document the available params and kinds. See menus/apply.yml for the full field list.
+
+title: "&e&l✦ DSL Reference ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

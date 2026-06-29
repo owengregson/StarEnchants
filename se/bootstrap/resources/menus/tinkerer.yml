@@ -1,0 +1,5 @@
+# Tinkerer bench GUI — salvage an enchant book for an XP-level refund (/se menu tinkerer, or a hub). A bench
+# fills its whole backdrop with the filler (frame is ignored). See menus/apply.yml for the full field list.
+
+title: "&6&lTinkerer &8• &7Salvage Books"
+filler: "ORANGE_STAINED_GLASS_PANE"

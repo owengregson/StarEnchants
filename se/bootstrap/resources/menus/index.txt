@@ -1,7 +1,20 @@
 # Manifest of default files extracted to <plugin>/menus/ on first boot (one path per line, relative to
-# menus/). Each menus/<name>.yml overrides the layout of the GUI registered under <name>: apply, enchants,
-# sets, crystals, reference, transmog, enchanter, alchemist, tinkerer, admin. Any field you omit keeps that
-# menu's built-in default; a menu with no file here uses its default entirely. Operator edits are never
-# overwritten. Reload with /se reload.
+# menus/). Each menus/<name>.yml overrides the LAYOUT + CHROME of the GUI registered under <name>; any field
+# you omit keeps that menu's built-in default. menus/apply.yml is the canonical reference documenting every
+# field. Operator edits are never overwritten. Reload with /se reload.
+#
+# Registered menus: hub (player landing), console (operator landing), mint, apply, enchants, sets, crystals,
+# reference, transmog, enchanter, alchemist, tinkerer, admin.
+hub.yml
+console.yml
+mint.yml
 apply.yml
+enchants.yml
+sets.yml
+crystals.yml
+reference.yml
+transmog.yml
 enchanter.yml
+alchemist.yml
+tinkerer.yml
+admin.yml

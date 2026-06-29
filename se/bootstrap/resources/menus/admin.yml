@@ -1,0 +1,6 @@
+# Grant Books GUI — browse enchants by tier and mint a guaranteed book of any level (/se menu admin,
+# requires starenchants.admin). A three-level drill: tier → enchant → level. See menus/apply.yml.
+
+title: "&d&lGrant Books"
+frame: "border"
+filler: "PINK_STAINED_GLASS_PANE"

@@ -1,12 +1,35 @@
-# Layout of the enchant-application GUI (/se menu apply). Surfaced layout only — the click behaviour (apply
-# the clicked enchant) stays in code. Any field you omit keeps the built-in default shown in the comment.
+# ════════════════════════════════════════════════════════════════════════════════════════════════════
+#  StarEnchants GUI layout — Apply Enchant   (/se menu apply)
+#  This file is the CANONICAL REFERENCE: every tunable field is documented here once. The other
+#  menus/*.yml files set only the values that differ from their built-in default and point back here.
+# ════════════════════════════════════════════════════════════════════════════════════════════════════
 #
-# rows:       chest height, 1–6 (default 6; the bottom row is reserved for navigation)
-# title:      window title, legacy '&' colour codes (default "StarEnchants")
-# filler:     material name for the bottom-row filler panes, blank for none (default GRAY_STAINED_GLASS_PANE)
-# prev-slot / next-slot / back-slot / close-slot:
-#             raw slot of each nav button, -1 to hide (defaults 45 / 53 / 48 / 49 for a 6-row menu). A slot
-#             that does not fit the chosen row count is hidden automatically.
+# Each menu's LOOK is built in code with a beautiful default; this file OVERRIDES only what you set. Omit a
+# field (or the whole file) and the built-in default is kept. Only LAYOUT + CHROME live here — the click
+# behaviour (what an icon does) stays in code. Edit, then run /se reload.
+#
+# ── Fields (all optional) ───────────────────────────────────────────────────────────────────────────
+#   rows           chest height, 1–6. Paged menus default to 6; the bottom row is always reserved for nav.
+#   title          window title, legacy '&' colour codes.
+#   frame          decorative pane style around the content:
+#                    border  — a one-cell picture frame; content is inset (the hand-crafted default)
+#                    bottom  — only the reserved navigation row is panelled
+#                    none    — no decorative panes at all
+#   filler         frame-pane material (a server material name, cross-version), blank "" for no panes.
+#   prev-slot / next-slot / back-slot / close-slot
+#                  raw slot (0-based) of each navigation button; -1 hides it. A slot that does not fit the
+#                  chosen row count is hidden automatically (defaults 45 / 53 / 48 / 49 on a 6-row menu).
+#   prev-material  / prev-name      the previous-page button's material token + display name
+#   next-material  / next-name      the next-page button
+#   back-material  / back-name      the back (drill-up) button
+#   close-material / close-name     the close button
+#   info-material  / info-name      the info pane (the header tooltip describing the menu)
+#   info-slot      raw slot of the info pane (default 4, the top-centre); -1 hides it.
+#
+# A material token is a server material NAME (e.g. ENCHANTED_BOOK) — resolved cross-version — or an
+# itemsadder:<id> / oraxen:<id> custom-item id if those plugins are installed. Button NAMES use '&' colours.
+# ────────────────────────────────────────────────────────────────────────────────────────────────────
 
-title: "&dStarEnchants"
-filler: "BLACK_STAINED_GLASS_PANE"
+title: "&d&lApply Enchant"
+frame: "border"
+filler: "PURPLE_STAINED_GLASS_PANE"

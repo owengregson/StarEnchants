@@ -1,0 +1,6 @@
+# Enchant catalogue GUI — browse every custom enchant by rarity tier (/se menu enchants, or via a hub).
+# Read-only. See menus/apply.yml for the full field list.
+
+title: "&3&lEnchant Catalogue"
+frame: "border"
+filler: "CYAN_STAINED_GLASS_PANE"

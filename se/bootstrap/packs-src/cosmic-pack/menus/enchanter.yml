@@ -1,5 +1,6 @@
-# Layout of the Enchanter merchant GUI (/se menu enchanter). See menus/apply.yml for the full field list;
-# the offer pricing / buy behaviour stays in code. Omitted fields keep their defaults.
+# Enchanter merchant GUI — buy mystery enchant books from the enchanter.
+# Tiles list each tier's price and odds. See menus/apply.yml for the full field list.
 
-title: "&3Enchanter &8• &7Mystery Books"
-filler: "GRAY_STAINED_GLASS_PANE"
+title: "&b&l❖ Enchanter ❖"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

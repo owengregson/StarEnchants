@@ -1,0 +1,6 @@
+# Crystals browser GUI — every socketable crystal (/se menu crystals, or via a hub). Everyone can browse;
+# operators (starenchants.admin) click to mint one. Applying stays a drag gesture. See menus/apply.yml.
+
+title: "&3&lCrystals"
+frame: "border"
+filler: "PURPLE_STAINED_GLASS_PANE"

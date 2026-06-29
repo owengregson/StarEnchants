@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
@@ -35,7 +34,7 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
 
     public GodlyTransmogMenu(ContentHolder content, CombatCodec combat, ScrollService scrolls, Capabilities caps,
                              java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("transmog", MenuLayout.paged("&5Godly Transmog"), caps, menus);
+        super("transmog", MenuLayout.paged("&5&lGodly Transmog"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
@@ -132,6 +131,16 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
     @Override
     protected String titleFor(MenuHolder holder) {
         return layout().titleTemplate();
+    }
+
+    @Override
+    protected String infoTitle(MenuHolder holder) {
+        return "&5&lGodly Transmog";
+    }
+
+    @Override
+    protected List<String> infoLore(MenuHolder holder) {
+        return List.of("&7Click two enchants to swap their", "&7lore order — purely cosmetic.");
     }
 
     private String displayOf(String key) {

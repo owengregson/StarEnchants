@@ -34,7 +34,7 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
 
     public EnchanterMenu(ContentHolder content, UnopenedBookService unopenedBooks, Capabilities caps,
                          Messages messages, java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("enchanter", MenuLayout.paged("&3Enchanter"), caps, menus);
+        super("enchanter", MenuLayout.paged("&b&lEnchanter &8• &7Mystery Books"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.unopenedBooks = Objects.requireNonNull(unopenedBooks, "unopenedBooks");
         this.messages = Objects.requireNonNull(messages, "messages");
@@ -43,6 +43,16 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
     @Override
     protected List<EnchanterOffers.Offer> items(MenuHolder holder) {
         return EnchanterOffers.defaults(content.library().tiers());
+    }
+
+    @Override
+    protected String infoTitle(MenuHolder holder) {
+        return "&b&lEnchanter";
+    }
+
+    @Override
+    protected List<String> infoLore(MenuHolder holder) {
+        return List.of("&7Spend experience levels on a", "&7random enchant book of a rarity.");
     }
 
     @Override

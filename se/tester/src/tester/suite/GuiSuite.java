@@ -56,11 +56,12 @@ public final class GuiSuite implements Harness.Scenario {
             """;
 
     private static final String KEY = "enchants/keen";
-    private static final int ALCHEMIST_LEFT = 11;
-    private static final int ALCHEMIST_COMBINE = 13;
-    private static final int ALCHEMIST_RIGHT = 15;
-    private static final int TINKERER_INPUT = 13;
-    private static final int TINKERER_SALVAGE = 15;
+    // Read the bench slots from the menus themselves (ADR-0030 re-laid the benches), not re-typed literals.
+    private static final int ALCHEMIST_LEFT = AlchemistMenu.LEFT_INPUT;
+    private static final int ALCHEMIST_COMBINE = AlchemistMenu.COMBINE_BUTTON;
+    private static final int ALCHEMIST_RIGHT = AlchemistMenu.RIGHT_INPUT;
+    private static final int TINKERER_INPUT = TinkererMenu.INPUT;
+    private static final int TINKERER_SALVAGE = TinkererMenu.SALVAGE_BUTTON;
 
     private final Plugin plugin;
 

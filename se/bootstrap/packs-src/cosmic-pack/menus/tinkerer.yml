@@ -1,0 +1,5 @@
+# Tinkerer bench GUI — salvage enchant books back into materials.
+# A bench fills its whole backdrop, so frame is omitted. See menus/apply.yml for the full field list.
+
+title: "&6&l❖ Tinkerer ❖"
+filler: "ORANGE_STAINED_GLASS_PANE"

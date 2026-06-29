@@ -1,6 +1,5 @@
 package tester.suite;
 
-import compile.Compiler;
 import compile.load.ContentHolder;
 import compile.load.Library;
 import compile.load.LibraryLoader;
@@ -68,6 +67,10 @@ public final class MenuSuite implements Harness.Scenario {
               common: { color: "&7", weight: 10, glint: false }
               epic:   { color: "&e", weight: 40, glint: true  }
             """;
+
+    // The raw slot the first paged content icon lands in — read from the production geometry, not a literal,
+    // so the bordered re-layout (ADR-0030; content starts at slot 10, not 0) can't silently break this suite.
+    private static final int FIRST_CONTENT = feature.menu.MenuLayout.paged("x").contentSlot(0);
 
     private final Plugin plugin;
 
@@ -140,9 +143,9 @@ public final class MenuSuite implements Harness.Scenario {
                     MenuHolder menuHolder = new MenuHolder(menu);
                     menu.render(menuHolder);
                     h.guard("menu.iconShowsTierColorAndDescription", () -> {
-                        ItemStack icon = menuHolder.getInventory().getItem(0);
+                        ItemStack icon = menuHolder.getInventory().getItem(FIRST_CONTENT);
                         if (icon == null) {
-                            throw new IllegalStateException("no enchant icon rendered at slot 0");
+                            throw new IllegalStateException("no enchant icon rendered at slot " + FIRST_CONTENT);
                         }
                         ItemMeta meta = icon.getItemMeta();
                         String name = meta.getDisplayName();
@@ -161,7 +164,7 @@ public final class MenuSuite implements Harness.Scenario {
                         // Top level: tier groups (KEEN is epic, so the epic group shows), not a flat enchant list.
                         MenuHolder tiers = new MenuHolder(adminMenu);
                         adminMenu.render(tiers);
-                        ItemStack tierIcon = tiers.getInventory().getItem(0);
+                        ItemStack tierIcon = tiers.getInventory().getItem(FIRST_CONTENT);
                         if (tierIcon == null || !tierIcon.getItemMeta().getDisplayName().contains("Epic")) {
                             throw new IllegalStateException("admin index should show tier groups; slot0="
                                     + (tierIcon == null ? "null" : tierIcon.getItemMeta().getDisplayName()));
@@ -171,7 +174,7 @@ public final class MenuSuite implements Harness.Scenario {
                         tierEnchants.setView("enchants");
                         tierEnchants.setSelection("epic");
                         adminMenu.render(tierEnchants);
-                        ItemStack enchIcon = tierEnchants.getInventory().getItem(0);
+                        ItemStack enchIcon = tierEnchants.getInventory().getItem(FIRST_CONTENT);
                         String enchName = enchIcon == null ? "null" : enchIcon.getItemMeta().getDisplayName();
                         if (enchIcon == null || !enchName.contains("Keen")) {
                             throw new IllegalStateException("tier view should list the tier's enchants; slot0=" + enchName);
@@ -186,7 +189,7 @@ public final class MenuSuite implements Harness.Scenario {
                         enchantLevels.setView("levels");
                         enchantLevels.setPayload(keenDef);
                         adminMenu.render(enchantLevels);
-                        ItemStack levelIcon = enchantLevels.getInventory().getItem(0);
+                        ItemStack levelIcon = enchantLevels.getInventory().getItem(FIRST_CONTENT);
                         java.util.List<String> levelLore = levelIcon == null ? null : levelIcon.getItemMeta().getLore();
                         if (levelLore == null || levelLore.stream().noneMatch(l -> l.contains("guaranteed level"))) {
                             throw new IllegalStateException("enchant view should show per-level books; slot0 lore="
@@ -195,7 +198,7 @@ public final class MenuSuite implements Harness.Scenario {
                     });
                     InventoryView view = player.openInventory(menuHolder.getInventory());
                     InventoryClickEvent click = new InventoryClickEvent(view, InventoryType.SlotType.CONTAINER,
-                            0, ClickType.LEFT, InventoryAction.PICKUP_ALL);
+                            FIRST_CONTENT, ClickType.LEFT, InventoryAction.PICKUP_ALL);
                     plugin.getServer().getPluginManager().callEvent(click);
                     h.guard("menu.clickAppliesEnchant", () -> {
                         if (!click.isCancelled()) {

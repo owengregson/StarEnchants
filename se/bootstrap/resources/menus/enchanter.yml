@@ -1,5 +1,6 @@
-# Layout of the Enchanter merchant GUI (/se menu enchanter). See menus/apply.yml for the full field list;
-# the offer pricing / buy behaviour stays in code. Omitted fields keep their defaults.
+# Enchanter merchant GUI — buy a random mystery enchant book with XP levels (/se menu enchanter, or a hub).
+# The offer pricing / buy behaviour stays in code. See menus/apply.yml for the full field list.
 
-title: "&3Enchanter &8• &7Mystery Books"
-filler: "GRAY_STAINED_GLASS_PANE"
+title: "&b&lEnchanter &8• &7Mystery Books"
+frame: "border"
+filler: "LIGHT_BLUE_STAINED_GLASS_PANE"
