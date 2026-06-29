@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: paladin-armored). Review before shipping.
 display: "Paladin Armored"
 description:
-  - "&dHeroic upgrade for Armored."
+  - "&dMythic upgrade for Armored."
   - "&dHeavily reduces sword damage and"
   - "&dclears your debuffs."
   - "&c&l(!)&r &7Requires &6Armored"
@@ -11,9 +11,9 @@ description:
   - "&d&lIII: &f🎲 30% &7| &f▲ 50% &7| &f⌛ 4s"
   - "&d&lIV: &f🎲 40% &7| &f▲ 50% &7| &f⌛ 4s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-group: "heroic"
-tier: heroic
+applies-to: [ARMOR]
+group: "mythic"
+tier: mythic
 requires: ["enchants/armored"]
 levels:
   1:

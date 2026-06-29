@@ -9,7 +9,7 @@ description:
   - "&6&lIII: &f▲ 5.55% &7| &f⌛ 2s"
   - "&6&lIV: &f▲ 7.4% &7| &f⌛ 2s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
 levels:

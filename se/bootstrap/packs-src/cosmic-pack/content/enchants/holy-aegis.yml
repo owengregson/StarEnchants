@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: holy-aegis). Review before shipping.
 display: "Holy Aegis"
 description:
-  - "&dHeroic upgrade for Aegis."
+  - "&dMythic upgrade for Aegis."
   - "&dReduces more incoming damage."
   - "&c&l(!)&r &7Requires &6Aegis"
   - ""
@@ -12,9 +12,9 @@ description:
   - "&d&lV: &f🎲 8% &7| &f▲ 25% &7| &f⌛ 3s"
   - "&d&lVI: &f🎲 9% &7| &f▲ 25% &7| &f⌛ 3s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-group: "heroic"
-tier: heroic
+applies-to: [ARMOR]
+group: "mythic"
+tier: mythic
 requires: ["enchants/aegis"]
 levels:
   1:

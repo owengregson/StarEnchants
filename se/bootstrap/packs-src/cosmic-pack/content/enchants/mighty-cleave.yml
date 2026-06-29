@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: mighty-cleave). Review before shipping.
 display: "Mighty Cleave"
 description:
-  - "&dHeroic upgrade for Cleave."
+  - "&dMythic upgrade for Cleave."
   - "&dStrikes a wider arc around the"
   - "&dtarget."
   - "&c&l(!)&r &7Requires &eCleave"
@@ -13,8 +13,8 @@ description:
   - "&d&lV: &f🎲 9% &7| &f▲ 4.25m &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/cleave"]
 levels:
   1:

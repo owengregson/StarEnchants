@@ -23,8 +23,8 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:EPIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:LEGENDARY:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
   2:
     chance: 2.5
     cooldown: 400
@@ -35,8 +35,8 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:EPIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:LEGENDARY:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
   3:
     chance: 4
     cooldown: 400
@@ -47,8 +47,8 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:EPIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:LEGENDARY:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
   4:
     chance: 6
     cooldown: 400
@@ -59,5 +59,5 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:EPIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:LEGENDARY:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)

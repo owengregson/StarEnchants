@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.ItemGroups;
 
 /**
  * The direct-apply enchant menu: clicking an enchant applies it (level 1) to the held item via
@@ -82,7 +83,7 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     @Override
     protected ItemStack icon(MenuHolder holder, EnchantDef def) {
         List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
-        lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
+        lore.add("&8applies to: &7" + ItemGroups.kindsLabel(def.appliesTo()));
         lore.add("&8max level: &7" + def.maxLevel());
         lore.add("&eClick to apply to your held item.");
         // The icon name is styled by the enchant-book name template (tier colour + any bold/underline), so it

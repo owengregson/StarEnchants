@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: shadow-assassin). Review before shipping.
 display: "Shadow Assassin"
 description:
-  - "&dHeroic upgrade for Assassin."
+  - "&dMythic upgrade for Assassin."
   - "&dDeals more damage the closer you"
   - "&dare to the target, with a"
   - "&dshorter cooldown."
@@ -14,8 +14,8 @@ description:
   - "&d&lV: &f🎲 13% &7| &f⌛ 1s"
 trigger: ATTACK
 applies-to: [SWORD]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/assassin"]
 levels:
   1:

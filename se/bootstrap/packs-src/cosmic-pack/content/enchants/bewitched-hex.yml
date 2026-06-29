@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: bewitched-hex). Review before shipping.
 display: "Bewitched Hex"
 description:
-  - "&dHeroic upgrade for Hex."
+  - "&dMythic upgrade for Hex."
   - "&dDeals more bonus damage and"
   - "&dweakens the target for longer."
   - "&c&l(!)&r &7Requires &6Hex"
@@ -13,8 +13,8 @@ description:
   - "&d&lV: &f🎲 7.5% &7| &f▲ 15% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [AXE]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/hex"]
 levels:
   1:

@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: furious-enrage). Review before shipping.
 display: "Furious Enrage"
 description:
-  - "&dHeroic upgrade for Enrage."
+  - "&dMythic upgrade for Enrage."
   - "&dDeals more bonus damage as your"
   - "&dhealth drops."
   - "&c&l(!)&r &7Requires &eEnrage"
@@ -11,8 +11,8 @@ description:
   - "&d&lIII: &f🎲 8.25% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [SWORD]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/enrage"]
 levels:
   1:

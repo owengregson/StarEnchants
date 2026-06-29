@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: vengeful-diminish). Review before shipping.
 display: "Vengeful Diminish"
 description:
-  - "&dHeroic upgrade for Diminish."
+  - "&dMythic upgrade for Diminish."
   - "&dHalves incoming damage more"
   - "&doften."
   - "&c&l(!)&r &7Requires &6Diminish"
@@ -14,8 +14,8 @@ description:
   - "&d&lVI: &f🎲 13% &7| &f▲ 50% &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [CHESTPLATE]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/diminish"]
 levels:
   1:

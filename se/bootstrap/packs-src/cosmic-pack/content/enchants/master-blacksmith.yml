@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: master-blacksmith). Review before shipping.
 display: "Master Blacksmith"
 description:
-  - "&dHeroic upgrade for Blacksmith."
+  - "&dMythic upgrade for Blacksmith."
   - "&dRepairs more armor with a"
   - "&dsmaller damage penalty."
   - "&c&l(!)&r &7Requires &6Blacksmith"
@@ -13,8 +13,8 @@ description:
   - "&d&lV: &f🎲 13% &7| &f▲ +35 pt. &7| &f⌛ 3s"
 trigger: ATTACK
 applies-to: [AXE]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/blacksmith"]
 levels:
   1:

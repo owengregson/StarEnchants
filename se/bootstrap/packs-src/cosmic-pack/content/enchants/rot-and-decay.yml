@@ -16,9 +16,9 @@ description:
   - "&4&lIX: &f🎲 9% &7| &f⌛ 10s"
   - "&4&lX: &f🎲 10% &7| &f⌛ 10s"
 trigger: ATTACK
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-group: "mythic"
-tier: mythic
+applies-to: [ARMOR]
+group: "godly"
+tier: godly
 levels:
   1:
     chance: 1

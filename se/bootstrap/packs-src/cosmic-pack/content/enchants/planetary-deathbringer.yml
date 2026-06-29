@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: planetary-deathbringer). Review before shipping.
 display: "Planetary Deathbringer"
 description:
-  - "&dHeroic upgrade for Deathbringer."
+  - "&dMythic upgrade for Deathbringer."
   - "&dA guaranteed critical strike"
   - "&dthat triggers far more often."
   - "&c&l(!)&r &7Requires &6Deathbringer"
@@ -10,9 +10,9 @@ description:
   - "&d&lII: &f▲ 50% &7| &f⌛ 20s"
   - "&d&lIII: &f▲ 50% &7| &f⌛ 20s"
 trigger: ATTACK
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-group: "heroic"
-tier: heroic
+applies-to: [ARMOR]
+group: "mythic"
+tier: mythic
 requires: ["enchants/deathbringer"]
 levels:
   1:

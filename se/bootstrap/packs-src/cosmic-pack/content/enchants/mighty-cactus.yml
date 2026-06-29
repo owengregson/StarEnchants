@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: mighty-cactus). Review before shipping.
 display: "Mighty Cactus"
 description:
-  - "&dHeroic upgrade for Cactus."
+  - "&dMythic upgrade for Cactus."
   - "&dDeals much more damage back to"
   - "&dattackers."
   - "&c&l(!)&r &7Requires &bCactus"
@@ -9,9 +9,9 @@ description:
   - "&d&lI: &f🎲 6% &7| &f▲ 3-6❤ &7| &f⌛ 5s"
   - "&d&lII: &f🎲 9% &7| &f▲ 4-8❤ &7| &f⌛ 5s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-group: "heroic"
-tier: heroic
+applies-to: [ARMOR]
+group: "mythic"
+tier: mythic
 requires: ["enchants/cactus"]
 levels:
   1:

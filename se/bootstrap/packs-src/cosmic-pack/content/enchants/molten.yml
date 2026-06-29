@@ -9,7 +9,7 @@ description:
   - "&a&lIII: &f🎲 8% &7| &f⌛ 3s"
   - "&a&lIV: &f🎲 10% &7| &f⌛ 3s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "uncommon"
 tier: uncommon
 levels:

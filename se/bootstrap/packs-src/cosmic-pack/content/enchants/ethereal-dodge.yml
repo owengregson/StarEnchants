@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: ethereal-dodge). Review before shipping.
 display: "Ethereal Dodge"
 description:
-  - "&dHeroic upgrade for Dodge."
+  - "&dMythic upgrade for Dodge."
   - "&dNegates an attack and grants"
   - "&dSpeed."
   - "&c&l(!)&r &7Requires &eDodge"
@@ -13,8 +13,8 @@ description:
   - "&d&lV: &f🎲 10% &7| &f▲ 6s &7| &f⌛ 5s"
 trigger: DEFENSE
 applies-to: [BOOTS]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/dodge"]
 levels:
   1:

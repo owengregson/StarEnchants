@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: deep-bleed). Review before shipping.
 display: "Deep Bleed"
 description:
-  - "&dHeroic upgrade for Bleed."
+  - "&dMythic upgrade for Bleed."
   - "&dDeals more bonus damage and"
   - "&dapplies stronger Slowness."
   - "&c&l(!)&r &7Requires &eBleed"
@@ -14,8 +14,8 @@ description:
   - "&d&lVI: &f🎲 8.25% &7| &f▲ 15% &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/bleed"]
 levels:
   1:

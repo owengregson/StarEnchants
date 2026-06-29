@@ -16,7 +16,7 @@ description:
   - "&e&lIX: &f🎲 5% &7| &f▲ 1x &7| &f⌛ 15s"
   - "&e&lX: &f🎲 6% &7| &f▲ 1x &7| &f⌛ 15s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "epic"
 tier: epic
 levels:

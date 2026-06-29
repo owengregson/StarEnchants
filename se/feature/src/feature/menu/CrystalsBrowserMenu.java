@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.ItemGroups;
 
 /**
  * The crystals/modifiers browser (§K, ADR-0030; a Cosmic Enchants-style plugin called crystals "modifiers").
@@ -48,7 +49,7 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
     protected ItemStack icon(MenuHolder holder, CrystalDef def) {
         List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8tier: " + tierColor(def.tier()) + tierLabel(def.tier()));
-        lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
+        lore.add("&8applies to: &7" + ItemGroups.kindsLabel(def.appliesTo()));
         lore.add("&7Drag a minted crystal onto gear to apply.");
         lore.add("&eClick to mint one. &8(operator)");
         // The crystal keeps its own authored name colour (its tier shows on the "tier:" line above), unlike an

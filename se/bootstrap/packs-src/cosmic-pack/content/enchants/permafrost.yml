@@ -12,8 +12,8 @@ description:
   - "&4&lVI: &f🎲 14% &7| &f⌛ 20s"
 trigger: DEFENSE
 applies-to: [BOOTS]
-group: "mythic"
-tier: mythic
+group: "godly"
+tier: godly
 levels:
   1:
     chance: 1.5
