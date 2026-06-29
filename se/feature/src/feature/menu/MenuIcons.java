@@ -90,7 +90,9 @@ public final class MenuIcons {
         if (meta != null) {
             List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             if (action != null && !action.isBlank()) {
-                lore.add("");
+                if (!lore.isEmpty()) {
+                    lore.add(""); // a separator only when there is existing lore to separate from
+                }
                 lore.add(ItemFactory.color(action));
             }
             meta.setLore(lore);
