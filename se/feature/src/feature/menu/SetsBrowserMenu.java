@@ -155,7 +155,7 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
             lore.add("&8weapon: &7" + (def.weapon().name() != null ? def.weapon().name() : def.weapon().material()));
         }
         lore.add("&eClick to view the pieces.");
-        return ItemFactory.hideDetails(ItemFactory.build(
+        return MenuIcons.hideDetails(ItemFactory.build(
                 material("DIAMOND_CHESTPLATE", "IRON_CHESTPLATE", "LEATHER_CHESTPLATE"), def.display(), lore));
     }
 
@@ -165,7 +165,7 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
         lore.add("&8material: &7" + piece.material());
         lore.add("&eClick to mint this piece. &8(operator)");
         Material fallback = piece.weapon() ? Material.IRON_SWORD : Material.LEATHER_CHESTPLATE;
-        return ItemFactory.hideDetails(ItemFactory.build(piece.material(), fallback, piece.name(), lore));
+        return MenuIcons.hideDetails(ItemFactory.build(piece.material(), fallback, piece.name(), lore));
     }
 
     private static String capitalize(String s) {

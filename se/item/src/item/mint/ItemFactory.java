@@ -197,51 +197,6 @@ public final class ItemFactory {
         return decorate(base, name, lore);
     }
 
-    /**
-     * Give {@code stack} the enchantment-glint shimmer WITHOUT a visible enchant line — the cross-version trick
-     * used for "featured"/"selected" menu icons (ADR-0030). Resolves a harmless vanilla enchant by its modern
-     * canonical name through the boot-wired {@link #enchantResolver} (so it is correct on 1.8 → 26.1.x) and
-     * hides it with the floor-stable {@link org.bukkit.inventory.ItemFlag#HIDE_ENCHANTS}. A resolver miss (pure
-     * tests, where no boot wiring ran) leaves the stack un-glinted rather than throwing — glow is cosmetic only.
-     */
-    public static ItemStack glow(ItemStack stack) {
-        if (stack == null) {
-            return null;
-        }
-        org.bukkit.enchantments.Enchantment glint = enchantResolver.apply("UNBREAKING");
-        if (glint == null) {
-            return stack; // no boot wiring (unit test) — skip the shimmer, never crash
-        }
-        try {
-            stack.addUnsafeEnchantment(glint, 1);
-            ItemMeta meta = stack.getItemMeta();
-            if (meta != null) {
-                meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
-                stack.setItemMeta(meta);
-            }
-        } catch (RuntimeException ignored) {
-            // A material that refuses the unsafe enchant on some odd version → leave it un-glinted, not broken.
-        }
-        return stack;
-    }
-
-    /**
-     * Hide the vanilla attribute/enchant tooltips on {@code stack} so a menu icon built from real gear (a set
-     * piece, an armour preview) shows only its curated name + lore, not "+2 Armour" noise (ADR-0030). Every
-     * flag named here is floor-stable (present since the 1.8 API). No-op when the stack has no meta.
-     */
-    public static ItemStack hideDetails(ItemStack stack) {
-        if (stack == null) {
-            return null;
-        }
-        ItemMeta meta = stack.getItemMeta();
-        if (meta != null) {
-            meta.addItemFlags(org.bukkit.inventory.ItemFlag.values());
-            stack.setItemMeta(meta);
-        }
-        return stack;
-    }
-
     @SuppressWarnings("deprecation") // setDisplayName/setLore(String/List): the floor-stable item-meta path
     private static ItemStack decorate(ItemStack stack, String name, List<String> lore) {
         ItemMeta meta = stack.getItemMeta();
