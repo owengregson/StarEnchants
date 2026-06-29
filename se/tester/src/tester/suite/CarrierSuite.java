@@ -89,13 +89,22 @@ public final class CarrierSuite implements Harness.Scenario {
                         compile.load.WhiteScrollConfig.defaults().protectedLine(),
                         compile.load.ScrollsConfig.defaults().holy().protectedLine()));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
+        // §I the scroll protection refresh: stamps/removes PROTECTED on the gear's EXISTING lore (no body rebuild),
+        // so it can't wipe authored/trak lore. This suite has no traks, so the trak predicate is false.
+        String whiteLine = compile.load.WhiteScrollConfig.defaults().protectedLine();
+        java.util.function.Consumer<ItemStack> protectionRefresh = gear ->
+                item.render.ProtectionLoreRefresh.refresh(gear,
+                        item.render.ProtectionLore.lines(carrierCodec.isGuarded(gear), false, whiteLine, ""),
+                        line -> item.render.ProtectionLore.isProtectionLine(line, whiteLine, ""),
+                        line -> false);
         // Default likeness: books never destroy on fail.
-        CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
+        CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1),
+                EnchantBookConfig::defaults, protectionRefresh);
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
         EnchantBookConfig destroyLikeness = new EnchantBookConfig(
                 "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true, 30);
         CarrierService destroyer = new CarrierService(
-                carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness);
+                carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness, protectionRefresh);
 
         h.guard("carrier.book.applies", () -> {
             ItemStack book = carriers.mintBook("enchants/zap", 1);

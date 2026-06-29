@@ -39,7 +39,8 @@ public final class CarrierService {
     private final java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig;
     private final java.util.function.BooleanSupplier roman; // §L lore.roman — book level numeral style, read live
     private final java.util.function.IntSupplier maxBookSuccess; // §I books.max-success — global success ceiling, live
-    private final item.codec.AppliedSlot slot; // §I exclusive applied-utility slot a white scroll occupies
+    private final item.codec.AppliedSlot slot; // §I applied-utility marker set a white scroll occupies
+    private final java.util.function.Consumer<ItemStack> protectionRefresh; // §I toggle the PROTECTED line, preserving the rest of the lore
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -54,13 +55,22 @@ public final class CarrierService {
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
     }
 
+    /** Test form: book likeness + the §I protection refresh; dust/white-scroll defaults, a fresh applied-slot. */
+    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
+                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
+                          java.util.function.Consumer<ItemStack> protectionRefresh) {
+        this(codec, enchanter, content, random, bookConfig, compile.load.DustConfig::defaults,
+                compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
+                new item.codec.AppliedSlot("appliedslot"), protectionRefresh);
+    }
+
     /** Book-numeral-default form: likeness suppliers supplied; the book level numeral defaults to Roman. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
                           java.util.function.Supplier<compile.load.DustConfig> dustConfig,
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
         this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"));
+                new item.codec.AppliedSlot("appliedslot"), gear -> { });
     }
 
     /**
@@ -68,7 +78,8 @@ public final class CarrierService {
      * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style;
      * {@code maxBookSuccess} (the live {@code books.max-success} setting) is the global success ceiling that
      * binds randomised minting and dust (guaranteed/admin books are exempt — see {@link #capBookSuccess});
-     * {@code slot} is the shared exclusive applied-utility slot a white scroll occupies (§I).
+     * {@code slot} is the shared applied-utility marker set a white scroll occupies (§I); {@code protectionRefresh}
+     * re-stamps the PROTECTED line from marker state WITHOUT a full re-render (so it never wipes economy/trak lore).
      */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
@@ -76,7 +87,8 @@ public final class CarrierService {
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig,
                           java.util.function.BooleanSupplier roman,
                           java.util.function.IntSupplier maxBookSuccess,
-                          item.codec.AppliedSlot slot) {
+                          item.codec.AppliedSlot slot,
+                          java.util.function.Consumer<ItemStack> protectionRefresh) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -87,6 +99,7 @@ public final class CarrierService {
         this.roman = Objects.requireNonNull(roman, "roman");
         this.maxBookSuccess = Objects.requireNonNull(maxBookSuccess, "maxBookSuccess");
         this.slot = Objects.requireNonNull(slot, "slot");
+        this.protectionRefresh = Objects.requireNonNull(protectionRefresh, "protectionRefresh");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -217,7 +230,7 @@ public final class CarrierService {
         if (codec.isGuarded(target)) {
             codec.setGuarded(target, false);
             slot.release(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I the white scroll's guard is spent
-            enchanter.reRender(target); // drop the PROTECTED line now the guard is gone
+            protectionRefresh.accept(target); // drop the PROTECTED line now the guard is gone (preserve the rest)
             return CarrierResult.consumed("§eThe enchant failed — but your protection saved the item.");
         }
         if (destroyOnFail) {
@@ -477,7 +490,7 @@ public final class CarrierService {
         }
         codec.setGuarded(target, true);
         slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I add the white-scroll marker (coexists with traks/holy)
-        enchanter.reRender(target); // stamp the PROTECTED line from the new guard state
+        protectionRefresh.accept(target); // stamp the PROTECTED line from the new guard state (preserve the rest)
         return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
     }
 

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -23,6 +24,7 @@ public final class LoreRenderer {
     private final Function<String, String> enchantColorOf;
     private final SetLore setLore;
     private final Function<ItemStack, List<String>> protectionLines;
+    private final Predicate<String> trakLine; // identifies an applied-trak count line so a re-render PRESERVES it
 
     /**
      * Set members' authored lore, looked up from state at render time so a worn piece keeps its flavour lore
@@ -69,20 +71,29 @@ public final class LoreRenderer {
         this(style, displayNameOf, enchantColorOf, setLore, stack -> List.of());
     }
 
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf, SetLore setLore,
+            Function<ItemStack, List<String>> protectionLines) {
+        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, line -> false);
+    }
+
     /**
      * Canonical renderer: {@code style} is re-read per render so a {@code /se reload} takes effect next render;
      * {@code enchantColorOf} colours each enchant by rarity tier ({@code null}/blank → the style's default);
      * {@code protectionLines} contributes the applied-scroll PROTECTED lines from an item's marker state (empty
-     * for an unprotected item), appended at the bottom of the body — above any trak count line.
+     * for an unprotected item), appended at the bottom of the body — above any trak count line; {@code trakLine}
+     * marks an applied-trak count line so {@link #apply} re-renders the body but PRESERVES the trak lines that a
+     * separate system owns (instead of clobbering them on every enchant change).
      */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
             Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines) {
+            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
         this.enchantColorOf = Objects.requireNonNull(enchantColorOf, "enchantColorOf");
         this.setLore = Objects.requireNonNull(setLore, "setLore");
         this.protectionLines = Objects.requireNonNull(protectionLines, "protectionLines");
+        this.trakLine = Objects.requireNonNull(trakLine, "trakLine");
     }
 
     /** Lore lines in stored order: one per enchant ({@code name level}), then one per crystal. Empty if no state. */
@@ -131,7 +142,7 @@ public final class LoreRenderer {
     }
 
     /** Render onto {@code stack} in place; clears lore when state is empty. False if the item can't carry meta (air). */
-    @SuppressWarnings("deprecation") // setLore(List<String>): deprecated-not-removed across the whole range.
+    @SuppressWarnings("deprecation") // get/setLore(List<String>): deprecated-not-removed across the whole range.
     public boolean apply(ItemStack stack, CombatState state) {
         if (stack == null) {
             return false;
@@ -140,8 +151,19 @@ public final class LoreRenderer {
         if (meta == null) {
             return false;
         }
+        // Preserve any applied-trak count lines: they are NOT part of CombatState (a separate system stamps
+        // them), so re-rendering the combat body must keep them rather than wipe them on every enchant change.
+        List<String> preservedTraks = new ArrayList<>();
+        if (meta.hasLore()) {
+            for (String line : meta.getLore()) {
+                if (trakLine.test(line)) {
+                    preservedTraks.add(line);
+                }
+            }
+        }
         List<String> lore = lines(state);
         lore.addAll(protectionLines.apply(stack)); // applied-scroll PROTECTED lines, from marker state (§4.2)
+        lore.addAll(preservedTraks);                // re-stack the trak lines below the body + protection
         meta.setLore(lore.isEmpty() ? null : lore);
         stack.setItemMeta(meta);
         return true;
