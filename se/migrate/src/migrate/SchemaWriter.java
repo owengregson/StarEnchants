@@ -64,8 +64,9 @@ public final class SchemaWriter {
 
     /**
      * Render one migrated armour set to a set YAML document (§6.6). EliteArmor sets are armour-only (no
-     * weapon member), so the output has just an {@code armor:} block: each piece becomes a member with a
-     * default material the operator should confirm, sharing the document's DEFENSE bonus.
+     * weapon member), so the output has a physical {@code armor:} block (each piece a member with a default
+     * material the operator should confirm) plus a single {@code on: armor} bonus in the {@code bonuses:} list
+     * carrying the document's DEFENSE behaviour.
      */
     public static String set(MigratedSet s, Function<String, ParamSpec> specs) {
         StringBuilder b = new StringBuilder();
@@ -89,9 +90,12 @@ public final class SchemaWriter {
                         .append(" }  # TODO confirm the armour material; add a name: for a custom item name\n");
             }
         }
-        b.append("  trigger: DEFENSE\n");
-        b.append("  chance: 100\n");
-        appendEffects(b, s.effects(), "  ", specs);
+        b.append("# Behaviours: this on:armor bonus fires while the set is complete (§6.6).\n");
+        b.append("bonuses:\n");
+        b.append("  - on: armor\n");
+        b.append("    trigger: DEFENSE\n");
+        b.append("    chance: 100\n");
+        appendEffects(b, s.effects(), "    ", specs);
         return b.toString();
     }
 

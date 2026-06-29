@@ -128,9 +128,31 @@ class WornResolverTest {
     }
 
     @Test
+    void extraArmorBonusesFireWhileTheSetIsComplete() {
+        // A set with a primary on:armor bonus (setId, completes at 3) PLUS an extra on:armor bonus (/a1,
+        // setPieces 0). Both fire while complete; neither below threshold — the new multi-bonus path (§6.6).
+        StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/a1"));
+        Ability[] abilities = {
+            new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null, // primary: DEFENSE, completes at 3
+                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3),
+            new Ability(1, 0, SourceKind.SET, 1 << 0, 0, 100.0, 0, 0, 0L, null, // extra: ATTACK, setPieces 0
+                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0)
+        };
+        CombatState piece = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+
+        WornState below = resolver().resolveFrom(List.of(piece, piece), keys, abilities, 1);
+        assertEquals(0, below.byTrigger(0).length, "extra bonus must not fire below threshold");
+        assertEquals(0, below.byTrigger(1).length);
+
+        WornState complete = resolver().resolveFrom(List.of(piece, piece, piece), keys, abilities, 1);
+        assertArrayEquals(new int[] {0}, complete.byTrigger(1), "primary fires on DEFENSE");
+        assertArrayEquals(new int[] {1}, complete.byTrigger(0), "extra armour bonus fires on ATTACK when complete");
+    }
+
+    @Test
     void weaponBonusFiresOnlyWhenTheSetIsCompleteAndWeaponHeld() {
-        // id 0 = sets/yeti armour bonus (DEFENSE, completes at 3); id 1 = sets/yeti/weapon (ATTACK, gated).
-        StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/weapon"));
+        // id 0 = sets/yeti armour bonus (DEFENSE, completes at 3); id 1 = sets/yeti/w1 (ATTACK, gated).
+        StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/w1"));
         Ability[] abilities = {
             new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null,
                     new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3),

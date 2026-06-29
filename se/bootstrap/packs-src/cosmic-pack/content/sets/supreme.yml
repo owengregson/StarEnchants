@@ -20,10 +20,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&4&lGlorious Garment&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&4&lLuxurious Legs&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&4&lSupreme Slides&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -38,7 +34,15 @@ weapon:
     - "&4&lSUPREME WEAPON BONUS"
     - "&4* Deal 15% more damage to all enemies"
     - "&7&o(Requires all four Supreme set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

@@ -39,19 +39,22 @@ class SetDefReaderTest {
             description: "Frost set."
             complete: 4
             armor:
-              trigger: DEFEND
               lore: ["&7Frost aura"]
               pieces:
                 helmet: { material: DIAMOND_HELMET, name: "&bYeti Helm" }
                 chestplate: { material: DIAMOND_CHESTPLATE }
                 leggings: { material: DIAMOND_LEGGINGS }
                 boots: { material: DIAMOND_BOOTS }
-              effects: [{ DAMAGE: { amount: 2 } }]
             weapon:
               material: DIAMOND_SWORD
               name: "&bYeti Blade"
-              trigger: ATTACK
-              effects: [{ HEAL: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 2 } }]
+              - on: weapon
+                trigger: ATTACK
+                effects: [{ HEAL: { amount: 1 } }]
             """;
         SetDefReader.Parsed parsed = SetDefReader.read("sets/yeti", root(yaml, diags), counter(), diags);
 
@@ -65,7 +68,7 @@ class SetDefReaderTest {
         assertTrue(parsed.def().hasWeapon());
         assertEquals("DIAMOND_SWORD", parsed.def().weapon().material());
 
-        // armour bonus -> <key> with the worn-piece count on setPieces; weapon bonus -> <key>/weapon, setPieces 0
+        // first on:armor bonus -> <key> with the worn-piece count on setPieces; on:weapon bonus -> <key>/w1, setPieces 0
         assertEquals(2, parsed.abilities().size());
         AbilityDef armor = parsed.abilities().get(0);
         assertEquals(SourceKind.SET, armor.sourceKind());
@@ -74,9 +77,55 @@ class SetDefReaderTest {
         assertEquals(List.of("DEFEND"), armor.triggers());
 
         AbilityDef weapon = parsed.abilities().get(1);
-        assertEquals("sets/yeti/weapon", weapon.stableKey());
+        assertEquals("sets/yeti/w1", weapon.stableKey());
         assertEquals(0, weapon.setPieces());
         assertEquals(List.of("ATTACK"), weapon.triggers());
+    }
+
+    @Test
+    void multipleBonusesUnderOneSetEachGetTheirOwnAbilityGatedByCompletion() {
+        // The new capability: a permanent on:armor passive PLUS a cooldown-gated on:armor bonus PLUS an
+        // on:weapon bonus, all under one completion gate. The primary keeps the set key; the rest get /aN, /wN.
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            complete: 4
+            armor:
+              pieces:
+                boots: { material: DIAMOND_BOOTS }
+            weapon:
+              material: DIAMOND_SWORD
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                chance: 100
+                effects: [{ DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }]
+              - on: armor
+                trigger: ATTACK
+                chance: 25
+                cooldown: 100
+                effects: [{ DAMAGE: { amount: 5 } }]
+              - on: weapon
+                trigger: ATTACK
+                effects: [{ HEAL: { amount: 1 } }]
+            """;
+        SetDefReader.Parsed parsed = SetDefReader.read("sets/devil", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(3, parsed.abilities().size());
+
+        AbilityDef primary = parsed.abilities().get(0);
+        assertEquals("sets/devil", primary.stableKey()); // completion ability
+        assertEquals(4, primary.setPieces());
+        assertEquals(0, primary.cooldownTicks());
+
+        AbilityDef extraArmor = parsed.abilities().get(1);
+        assertEquals("sets/devil/a1", extraArmor.stableKey()); // gated on completion, not its own piece count
+        assertEquals(0, extraArmor.setPieces());
+        assertEquals(100, extraArmor.cooldownTicks());
+
+        AbilityDef weapon = parsed.abilities().get(2);
+        assertEquals("sets/devil/w1", weapon.stableKey());
+        assertEquals(0, weapon.setPieces());
     }
 
     @Test
@@ -84,10 +133,12 @@ class SetDefReaderTest {
         Diagnostics diags = new Diagnostics();
         String yaml = """
             armor:
-              trigger: DEFEND
               pieces:
                 boots: { material: LEATHER_BOOTS }
-              effects: [{ DAMAGE: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
             """;
         SetDefReader.Parsed parsed = SetDefReader.read("sets/light", root(yaml, diags), counter(), diags);
 
@@ -99,7 +150,7 @@ class SetDefReaderTest {
     }
 
     @Test
-    void missingArmorBlockIsAnError() {
+    void missingArmorBonusIsAnError() {
         Diagnostics diags = new Diagnostics();
         SetDefReader.read("sets/x", root("display: Nope\n", diags), counter(), diags);
         assertCode(diags, DiagCode.E_LOAD_SET_ARMOR);
@@ -110,10 +161,12 @@ class SetDefReaderTest {
         Diagnostics diags = new Diagnostics();
         String yaml = """
             armor:
-              trigger: DEFEND
               pieces:
                 helmet: { name: "&bNo material" }
-              effects: [{ DAMAGE: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
             """;
         SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
         assertCode(diags, DiagCode.E_LOAD_SET_MEMBER);
@@ -125,30 +178,48 @@ class SetDefReaderTest {
         String yaml = """
             complete: 0
             armor:
-              trigger: DEFEND
               pieces:
                 boots: { material: LEATHER_BOOTS }
-              effects: [{ DAMAGE: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
             """;
         SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
         assertCode(diags, DiagCode.E_LOAD_SET_COMPLETE);
     }
 
     @Test
-    void weaponWithoutMaterialIsAnError() {
+    void weaponItemWithoutMaterialIsAnError() {
         Diagnostics diags = new Diagnostics();
         String yaml = """
             armor:
-              trigger: DEFEND
               pieces:
                 boots: { material: LEATHER_BOOTS }
-              effects: [{ DAMAGE: { amount: 1 } }]
             weapon:
-              trigger: ATTACK
-              effects: [{ HEAL: { amount: 1 } }]
+              name: "&cNo material"
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
             """;
         SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
         assertCode(diags, DiagCode.E_LOAD_SET_WEAPON);
+    }
+
+    @Test
+    void aBonusWithoutATriggerIsAnError() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              pieces:
+                boots: { material: LEATHER_BOOTS }
+            bonuses:
+              - on: armor
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
+        assertCode(diags, DiagCode.E_LOAD_SET_TRIGGER);
     }
 
     @Test
@@ -159,16 +230,19 @@ class SetDefReaderTest {
               enchants:
                 enchants/frost: 2
                 PROTECTION: 4
-              trigger: DEFEND
               pieces:
                 boots: { material: DIAMOND_BOOTS }
-              effects: [{ DAMAGE: { amount: 1 } }]
             weapon:
               enchants:
                 SHARPNESS: 5
               material: DIAMOND_SWORD
-              trigger: ATTACK
-              effects: [{ HEAL: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+              - on: weapon
+                trigger: ATTACK
+                effects: [{ HEAL: { amount: 1 } }]
             """;
         SetDefReader.Parsed parsed = SetDefReader.read("sets/frost", root(yaml, diags), counter(), diags);
 
@@ -187,10 +261,12 @@ class SetDefReaderTest {
               enchants:
                 enchants/frost: nope
                 PROTECTION: 4
-              trigger: DEFEND
               pieces:
                 boots: { material: DIAMOND_BOOTS }
-              effects: [{ DAMAGE: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
             """;
         SetDefReader.Parsed parsed = SetDefReader.read("sets/frost", root(yaml, diags), counter(), diags);
 

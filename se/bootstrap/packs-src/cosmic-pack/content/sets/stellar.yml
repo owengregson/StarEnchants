@@ -20,11 +20,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&5&lPhase Plate&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&5&lWarp Leggings&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&5&lBlink Boots&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { POTION: { effect: ABSORPTION, level: 5, duration: 100, who: "@Self" } }
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -39,7 +34,16 @@ weapon:
     - "&5&lSTELLAR WEAPON BONUS"
     - "&5* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Stellar set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { POTION: { effect: ABSORPTION, level: 5, duration: 100, who: "@Self" } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

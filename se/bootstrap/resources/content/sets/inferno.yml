@@ -12,20 +12,24 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&cInferno Chestplate" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&cInferno Leggings" }
     boots:      { material: DIAMOND_BOOTS,      name: "&cInferno Boots" }
-  trigger: DEFENSE
-  chance: 45
-  cooldown: 100
-  effects:
-    - { IGNITE: { duration: 80, who: "@Attacker" } }
-    - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
-    - { PARTICLE: { particle: FLAME, count: 12 } }
 weapon:
   material: DIAMOND_SWORD
   name: "&cInferno Blade"
   lore:
     - "&cInferno Set Weapon"
     - "&7Wield with the full set to set foes alight."
-  trigger: ATTACK
-  chance: 60
-  effects:
-    - { IGNITE: { duration: 60, who: "@Victim" } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 45
+    cooldown: 100
+    effects:
+      - { IGNITE: { duration: 80, who: "@Attacker" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
+      - { PARTICLE: { particle: FLAME, count: 12 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 60
+    effects:
+      - { IGNITE: { duration: 60, who: "@Victim" } }

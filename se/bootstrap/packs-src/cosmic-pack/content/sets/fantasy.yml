@@ -20,9 +20,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&2&lMythic Platemail&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&2&lLost Legwear&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&2&lAdventurer's Boots&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects: []
 weapon:
   enchants:
     SHARPNESS: 5
@@ -37,7 +34,14 @@ weapon:
     - "&2&lFANTASY WEAPON BONUS"
     - "&2* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Fantasy set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects: []
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

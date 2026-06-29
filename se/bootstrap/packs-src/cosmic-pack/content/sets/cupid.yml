@@ -19,10 +19,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&d&lHeartfelt Armor&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&d&lPassionate Greaves&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&d&lAmorous Sandals&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -37,7 +33,15 @@ weapon:
     - "&d&lCUPID WEAPON BONUS"
     - "&d* Deal 5% more damage to all enemies."
     - "&7&o(Requires all four Cupid set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }

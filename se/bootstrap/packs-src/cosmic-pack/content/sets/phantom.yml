@@ -17,12 +17,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&c&lEthereal Cloak&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&c&lWraith Leggings&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&c&lShadow Boots&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { POTION: { effect: SPEED, level: 4, duration: 100, who: "@Self" } }
-    - { POTION: { effect: INCREASE_DAMAGE, level: 1, duration: 100, who: "@Self" } }
-    - { POTION: { effect: FAST_DIGGING, level: 2, duration: 100, who: "@Self" } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -37,7 +31,17 @@ weapon:
     - "&c&lPHANTOM WEAPON BONUS"
     - "&c* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Phantom set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { POTION: { effect: SPEED, level: 4, duration: 100, who: "@Self" } }
+      - { POTION: { effect: INCREASE_DAMAGE, level: 1, duration: 100, who: "@Self" } }
+      - { POTION: { effect: FAST_DIGGING, level: 2, duration: 100, who: "@Self" } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
