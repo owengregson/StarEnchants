@@ -100,13 +100,17 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         ContentHolder holder = new ContentHolder(lib);
         ItemKeys keys = ItemKeys.of();
         CombatCodec combat = new CombatCodec(keys.combat());
-        LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k));
+        // Wire the §I enchant-count suffix template (as the plugin does) so the transmog re-render stamps the
+        // count onto the name — the suffix is now a renderer feature, not a ScrollService call.
+        LoreRenderer lore = new LoreRenderer(
+                () -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k),
+                key -> null, LoreRenderer.SetLore.NONE, stack -> List.of(), line -> false,
+                () -> ScrollsConfig.defaults().transmog().nameSuffix(),
+                () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> null);
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
         SlotItemCodec slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess());
-        SlotService slots = new SlotService(slotCodec, combat, lore, SlotConfig::defaults,
-                ItemEnchanter.DEFAULT_BASE_SLOTS);
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
         // Extraction always succeeds now; pin the conversion rate so the drawn book's outcome is exact.
         ScrollsConfig alwaysExtract = withBlackConvert(ScrollsConfig.defaults(), 100, 100);
