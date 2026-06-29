@@ -60,7 +60,7 @@ Full armour sets with a set-completion bonus and an optional matched set weapon,
 <td width="50%" valign="top">
 <img src="assets/icons/gui.svg" width="40" alt="In-game GUIs"><br>
 <b>In-game GUIs</b><br>
-Enchanter, alchemist, tinkerer, transmog, and browser menus (enchants, sets, crystals, and the live DSL reference) — open any with <code>/se menu</code>.
+Beautiful, fully-configurable menus are the primary way to run the plugin. Players open the hub with <code>/enchants</code> (enchanter, alchemist, tinkerer, transmog, and the enchant/set/crystal browsers); operators open the console with <code>/se menu</code> to grant books, mint any item, drill into armour sets and mint each piece, and reload — all in-game.
 </td>
 </tr>
 <tr>

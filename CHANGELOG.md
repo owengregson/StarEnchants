@@ -8,6 +8,19 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **GUI overhaul — the menus are now the primary way to run StarEnchants (ADR-0030).**
+  A themed, framed, highly-configurable menu chrome: a `border` picture-frame default,
+  named/colour-coded navigation buttons (`« Previous`, `Next »`, `⤶ Go Back`, `✖ Close`),
+  a self-describing info pane on every menu, and gentle glint on actionable tiles — all
+  tunable per menu from `menus/<name>.yml` (frame, filler, per-button material/name, info
+  pane), with `menus/apply.yml` documenting every field. New `/enchants` player hub (the
+  benches + browsers, permission-free) closes the gap where admin-gated `/se` left players
+  no entry; `/se menu` now opens an Operator Console that can grant books, **mint any item**,
+  drill into **armour sets and mint each piece**, mint crystals, apply enchants, browse the
+  DSL reference, and reload — all without leaving the game. The Alchemist and Tinkerer
+  benches are redesigned. Both the default and cosmic packs ship a documented, themed
+  `menus/*.yml` per GUI. Commands remain as aliases.
+
 - **Closed-world JDK-8 API gate (legacy "Gate 2").** `scripts/jdk8-api-gate.sh` +
   `scripts/tools/Jdk8ApiGate.java` walk the downgraded Java-8 (v52) jar with ASM and fail the
   build if any `java.*`/`javax.*` reference is absent from a real JDK 8 — the static net for
