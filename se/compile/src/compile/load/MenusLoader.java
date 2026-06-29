@@ -54,12 +54,19 @@ public final class MenusLoader {
             }
             byMenu.put(stem, new MenuLayoutConfig(
                     optInt(root.string("rows"), name, diags),
-                    Optional.ofNullable(blankToNull(root.string("title"))),
+                    optStr(root.string("title")),
                     root.has("filler") ? Optional.of(orEmpty(root.string("filler"))) : Optional.empty(),
+                    optStr(root.string("frame")),
                     optInt(root.string("prev-slot"), name, diags),
                     optInt(root.string("next-slot"), name, diags),
                     optInt(root.string("back-slot"), name, diags),
-                    optInt(root.string("close-slot"), name, diags)));
+                    optInt(root.string("close-slot"), name, diags),
+                    optStr(root.string("prev-material")), optStr(root.string("prev-name")),
+                    optStr(root.string("next-material")), optStr(root.string("next-name")),
+                    optStr(root.string("back-material")), optStr(root.string("back-name")),
+                    optStr(root.string("close-material")), optStr(root.string("close-name")),
+                    optStr(root.string("info-material")), optStr(root.string("info-name")),
+                    optInt(root.string("info-slot"), name, diags)));
         }
         return new MenusConfig(byMenu, diags.all());
     }
@@ -96,8 +103,9 @@ public final class MenusLoader {
         return dot < 0 ? name : name.substring(0, dot);
     }
 
-    private static String blankToNull(String v) {
-        return v == null || v.isBlank() ? null : v;
+    /** A non-blank string value as an {@link Optional}, else empty (an omitted/blank key keeps the code default). */
+    private static Optional<String> optStr(String v) {
+        return v == null || v.isBlank() ? Optional.empty() : Optional.of(v);
     }
 
     /** Preserves blank/empty as "" (operator explicitly disabling filler), not nulled. */

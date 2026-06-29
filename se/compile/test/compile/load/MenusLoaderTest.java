@@ -26,8 +26,12 @@ class MenusLoaderTest {
         Files.writeString(dir.resolve("apply.yml"), """
                 title: "&dApply"
                 filler: "BLACK_STAINED_GLASS_PANE"
+                frame: "border"
                 rows: 5
                 prev-slot: 36
+                prev-material: "SPECTRAL_ARROW"
+                info-name: "&bHelp"
+                info-slot: 4
                 """);
         Files.writeString(dir.resolve("enchanter.yml"), """
                 title: "&3Shop"
@@ -39,9 +43,14 @@ class MenusLoaderTest {
         MenuLayoutConfig apply = config.forMenu("APPLY").orElseThrow(); // case-insensitive
         assertEquals("&dApply", apply.title().orElseThrow());
         assertEquals("BLACK_STAINED_GLASS_PANE", apply.filler().orElseThrow());
+        assertEquals("border", apply.frame().orElseThrow());
         assertEquals(5, apply.rows().orElseThrow());
         assertEquals(36, apply.prevSlot().orElseThrow());
+        assertEquals("SPECTRAL_ARROW", apply.prevButtonMaterial().orElseThrow()); // chrome key surfaced
+        assertEquals("&bHelp", apply.infoName().orElseThrow());
+        assertEquals(4, apply.infoSlot().orElseThrow());
         assertTrue(apply.nextSlot().isEmpty()); // unset stays absent → framework keeps its default
+        assertTrue(apply.backButtonName().isEmpty()); // an unset chrome key stays absent too
         assertTrue(config.forMenu("enchanter").orElseThrow().title().isPresent());
     }
 
