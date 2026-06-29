@@ -124,7 +124,7 @@ public final class TriggerRunner {
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
                 .facts(factPopulator.populate(context, now)) // gate-7 condition facts, read on the firing thread
                 .location(context.location()); // captured on the firing thread → safe for the gate-2 guard
-        soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.gemId(), binding.balance()));
+        soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
         executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
     }
 

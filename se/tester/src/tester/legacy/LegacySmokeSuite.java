@@ -6,7 +6,7 @@ import compile.load.Library;
 import compile.load.LibraryLoader;
 import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
-import engine.interact.SoulLedger;
+import engine.interact.SoulSpender;
 import engine.pipeline.ActivationPipeline;
 import engine.run.AbilityExecutor;
 import engine.run.AreaScan;
@@ -355,7 +355,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         EventProbe probe = new EventProbe();
         plugin.getServer().getPluginManager().registerEvents(probe, plugin);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE,
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE,
                 (key, ability, ctx) -> {
                     Player actor = ctx.actor();
                     if (actor == null || key == null) {

@@ -2,7 +2,8 @@ package feature.soul;
 
 import compile.load.SoulGemConfig;
 import compile.load.SoundCue;
-import engine.interact.SoulLedger;
+import engine.interact.SoulPool;
+import engine.interact.SoulSpender;
 import engine.sink.SoulDebit;
 import engine.stores.SoulModeStore;
 import feature.compat.Hands;
@@ -15,10 +16,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -28,23 +29,25 @@ import org.bukkit.inventory.meta.ItemMeta;
 import platform.sched.Scheduling;
 
 /**
- * The soul gameplay loop (§6.3, §D) — the binding between the durable on-item {@link SoulData} and the
- * in-memory {@link SoulLedger} authority, made Folia-correct.
+ * The soul gameplay loop (§6.3, §D). Soul mode is a per-PLAYER ON/OFF that drains the player's gems
+ * cross-gem, LEAST-souls gem first — the durable counts live on each gem's {@link SoulData} PDC, and the
+ * in-memory {@link SoulPool} is the spend authority over their SUM so gate-10 affordability never reads a
+ * cross-region inventory.
  *
- * <p><strong>Threading discipline.</strong> The ledger is the live truth during a session; the gem's PDC
- * is the durable backing. The authority is seeded ONCE at toggle-on (player's own thread, where reading
- * their held gem is region-safe); thereafter reads use the authority, never a live cross-region item read.
- * A spend debits synchronously under the ledger's stripe lock (any thread), but the PDC write is DEFERRED
- * to the gem-holder's entity thread — combat fires on the victim's region while the gem is the attacker's,
- * so an inline write would be a cross-region mutation on Folia.
+ * <p><strong>Threading.</strong> {@link #trySpend} (gate 10, any thread) charges the pool atomically and
+ * raises {@code pending}; the physical drain — {@link #drainLeastFirst} — runs on the gem-holder's region
+ * thread (deferred via {@link Scheduling#onEntity}), where reading/mutating the inventory is Folia-safe.
+ * {@link #flushPending} settles the owed drain; every holder-thread soul operation (maintain tick, deposit,
+ * combine, split, toggle-off, quit) flushes first so the durable gem counts it reads are accurate, then
+ * {@link SoulPool#resync resyncs} the pool from physical so external pickups/drops are reflected without
+ * manufacturing or destroying souls.
  *
- * <p><strong>Deposit on any kill.</strong> Souls accrue on EVERY kill regardless of soul-mode state
- * ({@link #onKill}); spending stays gated by soul mode (gate 10 / {@code REMOVE_SOULS}). {@link #combine}
- * and {@link #split} reconcile the ledger and any active mode whose gem identity they retire.
+ * <p><strong>Zero-gem invariant.</strong> A zero-soul gem may exist ONLY as the player's lone gem
+ * ({@link #cleanup}); soul mode auto-disables only when total souls across all gems reaches zero.
  */
-public final class SoulService implements SoulDebit {
+public final class SoulService implements SoulDebit, SoulSpender {
 
-    private final SoulLedger ledger;
+    private final SoulPool pool;
     private final SoulModeStore modes;
     private final SoulCodec codec;
     private final Supplier<SoulGemConfig> config;
@@ -59,34 +62,34 @@ public final class SoulService implements SoulDebit {
     private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
 
     /** Soul service with deposit-on-any-kill always on + default messages (the common test/fixture form). */
-    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
-        this(ledger, modes, codec, config, () -> true);
+    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
+        this(pool, modes, codec, config, () -> true);
     }
 
     /** As above, with a deposit toggle but default messages. */
-    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill) {
-        this(ledger, modes, codec, config, depositOnAnyKill, item.lang.Messages.defaults());
+        this(pool, modes, codec, config, depositOnAnyKill, item.lang.Messages.defaults());
     }
 
     /** As above, with messages but no particle fx (the no-fx form). */
-    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages) {
-        this(ledger, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
+        this(pool, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
     }
 
     /** Particles-but-no-lore-preservation form (the test/fixture canonical). */
-    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
                        feature.fx.ParticleFx particles) {
-        this(ledger, modes, codec, config, depositOnAnyKill, messages, particles, line -> false);
+        this(pool, modes, codec, config, depositOnAnyKill, messages, particles, line -> false);
     }
 
     /** Canonical form (composition root): {@code preservedLoreLine} marks scroll/trak lines to keep on re-render. */
-    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
                        feature.fx.ParticleFx particles, java.util.function.Predicate<String> preservedLoreLine) {
-        this.ledger = Objects.requireNonNull(ledger, "ledger");
+        this.pool = Objects.requireNonNull(pool, "pool");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.config = Objects.requireNonNull(config, "config");
@@ -96,8 +99,8 @@ public final class SoulService implements SoulDebit {
         this.preservedLoreLine = Objects.requireNonNull(preservedLoreLine, "preservedLoreLine");
     }
 
-    /** {@code NO_GEM}: not holding a gem. {@code NO_SOULS}: held a zero gem / no souls anywhere — toggle already
-     *  played the {@code soul.empty} feedback (F), so the caller adds nothing. {@code ENABLED}/{@code DISABLED}. */
+    /** {@code NO_GEM}: not holding a gem. {@code NO_SOULS}: held a zero gem — toggle already played the
+     *  {@code soul.empty} feedback (F), so the caller adds nothing. {@code ENABLED}/{@code DISABLED}. */
     public enum Toggle { NO_GEM, NO_SOULS, ENABLED, DISABLED }
 
     public record SplitResult(Status status, int moved, int remaining) {
@@ -109,23 +112,16 @@ public final class SoulService implements SoulDebit {
     }
 
     /**
-     * Toggle soul mode (§D). MUST run on the player's own thread (reads + mutates their inventory). Soul mode is
-     * a per-player ON/OFF; while on it drains ONE gem at a time, the least-souls gem first (the active gem is the
-     * current drain target, re-pointed as each empties). Enabling targets the least-souls NONZERO gem and seeds
-     * its ledger authority so no later read crosses a region. Disabling flushes + forgets the target.
+     * Toggle soul mode (§D). MUST run on the player's own thread (reads + mutates their inventory). Enabling
+     * seeds the pool from the player's TOTAL souls; disabling flushes any pending spend then drops the pool.
      */
     public Toggle toggle(Player player) {
         SoulGemConfig cfg = config.get();
         UUID id = player.getUniqueId();
-        Optional<UUID> active = modes.active(id);
-        if (active.isPresent()) {
-            UUID gemId = active.get();
-            // Flush the live authority to PDC BEFORE forgetting it (we are on the holder's thread): else a spend
-            // whose deferred write is still in flight would find the authority gone and no-op, leaving the durable
-            // count un-debited — the souls would refund (a dupe). Same flush-then-forget as clear().
-            persist(player, gemId);
+        if (modes.active(id).isPresent()) {
+            flushPending(player); // settle owed drains to PDC before dropping the pool, else a spend refunds
             modes.deactivate(id);
-            ledger.forget(gemId);
+            pool.disable(id);
             messageLines(player, messages.lines("soul.deactivate"));
             playSounds(player, cfg.sounds().toggleOff());
             particles.spawn(player, cfg.particles().disable());
@@ -136,17 +132,14 @@ public final class SoulService implements SoulDebit {
             return Toggle.NO_GEM; // not a gem in hand — the command reports soul.empty
         }
         // F: right-clicking a ZERO-soul gem never enables — fail out instantly with the soul.empty feedback.
-        // (Per the cleanup invariant a zero gem is the player's only gem, so there is nothing to drain.)
-        if (effectiveSouls(held) <= 0) {
+        if (held.souls() <= 0) {
             messageLines(player, messages.lines("soul.empty"));
             playSounds(player, cfg.sounds().toggleOff());
             particles.spawn(player, cfg.particles().disable());
             return Toggle.NO_SOULS;
         }
-        // Enable: target the LEAST-souls nonzero gem (drain order); seed its authority on this (holder) thread.
-        UUID target = leastNonzero(gemViews(player)).map(GemView::gemId).orElse(held.gemId());
-        modes.activate(id, target);
-        seedGem(player, target);
+        modes.activate(id, id); // the stored marker is just "on" (the player's own id); the pool holds the souls
+        pool.enable(id, totalSouls(player));
         messageLines(player, messages.lines("soul.activate"));
         playSounds(player, cfg.sounds().toggleOn());
         particles.spawn(player, cfg.particles().enable());
@@ -244,7 +237,7 @@ public final class SoulService implements SoulDebit {
         Scheduling.onEntity(killer, () -> creditKill(killer, amount));
     }
 
-    /** Credit {@code amount} to the killer's carried gem. MUST run on the killer's own thread. */
+    /** Credit {@code amount} to the killer's carried gem (durable PDC), then keep the pool in sync. Killer thread. */
     private void creditKill(Player killer, int amount) {
         PlayerInventory inv = killer.getInventory();
         int slot = locateGemSlot(inv);
@@ -255,30 +248,35 @@ public final class SoulService implements SoulDebit {
         if (data == null) {
             return;
         }
-        UUID gemId = data.gemId();
-        if (ledger.peek(gemId).isPresent()) {
-            // seeded active gem: credit through the ledger so the live authority stays correct (write-through persists)
-            ledger.deposit(gemId, balanceFor(killer, gemId), amount);
-        } else {
-            writeGem(inv, slot, data.withSouls(data.souls() + amount));
+        if (modes.active(killer.getUniqueId()).isPresent()) {
+            flushPending(killer); // settle owed drains first, then credit + resync so the pool reflects the deposit
+            data = codec.read(inv.getItem(slot)); // re-read: a flush may have changed this gem's count
+            if (data == null) {
+                return;
+            }
+        }
+        writeGem(inv, slot, data.withSouls(data.souls() + amount));
+        if (modes.active(killer.getUniqueId()).isPresent()) {
+            pool.resync(killer.getUniqueId(), totalSouls(killer));
         }
     }
 
     /**
-     * Combine two gems into a fresh gem holding the SUM of their souls (§D). Both source identities are
-     * retired, so the new gem is the only survivor. {@code null} if either stack is not a gem. MUST run on
-     * {@code player}'s own thread.
+     * Combine two gems into a fresh gem holding the SUM of their souls (§D). {@code null} if either stack is not
+     * a gem. MUST run on {@code player}'s own thread. Souls are conserved, so the pool needs no adjustment beyond
+     * the {@link #flushPending} that settles the source counts before they are read.
      */
     public ItemStack combine(Player player, ItemStack a, ItemStack b) {
+        if (modes.active(player.getUniqueId()).isPresent()) {
+            flushPending(player); // settle any owed drain so the gems' durable counts are accurate before summing
+        }
         SoulData da = codec.read(a);
         SoulData db = codec.read(b);
         if (da == null || db == null) {
             return null;
         }
-        long sum = (long) authoritativeSouls(da.gemId(), da.souls()) + authoritativeSouls(db.gemId(), db.souls());
+        long sum = (long) da.souls() + db.souls();
         int total = (int) Math.min(Integer.MAX_VALUE, sum);
-        retire(player, da.gemId());
-        retire(player, db.gemId());
         ItemStack gem = mintGemStack(new SoulData(UUID.randomUUID(), total));
         playSounds(player, config.get().sounds().combine());
         return gem;
@@ -286,12 +284,14 @@ public final class SoulService implements SoulDebit {
 
     /**
      * Split {@code amount} souls off the main-hand gem into a new gem (never auto-split — only via
-     * {@code /se split}); overflow dropped. Routes the debit through the ledger when the held gem is the
-     * seeded active one. MUST run on {@code player}'s own thread.
+     * {@code /se split}); overflow dropped. Souls are conserved. MUST run on {@code player}'s own thread.
      */
     public SplitResult split(Player player, int amount) {
         if (amount <= 0) {
             return new SplitResult(SplitResult.Status.BAD_AMOUNT, amount, 0);
+        }
+        if (modes.active(player.getUniqueId()).isPresent()) {
+            flushPending(player); // settle owed drains so the held gem's durable count is accurate before carving
         }
         PlayerInventory inv = player.getInventory();
         int held = inv.getHeldItemSlot();
@@ -299,24 +299,12 @@ public final class SoulService implements SoulDebit {
         if (data == null) {
             return new SplitResult(SplitResult.Status.NO_GEM, amount, 0);
         }
-        UUID gemId = data.gemId();
-        OptionalInt seeded = ledger.peek(gemId);
-        int have = seeded.isPresent() ? seeded.getAsInt() : data.souls();
+        int have = data.souls();
         if (amount >= have) {
             return new SplitResult(SplitResult.Status.TOO_MANY, amount, have); // never split everything away
         }
-        int remain;
-        if (seeded.isPresent()) {
-            // `have` was a lock-free peek; a concurrent spend may have dropped the authority below `amount`.
-            // tryConsume re-checks atomically under the stripe lock, so souls are minted only if it actually debited.
-            if (!ledger.tryConsume(gemId, balanceFor(player, gemId), amount)) {
-                return new SplitResult(SplitResult.Status.TOO_MANY, amount, ledger.peek(gemId).orElse(0));
-            }
-            remain = ledger.peek(gemId).orElse(have - amount);
-        } else {
-            remain = have - amount;
-            writeGem(inv, held, data.withSouls(remain));
-        }
+        int remain = have - amount;
+        writeGem(inv, held, data.withSouls(remain));
         ItemStack fresh = mintGemStack(new SoulData(UUID.randomUUID(), amount));
         inv.addItem(fresh).values()
                 .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
@@ -324,130 +312,164 @@ public final class SoulService implements SoulDebit {
         return new SplitResult(SplitResult.Status.OK, amount, remain);
     }
 
+    /** Soul context for one activation — present iff the actor is in soul mode (the marker rides to gate 10/§D). */
     public Optional<SoulBinding> bindingFor(Player actor) {
-        return modes.active(actor.getUniqueId())
-                .map(gemId -> new SoulBinding(gemId, deferredBalance(actor, gemId)));
+        return modes.active(actor.getUniqueId()).map(marker -> new SoulBinding(actor.getUniqueId()));
     }
 
     /**
-     * Debit souls from {@code holder}'s gem — the {@code REMOVE_SOULS} effect's collaborator
-     * ({@link engine.sink.SoulDebit}, §D). Charges atomically ({@link SoulLedger#tryConsume}) and
-     * write-throughs to the gem's PDC <em>wherever it sits</em> (usually the bag during combat, not the
-     * main hand). MUST run on {@code holder}'s own thread. Only ever hits the seeded active gem, so a stale
-     * PDC-only gem is never silently drained.
+     * Gate-10 spend (§D / {@link SoulSpender}). Charges {@code player}'s cross-gem pool atomically (any thread);
+     * on success the physical drain + the {@code soul.soul-use} feedback are deferred to the holder's region
+     * thread. {@code false} when not in soul mode or the pool can't afford the full cost.
+     */
+    @Override
+    public boolean trySpend(UUID player, int cost) {
+        if (cost <= 0) {
+            return true;
+        }
+        if (!pool.trySpend(player, cost)) {
+            return false;
+        }
+        Player p = Bukkit.getPlayer(player);
+        if (p != null) {
+            Scheduling.onEntity(p, () -> {
+                flushPending(p);
+                soulUseFeedback(p);
+            });
+        }
+        return true;
+    }
+
+    /**
+     * {@code REMOVE_SOULS} drain (§D, {@link SoulDebit}). Drains {@code amount} from {@code holder}'s gems
+     * least-first; no-op when the holder is not in soul mode. MUST run on {@code holder}'s own thread.
      */
     @Override
     public void debit(Player holder, UUID gemId, int amount) {
-        if (amount <= 0 || ledger.peek(gemId).isEmpty()) {
-            return; // not the seeded active gem (e.g. a stale target after a retarget) → never silently drained
+        if (amount <= 0 || modes.active(holder.getUniqueId()).isEmpty()) {
+            return;
         }
-        // Drain UP TO `amount` from the active target gem (one gem at a time). Cap at its balance so a debit
-        // larger than the gem drains it dry rather than failing all-or-nothing (tryConsume(take) where
-        // take<=balance always succeeds). When the target empties, advance to the next least-souls gem.
-        int take = Math.min(amount, ledger.peek(gemId).orElse(0));
-        if (take > 0) {
-            ledger.tryConsume(gemId, balanceFor(holder, gemId), take);
-        }
-        if (ledger.peek(gemId).orElse(0) <= 0) {
-            cleanup(holder);
-            retarget(holder);
-        }
+        flushPending(holder); // settle gate-10 spends first so this drain composes on the accurate physical total
+        drainLeastFirst(holder, amount);
+        pool.resync(holder.getUniqueId(), totalSouls(holder));
     }
 
     /**
-     * Debit the target's OWN active gem (the {@code REMOVE_SOULS:…:@Victim} drain-the-enemy case). Runs on the
-     * target's thread (the sink routes it there); no-op if the target is not in soul mode.
+     * Drain the target's OWN gems (the {@code REMOVE_SOULS:…:@Victim} drain-the-enemy case). Runs on the target's
+     * thread (the sink routes it there); no-op if the target is not in soul mode.
      */
     @Override
     public void debitTarget(Player target, int amount) {
-        modes.active(target.getUniqueId()).ifPresent(gemId -> debit(target, gemId, amount));
+        if (modes.active(target.getUniqueId()).isPresent()) {
+            debit(target, target.getUniqueId(), amount);
+        }
     }
 
-    /**
-     * Forget a player's soul mode + authority on quit. Flushes the live authority to PDC BEFORE forgetting it
-     * — else a deferred write still in flight (or one an unloaded Folia entity never runs) would lose a
-     * just-spent balance and refund the souls.
-     */
+    /** Forget a player's soul mode + pool on quit, flushing any owed drain to PDC first (else a spend refunds). */
     public void clear(Player player) {
         UUID id = player.getUniqueId();
-        modes.active(id).ifPresent(gemId -> {
-            persist(player, gemId);
-            ledger.forget(gemId);
-        });
+        if (modes.active(id).isPresent()) {
+            flushPending(player);
+        }
         modes.clear(id);
+        pool.disable(id);
     }
 
     /**
-     * Auto-disable soul mode when the active gem is no longer usable — gone from the inventory (dropped, moved
-     * to a chest, given away, died) or drained to zero souls — and tell the player ({@code soul.empty}). The
-     * active gem is the one soul mode is bound to; losing it means there is nothing left to drain, so the mode
-     * must not linger on. Called each soul-mode tick on the player's OWN region thread (reads their inventory).
+     * Per-tick maintenance on the player's OWN region thread. Settles any owed gate-10 drain, enforces the
+     * zero-gem cleanup invariant (for every player), refreshes the cached total, and — in soul mode — keeps the
+     * pool in sync or AUTO-DISABLES (with the disable feedback) when no souls remain anywhere.
      */
     public void maintain(Player player) {
-        cleanup(player);
         UUID id = player.getUniqueId();
-        cachedTotal.put(id, totalSouls(player));
-        if (modes.active(id).isPresent()) {
-            retarget(player);
+        boolean active = modes.active(id).isPresent();
+        if (active) {
+            flushPending(player);
+        }
+        cleanup(player);
+        int total = totalSouls(player);
+        cachedTotal.put(id, total);
+        if (!active) {
+            return;
+        }
+        if (total <= 0) {
+            modes.deactivate(id);
+            pool.disable(id);
+            SoulGemConfig cfg = config.get();
+            messageLines(player, messages.lines("soul.empty"));
+            playSounds(player, cfg.sounds().toggleOff());
+            particles.spawn(player, cfg.particles().disable());
+        } else {
+            pool.resync(id, total);
         }
     }
 
+    /** The player's last-known TOTAL souls across all gems — the PAPI feed (in-memory, any thread). */
+    public int soulTotal(UUID player) {
+        return cachedTotal.getOrDefault(player, 0);
+    }
+
     /**
-     * Re-point the active drain target at the least-souls NONZERO gem, or AUTO-DISABLE soul mode when no souls
-     * remain anywhere (total == 0) — with the same disable feedback as a manual toggle-off (§C/§E). Flushes +
-     * forgets a spent/lost target before switching. Holder thread.
+     * Drain UP TO {@code amount} souls from {@code player}'s gems, LEAST-souls gem first, spilling to the next as
+     * each empties; then enforce the cleanup invariant (a gem drained to zero is removed unless it is the lone
+     * gem). Holder thread. Returns the amount actually drained.
      */
-    private void retarget(Player player) {
-        UUID id = player.getUniqueId();
-        Optional<UUID> active = modes.active(id);
-        if (active.isEmpty()) {
-            return;
+    private int drainLeastFirst(Player player, int amount) {
+        PlayerInventory inv = player.getInventory();
+        List<GemView> gems = new ArrayList<>(gemViews(player));
+        gems.sort(Comparator.comparingInt(GemView::souls).thenComparingInt(GemView::slot));
+        int remaining = amount;
+        for (GemView gem : gems) {
+            if (remaining <= 0) {
+                break;
+            }
+            if (gem.souls() <= 0) {
+                continue;
+            }
+            int take = Math.min(remaining, gem.souls());
+            writeGem(inv, gem.slot(), new SoulData(gem.gemId(), gem.souls() - take));
+            remaining -= take;
         }
-        UUID current = active.get();
-        if (effectiveSouls(player, current) > 0) {
-            return; // the current target still has souls — keep draining it
+        cleanup(player);
+        return amount - remaining;
+    }
+
+    /** Drain to physical any souls spent at gate 10 but not yet settled (idempotent). Holder thread. */
+    private void flushPending(Player player) {
+        int pending = pool.takePending(player.getUniqueId());
+        if (pending > 0) {
+            drainLeastFirst(player, pending);
         }
-        persist(player, current); // flush the live count to the (now-empty/gone) gem, then release it
-        ledger.forget(current);
-        Optional<GemView> next = leastNonzero(gemViews(player));
-        if (next.isPresent()) {
-            modes.activate(id, next.get().gemId()); // advance to the next least-souls gem
-            seedGem(player, next.get().gemId());
-            return;
-        }
-        // nothing left to drain anywhere → soul mode auto-off with the disable feedback (the player runs out).
-        modes.deactivate(id);
+    }
+
+    /** The per-spend feedback: the {@code soul.soul-use} line (the new TOTAL) + use sound + use particle. */
+    private void soulUseFeedback(Player player) {
         SoulGemConfig cfg = config.get();
-        messageLines(player, messages.lines("soul.empty"));
-        playSounds(player, cfg.sounds().toggleOff());
-        particles.spawn(player, cfg.particles().disable());
+        message(player, messages.format("soul.soul-use", "AMOUNT", pool.total(player.getUniqueId())));
+        playSounds(player, cfg.sounds().use());
+        particles.spawn(player, cfg.particles().use());
     }
 
     /**
      * Enforce the zero-gem inventory invariant (§D): a zero-soul gem may exist ONLY as the player's lone gem.
      * Remove every zero gem when any NONZERO gem is present; else keep exactly one zero gem (the lone gem is never
-     * destroyed) and drop the rest. The which-slots decision is the pure {@link #redundantZeroSlots}; this does
-     * the inventory I/O on the holder thread.
+     * destroyed) and drop the rest. The which-slots decision is the pure {@link #redundantZeroSlots}.
      */
     private void cleanup(Player player) {
         PlayerInventory inv = player.getInventory();
         for (int slot : redundantZeroSlots(gemViews(player))) {
-            SoulData data = codec.read(inv.getItem(slot));
-            if (data != null) {
-                ledger.forget(data.gemId()); // drop any authority for the gem we are destroying
-            }
             inv.setItem(slot, null); // a redundant zero gem (qty 1) — remove it
         }
     }
 
-    /** Snapshot of the player's carried soul gems (slot + identity + live souls). Holder thread. */
+    /** Snapshot of the player's carried soul gems (slot + identity + durable souls). Holder thread. */
     private List<GemView> gemViews(Player player) {
         List<GemView> out = new ArrayList<>();
         ItemStack[] contents = player.getInventory().getContents();
         for (int i = 0; i < contents.length; i++) {
             SoulData data = codec.read(contents[i]);
             if (data != null) {
-                out.add(new GemView(i, data.gemId(), effectiveSouls(data)));
+                out.add(new GemView(i, data.gemId(), data.souls()));
             }
         }
         return out;
@@ -460,85 +482,6 @@ public final class SoulService implements SoulDebit {
             sum += gem.souls();
         }
         return (int) Math.min(Integer.MAX_VALUE, sum);
-    }
-
-    /** The player's last-known TOTAL souls across all gems — the PAPI feed (in-memory, any thread). */
-    public int soulTotal(UUID player) {
-        return cachedTotal.getOrDefault(player, 0);
-    }
-
-    /** Live souls for a carried gem by identity (authority if seeded, else durable), or 0 if it is gone. */
-    private int effectiveSouls(Player player, UUID gemId) {
-        int slot = locateGemSlotById(player.getInventory(), gemId);
-        if (slot < 0) {
-            return 0;
-        }
-        SoulData data = codec.read(player.getInventory().getItem(slot));
-        return data == null ? 0 : effectiveSouls(data);
-    }
-
-    /** Live souls for {@code data}: the ledger authority when seeded (active gem), else the durable count. */
-    private int effectiveSouls(SoulData data) {
-        return ledger.peek(data.gemId()).orElse(data.souls());
-    }
-
-    /** Seed the ledger authority for {@code gemId} from its durable count (holder thread); no-op if it is gone. */
-    private void seedGem(Player player, UUID gemId) {
-        int slot = locateGemSlotById(player.getInventory(), gemId);
-        if (slot < 0) {
-            return;
-        }
-        SoulData data = codec.read(player.getInventory().getItem(slot));
-        if (data != null) {
-            int souls = data.souls();
-            ledger.balance(gemId, new SoulLedger.Balance() {
-                @Override public int souls() {
-                    return souls;
-                }
-
-                @Override public void setSouls(int next) {
-                    // seed-only: the authority is being primed, nothing to write back here
-                }
-            });
-        }
-    }
-
-    /** A carried soul gem (inventory slot, gem identity, current souls) — the unit the pure selectors work over. */
-    record GemView(int slot, UUID gemId, int souls) {
-    }
-
-    /**
-     * The inventory slots whose zero-soul gems are REDUNDANT and must be removed (§D invariant). Pure: when any
-     * gem still has souls every zero gem is redundant; otherwise all zero gems EXCEPT the lowest-slot one (the
-     * lone gem, never destroyed) are redundant. A no-zero / single-lone-zero inventory yields nothing.
-     */
-    static List<Integer> redundantZeroSlots(List<GemView> gems) {
-        boolean anyNonzero = gems.stream().anyMatch(g -> g.souls() > 0);
-        List<Integer> zeros = gems.stream().filter(g -> g.souls() == 0)
-                .map(GemView::slot).sorted().collect(java.util.stream.Collectors.toList());
-        if (zeros.isEmpty()) {
-            return List.of();
-        }
-        return anyNonzero ? zeros : zeros.subList(1, zeros.size()); // keep the lone zero gem when no other exists
-    }
-
-    /** The least-souls NONZERO gem (the drain target), ties broken by lowest slot. Pure. */
-    static Optional<GemView> leastNonzero(List<GemView> gems) {
-        return gems.stream().filter(g -> g.souls() > 0)
-                .min(Comparator.comparingInt(GemView::souls).thenComparingInt(GemView::slot));
-    }
-
-    /** The authoritative count for {@code gemId} (the live ledger value when seeded, else {@code durable}). */
-    private int authoritativeSouls(UUID gemId, int durable) {
-        return ledger.peek(gemId).orElse(durable);
-    }
-
-    /** Retire a gem identity being destroyed: drop any soul mode pointing at it, forget its authority. */
-    private void retire(Player player, UUID gemId) {
-        if (modes.active(player.getUniqueId()).filter(gemId::equals).isPresent()) {
-            modes.deactivate(player.getUniqueId());
-        }
-        ledger.forget(gemId);
     }
 
     /** The main-hand gem slot if it holds one, else the first inventory slot carrying a gem, else {@code -1}. */
@@ -567,93 +510,7 @@ public final class SoulService implements SoulDebit {
         inv.setItem(slot, stack);
     }
 
-    /**
-     * A {@link SoulLedger.Balance} that write-throughs the gem WHEREVER it sits — located by identity, not a
-     * fixed slot — so a spend/deposit persists when the gem is in the bag, not the main hand (the combat
-     * case). {@code setSouls} runs on the holder's own thread.
-     */
-    private SoulLedger.Balance balanceFor(Player holder, UUID gemId) {
-        return new SoulLedger.Balance() {
-            @Override
-            public int souls() {
-                return 0; // peek is present whenever this is used; never the seed source
-            }
-
-            @Override
-            public void setSouls(int next) {
-                writeAuthorityTo(holder, gemId, next);
-            }
-        };
-    }
-
-    private void writeAuthorityTo(Player holder, UUID gemId, int next) {
-        PlayerInventory inv = holder.getInventory();
-        int slot = locateGemSlotById(inv, gemId);
-        if (slot < 0) {
-            return; // the gem is no longer in the inventory (dropped/destroyed) — nothing to write
-        }
-        ItemStack stack = inv.getItem(slot);
-        SoulData cur = codec.read(stack);
-        if (cur != null && cur.gemId().equals(gemId)) {
-            codec.write(stack, cur.withSouls(next));
-            reRenderGem(stack, next);
-            inv.setItem(slot, stack);
-        }
-    }
-
-    private int locateGemSlotById(PlayerInventory inv, UUID gemId) {
-        ItemStack[] contents = inv.getContents();
-        for (int i = 0; i < contents.length; i++) {
-            SoulData data = codec.read(contents[i]);
-            if (data != null && data.gemId().equals(gemId)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * A balance whose writes DEFER to {@code player}'s thread, flushing the LIVE authority (not the captured
-     * snapshot) so concurrent/out-of-order deferred writes all converge to the same truth.
-     */
-    private SoulLedger.Balance deferredBalance(Player player, UUID gemId) {
-        return new SoulLedger.Balance() {
-            @Override
-            public int souls() {
-                return 0; // dead path: authority is seeded at toggle-on; never re-read while active
-            }
-
-            @Override
-            public void setSouls(int next) {
-                Scheduling.onEntity(player, () -> {
-                    persist(player, gemId);
-                    SoulGemConfig cfg = config.get();
-                    message(player, messages.format("soul.soul-use", "AMOUNT", next));
-                    playSounds(player, cfg.sounds().use());
-                    particles.spawn(player, cfg.particles().use());
-                    if (next <= 0) {
-                        // the gate-10 spend just emptied the target gem → advance to the next least-souls gem
-                        cleanup(player);
-                        retarget(player);
-                    }
-                });
-            }
-        };
-    }
-
-    /**
-     * Flush the live authority to the gem (by identity, wherever it sits), iff still carried. Peeks with NO
-     * seeding, so a forgotten gem is a no-op rather than a 0-seed; writing the current authority (not a stale
-     * snapshot) keeps every deferred write idempotent. Must run on {@code player}'s own thread.
-     */
-    private void persist(Player player, UUID gemId) {
-        OptionalInt authority = ledger.peek(gemId);
-        if (authority.isPresent()) {
-            writeAuthorityTo(player, gemId, authority.getAsInt());
-        }
-    }
-
-    /** Re-render the gem's name + lore from config + the new count. Must run on the holder's own thread. */
+    /** Re-render the gem's name + lore from config + the new count, PRESERVING scroll/trak lines. Holder thread. */
     @SuppressWarnings("deprecation") // setDisplayName/setLore(List): the floor-stable item-meta path
     private void reRenderGem(ItemStack gem, int souls) {
         ItemMeta meta = gem.getItemMeta();
@@ -666,8 +523,7 @@ public final class SoulService implements SoulDebit {
             meta.setDisplayName(ItemFactory.color(name));
         }
         // Preserve applied-scroll PROTECTED lines + trak lines: a separate system owns them, so the gem-body
-        // re-render (on every deposit/spend/toggle) must KEEP them rather than wipe them (§I robust composition —
-        // this is the fix for the white/holy white scroll line vanishing when soul mode is toggled).
+        // re-render must KEEP them rather than wipe them (§I robust composition — the white/holy scroll line fix).
         List<String> preserved = new ArrayList<>();
         if (meta.hasLore()) {
             for (String line : meta.getLore()) {
@@ -676,8 +532,8 @@ public final class SoulService implements SoulDebit {
                 }
             }
         }
-        // Wrap exactly as the mint path does (ItemFactory.buildItem), else the gem lore visibly unwraps
-        // the first time the count changes (mint wraps; this re-render must too).
+        // Wrap exactly as the mint path does (ItemFactory.buildItem), else the gem lore visibly unwraps the first
+        // time the count changes (mint wraps; this re-render must too).
         List<String> body = ItemFactory.wrapLore(renderGemLore(cfg, souls));
         List<String> lore = new ArrayList<>();
         if (body != null) {
@@ -688,5 +544,30 @@ public final class SoulService implements SoulDebit {
         lore.addAll(preserved); // already colour-translated when the scroll/trak stamped them
         meta.setLore(lore.isEmpty() ? null : lore);
         gem.setItemMeta(meta);
+    }
+
+    /** A carried soul gem (inventory slot, gem identity, current souls) — the unit the pure selectors work over. */
+    record GemView(int slot, UUID gemId, int souls) {
+    }
+
+    /**
+     * The inventory slots whose zero-soul gems are REDUNDANT and must be removed (§D invariant). Pure: when any
+     * gem still has souls every zero gem is redundant; otherwise all zero gems EXCEPT the lowest-slot one (the
+     * lone gem, never destroyed) are redundant. A no-zero / single-lone-zero inventory yields nothing.
+     */
+    static List<Integer> redundantZeroSlots(List<GemView> gems) {
+        boolean anyNonzero = gems.stream().anyMatch(g -> g.souls() > 0);
+        List<Integer> zeros = gems.stream().filter(g -> g.souls() == 0)
+                .map(GemView::slot).sorted().collect(java.util.stream.Collectors.toList());
+        if (zeros.isEmpty()) {
+            return List.of();
+        }
+        return anyNonzero ? zeros : zeros.subList(1, zeros.size()); // keep the lone zero gem when no other exists
+    }
+
+    /** The least-souls NONZERO gem (the drain target), ties broken by lowest slot. Pure. */
+    static Optional<GemView> leastNonzero(List<GemView> gems) {
+        return gems.stream().filter(g -> g.souls() > 0)
+                .min(Comparator.comparingInt(GemView::souls).thenComparingInt(GemView::slot));
     }
 }

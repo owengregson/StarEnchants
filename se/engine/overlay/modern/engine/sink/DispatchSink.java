@@ -876,7 +876,7 @@ public final class DispatchSink implements SinkReadback {
         }
         // Route to the HOLDER's own thread (not global like money): the debit write-throughs the gem's PDC
         // wherever it sits in the holder's inventory, which is region-bound on Folia. The in-memory authority
-        // debit (SoulLedger.tryConsume, stripe-locked) happens inside SoulDebit.debit on that thread.
+        // debit drains the holder's gems least-first inside SoulDebit.debit on that thread.
         entityOp(holder, () -> souls.debit(holder, gemId, amount));
     }
 

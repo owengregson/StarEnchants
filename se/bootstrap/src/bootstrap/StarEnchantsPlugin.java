@@ -15,7 +15,7 @@ import compile.load.MenusHolder;
 import compile.load.MenusLoader;
 import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
-import engine.interact.SoulLedger;
+import engine.interact.SoulPool;
 import engine.pipeline.ActivationPipeline;
 import api.event.EnchantActivateEvent;
 import api.event.StarEnchantsReloadEvent;
@@ -276,7 +276,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().books().maxSuccess(),    // §I global success ceiling (books.max-success, live)
                 appliedSlot,                                   // §I white scroll occupies this
                 protectionRefresh,                             // §I toggle PROTECTED without wiping the rest of the lore
-                itemGroups);                                   // §I white-scroll applies-to gate
+                itemGroups,                                    // §I white-scroll applies-to gate
+                messages);                                     // §I applies reject reads common.wrong-applies
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());
@@ -322,11 +323,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         feature.trak.TrakService traks = new feature.trak.TrakService(trakCodec, appliedSlot, itemGroups,
                 () -> items.config().traksOrDefault(), messages);
 
-        // Souls: ONE ledger shared by the pipeline's gate 10 and the soul service, so a spend and a
-        // gain-on-kill see the same in-memory authority.
-        SoulLedger souls = new SoulLedger();
+        // Souls (§D): the per-player cross-gem SoulPool is the spend authority. The SoulService owns it and is
+        // ALSO the pipeline's gate-10 SoulSpender, so a gate-10 spend and the holder-thread drain share one pool.
+        SoulPool soulPool = new SoulPool();
         SoulModeStore soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
-        SoulService soulService = new SoulService(souls, soulModes,
+        SoulService soulService = new SoulService(soulPool, soulModes,
                 new SoulCodec(ItemKeys.of().soul()), () -> items.config().soulGemOrDefault(),
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx, // §D deposit + §L msgs + particles
                 line -> protectionLineP.test(line) || trakLineP.test(line)); // §I keep scroll/trak lines on gem re-render
@@ -375,7 +376,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
                 () -> master.config().messageOnActivate(), content);
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), souls, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
+                new ActivationPipeline(new CooldownStore(), soulService, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
                 areaScan(), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked

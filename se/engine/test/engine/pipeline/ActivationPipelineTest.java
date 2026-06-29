@@ -10,7 +10,7 @@ import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.SourceKind;
 import compile.model.cond.Cond;
-import engine.interact.SoulLedger;
+import engine.interact.SoulSpender;
 import engine.interact.SuppressionSet;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
@@ -23,14 +23,19 @@ class ActivationPipelineTest {
     private static final UUID ACTOR = UUID.randomUUID();
 
     private final CooldownStore cooldowns = new CooldownStore();
-    private final SoulLedger souls = new SoulLedger();
-    private final ActivationPipeline pipeline = new ActivationPipeline(cooldowns, souls);
+    private final FakeSpender spender = new FakeSpender();
+    private final ActivationPipeline pipeline = new ActivationPipeline(cooldowns, spender);
 
-    private static final class IntBalance implements SoulLedger.Balance {
-        private int souls;
-        IntBalance(int souls) { this.souls = souls; }
-        public int souls() { return souls; }
-        public void setSouls(int souls) { this.souls = souls; }
+    /** A stand-in for the player's cross-gem soul pool: spends from a single settable balance. */
+    private static final class FakeSpender implements SoulSpender {
+        private int balance;
+        @Override public boolean trySpend(UUID player, int cost) {
+            if (balance < cost) {
+                return false;
+            }
+            balance -= cost;
+            return true;
+        }
     }
 
     /** Mutable builder defaulting to an always-fires-on-trigger-0 ability; each test tweaks one field. */
@@ -88,7 +93,7 @@ class ActivationPipelineTest {
     @Test
     void timedSuppressionGatesTheMatchingScopeThenClearsAtExpiry() {
         SuppressionStore store = new SuppressionStore();
-        ActivationPipeline p = new ActivationPipeline(cooldowns, souls, store,
+        ActivationPipeline p = new ActivationPipeline(cooldowns, spender, store,
                 ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW);
         Ab a = new Ab();
         a.cdGroup = 5; // this ability is in group-scope id 5
@@ -102,7 +107,7 @@ class ActivationPipelineTest {
     @Test
     void suppressionOnlyGatesTheMatchingScopeKindAndId() {
         SuppressionStore store = new SuppressionStore();
-        ActivationPipeline p = new ActivationPipeline(cooldowns, souls, store,
+        ActivationPipeline p = new ActivationPipeline(cooldowns, spender, store,
                 ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW);
         Ab a = new Ab();
         a.cdEnchant = 5; // ability is in ENCHANT-scope id 5
@@ -140,14 +145,14 @@ class ActivationPipelineTest {
 
     @Test
     void protectionGuardBlocks() {
-        ActivationPipeline guarded = new ActivationPipeline(cooldowns, souls,
+        ActivationPipeline guarded = new ActivationPipeline(cooldowns, spender,
                 (ab, act) -> false, ActivationPipeline.Guard.ALLOW);
         assertEquals(GateOutcome.BLOCKED_PROTECTION, guarded.evaluate(new Ab().build(), act().build()));
     }
 
     @Test
     void preActivateGuardCancels() {
-        ActivationPipeline guarded = new ActivationPipeline(cooldowns, souls,
+        ActivationPipeline guarded = new ActivationPipeline(cooldowns, spender,
                 ActivationPipeline.Guard.ALLOW, (ab, act) -> false);
         assertEquals(GateOutcome.CANCELLED, guarded.evaluate(new Ab().build(), act().build()));
     }
@@ -156,20 +161,18 @@ class ActivationPipelineTest {
     void soulCostConsumedWhenInSoulModeAndAffordable() {
         Ab a = new Ab();
         a.soulCost = 3;
-        IntBalance gem = new IntBalance(10);
-        assertEquals(GateOutcome.ACTIVATED,
-                pipeline.evaluate(a.build(), act().soulMode(UUID.randomUUID(), gem).build()));
-        assertEquals(7, gem.souls());
+        spender.balance = 10;
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
+        assertEquals(7, spender.balance);
     }
 
     @Test
     void soulCostInsufficientFailsAndLeavesBalance() {
         Ab a = new Ab();
         a.soulCost = 3;
-        IntBalance gem = new IntBalance(2);
-        assertEquals(GateOutcome.NO_SOULS,
-                pipeline.evaluate(a.build(), act().soulMode(UUID.randomUUID(), gem).build()));
-        assertEquals(2, gem.souls());
+        spender.balance = 2;
+        assertEquals(GateOutcome.NO_SOULS, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
+        assertEquals(2, spender.balance);
     }
 
     @Test
@@ -203,10 +206,9 @@ class ActivationPipelineTest {
         a.soulCost = 5;       // would be spent if reached
         cooldowns.arm(ACTOR, CooldownStore.key(0, 9), 100L, 40); // pre-armed
 
-        IntBalance gem = new IntBalance(10);
-        assertEquals(GateOutcome.ON_COOLDOWN,
-                pipeline.evaluate(a.build(), act().soulMode(UUID.randomUUID(), gem).build()));
-        assertEquals(10, gem.souls()); // souls untouched — gate 6 stopped before gate 10
+        spender.balance = 10;
+        assertEquals(GateOutcome.ON_COOLDOWN, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
+        assertEquals(10, spender.balance); // souls untouched — gate 6 stopped before gate 10
     }
 
     @Test
@@ -214,9 +216,8 @@ class ActivationPipelineTest {
         Ab a = new Ab();
         a.baseChance = 0.0; // chance gate (8) fails before the soul gate (10)
         a.soulCost = 5;
-        IntBalance gem = new IntBalance(10);
-        assertEquals(GateOutcome.CHANCE_FAILED,
-                pipeline.evaluate(a.build(), act().soulMode(UUID.randomUUID(), gem).build()));
-        assertEquals(10, gem.souls());
+        spender.balance = 10;
+        assertEquals(GateOutcome.CHANCE_FAILED, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
+        assertEquals(10, spender.balance);
     }
 }

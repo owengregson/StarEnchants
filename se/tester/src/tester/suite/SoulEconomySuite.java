@@ -1,7 +1,7 @@
 package tester.suite;
 
 import compile.load.SoulGemConfig;
-import engine.interact.SoulLedger;
+import engine.interact.SoulPool;
 import engine.stores.SoulModeStore;
 import feature.soul.SoulService;
 import item.codec.ItemKeys;
@@ -21,24 +21,12 @@ import tester.harness.Harness;
 
 /**
  * §D soul ECONOMY over a real {@link Player} inventory + gem PDC: deposit-on-any-kill (deferred to the
- * killer's thread), combine, and {@code /se split}. Also pins two adversarial-review dupe/lose regressions:
- * a spend persists to the active gem wherever it sits (not only the main hand), and toggling soul mode OFF
- * flushes the authority to PDC before forgetting it (else the spend refunds). Fake player.
+ * killer's thread), combine, {@code /se split}, and the §E cross-gem multi-gem drain. Also pins two
+ * adversarial-review dupe/lose regressions: a spend persists to a gem wherever it sits (not only the main
+ * hand), and toggling soul mode OFF flushes the pending spend to PDC before dropping the pool (else the spend
+ * refunds). Fake player.
  */
 public final class SoulEconomySuite implements Harness.Scenario {
-
-    /** A throwaway balance for driving a ledger debit in a test — the durable write is asserted elsewhere. */
-    private static final SoulLedger.Balance NOOP = new SoulLedger.Balance() {
-        @Override
-        public int souls() {
-            return 0;
-        }
-
-        @Override
-        public void setSouls(int souls) {
-            // inert: the test asserts the SERVICE's own write-through, not this proxy
-        }
-    };
 
     private static final String[] KEYS = {
         "soul.depositOnAnyKill", "soul.combineSumsAndRetires", "soul.splitCarvesAndKeeps",
@@ -59,8 +47,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
 
         ItemKeys keys = ItemKeys.of();
         SoulCodec codec = new SoulCodec(keys.soul());
-        SoulLedger ledger = new SoulLedger();
-        SoulService souls = new SoulService(ledger, new SoulModeStore(), codec, SoulGemConfig::defaults);
+        SoulService souls = new SoulService(new SoulPool(), new SoulModeStore(), codec, SoulGemConfig::defaults);
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -117,22 +104,19 @@ public final class SoulEconomySuite implements Harness.Scenario {
                     });
 
                     // Finding #3: a spend must persist to the gem wherever it sits, not only the main hand.
-                    // Seed via toggle-on, move the gem off-hand, debit the authority, then clear() (the quit
-                    // flush, which calls the same persist() under test).
+                    // Seed via toggle-on, move the gem to the bag, do a gate-10 spend, then clear() (the quit
+                    // flush settles the pending spend to the gem by IDENTITY).
                     h.guard("soul.spendPersistsByIdentity", () -> {
                         player.getInventory().clear();
                         ItemStack g = gem(souls, codec, 10);
                         player.getInventory().setItemInMainHand(g);
-                        UUID gid = codec.read(player.getInventory().getItemInMainHand()).gemId();
                         if (souls.toggle(player) != SoulService.Toggle.ENABLED) {
                             throw new IllegalStateException("toggle-on did not enable soul mode");
                         }
                         player.getInventory().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
                         player.getInventory().setItem(18, g); // gem now in the bag, weapon in hand
-                        if (!ledger.tryConsume(gid, NOOP, 3)) { // debit the in-memory authority 10 -> 7
-                            throw new IllegalStateException("authority debit unexpectedly failed");
-                        }
-                        souls.clear(player); // flushes the authority to the gem by IDENTITY, then forgets it
+                        souls.trySpend(player.getUniqueId(), 3); // a gate-10 spend (10 -> 7); drain may defer
+                        souls.clear(player); // settles the pending spend to the bag gem by IDENTITY, drops the pool
                         SoulData after = codec.read(player.getInventory().getItem(18));
                         if (after == null || after.souls() != 7) {
                             throw new IllegalStateException("spend did not persist to the off-hand gem: "
@@ -140,18 +124,15 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         }
                     });
 
-                    // Finding #1: toggling soul mode OFF must flush the just-spent balance to PDC before
-                    // forgetting the authority, else the spend refunds (a dupe).
+                    // Finding #1: toggling soul mode OFF must flush the pending spend to PDC before dropping the
+                    // pool, else the spend refunds (a dupe).
                     h.guard("soul.toggleOffFlushesSpend", () -> {
                         player.getInventory().clear();
                         ItemStack g = gem(souls, codec, 10);
                         player.getInventory().setItemInMainHand(g);
-                        UUID gid = codec.read(player.getInventory().getItemInMainHand()).gemId();
-                        souls.toggle(player); // ENABLED, seeds 10
-                        if (!ledger.tryConsume(gid, NOOP, 3)) { // debit 10 -> 7 (durable not yet written)
-                            throw new IllegalStateException("authority debit unexpectedly failed");
-                        }
-                        souls.toggle(player); // DISABLED — must flush 7 to PDC before forgetting
+                        souls.toggle(player); // ENABLED, seeds the pool from 10
+                        souls.trySpend(player.getUniqueId(), 3); // spend 10 -> 7 (drain may be deferred)
+                        souls.toggle(player); // DISABLED — must flush the pending 3 to PDC before dropping the pool
                         SoulData after = codec.read(player.getInventory().getItemInMainHand());
                         if (after == null || after.souls() != 7) {
                             throw new IllegalStateException("toggle-off did not flush the spent balance: "
@@ -166,30 +147,22 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         player.getInventory().clear();
                         ItemStack low = gem(souls, codec, 250);
                         ItemStack high = gem(souls, codec, 500);
-                        UUID lowId = codec.read(low).gemId();
-                        UUID highId = codec.read(high).gemId();
                         player.getInventory().setItemInMainHand(low); // a gem with souls in hand → toggle enables
                         player.getInventory().setItem(18, high);
                         if (souls.toggle(player) != SoulService.Toggle.ENABLED) {
                             throw new IllegalStateException("toggle did not enable soul mode");
                         }
-                        if (!souls.bindingFor(player).map(b -> b.gemId().equals(lowId)).orElse(false)) {
-                            throw new IllegalStateException("did not target the LEAST-souls gem (250) first");
-                        }
-                        // drain the 250 to zero → consumed (the 500 remains), target advances to the 500.
-                        souls.debit(player, lowId, 250);
-                        if (countGems(codec, player) != 1) {
-                            throw new IllegalStateException("emptied gem was not removed while another gem remained: "
+                        // drain 250: the LEAST gem empties first and (another gem present) is consumed.
+                        souls.debit(player, player.getUniqueId(), 250);
+                        if (countGems(codec, player) != 1 || countGemsWithSouls(codec, player, 500) != 1) {
+                            throw new IllegalStateException("the emptied 250 gem was not removed while the 500 remained: "
                                     + countGems(codec, player) + " gems");
                         }
-                        if (!souls.bindingFor(player).map(b -> b.gemId().equals(highId)).orElse(false)) {
-                            throw new IllegalStateException("did not retarget to the 500 gem");
+                        if (souls.bindingFor(player).isEmpty()) {
+                            throw new IllegalStateException("soul mode must stay on while souls remain");
                         }
-                        // drain the 500 to zero → it is the LAST gem: kept as a zero gem, and soul mode turns off.
-                        souls.debit(player, highId, 500);
-                        if (souls.bindingFor(player).isPresent()) {
-                            throw new IllegalStateException("soul mode did not turn off when total souls hit zero");
-                        }
+                        // drain 500: now the LAST gem hits zero — it is kept as a lone zero gem.
+                        souls.debit(player, player.getUniqueId(), 500);
                         if (countGems(codec, player) != 1) {
                             throw new IllegalStateException("the last soul gem must never be destroyed");
                         }
@@ -197,6 +170,10 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         if (last == null || last.souls() != 0) {
                             throw new IllegalStateException("the surviving lone gem should be a zero gem: "
                                     + (last == null ? "none" : last.souls()));
+                        }
+                        souls.maintain(player); // the tick sees total == 0 and auto-disables soul mode
+                        if (souls.bindingFor(player).isPresent()) {
+                            throw new IllegalStateException("soul mode did not turn off when total souls hit zero");
                         }
                     });
 

@@ -6,7 +6,7 @@ import compile.load.Library;
 import compile.load.LibraryLoader;
 import engine.boot.ContentCompiler;
 import engine.effect.kind.BuiltinEffects;
-import engine.interact.SoulLedger;
+import engine.interact.SoulSpender;
 import engine.pipeline.ActivationPipeline;
 import engine.run.AbilityExecutor;
 import engine.run.AreaScan;
@@ -115,7 +115,7 @@ public final class TriggerSuite implements Harness.Scenario {
         WornStateStore worn = new WornStateStore(
                 new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), new SoulLedger()), AreaScan.NONE);
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();
         TriggerDispatch dispatch = new TriggerDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn, triggers,
                 tick::incrementAndGet, actor -> Optional.empty());

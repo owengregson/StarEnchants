@@ -1,11 +1,12 @@
 package feature.soul;
 
-import engine.interact.SoulLedger;
 import java.util.UUID;
 
 /**
- * Soul context for one activation (§6.3): the active gem and a {@link SoulLedger.Balance} debited on a
- * successful spend. Handed to {@code Activation.soulMode} so gate 10 can consume souls.
+ * Soul context for one activation (§6.3, §D): a non-null marker present iff the activator is in soul mode. The
+ * spend authority is the player's cross-gem {@code SoulPool} (gate 10 spends it via {@code SoulSpender}); this
+ * marker just flags soul mode on the {@code Activation}/{@code EffectCtx} (and rides through to
+ * {@code REMOVE_SOULS}'s sink call, where the holder's gems are drained least-first).
  */
-public record SoulBinding(UUID gemId, SoulLedger.Balance balance) {
+public record SoulBinding(UUID marker) {
 }
