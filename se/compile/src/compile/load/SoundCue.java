@@ -2,6 +2,7 @@ package compile.load;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
@@ -16,6 +17,25 @@ public record SoundCue(String name, float volume, float pitch) {
 
     public SoundCue {
         Objects.requireNonNull(name, "name");
+    }
+
+    /**
+     * The Bukkit {@code Sound} CONSTANT name for a sound token — uppercased, any {@code namespace:} stripped,
+     * and dots → underscores — so BOTH an enum-form token ({@code BLOCK_BEACON_POWER_SELECT}) and a
+     * resource-key token ({@code block.beacon.power_select} / {@code entity.player.levelup}) map to the same
+     * constant. The runtime ({@code feature.compat.Sounds}) resolves this against {@code org.bukkit.Sound}
+     * cross-version, so a token never reaches the namespaced-key parser (which rejects uppercase/underscores).
+     */
+    public static String canonical(String name) {
+        if (name == null) {
+            return "";
+        }
+        String token = name.trim();
+        int colon = token.indexOf(':');
+        if (colon >= 0) {
+            token = token.substring(colon + 1);
+        }
+        return token.toUpperCase(Locale.ROOT).replace('.', '_');
     }
 
     /** Read one {@code { sound: NAME, volume: V, pitch: P }} mapping; absent/blank {@code sound} → {@code null}. */
