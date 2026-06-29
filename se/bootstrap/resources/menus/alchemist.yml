@@ -1,5 +1,5 @@
 # Alchemist bench GUI — fuse two matching enchant books into one of the next level (/se menu alchemist, or a
 # hub). A bench fills its whole backdrop with the filler (frame is ignored). See menus/apply.yml for fields.
 
-title: "&a&lAlchemist &8• &7Combine Books"
+title: "&a&lAlchemist &8• &7Combine"
 filler: "LIME_STAINED_GLASS_PANE"

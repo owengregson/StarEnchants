@@ -18,6 +18,8 @@ import platform.caps.Capabilities;
  */
 public final class MintMenu extends PagedMenu<MintMenu.Tile> {
 
+    private static final System.Logger LOG = System.getLogger("StarEnchants.Menu");
+
     /** A renderable mint entry: the template stack (for the icon) plus the thunk that mints a fresh one. */
     record Tile(ItemStack template, Supplier<ItemStack> mint, String label) {
     }
@@ -60,6 +62,7 @@ public final class MintMenu extends PagedMenu<MintMenu.Tile> {
         try {
             minted = tile.mint().get();
         } catch (RuntimeException disabled) {
+            LOG.log(System.Logger.Level.WARNING, "mint '" + tile.label() + "' failed", disabled);
             messages.send(player, "menu.mint.unavailable", "ITEM", tile.label());
             return;
         }
@@ -82,6 +85,9 @@ public final class MintMenu extends PagedMenu<MintMenu.Tile> {
         try {
             return entry.mint().get();
         } catch (RuntimeException disabled) {
+            // A gated subsystem (e.g. scrolls off) is expected to refuse; log at DEBUG so a genuine bug is
+            // still discoverable without spamming the console on every render.
+            LOG.log(System.Logger.Level.DEBUG, "mint tile '" + entry.label() + "' skipped", disabled);
             return null;
         }
     }

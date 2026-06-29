@@ -121,11 +121,6 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial, 
         return out;
     }
 
-    /** The title for {@code page} of {@code pages} (1-based); a single-page menu shows no page suffix. */
-    public String titleFor(int page, int pages) {
-        return pages > 1 ? titleTemplate + "  (" + page + "/" + pages + ")" : titleTemplate;
-    }
-
     /** A standard 6-row framed paged layout: prev bottom-left (45), next bottom-right (53), back (48), close (49). */
     public static MenuLayout paged(String title) {
         return new MenuLayout(6, title, "GRAY_STAINED_GLASS_PANE", Frame.BORDER, 45, 53, 48, 49);
