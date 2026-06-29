@@ -9,7 +9,7 @@ description:
   - "&6&lII: &f▲ 100% &7| &f⌛ 45s"
   - "&6&lIII: &f▲ 100% &7| &f⌛ 45s"
 trigger: ATTACK
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
 levels:

@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.ItemGroups;
 
 /**
  * The read-only enchant catalog browser (§K): a two-level tier→enchant drill-down, browse-only
@@ -135,7 +136,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     /** A rich enchant icon whose tooltip is the per-enchant detail (description, applies-to, level, §G). */
     private ItemStack enchantIcon(EnchantDef def) {
         List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
-        lore.add("&8applies to: &7" + String.join(", ", def.appliesTo()));
+        lore.add("&8applies to: &7" + ItemGroups.kindsLabel(def.appliesTo()));
         lore.add("&8max level: &7" + def.maxLevel());
         if (!def.requires().isEmpty()) {
             lore.add("&8requires: &7" + String.join(", ", def.requires()));

@@ -10,7 +10,7 @@ description:
   - "&e&lIV: &f🎲 9% &7| &f▲ 8% &7| &f⌛ 3s"
   - "&e&lV: &f🎲 9% &7| &f▲ 10% &7| &f⌛ 3s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "epic"
 tier: epic
 levels:

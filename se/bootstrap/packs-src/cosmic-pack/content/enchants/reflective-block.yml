@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: reflective-block). Review before shipping.
 display: "Reflective Block"
 description:
-  - "&dHeroic upgrade for Block."
+  - "&dMythic upgrade for Block."
   - "&dWhile blocking, greatly reduces"
   - "&dor fully negates incoming damage"
   - "&dand strikes the attacker back."
@@ -12,8 +12,8 @@ description:
   - "&d&lIII: &f🎲 80% &7| &f▲ 100% &7| &f⌛ 5s"
 trigger: DEFENSE
 applies-to: [SWORD]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/block"]
 levels:
   1:

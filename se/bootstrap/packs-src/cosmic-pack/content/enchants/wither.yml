@@ -10,7 +10,7 @@ description:
   - "&b&lIV: &f🎲 9% &7| &f⌛ 4s"
   - "&b&lV: &f🎲 11% &7| &f⌛ 4s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "rare"
 tier: rare
 levels:

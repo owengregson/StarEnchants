@@ -11,7 +11,7 @@ description:
   - "&6&lV: &f🎲 9% &7| &f▲ 15% &7| &f⌛ 2s"
   - "&6&lVI: &f🎲 10% &7| &f▲ 15% &7| &f⌛ 2s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
 levels:

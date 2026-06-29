@@ -1,10 +1,13 @@
 default-tier: common
+# Rarity tiers (ascending weight). The former "heroic" tier is renamed to "mythic" (keeps &d) and the former
+# "mythic" tier is renamed to "godly" (keeps &4); the soul↔heroic weights were swapped so soul (70) now ranks
+# ABOVE the renamed mythic (60). Weight drives roll rarity, shop cost, and the least-weight-first menu sort.
 tiers:
   common:    { color: "&7",   weight: 10, glint: false }
   uncommon:  { color: "&a",   weight: 20, glint: false }
   rare:      { color: "&b",   weight: 30, glint: false }
   epic:      { color: "&e",   weight: 40, glint: true  }
   legendary: { color: "&6",   weight: 50, glint: true  }
-  soul:      { color: "&c",   weight: 60, glint: true  }
-  heroic:    { color: "&d",   weight: 70, glint: true  }
-  mythic:    { color: "&4",   weight: 80, glint: true  }
+  mythic:    { color: "&d",   weight: 60, glint: true  }
+  soul:      { color: "&c",   weight: 70, glint: true  }
+  godly:     { color: "&4",   weight: 80, glint: true  }

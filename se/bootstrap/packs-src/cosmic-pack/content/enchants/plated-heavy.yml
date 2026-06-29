@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: plated-heavy). Review before shipping.
 display: "Plated Heavy"
 description:
-  - "&dHeroic upgrade for Heavy."
+  - "&dMythic upgrade for Heavy."
   - "&dGreatly reduces bow damage."
   - "&c&l(!)&r &7Requires &eHeavy"
   - ""
@@ -11,9 +11,9 @@ description:
   - "&d&lIV: &f▲ 18%"
   - "&d&lV: &f▲ 20%"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-group: "heroic"
-tier: heroic
+applies-to: [ARMOR]
+group: "mythic"
+tier: mythic
 requires: ["enchants/heavy"]
 levels:
   1:

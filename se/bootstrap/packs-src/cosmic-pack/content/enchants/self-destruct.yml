@@ -8,7 +8,7 @@ description:
   - "&a&lII: &f🎲 17% &7| &f▲ 2 TNT &7| &f⌛ 20s"
   - "&a&lIII: &f🎲 22% &7| &f▲ 3 TNT &7| &f⌛ 20s"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "uncommon"
 tier: uncommon
 levels:

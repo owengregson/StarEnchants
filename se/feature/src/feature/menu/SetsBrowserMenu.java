@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.ItemGroups;
 
 /**
  * The armour-set browser (docs/v3-directives.md §K, ADR-0030): a two-level drill — every set, then the pieces
@@ -150,7 +151,7 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
     private ItemStack setIcon(SetDef def) {
         List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8completes at: &7" + def.armorComplete() + " armour piece" + (def.armorComplete() == 1 ? "" : "s"));
-        lore.add("&8armour: &7" + String.join(", ", def.appliesTo()));
+        lore.add("&8armour: &7" + ItemGroups.kindsLabel(def.appliesTo()));
         if (def.hasWeapon()) {
             lore.add("&8weapon: &7" + (def.weapon().name() != null ? def.weapon().name() : def.weapon().material()));
         }

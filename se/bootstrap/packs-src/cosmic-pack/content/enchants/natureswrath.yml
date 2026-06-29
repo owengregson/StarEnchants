@@ -9,7 +9,7 @@ description:
   - "&c&lIII: &f🎲 12% &7| &f⌛ 10s &7| &f☄ 75"
   - "&c&lIV: &f🎲 16% &7| &f⌛ 10s &7| &f☄ 75"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "soul"
 tier: soul
 levels:

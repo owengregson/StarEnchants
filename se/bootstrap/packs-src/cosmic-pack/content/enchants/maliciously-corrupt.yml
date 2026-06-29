@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: maliciously-corrupt). Review before shipping.
 display: "Maliciously Corrupt"
 description:
-  - "&dHeroic upgrade for Corrupt."
+  - "&dMythic upgrade for Corrupt."
   - "&dDeals more damage and suppresses"
   - "&dInversion for longer."
   - "&c&l(!)&r &7Requires &eCorrupt"
@@ -12,8 +12,8 @@ description:
   - "&d&lIV: &f🎲 5% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/corrupt"]
 levels:
   1:

@@ -8,7 +8,7 @@ description:
   - "&6&lII: &f🎲 80%"
   - "&6&lIII: &f🎲 100%"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
 levels:

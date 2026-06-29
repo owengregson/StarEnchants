@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: reinforced-tank). Review before shipping.
 display: "Reinforced Tank"
 description:
-  - "&dHeroic upgrade for Tank."
+  - "&dMythic upgrade for Tank."
   - "&dReduces more axe damage."
   - "&c&l(!)&r &7Requires &eTank"
   - ""
@@ -10,9 +10,9 @@ description:
   - "&d&lIII: &f▲ 6.75%"
   - "&d&lIV: &f▲ 9.95%"
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
-group: "heroic"
-tier: heroic
+applies-to: [ARMOR]
+group: "mythic"
+tier: mythic
 requires: ["enchants/tank"]
 levels:
   1:

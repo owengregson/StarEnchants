@@ -8,7 +8,7 @@ description:
   - "&b&lII: &f🎲 9% &7| &f▲ +2 pt."
   - "&b&lIII: &f🎲 11% &7| &f▲ +2 pt."
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "rare"
 tier: rare
 levels:

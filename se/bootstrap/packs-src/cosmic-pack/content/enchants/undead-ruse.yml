@@ -15,7 +15,7 @@ description:
   - "&b&lIX: &f🎲 5% &7| &f▲ 4x &7| &f⌛ 10s"
   - "&b&lX: &f🎲 6% &7| &f▲ 5x &7| &f⌛ 10s"
 trigger: ATTACK
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: "rare"
 tier: rare
 levels:

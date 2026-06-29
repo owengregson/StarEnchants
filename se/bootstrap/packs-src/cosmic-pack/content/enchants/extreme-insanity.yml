@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: extreme-insanity). Review before shipping.
 display: "Extreme Insanity"
 description:
-  - "&dHeroic upgrade for Insanity."
+  - "&dMythic upgrade for Insanity."
   - "&dDeals scaling bonus damage to"
   - "&dtargets holding a sword."
   - "&c&l(!)&r &7Requires &6Insanity"
@@ -16,8 +16,8 @@ description:
   - "&d&lVIII: &f▲ 18%"
 trigger: ATTACK
 applies-to: [AXE]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/insanity"]
 levels:
   1:

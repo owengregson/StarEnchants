@@ -1,7 +1,7 @@
 # Imported from EliteEnchantments (id: bloody-deep-wounds). Review before shipping.
 display: "Bloody Deep Wounds"
 description:
-  - "&dHeroic upgrade for Deep Wounds."
+  - "&dMythic upgrade for Deep Wounds."
   - "&dDeals more bonus melee damage."
   - "&c&l(!)&r &7Requires &aDeep Wounds"
   - ""
@@ -10,8 +10,8 @@ description:
   - "&d&lIII: &f🎲 5.5% &7| &f▲ 15% &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [WEAPON]
-group: "heroic"
-tier: heroic
+group: "mythic"
+tier: mythic
 requires: ["enchants/deep-wounds"]
 levels:
   1:
