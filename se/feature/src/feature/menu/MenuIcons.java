@@ -28,6 +28,20 @@ public final class MenuIcons {
         }
     }
 
+    /**
+     * Fill EVERY cell with the filler pane — a solid backdrop for a hub (its tiles pop against the glass) or a
+     * bench (inputs cleared afterwards). A blank filler token draws nothing.
+     */
+    public static void fillAll(MenuHolder holder, MenuLayout layout) {
+        ItemStack pane = pane(layout.fillerMaterial());
+        if (pane == null) {
+            return;
+        }
+        for (int slot = 0; slot < layout.size(); slot++) {
+            holder.set(slot, pane, null);
+        }
+    }
+
     /** A blank decorative frame pane from a material token (cross-version), or {@code null} for a blank token. */
     public static ItemStack pane(String materialToken) {
         Material material = ItemFactory.material(materialToken, Material.AIR);
