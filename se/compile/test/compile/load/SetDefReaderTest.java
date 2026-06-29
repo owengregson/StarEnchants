@@ -26,6 +26,11 @@ class SetDefReaderTest {
         return () -> id[0]++;
     }
 
+    /** Assert a diagnostic with the given code was emitted — the contract, not just "something failed". */
+    private static void assertCode(Diagnostics diags, DiagCode code) {
+        assertTrue(diags.all().stream().anyMatch(d -> d.is(code)), () -> diags.all().toString());
+    }
+
     @Test
     void validSetWithArmorAndWeaponReadsToTwoBonuses() {
         Diagnostics diags = new Diagnostics();
@@ -97,7 +102,7 @@ class SetDefReaderTest {
     void missingArmorBlockIsAnError() {
         Diagnostics diags = new Diagnostics();
         SetDefReader.read("sets/x", root("display: Nope\n", diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_SET_ARMOR);
     }
 
     @Test
@@ -111,7 +116,7 @@ class SetDefReaderTest {
               effects: [{ DAMAGE: { amount: 1 } }]
             """;
         SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_SET_MEMBER);
     }
 
     @Test
@@ -126,7 +131,7 @@ class SetDefReaderTest {
               effects: [{ DAMAGE: { amount: 1 } }]
             """;
         SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_SET_COMPLETE);
     }
 
     @Test
@@ -143,7 +148,7 @@ class SetDefReaderTest {
               effects: [{ HEAL: { amount: 1 } }]
             """;
         SetDefReader.read("sets/x", root(yaml, diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_SET_WEAPON);
     }
 
     @Test
@@ -190,7 +195,7 @@ class SetDefReaderTest {
         SetDefReader.Parsed parsed = SetDefReader.read("sets/frost", root(yaml, diags), counter(), diags);
 
         assertFalse(diags.hasErrors(), "a non-numeric level is a warning, not a blocking error");
-        assertTrue(diags.all().stream().anyMatch(d -> d.is(DiagCode.W_SET_ENCHANT)), () -> diags.all().toString());
+        assertCode(diags, DiagCode.W_SET_ENCHANT);
         // the unparseable entry is dropped; its valid sibling survives
         assertEquals(Map.of("PROTECTION", 4), parsed.def().armorEnchants());
     }
@@ -199,7 +204,7 @@ class SetDefReaderTest {
     void nonMappingFileIsAnErrorAndYieldsNoBonus() {
         Diagnostics diags = new Diagnostics();
         SetDefReader.Parsed parsed = SetDefReader.read("sets/x", root("- a\n- b\n", diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_SET);
         assertNull(parsed.def());
         assertTrue(parsed.abilities().isEmpty());
     }

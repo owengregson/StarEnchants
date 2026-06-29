@@ -8,6 +8,7 @@ import compile.def.AbilityDef;
 import java.util.List;
 import java.util.function.IntSupplier;
 import org.junit.jupiter.api.Test;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 
 /** Unit tests for the enchant reader (ADR-0014): malformed input is a diagnostic, never an exception. */
@@ -20,6 +21,11 @@ class EnchantDefReaderTest {
     private static IntSupplier counter() {
         int[] id = {0};
         return () -> id[0]++;
+    }
+
+    /** Assert a diagnostic with the given code was emitted — the contract, not just "something failed". */
+    private static void assertCode(Diagnostics diags, DiagCode code) {
+        assertTrue(diags.all().stream().anyMatch(d -> d.is(code)), () -> diags.all().toString());
     }
 
     @Test
@@ -65,14 +71,14 @@ class EnchantDefReaderTest {
         Diagnostics diags = new Diagnostics();
         String yaml = "levels:\n  1: { chance: 10, effects: [{ HEAL: { amount: 2 } }] }\n";
         EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_ENCHANT_TRIGGER);
     }
 
     @Test
     void missingLevelsIsAnError() {
         Diagnostics diags = new Diagnostics();
         EnchantDefReader.read("enchants/x", root("trigger: ATTACK\n", diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_ENCHANT_LEVELS);
     }
 
     @Test
@@ -84,7 +90,7 @@ class EnchantDefReaderTest {
               1: { chance: 150, effects: [{ HEAL: { amount: 2 } }] }
             """;
         EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_CHANCE);
     }
 
     @Test
@@ -112,7 +118,7 @@ class EnchantDefReaderTest {
               1: { chance: NaN, effects: [{ HEAL: { amount: 2 } }] }
             """;
         EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_CHANCE);
     }
 
     @Test
@@ -120,7 +126,7 @@ class EnchantDefReaderTest {
         Diagnostics diags = new Diagnostics();
         EnchantDefReader.Parsed parsed =
                 EnchantDefReader.read("enchants/x", root("- just\n- a\n- list\n", diags), counter(), diags);
-        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_ENCHANT);
         assertTrue(parsed.abilities().isEmpty());
     }
 }

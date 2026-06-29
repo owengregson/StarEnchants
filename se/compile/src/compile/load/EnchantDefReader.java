@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.IntSupplier;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -42,7 +43,7 @@ final class EnchantDefReader {
     static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {
-            diags.error("load.enchant", "enchant file '" + baseKey + "' must be a YAML mapping", fileSource);
+            diags.error(DiagCode.E_LOAD_ENCHANT, "enchant file '" + baseKey + "' must be a YAML mapping", fileSource);
             return new Parsed(null, List.of());
         }
         ContentParse.warnUnknownKeys(root, ROOT_KEYS, diags);
@@ -56,7 +57,7 @@ final class EnchantDefReader {
         List<String> appliesTo = root.stringList("applies-to");
         List<String> triggers = root.stringList("trigger");
         if (triggers.isEmpty()) {
-            diags.error("load.enchant.trigger", "enchant '" + baseKey + "' declares no trigger",
+            diags.error(DiagCode.E_LOAD_ENCHANT_TRIGGER, "enchant '" + baseKey + "' declares no trigger",
                     root.sourceOf("trigger"));
         }
         List<String> disabledWorlds = root.stringList("disabled-worlds");
@@ -66,7 +67,7 @@ final class EnchantDefReader {
         List<String> blacklist = root.stringList("blacklist");
         boolean removesRequired = "true".equalsIgnoreCase(root.string("removes-required"));
         if (removesRequired && requires.isEmpty()) {
-            diags.warning("load.enchant.relationships",
+            diags.warning(DiagCode.W_LOAD_ENCHANT_RELATIONSHIPS,
                     "enchant '" + baseKey + "' sets removes-required but declares no 'requires'",
                     root.sourceOf("removes-required"));
         }
@@ -77,12 +78,12 @@ final class EnchantDefReader {
             Integer level = ContentParse.parseInt(entry.key());
             Source levelSource = entry.value().source();
             if (level == null || level < 1) {
-                diags.error("load.enchant.level",
+                diags.error(DiagCode.E_LOAD_ENCHANT_LEVEL,
                         "level key must be a positive integer, got '" + entry.key() + "'", levelSource);
                 continue;
             }
             if (!entry.value().isMapping()) {
-                diags.error("load.enchant.level",
+                diags.error(DiagCode.E_LOAD_ENCHANT_LEVEL,
                         "level " + level + " of '" + baseKey + "' must be a mapping", levelSource);
                 continue;
             }
@@ -92,7 +93,7 @@ final class EnchantDefReader {
 
         TreeSet<Integer> levelSet = new TreeSet<>(levelNodes.keySet());
         if (levelSet.isEmpty()) {
-            diags.error("load.enchant.levels", "enchant '" + baseKey + "' declares no levels (need a 'levels:' map)",
+            diags.error(DiagCode.E_LOAD_ENCHANT_LEVELS, "enchant '" + baseKey + "' declares no levels (need a 'levels:' map)",
                     root.sourceOf("levels"));
         }
         int maxLevel = levelSet.isEmpty() ? 0 : levelSet.last();
@@ -144,7 +145,7 @@ final class EnchantDefReader {
                 ? ContentParse.effectItems(lvl, "effects", diags)
                 : new ArrayList<>();
         if (effects.isEmpty()) {
-            diags.warning("load.effects", "level " + level + " of '" + baseKey + "' declares no effects",
+            diags.warning(DiagCode.W_LOAD_EFFECTS, "level " + level + " of '" + baseKey + "' declares no effects",
                     lvl.sourceOf("effects"));
         }
         return effects;

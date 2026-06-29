@@ -33,6 +33,11 @@ class LibraryLoaderTest {
         Files.writeString(file, yaml, StandardCharsets.UTF_8);
     }
 
+    /** Assert a diagnostic with the given code was emitted — the contract, not just "the load failed". */
+    private static void assertCode(Library lib, DiagCode code) {
+        assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(code)), () -> lib.diagnostics().toString());
+    }
+
     @Test
     void loadsADirectoryTreeIntoASnapshotAndCatalog(@TempDir Path root) throws IOException {
         write(root, "enchants/lifesteal.yml", """
@@ -134,7 +139,7 @@ class LibraryLoaderTest {
             display: "Broken"
             """);
         Library lib = LibraryLoader.load(root, compiler(), 9);
-        assertTrue(lib.hasErrors());
+        assertCode(lib, DiagCode.E_LOAD_SET_ARMOR);
     }
 
     @Test
@@ -148,8 +153,8 @@ class LibraryLoaderTest {
 
         Library lib = LibraryLoader.load(root, compiler(), 2);
 
-        assertTrue(lib.hasErrors());
-        assertNotNull(lib.snapshot().byStableKey("enchants/good/1"));
+        assertCode(lib, DiagCode.E_LOAD_ENCHANT_LEVELS); // the bad file (no levels:) is reported by code...
+        assertNotNull(lib.snapshot().byStableKey("enchants/good/1")); // ...and the good sibling still loads
     }
 
     @Test
@@ -161,7 +166,7 @@ class LibraryLoaderTest {
               1: { chance: 50, effects: [{ HEAL: { amount: 2 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 4);
-        assertTrue(lib.hasErrors());
+        assertCode(lib, DiagCode.E_LOAD_KEY);
         assertEquals(0, lib.snapshot().abilityCount());
     }
 
@@ -175,7 +180,7 @@ class LibraryLoaderTest {
               1: { chance: 100, effects: [{ HEAL: { amount: 1 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
-        assertTrue(lib.hasErrors(), "a requires: naming a non-existent enchant must be a diagnostic");
+        assertCode(lib, DiagCode.E_REL_UNKNOWN); // a requires: naming a non-existent enchant
     }
 
     @Test
@@ -188,7 +193,7 @@ class LibraryLoaderTest {
               1: { chance: 100, effects: [{ HEAL: { amount: 1 } }] }
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
-        assertTrue(lib.hasErrors());
+        assertCode(lib, DiagCode.E_REL_UNKNOWN);
     }
 
     @Test
@@ -227,9 +232,7 @@ class LibraryLoaderTest {
               effects: [{ HEAL: { amount: 1 } }]
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
-        assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_SET_ENCHANT_UNKNOWN)),
-                () -> lib.diagnostics().toString());
-        assertTrue(lib.hasErrors());
+        assertCode(lib, DiagCode.E_SET_ENCHANT_UNKNOWN);
     }
 
     @Test
@@ -254,8 +257,7 @@ class LibraryLoaderTest {
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
         // enchants/frost tops out at level 2; a level-5 ref is out of range.
-        assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_SET_ENCHANT_LEVEL)),
-                () -> lib.diagnostics().toString());
+        assertCode(lib, DiagCode.E_SET_ENCHANT_LEVEL);
     }
 
     @Test

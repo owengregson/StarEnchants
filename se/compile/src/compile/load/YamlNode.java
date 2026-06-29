@@ -13,6 +13,7 @@ import org.yaml.snakeyaml.nodes.Node;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.ScalarNode;
 import org.yaml.snakeyaml.nodes.SequenceNode;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 
@@ -49,7 +50,7 @@ final class YamlNode {
         } catch (RuntimeException | StackOverflowError malformed) {
             // StackOverflowError too: a pathologically deep doc escapes as an Error; content must never
             // throw out of the loader, only diagnose (§7, §10).
-            diags.error("load.yaml", "could not parse YAML: " + rootMessage(malformed), Source.ofFile(file));
+            diags.error(DiagCode.E_LOAD_YAML, "could not parse YAML: " + rootMessage(malformed), Source.ofFile(file));
             return new YamlNode(file, null);
         }
     }

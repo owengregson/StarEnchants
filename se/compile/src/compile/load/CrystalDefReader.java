@@ -5,6 +5,7 @@ import compile.model.SourceKind;
 import java.util.List;
 import java.util.Set;
 import java.util.function.IntSupplier;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
@@ -34,7 +35,7 @@ final class CrystalDefReader {
     static Parsed read(String baseKey, String folderTier, YamlNode root, IntSupplier nextDefId, Diagnostics diags) {
         Source fileSource = root.source();
         if (!root.isMapping()) {
-            diags.error("load.crystal", "crystal file '" + baseKey + "' must be a YAML mapping", fileSource);
+            diags.error(DiagCode.E_LOAD_CRYSTAL, "crystal file '" + baseKey + "' must be a YAML mapping", fileSource);
             return new Parsed(null, List.of());
         }
         ContentParse.warnUnknownKeys(root, ROOT_KEYS, diags);
@@ -48,7 +49,7 @@ final class CrystalDefReader {
         List<String> appliesTo = root.stringList("applies-to");
         List<String> triggers = root.stringList("trigger");
         if (triggers.isEmpty()) {
-            diags.error("load.crystal.trigger", "crystal '" + baseKey + "' declares no trigger",
+            diags.error(DiagCode.E_LOAD_CRYSTAL_TRIGGER, "crystal '" + baseKey + "' declares no trigger",
                     root.sourceOf("trigger"));
         }
         List<String> disabledWorlds = root.stringList("disabled-worlds");
@@ -61,7 +62,7 @@ final class CrystalDefReader {
         String condition = ContentParse.blankToNull(root.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(root, "effects", diags);
         if (effects.isEmpty()) {
-            diags.warning("load.effects", "crystal '" + baseKey + "' declares no effects", root.sourceOf("effects"));
+            diags.warning(DiagCode.W_LOAD_EFFECTS, "crystal '" + baseKey + "' declares no effects", root.sourceOf("effects"));
         }
 
         AbilityDef ability = new AbilityDef(
