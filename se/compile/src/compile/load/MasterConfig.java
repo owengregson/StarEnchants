@@ -288,9 +288,10 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
      * @param byTemplate the BY-you template (names {@code {VICTIM}})
      * @param onEnabled  send the other party a line when an enchant fires on them
      * @param onTemplate the ON-you template (names {@code {ATTACKER}})
+     * @param uppercase  render the {@code {ENCHANT}} name in UPPERCASE (the names only; party names are untouched)
      */
     public record MessageOnActivateSection(boolean byEnabled, String byTemplate,
-                                           boolean onEnabled, String onTemplate) {
+                                           boolean onEnabled, String onTemplate, boolean uppercase) {
         public MessageOnActivateSection {
             Objects.requireNonNull(byTemplate, "byTemplate");
             Objects.requireNonNull(onTemplate, "onTemplate");
@@ -299,9 +300,10 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         public static MessageOnActivateSection defaults() {
             return new MessageOnActivateSection(
                     false,
-                    "{TIER_COLOR}&l** {ENCHANT} &7ON &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**",
+                    "{TIER_COLOR}&l** {ENCHANT} &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**",
                     false,
-                    "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **");
+                    "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **",
+                    false);
         }
     }
 }

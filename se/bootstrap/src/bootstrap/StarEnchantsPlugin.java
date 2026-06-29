@@ -372,8 +372,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     if (key == null) {
                         return; // a null key is skipped, not faked
                     }
-                    fireActivation(key, ability, context);        // EnchantActivateEvent (public API)
-                    activationMessenger.onActivate(key, context); // §L the configured BY/ON lines
+                    fireActivation(key, ability, context);                 // EnchantActivateEvent (public API)
+                    activationMessenger.onActivate(key, ability, context); // §L the configured BY/ON lines
                 });
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
@@ -435,7 +435,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 tick::get, triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
         // §6.6 set equip/remove announcements: fire the authored per-set message on a completion transition.
         feature.trigger.SetMessageDriver setMessages = new feature.trigger.SetMessageDriver(content,
-                (player, msg) -> player.sendMessage(item.mint.ItemFactory.color(msg)));
+                (player, msg) -> { // split on \n (keep trailing empties) so a leading AND trailing blank line both render
+                    for (String line : item.mint.ItemFactory.color(msg).split("\n", -1)) {
+                        player.sendMessage(line);
+                    }
+                });
 
         // §L feature toggles gate listener registration at BOOT: handlers can't be cleanly re-bound mid-run,
         // so a toggle change needs a restart.

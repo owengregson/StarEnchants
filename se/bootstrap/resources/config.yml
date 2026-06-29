@@ -42,9 +42,10 @@ messages:
 # non-combat activation (no other party) sends nothing.
 message-on-activate:
   by-enabled: false   # message YOU when your enchant fires (names the victim)
-  by-template: "{TIER_COLOR}&l** {ENCHANT} &7ON &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
+  by-template: "{TIER_COLOR}&l** {ENCHANT} &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
   on-enabled: false   # message the other party when an enchant fires on them (names the attacker)
   on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
+  uppercase: false    # render the {ENCHANT} name in UPPERCASE
 
 # Enchant books (§I). The book likeness (name/lore/material/wrap/destroy-on-fail) lives in
 # items/enchant-book.yml; only this global success ceiling is cross-cutting.
