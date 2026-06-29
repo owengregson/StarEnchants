@@ -16,8 +16,9 @@ orb-lore:
   - "&7Drag n' Drop on an item to apply."
 orb-amount: 3
 
-# Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base).
-hard-cap: 15
+# Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base),
+# so this 14 lets orbs buy up to +5 — the Cosmic Pack's max of 14 enchants per item after orbs.
+hard-cap: 14
 
 # Each minted orb rolls an apply-success % in [min-success, max-success]. On a failed roll the orb is consumed
 # with no slots added (it never destroys the gear). 100/100 = always succeeds.
