@@ -13,7 +13,7 @@ class MenuLayoutFromTest {
 
     private static MenuLayoutConfig of(OptionalInt rows, Optional<String> title, Optional<String> filler,
                                        OptionalInt prev, OptionalInt next, OptionalInt back, OptionalInt close) {
-        return new MenuLayoutConfig(rows, title, filler, prev, next, back, close);
+        return MenuLayoutConfig.geometry(rows, title, filler, prev, next, back, close);
     }
 
     @Test
@@ -48,6 +48,21 @@ class MenuLayoutFromTest {
         assertEquals(-1, merged.prevSlot()); // 45 ≥ 27 → hidden, not an out-of-bounds crash
         assertEquals(-1, merged.nextSlot()); // 53 ≥ 27 → hidden
         assertEquals(-1, merged.closeSlot()); // 49 ≥ 27 → hidden
+    }
+
+    @Test
+    void frameOverrideWinsAndAGeometryOnlyOverrideKeepsTheDefaultFrame() {
+        MenuLayout def = MenuLayout.paged("Base"); // default frame BORDER
+        assertEquals(Frame.BORDER, MenuLayout.from(def, of(           // geometry-only override → frame preserved
+                OptionalInt.empty(), Optional.of("&aX"), Optional.empty(),
+                OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty())).frame());
+
+        MenuLayoutConfig framed = new MenuLayoutConfig(OptionalInt.empty(), Optional.empty(), Optional.empty(),
+                Optional.of("bottom"), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(),
+                OptionalInt.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), OptionalInt.empty());
+        assertEquals(Frame.BOTTOM, MenuLayout.from(def, framed).frame()); // explicit token parsed + applied
     }
 
     @Test

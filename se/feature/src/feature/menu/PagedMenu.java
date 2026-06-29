@@ -1,8 +1,8 @@
 package feature.menu;
 
 import compile.load.MenusConfig;
-import item.mint.ItemFactory;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.bukkit.Material;
@@ -10,10 +10,12 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The reusable base for a paginated list/browse menu (docs/v3-directives.md §K): it owns pagination, the
- * filler nav row, the prev/next/back/close buttons, and title rendering. A subclass overrides
- * {@link #items}/{@link #icon}/{@link #onSelect} (+ optional {@link #titleFor}/{@link #showBack}/{@link #onBack});
- * a drill-down browser branches those on the holder's {@link MenuHolder#view()} cursor.
+ * The reusable base for a paginated list/browse menu (docs/v3-directives.md §K, ADR-0030): it owns pagination,
+ * the decorative frame, the themed prev/next/back/close buttons and the info pane, and title rendering. A
+ * subclass overrides {@link #items}/{@link #icon}/{@link #onSelect} (+ optional
+ * {@link #titleFor}/{@link #showBack}/{@link #onBack}/{@link #infoTitle}/{@link #infoLore}); a drill-down
+ * browser branches those on the holder's {@link MenuHolder#view()} cursor. Content lands at
+ * {@link MenuLayout#contentSlot} — a {@code BORDER} frame insets it inside the perimeter.
  *
  * @param <T> the content row type (an {@code EnchantDef}, {@code SetDef}, a reference entry, …)
  */
@@ -21,6 +23,7 @@ public abstract class PagedMenu<T> implements Menu {
 
     private final String name;
     private final Supplier<MenuLayout> layout;
+    private final Supplier<MenuTheme> theme;
     private final Capabilities caps;
 
     /** Fixed-layout form (tests/fixtures): the programmatic default is used verbatim, no menus/ override. */
@@ -29,15 +32,16 @@ public abstract class PagedMenu<T> implements Menu {
     }
 
     /**
-     * Canonical form: the effective layout is {@code defaultLayout} merged with this menu's
-     * {@code menus/<name>.yml} override (§L), re-resolved on every render so a {@code /se reload} re-lays-out
-     * the next open.
+     * Canonical form: the effective layout + chrome are {@code defaultLayout}/{@link MenuTheme#DEFAULT} merged
+     * with this menu's {@code menus/<name>.yml} override (§L), re-resolved on every render so a {@code /se
+     * reload} re-lays-out the next open.
      */
     protected PagedMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus) {
-        this.name = Objects.requireNonNull(name, "name").toLowerCase(java.util.Locale.ROOT);
+        this.name = Objects.requireNonNull(name, "name").toLowerCase(Locale.ROOT);
         Objects.requireNonNull(defaultLayout, "defaultLayout");
         Objects.requireNonNull(menus, "menus");
         this.layout = () -> MenuLayout.from(defaultLayout, menus.get().forMenu(this.name).orElse(null));
+        this.theme = () -> MenuTheme.from(MenuTheme.DEFAULT, menus.get().forMenu(this.name).orElse(null));
         this.caps = caps; // nullable in pure tests; MenuText degrades to the conservative 32-char cap
     }
 
@@ -48,6 +52,10 @@ public abstract class PagedMenu<T> implements Menu {
 
     protected final MenuLayout layout() {
         return layout.get();
+    }
+
+    protected final MenuTheme theme() {
+        return theme.get();
     }
 
     /** The content rows to page through for the holder's current view. */
@@ -71,11 +79,22 @@ public abstract class PagedMenu<T> implements Menu {
         click.player().closeInventory();
     }
 
+    /** The info-pane title for the current view, or {@code null} to keep the theme's default info pane. */
+    protected String infoTitle(MenuHolder holder) {
+        return null;
+    }
+
+    /** The info-pane lore for the current view (used only when {@link #infoTitle} is non-null). */
+    protected List<String> infoLore(MenuHolder holder) {
+        return List.of();
+    }
+
     @Override
     public void render(MenuHolder holder) {
-        MenuLayout layout = layout(); // resolve the live config-merged layout once per render
+        MenuLayout layout = layout(); // resolve the live config-merged geometry + chrome once per render
+        MenuTheme theme = theme();
         List<T> items = items(holder);
-        int perPage = layout.contentSlots();
+        int perPage = Math.max(1, layout.contentSlotCount());
         int pages = Paging.pageCount(items.size(), perPage);
         int page = Paging.clampPage(holder.page(), pages);
         holder.setPage(page);
@@ -84,47 +103,61 @@ public abstract class PagedMenu<T> implements Menu {
         String withSuffix = pages > 1 ? base + "  (" + (page + 1) + "/" + pages + ")" : base;
         holder.begin(layout.size(), MenuText.title(withSuffix, caps));
 
+        fillFrame(holder, layout);
+
         int start = Paging.indexFor(page, 0, perPage);
         for (int i = 0; i < perPage && start + i < items.size(); i++) {
             T item = items.get(start + i);
-            holder.set(i, icon(holder, item), click -> onSelect(click, item));
+            int slot = layout.contentSlot(i);
+            if (slot >= 0) {
+                holder.set(slot, icon(holder, item), click -> onSelect(click, item));
+            }
         }
 
-        fillNavRow(holder, layout);
+        placeInfo(holder, layout, theme);
+
         if (page > 0) {
-            bind(holder, layout.prevSlot(), navIcon("ARROW", "&ePrevious"),
+            bind(holder, layout.prevSlot(), MenuIcons.page(theme.prev(), page, pages),
                     click -> { click.holder().setPage(page - 1); reopen(click); });
         }
         if (page < pages - 1) {
-            bind(holder, layout.nextSlot(), navIcon("ARROW", "&eNext"),
+            bind(holder, layout.nextSlot(), MenuIcons.page(theme.next(), page + 2, pages),
                     click -> { click.holder().setPage(page + 1); reopen(click); });
         }
         if (showBack(holder)) {
-            bind(holder, layout.backSlot(), navIcon("OAK_DOOR", "&eBack"), this::onBack);
+            bind(holder, layout.backSlot(), MenuIcons.plain(theme.back()), this::onBack);
         }
-        bind(holder, layout.closeSlot(), navIcon("BARRIER", "&cClose"), click -> click.player().closeInventory());
+        bind(holder, layout.closeSlot(), MenuIcons.plain(theme.close()),
+                click -> click.player().closeInventory());
     }
 
-    private void fillNavRow(MenuHolder holder, MenuLayout layout) {
-        Material filler = ItemFactory.material(layout.fillerMaterial(), Material.AIR);
-        if (filler == Material.AIR) {
-            return; // blank/unknown filler token → leave the nav row empty
+    /** Lay the decorative frame panes for the resolved {@link Frame}; a blank filler token draws nothing. */
+    private void fillFrame(MenuHolder holder, MenuLayout layout) {
+        ItemStack pane = MenuIcons.pane(layout.fillerMaterial());
+        if (pane == null) {
+            return;
         }
-        ItemStack pane = ItemFactory.build(filler, " ", List.of());
-        for (int slot = layout.navRowStart(); slot < layout.size(); slot++) {
+        for (int slot : layout.paneSlots()) {
             holder.set(slot, pane, null);
         }
+    }
+
+    /** Place the info pane, but only where it would sit on a decorative cell (never clobbering paged content). */
+    private void placeInfo(MenuHolder holder, MenuLayout layout, MenuTheme theme) {
+        int slot = theme.infoSlot();
+        if (slot < 0 || slot >= layout.size() || !layout.paneSlots().contains(slot)) {
+            return;
+        }
+        String title = infoTitle(holder);
+        NavButton info = title == null ? theme.info()
+                : new NavButton(theme.info().material(), theme.info().fallback(), title, infoLore(holder));
+        holder.set(slot, MenuIcons.plain(info), null);
     }
 
     private void bind(MenuHolder holder, int slot, ItemStack icon, ClickAction action) {
         if (slot >= 0) {
             holder.set(slot, icon, action);
         }
-    }
-
-    /** A nav button icon resolved by name (cross-version), falling back to {@code PAPER} for an absent token. */
-    protected static ItemStack navIcon(String materialToken, String name) {
-        return ItemFactory.build(ItemFactory.material(materialToken, Material.PAPER), name, List.of());
     }
 
     /**
