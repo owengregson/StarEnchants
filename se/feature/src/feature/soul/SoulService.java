@@ -49,6 +49,9 @@ public final class SoulService implements SoulDebit {
     private final java.util.function.BooleanSupplier depositOnAnyKill; // read live so a reload can flip it (§D)
     private final item.lang.Messages messages;
     private final feature.fx.ParticleFx particles; // on-activate/deactivate spawns; the aura is SoulParticleDriver
+    // §I a line a separate system owns (white/holy PROTECTED, trak counts) that the gem re-render must PRESERVE
+    // rather than wipe; default "preserve nothing" keeps the test/fixture forms server-free.
+    private final java.util.function.Predicate<String> preservedLoreLine;
 
     /** Soul service with deposit-on-any-kill always on + default messages (the common test/fixture form). */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
@@ -67,10 +70,17 @@ public final class SoulService implements SoulDebit {
         this(ledger, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
     }
 
-    /** Canonical form (composition root). */
+    /** Particles-but-no-lore-preservation form (the test/fixture canonical). */
     public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
                        feature.fx.ParticleFx particles) {
+        this(ledger, modes, codec, config, depositOnAnyKill, messages, particles, line -> false);
+    }
+
+    /** Canonical form (composition root): {@code preservedLoreLine} marks scroll/trak lines to keep on re-render. */
+    public SoulService(SoulLedger ledger, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
+                       feature.fx.ParticleFx particles, java.util.function.Predicate<String> preservedLoreLine) {
         this.ledger = Objects.requireNonNull(ledger, "ledger");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
@@ -78,6 +88,7 @@ public final class SoulService implements SoulDebit {
         this.depositOnAnyKill = Objects.requireNonNull(depositOnAnyKill, "depositOnAnyKill");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.particles = Objects.requireNonNull(particles, "particles");
+        this.preservedLoreLine = Objects.requireNonNull(preservedLoreLine, "preservedLoreLine");
     }
 
     public enum Toggle { NO_GEM, ENABLED, DISABLED }
@@ -351,10 +362,15 @@ public final class SoulService implements SoulDebit {
         int slot = locateGemSlotById(player.getInventory(), gemId);
         int souls = ledger.peek(gemId).orElse(0); // the active gem is seeded at toggle-on, so peek is the truth
         if (slot < 0 || souls <= 0) {
+            SoulGemConfig cfg = config.get();
             persist(player, gemId); // flush the live count to the gem first (no-op if it is gone)
             modes.deactivate(id);
             ledger.forget(gemId);
             messageLines(player, messages.lines("soul.empty"));
+            // same disable FX as a manual toggle-off — an auto-disable is still a disable (runs on the
+            // player's own region thread, so sound/particle playback here is region-safe)
+            playSounds(player, cfg.sounds().toggleOff());
+            particles.spawn(player, cfg.particles().disable());
         }
     }
 
@@ -505,10 +521,28 @@ public final class SoulService implements SoulDebit {
         if (name != null && !name.isBlank()) {
             meta.setDisplayName(ItemFactory.color(name));
         }
+        // Preserve applied-scroll PROTECTED lines + trak lines: a separate system owns them, so the gem-body
+        // re-render (on every deposit/spend/toggle) must KEEP them rather than wipe them (§I robust composition —
+        // this is the fix for the white/holy white scroll line vanishing when soul mode is toggled).
+        List<String> preserved = new ArrayList<>();
+        if (meta.hasLore()) {
+            for (String line : meta.getLore()) {
+                if (preservedLoreLine.test(line)) {
+                    preserved.add(line);
+                }
+            }
+        }
         // Wrap exactly as the mint path does (ItemFactory.buildItem), else the gem lore visibly unwraps
         // the first time the count changes (mint wraps; this re-render must too).
-        List<String> lore = ItemFactory.wrapLore(renderGemLore(cfg, souls));
-        meta.setLore(lore == null || lore.isEmpty() ? null : lore.stream().map(ItemFactory::color).toList());
+        List<String> body = ItemFactory.wrapLore(renderGemLore(cfg, souls));
+        List<String> lore = new ArrayList<>();
+        if (body != null) {
+            for (String line : body) {
+                lore.add(ItemFactory.color(line));
+            }
+        }
+        lore.addAll(preserved); // already colour-translated when the scroll/trak stamped them
+        meta.setLore(lore.isEmpty() ? null : lore);
         gem.setItemMeta(meta);
     }
 }

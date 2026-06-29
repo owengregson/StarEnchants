@@ -120,7 +120,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             // maxAdded (5) is not a multiple of the orb's +3, so the second orb overshoots the cap and must
             // clamp-and-commit (3 + 3 → 5); a further orb at the cap is a no-op and not consumed.
             SlotConfig capCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
-                    ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100); // 100/100 = always succeeds (cap test isolates the cap)
+                    ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100, List.of("ALL")); // 100/100 = always succeeds; ALL so the cap test isolates the cap
             SlotService capSlots = new SlotService(slotCodec, combat, lore, () -> capCfg,
                     ItemEnchanter.DEFAULT_BASE_SLOTS);
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
@@ -268,7 +268,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
     private static ScrollsConfig withBlackConvert(ScrollsConfig base, int min, int max) {
         ScrollsConfig.Black b = base.black();
         return new ScrollsConfig(
-                new ScrollsConfig.Black(b.material(), b.name(), b.lore(), min, max),
+                new ScrollsConfig.Black(b.material(), b.name(), b.lore(), min, max, b.appliesTo()),
                 base.randomizer(), base.transmog(), base.holy(), base.nametag(), base.godly());
     }
 

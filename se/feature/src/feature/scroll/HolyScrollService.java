@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import platform.item.ItemGroups;
 
 /**
  * Holy white scroll (§I): APPLIED to a piece of gear (drag onto it) — on a successful apply roll it stamps a
@@ -34,6 +35,7 @@ public final class HolyScrollService {
     private final Random random;
     private final item.lang.Messages messages;
     private final Consumer<ItemStack> reRender; // refresh gear lore so the HOLY PROTECTED line tracks the marker
+    private final ItemGroups groups; // §I applies-to gate — the holy scroll only protects the configured item kinds
 
     /** Default-messages form (tests/fixtures). */
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random) {
@@ -47,12 +49,19 @@ public final class HolyScrollService {
 
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
                              item.lang.Messages messages, Consumer<ItemStack> reRender) {
+        this(scrolls, slot, config, random, messages, reRender, ItemGroups.standard());
+    }
+
+    /** Canonical form (composition root). */
+    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
+                             item.lang.Messages messages, Consumer<ItemStack> reRender, ItemGroups groups) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.slot = Objects.requireNonNull(slot, "slot");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.reRender = Objects.requireNonNull(reRender, "reRender");
+        this.groups = Objects.requireNonNull(groups, "groups");
     }
 
     public boolean isHolyScroll(ItemStack stack) {
@@ -61,11 +70,16 @@ public final class HolyScrollService {
 
     public ItemStack mint() {
         ScrollsConfig.Holy cfg = config.get().holy();
+        String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
+        List<String> lore = new ArrayList<>(cfg.lore().size());
+        for (String line : cfg.lore()) {
+            lore.add(line.replace("{KINDS}", kinds));
+        }
         // The default material (TOTEM_OF_UNDYING) is absent on 1.8; resolve by name and fall back to a
         // floor-stable material so the build fallback is never null on legacy.
         Material totem = Material.getMaterial("TOTEM_OF_UNDYING");
         ItemStack stack = ItemFactory.buildItem(
-                cfg.material(), totem != null ? totem : Material.PAPER, cfg.name(), cfg.lore());
+                cfg.material(), totem != null ? totem : Material.PAPER, cfg.name(), lore);
         scrolls.mark(stack, HOLY);
         return stack;
     }
@@ -86,6 +100,9 @@ public final class HolyScrollService {
             return ScrollResult.unchanged(messages.format("scroll.holy.already"));
         }
         ScrollsConfig.Holy cfg = config.get().holy();
+        if (!groups.matches(gear.getType(), cfg.appliesTo())) {
+            return ScrollResult.unchanged(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
+        }
         int span = cfg.maxSuccess() - cfg.minSuccess();
         int success = span <= 0 ? cfg.minSuccess() : cfg.minSuccess() + random.nextInt(span + 1);
         consume(cursor); // spent whether the roll succeeds or fails

@@ -10,7 +10,11 @@ name: "&6&lHoly White Scroll"
 # Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
   - "&eA legendary item that protects an item from being lost from the inventory upon death. This scroll will be consumed and removed from the item upon death."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
+# Item-group kinds this scroll may protect: ALL (any item) by default; e.g. ARMOR, WEAPON, TOOL. {KINDS} renders the label.
+applies-to: [ALL]
 # Each apply rolls a success in [min-success, max-success] (each 0–100). On a failed roll the scroll is spent
 # without protecting (it never destroys gear). 100/100 = always succeeds.
 min-success: 100

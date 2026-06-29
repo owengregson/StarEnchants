@@ -152,6 +152,7 @@ menu.admin.granted: "&aGranted a guaranteed &f{DISPLAY} &alevel &f{LEVEL} &abook
 
 # ── Gesture/service guards (wired through Messages in a follow-up; shown here for the complete surface) ──
 common.single-item: "&cApply to a single item — split the stack first."
+common.wrong-applies: "&cThis can only be applied to: &f{KINDS}&c."
 crystal.merge-single: "&cMerge onto a single crystal — split the stack first."
 crystal.merge-pairs: "&cMulti-crystals are pairs — you cannot merge a multi-crystal further."
 heroic.not-gear: "&cApply the heroic upgrade onto a piece of gear."

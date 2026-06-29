@@ -12,6 +12,7 @@ import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import platform.item.ItemGroups;
 
 /**
  * Slot-economy cold path (§H): mints the upgrade orb and applies it onto gear, raising the gear's purchased
@@ -26,6 +27,7 @@ public final class SlotService {
     private final Supplier<SlotConfig> config;
     private final IntSupplier baseSlots; // read live so the cap math tracks a reload of config.yml slots.base (§H)
     private final item.lang.Messages messages;
+    private final ItemGroups groups; // §H applies-to gate — the orb only expands the configured item kinds
 
     /** Fixed base-slots + default messages form (tests/fixtures). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
@@ -39,15 +41,23 @@ public final class SlotService {
         this(codec, combat, lore, config, baseSlots, item.lang.Messages.defaults());
     }
 
-    /** Canonical form (composition root). */
+    /** As above with explicit messages but the standard item groups (tests/fixtures). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, IntSupplier baseSlots, item.lang.Messages messages) {
+        this(codec, combat, lore, config, baseSlots, messages, ItemGroups.standard());
+    }
+
+    /** Canonical form (composition root). */
+    public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
+                       Supplier<SlotConfig> config, IntSupplier baseSlots, item.lang.Messages messages,
+                       ItemGroups groups) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.config = Objects.requireNonNull(config, "config");
         this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.groups = Objects.requireNonNull(groups, "groups");
     }
 
     public boolean isSlotItem(ItemStack stack) {
@@ -68,10 +78,11 @@ public final class SlotService {
 
     private ItemStack buildOrb(SlotConfig cfg, int success) {
         String amount = Integer.toString(cfg.orbAmount());
+        String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
         ItemStack stack = ItemFactory.buildItem(
                 cfg.orbMaterial(), Mats.or("ENDER_EYE", Material.PAPER),
-                renderOrb(cfg.orbName(), amount, success, cfg.hardCap()),
-                renderLore(cfg.orbLore(), amount, success, cfg.hardCap()));
+                renderOrb(cfg.orbName(), amount, success, cfg.hardCap(), kinds),
+                renderLore(cfg.orbLore(), amount, success, cfg.hardCap(), kinds));
         codec.mark(stack, cfg.orbAmount(), success);
         return stack;
     }
@@ -93,11 +104,14 @@ public final class SlotService {
         if (gear.getAmount() > 1) {
             return SlotResult.unchanged(messages.format("common.single-item"));
         }
+        SlotConfig cfg = config.get();
+        if (!groups.matches(gear.getType(), cfg.appliesTo())) {
+            return SlotResult.unchanged(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
+        }
         int grant = codec.amountOf(slotItem);
         if (grant <= 0) {
             return SlotResult.unchanged(messages.format("slot.not-slot-item"));
         }
-        SlotConfig cfg = config.get();
         int base = baseSlots.getAsInt();
         int maxAdded = Math.max(0, cfg.hardCap() - base); // the cap is on TOTAL slots (base + added)
         CombatState current = combat.read(gear);
@@ -120,23 +134,24 @@ public final class SlotService {
     }
 
     private static java.util.List<String> renderLore(java.util.List<String> lore, String amount, int success,
-                                                     int hardCap) {
+                                                     int hardCap, String kinds) {
         java.util.List<String> out = new java.util.ArrayList<>(lore.size());
         for (String line : lore) {
-            out.add(renderOrb(line, amount, success, hardCap));
+            out.add(renderOrb(line, amount, success, hardCap, kinds));
         }
         return out;
     }
 
     /**
      * Substitute the orb placeholders: {@code {AMOUNT}} (+N slots), {@code {SUCCESS}}/{@code {FAILURE}} (the
-     * apply odds), {@code {MAX}} (the total-slots cap).
+     * apply odds), {@code {MAX}} (the total-slots cap), {@code {KINDS}} (the applies-to label).
      */
-    private static String renderOrb(String s, String amount, int success, int hardCap) {
+    private static String renderOrb(String s, String amount, int success, int hardCap, String kinds) {
         return s.replace("{AMOUNT}", amount)
                 .replace("{SUCCESS}", Integer.toString(success))
                 .replace("{FAILURE}", Integer.toString(100 - success))
-                .replace("{MAX}", Integer.toString(hardCap));
+                .replace("{MAX}", Integer.toString(hardCap))
+                .replace("{KINDS}", kinds);
     }
 
     private static void consume(ItemStack stack) {

@@ -22,11 +22,14 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * scroll is minted (clamped to the global {@code books.max-success} ceiling) and stamped on the scroll so
      * its lore can show it. The book the scroll draws off the gear carries that success chance.
      */
-    public record Black(String material, String name, List<String> lore, int minConvert, int maxConvert) {
+    public record Black(String material, String name, List<String> lore, int minConvert, int maxConvert,
+                        /** Item-group kinds the scroll may extract from (e.g. {@code ARMOR}); {@code ALL} = any item. */
+                        List<String> appliesTo) {
         public Black {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
             lore = List.copyOf(lore);
+            appliesTo = List.copyOf(appliesTo);
             int lo = Math.max(0, Math.min(100, minConvert));
             int hi = Math.max(0, Math.min(100, maxConvert));
             minConvert = Math.min(lo, hi); // order the pair so [min, max] is always a valid range
@@ -68,12 +71,15 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * scroll without protecting (it never destroys gear). {@code 100/100} (the default) always succeeds.
      */
     public record Holy(String material, String name, List<String> lore, int minSuccess, int maxSuccess,
-                       String protectedLine) {
+                       String protectedLine,
+                       /** Item-group kinds the scroll may protect; {@code ALL} (the default) = any item. */
+                       List<String> appliesTo) {
         public Holy {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
             Objects.requireNonNull(protectedLine, "protectedLine");
             lore = List.copyOf(lore);
+            appliesTo = List.copyOf(appliesTo);
             int lo = Math.max(0, Math.min(100, minSuccess));
             int hi = Math.max(0, Math.min(100, maxSuccess));
             minSuccess = Math.min(lo, hi);
@@ -105,9 +111,12 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                 new Black(
                         "INK_SAC",
                         "&8Black Scroll",
-                        List.of("&7Drag onto enchanted gear to", "&7extract one enchant into a book."),
+                        List.of("&7Drag onto enchanted gear to", "&7extract one enchant into a book.",
+                                "",
+                                "&eApplies to: &r&f&n{KINDS}"),
                         50,
-                        100),
+                        100,
+                        List.of("ARMOR", "WEAPON", "TOOL")),
                 new Randomizer(
                         "SUGAR",
                         "&eRandomizer Scroll",
@@ -123,10 +132,13 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                 new Holy(
                         "TOTEM_OF_UNDYING",
                         "&fHoly White Scroll",
-                        List.of("&7Drag onto an item to keep", "&7it when you die (one use)."),
+                        List.of("&7Drag onto an item to keep", "&7it when you die (one use).",
+                                "",
+                                "&eApplies to: &r&f&n{KINDS}"),
                         100,
                         100,
-                        "&e&l*&f&lHOLY&e&l* &f&lPROTECTED"),
+                        "&e&l*&f&lHOLY&e&l* &f&lPROTECTED",
+                        List.of("ALL")),
                 new Nametag(
                         "NAME_TAG",
                         "&bItem Nametag",

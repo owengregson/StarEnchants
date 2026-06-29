@@ -106,4 +106,24 @@ class LoreRendererTest {
     void isEmptyForAnItemWithNoCombatState() {
         assertTrue(new LoreRenderer(LoreStyle.DEFAULT, NAMES).lines(CombatState.EMPTY).isEmpty());
     }
+
+    @Test
+    void rendersTheOrbSlotsLineOnlyWhenSlotsWereAddedBelowTheBody() {
+        // §H the orb "Enchantment Slots" line: rendered ONLY when added>0, LAST in the body (so apply() places
+        // it below the enchant lines, above the protection/trak lines). Template + base are the test's own input.
+        String slotsTemplate = "&a&l{TOTAL} Enchantment Slots &r&7(Orb [&a+{ADDED}&7])";
+        LoreRenderer renderer = new LoreRenderer(
+                () -> LoreStyle.DEFAULT, NAMES, key -> null, LoreRenderer.SetLore.NONE,
+                stack -> List.of(), line -> false,
+                () -> null,   // no count suffix (the name-stamp transform is pinned by EnchantCountSuffixTest)
+                () -> 9,      // base slots
+                () -> slotsTemplate);
+
+        CombatState noOrb = new CombatState(Map.of("enchants/venom", 1), List.of());
+        assertEquals(List.of("§7Venom §fI"), renderer.lines(noOrb), "no orb applied -> no slots line");
+
+        CombatState withOrb = new CombatState(Map.of("enchants/venom", 1), List.of()).withAdded(2);
+        assertEquals(List.of("§7Venom §fI", "§a§l11 Enchantment Slots §r§7(Orb [§a+2§7])"),
+                renderer.lines(withOrb), "orb +2 over base 9 -> total 11, line renders below the body");
+    }
 }

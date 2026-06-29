@@ -12,13 +12,16 @@ import java.util.Objects;
  * onto guarded gear (rendered from state while the guard is present, removed when it is spent).
  */
 public record WhiteScrollConfig(String material, String name, List<String> lore, int minSuccess, int maxSuccess,
-                                String protectedLine) {
+                                String protectedLine,
+                                /** Item-group kinds the scroll may protect (e.g. {@code ARMOR}); {@code ALL} = any item. */
+                                List<String> appliesTo) {
 
     public WhiteScrollConfig {
         Objects.requireNonNull(material, "material");
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(protectedLine, "protectedLine");
         lore = List.copyOf(lore);
+        appliesTo = List.copyOf(appliesTo);
         int lo = Math.max(0, Math.min(100, minSuccess));
         int hi = Math.max(0, Math.min(100, maxSuccess));
         minSuccess = Math.min(lo, hi); // order the pair so [min, max] is always valid (matches the other configs)
@@ -29,9 +32,12 @@ public record WhiteScrollConfig(String material, String name, List<String> lore,
         return new WhiteScrollConfig(
                 "PAPER",
                 "&fWhite Scroll",
-                List.of("&7Protects an item — a failed", "&7enchant will spare it once."),
+                List.of("&7Protects an item — a failed", "&7enchant will spare it once.",
+                        "",
+                        "&eApplies to: &r&f&n{KINDS}"),
                 100,
                 100,
-                "&f&lPROTECTED");
+                "&f&lPROTECTED",
+                List.of("ARMOR", "WEAPON", "TOOL"));
     }
 }

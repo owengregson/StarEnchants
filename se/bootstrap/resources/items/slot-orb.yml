@@ -6,8 +6,13 @@ type: slot-orb
 
 orb-material: ENDER_EYE
 orb-name: "&5Slot Expander &7(+{AMOUNT})"
+# {KINDS} expands to the grammatically-joined applies-to label.
 orb-lore:
   - "&7Drag onto gear to add &f{AMOUNT}&7 enchant slots."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+# Item-group kinds this orb may expand: e.g. ARMOR, WEAPON, TOOL, ALL (any item).
+applies-to: [ARMOR, WEAPON, TOOL]
 orb-amount: 3
 
 # Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base).

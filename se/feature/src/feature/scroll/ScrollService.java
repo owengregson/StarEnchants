@@ -19,6 +19,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import platform.item.ItemGroups;
 
 /**
  * Scroll-family cold path (§I): mints the book-economy scrolls and applies one onto a target by its kind
@@ -41,6 +42,7 @@ public final class ScrollService {
     private final Random random;
     private final item.lang.Messages messages;
     private final item.codec.GodlyTransmogCodec godlyCodec; // null in tests that never mint the godly tool
+    private final ItemGroups groups; // §I applies-to gate — the black scroll only extracts from the configured item kinds
 
     /** Default-messages form (tests/fixtures). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
@@ -54,10 +56,16 @@ public final class ScrollService {
         this(scrolls, combat, lore, carriers, content, config, random, messages, null);
     }
 
-    /** Full form (the composition root) — {@code godlyCodec} enables minting the physical godly-transmog tool. */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
                          item.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec) {
+        this(scrolls, combat, lore, carriers, content, config, random, messages, godlyCodec, ItemGroups.standard());
+    }
+
+    /** Full form (the composition root) — {@code godlyCodec} enables minting the physical godly-transmog tool. */
+    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
+                         ContentHolder content, Supplier<ScrollsConfig> config, Random random,
+                         item.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec, ItemGroups groups) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -67,6 +75,7 @@ public final class ScrollService {
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.godlyCodec = godlyCodec;
+        this.groups = Objects.requireNonNull(groups, "groups");
     }
 
     public boolean isScroll(ItemStack stack) {
@@ -93,26 +102,29 @@ public final class ScrollService {
     private ItemStack buildBlack(int convert) {
         ScrollsConfig.Black cfg = config.get().black();
         int conv = carriers.capBookSuccess(convert); // the drawn book's rate respects the global ceiling (§I)
+        String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
         ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Mats.or("INK_SAC", Material.PAPER),
-                subConvert(cfg.name(), conv), subConvertLore(cfg.lore(), conv));
+                subConvert(cfg.name(), conv, kinds), subConvertLore(cfg.lore(), conv, kinds));
         scrolls.mark(stack, BLACK);
         scrolls.markConvert(stack, conv);
         return stack;
     }
 
     /**
-     * Substitute the black-scroll conversion placeholders: {@code {SUCCESS}} = the drawn book's success rate,
-     * {@code {FAILURE}} = its complement.
+     * Substitute the black-scroll placeholders: {@code {SUCCESS}} = the drawn book's success rate,
+     * {@code {FAILURE}} = its complement, {@code {KINDS}} = the applies-to label.
      */
-    private static String subConvert(String s, int convert) {
-        return s.replace("{SUCCESS}", Integer.toString(convert)).replace("{FAILURE}", Integer.toString(100 - convert));
+    private static String subConvert(String s, int convert, String kinds) {
+        return s.replace("{SUCCESS}", Integer.toString(convert))
+                .replace("{FAILURE}", Integer.toString(100 - convert))
+                .replace("{KINDS}", kinds);
     }
 
-    private static List<String> subConvertLore(List<String> lore, int convert) {
+    private static List<String> subConvertLore(List<String> lore, int convert, String kinds) {
         List<String> out = new ArrayList<>(lore.size());
         for (String line : lore) {
-            out.add(subConvert(line, convert));
+            out.add(subConvert(line, convert, kinds));
         }
         return out;
     }
@@ -166,15 +178,14 @@ public final class ScrollService {
     }
 
     /**
-     * Transmog scroll: ORGANISE {@code gear}'s enchant display by rarity and stamp the enchant count into the
-     * name (§I redesign). Custom enchants are sorted by tier WEIGHT descending (highest rarity on top), so the
-     * lore reads top-down by rarity; vanilla Minecraft enchants render above the lore by the client, so they
-     * sit above the custom block ("real MC enchants on top"). The name gains a {@code {COUNT}} suffix —
-     * re-applying replaces that suffix rather than stacking it. Consumable and re-applicable.
+     * Transmog scroll: ORGANISE {@code gear}'s enchant display by rarity (§I). Custom enchants are sorted by
+     * tier WEIGHT descending (highest rarity on top), so the lore reads top-down by rarity; vanilla Minecraft
+     * enchants render above the lore by the client, so they sit above the custom block ("real MC enchants on
+     * top"). The enchant-count name suffix is NOT stamped here any more — it is a fixed part of the name on any
+     * enchanted item, (re)stamped from state by {@link LoreRenderer#apply} (custom enchants only; vanilla never
+     * counts), which the re-render below triggers. Consumable and re-applicable.
      */
-    @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
     private ScrollResult applyTransmog(ItemStack cursor, ItemStack gear) {
-        ScrollsConfig.Transmog cfg = config.get().transmog();
         if (gear == null || gear.getType() == Material.AIR) {
             return ScrollResult.unchanged(messages.format("scroll.transmog.apply-target"));
         }
@@ -189,9 +200,7 @@ public final class ScrollService {
         CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
                 current.setWeaponKey(), current.omni(), current.heroic(), current.added());
         combat.write(gear, next);
-        lore.apply(gear, next);
-        int count = current.enchants().size() + vanillaEnchantCount(gear); // custom + real MC enchants
-        applyCountName(gear, cfg.nameSuffix(), count);
+        lore.apply(gear, next); // re-renders the sorted enchant lore AND (re)stamps the §I enchant-count suffix
         consume(cursor);
         return ScrollResult.committed(gear, null, messages.format("scroll.transmog.success"));
     }
@@ -217,12 +226,6 @@ public final class ScrollService {
         }
         compile.load.TierRegistry.Tier t = content.library().tiers().tier(tier);
         return t == null ? 0 : t.weight();
-    }
-
-    @SuppressWarnings("deprecation") // getEnchants: the floor-stable item-meta path
-    private static int vanillaEnchantCount(ItemStack gear) {
-        org.bukkit.inventory.meta.ItemMeta meta = gear.getItemMeta();
-        return meta == null ? 0 : meta.getEnchants().size();
     }
 
     /**
@@ -261,74 +264,6 @@ public final class ScrollService {
         return java.util.Optional.of(reordered);
     }
 
-    /** The transmog name-count placeholder, substituted into the configured suffix template. */
-    static final String COUNT_PLACEHOLDER = "{COUNT}"; // package-private: ScrollCountSuffixTest references it
-
-    /**
-     * Stamp the enchant {@code count} into {@code gear}'s name via the configured suffix template (default
-     * {@code &r &d[&b&l&n{COUNT}&r&d]}): strip any previously-applied count suffix first so re-applying
-     * REPLACES it rather than stacking. An item with no custom name gets the bare suffix.
-     */
-    @SuppressWarnings("deprecation") // getDisplayName/setDisplayName: the floor-stable item-meta path
-    private static void applyCountName(ItemStack gear, String suffixTemplate, int count) {
-        org.bukkit.inventory.meta.ItemMeta meta = gear.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        String base = meta.hasDisplayName() ? stripCountSuffix(meta.getDisplayName(), suffixTemplate) : "";
-        String suffix = ItemFactory.color(suffixTemplate.replace(COUNT_PLACEHOLDER, Integer.toString(count)));
-        meta.setDisplayName(base + suffix);
-        gear.setItemMeta(meta);
-    }
-
-    /**
-     * Strip a previously-applied count suffix from {@code name} (so a re-transmog replaces it). Builds a regex
-     * from the translated suffix template with the count region as {@code \d+}, anchored to the end; if the
-     * template carries no placeholder there is nothing to strip. The colour-code runs match TOLERANTLY
-     * ({@link #tolerantColourCodes}) so a suffix strips itself even after Bukkit's ItemMeta normalises its
-     * codes on a round-trip — otherwise the old suffix survives and a re-apply STACKS it ([2] [2], §I).
-     * Package-private for {@code ScrollCountSuffixTest}.
-     */
-    static String stripCountSuffix(String name, String suffixTemplate) {
-        String sentinel = "\u0000"; // never appears in a name -> marks the count slot
-        String translated = ItemFactory.color(suffixTemplate.replace(COUNT_PLACEHOLDER, sentinel));
-        int idx = translated.indexOf(sentinel);
-        if (idx < 0) {
-            return name;
-        }
-        // Match the colour-code runs TOLERANTLY: Bukkit normalises codes on a meta round-trip (§r§d -> §d),
-        // so an exact-codes regex would miss the stored name and a re-apply would STACK the suffix ([2] [2]).
-        String regex = tolerantColourCodes(translated.substring(0, idx))
-                + "\\d+" + tolerantColourCodes(translated.substring(idx + sentinel.length())) + "$";
-        return name.replaceAll(regex, "");
-    }
-
-    /**
-     * A regex source matching {@code text} regardless of how Bukkit normalises its colour codes on a meta
-     * round-trip: every maximal run of §-codes becomes a tolerant {@code (?:§.)*}; the literal runs (brackets,
-     * spaces) stay {@link java.util.regex.Pattern#quote quoted} as the structural anchors.
-     */
-    private static String tolerantColourCodes(String text) {
-        StringBuilder out = new StringBuilder();
-        int i = 0;
-        int n = text.length();
-        while (i < n) {
-            if (text.charAt(i) == '§' && i + 1 < n) {
-                while (i + 1 < n && text.charAt(i) == '§') {
-                    i += 2; // consume a maximal run of §-code pairs
-                }
-                out.append("(?:§.)*");
-            } else {
-                int start = i;
-                while (i < n && !(text.charAt(i) == '§' && i + 1 < n)) {
-                    i++;
-                }
-                out.append(java.util.regex.Pattern.quote(text.substring(start, i)));
-            }
-        }
-        return out.toString();
-    }
-
     /**
      * Black scroll: extract one random enchant from {@code gear} into a book. The extraction ALWAYS succeeds
      * (§I); the drawn book carries the scroll's stamped conversion success rate (a legacy scroll with no stamp
@@ -340,6 +275,10 @@ public final class ScrollService {
         }
         if (gear.getAmount() > 1) {
             return ScrollResult.unchanged(messages.format("common.single-item"));
+        }
+        ScrollsConfig.Black bcfg = config.get().black();
+        if (!groups.matches(gear.getType(), bcfg.appliesTo())) {
+            return ScrollResult.unchanged(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(bcfg.appliesTo())));
         }
         CombatState current = combat.read(gear);
         if (current.enchants().isEmpty()) {

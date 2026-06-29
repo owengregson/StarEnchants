@@ -17,12 +17,15 @@ public record SlotConfig(
         int orbAmount,
         int hardCap,
         int minSuccess,
-        int maxSuccess) {
+        int maxSuccess,
+        /** Item-group kinds the orb may be applied to (e.g. {@code ARMOR}, {@code WEAPON}); {@code ALL} = any item. */
+        List<String> appliesTo) {
 
     public SlotConfig {
         Objects.requireNonNull(orbMaterial, "orbMaterial");
         Objects.requireNonNull(orbName, "orbName");
         orbLore = List.copyOf(orbLore);
+        appliesTo = List.copyOf(appliesTo);
         orbAmount = Math.max(1, orbAmount);
         hardCap = Math.max(1, hardCap);
         int lo = Math.max(0, Math.min(100, minSuccess));
@@ -35,10 +38,13 @@ public record SlotConfig(
         return new SlotConfig(
                 "ENDER_EYE",
                 "&5Slot Expander &7(+{AMOUNT})",
-                List.of("&7Drag onto gear to add &f{AMOUNT}&7 enchant slots."),
+                List.of("&7Drag onto gear to add &f{AMOUNT}&7 enchant slots.",
+                        "",
+                        "&eApplies to: &r&f&n{KINDS}"),
                 3,
                 15,
                 100,
-                100);
+                100,
+                List.of("ARMOR", "WEAPON", "TOOL"));
     }
 }

@@ -125,7 +125,9 @@ public final class MasterConfigLoader {
 
     private static MasterConfig.SlotsSection readSlots(YamlNode n, Diagnostics diags) {
         MasterConfig.SlotsSection d = MasterConfig.SlotsSection.defaults();
-        return new MasterConfig.SlotsSection(parseInt(n.string("base"), d.base(), n, diags));
+        return new MasterConfig.SlotsSection(
+                parseInt(n.string("base"), d.base(), n, diags),
+                orDefault(n.string("lore-line"), d.loreLine()));
     }
 
     private static MasterConfig.SoulsSection readSouls(YamlNode n, Diagnostics diags) {

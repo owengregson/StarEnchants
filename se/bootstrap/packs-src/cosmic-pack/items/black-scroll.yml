@@ -13,7 +13,11 @@ lore:
   - "&6{SUCCESS}% Success Rate"
   - ""
   - "&eRemoves a random enchantment from your item and returns it to your inventory with the specified success rate."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
+# Item-group kinds this scroll may extract from: e.g. ARMOR, WEAPON, TOOL, ALL (any item). {KINDS} renders the label.
+applies-to: [ARMOR, WEAPON, TOOL]
 # The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100), then clamped to the
 # global books.max-success ceiling.
 min-convert: 50

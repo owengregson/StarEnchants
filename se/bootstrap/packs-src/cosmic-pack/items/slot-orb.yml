@@ -13,7 +13,11 @@ orb-lore:
   - "&6+{AMOUNT} Enchantment Slot(s)"
   - ""
   - "&eIncreases the number of enchantment slots on an item by {AMOUNT}, up to a maximum of {MAX}."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
+# Item-group kinds this orb may expand: e.g. ARMOR, WEAPON, TOOL, ALL (any item). {KINDS} renders the label.
+applies-to: [ARMOR, WEAPON, TOOL]
 orb-amount: 3
 
 # Universal ceiling on an item's TOTAL slots (base + purchased). Base default is 9 (config.yml slots.base),
