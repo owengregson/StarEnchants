@@ -71,7 +71,7 @@ public abstract class HubMenu implements Menu {
         MenuLayout layout = layout();
         MenuTheme theme = theme();
         holder.begin(layout.size(), MenuText.title(layout.titleTemplate(), caps));
-        MenuIcons.fillFrame(holder, layout);
+        MenuIcons.fillAll(holder, layout); // a solid glass backdrop — the tiles pop against it
         placeInfo(holder, layout, theme);
         if (layout.closeSlot() >= 0) {
             holder.set(layout.closeSlot(), MenuIcons.plain(theme.close()),
