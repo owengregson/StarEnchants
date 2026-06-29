@@ -37,6 +37,7 @@ public final class MasterConfigLoader {
                     MasterConfig.CrystalsSection.defaults(), MasterConfig.HeroicSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
+                    MasterConfig.MessageOnActivateSection.defaults(),
                     diags.all());
         }
         YamlNode root = YamlNode.compose("config.yml", yaml, diags);
@@ -57,7 +58,20 @@ public final class MasterConfigLoader {
                 readIntegrations(root.child("integrations"), diags),
                 readReload(root.child("reload"), diags),
                 readCommandTrigger(root.child("command-trigger"), diags),
+                readMessageOnActivate(root.child("message-on-activate"), diags),
                 diags.all());
+    }
+
+    private static MasterConfig.MessageOnActivateSection readMessageOnActivate(YamlNode n, Diagnostics diags) {
+        MasterConfig.MessageOnActivateSection d = MasterConfig.MessageOnActivateSection.defaults();
+        // honour an explicit "" template (a pack may blank a line deliberately) rather than falling back
+        String by = n.has("by-template") ? n.string("by-template") : d.byTemplate();
+        String on = n.has("on-template") ? n.string("on-template") : d.onTemplate();
+        return new MasterConfig.MessageOnActivateSection(
+                parseBool(n.string("by-enabled"), d.byEnabled()),
+                by == null ? d.byTemplate() : by,
+                parseBool(n.string("on-enabled"), d.onEnabled()),
+                on == null ? d.onTemplate() : on);
     }
 
     private static MasterConfig.FeaturesSection readFeatures(YamlNode n, Diagnostics diags) {

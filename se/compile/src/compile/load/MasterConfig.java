@@ -16,6 +16,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
                            BooksSection books, SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
                            HeroicSection heroic, LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
+                           MessageOnActivateSection messageOnActivate,
                            List<Diagnostic> diagnostics) {
 
     public MasterConfig {
@@ -31,6 +32,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         Objects.requireNonNull(integrations, "integrations");
         Objects.requireNonNull(reload, "reload");
         Objects.requireNonNull(commandTrigger, "commandTrigger");
+        Objects.requireNonNull(messageOnActivate, "messageOnActivate");
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -39,7 +41,8 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MessagesSection.defaults(),
                 BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
                 HeroicSection.defaults(), LoreSection.defaults(), IntegrationsSection.defaults(),
-                ReloadSection.defaults(), CommandTriggerSection.defaults(), List.of());
+                ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
+                List.of());
     }
 
     /**
@@ -270,6 +273,35 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
 
         public static MessagesSection defaults() {
             return new MessagesSection("", true);
+        }
+    }
+
+    /**
+     * Global enchant message-on-activate (§L). When an enchant fires, the holder ("BY you") and the other
+     * combat party ("ON you") each get a configurable chat line; the two sides are independently toggled, so a
+     * pack can enable one, both, or neither. Templates take {@code {ENCHANT}} (display name), {@code {TIER_COLOR}}
+     * (the tier's {@code &} colour code), {@code {VICTIM}} (the BY-side target's name) and {@code {ATTACKER}}
+     * (the ON-side source's name). Off by default; a content pack opts in (and replaces any per-enchant
+     * self-announce {@code MESSAGE} effect). A non-combat activation (no other party) sends nothing.
+     *
+     * @param byEnabled  send the holder a line when their enchant fires
+     * @param byTemplate the BY-you template (names {@code {VICTIM}})
+     * @param onEnabled  send the other party a line when an enchant fires on them
+     * @param onTemplate the ON-you template (names {@code {ATTACKER}})
+     */
+    public record MessageOnActivateSection(boolean byEnabled, String byTemplate,
+                                           boolean onEnabled, String onTemplate) {
+        public MessageOnActivateSection {
+            Objects.requireNonNull(byTemplate, "byTemplate");
+            Objects.requireNonNull(onTemplate, "onTemplate");
+        }
+
+        public static MessageOnActivateSection defaults() {
+            return new MessageOnActivateSection(
+                    false,
+                    "{TIER_COLOR}&l** {ENCHANT} &7ON &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**",
+                    false,
+                    "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **");
         }
     }
 }

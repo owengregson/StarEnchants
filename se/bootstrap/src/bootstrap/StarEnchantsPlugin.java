@@ -348,9 +348,18 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // fireActivation fires EnchantActivateEvent per proc — Bukkit-aware here, so the engine stays event-API-free.
         engine.effect.EffectRegistry effects = BuiltinEffects.registry();
+        // §L global message-on-activate: the holder ("BY you") + the other party ("ON you") get a configured line.
+        feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
+                () -> master.config().messageOnActivate(), content);
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), souls, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
-                areaScan(), this::fireActivation);
+                areaScan(), (key, ability, context) -> {
+                    if (key == null) {
+                        return; // a null key is skipped, not faked
+                    }
+                    fireActivation(key, ability, context);        // EnchantActivateEvent (public API)
+                    activationMessenger.onActivate(key, context); // §L the configured BY/ON lines
+                });
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
         // Economy bridge for MODIFY_MONEY (global thread): bundled Vault (§N, ADR-0027) → ServicesManager → no-ops.
