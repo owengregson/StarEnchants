@@ -13,6 +13,10 @@ trigger: ATTACK
 applies-to: [SWORD]
 group: "soul"
 tier: soul
+# Soul COST, not a REMOVE_SOULS effect: gate 10 makes the enchant fire only in soul mode AND only when the
+# cross-gem pool can pay the full 20 — an unaffordable activation aborts (was: it fired free and drained what it
+# could). The "☄ 20" in the description above is this cost.
+soul-cost: 20
 levels:
   1:
     cooldown: 40
@@ -22,7 +26,6 @@ levels:
       - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Victim" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
-      - { REMOVE_SOULS: { amount: 20 } }  # from DRAIN_SOULS_CONSTANT:1:20 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
   2:
     cooldown: 40
     effects:
@@ -31,7 +34,6 @@ levels:
       - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Victim" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
-      - { REMOVE_SOULS: { amount: 20 } }  # from DRAIN_SOULS_CONSTANT:1:20 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
   3:
     cooldown: 40
     effects:
@@ -40,7 +42,6 @@ levels:
       - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }  # from DAMAGE_INCREASE:20 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "WITHER", level: 2, duration: 20, who: "@Victim" } }  # from POTION:WITHER:2:TARGET:1 — EE seconds → ticks (x20)
-      - { REMOVE_SOULS: { amount: 20 } }  # from DRAIN_SOULS_CONSTANT:1:20 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
   4:
     cooldown: 40
     effects:
@@ -49,4 +50,3 @@ levels:
       - { IGNITE: { duration: 60, who: "@Victim" } }  # from FLAME:3:TARGET — legacy seconds → ticks (x20)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }  # from DAMAGE_INCREASE:25 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "WITHER", level: 2, duration: 60, who: "@Victim" } }  # from POTION:WITHER:2:TARGET:3 — EE seconds → ticks (x20)
-      - { REMOVE_SOULS: { amount: 20 } }  # from DRAIN_SOULS_CONSTANT:1:20 — EE DRAIN_SOULS_CONSTANT → REMOVE_SOULS (activator; the short drain ≈ an instant debit)
