@@ -1,7 +1,7 @@
 # BlockTrak Gem (docs/v3-directives.md §I) — drag onto a tool to reveal the LIFETIME number of blocks broken
 # with it. The count is tracked in the BACKGROUND on every eligible tool from first use, so an applied gem
-# shows a true total (not one starting at zero). An item holds only ONE applied item at a time (blocktrak /
-# mobtrak / soultrak / white scroll / holy white scroll). One physical item per file; reload with /se reload.
+# shows a true total (not one starting at zero). Applied items are not exclusive — gear may carry several
+# traks (blocktrak / mobtrak / soultrak) and a white/holy scroll at once. One physical item per file; reload with /se reload.
 # Messages live in lang.yml (trak.*).
 type: blocktrak
 

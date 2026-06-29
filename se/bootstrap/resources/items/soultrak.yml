@@ -1,7 +1,7 @@
 # SoulTrak Gem (docs/v3-directives.md §I) — drag onto a weapon to reveal the LIFETIME number of players killed
 # with it. The count is tracked in the BACKGROUND on every eligible weapon from first use, so an applied gem
-# shows a true total. An item holds only ONE applied item at a time (blocktrak / mobtrak / soultrak / white
-# scroll / holy white scroll). One physical item per file; reload with /se reload. Messages: lang.yml trak.*.
+# shows a true total. Applied items are not exclusive — gear may carry several traks (blocktrak / mobtrak /
+# soultrak) and a white/holy scroll at once. One physical item per file; reload with /se reload. Messages: lang.yml trak.*.
 type: soultrak
 
 material: FIRE_CHARGE

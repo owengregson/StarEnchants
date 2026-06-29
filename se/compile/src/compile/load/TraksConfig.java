@@ -5,7 +5,7 @@ import java.util.Objects;
 
 /**
  * Internal grouping of the TRAK-gem family (§I) — three gems that, applied to gear, reveal a per-item lifetime
- * counter tracked in the background: BlockTrak (blocks broken with a tool), MobTrak (mobs killed with a
+ * counter tracked in the background: BlockTrak (blocks broken with a tool), MobTrak (mobs slain with a
  * weapon), SoulTrak (players killed with a weapon). Each member is authored in its own {@code items/} file and
  * assembled into one {@code TraksConfig}, mirroring the scroll family.
  */
@@ -49,12 +49,12 @@ public record TraksConfig(Trak block, Trak mob, Trak soul, Trak fish) {
                 new Trak(
                         "MAGMA_CREAM",
                         "&e&lMobTrak Gem",
-                        List.of("&eDisplays the amount of mobs killed with the weapon since it was forged.",
+                        List.of("&eDisplays the amount of mobs slain with the weapon since it was forged.",
                                 "",
                                 "&eApplies to: &r&f&n{KINDS}",
                                 "&7Drag n' Drop on an item to apply."),
                         List.of("WEAPON"),
-                        "&7Mobs Killed: &f{COUNT}"),
+                        "&7Mobs Slain: &f{COUNT}"),
                 new Trak(
                         "FIRE_CHARGE",
                         "&c&lSoulTrak Gem",

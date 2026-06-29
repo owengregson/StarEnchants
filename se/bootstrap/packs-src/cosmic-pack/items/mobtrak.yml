@@ -1,16 +1,16 @@
 # MobTrak Gem — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto a weapon to reveal the
-# LIFETIME number of mobs killed with it (tracked in the background from first use). An item holds only ONE
-# applied item at a time (blocktrak / mobtrak / soultrak / white scroll / holy white scroll). The mechanic is
-# global; reload with /se reload.
+# LIFETIME number of mobs slain with it (tracked in the background from first use). Traks are not exclusive —
+# a weapon may carry MobTrak and SoulTrak at once, and a trak coexists with a white/holy scroll. The mechanic
+# is global; reload with /se reload.
 type: mobtrak
 
 material: MAGMA_CREAM
 name: "&e&lMobTrak Gem"
 # {KINDS} = the applies-to label; {COUNT} = the live count. Lore auto-wraps at config lore.item-wrap.
 lore:
-  - "&eDisplays the amount of mobs killed with the weapon since it was forged."
+  - "&eDisplays the amount of mobs slain with the weapon since it was forged."
   - ""
   - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
 applies-to: [WEAPON]
-count-format: "&7Mobs Killed: &f{COUNT}"
+count-format: "&7Mobs Slain: &f{COUNT}"
