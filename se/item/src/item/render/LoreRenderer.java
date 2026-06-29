@@ -22,6 +22,7 @@ public final class LoreRenderer {
     private final Function<String, String> displayNameOf;
     private final Function<String, String> enchantColorOf;
     private final SetLore setLore;
+    private final Function<ItemStack, List<String>> protectionLines;
 
     /**
      * Set members' authored lore, looked up from state at render time so a worn piece keeps its flavour lore
@@ -63,16 +64,25 @@ public final class LoreRenderer {
         this(style, displayNameOf, key -> null, setLore);
     }
 
-    /**
-     * Canonical renderer: {@code style} is re-read per render so a {@code /se reload} takes effect next render;
-     * {@code enchantColorOf} colours each enchant by rarity tier ({@code null}/blank → the style's default).
-     */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
             Function<String, String> enchantColorOf, SetLore setLore) {
+        this(style, displayNameOf, enchantColorOf, setLore, stack -> List.of());
+    }
+
+    /**
+     * Canonical renderer: {@code style} is re-read per render so a {@code /se reload} takes effect next render;
+     * {@code enchantColorOf} colours each enchant by rarity tier ({@code null}/blank → the style's default);
+     * {@code protectionLines} contributes the applied-scroll PROTECTED lines from an item's marker state (empty
+     * for an unprotected item), appended at the bottom of the body — above any trak count line.
+     */
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf, SetLore setLore,
+            Function<ItemStack, List<String>> protectionLines) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
         this.enchantColorOf = Objects.requireNonNull(enchantColorOf, "enchantColorOf");
         this.setLore = Objects.requireNonNull(setLore, "setLore");
+        this.protectionLines = Objects.requireNonNull(protectionLines, "protectionLines");
     }
 
     /** Lore lines in stored order: one per enchant ({@code name level}), then one per crystal. Empty if no state. */
@@ -131,6 +141,7 @@ public final class LoreRenderer {
             return false;
         }
         List<String> lore = lines(state);
+        lore.addAll(protectionLines.apply(stack)); // applied-scroll PROTECTED lines, from marker state (§4.2)
         meta.setLore(lore.isEmpty() ? null : lore);
         stack.setItemMeta(meta);
         return true;

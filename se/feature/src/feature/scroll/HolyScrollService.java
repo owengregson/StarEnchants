@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -32,6 +33,7 @@ public final class HolyScrollService {
     private final Supplier<ScrollsConfig> config;
     private final Random random;
     private final item.lang.Messages messages;
+    private final Consumer<ItemStack> reRender; // refresh gear lore so the HOLY PROTECTED line tracks the marker
 
     /** Default-messages form (tests/fixtures). */
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random) {
@@ -40,11 +42,17 @@ public final class HolyScrollService {
 
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
                              item.lang.Messages messages) {
+        this(scrolls, slot, config, random, messages, gear -> { });
+    }
+
+    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
+                             item.lang.Messages messages, Consumer<ItemStack> reRender) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.slot = Objects.requireNonNull(slot, "slot");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.reRender = Objects.requireNonNull(reRender, "reRender");
     }
 
     public boolean isHolyScroll(ItemStack stack) {
@@ -85,6 +93,7 @@ public final class HolyScrollService {
             return ScrollResult.committed(gear, null, messages.format("scroll.holy.fail"));
         }
         slot.occupy(gear, AppliedSlot.HOLY);
+        reRender.accept(gear); // stamp the HOLY PROTECTED line from the new keep marker
         return ScrollResult.committed(gear, null, messages.format("scroll.holy.applied"));
     }
 
@@ -99,6 +108,7 @@ public final class HolyScrollService {
             ItemStack drop = it.next();
             if (drop != null && slot.holds(drop, AppliedSlot.HOLY)) {
                 slot.release(drop, AppliedSlot.HOLY); // the marker is consumed on this death
+                reRender.accept(drop); // drop the now-stale HOLY PROTECTED line before the item is re-granted
                 kept.add(drop);
                 it.remove();
             }

@@ -67,10 +67,12 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      * marker consumed. The apply rolls a success in {@code [minSuccess, maxSuccess]} — a failed roll spends the
      * scroll without protecting (it never destroys gear). {@code 100/100} (the default) always succeeds.
      */
-    public record Holy(String material, String name, List<String> lore, int minSuccess, int maxSuccess) {
+    public record Holy(String material, String name, List<String> lore, int minSuccess, int maxSuccess,
+                       String protectedLine) {
         public Holy {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
+            Objects.requireNonNull(protectedLine, "protectedLine");
             lore = List.copyOf(lore);
             int lo = Math.max(0, Math.min(100, minSuccess));
             int hi = Math.max(0, Math.min(100, maxSuccess));
@@ -123,7 +125,8 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                         "&fHoly White Scroll",
                         List.of("&7Drag onto an item to keep", "&7it when you die (one use)."),
                         100,
-                        100),
+                        100,
+                        "&e&l*&f&lHOLY&e&l* &f&lPROTECTED"),
                 new Nametag(
                         "NAME_TAG",
                         "&bItem Nametag",

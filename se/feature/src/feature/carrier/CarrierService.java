@@ -217,6 +217,7 @@ public final class CarrierService {
         if (codec.isGuarded(target)) {
             codec.setGuarded(target, false);
             slot.release(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I the white scroll's guard is spent
+            enchanter.reRender(target); // drop the PROTECTED line now the guard is gone
             return CarrierResult.consumed("§eThe enchant failed — but your protection saved the item.");
         }
         if (destroyOnFail) {
@@ -476,6 +477,7 @@ public final class CarrierService {
         }
         codec.setGuarded(target, true);
         slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I add the white-scroll marker (coexists with traks/holy)
+        enchanter.reRender(target); // stamp the PROTECTED line from the new guard state
         return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
     }
 

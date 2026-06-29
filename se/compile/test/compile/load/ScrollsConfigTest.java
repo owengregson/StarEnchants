@@ -23,7 +23,7 @@ class ScrollsConfigTest {
 
     @Test
     void holySuccessRangeOrdersAndClamps() {
-        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250, -5);
+        ScrollsConfig.Holy h = new ScrollsConfig.Holy("M", "n", List.of(), 250, -5, "&fHOLY");
         assertEquals(0, h.minSuccess(), "min clamped to 0");
         assertEquals(100, h.maxSuccess(), "max clamped to 100");
     }
