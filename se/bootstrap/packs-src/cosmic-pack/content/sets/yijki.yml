@@ -2,6 +2,10 @@
 display: "&f&lYijki"
 description: "Ascend to divine heights, taking less damage while wearing the set."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&f&l** Yijki SET EQUIPPED &f&l**\n"
+remove-message: "\n&7&l** Yijki SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

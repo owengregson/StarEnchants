@@ -2,6 +2,10 @@
 display: "&d&lClarity"
 description: "Shine with the pure light of the Clarity set."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&d&l** Clarity SET EQUIPPED &d&l**\n"
+remove-message: "\n&7&l** Clarity SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

@@ -25,7 +25,8 @@ import schema.grammar.EffectLine;
  */
 final class SetDefReader {
 
-    private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon", "bonuses");
+    private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon",
+            "bonuses", "announce", "equip-message", "remove-message");
     private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
     private static final Set<String> BONUS_KEYS = Set.of(
@@ -141,15 +142,29 @@ final class SetDefReader {
                     root.sourceOf("bonuses"));
         }
 
+        // Optional equip/remove announcement (§6.6) — authored verbatim per set; the driver substitutes nothing.
+        boolean announce = announceFlag(root.string("announce"));
+        String equipMessage = root.string("equip-message");
+        String removeMessage = root.string("remove-message");
+
         SetDef def = new SetDef(baseKey, display, description == null ? "" : description, null,
                 Math.max(0, complete), armorMembers, armorLore, weapon, weaponLore, appliesTo,
-                armorEnchants, weaponEnchants, fileSource);
+                armorEnchants, weaponEnchants, announce, equipMessage, removeMessage, fileSource);
         return new Parsed(def, abilities);
     }
 
     /** A bonus is weapon-scoped when {@code on: weapon} (case-insensitive); anything else (incl. absent) is armour. */
     private static boolean isWeaponScope(String on) {
         return on != null && on.trim().equalsIgnoreCase("weapon");
+    }
+
+    /** Lenient truthiness for the {@code announce} toggle: true/yes/on/1 (case-insensitive); absent ⇒ false. */
+    private static boolean announceFlag(String raw) {
+        if (raw == null) {
+            return false;
+        }
+        String s = raw.trim();
+        return s.equalsIgnoreCase("true") || s.equalsIgnoreCase("yes") || s.equalsIgnoreCase("on") || s.equals("1");
     }
 
     /**

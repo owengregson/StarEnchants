@@ -147,6 +147,33 @@ class SetDefReaderTest {
         assertEquals(1, parsed.abilities().size());
         // an omitted `complete` defaults to the worn-piece count
         assertEquals(1, parsed.def().armorComplete());
+        // announce is opt-in; an omitted toggle defaults off with empty messages
+        assertFalse(parsed.def().announce());
+        assertEquals("", parsed.def().equipMessage());
+    }
+
+    @Test
+    void parsesTheEquipRemoveAnnouncement() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            announce: true
+            equip-message: "\\n&4 Devil SET EQUIPPED\\n"
+            remove-message: "\\n&7 Devil SET REMOVED\\n"
+            armor:
+              pieces:
+                boots: { material: DIAMOND_BOOTS }
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDefReader.Parsed parsed = SetDefReader.read("sets/devil", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertTrue(parsed.def().announce());
+        // double-quoted \n is loaded as a real newline (the authored padding)
+        assertEquals("\n&4 Devil SET EQUIPPED\n", parsed.def().equipMessage());
+        assertEquals("\n&7 Devil SET REMOVED\n", parsed.def().removeMessage());
     }
 
     @Test

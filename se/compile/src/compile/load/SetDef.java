@@ -26,6 +26,9 @@ import schema.diag.Source;
  *                      combat state, validated at compile), any other key is a vanilla enchant NAME applied
  *                      cross-version at mint (§6.6, author-configurable)
  * @param weaponEnchants enchants the set weapon is minted with (same {@code ref → level} model)
+ * @param announce      send the player a chat line when the set transitions complete/incomplete (off by default)
+ * @param equipMessage  the line sent when the set becomes complete (authored verbatim, no tokens; may be empty)
+ * @param removeMessage the line sent when a complete set drops below its threshold (verbatim; may be empty)
  */
 public record SetDef(
         String key,
@@ -40,6 +43,9 @@ public record SetDef(
         List<String> appliesTo,
         Map<String, Integer> armorEnchants,
         Map<String, Integer> weaponEnchants,
+        boolean announce,
+        String equipMessage,
+        String removeMessage,
         Source source) {
 
     public SetDef {
@@ -47,6 +53,8 @@ public record SetDef(
         armorLore = List.copyOf(armorLore);
         weaponLore = List.copyOf(weaponLore);
         appliesTo = List.copyOf(appliesTo);
+        equipMessage = equipMessage == null ? "" : equipMessage;
+        removeMessage = removeMessage == null ? "" : removeMessage;
         // Unmodifiable LinkedHashMap (not Map.copyOf) so the authored enchant order is preserved — it
         // determines the lore order of custom set-piece enchants.
         armorEnchants = Collections.unmodifiableMap(new LinkedHashMap<>(armorEnchants));

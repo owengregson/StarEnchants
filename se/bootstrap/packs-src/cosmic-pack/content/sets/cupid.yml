@@ -2,6 +2,10 @@
 display: "&d&lCupid"
 description: "Wear the Cupid set to strike harder and shrug off blows while wreathed in passion."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&d&l** Cupid SET EQUIPPED &d&l**\n"
+remove-message: "\n&7&l** Cupid SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4

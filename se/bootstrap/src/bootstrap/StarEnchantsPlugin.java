@@ -418,6 +418,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // refresh, so a DISABLE_ENCHANT drops exactly the right effects and the correct set is restored after.
         passiveEffects = new feature.trigger.PassiveEffectDriver(triggerDispatch, content, worn, suppression,
                 tick::get, triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
+        // §6.6 set equip/remove announcements: fire the authored per-set message on a completion transition.
+        feature.trigger.SetMessageDriver setMessages = new feature.trigger.SetMessageDriver(content,
+                (player, msg) -> player.sendMessage(item.mint.ItemFactory.color(msg)));
 
         // §L feature toggles gate listener registration at BOOT: handlers can't be cleanly re-bound mid-run,
         // so a toggle change needs a restart.
@@ -425,7 +428,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
         getServer().getPluginManager().registerEvents(
-                new EquipListener(worn, content, passives, lifecycle, passiveEffects), this);
+                new EquipListener(worn, content, passives, lifecycle, passiveEffects, setMessages), this);
         // §B instant DISABLE: when a player is suppressed, drop their now-disabled passive buffs at once and
         // schedule their restore at the window's end (the periodic sweep is only the safety net).
         suppression.onSuppress((playerId, durationTicks) -> {

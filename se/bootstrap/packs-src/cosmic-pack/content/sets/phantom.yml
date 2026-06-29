@@ -2,6 +2,10 @@
 display: "&c&lPhantom"
 description: "Move like a wraith and strike with spectral force while wearing the set."
 complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n&c&l** Phantom SET EQUIPPED &c&l**\n"
+remove-message: "\n&7&l** Phantom SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
