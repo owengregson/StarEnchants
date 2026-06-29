@@ -60,9 +60,14 @@ import feature.menu.EnchanterMenu;
 import feature.menu.EnchantsBrowserMenu;
 import feature.menu.GodlyTransmogMenu;
 import feature.menu.MenuRegistry;
+import feature.menu.MintCatalog;
+import feature.menu.MintMenu;
+import feature.menu.OperatorConsoleMenu;
 import feature.menu.ReferenceBrowserMenu;
 import feature.menu.SetsBrowserMenu;
 import feature.menu.TinkererMenu;
+import feature.menu.UserHubMenu;
+import feature.menu.UserMenuCommand;
 import feature.scroll.HolyScrollListener;
 import feature.scroll.HolyScrollService;
 import feature.scroll.NametagListener;
@@ -600,13 +605,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName);
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
         GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config);
-        MenuRegistry menus = new MenuRegistry()
+        // The operator "mint anything" catalogue (ADR-0030) — driven by the live tier list + trak kinds.
+        MintCatalog mintCatalog = new MintCatalog(content, soulService, slots, heroics, crystals, scrolls,
+                holyScrolls, nametags, carriers, traks, unopenedBooks);
+        // The hubs look siblings up live from the registry, so registration order is irrelevant.
+        MenuRegistry menus = new MenuRegistry();
+        menus.register(new UserHubMenu(menus, caps, menusHolder::config))                  // /enchants player landing
+                .register(new OperatorConsoleMenu(menus, reloader, messages, caps, menusHolder::config)) // /se menu
+                .register(new MintMenu(mintCatalog, caps, messages, menusHolder::config))  // operator: mint anything
                 .register(applyMenu)
                 .register(new EnchantsBrowserMenu(content, caps, menusHolder::config, bookName)) // tier → enchant catalog
-                .register(new SetsBrowserMenu(content, caps, menusHolder::config))       // armour-set browser + preview
-                .register(new CrystalsBrowserMenu(content, caps, menusHolder::config))   // crystals/modifiers catalog
-                .register(new ReferenceBrowserMenu(caps, menusHolder::config))           // effects/selectors/…
-                .register(transmogMenu)                                                  // reorder lore (held or bound)
+                .register(new SetsBrowserMenu(content, enchanter, caps, messages, menusHolder::config)) // sets → pieces → mint
+                .register(new CrystalsBrowserMenu(content, crystals, caps, messages, menusHolder::config)) // browse + mint
+                .register(new ReferenceBrowserMenu(caps, menusHolder::config))             // effects/selectors/…
+                .register(transmogMenu)                                                    // reorder lore (held or bound)
                 .register(new EnchanterMenu(content, unopenedBooks, caps, messages, menusHolder::config)) // buy books
                 .register(new AlchemistMenu(carriers, caps, messages, menusHolder::config)) // combine books → +1
                 .register(new TinkererMenu(carriers, caps, messages, menusHolder::config))  // salvage book → XP
@@ -616,6 +628,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (features.scrolls()) {
             getServer().getPluginManager().registerEvents(
                     new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec), this);
+        }
+        // ADR-0030 user entry: /enchants opens the player hub (open to all; the hub's targets are perm-free).
+        // Registered on the server command map like /splitsouls, so it needs no plugin.yml command entry.
+        try {
+            bootstrap.compat.Commands.register(getServer(), "starenchants",
+                    new UserMenuCommand("enchants", menus, messages));
+        } catch (Throwable t) {
+            getLogger().warning("could not register /enchants (use /se menu hub instead): " + t);
         }
 
         // Config packs (ADR-0023). /se pack apply pairs the on-disk swap with the transactional reloader.

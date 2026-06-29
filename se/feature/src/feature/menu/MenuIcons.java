@@ -17,6 +17,17 @@ public final class MenuIcons {
     private MenuIcons() {
     }
 
+    /** Lay {@code layout}'s decorative frame panes onto {@code holder}; a blank filler token draws nothing. */
+    public static void fillFrame(MenuHolder holder, MenuLayout layout) {
+        ItemStack pane = pane(layout.fillerMaterial());
+        if (pane == null) {
+            return;
+        }
+        for (int slot : layout.paneSlots()) {
+            holder.set(slot, pane, null);
+        }
+    }
+
     /** A blank decorative frame pane from a material token (cross-version), or {@code null} for a blank token. */
     public static ItemStack pane(String materialToken) {
         Material material = ItemFactory.material(materialToken, Material.AIR);
@@ -65,5 +76,26 @@ public final class MenuIcons {
     /** Convenience tile from a vanilla material. */
     public static ItemStack tile(Material material, String name, List<String> description, String action) {
         return tile(material.name(), material, name, description, action);
+    }
+
+    /**
+     * Turn a freshly-minted item into a mint-menu tile: the item itself (so the tile looks exactly like what
+     * the player receives), with a blank separator and a glowing call-to-action appended to its lore. Clones
+     * the input so the catalogue's template stack is never mutated.
+     */
+    @SuppressWarnings("deprecation") // getLore/setLore(List<String>): the floor-stable item-meta path
+    public static ItemStack receiveTile(ItemStack minted, String action) {
+        ItemStack icon = minted.clone();
+        org.bukkit.inventory.meta.ItemMeta meta = icon.getItemMeta();
+        if (meta != null) {
+            List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+            if (action != null && !action.isBlank()) {
+                lore.add("");
+                lore.add(ItemFactory.color(action));
+            }
+            meta.setLore(lore);
+            icon.setItemMeta(meta);
+        }
+        return ItemFactory.glow(icon);
     }
 }

@@ -43,7 +43,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
 
     public EnchantsBrowserMenu(ContentHolder content, Capabilities caps, Supplier<MenusConfig> menus,
                                Supplier<String> nameTemplate) {
-        this(content, caps, "enchants", "&3Enchants", menus, nameTemplate);
+        this(content, caps, "enchants", "&3&lEnchant Catalogue", menus, nameTemplate);
     }
 
     EnchantsBrowserMenu(ContentHolder content, Capabilities caps, String name, String title,
@@ -101,6 +101,18 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     @Override
     protected boolean showBack(MenuHolder holder) {
         return VIEW_ENCHANT.equals(holder.view());
+    }
+
+    @Override
+    protected String infoTitle(MenuHolder holder) {
+        return "&3&lEnchant Catalogue";
+    }
+
+    @Override
+    protected List<String> infoLore(MenuHolder holder) {
+        return VIEW_ENCHANT.equals(holder.view())
+                ? List.of("&7Every enchant in this tier.", "&7Hover one for its details.")
+                : List.of("&7Custom enchants by rarity tier.", "&eClick a tier to browse it.");
     }
 
     @Override

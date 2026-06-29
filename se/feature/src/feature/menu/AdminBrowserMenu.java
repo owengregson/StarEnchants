@@ -66,7 +66,7 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
 
     public AdminBrowserMenu(ContentHolder content, CarrierService carriers, Capabilities caps, Messages messages,
                             Supplier<MenusConfig> menus) {
-        super("admin", MenuLayout.paged("&cAdmin &8• &cEnchants"), caps, menus);
+        super("admin", MenuLayout.paged("&d&lGrant Books"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");
@@ -149,6 +149,22 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
     @Override
     protected boolean showBack(MenuHolder holder) {
         return holder.view() != null;
+    }
+
+    @Override
+    protected String infoTitle(MenuHolder holder) {
+        return "&d&lGrant Books";
+    }
+
+    @Override
+    protected List<String> infoLore(MenuHolder holder) {
+        if (VIEW_LEVELS.equals(holder.view())) {
+            return List.of("&7Click a level to receive a", "&7guaranteed (100%) book of it.");
+        }
+        if (VIEW_ENCHANTS.equals(holder.view())) {
+            return List.of("&7Every enchant in this tier.", "&eClick one to choose a level.");
+        }
+        return List.of("&7Browse enchants by rarity tier", "&7and mint a guaranteed book.");
     }
 
     /** Step back exactly one level: levels → enchants (keeping the tier), enchants → tiers. */

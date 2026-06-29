@@ -464,8 +464,11 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 MenuHolder menuHolder = new MenuHolder(menu);
                 menu.render(menuHolder);
                 InventoryView view = player.openInventory(menuHolder.getInventory());
+                // The first paged content icon, read from production geometry (ADR-0030 bordered the menu, so
+                // content now starts at slot 10, not 0) — single-sourced, not a literal.
+                int firstContent = feature.menu.MenuLayout.paged("x").contentSlot(0);
                 InventoryClickEvent click = new InventoryClickEvent(view, InventoryType.SlotType.CONTAINER,
-                        0, ClickType.LEFT, InventoryAction.PICKUP_ALL);
+                        firstContent, ClickType.LEFT, InventoryAction.PICKUP_ALL);
                 plugin.getServer().getPluginManager().callEvent(click);
                 h.guard("legacy.gui.menuApplies", () -> {
                     if (!click.isCancelled()) {

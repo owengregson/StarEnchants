@@ -11,14 +11,17 @@ import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 
 /**
- * The Tinkerer salvage bench (docs/v3-directives.md §K): place an enchant book and click Salvage for an
- * EXP-level refund. A Cosmic Enchants-style salvage-to-XP-bottle item and book↔dust conversion are NOT built
- * (no data model — ADR-0019); this is a direct EXP refund, no new carrier item.
+ * The Tinkerer salvage bench (docs/v3-directives.md §K, ADR-0030): place an enchant book and click Salvage for
+ * an EXP-level refund. A five-row, hand-laid bench — the input slot sits under a labelled guide beside a
+ * glowing Salvage button, on a themed backdrop with an info pane and close button. A Cosmic Enchants-style
+ * salvage-to-XP-bottle item and book↔dust conversion are NOT built (no data model — ADR-0019); this is a
+ * direct EXP refund. The slot constants are public so the live GuiSuite reads positions from the menu.
  */
 public final class TinkererMenu extends FormMenu {
 
-    private static final int INPUT = 13;
-    private static final int SALVAGE_BUTTON = 15;
+    public static final int INPUT = 20;
+    public static final int SALVAGE_BUTTON = 24;
+    private static final int INPUT_LABEL = 11;
 
     private final CarrierService carriers;
     private final Messages messages;
@@ -34,7 +37,7 @@ public final class TinkererMenu extends FormMenu {
 
     public TinkererMenu(CarrierService carriers, Capabilities caps, Messages messages,
                         java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("tinkerer", MenuLayout.form(3, "&3Tinkerer"), caps, menus);
+        super("tinkerer", MenuLayout.form(5, "&6&lTinkerer &8• &7Salvage Books"), caps, menus);
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
@@ -45,10 +48,22 @@ public final class TinkererMenu extends FormMenu {
     }
 
     @Override
+    protected String infoTitle() {
+        return "&6&lTinkerer";
+    }
+
+    @Override
+    protected List<String> infoLore() {
+        return List.of("&7Place an enchant book and salvage", "&7it for an experience-level refund.");
+    }
+
+    @Override
     protected void layoutControls(MenuHolder holder) {
-        holder.set(SALVAGE_BUTTON, button("FURNACE", "&aSalvage",
-                List.of("&7Place an enchant book to break it", "&7down for an experience refund.")),
-                this::salvage);
+        holder.set(INPUT_LABEL, MenuIcons.tile("ORANGE_STAINED_GLASS_PANE", org.bukkit.Material.PAPER,
+                "&e① Enchant Book", List.of("&7Drop the book to salvage", "&7in the slot below."), ""), null);
+        holder.set(SALVAGE_BUTTON, actionButton("FURNACE", "&6&l✦ Salvage ✦",
+                List.of("&7Break the book down for an", "&7experience-level refund.", "",
+                        "&eClick to salvage.")), this::salvage);
     }
 
     private void salvage(MenuClick click) {

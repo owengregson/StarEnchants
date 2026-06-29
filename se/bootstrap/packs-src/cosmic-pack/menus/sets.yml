@@ -1,0 +1,6 @@
+# Armour Sets GUI — browse every armour set; operators can mint individual pieces.
+# Tiles show each set's bonuses and pieces. See menus/apply.yml for the full field list.
+
+title: "&b&l❖ Armour Sets ❖"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

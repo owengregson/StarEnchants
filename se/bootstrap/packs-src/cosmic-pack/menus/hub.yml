@@ -1,0 +1,6 @@
+# Player hub GUI — the /enchants landing menu players open.
+# Tiles drill into the catalogue, sets, crystals and benches. See menus/apply.yml for the full field list.
+
+title: "&5&l✦ &d&lCosmic Enchants &5&l✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

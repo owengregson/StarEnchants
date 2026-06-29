@@ -1,0 +1,5 @@
+# Alchemist bench GUI — combine enchant books into higher tiers.
+# A bench fills its whole backdrop, so frame is omitted. See menus/apply.yml for the full field list.
+
+title: "&a&l❖ Alchemist ❖"
+filler: "LIME_STAINED_GLASS_PANE"

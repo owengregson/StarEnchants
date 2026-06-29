@@ -1,0 +1,6 @@
+# Player hub GUI — the landing menu /enchants opens (operators: /se menu hub).
+# Tiles drill into the benches and browsers. See menus/apply.yml for the full field list.
+
+title: "&d&lStarEnchants &8• &7Menu"
+frame: "border"
+filler: "MAGENTA_STAINED_GLASS_PANE"

@@ -21,5 +21,8 @@ commands:
     permission: starenchants.admin
 permissions:
   starenchants.admin:
-    description: Administer StarEnchants (reload content).
+    description: Administer StarEnchants (reload content, operator GUI, /se).
     default: op
+  starenchants.use:
+    description: Open the player-facing StarEnchants menu (/enchants).
+    default: true

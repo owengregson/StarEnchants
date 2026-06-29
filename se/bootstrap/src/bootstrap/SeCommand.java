@@ -73,7 +73,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("migrate", "<ee|ea|ae> <path>", "Import EliteEnchantments / EliteArmor / AdvancedEnchantments configs into the unified schema."),
             CommandInfo.of("import", "<code>", "Import an enchant from an SE1 code (e.g. from the web Enchant Creator) and reload."),
             CommandInfo.of("pack", "<list|info|apply|export> [name]", "Manage config-pack ZIP snapshots of your whole setup."),
-            CommandInfo.of("menu", "[name]", "Open an in-game GUI (enchanter, alchemist, tinkerer, transmog, browsers)."),
+            CommandInfo.of("menu", "[name]", "Open an operator GUI (no name = the console; or mint, admin, sets, crystals, apply, browsers)."),
             CommandInfo.of("effects", "", "Browse the effect reference in chat."),
             CommandInfo.of("selectors", "", "Browse the selector reference in chat."),
             CommandInfo.of("triggers", "", "Browse the trigger reference in chat."),
@@ -419,8 +419,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /** The menu {@code /se menu} (no name) opens — the direct-apply enchant GUI. */
-    private static final String DEFAULT_MENU = "apply";
+    /** The menu {@code /se menu} (no name) opens — the operator console hub (ADR-0030). */
+    private static final String DEFAULT_MENU = "console";
 
     private void openMenu(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {

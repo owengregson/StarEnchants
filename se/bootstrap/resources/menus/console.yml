@@ -1,0 +1,6 @@
+# Operator console GUI — the landing menu /se menu opens (requires starenchants.admin).
+# Tiles drill into grant/mint/sets/crystals/apply/reference and a reload button. See menus/apply.yml.
+
+title: "&c&lOperator Console"
+frame: "border"
+filler: "RED_STAINED_GLASS_PANE"

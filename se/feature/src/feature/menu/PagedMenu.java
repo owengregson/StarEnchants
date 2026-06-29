@@ -103,7 +103,7 @@ public abstract class PagedMenu<T> implements Menu {
         String withSuffix = pages > 1 ? base + "  (" + (page + 1) + "/" + pages + ")" : base;
         holder.begin(layout.size(), MenuText.title(withSuffix, caps));
 
-        fillFrame(holder, layout);
+        MenuIcons.fillFrame(holder, layout);
 
         int start = Paging.indexFor(page, 0, perPage);
         for (int i = 0; i < perPage && start + i < items.size(); i++) {
@@ -129,17 +129,6 @@ public abstract class PagedMenu<T> implements Menu {
         }
         bind(holder, layout.closeSlot(), MenuIcons.plain(theme.close()),
                 click -> click.player().closeInventory());
-    }
-
-    /** Lay the decorative frame panes for the resolved {@link Frame}; a blank filler token draws nothing. */
-    private void fillFrame(MenuHolder holder, MenuLayout layout) {
-        ItemStack pane = MenuIcons.pane(layout.fillerMaterial());
-        if (pane == null) {
-            return;
-        }
-        for (int slot : layout.paneSlots()) {
-            holder.set(slot, pane, null);
-        }
     }
 
     /** Place the info pane, but only where it would sit on a decorative cell (never clobbering paged content). */

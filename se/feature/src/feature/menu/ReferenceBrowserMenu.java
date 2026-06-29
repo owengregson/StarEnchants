@@ -29,7 +29,7 @@ public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.R
     }
 
     public ReferenceBrowserMenu(Capabilities caps, java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("reference", MenuLayout.paged("&3Reference"), caps, menus);
+        super("reference", MenuLayout.paged("&e&lDSL Reference"), caps, menus);
         this.catalog = ReferenceCatalog.build();
     }
 
@@ -78,6 +78,19 @@ public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.R
     @Override
     protected boolean showBack(MenuHolder holder) {
         return holder.view() != null;
+    }
+
+    @Override
+    protected String infoTitle(MenuHolder holder) {
+        return holder.view() != null ? "&e&l" + holder.view() : "&e&lDSL Reference";
+    }
+
+    @Override
+    protected List<String> infoLore(MenuHolder holder) {
+        return holder.view() != null
+                ? List.of("&7Every " + holder.view().toLowerCase() + " entry.", "&7Hover one for its details.")
+                : List.of("&7Effects, selectors, triggers,", "&7conditions and variables.",
+                        "&eClick a category to browse.");
     }
 
     @Override

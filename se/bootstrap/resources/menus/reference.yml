@@ -1,0 +1,6 @@
+# DSL reference GUI — effects, selectors, triggers, conditions and variables (/se menu reference).
+# Read-only, generated from the live engine. See menus/apply.yml for the full field list.
+
+title: "&e&lDSL Reference"
+frame: "border"
+filler: "YELLOW_STAINED_GLASS_PANE"

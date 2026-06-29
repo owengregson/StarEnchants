@@ -1,0 +1,6 @@
+# Mint Items GUI — operator self-mint of every plugin item (/se menu mint, requires starenchants.admin).
+# Each tile is the item it grants; a click mints one. See menus/apply.yml for the full field list.
+
+title: "&6&lMint Items"
+frame: "border"
+filler: "ORANGE_STAINED_GLASS_PANE"

@@ -139,6 +139,20 @@ menu.tinkerer.salvaged: "&aSalvaged for &a{LEVELS} &alevel{S}."
 menu.enchanter.too-poor: "&cYou need &a{COST} &clevels to buy that."
 menu.enchanter.bought: "&aBought a &f{TIER} &amystery book."
 menu.admin.granted: "&aGranted a guaranteed &f{DISPLAY} &alevel &f{LEVEL} &abook."
+# Mint Items GUI (operator self-mint).
+menu.mint.given: "&aMinted {ITEM} &ato your inventory."
+menu.mint.unavailable: "&cThat item's subsystem is disabled — &f{ITEM}&c is unavailable."
+# Armour-set browser → piece minting (operator) / preview (everyone else).
+menu.sets.minted: "&aMinted the &f{PIECE} &aof the &f{SET} &aset."
+menu.sets.mint-failed: "&cCould not mint the &f{PIECE}&c — check the set definition."
+menu.sets.preview-only: "&7Preview only — only operators can mint set pieces."
+# Crystals browser → minting (operator) / preview (everyone else).
+menu.crystals.minted: "&aMinted a &f{CRYSTAL} &acrystal to your inventory."
+menu.crystals.preview-only: "&7Preview only — only operators can mint crystals."
+# Operator console reload button (left-click reloads, right-click validates).
+menu.console.reload-start: "&7{MODE} content…"
+menu.console.reload-ok: "&a{VERB} &f{COUNT} &aabilities &7(generation {GEN})."
+menu.console.reload-fail: "&cContent has &f{N} &cerror(s) — see /se reload for details."
 
 # ── Gesture/service guards (wired through Messages in a follow-up; shown here for the complete surface) ──
 common.single-item: "&cApply to a single item — split the stack first."

@@ -1,0 +1,6 @@
+# Godly Transmog GUI — re-order the enchant lore on your held item (/se menu transmog, or the tool gesture).
+# Click two enchants to swap their display order (purely cosmetic). See menus/apply.yml for the full fields.
+
+title: "&5&lGodly Transmog"
+frame: "border"
+filler: "PURPLE_STAINED_GLASS_PANE"

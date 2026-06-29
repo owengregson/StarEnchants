@@ -1,0 +1,6 @@
+# Armour-set browser GUI — drill into a set to see its pieces (/se menu sets, or via a hub). Everyone can
+# browse; operators (starenchants.admin) click a piece to mint it. See menus/apply.yml for the full fields.
+
+title: "&3&lArmour Sets"
+frame: "border"
+filler: "LIGHT_BLUE_STAINED_GLASS_PANE"

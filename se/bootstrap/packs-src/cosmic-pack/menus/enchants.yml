@@ -1,0 +1,6 @@
+# Enchant Codex GUI — read-only catalogue of every enchant in the pack.
+# Browse tiles to inspect each enchant's tiers and effects. See menus/apply.yml for the full field list.
+
+title: "&b&l✦ Enchant Codex ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"
