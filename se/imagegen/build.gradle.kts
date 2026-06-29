@@ -15,6 +15,10 @@ dependencies {
     implementation(project(":item"))
     // MenuLayout — the base-9 GUI geometry the chest renderer composites against (the plugin's own defaults).
     implementation(project(":feature"))
+    // The content-import path (imagegen.imports): compile a real content/ tree off-server through the plugin's
+    // own LibraryLoader + ContentCompiler, then render its sets through the same LoreRenderer. :engine re-exports
+    // :compile and :platform (api), so this one dependency brings the loader, the compiler, and the def catalogs.
+    implementation(project(":engine"))
 
     // Parse vanilla model JSON (JSON is a YAML subset) when resolving item/block models from a client jar.
     implementation("org.yaml:snakeyaml:2.2")
