@@ -12,10 +12,13 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&5Phantom Chestplate" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&5Phantom Leggings" }
     boots:      { material: DIAMOND_BOOTS,      name: "&5Phantom Boots" }
-  trigger: DEFENSE
-  chance: 30
-  cooldown: 140
-  effects:
-    - { POTION: { effect: INVISIBILITY, level: 1, duration: 80, who: "@Self" } }
-    - { POTION: { effect: SPEED, level: 2, duration: 80, who: "@Self" } }
-    - { PARTICLE: { particle: PORTAL, count: 15 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 30
+    cooldown: 140
+    effects:
+      - { POTION: { effect: INVISIBILITY, level: 1, duration: 80, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 2, duration: 80, who: "@Self" } }
+      - { PARTICLE: { particle: PORTAL, count: 15 } }

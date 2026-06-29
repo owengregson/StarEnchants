@@ -18,10 +18,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&9&lShocking Plate&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&9&lProtective Garments&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&9&lCharged Sandals&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -36,7 +32,15 @@ weapon:
     - "&9&lTHOR WEAPON BONUS"
     - "&9* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Thor set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

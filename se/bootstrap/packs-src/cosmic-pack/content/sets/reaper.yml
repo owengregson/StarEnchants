@@ -18,10 +18,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&4&lDeathly Shroud&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&4&lMortal Leggings&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&4&lGravewalker Boots&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -36,9 +32,17 @@ weapon:
     - "&4&lREAPER WEAPON BONUS"
     - "&4* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Reaper set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
-    - { POTION: { effect: WEAKNESS, level: 1, duration: 100, who: "@Victim" } }
-    - { POTION: { effect: WITHER, level: 2, duration: 100, who: "@Victim" } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
+      - { POTION: { effect: WEAKNESS, level: 1, duration: 100, who: "@Victim" } }
+      - { POTION: { effect: WITHER, level: 2, duration: 100, who: "@Victim" } }

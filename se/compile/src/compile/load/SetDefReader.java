@@ -4,6 +4,7 @@ import compile.def.AbilityDef;
 import compile.model.SourceKind;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import schema.diag.DiagCode;
@@ -12,20 +13,24 @@ import schema.diag.Source;
 import schema.grammar.EffectLine;
 
 /**
- * Reads one authored armour-set file into its {@link SetDef} plus its bonus abilities (ADR-0014): the
- * {@code armor:} bonus compiled to {@code <key>} (its {@code complete} count on {@code setPieces}) and the
- * optional {@code weapon:} bonus to {@code <key>/weapon} ({@code setPieces} 0, resolver-gated). A fault is
- * a diagnostic; a missing trigger or non-positive completion count blocks, but the rest still parses.
+ * Reads one authored armour-set file into its {@link SetDef} plus its bonus abilities (ADR-0014). The
+ * {@code armor:}/{@code weapon:} blocks are PHYSICAL only (pieces, names, lore, minted enchants); every
+ * BEHAVIOUR lives in the unified {@code bonuses:} list, where each block is {@code on: armor} (fires while the
+ * set is complete) or {@code on: weapon} (fires while complete AND its weapon is held) and carries its own
+ * trigger / chance / cooldown / condition / effects — so a set holds ANY NUMBER of independent effects, exactly
+ * like an enchant's abilities. The first {@code on: armor} bonus is the completion ability ({@code <key>}, its
+ * {@code complete} count on {@code setPieces}); further armour bonuses get {@code <key>/aN} and weapon bonuses
+ * {@code <key>/wN} (all {@code setPieces} 0), gated by the resolver, not a piece count. A fault is a diagnostic;
+ * a missing trigger, no armour bonus, or a non-positive completion count blocks, but the rest still parses.
  */
 final class SetDefReader {
 
-    private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon");
-    private static final Set<String> ARMOR_KEYS = Set.of(
-            "lore", "enchants", "pieces", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown",
-            "soul-cost", "condition", "effects");
-    private static final Set<String> WEAPON_KEYS = Set.of(
-            "material", "name", "lore", "enchants", "trigger", "disabled-worlds", "group", "repeat", "chance",
-            "cooldown", "soul-cost", "condition", "effects");
+    private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon", "bonuses");
+    private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
+    private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
+    private static final Set<String> BONUS_KEYS = Set.of(
+            "on", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost",
+            "condition", "effects");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name");
 
     private SetDefReader() {
@@ -53,6 +58,7 @@ final class SetDefReader {
         }
         String description = ContentParse.descriptionOf(root);
 
+        // Physical armour: the pieces, their shared lore, and minted enchants. Behaviour is in bonuses:.
         YamlNode armor = root.child("armor");
         if (!armor.isMapping()) {
             diags.error(DiagCode.E_LOAD_SET_ARMOR, "set '" + baseKey + "' must declare an 'armor:' block", root.sourceOf("armor"));
@@ -72,7 +78,7 @@ final class SetDefReader {
                         + "' must declare a 'material'", entry.value().sourceOf("material"));
             }
             armorMembers.add(new SetDef.Member(slot, material, name));
-            appliesTo.add(slot.toUpperCase(java.util.Locale.ROOT));
+            appliesTo.add(slot.toUpperCase(Locale.ROOT));
         }
         if (armorMembers.isEmpty()) {
             diags.error(DiagCode.E_LOAD_SET_ARMOR, "set '" + baseKey + "' declares no armour pieces (armor.pieces)",
@@ -84,12 +90,11 @@ final class SetDefReader {
                     + complete, root.sourceOf("complete"));
         }
 
-        List<AbilityDef> abilities = new ArrayList<>();
-        abilities.add(ability(baseKey, armor, Math.max(0, complete), fileSource, nextDefId, diags));
-
+        // Physical weapon (optional): material, name, lore, minted enchants. Its behaviour is an on:weapon bonus.
         SetDef.Member weapon = null;
         List<String> weaponLore = List.of();
         java.util.Map<String, Integer> weaponEnchants = java.util.Map.of();
+        boolean hasWeaponItem = false;
         if (root.has("weapon")) {
             YamlNode weaponNode = root.child("weapon");
             ContentParse.warnUnknownKeys(weaponNode, WEAPON_KEYS, diags);
@@ -102,13 +107,49 @@ final class SetDefReader {
                         weaponNode.sourceOf("material"));
             }
             weapon = new SetDef.Member("weapon", material, name);
-            abilities.add(ability(baseKey + "/weapon", weaponNode, 0, fileSource, nextDefId, diags));
+            hasWeaponItem = true;
+        }
+
+        // Behaviours: the unified bonuses list. The first on:armor bonus is the completion ability
+        // (stableKey == baseKey, setPieces = complete); further armour bonuses are baseKey/aN and weapon
+        // bonuses baseKey/wN (setPieces 0), gated on set completion (and weapon-held) by the resolver.
+        List<AbilityDef> abilities = new ArrayList<>();
+        int armorBonuses = 0;
+        int weaponBonuses = 0;
+        for (YamlNode bonus : root.items("bonuses")) {
+            if (!bonus.isMapping()) {
+                diags.error(DiagCode.E_LOAD_SET, "set '" + baseKey + "' has a non-mapping bonus entry", bonus.source());
+                continue;
+            }
+            ContentParse.warnUnknownKeys(bonus, BONUS_KEYS, diags);
+            if (isWeaponScope(bonus.string("on"))) {
+                abilities.add(ability(baseKey + "/w" + (++weaponBonuses), bonus, 0, fileSource, nextDefId, diags));
+            } else {
+                armorBonuses++;
+                String stableKey = armorBonuses == 1 ? baseKey : baseKey + "/a" + (armorBonuses - 1);
+                int setPieces = armorBonuses == 1 ? Math.max(0, complete) : 0;
+                abilities.add(ability(stableKey, bonus, setPieces, fileSource, nextDefId, diags));
+            }
+        }
+        if (armorBonuses == 0) {
+            diags.error(DiagCode.E_LOAD_SET_ARMOR, "set '" + baseKey
+                    + "' must declare at least one 'on: armor' bonus (bonuses:)", root.sourceOf("bonuses"));
+        }
+        if (weaponBonuses > 0 && !hasWeaponItem) {
+            diags.warning(DiagCode.W_LOAD_EFFECTS, "set '" + baseKey
+                    + "' has an on:weapon bonus but no weapon: item to hold — it can never fire",
+                    root.sourceOf("bonuses"));
         }
 
         SetDef def = new SetDef(baseKey, display, description == null ? "" : description, null,
                 Math.max(0, complete), armorMembers, armorLore, weapon, weaponLore, appliesTo,
                 armorEnchants, weaponEnchants, fileSource);
         return new Parsed(def, abilities);
+    }
+
+    /** A bonus is weapon-scoped when {@code on: weapon} (case-insensitive); anything else (incl. absent) is armour. */
+    private static boolean isWeaponScope(String on) {
+        return on != null && on.trim().equalsIgnoreCase("weapon");
     }
 
     /**

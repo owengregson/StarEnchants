@@ -7,10 +7,13 @@ import java.util.Map;
 import schema.diag.Source;
 
 /**
- * Non-runtime metadata of one authored armour set (ADR-0014). A set is tierless and has TWO bonuses:
- * an ARMOUR bonus active once {@link #armorComplete} pieces are worn, and an optional WEAPON bonus that
- * fires only while the armour set is complete AND its weapon is held. It expands to {@code <key>} (armour)
- * and, when a {@link #weapon} is present, {@code <key>/weapon} (gated by the resolver, not a piece count).
+ * Non-runtime metadata of one authored armour set (ADR-0014) — its PHYSICAL members only. A set is tierless;
+ * its pieces ({@link #armorMembers}) and optional {@link #weapon} are what get minted, with their shared lore
+ * and per-piece enchants. Its BEHAVIOUR is any number of bonus abilities, read separately from the unified
+ * {@code bonuses:} list: each is {@code on: armor} (fires once {@link #armorComplete} pieces are worn) or
+ * {@code on: weapon} (fires while complete AND its weapon is held). The first armour bonus expands to
+ * {@code <key>} (its completion count on {@code setPieces}); further armour bonuses to {@code <key>/aN} and
+ * weapon bonuses to {@code <key>/wN}, all resolver-gated (not a piece count).
  *
  * @param tier          always {@code null} for sets (kept for {@link Library} uniformity)
  * @param armorComplete worn-piece count that completes the set ({@code >= 1})

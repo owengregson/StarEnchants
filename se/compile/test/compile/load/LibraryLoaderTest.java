@@ -105,13 +105,16 @@ class LibraryLoaderTest {
                 chestplate: { material: DIAMOND_CHESTPLATE, name: "&bYeti Chestplate" }
                 leggings:   { material: DIAMOND_LEGGINGS,   name: "&bYeti Leggings" }
                 boots:      { material: DIAMOND_BOOTS,      name: "&bYeti Boots" }
-              trigger: DEFENSE
-              effects: [{ HEAL: { amount: 1 } }]
             weapon:
               material: DIAMOND_SWORD
               name: "&bYeti Blade"
-              trigger: ATTACK
-              effects: [{ HEAL: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ HEAL: { amount: 1 } }]
+              - on: weapon
+                trigger: ATTACK
+                effects: [{ HEAL: { amount: 1 } }]
             """);
 
         Library lib = LibraryLoader.load(root, compiler(), 8);
@@ -120,9 +123,9 @@ class LibraryLoaderTest {
         compile.model.Ability bonus = lib.snapshot().byStableKey("sets/yeti");
         assertNotNull(bonus);
         assertEquals(compile.model.SourceKind.SET, bonus.sourceKind());
-        assertEquals(4, bonus.setPieces()); // completion threshold erased onto the armour ability
+        assertEquals(4, bonus.setPieces()); // completion threshold erased onto the primary armour ability
         // the weapon bonus is its own ability, resolver-gated → setPieces 0
-        compile.model.Ability weapon = lib.snapshot().byStableKey("sets/yeti/weapon");
+        compile.model.Ability weapon = lib.snapshot().byStableKey("sets/yeti/w1");
         assertNotNull(weapon);
         assertEquals(compile.model.SourceKind.SET, weapon.sourceKind());
         assertEquals(0, weapon.setPieces());
@@ -228,8 +231,10 @@ class LibraryLoaderTest {
                 enchants/ghost: 1
               pieces:
                 boots: { material: DIAMOND_BOOTS, name: "Boots" }
-              trigger: DEFENSE
-              effects: [{ HEAL: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ HEAL: { amount: 1 } }]
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
         assertCode(lib, DiagCode.E_SET_ENCHANT_UNKNOWN);
@@ -252,8 +257,10 @@ class LibraryLoaderTest {
                 enchants/frost: 5
               pieces:
                 boots: { material: DIAMOND_BOOTS, name: "Boots" }
-              trigger: DEFENSE
-              effects: [{ HEAL: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ HEAL: { amount: 1 } }]
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
         // enchants/frost tops out at level 2; a level-5 ref is out of range.
@@ -278,8 +285,10 @@ class LibraryLoaderTest {
                 SHARPNESS: 5
               pieces:
                 boots: { material: DIAMOND_BOOTS, name: "Boots" }
-              trigger: DEFENSE
-              effects: [{ HEAL: { amount: 1 } }]
+            bonuses:
+              - on: armor
+                trigger: DEFENSE
+                effects: [{ HEAL: { amount: 1 } }]
             """);
         Library lib = LibraryLoader.load(root, compiler(), 1);
         // enchants/frost at level 2 is in range; SHARPNESS is a vanilla NAME (no enchants/ prefix) resolved

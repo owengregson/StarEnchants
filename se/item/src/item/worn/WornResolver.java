@@ -160,18 +160,32 @@ public final class WornResolver {
                 }
             }
         }
-        // A set's bonus ability id is its set id; its threshold is that ability's setPieces.
+        // A set's COMPLETION ability id is its set id; its threshold is that ability's setPieces.
         BitSet activeSets = SetResolver.activeSets(toIntArray(wornSetIds), omniCount,
                 setId -> setId >= 0 && setId < abilities.length ? abilities[setId].setPieces() : 0);
         for (int setId = activeSets.nextSetBit(0); setId >= 0; setId = activeSets.nextSetBit(setId + 1)) {
-            mergedIds.add(setId); // active set's armour bonus fires on triggers like any source
+            mergedIds.add(setId); // the set's primary on:armor bonus fires on triggers like any source
+            // Further on:armor bonuses (<key>/a1, /a2, … — dense, no gaps) fire while the set is complete (§6.6).
+            String setKey = keys.keyOf(setId);
+            if (setKey != null) {
+                for (int n = 1; ; n++) {
+                    int extra = keys.idOf(setKey + "/a" + n);
+                    if (extra < 0) {
+                        break;
+                    }
+                    mergedIds.add(extra);
+                }
+            }
         }
-        // Additional weapon bonus, gated on BOTH set active AND weapon held: add <key>/weapon per match.
+        // on:weapon bonuses (<key>/w1, /w2, …), gated on BOTH the set being active AND its weapon held.
         for (String weaponSetKey : heldWeaponSetKeys) {
             int parentSetId = keys.idOf(weaponSetKey);
             if (parentSetId >= 0 && parentSetId < abilities.length && activeSets.get(parentSetId)) {
-                int weaponAbilityId = keys.idOf(weaponSetKey + "/weapon");
-                if (weaponAbilityId >= 0) {
+                for (int n = 1; ; n++) {
+                    int weaponAbilityId = keys.idOf(weaponSetKey + "/w" + n);
+                    if (weaponAbilityId < 0) {
+                        break;
+                    }
                     mergedIds.add(weaponAbilityId);
                 }
             }

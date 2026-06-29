@@ -13,18 +13,22 @@ armor:
     chestplate: { material: NETHERITE_CHESTPLATE, name: "&8Titan Cuirass" }
     leggings:   { material: NETHERITE_LEGGINGS,   name: "&8Titan Greaves" }
     boots:      { material: NETHERITE_BOOTS,      name: "&8Titan Treads" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
-    - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 80, who: "@Self" } }
 weapon:
   material: NETHERITE_SWORD
   name: "&8Titan's Wrath"
   lore:
     - "&8Titan Set Weapon"
     - "&7Wield with the full set to crush your foes."
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 80, who: "@Self" } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }

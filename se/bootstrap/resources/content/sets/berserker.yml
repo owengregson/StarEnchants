@@ -12,20 +12,24 @@ armor:
     chestplate: { material: NETHERITE_CHESTPLATE, name: "&4Berserker Chestplate" }
     leggings:   { material: NETHERITE_LEGGINGS,   name: "&4Berserker Leggings" }
     boots:      { material: NETHERITE_BOOTS,      name: "&4Berserker Boots" }
-  trigger: DEFENSE
-  chance: 40
-  cooldown: 100
-  effects:
-    - { POTION: { effect: STRENGTH, level: 1, duration: 80, who: "@Self" } }
-    - { POTION: { effect: SPEED, level: 1, duration: 80, who: "@Self" } }
-    - { PARTICLE: { particle: CRIT, count: 10 } }
 weapon:
   material: NETHERITE_AXE
   name: "&4Berserker's Fury"
   lore:
     - "&4Berserker Set Weapon"
     - "&7Wield with the set for extra bite."
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 8 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 40
+    cooldown: 100
+    effects:
+      - { POTION: { effect: STRENGTH, level: 1, duration: 80, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 1, duration: 80, who: "@Self" } }
+      - { PARTICLE: { particle: CRIT, count: 10 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 8 } }

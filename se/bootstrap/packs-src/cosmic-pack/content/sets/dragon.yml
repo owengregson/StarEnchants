@@ -21,10 +21,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&e&lWinged Chestplate&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&e&lScaled Trousers&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&e&lDraconic Greaves&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -39,7 +35,15 @@ weapon:
     - "&e&lDRAGON WEAPON BONUS"
     - "&e* Deal 15% more damage to all enemies"
     - "&7&o(Requires all four Dragon set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

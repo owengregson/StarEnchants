@@ -21,10 +21,6 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&b&lArctic Plate&r" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&b&lGlacial Leggings&r" }
     boots:      { material: DIAMOND_BOOTS,      name: "&b&lIcy Stompers&r" }
-  trigger: DEFENSE
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
 weapon:
   enchants:
     SHARPNESS: 5
@@ -39,7 +35,15 @@ weapon:
     - "&b&lYETI WEAPON BONUS"
     - "&b* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Yeti set items.)"
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }

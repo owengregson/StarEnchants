@@ -12,20 +12,24 @@ armor:
     chestplate: { material: NETHERITE_CHESTPLATE, name: "&6Juggernaut Chestplate" }
     leggings:   { material: NETHERITE_LEGGINGS,   name: "&6Juggernaut Leggings" }
     boots:      { material: NETHERITE_BOOTS,      name: "&6Juggernaut Boots" }
-  trigger: DEFENSE
-  chance: 60
-  cooldown: 80
-  effects:
-    - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
-    - { POTION: { effect: ABSORPTION, level: 1, duration: 80, who: "@Self" } }
-    - { VELOCITY: { mode: away, strength: 1.5, who: "@Attacker" } }
 weapon:
   material: NETHERITE_SWORD
   name: "&6Juggernaut's Maul"
   lore:
     - "&6Juggernaut Set Weapon"
     - "&7Wield with the set to bludgeon foes back."
-  trigger: ATTACK
-  chance: 100
-  effects:
-    - { VELOCITY: { mode: away, strength: 1.0, who: "@Victim" } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 60
+    cooldown: 80
+    effects:
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 60, who: "@Self" } }
+      - { POTION: { effect: ABSORPTION, level: 1, duration: 80, who: "@Self" } }
+      - { VELOCITY: { mode: away, strength: 1.5, who: "@Attacker" } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { VELOCITY: { mode: away, strength: 1.0, who: "@Victim" } }
