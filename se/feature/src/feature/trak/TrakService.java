@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Supplier;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -138,14 +139,6 @@ public final class TrakService {
         Hands.setMainHand(player, tool);
     }
 
-    /**
-     * An invisible double-reset tag prefixed to every trak count line so a re-render can locate and replace the
-     * prior ones regardless of the (reload-mutable) count-format text — a stable marker, not the human-readable
-     * prefix. One shared tag covers all kinds: a re-render drops every marked line and re-stamps one line per
-     * applied trak, so several traks coexist (each its own line) without a per-kind tag.
-     */
-    private static final String COUNT_MARKER = "§r§r";
-
     /** Re-stamp every applied trak's count line on {@code item} from state, replacing any prior ones. */
     @SuppressWarnings("deprecation") // getLore/setLore(List): the floor-stable item-meta path
     private void renderTraks(ItemStack item) {
@@ -153,16 +146,46 @@ public final class TrakService {
         if (meta == null) {
             return;
         }
+        TraksConfig cfg = config.get();
         List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-        lore.removeIf(existing -> existing.startsWith(COUNT_MARKER)); // drop stale count lines (tag survives a format change)
+        // Drop every kind's prior count line, then re-stamp the applied ones. Identified by the count-format's
+        // VISIBLE prefix (colours stripped), NOT a §-code marker: Bukkit's ItemMeta normalisation drops leading
+        // reset codes on the round-trip, so a §r§r-prefixed marker stops matching and the old line would never be
+        // removed → it duplicated on every kill. Anything else on the item (enchant/economy lore, a PROTECTED
+        // line) is left untouched, so trak lines coexist with the rest.
+        lore.removeIf(line -> isCountLine(line, cfg));
         for (Kind kind : Kind.values()) { // BLOCK, MOB, SOUL, FISH — a stable, deterministic line order
             if (slot.holds(item, slotKindOf(kind))) {
-                TraksConfig.Trak cfg = trakFor(kind);
-                lore.add(COUNT_MARKER + ItemFactory.color(cfg.countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
+                lore.add(ItemFactory.color(trakFor(kind).countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
             }
         }
-        meta.setLore(lore);
+        meta.setLore(lore.isEmpty() ? null : lore);
         item.setItemMeta(meta);
+    }
+
+    /**
+     * Whether {@code line} is a trak count line of ANY kind — matched on the count-format's VISIBLE prefix (the
+     * text before {@code {COUNT}}, colours stripped), so it survives Bukkit's lore colour-code normalisation and
+     * also catches lines a prior (buggy) §-marker render left behind. Shared so the other lore writers (the
+     * enchant/protection renderers) can PRESERVE trak lines rather than clobber them.
+     */
+    public static boolean isCountLine(String line, TraksConfig cfg) {
+        if (line == null) {
+            return false;
+        }
+        String visible = ChatColor.stripColor(line);
+        return matches(visible, cfg.block()) || matches(visible, cfg.mob())
+                || matches(visible, cfg.soul()) || matches(visible, cfg.fish());
+    }
+
+    private static boolean matches(String visibleLine, TraksConfig.Trak trak) {
+        String fmt = trak.countFormat();
+        int idx = fmt.indexOf("{COUNT}");
+        if (idx <= 0) {
+            return false; // need a non-empty prefix before {COUNT} to identify the line
+        }
+        String prefix = ChatColor.stripColor(ItemFactory.color(fmt.substring(0, idx)));
+        return !prefix.isEmpty() && visibleLine != null && visibleLine.startsWith(prefix);
     }
 
     private static String formatCount(int count) {

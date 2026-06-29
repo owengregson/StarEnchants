@@ -216,6 +216,23 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Carrier economy (ADR-0016). Carrier PDC is separate from the combat blob, so it never decodes hot.
         CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
 
+        // §I Robust lore composition: identify trak count lines (by the format's visible prefix) and PROTECTED
+        // lines (by the templates' visible text) so each lore writer PRESERVES the others' lines. This is what
+        // lets a soul gem keep its authored lore, and traks survive, when a scroll is applied (and vice versa).
+        java.util.function.Predicate<String> trakLineP = line ->
+                feature.trak.TrakService.isCountLine(line, items.config().traksOrDefault());
+        java.util.function.Predicate<String> protectionLineP = line -> item.render.ProtectionLore.isProtectionLine(line,
+                items.config().whiteScrollOrDefault().protectedLine(),
+                items.config().scrollsOrDefault().holy().protectedLine());
+        java.util.function.Function<org.bukkit.inventory.ItemStack, java.util.List<String>> protectionLinesFn = stack ->
+                item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack),
+                        appliedSlot.holds(stack, item.codec.AppliedSlot.HOLY),
+                        items.config().whiteScrollOrDefault().protectedLine(),
+                        items.config().scrollsOrDefault().holy().protectedLine());
+        // Scroll appliers re-stamp ONLY the PROTECTED line(s), preserving the body / authored economy lore + traks.
+        java.util.function.Consumer<org.bukkit.inventory.ItemStack> protectionRefresh = gear ->
+                item.render.ProtectionLoreRefresh.refresh(gear, protectionLinesFn.apply(gear), protectionLineP, trakLineP);
+
         // Cold apply path. Lookups read the CURRENT library, so a reload re-renders against new content.
         LoreRenderer lore = new LoreRenderer(() -> loreStyle(master.config()),
                 key -> content.library().displayNameOf(key),
@@ -238,11 +255,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         return def != null ? def.weaponLore() : java.util.List.of();
                     }
                 },
-                stack -> item.render.ProtectionLore.lines(     // §I applied-scroll PROTECTED lines, from marker state
-                        carrierCodec.isGuarded(stack),
-                        appliedSlot.holds(stack, item.codec.AppliedSlot.HOLY),
-                        items.config().whiteScrollOrDefault().protectedLine(),
-                        items.config().scrollsOrDefault().holy().protectedLine()));
+                protectionLinesFn, // §I applied-scroll PROTECTED lines, from marker state
+                trakLineP);        // §I preserve applied-trak count lines across a body re-render
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
@@ -257,7 +271,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().whiteScrollOrDefault(),   // §I white scroll
                 () -> master.config().lore().roman(),          // book level numeral style (lore.roman, live)
                 () -> master.config().books().maxSuccess(),    // §I global success ceiling (books.max-success, live)
-                appliedSlot);                                  // §I white scroll occupies this
+                appliedSlot,                                   // §I white scroll occupies this
+                protectionRefresh);                            // §I toggle PROTECTED without wiping the rest of the lore
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());
@@ -291,7 +306,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // Survival + cosmetic scrolls (§I) — both share the 'scroll' PDC tag + scrolls config.
         HolyScrollService holyScrolls = new HolyScrollService(scrollCodec, appliedSlot,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, enchanter::reRender);
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, protectionRefresh);
         feature.scroll.KeptItemsStore keptItems = new feature.scroll.KeptItemsStore(); // §I holy death→respawn stash
         NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(), messages);
 

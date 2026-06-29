@@ -2,6 +2,7 @@ package item.render;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.bukkit.ChatColor;
 
 /**
  * The applied-scroll PROTECTED lore lines, rendered from an item's protection state (never parsed back, §4.2).
@@ -28,5 +29,19 @@ public final class ProtectionLore {
             out.add(Colors.translate(holyTemplate));
         }
         return out;
+    }
+
+    /**
+     * Whether {@code line} is a rendered protection line, matched on its VISIBLE content (colours stripped)
+     * against the two templates — so it still matches after Bukkit's lore colour-code normalisation. The
+     * templates carry no tokens, so their visible text is a stable identifier.
+     */
+    public static boolean isProtectionLine(String line, String protectedTemplate, String holyTemplate) {
+        if (line == null) {
+            return false;
+        }
+        String visible = ChatColor.stripColor(line);
+        return visible.equals(ChatColor.stripColor(Colors.translate(protectedTemplate)))
+                || visible.equals(ChatColor.stripColor(Colors.translate(holyTemplate)));
     }
 }

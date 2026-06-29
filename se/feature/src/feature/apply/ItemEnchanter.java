@@ -245,18 +245,6 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Re-render {@code stack}'s lore from its current combat state and applied markers (no enchant change) —
-     * used by the scroll appliers so a freshly stamped/spent guard or keep marker shows its PROTECTED line at
-     * once. No-op (false) on a null/air item.
-     */
-    public boolean reRender(ItemStack stack) {
-        if (stack == null || stack.getType() == Material.AIR) {
-            return false;
-        }
-        return lore.apply(stack, codec.read(stack));
-    }
-
-    /**
      * Extract the most-recently-applied crystal ENTRY off {@code gear} in place (inverse of
      * {@link #applyCrystalEntry}, §E); re-renders lore. Returns the popped entry so the caller can mint it
      * back whole. No-op fail when no crystal.
