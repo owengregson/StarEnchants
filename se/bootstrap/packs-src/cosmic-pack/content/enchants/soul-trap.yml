@@ -19,7 +19,6 @@ levels:
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/natureswrath", duration: 80, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:natureswrath:4 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/phoenix", duration: 80, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:phoenix:4 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/immortal", duration: 80, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:immortal:4 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
-      - { MESSAGE: { text: "&c&l** SOUL TRAP **" } }  # from MESSAGE:&c&l** SOUL TRAP **:TARGET — legacy target dropped — StarEnchants messages the actor
   2:
     cooldown: 100
     effects:
@@ -27,7 +26,6 @@ levels:
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/natureswrath", duration: 160, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:natureswrath:8 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/phoenix", duration: 160, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:phoenix:8 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/immortal", duration: 160, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:immortal:8 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
-      - { MESSAGE: { text: "&c&l** SOUL TRAP **" } }  # from MESSAGE:&c&l** SOUL TRAP **:TARGET — legacy target dropped — StarEnchants messages the actor
   3:
     cooldown: 100
     effects:
@@ -35,4 +33,3 @@ levels:
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/natureswrath", duration: 240, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:natureswrath:12 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/phoenix", duration: 240, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:phoenix:12 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/immortal", duration: 240, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:immortal:12 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
-      - { MESSAGE: { text: "&c&l** SOUL TRAP **" } }  # from MESSAGE:&c&l** SOUL TRAP **:TARGET — legacy target dropped — StarEnchants messages the actor

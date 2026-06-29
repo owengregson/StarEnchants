@@ -34,6 +34,26 @@ class MasterConfigLoaderTest {
         assertEquals(defaults.integrations(), config.integrations());
         assertEquals(defaults.reload(), config.reload());
         assertEquals(defaults.commandTrigger(), config.commandTrigger());
+        assertEquals(defaults.messageOnActivate(), config.messageOnActivate());
+    }
+
+    @Test
+    void parsesMessageOnActivate(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                message-on-activate:
+                  by-enabled: true
+                  by-template: "by {ENCHANT} {VICTIM}"
+                  on-enabled: true
+                """);
+
+        MasterConfig.MessageOnActivateSection moa = MasterConfigLoader.load(file).messageOnActivate();
+
+        assertTrue(moa.byEnabled());
+        assertEquals("by {ENCHANT} {VICTIM}", moa.byTemplate());
+        assertTrue(moa.onEnabled());
+        // an omitted template falls back to the default rather than blanking
+        assertEquals(MasterConfig.MessageOnActivateSection.defaults().onTemplate(), moa.onTemplate());
     }
 
     @Test

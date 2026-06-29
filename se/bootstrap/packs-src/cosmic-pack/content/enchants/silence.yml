@@ -25,7 +25,6 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { MESSAGE: { text: "&5&l* Silenced [5s] *" } }  # from MESSAGE:&5&l* Silenced [5s] *:TARGET — legacy target dropped — StarEnchants messages the actor
   2:
     chance: 2.5
     cooldown: 400
@@ -38,7 +37,6 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { MESSAGE: { text: "&5&l* Silenced [5s] *" } }  # from MESSAGE:&5&l* Silenced [5s] *:TARGET — legacy target dropped — StarEnchants messages the actor
   3:
     chance: 4
     cooldown: 400
@@ -51,7 +49,6 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { MESSAGE: { text: "&5&l* Silenced [5s] *" } }  # from MESSAGE:&5&l* Silenced [5s] *:TARGET — legacy target dropped — StarEnchants messages the actor
   4:
     chance: 6
     cooldown: 400
@@ -64,4 +61,3 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:SOUL:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "heroic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:HEROIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:MYTHIC:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
-      - { MESSAGE: { text: "&5&l* Silenced [5s] *" } }  # from MESSAGE:&5&l* Silenced [5s] *:TARGET — legacy target dropped — StarEnchants messages the actor

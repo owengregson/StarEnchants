@@ -35,6 +35,16 @@ messages:
   prefix: ""        # e.g. "&8[&dSE&8] " — prepended to plugin chat messages
   feedback: true    # send keyed gameplay-feedback messages to players
 
+# Global enchant message-on-activate (§L). The Cosmic Pack enables both sides: when an enchant fires the holder
+# sees "{ENCHANT} ON [victim]" and the other party sees "{ENCHANT} FROM [attacker]". This replaces the old
+# per-enchant self-announce MESSAGE effects (divine immolation, phoenix, …), which are removed from the pack.
+# Tokens: {ENCHANT} = display name, {TIER_COLOR} = tier & colour, {VICTIM}/{ATTACKER} = the party names.
+message-on-activate:
+  by-enabled: true
+  by-template: "{TIER_COLOR}&l** {ENCHANT} &7ON &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
+  on-enabled: true
+  on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
+
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
 slots:

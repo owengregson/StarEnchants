@@ -35,6 +35,17 @@ messages:
   prefix: ""        # e.g. "&8[&dSE&8] " — prepended to plugin chat messages
   feedback: true    # send keyed gameplay-feedback messages to players
 
+# Global enchant message-on-activate (§L). When an enchant fires, the holder ("BY you") and the other combat
+# party ("ON you") can each get a chat line; each side is toggled separately. Tokens: {ENCHANT} = display name,
+# {TIER_COLOR} = the tier's & colour, {VICTIM} = the BY-side target's name, {ATTACKER} = the ON-side source's
+# name. Off by default — a content pack opts in (and drops any per-enchant self-announce MESSAGE effect). A
+# non-combat activation (no other party) sends nothing.
+message-on-activate:
+  by-enabled: false   # message YOU when your enchant fires (names the victim)
+  by-template: "{TIER_COLOR}&l** {ENCHANT} &7ON &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
+  on-enabled: false   # message the other party when an enchant fires on them (names the attacker)
+  on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
+
 # Enchant books (§I). The book likeness (name/lore/material/wrap/destroy-on-fail) lives in
 # items/enchant-book.yml; only this global success ceiling is cross-cutting.
 books:
