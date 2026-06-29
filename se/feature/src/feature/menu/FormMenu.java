@@ -126,6 +126,6 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
 
     /** A glowing control-button variant for the bench's primary action, so it stands out from labels. */
     protected static ItemStack actionButton(String materialToken, String name, List<String> lore) {
-        return ItemFactory.glow(button(materialToken, name, lore));
+        return MenuIcons.glow(button(materialToken, name, lore));
     }
 }

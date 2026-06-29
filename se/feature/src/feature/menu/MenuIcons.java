@@ -3,8 +3,11 @@ package feature.menu;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * Shared icon builders for the themed menu chrome (ADR-0030) — the one place a decorative pane, a navigation
@@ -40,6 +43,48 @@ public final class MenuIcons {
         for (int slot = 0; slot < layout.size(); slot++) {
             holder.set(slot, pane, null);
         }
+    }
+
+    /**
+     * Give {@code stack} the enchantment-glint shimmer WITHOUT a visible enchant line — the cross-version trick
+     * for "featured"/"selected" menu icons (ADR-0030). Adds a harmless vanilla enchant via the boot-wired,
+     * already-covered {@link ItemFactory#applyVanillaEnchants} (correct on 1.8 → 26.1.x; a resolver miss in a
+     * pure context just adds nothing) and hides it with the floor-stable {@link ItemFlag#HIDE_ENCHANTS}. Lives
+     * here, not in {@code item}, because it only means anything against a live server (exercised by the live
+     * matrix, not unit tests). Cosmetic only — never throws.
+     */
+    public static ItemStack glow(ItemStack stack) {
+        if (stack == null) {
+            return null;
+        }
+        try {
+            ItemFactory.applyVanillaEnchants(stack, Map.of("UNBREAKING", 1));
+            ItemMeta meta = stack.getItemMeta();
+            if (meta != null) {
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                stack.setItemMeta(meta);
+            }
+        } catch (RuntimeException ignored) {
+            // A server/material that refuses the shimmer → leave it un-glinted, never broken.
+        }
+        return stack;
+    }
+
+    /**
+     * Hide the vanilla attribute/enchant tooltips on {@code stack} so a menu icon built from real gear (a set
+     * piece, an armour preview) shows only its curated name + lore, not "+2 Armour" noise. Every flag is
+     * floor-stable (present since the 1.8 API). No-op when the stack has no meta.
+     */
+    public static ItemStack hideDetails(ItemStack stack) {
+        if (stack == null) {
+            return null;
+        }
+        ItemMeta meta = stack.getItemMeta();
+        if (meta != null) {
+            meta.addItemFlags(ItemFlag.values());
+            stack.setItemMeta(meta);
+        }
+        return stack;
     }
 
     /** A blank decorative frame pane from a material token (cross-version), or {@code null} for a blank token. */
@@ -84,7 +129,7 @@ public final class MenuIcons {
             lore.add(action);
         }
         ItemStack icon = ItemFactory.build(materialToken, fallback, name, lore);
-        return interactive ? ItemFactory.glow(icon) : icon;
+        return interactive ? glow(icon) : icon;
     }
 
     /** Convenience tile from a vanilla material. */
@@ -112,6 +157,6 @@ public final class MenuIcons {
             meta.setLore(lore);
             icon.setItemMeta(meta);
         }
-        return ItemFactory.glow(icon);
+        return glow(icon);
     }
 }

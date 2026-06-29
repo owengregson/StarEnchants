@@ -71,7 +71,7 @@ public final class OperatorConsoleMenu extends HubMenu {
         tile(holder, 32, MenuIcons.tile("KNOWLEDGE_BOOK", Material.BOOK, "&e&lDSL Reference",
                 List.of("&7Effects, selectors, triggers,", "&7conditions and variables."),
                 "&eClick to browse."), open("reference"));
-        tile(holder, 34, MenuIcons.tile("CLOCK", Material.CLOCK, "&2&lReload Content",
+        tile(holder, 34, MenuIcons.tile("CLOCK", Material.PAPER, "&2&lReload Content",
                 List.of("&7Rebuild and hot-swap the content", "&7library off-thread.", "",
                         "&8Right-click to validate only (dry run)."),
                 "&eClick to reload."), reload());

@@ -38,7 +38,7 @@ public record NavButton(String material, Material fallback, String name, List<St
                 ? lore
                 : concat(lore, extraLore);
         ItemStack icon = ItemFactory.build(material, fallback, name, full);
-        return glow ? ItemFactory.glow(icon) : icon;
+        return glow ? MenuIcons.glow(icon) : icon;
     }
 
     private static List<String> concat(List<String> a, List<String> b) {
