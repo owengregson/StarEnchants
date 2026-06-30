@@ -77,7 +77,7 @@ public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.R
 
     @Override
     protected boolean showBack(MenuHolder holder) {
-        return holder.view() != null;
+        return holder.view() != null || super.showBack(holder);
     }
 
     @Override
@@ -95,8 +95,13 @@ public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.R
 
     @Override
     protected void onBack(MenuClick click) {
-        click.holder().setView(null);
-        click.holder().setPage(0);
+        MenuHolder holder = click.holder();
+        if (holder.view() == null) {
+            super.onBack(click); // at the category index → return to the opener (or close)
+            return;
+        }
+        holder.setView(null);
+        holder.setPage(0);
         reopen(click);
     }
 

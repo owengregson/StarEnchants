@@ -70,13 +70,23 @@ public abstract class PagedMenu<T> implements Menu {
         return layout().titleTemplate();
     }
 
+    /** Show the back button whenever there is somewhere to go back to (the opener); drill menus also override. */
     protected boolean showBack(MenuHolder holder) {
-        return false;
+        return holder.previous() != null;
     }
 
-    /** Default closes; a drill-down menu pops to its parent view and re-renders. */
+    /**
+     * Default: return to the menu this one was opened from ({@link MenuHolder#previous()}), or close when there
+     * is none (a command-opened root). A drill-down menu overrides to first pop its in-menu view, then falls
+     * through to {@code super.onBack} once at its top level.
+     */
     protected void onBack(MenuClick click) {
-        click.player().closeInventory();
+        Menu previous = click.holder().previous();
+        if (previous != null) {
+            previous.open(click.player());
+        } else {
+            click.player().closeInventory();
+        }
     }
 
     /** The info-pane title for the current view, or {@code null} to keep the theme's default info pane. */

@@ -134,10 +134,12 @@ public record MenuLayout(int rows, String titleTemplate, String fillerMaterial, 
     }
 
     /**
-     * A single-screen form layout (no page navigation) for a {@link FormMenu} bench: only a close button in the
-     * bottom-right corner. The bench fills its own backdrop, so the frame is {@link Frame#NONE} here.
+     * A single-screen form layout (no page navigation) for a {@link FormMenu} bench: a back button in the
+     * bottom-left corner (shown only when the bench was opened from a hub) and a close button in the
+     * bottom-right. The bench fills its own backdrop, so the frame is {@link Frame#NONE} here.
      */
     public static MenuLayout form(int rows, String title) {
-        return new MenuLayout(rows, title, "GRAY_STAINED_GLASS_PANE", Frame.NONE, -1, -1, -1, rows * 9 - 1);
+        int navRow = (rows - 1) * 9;
+        return new MenuLayout(rows, title, "GRAY_STAINED_GLASS_PANE", Frame.NONE, -1, -1, navRow, rows * 9 - 1);
     }
 }

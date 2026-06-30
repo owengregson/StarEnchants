@@ -122,12 +122,16 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
 
     @Override
     protected boolean showBack(MenuHolder holder) {
-        return holder.view() != null;
+        return holder.view() != null || super.showBack(holder);
     }
 
     @Override
     protected void onBack(MenuClick click) {
         MenuHolder holder = click.holder();
+        if (holder.view() == null) {
+            super.onBack(click); // at the set index → return to the opener (or close)
+            return;
+        }
         holder.setView(null);
         holder.setPayload(null);
         holder.setSelection(null);
