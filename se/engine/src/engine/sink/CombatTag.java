@@ -28,6 +28,9 @@ public final class CombatTag {
 
     /** Whether {@code player} is within the combat window right now; lazily evicts an elapsed tag. */
     public static boolean inCombat(UUID player) {
+        if (player == null) {
+            return false;
+        }
         Long last = LAST_HIT.get(player);
         if (last == null) {
             return false;

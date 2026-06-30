@@ -900,6 +900,45 @@
       ]
     },
   {
+    "head": "MARK",
+    "doc": "Mark the target(s) so the actor deals an extra `amount`% damage to them for `duration` ticks. Applied by the damage fold on the actor's later hits; default target the combat victim.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ MARK: { amount: <double>, duration: <ticks[0..]=60> } }",
+    "example": "{ MARK: { amount: 25, duration: 60, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "MAX_HEALTH_DRAIN",
     "doc": "Temporarily remove `fraction` of the target's overhealth (max health above `baseline`) plus a flat `amount`, restoring it after `duration` ticks. Default target the combat victim.",
     "affinity": "TARGET_ENTITY",

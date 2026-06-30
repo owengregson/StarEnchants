@@ -7,6 +7,7 @@ import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.FactPopulator;
 import engine.sink.CombatTag;
+import engine.sink.DamageMarks;
 import engine.sink.SinkReadback;
 import engine.sink.SoulDebit;
 import engine.stores.ComboStore;
@@ -217,6 +218,14 @@ public final class CombatDispatch {
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
             int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong()); // %combo% fact, §3.4
+            // reaper's Mark of the Reaper: +N% from THIS attacker while the victim is marked by them. Consulted
+            // BEFORE the attack abilities run, so a mark this hit sets (the 5% proc) applies only to LATER hits.
+            if (victim != null) {
+                double markBonus = DamageMarks.bonus(victim.getUniqueId(), attackerPlayer.getUniqueId());
+                if (markBonus != 0.0) {
+                    sink.fold().addOutgoing(markBonus);
+                }
+            }
             runner.run(abilities, snapshot.generation(), worldId, attackId, true,
                     attackerPlayer,
                     new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null, streak), sink,

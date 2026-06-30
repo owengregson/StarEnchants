@@ -73,6 +73,7 @@ public final class BuiltinEffects {
                 .register(new InvincibleEffect())
                 // §A writable variables + § combat-flags.
                 .register(new SetVarEffect()) // §A SET_VAR: per-player named var, read back as %name%
+                .register(new MarkEffect()) // per-(victim, marker) damage mark (reaper Mark of the Reaper)
                 .register(new InvertVarEffect()) // §A INVERT_VAR: numeric flip of a per-player named var
                 .register(new IgnoreArmorEffect()) // § combat-flags IGNORE_ARMOR: hit bypasses armor/protection
                 .register(new KnockbackControlEffect()) // § combat-flags KNOCKBACK_CONTROL: cancel/scale incoming knockback

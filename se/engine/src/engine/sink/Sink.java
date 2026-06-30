@@ -285,6 +285,13 @@ public interface Sink {
     /** Numerically invert {@code target}'s named variable (0↔1), preserving its remaining TTL (INVERT_VAR). */
     void invertVar(Player target, String name);
 
+    /**
+     * Mark {@code victim} so {@code marker} deals an extra {@code percent}% outgoing damage to them for
+     * {@code durationTicks} (MARK — reaper's Mark of the Reaper); consulted by the damage fold on the marker's
+     * later hits. A per-(victim, marker) flag write, inline like {@link #setVar} (no entity hop).
+     */
+    void mark(LivingEntity victim, UUID marker, double percent, int durationTicks);
+
     // ── Suppression intents (SUPPRESS_ENCHANT — disable an enchant/group/type for a player) ──
 
     /**

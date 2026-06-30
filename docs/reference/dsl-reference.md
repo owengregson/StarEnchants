@@ -293,6 +293,17 @@ Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmet
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ LIGHTNING: { damage: 6 } }`
 
+### MARK
+
+Mark the target(s) so the actor deals an extra `amount`% damage to them for `duration` ticks. Applied by the damage fold on the actor's later hits; default target the combat victim.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ MARK: { amount: <double>, duration: <ticks[0..]=60> } }`
+- _param_ `amount` `double`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ MARK: { amount: 25, duration: 60, who: "@Victim" } }`
+
 ### MAX_HEALTH_DRAIN
 
 Temporarily remove `fraction` of the target's overhealth (max health above `baseline`) plus a flat `amount`, restoring it after `duration` ticks. Default target the combat victim.
