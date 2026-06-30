@@ -377,6 +377,81 @@
       ]
     },
   {
+    "head": "FALLING_BLOCK",
+    "doc": "Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target (removed after `ttl` if they never land). A landing block fires the actor's IMPACT abilities on what it hit; `carry` is forwarded to that impact as %damage% (set carry: \"%damage%\").",
+    "affinity": "REGION",
+    "usage": "{ FALLING_BLOCK: { material: <material>, radius: <int[0..4]=1>, height: <int[0..12]=4>, ttl: <ticks[0..]=40>, carry: <double=0> } }",
+    "example": "{ FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, carry: \"%damage%\", who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "radius",
+        "kind": "INT",
+        "label": "int[0..4]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": 4,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "height",
+        "kind": "INT",
+        "label": "int[0..12]",
+        "required": false,
+        "default": "4",
+        "min": 0,
+        "max": 12,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "40",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "carry",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "FILL_OXYGEN",
     "doc": "Refill the target's air supply.",
     "affinity": "TARGET_ENTITY",
@@ -2812,6 +2887,13 @@
     "usesHeld": false,
     "scansEquipment": true,
     "needsTarget": false
+    },
+  {
+    "name": "IMPACT",
+    "direction": "ATTACK",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": true
     }
   ],
 "conditions": {

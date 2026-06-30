@@ -28,6 +28,7 @@ import java.util.function.LongSupplier;
 import feature.combat.MineDrops;
 import feature.combat.ProjectileHoming;
 import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Cancellable;
@@ -79,6 +80,7 @@ public final class TriggerDispatch {
     public final int held;    // §B HELD lifecycle — fired by the LifecycleDriver, not a Bukkit listener
     public final int passive; // §B PASSIVE lifecycle — fired by the LifecycleDriver, not a Bukkit listener
     public final int command; // §B COMMAND — fired by the configured CommandTriggerCommand
+    public final int impact;  // fired by a landing FALLING_BLOCK via FallingBlockListener (victim = what it hit)
 
     /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
     public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
@@ -155,6 +157,7 @@ public final class TriggerDispatch {
         this.held = triggers.idOf("HELD").orElse(-1);
         this.passive = triggers.idOf("PASSIVE").orElse(-1);
         this.command = triggers.idOf("COMMAND").orElse(-1);
+        this.impact = triggers.idOf("IMPACT").orElse(-1);
     }
 
     /**
@@ -320,6 +323,22 @@ public final class TriggerDispatch {
      */
     public void fireCommand(Player actor) {
         fire(actor, command, new ActivationContext(actor, null, null, actor.getLocation()), null);
+    }
+
+    /**
+     * Fire the IMPACT trigger — a landing {@code FALLING_BLOCK} hit {@code victim}. Runs {@code owner}'s
+     * IMPACT abilities (gated normally; a short cooldown on the ability dedups a grid's many landings) with the
+     * carried hit damage exposed as {@code %damage%}, so the impact effects are fully author-defined. Runs on
+     * the landing block's region; {@code owner}'s worn abilities resolve from the immutable WornState
+     * (Folia-safe cross-region read), and effects route to {@code victim} via the sink.
+     */
+    public void fireImpact(Player owner, LivingEntity victim, double carriedDamage) {
+        if (impact < 0 || owner == null || victim == null) {
+            return;
+        }
+        ActivationContext context =
+                new ActivationContext(owner, victim, null, victim.getLocation(), carriedDamage, null);
+        fire(owner, impact, context, null);
     }
 
     private SinkReadback newSink() {

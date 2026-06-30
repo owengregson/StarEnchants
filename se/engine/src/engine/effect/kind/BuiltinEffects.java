@@ -49,6 +49,7 @@ public final class BuiltinEffects {
                 // World / spawn intents.
                 .register(new ExplodeEffect())
                 .register(new SpawnEntityEffect()) // §C canonical; replaces SPAWN/TNT (FIREBALL folded into PROJECTILE)
+                .register(new FallingBlockEffect()) // cosmetic falling-block grid (druid Terrablender grass rain)
                 .register(new GuardEffect()) // § combat-flags GUARD: summon mob(s) targeting the attacker
                 // Movement + vitals.
                 .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK

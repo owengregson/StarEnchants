@@ -119,6 +119,20 @@ Put out the target's fire.
 - _target_ `who`: selector `SELF`
 - _example_: `{ EXTINGUISH: {} }`
 
+### FALLING_BLOCK
+
+Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target (removed after `ttl` if they never land). A landing block fires the actor's IMPACT abilities on what it hit; `carry` is forwarded to that impact as %damage% (set carry: "%damage%").
+
+- _affinity_: `REGION`
+- _usage_: `{ FALLING_BLOCK: { material: <material>, radius: <int[0..4]=1>, height: <int[0..12]=4>, ttl: <ticks[0..]=40>, carry: <double=0> } }`
+- _param_ `material` `material`
+- _param_ `radius` `int[0..4]`
+- _param_ `height` `int[0..12]`
+- _param_ `ttl` `ticks[0..]`
+- _param_ `carry` `double`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, carry: "%damage%", who: "@Victim" } }`
+
 ### FILL_OXYGEN
 
 Refill the target's air supply.
@@ -802,6 +816,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `INTERACT_RIGHT` | NEUTRAL | true | false | false |
 | `REPEATING` | NEUTRAL | false | true | false |
 | `COMMAND` | NEUTRAL | false | true | false |
+| `IMPACT` | ATTACK | false | true | true |
 
 ## Conditions
 

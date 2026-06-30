@@ -487,6 +487,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // ITEM_DAMAGE lives in its own listener (the event is 1.9+; the legacy overlay is a no-op).
         getServer().getPluginManager().registerEvents(
                 new feature.trigger.DurabilityTriggerListener(triggerDispatch), this);
+        // A landing FALLING_BLOCK fires the IMPACT trigger on whoever it hit (druid Terrablender grass rain).
+        getServer().getPluginManager().registerEvents(
+                new feature.combat.FallingBlockListener(triggerDispatch), this);
         getServer().getPluginManager().registerEvents(
                 new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune), this);
         // §C KEEP_ON_DEATH at NORMAL priority — earlier than HolyScrollListener (HIGH) — so an enchant-kept
@@ -693,6 +696,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (soulParticles != null) {
             soulParticles.stop(); // cancel the §D while-active soul aura task
         }
+        engine.sink.FallingBlockCasts.clearAll(); // forget any in-flight falling-block impact bindings
         if (metrics != null) {
             metrics.shutdown(); // stop the bStats submit thread so it doesn't outlive a /reload
         }

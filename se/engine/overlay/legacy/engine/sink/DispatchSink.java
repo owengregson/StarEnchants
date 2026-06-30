@@ -933,6 +933,32 @@ public final class DispatchSink implements SinkReadback {
         });
     }
 
+    @Override
+    @SuppressWarnings("deprecation") // spawnFallingBlock(Location, Material, byte): the 1.8 falling-block spawn.
+    public void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, double carriedDamage) {
+        Location loc = at.clone();
+        regionOp(loc, () -> {
+            Material material = material(materialId);
+            World world = loc.getWorld();
+            if (material == null || !material.isBlock() || world == null) {
+                return;
+            }
+            org.bukkit.entity.FallingBlock fb = world.spawnFallingBlock(loc, material, (byte) 0);
+            fb.setDropItem(false);
+            fb.setHurtEntities(false);
+            if (owner != null) {
+                FallingBlockCasts.bind(fb.getUniqueId(), owner, carriedDamage);
+            }
+            if (ttlTicks > 0) {
+                UUID fbId = fb.getUniqueId();
+                Scheduling.onEntityLater(fb, ttlTicks, () -> {
+                    FallingBlockCasts.forget(fbId);
+                    fb.remove();
+                });
+            }
+        });
+    }
+
     /** Clamp an authored 0-255 colour channel into range. */
     private static int clampChannel(int v) {
         return Math.max(0, Math.min(255, v));
