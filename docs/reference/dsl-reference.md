@@ -529,6 +529,15 @@ Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: "@Victim" } }`
 
+### SUPPRESS_IMMUNE
+
+Make the target(s) immune to all suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn — a maintained PASSIVE flag, armed on equip and lifted on unequip. Player-only.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ SUPPRESS_IMMUNE: {} }`
+- _target_ `who`: selector `SELF`
+- _example_: `{ SUPPRESS_IMMUNE: { who: "@Self" } }`
+
 ### TELEBLOCK
 
 Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.

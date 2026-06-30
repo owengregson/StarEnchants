@@ -1854,6 +1854,20 @@
       ]
     },
   {
+    "head": "SUPPRESS_IMMUNE",
+    "doc": "Make the target(s) immune to all suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn — a maintained PASSIVE flag, armed on equip and lifted on unequip. Player-only.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ SUPPRESS_IMMUNE: {} }",
+    "example": "{ SUPPRESS_IMMUNE: { who: \"@Self\" } }",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "TELEBLOCK",
     "doc": "Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.",
     "affinity": "CONTEXT_LOCAL",

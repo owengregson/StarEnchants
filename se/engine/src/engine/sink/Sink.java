@@ -263,6 +263,13 @@ public interface Sink {
      */
     void suppress(Player target, int scopeKind, int scopeId, int durationTicks);
 
+    /**
+     * Make {@code target} immune to ALL suppression while {@code on}, or lift it (SUPPRESS_IMMUNE — dragon's
+     * Dovahkiin): every {@link #suppress} aimed at them no-ops at the write. A maintained PASSIVE flag — armed
+     * on equip, lifted on unequip by the HELD/PASSIVE lifecycle — so it can never leak. Player-only.
+     */
+    void suppressImmune(Player target, boolean on);
+
     // ── Event control ──
 
     /** Cancel the Bukkit event that triggered this activation. */

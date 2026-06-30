@@ -42,6 +42,13 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+  # Dovahkiin — immune to all enchant-cancelling while worn: any DISABLE_ENCHANT/GROUP/TYPE aimed at the
+  # wearer no-ops (and equipping the set clears any already on them). Maintained by the PASSIVE lifecycle.
+  - on: armor
+    trigger: [PASSIVE]
+    chance: 100
+    effects:
+      - { SUPPRESS_IMMUNE: { who: "@Self" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

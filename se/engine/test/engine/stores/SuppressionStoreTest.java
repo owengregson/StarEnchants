@@ -69,6 +69,38 @@ class SuppressionStoreTest {
     }
 
     @Test
+    void immunePlayerCannotBeSuppressedAndArmingClearsExistingSuppression() {
+        store.suppress(p, 1, 0L, 100);
+        assertTrue(store.isSuppressed(p, 1, 0L)); // suppressed before immunity
+        store.setImmune(p, true);
+        assertTrue(store.isImmune(p));
+        assertFalse(store.isSuppressed(p, 1, 0L)); // arming immunity dropped the existing suppression
+        store.suppress(p, 1, 0L, 100);             // and a fresh suppress is vetoed at the write
+        assertFalse(store.isSuppressed(p, 1, 0L));
+    }
+
+    @Test
+    void liftingImmunityRestoresSuppressibility() {
+        store.setImmune(p, true);
+        store.suppress(p, 1, 0L, 100);
+        assertFalse(store.isSuppressed(p, 1, 0L)); // vetoed while immune
+        store.setImmune(p, false);
+        assertFalse(store.isImmune(p));
+        store.suppress(p, 1, 0L, 100);
+        assertTrue(store.isSuppressed(p, 1, 0L));   // suppressible again
+    }
+
+    @Test
+    void clearAndClearAllLiftImmunity() {
+        store.setImmune(p, true);
+        store.clear(p);
+        assertFalse(store.isImmune(p));
+        store.setImmune(p, true);
+        store.clearAll();
+        assertFalse(store.isImmune(p));
+    }
+
+    @Test
     void clearForgetsOnePlayerAndClearAllForgetsEveryone() {
         UUID q = UUID.randomUUID();
         store.suppress(p, 1, 0L, 100);
