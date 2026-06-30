@@ -1991,6 +1991,121 @@
     "targets": []
     },
   {
+    "head": "TEMP_BLOCK",
+    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); false replaces anything and restores it on revert.",
+    "affinity": "REGION",
+    "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
+    "example": "{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }",
+    "params": [
+      {
+        "name": "shape",
+        "kind": "ENUM",
+        "label": "enum{POINT|FOOTPRINT|COLUMN}",
+        "required": false,
+        "default": "POINT",
+        "min": null,
+        "max": null,
+        "enum": [
+          "POINT",
+          "FOOTPRINT",
+          "COLUMN"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "ticks",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "radius",
+        "kind": "INT",
+        "label": "int[0..4]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 4,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "height",
+        "kind": "INT",
+        "label": "int[1..8]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ahead",
+        "kind": "INT",
+        "label": "int[0..8]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "dy",
+        "kind": "INT",
+        "label": "int[-4..4]",
+        "required": false,
+        "default": "0",
+        "min": -4,
+        "max": 4,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "airOnly",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "VELOCITY",
     "doc": "Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.",
     "affinity": "TARGET_ENTITY",

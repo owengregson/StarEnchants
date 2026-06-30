@@ -177,6 +177,15 @@ public interface Sink {
      */
     void tempPlatform(Location center, int materialId, int radius, int durationTicks, int replaceMode);
 
+    /**
+     * Place ONE temporary block at {@code at} of an interned material, reverting to the captured prior block
+     * after {@code durationTicks} — but only if the tile is still ours then (overlap-safe, no shared ledger).
+     * {@code replaceMode}: 0 = air only, 1 = air/liquid, 2 = anything. The shape geometry lives in
+     * {@code TEMP_BLOCK}; this is the per-position primitive. {@code unbreakable} is reserved (best-effort, not
+     * yet guarded — a short-lived trap relies on its duration).
+     */
+    void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable);
+
     /** Drop {@code count} of a material as an item entity at {@code at} (DROP_ITEM). */
     void dropItem(Location at, int materialId, int count);
 
