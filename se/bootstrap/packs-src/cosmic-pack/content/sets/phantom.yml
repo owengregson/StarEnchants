@@ -36,13 +36,22 @@ weapon:
     - "&7&o(Requires all four Phantom set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
+  # Ghostly Rush (permanent) — Haste I + Strength III + Speed IV while the full set is worn (driver-maintained).
   - on: armor
-    trigger: DEFENSE
+    trigger: [PASSIVE]
     chance: 100
     effects:
-      - { POTION: { effect: SPEED, level: 4, duration: 100, who: "@Self" } }
-      - { POTION: { effect: INCREASE_DAMAGE, level: 1, duration: 100, who: "@Self" } }
-      - { POTION: { effect: FAST_DIGGING, level: 2, duration: 100, who: "@Self" } }
+      - { POTION: { effect: FAST_DIGGING, level: 1, duration: 200, who: "@Self" } }   # Haste I
+      - { POTION: { effect: INCREASE_DAMAGE, level: 3, duration: 200, who: "@Self" } }  # Strength III
+      - { POTION: { effect: SPEED, level: 4, duration: 200, who: "@Self" } }            # Speed IV
+  # Soul-tier lockout — re-armed every 2s (3s TTL) so the wearer's SOUL-group enchants never activate while worn
+  # (every soul-tier enchant carries group: soul). Lapses ~3s after the set is removed.
+  - on: armor
+    trigger: REPEATING
+    repeat: 40
+    chance: 100
+    effects:
+      - { SUPPRESS: { scope: GROUP, key: soul, duration: 60, who: "@Self" } }
   - on: weapon
     trigger: ATTACK
     chance: 100
