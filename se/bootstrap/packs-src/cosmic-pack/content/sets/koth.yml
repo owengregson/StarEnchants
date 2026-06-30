@@ -57,13 +57,13 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }
-  # Victorious crown aura (cosmetic, redrawn every 0.5s): a white redstone-dust ring at hip height the size of
-  # the radius, plus a dust tether from each nearby player to the wearer. REPEATING has no victim, so the AoE
-  # centres on the wearer.
+  # Victorious crown aura (cosmetic, redrawn every 0.5s): a white redstone-dust ring just above the floor (≈feet
+  # level) the size of the radius, plus a dust tether from each nearby player to the wearer at the same height.
+  # REPEATING has no victim, so the AoE centres on the wearer.
   - on: armor
     trigger: REPEATING
     repeat: 10
     chance: 100
     effects:
-      - { PARTICLE_RING: { particle: REDSTONE, r: 255, g: 255, b: 255, radius: 7, count: 60, height: 1 } }
-      - { PARTICLE_LINE: { particle: REDSTONE, r: 255, g: 255, b: 255, density: 2, height: 1, who: "@AllPlayers{r=7}" } }
+      - { PARTICLE_RING: { particle: REDSTONE, r: 255, g: 255, b: 255, radius: 7, count: 60, height: 0.1 } }
+      - { PARTICLE_LINE: { particle: REDSTONE, r: 255, g: 255, b: 255, density: 2, height: 0.1, who: "@AllPlayers{r=7}" } }
