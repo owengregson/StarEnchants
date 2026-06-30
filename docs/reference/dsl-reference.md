@@ -578,6 +578,23 @@ Send the block's drops straight to the breaker's inventory (this MINE activation
 - _usage_: `{ TELEPORT_DROPS: {} }`
 - _example_: `{ TELEPORT_DROPS: {} }`
 
+### TEMP_BLOCK
+
+Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); false replaces anything and restores it on revert.
+
+- _affinity_: `REGION`
+- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
+- _param_ `shape` `enum{POINT|FOOTPRINT|COLUMN}`
+- _param_ `material` `material`
+- _param_ `ticks` `ticks[0..]`
+- _param_ `radius` `int[0..4]`
+- _param_ `height` `int[1..8]`
+- _param_ `ahead` `int[0..8]`
+- _param_ `dy` `int[-4..4]`
+- _param_ `airOnly` `bool`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: "@Attacker" } }`
+
 ### VELOCITY
 
 Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.

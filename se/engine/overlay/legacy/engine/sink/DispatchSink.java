@@ -768,6 +768,33 @@ public final class DispatchSink implements SinkReadback {
         });
     }
 
+    @Override
+    public void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable) {
+        Location pos = at.clone(); // own the position: a WAIT tier can defer this to a later tick
+        regionOp(pos, () -> {
+            Material material = material(materialId);
+            World world = pos.getWorld();
+            if (material == null || !material.isBlock() || world == null) {
+                return;
+            }
+            Block block = pos.getBlock();
+            if (!canReplace(block, replaceMode)) {
+                return;
+            }
+            Material prior = block.getType();
+            block.setType(material, false);
+            if (durationTicks > 0) {
+                // Revert only if the tile is STILL ours — a later placement that overwrote it owns the revert now.
+                Scheduling.onRegionLater(pos, durationTicks, () -> {
+                    Block current = pos.getBlock();
+                    if (current.getType() == material) {
+                        current.setType(prior, false);
+                    }
+                });
+            }
+        });
+    }
+
     /** Whether a temp-platform may overwrite this block: 0 = air only, 1 = air/liquid, 2 = anything. */
     private static boolean canReplace(Block block, int replaceMode) {
         switch (replaceMode) {

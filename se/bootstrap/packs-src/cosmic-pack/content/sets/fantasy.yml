@@ -36,10 +36,16 @@ weapon:
     - "&7&o(Requires all four Fantasy set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
+  # Fantasy Trap — 10% on hit (30s cd, players only): an unbreakable (best-effort) cobweb at the victim's feet
+  # for 1s — vanilla physics halts them — and strip their SPEED. The cobweb reverts to air after the second.
   - on: armor
-    trigger: DEFENSE
-    chance: 100
-    effects: []
+    trigger: ATTACK
+    chance: 10
+    cooldown: 600
+    condition: "%victim.type% == PLAYER"
+    effects:
+      - { TEMP_BLOCK: { shape: POINT, material: COBWEB, ticks: 20, airOnly: true, who: "@Victim" } }
+      - { REMOVE_POTION: { effect: SPEED, who: "@Victim" } }
   - on: weapon
     trigger: ATTACK
     chance: 100
