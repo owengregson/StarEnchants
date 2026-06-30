@@ -8,7 +8,7 @@
 
 allprojects {
     group = "com.starenchants"
-    version = "1.1.17-beta"
+    version = "1.1.18-beta"
 }
 
 subprojects {
