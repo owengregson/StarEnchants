@@ -17,7 +17,7 @@ armor:
     - "&d* Deal 30% more damage to all enemies"
     - "&d* Enemies deal 20% less damage to you"
     - "&d* Bow attacks deal 75% less damage to you"
-    - "&d* Lovestruck Active Ability"
+    - "&d* Lovestruck Ability"
     - "&7&o(Requires all four Cupid set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&d&lCherubic Crown&r" }

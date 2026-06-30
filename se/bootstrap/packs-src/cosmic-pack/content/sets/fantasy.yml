@@ -15,7 +15,7 @@ armor:
     - ""
     - "&2&lFANTASY SET BONUS"
     - "&2* Deal 25% more damage to all enemies"
-    - "&2* Fantasy Trap Passive Ability"
+    - "&2* Fantasy Trap Ability"
     - "&7&o(Requires all four Fantasy set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&2&lEnchanted Helmet&r" }

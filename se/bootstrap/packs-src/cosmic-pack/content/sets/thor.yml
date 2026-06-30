@@ -16,7 +16,7 @@ armor:
     - "&9&lTHOR SET BONUS"
     - "&9* Deal 25% more damage to all enemies"
     - "&9* Enemies deal 15% less damage to you"
-    - "&9* Stormcaller Passive Ability"
+    - "&9* Stormcaller Ability"
     - "&7&o(Requires all four Thor set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&9&lElectric Helmet&r" }

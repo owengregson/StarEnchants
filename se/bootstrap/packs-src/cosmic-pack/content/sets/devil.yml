@@ -16,7 +16,7 @@ armor:
     - "&4&lDEVIL SET BONUS"
     - "&4* Deal 25% more damage to all enemies"
     - "&4* Enemies deal 20% less damage to you"
-    - "&4* Hell's Kitchen Passive Ability"
+    - "&4* Hell's Kitchen Ability"
     - "&7&o(Requires all four Devil set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&4&lFlaming Helmet&r" }
