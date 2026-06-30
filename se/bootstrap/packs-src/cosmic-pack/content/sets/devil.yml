@@ -1,6 +1,6 @@
 # Devil — diamond infernal set; defense reduction + a heavy-hitting weapon.
 display: "&4&lDevil"
-description: "Command the inferno: shrug off damage and strike harder while wearing the set."
+description: "&4Command the inferno with the Devil set, born from the flames of the underworld."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&4Command the inferno with the Devil set, born from the flames of the underworld."
     - ""
     - "&4&lDEVIL SET BONUS"
     - "&4* Deal 25% more damage to all enemies"
@@ -29,9 +30,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&4&lDevil's Cleaver&r"
   lore:
-    - "&4Unleash the inferno with the Devil's"
-    - "&4Cleaver, a blade forged in the"
-    - "&4flames of the underworld."
+    - "&4Unleash the inferno with the Devil's Cleaver, a blade forged in the flames of the underworld."
     - ""
     - "&4&lDEVIL WEAPON BONUS"
     - "&4* Deal 5% more damage to all enemies"

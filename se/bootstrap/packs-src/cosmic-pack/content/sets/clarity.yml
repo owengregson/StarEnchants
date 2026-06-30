@@ -1,6 +1,6 @@
 # Clarity — radiant diamond set: damage up, reduction, and a Bless passive.
 display: "&d&lClarity"
-description: "Shine with the pure light of the Clarity set."
+description: "&dShine with the pure light of the Clarity set, crystal clear and serene, a beacon of prosperity and truth."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&dShine with the pure light of the Clarity set, crystal clear and serene, a beacon of prosperity and truth."
     - ""
     - "&d&lCLARITY SET BONUS"
     - "&d* Deal 15% more damage to all enemies"
@@ -29,9 +30,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&d&lRadiant Blade&r"
   lore:
-    - "&dA blade forged in the light of clarity,"
-    - "&dpure and unyielding, cutting through"
-    - "&dthe darkness with ease."
+    - "&dA blade forged in the light of clarity, pure and unyielding, cutting through the darkness with ease."
     - ""
     - "&d&lCLARITY WEAPON BONUS"
     - "&d* Deal 15% more damage to all enemies"

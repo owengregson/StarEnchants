@@ -1,6 +1,6 @@
 # Thor — diamond storm set; thunderous damage, reduction, and Mjolnir.
 display: "&9&lThor"
-description: "Wield the thunderous might of Thor, forged in the heart of storms."
+description: "&9Wield the thunderous might of Thor with the Thor set, forged in the heart of storms and imbued with the power of lightning."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&9Wield the thunderous might of Thor with the Thor set, forged in the heart of storms and imbued with the power of lightning."
     - ""
     - "&9&lTHOR SET BONUS"
     - "&9* Deal 25% more damage to all enemies"
@@ -29,9 +30,7 @@ weapon:
   material: DIAMOND_AXE
   name: "&9&lMjolnir&r"
   lore:
-    - "&9Wield the legendary Mjolnir, the hammer of"
-    - "&9Thor, imbued with the thunderous power"
-    - "&9of storms and lightning."
+    - "&9Wield the legendary Mjolnir, the hammer of Thor, imbued with the thunderous power of storms and lightning."
     - ""
     - "&9&lTHOR WEAPON BONUS"
     - "&9* Deal 5% more damage to all enemies"

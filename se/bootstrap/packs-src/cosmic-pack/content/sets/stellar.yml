@@ -1,6 +1,6 @@
 # Stellar — cosmic diamond set; absorption shield on defense, Rift Blade weapon.
 display: "&5&lStellar"
-description: "Harness the cosmos to outmaneuver any foe while wearing the set."
+description: "&5Harness the power of the cosmos with the Stellar Set, transcending space and time to outmaneuver any foe."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,9 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&5Harness the power of the cosmos with the"
-    - "&5Stellar Set, transcending space and time"
-    - "&5to outmaneuver any foe."
+    - "&5Harness the power of the cosmos with the Stellar Set, transcending space and time to outmaneuver any foe."
     - ""
     - "&5&lSTELLAR SET BONUS"
     - "&5* Deal 20% more damage to all enemies"
@@ -31,9 +29,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&5&lRift Blade&r"
   lore:
-    - "&5Wield the Rift Blade, a sword that tears"
-    - "&5through dimensions, striking with"
-    - "&5unpredictable swiftness."
+    - "&5Wield the Rift Blade, a sword that tears through dimensions, striking with unpredictable swiftness."
     - ""
     - "&5&lSTELLAR WEAPON BONUS"
     - "&5* Deal 10% more damage to all enemies"

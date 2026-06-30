@@ -1,6 +1,6 @@
 # Yijki — divine/holy diamond set with damage reduction, Divine Shield, and the Destiny weapon
 display: "&f&lYijki"
-description: "Ascend to divine heights, taking less damage while wearing the set."
+description: "&fAscend to divine heights with the Yijki set, radiant with celestial energy and holy light."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&fAscend to divine heights with the Yijki set, radiant with celestial energy and holy light."
     - ""
     - "&f&lYIJKI SET BONUS"
     - "&f* Enemies deal 30% less damage to you"
@@ -28,9 +29,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&f&lDestiny&r"
   lore:
-    - "&fChannel divine power with Destiny,"
-    - "&fa weapon of holy radiance sworn"
-    - "&fto banish the darkness."
+    - "&fChannel divine power with Destiny, a weapon of holy radiance sworn to banish the darkness."
     - ""
     - "&f&lYIJKI WEAPON BONUS"
     - "&f* Deal 5% more damage to all enemies"
