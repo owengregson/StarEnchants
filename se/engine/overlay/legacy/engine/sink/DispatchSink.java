@@ -576,6 +576,40 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    public void swapEquipment(Player target, int slotIndex, int materialId, int durationTicks) {
+        entityOp(target, () -> {
+            Material placeholder = material(materialId);
+            ItemStack[] armor = target.getInventory().getArmorContents();
+            if (placeholder == null || slotIndex < 0 || slotIndex >= armor.length) {
+                return;
+            }
+            ItemStack original = armor[slotIndex];
+            if (!TempEquip.swap(target.getUniqueId(), slotIndex, original == null ? null : original.clone())) {
+                return; // a swap is already active on this slot — never double-swap
+            }
+            armor[slotIndex] = new ItemStack(placeholder);
+            target.getInventory().setArmorContents(armor);
+            if (durationTicks > 0) {
+                UUID id = target.getUniqueId();
+                Scheduling.onEntityLater(target, durationTicks, () -> restoreSwap(target, id, slotIndex, placeholder));
+            }
+        });
+    }
+
+    /** Restore a swapped slot to its original, but only while it is still our placeholder (don't clobber a re-equip). */
+    private static void restoreSwap(Player target, UUID id, int slotIndex, Material placeholder) {
+        ItemStack original = TempEquip.end(id, slotIndex);
+        if (original == null) {
+            return; // already ended (the death/quit listener restored it)
+        }
+        ItemStack[] armor = target.getInventory().getArmorContents();
+        if (slotIndex < armor.length && armor[slotIndex] != null && armor[slotIndex].getType() == placeholder) {
+            armor[slotIndex] = TempEquip.isAir(original) ? null : original;
+            target.getInventory().setArmorContents(armor);
+        }
+    }
+
+    @Override
     public void ignite(Entity target, int durationTicks) {
         entityOp(target, () -> target.setFireTicks(Math.max(0, durationTicks)));
     }

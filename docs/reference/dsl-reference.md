@@ -99,6 +99,18 @@ Modify durability of the player's held item and/or worn armor: restore (amount<0
 - _target_ `who`: selector `SELF`
 - _example_: `{ DURABILITY: { amount: -1, target: item } }`
 
+### EQUIP_SWAP
+
+Temporarily replace the target's `slot` armour piece with `material`, restoring it after `duration` ticks (death-safe: the real piece drops / is kept). Default target the victim.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ EQUIP_SWAP: { slot: <enum{helmet|chestplate|leggings|boots}=helmet>, material: <material>, duration: <ticks[0..]=60> } }`
+- _param_ `slot` `enum{helmet|chestplate|leggings|boots}`
+- _param_ `material` `material`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ EQUIP_SWAP: { slot: helmet, material: CARVED_PUMPKIN, duration: 60, who: "@Victim" } }`
+
 ### EXPLODE
 
 Create an explosion at the target.

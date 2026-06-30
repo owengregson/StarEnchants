@@ -490,6 +490,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // A landing FALLING_BLOCK fires the IMPACT trigger on whoever it hit (druid Terrablender grass rain).
         getServer().getPluginManager().registerEvents(
                 new feature.combat.FallingBlockListener(triggerDispatch), this);
+        // EQUIP_SWAP (spooky's pumpkin helmet) — keep death/quit normal: restore the real piece, never the placeholder.
+        getServer().getPluginManager().registerEvents(new feature.combat.TempEquipListener(), this);
         getServer().getPluginManager().registerEvents(
                 new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune), this);
         // §C KEEP_ON_DEATH at NORMAL priority — earlier than HolyScrollListener (HIGH) — so an enchant-kept
@@ -699,6 +701,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         engine.sink.FallingBlockCasts.clearAll(); // forget any in-flight falling-block impact bindings
         engine.sink.CombatTag.clearAll(); // forget combat tags (supreme's out-of-combat fly)
         engine.sink.DamageMarks.clearAll(); // forget damage marks (reaper's Mark of the Reaper)
+        engine.sink.TempEquip.clearAll(); // forget temporary equipment swaps (spooky's pumpkin helmet)
         if (metrics != null) {
             metrics.shutdown(); // stop the bStats submit thread so it doesn't outlive a /reload
         }
