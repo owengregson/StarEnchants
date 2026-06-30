@@ -62,7 +62,8 @@ public final class HeroicService {
     public ItemStack mint() {
         HeroicConfig cfg = config.get();
         // GOLD_INGOT is on every version; the configured material resolves by name first. Name + lore carry
-        // {PERCENT}/{+/-}/{AMOUNT}/{KINDS} placeholders filled from the live config so the ingot self-documents.
+        // {SUCCESS}/{FAILURE}/{OUTGOING}/{INCOMING}/{DURABILITY}/{KINDS} unified tokens filled from the live
+        // config so the ingot self-documents.
         List<String> lore = new java.util.ArrayList<>(cfg.lore().size());
         for (String line : cfg.lore()) {
             lore.add(fillPlaceholders(line, cfg));
@@ -74,28 +75,20 @@ public final class HeroicService {
     }
 
     /**
-     * Fill the heroic item's {@code {PERCENT}}/{@code {1-PERCENT}}/{@code {KINDS}} placeholders, plus a
-     * per-stat {@code {+/-}{AMOUNT}} chosen by the line it sits on (Outgoing → +damage, Incoming → -reduction,
-     * Durability → +the wear-saving), so the three stat lines can share one template token.
+     * Fill the heroic item's unified lore tokens — the same family the scrolls / slot-orb use:
+     * {@code {SUCCESS}}/{@code {FAILURE}} for the roll, {@code {OUTGOING}}/{@code {INCOMING}}/{@code {DURABILITY}}
+     * for the per-stat percents (each its own token, signed by the template), and {@code {KINDS}} for what it
+     * applies to.
      */
     private String fillPlaceholders(String line, HeroicConfig cfg) {
         int success = cfg.successMax(); // headline success rate (cosmic sets min == max for a single number)
-        String out = line;
-        if (out.contains("Outgoing")) {
-            out = signed(out, "+", pct(cfg.percentDamage()));
-        } else if (out.contains("Incoming")) {
-            out = signed(out, "-", pct(cfg.percentReduction()));
-        } else if (out.contains("Durability")) {
-            out = signed(out, "+", pct(cfg.durability()));
-        }
-        return out
-                .replace("{1-PERCENT}", Integer.toString(100 - success))
-                .replace("{PERCENT}", Integer.toString(success))
+        return line
+                .replace("{SUCCESS}", Integer.toString(success))
+                .replace("{FAILURE}", Integer.toString(100 - success))
+                .replace("{OUTGOING}", Integer.toString(pct(cfg.percentDamage())))
+                .replace("{INCOMING}", Integer.toString(pct(cfg.percentReduction())))
+                .replace("{DURABILITY}", Integer.toString(pct(cfg.durability())))
                 .replace("{KINDS}", ItemGroups.kindsLabel(List.of("ARMOR", "WEAPON")));
-    }
-
-    private static String signed(String line, String sign, int amount) {
-        return line.replace("{+/-}", sign).replace("{AMOUNT}", Integer.toString(amount));
     }
 
     private static int pct(double fraction) {

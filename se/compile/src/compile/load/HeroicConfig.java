@@ -15,7 +15,8 @@ import java.util.Objects;
  *                         piece takes 80% of normal durability damage
  * @param materialUpgrades input → upgraded material, within-category (e.g. DIAMOND→GOLDEN for the display piece)
  * @param reductionScope   {@code ENTITY} (PvP/entity only, default) or {@code ALL} (all damage causes)
- * @param loreLine         the on-item HEROIC lore-line template ({@code {TYPE}}/{@code {+/-}}/{@code {AMOUNT}});
+ * @param loreLine         the on-item HEROIC lore-line template ({@code {TYPE}} = the gear kind; the renderer
+ *                         also recognises {@code {+/-}}/{@code {AMOUNT}} for an optional signed-percent readout);
  *                         blank → the plain {@code &6&lHEROIC} marker
  * @param destroyOnFail    whether a failed attempt destroys the targeted gear (like other consumables); the
  *                         upgrade itself is always consumed
@@ -55,9 +56,9 @@ public record HeroicConfig(
         return input == null ? null : materialUpgrades.get(input.toUpperCase(Locale.ROOT));
     }
 
-    /** The shipped HEROIC lore-line template; {@code {TYPE}} is the gear kind, {@code {+/-}{AMOUNT}} the percent. */
+    /** The shipped HEROIC lore-line template; {@code {TYPE}} is the gear kind. */
     public static final String DEFAULT_LORE_LINE =
-            "&e&k|||&r &6&lHEROIC {TYPE} &r&7(&e{+/-}{AMOUNT}% DMG&7) &r&e&k|||&r";
+            "&e&k|||&r &6&lHEROIC {TYPE} &r&e&k|||&r";
 
     public static HeroicConfig defaults() {
         return new HeroicConfig(
