@@ -458,6 +458,18 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    public void cureByCategory(LivingEntity target, int category) {
+        // Snapshot first (removePotionEffect mutates the live collection); remove only the matching bucket.
+        entityOp(target, () -> {
+            for (PotionEffect active : List.copyOf(target.getActivePotionEffects())) {
+                if (PotionCategories.matches(category, active.getType())) {
+                    target.removePotionEffect(active.getType());
+                }
+            }
+        });
+    }
+
+    @Override
     public void disarm(LivingEntity target) {
         // Runs on the target's own thread (entityOp), so reading its equipment + dropping at its
         // location is region-correct — never a cross-region read.
