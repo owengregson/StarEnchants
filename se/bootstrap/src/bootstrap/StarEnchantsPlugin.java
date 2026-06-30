@@ -264,7 +264,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 trakLineP,         // §I preserve applied-trak count lines across a body re-render
                 () -> items.config().scrollsOrDefault().transmog().nameSuffix(), // §I enchant-count name suffix
                 () -> master.config().slots().base(),       // §H base slots → the orb "Enchantment Slots" total
-                () -> master.config().slots().loreLine());  // §H orb "Enchantment Slots" line template
+                () -> master.config().slots().loreLine(),   // §H orb "Enchantment Slots" line template
+                () -> items.config().heroicOrDefault().loreLine()); // §F HEROIC line template
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots

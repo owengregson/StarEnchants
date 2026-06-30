@@ -12,7 +12,7 @@ final class HeroicConfigTest {
 
     private static HeroicConfig of(int min, int max, String scope, Map<String, String> upgrades) {
         return new HeroicConfig("NETHERITE_SCRAP", "&6Heroic", List.of(), min, max, 0.1, 0.1, 0.25,
-                upgrades, scope);
+                upgrades, scope, "", false, false);
     }
 
     @Test

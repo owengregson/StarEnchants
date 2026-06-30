@@ -395,7 +395,12 @@ public final class ItemsLoader {
                 parseDouble(root.string("percent-reduction"), d.percentReduction(), root, diags),
                 parseDouble(root.string("durability"), d.durability(), root, diags),
                 upgrades.isEmpty() ? d.materialUpgrades() : upgrades,
-                orDefault(root.string("reduction-scope"), d.reductionScope()));
+                orDefault(root.string("reduction-scope"), d.reductionScope()),
+                root.has("lore-line") ? orDefault(root.string("lore-line"), d.loreLine()) : d.loreLine(),
+                root.has("destroy-on-fail")
+                        ? "true".equalsIgnoreCase(root.string("destroy-on-fail")) : d.destroyOnFail(),
+                root.has("diamond-stats")
+                        ? "true".equalsIgnoreCase(root.string("diamond-stats")) : d.diamondStats());
     }
 
     private static double parseDouble(String raw, double fallback, YamlNode root, Diagnostics diags) {
