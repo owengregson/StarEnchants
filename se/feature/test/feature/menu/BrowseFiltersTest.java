@@ -56,7 +56,7 @@ class BrowseFiltersTest {
     }
 
     @Test
-    void byTierWeightOrdersLeastWeightFirstThenByKey() {
+    void byTierWeightOrdersLeastWeightFirstThenWithinTier() {
         ToIntFunction<String> weight = t -> switch (t) {
             case "common" -> 10;
             case "rare" -> 30;
@@ -65,9 +65,25 @@ class BrowseFiltersTest {
         };
         List<EnchantDef> sorted = new ArrayList<>(CATALOG);
         sorted.sort(BrowseFilters.byTierWeight("common", weight));
-        // common(10): the two untiered enchants (d, e — by key) → rare(30): a, b → mythic(60): c.
+        // common(10): the two untiered enchants → rare(30): a, b → mythic(60): c. All share applies SWORD, so the
+        // within-tier order falls to the colour-stripped display name, which for these fixtures equals the key.
         assertEquals(List.of("enchants/d", "enchants/e", "enchants/a", "enchants/b", "enchants/c"),
                 sorted.stream().map(EnchantDef::key).toList());
+    }
+
+    @Test
+    void withinTierGroupsByAppliesKindThenAlphabeticalName() {
+        EnchantDef swordZephyr = mixed("e/zephyr", "&bZephyr", "rare", "SWORD");
+        EnchantDef swordAegis = mixed("e/aegis", "&bAegis", "rare", "SWORD");
+        EnchantDef armorBulwark = mixed("e/bulwark", "&bBulwark", "rare", "ARMOR");
+        List<EnchantDef> tier = BrowseFilters.enchantsOfTier(
+                List.of(swordZephyr, armorBulwark, swordAegis), "rare", "common");
+        // armor < sword by applies-kind; within sword, Aegis < Zephyr alphabetically (colour codes stripped).
+        assertEquals(List.of("e/bulwark", "e/aegis", "e/zephyr"), tier.stream().map(EnchantDef::key).toList());
+    }
+
+    private static EnchantDef mixed(String key, String display, String tier, String kind) {
+        return new EnchantDef(key, display, "", tier, List.of(kind), 1, List.of(), List.of(), false, Source.UNKNOWN);
     }
 
     @Test

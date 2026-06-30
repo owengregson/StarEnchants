@@ -4,7 +4,9 @@ import compile.load.EnchantDef;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 
 /** Tier-grouping for the browse menus (§K); server-free so the bucketing / null-tier fallback is unit-tested. */
 public final class BrowseFilters {
@@ -20,7 +22,26 @@ public final class BrowseFilters {
     public static Comparator<EnchantDef> byTierWeight(String defaultTier, ToIntFunction<String> tierWeight) {
         return Comparator
                 .comparingInt((EnchantDef d) -> tierWeight.applyAsInt(tierOf(d, defaultTier)))
-                .thenComparing(EnchantDef::key);
+                .thenComparing(WITHIN_TIER);
+    }
+
+    /**
+     * Ordering WITHIN one rarity tier: group enchants by their applies-kind, then alphabetical by display name —
+     * so every {@code applies: sword} enchant sits together, A→Z, mirroring how an item's lore groups them. The
+     * applies-key joins the (sorted) applies-to list so identical apply-sets bucket together; the name-key strips
+     * legacy colour codes so the sort is on the visible text, not the {@code &7} prefixes.
+     */
+    public static final Comparator<EnchantDef> WITHIN_TIER =
+            Comparator.comparing(BrowseFilters::appliesKey).thenComparing(BrowseFilters::nameKey);
+
+    private static String appliesKey(EnchantDef def) {
+        return def.appliesTo().isEmpty() ? ""
+                : def.appliesTo().stream().map(s -> s.toLowerCase(Locale.ROOT)).sorted().collect(Collectors.joining(","));
+    }
+
+    private static String nameKey(EnchantDef def) {
+        String name = def.display() == null || def.display().isBlank() ? def.key() : def.display();
+        return name.replaceAll("(?i)&[0-9a-fk-or]", "").toLowerCase(Locale.ROOT);
     }
 
     /** The effective tier of {@code def}: its declared tier, or {@code defaultTier} when it has none. */
@@ -29,7 +50,8 @@ public final class BrowseFilters {
         return tier == null || tier.isBlank() ? defaultTier : tier;
     }
 
-    /** The enchants whose effective tier equals {@code tier} (case-insensitive), in catalog order. */
+    /** The enchants whose effective tier equals {@code tier} (case-insensitive), grouped by applies-kind then
+     *  alphabetical ({@link #WITHIN_TIER}) — the tier is fixed here, so its weight is uniform. */
     public static List<EnchantDef> enchantsOfTier(List<EnchantDef> catalog, String tier, String defaultTier) {
         List<EnchantDef> out = new ArrayList<>();
         for (EnchantDef def : catalog) {
@@ -37,6 +59,7 @@ public final class BrowseFilters {
                 out.add(def);
             }
         }
+        out.sort(WITHIN_TIER);
         return out;
     }
 
