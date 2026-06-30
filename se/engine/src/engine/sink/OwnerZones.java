@@ -65,6 +65,36 @@ public final class OwnerZones {
         return inside;
     }
 
+    /** Whether {@code loc} lies inside ANY owner's active zone — e.g. to suppress the magma burn over a hellfire
+     *  floor for everyone standing on it, not just the victim it was laid under. Expired zones self-evict. */
+    public static boolean anyContains(Location loc) {
+        if (loc == null || loc.getWorld() == null || ZONES.isEmpty()) {
+            return false;
+        }
+        long now = System.currentTimeMillis();
+        UUID world = loc.getWorld().getUID();
+        double x = loc.getX();
+        double z = loc.getZ();
+        boolean inside = false;
+        for (Queue<Zone> zones : ZONES.values()) {
+            for (java.util.Iterator<Zone> it = zones.iterator(); it.hasNext();) {
+                Zone zone = it.next();
+                if (now >= zone.expiryMs()) {
+                    it.remove(); // sweep expired zones as we pass them
+                    continue;
+                }
+                if (world.equals(zone.world())) {
+                    double dx = x - zone.x();
+                    double dz = z - zone.z();
+                    if (dx * dx + dz * dz <= zone.radiusSq()) {
+                        inside = true; // keep scanning so every queue still gets its expiry sweep
+                    }
+                }
+            }
+        }
+        return inside;
+    }
+
     /** Forget one owner's zones (quit). */
     public static void clear(UUID owner) {
         ZONES.remove(owner);

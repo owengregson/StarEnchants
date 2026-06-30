@@ -21,6 +21,16 @@ public final class CooldownStore {
         return ((long) scopeKind << 32) | (scopeId & 0xFFFF_FFFFL);
     }
 
+    /**
+     * As {@link #key(int, int)} but with a target bucket folded in above the scope kind, so the same ability cools
+     * down independently per target kind (e.g. mob vs player — two separate cooldown routes). The scope kind only
+     * ever takes a handful of values (enchant/group/type), so bit 40 is well clear of it. Bucket {@code 0} yields
+     * the identical key to the two-arg form, so the non-bucketed (e.g. suppression) call sites are unaffected.
+     */
+    public static long key(int scopeKind, int scopeId, int targetBucket) {
+        return key(scopeKind, scopeId) | ((long) targetBucket << 40);
+    }
+
     /** @return {@code true} if {@code scope} has no active cooldown for {@code player} at {@code nowTicks}. */
     public boolean ready(UUID player, long scope, long nowTicks) {
         Map<Long, Long> scopes = expiryByPlayer.get(player);

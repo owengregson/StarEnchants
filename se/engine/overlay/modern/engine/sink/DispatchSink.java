@@ -941,11 +941,12 @@ public final class DispatchSink implements SinkReadback {
         });
     }
 
-    /** Whether a temp-platform may overwrite this block: 0 = air only, 1 = air/liquid, 2 = anything. */
+    /** Whether a temp-platform may overwrite this block: 0 = air only, 1 = air/liquid, 3 = solid only, 2 = anything. */
     private static boolean canReplace(Block block, int replaceMode) {
         return switch (replaceMode) {
             case 0 -> block.getType().isAir();
             case 1 -> block.getType().isAir() || block.isLiquid();
+            case 3 -> block.getType().isSolid(); // solid-only: a footprint replaces the ground it sits on, never air
             default -> true;
         };
     }

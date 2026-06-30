@@ -932,6 +932,8 @@ public final class DispatchSink implements SinkReadback {
                 return block.getType() == Material.AIR;
             case 1:
                 return block.getType() == Material.AIR || block.isLiquid();
+            case 3:
+                return block.getType().isSolid(); // solid-only: a footprint replaces the ground it sits on, never air
             default:
                 return true;
         }

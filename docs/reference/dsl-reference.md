@@ -662,7 +662,7 @@ Send the block's drops straight to the breaker's inventory (this MINE activation
 
 ### TEMP_BLOCK
 
-Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); false replaces anything and restores it on revert.
+Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert.
 
 - _affinity_: `REGION`
 - _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
