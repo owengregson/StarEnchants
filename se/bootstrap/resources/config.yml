@@ -70,8 +70,8 @@ sets:
   equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
   unequip-particle: { particle: REDSTONE, count: 20, color: { r: 170, g: 170, b: 170 }, spread: 1.25, y-offset: 1.0 }
 
-# Enchant books (§I). The book likeness (name/lore/material/wrap/destroy-on-fail) lives in
-# items/enchant-book.yml; only this global success ceiling is cross-cutting.
+# Enchant books (§I). The book likeness (name/lore/material/destroy-on-fail) lives in items/enchant-book.yml;
+# its {DESCRIPTION} wraps at the universal lore.item-wrap. Only this global success ceiling is cross-cutting.
 books:
   # Global maximum success rate (%) a book may reach via RANDOMISED minting (unopened book / randomizer
   # scroll), the black scroll's conversion roll, or Magic Dust. A dust that would push a book past this snaps
@@ -116,10 +116,10 @@ lore:
   crystal-color: "&b"      # a crystal line
   roman: true              # levels as Roman numerals (Venom III) vs Arabic (Venom 3)
   unknown-label: "&8Unknown Enchant"  # shown for a stored key no longer in the catalog
-  # Auto-wrap width (VISIBLE chars; colour codes don't count) for AUTHORED economy/identity item lore —
-  # scrolls, the orb, dust, the soul gem, the trak gems, etc. Authors write one long line and it word-wraps
-  # to this width (explicit line breaks stay hard breaks). 0 = off. The enchant book uses its OWN per-file
-  # width (items/enchant-book.yml -> wrap) for its templated {DESCRIPTION}, so it is unaffected here.
+  # THE single universal lore-wrap width (VISIBLE chars; colour codes don't count). EVERYTHING that auto-wraps
+  # uses it: scrolls, the orb, dust, the soul gem, the trak gems, the enchant book's {DESCRIPTION}, AND the
+  # armour-set piece lore. Authors write one long line and it word-wraps to this width (explicit line breaks
+  # stay hard breaks). 0 = off. Tune this one number to change wrapping everywhere.
   item-wrap: 30
 
 # Integration discovery (§N). Toggles read ONCE at boot (un-discovering a provider mid-run is not clean), so a

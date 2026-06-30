@@ -194,14 +194,12 @@ class ItemsLoaderTest {
                 material: BOOK
                 name: "&b{ENCHANT} {LEVEL}"
                 destroy-on-fail: false
-                wrap: 24
                 """);
 
         EnchantBookConfig book = ItemsLoader.load(dir).enchantBook().orElseThrow();
         assertEquals("BOOK", book.material());
         assertEquals("&b{ENCHANT} {LEVEL}", book.name());
         assertFalse(book.destroyOnFail());
-        assertEquals(24, book.wrap());
         // an omitted list field falls back to the built-in placeholder spec
         assertEquals(EnchantBookConfig.defaults().lore(), book.lore());
     }

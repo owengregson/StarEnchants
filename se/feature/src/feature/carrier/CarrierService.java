@@ -306,8 +306,9 @@ public final class CarrierService {
         List<String> lore = new ArrayList<>();
         for (String line : cfg.lore()) {
             if (line.contains("{DESCRIPTION}")) {
-                // Authored newlines are obeyed as hard breaks; a single authored line word-wraps to cfg.wrap().
-                for (String descLine : item.render.TextWrap.wrap(description, cfg.wrap())) {
+                // Authored newlines are hard breaks; a single authored line word-wraps to the universal
+                // lore.item-wrap width (the same global cap the scrolls / orb / set lore use — no per-book width).
+                for (String descLine : item.render.TextWrap.wrap(description, item.mint.ItemFactory.itemWrapWidth())) {
                     lore.add(subBook(line.replace("{DESCRIPTION}", descLine), enchant, levelText, tierColor, shown, def));
                 }
             } else {
