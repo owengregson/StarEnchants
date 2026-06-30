@@ -1,3 +1,7 @@
+<!-- markdownlint-disable-file -->
+<!-- This design doc embeds raw in-game lore (colour codes + `*` bullets) and a heading-per-set
+     layout, which is not valid Markdown to lint; rendered output on GitHub is unaffected. -->
+
 # Cosmic Pack — set abilities
 
 This document is the authoritative design + status for the 15 Cosmic Pack armour-set
