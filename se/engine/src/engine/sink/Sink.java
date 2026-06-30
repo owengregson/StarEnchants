@@ -155,6 +155,14 @@ public interface Sink {
     }
 
     /**
+     * Spawn ONE falling block of an interned material at {@code at} that never drops an item or hurts entities
+     * and is removed after {@code ttlTicks} — FALLING_BLOCK. When {@code owner} is non-null the block is bound
+     * to an IMPACT cast carrying {@code carriedDamage}, so the landing listener fires {@code owner}'s
+     * {@code IMPACT}-triggered abilities on whatever it lands on (druid's Terrablender; any "debris" reuses it).
+     */
+    void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, double carriedDamage);
+
+    /**
      * Summon {@code count} guardian mobs of an interned type at {@code at}, each set to target
      * {@code target} (the attacker) if it is a mob (GUARD). {@code ttlTicks > 0} auto-removes each after
      * that many ticks; a non-blank {@code name} is shown above each. A targeted superset of

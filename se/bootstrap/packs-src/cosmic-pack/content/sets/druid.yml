@@ -36,10 +36,23 @@ weapon:
     - "&7&o(Requires all four Druid set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
+  # Terrablender — 5% on hit (30s cd, players): rain a 3x3 grid of grass blocks above the victim. Whichever
+  # block lands on a player fires the IMPACT bonus below; carry forwards this hit's damage as the impact %damage%.
   - on: armor
-    trigger: DEFENSE
-    chance: 100
-    effects: []
+    trigger: ATTACK
+    chance: 5
+    cooldown: 600
+    condition: "%victim.type% == PLAYER"
+    effects:
+      - { FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, ttl: 40, carry: "%damage%", who: "@Victim" } }
+  # IMPACT — fired when a Terrablender grass block lands ON a player. The short cooldown dedups the grid's many
+  # landings (one impact per cast). Deal 1.5x the carried hit and strip their SPEED.
+  - on: armor
+    trigger: IMPACT
+    cooldown: 10
+    effects:
+      - { DAMAGE: { amount: "1.5 * %damage%", who: "@Victim" } }
+      - { REMOVE_POTION: { effect: SPEED, who: "@Victim" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

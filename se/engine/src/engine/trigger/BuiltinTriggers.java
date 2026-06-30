@@ -43,6 +43,8 @@ public final class BuiltinTriggers {
                 .register(Trigger.neutral("REPEATING"))
                 // §B command-driven, fired by CommandTriggerCommand. Appended after REPEATING to keep prior ids unshifted.
                 .register(Trigger.neutral("COMMAND"))
+                // Fired by a landing FALLING_BLOCK (FallingBlockListener); victim = whoever it hit. Appended last.
+                .register(Trigger.attack("IMPACT"))
                 .build();
     }
 }

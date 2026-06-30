@@ -925,6 +925,31 @@ public final class DispatchSink implements SinkReadback {
         });
     }
 
+    @Override
+    public void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, double carriedDamage) {
+        Location loc = at.clone();
+        regionOp(loc, () -> {
+            Material material = handles.material(materialId);
+            World world = loc.getWorld();
+            if (material == null || !material.isBlock() || world == null) {
+                return;
+            }
+            org.bukkit.entity.FallingBlock fb = world.spawnFallingBlock(loc, material.createBlockData());
+            fb.setDropItem(false);     // never leave an item
+            fb.setHurtEntities(false); // no vanilla anvil-style damage — the impact is the IMPACT trigger's effects
+            if (owner != null) {
+                FallingBlockCasts.bind(fb.getUniqueId(), owner, carriedDamage); // a landing fires owner's IMPACT abilities
+            }
+            if (ttlTicks > 0) {
+                UUID fbId = fb.getUniqueId();
+                Scheduling.onEntityLater(fb, ttlTicks, () -> { // never landed (void/edge) → forget + clean up
+                    FallingBlockCasts.forget(fbId);
+                    fb.remove();
+                });
+            }
+        });
+    }
+
     /** Clamp an authored 0-255 colour channel into range. */
     private static int clampChannel(int v) {
         return Math.max(0, Math.min(255, v));
