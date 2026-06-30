@@ -42,6 +42,16 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+  # Mark of the Reaper — 5% on hit (30s cd): mark the victim for 3s so the reaper deals +25% to them (applied
+  # by the damage fold's per-(victim, marker) consult), with a dark-red dust line from the victim to the reaper
+  # at the moment of marking. (A continuous 0.5s tether while marked awaits the moving-TETHER subsystem.)
+  - on: armor
+    trigger: ATTACK
+    chance: 5
+    cooldown: 600
+    effects:
+      - { MARK: { amount: 25, duration: 60, who: "@Victim" } }
+      - { PARTICLE_LINE: { particle: REDSTONE, r: 170, g: 0, b: 0, density: 2, who: "@Victim" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

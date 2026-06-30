@@ -519,6 +519,15 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    public void mark(LivingEntity victim, UUID marker, double percent, int durationTicks) {
+        if (victim != null && marker != null) {
+            // Per-(victim, marker) flag in the static registry, consulted by the fold on the marker's later
+            // hits. UUIDs captured here → Folia-safe inline write (no cross-region entity read, no scheduler hop).
+            DamageMarks.mark(victim.getUniqueId(), marker, percent / 100.0, durationTicks * 50L); // ticks → ms
+        }
+    }
+
+    @Override
     public void disarm(LivingEntity target) {
         entityOp(target, () -> {
             EntityEquipment equipment = target.getEquipment();
