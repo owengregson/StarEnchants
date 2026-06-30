@@ -349,6 +349,39 @@ Spawn particles at the activation location. No-op if there is no location.
 - _param_ `count` `int[0..]`
 - _example_: `{ PARTICLE: { particle: FLAME, count: 20 } }`
 
+### PARTICLE_LINE
+
+Draw a coloured-dust line from each 'who' target's hip to the actor's hip, `density` motes per block, tinted r/g/b (0-255). Pair with who: @AllPlayers{r=N} for a fan of tethers.
+
+- _affinity_: `REGION`
+- _usage_: `{ PARTICLE_LINE: { particle: <particle>, r: <int[0..255]=255>, g: <int[0..255]=255>, b: <int[0..255]=255>, size: <double[0..]=1>, density: <double[0..]=2>, height: <double=1> } }`
+- _param_ `particle` `particle`
+- _param_ `r` `int[0..255]`
+- _param_ `g` `int[0..255]`
+- _param_ `b` `int[0..255]`
+- _param_ `size` `double[0..]`
+- _param_ `density` `double[0..]`
+- _param_ `height` `double`
+- _target_ `who`: selector `AOE`
+- _example_: `{ PARTICLE_LINE: { particle: REDSTONE, r: 255, g: 255, b: 255, density: 2, who: "@AllPlayers{r=7}" } }`
+
+### PARTICLE_RING
+
+Draw a horizontal ring of `count` coloured-dust motes of radius `radius` at `height` above the target's feet (default @Self), tinted r/g/b (0-255). A radius / aura indicator.
+
+- _affinity_: `REGION`
+- _usage_: `{ PARTICLE_RING: { particle: <particle>, r: <int[0..255]=255>, g: <int[0..255]=255>, b: <int[0..255]=255>, size: <double[0..]=1>, radius: <double[0..]=3>, count: <int[1..]=36>, height: <double=1> } }`
+- _param_ `particle` `particle`
+- _param_ `r` `int[0..255]`
+- _param_ `g` `int[0..255]`
+- _param_ `b` `int[0..255]`
+- _param_ `size` `double[0..]`
+- _param_ `radius` `double[0..]`
+- _param_ `count` `int[1..]`
+- _param_ `height` `double`
+- _target_ `who`: selector `SELF`
+- _example_: `{ PARTICLE_RING: { particle: REDSTONE, r: 255, g: 255, b: 255, radius: 7, count: 60 } }`
+
 ### POTION
 
 Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).

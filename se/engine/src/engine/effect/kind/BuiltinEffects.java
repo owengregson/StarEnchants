@@ -32,6 +32,8 @@ public final class BuiltinEffects {
                 .register(new CureEffect())
                 .register(new SoundEffect())
                 .register(new ParticleEffect())
+                .register(new ParticleRingEffect()) // shaped coloured dust: ring (KOTH Victorious crown aura)
+                .register(new ParticleLineEffect()) // shaped coloured dust: line/tether to each target
                 // Entity-state intents.
                 .register(new KillEffect())
                 .register(new ExtinguishEffect())

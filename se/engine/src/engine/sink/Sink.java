@@ -175,6 +175,14 @@ public interface Sink {
 
     void particle(Location at, int particleId, int count);
 
+    /**
+     * Draw {@code count} coloured-dust motes at a single point — the per-point primitive for the shaped-particle
+     * effects (PARTICLE_RING / PARTICLE_LINE / TETHER). {@code r}/{@code g}/{@code b} are 0-255; {@code size}
+     * scales the mote. The version edge (modern {@code Particle.DustOptions} vs the 1.8 redstone offset-RGB
+     * trick) lives in the overlay impls; a non-dust resolved particle falls back to a plain burst.
+     */
+    void dust(Location at, int particleId, int r, int g, int b, float size, int count);
+
     // ── Player inventory intents ──
 
     /** Give {@code count} of a material to the player, dropping any overflow at their feet (GIVE_ITEM). */
