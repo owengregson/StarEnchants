@@ -39,11 +39,29 @@
     },
   {
     "head": "CURE",
-    "doc": "Clear every active potion effect from the target(s).",
+    "doc": "Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched).",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ CURE: {} }",
-    "example": "{ CURE: {} }",
-    "params": [],
+    "usage": "{ CURE: { category: <enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}=ALL> } }",
+    "example": "{ CURE: { category: HARMFUL } }",
+    "params": [
+      {
+        "name": "category",
+        "kind": "ENUM",
+        "label": "enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}",
+        "required": false,
+        "default": "ALL",
+        "min": null,
+        "max": null,
+        "enum": [
+          "ALL",
+          "HARMFUL",
+          "BENEFICIAL",
+          "NEUTRAL"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
     "targets": [
       {
         "name": "who",

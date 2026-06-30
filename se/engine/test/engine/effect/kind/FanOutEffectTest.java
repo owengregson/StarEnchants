@@ -81,8 +81,10 @@ class FanOutEffectTest {
         return List.of(
                 entity("DAMAGE → damage", new DamageEffect(),
                         c -> c.with("amount", 6.0), (s, t) -> verify(s).damage(t, 6.0)),
-                entity("CURE → cure", new CureEffect(),
-                        c -> { }, (s, t) -> verify(s).cure(t)),
+                entity("CURE (default ALL) → cureByCategory(0)", new CureEffect(),
+                        c -> c.with("category", "ALL"), (s, t) -> verify(s).cureByCategory(t, 0)),
+                entity("CURE category HARMFUL → cureByCategory(1)", new CureEffect(),
+                        c -> c.with("category", "HARMFUL"), (s, t) -> verify(s).cureByCategory(t, 1)),
                 entity("DISARM → disarm", new DisarmEffect(),
                         c -> { }, (s, t) -> verify(s).disarm(t)),
                 entity("EXTINGUISH → extinguish", new ExtinguishEffect(),

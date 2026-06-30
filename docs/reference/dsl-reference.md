@@ -26,12 +26,13 @@ Cancel the Bukkit event that triggered this activation.
 
 ### CURE
 
-Clear every active potion effect from the target(s).
+Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched).
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ CURE: {} }`
+- _usage_: `{ CURE: { category: <enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}=ALL> } }`
+- _param_ `category` `enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}`
 - _target_ `who`: selector `SELF`
-- _example_: `{ CURE: {} }`
+- _example_: `{ CURE: { category: HARMFUL } }`
 
 ### DAMAGE
 

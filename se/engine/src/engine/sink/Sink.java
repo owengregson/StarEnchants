@@ -100,6 +100,13 @@ public interface Sink {
     /** Clear every active potion effect from the target. */
     void cure(LivingEntity target);
 
+    /**
+     * Clear only the active potion effects in one {@link PotionCategories} bucket from the target —
+     * {@code 0}=all, {@code 1}=harmful, {@code 2}=beneficial, {@code 3}=neutral ({@code CURE { category }}).
+     * Classification is by canonical name, so it is version-stable; category {@code 0} equals {@link #cure}.
+     */
+    void cureByCategory(LivingEntity target, int category);
+
     /** Drop the target's held (main-hand) item into the world, clearing the slot. */
     void disarm(LivingEntity target);
 
