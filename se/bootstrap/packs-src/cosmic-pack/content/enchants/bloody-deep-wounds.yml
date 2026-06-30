@@ -13,6 +13,7 @@ applies-to: [WEAPON]
 group: "mythic"
 tier: mythic
 requires: ["enchants/deep-wounds"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
     chance: 2.25

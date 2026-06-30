@@ -17,6 +17,7 @@ applies-to: [SWORD]
 group: "mythic"
 tier: mythic
 requires: ["enchants/assassin"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
     chance: 4.25
