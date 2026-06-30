@@ -697,6 +697,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             soulParticles.stop(); // cancel the §D while-active soul aura task
         }
         engine.sink.FallingBlockCasts.clearAll(); // forget any in-flight falling-block impact bindings
+        engine.sink.CombatTag.clearAll(); // forget combat tags (supreme's out-of-combat fly)
         if (metrics != null) {
             metrics.shutdown(); // stop the bStats submit thread so it doesn't outlive a /reload
         }

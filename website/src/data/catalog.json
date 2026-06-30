@@ -515,6 +515,20 @@
       ]
     },
   {
+    "head": "FLY_MODE",
+    "doc": "Grant flight to the target(s) while NOT in combat, revoke it while in combat (survival/adventure only). Author on trigger [REPEATING, PASSIVE] with a repeat period so it re-checks and tears down on unequip.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ FLY_MODE: {} }",
+    "example": "{ FLY_MODE: { who: \"@Self\" } }",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "GIVE_ITEM",
     "doc": "Give a material to the player target(s); overflow drops at their feet.",
     "affinity": "TARGET_ENTITY",

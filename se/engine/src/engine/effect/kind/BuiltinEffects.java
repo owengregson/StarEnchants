@@ -54,6 +54,7 @@ public final class BuiltinEffects {
                 // Movement + vitals.
                 .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK
                 .register(new FlyEffect())
+                .register(new FlyModeEffect()) // out-of-combat flight (supreme Gifted Child)
                 .register(new HealthEffect())
                 .register(new MaxHealthDrainEffect()) // timed overhealth drain (cupid Lovestruck)
                 // §C block + item primitives.

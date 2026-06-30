@@ -41,6 +41,14 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+  # Gifted Child — flight while the full set is worn AND not in combat. REPEATING re-checks the combat tag each
+  # second; PASSIVE's teardown clears flight on unequip. Entering combat grounds you; leaving restores it.
+  - on: armor
+    trigger: [REPEATING, PASSIVE]
+    repeat: 20
+    chance: 100
+    effects:
+      - { FLY_MODE: { who: "@Self" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

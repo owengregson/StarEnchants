@@ -6,6 +6,7 @@ import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.FactPopulator;
+import engine.sink.CombatTag;
 import engine.sink.SinkReadback;
 import engine.sink.SoulDebit;
 import engine.stores.ComboStore;
@@ -198,6 +199,14 @@ public final class CombatDispatch {
         SinkReadback sink = sinkFactory.create(economy, souls, vars, suppression, knockback, keepOnDeath,
                 teleblock, immune, nowTicks, maxHeroicOutgoing);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
+
+        // Combat tag (supreme's out-of-combat fly): both parties count as fighting on any hit between them.
+        if (damager instanceof Player ap) {
+            CombatTag.tag(ap.getUniqueId());
+        }
+        if (victimEntity instanceof Player vp) {
+            CombatTag.tag(vp.getUniqueId());
+        }
 
         // PvP/PvE context (config.yml combat.pvp/pve) is decided by the VICTIM's player-ness.
         boolean victimIsPlayer = victimEntity instanceof Player;

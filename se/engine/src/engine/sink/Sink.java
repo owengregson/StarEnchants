@@ -78,6 +78,13 @@ public interface Sink {
     /** Grant a player temporary flight for {@code durationTicks} ({@code < 0} = until cleared). */
     void setFlight(Player target, int durationTicks);
 
+    /**
+     * Allow or revoke a player's flight ability (FLY_MODE — supreme's out-of-combat fly), survival/adventure
+     * only. {@code allow} grants the ABILITY to fly (not forced airborne, unlike {@link #setFlight}); not
+     * {@code allow} stops + disallows it. Re-evaluated each REPEATING period against the combat tag.
+     */
+    void flyMode(Player target, boolean allow);
+
     /** Set a player's walk speed for {@code durationTicks}, then restore the vanilla default (MOVEMENT_SPEED). */
     void movementSpeed(Player target, double speed, int durationTicks);
 

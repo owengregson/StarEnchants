@@ -161,6 +161,15 @@ Grant the player temporary flight.
 - _target_ `who`: selector `SELF`
 - _example_: `{ FLY: { ticks: 200 } }`
 
+### FLY_MODE
+
+Grant flight to the target(s) while NOT in combat, revoke it while in combat (survival/adventure only). Author on trigger [REPEATING, PASSIVE] with a repeat period so it re-checks and tears down on unequip.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ FLY_MODE: {} }`
+- _target_ `who`: selector `SELF`
+- _example_: `{ FLY_MODE: { who: "@Self" } }`
+
 ### GIVE_ITEM
 
 Give a material to the player target(s); overflow drops at their feet.
