@@ -102,6 +102,20 @@ class CombatCodecTest {
     }
 
     @Test
+    void roundTripsHeroicDiamondFlatDeltas() {
+        // §F diamond-equivalence: the optional flat damage/reduction deltas round-trip (5-field heroic payload).
+        CombatState s = new CombatState(Map.of(), List.of(), null, false,
+                new HeroicStat(0.10, 0.0, 0.20, 3.0, 1.5));
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(s));
+        assertEquals(0.10, back.heroic().percentDamage());
+        assertEquals(0.20, back.heroic().durability());
+        assertEquals(3.0, back.heroic().flatDamage());
+        assertEquals(1.5, back.heroic().flatReduction());
+        // An item with only a flat delta (no percents/durability) is still heroic — must persist.
+        assertTrue(!new HeroicStat(0, 0, 0, 3.0, 0).isZero());
+    }
+
+    @Test
     void roundTripsPurchasedSlots() {
         // §H: an item's purchased slot count survives the blob round-trip.
         CombatState s = new CombatState(Map.of("sharpness", 1), List.of()).withAdded(4);

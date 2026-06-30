@@ -98,6 +98,11 @@ public final class CombatCodec {
                     .append(heroic.percentDamage()).append(KV)
                     .append(heroic.percentReduction()).append(KV)
                     .append(heroic.durability());
+            // Append the §F diamond flat deltas only when present, so an item without them keeps the original
+            // 3-field blob (no cache churn) and an old reader still parses it.
+            if (heroic.flatDamage() != 0.0 || heroic.flatReduction() != 0.0) {
+                sb.append(KV).append(heroic.flatDamage()).append(KV).append(heroic.flatReduction());
+            }
         }
         if (state.added() > 0) {
             sb.append(US).append('a').append(US).append(state.added());
@@ -153,15 +158,22 @@ public final class CombatCodec {
         }
     }
 
-    /** A {@code damage:reduction:durability} payload; any malformed field → {@code NONE}, never throws. */
+    /**
+     * A {@code damage:reduction:durability} payload, optionally with the two §F diamond flat deltas appended
+     * ({@code …:flatDamage:flatReduction}); any malformed field → {@code NONE}, never throws.
+     */
     private static HeroicStat parseHeroic(String payload) {
         String[] parts = payload.split(java.util.regex.Pattern.quote(String.valueOf(KV)), -1);
-        if (parts.length != 3) {
-            return HeroicStat.NONE; // malformed → no heroic, never throw
-        }
         try {
-            return new HeroicStat(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]),
-                    Double.parseDouble(parts[2]));
+            if (parts.length == 3) {
+                return new HeroicStat(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]),
+                        Double.parseDouble(parts[2]));
+            }
+            if (parts.length == 5) {
+                return new HeroicStat(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]),
+                        Double.parseDouble(parts[2]), Double.parseDouble(parts[3]), Double.parseDouble(parts[4]));
+            }
+            return HeroicStat.NONE; // unknown arity → no heroic, never throw
         } catch (NumberFormatException bad) {
             return HeroicStat.NONE;
         }
