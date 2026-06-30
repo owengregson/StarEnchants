@@ -87,6 +87,14 @@ public interface Sink {
     /** Add to the target's maximum health (tracked + restored on unequip by the dispatcher). */
     void addMaxHealth(LivingEntity target, double amount);
 
+    /**
+     * Temporarily lower {@code target}'s max health by {@code fraction} of its "overhealth" (the amount above
+     * {@code baseline}, e.g. 20) plus a flat {@code flat}, restoring exactly that delta after
+     * {@code durationTicks} (MAX_HEALTH_DRAIN — cupid's Lovestruck). Overlap-safe (each drain restores its own
+     * delta). A victim who logs out mid-window keeps the reduction until rejoin + next drain (no ledger).
+     */
+    void drainMaxHealth(LivingEntity target, double fraction, double baseline, double flat, int durationTicks);
+
     /** Damage the durability of the target's worn armor. */
     void damageArmor(LivingEntity target, int amount);
 

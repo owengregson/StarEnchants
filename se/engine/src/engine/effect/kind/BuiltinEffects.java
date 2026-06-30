@@ -54,6 +54,7 @@ public final class BuiltinEffects {
                 .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK
                 .register(new FlyEffect())
                 .register(new HealthEffect())
+                .register(new MaxHealthDrainEffect()) // timed overhealth drain (cupid Lovestruck)
                 // §C block + item primitives.
                 .register(new SetBlockEffect())
                 .register(new BreakBlockEffect())

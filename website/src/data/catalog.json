@@ -811,6 +811,69 @@
       ]
     },
   {
+    "head": "MAX_HEALTH_DRAIN",
+    "doc": "Temporarily remove `fraction` of the target's overhealth (max health above `baseline`) plus a flat `amount`, restoring it after `duration` ticks. Default target the combat victim.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ MAX_HEALTH_DRAIN: { fraction: <double[0..1]=0.5>, baseline: <double[0..]=20>, amount: <double[0..]=0>, duration: <ticks[0..]=60> } }",
+    "example": "{ MAX_HEALTH_DRAIN: { fraction: 0.5, baseline: 20, duration: 60, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "fraction",
+        "kind": "DOUBLE",
+        "label": "double[0..1]",
+        "required": false,
+        "default": "0.5",
+        "min": 0,
+        "max": 1,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "baseline",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "MESSAGE",
     "doc": "Send feedback to the activating player on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Replaces ACTIONBAR/TITLE.",
     "affinity": "CONTEXT_LOCAL",

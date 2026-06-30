@@ -270,6 +270,19 @@ Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmet
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ LIGHTNING: { damage: 6 } }`
 
+### MAX_HEALTH_DRAIN
+
+Temporarily remove `fraction` of the target's overhealth (max health above `baseline`) plus a flat `amount`, restoring it after `duration` ticks. Default target the combat victim.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ MAX_HEALTH_DRAIN: { fraction: <double[0..1]=0.5>, baseline: <double[0..]=20>, amount: <double[0..]=0>, duration: <ticks[0..]=60> } }`
+- _param_ `fraction` `double[0..1]`
+- _param_ `baseline` `double[0..]`
+- _param_ `amount` `double[0..]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ MAX_HEALTH_DRAIN: { fraction: 0.5, baseline: 20, duration: 60, who: "@Victim" } }`
+
 ### MESSAGE
 
 Send feedback to the activating player on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Replaces ACTIONBAR/TITLE.
