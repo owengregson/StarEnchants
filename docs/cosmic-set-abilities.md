@@ -42,7 +42,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 
 ## 2. The 15 abilities
 
-### clarity — **Bless** (passive) 🔵
+### clarity — **Bless** (passive) ✅
 - **Effect:** while the full set is worn, the wearer's **harmful** potion effects are
   stripped continuously (a `REPEATING` cleanse, ~4×/sec). Positive effects are untouched.
 - **Globalized:** selective `CURE { category: HARMFUL }`.
@@ -87,7 +87,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
   to air.
 - **Globalized:** temp-block ledger (`unbreakable: true` engages the break-guard).
 
-### koth — **Victorious** 🔵
+### koth — **Victorious** ✅
 - **On hit (weapon):** **+10% outgoing damage per nearby player** (friend *or* foe, not self)
   within 7 blocks, capped at **+100%** (the Victorious contribution alone; combines additively
   with the set's other buffs).
@@ -119,7 +119,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
   restores it before scroll/keep listeners read).
 - **Globalized:** `EQUIP_SWAP` (ledgered, death/quit-safe; placeholder never persists).
 
-### stellar — **Dimensional Shift** 🔵
+### stellar — **Dimensional Shift** ✅
 - **On being hit — 5%, 30s cooldown:** grant **Invisibility + Speed IV for 5s** and **blink
   1 block behind the attacker** (safe-teleport: occlusion + LOS checked); if no safe spot,
   land **on top of** the attacker.
@@ -131,7 +131,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 - **Globalized:** `FLY_MODE` + `CombatTagStore` + `%incombat%` fact (`FlyModeDriver` is the
   single grant/revoke authority).
 
-### thor — **Stormcaller** 🔵 ⚠️ *(lore wording)*
+### thor — **Stormcaller** ✅ ⚠️ *(lore wording)*
 - **On hit — 5%, 30s cooldown:** strike **every enemy within 7 blocks** (excludes the wearer,
   allied players, and passive mobs) with **lightning dealing 0.5× the triggering hit's
   damage**.
@@ -145,7 +145,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
   prevents any permanence on overlap.
 - **Globalized:** temp-block ledger (COLUMN + FOOTPRINT shapes).
 
-### yijki — **Divine Shield** (on defense) 🔵
+### yijki — **Divine Shield** (on defense) ✅
 - **On being hit — 10%, 30s cooldown:** **negate** the hit (`CANCEL`, removing damage +
   wearer knockback), **launch the attacker backward** (~2 hits of knockback), and strike them
   with a **cosmetic (no-damage) lightning bolt**.
@@ -172,12 +172,39 @@ The design verifiers flagged these — they don't block the build but I want you
 
 ## 4. Implementation status
 
-Build order (dependency-sorted), each landing as a green, committed increment:
+### ✅ Shipped (green via `./gradlew build`, committed)
 
-1. Color codec · 2. Cosmetic lightning · 3. Shaped particles · 4. Count-scaled damage ·
-5. Selective cleanse · 6. Overhealth drain · 7. Teleport-behind · 8. Temp-block ledger ·
-9. Owner zone · 10. Falling blocks · 11. Potion lock · 12. Damage mark · 13. Suppression
-extensions · 14. Enemy/ally AoE · 15. Equipment swap · 16. Out-of-combat flight ·
-17. Per-set YAML + compile/content tests.
+**Globalized subsystems**
+- **Cosmetic lightning** — `LIGHTNING { damage: 0 }` is a visual-only bolt (both overlays).
+- **Count-scaled damage** — `DAMAGE_SCALE { per, cap, who }` folds per-target into the damage arbiter.
+- **Enemy/ally AoE** — `@Aoe{filter=ENEMIES|ALLIES}` + the `Allies` soft-hook.
+- **Selective cleanse** — `CURE { category }` + `Sink.cureByCategory` (canonical-name classification).
+- **Shaped particles** — `PARTICLE_RING` / `PARTICLE_LINE` + the coloured `Sink.dust` primitive.
+- **Safe teleport-behind** — `TELEPORT_BEHIND` + `Sink.teleportSafe` (raytrace/passable, on-top fallback).
+- *(The `D.color()` codec was dropped — `r`/`g`/`b` int params are simpler and fully grammar-supported.)*
 
-_(This section is updated as each subsystem lands.)_
+**Set abilities** — clarity **Bless**, koth **Victorious**, stellar **Dimensional Shift**,
+thor **Stormcaller**, yijki **Divine Shield**.
+
+### 🔵 Designed, pending implementation
+
+**Subsystems** (each is a store + Sink method(s) + effect, several with driver/listener wiring;
+one needs a core `Ability` arity change):
+- **Overhealth drain** (`MAX_HEALTH_DRAIN`, ledgered) — cupid
+- **Temp-block ledger** (`TEMP_BLOCK`, epoch revert) — yeti, fantasy, devil
+- **Falling display blocks** (`FALLING_BLOCK`) — druid
+- **Damage mark** (`MARK` + fold consult) — reaper
+- **Owner zone** (`MARK_ZONE` + `%victim.inzone%`) — devil
+- **Equipment swap** (`EQUIP_SWAP`, death/quit-safe) — spooky
+- **Out-of-combat flight** (`FLY_MODE` + `CombatTagStore` + `%incombat%`) — supreme
+- **Suppression-immune** (`SUPPRESS_IMMUNE`) — dragon
+- **TIER suppression** (`SUPPRESS { scope: TIER }`, `Ability.cdScopeTier` — core arity change) — phantom
+- **Potion lock** (`POTION_LOCK`, optional) — druid, fantasy
+- **Moving tether** (`TETHER`, the per-tick variant of `PARTICLE_LINE`) — reaper
+
+**Set abilities** — cupid, devil, dragon, druid, fantasy, phantom, reaper, spooky, supreme, yeti.
+
+The full file-level build plan + adversarial-verification corrections for every pending subsystem
+are captured in the design workflow output (run `wa1bj2hdy` / scratchpad `plan.json`,`verdicts.json`).
+Remaining gate before the PR: the live Paper + Folia integration matrix (the dust/teleport/temp-block/
+falling-block/equip-swap paths are live-only oracles).
