@@ -3,6 +3,7 @@ package feature.menu;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import compile.load.TierRegistry;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -19,5 +20,16 @@ class EnchanterOffersTest {
         assertEquals(2, EnchanterOffers.cost(10));  // common (weight 10) → 2 levels
         assertEquals(12, EnchanterOffers.cost(60)); // mythic (weight 60) → 12 levels
         assertTrue(EnchanterOffers.cost(60) > EnchanterOffers.cost(10), "rarer tiers cost more");
+    }
+
+    @Test
+    void priceUsesTheExplicitTierCostWhenSetElseDerivesFromWeight() {
+        // An explicit cost: (>= 0) overrides the weight formula — the configurable per-tier book price.
+        assertEquals(7, EnchanterOffers.priceFor(new TierRegistry.Tier("rare", "&b", 30, false, 7)));
+        // 0 is a valid explicit "free" tier (>= 0), distinct from the derive sentinel.
+        assertEquals(0, EnchanterOffers.priceFor(new TierRegistry.Tier("freebie", "&7", 10, false, 0)));
+        // -1 (the omitted-cost sentinel) falls back to the weight-derived price.
+        assertEquals(EnchanterOffers.cost(30),
+                EnchanterOffers.priceFor(new TierRegistry.Tier("rare", "&b", 30, false, -1)));
     }
 }

@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.load.EnchantDef;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.ToIntFunction;
 import org.junit.jupiter.api.Test;
 import schema.diag.Source;
 
@@ -51,6 +53,21 @@ class BrowseFiltersTest {
         // Only common (the default-bucketed pair), rare and mythic have entries — in declared order.
         assertEquals(List.of("common", "rare", "mythic"),
                 BrowseFilters.populatedTiers(CATALOG, ORDER, "common"));
+    }
+
+    @Test
+    void byTierWeightOrdersLeastWeightFirstThenByKey() {
+        ToIntFunction<String> weight = t -> switch (t) {
+            case "common" -> 10;
+            case "rare" -> 30;
+            case "mythic" -> 60;
+            default -> Integer.MAX_VALUE;
+        };
+        List<EnchantDef> sorted = new ArrayList<>(CATALOG);
+        sorted.sort(BrowseFilters.byTierWeight("common", weight));
+        // common(10): the two untiered enchants (d, e — by key) → rare(30): a, b → mythic(60): c.
+        assertEquals(List.of("enchants/d", "enchants/e", "enchants/a", "enchants/b", "enchants/c"),
+                sorted.stream().map(EnchantDef::key).toList());
     }
 
     @Test

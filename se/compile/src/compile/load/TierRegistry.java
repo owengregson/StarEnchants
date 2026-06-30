@@ -12,7 +12,11 @@ import schema.diag.Diagnostics;
  */
 public final class TierRegistry {
 
-    public record Tier(String name, String color, int weight, boolean glint) {
+    /**
+     * @param cost the Enchanter's per-book XP-level price for this tier, or {@code -1} to derive it from
+     *             {@code weight} (the default when {@code cost:} is omitted) — see {@code EnchanterOffers}.
+     */
+    public record Tier(String name, String color, int weight, boolean glint, int cost) {
     }
 
     /** The fallback registry used when {@code content/tiers.yml} is absent or empty. */
@@ -56,7 +60,8 @@ public final class TierRegistry {
             String color = body.string("color");
             int weight = ContentParse.optInt(body, "weight", 0, diags);
             boolean glint = "true".equalsIgnoreCase(body.string("glint"));
-            parsed.put(name, new Tier(name, color == null ? "" : color, weight, glint));
+            int cost = ContentParse.optInt(body, "cost", -1, diags); // -1 = derive the book price from weight
+            parsed.put(name, new Tier(name, color == null ? "" : color, weight, glint, cost));
         }
         if (parsed.isEmpty()) {
             return BUILTIN;
@@ -70,12 +75,12 @@ public final class TierRegistry {
 
     private static TierRegistry builtin() {
         Map<String, Tier> m = new LinkedHashMap<>();
-        m.put("common", new Tier("common", "&7", 10, false));
-        m.put("uncommon", new Tier("uncommon", "&a", 20, false));
-        m.put("rare", new Tier("rare", "&b", 30, false));
-        m.put("epic", new Tier("epic", "&d", 40, true));
-        m.put("legendary", new Tier("legendary", "&6", 50, true));
-        m.put("mythic", new Tier("mythic", "&c&l", 60, true));
+        m.put("common", new Tier("common", "&7", 10, false, -1));
+        m.put("uncommon", new Tier("uncommon", "&a", 20, false, -1));
+        m.put("rare", new Tier("rare", "&b", 30, false, -1));
+        m.put("epic", new Tier("epic", "&d", 40, true, -1));
+        m.put("legendary", new Tier("legendary", "&6", 50, true, -1));
+        m.put("mythic", new Tier("mythic", "&c&l", 60, true, -1));
         return new TierRegistry(m, "common");
     }
 }

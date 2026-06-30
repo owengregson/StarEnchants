@@ -2,12 +2,25 @@ package feature.menu;
 
 import compile.load.EnchantDef;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.ToIntFunction;
 
 /** Tier-grouping for the browse menus (§K); server-free so the bucketing / null-tier fallback is unit-tested. */
 public final class BrowseFilters {
 
     private BrowseFilters() {
+    }
+
+    /**
+     * Order enchants by their tier WEIGHT ascending (least-weight tier first), then by key for a stable
+     * tie-break — the §K flat-list ordering, so a rarity climb reads top-to-bottom instead of by filename.
+     * {@code tierWeight} maps a tier name to its weight (an unregistered tier sorts last via the caller).
+     */
+    public static Comparator<EnchantDef> byTierWeight(String defaultTier, ToIntFunction<String> tierWeight) {
+        return Comparator
+                .comparingInt((EnchantDef d) -> tierWeight.applyAsInt(tierOf(d, defaultTier)))
+                .thenComparing(EnchantDef::key);
     }
 
     /** The effective tier of {@code def}: its declared tier, or {@code defaultTier} when it has none. */

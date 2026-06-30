@@ -4,6 +4,7 @@ import compile.load.ContentHolder;
 import compile.load.EnchantBookConfig;
 import compile.load.EnchantDef;
 import compile.load.MenusConfig;
+import compile.load.TierRegistry;
 import feature.apply.ApplyResult;
 import feature.compat.Hands;
 import feature.apply.ItemEnchanter;
@@ -52,7 +53,14 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     @Override
     protected List<EnchantDef> items(MenuHolder holder) {
-        return content.library().catalog();
+        // Least-weight tier first (then by key) so the apply list climbs by rarity, not filename order.
+        TierRegistry tiers = content.library().tiers();
+        return content.library().catalog().stream()
+                .sorted(BrowseFilters.byTierWeight(tiers.defaultTier(), name -> {
+                    TierRegistry.Tier t = tiers.tier(name);
+                    return t != null ? t.weight() : Integer.MAX_VALUE;
+                }))
+                .toList();
     }
 
     @Override
