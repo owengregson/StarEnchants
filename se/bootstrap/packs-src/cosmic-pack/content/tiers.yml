@@ -1,13 +1,16 @@
 default-tier: common
 # Rarity tiers (ascending weight). The former "heroic" tier is renamed to "mythic" (keeps &d) and the former
 # "mythic" tier is renamed to "godly" (keeps &4); the soul↔heroic weights were swapped so soul (70) now ranks
-# ABOVE the renamed mythic (60). Weight drives roll rarity, shop cost, and the least-weight-first menu sort.
+# ABOVE the renamed mythic (60). Weight drives roll rarity and the least-weight-first menu sort.
+#
+# cost: the Enchanter's per-book price in XP levels for a mystery book of that tier (omit to derive it from
+# weight as max(1, weight/5)). Tune these to set how expensive each rarity is to buy.
 tiers:
-  common:    { color: "&7",   weight: 10, glint: false }
-  uncommon:  { color: "&a",   weight: 20, glint: false }
-  rare:      { color: "&b",   weight: 30, glint: false }
-  epic:      { color: "&e",   weight: 40, glint: true  }
-  legendary: { color: "&6",   weight: 50, glint: true  }
-  mythic:    { color: "&d",   weight: 60, glint: true  }
-  soul:      { color: "&c",   weight: 70, glint: true  }
-  godly:     { color: "&4",   weight: 80, glint: true  }
+  common:    { color: "&7",   weight: 10, glint: false, cost: 1  }
+  uncommon:  { color: "&a",   weight: 20, glint: false, cost: 3  }
+  rare:      { color: "&b",   weight: 30, glint: false, cost: 6  }
+  epic:      { color: "&e",   weight: 40, glint: true,  cost: 10 }
+  legendary: { color: "&6",   weight: 50, glint: true,  cost: 15 }
+  mythic:    { color: "&d",   weight: 60, glint: true,  cost: 20 }
+  soul:      { color: "&c",   weight: 70, glint: true,  cost: 25 }
+  godly:     { color: "&4",   weight: 80, glint: true,  cost: 30 }
