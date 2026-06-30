@@ -131,6 +131,75 @@
     "targets": []
     },
   {
+    "head": "DAMAGE_SCALE",
+    "doc": "Contribute per resolved target in 'who' to the damage fold: total = per * count, clamped to cap (0 = uncapped). side attack/defense, mode add (percent, e.g. 10 = +10% each) or flat (raw). The count is the selector's resolved set, e.g. who: @AllPlayers{r=7}.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ DAMAGE_SCALE: { side: <enum{attack|defense}=attack>, mode: <enum{add|flat}=add>, per: <double>, cap: <double[0..]=0> } }",
+    "example": "{ DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: \"@AllPlayers{r=7}\" } }",
+    "params": [
+      {
+        "name": "side",
+        "kind": "ENUM",
+        "label": "enum{attack|defense}",
+        "required": false,
+        "default": "attack",
+        "min": null,
+        "max": null,
+        "enum": [
+          "attack",
+          "defense"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{add|flat}",
+        "required": false,
+        "default": "add",
+        "min": null,
+        "max": null,
+        "enum": [
+          "add",
+          "flat"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "per",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cap",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "AOE"
+        }
+      ]
+    },
+  {
     "head": "DISARM",
     "doc": "Make the target(s) drop their held (main-hand) item.",
     "affinity": "TARGET_ENTITY",
@@ -1836,7 +1905,7 @@
   {
     "head": "AOE",
     "doc": "Living entities within r blocks of the target, except the activator; optionally filtered and capped.",
-    "usage": "{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS}=ALL>, limit: <int[0..]=0> } }",
+    "usage": "{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0> } }",
     "example": "@Aoe{r=6, filter=MONSTERS}",
     "params": [
       {
@@ -1854,7 +1923,7 @@
       {
         "name": "filter",
         "kind": "ENUM",
-        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS}",
+        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}",
         "required": false,
         "default": "ALL",
         "min": null,
@@ -1863,7 +1932,9 @@
           "ALL",
           "PLAYERS",
           "MONSTERS",
-          "MOBS"
+          "MOBS",
+          "ENEMIES",
+          "ALLIES"
           ],
         "handle": null,
         "doc": "which entities to include"
@@ -1966,7 +2037,7 @@
   {
     "head": "NEAREST",
     "doc": "The single nearest living entity within r blocks (optionally filtered), except the activator.",
-    "usage": "{ NEAREST: { r: <double[0..]=5>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS}=ALL> } }",
+    "usage": "{ NEAREST: { r: <double[0..]=5>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL> } }",
     "example": "@Nearest{r=5, filter=PLAYERS}",
     "params": [
       {
@@ -1984,7 +2055,7 @@
       {
         "name": "filter",
         "kind": "ENUM",
-        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS}",
+        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}",
         "required": false,
         "default": "ALL",
         "min": null,
@@ -1993,7 +2064,9 @@
           "ALL",
           "PLAYERS",
           "MONSTERS",
-          "MOBS"
+          "MOBS",
+          "ENEMIES",
+          "ALLIES"
           ],
         "handle": null,
         "doc": "which entities to consider"

@@ -54,6 +54,19 @@ Contribute to the damage fold: side attack/defense, mode add (percent) or flat (
 - _param_ `amount` `double`
 - _example_: `{ DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }`
 
+### DAMAGE_SCALE
+
+Contribute per resolved target in 'who' to the damage fold: total = per * count, clamped to cap (0 = uncapped). side attack/defense, mode add (percent, e.g. 10 = +10% each) or flat (raw). The count is the selector's resolved set, e.g. who: @AllPlayers{r=7}.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ DAMAGE_SCALE: { side: <enum{attack|defense}=attack>, mode: <enum{add|flat}=add>, per: <double>, cap: <double[0..]=0> } }`
+- _param_ `side` `enum{attack|defense}`
+- _param_ `mode` `enum{add|flat}`
+- _param_ `per` `double`
+- _param_ `cap` `double[0..]`
+- _target_ `who`: selector `AOE`
+- _example_: `{ DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }`
+
 ### DISARM
 
 Make the target(s) drop their held (main-hand) item.
@@ -563,9 +576,9 @@ Every player within r blocks of the target, except the activator.
 
 Living entities within r blocks of the target, except the activator; optionally filtered and capped.
 
-- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS}=ALL>, limit: <int[0..]=0> } }`
+- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0> } }`
 - _param_ `r` `double[0..]` — radius in blocks
-- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS}` — which entities to include
+- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to include
 - _param_ `limit` `int[0..]` — max targets, nearest first (0 = unlimited)
 - _example_: `@Aoe{r=6, filter=MONSTERS}`
 
@@ -618,9 +631,9 @@ The activation block location itself — the default target of block effects.
 
 The single nearest living entity within r blocks (optionally filtered), except the activator.
 
-- _usage_: `{ NEAREST: { r: <double[0..]=5>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS}=ALL> } }`
+- _usage_: `{ NEAREST: { r: <double[0..]=5>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL> } }`
 - _param_ `r` `double[0..]` — search radius in blocks
-- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS}` — which entities to consider
+- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to consider
 - _example_: `@Nearest{r=5, filter=PLAYERS}`
 
 ### NEARESTPLAYER

@@ -519,9 +519,16 @@ public final class DispatchSink implements SinkReadback {
         entityOp(target, () -> {
             World world = target.getWorld();
             if (world != null) {
-                world.strikeLightning(target.getLocation());
+                // damage <= 0 is a cosmetic bolt only — no vanilla ~5 dmg / fire (yijki Divine Shield, any flair).
+                if (amount > 0) {
+                    world.strikeLightning(target.getLocation());
+                } else {
+                    world.strikeLightningEffect(target.getLocation());
+                }
             }
-            target.damage(amount);
+            if (amount > 0) {
+                target.damage(amount);
+            }
         });
     }
 
