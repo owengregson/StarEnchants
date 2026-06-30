@@ -42,6 +42,24 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+  # Hell's Kitchen (permanent) — a netherrack trail forms under the wearer's feet as they move (self-reverting,
+  # so the ground returns; overlapping steps can't leave it permanent).
+  - on: armor
+    trigger: REPEATING
+    repeat: 5
+    chance: 100
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 1, dy: -1, ticks: 40, airOnly: false, who: "@Self" } }
+  # Hell's Kitchen — 5% on hit (30s cd): lay a 7x7 hellish netherrack floor under the victim for 5s, with flame
+  # + a blaze roar. (The +35% in-zone damage awaits the owner-zone subsystem — see docs/cosmic-set-abilities.md.)
+  - on: armor
+    trigger: ATTACK
+    chance: 5
+    cooldown: 600
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
+      - { PARTICLE: { particle: FLAME, count: 40 } }
+      - { SOUND: { sound: ENTITY_BLAZE_SHOOT } }
   - on: weapon
     trigger: ATTACK
     chance: 100
