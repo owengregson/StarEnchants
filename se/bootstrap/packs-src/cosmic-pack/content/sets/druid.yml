@@ -46,13 +46,14 @@ bonuses:
     effects:
       - { FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, ttl: 40, carry: "%damage%", who: "@Victim" } }
   # IMPACT — fired when a Terrablender grass block lands ON a player. The short cooldown dedups the grid's many
-  # landings (one impact per cast). Deal 1.5x the carried hit and strip their SPEED.
+  # landings (one impact per cast). Deal 1.5x the carried hit and lock their SPEED away for 5s (continuously
+  # re-stripped, so they can't re-drink it back during the window).
   - on: armor
     trigger: IMPACT
     cooldown: 10
     effects:
       - { DAMAGE: { amount: "1.5 * %damage%", who: "@Victim" } }
-      - { REMOVE_POTION: { effect: SPEED, who: "@Victim" } }
+      - { POTION_LOCK: { effect: SPEED, ticks: 100, who: "@Victim" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

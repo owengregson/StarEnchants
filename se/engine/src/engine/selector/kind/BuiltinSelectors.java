@@ -24,6 +24,7 @@ public final class BuiltinSelectors {
                 .register(new NearestPlayerSelector())
                 .register(new PlayerFromNameSelector())
                 .register(new EntityInSightSelector())
+                .register(new MarkedSelector()) // entities the activator has an active MARK on (reaper tether)
                 // §A block/location selectors — resolve to LOCATIONS.
                 .register(new HereSelector())
                 .register(new AddSelector())

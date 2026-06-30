@@ -1,6 +1,8 @@
 package engine.sink;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,6 +46,31 @@ public final class DamageMarks {
             return 0.0;
         }
         return mark.fraction();
+    }
+
+    /**
+     * Every victim {@code marker} currently has an active (non-expired) mark on — the reverse of {@link #bonus}.
+     * Drives reaper's {@code @Marked} selector (the continuous tether redraws to each still-marked victim every
+     * 0.5s). Scans the small marks table, evicting expired entries as it passes them; never null.
+     */
+    public static Set<UUID> marked(UUID marker) {
+        Set<UUID> out = new HashSet<>();
+        if (marker == null) {
+            return out;
+        }
+        long now = System.currentTimeMillis();
+        for (Map.Entry<UUID, Map<UUID, Mark>> entry : MARKS.entrySet()) {
+            Mark mark = entry.getValue().get(marker);
+            if (mark == null) {
+                continue;
+            }
+            if (now >= mark.expiryMs()) {
+                entry.getValue().remove(marker, mark);
+            } else {
+                out.add(entry.getKey());
+            }
+        }
+        return out;
     }
 
     /** Forget one victim's marks (quit). */

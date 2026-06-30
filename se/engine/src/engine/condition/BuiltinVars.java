@@ -47,6 +47,7 @@ public final class BuiltinVars {
                 .flag("isblock")
                 .flag("world.raining")
                 .flag("world.thundering")
+                .flag("victim.inzone")     // victim stands in an actor-owned MARK_ZONE (devil hellfire)
                 .string("actor.world")
                 .string("actor.gamemode")
                 .string("actor.helditem")

@@ -995,6 +995,45 @@
       ]
     },
   {
+    "head": "MARK_ZONE",
+    "doc": "Lay an actor-owned cylinder of `radius` blocks under each target for `duration` ticks. Read by the %victim.inzone% fact, so a condition-gated bonus can deal more to an enemy inside it.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ MARK_ZONE: { radius: <double[0..]=4>, duration: <ticks[0..]=100> } }",
+    "example": "{ MARK_ZONE: { radius: 4, duration: 100, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "radius",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "4",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "MAX_HEALTH_DRAIN",
     "doc": "Temporarily remove `fraction` of the target's overhealth (max health above `baseline`) plus a flat `amount`, restoring it after `duration` ticks. Default target the combat victim.",
     "affinity": "TARGET_ENTITY",
@@ -1636,6 +1675,45 @@
         "label": "ticks[0..]",
         "required": true,
         "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "POTION_LOCK",
+    "doc": "Strip a potion effect from the target(s) and continuously deny it for `ticks` (a re-strip each tick), so it cannot be re-applied during the window. Default target self.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ POTION_LOCK: { effect: <potion_effect>, ticks: <ticks[0..]=100> } }",
+    "example": "{ POTION_LOCK: { effect: SPEED, ticks: 100, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "ticks",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
         "min": 0,
         "max": null,
         "enum": [],
@@ -2696,6 +2774,26 @@
     "params": []
     },
   {
+    "head": "MARKED",
+    "doc": "Every nearby living entity the activator currently has an active MARK on.",
+    "usage": "{ MARKED: { r: <double[0..]=32> } }",
+    "example": "@Marked{r=32}",
+    "params": [
+      {
+        "name": "r",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "32",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "search radius in blocks"
+        }
+      ]
+    },
+  {
     "head": "NEAREST",
     "doc": "The single nearest living entity within r blocks (optionally filtered), except the activator.",
     "usage": "{ NEAREST: { r: <double[0..]=5>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL> } }",
@@ -3189,6 +3287,10 @@
   {
     "name": "victim.helditem",
     "type": "STR"
+    },
+  {
+    "name": "victim.inzone",
+    "type": "BOOL"
     },
   {
     "name": "victim.maxhealth",

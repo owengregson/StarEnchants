@@ -38,10 +38,11 @@ class VarVocabularyTest {
     @Test
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
-        // Slot counts are load-bearing: the FactBuffer is sized to them. Breakdown justifying 15/17/8
-        // lives in v3.1 §A (numeric/flag base + exotic-effect port) and v3.7 §N (victim.mobtype string).
+        // Slot counts are load-bearing: the FactBuffer is sized to them. Breakdown justifying 15/18/8 lives in
+        // v3.1 §A (numeric/flag base + exotic-effect port), v3.7 §N (victim.mobtype string), and the Cosmic Pack
+        // sets (victim.inzone flag — devil's hellfire zone).
         assertEquals(15, v.numberSlots());
-        assertEquals(17, v.flagSlots());
+        assertEquals(18, v.flagSlots());
         assertEquals(8, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());

@@ -51,15 +51,24 @@ bonuses:
     effects:
       - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 1, dy: -1, ticks: 40, airOnly: false, who: "@Self" } }
   # Hell's Kitchen — 5% on hit (30s cd): lay a 7x7 hellish netherrack floor under the victim for 5s, with flame
-  # + a blaze roar. (The +35% in-zone damage awaits the owner-zone subsystem — see docs/cosmic-set-abilities.md.)
+  # + a blaze roar, and stake out a wearer-owned hellfire zone over it (read by %victim.inzone% below).
   - on: armor
     trigger: ATTACK
     chance: 5
     cooldown: 600
     effects:
       - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
+      - { MARK_ZONE: { radius: 4.5, duration: 100, who: "@Victim" } }
       - { PARTICLE: { particle: FLAME, count: 40 } }
       - { SOUND: { sound: ENTITY_BLAZE_SHOOT } }
+  # While striking an enemy who is standing in one of our active hellfire zones, hit them for +35% (the floor
+  # lasts 5s, so this rides on top of the proc above whenever they linger in the inferno).
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    condition: "%victim.inzone%"
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
   - on: weapon
     trigger: ATTACK
     chance: 100

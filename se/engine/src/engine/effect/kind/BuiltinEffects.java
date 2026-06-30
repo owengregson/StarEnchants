@@ -87,6 +87,9 @@ public final class BuiltinEffects {
                 .register(new SmeltEffect())
                 .register(new TeleportDropsEffect())
                 .register(new SeekEffect())
+                // Cosmic Pack set-ability primitives (append last — registration order is the canonical id order).
+                .register(new PotionLockEffect()) // strip + continuously deny a potion (druid/fantasy Speed lock)
+                .register(new MarkZoneEffect()) // actor-owned area zone read by %victim.inzone% (devil hellfire)
                 .build();
     }
 }

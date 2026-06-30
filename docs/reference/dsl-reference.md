@@ -316,6 +316,17 @@ Mark the target(s) so the actor deals an extra `amount`% damage to them for `dur
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ MARK: { amount: 25, duration: 60, who: "@Victim" } }`
 
+### MARK_ZONE
+
+Lay an actor-owned cylinder of `radius` blocks under each target for `duration` ticks. Read by the %victim.inzone% fact, so a condition-gated bonus can deal more to an enemy inside it.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ MARK_ZONE: { radius: <double[0..]=4>, duration: <ticks[0..]=100> } }`
+- _param_ `radius` `double[0..]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ MARK_ZONE: { radius: 4, duration: 100, who: "@Victim" } }`
+
 ### MAX_HEALTH_DRAIN
 
 Temporarily remove `fraction` of the target's overhealth (max health above `baseline`) plus a flat `amount`, restoring it after `duration` ticks. Default target the combat victim.
@@ -452,6 +463,17 @@ Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = th
 - _param_ `duration` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ POTION: { effect: STRENGTH, level: 1, duration: 100 } }`
+
+### POTION_LOCK
+
+Strip a potion effect from the target(s) and continuously deny it for `ticks` (a re-strip each tick), so it cannot be re-applied during the window. Default target self.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ POTION_LOCK: { effect: <potion_effect>, ticks: <ticks[0..]=100> } }`
+- _param_ `effect` `potion_effect`
+- _param_ `ticks` `ticks[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ POTION_LOCK: { effect: SPEED, ticks: 100, who: "@Victim" } }`
 
 ### PROJECTILE
 
@@ -758,6 +780,14 @@ The activation block location itself — the default target of block effects.
 - _usage_: `{ HERE: {} }`
 - _example_: `@Here`
 
+### MARKED
+
+Every nearby living entity the activator currently has an active MARK on.
+
+- _usage_: `{ MARKED: { r: <double[0..]=32> } }`
+- _param_ `r` `double[0..]` — search radius in blocks
+- _example_: `@Marked{r=32}`
+
 ### NEAREST
 
 The single nearest living entity within r blocks (optionally filtered), except the activator.
@@ -921,6 +951,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%victim.health%` | NUM |
 | `%victim.healthpercent%` | NUM |
 | `%victim.helditem%` | STR |
+| `%victim.inzone%` | BOOL |
 | `%victim.maxhealth%` | NUM |
 | `%victim.mobtype%` | STR |
 | `%victim.sneaking%` | BOOL |
