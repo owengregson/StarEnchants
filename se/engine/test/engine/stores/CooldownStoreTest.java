@@ -50,6 +50,17 @@ class CooldownStoreTest {
     }
 
     @Test
+    void targetBucketsCoolDownIndependently() {
+        // The mob route (bucket 0) and the player route (bucket 1) are separate cooldowns for the same scope.
+        store.arm(p, CooldownStore.key(1, 7, 0), 0L, 100);
+        assertFalse(store.ready(p, CooldownStore.key(1, 7, 0), 0L)); // mob route armed
+        assertTrue(store.ready(p, CooldownStore.key(1, 7, 1), 0L));  // player route still ready
+        // Bucket 0 packs identically to the two-arg key, so non-bucketed call sites (suppression) are unaffected.
+        assertEquals(CooldownStore.key(1, 7), CooldownStore.key(1, 7, 0));
+        org.junit.jupiter.api.Assertions.assertNotEquals(CooldownStore.key(1, 7, 0), CooldownStore.key(1, 7, 1));
+    }
+
+    @Test
     void clearForgetsOnePlayerAndClearAllForgetsEveryone() {
         UUID q = UUID.randomUUID();
         store.arm(p, 1L, 0L, 100);

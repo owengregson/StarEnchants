@@ -35,7 +35,8 @@ public final class TempBlockEffect implements EffectKind {
             .affinity(Affinity.REGION)
             .doc("Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / "
                     + "COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces "
-                    + "air (safe placement); false replaces anything and restores it on revert.")
+                    + "air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet "
+                    + "(never air, so a trail can't scaffold); other shapes replace anything and restore on revert.")
             .example("{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }")
             .build();
 
@@ -53,7 +54,12 @@ public final class TempBlockEffect implements EffectKind {
         int height = ctx.integer("height");
         int ahead = ctx.integer("ahead");
         int dy = ctx.integer("dy");
-        int mode = ctx.bool("airOnly") ? 0 : 2; // 0 = air only (safe), 2 = anything (captured + restored)
+        boolean airOnly = ctx.bool("airOnly");
+        boolean footprint = "FOOTPRINT".equals(shape);
+        // 0 = air only (safe); a non-air-only FOOTPRINT replaces ONLY the solid ground beneath the feet (mode 3),
+        // so a moving trail can never let a player scaffold up by jumping into freshly-placed blocks; other shapes
+        // replace anything (mode 2, captured + restored on revert).
+        int mode = airOnly ? 0 : (footprint ? 3 : 2);
         for (LivingEntity who : ctx.targets("who")) {
             Location base = who.getLocation();
             World world = base.getWorld();

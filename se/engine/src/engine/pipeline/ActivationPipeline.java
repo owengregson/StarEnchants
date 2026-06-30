@@ -136,7 +136,8 @@ public final class ActivationPipeline {
         if (scopeId < 0) {
             return true; // no cooldown on this scope
         }
-        return cooldowns.ready(act.actor(), CooldownStore.key(scopeKind, scopeId), act.nowTicks());
+        // Cooldowns route by target bucket (mob vs player): proccing on a mob never spends the player route's cooldown.
+        return cooldowns.ready(act.actor(), CooldownStore.key(scopeKind, scopeId, act.targetBucket()), act.nowTicks());
     }
 
     private void armCooldowns(Ability ability, Activation act) {
@@ -147,7 +148,8 @@ public final class ActivationPipeline {
 
     private void armScope(int scopeId, int scopeKind, int durationTicks, Activation act) {
         if (scopeId >= 0) {
-            cooldowns.arm(act.actor(), CooldownStore.key(scopeKind, scopeId), act.nowTicks(), durationTicks);
+            cooldowns.arm(act.actor(), CooldownStore.key(scopeKind, scopeId, act.targetBucket()),
+                    act.nowTicks(), durationTicks);
         }
     }
 

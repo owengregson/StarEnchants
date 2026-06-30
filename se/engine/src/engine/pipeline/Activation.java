@@ -24,6 +24,7 @@ public final class Activation {
     private final DoubleSupplier chanceRoll;
     private final UUID activeGem;
     private final Location location;
+    private final int targetBucket;
 
     private Activation(Builder b) {
         this.actor = Objects.requireNonNull(b.actor, "actor");
@@ -35,6 +36,7 @@ public final class Activation {
         this.chanceRoll = b.chanceRoll;
         this.activeGem = b.activeGem;
         this.location = b.location;
+        this.targetBucket = b.targetBucket;
     }
 
     /**
@@ -92,6 +94,15 @@ public final class Activation {
     }
 
     /**
+     * The cooldown target bucket — {@code 1} when this activation's other combat party is a player, {@code 0}
+     * for a mob or a non-combat activation. Folded into the cooldown key (gates 6 + 11) so an ability cools
+     * down independently per target kind: proccing it on a mob and on a player are two separate cooldown routes.
+     */
+    public int targetBucket() {
+        return targetBucket;
+    }
+
+    /**
      * Builds an {@link Activation}. Defaults keep tests/non-combat triggers terse: empty
      * {@link FactBuffer}/{@link SuppressionSet}, no soul mode, and a chance roll that always returns
      * {@code 0.0} so any positive chance passes — production MUST install a random-backed roll.
@@ -107,6 +118,7 @@ public final class Activation {
         private DoubleSupplier chanceRoll = () -> 0.0;
         private UUID activeGem;
         private Location location;
+        private int targetBucket;
 
         private Builder(UUID actor, int worldId, int triggerId, long nowTicks) {
             this.actor = actor;
@@ -139,6 +151,12 @@ public final class Activation {
         /** The firing location for the protection gate (gate 2); {@code null} for a non-positional event. */
         public Builder location(Location location) {
             this.location = location;
+            return this;
+        }
+
+        /** The cooldown target bucket (1 = player other-party, 0 = mob / non-combat) — gates 6 + 11. */
+        public Builder targetBucket(int targetBucket) {
+            this.targetBucket = targetBucket;
             return this;
         }
 

@@ -126,7 +126,10 @@ public final class TriggerRunner {
                 // uniform [0,100) result, untouched by the downgrade. Verified live by the legacy smoke combat check.
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
                 .facts(factPopulator.populate(context, now)) // gate-7 condition facts, read on the firing thread
-                .location(context.location()); // captured on the firing thread → safe for the gate-2 guard
+                .location(context.location()) // captured on the firing thread → safe for the gate-2 guard
+                // Cooldown buckets: the other combat party's kind (player vs mob) routes the cooldown, so an
+                // ability proc'd on a mob and on a player run on two independent cooldowns (gates 6 + 11).
+                .targetBucket(context.victim() instanceof Player ? 1 : 0);
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
         executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
     }
