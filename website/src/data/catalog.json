@@ -324,6 +324,62 @@
       ]
     },
   {
+    "head": "EQUIP_SWAP",
+    "doc": "Temporarily replace the target's `slot` armour piece with `material`, restoring it after `duration` ticks (death-safe: the real piece drops / is kept). Default target the victim.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ EQUIP_SWAP: { slot: <enum{helmet|chestplate|leggings|boots}=helmet>, material: <material>, duration: <ticks[0..]=60> } }",
+    "example": "{ EQUIP_SWAP: { slot: helmet, material: CARVED_PUMPKIN, duration: 60, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "slot",
+        "kind": "ENUM",
+        "label": "enum{helmet|chestplate|leggings|boots}",
+        "required": false,
+        "default": "helmet",
+        "min": null,
+        "max": null,
+        "enum": [
+          "helmet",
+          "chestplate",
+          "leggings",
+          "boots"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "material",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "EXPLODE",
     "doc": "Create an explosion at the target.",
     "affinity": "REGION",

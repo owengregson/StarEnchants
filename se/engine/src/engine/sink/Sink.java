@@ -128,6 +128,14 @@ public interface Sink {
     /** Drop one random worn armour piece from the target into the world, clearing its slot (REMOVE_ARMOR). */
     void removeArmor(LivingEntity target);
 
+    /**
+     * Temporarily replace {@code target}'s armour piece at {@code slotIndex} ({@code getArmorContents} index:
+     * 0=boots .. 3=helmet) with an interned {@code materialId}, restoring the original after
+     * {@code durationTicks} (EQUIP_SWAP — spooky's pumpkin helmet). Death-/quit-safe via the {@link TempEquip}
+     * ledger + its listener (the real piece drops / is kept, never the placeholder). Player-only.
+     */
+    void swapEquipment(Player target, int slotIndex, int materialId, int durationTicks);
+
     void ignite(Entity target, int durationTicks);
 
     void lightningAndDamage(LivingEntity target, double amount);

@@ -46,6 +46,7 @@ public final class BuiltinEffects {
                 .register(new RemoveSoulsEffect()) // §D actor-only soul debit; charges the activator's active gem
                 .register(new DisarmEffect())
                 .register(new RemoveArmorEffect()) // Cosmic Enchants-style REMOVE_ARMOR: drop a random worn armour piece
+                .register(new EquipSwapEffect()) // temporary armour swap (spooky Scarecrow pumpkin helmet)
                 // World / spawn intents.
                 .register(new ExplodeEffect())
                 .register(new SpawnEntityEffect()) // §C canonical; replaces SPAWN/TNT (FIREBALL folded into PROJECTILE)

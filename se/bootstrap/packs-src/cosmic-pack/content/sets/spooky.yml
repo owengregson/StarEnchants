@@ -42,6 +42,16 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } }
+  # Scarecrow — 5% on hit (30s cd, players): pumpkin-head the victim for 3s. Removing the helmet drops their set
+  # below complete, so their helmet's set bonus deactivates for the window. Death/quit stay normal — the real
+  # helmet drops / is kept (a holy white scroll still applies), never the pumpkin.
+  - on: armor
+    trigger: ATTACK
+    chance: 5
+    cooldown: 600
+    condition: "%victim.type% == PLAYER"
+    effects:
+      - { EQUIP_SWAP: { slot: helmet, material: CARVED_PUMPKIN, duration: 60, who: "@Victim" } }
   - on: weapon
     trigger: ATTACK
     chance: 100
