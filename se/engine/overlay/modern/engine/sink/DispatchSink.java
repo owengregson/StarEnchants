@@ -805,6 +805,30 @@ public final class DispatchSink implements SinkReadback {
         });
     }
 
+    @Override
+    public void dust(Location at, int particleId, int r, int g, int b, float size, int count) {
+        regionOp(at, () -> {
+            Particle resolved = handles.particle(particleId);
+            World world = at.getWorld();
+            if (resolved == null || world == null) {
+                return;
+            }
+            Color color = Color.fromRGB(clampChannel(r), clampChannel(g), clampChannel(b));
+            float scale = size <= 0f ? 1f : size;
+            int n = Math.max(1, count);
+            try {
+                world.spawnParticle(resolved, at, n, 0.0, 0.0, 0.0, 0.0, new Particle.DustOptions(color, scale));
+            } catch (IllegalArgumentException notDust) {
+                world.spawnParticle(resolved, at, n); // the resolved particle takes no colour data — plain burst
+            }
+        });
+    }
+
+    /** Clamp an authored 0-255 colour channel into range. */
+    private static int clampChannel(int v) {
+        return Math.max(0, Math.min(255, v));
+    }
+
     // ── Player feedback ──────────────────────────────────────────────────────────────────────────
 
     @Override
