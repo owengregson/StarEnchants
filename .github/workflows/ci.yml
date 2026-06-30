@@ -1,9 +1,11 @@
 name: CI
 
+# PR-only: with branch protection's "require up to date before merging" (strict) set, a rebase-merge makes
+# main's tree identical to what the PR already tested, so re-running CI on the main push is pure duplication.
+# main is guarded by that strict check + release.yml's own build/smoke gate; direct pushes are blocked.
 on:
-  push:
-    branches: [ main ]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
