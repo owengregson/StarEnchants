@@ -16,6 +16,9 @@ armor:
     - "&4&lSUPREME SET BONUS"
     - "&4* Deal 15% more damage to all enemies."
     - "&4* Gifted Child Passive Ability"
+    - ""
+    - "&4&lGIFTED CHILD"
+    - "&4* Gain the ability to fly while not in combat"
     - "&7&o(Requires all four Supreme set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&4&lClassic Cap&r" }

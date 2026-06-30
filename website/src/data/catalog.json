@@ -1098,7 +1098,7 @@
     },
   {
     "head": "MESSAGE",
-    "doc": "Send feedback to the activating player on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Replaces ACTIONBAR/TITLE.",
+    "doc": "Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party. Replaces ACTIONBAR/TITLE.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }",
     "example": "{ MESSAGE: { text: \"&aCritical hit!\" } }",
@@ -1180,7 +1180,12 @@
         "doc": "title channel only"
         }
       ],
-    "targets": []
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
     },
   {
     "head": "MODIFY_EXP",

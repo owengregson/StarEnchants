@@ -17,6 +17,9 @@ armor:
     - "&4* Deal 25% more damage to all enemies"
     - "&4* Enemies deal 20% less damage to you"
     - "&4* Hell's Kitchen Ability"
+    - ""
+    - "&4&lHELL'S KITCHEN"
+    - "&4* Chance to engulf your victim in Hell's Kitchen, causing them to take 35% more damage while in the area"
     - "&7&o(Requires all four Devil set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&4&lFlaming Helmet&r" }
@@ -54,13 +57,15 @@ bonuses:
   # + a blaze roar, and stake out a wearer-owned hellfire zone over it (read by %victim.inzone% below).
   - on: armor
     trigger: ATTACK
-    chance: 5
+    chance: 15
     cooldown: 600
     effects:
       - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
       - { MARK_ZONE: { radius: 4.5, duration: 100, who: "@Victim" } }
       - { PARTICLE: { particle: FLAME, count: 40 } }
       - { SOUND: { sound: ENTITY_BLAZE_SHOOT } }
+      - { MESSAGE: { channel: title, text: "&4&l** HELL'S KITCHEN **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&4&l** HELL'S KITCHEN &r&7[&f{VICTIM}&7] &r&4&l**" } }
   # While striking an enemy who is standing in one of our active hellfire zones, hit them for +35% (the floor
   # lasts 5s, so this rides on top of the proc above whenever they linger in the inferno).
   - on: armor

@@ -16,6 +16,10 @@ armor:
     - "&c&lPHANTOM SET BONUS"
     - "&c* Deal 25% more damage to all enemies"
     - "&c* Ghostly Rush Passive Ability"
+    - ""
+    - "&c&lGHOSTLY RUSH"
+    - "&c* Permanent Haste I, Strength III, Speed IV"
+    - "&c* Cannot use Soul Enchantments"
     - "&7&o(Requires all four Phantom set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&c&lSpectral Hood&r" }

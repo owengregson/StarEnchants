@@ -342,7 +342,7 @@ Temporarily remove `fraction` of the target's overhealth (max health above `base
 
 ### MESSAGE
 
-Send feedback to the activating player on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Replaces ACTIONBAR/TITLE.
+Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party. Replaces ACTIONBAR/TITLE.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }`
@@ -352,6 +352,7 @@ Send feedback to the activating player on a channel: chat (default), actionbar, 
 - _param_ `fadeIn` `ticks[0..]` — title channel only
 - _param_ `stay` `ticks[0..]` — title channel only
 - _param_ `fadeOut` `ticks[0..]` — title channel only
+- _target_ `who`: selector `SELF`
 - _example_: `{ MESSAGE: { text: "&aCritical hit!" } }`
 
 ### MODIFY_EXP

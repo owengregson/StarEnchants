@@ -16,6 +16,9 @@ armor:
     - "&2&lDRUID SET BONUS"
     - "&2* Deal 30% more damage to all enemies"
     - "&2* Terrablender Ability"
+    - ""
+    - "&2&lTERRABLENDER"
+    - "&2* Chance to drop earth on your enemy, temporarily slowing them and dealing massive damage"
     - "&7&o(Requires all four Druid set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&2&lNature's Hood&r" }
@@ -40,11 +43,13 @@ bonuses:
   # block lands on a player fires the IMPACT bonus below; carry forwards this hit's damage as the impact %damage%.
   - on: armor
     trigger: ATTACK
-    chance: 5
+    chance: 15
     cooldown: 600
     condition: "%victim.type% == PLAYER"
     effects:
       - { FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, ttl: 40, carry: "%damage%", who: "@Victim" } }
+      - { MESSAGE: { channel: title, text: "&2&l** TERRABLENDER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&2&l** TERRABLENDER &r&7[&f{VICTIM}&7] &r&2&l**" } }
   # IMPACT — fired when a Terrablender grass block lands ON a player. The short cooldown dedups the grid's many
   # landings (one impact per cast). Deal 1.5x the carried hit and lock their SPEED away for 5s (continuously
   # re-stripped, so they can't re-drink it back during the window).

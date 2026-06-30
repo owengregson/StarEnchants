@@ -16,7 +16,10 @@ armor:
     - "&9&lTHOR SET BONUS"
     - "&9* Deal 25% more damage to all enemies"
     - "&9* Enemies deal 15% less damage to you"
-    - "&9* Stormcaller Ability"
+    - "&9* Stormcaller Passive Ability"
+    - ""
+    - "&9&lSTORMCALLER"
+    - "&9* Chance to strike all nearby enemies with supercharged lightning that deals high damage"
     - "&7&o(Requires all four Thor set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&9&lElectric Helmet&r" }
@@ -51,7 +54,9 @@ bonuses:
   # passive mobs) with lightning dealing half this hit's pre-fold damage.
   - on: armor
     trigger: ATTACK
-    chance: 5
+    chance: 15
     cooldown: 600
     effects:
       - { LIGHTNING: { damage: "%damage% * 0.5", who: "@Aoe{r=7, filter=ENEMIES}" } }
+      - { MESSAGE: { channel: title, text: "&9&l** STORMCALLER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&9&l** STORMCALLER &r&7[&f{VICTIM}&7] &r&9&l**" } }

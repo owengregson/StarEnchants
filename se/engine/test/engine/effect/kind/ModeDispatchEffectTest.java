@@ -68,20 +68,6 @@ class ModeDispatchEffectTest {
         });
     }
 
-    /** Actor-sourced feedback (no target list); the row verifies the call against the actor. */
-    private static DynamicTest actorOnly(String label, EffectKind kind, Consumer<FakeEffectCtx> args,
-            BiConsumer<Sink, Player> verify) {
-        return dynamicTest(label, () -> {
-            Player actor = mock(Player.class);
-            FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor);
-            args.accept(ctx);
-            Sink sink = mock(Sink.class);
-            kind.run(ctx, sink);
-            verify.accept(sink, actor);
-            verifyNoMoreInteractions(sink);
-        });
-    }
-
     @TestFactory
     List<DynamicTest> healthMod() {
         return List.of(
@@ -276,17 +262,72 @@ class ModeDispatchEffectTest {
 
     @TestFactory
     List<DynamicTest> message() {
-        // MESSAGE routes by channel, collapsing the deleted ACTIONBAR and TITLE kinds.
+        // MESSAGE routes by channel to each `who` recipient (default self), substituting the {ATTACKER}/{VICTIM}
+        // combat-party name tokens. Collapses the deleted ACTIONBAR and TITLE kinds.
         return List.of(
-                actorOnly("MESSAGE chat → message", new MessageEffect(),
-                        c -> c.with("channel", "chat").with("text", "hi"), (s, a) -> verify(s).message(a, "hi")),
-                actorOnly("MESSAGE actionbar → actionBar", new MessageEffect(),
-                        c -> c.with("channel", "actionbar").with("text", "charged"),
-                        (s, a) -> verify(s).actionBar(a, "charged")),
-                actorOnly("MESSAGE title → title(text, subtitle, timings)", new MessageEffect(),
-                        c -> c.with("channel", "title").with("text", "&cCRITICAL").with("subtitle", "&7you struck hard")
-                                .with("fadeIn", 10).with("stay", 40).with("fadeOut", 10),
-                        (s, a) -> verify(s).title(a, "&cCRITICAL", "&7you struck hard", 10, 40, 10)));
+                dynamicTest("MESSAGE chat → message to the who recipient", () -> {
+                    Player who = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "hi").targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).message(who, "hi");
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE actionbar → actionBar to the who recipient", () -> {
+                    Player who = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "actionbar").with("text", "charged").targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).actionBar(who, "charged");
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE title → title(text, subtitle, timings) to the who recipient", () -> {
+                    Player who = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "title").with("text", "&cCRITICAL").with("subtitle", "&7you struck hard")
+                            .with("fadeIn", 10).with("stay", 40).with("fadeOut", 10).targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).title(who, "&cCRITICAL", "&7you struck hard", 10, 40, 10);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE title to @Victim fills {ATTACKER} with the activating player's name", () -> {
+                    Player victim = mock(Player.class); // the recipient of the title
+                    Player actor = mock(Player.class);
+                    when(actor.getName()).thenReturn("Wearer");
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "title").with("text", "&9** Stormcaller **")
+                            .with("subtitle", "&7from &c{ATTACKER}").with("fadeIn", 10).with("stay", 70)
+                            .with("fadeOut", 20).actor(actor).targets("who", victim);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).title(victim, "&9** Stormcaller **", "&7from &cWearer", 10, 70, 20);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE chat fills {VICTIM} with the other combat party's name", () -> {
+                    Player actor = mock(Player.class); // default self recipient
+                    when(actor.getName()).thenReturn("Wearer");
+                    LivingEntity victim = mock(LivingEntity.class);
+                    when(victim.getName()).thenReturn("Foe");
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "hit &f{VICTIM}")
+                            .victim(victim).actor(actor).targets("who", actor);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).message(actor, "hit &fFoe");
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE to a non-player who recipient is skipped", () -> {
+                    LivingEntity mob = mock(LivingEntity.class); // titles/chat need a player
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "title").with("text", "x").with("subtitle", "")
+                            .with("fadeIn", 10).with("stay", 70).with("fadeOut", 20).targets("who", mob);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }));
     }
 
     @TestFactory
