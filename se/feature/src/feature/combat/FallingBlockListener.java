@@ -21,6 +21,12 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
  * the spawner's IMPACT abilities on them via {@link TriggerDispatch#fireImpact} — so the impact is fully
  * author-defined. A grid's many landings are deduped by a short cooldown on the IMPACT ability. The event fires
  * on the block's own region thread, co-region with the player it landed on, so the proximity read is Folia-safe.
+ *
+ * <p>Runs at {@link EventPriority#LOWEST} and does NOT {@code ignoreCancelled}: a cosmetic block must be removed
+ * the instant it would touch down, BEFORE any region plugin (WorldGuard, spawn protection) gets the event — if
+ * another plugin cancels the land first, our handler would be skipped, the entity would never be removed, and it
+ * would rest on the ground re-firing the (cancelled) land every tick until its TTL: visually a placed block. By
+ * intercepting first and force-removing, the block never becomes (or impersonates) a real block on any setup.
  */
 public final class FallingBlockListener implements Listener {
 
@@ -33,7 +39,7 @@ public final class FallingBlockListener implements Listener {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onLand(EntityChangeBlockEvent event) {
         Entity entity = event.getEntity();
         if (!(entity instanceof FallingBlock) || !FallingBlockCasts.isTracked(entity.getUniqueId())) {
@@ -42,8 +48,8 @@ public final class FallingBlockListener implements Listener {
         event.setCancelled(true); // a cosmetic block — never let it place
         FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(entity.getUniqueId());
         entity.remove();
-        if (cast == null) {
-            return;
+        if (cast == null || cast.owner() == null) {
+            return; // an owner-less cosmetic block: cancelled + removed above, but no IMPACT to fire
         }
         Player owner = Bukkit.getPlayer(cast.owner());
         LivingEntity victim = playerNear(event.getBlock().getLocation(), owner);
