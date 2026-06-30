@@ -36,7 +36,32 @@ public final class SetEquipEffects implements SetMessageDriver.SetTransition {
         for (SoundCue cue : cues) {
             Sounds.play(player, player.getLocation(), cue.name(), cue.volume(), cue.pitch());
         }
-        particles.spawn(player, particleFor(cfg, def, equipped));
+        // A multi-coloured set name (e.g. KOTH) tints its equip cloud RAINBOW — each mote a random pastel —
+        // instead of a single tint; every other set keeps the resolved single-colour spec.
+        if (equipped && cfg.useSetColor() && ChatColorRgb.isMultiColor(def.display())) {
+            spawnRainbow(player, cfg.equipParticle());
+        } else {
+            particles.spawn(player, particleFor(cfg, def, equipped));
+        }
+    }
+
+    /** Pastel dust palette for the rainbow cloud — the bright legacy colours (a/b/c/d/e), never the dark ones. */
+    private static final int[][] PASTELS = {
+        {85, 255, 85},   // &a green
+        {85, 255, 255},  // &b aqua
+        {255, 85, 85},   // &c red
+        {255, 85, 255},  // &d light purple
+        {255, 255, 85},  // &e yellow
+    };
+
+    /** Spawn the equip cloud as individual single-mote bursts, each a random pastel, so it shimmers multi-colour. */
+    private void spawnRainbow(Player player, ParticleSpec base) {
+        int motes = Math.max(1, base.amount());
+        for (int i = 0; i < motes; i++) {
+            int[] rgb = PASTELS[java.util.concurrent.ThreadLocalRandom.current().nextInt(PASTELS.length)];
+            particles.spawn(player,
+                    new ParticleSpec(base.type(), rgb[0], rgb[1], rgb[2], 1, base.spread(), base.yOffset()));
+        }
     }
 
     /**

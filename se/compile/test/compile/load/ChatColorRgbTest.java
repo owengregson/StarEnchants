@@ -1,7 +1,9 @@
 package compile.load;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,5 +34,16 @@ class ChatColorRgbTest {
         assertNull(ChatColorRgb.of(""));
         assertNull(ChatColorRgb.of(null));
         assertNull(ChatColorRgb.of("&lBold")); // only a format code → not a colour
+    }
+
+    @Test
+    void isMultiColorDetectsTwoOrMoreDistinctColours() {
+        // KOTH's rainbow name → multi-colour (the rainbow equip-dust trigger).
+        assertTrue(ChatColorRgb.isMultiColor("&c&lK&6&l.&e&lO&2&l.&b&lT&5&l.&d&lH"));
+        assertTrue(ChatColorRgb.isMultiColor("&#5BF553Glow&aLeaf")); // hex + legacy, distinct
+        assertFalse(ChatColorRgb.isMultiColor("&4Supreme"));          // one colour
+        assertFalse(ChatColorRgb.isMultiColor("&a&lHoly &aLight"));   // same colour twice → not multi
+        assertFalse(ChatColorRgb.isMultiColor("&l&nPlain"));          // only format codes
+        assertFalse(ChatColorRgb.isMultiColor(null));
     }
 }

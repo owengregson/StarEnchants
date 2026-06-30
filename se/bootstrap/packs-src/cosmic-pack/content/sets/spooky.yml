@@ -45,14 +45,14 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } }
-  # Scarecrow — 5% on hit (30s cd, players): pumpkin-head the victim for 3s. Removing the helmet drops their set
+  # Scarecrow — 15% on hit (30s cd; mob and player targets cool down separately): pumpkin-head the victim for 3s.
+  # Removing the helmet drops their set
   # below complete, so their helmet's set bonus deactivates for the window. Death/quit stay normal — the real
   # helmet drops / is kept (a holy white scroll still applies), never the pumpkin.
   - on: armor
     trigger: ATTACK
     chance: 15
     cooldown: 600
-    condition: "%victim.type% == PLAYER"
     effects:
       - { EQUIP_SWAP: { slot: helmet, material: CARVED_PUMPKIN, duration: 60, who: "@Victim" } }
       - { MESSAGE: { channel: title, text: "&6&l** SCARECROW **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }

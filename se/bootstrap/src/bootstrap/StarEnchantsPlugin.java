@@ -492,6 +492,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 new feature.combat.FallingBlockListener(triggerDispatch), this);
         // EQUIP_SWAP (spooky's pumpkin helmet) — keep death/quit normal: restore the real piece, never the placeholder.
         getServer().getPluginManager().registerEvents(new feature.combat.TempEquipListener(), this);
+        // Magma floor (devil's Hell's Kitchen) scorches the scene, not the health: cancel HOT_FLOOR in a hellfire zone.
+        getServer().getPluginManager().registerEvents(new feature.combat.HellfireFloorListener(), this);
         getServer().getPluginManager().registerEvents(
                 new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune), this);
         // §C KEEP_ON_DEATH at NORMAL priority — earlier than HolyScrollListener (HIGH) — so an enchant-kept
