@@ -109,7 +109,7 @@ public final class MenuSuite implements Harness.Scenario {
             CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
             compile.load.EnchantBookConfig underlined = new compile.load.EnchantBookConfig(
                     "ENCHANTED_BOOK", "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}",
-                    compile.load.EnchantBookConfig.defaults().lore(), java.util.List.of(), false, 30);
+                    compile.load.EnchantBookConfig.defaults().lore(), java.util.List.of(), false);
             CarrierService carriers = new CarrierService(
                     carrierCodec, enchanter, holder, new Random(1), () -> underlined);
             adminMenu = new AdminBrowserMenu(holder, carriers, Capabilities.probe(plugin.getServer()));

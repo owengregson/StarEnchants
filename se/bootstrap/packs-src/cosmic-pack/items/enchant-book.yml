@@ -8,8 +8,8 @@
 #   {SUCCESS}     = the apply success chance (a guaranteed book shows 100)
 #   {FAILURE}     = 100 - {SUCCESS}
 #   {KINDS}       = the applies-to kinds, grammatically joined (e.g. "Sword & Axe", "Boots, Leggings, & Helmet")
-#   {DESCRIPTION} = the enchant's description, word-wrapped to `wrap` visible chars (colour codes don't count);
-#                   a {DESCRIPTION} line expands to one lore line per wrapped line, so it renders in full.
+#   {DESCRIPTION} = the enchant's description, word-wrapped to the universal config.yml lore.item-wrap width
+#                   (colour codes don't count); a {DESCRIPTION} line expands to one lore line per wrapped line.
 type: enchant-book
 
 material: ENCHANTED_BOOK
@@ -24,9 +24,8 @@ lore:
   - ""
   - "&7{KINDS} Enchantment"
   - "&7Drag n' Drop on an item to apply."
-# Word-wrap width (visible chars) for {DESCRIPTION}. The leading prose paragraph reflows to this width
-# (with lone-last-word avoidance); per-level stat lines below the blank stay verbatim. Set 0 to disable.
-wrap: 40
+# {DESCRIPTION} word-wraps at the single universal width, config.yml lore.item-wrap — the same one the scrolls,
+# orb, dust, soul gem, traks, and set lore all use. There is no per-book width any more.
 # The success/failure rate now lives in the main lore above, so success-lore is empty by default. Lines here
 # are appended only to a book minted with an explicit success chance (the unopened/randomized book).
 success-lore: []

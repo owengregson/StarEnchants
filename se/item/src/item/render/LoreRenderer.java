@@ -166,16 +166,21 @@ public final class LoreRenderer {
         // NB: the §F heroic line is NOT emitted here — it needs the item material for {TYPE}, so apply() adds it
         // after the body (below the orb slots line, above protection/trak). lines() stays pure + server-free.
         if (state.setKey() != null) {
-            // Armour member: the set's shared armour lore (§6.6). No auto "(Set)" marker — the authored
-            // lore carries the SET BONUS block that names the set.
+            // Armour member: the set's shared armour lore (§6.6). No auto "(Set)" marker — the authored lore
+            // carries the SET BONUS block. Word-wrapped to the universal lore.item-wrap width like every other
+            // authored item lore, so long flavour / ability lines reflow instead of overflowing the tooltip.
             for (String line : setLore.armor(state.setKey())) {
-                out.add(Colors.translate(line));
+                for (String wrapped : TextWrap.wrap(line, item.mint.ItemFactory.itemWrapWidth())) {
+                    out.add(Colors.translate(wrapped));
+                }
             }
         }
         if (state.setWeaponKey() != null) {
-            // Weapon member: the set weapon's own authored lore (§6.6). No auto "(Set Weapon)" marker.
+            // Weapon member: the set weapon's own authored lore (§6.6), wrapped to the same universal width.
             for (String line : setLore.weapon(state.setWeaponKey())) {
-                out.add(Colors.translate(line));
+                for (String wrapped : TextWrap.wrap(line, item.mint.ItemFactory.itemWrapWidth())) {
+                    out.add(Colors.translate(wrapped));
+                }
             }
         }
         // §H slot-expander feedback: shown only once an orb has ADDED slots. Emitted last in the body so it sits

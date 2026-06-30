@@ -102,7 +102,7 @@ public final class CarrierSuite implements Harness.Scenario {
                 EnchantBookConfig::defaults, protectionRefresh);
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
         EnchantBookConfig destroyLikeness = new EnchantBookConfig(
-                "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true, 30);
+                "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true);
         CarrierService destroyer = new CarrierService(
                 carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness, protectionRefresh);
 

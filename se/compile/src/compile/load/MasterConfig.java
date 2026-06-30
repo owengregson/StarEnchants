@@ -146,13 +146,13 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
      * @param crystalColor crystal-line colour prefix (legacy {@code &} code)
      * @param roman        levels render as Roman numerals (else Arabic)
      * @param unknownLabel name rendered for a stored key no longer in the catalog (§5.3)
-     * @param itemWrap     auto-wrap width (visible chars, colour codes excluded) for AUTHORED economy/identity
-     *                     item lore — scrolls, the orb, dust, gems, the trak gems, … — applied once on the
-     *                     {@code item.mint.ItemFactory} mint path so authors write one long line and it
-     *                     word-wraps. {@code 0} disables. NOT part of the {@code LoreStyle} bridge (it governs
-     *                     economy-item lore, not the on-gear enchant lore); the enchant book keeps its own
-     *                     per-file {@code wrap} (items/enchant-book.yml) so its templated {@code DESCRIPTION}
-     *                     never double-wraps.
+     * @param itemWrap     THE single universal auto-wrap width (visible chars, colour codes excluded) for ALL
+     *                     authored lore that wraps — scrolls, the orb, dust, gems, the trak gems, the enchant
+     *                     book's {@code DESCRIPTION}, and the armour-set piece lore. Applied on the
+     *                     {@code item.mint.ItemFactory} mint path (and read by the book / set-lore renderers via
+     *                     {@code ItemFactory.itemWrapWidth()}) so authors write one long line and it word-wraps.
+     *                     {@code 0} disables. NOT part of the {@code LoreStyle} bridge (it governs authored item
+     *                     lore, not the on-gear enchant lore).
      */
     public record LoreSection(String enchantColor, String levelColor, String crystalColor,
                               boolean roman, String unknownLabel, int itemWrap) {

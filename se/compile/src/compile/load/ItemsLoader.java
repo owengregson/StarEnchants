@@ -349,8 +349,7 @@ public final class ItemsLoader {
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 root.has("success-lore") ? root.stringList("success-lore") : d.successLore(),
                 root.has("destroy-on-fail")
-                        ? "true".equalsIgnoreCase(root.string("destroy-on-fail")) : d.destroyOnFail(),
-                parseInt(root.string("wrap"), d.wrap(), root, diags)); // {DESCRIPTION} word-wrap width
+                        ? "true".equalsIgnoreCase(root.string("destroy-on-fail")) : d.destroyOnFail());
     }
 
     private static UnopenedBookConfig readUnopenedBook(YamlNode root, Diagnostics diags) {

@@ -111,6 +111,12 @@ public final class ItemFactory {
         itemWrapWidth = supplier == null ? () -> 0 : supplier;
     }
 
+    /** The live universal lore-wrap width (visible chars; {@code 0} = off) — for renderers that wrap authored
+     *  lore OUTSIDE {@link #buildItem}: set-member lore and the enchant-book {@code {DESCRIPTION}} share it. */
+    public static int itemWrapWidth() {
+        return itemWrapWidth.getAsInt();
+    }
+
     /** Blank name / empty lore is left unset. Lore is taken verbatim (no wrap) — for menu icons / fixed text. */
     public static ItemStack build(Material material, String name, List<String> lore) {
         return decorate(new ItemStack(material), name, lore);
