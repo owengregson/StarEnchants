@@ -391,6 +391,20 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    public void flyMode(Player target, boolean allow) {
+        entityOp(target, () -> {
+            if (allow) {
+                GameMode mode = target.getGameMode();
+                if (mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE) {
+                    target.setAllowFlight(true); // allow flight; don't force them airborne
+                }
+            } else {
+                clearTemporaryFlight(target); // survival/adventure only: stop + disallow
+            }
+        });
+    }
+
+    @Override
     public void movementSpeed(Player target, double speed, int durationTicks) {
         entityOp(target, () -> {
             target.setWalkSpeed((float) Math.max(-1.0, Math.min(1.0, speed)));
