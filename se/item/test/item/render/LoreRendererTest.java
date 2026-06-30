@@ -1,9 +1,11 @@
 package item.render;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import item.codec.CombatState;
+import item.codec.HeroicStat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,20 @@ class LoreRendererTest {
     private static final Function<String, String> NAMES = Map.of(
             "enchants/venom", "Venom",
             "enchants/lifesteal", "&aLifesteal")::get;
+
+    @Test
+    void heroicBodyLineSignsTheKindPercentByWeaponVsArmour() {
+        String template = "&6&lHEROIC {TYPE} (&e{+/-}{AMOUNT}% DMG&7)";
+        // A weapon (percentDamage > 0) → +outgoing; {TYPE} taken from the kind string.
+        assertEquals("§6§lHEROIC SWORD (§e+10% DMG§7)",
+                LoreRenderer.heroicBodyLine(new HeroicStat(0.10, 0.0, 0.20), "SWORD", template));
+        // Armour (percentReduction only) → -incoming.
+        assertEquals("§6§lHEROIC BOOTS (§e-10% DMG§7)",
+                LoreRenderer.heroicBodyLine(new HeroicStat(0.0, 0.10, 0.20), "BOOTS", template));
+        // Not heroic → no line; a blank template → the plain legacy marker.
+        assertNull(LoreRenderer.heroicBodyLine(HeroicStat.NONE, "SWORD", template));
+        assertEquals("§6§lHEROIC", LoreRenderer.heroicBodyLine(new HeroicStat(0.10, 0.0, 0.0), "SWORD", ""));
+    }
 
     @Test
     void rendersOneOrderedLinePerEnchantWithRomanLevels() {
