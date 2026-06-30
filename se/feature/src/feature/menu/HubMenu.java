@@ -104,6 +104,7 @@ public abstract class HubMenu implements Menu {
             click.player().closeInventory();
             return;
         }
-        target.open(click.player());
+        // Remember this hub as the target's opener, so its back button returns here instead of just closing.
+        target.open(click.player(), click.holder().menu());
     }
 }

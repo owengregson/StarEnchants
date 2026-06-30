@@ -149,7 +149,7 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
 
     @Override
     protected boolean showBack(MenuHolder holder) {
-        return holder.view() != null;
+        return holder.view() != null || super.showBack(holder);
     }
 
     @Override
@@ -168,10 +168,14 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
         return List.of("&7Browse enchants by rarity tier", "&7and mint a guaranteed book.");
     }
 
-    /** Step back exactly one level: levels → enchants (keeping the tier), enchants → tiers. */
+    /** Step back exactly one level: levels → enchants (keeping the tier), enchants → tiers, tiers → opener. */
     @Override
     protected void onBack(MenuClick click) {
         MenuHolder holder = click.holder();
+        if (holder.view() == null) {
+            super.onBack(click); // at the tier index → return to the opener (or close)
+            return;
+        }
         if (VIEW_LEVELS.equals(holder.view())) {
             holder.setView(VIEW_ENCHANTS);
             holder.setPayload(null); // selection (the tier) is kept so we land back on the tier's enchants

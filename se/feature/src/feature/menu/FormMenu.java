@@ -79,7 +79,21 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
             holder.set(layout.closeSlot(), MenuIcons.plain(theme.close()),
                     click -> click.player().closeInventory());
         }
+        // A back button only when this bench was opened from a hub (a command-opened bench shows close only).
+        if (holder.previous() != null && layout.backSlot() >= 0 && !inputSlots().contains(layout.backSlot())) {
+            holder.set(layout.backSlot(), MenuIcons.plain(theme.back()), this::onBack);
+        }
         layoutControls(holder); // overwrites the background where the bench wants a control
+    }
+
+    /** Return to the menu this bench was opened from; closing returns any staged inputs (onClose). */
+    private void onBack(MenuClick click) {
+        Menu previous = click.holder().previous();
+        if (previous != null) {
+            previous.open(click.player());
+        } else {
+            click.player().closeInventory();
+        }
     }
 
     /** Fill every non-input slot with the decorative filler pane (inputs stay empty for placement). */

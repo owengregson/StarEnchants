@@ -101,7 +101,7 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
 
     @Override
     protected boolean showBack(MenuHolder holder) {
-        return VIEW_ENCHANT.equals(holder.view());
+        return holder.view() != null || super.showBack(holder);
     }
 
     @Override
@@ -119,6 +119,10 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     @Override
     protected void onBack(MenuClick click) {
         MenuHolder holder = click.holder();
+        if (holder.view() == null) {
+            super.onBack(click); // at the tier index → return to the opener (or close)
+            return;
+        }
         holder.setView(null);
         holder.setSelection(null);
         holder.setPage(0);

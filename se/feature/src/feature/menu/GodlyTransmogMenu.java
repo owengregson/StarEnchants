@@ -46,17 +46,27 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
 
     @Override
     public void open(Player player) {
-        open(player, -1); // -1 = the held main-hand item (the /se menu transmog path)
+        open(player, -1, null); // -1 = the held main-hand item (the /se menu transmog path)
+    }
+
+    @Override
+    public void open(Player player, Menu previous) {
+        open(player, -1, previous); // hub-tile path: the held main-hand item, remembering the opener for back
     }
 
     /**
      * Open the reorder GUI bound to a specific inventory {@code slot} ({@code -1} = main hand) — the physical
-     * godly-transmog tool uses this to reorder the gear it was dragged onto, not whatever is held.
+     * godly-transmog tool uses this to reorder the gear it was dragged onto, not whatever is held (no opener).
      */
     public void open(Player player, int slot) {
+        open(player, slot, null);
+    }
+
+    private void open(Player player, int slot, Menu previous) {
         // Open-hop to the player's region thread: the gear read/write below would be unsafe off it on Folia.
         Scheduling.onEntity(player, () -> {
             MenuHolder holder = new MenuHolder(this);
+            holder.setPrevious(previous);
             CombatState state = combat.read(gearAt(player, slot));
             holder.setPayload(new Working(new ArrayList<>(state.enchants().keySet()), slot));
             render(holder);

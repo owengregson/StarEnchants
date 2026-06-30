@@ -27,6 +27,9 @@ public final class MenuHolder implements InventoryHolder {
     private String view;
     private String selection;
     private Object payload;
+    // The menu this one was opened FROM (a hub/console tile), or null for a root opened by command. The back
+    // button returns here once a drill-down menu has popped to its top view — the cross-menu nav link.
+    private Menu previous;
 
     public MenuHolder(Menu menu) {
         this.menu = Objects.requireNonNull(menu, "menu");
@@ -98,6 +101,15 @@ public final class MenuHolder implements InventoryHolder {
 
     public void setPayload(Object payload) {
         this.payload = payload;
+    }
+
+    /** The menu this one was opened from (for the back button), or {@code null} for a command-opened root. */
+    public Menu previous() {
+        return previous;
+    }
+
+    public void setPrevious(Menu previous) {
+        this.previous = previous;
     }
 
     @Override

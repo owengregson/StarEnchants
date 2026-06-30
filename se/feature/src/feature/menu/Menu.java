@@ -26,7 +26,17 @@ public interface Menu {
 
     /** Open this menu fresh for {@code player}; the openInventory hops to the player's region thread (Folia). */
     default void open(Player player) {
+        open(player, null);
+    }
+
+    /**
+     * Open this menu fresh, remembering {@code previous} as the menu to return to when the back button is
+     * pressed at this menu's top level ({@code null} = a command-opened root, which shows only a close button).
+     * A menu that builds its own holder (e.g. one binding per-open gear) overrides this to thread the link.
+     */
+    default void open(Player player, Menu previous) {
         MenuHolder holder = new MenuHolder(this);
+        holder.setPrevious(previous);
         render(holder);
         Scheduling.onEntity(player, () -> player.openInventory(holder.getInventory()));
     }

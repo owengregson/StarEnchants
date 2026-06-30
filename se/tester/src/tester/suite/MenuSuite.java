@@ -84,6 +84,7 @@ public final class MenuSuite implements Harness.Scenario {
         h.expect("menu.clickAppliesEnchant");
         h.expect("menu.iconShowsTierColorAndDescription");
         h.expect("menu.adminDrillsDownTierEnchantLevel");
+        h.expect("menu.backButtonTracksOpener");
 
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
         EnchantMenu menu;
@@ -194,6 +195,24 @@ public final class MenuSuite implements Harness.Scenario {
                         if (levelLore == null || levelLore.stream().noneMatch(l -> l.contains("guaranteed level"))) {
                             throw new IllegalStateException("enchant view should show per-level books; slot0 lore="
                                     + levelLore);
+                        }
+                    });
+                    h.guard("menu.backButtonTracksOpener", () -> {
+                        // ADR-0030 nav: a flat menu shows the back button only when it has an opener (the menu
+                        // it was opened from), and hides it for a command-opened root — so back returns to the
+                        // previous menu rather than just closing. The back icon lands in the layout's back slot.
+                        int backSlot = feature.menu.MenuLayout.paged("x").backSlot();
+                        MenuHolder withOpener = new MenuHolder(menu);
+                        withOpener.setPrevious(adminMenu); // any opener
+                        menu.render(withOpener);
+                        if (withOpener.getInventory().getItem(backSlot) == null) {
+                            throw new IllegalStateException("back button missing at slot " + backSlot
+                                    + " when the menu has an opener");
+                        }
+                        MenuHolder rootOpen = new MenuHolder(menu);
+                        menu.render(rootOpen); // no opener → root
+                        if (rootOpen.getInventory().getItem(backSlot) != null) {
+                            throw new IllegalStateException("back button shown for a root menu with no opener");
                         }
                     });
                     InventoryView view = player.openInventory(menuHolder.getInventory());
