@@ -5,9 +5,12 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Transient registry linking a spawned cosmetic falling block (by entity UUID) to its IMPACT cast — the owner
- * and the carried {@code %damage%} — so a landing listener can fire the owner's {@code IMPACT}-triggered
- * abilities on whatever the block lands on. The abstractable impact: any effects can hang off {@code IMPACT}.
+ * Transient registry of every spawned cosmetic falling block (by entity UUID) and its IMPACT cast — the owner
+ * and the carried {@code %damage%} — so the landing listener can (a) cancel its placement (a FALLING_BLOCK is
+ * always cosmetic and must never stick) and (b) fire the owner's {@code IMPACT}-triggered abilities on whatever
+ * it lands on. The abstractable impact: any effects can hang off {@code IMPACT}. The owner may be {@code null}
+ * (an environment-fired cosmetic with no player source): such a block is still tracked so its placement is
+ * cancelled, it just fires no IMPACT.
  *
  * <p>Era-agnostic on purpose (no entity PDC, which 1.8 lacks; no plugin-bound metadata) and cleared on disable.
  * A whole grid shares the owner/damage but lands as several blocks — the "first block wins" dedup is left to a
@@ -18,15 +21,19 @@ public final class FallingBlockCasts {
     private FallingBlockCasts() {
     }
 
-    /** The IMPACT payload handed to the dispatch when a tracked block lands. */
+    /** The IMPACT payload handed to the dispatch when a tracked block lands ({@code owner} may be null). */
     public record Cast(UUID owner, double damage) {
     }
 
     private static final Map<UUID, Cast> BY_ENTITY = new ConcurrentHashMap<>();
 
-    /** Bind a freshly-spawned falling block to its cast (the owner + the carried impact damage). */
+    /**
+     * Track a freshly-spawned cosmetic falling block so its placement is cancelled on landing. {@code owner} may
+     * be {@code null} (no player source) — the block is still tracked (and so never places); it just fires no
+     * IMPACT. {@link ConcurrentHashMap} forbids a null value, so an owner-less cast carries a null owner field.
+     */
     public static void bind(UUID entity, UUID owner, double damage) {
-        if (entity != null && owner != null) {
+        if (entity != null) {
             BY_ENTITY.put(entity, new Cast(owner, damage));
         }
     }

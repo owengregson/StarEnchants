@@ -1040,9 +1040,9 @@ public final class DispatchSink implements SinkReadback {
             org.bukkit.entity.FallingBlock fb = world.spawnFallingBlock(loc, material.createBlockData());
             fb.setDropItem(false);     // never leave an item
             fb.setHurtEntities(false); // no vanilla anvil-style damage — the impact is the IMPACT trigger's effects
-            if (owner != null) {
-                FallingBlockCasts.bind(fb.getUniqueId(), owner, carriedDamage); // a landing fires owner's IMPACT abilities
-            }
+            // Track EVERY cosmetic block (owner or not) so the landing listener cancels its placement; an owner
+            // additionally drives the IMPACT abilities. A FALLING_BLOCK is always cosmetic and must never stick.
+            FallingBlockCasts.bind(fb.getUniqueId(), owner, carriedDamage);
             if (ttlTicks > 0) {
                 UUID fbId = fb.getUniqueId();
                 Scheduling.onEntityLater(fb, ttlTicks, () -> { // never landed (void/edge) → forget + clean up

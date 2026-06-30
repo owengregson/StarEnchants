@@ -9,7 +9,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-/** The falling-block → IMPACT cast registry: bind / claim-once-on-land / forget-on-miss, owner-gated. */
+/**
+ * The falling-block → IMPACT cast registry: bind / claim-once-on-land / forget-on-miss. EVERY cosmetic block is
+ * tracked (so the listener cancels its placement); the owner — which may be null — drives the IMPACT abilities.
+ */
 class FallingBlockCastsTest {
 
     @AfterEach
@@ -41,9 +44,15 @@ class FallingBlockCastsTest {
     }
 
     @Test
-    void nullOwnerIsACosmeticSpawnAndNotTracked() {
+    void nullOwnerIsTrackedForCancellationButCarriesNoOwner() {
         UUID block = UUID.randomUUID();
-        FallingBlockCasts.bind(block, null, 1.0); // no owner → no impact, just a cosmetic block
-        assertFalse(FallingBlockCasts.isTracked(block));
+        // An owner-less cosmetic (e.g. environment-fired): still tracked so the listener cancels its placement —
+        // a FALLING_BLOCK must never stick — but it carries a null owner so no IMPACT fires.
+        FallingBlockCasts.bind(block, null, 1.0);
+        assertTrue(FallingBlockCasts.isTracked(block));
+
+        FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(block);
+        assertNull(cast.owner());
+        assertEquals(1.0, cast.damage());
     }
 }
