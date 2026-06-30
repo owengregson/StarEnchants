@@ -18,6 +18,10 @@ armor:
     - "&d* Enemies deal 20% less damage to you"
     - "&d* Bow attacks deal 75% less damage to you"
     - "&d* Lovestruck Ability"
+    - ""
+    - "&d&lLOVESTRUCK"
+    - "&d* Permanent Regeneration I"
+    - "&d* Chance to remove half of your victim's overhealth for 3 seconds"
     - "&7&o(Requires all four Cupid set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&d&lCherubic Crown&r" }
@@ -53,11 +57,13 @@ bonuses:
   # The condition gate runs before the cooldown arms, so a no-overhealth hit never burns the 30s.
   - on: armor
     trigger: ATTACK
-    chance: 5
+    chance: 15
     cooldown: 600
     condition: "%victim.maxhealth% > 20"
     effects:
       - { MAX_HEALTH_DRAIN: { fraction: 0.5, baseline: 20, amount: 0, duration: 60, who: "@Victim" } }
+      - { MESSAGE: { channel: title, text: "&d&l** LOVESTRUCK **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&d&l** LOVESTRUCK &r&7[&f{VICTIM}&7] &r&d&l**" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

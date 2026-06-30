@@ -16,6 +16,9 @@ armor:
     - "&2&lFANTASY SET BONUS"
     - "&2* Deal 25% more damage to all enemies"
     - "&2* Fantasy Trap Ability"
+    - ""
+    - "&2&lFANTASY TRAP"
+    - "&2* Chance to trap your enemy in an unbreakable cobweb for 2 seconds"
     - "&7&o(Requires all four Fantasy set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&2&lEnchanted Helmet&r" }
@@ -36,17 +39,19 @@ weapon:
     - "&7&o(Requires all four Fantasy set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
-  # Fantasy Trap — 10% on hit (30s cd, players only): an unbreakable (best-effort) cobweb at the victim's feet
-  # for 1s — vanilla physics halts them — and lock their SPEED away for that same second (continuously
+  # Fantasy Trap — 25% on hit (30s cd, players only): an unbreakable (best-effort) cobweb at the victim's feet
+  # for 2s — vanilla physics halts them — and lock their SPEED away for those same 2s (continuously
   # re-stripped, so it stays denied the whole time they're webbed). The cobweb reverts to air after.
   - on: armor
     trigger: ATTACK
-    chance: 10
+    chance: 25
     cooldown: 600
     condition: "%victim.type% == PLAYER"
     effects:
-      - { TEMP_BLOCK: { shape: POINT, material: COBWEB, ticks: 20, airOnly: true, who: "@Victim" } }
-      - { POTION_LOCK: { effect: SPEED, ticks: 20, who: "@Victim" } }
+      - { TEMP_BLOCK: { shape: POINT, material: COBWEB, ticks: 40, airOnly: true, who: "@Victim" } }
+      - { POTION_LOCK: { effect: SPEED, ticks: 40, who: "@Victim" } }
+      - { MESSAGE: { channel: title, text: "&2&l** FANTASY TRAP **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&2&l** FANTASY TRAP &r&7[&f{VICTIM}&7] &r&2&l**" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

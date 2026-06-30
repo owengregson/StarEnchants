@@ -33,6 +33,7 @@ content can author them.
 | **Enemy/ally AoE** | `@Aoe{filter=ENEMIES\|ALLIES}` + an `Allies` soft-hook | thor | ✅ |
 | **Suppression-immune** | `SUPPRESS_IMMUNE` (per-player veto) — dragon. phantom's soul lockout reuses the existing `SUPPRESS { scope: GROUP, key: soul }`, so no new TIER scope was needed | dragon, phantom | ✅ |
 | **Potion lock** | `POTION_LOCK { effect, ticks }` — strip + continuously deny a potion for a window (a per-tick re-strip, self-cancelling) | druid, fantasy | ✅ |
+| **Proc announce** | the canonical `MESSAGE` head gained a `who` recipient target + `{ATTACKER}`/`{VICTIM}` name tokens, so a proc can **title its victim** and **chat the wearer** (`** NAME **` in all caps) | every one-shot proc | ✅ |
 
 All entity/world mutation routes through the `Sink` (Folia-correct, region-routed); every
 new Sink method lands in `Sink.java` + **both** the modern and legacy overlay `DispatchSink`s
@@ -51,43 +52,61 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
   moment it lands — it just can't be *held*. (A future `POTION_APPLY` event trigger could
   cancel it outright; out of scope for v1, and 1.8.9 has no such event.)
 
+&d&lBLESS
+&d* You are immune to negative potion effects.
+
 ### cupid — **Lovestruck** ✅
 - **Permanent:** Regeneration I while worn (`POTION` passive, driver-maintained).
-- **On hit — 5%, 30s cooldown:** remove **half** of the victim's *overhealth* (max-health
+- **On hit — 15%, 30s cooldown:** remove **half** of the victim's *overhealth* (max-health
   above 20) for **3s**, then it returns. Only fires (and only spends the cooldown) when the
   victim actually has overhealth (`condition: %victim.maxhealth% > 20`).
 - **Globalized:** `MAX_HEALTH_DRAIN` (ledgered so a victim who logs out mid-window is
   restored on rejoin).
 
+&d&lLOVESTRUCK
+&d* Permanent Regeneration I
+&d* Chance to remove half of your victim's overhealth for 3 seconds
+
 ### devil — **Hells Kitchen** ✅ (confirmed)
 - **Permanent:** a self-reverting **netherrack trail** under the wearer's feet (`TEMP_BLOCK`
   FOOTPRINT, ledgered so the trail never becomes permanent).
-- **On hit — 5%, 30s cooldown:** lay a 7×7 netherrack floor under the victim + a wearer-owned
+- **On hit — 15%, 30s cooldown:** lay a 7×7 netherrack floor under the victim + a wearer-owned
   **hellfire zone** (`MARK_ZONE radius:4.5`, the same 5s as the floor) + flame/sound flair.
 - **While attacking an enemy standing in an active zone:** **+35% damage** — a separate
   `chance:100` ATTACK bonus gated on `%victim.inzone%`, folded additively with the weapon bonus.
 - **Globalized:** temp-block ledger, **owner-zone** (`MARK_ZONE` + `OwnerZones` + the
   `%victim.inzone%` fact).
 
+&4&lHELL'S KITCHEN
+&4* Chance to engulf your victim in Hell's Kitchen, causing them to take 35% more damage while in the area
+
 ### dragon — **Dovahkiin** (passive) ✅
 - **Effect:** while worn, the wearer is **immune to enchant-cancelling** — any
   `DISABLE_ENCHANT/GROUP/TYPE` aimed at them is vetoed at the suppression write.
 - **Globalized:** `SUPPRESS_IMMUNE` (armed/disarmed by the generic `PASSIVE` lifecycle).
 
-### druid — **Terrablender** ✅ ⚠️ *(lore wording)*
-- **On hit — 5%, 30s cooldown:** spawn a 3×3 grid of **falling grass blocks** 4 blocks above
+&e&lDOVAHKIIN
+&e* Your enchantments can no longer be suppressed by enemy enchantments
+
+### druid — **Terrablender** ✅
+- **On hit — 15%, 30s cooldown:** spawn a 3×3 grid of **falling grass blocks** 4 blocks above
   the victim's head. On impact: deal **1.5× the triggering hit's damage** (once — shared
   first-hit-wins flag, so the 3×3 can't multiply) and **lock Speed for 5s** (`POTION_LOCK
   ticks:100` — re-stripped every tick so it can't be re-drunk back). The blocks **vanish on
   landing** (no block is ever placed); misses evict on TTL.
 - **Globalized:** `FALLING_BLOCK` + the IMPACT trigger, **potion-lock** (`POTION_LOCK`).
-- ⚠️ Lore currently says "Terrabender Passive"; the mechanic is the on-hit "Terrablender".
+
+&2&lTERRABLENDER
+&2* Chance to drop earth on your enemy, temporarily slowing them and dealing massive damage
 
 ### fantasy — **Fantasy Trap** ✅
-- **On hit — 10%, 30s cooldown (players only):** spawn an **unbreakable cobweb** at the
-  victim's feet for **1s** (vanilla physics halts them) and **lock their Speed for that same
-  second** (`POTION_LOCK ticks:20` — denied the whole time they're webbed). Reverts to air.
+- **On hit — 25%, 30s cooldown (players only):** spawn an **unbreakable cobweb** at the
+  victim's feet for **2s** (vanilla physics halts them) and **lock their Speed for those same
+  2s** (`POTION_LOCK ticks:40` — denied the whole time they're webbed). Reverts to air.
 - **Globalized:** temp-block ledger (`unbreakable: true` engages the break-guard), **potion-lock**.
+
+&2&lFANTASY TRAP
+&2* Chance to trap your enemy in an unbreakable cobweb for 2 seconds
 
 ### koth — **Victorious** ✅
 - **On hit (weapon):** **+10% outgoing damage per nearby player** (friend *or* foe, not self)
@@ -97,6 +116,9 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
   **tether line** from each nearby player to the wearer.
 - **Globalized:** `DAMAGE_SCALE` (actor-centred count), `PARTICLE_RING`/`PARTICLE_LINE`, color codec.
 
+&f&lVICTORIOUS
+&f* Deal 10% more damage for each player within 7 blocks, up to +100% damage
+
 ### phantom — **Ghostly Rush** (passive) ✅ ⚠️ *(replaces a burst bonus)*
 - **Permanent:** Haste I + Strength III + Speed IV (`POTION` passives).
 - **Effect:** **soul-tier enchants do not function** while worn (`SUPPRESS { scope: TIER, key: soul }`,
@@ -105,8 +127,12 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 - ⚠️ The set's current short burst-on-hit DEFENSE bonus is **removed** — the spec wants these
   as permanent passives.
 
+&c&lGHOSTLY RUSH
+&c* Permanent Haste I, Strength III, Speed IV
+&c* Cannot use Soul Enchantments
+
 ### reaper — **Mark of the Reaper** ✅
-- **On hit — 5%, 30s cooldown:** **mark** the victim for **3s**; while marked they take
+- **On hit — 15%, 30s cooldown:** **mark** the victim for **3s**; while marked they take
   **+25% damage from the reaper wearer specifically** (applied by the damage fold's mark
   consult, which reads before attack abilities so the marking hit itself is excluded).
 - **Continuous tether:** a `REPEATING` (every 0.5s) **dark-red dust beam** redrawn from each
@@ -114,19 +140,28 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
   marked, exactly like KOTH's aura). The mark window self-clears the tether when it lapses.
 - **Globalized:** `MARK` + the `DamageMarks.marked` reverse-lookup, the **`@Marked` selector**.
 
+&4&lMARK OF THE REAPER
+&4* Chance to mark your enemy with the Mark of the Reaper for 3 seconds, causing them to take 25% more damage
+
 ### spooky — **Scarecrow** ✅
-- **On hit — 5%, 30s cooldown (players only):** replace the victim's **helmet with a pumpkin**
+- **On hit — 15%, 30s cooldown (players only):** replace the victim's **helmet with a pumpkin**
   for **3s** — which (if the helmet was a set piece) drops their set below complete and
   **deactivates their helmet's set bonus** for the window. Restored after. Death is fully
   normal: the **real** helmet drops / holy-white-scroll applies (a `@LOWEST` death listener
   restores it before scroll/keep listeners read).
 - **Globalized:** `EQUIP_SWAP` (ledgered, death/quit-safe; placeholder never persists).
 
+&6&lSCARECROW
+&6* Chance to replace your enemy's helmet with a pumpkin for 3 seconds
+
 ### stellar — **Dimensional Shift** ✅
-- **On being hit — 5%, 30s cooldown:** grant **Invisibility + Speed IV for 5s** and **blink
+- **On being hit — 15%, 30s cooldown:** grant **Invisibility + Speed IV for 5s** and **blink
   1 block behind the attacker** (safe-teleport: occlusion + LOS checked); if no safe spot,
   land **on top of** the attacker.
 - **Globalized:** `TELEPORT_BEHIND`.
+
+&5&lDIMENSIONAL SHIFT
+&5* Chance to teleport behind your enemy and gain Invisibility & Speed IV for 5 seconds
 
 ### supreme — **Gifted Child** (passive) ✅
 - **Effect:** **flight while worn and not in combat.** Entering combat revokes flight
@@ -134,38 +169,69 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 - **Globalized:** `FLY_MODE` + `CombatTagStore` + `%incombat%` fact (`FlyModeDriver` is the
   single grant/revoke authority).
 
-### thor — **Stormcaller** ✅ ⚠️ *(lore wording)*
-- **On hit — 5%, 30s cooldown:** strike **every enemy within 7 blocks** (excludes the wearer,
+&4&lGIFTED CHILD
+&4* Gain the ability to fly while not in combat
+
+### thor — **Stormcaller** ✅
+- **On hit — 15%, 30s cooldown:** strike **every enemy within 7 blocks** (excludes the wearer,
   allied players, and passive mobs) with **lightning dealing 0.5× the triggering hit's
   damage**.
 - **Globalized:** `@Aoe{filter=ENEMIES}`, cosmetic-aware `LIGHTNING`.
-- ⚠️ Lore says "Passive Ability"; mechanic is on-hit. (First multi-`on:armor` set in the pack.)
+- The pack's first multi-`on:armor` set. Labelled a **Passive Ability** (an auto-smite the wearer does not aim), per spec.
+
+&9&lSTORMCALLER
+&9* Chance to strike all nearby enemies with supercharged lightning that deals high damage
 
 ### yeti — **Fortified** (on defense) ✅
-- **On being hit — 10%, no cooldown:** **negate** the incoming hit (`CANCEL`) and freeze the
+- **On being hit — 25%, 30s cooldown:** **negate** the incoming hit (`CANCEL`) and freeze the
   attacker: a **2-tall ice pillar** one block ahead of them + a **3×3 packed-ice footprint**
   at their feet, for **3s**. Ice is placed **only where it replaces air** (safe); the ledger
   prevents any permanence on overlap.
 - **Globalized:** temp-block ledger (COLUMN + FOOTPRINT shapes).
 
+&b&lFORTIFIED
+&b* Chance to nullify an incoming attack and spawn a defensive Ice Wall in front of your enemy
+
 ### yijki — **Divine Shield** (on defense) ✅
-- **On being hit — 10%, 30s cooldown:** **negate** the hit (`CANCEL`, removing damage +
+- **On being hit — 25%, 30s cooldown:** **negate** the hit (`CANCEL`, removing damage +
   wearer knockback), **launch the attacker backward** (~2 hits of knockback), and strike them
   with a **cosmetic (no-damage) lightning bolt**.
 - **Globalized:** cosmetic-aware `LIGHTNING`, `VELOCITY{away}`.
+
+&f&lDIVINE SHIELD
+&f* Chance to nullify an incoming attack and launch your attacker backwards
 
 ---
 
 ## 3. As-shipped notes
 
-The lore wording was fixed (on-hit → "*Name* Ability", defense/permanent → "*Name* Passive
-Ability"; druid renamed Terrabender → Terrablender); devil / Hell's Kitchen was confirmed; and
-phantom's old burst bonus was replaced by the permanent passives.
+**Lore wording rule.** "*Name* **Passive** Ability" labels the always-on buffs (clarity Bless, dragon
+Dovahkiin, phantom Ghostly Rush, supreme Gifted Child) **and** the automatic / reactive procs the
+wearer does not aim — the on-being-hit defences stellar Dimensional Shift, yeti Fortified, yijki
+Divine Shield, plus thor Stormcaller (auto-smites nearby foes). The deliberate **offensive on-hit**
+procs are "*Name* Ability": cupid Lovestruck, devil Hell's Kitchen, druid Terrablender, fantasy
+Fantasy Trap, koth Victorious, reaper Mark of the Reaper, spooky Scarecrow. (devil / Hell's Kitchen
+confirmed; druid renamed Terrabender → Terrablender; phantom's old burst bonus replaced by the
+permanent passives.)
+
+**Ability descriptions in lore.** Every set's armour lore now carries its ability's description block
+(name header + effect line, the §2 text) one blank line below the set-bonus list and directly above
+the `(Requires all four …)` footer.
+
+**Proc tuning (this pass).** Every one-shot proc was buffed: a 5% chance → **15%**, a 10% chance →
+**25%**. Fantasy's web (and its Speed lock) now lasts **2s** (was 1s); yeti's Fortified gained a
+**30s cooldown** (was cooldown-free).
+
+**Proc announce.** Every one-shot-then-cooldown proc now also **titles its victim** (`** NAME ** /
+from {ATTACKER}`) and **chats the wearer** (`** NAME [{VICTIM}] **`) — the ability name in all caps —
+via the globalized `MESSAGE` head, which gained a `who` recipient target and `{ATTACKER}`/`{VICTIM}`
+name tokens (the same naming convention as the message-on-activate feature), so any future content can
+announce the same way.
 
 The four mechanics that had first shipped as pragmatic variants were **brought up to the exact
-spec** (this pass): devil's **+35% in the hellfire zone** (owner-zone + `%victim.inzone%`),
-druid's **5s** and fantasy's **in-web** Speed are now a continuous `POTION_LOCK` (not a one-shot
-strip), and reaper's tether is a **continuous 0.5s beam** to `@Marked` (not a one-shot line).
+spec**: devil's **+35% in the hellfire zone** (owner-zone + `%victim.inzone%`), druid's **5s** and
+fantasy's **2s in-web** Speed are now a continuous `POTION_LOCK` (not a one-shot strip), and reaper's
+tether is a **continuous 0.5s beam** to `@Marked` (not a one-shot line).
 
 The remaining variants are genuinely-minor and each is a candidate for a later refinement (none
 blocks a set):

@@ -17,6 +17,9 @@ armor:
     - "&6* Deal 20% more damage to all enemies."
     - "&6* Enemies deal 25% less damage to you."
     - "&6* Scarecrow Ability"
+    - ""
+    - "&6&lSCARECROW"
+    - "&6* Chance to replace your enemy's helmet with a pumpkin for 3 seconds"
     - "&7&o(Requires all four Spooky set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&6&lHaunted Headgear&r" }
@@ -47,11 +50,13 @@ bonuses:
   # helmet drops / is kept (a holy white scroll still applies), never the pumpkin.
   - on: armor
     trigger: ATTACK
-    chance: 5
+    chance: 15
     cooldown: 600
     condition: "%victim.type% == PLAYER"
     effects:
       - { EQUIP_SWAP: { slot: helmet, material: CARVED_PUMPKIN, duration: 60, who: "@Victim" } }
+      - { MESSAGE: { channel: title, text: "&6&l** SCARECROW **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&6&l** SCARECROW &r&7[&f{VICTIM}&7] &r&6&l**" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

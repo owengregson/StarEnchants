@@ -17,6 +17,9 @@ armor:
     - "&d* Deal 15% more damage to all enemies"
     - "&d* Enemies deal 5% less damage to you"
     - "&d* Bless Passive Ability"
+    - ""
+    - "&d&lBLESS"
+    - "&d* You are immune to negative potion effects."
     - "&7&o(Requires all four Clarity set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&d&lShimmering Helm&r" }

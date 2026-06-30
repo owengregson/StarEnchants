@@ -17,6 +17,9 @@ armor:
     - "&e* Deal 15% more damage to all enemies."
     - "&e* Enemies deal 10% less damage to you."
     - "&e* Dovahkiin Passive Ability"
+    - ""
+    - "&e&lDOVAHKIIN"
+    - "&e* Your enchantments can no longer be suppressed by enemy enchantments"
     - "&7&o(Requires all four Dragon set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&e&lHorned Helmet&r" }

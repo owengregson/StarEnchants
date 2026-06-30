@@ -16,6 +16,9 @@ armor:
     - "&5&lSTELLAR SET BONUS"
     - "&5* Deal 20% more damage to all enemies"
     - "&5* Dimensional Shift Passive Ability"
+    - ""
+    - "&5&lDIMENSIONAL SHIFT"
+    - "&5* Chance to teleport behind your enemy and gain Invisibility & Speed IV for 5 seconds"
     - "&7&o(Requires all four Stellar set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&5&lQuantum Hood&r" }
@@ -51,7 +54,7 @@ bonuses:
   # attacker (the VICTIM slot on DEFENSE is the attacker); on top of them if there's no safe spot.
   - on: armor
     trigger: DEFENSE
-    chance: 5
+    chance: 15
     cooldown: 600
     effects:
       - { POTION: { effect: INVISIBILITY, level: 1, duration: 100, who: "@Self" } }
@@ -59,3 +62,5 @@ bonuses:
       - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: "@Self" } }
       - { SOUND: { sound: ENTITY_ENDERMAN_TELEPORT } }
       - { PARTICLE: { particle: PORTAL, count: 40 } }
+      - { MESSAGE: { channel: title, text: "&5&l** DIMENSIONAL SHIFT **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&5&l** DIMENSIONAL SHIFT &r&7[&f{VICTIM}&7] &r&5&l**" } }

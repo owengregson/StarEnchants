@@ -17,6 +17,9 @@ armor:
     - "&b* Deal 10% more damage to all enemies"
     - "&b* Enemies deal 10% less damage to you"
     - "&b* Fortified Passive Ability"
+    - ""
+    - "&b&lFORTIFIED"
+    - "&b* Chance to nullify an incoming attack and spawn a defensive Ice Wall in front of your enemy"
     - "&7&o(Requires all four Yeti set items.)&r"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&b&lFrozen Headgear&r" }
@@ -42,15 +45,18 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
-  # Fortified — 10% on being hit: negate the hit and freeze the attacker in ice for 3s — a 2-tall pillar one
-  # block ahead of them + a 3x3 packed-ice footprint at their feet, placed only where it replaces air.
+  # Fortified — 25% on being hit (30s cd): negate the hit and freeze the attacker in ice for 3s — a 2-tall pillar
+  # one block ahead of them + a 3x3 packed-ice footprint at their feet, placed only where it replaces air.
   - on: armor
     trigger: DEFENSE
-    chance: 10
+    chance: 25
+    cooldown: 600
     effects:
       - { CANCEL: {} }
       - { TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, airOnly: true, who: "@Attacker" } }
       - { TEMP_BLOCK: { shape: FOOTPRINT, material: PACKED_ICE, radius: 1, ticks: 60, airOnly: true, who: "@Attacker" } }
+      - { MESSAGE: { channel: title, text: "&b&l** FORTIFIED **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&b&l** FORTIFIED &r&7[&f{VICTIM}&7] &r&b&l**" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

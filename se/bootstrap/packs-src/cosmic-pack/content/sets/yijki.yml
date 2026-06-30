@@ -16,6 +16,9 @@ armor:
     - "&f&lYIJKI SET BONUS"
     - "&f* Enemies deal 30% less damage to you"
     - "&f* Divine Shield Passive Ability"
+    - ""
+    - "&f&lDIVINE SHIELD"
+    - "&f* Chance to nullify an incoming attack and launch your attacker backwards"
     - "&7&o(Requires all four Yijki set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&f&lHalo Helm&r" }
@@ -51,9 +54,11 @@ bonuses:
   # backward (~2 hits of knockback), and strike them with a cosmetic no-damage bolt.
   - on: armor
     trigger: DEFENSE
-    chance: 10
+    chance: 25
     cooldown: 600
     effects:
       - { CANCEL: {} }
       - { VELOCITY: { mode: away, strength: 1.0, who: "@Attacker" } }
       - { LIGHTNING: { damage: 0, who: "@Attacker" } }
+      - { MESSAGE: { channel: title, text: "&f&l** DIVINE SHIELD **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "&f&l** DIVINE SHIELD &r&7[&f{VICTIM}&7] &r&f&l**" } }
