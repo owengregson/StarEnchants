@@ -81,11 +81,16 @@ public final class HeroicDurabilityListener implements Listener {
         short dur = (item == null || max <= 0) ? 0 : item.getDurability();
         boolean restored = false;
         if (type == types[i] && max > 0 && dur > dmg[i]) {
-            double chance = codec.read(item).heroic().durability(); // EMPTY → NONE → 0.0 (fast no-op)
-            if (chance > 0.0 && random.nextDouble() < chance) {
-                item.setDurability(dmg[i]); // undo the loss — the heroic save
-                dur = dmg[i];
-                restored = true;
+            double base = codec.read(item).heroic().durability(); // EMPTY → NONE → 0.0 (fast no-op)
+            if (base > 0.0) {
+                // §F: scale the wear-cancel so a sub-diamond-max heroic piece (e.g. a gold display piece) lasts
+                // like diamond — the real durability is the ledger, restored at the diamond-equivalent rate.
+                double chance = HeroicDiamond.scaledWearCancel(max, item.getType(), base);
+                if (random.nextDouble() < chance) {
+                    item.setDurability(dmg[i]); // undo the loss — the heroic save
+                    dur = dmg[i];
+                    restored = true;
+                }
             }
         }
         types[i] = type;

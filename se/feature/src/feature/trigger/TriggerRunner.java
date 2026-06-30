@@ -83,6 +83,7 @@ public final class TriggerRunner {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState != null && wornState.gen() == generation) {
             sink.addHeroicReduction(wornState.heroic().percentReduction());
+            sink.addFlatReduction(wornState.heroic().flatReduction()); // §F diamond armour delta, under reduction-scope ALL
         }
     }
 
@@ -108,8 +109,10 @@ public final class TriggerRunner {
         if (applyHeroic) {
             if (attackSide) {
                 sink.addHeroicOutgoing(wornState.heroic().percentDamage()); // §F multiplicative stage
+                sink.addFlatDamage(wornState.heroic().flatDamage());        // §F diamond base-attack delta (gold→diamond)
             } else {
                 sink.addHeroicReduction(wornState.heroic().percentReduction());
+                sink.addFlatReduction(wornState.heroic().flatReduction());  // §F diamond armour delta
             }
         }
         if (candidates.length == 0) {

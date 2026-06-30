@@ -61,13 +61,45 @@ public final class HeroicService {
 
     public ItemStack mint() {
         HeroicConfig cfg = config.get();
-        // NETHERITE_SCRAP is absent on 1.8; resolve by name (== the enum literal on modern, null on 1.8)
-        // and fall back to a floor-stable material so the build() fallback is never null on legacy.
-        Material scrap = Material.getMaterial("NETHERITE_SCRAP");
+        // GOLD_INGOT is on every version; the configured material resolves by name first. Name + lore carry
+        // {PERCENT}/{+/-}/{AMOUNT}/{KINDS} placeholders filled from the live config so the ingot self-documents.
+        List<String> lore = new java.util.ArrayList<>(cfg.lore().size());
+        for (String line : cfg.lore()) {
+            lore.add(fillPlaceholders(line, cfg));
+        }
         ItemStack stack = ItemFactory.buildItem(
-                cfg.material(), scrap != null ? scrap : Material.PAPER, cfg.name(), cfg.lore());
+                cfg.material(), Material.GOLD_INGOT, fillPlaceholders(cfg.name(), cfg), lore);
         upgrades.mark(stack);
         return stack;
+    }
+
+    /**
+     * Fill the heroic item's {@code {PERCENT}}/{@code {1-PERCENT}}/{@code {KINDS}} placeholders, plus a
+     * per-stat {@code {+/-}{AMOUNT}} chosen by the line it sits on (Outgoing → +damage, Incoming → -reduction,
+     * Durability → +the wear-saving), so the three stat lines can share one template token.
+     */
+    private String fillPlaceholders(String line, HeroicConfig cfg) {
+        int success = cfg.successMax(); // headline success rate (cosmic sets min == max for a single number)
+        String out = line;
+        if (out.contains("Outgoing")) {
+            out = signed(out, "+", pct(cfg.percentDamage()));
+        } else if (out.contains("Incoming")) {
+            out = signed(out, "-", pct(cfg.percentReduction()));
+        } else if (out.contains("Durability")) {
+            out = signed(out, "+", pct(cfg.durability()));
+        }
+        return out
+                .replace("{1-PERCENT}", Integer.toString(100 - success))
+                .replace("{PERCENT}", Integer.toString(success))
+                .replace("{KINDS}", ItemGroups.kindsLabel(List.of("ARMOR", "WEAPON")));
+    }
+
+    private static String signed(String line, String sign, int amount) {
+        return line.replace("{+/-}", sign).replace("{AMOUNT}", Integer.toString(amount));
+    }
+
+    private static int pct(double fraction) {
+        return (int) Math.round(fraction * 100.0);
     }
 
     /** Attempt to upgrade {@code gear} with the heroic {@code upgrade} (consumed either way). */
@@ -85,17 +117,31 @@ public final class HeroicService {
             return HeroicResult.unchanged(messages.format("heroic.already-heroic"));
         }
         HeroicConfig cfg = config.get();
+        boolean weapon = groups.matches(gear.getType(), List.of("WEAPON")); // else armour (validated above)
         int chance = cfg.successMin() + random.nextInt(cfg.successMax() - cfg.successMin() + 1);
         consume(upgrade); // spent whether the roll succeeds or fails
         if (random.nextInt(100) >= chance) {
-            return HeroicResult.committed(gear, messages.format("heroic.fail")); // gear untouched, upgrade spent
+            // Like the other consumables: a failed attempt optionally DESTROYS the gear (else leaves it intact).
+            ItemStack result = cfg.destroyOnFail() ? null : gear;
+            return HeroicResult.committed(result, messages.format("heroic.fail"));
         }
         ItemStack upgraded = withUpgradedMaterial(gear, cfg);
+        // §F diamond-equivalence (gold display, diamond function): when diamond-stats is on, the display-swapped
+        // piece carries the diamond base-stat delta as a flat damage/reduction folded into the plugin's own
+        // combat maths (HeroicDiamond) — version-uniform, no item-attribute API. Durability is emulated by the
+        // wear-cancel scaling at hit time. The native material's stats already ≥ diamond → delta 0 (no-op).
+        double flatDamage = cfg.diamondStats() && weapon ? HeroicDiamond.weaponFlatDamage(upgraded.getType()) : 0.0;
+        double flatReduction = cfg.diamondStats() && !weapon
+                ? HeroicDiamond.armourFlatReduction(upgraded.getType()) : 0.0;
+        // Stat separation (§F): a WEAPON carries the OUTGOING bonus, ARMOUR the INCOMING reduction — never both,
+        // so a heroic sword can't inflate defence nor heroic armour inflate attack.
+        HeroicStat stat = weapon
+                ? new HeroicStat(cfg.percentDamage(), 0.0, cfg.durability(), flatDamage, 0.0)
+                : new HeroicStat(0.0, cfg.percentReduction(), cfg.durability(), 0.0, flatReduction);
         CombatState current = combat.read(upgraded);
-        CombatState next = current.withHeroic( // preserves setWeaponKey (heroic-upgrading a set weapon keeps it a set weapon)
-                new HeroicStat(cfg.percentDamage(), cfg.percentReduction(), cfg.durability()));
+        CombatState next = current.withHeroic(stat); // preserves setWeaponKey (a heroic-upgraded set weapon stays one)
         combat.write(upgraded, next);
-        lore.apply(upgraded, next); // re-render from state (enchants/crystals + HEROIC marker)
+        lore.apply(upgraded, next); // re-render from state (enchants/crystals + HEROIC line)
         return HeroicResult.committed(upgraded, messages.format("heroic.success"));
     }
 

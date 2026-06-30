@@ -1,27 +1,45 @@
-# The heroic upgrade item — drag it onto any armour piece or weapon to attempt a heroic upgrade
-# (heroic is NOT set-bound). A small randomised success chance; consumed on use either way. On success
-# it stamps heroic percent stats, optionally swaps the material, and renders a "heroic" lore marker.
-# On failure the gear is unharmed. Everything below is configurable; reload with /se reload.
+# The heroic upgrade item — a "Heroic Ingot" you drag onto any armour piece or weapon to reforge it into
+# Heroic form (heroic is NOT set-bound). On success it stamps the heroic stats, swaps the DISPLAY to a gold
+# piece, and — with diamond-stats on — keeps it functioning as diamond (attack / armour / durability) via the
+# plugin's own combat maths (no version-specific item-attribute API). Everything below is configurable.
 type: heroic
-material: NETHERITE_SCRAP
-name: "&6&lHeroic Upgrade"
+material: GOLD_INGOT
+name: "&e&k|||&r &6&lHeroic Ingot&r &e&k|||&r"
+# {PERCENT}/{1-PERCENT} = the success/failure rate; the per-stat {+/-}{AMOUNT} lines fill from the stats below;
+# {KINDS} = what it applies to. Auto-wrapped where the renderer wraps.
 lore:
-  - "&7Drag onto armour or a weapon to attempt a heroic upgrade."
-  - "&7Small success chance — consumed on use."
-# Per-attempt success chance is drawn from [success-min, success-max] (percent), then rolled.
-success-min: 5
-success-max: 15
-# Heroic stats granted on success (fractions): +damage, -incoming, and item-damage-cancel chance.
+  - "&a{PERCENT}% Success Rate"
+  - "&c{1-PERCENT}% Failure Rate"
+  - ""
+  - "&e* &6{+/-}{AMOUNT}% Outgoing Damage"
+  - "&e* &6{+/-}{AMOUNT}% Incoming Damage"
+  - "&e* &6{+/-}{AMOUNT}% Durability"
+  - ""
+  - "&eReforges a single piece of gear into Heroic form, granting it legendary capabilities stronger than diamond."
+  - ""
+  - "&eApplies to: &f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# Per-attempt success is drawn from [success-min, success-max]; min == max here for a single headline rate.
+success-min: 50
+success-max: 50
+# Gear unharmed on a failed roll (the upgrade is consumed either way). Set true to destroy the gear on fail.
+destroy-on-fail: false
+# Heroic stats granted on success (fractions): weapon +outgoing, armour −incoming, and the wear-cancel chance
+# (0.20 ≈ the piece takes 80% of normal durability damage).
 percent-damage: 0.10
 percent-reduction: 0.10
-durability: 0.25
+durability: 0.20
 # entity = PvP/entity damage only (default); all = every damage cause.
 reduction-scope: ENTITY
-# Optional material swap on success (within-category, e.g. diamond -> netherite).
+# Re-stat the gold display piece to diamond-equivalent attack/armour + durability via the plugin's combat maths.
+diamond-stats: true
+# The HEROIC lore line stamped on a reforged piece ({TYPE} = the gear kind, {+/-}{AMOUNT} = its percent).
+lore-line: "&e&k|||&r &6&lHEROIC {TYPE} &r&7(&e{+/-}{AMOUNT}% DMG&7) &r&e&k|||&r"
+# Display swap on success: diamond gear becomes its gold twin (diamond stats kept via diamond-stats above).
 material-upgrades:
-  DIAMOND_HELMET: NETHERITE_HELMET
-  DIAMOND_CHESTPLATE: NETHERITE_CHESTPLATE
-  DIAMOND_LEGGINGS: NETHERITE_LEGGINGS
-  DIAMOND_BOOTS: NETHERITE_BOOTS
-  DIAMOND_SWORD: NETHERITE_SWORD
-  DIAMOND_AXE: NETHERITE_AXE
+  DIAMOND_HELMET: GOLDEN_HELMET
+  DIAMOND_CHESTPLATE: GOLDEN_CHESTPLATE
+  DIAMOND_LEGGINGS: GOLDEN_LEGGINGS
+  DIAMOND_BOOTS: GOLDEN_BOOTS
+  DIAMOND_SWORD: GOLDEN_SWORD
+  DIAMOND_AXE: GOLDEN_AXE

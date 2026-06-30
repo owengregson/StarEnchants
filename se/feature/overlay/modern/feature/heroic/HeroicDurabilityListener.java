@@ -27,8 +27,14 @@ public final class HeroicDurabilityListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onItemDamage(PlayerItemDamageEvent event) {
         ItemStack item = event.getItem();
-        double chance = codec.read(item).heroic().durability(); // EMPTY → NONE → 0.0 (fast no-op)
-        if (chance > 0.0 && random.nextDouble() < chance) {
+        double base = codec.read(item).heroic().durability(); // EMPTY → NONE → 0.0 (fast no-op)
+        if (base <= 0.0) {
+            return;
+        }
+        // §F: scale the wear-cancel so a sub-diamond-max heroic piece (e.g. a gold display piece) lasts like
+        // diamond — its real durability bar is the ledger, depleting at the diamond rate.
+        double chance = HeroicDiamond.scaledWearCancel(item.getType().getMaxDurability(), item.getType(), base);
+        if (random.nextDouble() < chance) {
             event.setCancelled(true);
         }
     }
