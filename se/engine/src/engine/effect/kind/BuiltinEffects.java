@@ -16,6 +16,7 @@ public final class BuiltinEffects {
                 // Damage arbiter contributions + direct damage (§6.1).
                 .register(new DamageEffect())
                 .register(new DamageModEffect()) // §C canonical; replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE
+                .register(new DamageScaleEffect()) // count-scaled fold contribution (KOTH Victorious: +N% per nearby player)
                 // Entity intents.
                 .register(new HealthModEffect()) // §C canonical MODIFY_HEALTH (give/take/transfer); replaces HEAL
                 .register(new IgniteEffect())

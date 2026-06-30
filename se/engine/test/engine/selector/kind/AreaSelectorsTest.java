@@ -10,6 +10,7 @@ import engine.selector.SelectorCtx;
 import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 import schema.spec.Args;
@@ -57,6 +58,32 @@ class AreaSelectorsTest {
         SelectorCtx ctx = ctx(null, 5.0, "PLAYERS", 0, List.of(p1, mob, p2));
 
         assertEquals(List.of(p1, p2), new AoeSelector().resolve(ctx));
+    }
+
+    @Test
+    void aoeEnemiesKeepsMonstersAndUnalliedPlayers() {
+        // Default Allies hook: nobody is allied, so every other player is an enemy (plus all hostile mobs).
+        Player actor = mock(Player.class);
+        Monster mob = mock(Monster.class);
+        Player foe = mock(Player.class);
+
+        SelectorCtx ctx = ctx(actor, 7.0, "ENEMIES", 0, List.of(mob, foe, actor));
+
+        assertEquals(List.of(mob, foe), new AoeSelector().resolve(ctx)); // actor excluded; mob + foe are enemies
+    }
+
+    @Test
+    void aoeEnemiesExcludesAlliedPlayersAndAlliesKeepsOnlyThem() {
+        Player actor = mock(Player.class);
+        Player ally = mock(Player.class);
+        Player foe = mock(Player.class);
+        Allies.resolver((a, b) -> a == actor && b == ally); // ally is allied to the actor; foe is not
+        try {
+            assertEquals(List.of(foe), new AoeSelector().resolve(ctx(actor, 7.0, "ENEMIES", 0, List.of(ally, foe))));
+            assertEquals(List.of(ally), new AoeSelector().resolve(ctx(actor, 7.0, "ALLIES", 0, List.of(ally, foe))));
+        } finally {
+            Allies.resolver(null); // restore the no-alliance default so other tests are unaffected
+        }
     }
 
     @Test

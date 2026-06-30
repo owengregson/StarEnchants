@@ -19,7 +19,8 @@ public final class AoeSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("AOE")
             .param("r", D.DOUBLE.min(0).def(4), "radius in blocks")
-            .param("filter", D.enumOf("ALL", "PLAYERS", "MONSTERS", "MOBS").def("ALL"), "which entities to include")
+            .param("filter", D.enumOf("ALL", "PLAYERS", "MONSTERS", "MOBS", "ENEMIES", "ALLIES").def("ALL"),
+                    "which entities to include")
             .param("limit", D.INT.min(0).def(0), "max targets, nearest first (0 = unlimited)")
             .doc("Living entities within r blocks of the target, except the activator; optionally filtered and capped.")
             .example("@Aoe{r=6, filter=MONSTERS}")
@@ -40,7 +41,7 @@ public final class AoeSelector implements SelectorKind {
         int limit = ctx.integer("limit");
         List<LivingEntity> matched = new ArrayList<>();
         for (LivingEntity e : ctx.nearbyLiving(center, ctx.dbl("r"))) {
-            if (!e.equals(ctx.actor()) && filter.accepts(e)) {
+            if (!e.equals(ctx.actor()) && filter.accepts(ctx.actor(), e)) {
                 matched.add(e);
             }
         }

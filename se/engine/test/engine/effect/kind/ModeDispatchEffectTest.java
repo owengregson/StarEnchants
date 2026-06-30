@@ -136,6 +136,55 @@ class ModeDispatchEffectTest {
     }
 
     @TestFactory
+    List<DynamicTest> damageScale() {
+        // total = per * count, clamped to cap (0 = uncapped), routed into the same four fold buckets as DAMAGE_MOD.
+        return List.of(
+                dynamicTest("DAMAGE_SCALE attack/add 2 targets → addOutgoingDamage(per*count/100)", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("side", "attack").with("mode", "add").with("per", 10.0).with("cap", 100.0)
+                            .targets("who", mock(LivingEntity.class), mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new DamageScaleEffect().run(ctx, sink);
+                    verify(sink).addOutgoingDamage(0.20); // 10 * 2 = 20% → 0.20
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("DAMAGE_SCALE cap clamps the total", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("side", "attack").with("mode", "add").with("per", 10.0).with("cap", 15.0)
+                            .targets("who", mock(LivingEntity.class), mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new DamageScaleEffect().run(ctx, sink);
+                    verify(sink).addOutgoingDamage(0.15); // 20 clamped to 15 → 0.15
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("DAMAGE_SCALE defense/add → addDamageReduction(per*count/100)", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("side", "defense").with("mode", "add").with("per", 10.0).with("cap", 0.0)
+                            .targets("who", mock(LivingEntity.class), mock(LivingEntity.class),
+                                    mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new DamageScaleEffect().run(ctx, sink);
+                    verify(sink).addDamageReduction(0.30); // 10 * 3, uncapped
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("DAMAGE_SCALE attack/flat → addFlatDamage(per*count)", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("side", "attack").with("mode", "flat").with("per", 2.0).with("cap", 0.0)
+                            .targets("who", mock(LivingEntity.class), mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new DamageScaleEffect().run(ctx, sink);
+                    verify(sink).addFlatDamage(4.0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("DAMAGE_SCALE with an empty 'who' set → no fold contribution at all", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create(); // no targets("who") → count 0 → short-circuit
+                    Sink sink = mock(Sink.class);
+                    new DamageScaleEffect().run(ctx, sink);
+                    verifyNoInteractions(sink); // never reads per/cap/side/mode, never folds
+                }));
+    }
+
+    @TestFactory
     List<DynamicTest> money() {
         return List.of(
                 player("MONEY give → giveMoney", new MoneyEffect(),
