@@ -14,6 +14,7 @@ applies-to: [ARMOR]
 group: "mythic"
 tier: mythic
 requires: ["enchants/tank"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
     condition: "%victim.helditem% contains \"AXE\""

@@ -181,6 +181,15 @@ public final class CombatDispatch {
         Entity victimEntity = event.getEntity();
         LivingEntity victim = victimEntity instanceof LivingEntity living ? living : null;
         LivingEntity attacker = damager instanceof LivingEntity living ? living : null;
+        // Self-inflicted damage (e.g. an ender-pearl teleport, whose projectile's shooter IS the victim) must
+        // not fire the player's own ATTACK/DEFENSE effects on themselves — there is no opponent. The
+        // projectile→shooter resolution above makes the shooter the `damager`, so a self-pearl reads here as
+        // damager == victim; bail before any SE combat work and leave the vanilla damage untouched.
+        if (damager == victimEntity
+                || (damager instanceof Player dp && victimEntity instanceof Player vp
+                        && dp.getUniqueId().equals(vp.getUniqueId()))) {
+            return;
+        }
         Location at = victimEntity.getLocation();
         // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();

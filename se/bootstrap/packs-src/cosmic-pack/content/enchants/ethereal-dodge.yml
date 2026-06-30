@@ -16,6 +16,7 @@ applies-to: [BOOTS]
 group: "mythic"
 tier: mythic
 requires: ["enchants/dodge"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
     chance: 2.75
