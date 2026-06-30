@@ -136,6 +136,10 @@ public abstract class PagedMenu<T> implements Menu {
         }
         if (showBack(holder)) {
             bind(holder, layout.backSlot(), MenuIcons.plain(theme.back()), this::onBack);
+        } else {
+            // Root menu (no opener): clear the back slot so it is empty, not the filler pane fillFrame painted —
+            // a root shows only a close button (the back slot must read as "no back here", per ADR-0030 nav).
+            bind(holder, layout.backSlot(), null, null);
         }
         bind(holder, layout.closeSlot(), MenuIcons.plain(theme.close()),
                 click -> click.player().closeInventory());
