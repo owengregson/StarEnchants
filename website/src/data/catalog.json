@@ -1911,6 +1911,63 @@
       ]
     },
   {
+    "head": "TELEPORT_BEHIND",
+    "doc": "Teleport the mover(s) `distance` blocks behind the reference (of: VICTIM — the attacker on a DEFENSE trigger — or ACTOR), facing as it faces. Unsafe (blocked / wall between) → onFail ONTOP lands on the reference, NONE cancels.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ TELEPORT_BEHIND: { of: <enum{VICTIM|ACTOR}=VICTIM>, distance: <double[0..]=1>, onFail: <enum{ONTOP|NONE}=ONTOP> } }",
+    "example": "{ TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "of",
+        "kind": "ENUM",
+        "label": "enum{VICTIM|ACTOR}",
+        "required": false,
+        "default": "VICTIM",
+        "min": null,
+        "max": null,
+        "enum": [
+          "VICTIM",
+          "ACTOR"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "distance",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "onFail",
+        "kind": "ENUM",
+        "label": "enum{ONTOP|NONE}",
+        "required": false,
+        "default": "ONTOP",
+        "min": null,
+        "max": null,
+        "enum": [
+          "ONTOP",
+          "NONE"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "TELEPORT_DROPS",
     "doc": "Send the block's drops straight to the breaker's inventory (this MINE activation).",
     "affinity": "CONTEXT_LOCAL",
