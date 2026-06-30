@@ -120,7 +120,7 @@ lore:
   # uses it: scrolls, the orb, dust, the soul gem, the trak gems, the enchant book's {DESCRIPTION}, AND the
   # armour-set piece lore. Authors write one long line and it word-wraps to this width (explicit line breaks
   # stay hard breaks). 0 = off. Tune this one number to change wrapping everywhere.
-  item-wrap: 30
+  item-wrap: 40
 
 # Integration discovery (§N). Toggles read ONCE at boot (un-discovering a provider mid-run is not clean), so a
 # change here takes effect on the next server start. Named integrations (worldguard, vault, mental, …) read

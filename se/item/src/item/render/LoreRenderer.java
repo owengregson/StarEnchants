@@ -168,19 +168,17 @@ public final class LoreRenderer {
         if (state.setKey() != null) {
             // Armour member: the set's shared armour lore (§6.6). No auto "(Set)" marker — the authored lore
             // carries the SET BONUS block. Word-wrapped to the universal lore.item-wrap width like every other
-            // authored item lore, so long flavour / ability lines reflow instead of overflowing the tooltip.
-            for (String line : setLore.armor(state.setKey())) {
-                for (String wrapped : TextWrap.wrap(line, item.mint.ItemFactory.itemWrapWidth())) {
-                    out.add(Colors.translate(wrapped));
-                }
+            // authored item lore (via wrapAll, NOT a per-line wrap loop, so the author's blank separator lines
+            // between the bonus block and the ability/footer survive — a bare wrap() drops an empty line).
+            for (String wrapped : TextWrap.wrapAll(setLore.armor(state.setKey()), item.mint.ItemFactory.itemWrapWidth())) {
+                out.add(Colors.translate(wrapped));
             }
         }
         if (state.setWeaponKey() != null) {
-            // Weapon member: the set weapon's own authored lore (§6.6), wrapped to the same universal width.
-            for (String line : setLore.weapon(state.setWeaponKey())) {
-                for (String wrapped : TextWrap.wrap(line, item.mint.ItemFactory.itemWrapWidth())) {
-                    out.add(Colors.translate(wrapped));
-                }
+            // Weapon member: the set weapon's own authored lore (§6.6), wrapped to the same universal width,
+            // keeping its authored blank separators (wrapAll, as above).
+            for (String wrapped : TextWrap.wrapAll(setLore.weapon(state.setWeaponKey()), item.mint.ItemFactory.itemWrapWidth())) {
+                out.add(Colors.translate(wrapped));
             }
         }
         // §H slot-expander feedback: shown only once an orb has ADDED slots. Emitted last in the body so it sits
