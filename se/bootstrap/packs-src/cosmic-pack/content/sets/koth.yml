@@ -4,7 +4,7 @@ description: "&fRise to supremacy with the &c&lK&6&l.&e&lO&2&l.&b&lT&5&l.&d&lH &
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&6&l** K.O.T.H SET EQUIPPED &6&l**\n"
+equip-message: "\n&f&l** &c&lK&6&l.&e&lO&2&l.&b&lT&5&l.&d&lH &f&lSET EQUIPPED &f&l**\n"
 remove-message: "\n&7&l** K.O.T.H SET REMOVED **\n"
 armor:
   enchants:

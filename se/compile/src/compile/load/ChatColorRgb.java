@@ -37,6 +37,34 @@ public final class ChatColorRgb {
         return null;
     }
 
+    /**
+     * Whether {@code text} carries 2+ DISTINCT colour codes — a rainbow name like KOTH's
+     * {@code &cK&6.&eO&2.&bT&5.&dH}. The trigger for the rainbow equip-dust cloud (each mote a random pastel)
+     * rather than a single set tint. Format codes (k-o, r) don't count; a repeated colour counts once.
+     */
+    public static boolean isMultiColor(String text) {
+        if (text == null) {
+            return false;
+        }
+        java.util.Set<String> colors = new java.util.HashSet<>();
+        for (int i = 0; i + 1 < text.length(); i++) {
+            char marker = text.charAt(i);
+            if (marker != '&' && marker != '§') {
+                continue;
+            }
+            char code = Character.toLowerCase(text.charAt(i + 1));
+            if (code == '#' && i + 7 < text.length() && parseHex(text.substring(i + 2, i + 8)) != null) {
+                colors.add(text.substring(i + 2, i + 8));
+            } else if (legacy(code) != null) {
+                colors.add(String.valueOf(code));
+            }
+            if (colors.size() >= 2) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static int[] parseHex(String rrggbb) {
         try {
             int value = Integer.parseInt(rrggbb, 16);

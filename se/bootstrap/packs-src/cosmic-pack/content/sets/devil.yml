@@ -45,22 +45,24 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
-  # Hell's Kitchen (permanent) — a netherrack trail forms under the wearer's feet as they move (self-reverting,
-  # so the ground returns; overlapping steps can't leave it permanent).
+  # Hell's Kitchen (permanent) — a single netherrack block forms directly beneath the wearer's foot as they move
+  # (self-reverting, so the ground returns). The footprint replaces ONLY solid ground, so jumping can't scaffold.
   - on: armor
     trigger: REPEATING
     repeat: 5
     chance: 100
     effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 1, dy: -1, ticks: 40, airOnly: false, who: "@Self" } }
-  # Hell's Kitchen — 5% on hit (30s cd): lay a 7x7 hellish netherrack floor under the victim for 5s, with flame
-  # + a blaze roar, and stake out a wearer-owned hellfire zone over it (read by %victim.inzone% below).
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 0, dy: -1, ticks: 40, airOnly: false, who: "@Self" } }
+  # Hell's Kitchen — 15% on hit (30s cd): lay a 7x7 hellish MAGMA floor under the victim for 5s (only over solid
+  # ground), with flame + a blaze roar, and stake out a wearer-owned hellfire zone over it (read by %victim.inzone%
+  # below). The zone also suppresses the magma's HOT_FLOOR burn, so the floor scorches the scene, not the health,
+  # of anyone caught standing on it.
   - on: armor
     trigger: ATTACK
     chance: 15
     cooldown: 600
     effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: MAGMA_BLOCK, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
       - { MARK_ZONE: { radius: 4.5, duration: 100, who: "@Victim" } }
       - { PARTICLE: { particle: FLAME, count: 40 } }
       - { SOUND: { sound: ENTITY_BLAZE_SHOOT } }
