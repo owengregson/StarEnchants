@@ -108,6 +108,8 @@ class FanOutEffectTest {
                         (s, t) -> verify(s).controlKnockback(t, 0.0, 2)),
                 entity("REMOVE_POTION → removePotion(effect)", new RemovePotionEffect(),
                         c -> c.with("effect", 5), (s, t) -> verify(s).removePotion(t, 5)),
+                entity("POTION_LOCK → potionLock(effect, ticks)", new PotionLockEffect(),
+                        c -> c.with("effect", 5).with("ticks", 100), (s, t) -> verify(s).potionLock(t, 5, 100)),
                 // §C: the authored 1-based level reaches the Sink as the 0-based Bukkit amplifier (level − 1).
                 entity("POTION → potion(effect, level−1, duration)", new PotionEffect(),
                         c -> c.with("effect", 7).with("level", 2).with("duration", 100),

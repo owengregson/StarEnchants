@@ -701,6 +701,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         engine.sink.FallingBlockCasts.clearAll(); // forget any in-flight falling-block impact bindings
         engine.sink.CombatTag.clearAll(); // forget combat tags (supreme's out-of-combat fly)
         engine.sink.DamageMarks.clearAll(); // forget damage marks (reaper's Mark of the Reaper)
+        engine.sink.OwnerZones.clearAll(); // forget owner zones (devil's Hell's Kitchen hellfire zones)
         engine.sink.TempEquip.clearAll(); // forget temporary equipment swaps (spooky's pumpkin helmet)
         if (metrics != null) {
             metrics.shutdown(); // stop the bStats submit thread so it doesn't outlive a /reload

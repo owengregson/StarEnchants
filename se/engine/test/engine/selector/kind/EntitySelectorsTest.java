@@ -7,14 +7,28 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import engine.selector.SelectorCtx;
+import engine.sink.DamageMarks;
 import java.util.List;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import schema.spec.Args;
 
 class EntitySelectorsTest {
+
+    @AfterEach
+    void cleanMarks() {
+        DamageMarks.clearAll();
+    }
+
+    private static LivingEntity withId(UUID id) {
+        LivingEntity e = mock(LivingEntity.class);
+        lenient().when(e.getUniqueId()).thenReturn(id);
+        return e;
+    }
 
     private static final Location CENTER = mock(Location.class);
 
@@ -81,6 +95,28 @@ class EntitySelectorsTest {
         when(absent.args()).thenReturn(Args.empty().with("name", "Ghost"));
         when(absent.playerByName("Ghost")).thenReturn(null);
         assertTrue(new PlayerFromNameSelector().resolve(absent).isEmpty());
+    }
+
+    @Test
+    void markedKeepsOnlyNearbyEntitiesTheActorHasMarked() {
+        Player actor = mock(Player.class);
+        UUID actorId = UUID.randomUUID();
+        when(actor.getUniqueId()).thenReturn(actorId);
+        LivingEntity marked = withId(UUID.randomUUID());
+        LivingEntity unmarked = withId(UUID.randomUUID());
+        DamageMarks.mark(marked.getUniqueId(), actorId, 0.25, 60_000L); // the actor has marked exactly one of them
+        SelectorCtx ctx = areaCtx(actor, 32.0, List.of(marked, unmarked));
+
+        assertEquals(List.of(marked), new MarkedSelector().resolve(ctx)); // the unmarked nearby entity is dropped
+    }
+
+    @Test
+    void markedIsEmptyWhenTheActorHasMarkedNobody() {
+        Player actor = mock(Player.class);
+        lenient().when(actor.getUniqueId()).thenReturn(UUID.randomUUID());
+        SelectorCtx ctx = mock(SelectorCtx.class);
+        lenient().when(ctx.actor()).thenReturn(actor); // no marks → returns before any nearby scan
+        assertTrue(new MarkedSelector().resolve(ctx).isEmpty());
     }
 
     @Test

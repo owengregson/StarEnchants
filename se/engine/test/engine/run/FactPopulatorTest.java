@@ -12,9 +12,11 @@ import compile.cond.VarKind;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
+import engine.sink.OwnerZones;
 import engine.stores.VarStore;
 import java.util.UUID;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
@@ -176,6 +178,31 @@ class FactPopulatorTest {
         // combo is declared so conditions referencing it compile, but no combat-streak tracker exists.
         FactBuffer f = populator.populate(new ActivationContext(actor(), null, null, null));
         assertEquals(0.0, f.number(num(null, "combo")));
+    }
+
+    @Test
+    void victimInZoneIsTrueInsideAnActorOwnedZoneAndFalseOutside() {
+        int slot = flag("victim.inzone");
+        UUID actorId = UUID.randomUUID();
+        UUID zoneWorld = UUID.randomUUID();
+        Player actor = mock(Player.class);
+        lenient().when(actor.getUniqueId()).thenReturn(actorId);
+        lenient().when(actor.getWorld()).thenReturn(mock(World.class)); // a different world ref → the distance block skips
+        World world = mock(World.class);
+        lenient().when(world.getUID()).thenReturn(zoneWorld);
+        LivingEntity victim = mock(LivingEntity.class);
+        lenient().when(victim.getWorld()).thenReturn(world);
+
+        OwnerZones.mark(actorId, zoneWorld, 0, 0, 4.0, 60_000L);
+        try {
+            when(victim.getLocation()).thenReturn(new Location(world, 1, 64, 1)); // dist 1.4 < 4 → inside
+            assertTrue(populator.populate(new ActivationContext(actor, victim, null, null)).flag(slot));
+
+            when(victim.getLocation()).thenReturn(new Location(world, 20, 64, 20)); // far outside the radius
+            assertFalse(populator.populate(new ActivationContext(actor, victim, null, null)).flag(slot));
+        } finally {
+            OwnerZones.clearAll();
+        }
     }
 
     @Test

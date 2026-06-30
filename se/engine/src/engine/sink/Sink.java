@@ -112,6 +112,15 @@ public interface Sink {
 
     void removePotion(LivingEntity target, int potionEffectId);
 
+    /**
+     * Strip an interned potion effect from {@code target} now and <em>continuously deny</em> it for
+     * {@code durationTicks} — a re-strip every tick until the window elapses (POTION_LOCK — druid's 5s Speed
+     * lock on impact, fantasy's Speed lock while webbed). Unlike {@link #removePotion}, a re-application during
+     * the window (drinking a potion, a beacon) is removed again next tick. The re-strip task self-cancels at the
+     * window's end and stops early if the target leaves the world; a non-positive duration is a one-shot strip.
+     */
+    void potionLock(LivingEntity target, int potionEffectId, int durationTicks);
+
     /** Clear every active potion effect from the target. */
     void cure(LivingEntity target);
 
@@ -299,6 +308,15 @@ public interface Sink {
      * later hits. A per-(victim, marker) flag write, inline like {@link #setVar} (no entity hop).
      */
     void mark(LivingEntity victim, UUID marker, double percent, int durationTicks);
+
+    /**
+     * Register a wearer-owned area zone — a cylinder of {@code radius} blocks centred on {@code center} (the
+     * victim's location, captured on the firing thread) owned by {@code owner}, active for {@code durationTicks}
+     * (MARK_ZONE — devil's hellfire floor). Consulted by the {@code %victim.inzone%} fact so a separate ATTACK
+     * bonus deals more to an enemy standing in it. A per-owner registry write, inline like {@link #mark} (no
+     * entity hop): only the centre's primitives (world id, x, z) are read.
+     */
+    void markZone(Location center, UUID owner, double radius, int durationTicks);
 
     // ── Suppression intents (SUPPRESS_ENCHANT — disable an enchant/group/type for a player) ──
 

@@ -54,6 +54,7 @@ import org.bukkit.util.Vector;
 import platform.economy.EconomyService;
 import platform.resolve.RenameResolvers;
 import platform.sched.Scheduling;
+import platform.sched.TaskHandle;
 import schema.spec.HandleCategory;
 
 /**
@@ -497,6 +498,38 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    public void potionLock(LivingEntity target, int potionEffectId, int durationTicks) {
+        entityOp(target, () -> {
+            PotionEffectType type = potionEffect(potionEffectId);
+            if (type == null) {
+                return;
+            }
+            target.removePotionEffect(type); // strip now
+            if (durationTicks <= 0) {
+                return; // a one-shot strip, no lock window
+            }
+            // Continuously deny: re-strip every tick for the window (the locked set is tiny; a no-op when absent).
+            // The handle is captured so the window backstop and an early world-exit both cancel it — the 1.8
+            // Bukkit timer is not entity-tied, so without this it would re-strip a logged-out player.
+            TaskHandle[] handle = new TaskHandle[1];
+            handle[0] = Scheduling.repeatingEntity(target, 1L, 1L, () -> {
+                if (!target.isValid()) {
+                    if (handle[0] != null) {
+                        handle[0].cancel();
+                    }
+                    return;
+                }
+                target.removePotionEffect(type);
+            });
+            Scheduling.onEntityLater(target, durationTicks, () -> {
+                if (handle[0] != null) {
+                    handle[0].cancel();
+                }
+            });
+        });
+    }
+
+    @Override
     public void cure(LivingEntity target) {
         // Snapshot the active types first: removePotionEffect mutates the live collection.
         entityOp(target, () -> {
@@ -525,6 +558,17 @@ public final class DispatchSink implements SinkReadback {
             // hits. UUIDs captured here → Folia-safe inline write (no cross-region entity read, no scheduler hop).
             DamageMarks.mark(victim.getUniqueId(), marker, percent / 100.0, durationTicks * 50L); // ticks → ms
         }
+    }
+
+    @Override
+    public void markZone(Location center, UUID owner, double radius, int durationTicks) {
+        if (center == null || owner == null || center.getWorld() == null) {
+            return;
+        }
+        // Inline per-owner registry write (no entity hop): the centre was resolved on the firing thread, so
+        // reading its world id + x/z here is region-correct. Consulted later by the %victim.inzone% fact.
+        OwnerZones.mark(owner, center.getWorld().getUID(), center.getX(), center.getZ(),
+                radius, durationTicks * 50L); // ticks → ms
     }
 
     @Override

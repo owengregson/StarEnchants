@@ -86,6 +86,7 @@ public final class FactPopulator {
     private final int comboSlot;
     private final int distanceSlot;       // actor↔victim distance in blocks (derived, Folia-guarded)
     private final int nearbyEnemiesSlot;  // living entities within NEARBY_RADIUS (derived, Folia-guarded)
+    private final int victimInZoneSlot;   // victim inside an actor-owned MARK_ZONE (derived, Folia-guarded)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -149,6 +150,7 @@ public final class FactPopulator {
         this.comboSlot = slot(vocabulary, "combo", VarKind.NUM);
         this.distanceSlot = slot(vocabulary, "distance", VarKind.NUM);
         this.nearbyEnemiesSlot = slot(vocabulary, "nearbyenemies", VarKind.NUM);
+        this.victimInZoneSlot = slot(vocabulary, "victim.inzone", VarKind.BOOL);
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
@@ -273,9 +275,10 @@ public final class FactPopulator {
         }
     }
 
-    // Derived combat geometry (distance, nearbyenemies); Folia-wrapped like the entity facts (default to 0 cross-region).
+    // Derived combat geometry (distance, nearbyenemies, victim.inzone); Folia-wrapped like the entity facts
+    // (default cross-region).
     private void populateDerived(FactBuffer facts, ActivationContext context) {
-        if (distanceSlot < 0 && nearbyEnemiesSlot < 0) {
+        if (distanceSlot < 0 && nearbyEnemiesSlot < 0 && victimInZoneSlot < 0) {
             return;
         }
         org.bukkit.entity.Player actor = context.actor();
@@ -287,6 +290,14 @@ public final class FactPopulator {
                 LivingEntity victim = context.victim();
                 if (victim != null && victim.getWorld() == actor.getWorld()) {
                     facts.setNumber(distanceSlot, actor.getLocation().distance(victim.getLocation()));
+                }
+            }
+            if (victimInZoneSlot >= 0) {
+                LivingEntity victim = context.victim();
+                if (victim != null) {
+                    // The zone is owned by the activating wearer; true when the victim stands in one of theirs.
+                    facts.setFlag(victimInZoneSlot,
+                            engine.sink.OwnerZones.contains(actor.getUniqueId(), victim.getLocation()));
                 }
             }
             if (nearbyEnemiesSlot >= 0) {

@@ -49,6 +49,7 @@ import java.util.function.LongSupplier;
 import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
+import platform.sched.TaskHandle;
 import schema.spec.HandleCategory;
 
 /**
@@ -492,6 +493,39 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    public void potionLock(LivingEntity target, int potionEffectId, int durationTicks) {
+        entityOp(target, () -> {
+            PotionEffectType type = handles.potionEffect(potionEffectId);
+            if (type == null) {
+                return;
+            }
+            target.removePotionEffect(type); // strip now
+            if (durationTicks <= 0) {
+                return; // a one-shot strip, no lock window
+            }
+            // Continuously deny: re-strip every tick until the window elapses (the locked set is tiny;
+            // removePotionEffect on an absent effect is a cheap no-op). The handle is captured so both the
+            // window backstop and an early world-exit cancel it — the Paper timer is not entity-tied (it would
+            // otherwise re-strip a logged-out player), while on Folia the entity task stops on its own.
+            TaskHandle[] handle = new TaskHandle[1];
+            handle[0] = Scheduling.repeatingEntity(target, 1L, 1L, () -> {
+                if (!target.isValid()) {
+                    if (handle[0] != null) {
+                        handle[0].cancel();
+                    }
+                    return;
+                }
+                target.removePotionEffect(type);
+            });
+            Scheduling.onEntityLater(target, durationTicks, () -> {
+                if (handle[0] != null) {
+                    handle[0].cancel(); // end the lock at the window's close
+                }
+            });
+        });
+    }
+
+    @Override
     public void cure(LivingEntity target) {
         // Snapshot the active types first: removePotionEffect mutates the live collection, so
         // iterating it directly while removing would be a concurrent-modification hazard.
@@ -521,6 +555,17 @@ public final class DispatchSink implements SinkReadback {
             // hits. UUIDs captured here → Folia-safe inline write (no cross-region entity read, no scheduler hop).
             DamageMarks.mark(victim.getUniqueId(), marker, percent / 100.0, durationTicks * 50L); // ticks → ms
         }
+    }
+
+    @Override
+    public void markZone(Location center, UUID owner, double radius, int durationTicks) {
+        if (center == null || owner == null || center.getWorld() == null) {
+            return;
+        }
+        // Inline per-owner registry write (no entity hop): the centre was resolved on the firing thread, so
+        // reading its world id + x/z here is region-correct. Consulted later by the %victim.inzone% fact.
+        OwnerZones.mark(owner, center.getWorld().getUID(), center.getX(), center.getZ(),
+                radius, durationTicks * 50L); // ticks → ms
     }
 
     @Override

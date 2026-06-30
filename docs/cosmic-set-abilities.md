@@ -16,7 +16,7 @@ content can author them.
 
 | Subsystem | New vocabulary | Used by | Status |
 | --- | --- | --- | --- |
-| **Shaped particles** | `PARTICLE_RING`, `PARTICLE_LINE` heads + coloured-dust `Sink.dust` (cross-version `DustOptions` / legacy offset-RGB). Moving `TETHER` variant deferred | koth, reaper | ✅ |
+| **Shaped particles** | `PARTICLE_RING`, `PARTICLE_LINE` heads + coloured-dust `Sink.dust` (cross-version `DustOptions` / legacy offset-RGB). A *moving* tether is just a `REPEATING` `PARTICLE_LINE` to a live selector — reaper redraws to `@Marked` every 0.5s | koth, reaper | ✅ |
 | **Color params** | `r`/`g`/`b` int params (0-255) on the dust effects — simpler than a `D.color()` codec the grammar can't nest | koth, reaper | ✅ |
 | **Count-scaled damage** | `DAMAGE_SCALE` — `per`-target % into the additive fold, `cap`-clamped, actor-centred count | koth | ✅ |
 | **Cosmetic lightning** | `LIGHTNING { damage: 0 }` strikes a visual-only bolt (no vanilla ~5 dmg / fire) | yijki, thor | ✅ |
@@ -25,13 +25,14 @@ content can author them.
 | **Safe teleport-behind** | `TELEPORT_BEHIND { of, distance, onFail }` — blink behind a reference, LOS/occlusion-checked, on-top fallback | stellar | ✅ |
 | **Temp-block ledger** | `TEMP_BLOCK { shape: POINT\|FOOTPRINT\|COLUMN, unbreakable }` — air-only placement, epoch-token revert (no permanence on overlap) | yeti, fantasy, devil | ✅ |
 | **Falling display blocks** | `FALLING_BLOCK` — cosmetic falling blocks that vanish on landing, first-hit-wins impact (damage + potion strip/lock) | druid | ✅ |
-| **Damage mark** | `MARK { amount, duration }` — per-(victim,attacker) bonus consulted by the damage fold | reaper | ✅ |
-| **Owner zone** | `MARK_ZONE` + `%victim.inzone%` fact — a wearer-owned cylinder; condition-gated bonuses inside it | devil | 🔵 |
+| **Damage mark** | `MARK { amount, duration }` — per-(victim,attacker) bonus consulted by the damage fold; `DamageMarks.marked(marker)` reverse-lookup drives the `@Marked` selector | reaper | ✅ |
+| **Marked selector** | `@Marked{r}` — every nearby living entity the activator currently has an active `MARK` on (a near-by filter of the marks set, no cross-region `getEntity`) | reaper | ✅ |
+| **Owner zone** | `MARK_ZONE { radius, duration }` + `%victim.inzone%` fact — a wearer-owned cylinder (`OwnerZones`); condition-gated bonuses fire inside it | devil | ✅ |
 | **Equipment swap** | `EQUIP_SWAP { slot, material, duration }` — timed gear replacement, ledgered, death/quit-safe | spooky | ✅ |
 | **Out-of-combat flight** | `FLY_MODE` + `CombatTagStore` + `%incombat%` fact — flight granted only while not combat-tagged | supreme | ✅ |
 | **Enemy/ally AoE** | `@Aoe{filter=ENEMIES\|ALLIES}` + an `Allies` soft-hook | thor | ✅ |
 | **Suppression-immune** | `SUPPRESS_IMMUNE` (per-player veto) — dragon. phantom's soul lockout reuses the existing `SUPPRESS { scope: GROUP, key: soul }`, so no new TIER scope was needed | dragon, phantom | ✅ |
-| **Potion lock** *(optional)* | `POTION_LOCK { effect, ticks }` — strip + continuously deny a potion for a window | druid, fantasy | 🔵 |
+| **Potion lock** | `POTION_LOCK { effect, ticks }` — strip + continuously deny a potion for a window (a per-tick re-strip, self-cancelling) | druid, fantasy | ✅ |
 
 All entity/world mutation routes through the `Sink` (Folia-correct, region-routed); every
 new Sink method lands in `Sink.java` + **both** the modern and legacy overlay `DispatchSink`s
@@ -62,11 +63,11 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 - **Permanent:** a self-reverting **netherrack trail** under the wearer's feet (`TEMP_BLOCK`
   FOOTPRINT, ledgered so the trail never becomes permanent).
 - **On hit — 5%, 30s cooldown:** lay a 7×7 netherrack floor under the victim + a wearer-owned
-  **hellfire zone** (`MARK_ZONE`) + flame/sound flair, ~5s.
-- **While attacking an enemy inside an active zone:** +35% damage (`%victim.inzone%`).
-- **Globalized:** temp-block ledger, owner-zone + `%victim.inzone%` fact.
-- ⚠️ This spec was **reconstructed** (the re-paste was garbled). Confirm material/period/%.
-  The current lore line "+25% damage to all enemies" has no matching mechanic.
+  **hellfire zone** (`MARK_ZONE radius:4.5`, the same 5s as the floor) + flame/sound flair.
+- **While attacking an enemy standing in an active zone:** **+35% damage** — a separate
+  `chance:100` ATTACK bonus gated on `%victim.inzone%`, folded additively with the weapon bonus.
+- **Globalized:** temp-block ledger, **owner-zone** (`MARK_ZONE` + `OwnerZones` + the
+  `%victim.inzone%` fact).
 
 ### dragon — **Dovahkiin** (passive) ✅
 - **Effect:** while worn, the wearer is **immune to enchant-cancelling** — any
@@ -76,16 +77,17 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 ### druid — **Terrablender** ✅ ⚠️ *(lore wording)*
 - **On hit — 5%, 30s cooldown:** spawn a 3×3 grid of **falling grass blocks** 4 blocks above
   the victim's head. On impact: deal **1.5× the triggering hit's damage** (once — shared
-  first-hit-wins flag, so the 3×3 can't multiply) and strip + deny **Speed** for 5s. The
-  blocks **vanish on landing** (no block is ever placed); misses evict on TTL.
-- **Globalized:** `FALLING_BLOCK`, potion-lock.
+  first-hit-wins flag, so the 3×3 can't multiply) and **lock Speed for 5s** (`POTION_LOCK
+  ticks:100` — re-stripped every tick so it can't be re-drunk back). The blocks **vanish on
+  landing** (no block is ever placed); misses evict on TTL.
+- **Globalized:** `FALLING_BLOCK` + the IMPACT trigger, **potion-lock** (`POTION_LOCK`).
 - ⚠️ Lore currently says "Terrabender Passive"; the mechanic is the on-hit "Terrablender".
 
 ### fantasy — **Fantasy Trap** ✅
 - **On hit — 10%, 30s cooldown (players only):** spawn an **unbreakable cobweb** at the
-  victim's feet for **1s** (vanilla physics halts them) and strip their **Speed**. Reverts
-  to air.
-- **Globalized:** temp-block ledger (`unbreakable: true` engages the break-guard).
+  victim's feet for **1s** (vanilla physics halts them) and **lock their Speed for that same
+  second** (`POTION_LOCK ticks:20` — denied the whole time they're webbed). Reverts to air.
+- **Globalized:** temp-block ledger (`unbreakable: true` engages the break-guard), **potion-lock**.
 
 ### koth — **Victorious** ✅
 - **On hit (weapon):** **+10% outgoing damage per nearby player** (friend *or* foe, not self)
@@ -103,13 +105,14 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 - ⚠️ The set's current short burst-on-hit DEFENSE bonus is **removed** — the spec wants these
   as permanent passives.
 
-### reaper — **Mark of the Reaper** ✅ ⚠️ *(lore wording)*
+### reaper — **Mark of the Reaper** ✅
 - **On hit — 5%, 30s cooldown:** **mark** the victim for **3s**; while marked they take
   **+25% damage from the reaper wearer specifically** (applied by the damage fold's mark
-  consult, which reads before attack abilities so the marking hit itself is excluded). A
-  **dark-red dust tether** is drawn from the victim to the wearer every 0.5s while marked.
-- **Globalized:** `MARK`, `TETHER`.
-- ⚠️ Lore says "Passive Ability"; mechanic is on-hit.
+  consult, which reads before attack abilities so the marking hit itself is excluded).
+- **Continuous tether:** a `REPEATING` (every 0.5s) **dark-red dust beam** redrawn from each
+  still-marked victim to the wearer — `PARTICLE_LINE who: @Marked` (silent when nothing is
+  marked, exactly like KOTH's aura). The mark window self-clears the tether when it lapses.
+- **Globalized:** `MARK` + the `DamageMarks.marked` reverse-lookup, the **`@Marked` selector**.
 
 ### spooky — **Scarecrow** ✅
 - **On hit — 5%, 30s cooldown (players only):** replace the victim's **helmet with a pumpkin**
@@ -157,18 +160,19 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 
 The lore wording was fixed (on-hit → "*Name* Ability", defense/permanent → "*Name* Passive
 Ability"; druid renamed Terrabender → Terrablender); devil / Hell's Kitchen was confirmed; and
-phantom's old burst bonus was replaced by the permanent passives. A few mechanics shipped as a
-pragmatic variant of the exact spec — each is a candidate for a later refinement (none blocks a set):
+phantom's old burst bonus was replaced by the permanent passives.
+
+The four mechanics that had first shipped as pragmatic variants were **brought up to the exact
+spec** (this pass): devil's **+35% in the hellfire zone** (owner-zone + `%victim.inzone%`),
+druid's **5s** and fantasy's **in-web** Speed are now a continuous `POTION_LOCK` (not a one-shot
+strip), and reaper's tether is a **continuous 0.5s beam** to `@Marked` (not a one-shot line).
+
+The remaining variants are genuinely-minor and each is a candidate for a later refinement (none
+blocks a set):
 
 - **phantom soul lockout** — implemented as `SUPPRESS { scope: GROUP, key: soul }` (every soul-tier
   enchant already carries `group: soul`), so **no core `Ability` arity change** was needed.
-- **druid / fantasy Speed** — a one-shot `REMOVE_POTION` strip on impact, not a continuous 5s
-  re-deny (the optional `POTION_LOCK` would add the lock).
-- **reaper tether** — a one-shot dark-red dust line at the moment of marking, not a continuous
-  0.5s beam while marked (a moving `TETHER` repeater is the refinement).
-- **devil +35% in-zone** — the netherrack trail + 7×7 floor + flame/sound shipped; the +35% to
-  enemies *inside the hellfire zone* awaits the owner-zone (`%victim.inzone%`) subsystem.
-- **fantasy cobweb** — temporary + brief (1 s); the hard "unbreakable" guard is reserved.
+- **fantasy cobweb** — temporary + brief (1 s); the hard "unbreakable" guard is best-effort.
 - **koth count** — `DAMAGE_SCALE who: @AllPlayers{r=7}` centres on the victim during an ATTACK
   (melee-adjacent to the wearer); a wearer-centred selector is a future nicety.
 - **`MAX_HEALTH_DRAIN`** — overlap-safe exact-delta restore; a victim who logs out mid-window keeps
@@ -189,12 +193,14 @@ thor Stormcaller · yeti Fortified · yijki Divine Shield.
 `TELEPORT_BEHIND` + `Sink.teleportSafe` · `SUPPRESS_IMMUNE` · `TEMP_BLOCK` (POINT/FOOTPRINT/COLUMN,
 self-reverting) · `MAX_HEALTH_DRAIN` · `FALLING_BLOCK` + the **abstractable `IMPACT` trigger** (a
 landing block fires any author-defined effects on what it hit) · `FLY_MODE` + `CombatTag` · `MARK`
-+ the damage-fold consult · `EQUIP_SWAP` + `TempEquip` (death/quit-safe).
++ the damage-fold consult + the `@Marked` selector · `POTION_LOCK` (strip + per-tick re-deny for a
+window) · `MARK_ZONE` + `OwnerZones` + the `%victim.inzone%` fact (owner-zone) · `EQUIP_SWAP` +
+`TempEquip` (death/quit-safe).
 
 All entity/world mutation routes through the `Sink`; every new method lands in **both** the modern
 + legacy overlays (mega-jar class-set parity); the cross-cutting registries (`FallingBlockCasts`,
-`CombatTag`, `DamageMarks`, `TempEquip`) are static, era-agnostic, and cleared on disable. The
-`D.color()` codec was dropped in favour of `r`/`g`/`b` int params.
+`CombatTag`, `DamageMarks`, `OwnerZones`, `TempEquip`) are static, era-agnostic, and cleared on
+disable. The `D.color()` codec was dropped in favour of `r`/`g`/`b` int params.
 
 **Remaining gate before a PR:** the live Paper + Folia integration matrix — the dust/teleport/
 temp-block/falling-block/equip-swap/fly paths have live-only oracles (`./gradlew build` is green;
