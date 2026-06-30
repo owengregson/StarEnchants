@@ -419,6 +419,35 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
+    public void drainMaxHealth(LivingEntity target, double fraction, double baseline, double flat, int durationTicks) {
+        entityOp(target, () -> {
+            AttributeInstance maxHealth = maxHealthAttribute(target);
+            if (maxHealth == null) {
+                return;
+            }
+            double overhealth = maxHealth.getBaseValue() - baseline;
+            double drain = overhealth * fraction + flat;
+            if (drain <= 0) {
+                return; // no overhealth to take
+            }
+            double newBase = Math.max(1.0, maxHealth.getBaseValue() - drain);
+            double removed = maxHealth.getBaseValue() - newBase; // exact delta (also when the clamp bit)
+            maxHealth.setBaseValue(newBase);
+            if (target.getHealth() > maxHealth.getValue()) {
+                target.setHealth(Math.max(0.0, maxHealth.getValue())); // clamp current down to the new cap
+            }
+            if (durationTicks > 0) {
+                Scheduling.onEntityLater(target, durationTicks, () -> {
+                    AttributeInstance mh = maxHealthAttribute(target);
+                    if (mh != null) {
+                        mh.setBaseValue(mh.getBaseValue() + removed); // add back exactly what was drained
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
     public void damageArmor(LivingEntity target, int amount) {
         entityOp(target, () -> adjustArmorDurability(target, amount, false));
     }
