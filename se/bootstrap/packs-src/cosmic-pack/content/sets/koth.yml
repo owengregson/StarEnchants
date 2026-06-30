@@ -47,3 +47,20 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
+  # Victorious — scale outgoing damage with the crowd: +10% per nearby player (friend OR foe) within 7 blocks,
+  # capped at +100% (the Victorious contribution alone; folds additively with the set's other buffs).
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }
+  # Victorious crown aura (cosmetic, redrawn every 0.5s): a white redstone-dust ring at hip height the size of
+  # the radius, plus a dust tether from each nearby player to the wearer. REPEATING has no victim, so the AoE
+  # centres on the wearer.
+  - on: armor
+    trigger: REPEATING
+    repeat: 10
+    chance: 100
+    effects:
+      - { PARTICLE_RING: { particle: REDSTONE, r: 255, g: 255, b: 255, radius: 7, count: 60, height: 1 } }
+      - { PARTICLE_LINE: { particle: REDSTONE, r: 255, g: 255, b: 255, density: 2, height: 1, who: "@AllPlayers{r=7}" } }

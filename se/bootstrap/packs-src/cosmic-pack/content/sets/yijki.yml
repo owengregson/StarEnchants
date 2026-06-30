@@ -47,3 +47,13 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } }
+  # Divine Shield — 10% on being hit (30s cd): negate the hit (damage + wearer knockback), launch the attacker
+  # backward (~2 hits of knockback), and strike them with a cosmetic no-damage bolt.
+  - on: armor
+    trigger: DEFENSE
+    chance: 10
+    cooldown: 600
+    effects:
+      - { CANCEL: {} }
+      - { VELOCITY: { mode: away, strength: 1.0, who: "@Attacker" } }
+      - { LIGHTNING: { damage: 0, who: "@Attacker" } }

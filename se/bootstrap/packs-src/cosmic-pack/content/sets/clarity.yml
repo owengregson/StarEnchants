@@ -47,3 +47,11 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+  # Bless — strip HARMFUL effects continuously while the full set is worn (~4x/sec), so the wearer can never
+  # HOLD a debuff (their own or an enemy's). Positives are untouched. The "Bless Passive Ability" lore line.
+  - on: armor
+    trigger: REPEATING
+    repeat: 5
+    chance: 100
+    effects:
+      - { CURE: { category: HARMFUL, who: "@Self" } }

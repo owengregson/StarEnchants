@@ -47,3 +47,15 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+  # Dimensional Shift — 5% on being hit (30s cd): vanish + Speed IV for 5s and blink 1 block behind the
+  # attacker (the VICTIM slot on DEFENSE is the attacker); on top of them if there's no safe spot.
+  - on: armor
+    trigger: DEFENSE
+    chance: 5
+    cooldown: 600
+    effects:
+      - { POTION: { effect: INVISIBILITY, level: 1, duration: 100, who: "@Self" } }
+      - { POTION: { effect: SPEED, level: 4, duration: 100, who: "@Self" } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: "@Self" } }
+      - { SOUND: { sound: ENTITY_ENDERMAN_TELEPORT } }
+      - { PARTICLE: { particle: PORTAL, count: 40 } }

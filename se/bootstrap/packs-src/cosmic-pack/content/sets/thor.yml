@@ -47,3 +47,11 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+  # Stormcaller — 5% on hit (30s cd): smite every ENEMY within 7 blocks (never the wearer, allied players, or
+  # passive mobs) with lightning dealing half this hit's pre-fold damage.
+  - on: armor
+    trigger: ATTACK
+    chance: 5
+    cooldown: 600
+    effects:
+      - { LIGHTNING: { damage: "%damage% * 0.5", who: "@Aoe{r=7, filter=ENEMIES}" } }
