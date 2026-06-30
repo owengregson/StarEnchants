@@ -16,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -40,6 +41,7 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -562,6 +564,49 @@ public final class DispatchSink implements SinkReadback {
             exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied teleport
             target.teleportAsync(dest);
         });
+    }
+
+    @Override
+    public void teleportSafe(Entity target, Location preferred, Location fallback, Location sightFrom) {
+        Location pref = preferred == null ? null : preferred.clone();
+        Location fb = fallback == null ? null : fallback.clone();
+        Location sight = sightFrom == null ? null : sightFrom.clone();
+        entityOp(target, () -> {
+            exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied teleport
+            Location dest = pref != null && isSafeDestination(pref, sight) ? pref : fb;
+            if (dest != null) {
+                target.teleportAsync(dest);
+            }
+        });
+    }
+
+    /** Whether {@code dest} has body room (feet + head passable) and an unobstructed sight line from {@code from}. */
+    private static boolean isSafeDestination(Location dest, Location from) {
+        try {
+            World world = dest.getWorld();
+            if (world == null) {
+                return false;
+            }
+            Block feet = dest.getBlock();
+            Block head = feet.getRelative(0, 1, 0);
+            if (!feet.isPassable() || !head.isPassable()) {
+                return false;
+            }
+            if (from != null && from.getWorld() == world) {
+                Vector dir = dest.toVector().subtract(from.toVector());
+                double dist = dir.length();
+                if (dist > 1.0e-4) {
+                    RayTraceResult hit = world.rayTraceBlocks(from, dir.normalize(), dist,
+                            FluidCollisionMode.NEVER, true);
+                    if (hit != null && hit.getHitBlock() != null) {
+                        return false; // a wall stands between the player and the destination
+                    }
+                }
+            }
+            return true;
+        } catch (RuntimeException unreadable) {
+            return false; // cross-region / unloaded chunk → not provably safe → caller uses the fallback
+        }
     }
 
     // ── World / block intents ────────────────────────────────────────────────────────────────────

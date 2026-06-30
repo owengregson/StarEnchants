@@ -22,6 +22,7 @@ public final class BuiltinEffects {
                 .register(new IgniteEffect())
                 .register(new LightningEffect())
                 .register(new TeleportEffect())
+                .register(new TeleportBehindEffect()) // safe blink behind a reference (stellar Dimensional Shift)
                 // Player feedback + event control.
                 .register(new MessageEffect()) // §C canonical; channel chat/actionbar/title — replaces ACTIONBAR/TITLE
                 .register(new RunCommandEffect())

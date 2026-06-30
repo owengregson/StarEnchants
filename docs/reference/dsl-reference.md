@@ -549,6 +549,18 @@ Teleport the target to the actor's or the victim's location.
 - _target_ `who`: selector `SELF`
 - _example_: `{ TELEPORT: { to: VICTIM } }`
 
+### TELEPORT_BEHIND
+
+Teleport the mover(s) `distance` blocks behind the reference (of: VICTIM — the attacker on a DEFENSE trigger — or ACTOR), facing as it faces. Unsafe (blocked / wall between) → onFail ONTOP lands on the reference, NONE cancels.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ TELEPORT_BEHIND: { of: <enum{VICTIM|ACTOR}=VICTIM>, distance: <double[0..]=1>, onFail: <enum{ONTOP|NONE}=ONTOP> } }`
+- _param_ `of` `enum{VICTIM|ACTOR}`
+- _param_ `distance` `double[0..]`
+- _param_ `onFail` `enum{ONTOP|NONE}`
+- _target_ `who`: selector `SELF`
+- _example_: `{ TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: "@Self" } }`
+
 ### TELEPORT_DROPS
 
 Send the block's drops straight to the breaker's inventory (this MINE activation).

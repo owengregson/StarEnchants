@@ -565,6 +565,33 @@ public final class DispatchSink implements SinkReadback {
         });
     }
 
+    @Override
+    public void teleportSafe(Entity target, Location preferred, Location fallback, Location sightFrom) {
+        Location pref = preferred == null ? null : preferred.clone();
+        Location fb = fallback == null ? null : fallback.clone();
+        entityOp(target, () -> {
+            exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied teleport
+            Location to = pref != null && isSafeDestination(pref) ? pref : fb;
+            if (to != null) {
+                target.teleport(to);
+            }
+        });
+    }
+
+    /** 1.8 room check: feet + head must be non-solid. No LOS ray (BlockIterator) — adequate for the legacy path. */
+    private static boolean isSafeDestination(Location dest) {
+        try {
+            if (dest.getWorld() == null) {
+                return false;
+            }
+            Block feet = dest.getBlock();
+            Block head = feet.getRelative(0, 1, 0);
+            return !feet.getType().isSolid() && !head.getType().isSolid();
+        } catch (RuntimeException unreadable) {
+            return false;
+        }
+    }
+
     // ── World / block intents ────────────────────────────────────────────────────────────────────
 
     @Override

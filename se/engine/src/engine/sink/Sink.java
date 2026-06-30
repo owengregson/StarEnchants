@@ -122,6 +122,15 @@ public interface Sink {
 
     void teleport(Entity target, Location to);
 
+    /**
+     * Teleport {@code target} to {@code preferred} when it is a safe landing — room for a body and an
+     * unobstructed line of sight from {@code sightFrom} — otherwise to {@code fallback} (e.g. on top of the
+     * reference), or nowhere when {@code fallback} is null (TELEPORT_BEHIND). The block-safety reads run on
+     * the target's own region thread; the version edge (modern raytrace / {@code isPassable} vs the 1.8
+     * solidity check) lives in the overlays. A cross-region / unloaded read fails closed → the fallback.
+     */
+    void teleportSafe(Entity target, Location preferred, Location fallback, Location sightFrom);
+
     // ── World / block intents ──
 
     /**
