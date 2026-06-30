@@ -1,6 +1,6 @@
 # Cupid — love-themed diamond set: damage boost, defensive reduction, bow resistance.
 display: "&d&lCupid"
-description: "Wear the Cupid set to strike harder and shrug off blows while wreathed in passion."
+description: "&dMove with the grace of a lover with the Cupid Set, infused with the power of passion."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&dMove with the grace of a lover with the Cupid Set, infused with the power of passion."
     - ""
     - "&d&lCUPID SET BONUS"
     - "&d* Deal 30% more damage to all enemies"
@@ -30,9 +31,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&d&lCupid's Dagger&r"
   lore:
-    - "&dWield Cupid's Dagger, a blade forged from"
-    - "&dthe essence of love, capable of"
-    - "&dpiercing hearts with its power."
+    - "&dWield Cupid's Dagger, a blade forged from the essence of love, capable of piercing hearts with its power."
     - ""
     - "&d&lCUPID WEAPON BONUS"
     - "&d* Deal 5% more damage to all enemies."

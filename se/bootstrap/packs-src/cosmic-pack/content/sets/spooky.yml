@@ -1,6 +1,6 @@
 # Spooky — eerie diamond set: defensive bonus plus the Gravedigger weapon.
 display: "&6&lSpooky"
-description: "Cloak yourself in shadow for heavy defense and a haunting weapon."
+description: "&6Don the Spooky set and embrace the eerie whispers of the night, cloaked in mystery and shadow."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&6Don the Spooky set and embrace the eerie whispers of the night, cloaked in mystery and shadow."
     - ""
     - "&6&lSPOOKY SET BONUS"
     - "&6* Deal 20% more damage to all enemies."
@@ -29,9 +30,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&6&lGravedigger&r"
   lore:
-    - "&6Unearth the power of the dead with the"
-    - "&6Gravedigger, a weapon that delves into"
-    - "&6the shadows and stirs the restless spirits."
+    - "&6Unearth the power of the dead with the Gravedigger, a weapon that delves into the shadows and stirs the restless spirits."
     - ""
     - "&6&lSPOOKY WEAPON BONUS"
     - "&6* Deal 10% more damage to all enemies"

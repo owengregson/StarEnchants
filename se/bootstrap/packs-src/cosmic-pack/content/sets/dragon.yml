@@ -1,6 +1,6 @@
 # Dragon — draconic diamond set: damage reduction + extra bite, plus exotic disable-enchant lore.
 display: "&e&lDragon"
-description: "Unleash the power of ancient dragons to deal more and take less damage."
+description: "&eUnleash the power of ancient dragons with the Dragon set, forged in the fires of legend."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,9 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&eUnleash the power of ancient dragons with"
-    - "&ethe Dragon set, forged in the fires"
-    - "&eof legend."
+    - "&eUnleash the power of ancient dragons with the Dragon set, forged in the fires of legend."
     - ""
     - "&e&lDRAGON SET BONUS"
     - "&e* Deal 15% more damage to all enemies."
@@ -32,9 +30,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&e&lWyvern Claw&r"
   lore:
-    - "&eUnleash draconic fury with the Wyvern Claw,"
-    - "&ea talon forged from the essence"
-    - "&eof ancient dragons."
+    - "&eUnleash draconic fury with the Wyvern Claw, a talon forged from the essence of ancient dragons."
     - ""
     - "&e&lDRAGON WEAPON BONUS"
     - "&e* Deal 15% more damage to all enemies"

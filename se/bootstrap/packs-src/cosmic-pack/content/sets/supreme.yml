@@ -1,6 +1,6 @@
 # Supreme — royal diamond set: 15% damage reduction + 15% extra outgoing damage.
 display: "&4&lSupreme"
-description: "Don royal threads of unmatched grandeur to reduce damage taken and strike harder."
+description: "&4Step into the realm of royalty with the Supreme set, garments woven with threads of unmatched grandeur."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,9 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&4Step into the realm of royalty with the"
-    - "&4Supreme set, garments woven with threads"
-    - "&4of unmatched grandeur."
+    - "&4Step into the realm of royalty with the Supreme set, garments woven with threads of unmatched grandeur."
     - ""
     - "&4&lSUPREME SET BONUS"
     - "&4* Deal 15% more damage to all enemies."
@@ -31,9 +29,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&4&lSizable Scepter&r"
   lore:
-    - "&4Command authority with the Sizable Scepter,"
-    - "&4a symbol of power and nobility that"
-    - "&4radiates with royal energy."
+    - "&4Command authority with the Sizable Scepter, a symbol of power and nobility that radiates with royal energy."
     - ""
     - "&4&lSUPREME WEAPON BONUS"
     - "&4* Deal 15% more damage to all enemies"

@@ -1,6 +1,6 @@
 # Phantom — wraith-themed diamond set; offensive buffs and a haunting scythe.
 display: "&c&lPhantom"
-description: "Move like a wraith and strike with spectral force while wearing the set."
+description: "&cMove like a wraith through the shadows with the Phantom set, ethereal and elusive as the night."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&cMove like a wraith through the shadows with the Phantom set, ethereal and elusive as the night."
     - ""
     - "&c&lPHANTOM SET BONUS"
     - "&c* Deal 25% more damage to all enemies"
@@ -28,9 +29,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&c&lGhastly Scythe&r"
   lore:
-    - "&cReap the souls of the fallen with the"
-    - "&cGhastly Scythe, a weapon shrouded"
-    - "&cin spectral mist and haunting whispers."
+    - "&cReap the souls of the fallen with the Ghastly Scythe, a weapon shrouded in spectral mist and haunting whispers."
     - ""
     - "&c&lPHANTOM WEAPON BONUS"
     - "&c* Deal 10% more damage to all enemies"

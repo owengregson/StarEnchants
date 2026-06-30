@@ -1,6 +1,6 @@
 # Reaper — death-themed diamond set: reduce incoming damage, deal extra damage, debuff foes on hit.
 display: "&4&lReaper"
-description: "Embrace the essence of death and fate while wearing the set."
+description: "&4Embrace the dark power of the Reaper set, wielding the essence of death and fate."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&4Embrace the dark power of the Reaper set, wielding the essence of death and fate."
     - ""
     - "&4&lREAPER SET BONUS"
     - "&4* Deal 30% more damage to all enemies"
@@ -29,9 +30,7 @@ weapon:
   material: DIAMOND_SWORD
   name: "&4&lDeathbringer&r"
   lore:
-    - "&4Bring doom to your foes with the"
-    - "&4Deathbringer, a blade that embodies"
-    - "&4the essence of mortality and fate."
+    - "&4Bring doom to your foes with the Deathbringer, a blade that embodies the essence of mortality and fate."
     - ""
     - "&4&lREAPER WEAPON BONUS"
     - "&4* Deal 5% more damage to all enemies"

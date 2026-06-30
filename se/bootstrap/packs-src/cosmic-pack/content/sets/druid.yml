@@ -1,6 +1,6 @@
 # Druid — nature-themed diamond set; offensive damage carried on the Earth Splitter axe.
 display: "&2&lDruid"
-description: "Channel the life force of the forest to cut through enemies."
+description: "&2Embrace the power of nature with the Druid Set, crafted from the essence of the natural world, channeling life force and woodland grace."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,6 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
+    - "&2Embrace the power of nature with the Druid Set, crafted from the essence of the natural world, channeling life force and woodland grace."
     - ""
     - "&2&lDRUID SET BONUS"
     - "&2* Deal 30% more damage to all enemies"
@@ -28,9 +29,7 @@ weapon:
   material: DIAMOND_AXE
   name: "&2&lEarth Splitter&r"
   lore:
-    - "&2Wield the Earth Splitter, an axe infused with"
-    - "&2the life force of the forest, cutting through"
-    - "&2enemies with the power of nature."
+    - "&2Wield the Earth Splitter, an axe infused with the life force of the forest, cutting through enemies with the power of nature."
     - ""
     - "&2&lDRUID WEAPON BONUS"
     - "&2* Deal 5% more damage to all enemies"

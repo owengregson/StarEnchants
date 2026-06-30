@@ -1,6 +1,6 @@
 # Yeti — icy diamond set: bites harder, shrugs off blows, slows attackers.
 display: "&b&lYeti"
-description: "Harness the frost of the highest peaks to hit harder and take less."
+description: "&bHarness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
@@ -11,9 +11,7 @@ armor:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&bHarness the chilling might of the Yeti set,"
-    - "&bgarments imbued with the frost of"
-    - "&bthe highest peaks."
+    - "&bHarness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
     - ""
     - "&b&lYETI SET BONUS"
     - "&b* Deal 10% more damage to all enemies"
@@ -32,9 +30,7 @@ weapon:
   material: DIAMOND_AXE
   name: "&b&lFrozen Mace&r"
   lore:
-    - "&bBring the chill of the arctic with the"
-    - "&bFrozen Mace, an icy weapon that"
-    - "&bfreezes all who dare oppose it."
+    - "&bBring the chill of the arctic with the Frozen Mace, an icy weapon that freezes all who dare oppose it."
     - ""
     - "&b&lYETI WEAPON BONUS"
     - "&b* Deal 10% more damage to all enemies"
