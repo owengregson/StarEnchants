@@ -15,7 +15,7 @@ armor:
     - ""
     - "&2&lDRUID SET BONUS"
     - "&2* Deal 30% more damage to all enemies"
-    - "&2* Terrabender Passive Ability"
+    - "&2* Terrablender Ability"
     - "&7&o(Requires all four Druid set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&2&lNature's Hood&r" }

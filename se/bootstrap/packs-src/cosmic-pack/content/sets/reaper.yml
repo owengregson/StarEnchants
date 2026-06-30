@@ -16,7 +16,7 @@ armor:
     - "&4&lREAPER SET BONUS"
     - "&4* Deal 30% more damage to all enemies"
     - "&4* Enemies deal 15% less damage to you"
-    - "&4* Mark of the Reaper Passive Ability"
+    - "&4* Mark of the Reaper Ability"
     - "&7&o(Requires all four Reaper set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&4&lGrim Hood&r" }

@@ -16,7 +16,7 @@ armor:
     - "&6&lSPOOKY SET BONUS"
     - "&6* Deal 20% more damage to all enemies."
     - "&6* Enemies deal 25% less damage to you."
-    - "&6* Scarecrow Passive Ability"
+    - "&6* Scarecrow Ability"
     - "&7&o(Requires all four Spooky set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&6&lHaunted Headgear&r" }
