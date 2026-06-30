@@ -5,15 +5,15 @@
 type: heroic
 material: GOLD_INGOT
 name: "&e&k|||&r &6&lHeroic Ingot&r &e&k|||&r"
-# {PERCENT}/{1-PERCENT} = the success/failure rate; the per-stat {+/-}{AMOUNT} lines fill from the stats below;
-# {KINDS} = what it applies to. Auto-wrapped where the renderer wraps.
+# {SUCCESS}/{FAILURE} = the success/failure rate; {OUTGOING}/{INCOMING}/{DURABILITY} = the per-stat percents;
+# {KINDS} = what it applies to (our unified item-lore tokens). Auto-wrapped where the renderer wraps.
 lore:
-  - "&a{PERCENT}% Success Rate"
-  - "&c{1-PERCENT}% Failure Rate"
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
   - ""
-  - "&e* &6{+/-}{AMOUNT}% Outgoing Damage"
-  - "&e* &6{+/-}{AMOUNT}% Incoming Damage"
-  - "&e* &6{+/-}{AMOUNT}% Durability"
+  - "&e* &6+{OUTGOING}% Outgoing Damage"
+  - "&e* &6-{INCOMING}% Incoming Damage"
+  - "&e* &6+{DURABILITY}% Durability"
   - ""
   - "&eReforges a single piece of gear into Heroic form, granting it legendary capabilities stronger than diamond."
   - ""
@@ -33,8 +33,8 @@ durability: 0.20
 reduction-scope: ENTITY
 # Re-stat the gold display piece to diamond-equivalent attack/armour + durability via the plugin's combat maths.
 diamond-stats: true
-# The HEROIC lore line stamped on a reforged piece ({TYPE} = the gear kind, {+/-}{AMOUNT} = its percent).
-lore-line: "&e&k|||&r &6&lHEROIC {TYPE} &r&7(&e{+/-}{AMOUNT}% DMG&7) &r&e&k|||&r"
+# The HEROIC lore line stamped on a reforged piece ({TYPE} = the gear kind).
+lore-line: "&e&k|||&r &6&lHEROIC {TYPE} &r&e&k|||&r"
 # Display swap on success: diamond gear becomes its gold twin (diamond stats kept via diamond-stats above).
 material-upgrades:
   DIAMOND_HELMET: GOLDEN_HELMET
