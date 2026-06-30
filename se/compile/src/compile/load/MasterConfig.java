@@ -165,7 +165,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         }
 
         public static LoreSection defaults() {
-            return new LoreSection("&7", "&f", "&b", true, "&8Unknown Enchant", 30);
+            return new LoreSection("&7", "&f", "&b", true, "&8Unknown Enchant", 40);
         }
     }
 

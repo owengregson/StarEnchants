@@ -45,9 +45,9 @@ public final class Fixtures {
 
     /**
      * Elite-Enchantments item-tooltip previews (§I overhaul). The economy items are wrapped through the plugin's
-     * own {@link TextWrap} at the universal {@code lore.item-wrap} width (30) exactly as {@code ItemFactory}
+     * own {@link TextWrap} at the universal {@code lore.item-wrap} width (40) exactly as {@code ItemFactory}
      * does at mint, so each preview matches the live tooltip; placeholders are pre-substituted to representative
-     * values. The enchant book reuses the enchant-book likeness (description wrapped at its own {@code wrap=30}).
+     * values. The enchant book reuses the enchant-book likeness (description wrapped at the same universal width).
      */
     public static List<ItemFixture> eeItems() {
         return List.of(
@@ -112,15 +112,15 @@ public final class Fixtures {
                 divineImmolationBook());
     }
 
-    /** An economy-item fixture: lore wrapped exactly as the live mint path wraps it (lore.item-wrap = 30). */
+    /** An economy-item fixture: lore wrapped exactly as the live mint path wraps it (lore.item-wrap = 40). */
     private static ItemFixture ee(String id, String material, String name, List<String> rawLore) {
-        return new ItemFixture(id, material, name, TextWrap.wrapAll(rawLore, 30));
+        return new ItemFixture(id, material, name, TextWrap.wrapAll(rawLore, 40));
     }
 
     /**
      * A Divine Immolation IV enchant book (soul tier → {@code &c}), rendered through the enchant-book likeness:
      * the success/failure rate sits right below the name, then a blank line, the description ({@code \n}-joined,
-     * wrapped at the book's own {@code wrap=30} and tier-coloured), the applies-to ("Sword Enchantment"), and
+     * wrapped at the universal {@code lore.item-wrap} width and tier-coloured), the applies-to ("Sword Enchantment"), and
      * the drag footer.
      */
     private static ItemFixture divineImmolationBook() {
@@ -137,7 +137,7 @@ public final class Fixtures {
         lore.add("&a100% Success Rate"); // rates sit right below the name
         lore.add("&c0% Failure Rate");
         lore.add("");
-        for (String line : TextWrap.wrap(desc, 30)) {
+        for (String line : TextWrap.wrap(desc, 40)) {
             lore.add("&c" + line); // {TIER_COLOR}{DESCRIPTION}
         }
         lore.add("");

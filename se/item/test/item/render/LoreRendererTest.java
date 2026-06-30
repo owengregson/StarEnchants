@@ -124,6 +124,30 @@ class LoreRendererTest {
     }
 
     @Test
+    void armourSetLorePreservesAuthoredBlankSeparatorLines() {
+        // The set's authored armour lore carries blank separator lines (between the bonus block and the
+        // ability/footer). They MUST survive rendering — the bug was a per-line wrap() that drops an empty line;
+        // wrapAll keeps it. Wrap width 0 isolates this from the wrap algorithm (owned by TextWrapTest).
+        item.mint.ItemFactory.itemWrapWidth(() -> 0);
+        LoreRenderer.SetLore setLore = new LoreRenderer.SetLore() {
+            @Override public List<String> armor(String setKey) {
+                return List.of("&2&lDRUID SET BONUS", "&2* Deal more damage", "", "&2&lTERRABLENDER",
+                        "&7&o(Requires all four.)");
+            }
+
+            @Override public List<String> weapon(String setKey) {
+                return List.of();
+            }
+        };
+        CombatState state = new CombatState(Map.of(), List.of(), "sets/druid", false);
+
+        List<String> lines = new LoreRenderer(() -> LoreStyle.DEFAULT, NAMES, setLore).lines(state);
+
+        assertEquals(List.of("§2§lDRUID SET BONUS", "§2* Deal more damage", "", "§2§lTERRABLENDER",
+                "§7§o(Requires all four.)"), lines);
+    }
+
+    @Test
     void rendersTheOrbSlotsLineOnlyWhenSlotsWereAddedBelowTheBody() {
         // §H the orb "Enchantment Slots" line: rendered ONLY when added>0, LAST in the body (so apply() places
         // it below the enchant lines, above the protection/trak lines). Template + base are the test's own input.
