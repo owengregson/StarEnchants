@@ -1,6 +1,7 @@
 package engine.stores;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,7 +21,27 @@ public final class SuppressionStore {
     }
 
     private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
+    /** Players immune to ALL suppression (dragon's Dovahkiin): {@link #suppress} is a no-op for them. */
+    private final Set<UUID> immune = ConcurrentHashMap.newKeySet();
     private volatile SuppressListener onSuppress = (player, durationTicks) -> { };
+
+    /**
+     * Make {@code player} immune to suppression, or lift it ({@code SUPPRESS_IMMUNE} / dragon's Dovahkiin).
+     * Arming it also CLEARS any suppression already on the player, so equipping the set frees them at once.
+     */
+    public void setImmune(UUID player, boolean on) {
+        if (on) {
+            immune.add(player);
+            expiryByPlayer.remove(player); // drop any DISABLE that landed before the immunity armed
+        } else {
+            immune.remove(player);
+        }
+    }
+
+    /** Whether {@code player} is currently immune to suppression. */
+    public boolean isImmune(UUID player) {
+        return immune.contains(player);
+    }
 
     /** Install the listener invoked after each {@link #suppress} (composition root); {@code null} clears it. */
     public void onSuppress(SuppressListener listener) {
@@ -34,8 +55,8 @@ public final class SuppressionStore {
      * scope to. Non-positive duration is a no-op; re-suppressing only EXTENDS (later expiry wins).
      */
     public void suppress(UUID player, long id, long nowTicks, int durationTicks) {
-        if (durationTicks <= 0) {
-            return;
+        if (durationTicks <= 0 || immune.contains(player)) {
+            return; // a suppression-immune player (Dovahkiin) is never silenced
         }
         long expiry = nowTicks + durationTicks;
         expiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
@@ -63,13 +84,15 @@ public final class SuppressionStore {
         return true;
     }
 
-    /** Forget every suppression for one player (call on quit). */
+    /** Forget every suppression (and any immunity) for one player (call on quit). */
     public void clear(UUID player) {
         expiryByPlayer.remove(player);
+        immune.remove(player);
     }
 
-    /** Forget every suppression for every player (call on disable). */
+    /** Forget every suppression (and all immunity) for every player (call on disable). */
     public void clearAll() {
         expiryByPlayer.clear();
+        immune.clear();
     }
 }

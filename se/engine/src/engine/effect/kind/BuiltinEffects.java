@@ -76,6 +76,7 @@ public final class BuiltinEffects {
                 .register(new TeleblockEffect()) // § combat-flags TELEBLOCK: block a target from teleporting
                 .register(new ImmuneEffect()) // § combat-flags IMMUNE: timed immunity to a damage cause
                 .register(new SuppressEffect()) // §C SUPPRESS: disable a target's enchant/group/type (DISABLE_*)
+                .register(new SuppressImmuneEffect()) // maintained PASSIVE immunity to all suppression (dragon Dovahkiin)
                 // Inline read-backs applied by the MINE / BOW_FIRE dispatchers (Cosmic Enchants-style SMELT/TELEPORT_DROPS/AUTO_LOCK).
                 .register(new SmeltEffect())
                 .register(new TeleportDropsEffect())

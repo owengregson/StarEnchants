@@ -1012,6 +1012,15 @@ public final class DispatchSink implements SinkReadback {
                 nowTicks.getAsLong(), durationTicks);
     }
 
+    @Override
+    public void suppressImmune(Player target, boolean on) {
+        if (target != null) {
+            // Per-player flag in the shared SuppressionStore, read by suppress()'s write-veto. The UUID is
+            // captured here → Folia-safe on the firing thread (no cross-region entity read, no scheduler hop).
+            suppression.setImmune(target.getUniqueId(), on);
+        }
+    }
+
     // ── Event control ──────────────────────────────────────────────────────────────────────────
 
     @Override
