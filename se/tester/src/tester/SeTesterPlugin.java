@@ -24,6 +24,7 @@ import tester.suite.EconomySuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.GuiSuite;
 import tester.suite.HeroicApplySuite;
+import tester.suite.HeroicVanillaStatsSuite;
 import tester.suite.HeroicSuite;
 import tester.suite.ImportSuite;
 import tester.suite.ItemCodecSuite;
@@ -101,6 +102,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new SetSuite(this));
         harness.add(new HeroicSuite(this));
         harness.add(new HeroicApplySuite(this)); // §F: success/fail/consume + armour-weapon guard
+        harness.add(new HeroicVanillaStatsSuite(this)); // §F/ADR-0031: real vanilla armour + max-durability on forge
         harness.add(new SoulSuite(this));
         harness.add(new SoulEconomySuite(this)); // §D: deposit-on-any-kill + combine + split
         harness.add(new ScrollPlayerSuite(this)); // §I: holy death-save + nametag rename

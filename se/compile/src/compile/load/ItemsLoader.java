@@ -399,7 +399,9 @@ public final class ItemsLoader {
                 root.has("destroy-on-fail")
                         ? "true".equalsIgnoreCase(root.string("destroy-on-fail")) : d.destroyOnFail(),
                 root.has("diamond-stats")
-                        ? "true".equalsIgnoreCase(root.string("diamond-stats")) : d.diamondStats());
+                        ? "true".equalsIgnoreCase(root.string("diamond-stats")) : d.diamondStats(),
+                root.has("vanilla-stats")
+                        ? "true".equalsIgnoreCase(root.string("vanilla-stats")) : d.vanillaStats());
     }
 
     private static double parseDouble(String raw, double fallback, YamlNode root, Diagnostics diags) {

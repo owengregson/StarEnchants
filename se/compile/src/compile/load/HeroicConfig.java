@@ -23,6 +23,14 @@ import java.util.Objects;
  * @param diamondStats     whether, on success, the (display-swapped) piece is re-statted to diamond-equivalent
  *                         attack/armour/toughness + durability — so a gold display piece still functions as
  *                         diamond (best-effort cross-version; see the heroic gear-forge overlay)
+ * @param vanillaStats     HOW diamond-equivalence is applied to ARMOUR when {@code diamondStats} is on. {@code true}
+ *                         (default) writes REAL vanilla armour-point/toughness attribute modifiers and a custom max
+ *                         durability where the platform supports it, so the values are correct on the HUD and read
+ *                         by other combat plugins that recompute from vanilla armour/durability (e.g. Mental's 1.8
+ *                         restore — ADR-0031); {@code false} keeps the plugin's own combat-maths approximation
+ *                         (ADR-0021, invisible to vanilla attributes). Armour-only; the weapon outgoing stays
+ *                         plugin-maths either way. On a platform without the modern attribute/durability API
+ *                         (the 1.8 fork) this silently falls back to the plugin-maths approximation.
  */
 public record HeroicConfig(
         String material,
@@ -37,7 +45,8 @@ public record HeroicConfig(
         String reductionScope,
         String loreLine,
         boolean destroyOnFail,
-        boolean diamondStats) {
+        boolean diamondStats,
+        boolean vanillaStats) {
 
     public HeroicConfig {
         Objects.requireNonNull(material, "material");
@@ -81,6 +90,7 @@ public record HeroicConfig(
                 "ENTITY",
                 DEFAULT_LORE_LINE,
                 false,
-                false);
+                false,
+                true);
     }
 }
