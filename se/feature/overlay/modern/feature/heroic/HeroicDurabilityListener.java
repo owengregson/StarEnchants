@@ -32,8 +32,12 @@ public final class HeroicDurabilityListener implements Listener {
             return;
         }
         // §F: scale the wear-cancel so a sub-diamond-max heroic piece (e.g. a gold display piece) lasts like
-        // diamond — its real durability bar is the ledger, depleting at the diamond rate.
-        double chance = HeroicDiamond.scaledWearCancel(item.getType().getMaxDurability(), item.getType(), base);
+        // diamond — its real durability bar is the ledger, depleting at the diamond rate. With vanilla-stats on
+        // (ADR-0031) the piece carries a REAL diamond max durability, so the effective max already equals diamond
+        // and the scaling collapses to the base heroic buff (no double protection) — read the effective max, not
+        // the material max, so the two paths compose.
+        double chance = HeroicDiamond.scaledWearCancel(
+                HeroicVanillaStats.effectiveMaxDurability(item), item.getType(), base);
         if (random.nextDouble() < chance) {
             event.setCancelled(true);
         }

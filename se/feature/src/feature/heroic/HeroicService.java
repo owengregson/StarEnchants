@@ -119,12 +119,16 @@ public final class HeroicService {
             return HeroicResult.committed(result, messages.format("heroic.fail"));
         }
         ItemStack upgraded = withUpgradedMaterial(gear, cfg);
-        // §F diamond-equivalence (gold display, diamond function): when diamond-stats is on, the display-swapped
-        // piece carries the diamond base-stat delta as a flat damage/reduction folded into the plugin's own
-        // combat maths (HeroicDiamond) — version-uniform, no item-attribute API. Durability is emulated by the
-        // wear-cancel scaling at hit time. The native material's stats already ≥ diamond → delta 0 (no-op).
+        // §F diamond-equivalence (gold display, diamond function). When vanilla-stats is on (ADR-0031), the writer
+        // stamps REAL vanilla armour-point/toughness modifiers and a diamond max durability so a combat plugin that
+        // recomputes from vanilla values (e.g. Mental's 1.8 armour/durability restore) sees diamond, not gold — and
+        // returns whether it wrote real ARMOUR attributes, so we DROP the plugin-maths flat reduction and never
+        // double-count. Off (or the 1.8 fork, which no-ops the writer): keep the HeroicDiamond flat fold + the
+        // wear-cancel scaling — version-uniform, no item-attribute API. The weapon outgoing stays plugin-maths
+        // either way (an armour/durability restore does not touch attack). A diamond/netherite display → delta 0.
+        boolean realArmour = cfg.diamondStats() && cfg.vanillaStats() && HeroicVanillaStats.apply(upgraded, weapon);
         double flatDamage = cfg.diamondStats() && weapon ? HeroicDiamond.weaponFlatDamage(upgraded.getType()) : 0.0;
-        double flatReduction = cfg.diamondStats() && !weapon
+        double flatReduction = cfg.diamondStats() && !weapon && !realArmour
                 ? HeroicDiamond.armourFlatReduction(upgraded.getType()) : 0.0;
         // Stat separation (§F): a WEAPON carries the OUTGOING bonus, ARMOUR the INCOMING reduction — never both,
         // so a heroic sword can't inflate defence nor heroic armour inflate attack.

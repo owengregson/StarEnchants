@@ -1,6 +1,7 @@
 package feature.heroic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.bukkit.Material;
@@ -22,6 +23,28 @@ class HeroicDiamondTest {
         assertTrue(HeroicDiamond.armourFlatReduction(Material.GOLDEN_CHESTPLATE) > 0.0);
         assertEquals(0.0, HeroicDiamond.armourFlatReduction(Material.DIAMOND_CHESTPLATE)); // already diamond
         assertEquals(0.0, HeroicDiamond.armourFlatReduction(Material.GOLDEN_SWORD));        // not armour
+    }
+
+    @Test
+    void diamondArmourPointsAndToughnessAreTheRealVanillaValuesPerSlot() {
+        // The REAL vanilla armour points written as a GENERIC_ARMOR modifier when vanilla-stats is on (ADR-0031),
+        // distinct from the flat-reduction approximation above. Diamond: helmet 3, chest 8, legs 6, boots 3; +2 toughness.
+        assertEquals(3, HeroicDiamond.diamondArmourPoints(Material.GOLDEN_HELMET));
+        assertEquals(8, HeroicDiamond.diamondArmourPoints(Material.GOLDEN_CHESTPLATE));
+        assertEquals(6, HeroicDiamond.diamondArmourPoints(Material.GOLDEN_LEGGINGS));
+        assertEquals(3, HeroicDiamond.diamondArmourPoints(Material.GOLDEN_BOOTS));
+        assertEquals(0, HeroicDiamond.diamondArmourPoints(Material.GOLDEN_SWORD)); // not armour
+        assertEquals(2, HeroicDiamond.diamondArmourToughness(Material.GOLDEN_CHESTPLATE));
+        assertEquals(0, HeroicDiamond.diamondArmourToughness(Material.GOLDEN_SWORD));
+    }
+
+    @Test
+    void displayBelowDiamondArmourFlagsSubDiamondArmourOnly() {
+        assertTrue(HeroicDiamond.displayBelowDiamondArmour(Material.GOLDEN_CHESTPLATE));
+        assertTrue(HeroicDiamond.displayBelowDiamondArmour(Material.IRON_BOOTS));
+        assertFalse(HeroicDiamond.displayBelowDiamondArmour(Material.DIAMOND_CHESTPLATE)); // already diamond
+        assertFalse(HeroicDiamond.displayBelowDiamondArmour(Material.NETHERITE_HELMET));   // already ≥ diamond
+        assertFalse(HeroicDiamond.displayBelowDiamondArmour(Material.GOLDEN_SWORD));        // not armour
     }
 
     @Test

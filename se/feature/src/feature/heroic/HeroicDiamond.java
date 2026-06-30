@@ -59,6 +59,46 @@ public final class HeroicDiamond {
         return Math.max(0.0, diamond - display);
     }
 
+    /**
+     * Diamond's vanilla armour-point benefit for a piece's slot ({@code helmet 3, chestplate 8, leggings 6,
+     * boots 3}), or {@code 0} if {@code material} is not a heroic armour piece. Unlike {@link #armourFlatReduction}
+     * (a flat-reduction approximation for the plugin's own combat maths), these are the REAL vanilla armour points
+     * written as a {@code GENERIC_ARMOR} attribute modifier when {@code vanilla-stats} is on (ADR-0031), so the
+     * armour is correct on the HUD and for plugins that recompute from vanilla armour (e.g. Mental's 1.8 restore).
+     */
+    public static int diamondArmourPoints(Material material) {
+        String name = material.name();
+        if (name.endsWith("_HELMET")) {
+            return 3;
+        }
+        if (name.endsWith("_CHESTPLATE")) {
+            return 8;
+        }
+        if (name.endsWith("_LEGGINGS")) {
+            return 6;
+        }
+        if (name.endsWith("_BOOTS")) {
+            return 3;
+        }
+        return 0;
+    }
+
+    /** Diamond's armour toughness per piece ({@code 2}), or {@code 0} if {@code material} is not an armour piece. */
+    public static int diamondArmourToughness(Material material) {
+        return diamondArmourPoints(material) > 0 ? 2 : 0;
+    }
+
+    /**
+     * Whether {@code material} is a SUB-diamond armour piece — an armour piece whose real armour points are below
+     * diamond's, so re-stating it to diamond attribute values is an upgrade. A diamond/netherite display is already
+     * ≥ diamond (no override). The signal for when the vanilla-stats writer should replace the piece's defaults.
+     */
+    public static boolean displayBelowDiamondArmour(Material material) {
+        String name = material.name();
+        return diamondArmourPoints(material) > 0
+                && !name.startsWith("DIAMOND_") && !name.startsWith("NETHERITE_");
+    }
+
     /** Diamond's max durability for a gear kind, or {@code 0} if the material is not heroic-eligible gear. */
     public static int diamondDurability(Material material) {
         String name = material.name();
