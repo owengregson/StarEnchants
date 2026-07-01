@@ -32,6 +32,43 @@ public final class HeroicDiamond {
     }
 
     /**
+     * Diamond's total attack damage for a weapon kind (base hand 1.0 included, as the vanilla "N Attack Damage"
+     * tooltip shows): {@code sword 7, axe 9}, or {@code 0} for a non-weapon. The REAL value written as a
+     * {@code GENERIC_ATTACK_DAMAGE} modifier when vanilla-stats is on (the modifier amount is this minus the
+     * base 1.0), so a heroic gold weapon attacks and reads as diamond. Distinct from {@link #weaponFlatDamage}
+     * (the plugin-maths fold approximation used when the attribute isn't written).
+     */
+    public static double diamondAttackDamage(Material material) {
+        String name = material.name();
+        if (name.endsWith("_SWORD")) {
+            return 7.0;
+        }
+        if (name.endsWith("_AXE")) {
+            return 9.0;
+        }
+        return 0.0;
+    }
+
+    /**
+     * The {@code DIAMOND_<kind>} material NAME a sub-diamond heroic piece stands in for — the value of the
+     * neutral {@code combat:effective_material} marker so an era-combat plugin treats the display-swapped piece
+     * as diamond. {@code null} when {@code material} is already diamond/netherite (no stand-in needed) or is not
+     * heroic-eligible gear (helmet/chestplate/leggings/boots/sword/axe). A pure string — the codec stores the name.
+     */
+    public static String diamondMaterialName(Material material) {
+        String name = material.name();
+        if (name.startsWith("DIAMOND_") || name.startsWith("NETHERITE_")) {
+            return null; // already at least diamond — it IS its own true material
+        }
+        for (String kind : new String[] {"_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS", "_SWORD", "_AXE"}) {
+            if (name.endsWith(kind)) {
+                return "DIAMOND" + kind;
+            }
+        }
+        return null; // not heroic-eligible gear
+    }
+
+    /**
      * The flat INCOMING reduction a heroic ARMOUR piece adds so its display material resists like diamond:
      * the diamond armour benefit of the slot minus the display material's, never negative. A coarse flat
      * stand-in for the vanilla armour-point formula (the user-accepted plugin-calculated approximation).

@@ -9,10 +9,10 @@ import org.bukkit.Registry;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 /**
  * Modern (1.17.1 → 26.1.x) heroic vanilla-stats writer (ADR-0031). When {@code vanilla-stats} is on, a heroic
@@ -20,8 +20,11 @@ import org.bukkit.inventory.meta.ItemMeta;
  * weak display material's defaults) and — where the platform supports it (Minecraft 1.20.5+) — a custom diamond
  * max durability. So the armour points and durability are correct on the HUD and read by other combat plugins
  * that recompute from vanilla armour/durability — e.g. Mental's "restore 1.8 armour/durability", which a heroic
- * gold piece otherwise defeats (it sees gold's points). The weapon's OUTGOING damage stays plugin-maths (it does
- * not conflict with an armour/durability restore), so only armour attributes are written here.
+ * gold piece otherwise defeats (it sees gold's points). A sub-diamond WEAPON likewise carries a real diamond
+ * {@code attack_damage} modifier (ADR 0032). No {@code HIDE_ATTRIBUTES}: an explicit modifier set suppresses the
+ * display material's defaults, so the vanilla tooltip renders exactly the diamond values. Every heroic piece also
+ * carries the vendor-neutral {@code combat:effective_material} marker naming the diamond it stands in for, so an
+ * era-combat plugin (Mental) presents/computes the legacy form on its own servers (docs/…/effective-material-contract).
  *
  * <p>Cross-version edges (verified against the cached reference jars, never guessed): the attribute is resolved
  * by REGISTRY KEY (the key dropped its {@code generic.} prefix at 1.21 — try modern then legacy), the modifier is
@@ -30,9 +33,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public final class HeroicVanillaStats {
 
-    /** Resolved ONCE: the armour / toughness attributes by registry key (modern key first, then the ≤1.20.6 key). */
+    /** Resolved ONCE: the armour / toughness / attack-damage attributes by registry key (modern first, then ≤1.20.6). */
     private static final Attribute ARMOUR = byKey("armor", "generic.armor");
     private static final Attribute TOUGHNESS = byKey("armor_toughness", "generic.armor_toughness");
+    private static final Attribute ATTACK_DAMAGE = byKey("attack_damage", "generic.attack_damage");
 
     /** {@code Damageable.setMaxDamage} (1.20.5+) reflected once; {@code null} on an older platform (no override). */
     private static final Method SET_MAX_DAMAGE = probeSetMaxDamage();
@@ -70,10 +74,14 @@ public final class HeroicVanillaStats {
     }
 
     /**
-     * Write the heroic vanilla stats onto {@code stack} in place: real diamond armour-point + toughness modifiers
-     * for a sub-diamond ARMOUR piece, plus a diamond max durability for any gear (where supported). Returns
-     * {@code true} iff real armour attributes were written — the caller then drops the plugin-maths flat-reduction
-     * so the two never double-count. A weapon (or a diamond/netherite display) returns {@code false}.
+     * Write the heroic vanilla stats onto {@code stack} in place: real diamond modifiers — armour-point +
+     * toughness for a sub-diamond ARMOUR piece, attack-damage for a sub-diamond WEAPON — plus a diamond max
+     * durability for any gear (where supported) and the vendor-neutral {@code combat:effective_material} marker.
+     * NO {@code HIDE_ATTRIBUTES}: an explicit modifier set suppresses the display material's defaults, so the
+     * vanilla tooltip renders exactly the diamond values (Mental re-values / strips lines per its era modules).
+     * Returns {@code true} iff real attributes were written for THIS piece (armour when armour, weapon when
+     * weapon) — the caller then drops the matching plugin-maths flat delta so the two never double-count. A
+     * diamond/netherite display returns {@code false}.
      */
     public static boolean apply(ItemStack stack, boolean weapon) {
         if (stack == null) {
@@ -84,21 +92,24 @@ public final class HeroicVanillaStats {
             return false;
         }
         Material type = stack.getType();
-        boolean armourApplied = false;
+        boolean realAttrs = false;
         try {
             if (!weapon && ARMOUR != null && HeroicDiamond.displayBelowDiamondArmour(type)) {
-                armourApplied = writeArmour(meta, type);
+                realAttrs = writeArmour(meta, type);
+            } else if (weapon && ATTACK_DAMAGE != null && isSubDiamondWeapon(type)) {
+                realAttrs = writeWeapon(meta, type);
             }
-            applyMaxDurability(meta, type); // both armour and weapon
+            stampEffectiveMaterial(meta, type); // neutral cross-plugin marker (armour + weapon)
+            applyMaxDurability(meta, type);      // both armour and weapon
         } catch (RuntimeException unexpected) {
             // Never let an attribute/durability hiccup break the forge — fall back to plugin-maths for this piece.
             return false;
         }
         stack.setItemMeta(meta);
-        return armourApplied;
+        return realAttrs;
     }
 
-    /** Replace the piece's armour defaults with diamond armour + toughness on its slot; hide the attribute lines. */
+    /** Replace the piece's armour defaults with diamond armour + toughness on its slot (explicit ⇒ defaults suppressed). */
     private static boolean writeArmour(ItemMeta meta, Material type) {
         EquipmentSlot slot = slotOf(type);
         if (slot == null) {
@@ -108,9 +119,37 @@ public final class HeroicVanillaStats {
         if (TOUGHNESS != null) {
             addModifier(meta, TOUGHNESS, "toughness", slot, HeroicDiamond.diamondArmourToughness(type));
         }
-        // Keep the tooltip clean — the HEROIC lore is canonical; the modifiers still drive the HUD armour bar.
-        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        // No HIDE_ATTRIBUTES (ADR 0032): the explicit set suppresses the gold defaults, so the vanilla tooltip
+        // shows exactly these diamond values; Mental strips the toughness line on a 1.8 server.
         return true;
+    }
+
+    /** Replace a sub-diamond weapon's attack with diamond's — modifier = diamond total − base 1.0, on the hand. */
+    private static boolean writeWeapon(ItemMeta meta, Material type) {
+        addModifier(meta, ATTACK_DAMAGE, "attack_damage", EquipmentSlot.HAND,
+                HeroicDiamond.diamondAttackDamage(type) - 1.0);
+        return true;
+    }
+
+    /** A sub-diamond melee weapon (sword/axe below diamond) — the signal to write a real diamond attack modifier. */
+    private static boolean isSubDiamondWeapon(Material type) {
+        return HeroicDiamond.diamondAttackDamage(type) > 0.0 && HeroicDiamond.diamondMaterialName(type) != null;
+    }
+
+    /**
+     * Stamp the vendor-neutral {@code combat:effective_material} marker with the diamond this sub-diamond piece
+     * stands in for, so an era-combat plugin (Mental) treats the gold display as diamond for legacy stats. No-op
+     * once the piece is already ≥ diamond or isn't heroic gear. Modern-only — 1.8.9 has no PDC and no Mental.
+     */
+    private static void stampEffectiveMaterial(ItemMeta meta, Material type) {
+        String trueMaterial = HeroicDiamond.diamondMaterialName(type);
+        if (trueMaterial == null) {
+            return;
+        }
+        NamespacedKey key = NamespacedKey.fromString("combat:effective_material");
+        if (key != null) {
+            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, trueMaterial);
+        }
     }
 
     private static void addModifier(ItemMeta meta, Attribute attr, String tag, EquipmentSlot slot, double amount) {
