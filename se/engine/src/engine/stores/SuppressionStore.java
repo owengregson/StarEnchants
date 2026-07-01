@@ -1,9 +1,9 @@
 package engine.stores;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Per-player timed suppression: an interned id &rarr; expiry tick (docs/architecture.md §5.4). Home for
@@ -21,26 +21,34 @@ public final class SuppressionStore {
     }
 
     private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
-    /** Players immune to ALL suppression (dragon's Dovahkiin): {@link #suppress} is a no-op for them. */
-    private final Set<UUID> immune = ConcurrentHashMap.newKeySet();
+    /**
+     * Per-player suppression-immunity CHANCE in {@code [1,100]} (dragon's Dovahkiin, ADR-0032): each
+     * {@link #suppress} rolls it, so {@code 100} is absolute immunity and a lower value ignores that fraction of
+     * suppressions. Absent = not immune. A {@code SUPPRESS_IMMUNE} with no chance stores {@code 100}.
+     */
+    private final Map<UUID, Integer> immuneChance = new ConcurrentHashMap<>();
     private volatile SuppressListener onSuppress = (player, durationTicks) -> { };
 
     /**
-     * Make {@code player} immune to suppression, or lift it ({@code SUPPRESS_IMMUNE} / dragon's Dovahkiin).
-     * Arming it also CLEARS any suppression already on the player, so equipping the set frees them at once.
+     * Set {@code player}'s suppression-immunity CHANCE (percent), or lift it with {@code chance <= 0}
+     * ({@code SUPPRESS_IMMUNE}). A full ({@code >= 100}) immunity also CLEARS any suppression already on the
+     * player, so equipping it frees them at once; a partial chance only gates FUTURE suppressions.
      */
-    public void setImmune(UUID player, boolean on) {
-        if (on) {
-            immune.add(player);
-            expiryByPlayer.remove(player); // drop any DISABLE that landed before the immunity armed
-        } else {
-            immune.remove(player);
+    public void setImmune(UUID player, int chance) {
+        if (chance <= 0) {
+            immuneChance.remove(player);
+            return;
+        }
+        int clamped = Math.min(100, chance);
+        immuneChance.put(player, clamped);
+        if (clamped >= 100) {
+            expiryByPlayer.remove(player); // absolute immunity drops any DISABLE that landed before it armed
         }
     }
 
-    /** Whether {@code player} is currently immune to suppression. */
+    /** Whether {@code player} is currently ABSOLUTELY immune to suppression (a partial chance is not). */
     public boolean isImmune(UUID player) {
-        return immune.contains(player);
+        return immuneChance.getOrDefault(player, 0) >= 100;
     }
 
     /** Install the listener invoked after each {@link #suppress} (composition root); {@code null} clears it. */
@@ -55,8 +63,15 @@ public final class SuppressionStore {
      * scope to. Non-positive duration is a no-op; re-suppressing only EXTENDS (later expiry wins).
      */
     public void suppress(UUID player, long id, long nowTicks, int durationTicks) {
-        if (durationTicks <= 0 || immune.contains(player)) {
-            return; // a suppression-immune player (Dovahkiin) is never silenced
+        if (durationTicks <= 0) {
+            return;
+        }
+        int immunity = immuneChance.getOrDefault(player, 0);
+        // Roll the per-player immunity: >=100 is absolute (Dovahkiin), a lower chance ignores that fraction of
+        // suppressions (crystals/chaos "4% chance to ignore Silence", ADR-0032). ThreadLocalRandom — no RNG is
+        // threaded to this store, and it runs on the firing region thread.
+        if (immunity >= 100 || (immunity > 0 && ThreadLocalRandom.current().nextInt(100) < immunity)) {
+            return;
         }
         long expiry = nowTicks + durationTicks;
         expiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
@@ -87,12 +102,12 @@ public final class SuppressionStore {
     /** Forget every suppression (and any immunity) for one player (call on quit). */
     public void clear(UUID player) {
         expiryByPlayer.remove(player);
-        immune.remove(player);
+        immuneChance.remove(player);
     }
 
     /** Forget every suppression (and all immunity) for every player (call on disable). */
     public void clearAll() {
         expiryByPlayer.clear();
-        immune.clear();
+        immuneChance.clear();
     }
 }

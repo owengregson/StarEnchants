@@ -90,6 +90,8 @@ public final class BuiltinEffects {
                 // Cosmic Pack set-ability primitives (append last — registration order is the canonical id order).
                 .register(new PotionLockEffect()) // strip + continuously deny a potion (druid/fantasy Speed lock)
                 .register(new MarkZoneEffect()) // actor-owned area zone read by %victim.inzone% (devil hellfire)
+                // EXP_GAIN read-back: scale the triggering PlayerExpChangeEvent's XP in the listener, never grant new XP (append last).
+                .register(new ExpMultiplyEffect())
                 .build();
     }
 }
