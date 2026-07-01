@@ -8,6 +8,17 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Crystal rework — Cosmic-style Armor Crystals (ADR-0034).** Crystals are now
+  content files sharing ONE global likeness (`items/crystal.yml`) rendered through
+  `{CRYSTAL}` / `{DESCRIPTION}` / `{KINDS}` tokens; a crystal expands to one or more
+  abilities (`/a1`, `/a2`, … walked by the `WornResolver` like an armour set's extra
+  bonuses). Crystals **merge** by drag-and-drop up to the global `crystals.max-merge`
+  cap (cosmic default 2); applying is now **100%** (the success roll + `consume-on-fail`
+  are gone); the extractor pops the TOPMOST single component off gear or a multi-crystal.
+  Ships **5 new cosmic Armor Crystals** — Flame, Frost, Chaos, Light, Nature — plus a
+  minimal engine `EXP_GAIN` trigger + `EXP_MULTIPLY` effect (Light's double-XP) and an
+  optional `chance` on `SUPPRESS_IMMUNE` (Chaos's partial "ignore Silence").
+
 - **GUI overhaul — the menus are now the primary way to run StarEnchants (ADR-0030).**
   A themed, framed, highly-configurable menu chrome: a `border` picture-frame default,
   named/colour-coded navigation buttons (`« Previous`, `Next »`, `⤶ Go Back`, `✖ Close`),
@@ -57,6 +68,12 @@ versioning: [Semantic Versioning](https://semver.org/).
   `CrystalService` branches on a typed `ApplyResult.Reason` instead of sniffing rendered
   message text. A new `LangCatalogueDriftTest` fails the build if code references a key the
   catalogue lacks, so the drift can't return.
+
+- **`applies-to` armour lists collapse to the `[ARMOR]` group.** The 11 content files
+  that spelled out all four armour slots (`[HELMET, CHESTPLATE, LEGGINGS, BOOTS]`) now
+  use `[ARMOR]` — the built-in group already resolves to exactly those four materials
+  and already renders as the label "Armor", so the change is behaviour- and
+  display-identical, just single-sourced.
 
 ### Fixed
 
