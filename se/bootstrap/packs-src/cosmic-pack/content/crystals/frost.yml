@@ -1,0 +1,13 @@
+# Frost — a cosmic Armor Crystal (ADR-0032). Two independent on-hit rolls: a rare "freeze" (no distinct vanilla
+# status, so a strong 1s Slowness stands in per ADR-0032 §6) and a more common 3s Slowness. Each ability rolls
+# its own chance at the gate.
+display: "&b&lFrost"
+description:
+  - "&b&lFROST CRYSTAL BONUS"
+  - "&b* 1% Chance to freeze enemies for 1 second."
+  - "&b* 3% Chance to slow enemies for 3 seconds."
+tier: rare
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+abilities:
+  - { trigger: ATTACK, chance: 1, effects: [ { POTION: { effect: SLOWNESS, level: 6, duration: 20, who: "@Victim" } } ] }
+  - { trigger: ATTACK, chance: 3, effects: [ { POTION: { effect: SLOWNESS, level: 2, duration: 60, who: "@Victim" } } ] }

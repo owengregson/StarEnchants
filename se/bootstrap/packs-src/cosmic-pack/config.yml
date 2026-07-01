@@ -83,13 +83,14 @@ souls:
   # (the give/combine/split commands and soul-cost spending still work).
   deposit-on-any-kill: true
 
-# Crystals (§E). Per-item crystal slots are a SEPARATE ledger from enchant slots; the crystal ITEM's likeness
-# (material/name/lore/chance) lives in items/crystal.yml.
+# Crystals (§E, ADR-0032). Per-item crystal slots are a SEPARATE ledger from enchant slots; the crystal ITEM's
+# likeness (material/name/lore) lives in items/crystal.yml. Applying a crystal always succeeds (no roll).
 crystals:
-  # Crystal slots every item has by default.
+  # Crystal slots (entries) every item has by default.
   slots: 1
-  # Absolute maximum crystals one item may ever hold (a PDC-bloat sanity guard, distinct from the slot count).
-  max-stack: 16
+  # The "global max multi-crystal count": how many crystals may merge into ONE multi-crystal (and thus into one
+  # gear entry). 2 = a crystal may hold at most two combined effects.
+  max-merge: 2
 
 # Heroic (§F / ADR-0021). The granted percents, success range and material-upgrade map are the upgrade's
 # likeness in items/heroic.yml. Only the bounded-multiplicative CLAMP CEILING is cross-cutting: heroic applies

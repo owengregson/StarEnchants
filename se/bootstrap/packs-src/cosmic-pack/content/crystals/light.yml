@@ -1,0 +1,12 @@
+# Light — a cosmic Armor Crystal (ADR-0032). On ATTACK it adds +3% to the outgoing-damage fold; on EXP_GAIN it
+# DOUBLES the XP the wearer picks up (EXP_MULTIPLY scales the gain event, ADR-0032 §6).
+display: "&e&lLight"
+description:
+  - "&e&lLIGHT CRYSTAL BONUS"
+  - "&e* Deal 3% more damage to all enemies."
+  - "&e* Double Experience Gain"
+tier: epic
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+abilities:
+  - { trigger: ATTACK,   effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 3 } } ] }
+  - { trigger: EXP_GAIN, effects: [ { EXP_MULTIPLY: { factor: 2 } } ] }
