@@ -1,0 +1,12 @@
+# Nature — a cosmic Armor Crystal (ADR-0032). On DEFENSE it adds +3% to the additive damage-REDUCTION fold
+# (enemies deal 3% less to you); a PASSIVE Health Boost keeps two extra hearts while worn.
+display: "&2&lNature"
+description:
+  - "&2&lNATURE CRYSTAL BONUS"
+  - "&2* Enemies deal 3% less damage to you."
+  - "&2* Gain 2 extra hearts."
+tier: epic
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+abilities:
+  - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 3 } } ] }
+  - { trigger: PASSIVE, effects: [ { POTION: { effect: HEALTH_BOOST, level: 1, duration: 200, who: "@Self" } } ] }

@@ -1,17 +1,12 @@
-# Jolt Crystal — a flat, levelless socket bonus. material/name/lore give the minted crystal item its
-# own likeness so the lore explains its effect.
+# Jolt — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml. On an
+# ATTACK it strikes the foe with lightning for a flat 3 damage (35% chance, 2s cooldown).
+display: "&eJolt"
+description:
+  - "&e&lJOLT CRYSTAL BONUS"
+  - "&e* 35% chance on hit to strike your foe with lightning (3 damage)."
 tier: rare
-display: "&eJolt Crystal"
-description: "Strike your foe with a jolt of lightning."
-material: GLOWSTONE_DUST
-name: "&eJolt Crystal"
-lore:
-  - "&7Socket into a sword, axe, or trident."
-  - "&e35%&7 chance on hit to strike your"
-  - "&7foe with lightning &e(3 damage)&7."
-  - "&8Cooldown: 2s."
-trigger: ATTACK
 applies-to: [SWORD, AXE, TRIDENT]
+trigger: ATTACK
 chance: 35
 cooldown: 40
 effects:

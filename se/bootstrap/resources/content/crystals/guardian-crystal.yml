@@ -1,15 +1,11 @@
-# Guardian Crystal — a flat, levelless socket bonus. material/name/lore give the minted crystal item
-# its own likeness so the lore explains its effect.
+# Guardian — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml. On a
+# DEFENSE it contributes a flat 20 to the additive damage-reduction fold, blunting incoming hits.
+display: "&7Guardian"
+description:
+  - "&7&lGUARDIAN CRYSTAL BONUS"
+  - "&7* Blunts &b20&7 of every incoming hit."
 tier: rare
-display: "&7Guardian Crystal"
-description: "Blunt a portion of incoming damage."
-material: PRISMARINE_SHARD
-name: "&7Guardian Crystal"
-lore:
-  - "&7Socket into any armor piece."
-  - "&7Blunts &b20&7 of every incoming hit."
-trigger: DEFENSE
 applies-to: [CHESTPLATE, HELMET, LEGGINGS, BOOTS]
-chance: 100
+trigger: DEFENSE
 effects:
-  - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+  - { DAMAGE_MOD: { side: defense, mode: flat, amount: 20 } }

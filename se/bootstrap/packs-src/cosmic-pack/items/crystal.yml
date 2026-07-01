@@ -1,31 +1,36 @@
-# The physical crystal item — drag it onto gear to apply it (a success roll), or drag one crystal onto
-# another to MERGE them into a multi-crystal (two effects in one crystal slot). Everything below is
-# configurable; reload with /se reload. {CRYSTAL} renders the component crystal name(s).
+# The physical crystal item — the ONE global "Armor Crystal" likeness (ADR-0032). Drag it onto a piece of
+# gear to apply it (ALWAYS succeeds — no roll), or drag one crystal onto another to MERGE them into a
+# multi-crystal (their effects combine, up to config.yml crystals.max-merge). Everything below is
+# configurable; reload with /se reload.
 #
-# The material/name/lore here are the SHARED FALLBACK: each crystal (content/crystals/*.yml) declares its
-# own material/name/lore so it self-explains its effect, and only falls back to these when it omits a
-# field. They are also the likeness of a MERGED multi-crystal — whose two effects can't share one
-# material — whose lore is each component crystal's own lore, concatenated.
-#
-# Per-item crystal SLOT capacity is not here — it is a cross-cutting knob (master config.yml crystals:
-# section, a later increment); until then it defaults to 1.
+# Every crystal (content/crystals/*.yml) declares only its styled display name, its description block and its
+# effects; the material / name / lore below are SHARED by every minted crystal, single or merged. Tokens:
+#   {CRYSTAL}     — the component crystal name(s), comma-joined (a merge reads each name in its own colour).
+#   {DESCRIPTION} — each component's authored bonus block, stacked with a blank line between blocks.
+#   {KINDS}       — the item kinds the crystal applies to (the intersection for a merge).
 type: crystal
-material: AMETHYST_SHARD
-name: "&d{CRYSTAL} Crystal"
+material: NETHER_STAR
+name: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
 lore:
-  - "&7Drag onto gear to apply."
-  - "&7Merge two crystals into a multi-crystal."
-success-chance: 75
-consume-on-fail: true
+  - "&eImbues a single piece of gear with magic crystal abilities. Merge with other crystals to combine their effects."
+  - ""
+  - "{DESCRIPTION}"
+  - ""
+  - "&eApplies to: &f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# The line shown on crystal-bearing gear (below the orb-slots line, above the heroic line). Here it is the
+# crystal item's own name.
+lore-while-on-item: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
 # Apply/merge and extract gesture sounds (namespaced keys, valid across the version range).
 sounds:
   enabled: true
   apply: "block.amethyst_block.chime"
   remove: "block.amethyst_cluster.break"
-# The crystal EXTRACTOR — drag it onto crystal-bearing gear to pop its last crystal back into a whole item.
+# The crystal EXTRACTOR — drag it onto crystal-bearing gear, or onto a multi-crystal, to pop the TOPMOST
+# crystal back into a whole single crystal.
 extractor:
   material: AMETHYST_CLUSTER
   name: "&dCrystal Extractor"
   lore:
-    - "&7Drag onto crystal-bearing gear"
-    - "&7to extract its last crystal."
+    - "&7Drag onto crystal-bearing gear or a"
+    - "&7multi-crystal to pop its topmost crystal."
