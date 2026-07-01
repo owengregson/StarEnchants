@@ -135,13 +135,24 @@ public final class WornResolver {
             }
             if (f.crystals()) {
                 for (String crystalEntry : combat.crystals()) {
-                    // One slot may carry two component keys (a multi-crystal, "a+b", §E); each resolves
+                    // One slot may carry many component keys (a merged multi-crystal, "a+b+c", §E); each resolves
                     // and fires independently, the additive fold summing overlaps (ADR-0012).
                     for (String crystalKey : item.codec.CrystalItemData.componentsOf(crystalEntry)) {
                         int id = keys.idOf(crystalKey);
-                        if (id >= 0) {
-                            mergedIds.add(id);   // fires on triggers like any source...
-                            crystalIds.add(id);  // ...and tracked as the dedicated crystal source (§5.5)
+                        if (id < 0) {
+                            continue;
+                        }
+                        mergedIds.add(id);   // fires on triggers like any source...
+                        crystalIds.add(id);  // ...and tracked as the dedicated crystal source (§5.5)
+                        // A multi-ability crystal keys its further bonuses <key>/a1, /a2, … (dense, no gaps),
+                        // exactly like a set's extra armour bonuses (ADR-0032). Walk them so every bonus fires.
+                        for (int n = 1; ; n++) {
+                            int extra = keys.idOf(crystalKey + "/a" + n);
+                            if (extra < 0) {
+                                break;
+                            }
+                            mergedIds.add(extra);
+                            crystalIds.add(extra);
                         }
                     }
                 }

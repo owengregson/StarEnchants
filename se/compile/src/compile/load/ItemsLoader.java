@@ -420,13 +420,14 @@ public final class ItemsLoader {
         CrystalConfig d = CrystalConfig.defaults();
         YamlNode sounds = root.child("sounds");
         YamlNode extractor = root.child("extractor");
+        String name = orDefault(root.string("name"), d.name());
         return new CrystalConfig(
                 orDefault(root.string("material"), d.material()),
-                orDefault(root.string("name"), d.name()),
+                name,
                 root.has("lore") ? root.stringList("lore") : d.lore(),
-                parseInt(root.string("success-chance"), d.successChance(), root, diags),
-                root.has("consume-on-fail")
-                        ? "true".equalsIgnoreCase(root.string("consume-on-fail")) : d.consumeOnFail(),
+                // The on-gear line defaults to the item name, so a pack that renames the crystal renames its
+                // gear line too without repeating it (ADR-0032 §5).
+                orDefault(root.string("lore-while-on-item"), name),
                 root.has("sounds") && sounds.has("enabled")
                         ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
                 orDefault(sounds.string("apply"), d.soundApply()),

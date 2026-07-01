@@ -104,20 +104,23 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Crystal-slot capacity (§E). Crystal slots are a SEPARATE ledger from enchant slots. {@code maxStack}
-     * is a PDC-bloat sanity guard distinct from the slot count.
+     * Crystal-slot capacity and merge cap (§E, ADR-0032). Crystal slots are a SEPARATE ledger from enchant
+     * slots. {@code slots} is how many crystal entries an item may hold; {@code maxMerge} is the "global max
+     * multi-crystal count" — how many crystals may combine into one multi-crystal (and thus into one gear
+     * entry). An absolute per-entry component ceiling (PDC-bloat guard) is the hardcoded
+     * {@code CrystalItemData.ABSOLUTE_MAX}, not a config knob.
      *
-     * @param slots    crystal slots every item has (≥ 0)
-     * @param maxStack absolute maximum crystals one item may hold (≥ 1)
+     * @param slots    crystal slots (entries) every item has (≥ 0)
+     * @param maxMerge maximum crystals mergeable into one multi-crystal (≥ 1)
      */
-    public record CrystalsSection(int slots, int maxStack) {
+    public record CrystalsSection(int slots, int maxMerge) {
         public CrystalsSection {
             slots = Math.max(0, slots);
-            maxStack = Math.max(1, maxStack);
+            maxMerge = Math.max(1, maxMerge);
         }
 
         public static CrystalsSection defaults() {
-            return new CrystalsSection(1, 16);
+            return new CrystalsSection(1, 2);
         }
     }
 
