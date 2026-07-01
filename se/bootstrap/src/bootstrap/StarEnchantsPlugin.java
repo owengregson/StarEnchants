@@ -265,12 +265,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> items.config().scrollsOrDefault().transmog().nameSuffix(), // §I enchant-count name suffix
                 () -> master.config().slots().base(),       // §H base slots → the orb "Enchantment Slots" total
                 () -> master.config().slots().loreLine(),   // §H orb "Enchantment Slots" line template
-                () -> items.config().heroicOrDefault().loreLine()); // §F HEROIC line template
+                () -> items.config().heroicOrDefault().loreLine(), // §F HEROIC line template
+                () -> items.config().crystalOrDefault().loreWhileOnItem()); // §E on-gear crystal line template
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
-                () -> master.config().crystals().slots(),      // §E per-item crystal slots
-                () -> master.config().crystals().maxStack(),   // §E crystal sanity cap
+                () -> master.config().crystals().slots(),      // §E per-item crystal slots (entries)
+                () -> master.config().crystals().maxMerge(),   // §E components per entry (merge cap)
                 messages);                                     // §L ApplyResult reason strings
 
         // Carrier economy (ADR-0016) — carrierCodec/appliedSlot built above (the lore PROTECTED-line reader uses them).
@@ -290,7 +291,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         item.codec.CrystalExtractorCodec crystalExtractorCodec =
                 new item.codec.CrystalExtractorCodec(ItemKeys.of().crystalExtractor());
         CrystalService crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, enchanter, content,
-                () -> items.config().crystalOrDefault(), new java.util.Random(), messages);
+                () -> items.config().crystalOrDefault(), () -> master.config().crystals().maxMerge(), messages);
 
         // Heroic upgrades (§F).
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());

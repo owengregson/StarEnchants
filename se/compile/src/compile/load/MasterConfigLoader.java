@@ -139,7 +139,7 @@ public final class MasterConfigLoader {
         MasterConfig.CrystalsSection d = MasterConfig.CrystalsSection.defaults();
         return new MasterConfig.CrystalsSection(
                 parseInt(n.string("slots"), d.slots(), n, diags),
-                parseInt(n.string("max-stack"), d.maxStack(), n, diags));
+                parseInt(n.string("max-merge"), d.maxMerge(), n, diags));
     }
 
     private static MasterConfig.HeroicSection readHeroic(YamlNode n, Diagnostics diags) {

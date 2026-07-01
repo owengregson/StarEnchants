@@ -35,10 +35,10 @@ class CrystalDefReaderTest {
         Diagnostics diags = new Diagnostics();
         String yaml = """
             display: "&dZap"
-            description: "Shock on hit."
+            description:
+              - "&d&lZAP CRYSTAL BONUS"
+              - "&d* Shock on hit."
             tier: legendary
-            material: DIAMOND
-            name: "&dZap Crystal"
             applies-to: [SWORD]
             trigger: ATTACK
             group: shock
@@ -54,6 +54,7 @@ class CrystalDefReaderTest {
         assertEquals("&dZap", parsed.def().display());
         assertEquals("legendary", parsed.def().tier());
         assertEquals(List.of("SWORD"), parsed.def().appliesTo());
+        assertEquals(List.of("&d&lZAP CRYSTAL BONUS", "&d* Shock on hit."), parsed.def().description());
 
         assertEquals(1, parsed.abilities().size());
         AbilityDef ability = parsed.abilities().get(0);
@@ -68,6 +69,30 @@ class CrystalDefReaderTest {
         assertEquals("crystals/zap", ability.suppressKey());
         assertEquals(1, ability.effects().size());
         assertEquals("DAMAGE", ability.effects().get(0).head());
+    }
+
+    @Test
+    void abilitiesListExpandsToBaseKeyThenSlashANLikeASet() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            display: "&cFlame"
+            applies-to: [HELMET]
+            abilities:
+              - { trigger: ATTACK,  effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: 3 } }] }
+              - { trigger: PASSIVE, effects: [{ POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 200, who: "@Self" } }] }
+            """;
+        CrystalDefReader.Parsed parsed =
+                CrystalDefReader.read("crystals/flame", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        // A multi-ability crystal keys its first bonus to the base key, further ones to <base>/a1, /a2, … —
+        // the dense chain the WornResolver walks, exactly like an armour set's extra armour bonuses (ADR-0032).
+        assertEquals(2, parsed.abilities().size());
+        assertEquals("crystals/flame", parsed.abilities().get(0).stableKey());
+        assertEquals(List.of("ATTACK"), parsed.abilities().get(0).triggers());
+        assertEquals("crystals/flame/a1", parsed.abilities().get(1).stableKey());
+        assertEquals(List.of("PASSIVE"), parsed.abilities().get(1).triggers());
+        assertEquals(SourceKind.CRYSTAL, parsed.abilities().get(1).sourceKind());
     }
 
     @Test
