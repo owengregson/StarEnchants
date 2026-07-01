@@ -34,6 +34,7 @@ public final class LoreRenderer {
     private final Supplier<String> slotsLine;   // §H orb slots-line template ({TOTAL}/{ADDED}); null/blank → no line
     private final Supplier<String> heroicLine;  // §F HEROIC line template ({TYPE}/{+/-}/{AMOUNT}); blank → plain marker
     private final Supplier<String> crystalLine; // §E on-gear crystal line template ({CRYSTAL}); null/blank → style fallback
+    private final Supplier<String> crystalLineMulti; // §E on-gear line for a MERGED crystal (ADR-0035); falls back to crystalLine
 
     /**
      * Set members' authored lore, looked up from state at render time so a worn piece keeps its flavour lore
@@ -142,6 +143,21 @@ public final class LoreRenderer {
             Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
             Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine,
             Supplier<String> heroicLine, Supplier<String> crystalLine) {
+        // Merged-crystal on-gear line defaults to the single-crystal template (no separate "Multi Crystal" line).
+        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLine);
+    }
+
+    /**
+     * Full renderer including the §E MERGED-crystal on-gear line template ({@code crystalLineMulti}, ADR-0035):
+     * a gear line for a multi-crystal renders from this template ({@code Multi Crystal (…)}) instead of the plain
+     * {@code crystalLine} ({@code Armor Crystal (…)}). Defaults to {@code crystalLine} when a pack doesn't set one.
+     */
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf, SetLore setLore,
+            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
+            Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine,
+            Supplier<String> heroicLine, Supplier<String> crystalLine, Supplier<String> crystalLineMulti) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
         this.enchantColorOf = Objects.requireNonNull(enchantColorOf, "enchantColorOf");
@@ -153,6 +169,7 @@ public final class LoreRenderer {
         this.slotsLine = Objects.requireNonNull(slotsLine, "slotsLine");
         this.heroicLine = Objects.requireNonNull(heroicLine, "heroicLine");
         this.crystalLine = Objects.requireNonNull(crystalLine, "crystalLine");
+        this.crystalLineMulti = Objects.requireNonNull(crystalLineMulti, "crystalLineMulti");
     }
 
     /** Body lore lines: one per enchant ({@code name level}), set lore, the orb slots line, then one per crystal. */
@@ -202,10 +219,14 @@ public final class LoreRenderer {
         // above only the heroic + protection + trak lines apply() appends (ADR-0034 §5). One line per socketed
         // entry, rendered as the crystal's own name via the on-item template (single-sourced with the mint).
         String crystalTemplate = crystalLine.get();
+        String multiTemplate = crystalLineMulti.get();
         for (String crystalEntry : state.crystals()) {
             List<String> components = item.codec.CrystalItemData.componentsOf(crystalEntry);
-            if (crystalTemplate != null && !crystalTemplate.isBlank()) {
-                out.add(Colors.translate(CrystalNames.render(crystalTemplate, components, key -> nameOr(key, style))));
+            // A merged (2+ component) entry renders from the "Multi Crystal" template (ADR-0035); a single uses the plain one.
+            String template = components.size() > 1 && multiTemplate != null && !multiTemplate.isBlank()
+                    ? multiTemplate : crystalTemplate;
+            if (template != null && !template.isBlank()) {
+                out.add(Colors.translate(CrystalNames.render(template, components, key -> nameOr(key, style))));
             } else {
                 // Fallback (no template wired, e.g. tests): the legacy crystal-colour + names joined by " + ".
                 StringBuilder label = new StringBuilder();

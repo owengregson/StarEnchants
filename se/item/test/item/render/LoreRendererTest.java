@@ -166,4 +166,24 @@ class LoreRendererTest {
         assertEquals(List.of("§7Venom §fI", "§a§l11 Enchantment Slots §r§7(Orb [§a+2§7])"),
                 renderer.lines(withOrb), "orb +2 over base 9 -> total 11, line renders below the body");
     }
+
+    @Test
+    void mergedCrystalUsesTheMultiTemplateOnGear() {
+        // §ADR-0035: a single crystal renders the plain on-gear template; a MERGED (2+ component) entry renders
+        // the "multi" template. Templates + names are the test's own input, so this pins the branch, not copy.
+        Function<String, String> crystalNames = Map.of("crystals/a", "Aaa", "crystals/b", "Bbb")::get;
+        LoreRenderer renderer = new LoreRenderer(
+                () -> LoreStyle.DEFAULT, crystalNames, key -> null, LoreRenderer.SetLore.NONE,
+                stack -> List.of(), line -> false,
+                () -> null, () -> 0, () -> null, // countSuffix, baseSlots, slotsLine
+                () -> null,                      // heroicLine
+                () -> "&8S {CRYSTAL}",           // single-crystal on-gear template
+                () -> "&8M {CRYSTAL}");          // merged-crystal on-gear template
+
+        CombatState state = new CombatState(Map.of(), List.of("crystals/a", "crystals/a+crystals/b"));
+        List<String> lines = renderer.lines(state);
+        assertEquals(2, lines.size(), "one line per socketed entry");
+        assertTrue(lines.get(0).startsWith("§8S "), () -> "single uses the plain template: " + lines.get(0));
+        assertTrue(lines.get(1).startsWith("§8M "), () -> "merged uses the multi template: " + lines.get(1));
+    }
 }

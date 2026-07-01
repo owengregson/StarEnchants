@@ -27,7 +27,7 @@ import schema.grammar.EffectLine;
 final class CrystalDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "display", "description", "tier", "applies-to", "abilities",
+            "display", "description", "tier", "applies-to", "stackable", "abilities",
             // single-ability shorthand (a crystal with exactly one bonus authors these at the top level):
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
     private static final Set<String> ABILITY_KEYS = Set.of(
@@ -59,6 +59,8 @@ final class CrystalDefReader {
         List<String> description = root.stringList("description");
         String tier = ContentParse.resolveTier(folderTier, root, diags);
         List<String> appliesTo = root.stringList("applies-to");
+        // A crystal stacks unless it opts out (§ADR-0035); absent → true, so every legacy crystal is unchanged.
+        boolean stackable = !"false".equalsIgnoreCase(root.string("stackable"));
 
         // Behaviours: the unified abilities list (or the top-level shorthand for a single-bonus crystal). The
         // first ability keys to baseKey; further ones to baseKey/a1, /a2, … — dense, no gaps — resolved by the
@@ -85,7 +87,7 @@ final class CrystalDefReader {
             abilities.add(ability(baseKey, root, fileSource, nextDefId, diags));
         }
 
-        CrystalDef def = new CrystalDef(baseKey, display, description, tier, appliesTo, fileSource);
+        CrystalDef def = new CrystalDef(baseKey, display, description, tier, appliesTo, stackable, fileSource);
         return new Parsed(def, abilities);
     }
 

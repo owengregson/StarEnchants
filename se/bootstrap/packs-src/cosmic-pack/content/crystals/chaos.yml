@@ -1,13 +1,15 @@
-# Chaos — a cosmic Armor Crystal (ADR-0034). On an item-damage tick a 50% roll CANCELs the durability loss;
-# a PASSIVE flag makes the wearer ignore an enemy's Silence (suppression) 4% of the time (SUPPRESS_IMMUNE with
-# a per-suppression chance, ADR-0034 §6).
+# Chaos — a cosmic Armor Crystal (ADR-0034/0035). On an item-damage tick a 50% roll CANCELs the durability loss,
+# so the gear takes ~50% less durability damage over time; on DEFENSE a NEGATIVE reduction (-10%) means enemies
+# deal 10% MORE damage to the wearer (the additive fold, ADR-0012). Not stackable (§0035).
 display: "&4&lChaos"
 description:
   - "&4&lCHAOS CRYSTAL BONUS"
-  - "&4* 50% Chance to negate durability damage."
-  - "&4* 4% Chance to ignore enemy Silence enchantment."
+  - "&4* Take 50% less durability damage"
+  - "&4* Enemies deal 10% more damage to you"
+  - "&4* Chaos Crystal is not stackable"
 tier: legendary
 applies-to: [ARMOR]
+stackable: false
 abilities:
   - { trigger: ITEM_DAMAGE, chance: 50, effects: [ { CANCEL: {} } ] }
-  - { trigger: PASSIVE, effects: [ { SUPPRESS_IMMUNE: { who: "@Self", chance: 4 } } ] }
+  - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: -10 } } ] }

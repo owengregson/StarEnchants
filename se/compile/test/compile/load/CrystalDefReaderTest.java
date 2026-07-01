@@ -96,6 +96,18 @@ class CrystalDefReaderTest {
     }
 
     @Test
+    void stackableDefaultsTrueAndParsesFalse() {
+        // §ADR-0035: a crystal stacks unless it opts out — absent → true (every legacy crystal unchanged);
+        // an explicit `stackable: false` blocks merge-with-self and per-wearer stacking.
+        Diagnostics diags = new Diagnostics();
+        String base = "display: \"&dX\"\napplies-to: [ARMOR]\ntrigger: ATTACK\neffects: [{ DAMAGE: { amount: 1 } }]\n";
+        assertTrue(CrystalDefReader.read("crystals/def", root(base, diags), counter(), diags).def().stackable(),
+                "absent stackable defaults to true");
+        assertFalse(CrystalDefReader.read("crystals/nostack", root(base + "stackable: false\n", diags), counter(), diags)
+                .def().stackable(), "stackable: false disables stacking");
+    }
+
+    @Test
     void displayDefaultsToTheBaseKeyWhenAbsent() {
         Diagnostics diags = new Diagnostics();
         String yaml = "trigger: ATTACK\neffects: [{ DAMAGE: { amount: 1 } }]\n";

@@ -125,6 +125,10 @@ public final class FactPopulator {
         addActorStr(vocabulary, "actor.gamemode", actor -> actor.getGameMode().name());
         addActorStr(vocabulary, "actor.helditem", HeldItem::mainHandTypeName);
         addActorStr(vocabulary, "actor.type", actor -> actor.getType().name());
+        // The block the actor is standing on (one below its feet), for on-terrain conditions like Frost's "on ice"
+        // (ADR-0035). Same-region as the actor, so Folia-safe; guarded with the other actor reads if it ever isn't.
+        addActorStr(vocabulary, "actor.groundblock",
+                actor -> actor.getLocation().getBlock().getRelative(org.bukkit.block.BlockFace.DOWN).getType().name());
 
         addVictimNum(vocabulary, "victim.health", LivingEntity::getHealth);
         addVictimNum(vocabulary, "victim.maxhealth", FactPopulator::maxHealth);

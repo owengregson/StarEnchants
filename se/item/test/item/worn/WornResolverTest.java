@@ -46,6 +46,31 @@ class WornResolverTest {
         return new WornResolver(null, TRIGGERS, ATTACK, DEFENSE, () -> features);
     }
 
+    private static WornResolver resolver(java.util.Set<String> nonStackable) {
+        return new WornResolver(null, TRIGGERS, ATTACK, DEFENSE, () -> WornResolver.Features.ALL, () -> nonStackable);
+    }
+
+    @Test
+    void nonStackableCrystalContributesOncePerWearer() {
+        // §ADR-0035: a NON-stackable crystal on two worn pieces contributes its ability ONCE; a stackable crystal
+        // keeps full multiplicity. Dedup is by base key and scoped to crystals — enchants are unaffected.
+        StableKeyIndex keys = new StableKeyIndex(List.of("crystals/dark", "crystals/water"));
+        Ability[] abilities = {ability(0, 1 << 0), ability(1, 1 << 0)}; // both fire on attack trigger 0
+        CombatState dark = new CombatState(Map.of(), List.of("crystals/dark"));
+        CombatState water = new CombatState(Map.of(), List.of("crystals/water"));
+
+        // dark is non-stackable: two pieces → id 0 tracked ONCE.
+        WornState twoDark = resolver(java.util.Set.of("crystals/dark"))
+                .resolveFrom(List.of(dark, dark), keys, abilities, 1);
+        assertArrayEquals(new int[] {0}, sorted(twoDark.byTrigger(0)), "non-stackable dark fires once, not twice");
+        assertArrayEquals(new int[] {0}, sorted(twoDark.activeCrystalAbilityIds()), "and is tracked once");
+
+        // water is NOT in the non-stackable set: two pieces → id 1 twice (multiplicity preserved).
+        WornState twoWater = resolver(java.util.Set.of("crystals/dark"))
+                .resolveFrom(List.of(water, water), keys, abilities, 1);
+        assertEquals(2, twoWater.byTrigger(0).length, "stackable water keeps multiplicity across pieces");
+    }
+
     @Test
     void composesEnchantKeysAndResolvesCrystals() {
         CombatState combat = new CombatState(Map.of("enchants/lifesteal", 3), List.of("crystals/zap"));

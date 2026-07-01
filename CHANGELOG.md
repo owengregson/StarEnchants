@@ -14,10 +14,20 @@ versioning: [Semantic Versioning](https://semver.org/).
   abilities (`/a1`, `/a2`, … walked by the `WornResolver` like an armour set's extra
   bonuses). Crystals **merge** by drag-and-drop up to the global `crystals.max-merge`
   cap (cosmic default 2); applying is now **100%** (the success roll + `consume-on-fail`
-  are gone); the extractor pops the TOPMOST single component off gear or a multi-crystal.
-  Ships **5 new cosmic Armor Crystals** — Flame, Frost, Chaos, Light, Nature — plus a
-  minimal engine `EXP_GAIN` trigger + `EXP_MULTIPLY` effect (Light's double-XP) and an
-  optional `chance` on `SUPPRESS_IMMUNE` (Chaos's partial "ignore Silence").
+  are gone); the extractor pops the whole crystal off gear intact, or the topmost single
+  off a multi-crystal item (see ADR-0035). Ships new cosmic Armor Crystals plus a minimal
+  engine `EXP_GAIN` trigger + `EXP_MULTIPLY` effect (Light's double-XP) and an optional
+  `chance` on `SUPPRESS_IMMUNE`.
+
+- **Crystal stackability, multi-crystal identity & new crystals (ADR-0035).** A crystal may
+  declare `stackable: false`: it then cannot merge with another of the same type, and its
+  bonus applies **once per wearer** even across several worn pieces (a runtime dedup in the
+  worn-state flatten). A **merged** crystal now renders as **`Multi Crystal (…)`** instead of
+  `Armor Crystal (…)` (new `name-multi` / `lore-while-on-item-multi` templates). Ships **three
+  new cosmic crystals** — **Water** (+2% damage in water), **Ender** (+10% damage to mobs),
+  **Dark** (+5% dealt / +5% taken) — and reworks **Chaos** (take 50% less durability damage +
+  enemies deal 10% more to you) and **Frost** (+1% to all enemies + 4% while on ice). A new
+  `%actor.groundblock%` condition fact (the block beneath the actor) backs "on ice".
 
 - **GUI overhaul — the menus are now the primary way to run StarEnchants (ADR-0030).**
   A themed, framed, highly-configurable menu chrome: a `border` picture-frame default,

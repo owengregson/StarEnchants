@@ -1,12 +1,14 @@
-# Light — a cosmic Armor Crystal (ADR-0034). On ATTACK it adds +3% to the outgoing-damage fold; on EXP_GAIN it
-# DOUBLES the XP the wearer picks up (EXP_MULTIPLY scales the gain event, ADR-0034 §6).
-display: "&e&lLight"
+# Light — a cosmic Armor Crystal (ADR-0034/0035). On ATTACK it adds +3% to the outgoing-damage fold; on EXP_GAIN
+# it DOUBLES the XP the wearer picks up (EXP_MULTIPLY scales the gain event, ADR-0034 §6). Not stackable (§0035).
+display: "&f&lLight"
 description:
-  - "&e&lLIGHT CRYSTAL BONUS"
-  - "&e* Deal 3% more damage to all enemies."
-  - "&e* Double Experience Gain"
+  - "&f&lLIGHT CRYSTAL BONUS"
+  - "&f* Deal 3% more damage to all enemies"
+  - "&f* Double Experience Gain"
+  - "&f* Light Crystal is not stackable"
 tier: epic
 applies-to: [ARMOR]
+stackable: false
 abilities:
   - { trigger: ATTACK,   effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 3 } } ] }
   - { trigger: EXP_GAIN, effects: [ { EXP_MULTIPLY: { factor: 2 } } ] }

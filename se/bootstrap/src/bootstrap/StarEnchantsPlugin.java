@@ -212,6 +212,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> {                                            // §L per-feature master toggles (live)
                     MasterConfig.FeaturesSection ff = master.config().features();
                     return new WornResolver.Features(ff.enchants(), ff.sets(), ff.crystals(), ff.heroic());
+                },
+                () -> {                                            // §ADR-0035 non-stackable crystal keys (live)
+                    java.util.Set<String> keys = new java.util.HashSet<>();
+                    for (compile.load.CrystalDef def : content.library().crystals()) {
+                        if (!def.stackable()) {
+                            keys.add(def.key());
+                        }
+                    }
+                    return keys;
                 });
         WornStateStore worn = new WornStateStore(wornResolver::resolve);
 
@@ -266,7 +275,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().slots().base(),       // §H base slots → the orb "Enchantment Slots" total
                 () -> master.config().slots().loreLine(),   // §H orb "Enchantment Slots" line template
                 () -> items.config().heroicOrDefault().loreLine(), // §F HEROIC line template
-                () -> items.config().crystalOrDefault().loreWhileOnItem()); // §E on-gear crystal line template
+                () -> items.config().crystalOrDefault().loreWhileOnItem(),      // §E on-gear crystal line template
+                () -> items.config().crystalOrDefault().loreWhileOnItemMulti()); // §E merged-crystal on-gear line (ADR-0035)
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots

@@ -245,9 +245,10 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Extract the TOPMOST single component off {@code gear}'s last crystal entry in place (ADR-0034 §4); re-renders
-     * lore. Returns the popped component key so the caller mints it back as a whole single crystal. When the entry
-     * had one component the slot frees; otherwise the reduced stack stays. No-op fail when no crystal.
+     * Extract the entire last crystal ENTRY off {@code gear} (ADR-0035); re-renders lore. A multi-crystal comes off
+     * INTACT — the whole {@code "a+b+c"} entry — so the caller mints it back as one multi-crystal, and its freed
+     * slot opens. Splitting a multi-crystal back into singles is a SECOND extractor gesture, applied to the popped
+     * multi-crystal ITEM ({@code CrystalService.extractFromCrystal}). No-op fail when the item carries no crystal.
      */
     public ExtractResult extractCrystal(ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
@@ -258,15 +259,8 @@ public final class ItemEnchanter {
             return ExtractResult.fail(messages.format("apply.crystal.none"));
         }
         List<String> entries = new ArrayList<>(current.crystals());
-        int last = entries.size() - 1;
-        List<String> components = new ArrayList<>(item.codec.CrystalItemData.componentsOf(entries.get(last)));
-        String popped = components.remove(components.size() - 1); // the topmost (most-recently-merged) crystal
-        if (components.isEmpty()) {
-            entries.remove(last);                                                     // slot frees
-        } else {
-            entries.set(last, String.join(item.codec.CrystalItemData.DELIMITER, components)); // reduced stack stays
-        }
-        CombatState next = current.withCrystals(entries); // preserves setWeaponKey
+        String popped = entries.remove(entries.size() - 1); // the whole last entry — a multi-crystal pops off intact
+        CombatState next = current.withCrystals(entries); // preserves setWeaponKey; the slot always frees
         codec.write(gear, next);
         lore.apply(gear, next);
         return ExtractResult.ok(popped, messages.format("apply.crystal.extracted"));
