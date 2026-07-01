@@ -119,15 +119,18 @@ public final class HeroicService {
             return HeroicResult.committed(result, messages.format("heroic.fail"));
         }
         ItemStack upgraded = withUpgradedMaterial(gear, cfg);
-        // §F diamond-equivalence (gold display, diamond function). When vanilla-stats is on (ADR-0031), the writer
-        // stamps REAL vanilla armour-point/toughness modifiers and a diamond max durability so a combat plugin that
-        // recomputes from vanilla values (e.g. Mental's 1.8 armour/durability restore) sees diamond, not gold — and
-        // returns whether it wrote real ARMOUR attributes, so we DROP the plugin-maths flat reduction and never
-        // double-count. Off (or the 1.8 fork, which no-ops the writer): keep the HeroicDiamond flat fold + the
-        // wear-cancel scaling — version-uniform, no item-attribute API. The weapon outgoing stays plugin-maths
-        // either way (an armour/durability restore does not touch attack). A diamond/netherite display → delta 0.
-        boolean realArmour = cfg.diamondStats() && cfg.vanillaStats() && HeroicVanillaStats.apply(upgraded, weapon);
-        double flatDamage = cfg.diamondStats() && weapon ? HeroicDiamond.weaponFlatDamage(upgraded.getType()) : 0.0;
+        // §F diamond-equivalence (gold display, diamond function). When vanilla-stats is on (ADR-0031/0032), the
+        // writer stamps REAL vanilla modifiers — armour-point/toughness for armour, attack-damage for weapons —
+        // plus a diamond max durability and the neutral combat:effective_material marker, so combat plugins that
+        // recompute from vanilla values (e.g. Mental) see diamond, not gold. It returns whether it wrote real
+        // attributes for THIS piece, so we DROP the matching plugin-maths flat delta and never double-count. Off
+        // (or the 1.8 fork, which no-ops the writer): keep the HeroicDiamond flat fold + wear-cancel scaling —
+        // version-uniform, no item-attribute API. A diamond/netherite display → delta 0.
+        boolean realStats = cfg.diamondStats() && cfg.vanillaStats() && HeroicVanillaStats.apply(upgraded, weapon);
+        boolean realArmour = !weapon && realStats;
+        boolean realWeapon = weapon && realStats;
+        double flatDamage = cfg.diamondStats() && weapon && !realWeapon
+                ? HeroicDiamond.weaponFlatDamage(upgraded.getType()) : 0.0;
         double flatReduction = cfg.diamondStats() && !weapon && !realArmour
                 ? HeroicDiamond.armourFlatReduction(upgraded.getType()) : 0.0;
         // Stat separation (§F): a WEAPON carries the OUTGOING bonus, ARMOUR the INCOMING reduction — never both,

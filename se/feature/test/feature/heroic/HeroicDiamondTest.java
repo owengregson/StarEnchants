@@ -2,6 +2,7 @@ package feature.heroic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.bukkit.Material;
@@ -36,6 +37,26 @@ class HeroicDiamondTest {
         assertEquals(0, HeroicDiamond.diamondArmourPoints(Material.GOLDEN_SWORD)); // not armour
         assertEquals(2, HeroicDiamond.diamondArmourToughness(Material.GOLDEN_CHESTPLATE));
         assertEquals(0, HeroicDiamond.diamondArmourToughness(Material.GOLDEN_SWORD));
+    }
+
+    @Test
+    void diamondAttackDamageIsTheRealVanillaWeaponTotalInclBase() {
+        // Total incl. the player base 1.0, as the "N Attack Damage" tooltip shows; the written modifier is this − 1.
+        assertEquals(7.0, HeroicDiamond.diamondAttackDamage(Material.GOLDEN_SWORD));   // diamond sword 7
+        assertEquals(9.0, HeroicDiamond.diamondAttackDamage(Material.GOLDEN_AXE));     // diamond axe 9
+        assertEquals(7.0, HeroicDiamond.diamondAttackDamage(Material.DIAMOND_SWORD));
+        assertEquals(0.0, HeroicDiamond.diamondAttackDamage(Material.GOLDEN_HELMET));  // not a weapon
+    }
+
+    @Test
+    void diamondMaterialNameIsTheStandInForSubDiamondGearElseNull() {
+        assertEquals("DIAMOND_SWORD", HeroicDiamond.diamondMaterialName(Material.GOLDEN_SWORD));
+        assertEquals("DIAMOND_AXE", HeroicDiamond.diamondMaterialName(Material.GOLDEN_AXE));
+        assertEquals("DIAMOND_CHESTPLATE", HeroicDiamond.diamondMaterialName(Material.IRON_CHESTPLATE));
+        assertEquals("DIAMOND_BOOTS", HeroicDiamond.diamondMaterialName(Material.CHAINMAIL_BOOTS));
+        assertNull(HeroicDiamond.diamondMaterialName(Material.DIAMOND_BOOTS));    // already diamond
+        assertNull(HeroicDiamond.diamondMaterialName(Material.NETHERITE_HELMET)); // already ≥ diamond
+        assertNull(HeroicDiamond.diamondMaterialName(Material.STICK));            // not gear
     }
 
     @Test
