@@ -35,6 +35,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0025](0025-automated-releases.md) | Automated releases — version-bump-driven GitHub Release of the universal jar | Accepted |
 | [0026](0026-mental-knockback-coordination.md) | Coordinate KNOCKBACK_CONTROL with the Mental knockback plugin (reflective core edge) | Accepted |
 | [0027](0027-bundled-soft-integrations.md) | Integrations bundled in the core jar — soft, compileOnly, optional (supersedes 0017) | Accepted |
+| [0032](0032-unified-message-catalogue.md) | Unified message catalogue — one YAML source (`se/compile/resources/lang.yml`), drift-guarded | Accepted |
 
 ## Process
 

@@ -16,7 +16,7 @@ Everything lives in `se/bootstrap/src/bootstrap/SeCommand.java`
 | Declaration | `SeCommand.COMMANDS` (`CommandInfo`) | name, args, description; drives completion + docs |
 | Dispatch | `SeCommand#onCommand` switch | the subcommand body |
 | Completion | `SeCommand#complete` switch | per-subcommand argument completers |
-| Lang | `se/bootstrap/resources/lang.yml` | `command.*` usage/feedback |
+| Lang | `se/compile/resources/lang.yml` | `command.*` usage/feedback |
 | Permission | `se/bootstrap/resources/plugin.yml` | the `starenchants.admin` gate |
 | Docs | `website/src/data/surface.json` via `regenDocs` | generated from `COMMANDS` |
 
@@ -112,7 +112,7 @@ thread it through `onTabComplete` and the `complete(...)` signature.
 ## Step 4 — lang keys
 
 `command.*` keys are dotted, use legacy `&` colours and `{TOKEN}` placeholders,
-and live in `se/bootstrap/resources/lang.yml`:
+and live in the single catalogue `se/compile/resources/lang.yml`:
 
 ```yaml
 command.not-a-player: "&cThat command can only be run by a player."
@@ -128,8 +128,8 @@ swap takes effect on the next call:
 - `messages.format(key, "TOKEN", value)` — single line, with `{TOKEN}` pairs.
 - `messages.lines(key)` — list-valued keys (e.g. `command.usage`).
 
-Omitted keys fall back to the built-in English defaults in `Lang.defaults()`, so
-a missing key never throws.
+Omitted keys fall back to the built-in English defaults — `Lang.defaults()` parses
+that same bundled catalogue — so a missing key never throws.
 
 ## Step 5 — permissions
 
@@ -183,7 +183,7 @@ guard. (The `usage:` text in `plugin.yml` is optional flavour — the real help 
 2. `SeCommand#onCommand` — a `case` + a private handler (player gate → arg count →
    parse → `Scheduling.onEntity`).
 3. `SeCommand#complete` — a `case` for the argument completer (if it takes args).
-4. `se/bootstrap/resources/lang.yml` — `command.<name>.*` keys + a `command.usage`
+4. `se/compile/resources/lang.yml` — `command.<name>.*` keys + a `command.usage`
    line.
 5. `SeCommand` constructor + `StarEnchantsPlugin` wiring — only if a new service is
    needed.

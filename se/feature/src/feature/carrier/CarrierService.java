@@ -195,14 +195,14 @@ public final class CarrierService {
     public CarrierResult applyTo(ItemStack carrier, ItemStack target) {
         CarrierData data = codec.read(carrier);
         if (data == null) {
-            return CarrierResult.noop("§cThat is not an enchant carrier.");
+            return CarrierResult.noop(messages.format("carrier.not-carrier"));
         }
         if (target == null || target.getType() == Material.AIR) {
-            return CarrierResult.noop("§cApply the carrier onto an item.");
+            return CarrierResult.noop(messages.format("carrier.apply-target"));
         }
         // ONE carrier affects ONE item — applying to a stack would be a dupe / mass-loss exploit.
         if (target.getAmount() > 1) {
-            return CarrierResult.noop("§cApply the carrier to a single item — split the stack first.");
+            return CarrierResult.noop(messages.format("carrier.single-item"));
         }
 
         // Success dust: the one carrier-onto-carrier interaction (ADR-0019). Fixed dust confers its baked
@@ -216,7 +216,7 @@ public final class CarrierService {
             return applyProtect(carrier, target, data);
         }
         if (!data.grants()) {
-            return CarrierResult.noop("§cThis carrier grants nothing applicable.");
+            return CarrierResult.noop(messages.format("carrier.grants-nothing"));
         }
 
         String grant = data.grantKey();
@@ -242,13 +242,13 @@ public final class CarrierService {
             codec.setGuarded(target, false);
             slot.release(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I the white scroll's guard is spent
             protectionRefresh.accept(target); // drop the PROTECTED line now the guard is gone (preserve the rest)
-            return CarrierResult.consumed("§eThe enchant failed — but your protection saved the item.");
+            return CarrierResult.consumed(messages.format("carrier.fail-protected"));
         }
         if (destroyOnFail) {
             target.setAmount(0);
-            return CarrierResult.consumed("§cThe enchant failed — the item shattered.");
+            return CarrierResult.consumed(messages.format("carrier.fail-shattered"));
         }
-        return CarrierResult.consumed("§eThe enchant failed — the item is unharmed.");
+        return CarrierResult.consumed(messages.format("carrier.fail-unharmed"));
     }
 
     private int rolledDustBonus(compile.load.DustConfig cfg) {
@@ -431,13 +431,13 @@ public final class CarrierService {
     public CarrierResult rerollSuccess(ItemStack book, int targetPercent) {
         CarrierData data = codec.read(book);
         if (data == null || !isEnchantBook(data)) {
-            return CarrierResult.noop("§cThe randomizer only works on an enchant book.");
+            return CarrierResult.noop(messages.format("scroll.randomizer.not-book"));
         }
         int target = capBookSuccess(targetPercent); // randomizer respects the global ceiling (§I)
         CarrierData updated = data.withBaseSuccess(target);
         codec.write(book, updated);
         reRenderBookLore(book, updated);
-        return CarrierResult.consumed("§aThe book's success chance is now §f" + target + "%§a.");
+        return CarrierResult.consumed(messages.format("carrier.success-now", "PERCENT", target));
     }
 
     /**
@@ -468,23 +468,23 @@ public final class CarrierService {
                                          java.util.List<String> particles) {
         CarrierData bookData = codec.read(book);
         if (bookData == null || !isEnchantBook(bookData)) {
-            return CarrierResult.noop("§cDust can only boost an enchant book.");
+            return CarrierResult.noop(messages.format("carrier.dust.only-book"));
         }
         int base = baseSuccessOf(bookData);
         int cap = capBookSuccess(100); // global ceiling dust may lift a book TO — it snaps, never overflows (§I)
         if (effectiveSuccess(base, bookData.successBonus()) >= cap) {
-            return CarrierResult.noop("§7That book is already at the §f" + cap + "%§7 success ceiling.");
+            return CarrierResult.noop(messages.format("carrier.dust.ceiling", "MAX", cap));
         }
         if (bonus <= 0) {
-            return CarrierResult.noop("§cThis dust confers no success bonus.");
+            return CarrierResult.noop(messages.format("carrier.dust.no-bonus"));
         }
         int newBonus = Math.max(0, Math.min(bookData.successBonus() + bonus, cap - base)); // base + bonus ≤ cap
         CarrierData updated = bookData.withSuccessBonus(newBonus);
         codec.write(book, updated);
         reRenderBookLore(book, updated);
         consume(dust);
-        return CarrierResult.consumed("§aThe book's success chance is now §f"
-                + effectiveSuccess(base, newBonus) + "%§a.", sound, particles);
+        return CarrierResult.consumed(
+                messages.format("carrier.success-now", "PERCENT", effectiveSuccess(base, newBonus)), sound, particles);
     }
 
     /**
@@ -493,7 +493,7 @@ public final class CarrierService {
      */
     private CarrierResult applyProtect(ItemStack carrier, ItemStack target, CarrierData data) {
         if (codec.isGuarded(target)) {
-            return CarrierResult.noop("§7That item is already protected.");
+            return CarrierResult.noop(messages.format("white-scroll.already"));
         }
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
         if (!groups.matches(target.getType(), cfg.appliesTo())) { // §I gate: only the configured kinds
@@ -503,12 +503,12 @@ public final class CarrierService {
         int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
         consume(carrier); // a use is spent whether the roll succeeds or fails
         if (random.nextInt(100) >= success) {
-            return CarrierResult.consumed("§eThe White Scroll failed — the item is not protected.");
+            return CarrierResult.consumed(messages.format("white-scroll.fail"));
         }
         codec.setGuarded(target, true);
         slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I add the white-scroll marker (coexists with traks/holy)
         protectionRefresh.accept(target); // stamp the PROTECTED line from the new guard state (preserve the rest)
-        return CarrierResult.consumed("§aProtected — a failed enchant will spare this item once.");
+        return CarrierResult.consumed(messages.format("white-scroll.applied"));
     }
 
     /** Re-render an enchant book's lore from state (never parsed back), so a dust combine or reroll shows the new success. */
