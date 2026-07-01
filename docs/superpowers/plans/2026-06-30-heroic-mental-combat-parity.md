@@ -20,17 +20,19 @@
 
 ---
 
-# PART 1 — Mental / StrikeSync (`~/Documents/StrikeSync`, branch `feat/effective-material-contract`)
+## PART 1 — Mental / StrikeSync (`~/Documents/StrikeSync`, branch `feat/effective-material-contract`)
 
 Independently shippable: general correctness fixes + an era-faithful tooltip that no-op when no marker/module is present.
 
 ### Task 1.1: `EffectiveMaterial` resolver
 
 **Files:**
+
 - Create: `core/src/main/java/me/vexmc/mental/platform/EffectiveMaterial.java`
 - Test: `core/src/test/java/me/vexmc/mental/platform/EffectiveMaterialTest.java`
 
 **Interfaces:**
+
 - Produces: `static Material EffectiveMaterial.of(ItemStack item)` — the `combat:effective_material` PDC material if present + valid, else `item.getType()`; null item → null.
 
 - [ ] **Step 1: Failing test** — marked item → the marked material; unmarked → `getType()`; invalid name → `getType()`. Build items via `ItemStack` + `ItemMeta.getPersistentDataContainer().set(KEY, STRING, "DIAMOND_SWORD")`. (Uses MockBukkit or the existing Mental test harness — check `core/src/test` for the pattern.)
@@ -42,10 +44,12 @@ Independently shippable: general correctness fixes + an era-faithful tooltip tha
 ### Task 1.2: Legacy weapon damage honours the marker
 
 **Files:**
+
 - Modify: `core/src/main/java/me/vexmc/mental/module/hitreg/DamageCalculator.java` (~line 98)
 - Test: `core/src/test/java/me/vexmc/mental/module/hitreg/DamageCalculatorTest.java`
 
 **Interfaces:**
+
 - Consumes: `EffectiveMaterial.of` (1.1), `legacyAttackDamage(Material)` (existing).
 
 - [ ] **Step 1: Failing test** — a gold sword marked `DIAMOND_SWORD` with `legacyToolDamage=true` yields `legacyAttackDamage(DIAMOND_SWORD)=8`, not gold's 5. (Extend `DamageCalculatorTest`; if `calculate` needs a live attacker, add a focused test on the extracted resolution instead.)
@@ -57,10 +61,12 @@ Independently shippable: general correctness fixes + an era-faithful tooltip tha
 ### Task 1.3: Weapon durability respects the `max_damage` component
 
 **Files:**
+
 - Modify: `core/src/main/java/me/vexmc/mental/module/damage/WeaponDurability.java` (guard ~line 53, break check ~line 69)
 - Test: `core/src/test/java/me/vexmc/mental/module/damage/WeaponDurabilityTest.java` (create if absent)
 
 **Interfaces:**
+
 - Produces: `static int WeaponDurability.effectiveMax(ItemStack, Damageable meta)` — `getMaxDamage()` when `hasMaxDamage()` (1.20.5+, reflected), else `getType().getMaxDurability()`.
 
 - [ ] **Step 1: Failing test** (pure helper) — a Damageable reporting `hasMaxDamage=true, getMaxDamage=1561` → `effectiveMax=1561`; no custom max → material max. Reflect the same way Mental does elsewhere; inject a stub meta.
@@ -72,13 +78,16 @@ Independently shippable: general correctness fixes + an era-faithful tooltip tha
 ### Task 1.4: Era-correct tooltip — generalize the rewriter
 
 **Files:**
+
 - Modify/Rename: `core/src/main/java/me/vexmc/mental/module/rules/cooldown/WeaponAttributeTooltipHider.java` → `EraAttributeTooltipRewriter` (update the registration site — find via `new WeaponAttributeTooltipHider`)
 - Test: `core/src/test/java/…/EraAttributeTooltipRewriterTest.java` (pure transform over a synthetic modifier set, as far as reflectively testable)
 
 **Interfaces:**
+
 - Consumes: `config.cooldown().enabled()`, `config.armourStrength().enabled()`, `config.hitReg().legacyToolDamage()`, `EffectiveMaterial.of`, `DamageCalculator.legacyAttackDamage`.
 
 Three per-rule transforms over the resolved attribute-modifier set, each gated on its own module; the listener activates if *any* is on:
+
 1. Strip `attack_speed` on weapons/tools when `cooldown` on — **existing behaviour, keep.**
 2. Strip `armor_toughness` on armour when `old-armour-strength` on.
 3. Rewrite `attack_damage` amount on weapons when `legacy-tool-damage` on so the shown total = `legacyAttackDamage(EffectiveMaterial.of(item))`; modifier amount = `legacyTotal − 1.0`.
@@ -92,6 +101,7 @@ Three per-rule transforms over the resolved attribute-modifier set, each gated o
 ### Task 1.5: Contract doc + Mental live/matrix verification
 
 **Files:**
+
 - Create: `docs/…/effective-material-contract.md` (StrikeSync) — the neutral key spec.
 - Modify: any Mental live/tester suite covering durability/damage if one asserts material-max.
 
@@ -102,17 +112,19 @@ Three per-rule transforms over the resolved attribute-modifier set, each gated o
 
 ---
 
-# PART 2 — StarEnchants (`~/Documents/StarEnchants`, branch `feat/heroic-mental-combat-parity` — current)
+## PART 2 — StarEnchants (`~/Documents/StarEnchants`, branch `feat/heroic-mental-combat-parity` — current)
 
 Standalone-correct on vanilla + Mental-non-legacy even before Part 1 ships.
 
 ### Task 2.1: `HeroicDiamond` — diamond attack + diamond-material name
 
 **Files:**
+
 - Modify: `se/feature/src/feature/heroic/HeroicDiamond.java`
 - Test: `se/feature/test/feature/heroic/HeroicDiamondTest.java`
 
 **Interfaces:**
+
 - Produces: `static double diamondAttackDamage(Material)` (sword 7 / axe 9 total incl. base; 0 non-weapon); `static String diamondMaterialName(Material)` — the `DIAMOND_<kind>` name for any sub-diamond gear (armour or sword/axe), else `null` (already ≥diamond / not gear).
 
 - [ ] **Step 1: Failing test** — `diamondAttackDamage`: GOLDEN_SWORD→7, GOLDEN_AXE→9, DIAMOND_SWORD→7, GOLDEN_HELMET→0. `diamondMaterialName`: GOLDEN_SWORD→"DIAMOND_SWORD", IRON_CHESTPLATE→"DIAMOND_CHESTPLATE", DIAMOND_BOOTS→null, NETHERITE_HELMET→null, STICK→null. Assert against the returned constants (no external string source — these are our parity constants, hand-computed).
@@ -124,10 +136,12 @@ Standalone-correct on vanilla + Mental-non-legacy even before Part 1 ships.
 ### Task 2.2: `EffectiveMaterialCodec`
 
 **Files:**
+
 - Create: `se/item/src/item/codec/EffectiveMaterialCodec.java`
 - Test: `se/item/test/item/codec/EffectiveMaterialCodecTest.java`
 
 **Interfaces:**
+
 - Produces: `void write(ItemStack, String materialName)` / `Optional<String> read(ItemStack)` over `NamespacedKey.fromString("combat:effective_material")` STRING; blank/absent/no-meta → empty. Pure item-state (no Bukkit Material resolution — SE only stores the name).
 
 - [ ] **Step 1: Failing test** — round-trips a name; empty when unset; empty for an air/meta-less stack. Mirror the existing codec test pattern in `se/item/test/item/codec`.
@@ -139,10 +153,12 @@ Standalone-correct on vanilla + Mental-non-legacy even before Part 1 ships.
 ### Task 2.3: `HeroicVanillaStats` — write weapon attribute, stop hiding
 
 **Files:**
+
 - Modify: `se/feature/overlay/modern/feature/heroic/HeroicVanillaStats.java`
 - Legacy no-op unchanged: `se/feature/overlay/legacy/feature/heroic/HeroicVanillaStats.java` (still returns false)
 
 **Interfaces:**
+
 - Consumes: `HeroicDiamond.diamondAttackDamage` (2.1).
 - Produces: `static boolean apply(ItemStack, boolean weapon)` — now writes the weapon `GENERIC_ATTACK_DAMAGE` modifier for a sub-diamond weapon and **no longer sets `HIDE_ATTRIBUTES`** (armour or weapon). Returns whether real attrs (armour OR weapon) were written for this piece.
 
@@ -155,15 +171,18 @@ Standalone-correct on vanilla + Mental-non-legacy even before Part 1 ships.
 ### Task 2.4: `HeroicService` — stamp marker, drop the right flat delta
 
 **Files:**
+
 - Modify: `se/feature/src/feature/heroic/HeroicService.java` (~lines 129-137)
 - Test: `se/feature/test/feature/heroic/HeroicServiceTest.java` (or the existing service test)
 
 **Interfaces:**
+
 - Consumes: `EffectiveMaterialCodec` (2.2), `HeroicDiamond.diamondMaterialName` (2.1), `HeroicVanillaStats.apply` (2.3).
 
 - [ ] **Step 1: Failing test** — forging a sub-diamond weapon with vanilla-stats on: the marker PDC = `DIAMOND_SWORD` and the resulting `CombatState.heroic().flatDamage()==0` (real weapon attr ⇒ no plugin-maths double-count). Forging a diamond piece (no swap): no marker. Use the default-messages `HeroicService` ctor as the existing suites do.
 - [ ] **Step 2: Run, verify fail.**
 - [ ] **Step 3: Implement.**
+
   ```java
   boolean realStats = cfg.diamondStats() && cfg.vanillaStats() && HeroicVanillaStats.apply(upgraded, weapon);
   boolean realArmour = !weapon && realStats;
@@ -180,6 +199,7 @@ Standalone-correct on vanilla + Mental-non-legacy even before Part 1 ships.
       }
   }
   ```
+
   (Inject an `EffectiveMaterialCodec effectiveMaterial` field, constructed in the same spots `combat`/`lore` are.)
 - [ ] **Step 4: Run, verify pass** + fix the ctor call sites (grep `new HeroicService(`).
 - [ ] **Step 5: Commit** `feat(heroic): stamp the effective-material marker; drop flat delta when real attrs written`.
@@ -187,6 +207,7 @@ Standalone-correct on vanilla + Mental-non-legacy even before Part 1 ships.
 ### Task 2.5: heroic.yml + ADR 0032
 
 **Files:**
+
 - Modify: `se/bootstrap/packs-src/cosmic-pack/items/heroic.yml` (comment: `vanilla-stats` now also writes the weapon attribute + neutral marker; no more hidden attributes)
 - Create: `docs/decisions/0032-heroic-cross-plugin-combat-parity.md`
 - Regen if needed: `./gradlew regenDocs` (surface.json/catalog if heroic.yml comments feed docs)
@@ -198,6 +219,7 @@ Standalone-correct on vanilla + Mental-non-legacy even before Part 1 ships.
 ### Task 2.6: Update the live suite
 
 **Files:**
+
 - Modify: `se/tester/src/tester/suite/HeroicVanillaStatsSuite.java`
 
 - [ ] **Step 1:** Flip `heroic.vanilla.hiddenTooltip`: assert `HIDE_ATTRIBUTES` is **absent** (rename the check to `heroic.vanilla.visibleTooltip`). Add: forge a `DIAMOND_SWORD→GOLDEN_SWORD`, assert `getAttributeModifiers(HAND)` contains amount `6.0` (diamond sword modifier) and the `combat:effective_material` PDC == `DIAMOND_SWORD`. Keep the armour (8.0/2.0) + component-max assertions.
