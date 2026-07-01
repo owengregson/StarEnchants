@@ -1,4 +1,4 @@
-# The physical crystal item — the ONE global crystal likeness (ADR-0032). Drag it onto a piece of gear to
+# The physical crystal item — the ONE global crystal likeness (ADR-0034). Drag it onto a piece of gear to
 # apply it (ALWAYS succeeds — no roll), or drag one crystal onto another to MERGE them into a multi-crystal
 # (their effects combine, up to config.yml crystals.max-merge). Everything below is configurable; reload
 # with /se reload.

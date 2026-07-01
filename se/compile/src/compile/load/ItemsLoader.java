@@ -426,7 +426,7 @@ public final class ItemsLoader {
                 name,
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 // The on-gear line defaults to the item name, so a pack that renames the crystal renames its
-                // gear line too without repeating it (ADR-0032 §5).
+                // gear line too without repeating it (ADR-0034 §5).
                 orDefault(root.string("lore-while-on-item"), name),
                 root.has("sounds") && sounds.has("enabled")
                         ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),

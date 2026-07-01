@@ -8,7 +8,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pure tests for {@link CrystalNames} (§E name join, ADR-0032) — the single source of the crystal item name
+ * Pure tests for {@link CrystalNames} (§E name join, ADR-0034) — the single source of the crystal item name
  * shared by the mint and the gear renderer. Feeds a TEST-OWNED template + name map and asserts the produced
  * string, so the literals are the test's own input, not a production constant (writing-tests Rule 1). The
  * contract under test is the merged-name colour join: names are separated by the template's LEADING format run

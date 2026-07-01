@@ -47,7 +47,7 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
 
     @Override
     protected ItemStack icon(MenuHolder holder, CrystalDef def) {
-        // The description is the crystal's authored bonus block (already styled per ADR-0032), shown verbatim.
+        // The description is the crystal's authored bonus block (already styled per ADR-0034), shown verbatim.
         List<String> lore = new ArrayList<>(def.description());
         lore.add("&8tier: " + tierColor(def.tier()) + tierLabel(def.tier()));
         lore.add("&8applies to: &7" + ItemGroups.kindsLabel(def.appliesTo()));

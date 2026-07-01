@@ -210,7 +210,7 @@ public final class ApplySuite implements Harness.Scenario {
 
         h.guard("item.apply.extractCrystalTopmost", () -> {
             // A multi-crystal entry (spark+glint): the extractor pops the TOPMOST single (glint), leaving the
-            // rest (spark) on gear (ADR-0032 §4) — proved against the real PDC round-trip.
+            // rest (spark) on gear (ADR-0034 §4) — proved against the real PDC round-trip.
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             enchanter.applyCrystalEntry(sword, List.of("crystals/spark", "crystals/glint"), true);
             if (!codec.read(sword).crystals().contains("crystals/spark+crystals/glint")) {

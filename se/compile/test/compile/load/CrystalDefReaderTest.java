@@ -86,7 +86,7 @@ class CrystalDefReaderTest {
 
         assertFalse(diags.hasErrors(), () -> diags.all().toString());
         // A multi-ability crystal keys its first bonus to the base key, further ones to <base>/a1, /a2, … —
-        // the dense chain the WornResolver walks, exactly like an armour set's extra armour bonuses (ADR-0032).
+        // the dense chain the WornResolver walks, exactly like an armour set's extra armour bonuses (ADR-0034).
         assertEquals(2, parsed.abilities().size());
         assertEquals("crystals/flame", parsed.abilities().get(0).stableKey());
         assertEquals(List.of("ATTACK"), parsed.abilities().get(0).triggers());

@@ -10,7 +10,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pure tests for the crystal-item data model (§E, ADR-0032) — no Bukkit. Pins the {@code "a+b+c"} entry
+ * Pure tests for the crystal-item data model (§E, ADR-0034) — no Bukkit. Pins the {@code "a+b+c"} entry
  * encoding, the {@code componentsOf} split (the same the WornResolver/LoreRenderer use), the capped N-way
  * merge with cursor-on-top order, and the empty/absolute-max component invariant.
  */

@@ -1,5 +1,5 @@
-# Frost — a cosmic Armor Crystal (ADR-0032). Two independent on-hit rolls: a rare "freeze" (no distinct vanilla
-# status, so a strong 1s Slowness stands in per ADR-0032 §6) and a more common 3s Slowness. Each ability rolls
+# Frost — a cosmic Armor Crystal (ADR-0034). Two independent on-hit rolls: a rare "freeze" (no distinct vanilla
+# status, so a strong 1s Slowness stands in per ADR-0034 §6) and a more common 3s Slowness. Each ability rolls
 # its own chance at the gate.
 display: "&b&lFrost"
 description:

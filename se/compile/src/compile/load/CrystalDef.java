@@ -4,7 +4,7 @@ import java.util.List;
 import schema.diag.Source;
 
 /**
- * Non-runtime metadata of one authored crystal (ADR-0014, ADR-0032). A crystal stacks (an item carries a LIST
+ * Non-runtime metadata of one authored crystal (ADR-0014, ADR-0034). A crystal stacks (an item carries a LIST
  * of crystal keys) and has no levels; it expands to one or more {@code AbilityDef}s ({@code <key>}, then
  * {@code <key>/a1}, {@code /a2}, … like an armour set's bonuses) so a single crystal can carry independent
  * bonuses across triggers.

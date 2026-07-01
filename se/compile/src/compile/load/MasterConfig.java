@@ -104,7 +104,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     }
 
     /**
-     * Crystal-slot capacity and merge cap (§E, ADR-0032). Crystal slots are a SEPARATE ledger from enchant
+     * Crystal-slot capacity and merge cap (§E, ADR-0034). Crystal slots are a SEPARATE ledger from enchant
      * slots. {@code slots} is how many crystal entries an item may hold; {@code maxMerge} is the "global max
      * multi-crystal count" — how many crystals may combine into one multi-crystal (and thus into one gear
      * entry). An absolute per-entry component ceiling (PDC-bloat guard) is the hardcoded

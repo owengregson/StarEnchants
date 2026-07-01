@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * Single source of truth for a crystal item's NAME string (ADR-0032 §1/§5). The {@code {CRYSTAL}} token expands
+ * Single source of truth for a crystal item's NAME string (ADR-0034 §1/§5). The {@code {CRYSTAL}} token expands
  * to the component crystals' STYLED display names, comma-joined so a merge reads each name in its own colour
  * (e.g. {@code &4&lChaos&6&l, &e&lLight}). Shared by the mint path (the physical item name) and the gear
  * renderer (the on-item line), so the two never diverge.

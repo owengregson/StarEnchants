@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A physical crystal item's on-item state (docs/v3-directives.md §E, ADR-0032): the ordered list of component
+ * A physical crystal item's on-item state (docs/v3-directives.md §E, ADR-0034): the ordered list of component
  * crystal base keys it carries — ONE for a single crystal, MANY for a merged multi-crystal. The <em>runtime</em>
  * cap on how many may merge is {@code crystals.max-merge} (config, enforced by the feature layer); this record
  * only guards the absolute {@link #ABSOLUTE_MAX} that keeps the PDC string bounded.
@@ -14,7 +14,7 @@ import java.util.List;
  * (a single is the plain key, so legacy single-key entries stay valid). The entry occupies one slot but
  * contributes every component's abilities; the runtime additive fold (ADR-0012) sums overlapping magnitudes — the
  * multi-crystal "overlapping types SUM" semantics for free. The list is ORDER-PRESERVING and the last element is
- * the "topmost" component the extractor pops (ADR-0032 §4). Crystal keys never contain {@code '+'}, so it is an
+ * the "topmost" component the extractor pops (ADR-0034 §4). Crystal keys never contain {@code '+'}, so it is an
  * unambiguous delimiter.
  *
  * @param keys the component crystal base keys (e.g. {@code crystals/flame}); 1..{@link #ABSOLUTE_MAX}, never empty
