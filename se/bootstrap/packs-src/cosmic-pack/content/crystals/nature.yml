@@ -6,7 +6,7 @@ description:
   - "&2* Enemies deal 3% less damage to you."
   - "&2* Gain 2 extra hearts."
 tier: epic
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 abilities:
   - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 3 } } ] }
   - { trigger: PASSIVE, effects: [ { POTION: { effect: HEALTH_BOOST, level: 1, duration: 200, who: "@Self" } } ] }

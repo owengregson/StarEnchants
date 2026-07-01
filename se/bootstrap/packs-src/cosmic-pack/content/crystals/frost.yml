@@ -7,7 +7,7 @@ description:
   - "&b* 1% Chance to freeze enemies for 1 second."
   - "&b* 3% Chance to slow enemies for 3 seconds."
 tier: rare
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 abilities:
   - { trigger: ATTACK, chance: 1, effects: [ { POTION: { effect: SLOWNESS, level: 6, duration: 20, who: "@Victim" } } ] }
   - { trigger: ATTACK, chance: 3, effects: [ { POTION: { effect: SLOWNESS, level: 2, duration: 60, who: "@Victim" } } ] }

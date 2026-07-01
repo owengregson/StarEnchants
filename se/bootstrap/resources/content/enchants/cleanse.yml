@@ -3,7 +3,7 @@ tier: uncommon
 display: "&fCleanse"
 description: "Wash away afflictions when struck."
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: defense
 levels:
   1:

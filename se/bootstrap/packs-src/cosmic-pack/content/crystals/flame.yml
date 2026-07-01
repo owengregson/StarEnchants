@@ -8,7 +8,7 @@ description:
   - "&c* Deal 3% more damage to all enemies."
   - "&c* Permanent Fire Resistance"
 tier: rare
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 abilities:
   - { trigger: ATTACK,  effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 3 } } ] }
   - { trigger: PASSIVE, effects: [ { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 200, who: "@Self" } } ] }

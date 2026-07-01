@@ -3,7 +3,7 @@ tier: uncommon
 display: "&eAbsorb"
 description: "Soak blows behind extra hearts."
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: defense
 levels:
   1:

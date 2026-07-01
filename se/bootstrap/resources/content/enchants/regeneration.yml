@@ -5,7 +5,7 @@ tier: uncommon
 display: "&aRegeneration"
 description: "Mend your wounds when struck."
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: defense
 levels:
   1:
