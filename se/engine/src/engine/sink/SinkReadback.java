@@ -23,6 +23,9 @@ public interface SinkReadback extends Sink {
     /** Whether an effect asked for the triggering event to be cancelled (§3.6 event control). */
     boolean cancelled();
 
+    /** The accumulated EXP_MULTIPLY factor for an EXP_GAIN activation (1.0 = unchanged). */
+    double expMultiplier();
+
     /** Whether an effect asked the triggering hit to ignore armor (§ combat-flags). */
     boolean armorIgnored();
 

@@ -81,6 +81,7 @@ public final class TriggerDispatch {
     public final int passive; // §B PASSIVE lifecycle — fired by the LifecycleDriver, not a Bukkit listener
     public final int command; // §B COMMAND — fired by the configured CommandTriggerCommand
     public final int impact;  // fired by a landing FALLING_BLOCK via FallingBlockListener (victim = what it hit)
+    public final int expGain; // fired by TriggerListeners.onExpChange; scales the PlayerExpChangeEvent's XP in place
 
     /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
     public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
@@ -158,6 +159,7 @@ public final class TriggerDispatch {
         this.passive = triggers.idOf("PASSIVE").orElse(-1);
         this.command = triggers.idOf("COMMAND").orElse(-1);
         this.impact = triggers.idOf("IMPACT").orElse(-1);
+        this.expGain = triggers.idOf("EXP_GAIN").orElse(-1);
     }
 
     /**
@@ -339,6 +341,22 @@ public final class TriggerDispatch {
         ActivationContext context =
                 new ActivationContext(owner, victim, null, victim.getLocation(), carriedDamage, null);
         fire(owner, impact, context, null);
+    }
+
+    /** Fire EXP_GAIN, then scale the gained XP by the accumulated EXP_MULTIPLY factor (recursion-safe: no new XP granted). */
+    public void fireExp(Player actor, ActivationContext context, org.bukkit.event.player.PlayerExpChangeEvent event) {
+        if (expGain < 0) {
+            return;
+        }
+        Snapshot snapshot = content.snapshot();
+        SinkReadback sink = newSink();
+        runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), expGain,
+                attackTrigger.test(expGain), actor, context, sink, snapshot.stableKeys());
+        double m = sink.expMultiplier();
+        if (m != 1.0) {
+            event.setAmount(Math.max(0, (int) Math.round(event.getAmount() * m)));
+        }
+        sink.flush();
     }
 
     private SinkReadback newSink() {

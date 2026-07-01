@@ -122,6 +122,15 @@ Create an explosion at the target.
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ EXPLODE: { power: 4, breakBlocks: false } }`
 
+### EXP_MULTIPLY
+
+Multiply the XP gained (EXP_GAIN trigger) by a factor.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ EXP_MULTIPLY: { factor: <double[0..]=2.0> } }`
+- _param_ `factor` `double[0..]`
+- _example_: `{ EXP_MULTIPLY: { factor: 2 } }`
+
 ### EXTINGUISH
 
 Put out the target's fire.
@@ -613,12 +622,13 @@ Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE
 
 ### SUPPRESS_IMMUNE
 
-Make the target(s) immune to all suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn — a maintained PASSIVE flag, armed on equip and lifted on unequip. Player-only.
+Make the target(s) immune to suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn — a maintained PASSIVE flag, armed on equip and lifted on unequip. An optional chance (default 100) makes it a per-suppression roll instead of absolute. Player-only.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SUPPRESS_IMMUNE: {} }`
+- _usage_: `{ SUPPRESS_IMMUNE: { chance: <int[0..100]=100> } }`
+- _param_ `chance` `int[0..100]`
 - _target_ `who`: selector `SELF`
-- _example_: `{ SUPPRESS_IMMUNE: { who: "@Self" } }`
+- _example_: `{ SUPPRESS_IMMUNE: { chance: 4, who: "@Self" } }`
 
 ### TELEBLOCK
 
@@ -880,6 +890,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `REPEATING` | NEUTRAL | false | true | false |
 | `COMMAND` | NEUTRAL | false | true | false |
 | `IMPACT` | ATTACK | false | true | true |
+| `EXP_GAIN` | NEUTRAL | false | true | false |
 
 ## Conditions
 

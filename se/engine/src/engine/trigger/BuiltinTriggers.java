@@ -45,6 +45,8 @@ public final class BuiltinTriggers {
                 .register(Trigger.neutral("COMMAND"))
                 // Fired by a landing FALLING_BLOCK (FallingBlockListener); victim = whoever it hit. Appended last.
                 .register(Trigger.attack("IMPACT"))
+                // Fired by TriggerListeners.onExpChange on a PlayerExpChangeEvent; EXP_MULTIPLY scales it in place. Appended last.
+                .register(Trigger.neutral("EXP_GAIN"))
                 .build();
     }
 }
