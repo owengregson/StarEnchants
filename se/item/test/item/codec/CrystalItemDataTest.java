@@ -10,9 +10,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
- * Pure tests for the crystal-item data model (§E) — no Bukkit. Pins the {@code "a+b"} entry encoding,
- * the {@code componentsOf} split (the same the WornResolver/LoreRenderer use), the pairs-only merge,
- * and the 1..2 component invariant.
+ * Pure tests for the crystal-item data model (§E, ADR-0032) — no Bukkit. Pins the {@code "a+b+c"} entry
+ * encoding, the {@code componentsOf} split (the same the WornResolver/LoreRenderer use), the capped N-way
+ * merge with cursor-on-top order, and the empty/absolute-max component invariant.
  */
 final class CrystalItemDataTest {
 
@@ -24,36 +24,40 @@ final class CrystalItemDataTest {
     }
 
     @Test
-    void multiEncodesWithDelimiter() {
-        CrystalItemData multi = new CrystalItemData(List.of("crystals/jolt", "crystals/frost"));
-        assertEquals("crystals/jolt+crystals/frost", multi.entry());
+    void multiEncodesWithDelimiterInOrder() {
+        CrystalItemData multi = new CrystalItemData(List.of("crystals/jolt", "crystals/frost", "crystals/flame"));
+        assertEquals("crystals/jolt+crystals/frost+crystals/flame", multi.entry());
         assertTrue(multi.isMulti());
     }
 
     @Test
     void componentsOfSplitsEntries() {
         assertEquals(List.of("crystals/jolt"), CrystalItemData.componentsOf("crystals/jolt"));
-        assertEquals(List.of("crystals/jolt", "crystals/frost"),
-                CrystalItemData.componentsOf("crystals/jolt+crystals/frost"));
+        assertEquals(List.of("crystals/jolt", "crystals/frost", "crystals/flame"),
+                CrystalItemData.componentsOf("crystals/jolt+crystals/frost+crystals/flame"));
         assertEquals(List.of(), CrystalItemData.componentsOf(null));
         assertEquals(List.of(), CrystalItemData.componentsOf("  "));
     }
 
     @Test
-    void mergePairsOnly() {
-        CrystalItemData a = CrystalItemData.single("crystals/jolt");
-        CrystalItemData b = CrystalItemData.single("crystals/frost");
-        CrystalItemData merged = a.mergeWith(b);
+    void mergePutsTheCursorOnTopAndHonoursTheCap() {
+        CrystalItemData target = CrystalItemData.single("crystals/jolt");
+        CrystalItemData cursor = CrystalItemData.single("crystals/frost");
+        // cursor lands LAST (topmost) so the extractor pops the most-recently-merged crystal first.
+        CrystalItemData merged = target.mergeWith(cursor, 2);
         assertEquals(List.of("crystals/jolt", "crystals/frost"), merged.keys());
-        // a multi cannot merge further (pairs only), in either direction
-        assertNull(merged.mergeWith(a));
-        assertNull(a.mergeWith(merged));
+        // A third component would exceed the cap of 2 → rejected (null), in either direction.
+        assertNull(merged.mergeWith(CrystalItemData.single("crystals/flame"), 2));
+        // Raising the cap admits it, appending on top.
+        assertEquals(List.of("crystals/jolt", "crystals/frost", "crystals/flame"),
+                merged.mergeWith(CrystalItemData.single("crystals/flame"), 3).keys());
     }
 
     @Test
-    void rejectsEmptyOrTooMany() {
+    void rejectsEmptyOrPastAbsoluteMax() {
         assertThrows(IllegalArgumentException.class, () -> new CrystalItemData(List.of()));
-        assertThrows(IllegalArgumentException.class,
-                () -> new CrystalItemData(List.of("a", "b", "c")));
+        List<String> tooMany = java.util.stream.IntStream.rangeClosed(0, CrystalItemData.ABSOLUTE_MAX)
+                .mapToObj(i -> "k" + i).toList(); // ABSOLUTE_MAX + 1 keys
+        assertThrows(IllegalArgumentException.class, () -> new CrystalItemData(tooMany));
     }
 }

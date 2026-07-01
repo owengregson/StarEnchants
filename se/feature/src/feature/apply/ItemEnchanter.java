@@ -26,8 +26,8 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class ItemEnchanter {
 
-    /** Sanity cap on crystals per item — they stack (§6.5), but unbounded growth bloats PDC. */
-    public static final int DEFAULT_MAX_CRYSTALS = 16;
+    /** Generous default merge cap for the fixture ctor (the real plugin passes {@code crystals.max-merge}). */
+    public static final int DEFAULT_MAX_MERGE = item.codec.CrystalItemData.ABSOLUTE_MAX;
 
     /** Default base enchant-slot capacity (docs/v3-directives.md §H). */
     public static final int DEFAULT_BASE_SLOTS = 9;
@@ -44,8 +44,8 @@ public final class ItemEnchanter {
     private final ContentHolder content;
     private final platform.item.ItemGroups groups;
     private final IntSupplier baseSlots;     // §H slots.base — read live per apply so a reload re-tunes it
-    private final IntSupplier crystalSlots;  // §E crystals.slots
-    private final IntSupplier maxCrystals;   // §E crystals.max-stack
+    private final IntSupplier crystalSlots;  // §E crystals.slots (entries per item)
+    private final IntSupplier maxMerge;      // §E crystals.max-merge (components per entry)
     private final Messages messages;
 
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
@@ -62,20 +62,20 @@ public final class ItemEnchanter {
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, int baseSlots, int crystalSlots) {
         this(codec, lore, content, groups, () -> Math.max(0, baseSlots), () -> Math.max(0, crystalSlots),
-                () -> DEFAULT_MAX_CRYSTALS, Messages.defaults());
+                () -> DEFAULT_MAX_MERGE, Messages.defaults());
     }
 
-    /** Canonical ctor (composition root): slot capacities are read per apply so a reload re-tunes them live. */
+    /** Canonical ctor (composition root): slot/merge caps are read per apply so a reload re-tunes them live. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
-                         IntSupplier maxCrystals, Messages messages) {
+                         IntSupplier maxMerge, Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
         this.groups = Objects.requireNonNull(groups, "groups");
         this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
         this.crystalSlots = Objects.requireNonNull(crystalSlots, "crystalSlots");
-        this.maxCrystals = Objects.requireNonNull(maxCrystals, "maxCrystals");
+        this.maxMerge = Objects.requireNonNull(maxMerge, "maxMerge");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
@@ -245,9 +245,9 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Extract the most-recently-applied crystal ENTRY off {@code gear} in place (inverse of
-     * {@link #applyCrystalEntry}, §E); re-renders lore. Returns the popped entry so the caller can mint it
-     * back whole. No-op fail when no crystal.
+     * Extract the TOPMOST single component off {@code gear}'s last crystal entry in place (ADR-0032 §4); re-renders
+     * lore. Returns the popped component key so the caller mints it back as a whole single crystal. When the entry
+     * had one component the slot frees; otherwise the reduced stack stays. No-op fail when no crystal.
      */
     public ExtractResult extractCrystal(ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
@@ -257,9 +257,16 @@ public final class ItemEnchanter {
         if (current.crystals().isEmpty()) {
             return ExtractResult.fail(messages.format("apply.crystal.none"));
         }
-        List<String> crystals = new ArrayList<>(current.crystals());
-        String popped = crystals.remove(crystals.size() - 1);
-        CombatState next = current.withCrystals(crystals); // preserves setWeaponKey
+        List<String> entries = new ArrayList<>(current.crystals());
+        int last = entries.size() - 1;
+        List<String> components = new ArrayList<>(item.codec.CrystalItemData.componentsOf(entries.get(last)));
+        String popped = components.remove(components.size() - 1); // the topmost (most-recently-merged) crystal
+        if (components.isEmpty()) {
+            entries.remove(last);                                                     // slot frees
+        } else {
+            entries.set(last, String.join(item.codec.CrystalItemData.DELIMITER, components)); // reduced stack stays
+        }
+        CombatState next = current.withCrystals(entries); // preserves setWeaponKey
         codec.write(gear, next);
         lore.apply(gear, next);
         return ExtractResult.ok(popped, messages.format("apply.crystal.extracted"));
@@ -374,6 +381,10 @@ public final class ItemEnchanter {
         if (keys.isEmpty()) {
             return ApplyResult.fail(messages.format("apply.crystal.not-crystal"));
         }
+        int mergeCap = maxMerge.getAsInt();
+        if (keys.size() > mergeCap) {
+            return ApplyResult.fail(messages.format("apply.crystal.max-reached", "MAX", mergeCap));
+        }
         String label = "";
         for (String key : keys) {
             ApplyResult c = checkCrystal(gear.getType(), key);
@@ -412,6 +423,10 @@ public final class ItemEnchanter {
         if (keys.isEmpty()) {
             return ApplyResult.fail(messages.format("apply.crystal.not-crystal"));
         }
+        int mergeCap = maxMerge.getAsInt();
+        if (enforceSlots && keys.size() > mergeCap) {
+            return ApplyResult.fail(messages.format("apply.crystal.max-reached", "MAX", mergeCap));
+        }
         String label = "";
         for (String key : keys) {
             ApplyResult check = checkCrystal(stack.getType(), key);
@@ -424,10 +439,6 @@ public final class ItemEnchanter {
         int crystalCap = crystalSlots.getAsInt();
         if (enforceSlots && current.crystals().size() >= crystalCap) {
             return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap));
-        }
-        int maxStack = maxCrystals.getAsInt();
-        if (current.crystals().size() >= maxStack) {
-            return ApplyResult.fail(messages.format("apply.crystal.max-reached", "MAX", maxStack));
         }
         List<String> crystals = new ArrayList<>(current.crystals());
         crystals.add(String.join(item.codec.CrystalItemData.DELIMITER, keys)); // ONE entry = ONE slot

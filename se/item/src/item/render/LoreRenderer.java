@@ -33,6 +33,7 @@ public final class LoreRenderer {
     private final IntSupplier baseSlots;        // §H base enchant slots, for the orb "Enchantment Slots" line total
     private final Supplier<String> slotsLine;   // §H orb slots-line template ({TOTAL}/{ADDED}); null/blank → no line
     private final Supplier<String> heroicLine;  // §F HEROIC line template ({TYPE}/{+/-}/{AMOUNT}); blank → plain marker
+    private final Supplier<String> crystalLine; // §E on-gear crystal line template ({CRYSTAL}); null/blank → style fallback
 
     /**
      * Set members' authored lore, looked up from state at render time so a worn piece keeps its flavour lore
@@ -125,6 +126,22 @@ public final class LoreRenderer {
             Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
             Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine,
             Supplier<String> heroicLine) {
+        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                countSuffix, baseSlots, slotsLine, heroicLine, () -> null); // no crystal template → style fallback
+    }
+
+    /**
+     * Full renderer including the §E on-gear crystal line template ({@code crystalLine}; {@code {CRYSTAL}} renders
+     * the socketed crystal name(s), single-sourced with the mint via {@link CrystalNames}). Blank/{@code null} →
+     * the legacy {@code style.crystalColor()} fallback. The crystal line renders LAST in {@link #lines} — below the
+     * orb slots line — so on gear it sits above only the heroic + protection + trak lines {@link #apply} appends
+     * (ADR-0032 §5).
+     */
+    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf, SetLore setLore,
+            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
+            Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine,
+            Supplier<String> heroicLine, Supplier<String> crystalLine) {
         this.style = Objects.requireNonNull(style, "style");
         this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
         this.enchantColorOf = Objects.requireNonNull(enchantColorOf, "enchantColorOf");
@@ -135,9 +152,10 @@ public final class LoreRenderer {
         this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
         this.slotsLine = Objects.requireNonNull(slotsLine, "slotsLine");
         this.heroicLine = Objects.requireNonNull(heroicLine, "heroicLine");
+        this.crystalLine = Objects.requireNonNull(crystalLine, "crystalLine");
     }
 
-    /** Lore lines in stored order: one per enchant ({@code name level}), then one per crystal. Empty if no state. */
+    /** Body lore lines: one per enchant ({@code name level}), set lore, the orb slots line, then one per crystal. */
     public List<String> lines(CombatState state) {
         LoreStyle style = this.style.get(); // live style, once per render (reload-swappable)
         List<String> out = new ArrayList<>(state.enchants().size() + state.crystals().size());
@@ -151,20 +169,9 @@ public final class LoreRenderer {
             String levelColor = style.levelColor().isBlank() ? color : style.levelColor();
             out.add(Colors.translate(color + name + " " + levelColor + level));
         }
-        for (String crystalEntry : state.crystals()) {
-            // A multi-crystal entry ("a+b", §E) lists both component names on one line.
-            List<String> components = item.codec.CrystalItemData.componentsOf(crystalEntry);
-            StringBuilder label = new StringBuilder();
-            for (String component : components) {
-                if (label.length() > 0) {
-                    label.append(" + ");
-                }
-                label.append(nameOr(component, style));
-            }
-            out.add(Colors.translate(style.crystalColor() + label));
-        }
-        // NB: the §F heroic line is NOT emitted here — it needs the item material for {TYPE}, so apply() adds it
-        // after the body (below the orb slots line, above protection/trak). lines() stays pure + server-free.
+        // NB: the §E crystal line and §F heroic line are NOT emitted here yet — the crystal line sits BELOW the orb
+        // slots line (ADR-0032 §5) so it is appended after that block, and the heroic line needs the item material
+        // for {TYPE} so apply() adds it after the body. lines() stays pure + server-free.
         if (state.setKey() != null) {
             // Armour member: the set's shared armour lore (§6.6). No auto "(Set)" marker — the authored lore
             // carries the SET BONUS block. Word-wrapped to the universal lore.item-wrap width like every other
@@ -181,8 +188,7 @@ public final class LoreRenderer {
                 out.add(Colors.translate(wrapped));
             }
         }
-        // §H slot-expander feedback: shown only once an orb has ADDED slots. Emitted last in the body so it sits
-        // below the enchant/set lines but (since apply() appends protection + traks AFTER lines()) above those.
+        // §H slot-expander feedback: shown only once an orb has ADDED slots. Emitted below the enchant/set lines.
         if (state.added() > 0) {
             String template = slotsLine.get();
             if (template != null && !template.isBlank()) {
@@ -190,6 +196,26 @@ public final class LoreRenderer {
                 out.add(Colors.translate(template
                         .replace("{TOTAL}", Integer.toString(total))
                         .replace("{ADDED}", Integer.toString(state.added()))));
+            }
+        }
+        // §E crystal line(s): rendered LAST in the body — below the orb slots line — so on gear the crystal sits
+        // above only the heroic + protection + trak lines apply() appends (ADR-0032 §5). One line per socketed
+        // entry, rendered as the crystal's own name via the on-item template (single-sourced with the mint).
+        String crystalTemplate = crystalLine.get();
+        for (String crystalEntry : state.crystals()) {
+            List<String> components = item.codec.CrystalItemData.componentsOf(crystalEntry);
+            if (crystalTemplate != null && !crystalTemplate.isBlank()) {
+                out.add(Colors.translate(CrystalNames.render(crystalTemplate, components, key -> nameOr(key, style))));
+            } else {
+                // Fallback (no template wired, e.g. tests): the legacy crystal-colour + names joined by " + ".
+                StringBuilder label = new StringBuilder();
+                for (String component : components) {
+                    if (label.length() > 0) {
+                        label.append(" + ");
+                    }
+                    label.append(nameOr(component, style));
+                }
+                out.add(Colors.translate(style.crystalColor() + label));
             }
         }
         return out;

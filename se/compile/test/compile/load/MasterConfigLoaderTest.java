@@ -132,7 +132,7 @@ class MasterConfigLoaderTest {
                   deposit-on-any-kill: false
                 crystals:
                   slots: 3
-                  max-stack: 8
+                  max-merge: 8
                 heroic:
                   max-outgoing-factor: 2.5
                 lore:
@@ -162,7 +162,7 @@ class MasterConfigLoaderTest {
         assertEquals(12, config.slots().base());
         assertFalse(config.souls().depositOnAnyKill());
         assertEquals(3, config.crystals().slots());
-        assertEquals(8, config.crystals().maxStack());
+        assertEquals(8, config.crystals().maxMerge());
         assertEquals(2.5, config.heroic().maxOutgoingFactor());
         assertEquals("&a", config.lore().enchantColor());
         assertEquals("&e", config.lore().levelColor());
@@ -242,13 +242,13 @@ class MasterConfigLoaderTest {
                 heroic:
                   max-outgoing-factor: 0.2
                 crystals:
-                  max-stack: 0
+                  max-merge: 0
                 """);
 
         MasterConfig config = MasterConfigLoader.load(file);
 
         assertEquals(0, config.slots().base());              // clamped to ≥ 0
         assertEquals(1.0, config.heroic().maxOutgoingFactor()); // clamped to ≥ 1.0
-        assertEquals(1, config.crystals().maxStack());       // clamped to ≥ 1
+        assertEquals(1, config.crystals().maxMerge());       // clamped to ≥ 1
     }
 }

@@ -198,7 +198,8 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         s.put("common.single-item", "&cApply to a single item — split the stack first.");
         s.put("common.wrong-applies", "&cThis can only be applied to: &f{KINDS}&c.");
         s.put("crystal.merge-single", "&cMerge onto a single crystal — split the stack first.");
-        s.put("crystal.merge-pairs", "&cMulti-crystals are pairs — you cannot merge a multi-crystal further.");
+        s.put("crystal.merge-cap", "&cThat multi-crystal is full — a crystal holds at most {MAX} effects.");
+        s.put("crystal.extract-not-multi", "&cThat is a single crystal — apply the extractor to a multi-crystal or to gear.");
         s.put("heroic.not-gear", "&cApply the heroic upgrade onto a piece of gear.");
         s.put("heroic.already-heroic", "&7That item is already heroic.");
         s.put("slot.not-gear", "&cApply the slot item onto a piece of gear.");
