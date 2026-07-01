@@ -33,12 +33,14 @@ durability: 0.20
 reduction-scope: ENTITY
 # Re-stat the gold display piece so it functions as diamond (attack / armour / durability), not gold.
 diamond-stats: true
-# HOW diamond-equivalence is applied to ARMOUR. true (default): write REAL vanilla armour-point + toughness
-# attribute modifiers and a custom diamond max-durability where the server supports it (Minecraft 1.20.5+), so the
-# armour points are correct on the HUD and read by other combat plugins that recompute damage/durability from
-# vanilla values — e.g. Mental's "restore 1.8 armour/durability". false: keep the plugin's own combat-maths
-# approximation (invisible to vanilla attributes; the pre-ADR-0031 behaviour). The weapon's outgoing damage stays
-# plugin-maths either way. On the 1.8.9 fork this silently falls back to the plugin-maths approximation.
+# HOW diamond-equivalence is applied (ADR-0031/0032). true (default): write REAL vanilla attribute modifiers —
+# armour-point + toughness for armour, attack-damage for weapons — a custom diamond max-durability where the server
+# supports it (Minecraft 1.20.5+), and the vendor-neutral `combat:effective_material` marker naming the diamond the
+# gold piece stands in for. So the stats are correct on the HUD/tooltip (the explicit modifiers suppress the gold
+# display's defaults — no hidden attributes) AND read by combat plugins that recompute from vanilla values, e.g.
+# Mental, which presents the era-correct (1.8) form on its own servers. false: keep the plugin's own combat-maths
+# approximation (invisible to vanilla attributes; the pre-ADR-0031 behaviour). On the 1.8.9 fork this silently
+# falls back to the plugin-maths approximation (no attribute API, no Mental).
 vanilla-stats: true
 # The HEROIC lore line stamped on a reforged piece ({TYPE} = the gear kind).
 lore-line: "&e&k|||&r &6&lHEROIC {TYPE} &r&e&k|||&r"
