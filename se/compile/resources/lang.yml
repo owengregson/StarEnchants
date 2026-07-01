@@ -215,7 +215,6 @@ soul.empty:
   - " "
 soul.soul-use: "&7Souls remaining: &a{AMOUNT}"
 crystal.apply-success: "&aApplied &f{CRYSTAL}&a to your item."
-crystal.apply-fail: "&cThe crystal shattered without taking hold."
 crystal.no-slots: "&cThat item has no free crystal slot."
 crystal.merge: "&dMerged into a multi-crystal: &f{CRYSTAL}&d."
 crystal.extract-success: "&aExtracted &f{CRYSTAL}&a back into a crystal."
