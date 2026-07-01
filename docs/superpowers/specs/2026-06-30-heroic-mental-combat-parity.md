@@ -43,6 +43,7 @@ Three facts drive the design:
 ## 2. Goals / non-goals
 
 **Goals**
+
 - The heroic gold piece **deals, resists, lasts, and displays as diamond** on vanilla-modern, Mental
   non-legacy, and Mental 1.8-combat servers.
 - Display is **vanilla-rendered from real attribute modifiers** — no SE-authored attribute lore, no
@@ -53,6 +54,7 @@ Three facts drive the design:
 - SE holds **no era logic** and no compile-time dependency on Mental.
 
 **Non-goals**
+
 - Reconciling SE's own combat pipeline (custom-enchant deltas, heroic ±% fold) with Mental's packet fast
   path — Mental's `HitApplier` calls `damage(amount, attacker)`, which fires the Bukkit damage chain, so
   SE's `EntityDamageByEntity` listeners still run; deeper coordination is a separate track.
@@ -85,6 +87,7 @@ and writes **real modern diamond attribute modifiers**. Responsibilities:
 | **Era-correct tooltip** (strip toughness in 1.8; show legacy attack number) | **Mental** | extend the packet tooltip-rewriter, marker-aware |
 
 **The contract key**
+
 - Key: `combat:effective_material` — `NamespacedKey.fromString("combat:effective_material")`, a neutral
   namespace both plugins agree on (not `mental:` / `starenchants:`).
 - Value: `PersistentDataType.STRING`, the Bukkit `Material` name of the *true* item (e.g. `DIAMOND_SWORD`).
@@ -94,12 +97,14 @@ and writes **real modern diamond attribute modifiers**. Responsibilities:
 ## 4. Part A — StarEnchants changes (era-agnostic, minimal)
 
 ### A1. Stamp the effective-material marker
+
 - Small codec `item.codec.EffectiveMaterialCodec`: `write(ItemStack, Material trueType)` /
   `Optional<Material> read(ItemStack)` over `combat:effective_material` STRING. Invalid name → empty.
 - `HeroicService.applyTo` stamps it with the **pre-swap** gear type, only when a material swap actually
   happens (a no-swap heroic piece already IS its true material).
 
 ### A2. Write real diamond attribute modifiers; STOP hiding them
+
 - `HeroicVanillaStats.apply` (modern overlay):
   - **Armour** (existing): `GENERIC_ARMOR` = diamond points (helmet 3 / chest 8 / legs 6 / boots 3) +
     `GENERIC_ARMOR_TOUGHNESS` = 2, on the piece's slot. Always modern (era is Mental's concern).
@@ -116,6 +121,7 @@ and writes **real modern diamond attribute modifiers**. Responsibilities:
 - **No era detection in SE.** SE always writes modern diamond; Mental presents the era.
 
 ### A3. Durability
+
 - Rely on the diamond `max_damage` component (1.20.5+) as the real, component-driven bar; Mental
   (post-patch B2) and vanilla both wear against it. Keep the existing `HeroicDurabilityListener`
   wear-cancel as the heroic `percent-durability` **buff** (collapses to base when the effective max is
@@ -125,6 +131,7 @@ and writes **real modern diamond attribute modifiers**. Responsibilities:
 - <1.20.5: unchanged (wear-cancel scaling); the Mental-weapon gap is documented (§7.3).
 
 ### A4. Config
+
 - `vanilla-stats` (existing) now also gates the weapon attribute write + the marker. `diamond-stats`
   unchanged. **No new keys, no `HIDE_ATTRIBUTES`.**
 
@@ -134,19 +141,23 @@ Three changes: two small functional fixes + one tooltip extension. Each is a cle
 marker/component/flag is absent.
 
 ### B1. Honour the marker in legacy weapon damage
+
 - **File:** `core/.../module/hitreg/DamageCalculator.java` (+ small `EffectiveMaterial` helper).
 - Resolve the effective material from `combat:effective_material` (STRING → `Material.valueOf`, guarded)
   and use it for the legacy table only:
+
   ```java
   Material effective = EffectiveMaterial.of(weapon); // marker, else weapon.getType()
   Double legacy = legacyToolDamage && weapon != null ? legacyAttackDamage(effective) : null;
   ```
+
 - Effect: heroic gold sword → `legacyAttackDamage(DIAMOND_SWORD)` = 8 (axe 7) on the legacy path.
 - **Strictly gated on Mental's existing `legacy-tool-damage` flag.** When it is off, this path never runs
   and the SE-written modern diamond attribute drives both the damage and the tooltip — the gold piece is
   a modern diamond. Mental owns the era decision; SE contributes nothing to it.
 
 ### B2. Respect the `max_damage` component in weapon durability
+
 - **File:** `core/.../module/damage/WeaponDurability.java`.
 - Replace `weapon.getType().getMaxDurability()` (break check ~line 69 and guard ~line 53) with an
   **effective max**: `Damageable.hasMaxDamage()`/`getMaxDamage()` (1.20.5+, reflected as Mental does
@@ -156,6 +167,7 @@ marker/component/flag is absent.
   caveat that the bar still reflects the display material on <1.20.5. Decide at implementation.
 
 ### B3. Era-correct tooltip (extend `WeaponAttributeTooltipHider` → a general era rewriter)
+
 Generalise the existing packet rewriter (SET_SLOT / WINDOW_ITEMS, NMS component path A + Bukkit-defaults
 path B) into per-rule rewrites over the resolved attribute set, each gated on its own module/flag:
 
@@ -166,6 +178,7 @@ path B) into per-rule rewrites over the resolved attribute set, each gated on it
    `attack_damage` modifier's amount so the shown total = `legacyAttackDamage(EffectiveMaterial.of(item))`
    (marker-aware). Modifier amount = `legacyTotal − 1` (base 1.0). This makes tooltip == actual for
    *every* weapon on a legacy server (a general era-faithfulness win), and a heroic gold sword shows 8.
+
 - Gating is per-rule (speed↔cooldown, toughness↔armour-strength, damage↔legacy-tool-damage); the listener
   activates if *any* rule is on. **When a rule's module is off, that surface renders the unchanged
   SE-written modern diamond attribute** — no era transform happens unless Mental's own module elects it.
@@ -174,6 +187,7 @@ path B) into per-rule rewrites over the resolved attribute set, each gated on it
   marked gold piece exactly like the real diamond it names.
 
 ### B4. Contract doc
+
 - `docs/…/effective-material-contract.md` in StrikeSync describing `combat:effective_material` as a
   stable, documented honour-side API for any plugin.
 
@@ -198,11 +212,13 @@ sword showing 8 (not 7) on a legacy server is intentional so display == damage.
 ## 7. Testing
 
 ### 7.1 Unit — StarEnchants
+
 - `HeroicDiamond.diamondAttackDamage` (7/9) + per-slot armour/toughness (pure).
 - `EffectiveMaterialCodec` round-trip + invalid-name → empty.
 - `HeroicService`: writing a weapon attribute drops `flatDamage`; marker stamped on swap, absent on no-swap.
 
 ### 7.2 Unit — Mental
+
 - `EffectiveMaterial.of` (marked / unmarked / invalid).
 - `WeaponDurability` effective-max: breaks at component max, not material max.
 - `DamageCalculator`: legacy damage uses the effective material.
@@ -210,6 +226,7 @@ sword showing 8 (not 7) on a legacy server is intentional so display == damage.
   strip speed / rewrite attack amount) over a synthetic modifier set.
 
 ### 7.3 Live matrix
+
 - StarEnchants `HeroicVanillaStatsSuite`: assert the weapon `GENERIC_ATTACK_DAMAGE` modifier (6/8),
   `GENERIC_ARMOR`/toughness, the marker PDC value, `HIDE_ATTRIBUTES` **absent**, and (1.20.5+) the
   component max survives the full forge.
@@ -219,6 +236,7 @@ sword showing 8 (not 7) on a legacy server is intentional so display == damage.
 - Document the <1.20.5 + Mental weapon-durability gap explicitly (no silent cap).
 
 ## 8. Rollout
+
 - Two repos, two releases:
   1. **StrikeSync / Mental** (B1–B4) → Mental release. Ships first so the era display + legacy damage +
      durability are correct the moment SE updates.
@@ -230,6 +248,7 @@ sword showing 8 (not 7) on a legacy server is intentional so display == damage.
   no heroic items to honour. No breakage either way.
 
 ## 9. Risks & open questions
+
 - **Mental tooltip-rewriter scope:** rewriting the `attack_damage` *amount* (not just stripping a line)
   is the largest new Mental piece; feasible via the same resolved-modifier rebuild already used for
   attack_speed, on both the NMS-component and Bukkit-defaults paths. Graceful no-op on miss.
