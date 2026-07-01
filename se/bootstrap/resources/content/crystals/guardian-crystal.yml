@@ -5,7 +5,7 @@ description:
   - "&7&lGUARDIAN CRYSTAL BONUS"
   - "&7* Blunts &b20&7 of every incoming hit."
 tier: rare
-applies-to: [CHESTPLATE, HELMET, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 trigger: DEFENSE
 effects:
   - { DAMAGE_MOD: { side: defense, mode: flat, amount: 20 } }

@@ -5,7 +5,7 @@ tier: uncommon
 display: "&bFrostguard"
 description: "Chill whoever strikes you."
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: defense
 levels:
   1:

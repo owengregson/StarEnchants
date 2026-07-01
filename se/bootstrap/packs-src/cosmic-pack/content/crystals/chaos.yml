@@ -7,7 +7,7 @@ description:
   - "&4* 50% Chance to negate durability damage."
   - "&4* 4% Chance to ignore enemy Silence enchantment."
 tier: legendary
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 abilities:
   - { trigger: ITEM_DAMAGE, chance: 50, effects: [ { CANCEL: {} } ] }
   - { trigger: PASSIVE, effects: [ { SUPPRESS_IMMUNE: { who: "@Self", chance: 4 } } ] }

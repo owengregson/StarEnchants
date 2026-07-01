@@ -6,7 +6,7 @@ tier: uncommon
 display: "&9Fortify"
 description: "Gain Resistance when struck."
 trigger: DEFENSE
-applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+applies-to: [ARMOR]
 group: defense
 levels:
   1:
