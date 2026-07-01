@@ -102,7 +102,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new SetSuite(this));
         harness.add(new HeroicSuite(this));
         harness.add(new HeroicApplySuite(this)); // §F: success/fail/consume + armour-weapon guard
-        harness.add(new HeroicVanillaStatsSuite(this)); // §F/ADR-0031: real vanilla armour + max-durability on forge
+        harness.add(new HeroicVanillaStatsSuite()); // §F/ADR-0031/0032: real vanilla armour+weapon attrs, marker, visible tooltip
         harness.add(new SoulSuite(this));
         harness.add(new SoulEconomySuite(this)); // §D: deposit-on-any-kill + combine + split
         harness.add(new ScrollPlayerSuite(this)); // §I: holy death-save + nametag rename
