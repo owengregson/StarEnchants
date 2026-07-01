@@ -45,6 +45,30 @@ versioning: [Semantic Versioning](https://semver.org/).
   runtime, derived via a multi-lens design workshop) and ADRs 0011 (architecture),
   0012 (fully-additive damage), 0013 (single `/se` command root).
 
+### Changed
+
+- **Unified message catalogue — one source of truth (ADR-0032).** Player-facing chat
+  messages (§L) were maintained in three hand-synced copies (a Java `Lang.defaults()` map,
+  the shipped `lang.yml`, and a full cosmic-pack fork). They are now ONE bundled YAML —
+  `se/compile/resources/lang.yml`, parsed by `Lang.defaults()` — with a user's on-disk
+  `lang.yml` overlaid on it; the cosmic pack drops to an overlay of only the 5 soul-gem
+  strings it re-themes. `CarrierService`'s book/dust/white-scroll outcomes now route through
+  the catalogue (`carrier.*` / `white-scroll.*` keys) instead of hardcoded `§` literals, and
+  `CrystalService` branches on a typed `ApplyResult.Reason` instead of sniffing rendered
+  message text. A new `LangCatalogueDriftTest` fails the build if code references a key the
+  catalogue lacks, so the drift can't return.
+
+### Fixed
+
+- **Menu chat replies could render as `&c<key>?` markers.** Ten `menu.*` keys (mint /
+  operator-console / sets / crystals) lived only in the shipped `lang.yml`, absent from the
+  `Lang.defaults()` fallback, so a partial user file (or the unit-test fixture) showed raw
+  key markers instead of text. Unifying the catalogue (ADR-0032) removes the split, and
+  `soul.activate` / `soul.deactivate` / `soul.empty` are now consistently multi-line blocks
+  (the shipped file had drifted to dead single-line forms). An applied cosmic-pack also no
+  longer drops the `/se import` help line (its stale full-copy `command.usage` predated the
+  feature).
+
 ## [1.1.4-beta] - 2026-06-27
 
 ### Added

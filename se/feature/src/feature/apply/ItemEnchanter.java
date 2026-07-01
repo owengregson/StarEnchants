@@ -385,7 +385,8 @@ public final class ItemEnchanter {
         CombatState current = codec.read(gear);
         int crystalCap = crystalSlots.getAsInt();
         if (current.crystals().size() >= crystalCap) {
-            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap));
+            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap),
+                    ApplyResult.Reason.NO_CRYSTAL_SLOTS);
         }
         return ApplyResult.ok(label);
     }
@@ -423,7 +424,8 @@ public final class ItemEnchanter {
         CombatState current = codec.read(stack);
         int crystalCap = crystalSlots.getAsInt();
         if (enforceSlots && current.crystals().size() >= crystalCap) {
-            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap));
+            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap),
+                    ApplyResult.Reason.NO_CRYSTAL_SLOTS);
         }
         int maxStack = maxCrystals.getAsInt();
         if (current.crystals().size() >= maxStack) {

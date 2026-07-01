@@ -20,7 +20,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -146,9 +145,10 @@ public final class SoulService implements SoulDebit, SoulSpender {
         return Toggle.ENABLED;
     }
 
+    /** Send a single message (already colour-translated by {@code Messages.format}); a blank line is skipped. */
     private static void message(Player player, String raw) {
         if (raw != null && !raw.isBlank()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', raw));
+            player.sendMessage(raw);
         }
     }
 
