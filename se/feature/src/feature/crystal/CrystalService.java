@@ -133,8 +133,10 @@ public final class CrystalService {
         CrystalConfig cfg = config.get();
         ApplyResult eligible = enchanter.checkCrystalEntry(gear, crystal.keys());
         if (!eligible.ok()) {
-            // A slot-full message is configurable; other ineligibility uses the enchanter's reason.
-            String message = eligible.message() != null && eligible.message().contains("crystal slot")
+            // The drag-onto-gear gesture shows its own crystal.no-slots wording; any other ineligibility keeps
+            // the enchanter's reason. Branch on the STRUCTURAL reason, never the rendered text — sniffing the
+            // message string breaks the moment apply.crystal.no-slots is customised in lang.yml.
+            String message = eligible.reason() == ApplyResult.Reason.NO_CRYSTAL_SLOTS
                     ? messages.format("crystal.no-slots") : eligible.message();
             return CrystalResult.unchanged(message); // never consume on an ineligible target
         }

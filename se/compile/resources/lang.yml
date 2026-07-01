@@ -1,9 +1,13 @@
 # StarEnchants — messages (docs/v3-directives.md §L).
 #
-# Every player-facing message, by dotted key. Legacy '&' colour codes; {TOKEN} placeholders are filled at
-# send time (the token names are shown in each comment where non-obvious). Edit here, then run /se reload —
+# This file is the ONE canonical catalogue of every player-facing chat message. It ships inside the jar and
+# IS the built-in default (Lang.defaults() reads this very resource — there is no second copy in Java), and
+# a copy is written to plugins/StarEnchants/lang.yml on first boot for you to edit.
+#
+# Every message is a dotted key. Legacy '&' colour codes; {TOKEN} placeholders are filled at send time (the
+# token names are shown in each comment where non-obvious). Edit the on-disk copy, then run /se reload —
 # lang.yml reloads together with config.yml, items/, menus/ and content/ in one transaction. Any key you
-# omit falls back to the built-in English default, so you can keep only the lines you customise.
+# omit from your copy falls back to this built-in default, so you can keep only the lines you customise.
 
 # ── /se command ──────────────────────────────────────────────────────────────────────────────────────
 command.not-a-player: "&cThat command can only be run by a player."
@@ -37,6 +41,7 @@ command.import.invalid: "&cImport &f{KEY}&c has {N} error(s) — nothing written
 command.import.write-failed: "&cCould not write &f{KEY}&c: {ERROR}"
 command.import.done: "&aImported enchant &f{KEY}&a ({LEVELS} level(s)) and reloaded."
 command.enchant.usage: "&eUsage: /se enchant <key> [level]"
+command.removeenchant.usage: "&eUsage: /se removeenchant <enchant> &7— strips it from the held item"
 command.crystal.usage: "&eUsage: /se crystal <key> &7— a crystal you drag onto gear to apply"
 command.unopened.usage: "&eUsage: /se unopened <tier> &7— right-click it to reveal a random book"
 command.book.usage: "&eUsage: /se book <enchant> [level] &7— a book you drag onto gear to apply it"
@@ -46,6 +51,10 @@ command.give.set: "&aMinted the &f{KEY}&a {PIECE} piece. &7Wear the set to compl
 command.give.set-piece: "&cThe &f{KEY}&c set has no &f{PIECE}&c piece — use HELMET / CHESTPLATE / LEGGINGS / BOOTS."
 command.set.usage: "&eUsage: /se give set <player> <set> <piece> &7— mint an armour set piece"
 command.error.no-such-set: "&cNo such set: &f{KEY}"
+command.error.no-such-player: "&cNo online player named &f{PLAYER}&c."
+# /se give <type> <player> — the generic give dispatcher. {ITEM} = the delivered item's label; {PLAYER} = target.
+command.give.usage: "&eUsage: /se give <type> <player> [args] &7— type: gem [amount] | crystal <key> | book <enchant> [level] [success] | heroic | upgrade | orb | blackscroll | randomizer | transmog | godlytransmog | holy | nametag | dust [percent] | whitescroll | unopened <tier>"
+command.give.delivered: "&aGave &f{ITEM}&a to &f{PLAYER}&a."
 command.give.heroic: "&6Minted a heroic upgrade. &7Drag it onto armour or a weapon to attempt."
 command.give.slot: "&5Minted a {KIND}. &7Drag it onto gear to add enchant slots."
 command.give.transmog: "&5Minted a transmog scroll. &7Drag it onto enchanted gear."
@@ -66,7 +75,9 @@ command.reference.list: "&eReference: &f{CATEGORIES} &7— /se effects|selectors
 command.usage:
   - "&eStarEnchants commands:"
   - "&e  /se reload [--dry-run] &7— rebuild content"
+  - "&e  /se give <type> <player> [args] &7— give any item to a player (gem|crystal|book|item|set|heroic|…)"
   - "&e  /se enchant <key> [level] &7— apply an enchant to the held item"
+  - "&e  /se removeenchant <key> &7— strip an enchant from the held item"
   - "&e  /se crystal <key> &7— mint a crystal item (drag it onto gear to apply)"
   - "&e  /se heroic &7— mint a heroic upgrade (drag it onto armour/weapon)"
   - "&e  /se orb &7— mint a slot expander (drag onto gear for +N slots)"
@@ -128,6 +139,8 @@ apply.requires-level: "&cRequires &f{REQ} &cat level {LEVEL} or higher."
 apply.conflicts: "&c{DISPLAY} &ccannot be combined with &f{OTHER}&c."
 apply.applied-suffix: "{MSG} &7applied (level {LEVEL})."
 apply.hold-item: "&cHold an item first."
+apply.not-present: "&cThe held item does not carry &f{KEY}&c."
+apply.removed: "&aRemoved &f{KEY}&a from the held item."
 apply.crystal.no-such: "&cNo such crystal: &f{KEY}"
 apply.crystal.no-compile: "&c{KEY} &cdid not compile."
 apply.crystal.on-item: "&cApply the crystal onto an item."
@@ -164,7 +177,7 @@ menu.console.reload-start: "&7{MODE} content…"
 menu.console.reload-ok: "&a{VERB} &f{COUNT} &aabilities &7(generation {GEN})."
 menu.console.reload-fail: "&cContent has &f{N} &cerror(s) — see /se reload for details."
 
-# ── Gesture/service guards (wired through Messages in a follow-up; shown here for the complete surface) ──
+# ── Gesture/service guards (the drag-onto-gear rejections; every one routed through Messages/lang) ──────
 common.single-item: "&cApply to a single item — split the stack first."
 common.wrong-applies: "&cThis can only be applied to: &f{KINDS}&c."
 crystal.merge-single: "&cMerge onto a single crystal — split the stack first."
@@ -181,8 +194,24 @@ scroll.nametag.target-gone: "&cThe item to rename is no longer there — your na
 scroll.nametag.cannot-rename: "&cThat item cannot be renamed — your nametag was returned."
 
 # ── Item result messages (soul mode, crystal/heroic/slot apply, scroll/book outcomes) ──────────────────
-soul.activate: "&aSoul mode &lON&a."
-soul.deactivate: "&7Soul mode &lOFF&7."
+# Soul-mode feedback is multi-line (sent via lines(), not format()). soul.empty shows when soul mode is
+# toggled with no gem (or a zero-soul gem right-clicked); keep these as YAML lists so each line is its own
+# chat line.
+soul.activate:
+  - " "
+  - "&a&l** SOUL MODE: &nON&r&a&l **"
+  - "&7Your soul enchantments will now drain souls."
+  - " "
+soul.deactivate:
+  - " "
+  - "&c&l** SOUL MODE: &nOFF&r&c&l **"
+  - "&7Your soul enchantments will no longer drain souls."
+  - " "
+soul.empty:
+  - " "
+  - "&c&l** SOUL MODE: &nOFF&r&c&l **"
+  - "&7You have no soul gems left!"
+  - " "
 soul.soul-use: "&7Souls remaining: &a{AMOUNT}"
 crystal.apply-success: "&aApplied &f{CRYSTAL}&a to your item."
 crystal.apply-fail: "&cThe crystal shattered without taking hold."
@@ -220,3 +249,23 @@ trak.already: "&7That item already has this trak."
 trak.occupied: "&cThat item already has another applied item — only one fits."
 book.unopened.open: "&aYou revealed &f{ENCHANT} {LEVEL}&a (&f{PERCENT}%&a success)!"
 book.unopened.empty-tier: "&cThere are no enchants in that tier to reveal."
+
+# ── Carrier apply outcomes (enchant books, success dust, white scroll — the drag-onto-gear economy) ──────
+# The carrier is a book/dust/white-scroll dragged onto gear. A failed roll spends the carrier; the enchant
+# book's failure branch depends on the book likeness (protection saved it / it shattered / it survived).
+carrier.not-carrier: "&cThat is not an enchant carrier."
+carrier.apply-target: "&cApply the carrier onto an item."
+carrier.single-item: "&cApply the carrier to a single item — split the stack first."
+carrier.grants-nothing: "&cThis carrier grants nothing applicable."
+carrier.fail-protected: "&eThe enchant failed — but your protection saved the item."
+carrier.fail-shattered: "&cThe enchant failed — the item shattered."
+carrier.fail-unharmed: "&eThe enchant failed — the item is unharmed."
+# Success dust boosts a book's apply chance. {PERCENT} = the book's new success; {MAX} = the books.max-success ceiling.
+carrier.success-now: "&aThe book's success chance is now &f{PERCENT}%&a."
+carrier.dust.only-book: "&cDust can only boost an enchant book."
+carrier.dust.ceiling: "&7That book is already at the &f{MAX}%&7 success ceiling."
+carrier.dust.no-bonus: "&cThis dust confers no success bonus."
+# White scroll — a one-shot protect against a failed enchant (its own apply-success roll gates the guard).
+white-scroll.already: "&7That item is already protected."
+white-scroll.fail: "&eThe White Scroll failed — the item is not protected."
+white-scroll.applied: "&aProtected — a failed enchant will spare this item once."

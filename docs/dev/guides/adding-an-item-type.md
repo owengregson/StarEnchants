@@ -27,7 +27,7 @@ Modules, in dependency order:
 | Mint + service | `se/feature/src/feature/soul/SoulService.java` | `mintGem(...)`, gameplay |
 | Listeners | `se/feature/src/feature/soul/SoulInventoryListener.java`, `SoulInteractListener.java` | the gesture |
 | Command | `se/bootstrap/src/bootstrap/SeCommand.java` | `/se gem`, `/se give gem` |
-| Lang | `se/compile/.../Lang.java` + `se/bootstrap/resources/lang.yml` | player feedback |
+| Lang | `se/compile/resources/lang.yml` (parsed by `Lang.java`) | player feedback |
 | Wiring | `se/bootstrap/src/bootstrap/StarEnchantsPlugin.java` | construct + register |
 
 ## Step 1 — the bundled YAML
@@ -231,10 +231,9 @@ verb (like `/se gem`) is optional — see `SeCommand#giveGem`.
 ## Step 8 — lang keys
 
 Add player-feedback keys in **both** places: the baked catalogue
-`se/compile/src/compile/load/Lang.java` (`Lang.defaults()`, e.g.
-`s.put("command.give.gem", …)`) and the override file
-`se/bootstrap/resources/lang.yml`. A missing key renders as `&c<key>?` rather
-than throwing, and `lang.yml` overrides any subset of the baked defaults.
+the bundled catalogue `se/compile/resources/lang.yml` — the single source of truth,
+parsed by `Lang.defaults()`. A user's on-disk `lang.yml` overrides any subset; a
+missing key renders as `&c<key>?` rather than throwing.
 
 Reference keys through `item.lang.Messages`, which reads a live `Supplier<Lang>`
 so `/se reload` re-reads them:
@@ -278,7 +277,7 @@ A new item type usually gets a `features.<x>()` switch on the features record in
    `<Name>Listener.java`.
 8. `SeCommand` — a `case` in `give(...)`, the type in `GIVE_TYPES`, the service
    threaded through the constructor.
-9. `Lang.defaults()` + `lang.yml`.
+9. `se/compile/resources/lang.yml` (the message catalogue).
 10. Construct + register in `StarEnchantsPlugin` (gate behind a feature toggle).
 
 ## Verify
