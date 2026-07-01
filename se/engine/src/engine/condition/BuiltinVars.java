@@ -56,6 +56,7 @@ public final class BuiltinVars {
                 .string("victim.helditem")
                 .string("block.type")
                 .string("victim.mobtype")  // MythicMobs, via a soft hook (§N)
+                .string("actor.groundblock") // Material name of the block beneath the actor's feet (e.g. %actor.groundblock% contains "ICE")
                 .build();
     }
 }

@@ -8,9 +8,12 @@
 #   {CRYSTAL}     — the component crystal name(s), comma-joined (a merge reads each name in its own colour).
 #   {DESCRIPTION} — each component's authored bonus block, stacked with a blank line between blocks.
 #   {KINDS}       — the item kinds the crystal applies to (the intersection for a merge).
+# Once a crystal carries MORE than one component (a merge), it takes the `name-multi` / `lore-while-on-item-multi`
+# templates instead — here "Armor Crystal" becomes "Multi Crystal" (ADR-0035). Each defaults to its single form.
 type: crystal
 material: NETHER_STAR
 name: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
+name-multi: "&6&lMulti Crystal ({CRYSTAL}&6&l)"
 lore:
   - "&eImbues a single piece of gear with magic crystal abilities. Merge with other crystals to combine their effects."
   - ""
@@ -19,18 +22,20 @@ lore:
   - "&eApplies to: &f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
 # The line shown on crystal-bearing gear (below the orb-slots line, above the heroic line). Here it is the
-# crystal item's own name.
+# crystal item's own name; a merged crystal shows the Multi Crystal line instead (ADR-0035).
 lore-while-on-item: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
+lore-while-on-item-multi: "&6&lMulti Crystal ({CRYSTAL}&6&l)"
 # Apply/merge and extract gesture sounds (namespaced keys, valid across the version range).
 sounds:
   enabled: true
   apply: "block.amethyst_block.chime"
   remove: "block.amethyst_cluster.break"
-# The crystal EXTRACTOR — drag it onto crystal-bearing gear, or onto a multi-crystal, to pop the TOPMOST
-# crystal back into a whole single crystal.
+# The crystal EXTRACTOR. On crystal-bearing GEAR it pops the whole last crystal off intact — a multi-crystal
+# comes back as one multi-crystal (ADR-0035); apply the extractor again to THAT crystal item to split its
+# topmost single off. On a multi-crystal ITEM it pops the topmost single.
 extractor:
   material: AMETHYST_CLUSTER
   name: "&dCrystal Extractor"
   lore:
-    - "&7Drag onto crystal-bearing gear or a"
-    - "&7multi-crystal to pop its topmost crystal."
+    - "&7Drag onto gear to pop its crystal off"
+    - "&7whole, or onto a multi-crystal to split it."

@@ -43,6 +43,9 @@ public final class WornResolver {
     private final IntPredicate attackTrigger;
     private final IntPredicate defenseTrigger;
     private final java.util.function.Supplier<Features> features; // §L per-feature master toggles (live)
+    // §ADR-0035 the base keys of crystals declared NON-stackable, read live so a reload re-tunes it. A crystal in
+    // this set contributes its abilities at most once per wearer, even if it sits on several worn pieces.
+    private final java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals;
 
     /** Per-feature source toggles (config.yml {@code features:}) — which sources contribute to worn state. */
     public record Features(boolean enchants, boolean sets, boolean crystals, boolean heroic) {
@@ -54,15 +57,26 @@ public final class WornResolver {
         this(itemViews, triggerCount, attackTrigger, defenseTrigger, () -> Features.ALL);
     }
 
-    /** Canonical form: {@code features} is read live per resolve, so a {@code /se reload} re-tunes which sources contribute. */
     public WornResolver(ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger,
                         java.util.function.Supplier<Features> features) {
+        this(itemViews, triggerCount, attackTrigger, defenseTrigger, features, java.util.Set::of);
+    }
+
+    /**
+     * Canonical form: {@code features} and {@code nonStackableCrystals} are read live per resolve, so a
+     * {@code /se reload} re-tunes which sources contribute and which crystals dedup per wearer (§ADR-0035).
+     */
+    public WornResolver(ItemViewCache itemViews, int triggerCount,
+                        IntPredicate attackTrigger, IntPredicate defenseTrigger,
+                        java.util.function.Supplier<Features> features,
+                        java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals) {
         this.itemViews = itemViews;
         this.triggerCount = triggerCount;
         this.attackTrigger = attackTrigger;
         this.defenseTrigger = defenseTrigger;
         this.features = java.util.Objects.requireNonNull(features, "features");
+        this.nonStackableCrystals = java.util.Objects.requireNonNull(nonStackableCrystals, "nonStackableCrystals");
     }
 
     public WornState resolve(LivingEntity entity, Snapshot snapshot) {
@@ -121,6 +135,8 @@ public final class WornResolver {
         int omniCount = 0;
         HeroicStat heroic = HeroicStat.NONE;
         Features f = features.get(); // §L master toggles: a disabled feature's source is skipped
+        java.util.Set<String> nonStackable = nonStackableCrystals.get(); // §ADR-0035 crystals that dedup per wearer
+        java.util.Set<String> seenNonStackable = new java.util.HashSet<>(); // non-stackable keys already contributed
         for (CombatState combat : combats) {
             if (f.heroic()) {
                 heroic = heroic.plus(combat.heroic()); // heroic flat stats sum across worn pieces (§6)
@@ -140,6 +156,12 @@ public final class WornResolver {
                     for (String crystalKey : item.codec.CrystalItemData.componentsOf(crystalEntry)) {
                         int id = keys.idOf(crystalKey);
                         if (id < 0) {
+                            continue;
+                        }
+                        // §ADR-0035: a NON-stackable crystal contributes once per wearer — skip a repeat on another
+                        // piece/slot (and, via this continue, its /aN chain too). Enchants and stackable crystals
+                        // keep full multiplicity (an enchant on two pieces still fires twice).
+                        if (nonStackable.contains(crystalKey) && !seenNonStackable.add(crystalKey)) {
                             continue;
                         }
                         mergedIds.add(id);   // fires on triggers like any source...

@@ -1,13 +1,15 @@
-# Frost — a cosmic Armor Crystal (ADR-0034). Two independent on-hit rolls: a rare "freeze" (no distinct vanilla
-# status, so a strong 1s Slowness stands in per ADR-0034 §6) and a more common 3s Slowness. Each ability rolls
-# its own chance at the gate.
+# Frost — a cosmic Armor Crystal (ADR-0034/0035). On ATTACK it always adds +1% to the outgoing-damage fold, and a
+# further +4% while the wearer stands ON ICE — gated on %actor.groundblock% (the block beneath the feet) being any
+# ICE variant (ICE / PACKED_ICE / BLUE_ICE / FROSTED_ICE). Not stackable (§0035).
 display: "&b&lFrost"
 description:
   - "&b&lFROST CRYSTAL BONUS"
-  - "&b* 1% Chance to freeze enemies for 1 second."
-  - "&b* 3% Chance to slow enemies for 3 seconds."
+  - "&b* Deal 1% more damage to all enemies"
+  - "&b* Deal 4% more damage while on ice"
+  - "&b* Frost Crystal is not stackable"
 tier: rare
 applies-to: [ARMOR]
+stackable: false
 abilities:
-  - { trigger: ATTACK, chance: 1, effects: [ { POTION: { effect: SLOWNESS, level: 6, duration: 20, who: "@Victim" } } ] }
-  - { trigger: ATTACK, chance: 3, effects: [ { POTION: { effect: SLOWNESS, level: 2, duration: 60, who: "@Victim" } } ] }
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 1 } } ] }
+  - { trigger: ATTACK, condition: "%actor.groundblock% contains \"ICE\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 4 } } ] }

@@ -1,0 +1,12 @@
+# Ender — a cosmic Armor Crystal (ADR-0035). On ATTACK it adds +10% to the outgoing-damage fold, but only against
+# mobs — gated on the victim NOT being a player (%victim.type% != PLAYER). Stackable.
+display: "&5&lEnder"
+description:
+  - "&5&lENDER CRYSTAL BONUS"
+  - "&5* Deal 10% more damage to mobs"
+  - "&5* Ender Crystal is stackable"
+tier: epic
+applies-to: [ARMOR]
+stackable: true
+abilities:
+  - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } } ] }

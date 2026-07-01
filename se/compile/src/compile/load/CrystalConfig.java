@@ -20,14 +20,21 @@ import java.util.Objects;
  * {@code {CRYSTAL}} token — for the cosmic pack it is identical to the item name ({@code Armor Crystal (Flame)}).
  * Application is unconditional (ADR-0034): there is NO success roll here, so a crystal always lands.
  *
+ * <p>{@code nameMulti} / {@code loreWhileOnItemMulti} are the item-name and on-gear-line templates used once a
+ * crystal carries MORE than one component (a merged multi-crystal, ADR-0035) — the cosmic pack renames it from
+ * {@code Armor Crystal (…)} to {@code Multi Crystal (…)}. Each defaults to its single-crystal counterpart, so a
+ * pack that doesn't distinguish keeps one uniform name.
+ *
  * <p>Per-item crystal SLOT capacity and the merge cap are cross-cutting knobs in {@code config.yml}'s
  * {@code crystals:} section (§L), not part of a single item's likeness.
  */
 public record CrystalConfig(
         String material,
         String name,
+        String nameMulti,
         List<String> lore,
         String loreWhileOnItem,
+        String loreWhileOnItemMulti,
         boolean sounds,
         String soundApply,
         String soundRemove,
@@ -38,8 +45,10 @@ public record CrystalConfig(
     public CrystalConfig {
         Objects.requireNonNull(material, "material");
         Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(nameMulti, "nameMulti");
         lore = List.copyOf(lore);
         Objects.requireNonNull(loreWhileOnItem, "loreWhileOnItem");
+        Objects.requireNonNull(loreWhileOnItemMulti, "loreWhileOnItemMulti");
         Objects.requireNonNull(soundApply, "soundApply");
         Objects.requireNonNull(soundRemove, "soundRemove");
         Objects.requireNonNull(extractorMaterial, "extractorMaterial");
@@ -51,6 +60,7 @@ public record CrystalConfig(
         return new CrystalConfig(
                 "AMETHYST_SHARD",
                 "&d{CRYSTAL} &7Crystal",
+                "&d{CRYSTAL} &7Multi-Crystal",
                 List.of(
                         "&7Imbues a piece of gear with crystal magic.",
                         "&7Merge with other crystals to combine their effects.",
@@ -60,6 +70,7 @@ public record CrystalConfig(
                         "&7Applies to: &f&n{KINDS}",
                         "&7Drag n' Drop on an item to apply."),
                 "&d{CRYSTAL} &7Crystal",
+                "&d{CRYSTAL} &7Multi-Crystal",
                 true,
                 "block.amethyst_block.chime",
                 "block.amethyst_cluster.break",

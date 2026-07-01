@@ -421,13 +421,18 @@ public final class ItemsLoader {
         YamlNode sounds = root.child("sounds");
         YamlNode extractor = root.child("extractor");
         String name = orDefault(root.string("name"), d.name());
+        // A merged multi-crystal's name/on-gear line (ADR-0035). Each defaults to its single-crystal counterpart,
+        // so a pack that doesn't set 'name-multi' keeps ONE uniform name across single and merged crystals.
+        String nameMulti = orDefault(root.string("name-multi"), name);
         return new CrystalConfig(
                 orDefault(root.string("material"), d.material()),
                 name,
+                nameMulti,
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 // The on-gear line defaults to the item name, so a pack that renames the crystal renames its
                 // gear line too without repeating it (ADR-0034 §5).
                 orDefault(root.string("lore-while-on-item"), name),
+                orDefault(root.string("lore-while-on-item-multi"), nameMulti),
                 root.has("sounds") && sounds.has("enabled")
                         ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
                 orDefault(sounds.string("apply"), d.soundApply()),

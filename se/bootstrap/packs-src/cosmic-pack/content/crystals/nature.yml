@@ -1,12 +1,14 @@
-# Nature — a cosmic Armor Crystal (ADR-0034). On DEFENSE it adds +3% to the additive damage-REDUCTION fold
-# (enemies deal 3% less to you); a PASSIVE Health Boost keeps two extra hearts while worn.
+# Nature — a cosmic Armor Crystal (ADR-0034/0035). On DEFENSE it adds +3% to the additive damage-REDUCTION fold
+# (enemies deal 3% less to you); a PASSIVE Health Boost keeps two extra hearts while worn. Not stackable (§0035).
 display: "&2&lNature"
 description:
   - "&2&lNATURE CRYSTAL BONUS"
-  - "&2* Enemies deal 3% less damage to you."
-  - "&2* Gain 2 extra hearts."
+  - "&2* Enemies deal 3% less damage to you"
+  - "&2* Gain 2 extra hearts"
+  - "&2* Nature Crystal is not stackable"
 tier: epic
 applies-to: [ARMOR]
+stackable: false
 abilities:
   - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 3 } } ] }
   - { trigger: PASSIVE, effects: [ { POTION: { effect: HEALTH_BOOST, level: 1, duration: 200, who: "@Self" } } ] }

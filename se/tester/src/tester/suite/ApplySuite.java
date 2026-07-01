@@ -108,7 +108,7 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.appliesTo");
         h.expect("item.apply.removeEnchant");
         h.expect("item.apply.extractCrystal");
-        h.expect("item.apply.extractCrystalTopmost");
+        h.expect("item.apply.extractCrystalWholeEntry");
         h.expect("item.apply.removesRequired");
         h.expect("item.apply.removesRequired.netZeroSlots");
         h.expect("item.apply.mintSet");
@@ -208,20 +208,21 @@ public final class ApplySuite implements Harness.Scenario {
             }
         });
 
-        h.guard("item.apply.extractCrystalTopmost", () -> {
-            // A multi-crystal entry (spark+glint): the extractor pops the TOPMOST single (glint), leaving the
-            // rest (spark) on gear (ADR-0034 §4) — proved against the real PDC round-trip.
+        h.guard("item.apply.extractCrystalWholeEntry", () -> {
+            // A multi-crystal entry (spark+glint): the extractor pops the WHOLE entry off gear intact (ADR-0035),
+            // freeing the slot — splitting it into singles is a further gesture on the popped multi-crystal item.
+            // Proved against the real PDC round-trip.
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             enchanter.applyCrystalEntry(sword, List.of("crystals/spark", "crystals/glint"), true);
             if (!codec.read(sword).crystals().contains("crystals/spark+crystals/glint")) {
                 throw new IllegalStateException("setup: multi-crystal entry not recorded: " + codec.read(sword).crystals());
             }
             var extracted = enchanter.extractCrystal(sword);
-            if (!extracted.ok() || !"crystals/glint".equals(extracted.poppedEntry())) {
-                throw new IllegalStateException("extract did not pop the topmost component: " + extracted.poppedEntry());
+            if (!extracted.ok() || !"crystals/spark+crystals/glint".equals(extracted.poppedEntry())) {
+                throw new IllegalStateException("extract did not pop the whole multi-crystal entry: " + extracted.poppedEntry());
             }
-            if (!codec.read(sword).crystals().equals(List.of("crystals/spark"))) {
-                throw new IllegalStateException("the remainder should be the single spark, was: " + codec.read(sword).crystals());
+            if (!codec.read(sword).crystals().isEmpty()) {
+                throw new IllegalStateException("the slot should free — no crystal should remain, was: " + codec.read(sword).crystals());
             }
         });
 

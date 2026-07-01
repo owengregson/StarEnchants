@@ -42,6 +42,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0032](0032-heroic-cross-plugin-combat-parity.md) | Heroic cross-plugin combat parity (amends 0031's display slice) | Accepted |
 | [0033](0033-unified-message-catalogue.md) | Unified message catalogue — one YAML source (`se/compile/resources/lang.yml`), drift-guarded | Accepted |
 | [0034](0034-crystals-rework.md) | Crystals rework — global likeness, multi-ability crystals, N-stack merge, 100% apply | Accepted |
+| [0035](0035-crystal-stackability-and-multi-identity.md) | Crystal stackability, multi-crystal identity, whole-entry extraction (amends 0034) | Accepted |
 
 ## Process
 

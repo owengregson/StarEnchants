@@ -38,12 +38,12 @@ class VarVocabularyTest {
     @Test
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
-        // Slot counts are load-bearing: the FactBuffer is sized to them. Breakdown justifying 15/18/8 lives in
-        // v3.1 §A (numeric/flag base + exotic-effect port), v3.7 §N (victim.mobtype string), and the Cosmic Pack
-        // sets (victim.inzone flag — devil's hellfire zone).
+        // Slot counts are load-bearing: the FactBuffer is sized to them. Breakdown justifying 15/18/9 lives in
+        // v3.1 §A (numeric/flag base + exotic-effect port), v3.7 §N (victim.mobtype string), the Cosmic Pack
+        // sets (victim.inzone flag — devil's hellfire zone), and ADR-0035 (actor.groundblock string — Frost "on ice").
         assertEquals(15, v.numberSlots());
         assertEquals(18, v.flagSlots());
-        assertEquals(8, v.stringSlots());
+        assertEquals(9, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("world", "time").orElseThrow().kind());
@@ -53,6 +53,7 @@ class VarVocabularyTest {
         assertEquals(VarKind.STR, v.lookup("actor", "world").orElseThrow().kind());
         assertEquals(VarKind.STR, v.lookup("victim", "type").orElseThrow().kind());
         assertEquals(VarKind.STR, v.lookup("block", "type").orElseThrow().kind());
+        assertEquals(VarKind.STR, v.lookup("actor", "groundblock").orElseThrow().kind()); // ADR-0035 "on ice"
         assertTrue(v.flagSlots() <= FactBuffer.MAX_FLAGS); // must fit the flag bitset
     }
 

@@ -934,6 +934,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | --- | --- |
 | `%actor.food%` | NUM |
 | `%actor.gamemode%` | STR |
+| `%actor.groundblock%` | STR |
 | `%actor.health%` | NUM |
 | `%actor.healthpercent%` | NUM |
 | `%actor.helditem%` | STR |

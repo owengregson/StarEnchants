@@ -8,9 +8,12 @@
 #   {CRYSTAL}     — the component crystal name(s), comma-joined (a merge reads each name in its own colour).
 #   {DESCRIPTION} — each component's authored description block, stacked with a blank line between blocks.
 #   {KINDS}       — the item kinds the crystal applies to (the intersection for a merge).
+# A merged crystal (2+ components) takes `name-multi` / `lore-while-on-item-multi` instead (ADR-0035); each
+# defaults to its single-crystal form, so a pack that doesn't distinguish keeps one uniform name.
 type: crystal
 material: AMETHYST_SHARD
 name: "&d{CRYSTAL} &7Crystal"
+name-multi: "&d{CRYSTAL} &7Multi-Crystal"
 lore:
   - "&7Imbues a piece of gear with crystal magic. Merge with other crystals to combine their effects."
   - ""
@@ -20,16 +23,18 @@ lore:
   - "&7Drag n' Drop on an item to apply."
 # The line shown on crystal-bearing gear (below the orb-slots line, above the heroic line); the item name by default.
 lore-while-on-item: "&d{CRYSTAL} &7Crystal"
+lore-while-on-item-multi: "&d{CRYSTAL} &7Multi-Crystal"
 # Apply/merge and extract gesture sounds (namespaced keys, valid across the version range).
 sounds:
   enabled: true
   apply: "block.amethyst_block.chime"
   remove: "block.amethyst_cluster.break"
-# The crystal EXTRACTOR — drag it onto crystal-bearing gear, or onto a multi-crystal, to pop the TOPMOST
-# crystal back into a whole single crystal.
+# The crystal EXTRACTOR. On crystal-bearing GEAR it pops the whole last crystal off intact — a multi-crystal
+# comes back as one multi-crystal (ADR-0035); apply it again to that crystal item to split its topmost single.
+# On a multi-crystal ITEM it pops the topmost single.
 extractor:
   material: AMETHYST_CLUSTER
   name: "&dCrystal Extractor"
   lore:
-    - "&7Drag onto crystal-bearing gear or a"
-    - "&7multi-crystal to pop its topmost crystal."
+    - "&7Drag onto gear to pop its crystal off"
+    - "&7whole, or onto a multi-crystal to split it."

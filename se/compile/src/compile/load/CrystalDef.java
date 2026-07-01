@@ -18,6 +18,10 @@ import schema.diag.Source;
  * @param description the authored bonus block, verbatim, stacked into the crystal lore's {@code {DESCRIPTION}}
  * @param tier        rarity tier (ADR-0016); may be {@code null}
  * @param appliesTo   named item target groups, not raw materials
+ * @param stackable   whether this crystal may repeat its bonus (ADR-0035): a NON-stackable crystal cannot merge
+ *                    with another of the same type, and its abilities apply at most once per wearer even if the
+ *                    same crystal sits on several worn pieces (the runtime dedups it in {@code WornResolver}).
+ *                    Defaults {@code true} — every existing crystal keeps stacking as before.
  */
 public record CrystalDef(
         String key,
@@ -25,6 +29,7 @@ public record CrystalDef(
         List<String> description,
         String tier,
         List<String> appliesTo,
+        boolean stackable,
         Source source) {
 
     public CrystalDef {

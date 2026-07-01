@@ -3220,6 +3220,10 @@
     "type": "STR"
     },
   {
+    "name": "actor.groundblock",
+    "type": "STR"
+    },
+  {
     "name": "actor.health",
     "type": "NUM"
     },

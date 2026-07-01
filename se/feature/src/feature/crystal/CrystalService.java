@@ -88,9 +88,11 @@ public final class CrystalService {
     public ItemStack mint(CrystalItemData data) {
         CrystalConfig cfg = config.get();
         List<String> keys = data.keys();
+        // A merged crystal takes the "Multi Crystal" name template; a single takes the plain one (ADR-0035).
+        String nameTemplate = data.isMulti() ? cfg.nameMulti() : cfg.name();
         ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Mats.or("AMETHYST_SHARD", org.bukkit.Material.PAPER),
-                CrystalNames.render(cfg.name(), keys, this::displayName),
+                CrystalNames.render(nameTemplate, keys, this::displayName),
                 renderLore(cfg.lore(), keys));
         codec.write(stack, data);
         return stack;
@@ -137,6 +139,11 @@ public final class CrystalService {
         if (merged == null) {
             return CrystalResult.unchanged(messages.format("crystal.merge-cap", "MAX", cap));
         }
+        // §ADR-0035: a non-stackable crystal cannot merge with another of the same type into one multi-crystal.
+        String clash = duplicateNonStackable(merged.keys());
+        if (clash != null) {
+            return CrystalResult.unchanged(messages.format("crystal.merge-not-stackable", "CRYSTAL", label(List.of(clash))));
+        }
         ItemStack multi = mint(merged);
         consume(cursor);
         return CrystalResult.committed(multi, applySound(config.get()),
@@ -152,13 +159,15 @@ public final class CrystalService {
         return extractFromGear(cursor, target);
     }
 
-    /** Pop {@code gear}'s topmost crystal component and mint it back to the player; no-op when gear carries none. */
+    /** Pop {@code gear}'s last crystal entry and mint it back to the player; no-op when gear carries none. */
     private CrystalResult extractFromGear(ItemStack cursor, ItemStack gear) {
         ExtractResult result = enchanter.extractCrystal(gear);
         if (!result.ok()) {
             return CrystalResult.unchanged(result.message());
         }
-        List<String> popped = CrystalItemData.componentsOf(result.poppedEntry()); // one component key
+        // The whole entry pops off intact (§ADR-0035): a merged entry mints back as ONE multi-crystal, which a
+        // further extractor gesture on that item then splits into singles (extractFromCrystal).
+        List<String> popped = CrystalItemData.componentsOf(result.poppedEntry());
         ItemStack minted = mint(new CrystalItemData(popped));
         consume(cursor);
         return CrystalResult.extracted(gear, minted, removeSound(config.get()),
@@ -245,6 +254,23 @@ public final class CrystalService {
     private String displayName(String key) {
         String name = content.library().displayNameOf(key);
         return name != null ? name : key;
+    }
+
+    /** The first non-stackable component that would appear more than once in {@code keys} (§ADR-0035), or {@code null}. */
+    private String duplicateNonStackable(List<String> keys) {
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (String key : keys) {
+            if (!seen.add(key) && !isStackable(key)) {
+                return key;
+            }
+        }
+        return null;
+    }
+
+    /** Whether a crystal key stacks — unknown content defaults to stackable, so a stale key never blocks a merge. */
+    private boolean isStackable(String key) {
+        CrystalDef def = content.library().crystalDefOf(key);
+        return def == null || def.stackable();
     }
 
     private static void consume(ItemStack stack) {
