@@ -1,4 +1,4 @@
-# Flame — a cosmic Armor Crystal (ADR-0032). Its likeness (the "Armor Crystal (...)" name + lore) is the ONE
+# Flame — a cosmic Armor Crystal (ADR-0034). Its likeness (the "Armor Crystal (...)" name + lore) is the ONE
 # global items/crystal.yml; this file declares only the styled name, the verbatim bonus block, and the effects.
 # On ATTACK it adds a flat +3% to the additive outgoing-damage fold; a PASSIVE potion keeps Fire Resistance up
 # while worn (refreshed by the passive lifecycle, so effectively permanent).

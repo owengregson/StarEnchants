@@ -17,7 +17,7 @@ import schema.spec.D;
  * {@code SUPPRESS}: where that silences a target, this makes a target unsilenceable.
  *
  * <p>The optional {@code chance} (default 100 = absolute immunity) makes each suppression a per-event roll, so a
- * crystal can grant a PARTIAL "ignore Silence" (ADR-0032, e.g. Chaos's 4%).
+ * crystal can grant a PARTIAL "ignore Silence" (ADR-0034, e.g. Chaos's 4%).
  */
 public final class SuppressImmuneEffect implements EffectKind {
 

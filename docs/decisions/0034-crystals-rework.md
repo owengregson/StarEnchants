@@ -1,4 +1,4 @@
-# ADR 0032: Crystals rework — global likeness, multi-ability crystals, N-stack merge, 100% apply
+# ADR 0034: Crystals rework — global likeness, multi-ability crystals, N-stack merge, 100% apply
 
 - **Status:** Accepted
 - **Date:** 2026-06-30

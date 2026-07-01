@@ -94,7 +94,7 @@ souls:
   # (the give/combine/split commands and soul-cost spending still work).
   deposit-on-any-kill: true
 
-# Crystals (§E, ADR-0032). Per-item crystal slots are a SEPARATE ledger from enchant slots; the crystal ITEM's
+# Crystals (§E, ADR-0034). Per-item crystal slots are a SEPARATE ledger from enchant slots; the crystal ITEM's
 # likeness (material/name/lore) lives in items/crystal.yml. Applying a crystal always succeeds (no roll).
 crystals:
   # Crystal slots (entries) every item has by default.

@@ -1,4 +1,4 @@
-# Swift — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml. When the
+# Swift — a levelless socket bonus (ADR-0014, ADR-0034). Its likeness is the global items/crystal.yml. When the
 # wearer is struck (DEFENSE) it surges them with Speed I for 3 seconds (3s cooldown).
 display: "&bSwift"
 description:

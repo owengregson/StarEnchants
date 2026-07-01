@@ -1,6 +1,6 @@
-# Chaos — a cosmic Armor Crystal (ADR-0032). On an item-damage tick a 50% roll CANCELs the durability loss;
+# Chaos — a cosmic Armor Crystal (ADR-0034). On an item-damage tick a 50% roll CANCELs the durability loss;
 # a PASSIVE flag makes the wearer ignore an enemy's Silence (suppression) 4% of the time (SUPPRESS_IMMUNE with
-# a per-suppression chance, ADR-0032 §6).
+# a per-suppression chance, ADR-0034 §6).
 display: "&4&lChaos"
 description:
   - "&4&lCHAOS CRYSTAL BONUS"

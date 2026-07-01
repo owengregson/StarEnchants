@@ -81,7 +81,7 @@ class SuppressionStoreTest {
 
     @Test
     void partialImmunityRollsPerSuppressionAndIsNotAbsolute() {
-        store.setImmune(p, 50); // 50% chance to ignore each suppression (ADR-0032 crystal "ignore Silence")
+        store.setImmune(p, 50); // 50% chance to ignore each suppression (ADR-0034 crystal "ignore Silence")
         assertFalse(store.isImmune(p), "a partial chance is not ABSOLUTE immunity");
         int landed = 0;
         for (int id = 0; id < 600; id++) {         // distinct ids so each is an independent roll, not an extend

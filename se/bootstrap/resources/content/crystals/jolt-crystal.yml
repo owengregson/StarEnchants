@@ -1,4 +1,4 @@
-# Jolt — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml. On an
+# Jolt — a levelless socket bonus (ADR-0014, ADR-0034). Its likeness is the global items/crystal.yml. On an
 # ATTACK it strikes the foe with lightning for a flat 3 damage (35% chance, 2s cooldown).
 display: "&eJolt"
 description:

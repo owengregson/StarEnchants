@@ -135,7 +135,7 @@ public final class LoreRenderer {
      * the socketed crystal name(s), single-sourced with the mint via {@link CrystalNames}). Blank/{@code null} →
      * the legacy {@code style.crystalColor()} fallback. The crystal line renders LAST in {@link #lines} — below the
      * orb slots line — so on gear it sits above only the heroic + protection + trak lines {@link #apply} appends
-     * (ADR-0032 §5).
+     * (ADR-0034 §5).
      */
     public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
             Function<String, String> enchantColorOf, SetLore setLore,
@@ -170,7 +170,7 @@ public final class LoreRenderer {
             out.add(Colors.translate(color + name + " " + levelColor + level));
         }
         // NB: the §E crystal line and §F heroic line are NOT emitted here yet — the crystal line sits BELOW the orb
-        // slots line (ADR-0032 §5) so it is appended after that block, and the heroic line needs the item material
+        // slots line (ADR-0034 §5) so it is appended after that block, and the heroic line needs the item material
         // for {TYPE} so apply() adds it after the body. lines() stays pure + server-free.
         if (state.setKey() != null) {
             // Armour member: the set's shared armour lore (§6.6). No auto "(Set)" marker — the authored lore
@@ -199,7 +199,7 @@ public final class LoreRenderer {
             }
         }
         // §E crystal line(s): rendered LAST in the body — below the orb slots line — so on gear the crystal sits
-        // above only the heroic + protection + trak lines apply() appends (ADR-0032 §5). One line per socketed
+        // above only the heroic + protection + trak lines apply() appends (ADR-0034 §5). One line per socketed
         // entry, rendered as the crystal's own name via the on-item template (single-sourced with the mint).
         String crystalTemplate = crystalLine.get();
         for (String crystalEntry : state.crystals()) {

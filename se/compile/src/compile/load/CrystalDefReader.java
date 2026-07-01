@@ -13,7 +13,7 @@ import schema.grammar.EffectLine;
 
 /**
  * Reads one authored crystal file into its {@link CrystalDef} plus one or more {@link AbilityDef}s (ADR-0014,
- * ADR-0032). A crystal has no levels; its stable key is the base key an item stores in its crystal list and
+ * ADR-0034). A crystal has no levels; its stable key is the base key an item stores in its crystal list and
  * must NOT carry a {@code /level} suffix.
  *
  * <p>Behaviour lives in an {@code abilities:} list — each block carries its own {@code trigger} / {@code chance}

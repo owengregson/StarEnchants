@@ -22,7 +22,7 @@ public final class SuppressionStore {
 
     private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
     /**
-     * Per-player suppression-immunity CHANCE in {@code [1,100]} (dragon's Dovahkiin, ADR-0032): each
+     * Per-player suppression-immunity CHANCE in {@code [1,100]} (dragon's Dovahkiin, ADR-0034): each
      * {@link #suppress} rolls it, so {@code 100} is absolute immunity and a lower value ignores that fraction of
      * suppressions. Absent = not immune. A {@code SUPPRESS_IMMUNE} with no chance stores {@code 100}.
      */
@@ -68,7 +68,7 @@ public final class SuppressionStore {
         }
         int immunity = immuneChance.getOrDefault(player, 0);
         // Roll the per-player immunity: >=100 is absolute (Dovahkiin), a lower chance ignores that fraction of
-        // suppressions (crystals/chaos "4% chance to ignore Silence", ADR-0032). ThreadLocalRandom — no RNG is
+        // suppressions (crystals/chaos "4% chance to ignore Silence", ADR-0034). ThreadLocalRandom — no RNG is
         // threaded to this store, and it runs on the firing region thread.
         if (immunity >= 100 || (immunity > 0 && ThreadLocalRandom.current().nextInt(100) < immunity)) {
             return;

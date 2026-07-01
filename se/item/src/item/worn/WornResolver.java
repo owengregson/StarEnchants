@@ -145,7 +145,7 @@ public final class WornResolver {
                         mergedIds.add(id);   // fires on triggers like any source...
                         crystalIds.add(id);  // ...and tracked as the dedicated crystal source (§5.5)
                         // A multi-ability crystal keys its further bonuses <key>/a1, /a2, … (dense, no gaps),
-                        // exactly like a set's extra armour bonuses (ADR-0032). Walk them so every bonus fires.
+                        // exactly like a set's extra armour bonuses (ADR-0034). Walk them so every bonus fires.
                         for (int n = 1; ; n++) {
                             int extra = keys.idOf(crystalKey + "/a" + n);
                             if (extra < 0) {

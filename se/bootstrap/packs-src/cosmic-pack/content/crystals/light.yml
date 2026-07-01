@@ -1,5 +1,5 @@
-# Light — a cosmic Armor Crystal (ADR-0032). On ATTACK it adds +3% to the outgoing-damage fold; on EXP_GAIN it
-# DOUBLES the XP the wearer picks up (EXP_MULTIPLY scales the gain event, ADR-0032 §6).
+# Light — a cosmic Armor Crystal (ADR-0034). On ATTACK it adds +3% to the outgoing-damage fold; on EXP_GAIN it
+# DOUBLES the XP the wearer picks up (EXP_MULTIPLY scales the gain event, ADR-0034 §6).
 display: "&e&lLight"
 description:
   - "&e&lLIGHT CRYSTAL BONUS"

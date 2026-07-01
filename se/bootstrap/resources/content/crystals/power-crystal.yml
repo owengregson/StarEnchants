@@ -1,4 +1,4 @@
-# Power — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml. On an
+# Power — a levelless socket bonus (ADR-0014, ADR-0034). Its likeness is the global items/crystal.yml. On an
 # ATTACK it contributes +15% to the additive outgoing-damage fold.
 display: "&cPower"
 description:

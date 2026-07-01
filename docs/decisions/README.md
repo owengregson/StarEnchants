@@ -35,7 +35,13 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0025](0025-automated-releases.md) | Automated releases — version-bump-driven GitHub Release of the universal jar | Accepted |
 | [0026](0026-mental-knockback-coordination.md) | Coordinate KNOCKBACK_CONTROL with the Mental knockback plugin (reflective core edge) | Accepted |
 | [0027](0027-bundled-soft-integrations.md) | Integrations bundled in the core jar — soft, compileOnly, optional (supersedes 0017) | Accepted |
-| [0032](0032-unified-message-catalogue.md) | Unified message catalogue — one YAML source (`se/compile/resources/lang.yml`), drift-guarded | Accepted |
+| [0028](0028-documentation-site.md) | GitBook-style documentation site, generated catalog, GitHub Pages | Accepted |
+| [0029](0029-web-creator-and-import-codec.md) | Web enchant creator + `SE1` paste-code import (`/se import`) | Accepted |
+| [0030](0030-gui-overhaul.md) | GUI overhaul — themed menu chrome, hubs, and GUI-first management | Accepted |
+| [0031](0031-heroic-vanilla-stats.md) | Heroic armour/durability as real vanilla stats (amends 0021's armour slice) | Accepted |
+| [0032](0032-heroic-cross-plugin-combat-parity.md) | Heroic cross-plugin combat parity (amends 0031's display slice) | Accepted |
+| [0033](0033-unified-message-catalogue.md) | Unified message catalogue — one YAML source (`se/compile/resources/lang.yml`), drift-guarded | Accepted |
+| [0034](0034-crystals-rework.md) | Crystals rework — global likeness, multi-ability crystals, N-stack merge, 100% apply | Accepted |
 
 ## Process
 

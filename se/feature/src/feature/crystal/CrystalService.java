@@ -21,7 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
 
 /**
- * The crystal item economy (docs/v3-directives.md §E, ADR-0032) — mints crystals from the ONE global likeness,
+ * The crystal item economy (docs/v3-directives.md §E, ADR-0034) — mints crystals from the ONE global likeness,
  * APPLIES them to gear (unconditional — no success roll), MERGES crystals into a multi-crystal (up to the global
  * {@code crystals.max-merge} cap), and EXTRACTS the topmost single off gear or off a multi-crystal item. A minted
  * crystal (single or merged) takes the shared {@link CrystalConfig} likeness with its {@code {CRYSTAL}} /
@@ -120,7 +120,7 @@ public final class CrystalService {
                     ? messages.format("crystal.no-slots") : eligible.message();
             return CrystalResult.unchanged(message); // never consume on an ineligible target
         }
-        // 100% apply (ADR-0032 §3): no roll — an eligible crystal always lands, then the cursor is spent.
+        // 100% apply (ADR-0034 §3): no roll — an eligible crystal always lands, then the cursor is spent.
         enchanter.applyCrystalEntry(gear, crystal.keys(), true);
         consume(cursor);
         return CrystalResult.committed(gear, applySound(cfg),

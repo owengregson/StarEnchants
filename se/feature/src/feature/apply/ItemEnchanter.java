@@ -245,7 +245,7 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Extract the TOPMOST single component off {@code gear}'s last crystal entry in place (ADR-0032 §4); re-renders
+     * Extract the TOPMOST single component off {@code gear}'s last crystal entry in place (ADR-0034 §4); re-renders
      * lore. Returns the popped component key so the caller mints it back as a whole single crystal. When the entry
      * had one component the slot frees; otherwise the reduced stack stays. No-op fail when no crystal.
      */

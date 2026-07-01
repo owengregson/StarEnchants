@@ -331,7 +331,7 @@ public interface Sink {
     /**
      * Set {@code target}'s suppression-immunity CHANCE in {@code [0,100]} (SUPPRESS_IMMUNE — dragon's Dovahkiin;
      * {@code 0} lifts it): each {@link #suppress} aimed at them rolls it, so {@code 100} no-ops every suppression
-     * and a lower value ignores that fraction (ADR-0032). A maintained PASSIVE flag — armed on equip, lifted on
+     * and a lower value ignores that fraction (ADR-0034). A maintained PASSIVE flag — armed on equip, lifted on
      * unequip by the HELD/PASSIVE lifecycle — so it can never leak. Player-only.
      */
     void suppressImmune(Player target, int chance);

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The CRYSTAL item and its EXTRACTOR (§E, ADR-0032), loaded from {@code items/crystal.yml} — the ONE global
+ * The CRYSTAL item and its EXTRACTOR (§E, ADR-0034), loaded from {@code items/crystal.yml} — the ONE global
  * crystal likeness. A per-crystal file no longer carries its own material/name/lore; every minted crystal
  * (single or merged) takes this shared likeness and fills its tokens from the component crystal(s):
  *
@@ -18,7 +18,7 @@ import java.util.Objects;
  *
  * <p>{@code loreWhileOnItem} is the single line shown on crystal-bearing GEAR (§E), rendered from the same
  * {@code {CRYSTAL}} token — for the cosmic pack it is identical to the item name ({@code Armor Crystal (Flame)}).
- * Application is unconditional (ADR-0032): there is NO success roll here, so a crystal always lands.
+ * Application is unconditional (ADR-0034): there is NO success roll here, so a crystal always lands.
  *
  * <p>Per-item crystal SLOT capacity and the merge cap are cross-cutting knobs in {@code config.yml}'s
  * {@code crystals:} section (§L), not part of a single item's likeness.

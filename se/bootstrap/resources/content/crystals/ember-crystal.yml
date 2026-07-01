@@ -1,4 +1,4 @@
-# Ember — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml; this
+# Ember — a levelless socket bonus (ADR-0014, ADR-0034). Its likeness is the global items/crystal.yml; this
 # file declares the styled name, the bonus block, and (single-ability shorthand) one trigger + effects. On an
 # ATTACK it sets the foe alight via IGNITE (@Victim by default); duration is in ticks (60 = 3s).
 display: "&6Ember"

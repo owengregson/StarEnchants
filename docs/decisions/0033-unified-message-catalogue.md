@@ -1,4 +1,4 @@
-# ADR 0032: Unified message catalogue — one YAML source, drift-guarded (§L)
+# ADR 0033: Unified message catalogue — one YAML source, drift-guarded (§L)
 
 - **Status:** Accepted
 - **Date:** 2026-06-30

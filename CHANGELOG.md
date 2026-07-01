@@ -47,7 +47,7 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- **Unified message catalogue — one source of truth (ADR-0032).** Player-facing chat
+- **Unified message catalogue — one source of truth (ADR-0033).** Player-facing chat
   messages (§L) were maintained in three hand-synced copies (a Java `Lang.defaults()` map,
   the shipped `lang.yml`, and a full cosmic-pack fork). They are now ONE bundled YAML —
   `se/compile/resources/lang.yml`, parsed by `Lang.defaults()` — with a user's on-disk
@@ -63,7 +63,7 @@ versioning: [Semantic Versioning](https://semver.org/).
 - **Menu chat replies could render as `&c<key>?` markers.** Ten `menu.*` keys (mint /
   operator-console / sets / crystals) lived only in the shipped `lang.yml`, absent from the
   `Lang.defaults()` fallback, so a partial user file (or the unit-test fixture) showed raw
-  key markers instead of text. Unifying the catalogue (ADR-0032) removes the split, and
+  key markers instead of text. Unifying the catalogue (ADR-0033) removes the split, and
   `soul.activate` / `soul.deactivate` / `soul.empty` are now consistently multi-line blocks
   (the shipped file had drifted to dead single-line forms). An applied cosmic-pack also no
   longer drops the `/se import` help line (its stale full-copy `command.usage` predated the
