@@ -94,6 +94,7 @@ public final class DispatchSink implements SinkReadback {
     private boolean smeltRequested;
     private boolean teleportDropsRequested;
     private boolean seekRequested;
+    private double expMultiplier = 1.0;
     private boolean flushed;
     private int delayTicks;
 
@@ -191,6 +192,11 @@ public final class DispatchSink implements SinkReadback {
     /** Whether an effect asked for the triggering event to be cancelled (§3.6 event control). */
     public boolean cancelled() {
         return cancelled;
+    }
+
+    /** The accumulated EXP_MULTIPLY factor for an EXP_GAIN activation (1.0 = unchanged). Read by the EXP_GAIN dispatcher. */
+    public double expMultiplier() {
+        return expMultiplier;
     }
 
     /** Whether an effect asked the triggering hit to ignore armor (§ combat-flags). Read by the combat dispatcher. */
@@ -1197,11 +1203,11 @@ public final class DispatchSink implements SinkReadback {
     }
 
     @Override
-    public void suppressImmune(Player target, boolean on) {
+    public void suppressImmune(Player target, int chance) {
         if (target != null) {
-            // Per-player flag in the shared SuppressionStore, read by suppress()'s write-veto. The UUID is
-            // captured here → Folia-safe on the firing thread (no cross-region entity read, no scheduler hop).
-            suppression.setImmune(target.getUniqueId(), on);
+            // Per-player immunity CHANCE in the shared SuppressionStore, rolled by suppress()'s write-veto. The
+            // UUID is captured here → Folia-safe on the firing thread (no cross-region entity read, no scheduler hop).
+            suppression.setImmune(target.getUniqueId(), chance);
         }
     }
 
@@ -1210,6 +1216,13 @@ public final class DispatchSink implements SinkReadback {
     @Override
     public void cancelEvent() {
         cancelled = true;
+    }
+
+    @Override
+    public void multiplyExp(double factor) {
+        if (factor >= 0) {
+            expMultiplier *= factor; // inline read-back: the EXP_GAIN dispatcher scales the event's amount, never grants new XP
+        }
     }
 
     @Override

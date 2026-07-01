@@ -72,7 +72,7 @@ class SuppressionStoreTest {
     void immunePlayerCannotBeSuppressedAndArmingClearsExistingSuppression() {
         store.suppress(p, 1, 0L, 100);
         assertTrue(store.isSuppressed(p, 1, 0L)); // suppressed before immunity
-        store.setImmune(p, true);
+        store.setImmune(p, 100);
         assertTrue(store.isImmune(p));
         assertFalse(store.isSuppressed(p, 1, 0L)); // arming immunity dropped the existing suppression
         store.suppress(p, 1, 0L, 100);             // and a fresh suppress is vetoed at the write
@@ -80,11 +80,35 @@ class SuppressionStoreTest {
     }
 
     @Test
+    void partialImmunityRollsPerSuppressionAndIsNotAbsolute() {
+        store.setImmune(p, 50); // 50% chance to ignore each suppression (ADR-0032 crystal "ignore Silence")
+        assertFalse(store.isImmune(p), "a partial chance is not ABSOLUTE immunity");
+        int landed = 0;
+        for (int id = 0; id < 600; id++) {         // distinct ids so each is an independent roll, not an extend
+            store.suppress(p, id, 0L, 100);
+            if (store.isSuppressed(p, id, 0L)) {
+                landed++;
+            }
+        }
+        // The roll actually varies — a "never vetoes" (0) or "always vetoes" (600) bug is caught. ~300 expected;
+        // the wide band never flakes.
+        int total = landed;
+        assertTrue(total > 120 && total < 480, () -> "landed=" + total);
+    }
+
+    @Test
+    void partialImmunityDoesNotClearExistingSuppression() {
+        store.suppress(p, 1, 0L, 100);
+        store.setImmune(p, 50);                    // only ABSOLUTE (>=100) immunity drops a live suppression
+        assertTrue(store.isSuppressed(p, 1, 0L));
+    }
+
+    @Test
     void liftingImmunityRestoresSuppressibility() {
-        store.setImmune(p, true);
+        store.setImmune(p, 100);
         store.suppress(p, 1, 0L, 100);
         assertFalse(store.isSuppressed(p, 1, 0L)); // vetoed while immune
-        store.setImmune(p, false);
+        store.setImmune(p, 0);
         assertFalse(store.isImmune(p));
         store.suppress(p, 1, 0L, 100);
         assertTrue(store.isSuppressed(p, 1, 0L));   // suppressible again
@@ -92,10 +116,10 @@ class SuppressionStoreTest {
 
     @Test
     void clearAndClearAllLiftImmunity() {
-        store.setImmune(p, true);
+        store.setImmune(p, 100);
         store.clear(p);
         assertFalse(store.isImmune(p));
-        store.setImmune(p, true);
+        store.setImmune(p, 100);
         store.clearAll();
         assertFalse(store.isImmune(p));
     }

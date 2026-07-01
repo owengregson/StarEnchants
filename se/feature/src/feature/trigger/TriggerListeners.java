@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
@@ -83,6 +84,12 @@ public final class TriggerListeners implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent event) {
         dispatch.fire(event.getPlayer(), dispatch.eat, self(event.getPlayer()), event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onExpChange(PlayerExpChangeEvent event) {
+        // Scale the amount in place — EXP_MULTIPLY accumulates a factor the dispatch applies here; never grant new XP.
+        dispatch.fireExp(event.getPlayer(), self(event.getPlayer()), event);
     }
 
     // ITEM_DAMAGE fires from DurabilityTriggerListener (overlay) — PlayerItemDamageEvent is 1.9+ (§4).

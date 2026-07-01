@@ -419,6 +419,28 @@
       ]
     },
   {
+    "head": "EXP_MULTIPLY",
+    "doc": "Multiply the XP gained (EXP_GAIN trigger) by a factor.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ EXP_MULTIPLY: { factor: <double[0..]=2.0> } }",
+    "example": "{ EXP_MULTIPLY: { factor: 2 } }",
+    "params": [
+      {
+        "name": "factor",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "2.0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "EXTINGUISH",
     "doc": "Put out the target's fire.",
     "affinity": "TARGET_ENTITY",
@@ -2185,11 +2207,24 @@
     },
   {
     "head": "SUPPRESS_IMMUNE",
-    "doc": "Make the target(s) immune to all suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn — a maintained PASSIVE flag, armed on equip and lifted on unequip. Player-only.",
+    "doc": "Make the target(s) immune to suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn — a maintained PASSIVE flag, armed on equip and lifted on unequip. An optional chance (default 100) makes it a per-suppression roll instead of absolute. Player-only.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SUPPRESS_IMMUNE: {} }",
-    "example": "{ SUPPRESS_IMMUNE: { who: \"@Self\" } }",
-    "params": [],
+    "usage": "{ SUPPRESS_IMMUNE: { chance: <int[0..100]=100> } }",
+    "example": "{ SUPPRESS_IMMUNE: { chance: 4, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "chance",
+        "kind": "INT",
+        "label": "int[0..100]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
     "targets": [
       {
         "name": "who",
@@ -3106,6 +3141,13 @@
     "usesHeld": false,
     "scansEquipment": true,
     "needsTarget": true
+    },
+  {
+    "name": "EXP_GAIN",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
     }
   ],
 "conditions": {

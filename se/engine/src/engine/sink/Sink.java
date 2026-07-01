@@ -329,16 +329,20 @@ public interface Sink {
     void suppress(Player target, int scopeKind, int scopeId, int durationTicks);
 
     /**
-     * Make {@code target} immune to ALL suppression while {@code on}, or lift it (SUPPRESS_IMMUNE — dragon's
-     * Dovahkiin): every {@link #suppress} aimed at them no-ops at the write. A maintained PASSIVE flag — armed
-     * on equip, lifted on unequip by the HELD/PASSIVE lifecycle — so it can never leak. Player-only.
+     * Set {@code target}'s suppression-immunity CHANCE in {@code [0,100]} (SUPPRESS_IMMUNE — dragon's Dovahkiin;
+     * {@code 0} lifts it): each {@link #suppress} aimed at them rolls it, so {@code 100} no-ops every suppression
+     * and a lower value ignores that fraction (ADR-0032). A maintained PASSIVE flag — armed on equip, lifted on
+     * unequip by the HELD/PASSIVE lifecycle — so it can never leak. Player-only.
      */
-    void suppressImmune(Player target, boolean on);
+    void suppressImmune(Player target, int chance);
 
     // ── Event control ──
 
     /** Cancel the Bukkit event that triggered this activation. */
     void cancelEvent();
+
+    /** Scale the XP of the triggering PlayerExpChangeEvent (EXP_GAIN). Accumulates multiplicatively. */
+    void multiplyExp(double factor);
 
     /**
      * Ask the triggering hit to ignore the victim's armor (and enchant-protection) reduction
