@@ -44,6 +44,14 @@ public final class ApplySuite implements Harness.Scenario {
             effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             """;
 
+    private static final String GLINT = """
+            display: Glint
+            applies-to: [WEAPON]
+            trigger: ATTACK
+            chance: 100
+            effects: [{ MODIFY_HEALTH: { amount: 1 } }]
+            """;
+
     private static final String BASE = """
             display: Base
             applies-to: [SWORD]
@@ -100,6 +108,7 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.appliesTo");
         h.expect("item.apply.removeEnchant");
         h.expect("item.apply.extractCrystal");
+        h.expect("item.apply.extractCrystalTopmost");
         h.expect("item.apply.removesRequired");
         h.expect("item.apply.removesRequired.netZeroSlots");
         h.expect("item.apply.mintSet");
@@ -111,6 +120,7 @@ public final class ApplySuite implements Harness.Scenario {
             Path root = Files.createTempDirectory("se-apply-suite");
             write(root, "enchants/keen.yml", KEEN);
             write(root, "crystals/spark.yml", SPARK);
+            write(root, "crystals/glint.yml", GLINT);
             write(root, "enchants/base.yml", BASE);
             write(root, "enchants/superior.yml", SUPERIOR);
             write(root, "sets/titan.yml", TITAN);
@@ -195,6 +205,23 @@ public final class ApplySuite implements Harness.Scenario {
             }
             if (enchanter.extractCrystal(sword).ok()) {
                 throw new IllegalStateException("extracting from a crystal-less item should be a clean no-op fail");
+            }
+        });
+
+        h.guard("item.apply.extractCrystalTopmost", () -> {
+            // A multi-crystal entry (spark+glint): the extractor pops the TOPMOST single (glint), leaving the
+            // rest (spark) on gear (ADR-0032 §4) — proved against the real PDC round-trip.
+            ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
+            enchanter.applyCrystalEntry(sword, List.of("crystals/spark", "crystals/glint"), true);
+            if (!codec.read(sword).crystals().contains("crystals/spark+crystals/glint")) {
+                throw new IllegalStateException("setup: multi-crystal entry not recorded: " + codec.read(sword).crystals());
+            }
+            var extracted = enchanter.extractCrystal(sword);
+            if (!extracted.ok() || !"crystals/glint".equals(extracted.poppedEntry())) {
+                throw new IllegalStateException("extract did not pop the topmost component: " + extracted.poppedEntry());
+            }
+            if (!codec.read(sword).crystals().equals(List.of("crystals/spark"))) {
+                throw new IllegalStateException("the remainder should be the single spark, was: " + codec.read(sword).crystals());
             }
         });
 

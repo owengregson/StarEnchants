@@ -1,17 +1,13 @@
-# Ember Crystal — a flat, levelless socket bonus (§6.5). On an ATTACK it sets the foe alight via
-# IGNITE, which targets @Victim by default (the entity you hit). The duration is in ticks (20 = 1s),
-# so 60 is three seconds of burn. material/name/lore give the minted crystal item its own likeness.
+# Ember — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml; this
+# file declares the styled name, the bonus block, and (single-ability shorthand) one trigger + effects. On an
+# ATTACK it sets the foe alight via IGNITE (@Victim by default); duration is in ticks (60 = 3s).
+display: "&6Ember"
+description:
+  - "&6&lEMBER CRYSTAL BONUS"
+  - "&6* 60% chance on hit to set your foe alight for 3 seconds."
 tier: uncommon
-display: "&6Ember Crystal"
-description: "Ignite the enemy you strike."
-material: BLAZE_POWDER
-name: "&6Ember Crystal"
-lore:
-  - "&7Socket into a sword or axe."
-  - "&660%&7 chance on hit to set your"
-  - "&7foe alight for &63 seconds&7."
-trigger: ATTACK
 applies-to: [SWORD, AXE]
+trigger: ATTACK
 chance: 60
 effects:
   - { IGNITE: { duration: 60 } }

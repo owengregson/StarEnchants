@@ -1,0 +1,14 @@
+# Flame — a cosmic Armor Crystal (ADR-0032). Its likeness (the "Armor Crystal (...)" name + lore) is the ONE
+# global items/crystal.yml; this file declares only the styled name, the verbatim bonus block, and the effects.
+# On ATTACK it adds a flat +3% to the additive outgoing-damage fold; a PASSIVE potion keeps Fire Resistance up
+# while worn (refreshed by the passive lifecycle, so effectively permanent).
+display: "&c&lFlame"
+description:
+  - "&c&lFLAME CRYSTAL BONUS"
+  - "&c* Deal 3% more damage to all enemies."
+  - "&c* Permanent Fire Resistance"
+tier: rare
+applies-to: [HELMET, CHESTPLATE, LEGGINGS, BOOTS]
+abilities:
+  - { trigger: ATTACK,  effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 3 } } ] }
+  - { trigger: PASSIVE, effects: [ { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 200, who: "@Self" } } ] }

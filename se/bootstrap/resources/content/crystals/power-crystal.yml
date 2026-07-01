@@ -1,15 +1,11 @@
-# Power Crystal — a flat, levelless socket bonus. material/name/lore give the minted crystal item its
-# own likeness so the lore explains its effect.
+# Power — a levelless socket bonus (ADR-0014, ADR-0032). Its likeness is the global items/crystal.yml. On an
+# ATTACK it contributes +15% to the additive outgoing-damage fold.
+display: "&cPower"
+description:
+  - "&c&lPOWER CRYSTAL BONUS"
+  - "&c* Adds &c+15%&c striking power to your blows."
 tier: epic
-display: "&cPower Crystal"
-description: "Adds raw striking power to your blows."
-material: REDSTONE
-name: "&cPower Crystal"
-lore:
-  - "&7Socket into a sword or axe."
-  - "&7Adds &c+15&7 melee damage to every hit."
-trigger: ATTACK
 applies-to: [SWORD, AXE]
-chance: 100
+trigger: ATTACK
 effects:
   - { DAMAGE_MOD: { side: attack, mode: add, amount: 15 } }
