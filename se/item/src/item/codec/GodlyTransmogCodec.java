@@ -10,16 +10,18 @@ import org.bukkit.inventory.ItemStack;
 public final class GodlyTransmogCodec {
 
     private final String key;
+    private final ItemStateStore store;
 
-    public GodlyTransmogCodec(String key) {
+    public GodlyTransmogCodec(String key, ItemStateStore store) {
         this.key = key;
+        this.store = store;
     }
 
     public boolean isGodlyTransmog(ItemStack stack) {
-        return ItemFlagStore.hasByte(stack, key);
+        return store.hasByte(stack, key);
     }
 
     public void mark(ItemStack stack) {
-        ItemFlagStore.setByte(stack, key, true);
+        store.setByte(stack, key, true);
     }
 }

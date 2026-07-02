@@ -46,7 +46,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
         }
 
         ItemKeys keys = ItemKeys.of();
-        SoulCodec codec = new SoulCodec(keys.soul());
+        SoulCodec codec = new SoulCodec(keys.soul(), Stores.state());
         SoulService souls = new SoulService(new SoulPool(), new SoulModeStore(), codec, SoulGemConfig::defaults,
                 () -> true, platform.lang.Messages.defaults(), feature.fx.ParticleFx.NONE);
 

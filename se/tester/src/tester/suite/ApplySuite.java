@@ -115,7 +115,7 @@ public final class ApplySuite implements Harness.Scenario {
 
         ItemEnchanter enchanter;
         ItemEnchanter capped; // 1-slot, for the net-zero-slot case
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
         try {
             Path root = Files.createTempDirectory("se-apply-suite");
             write(root, "enchants/keen.yml", KEEN);
@@ -131,7 +131,7 @@ public final class ApplySuite implements Harness.Scenario {
                 return;
             }
             ContentHolder holder = new ContentHolder(library);
-            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
+            LoreRenderer lore = Stores.lore(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                     () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());

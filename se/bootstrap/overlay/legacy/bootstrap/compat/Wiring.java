@@ -3,6 +3,10 @@ package bootstrap.compat;
 import engine.sink.DispatchSinkFactory;
 import engine.sink.SinkFactory;
 import feature.fx.ParticleFx;
+import item.codec.ItemStateStore;
+import item.codec.NbtItemStateStore;
+import item.worn.EquipSource;
+import item.worn.LegacyEquipSource;
 import java.util.Locale;
 import java.util.function.Function;
 import org.bukkit.enchantments.Enchantment;
@@ -28,6 +32,16 @@ public final class Wiring {
 
     public SinkFactory sinkFactory() {
         return new DispatchSinkFactory(resolvers); // RegistryResolvers is a RenameResolvers
+    }
+
+    /** The physical item-data layer (§4.2): 1.8 NMS tags. Injected into every codec + the lore renderer. */
+    public ItemStateStore itemStateStore() {
+        return new NbtItemStateStore();
+    }
+
+    /** The worn/held equipment read (§3.3): 1.8 5-slot (main hand only). Injected into {@code WornResolver}. */
+    public EquipSource equipSource() {
+        return new LegacyEquipSource();
     }
 
     /**

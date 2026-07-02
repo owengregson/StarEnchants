@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import item.codec.CombatCodec;
 import item.codec.CombatState;
+import item.codec.PdcItemStateStore;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -35,7 +36,8 @@ class ItemViewCacheTest {
     private static final NamespacedKey KEY = NamespacedKey.fromString("starenchants:combat");
 
     private static CombatCodec codec() {
-        return new CombatCodec("combat");
+        // The PDC store so the read-through test's mocked PersistentDataContainer path resolves as on a live item.
+        return new CombatCodec("combat", new PdcItemStateStore());
     }
 
     @Test

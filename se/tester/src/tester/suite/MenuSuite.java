@@ -86,7 +86,7 @@ public final class MenuSuite implements Harness.Scenario {
         h.expect("menu.adminDrillsDownTierEnchantLevel");
         h.expect("menu.backButtonTracksOpener");
 
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
         EnchantMenu menu;
         AdminBrowserMenu adminMenu;
         EnchantDef keenDef;
@@ -100,7 +100,7 @@ public final class MenuSuite implements Harness.Scenario {
                 return;
             }
             ContentHolder holder = new ContentHolder(library);
-            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
+            LoreRenderer lore = Stores.lore(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                     () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
@@ -108,14 +108,14 @@ public final class MenuSuite implements Harness.Scenario {
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
             // Admin browser (§K) — the 3-level tier → enchant → level drill-down. Use an EE-style book name
             // (bold + underline) so the guard can prove the menu icon name mirrors the book's styling.
-            CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
+            CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded(), Stores.state());
             compile.load.EnchantBookConfig underlined = new compile.load.EnchantBookConfig(
                     "ENCHANTED_BOOK", "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}",
                     compile.load.EnchantBookConfig.defaults().lore(), java.util.List.of(), false);
             CarrierService carriers = new CarrierService(
                     carrierCodec, enchanter, holder, new Random(1), () -> underlined,
                     compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
-                    () -> 100, new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
+                    () -> 100, new item.codec.AppliedSlot("appliedslot", Stores.state()), gear -> { }, ItemGroups.standard(),
                     platform.lang.Messages.defaults());
             adminMenu = new AdminBrowserMenu(holder, carriers, Capabilities.probe(plugin.getServer()));
             keenDef = holder.library().catalog().stream()

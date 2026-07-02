@@ -324,10 +324,10 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             this.library = library;
             this.snapshot = snapshot;
             this.firings = firings;
-            this.codec = new CombatCodec(ItemKeys.of().combat());
+            this.codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
             ItemViewCache itemViews = new ItemViewCache(codec, snapshot.generation());
             TriggerRegistry triggers = BuiltinTriggers.registry();
-            this.worn = new WornStateStore(new WornResolver(itemViews, triggers.count(),
+            this.worn = new WornStateStore(new WornResolver(Stores.equip(), itemViews, triggers.count(),
                     triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
             AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                     new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE,

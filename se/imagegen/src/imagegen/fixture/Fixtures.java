@@ -1,6 +1,7 @@
 package imagegen.fixture;
 
 import item.codec.CombatState;
+import item.codec.PdcItemStateStore;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
 import item.render.TextWrap;
@@ -29,7 +30,9 @@ public final class Fixtures {
             Map.entry("guardian", "Guardian"),
             Map.entry("berserk", "Berserk"));
 
-    private static final LoreRenderer LORE = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES::get));
+    // imagegen renders text-only (LoreRenderer#lines); the store only backs #apply, so the modern PDC impl is inert here.
+    private static final LoreRenderer LORE =
+            new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES::get), new PdcItemStateStore());
 
     /** Item-tooltip previews: a fully-kitted weapon, a set armour piece, and an enchantment book. */
     public static List<ItemFixture> tooltips() {

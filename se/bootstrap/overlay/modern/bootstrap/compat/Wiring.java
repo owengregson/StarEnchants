@@ -3,6 +3,10 @@ package bootstrap.compat;
 import engine.sink.DispatchSinkFactory;
 import engine.sink.SinkFactory;
 import feature.fx.ParticleFx;
+import item.codec.ItemStateStore;
+import item.codec.PdcItemStateStore;
+import item.worn.EquipSource;
+import item.worn.ModernEquipSource;
 import java.util.OptionalInt;
 import java.util.function.Function;
 import org.bukkit.enchantments.Enchantment;
@@ -36,6 +40,16 @@ public final class Wiring {
 
     public SinkFactory sinkFactory() {
         return new DispatchSinkFactory(handles);
+    }
+
+    /** The physical item-data layer (§4.2): modern PDC. Injected into every codec + the lore renderer. */
+    public ItemStateStore itemStateStore() {
+        return new PdcItemStateStore();
+    }
+
+    /** The worn/held equipment read (§3.3): modern 6-slot (incl. off-hand). Injected into {@code WornResolver}. */
+    public EquipSource equipSource() {
+        return new ModernEquipSource();
     }
 
     /**

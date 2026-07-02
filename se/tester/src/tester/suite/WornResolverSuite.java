@@ -73,10 +73,10 @@ public final class WornResolverSuite implements Harness.Scenario {
             return;
         }
 
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
         ItemViewCache itemViews = new ItemViewCache(codec, 0);
         TriggerRegistry triggers = BuiltinTriggers.registry();
-        WornResolver resolver = new WornResolver(itemViews, triggers.count(),
+        WornResolver resolver = new WornResolver(Stores.equip(), itemViews, triggers.count(),
                 triggers.attackTriggers(), triggers.defenseTriggers());
 
         ItemStack helmet = new ItemStack(Material.DIAMOND_HELMET);

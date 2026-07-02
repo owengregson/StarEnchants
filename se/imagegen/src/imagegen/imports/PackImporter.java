@@ -8,6 +8,7 @@ import engine.boot.ContentCompiler;
 import imagegen.fixture.ItemFixture;
 import item.codec.CombatState;
 import item.codec.HeroicStat;
+import item.codec.PdcItemStateStore;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
 import java.nio.file.Path;
@@ -151,6 +152,6 @@ public final class PackImporter {
                         SetDef def = library.setDefOf(setKey);
                         return def != null ? def.weaponLore() : List.of();
                     }
-                }));
+                }), new PdcItemStateStore());
     }
 }

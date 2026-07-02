@@ -15,9 +15,8 @@ import item.codec.CarrierCodec;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.HeroicStat;
-import item.codec.ItemBlobStore;
-import item.codec.ItemFlagStore;
 import item.codec.ItemKeys;
+import item.codec.ItemStateStore;
 import platform.item.Inventories;
 import platform.lang.Messages;
 import java.io.IOException;
@@ -138,6 +137,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final CombatCodec codec;                       // /se item dump — decode the held item's combat state
     private final CarrierCodec carrierCodec;               // /se item dump — book/dust/white-scroll identity marker
     private final java.util.function.IntSupplier baseSlots; // /se item dump — base enchant slots for the max total
+    private final ItemStateStore store;                     // /se item dump — probe raw on-item PDC/NBT key presence
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -147,7 +147,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
               feature.trak.TrakService traks, PackStore packs, CombatCodec codec, CarrierCodec carrierCodec,
-              java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot) {
+              java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -171,6 +171,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.codec = codec;
         this.carrierCodec = carrierCodec;
         this.baseSlots = baseSlots;
+        this.store = store;
     }
 
     @Override
@@ -1487,15 +1488,15 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /** The logical {@code se:*} PDC keys physically present on {@code held} — probed across the blob/flag/int stores. */
-    private static List<String> dumpPdcKeys(ItemStack held) {
+    private List<String> dumpPdcKeys(ItemStack held) {
         ItemKeys keys = ItemKeys.of();
         List<String> present = new ArrayList<>();
         for (String key : List.of(keys.combat(), keys.soul(), keys.carrier(), keys.guarded(), keys.crystalItem(),
                 keys.crystalExtractor(), keys.heroicUpgrade(), keys.slotItem(), keys.slotSuccess(), keys.scroll(),
                 keys.scrollConvert(), keys.unopened(), keys.godlyTransmog(), keys.appliedSlot(), keys.trakGem(),
                 keys.trakBlocks(), keys.trakMobs(), keys.trakSouls(), keys.trakFish())) {
-            if (ItemBlobStore.read(held, key) != null
-                    || ItemFlagStore.hasByte(held, key) || ItemFlagStore.hasInt(held, key)) {
+            if (store.read(held, key) != null
+                    || store.hasByte(held, key) || store.hasInt(held, key)) {
                 present.add(key);
             }
         }

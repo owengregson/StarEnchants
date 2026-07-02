@@ -38,6 +38,7 @@ import org.bukkit.inventory.ItemStack;
  */
 public final class WornResolver {
 
+    private final EquipSource equipSource;
     private final ItemViewCache itemViews;
     private final int triggerCount;
     private final IntPredicate attackTrigger;
@@ -52,25 +53,26 @@ public final class WornResolver {
         public static final Features ALL = new Features(true, true, true, true);
     }
 
-    public WornResolver(ItemViewCache itemViews, int triggerCount,
+    public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger) {
-        this(itemViews, triggerCount, attackTrigger, defenseTrigger, () -> Features.ALL);
+        this(equipSource, itemViews, triggerCount, attackTrigger, defenseTrigger, () -> Features.ALL);
     }
 
-    public WornResolver(ItemViewCache itemViews, int triggerCount,
+    public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger,
                         java.util.function.Supplier<Features> features) {
-        this(itemViews, triggerCount, attackTrigger, defenseTrigger, features, java.util.Set::of);
+        this(equipSource, itemViews, triggerCount, attackTrigger, defenseTrigger, features, java.util.Set::of);
     }
 
     /**
      * Canonical form: {@code features} and {@code nonStackableCrystals} are read live per resolve, so a
      * {@code /se reload} re-tunes which sources contribute and which crystals dedup per wearer (§ADR-0035).
      */
-    public WornResolver(ItemViewCache itemViews, int triggerCount,
+    public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger,
                         java.util.function.Supplier<Features> features,
                         java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals) {
+        this.equipSource = java.util.Objects.requireNonNull(equipSource, "equipSource");
         this.itemViews = itemViews;
         this.triggerCount = triggerCount;
         this.attackTrigger = attackTrigger;
@@ -82,7 +84,7 @@ public final class WornResolver {
     public WornState resolve(LivingEntity entity, Snapshot snapshot) {
         // The version-specific equipment read (1.9+ off-hand vs 1.8 main-hand-only) lives behind the
         // EquipSource overlay seam (§3.3); this core stays version-agnostic over the returned array.
-        ItemStack[] gear = EquipSource.snapshot(entity);
+        ItemStack[] gear = equipSource.snapshot(entity);
         if (gear == null) {
             return WornState.empty(snapshot.generation());
         }

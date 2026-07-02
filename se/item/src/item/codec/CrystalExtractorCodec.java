@@ -10,16 +10,18 @@ import org.bukkit.inventory.ItemStack;
 public final class CrystalExtractorCodec {
 
     private final String key;
+    private final ItemStateStore store;
 
-    public CrystalExtractorCodec(String key) {
+    public CrystalExtractorCodec(String key, ItemStateStore store) {
         this.key = key;
+        this.store = store;
     }
 
     public boolean isExtractor(ItemStack stack) {
-        return ItemFlagStore.hasByte(stack, key);
+        return store.hasByte(stack, key);
     }
 
     public void mark(ItemStack stack) {
-        ItemFlagStore.setByte(stack, key, true);
+        store.setByte(stack, key, true);
     }
 }

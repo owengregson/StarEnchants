@@ -12,13 +12,15 @@ import org.bukkit.inventory.ItemStack;
 public final class CrystalItemCodec {
 
     private final String key;
+    private final ItemStateStore store;
 
-    public CrystalItemCodec(String key) {
+    public CrystalItemCodec(String key, ItemStateStore store) {
         this.key = key;
+        this.store = store;
     }
 
     public CrystalItemData read(ItemStack stack) {
-        java.util.List<String> keys = CrystalItemData.componentsOf(ItemBlobStore.read(stack, key));
+        java.util.List<String> keys = CrystalItemData.componentsOf(store.read(stack, key));
         if (keys.isEmpty() || keys.size() > CrystalItemData.ABSOLUTE_MAX) {
             return null; // absent or malformed → treat as not-a-crystal, never throw
         }
@@ -26,6 +28,6 @@ public final class CrystalItemCodec {
     }
 
     public void write(ItemStack stack, CrystalItemData data) {
-        ItemBlobStore.write(stack, key, data == null ? null : data.entry());
+        store.write(stack, key, data == null ? null : data.entry());
     }
 }

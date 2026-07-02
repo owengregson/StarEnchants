@@ -30,14 +30,16 @@ public final class AppliedSlot {
     private static final String DELIMITER = ",";
 
     private final String key;
+    private final ItemStateStore store;
 
-    public AppliedSlot(String key) {
+    public AppliedSlot(String key, ItemStateStore store) {
         this.key = key;
+        this.store = store;
     }
 
     /** The markers currently on {@code stack} (insertion-ordered; empty if none). */
     public Set<String> markers(ItemStack stack) {
-        return parse(ItemBlobStore.read(stack, key));
+        return parse(store.read(stack, key));
     }
 
     /**
@@ -92,6 +94,6 @@ public final class AppliedSlot {
     }
 
     private void write(ItemStack stack, Set<String> markers) {
-        ItemBlobStore.write(stack, key, markers.isEmpty() ? null : serialize(markers));
+        store.write(stack, key, markers.isEmpty() ? null : serialize(markers));
     }
 }

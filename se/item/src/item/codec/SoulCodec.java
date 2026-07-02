@@ -12,18 +12,20 @@ import org.bukkit.inventory.ItemStack;
 public final class SoulCodec {
 
     private final String soulKey;
+    private final ItemStateStore store;
 
-    public SoulCodec(String soulKey) {
+    public SoulCodec(String soulKey, ItemStateStore store) {
         this.soulKey = soulKey;
+        this.store = store;
     }
 
     /** The gem state on {@code stack}, or {@code null} if it carries none. */
     public SoulData read(ItemStack stack) {
-        return decode(ItemBlobStore.read(stack, soulKey));
+        return decode(store.read(stack, soulKey));
     }
 
     public void write(ItemStack stack, SoulData data) {
-        ItemBlobStore.write(stack, soulKey, data == null ? null : data.gemId() + ":" + data.souls());
+        store.write(stack, soulKey, data == null ? null : data.gemId() + ":" + data.souls());
     }
 
     /** Parse a {@code <gemId>:<souls>} payload, or {@code null} if absent/malformed. */

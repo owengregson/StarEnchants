@@ -16,18 +16,20 @@ public final class ComposerMark {
     public static final int VERSION = 1;
 
     private final String key;
+    private final ItemStateStore store;
 
-    public ComposerMark(String key) {
+    public ComposerMark(String key, ItemStateStore store) {
         this.key = key;
+        this.store = store;
     }
 
     /** Whether {@code stack} was composed at the current layout version (so the legacy shim must NOT run). */
     public boolean isCurrent(ItemStack stack) {
-        return ItemFlagStore.readInt(stack, key, 0) >= VERSION;
+        return store.readInt(stack, key, 0) >= VERSION;
     }
 
     /** Stamp {@code stack} as composed at the current version. */
     public void stamp(ItemStack stack) {
-        ItemFlagStore.writeInt(stack, key, VERSION);
+        store.writeInt(stack, key, VERSION);
     }
 }

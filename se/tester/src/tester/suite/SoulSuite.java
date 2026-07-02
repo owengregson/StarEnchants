@@ -106,12 +106,12 @@ public final class SoulSuite implements Harness.Scenario {
 
         ContentHolder holder = new ContentHolder(library);
         ItemKeys keys = ItemKeys.of();
-        CombatCodec codec = new CombatCodec(keys.combat());
-        SoulCodec soulCodec = new SoulCodec(keys.soul());
+        CombatCodec codec = new CombatCodec(keys.combat(), Stores.state());
+        SoulCodec soulCodec = new SoulCodec(keys.soul(), Stores.state());
         ItemViewCache itemViews = new ItemViewCache(codec, library.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornStateStore worn = new WornStateStore(
-                new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
+                new WornResolver(Stores.equip(), itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
 
         // ONE pool shared by the pipeline (gate 10 spends it) and the soul service that owns it.
         SoulPool pool = new SoulPool();

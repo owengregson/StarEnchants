@@ -13,24 +13,26 @@ public final class SlotItemCodec {
 
     private final String key;
     private final String successKey;
+    private final ItemStateStore store;
 
-    public SlotItemCodec(String key, String successKey) {
+    public SlotItemCodec(String key, String successKey, ItemStateStore store) {
         this.key = key;
         this.successKey = successKey;
+        this.store = store;
     }
 
     public boolean isSlotItem(ItemStack stack) {
-        return ItemFlagStore.hasInt(stack, key);
+        return store.hasInt(stack, key);
     }
 
     /** The {@code +N} slots {@code stack} grants, or {@code 0} if it is not a slot item. */
     public int amountOf(ItemStack stack) {
-        return Math.max(0, ItemFlagStore.readInt(stack, key, 0));
+        return Math.max(0, store.readInt(stack, key, 0));
     }
 
     /** The orb's rolled apply success chance (0–100), or {@code 100} when absent (a pre-success-roll orb). */
     public int successOf(ItemStack stack) {
-        return Ranges.clampPercent(ItemFlagStore.readInt(stack, successKey, 100));
+        return Ranges.clampPercent(store.readInt(stack, successKey, 100));
     }
 
     /**
@@ -38,7 +40,7 @@ public final class SlotItemCodec {
      * rolled {@code success} chance (clamped {@code [0, 100]}).
      */
     public void mark(ItemStack stack, int amount, int success) {
-        ItemFlagStore.writeInt(stack, key, Math.max(1, amount));
-        ItemFlagStore.writeInt(stack, successKey, Ranges.clampPercent(success));
+        store.writeInt(stack, key, Math.max(1, amount));
+        store.writeInt(stack, successKey, Ranges.clampPercent(success));
     }
 }

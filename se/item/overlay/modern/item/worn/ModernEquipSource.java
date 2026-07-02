@@ -5,21 +5,14 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Modern (1.9+) equipment snapshot for {@link WornResolver} — the one place the 1.9+ off-hand read lives,
- * pulled out of shared {@code main} so the flattening core stays version-agnostic
- * (docs/legacy-1.8.9-codeshare-design.md §3.3). Same-FQN counterpart to the {@code overlay/legacy}
- * main-hand-only impl; selected at build assembly, never probed.
+ * Modern (1.9+) impl of {@link EquipSource} — the era-exclusive {@code overlay/modern} equipment read (ADR-0044;
+ * §3.3). Reads the four armour pieces plus main hand and off-hand; off-hand shields/totems carry enchants too.
+ * {@code getItemInOffHand} does not exist on 1.8.9, which is why this read is a seam.
  */
-public final class EquipSource {
+public final class ModernEquipSource implements EquipSource {
 
-    private EquipSource() {
-    }
-
-    /**
-     * {@code [helmet, chest, legs, boots, mainHand, offHand]} with {@code null} for empty slots, or
-     * {@code null} when the entity has no equipment (a non-living/equipment-less mob).
-     */
-    public static ItemStack[] snapshot(LivingEntity entity) {
+    @Override
+    public ItemStack[] snapshot(LivingEntity entity) {
         EntityEquipment equipment = entity.getEquipment();
         if (equipment == null) {
             return null;

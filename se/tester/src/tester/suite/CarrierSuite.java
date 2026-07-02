@@ -80,10 +80,10 @@ public final class CarrierSuite implements Harness.Scenario {
         }
         ContentHolder holder = new ContentHolder(lib);
         ItemKeys keys = ItemKeys.of();
-        CombatCodec combat = new CombatCodec(keys.combat());
-        CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
+        CombatCodec combat = new CombatCodec(keys.combat(), Stores.state());
+        CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded(), Stores.state());
         // The PROTECTED-line reader reads the SAME guarded byte the white scroll stamps, so the line tracks state.
-        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config
+        LoreRenderer lore = Stores.lore(LoreRenderer.Config
                 .of(() -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k))
                 .withProtectionLines(stack -> item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack), false,
                         compile.load.WhiteScrollConfig.defaults().protectedLine(),
@@ -98,7 +98,7 @@ public final class CarrierSuite implements Harness.Scenario {
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1),
                 EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), recompose, ItemGroups.standard(),
+                new item.codec.AppliedSlot("appliedslot", Stores.state()), recompose, ItemGroups.standard(),
                 platform.lang.Messages.defaults());
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
         EnchantBookConfig destroyLikeness = new EnchantBookConfig(
@@ -106,7 +106,7 @@ public final class CarrierSuite implements Harness.Scenario {
         CarrierService destroyer = new CarrierService(
                 carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness,
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
-                () -> 100, new item.codec.AppliedSlot("appliedslot"), recompose, ItemGroups.standard(),
+                () -> 100, new item.codec.AppliedSlot("appliedslot", Stores.state()), recompose, ItemGroups.standard(),
                 platform.lang.Messages.defaults());
 
         h.guard("carrier.book.applies", () -> {

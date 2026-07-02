@@ -64,7 +64,7 @@ public final class SetSuite implements Harness.Scenario {
         h.expect("set.activatesWhenWorn");
 
         Compiler compiler = ContentCompiler.production();
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         int defenseId = triggers.idOf("DEFENSE").orElseThrow();
 
@@ -91,7 +91,7 @@ public final class SetSuite implements Harness.Scenario {
 
         ItemViewCache itemViews = new ItemViewCache(codec, library.snapshot().generation());
         WornStateStore worn = new WornStateStore(
-                new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
+                new WornResolver(Stores.equip(), itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
