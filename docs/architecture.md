@@ -813,11 +813,15 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
   NMS; a `SkullCreator`-style NMS path is replaced by capability-gated `PlayerProfile`/`setOwnerProfile`.
   A Cosmic Enchants-style reflective `registerEvent` is **deleted** in favor of the one
   Paper-native listener set.
-- **Legacy 1.8.9 is a second tree in the SAME jar** (ADR-0036): the modern floor stays **1.17.1**; a
-  `-Pse.target=legacy` srcDir overlay (same-FQN whole-file swaps) compiles the whole plugin against a real
-  1.8.8 (`v1_8_R3`) jar, is downgraded 61→52 by JvmDowngrader, and is merged as the **base** classes of
-  the Multi-Release release jar (modern tree under `META-INF/versions/17/`). The JVM picks the tree at
-  load; testing stays era-specific (the tester is never MRJAR-merged).
+- **Legacy 1.8.9 is a second tree in the SAME jar** (ADR-0036, refined by ADR-0044): the modern floor stays
+  **1.17.1**; a `-Pse.target=legacy` srcDir overlay compiles the whole plugin against a real 1.8.8
+  (`v1_8_R3`) jar, is downgraded 61→52 by JvmDowngrader, and is merged as the **base** classes of the
+  Multi-Release release jar (modern tree under `META-INF/versions/17/`). Era variance is a **seam**: a
+  version-specific capability is a `src/` interface with era-exclusive `Modern*`/`Legacy*` impls
+  (constructor-injected), so cross-era parity is a per-era `javac` fact; only two composition-only bindings
+  twins remain (`bootstrap.compat.EraBindings`, `platform.resolve.HandleLookups`), and the MRJAR soundness
+  gate is derived from the tree (no allowlist). The JVM picks the tree at load; testing stays era-specific
+  (the tester is never MRJAR-merged).
 - **Verified, never assumed:** `se/tester` boots real Paper AND Folia across the matrix (1.17.1 floor,
   both sides of the 1.20.5 flip at 1.20.6, 1.21.x, the 26.1.x ceiling; Folia from ~1.19.4+). A green Paper
   run proves nothing about Folia.

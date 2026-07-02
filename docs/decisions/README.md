@@ -51,6 +51,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0041](0041-unified-apply-gesture.md) | Unified apply gesture — one listener template + GestureOutcome, one crystal key family, promoted giveOrDrop | Accepted |
 | [0042](0042-error-and-logging-policy.md) | One error-handling + logging policy — closed DiagCode set, non-throwing loaders, the Regions cross-region guard, throwable-as-log-parameter | Accepted |
 | [0043](0043-cross-region-actor-capture.md) | Demand-captured actor-origin snapshot — effect bodies never read a remote actor (capture-at-dispatch) | Accepted |
+| [0044](0044-era-erasure.md) | Era erasure — seams + era-exclusive impls replace same-FQN overlay twins; two composition-only bindings; derived MRJAR gate (refines 0036) | Accepted |
 
 ## Process
 
