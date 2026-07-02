@@ -8,6 +8,32 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Operator diagnostics & reference commands.** `/se problems` prints the retained
+  compile/reload diagnostics (with warning counts) so a bad content file stays inspectable
+  after the reload banner scrolls by; `/se item dump` decodes the held item's full engine
+  state for support work; `/se docs` is an umbrella routing to the in-game reference views;
+  and `/star` ships as a first-class alias. Command help is single-sourced from the command
+  table, so the in-game usage, `plugin.yml`, and the website agree by construction.
+
+- **Curated addon API (ADR-0038).** `:api` is now a real, deliberately small SPI — addon
+  effect/sink facades plus read-only queries — discovered through the Bukkit
+  `ServicesManager`. Addon-registered effect kinds survive `/se reload`.
+
+- **Enforcement gates for the engine invariants.** The rules that used to be prose are now
+  builds that fail: ArchUnit boundary tests and a hot-path banned-symbol lint, a JMH
+  benchmark module with throughput floors and allocation budgets wired into CI, and a
+  runtime quarantine — an ability that keeps throwing is disabled for the snapshot with one
+  op-visible diagnostic carrying the authored file:line.
+
+- **Per-affinity Folia live coverage.** The live tester walks the effect registry at matrix
+  boot and generates a cross-region check for every non-local effect kind (38 live-checked,
+  5 documented skips, and a totality assertion), so Folia coverage now grows automatically
+  with every new kind.
+
+- **Release pipeline hardening.** The legacy dual-compile gate extends to `:api` (with the
+  `:integrate` exclusion documented — WorldGuard needs 1.13+ `BlockData`), and the release
+  workflow now boots the SHIPPED mega-jar on a real craftbukkit-1.8.8 before publishing.
+
 - **Crystal rework — Cosmic-style Armor Crystals (ADR-0034).** Crystals are now
   content files sharing ONE global likeness (`items/crystal.yml`) rendered through
   `{CRYSTAL}` / `{DESCRIPTION}` / `{KINDS}` tokens; a crystal expands to one or more
@@ -68,6 +94,36 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Heroic damage folds additively (ADR-0037, supersedes ADR-0021).** A heroic piece's
+  damage percent now joins the single additive fold like any enchant bonus, instead of a
+  separate post-fold multiplicative stage; the `heroic.max-outgoing-factor` clamp is
+  retired. Heroic stays "diamond-grade gear with a small damage bonus" — the diamond-grade
+  half shipped earlier as ADR-0031 vanilla stats.
+
+- **Effect execution is ~2× faster (ADR-0039).** The engine link-stages dense kind ids at
+  snapshot publish (array dispatch replaces per-execution string lookups) and condition
+  facts are demand-driven: per-space fact masks mean expensive facts — e.g. the per-hit
+  nearby-entity scan — are only computed when some worn ability actually reads them.
+
+- **Lore composes in one pass (ADR-0040).** Item lore renders from state through a single
+  sectioned composer; the old distributed prefix-matching protocol survives only as a
+  one-time migration shim, and feature services mutate state then recompose.
+
+- **One error policy (ADR-0042).** Auto-reload and boot failures log real diagnostics with
+  stack traces, loader IO follows one policy, the diagnostic code set is closed, and
+  cross-region entity work goes through a guard helper instead of being silently swallowed
+  on Paper.
+
+- **Internals: era-core dedup, wiring records & duplication sweeps.** The legacy/modern
+  dispatch twins now share one core (ADR-0036 — roughly a thousand hand-mirrored lines
+  removed), the engine spine is wired through records, and a dozen one-concept-many-copies
+  findings collapsed to single homes (percent clamps, random rolls, token expansion, colour
+  translation, YAML hardening, book naming). No behaviour change.
+
+- **Message catalogue and colour handling moved to `:platform` (ADR-0033 update).**
+  `item.lang` becomes `platform.lang`, with one colour-code translator shared by every
+  module.
+
 - **Unified gear-apply gesture (ADR-0041).** The cursor-onto-gear apply gesture is now ONE
   shared template — `feature.apply.ApplyGestureListener` with a single `GestureOutcome` shape
   — that every family (scroll, holy scroll, nametag, crystal, slot orb, heroic, carrier, trak,
@@ -98,6 +154,10 @@ versioning: [Semantic Versioning](https://semver.org/).
   display-identical, just single-sourced.
 
 ### Fixed
+
+- **Per-player combat state is cleared on quit.** The quit-cleanup listener now covers
+  every per-player engine store (several were missing, leaking entries until restart), and
+  the dead `ChargeStore` is deleted.
 
 - **Menu chat replies could render as `&c<key>?` markers.** Ten `menu.*` keys (mint /
   operator-console / sets / crystals) lived only in the shipped `lang.yml`, absent from the
