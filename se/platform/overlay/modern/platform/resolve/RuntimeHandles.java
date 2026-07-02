@@ -22,6 +22,7 @@ import schema.spec.HandleCategory;
 public final class RuntimeHandles {
 
     private final RenameResolvers resolvers;
+    private final ModernHandleLookup lookup = new ModernHandleLookup(); // modern-only: resolve names directly
     private final Map<HandleCategory, Map<Integer, Object>> cache = new EnumMap<>(HandleCategory.class);
 
     public RuntimeHandles(RenameResolvers resolvers) {
@@ -37,7 +38,7 @@ public final class RuntimeHandles {
      * the implicit max-health attribute behind {@code addMaxHealth}). Not cached: cold path only.
      */
     public Object resolveByName(HandleCategory category, String name) {
-        return RegistrySupport.lookup(category, name);
+        return lookup.lookup(category, name);
     }
 
     /** The live object for an interned handle id, or {@code null} if unresolved. */
@@ -51,7 +52,7 @@ public final class RuntimeHandles {
         if (name == null) {
             return null;
         }
-        Object object = RegistrySupport.lookup(category, name);
+        Object object = lookup.lookup(category, name);
         if (object != null) {
             categoryCache.put(id, object);
         }

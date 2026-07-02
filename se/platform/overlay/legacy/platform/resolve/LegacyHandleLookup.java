@@ -10,8 +10,8 @@ import org.bukkit.potion.PotionEffectType;
 import schema.spec.HandleCategory;
 
 /**
- * Legacy (1.8.9) counterpart of the modern {@link RegistrySupport} — same FQN, package-private, static,
- * selected into the build only on {@code -Pse.target=legacy}. 1.8 has no {@code Registry}/
+ * Legacy (1.8.9) impl of {@link HandleLookup} — the era-exclusive {@code overlay/legacy} counterpart of
+ * {@code ModernHandleLookup}, selected into the build only on {@code -Pse.target=legacy}. 1.8 has no {@code Registry}/
  * {@code NamespacedKey}/{@code Particle}/{@code Attribute}, so handles resolve through the 1.8-era
  * {@code getByName}/{@code valueOf} APIs.
  *
@@ -23,10 +23,7 @@ import schema.spec.HandleCategory;
  * validated against fixed 1.8 name sets. Those sets are a STARTER set; completing them — and the per-name
  * NMS mapping — is the Gate-3 legacy-table hardening (docs/legacy-1.8.9-codeshare-design.md §6 R3, Phase 3).
  */
-final class RegistrySupport {
-
-    private RegistrySupport() {
-    }
+public final class LegacyHandleLookup implements HandleLookup {
 
     /** 1.8 NMS {@code EnumParticle} names (Bukkit had no {@code Particle} type on 1.8). Starter set. */
     private static final Set<String> PARTICLES_1_8 = Set.of(
@@ -52,7 +49,8 @@ final class RegistrySupport {
             java.util.Map.of(HandleCategory.PARTICLE, java.util.Map.of("SOUL", "SMOKE_LARGE"));
 
     /** Whether {@code canonicalName} (1.8-era, upper-case) resolves for {@code category} on 1.8.9. */
-    static boolean exists(HandleCategory category, String canonicalName) {
+    @Override
+    public boolean exists(HandleCategory category, String canonicalName) {
         return switch (category) {
             case PARTICLE -> PARTICLES_1_8.contains(canonicalName);
             case ATTRIBUTE -> ATTRIBUTES_1_8.contains(canonicalName);
@@ -61,12 +59,14 @@ final class RegistrySupport {
     }
 
     /** Legacy-only lossy fallbacks ({@link #FALLBACKS_1_8}) merged on top of {@link Aliases} for resolution. */
-    static java.util.Map<String, String> fallbackAliases(HandleCategory category) {
+    @Override
+    public java.util.Map<String, String> fallbackAliases(HandleCategory category) {
         return FALLBACKS_1_8.getOrDefault(category, java.util.Map.of());
     }
 
     /** The live 1.8 Bukkit object {@code canonicalName} denotes, or {@code null} (particle/attribute → NMS-by-name). */
-    static Object lookup(HandleCategory category, String canonicalName) {
+    @Override
+    public Object lookup(HandleCategory category, String canonicalName) {
         try {
             return switch (category) {
                 case MATERIAL -> Material.getMaterial(canonicalName);

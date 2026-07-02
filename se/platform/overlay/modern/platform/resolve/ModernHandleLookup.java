@@ -22,23 +22,23 @@ import schema.spec.HandleCategory;
  * back to reflective {@code valueOf} so a now-interface type is never hard-linked. Every probe degrades to
  * {@code null}, never a crash. Runs at load time and is cached by callers, off the hot path.
  */
-final class RegistrySupport {
-
-    private RegistrySupport() {
-    }
+public final class ModernHandleLookup implements HandleLookup {
 
     /** Whether {@code canonicalName} (upper-case Bukkit style) resolves for {@code category} here. */
-    static boolean exists(HandleCategory category, String canonicalName) {
+    @Override
+    public boolean exists(HandleCategory category, String canonicalName) {
         return lookup(category, canonicalName) != null;
     }
 
     /** No lossy fallbacks on the floor build — every modern token resolves directly. */
-    static java.util.Map<String, String> fallbackAliases(HandleCategory category) {
+    @Override
+    public java.util.Map<String, String> fallbackAliases(HandleCategory category) {
         return java.util.Map.of();
     }
 
     /** The live Bukkit object {@code canonicalName} denotes for {@code category}, or {@code null}. */
-    static Object lookup(HandleCategory category, String canonicalName) {
+    @Override
+    public Object lookup(HandleCategory category, String canonicalName) {
         try {
             return switch (category) {
                 case MATERIAL -> Material.getMaterial(canonicalName);
