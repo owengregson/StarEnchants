@@ -1,5 +1,6 @@
 package compile.load;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import schema.diag.DiagCode;
@@ -302,5 +304,24 @@ class LibraryLoaderTest {
         assertFalse(lib.hasErrors());
         assertEquals(0, lib.snapshot().abilityCount());
         assertTrue(lib.catalog().isEmpty());
+    }
+
+    @Test
+    void unlistableSourceDirIsAnIoDiagnosticNotAThrow(@TempDir Path root) throws IOException {
+        write(root, "enchants/x.yml", """
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: [{ MESSAGE: { text: hi } }] }
+            """);
+        Path enchants = root.resolve("enchants");
+        Assumptions.assumeTrue(enchants.toFile().setReadable(false)); // root ignores chmod; Windows lacks POSIX
+        Assumptions.assumeFalse(Files.isReadable(enchants));
+        try {
+            Library lib = assertDoesNotThrow(() -> LibraryLoader.load(root, compiler(), 0));
+            assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_LOAD_IO)),
+                    () -> lib.diagnostics().toString());
+        } finally {
+            enchants.toFile().setReadable(true); // so @TempDir cleanup can delete it
+        }
     }
 }

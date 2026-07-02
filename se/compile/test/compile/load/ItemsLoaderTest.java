@@ -1,5 +1,6 @@
 package compile.load;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -7,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import schema.diag.DiagCode;
@@ -245,5 +247,20 @@ class ItemsLoaderTest {
         assertEquals(SoulGemConfig.defaults().soulsPerKill(), gem.soulsPerKill());
         assertFalse(config.hasErrors());
         assertFalse(config.diagnostics().isEmpty());
+    }
+
+    @Test
+    void unlistableItemsDirIsAnIoDiagnosticNotAThrow(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("soul.yml"), "type: soul-gem\n");
+        Assumptions.assumeTrue(dir.toFile().setReadable(false)); // root ignores chmod; Windows lacks POSIX
+        Assumptions.assumeFalse(Files.isReadable(dir));
+        try {
+            ItemsConfig config = assertDoesNotThrow(() -> ItemsLoader.load(dir));
+            assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_ITEM_IO)),
+                    () -> config.diagnostics().toString());
+            assertTrue(config.soulGem().isEmpty());
+        } finally {
+            dir.toFile().setReadable(true); // so @TempDir cleanup can delete it
+        }
     }
 }

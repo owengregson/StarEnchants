@@ -23,7 +23,8 @@ import schema.diag.Source;
  * directory, read each {@code .yml} into its {@code AbilityDef}s + metadata, then run the injected
  * {@link Compiler} once over all defs. Pure (no server) so it is reused verbatim by {@code validateContent}.
  * Files are visited in sorted order so dense ability ids are deterministic; every content fault is a
- * {@code file:line:col} diagnostic, and the load throws only on a genuine I/O failure walking the tree.
+ * {@code file:line:col} diagnostic, and the load NEVER throws — even a directory-listing failure is an
+ * {@code E_LOAD_IO} diagnostic (ADR-0042).
  *
  * <p>The tier subfolder ({@code enchants/mythic/x.yml}) is NOT part of the stable key
  * ({@code <source>/<filename>}), so re-tiering a file never changes the PDC-stamped identity of live gear;
@@ -55,7 +56,7 @@ public final class LibraryLoader {
         int[] nextDefId = {0};
         Set<String> seenKeys = new HashSet<>();
 
-        for (Path file : sourceFiles(contentRoot, "enchants")) {
+        for (Path file : sourceFiles(contentRoot, "enchants", diags)) {
             KeyTier kt = keyTierOf(contentRoot, "enchants", file, tiers);
             if (!claim(kt.key(), contentRoot, file, seenKeys, diags)) {
                 continue;
@@ -71,7 +72,7 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
-        for (Path file : sourceFiles(contentRoot, "crystals")) {
+        for (Path file : sourceFiles(contentRoot, "crystals", diags)) {
             KeyTier kt = keyTierOf(contentRoot, "crystals", file, tiers);
             if (!claim(kt.key(), contentRoot, file, seenKeys, diags)) {
                 continue;
@@ -87,7 +88,7 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
-        for (Path file : sourceFiles(contentRoot, "sets")) {
+        for (Path file : sourceFiles(contentRoot, "sets", diags)) {
             KeyTier kt = keyTierOf(contentRoot, "sets", file, tiers);
             if (!claim(kt.key(), contentRoot, file, seenKeys, diags)) {
                 continue;
@@ -227,9 +228,9 @@ public final class LibraryLoader {
     }
 
     /** The content files under {@code contentRoot/<dir>} in deterministic order, or empty if absent. */
-    private static List<Path> sourceFiles(Path contentRoot, String dir) {
+    private static List<Path> sourceFiles(Path contentRoot, String dir, Diagnostics diags) {
         Path sourceDir = contentRoot.resolve(dir);
-        return Files.isDirectory(sourceDir) ? listContentFiles(contentRoot, sourceDir) : List.of();
+        return Files.isDirectory(sourceDir) ? listContentFiles(contentRoot, sourceDir, diags) : List.of();
     }
 
     /** Read + compose a content file into a {@link YamlNode}, or {@code null} (with a diagnostic) on I/O fault. */
@@ -255,7 +256,8 @@ public final class LibraryLoader {
         return relativePath;
     }
 
-    private static List<Path> listContentFiles(Path contentRoot, Path dir) {
+    private static List<Path> listContentFiles(Path contentRoot, Path dir, Diagnostics diags) {
+        // Files.walk surfaces open faults as IOException but ITERATION faults as UncheckedIOException.
         try (Stream<Path> walk = Files.walk(dir)) {
             return walk.filter(Files::isRegularFile)
                     .filter(LibraryLoader::isContentFile)
@@ -264,8 +266,10 @@ public final class LibraryLoader {
                     // assign dense ids differently in dev than on a Linux prod server.
                     .sorted(Comparator.comparing(p -> relativePath(contentRoot, p)))
                     .toList();
-        } catch (IOException e) {
-            throw new UncheckedIOException("walking content directory " + dir, e);
+        } catch (IOException | UncheckedIOException e) {
+            diags.error(DiagCode.E_LOAD_IO, "could not list content directory '" + relativePath(contentRoot, dir)
+                    + "': " + e.getMessage(), Source.ofFile(relativePath(contentRoot, dir)));
+            return List.of();
         }
     }
 

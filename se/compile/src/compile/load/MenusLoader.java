@@ -1,10 +1,10 @@
 package compile.load;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +32,7 @@ public final class MenusLoader {
             return MenusConfig.empty();
         }
         Map<String, MenuLayoutConfig> byMenu = new LinkedHashMap<>();
-        for (Path file : configFiles(menusRoot)) {
+        for (Path file : configFiles(menusRoot, diags)) {
             String stem = stripExtension(file.getFileName().toString()).toLowerCase(Locale.ROOT);
             String name = "menus/" + file.getFileName();
             String yaml;
@@ -72,18 +72,20 @@ public final class MenusLoader {
     }
 
     private static OptionalInt optInt(String raw, String file, Diagnostics diags) {
+        // Keep the OptionalInt shape (empty-on-malformed is load-bearing: the framework falls back per field),
+        // but single-source the parse through ContentParse.
         if (raw == null || raw.isBlank()) {
             return OptionalInt.empty();
         }
-        try {
-            return OptionalInt.of(Integer.parseInt(raw.trim()));
-        } catch (NumberFormatException e) {
+        Integer v = ContentParse.parseInt(raw);
+        if (v == null) {
             diags.warning(DiagCode.W_MENU_NUM, "invalid number '" + raw + "' in " + file, Source.ofFile(file));
             return OptionalInt.empty();
         }
+        return OptionalInt.of(v);
     }
 
-    private static List<Path> configFiles(Path root) {
+    private static List<Path> configFiles(Path root, Diagnostics diags) {
         try (Stream<Path> stream = Files.list(root)) {
             return stream
                     .filter(Files::isRegularFile)
@@ -93,8 +95,9 @@ public final class MenusLoader {
                     })
                     .sorted()
                     .toList();
-        } catch (IOException e) {
-            return new ArrayList<>();
+        } catch (IOException | UncheckedIOException e) {
+            diags.error(DiagCode.E_MENU_IO, "could not list menus/: " + e.getMessage(), Source.ofFile("menus"));
+            return List.of();
         }
     }
 

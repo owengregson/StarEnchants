@@ -3,10 +3,12 @@ package compile.load;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
+import schema.diag.Severity;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
 
@@ -30,32 +32,71 @@ final class ContentParse {
         return chance;
     }
 
-    /** An optional integer field; a non-integer value is a diagnostic and yields {@code fallback}. */
-    static int optInt(YamlNode node, String key, int fallback, Diagnostics diags) {
-        String raw = node.string(key);
+    /**
+     * ADR-0042 numeric/boolean policy, stated once: CONTENT numbers BLOCK (strict entries pass
+     * Severity.ERROR + E_LOAD_INT/E_LOAD_DOUBLE); config.yml / items/ / menus/ numbers WARN-AND-FALL-BACK
+     * (their loaders pass Severity.WARNING + W_CONFIG_NUM/W_ITEM_NUM/W_MENU_NUM). Booleans use ONE
+     * truthy/falsy vocabulary (true/yes/on/1 | false/no/off/0) and warn on anything else. Every loader
+     * parses through this family — no private NumberFormatException catch anywhere else in compile.load.
+     * An absent (null) value silently yields the fallback; a PRESENT non-parsing value is diagnosed.
+     */
+    static int intOr(String raw, int fallback, String what, Severity severity, DiagCode code, Source source,
+                     Diagnostics diags) {
         if (raw == null) {
             return fallback;
         }
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.error(DiagCode.E_LOAD_INT, "'" + key + "' must be an integer, got '" + raw + "'", node.sourceOf(key));
+        Integer value = parseInt(raw);
+        if (value == null) {
+            diags.add(severity, code, label(what) + " must be an integer, got '" + raw + "'"
+                    + (severity == Severity.ERROR ? "" : ", using " + fallback), source);
             return fallback;
         }
+        return value;
     }
 
-    /** An optional double field; a non-number value is a diagnostic and yields {@code fallback}. */
-    static double optDouble(YamlNode node, String key, double fallback, Diagnostics diags) {
-        String raw = node.string(key);
+    static double doubleOr(String raw, double fallback, String what, Severity severity, DiagCode code, Source source,
+                           Diagnostics diags) {
         if (raw == null) {
             return fallback;
         }
-        try {
-            return Double.parseDouble(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.error(DiagCode.E_LOAD_DOUBLE, "'" + key + "' must be a number, got '" + raw + "'", node.sourceOf(key));
+        Double value = parseDouble(raw);
+        if (value == null) {
+            diags.add(severity, code, label(what) + " must be a number, got '" + raw + "'"
+                    + (severity == Severity.ERROR ? "" : ", using " + fallback), source);
             return fallback;
         }
+        return value;
+    }
+
+    static boolean boolOr(String raw, boolean fallback, String what, DiagCode code, Source source, Diagnostics diags) {
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        String v = raw.trim().toLowerCase(Locale.ROOT);
+        if (v.equals("true") || v.equals("yes") || v.equals("on") || v.equals("1")) {
+            return true;
+        }
+        if (v.equals("false") || v.equals("no") || v.equals("off") || v.equals("0")) {
+            return false;
+        }
+        diags.add(Severity.WARNING, code, label(what) + " is not a boolean (true/yes/on/1 or false/no/off/0), got '"
+                + raw + "', using " + fallback, source);
+        return fallback;
+    }
+
+    private static String label(String what) {
+        return what == null ? "value" : "'" + what + "'";
+    }
+
+    /** An optional integer field; a non-integer value is a blocking diagnostic and yields {@code fallback}. */
+    static int optInt(YamlNode node, String key, int fallback, Diagnostics diags) {
+        return intOr(node.string(key), fallback, key, Severity.ERROR, DiagCode.E_LOAD_INT, node.sourceOf(key), diags);
+    }
+
+    /** An optional double field; a non-number value is a blocking diagnostic and yields {@code fallback}. */
+    static double optDouble(YamlNode node, String key, double fallback, Diagnostics diags) {
+        return doubleOr(node.string(key), fallback, key, Severity.ERROR, DiagCode.E_LOAD_DOUBLE, node.sourceOf(key),
+                diags);
     }
 
     /** Parse a positive-or-any integer from a raw string, or {@code null} if it is not an integer. */
@@ -67,10 +108,13 @@ final class ContentParse {
         }
     }
 
-    /** Parse {@code raw} as an integer, or {@code fallback} when absent/non-integer. */
-    static int parseIntOr(String raw, int fallback) {
-        Integer value = parseInt(raw == null ? "" : raw);
-        return value == null ? fallback : value;
+    /** Parse a number from a raw string, or {@code null} if it is not a number. */
+    static Double parseDouble(String raw) {
+        try {
+            return Double.valueOf(raw.trim());
+        } catch (NumberFormatException bad) {
+            return null;
+        }
     }
 
     /** {@code null} for an absent or all-whitespace value, else the value verbatim. */
@@ -199,32 +243,15 @@ final class ContentParse {
 
     /** A {@code [0,100]} chance knob (scalar); {@code 100} when absent. */
     static double resolveChance(YamlNode node, String key, Diagnostics diags) {
-        String raw = node.has(key) ? node.string(key) : null;
-        if (raw == null) {
-            return 100.0;
-        }
-        double chance;
-        try {
-            chance = Double.parseDouble(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.error(DiagCode.E_LOAD_DOUBLE, "'" + key + "' must be a number, got '" + raw + "'", node.sourceOf(key));
-            return 100.0;
-        }
+        double chance = doubleOr(node.has(key) ? node.string(key) : null, 100.0, key, Severity.ERROR,
+                DiagCode.E_LOAD_DOUBLE, node.sourceOf(key), diags);
         return clampChance(chance, node.sourceOf(key), diags);
     }
 
     /** An integer knob (scalar); else {@code fallback}. */
     static int resolveInt(YamlNode node, String key, int fallback, Diagnostics diags) {
-        String raw = node.has(key) ? node.string(key) : null;
-        if (raw == null) {
-            return fallback;
-        }
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.error(DiagCode.E_LOAD_INT, "'" + key + "' must be an integer, got '" + raw + "'", node.sourceOf(key));
-            return fallback;
-        }
+        return intOr(node.has(key) ? node.string(key) : null, fallback, key, Severity.ERROR, DiagCode.E_LOAD_INT,
+                node.sourceOf(key), diags);
     }
 
     /** A string-valued knob (scalar); {@code null} when absent. */

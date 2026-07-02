@@ -9,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
+import schema.diag.Severity;
 import schema.diag.Source;
 
 /**
@@ -66,8 +67,8 @@ public final class MasterConfigLoader {
     private static MasterConfig.SetsSection readSets(YamlNode n, Diagnostics diags) {
         MasterConfig.SetsSection d = MasterConfig.SetsSection.defaults();
         return new MasterConfig.SetsSection(
-                parseBool(n.string("message-uppercase"), d.messageUppercase()),
-                parseBool(n.string("use-set-color"), d.useSetColor()),
+                parseBool(n.string("message-uppercase"), d.messageUppercase(), n, diags),
+                parseBool(n.string("use-set-color"), d.useSetColor(), n, diags),
                 SoundCue.list(n, "equip-sound", diags),
                 SoundCue.list(n, "unequip-sound", diags),
                 ParticleSpec.from(n.child("equip-particle"), diags),
@@ -80,23 +81,23 @@ public final class MasterConfigLoader {
         String by = n.has("by-template") ? n.string("by-template") : d.byTemplate();
         String on = n.has("on-template") ? n.string("on-template") : d.onTemplate();
         return new MasterConfig.MessageOnActivateSection(
-                parseBool(n.string("by-enabled"), d.byEnabled()),
+                parseBool(n.string("by-enabled"), d.byEnabled(), n, diags),
                 by == null ? d.byTemplate() : by,
-                parseBool(n.string("on-enabled"), d.onEnabled()),
+                parseBool(n.string("on-enabled"), d.onEnabled(), n, diags),
                 on == null ? d.onTemplate() : on,
-                parseBool(n.string("uppercase"), d.uppercase()));
+                parseBool(n.string("uppercase"), d.uppercase(), n, diags));
     }
 
     private static MasterConfig.FeaturesSection readFeatures(YamlNode n, Diagnostics diags) {
         MasterConfig.FeaturesSection d = MasterConfig.FeaturesSection.defaults();
         return new MasterConfig.FeaturesSection(
-                parseBool(n.string("enchants"), d.enchants()),
-                parseBool(n.string("sets"), d.sets()),
-                parseBool(n.string("crystals"), d.crystals()),
-                parseBool(n.string("heroic"), d.heroic()),
-                parseBool(n.string("slots"), d.slots()),
-                parseBool(n.string("souls"), d.souls()),
-                parseBool(n.string("scrolls"), d.scrolls()));
+                parseBool(n.string("enchants"), d.enchants(), n, diags),
+                parseBool(n.string("sets"), d.sets(), n, diags),
+                parseBool(n.string("crystals"), d.crystals(), n, diags),
+                parseBool(n.string("heroic"), d.heroic(), n, diags),
+                parseBool(n.string("slots"), d.slots(), n, diags),
+                parseBool(n.string("souls"), d.souls(), n, diags),
+                parseBool(n.string("scrolls"), d.scrolls(), n, diags));
     }
 
     private static MasterConfig.CombatSection readCombat(YamlNode n, Diagnostics diags) {
@@ -104,8 +105,8 @@ public final class MasterConfigLoader {
         return new MasterConfig.CombatSection(
                 parseDouble(n.string("max-bonus-damage"), d.maxBonusDamage(), n, diags),
                 parseDouble(n.string("max-bonus-reduction"), d.maxBonusReduction(), n, diags),
-                parseBool(n.string("pvp"), d.pvp()),
-                parseBool(n.string("pve"), d.pve()));
+                parseBool(n.string("pvp"), d.pvp(), n, diags),
+                parseBool(n.string("pve"), d.pve(), n, diags));
     }
 
     private static MasterConfig.MessagesSection readMessages(YamlNode n, Diagnostics diags) {
@@ -114,7 +115,7 @@ public final class MasterConfigLoader {
         String prefix = n.has("prefix") ? n.string("prefix") : d.prefix();
         return new MasterConfig.MessagesSection(
                 prefix == null ? d.prefix() : prefix,
-                parseBool(n.string("feedback"), d.feedback()));
+                parseBool(n.string("feedback"), d.feedback(), n, diags));
     }
 
     private static MasterConfig.BooksSection readBooks(YamlNode n, Diagnostics diags) {
@@ -131,7 +132,7 @@ public final class MasterConfigLoader {
 
     private static MasterConfig.SoulsSection readSouls(YamlNode n, Diagnostics diags) {
         MasterConfig.SoulsSection d = MasterConfig.SoulsSection.defaults();
-        return new MasterConfig.SoulsSection(parseBool(n.string("deposit-on-any-kill"), d.depositOnAnyKill()));
+        return new MasterConfig.SoulsSection(parseBool(n.string("deposit-on-any-kill"), d.depositOnAnyKill(), n, diags));
     }
 
     private static MasterConfig.CrystalsSection readCrystals(YamlNode n, Diagnostics diags) {
@@ -149,7 +150,7 @@ public final class MasterConfigLoader {
                 // colour), so only fall back to the default when the key is ABSENT.
                 n.has("level-color") ? blankIfNull(n.string("level-color")) : d.levelColor(),
                 orDefault(n.string("crystal-color"), d.crystalColor()),
-                parseBool(n.string("roman"), d.roman()),
+                parseBool(n.string("roman"), d.roman(), n, diags),
                 orDefault(n.string("unknown-label"), d.unknownLabel()),
                 parseInt(n.string("item-wrap"), d.itemWrap(), n, diags));
     }
@@ -160,67 +161,41 @@ public final class MasterConfigLoader {
         for (YamlNode.Entry e : n.entries("named")) {
             String raw = e.value().scalar();
             if (raw != null && !raw.isBlank()) {
-                named.put(e.key().toLowerCase(Locale.ROOT), parseBool(raw, true));
+                named.put(e.key().toLowerCase(Locale.ROOT), parseBool(raw, true, e.value(), diags));
             }
         }
         return new MasterConfig.IntegrationsSection(
-                parseBool(n.string("protection"), d.protection()),
-                parseBool(n.string("economy"), d.economy()),
+                parseBool(n.string("protection"), d.protection(), n, diags),
+                parseBool(n.string("economy"), d.economy(), n, diags),
                 named);
     }
 
     private static MasterConfig.ReloadSection readReload(YamlNode n, Diagnostics diags) {
         MasterConfig.ReloadSection d = MasterConfig.ReloadSection.defaults();
         return new MasterConfig.ReloadSection(
-                parseBool(n.string("re-resolve-players"), d.reResolvePlayers()),
+                parseBool(n.string("re-resolve-players"), d.reResolvePlayers(), n, diags),
                 parseInt(n.string("auto-seconds"), d.autoSeconds(), n, diags));
     }
 
     private static MasterConfig.CommandTriggerSection readCommandTrigger(YamlNode n, Diagnostics diags) {
         MasterConfig.CommandTriggerSection d = MasterConfig.CommandTriggerSection.defaults();
         return new MasterConfig.CommandTriggerSection(
-                parseBool(n.string("enabled"), d.enabled()),
+                parseBool(n.string("enabled"), d.enabled(), n, diags),
                 orDefault(n.string("name"), d.name()),
                 orDefault(n.string("description"), d.description()));
     }
 
     private static int parseInt(String raw, int fallback, YamlNode at, Diagnostics diags) {
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException e) {
-            diags.warning(DiagCode.W_CONFIG_NUM, "invalid number '" + raw + "', using " + fallback, at.source());
-            return fallback;
-        }
+        return ContentParse.intOr(raw, fallback, null, Severity.WARNING, DiagCode.W_CONFIG_NUM, at.source(), diags);
     }
 
     private static double parseDouble(String raw, double fallback, YamlNode at, Diagnostics diags) {
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        try {
-            return Double.parseDouble(raw.trim());
-        } catch (NumberFormatException e) {
-            diags.warning(DiagCode.W_CONFIG_NUM, "invalid number '" + raw + "', using " + fallback, at.source());
-            return fallback;
-        }
+        return ContentParse.doubleOr(raw, fallback, null, Severity.WARNING, DiagCode.W_CONFIG_NUM, at.source(), diags);
     }
 
-    /** Lenient boolean: blank/unparseable falls back; {@code true}/{@code yes}/{@code on}/{@code 1} are truthy. */
-    private static boolean parseBool(String raw, boolean fallback) {
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        String v = raw.trim().toLowerCase(Locale.ROOT);
-        if (v.equals("true") || v.equals("yes") || v.equals("on") || v.equals("1")) {
-            return true;
-        }
-        if (v.equals("false") || v.equals("no") || v.equals("off") || v.equals("0")) {
-            return false;
-        }
-        return fallback;
+    /** Lenient boolean: blank falls back, non-canonical warns; {@code true}/{@code yes}/{@code on}/{@code 1} truthy. */
+    private static boolean parseBool(String raw, boolean fallback, YamlNode at, Diagnostics diags) {
+        return ContentParse.boolOr(raw, fallback, null, DiagCode.W_CONFIG_BOOL, at.source(), diags);
     }
 
     private static String orDefault(String value, String fallback) {
