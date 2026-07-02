@@ -153,6 +153,15 @@ jobs:
       - name: Build single mega-jar
         run: scripts/build-mega-jar.sh
 
+      # Boot the SHIPPED mega-jar itself on a real craftbukkit-1.8.8 under JDK 8 and assert it ENABLES from the
+      # base (v52) tree — the release analogue of legacy-smoke.sh (which boots the TESTER jar), proving the
+      # merged artifact selects + loads the legacy tree, not just that it built. Reuses the mega-jar from the
+      # step above (SE_NO_BUILD=1) and the craftbukkit + JDK-8 setup already provisioned for the 1.8 smoke gate.
+      # Only the legacy target runs here: the modern Paper targets need the gitignored local reference cache,
+      # which CI does not carry (run-matrix.sh is the local pre-release gate for those).
+      - name: Live mega-jar boot (1.8.8 base tree)
+        run: SE_NO_BUILD=1 scripts/mega-smoke.sh legacy:1.8.8
+
       - name: Stage release artifact
         run: |
           mega="se/bootstrap/build/libs/StarEnchants-${VERSION}-mega.jar"
