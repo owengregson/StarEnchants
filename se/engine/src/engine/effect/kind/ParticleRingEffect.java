@@ -9,13 +9,16 @@ import engine.spec.T;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /**
  * {@code PARTICLE_RING} — a horizontal ring of {@code count} evenly-spaced coloured-dust motes of radius
  * {@code radius}, drawn {@code height} above the target's feet (default @Self), tinted by r/g/b. KOTH's
- * Victorious crown aura; any radius / boss-aura indicator reuses it as pure YAML. The geometry is computed
- * here (firing thread, snapshot-safe value maths); the per-point colour draw is the Sink's {@code dust}.
+ * Victorious crown aura; any radius / boss-aura indicator reuses it as pure YAML. The actor anchor is the
+ * ADR-0043 origin snapshot; other resolved targets are read live behind the Regions guard; the per-point
+ * colour draw is the Sink's {@code dust}.
  */
 public final class ParticleRingEffect implements EffectKind {
 
@@ -30,6 +33,7 @@ public final class ParticleRingEffect implements EffectKind {
             .param("height", D.DOUBLE.def(1))
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
+            .actorOrigin()
             .doc("Draw a horizontal ring of `count` coloured-dust motes of radius `radius` at `height` above the "
                     + "target's feet (default @Self), tinted r/g/b (0-255). A radius / aura indicator.")
             .example("{ PARTICLE_RING: { particle: REDSTONE, r: 255, g: 255, b: 255, radius: 7, count: 60 } }")
@@ -50,8 +54,23 @@ public final class ParticleRingEffect implements EffectKind {
         double radius = ctx.dbl("radius");
         int count = ctx.integer("count");
         double height = ctx.dbl("height");
+        Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
+        Player actor = ctx.actor();
         for (LivingEntity who : ctx.targets("who")) {
-            Location base = who.getLocation();
+            Location base;
+            if (who == actor) {
+                base = origin; // null → uncapturable actor origin: fail closed, skip
+            } else {
+                try {
+                    base = who.getLocation(); // selector-resolved; may still be remote (@PlayerFromName, DEFENSE victim slot)
+                } catch (RuntimeException unreadable) {
+                    Regions.swallowed("ParticleRingEffect.target", unreadable);
+                    continue;
+                }
+            }
+            if (base == null) {
+                continue;
+            }
             World world = base.getWorld();
             if (world == null) {
                 continue;
