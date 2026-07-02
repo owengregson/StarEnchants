@@ -1,0 +1,321 @@
+starenchants authoring surface v1
+[effects]
+effect BREAK_BLOCK
+  param drops BOOL optional min=- max=- enum=- handle=- default=true
+effect CANCEL
+effect CURE
+  param category ENUM optional min=- max=- enum=ALL,BENEFICIAL,HARMFUL,NEUTRAL handle=- default=ALL
+effect DAMAGE
+  param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+effect DAMAGE_MOD
+  param side ENUM required min=- max=- enum=attack,defense handle=- default=-
+  param mode ENUM optional min=- max=- enum=add,flat handle=- default=add
+  param amount DOUBLE required min=- max=- enum=- handle=- default=-
+effect DAMAGE_SCALE
+  param side ENUM optional min=- max=- enum=attack,defense handle=- default=attack
+  param mode ENUM optional min=- max=- enum=add,flat handle=- default=add
+  param per DOUBLE required min=- max=- enum=- handle=- default=-
+  param cap DOUBLE optional min=0 max=- enum=- handle=- default=0
+effect DISARM
+effect DROP_ITEM
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param count INT optional min=1 max=- enum=- handle=- default=1
+effect DURABILITY
+  param amount INT optional min=- max=- enum=- handle=- default=-1
+  param target ENUM optional min=- max=- enum=all,armor,item handle=- default=item
+  param mode ENUM optional min=- max=- enum=damage,restore handle=- default=restore
+effect EQUIP_SWAP
+  param slot ENUM optional min=- max=- enum=boots,chestplate,helmet,leggings handle=- default=helmet
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=60
+effect EXPLODE
+  param power DOUBLE required min=0 max=- enum=- handle=- default=-
+  param breakBlocks BOOL optional min=- max=- enum=- handle=- default=false
+effect EXP_MULTIPLY
+  param factor DOUBLE optional min=0 max=- enum=- handle=- default=2.0
+effect EXTINGUISH
+effect FALLING_BLOCK
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param radius INT optional min=0 max=4 enum=- handle=- default=1
+  param height INT optional min=0 max=12 enum=- handle=- default=4
+  param ttl TICKS optional min=0 max=- enum=- handle=- default=40
+  param carry DOUBLE optional min=- max=- enum=- handle=- default=0
+effect FILL_OXYGEN
+effect FIREWORK
+  param power INT optional min=0 max=3 enum=- handle=- default=1
+effect FLY
+  param ticks TICKS optional min=0 max=- enum=- handle=- default=200
+effect FLY_MODE
+effect GIVE_ITEM
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param count INT optional min=1 max=- enum=- handle=- default=1
+effect GUARD
+  param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
+  param count INT optional min=1 max=- enum=- handle=- default=1
+  param ttl TICKS optional min=0 max=- enum=- handle=- default=200
+  param name STRING optional min=- max=- enum=- handle=- default=
+effect HEALTH
+  param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+effect IGNITE
+  param duration TICKS required min=0 max=- enum=- handle=- default=-
+effect IGNORE_ARMOR
+effect IMMUNE
+  param type ENUM required min=- max=- enum=all,axe,potion,projectile,sword handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=100
+effect INVERT_VAR
+  param name STRING required min=- max=- enum=- handle=- default=-
+effect INVINCIBLE
+  param ticks TICKS optional min=0 max=- enum=- handle=- default=100
+effect KEEP_ON_DEATH
+  param duration TICKS optional min=0 max=- enum=- handle=- default=200
+effect KILL
+effect KNOCKBACK_CONTROL
+  param multiplier DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param duration TICKS optional min=0 max=- enum=- handle=- default=2
+effect LIGHTNING
+  param damage DOUBLE optional min=0 max=- enum=- handle=- default=0
+effect MARK
+  param amount DOUBLE required min=- max=- enum=- handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=60
+effect MARK_ZONE
+  param radius DOUBLE optional min=0 max=- enum=- handle=- default=4
+  param duration TICKS optional min=0 max=- enum=- handle=- default=100
+effect MAX_HEALTH_DRAIN
+  param fraction DOUBLE optional min=0 max=1 enum=- handle=- default=0.5
+  param baseline DOUBLE optional min=0 max=- enum=- handle=- default=20
+  param amount DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param duration TICKS optional min=0 max=- enum=- handle=- default=60
+effect MESSAGE
+  param text STRING required min=- max=- enum=- handle=- default=-
+  param channel ENUM optional min=- max=- enum=actionbar,chat,title handle=- default=chat
+  param subtitle STRING optional min=- max=- enum=- handle=- default=
+  param fadeIn TICKS optional min=0 max=- enum=- handle=- default=10
+  param stay TICKS optional min=0 max=- enum=- handle=- default=70
+  param fadeOut TICKS optional min=0 max=- enum=- handle=- default=20
+effect MODIFY_EXP
+  param amount INT required min=0 max=- enum=- handle=- default=-
+  param mode ENUM optional min=- max=- enum=give,take,transfer handle=- default=give
+effect MODIFY_FOOD
+  param amount INT required min=0 max=- enum=- handle=- default=-
+  param mode ENUM optional min=- max=- enum=give,take handle=- default=give
+effect MODIFY_HEALTH
+  param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+  param mode ENUM optional min=- max=- enum=give,set,take,transfer handle=- default=give
+effect MODIFY_MONEY
+  param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+  param mode ENUM optional min=- max=- enum=give,steal_percent,take,transfer handle=- default=give
+effect MOVEMENT_SPEED
+  param speed DOUBLE required min=-1 max=1 enum=- handle=- default=-
+  param ticks TICKS optional min=0 max=- enum=- handle=- default=200
+effect PARTICLE
+  param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param count INT optional min=0 max=- enum=- handle=- default=1
+effect PARTICLE_LINE
+  param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param r INT optional min=0 max=255 enum=- handle=- default=255
+  param g INT optional min=0 max=255 enum=- handle=- default=255
+  param b INT optional min=0 max=255 enum=- handle=- default=255
+  param size DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param density DOUBLE optional min=0 max=- enum=- handle=- default=2
+  param height DOUBLE optional min=- max=- enum=- handle=- default=1
+effect PARTICLE_RING
+  param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param r INT optional min=0 max=255 enum=- handle=- default=255
+  param g INT optional min=0 max=255 enum=- handle=- default=255
+  param b INT optional min=0 max=255 enum=- handle=- default=255
+  param size DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param radius DOUBLE optional min=0 max=- enum=- handle=- default=3
+  param count INT optional min=1 max=- enum=- handle=- default=36
+  param height DOUBLE optional min=- max=- enum=- handle=- default=1
+effect POTION
+  param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param level INT required min=1 max=- enum=- handle=- default=-
+  param duration TICKS required min=0 max=- enum=- handle=- default=-
+effect POTION_LOCK
+  param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param ticks TICKS optional min=0 max=- enum=- handle=- default=100
+effect PROJECTILE
+  param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
+  param count INT optional min=1 max=- enum=- handle=- default=1
+  param speed DOUBLE optional min=0 max=- enum=- handle=- default=1.5
+effect REMOVE_ARMOR
+effect REMOVE_ITEM
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param count INT optional min=1 max=- enum=- handle=- default=1
+effect REMOVE_POTION
+  param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+effect REMOVE_SOULS
+  param amount INT required min=1 max=- enum=- handle=- default=-
+effect RUN_COMMAND
+  param command STRING required min=- max=- enum=- handle=- default=-
+effect SEEK
+effect SET_BLOCK
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+effect SET_VAR
+  param name STRING required min=- max=- enum=- handle=- default=-
+  param value STRING optional min=- max=- enum=- handle=- default=
+  param ttl TICKS optional min=0 max=- enum=- handle=- default=0
+effect SMELT
+effect SOUND
+  param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
+  param volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+effect SPAWN_ENTITY
+  param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
+  param count INT optional min=1 max=- enum=- handle=- default=1
+  param ttl TICKS optional min=0 max=- enum=- handle=- default=0
+  param health DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param owner ENUM optional min=- max=- enum=activator,none handle=- default=none
+effect SUPPRESS
+  param scope ENUM required min=- max=- enum=ENCHANT,GROUP,TYPE handle=- default=-
+  param key STRING required min=- max=- enum=- handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=200
+effect SUPPRESS_IMMUNE
+  param chance INT optional min=0 max=100 enum=- handle=- default=100
+effect TELEBLOCK
+  param duration TICKS optional min=0 max=- enum=- handle=- default=400
+effect TELEPORT
+  param to ENUM optional min=- max=- enum=ACTOR,VICTIM handle=- default=VICTIM
+effect TELEPORT_BEHIND
+  param of ENUM optional min=- max=- enum=ACTOR,VICTIM handle=- default=VICTIM
+  param distance DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param onFail ENUM optional min=- max=- enum=NONE,ONTOP handle=- default=ONTOP
+effect TELEPORT_DROPS
+effect TEMP_BLOCK
+  param shape ENUM optional min=- max=- enum=COLUMN,FOOTPRINT,POINT handle=- default=POINT
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param ticks TICKS optional min=0 max=- enum=- handle=- default=60
+  param radius INT optional min=0 max=4 enum=- handle=- default=0
+  param height INT optional min=1 max=8 enum=- handle=- default=1
+  param ahead INT optional min=0 max=8 enum=- handle=- default=0
+  param dy INT optional min=-4 max=4 enum=- handle=- default=0
+  param airOnly BOOL optional min=- max=- enum=- handle=- default=true
+effect VELOCITY
+  param mode ENUM optional min=- max=- enum=add,away handle=- default=add
+  param x DOUBLE optional min=- max=- enum=- handle=- default=0
+  param y DOUBLE optional min=- max=- enum=- handle=- default=0
+  param z DOUBLE optional min=- max=- enum=- handle=- default=0
+  param strength DOUBLE optional min=0 max=- enum=- handle=- default=0
+effect WALKER
+  param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param ticks TICKS optional min=0 max=- enum=- handle=- default=60
+  param radius INT optional min=0 max=4 enum=- handle=- default=1
+  param replace ENUM optional min=- max=- enum=AIR_ONLY,ANY,REPLACEABLE handle=- default=REPLACEABLE
+[selectors]
+selector ADD
+  param x DOUBLE optional min=- max=- enum=- handle=- default=0
+  param y DOUBLE optional min=- max=- enum=- handle=- default=0
+  param z DOUBLE optional min=- max=- enum=- handle=- default=0
+selector ALLPLAYERS
+  param r DOUBLE optional min=0 max=- enum=- handle=- default=32
+selector AOE
+  param r DOUBLE optional min=0 max=- enum=- handle=- default=4
+  param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
+  param limit INT optional min=0 max=- enum=- handle=- default=0
+selector ATTACKER
+selector BLOCK
+  param distance DOUBLE optional min=0 max=- enum=- handle=- default=5
+selector BLOCKINDISTANCE
+  param distance DOUBLE optional min=0 max=- enum=- handle=- default=30
+selector ENTITYINSIGHT
+  param r DOUBLE optional min=0 max=- enum=- handle=- default=16
+selector EYEHEIGHT
+selector HERE
+selector MARKED
+  param r DOUBLE optional min=0 max=- enum=- handle=- default=32
+selector NEAREST
+  param r DOUBLE optional min=0 max=- enum=- handle=- default=5
+  param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
+selector NEARESTPLAYER
+  param r DOUBLE optional min=0 max=- enum=- handle=- default=16
+selector PLAYERFROMNAME
+  param name STRING required min=- max=- enum=- handle=- default=-
+selector SELF
+selector TRENCH
+  param radius INT optional min=0 max=- enum=- handle=- default=1
+selector TUNNEL
+  param depth INT optional min=1 max=- enum=- handle=- default=3
+selector VEIN
+  param limit INT optional min=1 max=- enum=- handle=- default=64
+selector VICTIM
+[triggers]
+trigger ATTACK
+trigger BOW
+trigger BOW_FIRE
+trigger BREAK
+trigger COMMAND
+trigger DEATH
+trigger DEFENSE
+trigger EAT
+trigger EXP_GAIN
+trigger FALL
+trigger FIRE
+trigger FISHING
+trigger HELD
+trigger IMPACT
+trigger INTERACT
+trigger INTERACT_LEFT
+trigger INTERACT_RIGHT
+trigger ITEM_DAMAGE
+trigger KILL
+trigger MINE
+trigger PASSIVE
+trigger REPEATING
+trigger TRIDENT
+[operators]
+cmp !=
+cmp <
+cmp <=
+cmp ==
+cmp >
+cmp >=
+strop contains
+strop matchesregex
+flow allow
+flow continue
+flow force
+flow stop
+flowmod chance
+[vars]
+var actor.food NUM
+var actor.gamemode STR
+var actor.groundblock STR
+var actor.health NUM
+var actor.healthpercent NUM
+var actor.helditem STR
+var actor.level NUM
+var actor.maxhealth NUM
+var actor.totalexp NUM
+var actor.type STR
+var actor.world STR
+var block.type STR
+var blocking BOOL
+var combo NUM
+var damage NUM
+var distance NUM
+var flying BOOL
+var gliding BOOL
+var isblock BOOL
+var nearbyenemies NUM
+var onfire BOOL
+var onground BOOL
+var sneaking BOOL
+var sprinting BOOL
+var swimming BOOL
+var victim.blocking BOOL
+var victim.flying BOOL
+var victim.food NUM
+var victim.gliding BOOL
+var victim.health NUM
+var victim.healthpercent NUM
+var victim.helditem STR
+var victim.inzone BOOL
+var victim.maxhealth NUM
+var victim.mobtype STR
+var victim.sneaking BOOL
+var victim.sprinting BOOL
+var victim.swimming BOOL
+var victim.type STR
+var world.raining BOOL
+var world.thundering BOOL
+var world.time NUM
