@@ -37,7 +37,10 @@ diagnostics, `/se reload`, catalog validation, `/se problems`, or the migrator.
   crashes. See **cross-version-item-api** for the alias maps.
 - **Diagnostics carry `Source(file,line,col)`** from SnakeYAML Marks through
   compile (§2 diag, §10). Surfaced at load, on `/se reload`, via `/se problems`.
-  Never an exception.
+  Never an exception. Codes come from the closed `schema.diag.DiagCode` enum —
+  `Diagnostics`/`Diagnostic` have no `String` overloads (ADR-0042). Numbers/bools
+  parse only through `ContentParse.intOr/doubleOr/boolOr`: content numbers block;
+  config/item/menu numbers warn-and-fall-back.
 - **Transactional, all-or-nothing reload** (§10): build off-thread; **fatal
   diagnostics keep the OLD `Snapshot` live** — a bad edit never takes the server
   down. Clean → swap the `AtomicReference` on the global thread.
