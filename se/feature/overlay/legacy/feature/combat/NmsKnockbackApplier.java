@@ -26,17 +26,17 @@ import platform.sched.Scheduling;
  * ({@code m > 1}) cannot be done by resistance, so it falls back to a best-effort next-tick velocity scale.
  *
  * <p>Reflective v1_8_R3 NMS (the tester compiles against the floor, so the constants are reached by name); this
- * class is registered only on the 1.8 lane (KnockbackListener.register, guarded by the v1_8_R3 probe), so the
- * reflection always resolves. Main-thread only — the 1.8 lane is never Folia.
+ * class is the era-exclusive {@code overlay/legacy} applier (ADR-0044), registered only on the 1.8 lane (the
+ * legacy bindings), so the reflection always resolves. Main-thread only — the 1.8 lane is never Folia.
  */
-final class LegacyKnockbackListener implements Listener {
+public final class NmsKnockbackApplier implements Listener {
 
     private final KnockbackControlStore store;
     private final LongSupplier nowTicks;
     /** Victims whose resistance is temporarily overridden → their TRUE resistance, restored next tick. */
     private final Map<UUID, Double> savedResistance = new ConcurrentHashMap<>();
 
-    LegacyKnockbackListener(KnockbackControlStore store, LongSupplier nowTicks) {
+    public NmsKnockbackApplier(KnockbackControlStore store, LongSupplier nowTicks) {
         this.store = Objects.requireNonNull(store, "store");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }

@@ -64,8 +64,9 @@ public final class CombatFlagsSuite implements Harness.Scenario {
             // there is no handle to unregister. Left registered for the run, it is INERT: it reads THIS empty
             // KnockbackControlStore, so multiplier() returns NaN for every entity and it never touches another
             // suite's hit. The cross-suite-contamination risk a leaked listener carries does not apply here.
-            KnockbackListener.Path path =
-                    KnockbackListener.register(plugin, new KnockbackControlStore(), () -> 0L);
+            KnockbackControlStore kbStore = new KnockbackControlStore();
+            KnockbackListener.Path path = KnockbackListener.register(plugin, kbStore, () -> 0L,
+                    new feature.combat.LegacyKnockbackListener(kbStore, () -> 0L));
             if (path == KnockbackListener.Path.NONE) {
                 throw new IllegalStateException("no knockback event found on this server (" + caps + ")");
             }

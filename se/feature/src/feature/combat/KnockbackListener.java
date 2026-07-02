@@ -1,7 +1,6 @@
 package feature.combat;
 
 import engine.stores.KnockbackControlStore;
-import feature.compat.KnockbackSeam;
 import java.lang.reflect.Method;
 import java.util.function.LongSupplier;
 import java.util.logging.Level;
@@ -17,12 +16,13 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 /**
- * Registers the KNOCKBACK_CONTROL applier for whichever knockback event THIS server fires (§C combat-flags,
- * {@code paper-cross-version}). The applier {@link Path} is chosen by the compile-time era seam
- * {@link KnockbackSeam}: on the modern tree it probes the events (the 1.20.6+ {@code EntityKnockbackEvent},
- * hooked reflectively, else Paper's legacy event, else none); on the 1.8 tree it is always the NMS applier —
- * so no 1.8-only runtime class probe lives in shared code. Exactly one applier runs per server (no
- * double-scale). {@link #resolve} is the pure (unit-tested) modern decision; {@link #register} the side effect.
+ * Registers the KNOCKBACK_CONTROL applier for whichever knockback event THIS (modern) server fires (§C
+ * combat-flags, {@code paper-cross-version}). The applier {@link Path} is chosen by a within-range class-presence
+ * probe (ADR-0044): the 1.20.6+ {@code EntityKnockbackEvent} hooked reflectively, else Paper's legacy event
+ * (the caller-supplied applier), else none. Exactly one applier runs per server (no double-scale). The 1.8 era
+ * never invokes this — its bindings register the NMS applier directly (the Paper events are absent there), so no
+ * 1.8-only runtime class probe lives in shared code; this method is floor-typed and compiles on both eras.
+ * {@link #resolve} is the pure (unit-tested) modern decision; {@link #register} the side effect.
  */
 public final class KnockbackListener {
 
@@ -46,24 +46,33 @@ public final class KnockbackListener {
     }
 
     /**
-     * Register the applier this server fires its knockback through, reading {@code store} for a victim's
-     * active {@code KNOCKBACK_CONTROL} flag. A no-op when {@link KnockbackSeam} resolves {@link Path#NONE}
-     * (KNOCKBACK_CONTROL simply has no effect on such a server). Returns the chosen {@link Path} (for
-     * logging/verification).
+     * Register the applier this (modern) server fires its knockback through, reading {@code store} for a victim's
+     * active {@code KNOCKBACK_CONTROL} flag. When the range probe resolves {@link Path#LEGACY} (Paper's legacy
+     * event), {@code legacyEventApplier} — the era-supplied {@code LegacyKnockbackListener} — is registered; when
+     * it resolves {@link Path#NONE}, nothing is (KNOCKBACK_CONTROL is inert on such a server). Returns the chosen
+     * {@link Path}. The 1.8 era does not call this (its bindings register the NMS applier directly).
      */
-    public static Path register(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks) {
-        Path path = KnockbackSeam.resolve();
+    public static Path register(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks,
+                                Listener legacyEventApplier) {
+        Path path = resolve(present(MODERN_EVENT), present(LEGACY_EVENT));
         switch (path) {
             case MODERN -> registerModern(plugin, store, nowTicks);
-            // On the modern tree LegacyKnockbackListener wraps Paper's legacy event; on the 1.8 tree its
-            // same-FQN overlay is the NMS knockback-resistance applier — the era seam picks which is compiled.
-            case LEGACY -> plugin.getServer().getPluginManager().registerEvents(
-                    new LegacyKnockbackListener(store, nowTicks), plugin);
+            case LEGACY -> plugin.getServer().getPluginManager().registerEvents(legacyEventApplier, plugin);
             case NONE -> {
                 // No knockback applier on this server — KNOCKBACK_CONTROL stays inert.
             }
         }
         return path;
+    }
+
+    /** Whether {@code className} is on this server's classpath — the within-range knockback-event presence probe. */
+    private static boolean present(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException absent) {
+            return false;
+        }
     }
 
     /** Reflectively hook the modern Bukkit {@code EntityKnockbackEvent} (absent from the floor classpath). */

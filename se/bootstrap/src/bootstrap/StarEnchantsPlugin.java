@@ -211,6 +211,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         feature.compat.DropControl dropControl = wiring.dropControl();
         feature.compat.Projectiles projectiles = wiring.projectiles();
         feature.compat.Sounds sounds = wiring.sounds();
+        feature.scroll.AnvilRename anvilRename = wiring.anvilRename(); // §I nametag rename (§4 era seam)
 
         Library initial = loadInitial(compiler, contentRoot);
         content = new ContentHolder(initial);
@@ -351,7 +352,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Heroic upgrades (§F).
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade(), store);
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
-                () -> items.config().heroicOrDefault(), rolls, messages, itemGroups);
+                () -> items.config().heroicOrDefault(), rolls, messages, itemGroups, wiring.vanillaStats());
 
         // Slot economy (§H). base MUST match the ItemEnchanter default so the cap is computed off the same base.
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess(), store);
@@ -554,7 +555,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TeleblockListener(stores.teleblock(), tick::get), this);
         getServer().getPluginManager().registerEvents(new ImmuneListener(stores.immune(), tick::get, hands), this);
         // §C KNOCKBACK_CONTROL: capability-probed onto modern-bukkit or legacy destroystokyo; inert on neither.
-        KnockbackListener.Path knockbackPath = KnockbackListener.register(this, stores.knockback(), tick::get);
+        KnockbackListener.Path knockbackPath = wiring.registerKnockback(this, stores.knockback(), tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
         // §N (ADR-0026): Mental OWNS player knockback, so the vanilla applier is discarded for players; bind
         // its KnockbackApplyEvent so KNOCKBACK_CONTROL composes onto Mental's vector instead of being lost.
@@ -588,8 +589,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (features.scrolls()) {
             getServer().getPluginManager().registerEvents(new ScrollListener(scrolls, messages, sounds), this);
             getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems, messages, sounds), this);
-            getServer().getPluginManager().registerEvents(new NametagListener(nametags, messages, sounds), this);
-            feature.scroll.NametagAnvil.installPreview(this, nametags); // modern: colour the anvil result preview (no-op on 1.8.9)
+            getServer().getPluginManager().registerEvents(new NametagListener(nametags, messages, sounds, anvilRename), this);
+            anvilRename.installPreview(this, nametags); // modern: colour the anvil result preview (no-op on 1.8.9)
             getServer().getPluginManager().registerEvents(new feature.trak.TrakListener(traks, messages, sounds), this);
         } else {
             getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");

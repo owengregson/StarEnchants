@@ -33,11 +33,12 @@ public final class HeroicService {
     private final Random random;
     private final platform.lang.Messages messages; // §L lang.yml
     private final ItemGroups groups; // §F: gate applyTo to armour/weapons
+    private final VanillaStats vanillaStats; // §F real vanilla diamond attrs (§4 era seam; NONE on 1.8)
 
     /** {@code groups} is the armour/weapon group table gating heroic's applies-to. */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
                          Supplier<HeroicConfig> config, Random random, platform.lang.Messages messages,
-                         ItemGroups groups) {
+                         ItemGroups groups, VanillaStats vanillaStats) {
         this.upgrades = Objects.requireNonNull(upgrades, "upgrades");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -45,6 +46,7 @@ public final class HeroicService {
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.groups = Objects.requireNonNull(groups, "groups");
+        this.vanillaStats = Objects.requireNonNull(vanillaStats, "vanillaStats");
     }
 
     public boolean isUpgrade(ItemStack stack) {
@@ -115,7 +117,7 @@ public final class HeroicService {
         // attributes for THIS piece, so we DROP the matching plugin-maths flat delta and never double-count. Off
         // (or the 1.8 fork, which no-ops the writer): keep the HeroicDiamond flat fold + wear-cancel scaling —
         // version-uniform, no item-attribute API. A diamond/netherite display → delta 0.
-        boolean realStats = cfg.diamondStats() && cfg.vanillaStats() && HeroicVanillaStats.apply(upgraded, weapon);
+        boolean realStats = cfg.diamondStats() && cfg.vanillaStats() && vanillaStats.apply(upgraded, weapon);
         boolean realArmour = !weapon && realStats;
         boolean realWeapon = weapon && realStats;
         double flatDamage = cfg.diamondStats() && weapon && !realWeapon

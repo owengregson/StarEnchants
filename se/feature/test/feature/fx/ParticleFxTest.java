@@ -26,7 +26,7 @@ class ParticleFxTest {
         when(player.getLocation()).thenReturn(loc);
 
         Map<String, Particle> table = Map.of("FLAME", Particle.FLAME, "SOUL", Particle.SOUL);
-        ParticleFx fx = new ParticleFx(table::get); // returns null for an unknown token
+        ParticleFx fx = new ModernParticleFx(table::get); // returns null for an unknown token
 
         fx.spawn(player, List.of("FLAME", "NONSENSE_TOKEN", "SOUL"), 3);
 
@@ -41,7 +41,7 @@ class ParticleFxTest {
     @Test
     void emptyOrNullTokenListIsANoOp() {
         Player player = mock(Player.class);
-        ParticleFx fx = new ParticleFx(t -> Particle.FLAME);
+        ParticleFx fx = new ModernParticleFx(t -> Particle.FLAME);
         fx.spawn(player, List.of(), 1);
         fx.spawn(player, null, 1);
         verify(player, never()).getWorld(); // never even touches the world
