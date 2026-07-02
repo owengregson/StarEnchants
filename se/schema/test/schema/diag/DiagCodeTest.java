@@ -18,12 +18,9 @@ class DiagCodeTest {
 
     @ParameterizedTest
     @EnumSource(DiagCode.class)
-    void everyCodeRoundTripsThroughTheDiagCodeOverloadUnchanged(DiagCode code) {
-        Diagnostic viaEnum = Diagnostic.error(code, "m", Source.UNKNOWN);
-        Diagnostic viaString = Diagnostic.error(code.name(), "m", Source.UNKNOWN);
-        // The enum overload is just a relabelling of the string overload: same wire code, both ways.
-        assertEquals(viaString.code(), viaEnum.code());
-        assertEquals(code.name(), viaEnum.code());
+    void everyCodeCarriesItsNameAsTheWireString(DiagCode code) {
+        // The wire code a producer emits is exactly the enum's name — the single-source contract.
+        assertEquals(code.name(), Diagnostic.error(code, "m", Source.UNKNOWN).code());
         assertEquals(code.name(), code.code());
     }
 
@@ -37,11 +34,11 @@ class DiagCodeTest {
 
     @Test
     void isReadsTheRawCodeStringNotOnlyEnumBuiltDiagnostics() {
-        // A diagnostic built the old way (raw literal) still answers is() — the migration can proceed
-        // producer-by-producer without a flag day.
-        Diagnostic legacy = Diagnostic.error("E_DUPLICATE_KEY", "dup", Source.UNKNOWN);
-        assertTrue(legacy.is(DiagCode.E_DUPLICATE_KEY));
-        assertFalse(legacy.is(DiagCode.E_DUP_KEY)); // the intentionally-distinct near-twin
+        // A diagnostic carrying a raw literal code (built via the canonical ctor, e.g. a test fixture with an
+        // off-catalogue code) still answers is() — is() matches the wire string, not the enum identity.
+        Diagnostic raw = new Diagnostic(Severity.ERROR, "E_DUPLICATE_KEY", "dup", Source.UNKNOWN, null);
+        assertTrue(raw.is(DiagCode.E_DUPLICATE_KEY));
+        assertFalse(raw.is(DiagCode.E_DUP_KEY)); // the intentionally-distinct near-twin
     }
 
     @Test
@@ -54,5 +51,13 @@ class DiagCodeTest {
         assertEquals(1, diags.count(Severity.WARNING));
         assertTrue(diags.all().get(0).is(DiagCode.W_EXTRA_ARGS));
         assertTrue(diags.all().get(1).is(DiagCode.E_TYPE));
+    }
+
+    @Test
+    void severityParameterizedAddRoutesBySeverity() {
+        Diagnostics diags = new Diagnostics().add(Severity.WARNING, DiagCode.W_CONFIG_BOOL, "m", Source.UNKNOWN);
+        assertEquals(1, diags.count(Severity.WARNING));
+        assertFalse(diags.hasErrors());
+        assertTrue(diags.all().get(0).is(DiagCode.W_CONFIG_BOOL));
     }
 }

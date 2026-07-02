@@ -30,7 +30,8 @@ class ParamSpecTest {
                 .param("cooldown", D.TICKS.def(0))
                 .rule((args, src, diags) -> {
                     if (args.dbl("radius") > 16) {
-                        diags.error(RADIUS_RULE, "radius must not exceed 16", src);
+                        // Synthetic off-catalogue code → canonical ctor (the String overloads are gone, ADR-0042).
+                        diags.add(new Diagnostic(Severity.ERROR, RADIUS_RULE, "radius must not exceed 16", src, null));
                     }
                 })
                 .doc("Lightning + AoE damage near the target.")

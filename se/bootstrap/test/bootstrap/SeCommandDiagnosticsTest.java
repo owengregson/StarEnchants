@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import schema.diag.Diagnostic;
+import schema.diag.Severity;
 import schema.diag.Source;
 
 /**
@@ -77,8 +78,9 @@ class SeCommandDiagnosticsTest {
 
     @Test
     void problemsSummarisesThenListsEachFinding() {
-        Diagnostic error = Diagnostic.error("E_TESTONLY", "boom in a level", Source.of("enchants/x.yml", 3, 1));
-        Diagnostic warning = Diagnostic.warning("W_TESTONLY", "harmless smell", Source.UNKNOWN);
+        Diagnostic error = new Diagnostic(Severity.ERROR, "E_TESTONLY", "boom in a level",
+                Source.of("enchants/x.yml", 3, 1), null);
+        Diagnostic warning = new Diagnostic(Severity.WARNING, "W_TESTONLY", "harmless smell", Source.UNKNOWN, null);
         List<String> lines = SeCommand.problemLines(List.of(error, warning), Messages.defaults());
 
         assertEquals(3, lines.size()); // summary + one per finding

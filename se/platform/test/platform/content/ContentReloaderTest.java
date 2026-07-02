@@ -3,6 +3,8 @@ package platform.content;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.Compiler;
@@ -123,7 +125,8 @@ class ContentReloaderTest {
         boolean[] sourcePublished = {false};
         // Clean content but a blocking diagnostic from a parallel source must still abort the transaction.
         ReloadStep brokenStep = () -> new ReloadStep.Built(
-                List.of(schema.diag.Diagnostic.error("X_BAD", "broken config", schema.diag.Source.UNKNOWN)),
+                List.of(new schema.diag.Diagnostic(schema.diag.Severity.ERROR, "X_BAD", "broken config",
+                        schema.diag.Source.UNKNOWN, null)),
                 () -> sourcePublished[0] = true);
         ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0,
                 library -> { }, List.of(brokenStep));
@@ -144,7 +147,8 @@ class ContentReloaderTest {
         ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
         boolean[] sourcePublished = {false};
         ReloadStep step = () -> new ReloadStep.Built(
-                List.of(schema.diag.Diagnostic.warning("W_NOTE", "a note", schema.diag.Source.UNKNOWN)),
+                List.of(new schema.diag.Diagnostic(schema.diag.Severity.WARNING, "W_NOTE", "a note",
+                        schema.diag.Source.UNKNOWN, null)),
                 () -> sourcePublished[0] = true);
         ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0,
                 library -> { }, List.of(step));
@@ -156,6 +160,32 @@ class ContentReloaderTest {
         assertFalse(sourcePublished[0], "dry-run never publishes a source");
         assertTrue(result[0].diagnostics().stream().anyMatch(d -> d.code().equals("W_NOTE")),
                 "dry-run still surfaces a source's diagnostics");
+    }
+
+    @Test
+    void busyResultCarriesTheBusyCode() {
+        ReloadResult r = ReloadResult.busy();
+        assertTrue(r.isBusy());
+        assertEquals(1, r.errorCount());
+        assertTrue(r.diagnostics().get(0).is(schema.diag.DiagCode.E_RELOAD_BUSY));
+        assertNull(r.failure());
+    }
+
+    @Test
+    void failureResultCarriesTheThrowable() {
+        Throwable boom = new IllegalStateException("boom");
+        ReloadResult r = ReloadResult.failure(boom);
+        assertSame(boom, r.failure());
+        assertTrue(r.diagnostics().get(0).is(schema.diag.DiagCode.E_RELOAD_FAILED));
+        assertFalse(r.isBusy());
+        assertFalse(r.published());
+        assertEquals(-1, r.generation());
+    }
+
+    @Test
+    void convenienceCtorHasNoFailure() {
+        ReloadResult r = new ReloadResult(true, false, 3, 2, List.of());
+        assertNull(r.failure());
     }
 
     /** Runs every scheduled task immediately on the calling thread (deterministic for tests). */

@@ -16,6 +16,7 @@ import org.bukkit.plugin.Plugin;
 import platform.content.ContentReloader;
 import platform.content.ReloadStep;
 import schema.diag.Diagnostic;
+import schema.diag.Severity;
 import schema.diag.Source;
 import tester.harness.Harness;
 
@@ -150,7 +151,7 @@ public final class ContentLoaderSuite implements Harness.Scenario {
         ContentHolder abHolder = new ContentHolder(LibraryLoader.load(croot, ContentCompiler.production(), 0));
         boolean[] sourcePublished = {false};
         ReloadStep brokenStep = () -> new ReloadStep.Built(
-                List.of(Diagnostic.error("X_BAD_SOURCE", "broken config", Source.UNKNOWN)),
+                List.of(new Diagnostic(Severity.ERROR, "X_BAD_SOURCE", "broken config", Source.UNKNOWN, null)),
                 () -> sourcePublished[0] = true);
         ContentReloader abReloader = new ContentReloader(abHolder, ContentCompiler::production, croot, 0,
                 lib -> { }, List.of(brokenStep));
