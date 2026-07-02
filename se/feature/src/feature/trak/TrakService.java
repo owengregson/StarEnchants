@@ -15,7 +15,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
 import platform.sched.Scheduling;
 import platform.text.Colors;
@@ -41,6 +40,9 @@ public final class TrakService {
     private final ItemGroups groups;
     private final Supplier<TraksConfig> config;
     private final platform.lang.Messages messages;
+    // ADR-0040: applying/bumping a trak mutates PDC (marker + counter) then asks the composer to recompose — the
+    // trak count lines are a state-driven SECTION now, not lore this service stamps by hand.
+    private final java.util.function.Consumer<ItemStack> reRender;
 
     public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config) {
         this(codec, slot, groups, config, platform.lang.Messages.defaults());
@@ -48,11 +50,17 @@ public final class TrakService {
 
     public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config,
                        platform.lang.Messages messages) {
+        this(codec, slot, groups, config, messages, gear -> { });
+    }
+
+    public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config,
+                       platform.lang.Messages messages, java.util.function.Consumer<ItemStack> reRender) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.slot = Objects.requireNonNull(slot, "slot");
         this.groups = Objects.requireNonNull(groups, "groups");
         this.config = Objects.requireNonNull(config, "config");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.reRender = Objects.requireNonNull(reRender, "reRender");
     }
 
     public boolean isTrakGem(ItemStack stack) {
@@ -99,7 +107,7 @@ public final class TrakService {
             return TrakResult.noop(messages.format("trak.already"));
         }
         slot.occupy(gear, slotKind);
-        renderTraks(gear);
+        reRender.accept(gear); // recompose: the new marker surfaces this trak's live count line
         gem.setAmount(gem.getAmount() - 1);
         return TrakResult.committed(messages.format("trak.applied"));
     }
@@ -135,40 +143,34 @@ public final class TrakService {
         }
         codec.increment(tool, kind);
         if (slot.holds(tool, slotKindOf(kind))) {
-            renderTraks(tool); // an applied gem shows the live count (re-stamps every applied trak)
+            reRender.accept(tool); // an applied gem shows the live count — recompose from the bumped counter
         }
         Hands.setMainHand(player, tool);
     }
 
-    /** Re-stamp every applied trak's count line on {@code item} from state, replacing any prior ones. */
-    @SuppressWarnings("deprecation") // getLore/setLore(List): the floor-stable item-meta path
-    private void renderTraks(ItemStack item) {
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) {
-            return;
-        }
-        TraksConfig cfg = config.get();
-        List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-        // Drop every kind's prior count line, then re-stamp the applied ones. Identified by the count-format's
-        // VISIBLE prefix (colours stripped), NOT a §-code marker: Bukkit's ItemMeta normalisation drops leading
-        // reset codes on the round-trip, so a §r§r-prefixed marker stops matching and the old line would never be
-        // removed → it duplicated on every kill. Anything else on the item (enchant/economy lore, a PROTECTED
-        // line) is left untouched, so trak lines coexist with the rest.
-        lore.removeIf(line -> isCountLine(line, cfg));
-        for (Kind kind : Kind.values()) { // BLOCK, MOB, SOUL, FISH — a stable, deterministic line order
+    /**
+     * The applied-trak count lines on {@code item} from marker + counter state (§I), in a stable Kind order
+     * (BLOCK, MOB, SOUL, FISH); colour-translated, empty when none applied. The composer appends these as the trak
+     * SECTION (ADR-0040) — lore is rendered from state, never parsed back (§4.2). Injected as the {@code trakLines}
+     * provider on {@link item.render.LoreRenderer.Config}, so a re-themed count format can no longer break a
+     * preserve-by-text classifier.
+     */
+    public static List<String> countLines(ItemStack item, TrakCodec codec, AppliedSlot slot, TraksConfig cfg) {
+        List<String> out = new ArrayList<>();
+        for (Kind kind : Kind.values()) {
             if (slot.holds(item, slotKindOf(kind))) {
-                lore.add(Colors.translate(trakFor(kind).countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
+                out.add(Colors.translate(trakFor(cfg, kind).countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
             }
         }
-        meta.setLore(lore.isEmpty() ? null : lore);
-        item.setItemMeta(meta);
+        return out;
     }
 
     /**
      * Whether {@code line} is a trak count line of ANY kind — matched on the count-format's VISIBLE prefix (the
-     * text before {@code {COUNT}}, colours stripped), so it survives Bukkit's lore colour-code normalisation and
-     * also catches lines a prior (buggy) §-marker render left behind. Shared so the other lore writers (the
-     * enchant/protection renderers) can PRESERVE trak lines rather than clobber them.
+     * text before {@code {COUNT}}, colours stripped), so it survives Bukkit's lore colour-code normalisation.
+     * MIGRATION-ONLY (ADR-0040): the sole consumer is the composer's one-time legacy shim, recognising a
+     * pre-composer count line so it can drop it on an unmarked item's first recompose. The permanent path renders
+     * these lines from state ({@link #countLines}), never by matching text.
      */
     public static boolean isCountLine(String line, TraksConfig cfg) {
         if (line == null) {
@@ -194,7 +196,10 @@ public final class TrakService {
     }
 
     private TraksConfig.Trak trakFor(Kind kind) {
-        TraksConfig cfg = config.get();
+        return trakFor(config.get(), kind);
+    }
+
+    private static TraksConfig.Trak trakFor(TraksConfig cfg, Kind kind) {
         return switch (kind) {
             case BLOCK -> cfg.block();
             case MOB -> cfg.mob();

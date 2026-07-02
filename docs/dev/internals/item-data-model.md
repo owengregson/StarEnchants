@@ -279,17 +279,26 @@ String color = tierColor != null && !tierColor.isBlank() ? tierColor : style.enc
 out.add(Colors.translate(color + name + " " + levelColor + level));
 ```
 
-`compose` is pure and server-free (it takes the material kind, the
-already-computed protection lines, and the existing lore as plain values), so the
-whole composition is unit-testable with hand-built state; `LoreRenderer` is the
-thin Bukkit shell that feeds it and writes the result back (plus the enchant-count
-name suffix). The wiring — the display lookup, the live `Supplier<LoreStyle>`
-(re-read per render so a `/se reload` takes effect next render), and every
-per-section template — is a **named-field `LoreRenderer.Config` record**, not a
-positional constructor ladder; build one with `Config.of(style, displayNameOf)`
-and the fluent `with*` setters. An unknown stored key renders as the configured
-unknown label. Adding a lore-bearing feature is local: add a section step + the
-state it reads, not another writer coordinating through a text prefix classifier.
+`compose` is pure and server-free (it takes the material kind and the
+already-computed protection + trak lines as plain values — both rendered from
+marker/counter state, never parsed back), so the whole composition is
+unit-testable with hand-built state; `LoreRenderer` is the thin Bukkit shell that
+feeds it and writes the result back (plus the enchant-count name suffix). The
+wiring — the display lookup, the live `Supplier<LoreStyle>` (re-read per render so
+a `/se reload` takes effect next render), and every per-section template — is a
+**named-field `LoreRenderer.Config` record**, not a positional constructor ladder;
+build one with `Config.of(style, displayNameOf)` and the fluent `with*` setters.
+An unknown stored key renders as the configured unknown label. Adding a
+lore-bearing feature is local: add a section step + the state it reads, not
+another writer coordinating through a text prefix classifier.
+
+Feature systems (traks, white/holy scrolls) stop mutating lore: they write PDC
+state and call the one recompose seam (`LoreRenderer#apply`), so ownership of a
+line is never encoded in its visible text. Lore written by a pre-composer build
+carries no `ComposerMark` (a versioned PDC byte); on such an item's **first**
+recompose a one-time, marker-gated shim (`LegacyLoreShim`) recognises the old
+text-classified managed lines and reconciles them, then stamps the marker so it
+never runs again. The shim is one-release-scoped (ADR-0040).
 
 ## Lazy legacy migration
 

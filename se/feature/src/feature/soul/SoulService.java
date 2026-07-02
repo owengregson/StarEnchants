@@ -54,9 +54,6 @@ public final class SoulService implements SoulDebit, SoulSpender {
     private final java.util.function.BooleanSupplier depositOnAnyKill; // read live so a reload can flip it (§D)
     private final platform.lang.Messages messages;
     private final feature.fx.ParticleFx particles; // on-activate/deactivate spawns; the aura is SoulParticleDriver
-    // §I a line a separate system owns (white/holy PROTECTED, trak counts) that the gem re-render must PRESERVE
-    // rather than wipe; default "preserve nothing" keeps the test/fixture forms server-free.
-    private final java.util.function.Predicate<String> preservedLoreLine;
     // §D per-player TOTAL souls across all carried gems, refreshed on the holder thread each maintain() tick;
     // read by the PAPI feed (in-memory, thread-safe — never a cross-region inventory read).
     private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
@@ -78,17 +75,10 @@ public final class SoulService implements SoulDebit, SoulSpender {
         this(pool, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
     }
 
-    /** Particles-but-no-lore-preservation form (the test/fixture canonical). */
+    /** Canonical form (composition root): particles for the on-activate/deactivate spawns. */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
                        feature.fx.ParticleFx particles) {
-        this(pool, modes, codec, config, depositOnAnyKill, messages, particles, line -> false);
-    }
-
-    /** Canonical form (composition root): {@code preservedLoreLine} marks scroll/trak lines to keep on re-render. */
-    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
-                       java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
-                       feature.fx.ParticleFx particles, java.util.function.Predicate<String> preservedLoreLine) {
         this.pool = Objects.requireNonNull(pool, "pool");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
@@ -96,7 +86,6 @@ public final class SoulService implements SoulDebit, SoulSpender {
         this.depositOnAnyKill = Objects.requireNonNull(depositOnAnyKill, "depositOnAnyKill");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.particles = Objects.requireNonNull(particles, "particles");
-        this.preservedLoreLine = Objects.requireNonNull(preservedLoreLine, "preservedLoreLine");
     }
 
     /** {@code NO_GEM}: not holding a gem. {@code NO_SOULS}: held a zero gem — toggle already played the
@@ -516,7 +505,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         inv.setItem(slot, stack);
     }
 
-    /** Re-render the gem's name + lore from config + the new count, PRESERVING scroll/trak lines. Holder thread. */
+    /** Re-render the gem's name + lore from config + the new count (rendered from state, never parsed back). Holder thread. */
     @SuppressWarnings("deprecation") // setDisplayName/setLore(List): the floor-stable item-meta path
     private void reRenderGem(ItemStack gem, int souls) {
         ItemMeta meta = gem.getItemMeta();
@@ -528,18 +517,9 @@ public final class SoulService implements SoulDebit, SoulSpender {
         if (name != null && !name.isBlank()) {
             meta.setDisplayName(Colors.translate(name));
         }
-        // Preserve applied-scroll PROTECTED lines + trak lines: a separate system owns them, so the gem-body
-        // re-render must KEEP them rather than wipe them (§I robust composition — the white/holy scroll line fix).
-        List<String> preserved = new ArrayList<>();
-        if (meta.hasLore()) {
-            for (String line : meta.getLore()) {
-                if (preservedLoreLine.test(line)) {
-                    preserved.add(line);
-                }
-            }
-        }
         // Wrap exactly as the mint path does (ItemFactory.buildItem), else the gem lore visibly unwraps the first
-        // time the count changes (mint wraps; this re-render must too).
+        // time the count changes (mint wraps; this re-render must too). A gem carries no applied-scroll/trak
+        // markers (no applier targets a gem), so the whole lore is derivable from the gem's own state (ADR-0040).
         List<String> body = ItemFactory.wrapLore(renderGemLore(cfg, souls));
         List<String> lore = new ArrayList<>();
         if (body != null) {
@@ -547,7 +527,6 @@ public final class SoulService implements SoulDebit, SoulSpender {
                 lore.add(Colors.translate(line));
             }
         }
-        lore.addAll(preserved); // already colour-translated when the scroll/trak stamped them
         meta.setLore(lore.isEmpty() ? null : lore);
         gem.setItemMeta(meta);
     }
