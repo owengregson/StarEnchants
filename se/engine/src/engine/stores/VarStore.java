@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * never wall-clock — deterministic, Folia-correct, server-free to test. Names are canonicalised to
  * lower-case so {@code SET_VAR:Rage} and a condition reading {@code %rage%} agree.
  */
-public final class VarStore {
+public final class VarStore implements PlayerScoped {
 
     /** A stored value and its expiry tick; {@link Long#MAX_VALUE} means "never expires". */
     private record Entry(String value, long expiry) {}

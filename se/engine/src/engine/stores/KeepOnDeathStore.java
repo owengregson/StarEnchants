@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * lapses shortly after re-arming stops — i.e. after unequip. NOT consumed on a kept death; re-arming keeps
  * it live across deaths.
  */
-public final class KeepOnDeathStore {
+public final class KeepOnDeathStore implements PlayerScoped {
 
     private final Map<UUID, Long> expiryByPlayer = new ConcurrentHashMap<>();
 

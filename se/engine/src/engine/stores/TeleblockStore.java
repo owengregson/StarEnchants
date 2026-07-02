@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * back and cancels the launch. The store bridges the two decoupled events — on Folia the write thread may
  * differ from the launch-event thread (cf. {@link KnockbackControlStore}).
  */
-public final class TeleblockStore {
+public final class TeleblockStore implements PlayerScoped {
 
     private final Map<UUID, Long> expiry = new ConcurrentHashMap<>();
 

@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Combat-local: only the combat dispatch writes it, so it is owned there, not at the composition root.
  * UUID-keyed because a player's attacks may fire on different region threads as they move (Folia).
  */
-public final class ComboStore {
+public final class ComboStore implements PlayerScoped {
 
     /** Default streak window: 100 ticks (5 seconds). */
     public static final long DEFAULT_WINDOW_TICKS = 100L;
