@@ -5,8 +5,16 @@ import engine.run.ModernActorProbe;
 import engine.sink.ModernDispatchSink;
 import engine.sink.SinkFactory;
 import engine.stores.KnockbackControlStore;
+import feature.combat.EquipListener;
 import feature.combat.KnockbackListener;
 import feature.combat.LegacyKnockbackListener;
+import feature.combat.ModernArmourChangeListener;
+import feature.heroic.HeroicDurabilityListener;
+import feature.trigger.DurabilityTriggerListener;
+import feature.trigger.TriggerDispatch;
+import item.codec.CombatCodec;
+import java.util.Random;
+import org.bukkit.event.Listener;
 import feature.compat.DropControl;
 import feature.compat.Hands;
 import feature.compat.ModernDropControl;
@@ -112,6 +120,21 @@ public final class Wiring {
      */
     public KnockbackListener.Path registerKnockback(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks) {
         return KnockbackListener.register(plugin, store, nowTicks, new LegacyKnockbackListener(store, nowTicks));
+    }
+
+    /** §B armour-change source (§4/§6): modern Paper {@code PlayerArmorChangeEvent}. Drives {@code EquipListener.refresh}. */
+    public Listener armourChangeFeeder(EquipListener equip) {
+        return new ModernArmourChangeListener(equip);
+    }
+
+    /** ITEM_DAMAGE source (§4): modern {@code PlayerItemDamageEvent} listener (1.8 fires it from the gear poll). */
+    public Listener itemDamageSource(TriggerDispatch dispatch) {
+        return new DurabilityTriggerListener(dispatch);
+    }
+
+    /** §F heroic durability save (§4): modern per-item-damage cancel (1.8 restores post-hoc via the gear poll). */
+    public Listener heroicDurabilitySave(CombatCodec codec, Random rolls) {
+        return new HeroicDurabilityListener(codec, rolls);
     }
 
     /**

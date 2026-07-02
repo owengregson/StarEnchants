@@ -4,9 +4,13 @@ import engine.run.ActorProbe;
 import engine.run.LegacyActorProbe;
 import engine.sink.LegacyDispatchSink;
 import engine.sink.SinkFactory;
+import engine.run.ActivationContext;
 import engine.stores.KnockbackControlStore;
+import feature.combat.EquipListener;
 import feature.combat.KnockbackListener;
+import feature.combat.LegacyArmourCloseListener;
 import feature.combat.NmsKnockbackApplier;
+import feature.combat.NoopListener;
 import feature.compat.DropControl;
 import feature.compat.Hands;
 import feature.compat.KeySoundFallback;
@@ -17,16 +21,22 @@ import feature.compat.Projectiles;
 import feature.compat.Sounds;
 import feature.fx.LegacyParticleFx;
 import feature.fx.ParticleFx;
+import feature.heroic.LegacyHeroicSave;
 import feature.heroic.VanillaStats;
 import feature.scroll.AnvilRename;
+import feature.trigger.LegacyGearPoll;
+import feature.trigger.TriggerDispatch;
+import item.codec.CombatCodec;
 import item.codec.ItemStateStore;
 import item.codec.NbtItemStateStore;
 import item.worn.EquipSource;
 import item.worn.LegacyEquipSource;
 import java.util.Locale;
+import java.util.Random;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import platform.resolve.RegistryResolvers;
 
@@ -39,6 +49,8 @@ import platform.resolve.RegistryResolvers;
 public final class Wiring {
 
     private final RegistryResolvers resolvers;
+    // §6 the ONE legacy per-tick gear poll: the three era feeders attach their subscribers to it (ADR-0044).
+    private final LegacyGearPoll gearPoll = new LegacyGearPoll();
 
     public Wiring(RegistryResolvers resolvers) {
         this.resolvers = resolvers;
@@ -104,6 +116,25 @@ public final class Wiring {
     public KnockbackListener.Path registerKnockback(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks) {
         plugin.getServer().getPluginManager().registerEvents(new NmsKnockbackApplier(store, nowTicks), plugin);
         return KnockbackListener.Path.LEGACY;
+    }
+
+    /** §B armour-change source (§4/§6): the gear-poll armour-signature delta drives refresh; close is the backup. */
+    public Listener armourChangeFeeder(EquipListener equip) {
+        gearPoll.refreshEquip(equip::refresh);
+        return new LegacyArmourCloseListener(equip);
+    }
+
+    /** ITEM_DAMAGE source (§4/§6): the gear-poll durability-rise subscriber fires it; no Bukkit event on 1.8. */
+    public Listener itemDamageSource(TriggerDispatch dispatch) {
+        gearPoll.fireItemDamage(player -> dispatch.fire(player, dispatch.itemDamage,
+                new ActivationContext(player, null, null, player.getLocation()), null));
+        return NoopListener.INSTANCE;
+    }
+
+    /** §F heroic durability save (§4/§6): the gear-poll heroic subscriber restores the lost durability post-hoc. */
+    public Listener heroicDurabilitySave(CombatCodec codec, Random rolls) {
+        gearPoll.heroicSave(new LegacyHeroicSave(codec, rolls));
+        return NoopListener.INSTANCE;
     }
 
     /**

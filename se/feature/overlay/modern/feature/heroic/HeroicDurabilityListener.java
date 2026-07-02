@@ -11,8 +11,9 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Heroic durability (docs/v3-directives.md §F): cancel each item-damage event with the SPECIFIC damaged
- * item's heroic chance, not the worn sum. Folia-correct: {@code PlayerItemDamageEvent} fires on the
- * player's own region thread.
+ * item's heroic chance, not the worn sum — the era-exclusive {@code overlay/modern} source (ADR-0044).
+ * Folia-correct: {@code PlayerItemDamageEvent} fires on the player's own region thread. 1.8.9 has no such
+ * event, so the heroic save is applied post-hoc by {@code LegacyHeroicSave} via the {@code LegacyGearPoll} (§6).
  */
 public final class HeroicDurabilityListener implements Listener {
 
