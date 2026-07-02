@@ -43,6 +43,13 @@ public final class FactMasks {
             return overflow ? FactMask.ALL : new FactMask(numBits, flagBits, strBits);
         }
 
+        // These three walks branch over EVERY permit of their sealed type; the closing `else throw` is the
+        // structural exhaustiveness guard. Because the compile module's class floor is Java 17 (root
+        // build.gradle.kts), a `switch` over sealed permits can't get compiler-checked exhaustiveness — that
+        // needs Java 21 semantics — so a new subtype cannot be a compile error here. Instead the `else`
+        // turns a forgotten subtype into a loud throw, and FactMasksTest walks a synthetic instance of every
+        // permit to fail the build the moment one is unhandled. A missing branch would drop that node's slots
+        // from the mask, so the demand-driven populator would skip a referenced fact — a silent wrong-gate.
         void cond(Cond node) {
             if (node instanceof Cond.And a) {
                 cond(a.left());
@@ -67,8 +74,11 @@ public final class FactMasks {
                 str(c.left());
             } else if (node instanceof Cond.BoolVar v) {
                 flagBits |= bit(v.slot());
+            } else if (node instanceof Cond.BoolLit || node instanceof Cond.BoolPapi) {
+                // Reference no fact slot (a PAPI token is resolved through the lazy resolver).
+            } else {
+                throw new IllegalStateException("unhandled node: " + node.getClass());
             }
-            // BoolLit / BoolPapi reference no fact slot (a PAPI token is resolved through the lazy resolver).
         }
 
         void num(NumExpr node) {
@@ -79,15 +89,21 @@ public final class FactMasks {
                 num(b.right());
             } else if (node instanceof NumExpr.Neg n) {
                 num(n.operand());
+            } else if (node instanceof NumExpr.Lit || node instanceof NumExpr.Papi) {
+                // Reference no fact slot.
+            } else {
+                throw new IllegalStateException("unhandled node: " + node.getClass());
             }
-            // Lit / Papi reference no fact slot.
         }
 
         void str(StrExpr node) {
             if (node instanceof StrExpr.Var v) {
                 strBits |= bit(v.slot());
+            } else if (node instanceof StrExpr.Lit || node instanceof StrExpr.Papi) {
+                // Reference no fact slot.
+            } else {
+                throw new IllegalStateException("unhandled node: " + node.getClass());
             }
-            // Lit / Papi reference no fact slot.
         }
 
         private long bit(int slot) {
