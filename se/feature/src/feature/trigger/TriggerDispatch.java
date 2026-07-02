@@ -5,6 +5,7 @@ import compile.model.Ability;
 import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
+import engine.run.ActorProbe;
 import engine.run.FactPopulator;
 import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
@@ -71,7 +72,7 @@ public final class TriggerDispatch {
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
      * TELEBLOCK/IMMUNE flags all ride the env's economy/stores, shared with their separate-event listeners.
      */
-    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
+    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ActorProbe probe, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers,
                            Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env) {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
@@ -79,7 +80,7 @@ public final class TriggerDispatch {
         this.env = Objects.requireNonNull(env, "env");
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
         this.runner = new TriggerRunner(executor, worn, soulBinder, env.nowTicks(),
-                FactPopulator.builtin(env.stores().vars()));
+                FactPopulator.builtin(env.stores().vars(), probe));
         this.executor = Objects.requireNonNull(executor, "executor");
         this.attackTrigger = triggers.attackTriggers();
         this.mine = triggers.idOf("MINE").orElse(-1);

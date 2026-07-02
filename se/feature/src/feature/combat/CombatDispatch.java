@@ -5,6 +5,7 @@ import compile.model.Ability;
 import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
+import engine.run.ActorProbe;
 import engine.run.FactPopulator;
 import engine.sink.CombatTag;
 import engine.sink.DamageMarks;
@@ -77,7 +78,7 @@ public final class CombatDispatch {
      * those hits back to the Cosmic Enchants-style melee-only ATTACK) + soul binder + live combat {@link Caps}
      * (config.yml {@code combat.*}, §L).
      */
-    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ActorProbe probe, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
                           Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env, Caps caps) {
@@ -93,7 +94,7 @@ public final class CombatDispatch {
         this.pveEnabled = caps.pve();
         // Shared VarStore: a condition's %name% reads what an earlier SET_VAR wrote (write side: the per-event sink).
         this.runner = new TriggerRunner(executor, worn, soulBinder, env.nowTicks(),
-                FactPopulator.builtin(env.stores().vars()));
+                FactPopulator.builtin(env.stores().vars(), probe));
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
         this.bowTriggerId = bowTriggerId;

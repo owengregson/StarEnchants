@@ -63,6 +63,7 @@ public final class FactPopulator {
     private final ThreadLocal<FactBuffer> buffer;
     private final VarStore vars;
     private final UnaryOperator<String> papiDelegate;
+    private final ActorProbe probe; // §3.3 era-specific entity/material reads (swim/glide/isAir/main-hand)
 
     /** {@code %victim.mobtype%} soft hook (ADR-0027): boot-installed so the engine never references the MythicMobs API. */
     private static volatile java.util.function.Function<org.bukkit.entity.Entity, String> entityTypeResolver =
@@ -94,19 +95,20 @@ public final class FactPopulator {
     private static final double NEARBY_RADIUS = 8.0;
 
     /** No dynamic-var store and no PAPI: unknown tokens resolve to null. */
-    public FactPopulator(VarVocabulary vocabulary) {
-        this(vocabulary, new VarStore(), t -> null);
+    public FactPopulator(VarVocabulary vocabulary, ActorProbe probe) {
+        this(vocabulary, new VarStore(), t -> null, probe);
     }
 
     /**
      * Backed by a shared {@link VarStore} ({@code SET_VAR}/{@code INVERT_VAR} write target) and an optional
      * PAPI delegate. Unknown {@code %name%} resolution order: built-in slot → player dynamic var →
-     * {@code papiDelegate} → null.
+     * {@code papiDelegate} → null. {@code probe} is the era-specific entity/material read seam (§3.3).
      */
-    public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate) {
+    public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate, ActorProbe probe) {
         Objects.requireNonNull(vocabulary, "vocabulary");
         this.vars = Objects.requireNonNull(vars, "vars");
         this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
+        this.probe = Objects.requireNonNull(probe, "probe");
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
 
         addActorNum(vocabulary, "actor.health", Player::getHealth);
@@ -118,14 +120,14 @@ public final class FactPopulator {
         addActorFlag(vocabulary, "blocking", Player::isBlocking);
         addActorFlag(vocabulary, "flying", Player::isFlying);
         addActorFlag(vocabulary, "sprinting", Player::isSprinting);
-        addActorFlag(vocabulary, "swimming", EntityCompat::isSwimming);
-        addActorFlag(vocabulary, "gliding", EntityCompat::isGliding);
+        addActorFlag(vocabulary, "swimming", probe::isSwimming);
+        addActorFlag(vocabulary, "gliding", probe::isGliding);
         addActorNum(vocabulary, "actor.healthpercent", actor -> healthPercent(actor));
         addActorFlag(vocabulary, "onfire", actor -> actor.getFireTicks() > 0);
         addActorFlag(vocabulary, "onground", FactPopulator::onGround);
         addActorStr(vocabulary, "actor.world", actor -> actor.getWorld().getName());
         addActorStr(vocabulary, "actor.gamemode", actor -> actor.getGameMode().name());
-        addActorStr(vocabulary, "actor.helditem", HeldItem::mainHandTypeName);
+        addActorStr(vocabulary, "actor.helditem", probe::mainHandTypeName);
         addActorStr(vocabulary, "actor.type", actor -> actor.getType().name());
         // The block the actor is standing on (one below its feet), for on-terrain conditions like Frost's "on ice"
         // (ADR-0035). Same-region as the actor, so Folia-safe; guarded with the other actor reads if it ever isn't.
@@ -140,10 +142,10 @@ public final class FactPopulator {
         addVictimFlag(vocabulary, "victim.blocking", v -> v instanceof Player p && p.isBlocking());
         addVictimFlag(vocabulary, "victim.flying", v -> v instanceof Player p && p.isFlying());
         addVictimFlag(vocabulary, "victim.sprinting", v -> v instanceof Player p && p.isSprinting());
-        addVictimFlag(vocabulary, "victim.swimming", v -> v instanceof Player p && EntityCompat.isSwimming(p));
-        addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && EntityCompat.isGliding(p));
+        addVictimFlag(vocabulary, "victim.swimming", v -> v instanceof Player p && probe.isSwimming(p));
+        addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && probe.isGliding(p));
         addVictimStr(vocabulary, "victim.type", v -> v.getType().name());
-        addVictimStr(vocabulary, "victim.helditem", FactPopulator::heldItemName);
+        addVictimStr(vocabulary, "victim.helditem", probe::mainHandTypeName);
         // §N MythicMob internal name via the soft hook; empty when not a MythicMob / integration absent.
         addVictimStr(vocabulary, "victim.mobtype", v -> entityTypeResolver.apply(v));
 
@@ -160,13 +162,13 @@ public final class FactPopulator {
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
-    public static FactPopulator builtin() {
-        return new FactPopulator(BuiltinVars.vocabulary());
+    public static FactPopulator builtin(ActorProbe probe) {
+        return new FactPopulator(BuiltinVars.vocabulary(), probe);
     }
 
     /** A built-in populator backed by a shared {@link VarStore} so conditions can read {@code SET_VAR} dynamic vars. */
-    public static FactPopulator builtin(VarStore vars) {
-        return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null);
+    public static FactPopulator builtin(VarStore vars, ActorProbe probe) {
+        return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null, probe);
     }
 
     public FactBuffer populate(ActivationContext context) {
@@ -279,7 +281,7 @@ public final class FactPopulator {
                     facts.setString(blockTypeSlot, type.name());
                 }
                 if (wantsIsBlock) {
-                    facts.setFlag(isBlockSlot, !EntityCompat.isAir(type));
+                    facts.setFlag(isBlockSlot, !probe.isAir(type));
                 }
             } catch (RuntimeException unreadable) {
                 // A block owned by another region — leave the block facts defaulted.
@@ -371,11 +373,6 @@ public final class FactPopulator {
     @SuppressWarnings("deprecation")
     private static boolean onGround(Player player) {
         return player.isOnGround();
-    }
-
-    /** The victim's main-hand material name, or {@code null} if it has no equipment (via the {@link HeldItem} seam). */
-    private static String heldItemName(LivingEntity victim) {
-        return HeldItem.mainHandTypeName(victim);
     }
 
     private void addActorNum(VarVocabulary v, String key, ActorD src) {

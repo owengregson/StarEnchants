@@ -33,11 +33,6 @@ public final class TriggerRunner {
     private final LongSupplier nowTicks;
     private final FactPopulator factPopulator;
 
-    public TriggerRunner(AbilityExecutor executor, WornStateStore worn,
-                         Function<Player, Optional<SoulBinding>> soulBinder, LongSupplier nowTicks) {
-        this(executor, worn, soulBinder, nowTicks, FactPopulator.builtin());
-    }
-
     /** A runner with an explicit {@link FactPopulator} (whose vocabulary must pair with the compiler's resolver). */
     public TriggerRunner(AbilityExecutor executor, WornStateStore worn,
                          Function<Player, Optional<SoulBinding>> soulBinder, LongSupplier nowTicks,

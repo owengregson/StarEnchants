@@ -471,7 +471,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         item.mint.ItemFactory.itemWrapWidth(() -> master.config().lore().itemWrap());
         // §6.6 set-piece base enchants (Protection/Unbreaking/Sharpness) resolve cross-version behind the seam.
         item.mint.ItemFactory.enchantResolver(wiring.enchantResolver());
-        CombatDispatch dispatch = new CombatDispatch(executor, wiring.sinkFactory(), content, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, wiring.sinkFactory(), wiring.actorProbe(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1),
                 soulService::bindingFor, sinkEnv, new CombatDispatch.Caps(
@@ -480,7 +480,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
                         () -> master.config().combat().pve()));                   // §L combat.pve gate (live)
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
-        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, wiring.sinkFactory(), content, worn, triggers,
+        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, wiring.sinkFactory(), wiring.actorProbe(), content, worn, triggers,
                 soulService::bindingFor, sinkEnv);
         // §B REPEATING: one entity-owned repeating task per (player, ability), armed/torn-down by EquipListener.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
