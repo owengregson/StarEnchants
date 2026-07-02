@@ -47,6 +47,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0037](0037-heroic-additive-fold.md) | Heroic percents join the additive damage fold (supersedes 0021) | Accepted |
 | [0038](0038-addon-api.md) | Add-on API — a curated public SPI on `:schema`, `ServicesManager` discovery (drops the `:engine` re-export) | Accepted |
 | [0039](0039-linked-snapshot-and-fact-masks.md) | Dense kind ids linked at publish (executor dispatch by index) + demand-driven fact population via per-ability masks | Accepted |
+| [0040](0040-sectioned-lore-composition.md) | Sectioned lore composition — one ordered state-driven composer + a `LoreRenderer.Config` record (retires the text classifiers) | Accepted |
 
 ## Process
 
