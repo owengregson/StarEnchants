@@ -26,9 +26,9 @@ versioning: [Semantic Versioning](https://semver.org/).
   op-visible diagnostic carrying the authored file:line.
 
 - **Per-affinity Folia live coverage.** The live tester walks the effect registry at matrix
-  boot and generates a cross-region check for every non-local effect kind (38 live-checked,
-  5 documented skips, and a totality assertion), so Folia coverage now grows automatically
-  with every new kind.
+  boot and generates a cross-region check for every non-local effect kind (43 live-checked,
+  0 skips, a totality assertion, and a Folia distinct-region staging assertion), so Folia
+  coverage now grows automatically with every new kind.
 
 - **Release pipeline hardening.** The legacy dual-compile gate extends to `:api` (with the
   `:integrate` exclusion documented — WorldGuard needs 1.13+ `BlockData`), and the release
@@ -154,6 +154,16 @@ versioning: [Semantic Versioning](https://semver.org/).
   display-identical, just single-sourced.
 
 ### Fixed
+
+- **Cross-region actor reads in effect bodies (ADR-0043).** PARTICLE_RING, PARTICLE_LINE,
+  WALKER, SPAWN_ENTITY and TELEPORT_BEHIND (plus TELEPORT `to: ACTOR` and VELOCITY `away`)
+  read the acting player's live location inside `run()`; on Folia a combat activation
+  executes on the victim's region thread, so a cross-region attacker (e.g. a projectile
+  shooter) was an unguarded remote read. Kinds now declare the need on their spec and the
+  executor captures an actor-origin snapshot (x/y/z, eye, yaw/pitch, world) on the firing
+  thread at activation; `run()` reads only the snapshot, remaining per-target live reads are
+  region-guarded and fail closed, and WALKER/ring geometry anchors where the actor stood when
+  the trigger fired.
 
 - **Per-player combat state is cleared on quit.** The quit-cleanup listener now covers
   every per-player engine store (several were missing, leaking entries until restart), and
