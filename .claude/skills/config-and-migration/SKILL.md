@@ -35,6 +35,11 @@ diagnostics, `/se reload`, catalog validation, `/se problems`, or the migrator.
   interned into the effect; the runtime can never touch a renamed constant.
   Unknown token → file/line diagnostic, **warn-and-skip that one op**, load never
   crashes. See **cross-version-item-api** for the alias maps.
+- **The hardened SnakeYAML factory** (dup-key last-wins + 64-alias cap + a
+  `LinkageError` fallback for 1.8-era servers) is duplicated-by-spec in
+  `compile.load.YamlNode.newYaml` and `migrate.LegacyYaml.newYaml` (migrate cannot
+  reach compile), locked in lockstep by `testfx.YamlAcceptance`. The migrator
+  tolerates duplicate keys deliberately — it parses other plugins' sloppy configs.
 - **Diagnostics carry `Source(file,line,col)`** from SnakeYAML Marks through
   compile (§2 diag, §10). Surfaced at load, on `/se reload`, via `/se problems`.
   Never an exception. Codes come from the closed `schema.diag.DiagCode` enum —

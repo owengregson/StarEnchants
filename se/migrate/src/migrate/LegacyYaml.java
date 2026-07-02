@@ -23,15 +23,27 @@ final class LegacyYaml {
     /**
      * A SnakeYAML reader, version-tolerant: the 2.x {@code LoaderOptions} form when present, else the no-arg
      * {@code Yaml} on a 1.8-era server whose bundled SnakeYAML lacks it (a {@link LinkageError}). The legacy
-     * fork uses the server's SnakeYAML (cross-version).
+     * fork uses the server's SnakeYAML (cross-version). Legacy EE/EA/AE configs are sloppy — duplicate keys
+     * parse last-wins on every SnakeYAML (setting it explicitly makes 2.x match the 1.x default the migrator
+     * always relied on); a 64-alias cap bounds alias bombs. This spec is kept in lockstep with
+     * {@code compile.load.YamlNode.newYaml} via {@code testfx.YamlAcceptance}.
      */
     private static Yaml newYaml() {
         try {
             LoaderOptions options = new LoaderOptions();
-            options.setMaxAliasesForCollections(64);
+            options.setAllowDuplicateKeys(true);   // last wins on every SnakeYAML, like 1.x
+            capAliases(options);                   // alias-bomb cap; inner-guarded (younger API than LoaderOptions)
             return new Yaml(options);
         } catch (LinkageError oldSnakeYaml) {
-            return new Yaml();
+            return new Yaml();                     // 1.8-era: no LoaderOptions; natively dup-tolerant, no cap
+        }
+    }
+
+    private static void capAliases(LoaderOptions options) {
+        try {
+            options.setMaxAliasesForCollections(64);
+        } catch (LinkageError preCapSnakeYaml) {
+            // 1.18–1.25-era SnakeYAML: dup-key control exists but the cap doesn't — keep the dup-key tolerance
         }
     }
 
