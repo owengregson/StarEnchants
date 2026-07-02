@@ -3,6 +3,7 @@ package feature.combat;
 import engine.stores.KnockbackControlStore;
 import java.lang.reflect.Method;
 import java.util.function.LongSupplier;
+import java.util.logging.Level;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -88,8 +89,8 @@ public final class MentalKnockbackBridge {
         } catch (NoSuchMethodException apiChanged) {
             // The class is present but its accessors moved — an API change in that plugin. Decline rather than risk
             // a per-hit reflective failure; KNOCKBACK_CONTROL stays on the vanilla path (degraded, not broken).
-            plugin.getLogger().warning("Mental is present but its KnockbackApplyEvent API is unrecognised ("
-                    + apiChanged.getMessage() + "); skipping knockback coordination.");
+            plugin.getLogger().log(Level.WARNING, "Mental is present but its KnockbackApplyEvent API is "
+                    + "unrecognised; skipping knockback coordination.", apiChanged);
             return Path.ABSENT;
         }
         EventExecutor executor = (ignored, event) -> apply(event, store, nowTicks, getVictim, getVelocity, setVelocity);

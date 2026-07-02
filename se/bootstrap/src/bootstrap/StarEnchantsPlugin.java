@@ -123,6 +123,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
@@ -134,6 +135,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.caps.Regions;
 import platform.content.ContentReloader;
+import platform.content.ReloadResult;
 import platform.economy.EconomyProvider;
 import platform.economy.EconomyService;
 import platform.item.ItemGroups;
@@ -143,8 +145,10 @@ import platform.protect.ProtectionService;
 import platform.resolve.RegistryResolvers;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import schema.diag.Diagnostics;
+import schema.diag.Source;
 
 /**
  * The composition root (ADR-0014; §3): probe → install scheduling → load content → wire the combat
@@ -664,7 +668,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         int autoSeconds = master.config().reload().autoSeconds();
         if (autoSeconds > 0) {
             long period = autoSeconds * 20L;
-            Scheduling.repeatingGlobal(period, period, () -> reloader.reload(result -> { }));
+            Scheduling.repeatingGlobal(period, period, () -> reloader.reload(this::logAutoReload));
             getLogger().info("auto-reload armed: every " + autoSeconds + "s");
         }
 
@@ -705,7 +709,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             bootstrap.compat.Commands.register(getServer(), "starenchants",
                     new UserMenuCommand("enchants", menus, messages));
         } catch (Throwable t) {
-            getLogger().warning("could not register /enchants (use /se menu hub instead): " + t);
+            getLogger().log(Level.WARNING, "could not register /enchants (use /se menu hub instead)", t);
         }
 
         // Config packs (ADR-0023). /se pack apply pairs the on-disk swap with the transactional reloader.
@@ -729,7 +733,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             bootstrap.compat.Commands.register(getServer(), "starenchants",
                     new feature.soul.SplitSoulsCommand("splitsouls", soulService, messages));
         } catch (Throwable t) {
-            getLogger().warning("could not register /splitsouls (use /se split instead): " + t);
+            getLogger().log(Level.WARNING, "could not register /splitsouls (use /se split instead)", t);
         }
 
         // §B COMMAND trigger: dynamic name can't live in plugin.yml, so register on the server command map
@@ -742,8 +746,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         messages.format("command.not-a-player")));
                 getLogger().info("command-trigger registered: /" + commandTrigger.name());
             } catch (Throwable t) {
-                getLogger().warning("could not register the command-trigger '/" + commandTrigger.name()
-                        + "' (COMMAND enchants will not be fireable by command): " + t);
+                getLogger().log(Level.WARNING, "could not register the command-trigger '/" + commandTrigger.name()
+                        + "' (COMMAND enchants will not be fireable by command)", t);
             }
         }
     }
@@ -899,13 +903,17 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().callEvent(new EnchantActivateEvent(actor, key, ability.level()));
     }
 
-    /** The initial load, guaranteed not to throw out of onEnable — a content I/O fault boots empty. */
+    /**
+     * The initial load, guaranteed not to throw out of onEnable — a content load fault boots empty with the
+     * fault recorded as an E_LOAD_IO diagnostic and the stack logged SEVERE (ADR-0042).
+     */
     private Library loadInitial(Compiler compiler, Path contentRoot) {
         try {
             return LibraryLoader.load(contentRoot, compiler, 0);
         } catch (Throwable failure) {
-            getLogger().severe("content load failed; enabling with no content: " + failure);
+            getLogger().log(Level.SEVERE, "content load failed; enabling with no content", failure);
             Diagnostics diagnostics = new Diagnostics();
+            diagnostics.error(DiagCode.E_LOAD_IO, "content load failed: " + failure, Source.ofFile("content"));
             return Library.empty(compiler.compile(List.of(), 0, diagnostics), diagnostics.all());
         }
     }
@@ -939,7 +947,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         try {
             saveResource(name, false);
         } catch (RuntimeException missing) {
-            getLogger().warning("could not save default '" + name + "': " + missing.getMessage());
+            getLogger().log(Level.WARNING, "could not save default '" + name + "'", missing);
         }
     }
 
@@ -954,7 +962,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             try {
                 saveResource(resource, false);
             } catch (RuntimeException missing) {
-                getLogger().warning("could not save default '" + resource + "': " + missing.getMessage());
+                getLogger().log(Level.WARNING, "could not save default '" + resource + "'", missing);
             }
         }
     }
@@ -968,7 +976,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             return reader.lines().map(String::trim).filter(line -> !line.isEmpty() && !line.startsWith("#")).toList();
         } catch (IOException e) {
-            getLogger().warning("could not read " + root + "/index.txt: " + e.getMessage());
+            getLogger().log(Level.WARNING, "could not read " + root + "/index.txt", e);
             return List.of();
         }
     }
@@ -997,6 +1005,33 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         for (Diagnostic diagnostic : config.diagnostics()) {
             getLogger().warning("  " + diagnostic);
         }
+    }
+
+    private static final int AUTO_RELOAD_DIAG_PREVIEW = 3;
+
+    /**
+     * ADR-0042: the timed reload's result used to be discarded — a failing auto-reload was silent while
+     * {@code /se reload} reported the same faults. (busy → FINE, not WARNING: a build outlasting the period
+     * would otherwise self-spam every cycle.)
+     */
+    private void logAutoReload(ReloadResult result) {
+        if (result.failure() != null) {
+            getLogger().log(Level.WARNING, "auto-reload build failed; previous content kept", result.failure());
+            return;
+        }
+        if (result.isBusy()) {
+            getLogger().fine("auto-reload skipped: another reload is in flight");
+            return;
+        }
+        if (result.errorCount() > 0) {
+            getLogger().warning("auto-reload rejected: " + result.errorCount()
+                    + " blocking diagnostic(s); previous content kept (run /se problems)");
+            result.diagnostics().stream().filter(Diagnostic::blocking).limit(AUTO_RELOAD_DIAG_PREVIEW)
+                    .forEach(d -> getLogger().warning("  " + d.render()));
+            return;
+        }
+        getLogger().fine("auto-reload: published generation " + result.generation()
+                + " (" + result.abilityCount() + " abilities)");
     }
 
     private void logLoad(Library library) {
