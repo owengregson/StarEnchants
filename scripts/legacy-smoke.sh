@@ -4,8 +4,9 @@
 # ─────────────────────────────────────────────────────────────────────────
 #  Builds the downgraded TESTER fat jar (-Pse.target=legacy + JvmDowngrader 61→52),
 #  boots a real craftbukkit-1.8.8 server under JDK 8, lets the in-server harness run
-#  ONLY the reduced legacy smoke suite (SeTesterPlugin auto-detects the 1.8 lane and
-#  starts the curated subset via a delayed task — no ServerLoadEvent, absent on 1.8),
+#  ONLY the reduced legacy smoke suite (the legacy build compiles just the 1.8-safe subset
+#  and swaps the plugin main to tester.legacy.LegacySmokePlugin, which starts the curated
+#  subset via a delayed task — no ServerLoadEvent, absent on 1.8; see se/tester/build.gradle.kts),
 #  then reads the FRESH test-results.txt HONESTLY: a server that failed to boot leaves
 #  a stale/missing result, never a green banner (matrix-gate skill).
 #

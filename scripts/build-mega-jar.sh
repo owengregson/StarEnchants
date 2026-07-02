@@ -30,8 +30,10 @@
 #   META-INF/MANIFEST.MF + Multi-Release: true
 #
 # Usage:   scripts/build-mega-jar.sh [bootstrap|tester] [--no-build]
-#   module       bootstrap (the shipped plugin, default) | tester (the in-server harness, also
-#                multi-release so ONE tester jar boots on every era — see scripts/run-matrix.sh).
+#   module       bootstrap (the shipped plugin, default). Passing `tester` is a DEMONSTRATION only:
+#                its two era-trees diverge in era-specific suites, so the soundness gate below REJECTS
+#                the merge — the tester is boot-smoked PER ERA instead (scripts/run-matrix.sh boots the
+#                modern v61 tester; scripts/legacy-smoke.sh the downgraded v52 one).
 #   --no-build   reuse the existing modern + legacy jars (use only right after a fresh build).
 # Output:  se/<module>/build/libs/StarEnchants[-Tester]-<version>-mega.jar
 #
