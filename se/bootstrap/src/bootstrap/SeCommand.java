@@ -222,17 +222,18 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return complete(args,
-                content.library().catalog().stream().map(EnchantDef::key).toList(),
-                content.library().crystals().stream().map(CrystalDef::key).toList(),
-                content.library().tiers().tiers().stream().map(t -> t.name()).toList(),
-                menus.names(),
-                Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(),
-                content.library().sets().stream().map(compile.load.SetDef::key).toList(),
-                packNamesQuietly(),
+        Completions completions = Completions.none()
+                .withEnchantKeys(content.library().catalog().stream().map(EnchantDef::key).toList())
+                .withCrystalKeys(content.library().crystals().stream().map(CrystalDef::key).toList())
+                .withTierNames(content.library().tiers().tiers().stream().map(t -> t.name()).toList())
+                .withMenuNames(menus.names())
+                .withPlayerNames(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList())
+                .withSetKeys(content.library().sets().stream().map(compile.load.SetDef::key).toList())
+                .withPackNames(packNamesQuietly())
                 // enchant key → max level, so completion can offer the valid levels of a chosen enchant.
-                content.library().catalog().stream()
+                .withEnchantMaxLevels(content.library().catalog().stream()
                         .collect(Collectors.toMap(EnchantDef::key, EnchantDef::maxLevel, (a, b) -> a)));
+        return complete(args, completions);
     }
 
     /** An I/O hiccup completes to nothing rather than throwing out of tab-completion. */
@@ -244,37 +245,55 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    /** Arity shims onto the canonical {@code complete}, each defaulting the trailing key lists to empty. */
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys) {
-        return complete(args, enchantKeys, crystalKeys, List.of());
-    }
+    /** The tab-completion vocabularies (§J); tests start from {@link #none()} and set only the lists they exercise. */
+    record Completions(List<String> enchantKeys, List<String> crystalKeys, List<String> tierNames,
+                       List<String> menuNames, List<String> playerNames, List<String> setKeys,
+                       List<String> packNames, Map<String, Integer> enchantMaxLevels) {
 
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, List.of());
-    }
+        static Completions none() {
+            return new Completions(List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+                    List.of(), Map.of());
+        }
 
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, List.of());
-    }
+        Completions withEnchantKeys(List<String> enchantKeys) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
 
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames, List<String> playerNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, List.of());
-    }
+        Completions withCrystalKeys(List<String> crystalKeys) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
 
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames,
-                                 List<String> playerNames, List<String> setKeys) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys, List.of());
-    }
+        Completions withTierNames(List<String> tierNames) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
 
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames,
-                                 List<String> playerNames, List<String> setKeys, List<String> packNames) {
-        return complete(args, enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys, packNames,
-                Map.of());
+        Completions withMenuNames(List<String> menuNames) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
+
+        Completions withPlayerNames(List<String> playerNames) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
+
+        Completions withSetKeys(List<String> setKeys) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
+
+        Completions withPackNames(List<String> packNames) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
+
+        Completions withEnchantMaxLevels(Map<String, Integer> enchantMaxLevels) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels);
+        }
     }
 
     /**
@@ -283,10 +302,15 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
      * {@code pack <action> [name]} tree. {@code enchantMaxLevels} (enchant key → max level) drives the
      * context-aware level suggestions after an enchant arg in the book/enchant flows.
      */
-    static List<String> complete(String[] args, List<String> enchantKeys, List<String> crystalKeys,
-                                 List<String> tierNames, List<String> menuNames,
-                                 List<String> playerNames, List<String> setKeys, List<String> packNames,
-                                 Map<String, Integer> enchantMaxLevels) {
+    static List<String> complete(String[] args, Completions c) {
+        List<String> enchantKeys = c.enchantKeys();
+        List<String> crystalKeys = c.crystalKeys();
+        List<String> tierNames = c.tierNames();
+        List<String> menuNames = c.menuNames();
+        List<String> playerNames = c.playerNames();
+        List<String> setKeys = c.setKeys();
+        List<String> packNames = c.packNames();
+        Map<String, Integer> enchantMaxLevels = c.enchantMaxLevels();
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }

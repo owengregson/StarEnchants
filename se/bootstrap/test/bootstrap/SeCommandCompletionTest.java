@@ -11,70 +11,78 @@ class SeCommandCompletionTest {
 
     private static final List<String> ENCHANTS = List.of("enchants/venom", "enchants/vigor", "enchants/blast");
     private static final List<String> CRYSTALS = List.of("crystals/jolt", "crystals/frost");
+    private static final List<String> PLAYERS = List.of("Bob", "Alice");
+    private static final List<String> SETS = List.of("sets/titan", "sets/yeti");
+    private static final List<String> PACKS = List.of("cosmic-pack", "vanilla-plus");
+    private static final java.util.Map<String, Integer> MAX_LEVELS = java.util.Map.of(
+            "enchants/venom", 3, "enchants/vigor", 5, "enchants/blast", 1);
+
+    /** The enchant+crystal vocabularies every case shares; the give/level cases extend it. */
+    private static final SeCommand.Completions BASE =
+            SeCommand.Completions.none().withEnchantKeys(ENCHANTS).withCrystalKeys(CRYSTALS);
+    private static final SeCommand.Completions GIVE =
+            BASE.withTierNames(List.of("common", "rare")).withPlayerNames(PLAYERS).withSetKeys(SETS);
 
     @Test
     void firstTokenCompletesSubcommands() {
-        assertEquals(SeCommand.SUBCOMMANDS, SeCommand.complete(new String[] {""}, ENCHANTS, CRYSTALS));
-        assertEquals(List.of("reload"), SeCommand.complete(new String[] {"rel"}, ENCHANTS, CRYSTALS));
-        assertEquals(List.of("menu", "migrate"), SeCommand.complete(new String[] {"m"}, ENCHANTS, CRYSTALS)
+        assertEquals(SeCommand.SUBCOMMANDS, SeCommand.complete(new String[] {""}, BASE));
+        assertEquals(List.of("reload"), SeCommand.complete(new String[] {"rel"}, BASE));
+        assertEquals(List.of("menu", "migrate"), SeCommand.complete(new String[] {"m"}, BASE)
                 .stream().sorted().toList());
     }
 
     @Test
     void enchantArgumentCompletesEnchantKeysByPrefix() {
         assertEquals(List.of("enchants/venom", "enchants/vigor"),
-                SeCommand.complete(new String[] {"enchant", "enchants/v"}, ENCHANTS, CRYSTALS));
+                SeCommand.complete(new String[] {"enchant", "enchants/v"}, BASE));
     }
 
     @Test
     void crystalArgumentCompletesCrystalKeys() {
         assertEquals(List.of("crystals/jolt", "crystals/frost"),
-                SeCommand.complete(new String[] {"crystal", ""}, ENCHANTS, CRYSTALS));
+                SeCommand.complete(new String[] {"crystal", ""}, BASE));
     }
 
     @Test
     void migrateAndReloadHaveFixedFirstArgumentCompletions() {
-        assertEquals(List.of("ee", "ea", "ae"), SeCommand.complete(new String[] {"migrate", ""}, ENCHANTS, CRYSTALS));
-        assertEquals(List.of("--dry-run"), SeCommand.complete(new String[] {"reload", "--"}, ENCHANTS, CRYSTALS));
+        assertEquals(List.of("ee", "ea", "ae"), SeCommand.complete(new String[] {"migrate", ""}, BASE));
+        assertEquals(List.of("--dry-run"), SeCommand.complete(new String[] {"reload", "--"}, BASE));
     }
 
     @Test
     void unknownContextsAndDeepArgsCompleteToNothing() {
-        assertTrue(SeCommand.complete(new String[] {"gem", "x"}, ENCHANTS, CRYSTALS).isEmpty());
-        assertTrue(SeCommand.complete(new String[] {"enchant", "enchants/venom", "2"}, ENCHANTS, CRYSTALS).isEmpty());
+        assertTrue(SeCommand.complete(new String[] {"gem", "x"}, BASE).isEmpty());
+        assertTrue(SeCommand.complete(new String[] {"enchant", "enchants/venom", "2"}, BASE).isEmpty());
     }
 
     @Test
     void importIsASubcommandWithNoArgumentCompletion() {
-        assertEquals(List.of("import"), SeCommand.complete(new String[] {"imp"}, ENCHANTS, CRYSTALS));
-        assertTrue(SeCommand.complete(new String[] {"import", "SE1:"}, ENCHANTS, CRYSTALS).isEmpty());
+        assertEquals(List.of("import"), SeCommand.complete(new String[] {"imp"}, BASE));
+        assertTrue(SeCommand.complete(new String[] {"import", "SE1:"}, BASE).isEmpty());
     }
 
     @Test
     void problemsIsASubcommandWithNoArgumentCompletion() {
-        assertEquals(List.of("problems"), SeCommand.complete(new String[] {"prob"}, ENCHANTS, CRYSTALS));
-        assertTrue(SeCommand.complete(new String[] {"problems", ""}, ENCHANTS, CRYSTALS).isEmpty());
+        assertEquals(List.of("problems"), SeCommand.complete(new String[] {"prob"}, BASE));
+        assertTrue(SeCommand.complete(new String[] {"problems", ""}, BASE).isEmpty());
     }
 
     @Test
     void itemCompletesTheDumpAction() {
-        assertEquals(SeCommand.ITEM_ACTIONS, SeCommand.complete(new String[] {"item", ""}, ENCHANTS, CRYSTALS));
-        assertEquals(List.of("dump"), SeCommand.complete(new String[] {"item", "du"}, ENCHANTS, CRYSTALS));
+        assertEquals(SeCommand.ITEM_ACTIONS, SeCommand.complete(new String[] {"item", ""}, BASE));
+        assertEquals(List.of("dump"), SeCommand.complete(new String[] {"item", "du"}, BASE));
     }
 
     @Test
     void docsCompletesTheReferenceVocabularies() {
-        assertEquals(SeCommand.DOC_VOCABS, SeCommand.complete(new String[] {"docs", ""}, ENCHANTS, CRYSTALS));
-        assertEquals(List.of("conditions"), SeCommand.complete(new String[] {"docs", "cond"}, ENCHANTS, CRYSTALS));
+        assertEquals(SeCommand.DOC_VOCABS, SeCommand.complete(new String[] {"docs", ""}, BASE));
+        assertEquals(List.of("conditions"), SeCommand.complete(new String[] {"docs", "cond"}, BASE));
     }
 
     // §J give-tree + removeenchant completion
 
-    private static final List<String> PLAYERS = List.of("Bob", "Alice");
-    private static final List<String> SETS = List.of("sets/titan", "sets/yeti");
-
     private static List<String> complete(String... args) {
-        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of("common", "rare"), List.of(), PLAYERS, SETS);
+        return SeCommand.complete(args, GIVE);
     }
 
     @Test
@@ -103,10 +111,8 @@ class SeCommandCompletionTest {
 
     // §packs (ADR-0023) /se pack completion
 
-    private static final List<String> PACKS = List.of("cosmic-pack", "vanilla-plus");
-
     private static List<String> completePack(String... args) {
-        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of(), List.of(), PLAYERS, SETS, PACKS);
+        return SeCommand.complete(args, BASE.withPlayerNames(PLAYERS).withSetKeys(SETS).withPackNames(PACKS));
     }
 
     @Test
@@ -128,12 +134,8 @@ class SeCommandCompletionTest {
 
     // Context-aware enchant-level completion (enchant key → its valid levels)
 
-    private static final java.util.Map<String, Integer> MAX_LEVELS = java.util.Map.of(
-            "enchants/venom", 3, "enchants/vigor", 5, "enchants/blast", 1);
-
     private static List<String> completeLv(String... args) {
-        return SeCommand.complete(args, ENCHANTS, CRYSTALS, List.of("common", "rare"), List.of(), PLAYERS, SETS,
-                List.of(), MAX_LEVELS);
+        return SeCommand.complete(args, GIVE.withEnchantMaxLevels(MAX_LEVELS));
     }
 
     @Test
