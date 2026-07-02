@@ -8,31 +8,25 @@ import static org.mockito.Mockito.when;
 
 import compile.load.ContentHolder;
 import compile.model.Ability;
-import compile.model.Affinity;
-import compile.model.CompiledEffect;
 import compile.model.Snapshot;
-import compile.model.SourceKind;
 import engine.stores.RepeatStore;
-import item.codec.HeroicStat;
 import item.worn.WornState;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
 import java.util.List;
 import java.util.UUID;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import platform.sched.Scheduling;
-import platform.sched.SchedulerBackend;
 import platform.sched.TaskHandle;
+import testfx.Abilities;
+import testfx.RecordingSchedulerBackend;
+import testfx.WornStates;
 
 /**
  * Unit-pins the §B {@link RepeatingDriver}: arming schedules one entity-repeating task per repeating ability
  * at its own {@code repeatTicks} period (skipping period≤0), records them in the {@link RepeatStore}, and
- * disarming / re-arming cancels the right handles. A recording {@link SchedulerBackend} captures the
+ * disarming / re-arming cancels the right handles. A {@link RecordingSchedulerBackend} captures the
  * {@code repeatingEntity} calls without running them; the per-tick fire is covered live in the matrix suite.
  */
 class RepeatingDriverTest {
@@ -40,7 +34,7 @@ class RepeatingDriverTest {
     private static final int REPEATING = 5;
     private static final int GEN = 1;
 
-    private RecordingBackend backend;
+    private RecordingSchedulerBackend backend;
     private RepeatStore<TaskHandle> store;
     private RepeatingDriver driver;
     private Player player;
@@ -48,7 +42,7 @@ class RepeatingDriverTest {
 
     @BeforeEach
     void setUp() {
-        backend = new RecordingBackend();
+        backend = new RecordingSchedulerBackend();
         Scheduling.install(backend);
         store = new RepeatStore<>();
 
@@ -77,9 +71,9 @@ class RepeatingDriverTest {
     void armSchedulesOneTaskPerRepeatingAbilityAtItsPeriodAndSkipsZero() {
         driver.arm(player, worn(3, 7, 9)); // 9 has period 0 → skipped
 
-        assertEquals(2, backend.scheduled.size());
-        assertEquals(20L, backend.scheduled.get(0).period);
-        assertEquals(40L, backend.scheduled.get(1).period);
+        assertEquals(2, backend.repeating.size());
+        assertEquals(20L, backend.repeating.get(0).periodTicks);
+        assertEquals(40L, backend.repeating.get(1).periodTicks);
         assertTrue(store.has(uuid, 3));
         assertTrue(store.has(uuid, 7));
         assertFalse(store.has(uuid, 9), "a repeatTicks=0 ability is never scheduled");
@@ -88,7 +82,7 @@ class RepeatingDriverTest {
     @Test
     void duplicateAbilityIdsAreArmedOnce() {
         driver.arm(player, worn(3, 3, 7)); // 3 listed twice (multiplicity) → one task
-        assertEquals(2, backend.scheduled.size());
+        assertEquals(2, backend.repeating.size());
         assertTrue(store.has(uuid, 3));
         assertTrue(store.has(uuid, 7));
     }
@@ -96,11 +90,12 @@ class RepeatingDriverTest {
     @Test
     void disarmCancelsEveryTaskForThePlayer() {
         driver.arm(player, worn(3, 7));
-        List<RecordingHandle> armed = new ArrayList<>(backend.scheduled);
+        List<RecordingSchedulerBackend.Repeat> armed = new ArrayList<>(backend.repeating);
 
         driver.disarm(uuid);
 
-        assertTrue(armed.stream().allMatch(h -> h.cancelled), "every armed task is cancelled on disarm");
+        assertTrue(armed.stream().allMatch(RecordingSchedulerBackend.Repeat::isCancelled),
+                "every armed task is cancelled on disarm");
         assertFalse(store.has(uuid, 3));
         assertFalse(store.has(uuid, 7));
     }
@@ -108,69 +103,23 @@ class RepeatingDriverTest {
     @Test
     void reArmCancelsTheSupersededTasks() {
         driver.arm(player, worn(3, 7));
-        RecordingHandle first3 = backend.scheduled.get(0);
-        RecordingHandle first7 = backend.scheduled.get(1);
+        RecordingSchedulerBackend.Repeat first3 = backend.repeating.get(0);
+        RecordingSchedulerBackend.Repeat first7 = backend.repeating.get(1);
 
         driver.arm(player, worn(3)); // re-arm with only 3 worn now
 
-        assertTrue(first3.cancelled, "the prior task for 3 is superseded and cancelled");
-        assertTrue(first7.cancelled, "7 is no longer worn → cancelled");
-        assertEquals(3, backend.scheduled.size(), "one fresh task scheduled on re-arm");
+        assertTrue(first3.isCancelled(), "the prior task for 3 is superseded and cancelled");
+        assertTrue(first7.isCancelled(), "7 is no longer worn → cancelled");
+        assertEquals(3, backend.repeating.size(), "one fresh task scheduled on re-arm");
         assertTrue(store.has(uuid, 3));
         assertFalse(store.has(uuid, 7));
     }
 
     private static Ability ability(int id, int repeatTicks) {
-        return new Ability(id, id, SourceKind.ENCHANT, 1 << REPEATING, 1, 100.0, 0, 0, 0L,
-                null, new CompiledEffect[0], repeatTicks, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
+        return Abilities.ability().id(id).defId(id).trigger(REPEATING).repeatTicks(repeatTicks).build();
     }
 
     private static WornState worn(int... repeatingIds) {
-        int[][] byTrigger = new int[REPEATING + 1][];
-        Arrays.fill(byTrigger, new int[0]);
-        byTrigger[REPEATING] = repeatingIds;
-        return new WornState(GEN, new BitSet(), new int[0], HeroicStat.NONE, byTrigger, new int[0], new int[0]);
-    }
-
-    /** A {@link TaskHandle} that records its own cancellation. */
-    private static final class RecordingHandle implements TaskHandle {
-        final long period;
-        boolean cancelled;
-
-        RecordingHandle(long period) {
-            this.period = period;
-        }
-
-        @Override
-        public void cancel() {
-            cancelled = true;
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return cancelled;
-        }
-    }
-
-    /** A {@link SchedulerBackend} that records {@code repeatingEntity} calls and no-ops everything else. */
-    private static final class RecordingBackend implements SchedulerBackend {
-        final List<RecordingHandle> scheduled = new ArrayList<>();
-
-        @Override
-        public TaskHandle repeatingEntity(Entity entity, long initialDelayTicks, long periodTicks, Runnable task) {
-            RecordingHandle handle = new RecordingHandle(periodTicks);
-            scheduled.add(handle);
-            return handle;
-        }
-
-        @Override public void onEntity(Entity entity, Runnable task) { }
-        @Override public void onEntityLater(Entity entity, long delayTicks, Runnable task) { }
-        @Override public void onRegion(Location location, Runnable task) { }
-        @Override public void onRegionLater(Location location, long delayTicks, Runnable task) { }
-        @Override public TaskHandle repeatingRegion(Location l, long i, long p, Runnable t) { return TaskHandle.CANCELLED; }
-        @Override public void onGlobal(Runnable task) { }
-        @Override public void onGlobalLater(long delayTicks, Runnable task) { }
-        @Override public TaskHandle repeatingGlobal(long initialDelayTicks, long periodTicks, Runnable task) { return TaskHandle.CANCELLED; }
-        @Override public void async(Runnable task) { }
+        return WornStates.worn().gen(GEN).byTrigger(REPEATING, repeatingIds).build();
     }
 }

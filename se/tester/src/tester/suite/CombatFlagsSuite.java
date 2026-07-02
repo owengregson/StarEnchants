@@ -102,8 +102,12 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                 }
                 Scheduling.onEntity(attacker, () -> {
                     KeepOnDeathStore keepStore = new KeepOnDeathStore();
-                    DispatchSink keepSink = new DispatchSink(handles, EconomyService.NONE, SoulDebit.NONE,
-                            new VarStore(), new SuppressionStore(), new KnockbackControlStore(), keepStore, () -> 0L);
+                    DispatchSink keepSink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                            EconomyService.NONE, SoulDebit.NONE,
+                            new engine.stores.EngineStores(new VarStore(), new SuppressionStore(),
+                                    new KnockbackControlStore(), keepStore, new engine.stores.TeleblockStore(),
+                                    new engine.stores.ImmuneStore(), new engine.stores.CooldownStore(),
+                                    new engine.stores.ComboStore()), () -> 0L));
                     keepSink.keepOnDeath(attacker, 100);
                     h.guard("combatflags.keepOnDeathArmsStore", () -> {
                         if (!keepStore.shouldKeep(attacker.getUniqueId(), 0L)) {
@@ -115,7 +119,8 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                     });
 
                     Location guardAt = at.clone();
-                    DispatchSink guardSink = new DispatchSink(handles);
+                    DispatchSink guardSink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                            EconomyService.NONE, SoulDebit.NONE, engine.stores.EngineStores.fresh(), () -> 0L));
                     guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard");
                     guardSink.flush();
                     Scheduling.onRegionLater(guardAt, 2L, () -> {

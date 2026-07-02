@@ -120,9 +120,11 @@ public final class SoulSuite implements Harness.Scenario {
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), soulService), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();
+        engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
+                engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
-                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
-                tick::incrementAndGet, soulService::bindingFor);
+                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
+                soulService::bindingFor, env, CombatDispatch.Caps.unlimited());
         CombatRig rig = new CombatRig(plugin);
         rig.listen(new CombatListener(dispatch));
 

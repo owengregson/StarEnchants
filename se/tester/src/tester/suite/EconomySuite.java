@@ -112,9 +112,11 @@ public final class EconomySuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
+        engine.sink.SinkEnv env = new engine.sink.SinkEnv(economy, engine.sink.SoulDebit.NONE,
+                engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), holder, worn,
-                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
-                tick::incrementAndGet, actor -> Optional.empty(), economy);
+                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
+                actor -> Optional.empty(), env, CombatDispatch.Caps.unlimited());
         CombatRig rig = new CombatRig(plugin);
         rig.listen(new CombatListener(dispatch));
 

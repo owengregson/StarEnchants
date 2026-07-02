@@ -21,7 +21,6 @@ import engine.selector.SelectorRegistry;
 import engine.selector.kind.SelfSelector;
 import engine.sink.DispatchSink;
 import engine.sink.Sink;
-import engine.sink.SyncSchedulerBackend;
 import engine.spec.EffectSpec;
 import engine.spec.T;
 import engine.stores.CooldownStore;
@@ -37,6 +36,9 @@ import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import schema.diag.Source;
 import schema.spec.Args;
+import testfx.Abilities;
+import testfx.Envs;
+import testfx.SyncSchedulerBackend;
 
 /**
  * The §10 runtime quarantine: an ability whose effect keeps faulting is disabled for the life of the
@@ -117,16 +119,16 @@ class AbilityQuarantineTest {
 
     private void fire(Ability[] abilities) {
         Player actor = mock(Player.class);
-        DispatchSink sink = new DispatchSink(handles);
+        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
         executor.run(abilities, new int[] {0}, Activation.builder(ACTOR, 0, TRIGGER, 0L).build(),
                 new ActivationContext(actor, null, null, null), sink, KEYS);
         sink.flush();
     }
 
     private static Ability boom() {
-        return new Ability(0, 0, SourceKind.ENCHANT, 1 << TRIGGER, 1, 100.0, 0, 0, 0L, null,
-                new CompiledEffect[] {new CompiledEffect("BOOM", Args.empty(),
-                        new CompiledSelector("SELF", Args.empty()), 0, Affinity.TARGET_ENTITY)},
-                0, Affinity.TARGET_ENTITY, -1, -1, -1, -1, 0);
+        return Abilities.ability().trigger(TRIGGER).affinity(Affinity.TARGET_ENTITY)
+                .effects(new CompiledEffect("BOOM", Args.empty(),
+                        new CompiledSelector("SELF", Args.empty()), 0, Affinity.TARGET_ENTITY))
+                .build();
     }
 }

@@ -112,18 +112,18 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
     }
 
-    protected DispatchSinkBase(EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                               KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath, TeleblockStore teleblock,
-                               ImmuneStore immune, LongSupplier nowTicks) {
-        this.economy = Objects.requireNonNull(economy, "economy");
-        this.souls = Objects.requireNonNull(souls, "souls");
-        this.vars = Objects.requireNonNull(vars, "vars");
-        this.suppression = Objects.requireNonNull(suppression, "suppression");
-        this.knockback = Objects.requireNonNull(knockback, "knockback");
-        this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
-        this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
-        this.immune = Objects.requireNonNull(immune, "immune");
-        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+    protected DispatchSinkBase(SinkEnv env) {
+        // SinkEnv's compact ctor already null-checks; the nine final fields and every hot-path read stay
+        // byte-identical to the old telescoping ctor.
+        this.economy = env.economy();
+        this.souls = env.souls();
+        this.vars = env.stores().vars();
+        this.suppression = env.stores().suppression();
+        this.knockback = env.stores().knockback();
+        this.keepOnDeath = env.stores().keepOnDeath();
+        this.teleblock = env.stores().teleblock();
+        this.immune = env.stores().immune();
+        this.nowTicks = env.nowTicks();
         this.fold = new DamageFold();
     }
 

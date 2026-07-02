@@ -1,13 +1,6 @@
 package engine.sink;
 
-import engine.stores.ImmuneStore;
-import engine.stores.KeepOnDeathStore;
-import engine.stores.KnockbackControlStore;
-import engine.stores.SuppressionStore;
-import engine.stores.TeleblockStore;
-import engine.stores.VarStore;
 import java.util.Objects;
-import java.util.function.LongSupplier;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Color;
@@ -34,7 +27,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import platform.caps.Regions;
-import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import platform.text.Colors;
@@ -52,47 +44,13 @@ public final class DispatchSink extends DispatchSinkBase {
 
     private final RuntimeHandles handles;
 
-    /** The test default — economy/soul are no-ops, the stores are throwaways. */
-    public DispatchSink(RuntimeHandles handles) {
-        this(handles, EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
-    }
-
-    public DispatchSink(RuntimeHandles handles, EconomyService economy) {
-        this(handles, economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
-    }
-
-    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, LongSupplier nowTicks) {
-        this(handles, economy, souls, vars, suppression, new KnockbackControlStore(), nowTicks);
-    }
-
-    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
-                        LongSupplier nowTicks) {
-        this(handles, economy, souls, vars, suppression, knockback, new KeepOnDeathStore(), nowTicks);
-    }
-
     /**
-     * Sharing the stores is what makes the KNOCKBACK_CONTROL / KEEP_ON_DEATH flags a hit writes visible to the
-     * separate knockback / death events' listeners.
+     * Sharing the stores (via the per-boot {@link SinkEnv}) is what makes the KNOCKBACK_CONTROL / KEEP_ON_DEATH /
+     * TELEBLOCK / IMMUNE flags a hit writes visible to the separate knockback / death / teleport / damage events'
+     * listeners.
      */
-    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
-                        KeepOnDeathStore keepOnDeath, LongSupplier nowTicks) {
-        this(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
-                new TeleblockStore(), new ImmuneStore(), nowTicks);
-    }
-
-    /**
-     * The full sink. The shared {@link TeleblockStore}/{@link ImmuneStore} the TELEBLOCK / IMMUNE flags write
-     * are read back by the teleport / damage listeners on their separate events; shorter ctors default these to
-     * throwaways, so those flags are inert unless the real stores are threaded in.
-     */
-    public DispatchSink(RuntimeHandles handles, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
-                        KeepOnDeathStore keepOnDeath, TeleblockStore teleblock, ImmuneStore immune,
-                        LongSupplier nowTicks) {
-        super(economy, souls, vars, suppression, knockback, keepOnDeath, teleblock, immune, nowTicks);
+    public DispatchSink(RuntimeHandles handles, SinkEnv env) {
+        super(env);
         this.handles = Objects.requireNonNull(handles, "handles");
     }
 

@@ -6,14 +6,8 @@ import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.FactPopulator;
+import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
-import engine.sink.SoulDebit;
-import engine.stores.ImmuneStore;
-import engine.stores.KeepOnDeathStore;
-import engine.stores.KnockbackControlStore;
-import engine.stores.SuppressionStore;
-import engine.stores.TeleblockStore;
-import engine.stores.VarStore;
 import engine.trigger.TriggerRegistry;
 import feature.soul.SoulBinding;
 import item.worn.WornStateStore;
@@ -24,7 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
-import java.util.function.LongSupplier;
 import feature.combat.MineDrops;
 import feature.combat.ProjectileHoming;
 import org.bukkit.Location;
@@ -34,7 +27,6 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import platform.economy.EconomyService;
 import engine.sink.SinkFactory;
 
 /**
@@ -51,15 +43,8 @@ public final class TriggerDispatch {
     private final AbilityExecutor executor; // §B lifecycle runs effects gatelessly, outside the runner's gate path
     private final SinkFactory sinkFactory;
     private final ContentHolder content;
-    private final EconomyService economy;
-    private final SoulDebit souls;
-    private final VarStore vars;
-    private final SuppressionStore suppression;
-    private final KnockbackControlStore knockback;
-    private final KeepOnDeathStore keepOnDeath;
-    private final TeleblockStore teleblock;
-    private final ImmuneStore immune;
-    private final LongSupplier nowTicks;
+    // The per-boot sink wiring, threaded to every per-event sink so a write and its separate-event reader share stores.
+    private final SinkEnv env;
     private final IntPredicate attackTrigger;
 
     public final int mine;
@@ -82,45 +67,19 @@ public final class TriggerDispatch {
     public final int impact;  // fired by a landing FALLING_BLOCK via FallingBlockListener (victim = what it hit)
     public final int expGain; // fired by TriggerListeners.onExpChange; scales the PlayerExpChangeEvent's XP in place
 
-    /** Trigger dispatch with no economy (money effects on non-combat triggers are no-ops). */
+    /**
+     * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
+     * TELEBLOCK/IMMUNE flags all ride the env's economy/stores, shared with their separate-event listeners.
+     */
     public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                           WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
-                           Function<Player, Optional<SoulBinding>> soulBinder) {
-        this(executor, sinkFactory, content, worn, triggers, nowTicks, soulBinder, EconomyService.NONE,
-                SoulDebit.NONE, new VarStore(), new SuppressionStore(), new KnockbackControlStore(),
-                new KeepOnDeathStore());
-    }
-
-    /** Trigger dispatch with an economy: GIVE_MONEY/TAKE_MONEY on MINE/KILL/… deposit/withdraw via the sink. */
-    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                           WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
-                           Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
-                           SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
-        this(executor, sinkFactory, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
-                suppression, knockback, keepOnDeath, new TeleblockStore(), new ImmuneStore());
-    }
-
-    /** Full ctor, additionally sharing the TELEBLOCK/IMMUNE stores with their separate-event listeners. */
-    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                           WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
-                           Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
-                           SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
-                           TeleblockStore teleblock, ImmuneStore immune) {
+                           WornStateStore worn, TriggerRegistry triggers,
+                           Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env) {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
-        this.economy = Objects.requireNonNull(economy, "economy");
-        this.souls = Objects.requireNonNull(souls, "souls");
-        this.vars = Objects.requireNonNull(vars, "vars");
-        this.suppression = Objects.requireNonNull(suppression, "suppression");
-        this.knockback = Objects.requireNonNull(knockback, "knockback");
-        this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
-        this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
-        this.immune = Objects.requireNonNull(immune, "immune");
-        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.env = Objects.requireNonNull(env, "env");
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
-        this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
+        this.runner = new TriggerRunner(executor, worn, soulBinder, env.nowTicks(),
+                FactPopulator.builtin(env.stores().vars()));
         this.executor = Objects.requireNonNull(executor, "executor");
         this.attackTrigger = triggers.attackTriggers();
         this.mine = triggers.idOf("MINE").orElse(-1);
@@ -342,8 +301,7 @@ public final class TriggerDispatch {
     }
 
     private SinkReadback newSink() {
-        return sinkFactory.create(economy, souls, vars, suppression, knockback, keepOnDeath,
-                teleblock, immune, nowTicks);
+        return sinkFactory.create(env);
     }
 
     private static int worldId(Snapshot snapshot, ActivationContext context) {

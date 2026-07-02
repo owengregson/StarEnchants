@@ -15,6 +15,7 @@ import java.util.function.Function;
 import org.bukkit.entity.Player;
 import engine.sink.SinkFactory;
 import org.junit.jupiter.api.Test;
+import testfx.Envs;
 
 /**
  * Pins that {@link TriggerDispatch} resolves every trigger-id field to the matching id in the built-in
@@ -31,7 +32,7 @@ class TriggerDispatchWiringTest {
         Function<Player, Optional<SoulBinding>> noSouls = player -> Optional.empty();
         TriggerDispatch dispatch = new TriggerDispatch(
                 mock(AbilityExecutor.class), mock(SinkFactory.class), mock(ContentHolder.class),
-                mock(WornStateStore.class), triggers, () -> 0L, noSouls);
+                mock(WornStateStore.class), triggers, noSouls, Envs.sink().build());
 
         assertEquals(id(triggers, "MINE"), dispatch.mine);
         assertEquals(id(triggers, "KILL"), dispatch.kill);
