@@ -81,6 +81,10 @@ dependencies {
     // server-provided at runtime (compileOnly) — so the test supplies them.
     testImplementation(libs.paper.api.floor)
     testImplementation("org.yaml:snakeyaml:2.2")
+    // AddonBridge unit test: a mocked engine Sink verifies the AddonSink facade forwards each intent (ADR-0038).
+    testImplementation(libs.mockito.core)
+    // FakeEffectCtx (a strict, real EffectCtx) drives the bridge without a server.
+    testImplementation(project(":testfx"))
 }
 
 // The bootstrap half of `./gradlew regenDocs`: rewrites the docs-site operator surface (commands /

@@ -200,8 +200,11 @@ starenchants/
 │                      for a whole config surface (config.yml, lang.yml, content/, items/, menus/,
 │                      pack.yml). Knows nothing of Bukkit or the compiler; bootstrap wires apply().
 │
-├── se/api/            PUBLIC surface ONLY: events, the registration SPI (effect/condition/trigger/
-│                      selector/source), read-only item/enchant queries. Add-ons compile here.
+├── se/api/            PUBLIC surface ONLY: the activation/reload events, the add-on registration SPI
+│                      (api.spi: AddonEffect/AddonSpec/AddonSink/AddonEffectCtx/AddonAffinity), and the
+│                      StarEnchantsApi service (register effects + read-only item/enchant queries). A
+│                      CURATED facade on :schema — depends on NOTHING else in the repo; the bootstrap
+│                      adapts it to the engine (ADR-0038). Add-ons compile here.
 │
 ├── se/bootstrap/      The StarEnchants JavaPlugin — the composition root (ADR-0014): probe caps,
 │                      init Scheduling, wire the Compiler, load content/, serve /se reload. Its
@@ -726,9 +729,11 @@ final class SmiteEffect implements EffectKind {
 
 - **Validation is total at load**: the `SPEC` makes a malformed line a **file/line diagnostic**, never a
   runtime `NumberFormatException`/`AIOOBE` mid-combat (`[ax]`, `[do]` `ArgSpec`).
-- **Registration is explicit and greppable** — a checked-in registry (or a trivial ServiceLoader/classpath
-  scan for `se/api` add-ons), **not** annotation-processor codegen as the primary mechanism
-  (`[crit:maint]` fatal #5). A contributor can *see* the wiring.
+- **Registration is explicit and greppable** — a checked-in registry, **not** annotation-processor codegen
+  as the primary mechanism (`[crit:maint]` fatal #5). A contributor can *see* the wiring. `se/api` add-ons
+  register at runtime via the `StarEnchantsApi` service (looked up from Bukkit's `ServicesManager`, **not**
+  `ServiceLoader` — unreliable across plugin classloaders); a registered `AddonEffect` is folded into the
+  same registry on every build and triggers a transactional reload (ADR-0038).
 - **Same pattern** for `TriggerKind`, `SelectorKind`, and the rare `AbilitySource`. **Conditions are the
   exception**: there is no per-condition class — the condition language is one compiled expression AST,
   so a new *fact* (a `%scope.name%` variable) is added by appending to `engine/condition/BuiltinVars` and
@@ -907,8 +912,9 @@ packet/anticheat plugin — which is precisely why mirroring that reference plug
    all same-side sources summed; **no multiplicative stacking across sources** — heroic percents fold in
    identically (ADR-0037), not as a separate stage. A per-server config knob to switch policies may be
    added later but is not required.
-2. **`ParamSpec` discovery = an explicit, greppable, checked-in registry as the primary mechanism**; a
-   ServiceLoader/classpath scan is offered for `se-api` add-ons. No annotation-processor codegen as primary.
+2. **`ParamSpec` discovery = an explicit, greppable, checked-in registry as the primary mechanism**;
+   `se-api` add-ons register at runtime through the `StarEnchantsApi` service (Bukkit `ServicesManager`, not
+   `ServiceLoader`; ADR-0038). No annotation-processor codegen as primary.
 3. **`se-feature` granularity = one package per feature** inside the single `se-feature` module (no
    module-per-domain federation). Revisit only if a feature (e.g. menus, crates) grows large enough to
    warrant its own module.

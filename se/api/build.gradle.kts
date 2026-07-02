@@ -21,20 +21,25 @@ if (legacyTarget) {
 }
 
 dependencies {
-    // The public surface third-party plugins compile against: Bukkit events fired at activation/
-    // reload points, plus the engine's registration SPI (EffectKind/EffectSpec/Sink) re-exposed via
-    // `api` so an add-on sees it through this one module. Floor API only (server-provided); the legacy
-    // lane swaps in the real 1.8.8 jar so the event surface is javac-checked on 1.8.
+    // The pure DSL language definition (ParamSpec/ParamType/D) an add-on declares its effect signatures
+    // with — the documented four-ways single source (§7). `api` (not implementation) so an add-on sees the
+    // schema types through this one module. This is the ONLY intra-repo dependency :api has: the add-on SPI
+    // is hand-curated here, NOT a re-export of :engine (ADR-0038), so :api ↮ engine has no cycle and the
+    // public surface can never accidentally widen to an internal engine type. ApiBoundaryArchTest enforces it.
+    api(project(":schema"))
+
+    // Floor API: the events + SPI reference Bukkit Event/Player/Location/ItemStack; the server provides it.
+    // The legacy lane swaps in the real 1.8.8 jar so the surface is javac-checked on 1.8.
     if (legacyTarget) {
         compileOnly(libs.craftbukkit.legacy) { isTransitive = false }
     } else {
         compileOnly(libs.paper.api.floor)
     }
-    api(project(":engine"))
 
     testImplementation(libs.paper.api.floor)
 }
 
-// PUBLIC surface ONLY: events, the registration SPI (effect/condition/trigger/
-// selector/source), and read-only item/enchant queries. Add-ons compile against
-// this module (docs/architecture.md §2, §7).
+// PUBLIC surface ONLY: the activation/reload events (api.event), the add-on registration SPI (api.spi:
+// AddonEffect/AddonSpec/AddonSink/AddonEffectCtx/AddonAffinity), and the StarEnchantsApi service with its
+// read-only item/enchant queries. The SPI is a CURATED facade built on :schema, adapted to the engine by the
+// bootstrap — :api depends on NOTHING else in the repo (ADR-0038; docs/architecture.md §2, §7).

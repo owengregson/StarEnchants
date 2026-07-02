@@ -45,6 +45,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0035](0035-crystal-stackability-and-multi-identity.md) | Crystal stackability, multi-crystal identity, whole-entry extraction (amends 0034) | Accepted |
 | [0036](0036-legacy-overlay-and-mrjar.md) | Legacy 1.8.9 via srcDir overlay + a single Multi-Release jar (soundness-gated) | Accepted |
 | [0037](0037-heroic-additive-fold.md) | Heroic percents join the additive damage fold (supersedes 0021) | Accepted |
+| [0038](0038-addon-api.md) | Add-on API — a curated public SPI on `:schema`, `ServicesManager` discovery (drops the `:engine` re-export) | Accepted |
 
 ## Process
 
