@@ -61,3 +61,22 @@ marker), and every pack-overlay key is a real catalogue key.
   needs generation machinery to preserve the file's comments.
 - **Keep both copies, add only a parity test.** The smallest change, but a maintainer still edits two files —
   "provably identical" is not "one source", and the ask was a single, seamless system.
+
+## Update (2026-07-01): send-boundary + colour translation moved to `se/platform`
+
+`Messages` (the Bukkit chat send-boundary) originally lived in `se/item/lang`, and the legacy `&`→`§`
+translation was duplicated four ways (`item.render.Colors`, `item.mint.ItemFactory.color`, a private copy in
+`CarrierService`, `MenuText`'s `ChatColor` path, and both `DispatchSink` era twins). But `Messages` hosts no
+item-data concern, and every *chatting* module (feature listeners/menus/services, bootstrap, `SeCommand`) was
+pulling in `:item` only to reach it. So both were relocated to the version-absorption leaf:
+
+- **`platform.text.Colors`** is now the ONE home for `&`→`§` translation. It is Bukkit-free (the original
+  `item.render.Colors` implementation, moved verbatim with its tests), so rendered text stays unit-testable,
+  and every module can see it (`:item`, `:engine`, `:feature`, `:bootstrap` all depend on `:platform`). The
+  four parallel implementations are retired; `DispatchSink` no longer needs `org.bukkit.ChatColor`.
+- **`platform.lang.Messages`** is the send-boundary, unchanged in behaviour. After the move it imports nothing
+  from `:item` — `:item` no longer sits on the chat path.
+
+Pure relocation + unification: no message wording, key, or catalogue change. The one visible nuance is that
+the shared translator does not lowercase an uppercase code char (`&C`→`§C`, not `§c`) — client-invisible, since
+the Minecraft legacy formatter is case-insensitive.

@@ -1,7 +1,7 @@
 package feature.menu;
 
 import compile.load.MenusConfig;
-import item.lang.Messages;
+import platform.lang.Messages;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

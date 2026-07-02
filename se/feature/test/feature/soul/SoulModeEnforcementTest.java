@@ -54,7 +54,7 @@ class SoulModeEnforcementTest {
 
         ParticleFx fx = mock(ParticleFx.class);
         SoulService service = new SoulService(new SoulPool(), modes, codec, SoulGemConfig::defaults,
-                () -> true, item.lang.Messages.defaults(), fx);
+                () -> true, platform.lang.Messages.defaults(), fx);
         return new Fixture(service, modes, player, playerId, fx);
     }
 

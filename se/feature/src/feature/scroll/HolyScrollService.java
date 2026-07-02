@@ -33,28 +33,28 @@ public final class HolyScrollService {
     private final AppliedSlot slot;
     private final Supplier<ScrollsConfig> config;
     private final Random random;
-    private final item.lang.Messages messages;
+    private final platform.lang.Messages messages;
     private final Consumer<ItemStack> reRender; // refresh gear lore so the HOLY PROTECTED line tracks the marker
     private final ItemGroups groups; // §I applies-to gate — the holy scroll only protects the configured item kinds
 
     /** Default-messages form (tests/fixtures). */
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random) {
-        this(scrolls, slot, config, random, item.lang.Messages.defaults());
+        this(scrolls, slot, config, random, platform.lang.Messages.defaults());
     }
 
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
-                             item.lang.Messages messages) {
+                             platform.lang.Messages messages) {
         this(scrolls, slot, config, random, messages, gear -> { });
     }
 
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
-                             item.lang.Messages messages, Consumer<ItemStack> reRender) {
+                             platform.lang.Messages messages, Consumer<ItemStack> reRender) {
         this(scrolls, slot, config, random, messages, reRender, ItemGroups.standard());
     }
 
     /** Canonical form (composition root). */
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
-                             item.lang.Messages messages, Consumer<ItemStack> reRender, ItemGroups groups) {
+                             platform.lang.Messages messages, Consumer<ItemStack> reRender, ItemGroups groups) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.slot = Objects.requireNonNull(slot, "slot");
         this.config = Objects.requireNonNull(config, "config");

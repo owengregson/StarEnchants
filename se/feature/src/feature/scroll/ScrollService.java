@@ -40,32 +40,32 @@ public final class ScrollService {
     private final ContentHolder content;
     private final Supplier<ScrollsConfig> config;
     private final Random random;
-    private final item.lang.Messages messages;
+    private final platform.lang.Messages messages;
     private final item.codec.GodlyTransmogCodec godlyCodec; // null in tests that never mint the godly tool
     private final ItemGroups groups; // §I applies-to gate — the black scroll only extracts from the configured item kinds
 
     /** Default-messages form (tests/fixtures). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random) {
-        this(scrolls, combat, lore, carriers, content, config, random, item.lang.Messages.defaults());
+        this(scrolls, combat, lore, carriers, content, config, random, platform.lang.Messages.defaults());
     }
 
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
-                         item.lang.Messages messages) {
+                         platform.lang.Messages messages) {
         this(scrolls, combat, lore, carriers, content, config, random, messages, null);
     }
 
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
-                         item.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec) {
+                         platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec) {
         this(scrolls, combat, lore, carriers, content, config, random, messages, godlyCodec, ItemGroups.standard());
     }
 
     /** Full form (the composition root) — {@code godlyCodec} enables minting the physical godly-transmog tool. */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
-                         item.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec, ItemGroups groups) {
+                         platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec, ItemGroups groups) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");

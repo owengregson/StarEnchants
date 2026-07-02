@@ -111,7 +111,7 @@ public final class HeroicApplySuite implements Harness.Scenario {
                 0.10, 0.10, 0.25,
                 Map.of("DIAMOND_SWORD", "NETHERITE_SWORD", "DIAMOND_CHESTPLATE", "NETHERITE_CHESTPLATE"),
                 "ENTITY", "", false, false, false);
-        return new HeroicService(upgrades, combat, lore, () -> cfg, new Random(), item.lang.Messages.defaults(),
+        return new HeroicService(upgrades, combat, lore, () -> cfg, new Random(), platform.lang.Messages.defaults(),
                 ItemGroups.standard());
     }
 }

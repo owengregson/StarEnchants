@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import platform.text.Colors;
 
 /**
  * Builds identity/economy {@link ItemStack}s (soul gems, carriers, scrolls, …) from config tokens — the one
@@ -91,10 +91,6 @@ public final class ItemFactory {
             }
         }
         return fallback;
-    }
-
-    public static String color(String raw) {
-        return raw == null ? null : ChatColor.translateAlternateColorCodes('&', raw);
     }
 
     /**
@@ -208,10 +204,10 @@ public final class ItemFactory {
         ItemMeta meta = stack.getItemMeta();
         if (meta != null) {
             if (name != null && !name.isBlank()) {
-                meta.setDisplayName(color(name));
+                meta.setDisplayName(Colors.translate(name));
             }
             if (lore != null && !lore.isEmpty()) {
-                meta.setLore(lore.stream().map(ItemFactory::color).toList());
+                meta.setLore(lore.stream().map(Colors::translate).toList());
             }
             stack.setItemMeta(meta);
         }

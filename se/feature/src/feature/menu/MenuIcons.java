@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import platform.text.Colors;
 
 /**
  * Shared icon builders for the themed menu chrome (ADR-0030) — the one place a decorative pane, a navigation
@@ -152,7 +153,7 @@ public final class MenuIcons {
                 if (!lore.isEmpty()) {
                     lore.add(""); // a separator only when there is existing lore to separate from
                 }
-                lore.add(ItemFactory.color(action));
+                lore.add(Colors.translate(action));
             }
             meta.setLore(lore);
             icon.setItemMeta(meta);

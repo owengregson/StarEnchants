@@ -45,6 +45,7 @@ dependencies {
 
 // Version + Folia ABSORPTION. Boot-time resolvers (Material/Sound/Particle/
 // Enchantment/PotionEffect/Attribute/EntityType), the Scheduling abstraction,
-// the Capabilities probe, and the Protection/Economy SPIs. A domain-free leaf:
-// no engine/feature file ever references a renamed constant or names a scheduler
-// (docs/architecture.md §2, §9).
+// the Capabilities probe, the Protection/Economy SPIs, the shared '&'→'§' colour
+// translation (platform.text.Colors) and the chat send-boundary (platform.lang.Messages,
+// ADR-0033). A domain-free leaf: no engine/feature file ever references a renamed
+// constant or names a scheduler (docs/architecture.md §2, §9).

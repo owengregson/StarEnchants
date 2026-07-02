@@ -165,8 +165,8 @@ starenchants/
 │   ├── view/          ItemView + ItemViewCache: immutable parsed snapshot, raw-blob + generation
 │   │                  cache (§5.2).
 │   ├── worn/          WornState resolver: event-driven, multi-set, pre-flattened, immutable (§5.5).
-│   ├── render/        Lore/name RENDERED from state (DEFAULT/HYPIXEL/transmog). Never parsed back.
-│   ├── lang/          The message catalogue accessor items render through (ADR-0033).
+│   ├── render/        Lore/name RENDERED from state (DEFAULT/HYPIXEL/transmog). Never parsed back;
+│   │                  colour codes translated through platform.text.Colors (ADR-0033).
 │   └── mint/          Minting authored items (books/scrolls/dust/gems/gear) from Snapshot state.
 │
 ├── se/feature/        Thin Bukkit FEATURE shells. One package each; "copy a sibling to add one".
@@ -183,8 +183,12 @@ starenchants/
 │   ├── protect/       ProtectionProvider SPI (bridges live in se/integrate).
 │   ├── economy/       EconomyProvider SPI — atomic withdraw→deposit (Vault bridge in se/integrate).
 │   ├── content/       ContentReloader + ReloadResult/ReloadStep — the transactional reload (§10).
-│   └── item/          ItemGroups — the applies-to group vocabulary (e.g. [ARMOR] = union of pieces).
-│                      There is NO papi/ and NO text/ here: PAPI lives in se/integrate/papi (ADR-0027).
+│   ├── item/          ItemGroups — the applies-to group vocabulary (e.g. [ARMOR] = union of pieces).
+│   ├── text/          Colors — the ONE legacy '&'→'§' colour translation (ADR-0033); Bukkit-free so
+│   │                  rendered text stays unit-testable. Every chatting/rendering module routes here.
+│   └── lang/          Messages — the Bukkit send-boundary over the live Lang catalogue (ADR-0033):
+│                      the only place '&' player feedback is translated + sent; readers stay Bukkit-free.
+│                      There is NO papi/ here: PAPI lives in se/integrate/papi (ADR-0027).
 │
 ├── se/integrate/      Third-party integration bridges — bundled INTO the core jar, active out of
 │                      the box, but SOFT (compileOnly APIs, lazy classload; ADR-0027). Holds

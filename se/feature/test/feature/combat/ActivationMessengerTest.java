@@ -8,8 +8,8 @@ import compile.model.Ability;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import compile.model.SourceKind;
-import item.mint.ItemFactory;
 import org.junit.jupiter.api.Test;
+import platform.text.Colors;
 
 /**
  * Pure token-substitution tests for the message-on-activate render. The templates are test-owned inputs (not
@@ -22,12 +22,12 @@ class ActivationMessengerTest {
     void substitutesEveryTokenAndTranslatesColours() {
         String out = ActivationMessenger.render(
                 "{TIER_COLOR}{ENCHANT} ON {VICTIM} FROM {ATTACKER}", "Venom", "&e", "Bob", "Alice");
-        assertEquals(ItemFactory.color("&eVenom ON Bob FROM Alice"), out);
+        assertEquals(Colors.translate("&eVenom ON Bob FROM Alice"), out);
     }
 
     @Test
     void toleratesTheHyphenatedTierColorToken() {
-        assertEquals(ItemFactory.color("&cZap"),
+        assertEquals(Colors.translate("&cZap"),
                 ActivationMessenger.render("{TIER-COLOR}{ENCHANT}", "Zap", "&c", "v", "a"));
     }
 

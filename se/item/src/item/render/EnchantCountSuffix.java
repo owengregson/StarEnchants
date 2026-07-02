@@ -1,7 +1,7 @@
 package item.render;
 
-import item.mint.ItemFactory;
 import java.util.regex.Pattern;
+import platform.text.Colors;
 
 /**
  * The transmog enchant-count name suffix — a bracketed {@code [N]} appended to an item's display NAME that
@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
  *
  * <p>Single source for the strip + (re)append so every mutation/rename path stays consistent (combat
  * {@link LoreRenderer#apply} stamps it from state; the nametag rename re-appends it from the typed name).
- * Pure string logic — {@link ItemFactory#color} is plain {@code &}-code translation, so this is unit-testable
+ * Pure string logic — {@link Colors#translate} is plain {@code &}-code translation, so this is unit-testable
  * with no server. The template is the configured suffix (default {@code &r &d[&b&l&n{COUNT}&r&d]}); its
  * {@link #COUNT_PLACEHOLDER} marks the count slot.
  */
@@ -41,7 +41,7 @@ public final class EnchantCountSuffix {
         if (count <= 0) {
             return base;
         }
-        return base + ItemFactory.color(template.replace(COUNT_PLACEHOLDER, Integer.toString(count)));
+        return base + Colors.translate(template.replace(COUNT_PLACEHOLDER, Integer.toString(count)));
     }
 
     /**
@@ -56,7 +56,7 @@ public final class EnchantCountSuffix {
         if (name == null || template == null) {
             return name;
         }
-        String translated = ItemFactory.color(template.replace(COUNT_PLACEHOLDER, SENTINEL));
+        String translated = Colors.translate(template.replace(COUNT_PLACEHOLDER, SENTINEL));
         int idx = translated.indexOf(SENTINEL);
         if (idx < 0) {
             return name;

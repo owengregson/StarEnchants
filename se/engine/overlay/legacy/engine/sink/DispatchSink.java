@@ -24,7 +24,6 @@ import net.minecraft.server.v1_8_R3.PacketPlayOutChat;
 import net.minecraft.server.v1_8_R3.PacketPlayOutTitle;
 import net.minecraft.server.v1_8_R3.PacketPlayOutWorldParticles;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
@@ -55,6 +54,7 @@ import platform.economy.EconomyService;
 import platform.resolve.RenameResolvers;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
+import platform.text.Colors;
 import schema.spec.HandleCategory;
 
 /**
@@ -764,7 +764,7 @@ public final class DispatchSink implements SinkReadback {
     /** Apply an optional custom name (with {@code &}-colour codes) to a freshly-summoned guard. */
     private static void applyGuardName(Entity entity, String name) {
         if (name != null && !name.isEmpty()) {
-            entity.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
+            entity.setCustomName(Colors.translate(name));
             entity.setCustomNameVisible(true);
         }
     }
@@ -1056,9 +1056,9 @@ public final class DispatchSink implements SinkReadback {
 
     @Override
     public void message(Player target, String message) {
-        // Translate legacy '&' codes to '§' so feedback shows coloured, not literal "&c&l…" (mirrors
-        // applyGuardName above; behavioural mirror of the modern overlay).
-        String text = legacyColor(message);
+        // Translate legacy '&' codes to '§' so feedback shows coloured, not literal "&c&l…", through the
+        // shared platform.text.Colors (ADR-0033; behavioural mirror of the modern overlay).
+        String text = Colors.translate(message);
         entityOp(target, () -> target.sendMessage(text));
     }
 
@@ -1066,7 +1066,7 @@ public final class DispatchSink implements SinkReadback {
     public void actionBar(Player target, String message) {
         // 1.8: no spigot()/Adventure — action bar is a chat packet with type byte 2. ChatComponentText
         // renders '§' codes, so translate '&' → '§' first.
-        String text = legacyColor(message);
+        String text = Colors.translate(message);
         entityOp(target, () -> sendPacket(target,
                 new PacketPlayOutChat(new ChatComponentText(text), (byte) 2)));
     }
@@ -1075,8 +1075,8 @@ public final class DispatchSink implements SinkReadback {
     public void title(Player target, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
         // 1.8: no 5-arg sendTitle — send the TIMES then the TITLE/SUBTITLE title packets directly.
         // Translate '&' → '§' so colour codes render, not show literally.
-        String t = legacyColor(title);
-        String s = legacyColor(subtitle);
+        String t = Colors.translate(title);
+        String s = Colors.translate(subtitle);
         entityOp(target, () -> {
             sendPacket(target, new PacketPlayOutTitle(fadeIn, stay, fadeOut));
             if (t != null) {
@@ -1088,11 +1088,6 @@ public final class DispatchSink implements SinkReadback {
                         PacketPlayOutTitle.EnumTitleAction.SUBTITLE, new ChatComponentText(s)));
             }
         });
-    }
-
-    /** Legacy '&' → '§' colour translation, null-safe (some title/subtitle paths pass null). */
-    private static String legacyColor(String text) {
-        return text == null ? null : ChatColor.translateAlternateColorCodes('&', text);
     }
 
     @Override

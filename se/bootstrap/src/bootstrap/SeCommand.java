@@ -19,7 +19,7 @@ import item.codec.HeroicStat;
 import item.codec.ItemBlobStore;
 import item.codec.ItemFlagStore;
 import item.codec.ItemKeys;
-import item.lang.Messages;
+import platform.lang.Messages;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

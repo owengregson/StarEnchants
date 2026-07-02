@@ -26,7 +26,7 @@ public final class SlotService {
     private final LoreRenderer lore;
     private final Supplier<SlotConfig> config;
     private final IntSupplier baseSlots; // read live so the cap math tracks a reload of config.yml slots.base (§H)
-    private final item.lang.Messages messages;
+    private final platform.lang.Messages messages;
     private final ItemGroups groups; // §H applies-to gate — the orb only expands the configured item kinds
 
     /** Fixed base-slots + default messages form (tests/fixtures). */
@@ -38,18 +38,18 @@ public final class SlotService {
     /** As above with a live base-slots supplier but default messages. */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, IntSupplier baseSlots) {
-        this(codec, combat, lore, config, baseSlots, item.lang.Messages.defaults());
+        this(codec, combat, lore, config, baseSlots, platform.lang.Messages.defaults());
     }
 
     /** As above with explicit messages but the standard item groups (tests/fixtures). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
-                       Supplier<SlotConfig> config, IntSupplier baseSlots, item.lang.Messages messages) {
+                       Supplier<SlotConfig> config, IntSupplier baseSlots, platform.lang.Messages messages) {
         this(codec, combat, lore, config, baseSlots, messages, ItemGroups.standard());
     }
 
     /** Canonical form (composition root). */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
-                       Supplier<SlotConfig> config, IntSupplier baseSlots, item.lang.Messages messages,
+                       Supplier<SlotConfig> config, IntSupplier baseSlots, platform.lang.Messages messages,
                        ItemGroups groups) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.combat = Objects.requireNonNull(combat, "combat");

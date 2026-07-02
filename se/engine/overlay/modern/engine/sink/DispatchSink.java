@@ -13,7 +13,6 @@ import java.util.Objects;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.FluidCollisionMode;
@@ -50,6 +49,7 @@ import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
+import platform.text.Colors;
 import schema.spec.HandleCategory;
 
 /**
@@ -781,7 +781,7 @@ public final class DispatchSink implements SinkReadback {
     @SuppressWarnings("deprecation") // setCustomName(String): deprecated-not-removed across the whole 1.17.1→26.1.x range.
     private static void applyGuardName(Entity entity, String name) {
         if (name != null && !name.isEmpty()) {
-            entity.setCustomName(ChatColor.translateAlternateColorCodes('&', name));
+            entity.setCustomName(Colors.translate(name));
             entity.setCustomNameVisible(true);
         }
     }
@@ -1047,9 +1047,8 @@ public final class DispatchSink implements SinkReadback {
     @Override
     public void message(Player target, String message) {
         // Translate legacy '&' codes to '§' so feedback shows coloured, not literal "&c&l…" — the floor-safe
-        // legacy-code stance, like applyGuardName above (ChatColor here, since the engine module can't see
-        // item.render.Colors; same result for the standard 0-9/a-f/k-o/r codes).
-        String text = legacyColor(message);
+        // legacy-code stance, through the shared platform.text.Colors (ADR-0033).
+        String text = Colors.translate(message);
         entityOp(target, () -> target.sendMessage(text));
     }
 
@@ -1058,7 +1057,7 @@ public final class DispatchSink implements SinkReadback {
     public void actionBar(Player target, String message) {
         // The Spigot chat API is the one action-bar path stable across the whole 1.17.1 → 26.1.x range.
         // Translate '&' → '§' first — fromLegacyText parses '§', not '&'.
-        String text = legacyColor(message);
+        String text = Colors.translate(message);
         entityOp(target, () -> target.spigot().sendMessage(
                 ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text)));
     }
@@ -1068,14 +1067,9 @@ public final class DispatchSink implements SinkReadback {
     public void title(Player target, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
         // 5-arg String sendTitle is the one title path stable across the range (no Adventure Title API on
         // the spigot-mapped floor). Translate '&' → '§' so colour codes render, not show literally.
-        String t = legacyColor(title);
-        String s = legacyColor(subtitle);
+        String t = Colors.translate(title);
+        String s = Colors.translate(subtitle);
         entityOp(target, () -> target.sendTitle(t, s, fadeIn, stay, fadeOut));
-    }
-
-    /** Legacy '&' → '§' colour translation, null-safe (some title/subtitle paths pass null). */
-    private static String legacyColor(String text) {
-        return text == null ? null : ChatColor.translateAlternateColorCodes('&', text);
     }
 
     @Override

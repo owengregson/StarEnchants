@@ -235,7 +235,7 @@ the bundled catalogue `se/compile/resources/lang.yml` — the single source of t
 parsed by `Lang.defaults()`. A user's on-disk `lang.yml` overrides any subset; a
 missing key renders as `&c<key>?` rather than throwing.
 
-Reference keys through `item.lang.Messages`, which reads a live `Supplier<Lang>`
+Reference keys through `platform.lang.Messages`, which reads a live `Supplier<Lang>`
 so `/se reload` re-reads them:
 
 ```java

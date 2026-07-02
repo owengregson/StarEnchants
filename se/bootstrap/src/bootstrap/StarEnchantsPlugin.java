@@ -103,7 +103,7 @@ import item.codec.ScrollCodec;
 import item.codec.SlotItemCodec;
 import item.codec.UnopenedBookCodec;
 import item.codec.SoulCodec;
-import item.lang.Messages;
+import platform.lang.Messages;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
 import item.view.ItemViewCache;
@@ -493,7 +493,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // equip/unequip sound+particle (one config for all sets; the dust takes the set's own colour).
         feature.trigger.SetMessageDriver setMessages = new feature.trigger.SetMessageDriver(content,
                 (player, msg) -> { // split on \n (keep trailing empties) so a leading AND trailing blank line both render
-                    for (String line : item.mint.ItemFactory.color(msg).split("\n", -1)) {
+                    for (String line : platform.text.Colors.translate(msg).split("\n", -1)) {
                         player.sendMessage(line);
                     }
                 },

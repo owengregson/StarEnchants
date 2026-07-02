@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import platform.text.Colors;
 
 /**
  * Item nametag (§I): dragged onto gear it begins a chat-capture rename; the next chat line becomes the
@@ -31,7 +32,7 @@ public final class NametagService {
 
     private final ScrollCodec scrolls;
     private final Supplier<ScrollsConfig> config;
-    private final item.lang.Messages messages;
+    private final platform.lang.Messages messages;
     private final CombatCodec combat; // §I reads the item's custom-enchant count to re-append the suffix; null = skip
     private final ConcurrentHashMap<UUID, ItemStack> pending = new ConcurrentHashMap<>();
     // Players whose currently-open anvil is OUR rename GUI (modern path), so a real anvil is never hijacked.
@@ -39,10 +40,10 @@ public final class NametagService {
 
     /** Default-messages, no-suffix form (tests/fixtures that never assert the §I enchant-count suffix). */
     public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config) {
-        this(scrolls, config, item.lang.Messages.defaults(), null);
+        this(scrolls, config, platform.lang.Messages.defaults(), null);
     }
 
-    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, item.lang.Messages messages) {
+    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, platform.lang.Messages messages) {
         this(scrolls, config, messages, null);
     }
 
@@ -51,7 +52,7 @@ public final class NametagService {
      * {@code [N]} suffix is re-appended on rename (and shown in the preview) — the suffix is a fixed part of the
      * name once any custom enchant is present. A {@code null} {@code combat} skips the suffix (server-free tests).
      */
-    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, item.lang.Messages messages,
+    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, platform.lang.Messages messages,
                           CombatCodec combat) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.config = Objects.requireNonNull(config, "config");
@@ -93,7 +94,7 @@ public final class NametagService {
 
     /** The translated title for the anvil rename GUI (§I modern path). */
     public String anvilTitle() {
-        return ItemFactory.color(messages.format("scroll.nametag.gui-title"));
+        return Colors.translate(messages.format("scroll.nametag.gui-title"));
     }
 
     /** Mark / query / end that {@code player}'s open anvil is OUR rename GUI (so a real anvil is never hijacked). */
@@ -138,7 +139,7 @@ public final class NametagService {
             refund(player);
             return messages.format("scroll.nametag.cancelled");
         }
-        String translated = ItemFactory.color(trimmed);
+        String translated = Colors.translate(trimmed);
         String plain = ChatColor.stripColor(translated).toLowerCase(Locale.ROOT);
         for (String word : cfg.blacklist()) {
             if (!word.isBlank() && plain.contains(word.toLowerCase(Locale.ROOT))) {
@@ -169,7 +170,7 @@ public final class NametagService {
      * result). Pure (no inventory mutation).
      */
     public String previewName(ItemStack target, String text) {
-        return withCountSuffix(target, ItemFactory.color(text == null ? "" : text));
+        return withCountSuffix(target, Colors.translate(text == null ? "" : text));
     }
 
     /**

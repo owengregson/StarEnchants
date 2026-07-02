@@ -6,13 +6,13 @@ import compile.load.TierRegistry;
 import compile.model.Ability;
 import compile.model.SourceKind;
 import engine.run.ActivationContext;
-import item.mint.ItemFactory;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import platform.sched.Scheduling;
+import platform.text.Colors;
 
 /**
  * The global message-on-activate sender (§L). When an enchant fires, the holder gets the "BY you" line (naming
@@ -77,7 +77,7 @@ public final class ActivationMessenger {
                 .replace("{TIER-COLOR}", tierColor) // tolerate either spelling (cf. the carrier book lore)
                 .replace("{VICTIM}", victim)
                 .replace("{ATTACKER}", attacker);
-        return ItemFactory.color(out);
+        return Colors.translate(out);
     }
 
     /**

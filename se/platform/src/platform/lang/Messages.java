@@ -1,12 +1,12 @@
-package item.lang;
+package platform.lang;
 
 import compile.load.Lang;
-import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.bukkit.entity.Player;
+import platform.text.Colors;
 
 /**
  * Bukkit send-boundary over the live {@link Lang} catalogue (§L). The {@code &}→{@code §} translate is the
@@ -46,7 +46,7 @@ public final class Messages {
     public String format(String key, Object... kv) {
         String p = prefix.get();
         String body = lang.get().format(key, kv);
-        return ItemFactory.color(p == null || p.isEmpty() ? body : p + body);
+        return Colors.translate(p == null || p.isEmpty() ? body : p + body);
     }
 
     public boolean feedbackEnabled() {
@@ -57,7 +57,7 @@ public final class Messages {
         List<String> raw = lang.get().lines(key, kv);
         List<String> out = new ArrayList<>(raw.size());
         for (String line : raw) {
-            out.add(ItemFactory.color(line));
+            out.add(Colors.translate(line));
         }
         return out;
     }
