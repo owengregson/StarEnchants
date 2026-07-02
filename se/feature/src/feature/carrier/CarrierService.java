@@ -5,6 +5,7 @@ import compile.load.EnchantDef;
 import feature.apply.ApplyResult;
 import feature.apply.GestureOutcome;
 import feature.apply.ItemEnchanter;
+import feature.apply.Rolls;
 import item.mint.ItemFactory;
 import item.codec.CarrierCodec;
 import item.codec.CarrierData;
@@ -121,8 +122,7 @@ public final class CarrierService {
     /** Mint a WHITE SCROLL with a RANDOM apply-success rolled in the config {@code [min, max]} range (§I). */
     public ItemStack mintWhiteScroll() {
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
-        int span = cfg.maxSuccess() - cfg.minSuccess();
-        return buildWhiteScroll(span <= 0 ? cfg.minSuccess() : cfg.minSuccess() + random.nextInt(span + 1));
+        return buildWhiteScroll(Rolls.between(random, cfg.minSuccess(), cfg.maxSuccess()));
     }
 
     /** Mint a WHITE SCROLL at an EXPLICIT apply-success (§J {@code /se give whitescroll <player> <percent>}). */
@@ -193,7 +193,7 @@ public final class CarrierService {
         int successChance = effectiveSuccess(base, data.successBonus()); // dust-accumulated bonus (ADR-0019)
         boolean destroyOnFail = bookConfig.get().destroyOnFail(); // §I enchant-book likeness, read live
         consume(carrier); // a use is spent whether the roll succeeds or fails
-        if (random.nextInt(100) < successChance) {
+        if (Rolls.passes(random, successChance)) {
             ApplyResult applied = crystal
                     ? enchanter.applyCrystal(target, grant)
                     : enchanter.applyEnchant(target, grant, data.grantLevel());
@@ -213,8 +213,7 @@ public final class CarrierService {
     }
 
     private int rolledDustBonus(compile.load.DustConfig cfg) {
-        int span = cfg.maxBonus() - cfg.minBonus();
-        return span <= 0 ? cfg.minBonus() : cfg.minBonus() + random.nextInt(span + 1);
+        return Rolls.between(random, cfg.minBonus(), cfg.maxBonus());
     }
 
     /** Mint an enchant BOOK from the general likeness. Default success — always succeeds, never destroys. */
@@ -446,7 +445,7 @@ public final class CarrierService {
         }
         int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
         consume(carrier); // a use is spent whether the roll succeeds or fails
-        if (random.nextInt(100) >= success) {
+        if (!Rolls.passes(random, success)) {
             return GestureOutcome.committed(target, messages.format("white-scroll.fail"));
         }
         codec.setGuarded(target, true);

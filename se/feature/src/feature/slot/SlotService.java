@@ -2,6 +2,7 @@ package feature.slot;
 
 import compile.load.SlotConfig;
 import feature.apply.GestureOutcome;
+import feature.apply.Rolls;
 import feature.compat.Mats;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
@@ -11,6 +12,7 @@ import item.render.LoreRenderer;
 import platform.text.Tokens;
 import schema.spec.Ranges;
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import org.bukkit.Material;
@@ -31,11 +33,12 @@ public final class SlotService {
     private final IntSupplier baseSlots; // read live so the cap math tracks a reload of config.yml slots.base (§H)
     private final platform.lang.Messages messages;
     private final ItemGroups groups; // §H applies-to gate — the orb only expands the configured item kinds
+    private final Random random; // injected so the success roll is stubbable (Rolls) — never ThreadLocalRandom
 
     /** {@code baseSlots} is read live so a reload re-tunes the orb's slot ceiling. */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, IntSupplier baseSlots, platform.lang.Messages messages,
-                       ItemGroups groups) {
+                       ItemGroups groups, Random random) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -43,6 +46,7 @@ public final class SlotService {
         this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.groups = Objects.requireNonNull(groups, "groups");
+        this.random = Objects.requireNonNull(random, "random");
     }
 
     public boolean isSlotItem(ItemStack stack) {
@@ -72,10 +76,8 @@ public final class SlotService {
         return stack;
     }
 
-    private static int rolledSuccess(SlotConfig cfg) {
-        int span = cfg.maxSuccess() - cfg.minSuccess();
-        return span <= 0 ? cfg.minSuccess()
-                : cfg.minSuccess() + java.util.concurrent.ThreadLocalRandom.current().nextInt(span + 1);
+    private int rolledSuccess(SlotConfig cfg) {
+        return Rolls.between(random, cfg.minSuccess(), cfg.maxSuccess());
     }
 
     /**
@@ -105,7 +107,7 @@ public final class SlotService {
         }
         // Apply roll (§H): a sub-100 orb may fail — the orb is spent but the gear is untouched (never destroyed).
         int success = codec.successOf(slotItem);
-        if (java.util.concurrent.ThreadLocalRandom.current().nextInt(100) >= success) {
+        if (!Rolls.passes(random, success)) {
             consume(slotItem);
             return GestureOutcome.consumedOnly(messages.format("slot.fail"));
         }

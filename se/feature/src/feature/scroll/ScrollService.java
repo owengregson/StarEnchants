@@ -2,6 +2,7 @@ package feature.scroll;
 
 import compile.load.ContentHolder;
 import compile.load.ScrollsConfig;
+import feature.apply.Rolls;
 import feature.apply.GestureOutcome;
 import feature.carrier.CarrierService;
 import feature.compat.Mats;
@@ -73,8 +74,7 @@ public final class ScrollService {
      */
     public ItemStack mintBlack() {
         ScrollsConfig.Black cfg = config.get().black();
-        int span = cfg.maxConvert() - cfg.minConvert();
-        return buildBlack(span <= 0 ? cfg.minConvert() : cfg.minConvert() + random.nextInt(span + 1));
+        return buildBlack(Rolls.between(random, cfg.minConvert(), cfg.maxConvert()));
     }
 
     /** Mint a black scroll whose drawn book applies at an EXPLICIT conversion success rate (§J give form). */
@@ -282,7 +282,7 @@ public final class ScrollService {
         if (book.getAmount() > 1) {
             return GestureOutcome.noop(messages.format("scroll.randomizer.single-book"));
         }
-        int target = cfg.minPercent() + random.nextInt(cfg.maxPercent() - cfg.minPercent() + 1);
+        int target = Rolls.between(random, cfg.minPercent(), cfg.maxPercent());
         if (!carriers.rerollSuccess(book, target)) {
             return GestureOutcome.noop(messages.format("scroll.randomizer.not-book")); // not a book — don't waste the scroll
         }
