@@ -22,6 +22,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import schema.spec.ParamSpec;
 
@@ -234,8 +235,8 @@ class MigratorTest {
                 """;
         Migrator.Result result = Migrator.eliteEnchantments(malicious);
         assertTrue(result.files().isEmpty(), "an id with path separators must be skipped, not written");
-        assertTrue(result.diagnostics().all().stream().anyMatch(d -> d.code().equals("migrate.id")),
-                "expected a migrate.id warning for the unsafe id");
+        assertTrue(result.diagnostics().all().stream().anyMatch(d -> d.is(DiagCode.W_MIGRATE_ID)),
+                "expected a W_MIGRATE_ID warning for the unsafe id");
     }
 
     @Test
