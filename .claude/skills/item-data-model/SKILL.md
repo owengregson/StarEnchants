@@ -7,7 +7,9 @@ description: Use when working on item state, the PDC codec, the ItemView content
 
 `se-item` is the one item-state layer. An item carries **identity + counters in
 PDC** under versioned `NamespacedKey`s; behavior lives in the compiled `Snapshot`,
-never on the item. Lore/name are **rendered from state, never parsed back** (§4.2).
+never on the item. Lore/name are **rendered from state, never parsed back** (§4.2):
+`LoreComposer` composes every section in **one ordered pass** and `LoreRenderer` is the
+Bukkit shell wired by a named-field `LoreRenderer.Config` record (ADR-0040).
 
 ## When to use / not
 

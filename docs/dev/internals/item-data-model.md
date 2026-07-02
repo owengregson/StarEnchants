@@ -34,7 +34,8 @@ It implements [`docs/architecture.md`](../../architecture.md) §4–§5 and
 | Pre-flatten into hit arrays | `se/item/src/item/worn/WornFlattener.java` |
 | The immutable resolved state | `se/item/src/item/worn/WornState.java` |
 | Per-player store | `se/item/src/item/worn/WornStateStore.java` |
-| Render lore from state | `se/item/src/item/render/LoreRenderer.java` |
+| Compose lore from state (one ordered pass) | `se/item/src/item/render/LoreComposer.java` |
+| Bukkit shell + wiring `Config` | `se/item/src/item/render/LoreRenderer.java` |
 | Mint identity items | `se/item/src/item/mint/ItemFactory.java` |
 
 ## The core invariants
@@ -262,23 +263,33 @@ change), debounced per tick — see [folia-scheduling.md](folia-scheduling.md).
 
 ## Rendering lore from state
 
-`LoreRenderer` (`se/item/src/item/render/LoreRenderer.java`) projects
-`CombatState` into lore lines and never the reverse. It is rebuilt from scratch
-on every render, so there is nothing to "round-trip" and corrupt:
+Composition happens in **one place** (ADR-0040): `LoreComposer`
+(`se/item/src/item/render/LoreComposer.java`) projects `CombatState` into the
+full ordered lore in a single deterministic pass — enchant body → set lore → orb
+slots line → crystal line(s) → heroic line → protection lines → trak lines (the
+order **is** the contract) — and never the reverse. It is rebuilt from scratch on
+every render, so there is nothing to "round-trip" and corrupt:
 
 ```java
-// se/item/src/item/render/LoreRenderer.java#lines
+// se/item/src/item/render/LoreComposer.java#body
 String name = nameOr(enchant.getKey(), style);          // unknown key → unknownLabel, never a crash
 String level = style.roman() ? Numerals.roman(enchant.getValue()) : Integer.toString(enchant.getValue());
-String tierColor = enchantColorOf.apply(enchant.getKey());
+String tierColor = config.enchantColorOf().apply(enchant.getKey());
 String color = tierColor != null && !tierColor.isBlank() ? tierColor : style.enchantColor();
-out.add(Colors.translate(color + name + " " + style.levelColor() + level));
+out.add(Colors.translate(color + name + " " + levelColor + level));
 ```
 
-The display lookup and style are injected (`Supplier<LoreStyle>` re-read per
-render so a `/se reload` takes effect next render), keeping `lines` pure and
-server-free; only `apply` touches Bukkit. An unknown stored key renders as the
-configured unknown label.
+`compose` is pure and server-free (it takes the material kind, the
+already-computed protection lines, and the existing lore as plain values), so the
+whole composition is unit-testable with hand-built state; `LoreRenderer` is the
+thin Bukkit shell that feeds it and writes the result back (plus the enchant-count
+name suffix). The wiring — the display lookup, the live `Supplier<LoreStyle>`
+(re-read per render so a `/se reload` takes effect next render), and every
+per-section template — is a **named-field `LoreRenderer.Config` record**, not a
+positional constructor ladder; build one with `Config.of(style, displayNameOf)`
+and the fluent `with*` setters. An unknown stored key renders as the configured
+unknown label. Adding a lore-bearing feature is local: add a section step + the
+state it reads, not another writer coordinating through a text prefix classifier.
 
 ## Lazy legacy migration
 
