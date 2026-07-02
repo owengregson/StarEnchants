@@ -4,13 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import testfx.Abilities;
 
 /** Tests the world-blacklist gate, including the non-interned-world (-1) guard. */
 class AbilityTest {
 
     private static Ability withWorldBlacklist(long worldBlacklist) {
-        return new Ability(0, 0, SourceKind.ENCHANT, 0, 0, 0.0, 0, 0, worldBlacklist, null,
-                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
+        return Abilities.ability().triggerMask(0).level(0).chance(0.0).worldBlacklist(worldBlacklist).build();
     }
 
     @Test

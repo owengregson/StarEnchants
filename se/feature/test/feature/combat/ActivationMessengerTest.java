@@ -5,11 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.model.Ability;
-import compile.model.Affinity;
-import compile.model.CompiledEffect;
 import compile.model.SourceKind;
 import org.junit.jupiter.api.Test;
 import platform.text.Colors;
+import testfx.Abilities;
 
 /**
  * Pure token-substitution tests for the message-on-activate render. The templates are test-owned inputs (not
@@ -45,7 +44,7 @@ class ActivationMessengerTest {
     }
 
     private static Ability ability(SourceKind kind, double chance, int cooldownTicks, int repeatTicks) {
-        return new Ability(0, 0, kind, 1, 1, chance, cooldownTicks, 0, 0L, null, new CompiledEffect[0], repeatTicks,
-                Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
+        return Abilities.ability().sourceKind(kind).triggerMask(1).chance(chance).cooldown(cooldownTicks)
+                .repeatTicks(repeatTicks).build();
     }
 }

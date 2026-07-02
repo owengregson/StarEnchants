@@ -19,7 +19,6 @@ import engine.effect.EffectRegistry;
 import engine.effect.kind.BuiltinEffects;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -35,15 +34,7 @@ import schema.spec.D;
 class AddonCompileTest {
 
     /** Accepts every handle token (id 0) — structural validation only, no server. */
-    private static final PlatformResolvers PERMISSIVE = new PlatformResolvers() {
-        @Override public OptionalInt material(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt sound(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt potionEffect(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt particle(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt enchantment(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt entityType(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt attribute(String token) { return OptionalInt.of(0); }
-    };
+    private static final PlatformResolvers PERMISSIVE = testfx.PermissiveResolvers.INSTANCE;
 
     private static final String HEAD = "ADDON_TEST_BOLT";
 

@@ -5,10 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.model.Ability;
-import compile.model.Affinity;
 import compile.model.CompiledCondition;
-import compile.model.CompiledEffect;
-import compile.model.SourceKind;
 import compile.model.cond.Cond;
 import engine.interact.SoulSpender;
 import engine.interact.SuppressionSet;
@@ -17,6 +14,7 @@ import engine.stores.SuppressionStore;
 import schema.diag.Source;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import testfx.Abilities;
 
 class ActivationPipelineTest {
 
@@ -51,9 +49,10 @@ class ActivationPipelineTest {
         int suppressKey = -1;
 
         Ability build() {
-            return new Ability(0, 0, SourceKind.ENCHANT, triggerMask, level, baseChance,
-                    cooldownTicks, soulCost, worldBlacklist, condition, new CompiledEffect[0],
-                    0, Affinity.CONTEXT_LOCAL, cdEnchant, cdGroup, cdType, suppressKey, 0);
+            return Abilities.ability().triggerMask(triggerMask).level(level).chance(baseChance)
+                    .cooldown(cooldownTicks).soulCost(soulCost).worldBlacklist(worldBlacklist)
+                    .condition(condition).cooldownScope(cdEnchant, cdGroup, cdType).suppressKey(suppressKey)
+                    .build();
         }
     }
 

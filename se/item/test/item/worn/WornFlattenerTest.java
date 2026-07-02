@@ -5,14 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import compile.model.Ability;
-import compile.model.Affinity;
-import compile.model.CompiledEffect;
 import compile.model.FactMask;
-import compile.model.SourceKind;
 import item.codec.HeroicStat;
 import java.util.BitSet;
 import java.util.function.IntPredicate;
 import org.junit.jupiter.api.Test;
+import testfx.Abilities;
 
 class WornFlattenerTest {
 
@@ -26,8 +24,7 @@ class WornFlattenerTest {
     }
 
     private static Ability abMask(int id, int triggerMask, FactMask factMask) {
-        return new Ability(id, 0, SourceKind.ENCHANT, triggerMask, 1, 100.0, 0, 0, 0L,
-                null, new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0, factMask);
+        return Abilities.ability().id(id).triggerMask(triggerMask).factMask(factMask).build();
     }
 
     private static WornState flatten(int[] activeIds, Ability[] abilities) {

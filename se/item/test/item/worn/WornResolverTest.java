@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import compile.model.Ability;
-import compile.model.Affinity;
-import compile.model.CompiledEffect;
 import compile.model.SourceKind;
 import compile.model.StableKeyIndex;
 import item.codec.CombatState;
@@ -15,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.IntPredicate;
 import org.junit.jupiter.api.Test;
+import testfx.Abilities;
 
 /**
  * Unit tests for the worn-state resolution core (ADR-0014, §5.5): on-item enchant {@code (baseKey,
@@ -34,8 +33,7 @@ class WornResolverTest {
     private static final Ability[] ABILITIES = {ability(0, 1 << 0), ability(1, 1 << 0)};
 
     private static Ability ability(int id, int triggerMask) {
-        return new Ability(id, 0, SourceKind.ENCHANT, triggerMask, 1, 100.0, 0, 0, 0L, null,
-                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
+        return Abilities.ability().id(id).triggerMask(triggerMask).build();
     }
 
     private static WornResolver resolver() {
@@ -113,8 +111,7 @@ class WornResolverTest {
     // A SET bonus: id 0, fires on DEFENSE (trigger 1), completes at 3 worn pieces (setPieces=3).
     private static final StableKeyIndex SET_KEYS = new StableKeyIndex(List.of("sets/yeti"));
     private static final Ability[] SET_ABILITIES = {
-        new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null,
-                new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3)
+        Abilities.ability().sourceKind(SourceKind.SET).triggerMask(1 << 1).level(0).setPieces(3).build()
     };
 
     @Test
@@ -158,10 +155,10 @@ class WornResolverTest {
         // setPieces 0). Both fire while complete; neither below threshold — the new multi-bonus path (§6.6).
         StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/a1"));
         Ability[] abilities = {
-            new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null, // primary: DEFENSE, completes at 3
-                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3),
-            new Ability(1, 0, SourceKind.SET, 1 << 0, 0, 100.0, 0, 0, 0L, null, // extra: ATTACK, setPieces 0
-                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0)
+            // primary: DEFENSE, completes at 3
+            Abilities.ability().sourceKind(SourceKind.SET).triggerMask(1 << 1).level(0).setPieces(3).build(),
+            // extra: ATTACK, setPieces 0
+            Abilities.ability().id(1).sourceKind(SourceKind.SET).triggerMask(1 << 0).level(0).build()
         };
         CombatState piece = new CombatState(Map.of(), List.of(), "sets/yeti", false);
 
@@ -179,10 +176,8 @@ class WornResolverTest {
         // id 0 = sets/yeti armour bonus (DEFENSE, completes at 3); id 1 = sets/yeti/w1 (ATTACK, gated).
         StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/w1"));
         Ability[] abilities = {
-            new Ability(0, 0, SourceKind.SET, 1 << 1, 0, 100.0, 0, 0, 0L, null,
-                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 3),
-            new Ability(1, 0, SourceKind.SET, 1 << 0, 0, 100.0, 0, 0, 0L, null,
-                    new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0)
+            Abilities.ability().sourceKind(SourceKind.SET).triggerMask(1 << 1).level(0).setPieces(3).build(),
+            Abilities.ability().id(1).sourceKind(SourceKind.SET).triggerMask(1 << 0).level(0).build()
         };
         CombatState armor = new CombatState(Map.of(), List.of(), "sets/yeti", false);
         CombatState weapon = CombatState.weaponMember("sets/yeti");

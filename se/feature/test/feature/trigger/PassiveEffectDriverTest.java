@@ -12,15 +12,15 @@ import compile.model.CompiledSelector;
 import compile.model.Snapshot;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
-import item.codec.HeroicStat;
 import item.worn.WornState;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import schema.spec.Args;
+import testfx.Snapshots;
+import testfx.WornStates;
 
 /**
  * Unit-pins {@link PassiveEffectDriver#computeDesired} — the pure re-derivation of which self-buff potions a
@@ -113,8 +113,7 @@ class PassiveEffectDriverTest {
     @Test
     void aStaleWornStateYieldsNothing() {
         Snapshot snapshot = snapshot(potionAbility(SPEED, 1, 5));
-        WornState stale = new WornState(GEN + 1, new BitSet(), new int[0], HeroicStat.NONE,
-                byTrigger(passive(0)), new int[0], new int[0]);
+        WornState stale = WornStates.worn().gen(GEN + 1).byTrigger(byTrigger(passive(0))).build();
         PassiveEffectDriver.Desired d = PassiveEffectDriver.computeDesired(
                 stale, snapshot, new SuppressionStore(), UUID.randomUUID(), 0L, HELD, PASSIVE);
         assertTrue(d.apply().isEmpty());
@@ -154,15 +153,11 @@ class PassiveEffectDriverTest {
     }
 
     private static Snapshot snapshot(Ability... abilities) {
-        Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.abilities()).thenReturn(abilities);
-        when(snapshot.generation()).thenReturn(GEN);
-        return snapshot;
+        return Snapshots.snapshot().abilities(abilities).generation(GEN).build();
     }
 
     private static WornState worn(int[]... slots) {
-        return new WornState(GEN, new BitSet(), new int[0], HeroicStat.NONE, byTrigger(slots),
-                new int[0], new int[0]);
+        return WornStates.worn().gen(GEN).byTrigger(byTrigger(slots)).build();
     }
 
     private static int[][] byTrigger(int[]... slots) {

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.Compiler;
-import compile.SpecRegistry;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import compile.resolve.PlatformResolvers;
@@ -17,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.OptionalInt;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -33,22 +31,12 @@ import schema.spec.ParamSpec;
  */
 class MigratorTest {
 
-    private static final PlatformResolvers PERMISSIVE = new PlatformResolvers() {
-        @Override public OptionalInt material(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt sound(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt potionEffect(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt particle(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt enchantment(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt entityType(String token) { return OptionalInt.of(0); }
-        @Override public OptionalInt attribute(String token) { return OptionalInt.of(0); }
-    };
+    /** Accepts every handle token (id 0) — structural validation only, no server. */
+    private static final PlatformResolvers PERMISSIVE = testfx.PermissiveResolvers.INSTANCE;
 
     /** The real effect-head → ParamSpec lookup (engine vocabulary) used to emit verbose v2 effects. */
-    private static final Function<String, ParamSpec> SPECS;
-    static {
-        SpecRegistry reg = BuiltinEffects.registry().specRegistry();
-        SPECS = head -> reg.lookup(head).orElse(null);
-    }
+    private static final Function<String, ParamSpec> SPECS =
+            testfx.Specs.lookup(BuiltinEffects.registry().specRegistry());
 
     /** An AdvancedEnchantments enchantments.yml fixture — the REAL modern form: enchants at the document
      *  root, a compound {@code type}, and {@code @Victim}/{@code @Self} (capital-@) space-separated targets. */

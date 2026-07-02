@@ -1,7 +1,6 @@
 package migrate;
 
 import compile.Compiler;
-import compile.SpecRegistry;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import compile.resolve.PlatformResolvers;
@@ -12,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.OptionalInt;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -38,21 +36,11 @@ import schema.spec.ParamSpec;
  */
 class EePortGenerator {
 
-    private static final PlatformResolvers PERMISSIVE = new PlatformResolvers() {
-        @Override public OptionalInt material(String t) { return OptionalInt.of(0); }
-        @Override public OptionalInt sound(String t) { return OptionalInt.of(0); }
-        @Override public OptionalInt potionEffect(String t) { return OptionalInt.of(0); }
-        @Override public OptionalInt particle(String t) { return OptionalInt.of(0); }
-        @Override public OptionalInt enchantment(String t) { return OptionalInt.of(0); }
-        @Override public OptionalInt entityType(String t) { return OptionalInt.of(0); }
-        @Override public OptionalInt attribute(String t) { return OptionalInt.of(0); }
-    };
+    /** Accepts every handle token (id 0) — structural validation only, no server. */
+    private static final PlatformResolvers PERMISSIVE = testfx.PermissiveResolvers.INSTANCE;
 
-    private static final Function<String, ParamSpec> SPECS;
-    static {
-        SpecRegistry reg = BuiltinEffects.registry().specRegistry();
-        SPECS = head -> reg.lookup(head).orElse(null);
-    }
+    private static final Function<String, ParamSpec> SPECS =
+            testfx.Specs.lookup(BuiltinEffects.registry().specRegistry());
 
     private static final Pattern GROUP_LINE = Pattern.compile("(?m)^group: \"(.*)\"$");
 
