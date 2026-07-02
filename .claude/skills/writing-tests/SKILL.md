@@ -175,6 +175,18 @@ migration ships).
 - **A new compiler shape** → build the def through `testfx.Defs` (the one place the
   `AbilityDef`/`LoweredAbility` record arity lives), so a new field is a one-place
   change, not a parallel edit across every stage test.
+- **A runtime record (`Ability`/`WornState`/`Snapshot`)** → build it through
+  `testfx.Abilities`/`WornStates`/`Snapshots` (the one place their arity — incl. the
+  ADR-0039 `factMask`/`kindId` defaults — lives), never a raw constructor or a mock.
+- **A sink or dispatcher** → wire it with `testfx.Envs.sink()…build()` (a `SinkEnv`
+  over an `EngineStores` aggregate with override-what-you-test store slots), never a
+  telescoping ctor that default-constructs a shadow store.
+- **A scheduler double** → install `testfx.SyncSchedulerBackend` (inline) or
+  `testfx.RecordingSchedulerBackend` (captures `*Later` for `runDelayed()`, arms
+  `repeating*` as cancellable handles), never a hand-rolled `SchedulerBackend`.
+- **Structural (server-free) content validation** → compile permissively with
+  `testfx.PermissiveResolvers.INSTANCE` and, for migrator writers,
+  `testfx.Specs.lookup(registry)` — not a re-typed anonymous resolver/lookup.
 - **A new config field** → assert it round-trips through the real loader from **your
   own** YAML; assert defaults via `.defaults()`; assert any clamp/reorder with a
   reversed/out-of-range input. No exact-string default copy.
