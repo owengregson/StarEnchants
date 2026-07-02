@@ -33,6 +33,17 @@ allocation budget is in **performance-hot-paths**; cross-region commit rules in
 | Omni / multi-set | `WornState` resolver (§5.5, §6.6) | Omni = wildcard resolved **synchronously, read-time** inside the ONE resolver; `activeSets` is a SET. |
 | Custom-enchant stamping | `ItemDataService` (§6.7) | Custom-enchant stamping is **synchronous, one write path** in the build path — never fire-and-forget. |
 
+## The apply gesture is ONE template (ADR-0041)
+
+Every cursor-consumable family (scroll / holy scroll / nametag / crystal / slot / heroic / carrier / trak /
+godly-transmog) is a thin leaf of `feature.apply.ApplyGestureListener` — its service returns one
+`feature.apply.GestureOutcome` (commit / consumeCursor / newTarget / produced / cue / message / followUp) and
+the base runs the shared guard preamble + commit protocol. Player feedback flows through
+`Messages.sendText` (feedback gate + PAPI), never raw `sendMessage`; give-with-overflow is
+`platform.item.Inventories.giveOrDrop`. The soul gem-merge (`SoulInventoryListener`) and the unopened-book
+right-click (`UnopenedBookListener`, a `PlayerInteractEvent`) are the two documented non-template gestures.
+Crystal outcome keys live ONLY under `crystal.*` (there is no `apply.crystal.*` family any more).
+
 ## Damage: fully-additive, one fold (ADR-0012, §6.1)
 
 The approved policy — **no multiplicative stacking across sources**:
