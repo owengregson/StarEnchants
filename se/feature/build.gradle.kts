@@ -44,6 +44,9 @@ dependencies {
     testImplementation(libs.paper.api.floor)
     testImplementation(libs.mockito.core)
     testImplementation("org.yaml:snakeyaml:2.2")
+
+    // Shared runtime fixtures: the Ability/WornState/Snapshot builders, Envs (SinkEnv) + the scheduler doubles.
+    testImplementation(project(":testfx"))
 }
 
 // Thin Bukkit FEATURE shells. The combat shell (feature.combat) bridges Bukkit damage/equip events
