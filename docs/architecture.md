@@ -30,8 +30,8 @@ immutable `WornState`** (all sources already merged and ordered) (`[hf]+[do]`) a
 abilities through a **`Sink`** — the single mutation boundary that *removes* the scheduler door
 from effect authors and routes work by affinity, batched per owning thread (`[do]+[hf]`).
 Feature interactions are resolved by shared **contribute-then-resolve arbiters** (one damage
-fold, an interned-id suppression set, a soul ledger) (`[bc]` idea, not its modules). Items store
-**stable string-keyed** state in PDC, cached by **content-hash + generation** (`[do]`); lore is
+fold, an interned-id suppression set, a cross-gem soul pool) (`[bc]` idea, not its modules). Items store
+**stable string-keyed** state in PDC, cached by **raw-blob key + generation** (`[do]`; §5.2); lore is
 rendered from state, never parsed. The result is optimal hot-path performance, structural Folia +
 cross-version correctness, total compile-time validation, and a codebase where adding any feature
 is a small local change.
@@ -46,14 +46,20 @@ is **correct about many mechanisms** and **wrong about the organizing spine**. T
 
 ### 1.1 Kept from the mirror (these are genuinely right, not borrowed-for-borrowing)
 
-- **Floor-API compile target (paper-api 1.17.1), one universal shaded jar, Java 17 class files.**
+- **Floor-API compile target (paper-api 1.17.1), Java 17 class files** for the modern tree. The release
+  ships **one Multi-Release jar** (base = legacy v52 classes for 1.8.9/JDK8, `META-INF/versions/17/` =
+  the modern v61 tree), built by `scripts/build-mega-jar.sh` with a build-time identical-class-set
+  soundness gate — see ADR-0036. The "one universal shaded jar" of the original spec is now that MRJAR.
 - **Boot-time resolvers** for every volatile surface (Material/Sound/Particle/Enchantment/
   PotionEffectType/Attribute/EntityType) absorbing the 1.20.5 rename wave + 1.21.3 flip.
 - **A `Scheduling` abstraction** probed Folia-vs-Paper at boot; `compat-*` modules behind a
   `Capabilities` probe.
 - **PDC item-data** (drop NBT-API), with a **read-only legacy NBT migration contract**.
 - **Immutable atomic config snapshot** swapped by reference.
-- **First-party `ProtectionProvider` / `EconomyProvider` SPIs**; drop the brittle bundled bridges.
+- **First-party `ProtectionProvider` / `EconomyProvider` SPIs.** *(The original "drop the brittle
+  bundled bridges / ship each integration as a separate add-on jar" plan — ADR-0017 — is **superseded by
+  ADR-0027**: integrations are now bundled in the core jar, soft, and optional, living in `se/integrate`.
+  The SPIs stay; the bridges are back in-jar, guarded by lazy classloading.)*
 - **A live Paper + Folia integration matrix** as a build gate (the one external practice we adopt).
 - **One Paper-native listener set** replacing a Cosmic Enchants-style per-effect-listener + reflective event-registration scheme.
 
@@ -113,83 +119,105 @@ make purity and version-quarantine *compiler-enforced*, few enough that adding c
 file," not "make a module." Boundaries inside a module are enforced by **ArchUnit + a CI lint**,
 not by splitting further.
 
+The tree below is the **shipped** layout (flat `se/<module>/src/<module>/…`, single-segment
+packages). It has drifted from the original spec in package names and module set — this is the
+reconciled map; each module's charter is the footer comment in its `build.gradle.kts`.
+
 ```
 starenchants/
-├── se-schema/         PURE. The DSL as a typed LANGUAGE DEFINITION. Zero Bukkit.
-│   ├── grammar/       Tokenizer + parser: effect lines, the condition EXPRESSION language
-│   │                  (&& || (), comparators, vars %scope.name%, PAPI passthrough),
-│   │                  selector grammar @Sel{a=b}, inline tags <random number>/<chance>.
-│   │                  Produces untyped AST (data only).
-│   ├── spec/          The TYPE SYSTEM: every effect/condition/selector/trigger declares a
-│   │                  ParamSpec (name, type, required, default, range, cross-param rule,
-│   │                  doc, example). ONE source of truth → validate + complete + docs + migrate.
-│   └── diag/          Diagnostic{severity, code, message, Source(file,line,col,pointer),
-│                      fix-hint}. SnakeYAML Marks carried from load through compile.
+├── se/schema/         PURE. The DSL as a typed LANGUAGE DEFINITION — grammar, the ParamSpec
+│                      type system, and diagnostics. Zero Bukkit; JUnit only. A load-bearing
+│                      purity boundary (a compiler must be deterministically testable).
 │
-├── se-compile/        PURE. The COMPILER: authored YAML+DSL → immutable validated Snapshot.
-│   ├── resolve/       Name resolution against the ContentIndex (group/target/selector/
-│   │                  enchant exist?) + cross-version handle resolution via an INJECTED
-│   │                  PlatformResolvers facade (so se-compile is Bukkit-free; tests pass a fake).
-│   ├── typecheck/     ParamSpec-driven arity/type/range/enum/cross-ref checks → Diagnostics.
-│   │                  NEVER throws on bad content.
-│   ├── lower/         AST → CompiledEffect/CompiledCondition/CompiledSelector (typed args,
-│   │                  resolved handles, pre-built expression AST) + WAIT → cumulative waitTicks.
-│   ├── erase/         SOURCE ERASURE: EnchantDef/ArmorSetDef/CrystalDef/HeroicDef/Weapon lines
-│   │                  → ONE Ability[] with a sourceKind tag (§4.1). Synergy crystals GENERATED
-│   │                  from `combines:[a,b]`. Assigns dense per-snapshot ids + the persistent
-│   │                  stable-key↔id map (§5.3).
-│   └── snapshot/      Assembles the immutable Snapshot (§4.5): Ability[], per-trigger index,
-│                      suppression plan, damage plan, interners, sourceMap, diagnostics.
+├── se/compile/        PURE. The COMPILER: authored YAML+DSL → immutable validated Snapshot.
+│                      Stays Bukkit-free by taking a PlatformResolvers facade by INJECTION (tests
+│                      pass a fake; production passes se/platform/resolve). Holds resolve/typecheck/
+│                      lower/erase (SOURCE ERASURE → ONE Ability[]) + snapshot assembly + the
+│                      content loader (compile.load) and lang catalogue.
 │
-├── se-engine/         The RUNTIME. Bukkit-aware, FLOOR API only. Version-agnostic.
-│   ├── systems/       Stateless SYSTEMS, one per trigger family (Combat, Break, Interact,
-│   │                  Lifecycle, Passive, Repeat). Walk abilities; do NOT know effects (§3).
-│   ├── pipeline/      The fixed gate sequence (Cosmic Enchants-style order preserved) as kernel-internal stages
-│   │                  consuming abilities; produces a dispatch plan (§3.5).
-│   ├── effect/        EffectKind impls (~115 merged Cosmic Enchants-style). Stateless; declare ParamSpec +
-│   │                  Affinity; emit INTENTS into the Sink — never touch entities directly.
-│   ├── condition/     ConditionFn impls + the variable vocabulary (FactBuffer slots) (§3.4).
-│   ├── selector/      SelectorKind impls (Self/Victim/Attacker/Aoe/Nearest/Trench/Vein/...).
-│   ├── trigger/       TriggerKind impls + ONE Paper-native listener set → Activation. Per-
-│   │                  trigger metadata (uses-held / scans-equipment / needs-target) declared.
-│   ├── interact/      The ARBITERS (§6): DamageFold, SuppressionSet, SoulLedger, SlotLedger.
-│   ├── sink/          THE Sink: the single mutation boundary; batched, affinity-routed
-│   │                  Dispatcher (§3.6). The ONLY code that knows about threads.
-│   └── stores/        Named component stores for mutable runtime state (§5.4): CooldownStore,
-│                      WornStateStore, SoulModeStore, ProjectileStore, ChargeStore, RepeatStore,
-│                      SuppressionStore.
+├── se/engine/         The RUNTIME. Bukkit-aware, FLOOR API only. Version-agnostic. Stateless
+│   │                  systems walk a pre-flattened WornState and execute abilities through the Sink.
+│   ├── boot/          ContentCompiler — wires the production compile pipeline for the bootstrap.
+│   ├── trigger/       TriggerKind impls + BuiltinTriggers + registry; ONE Paper-native listener
+│   │                  set → Activation, with per-trigger metadata declared.
+│   ├── pipeline/      The fixed gate sequence (ActivationPipeline, GateOutcome) consuming
+│   │                  abilities; produces a dispatch plan (§3.3, §3.5).
+│   ├── effect/        EffectKind + EffectCtx + EffectRegistry, impls under effect/kind. Stateless;
+│   │                  declare a spec + Affinity; emit INTENTS into the Sink — never touch entities.
+│   ├── condition/     The condition engine: BuiltinVars (the fact vocabulary), VarVocabulary,
+│   │                  the compiled ConditionEvaluator + NumExprEval, Flow, and the primitive
+│   │                  thread-local FactBuffer (§3.4). Authors extend the FACT vocabulary, not
+│   │                  a pluggable condition class.
+│   ├── selector/      SelectorKind + SelectorCtx + registry; impls under selector/kind.
+│   ├── spec/          The engine-side ParamSpec surface (EffectSpec/SelectorSpec/TargetSpec/T).
+│   ├── run/           One activation's execution: AbilityExecutor, ActivationContext/Listener,
+│   │                  AreaScan, FactPopulator (fills the FactBuffer from live context), the
+│   │                  runtime effect/selector contexts.
+│   ├── interact/      The ARBITERS (§6): DamageFold, SuppressionSet, SlotLedger, and the cross-gem
+│   │                  soul authority SoulPool + its SoulSpender seam.
+│   ├── sink/          THE Sink (the single mutation boundary) + SinkFactory + SinkReadback; the
+│   │                  batched, affinity-routed Dispatcher (§3.6). The ONLY code that knows threads.
+│   ├── stores/        Named component stores for mutable runtime state (§5.4).
+│   └── doc/           ReferenceDoc + ReferenceCatalogJson — the /se docs + doc-site catalog dump.
 │
-├── se-item/           The item-data service + render. Bukkit-aware, FLOOR API.
+├── se/item/           The item-data service + render. Bukkit-aware, FLOOR API.
 │   ├── codec/         ONE compact record codec over PDC (stable string keys; §5.1).
-│   ├── view/          ItemView: immutable parsed snapshot; content-hash + generation cache (§5.2).
+│   ├── view/          ItemView + ItemViewCache: immutable parsed snapshot, raw-blob + generation
+│   │                  cache (§5.2).
 │   ├── worn/          WornState resolver: event-driven, multi-set, pre-flattened, immutable (§5.5).
-│   └── render/        Lore/name RENDERED from state (DEFAULT/HYPIXEL/transmog). Never parsed back.
+│   ├── render/        Lore/name RENDERED from state (DEFAULT/HYPIXEL/transmog). Never parsed back.
+│   ├── lang/          The message catalogue accessor items render through (ADR-0033).
+│   └── mint/          Minting authored items (books/scrolls/dust/gems/gear) from Snapshot state.
 │
-├── se-feature/        Thin Bukkit FEATURE shells. One package each; "copy a sibling to add one".
-│                      No business logic that isn't a call into engine/item/economy.
-│                      enchants/ armor/ crystals/ heroic/ souls/ scrolls/ dust/ slots/
-│                      nametag/ crates/ crafting/ menus/ trading/ table/
+├── se/feature/        Thin Bukkit FEATURE shells. One package each; "copy a sibling to add one".
+│                      No business logic that isn't a call into engine/item. Shipped packages:
+│                      apply/ book/ carrier/ combat/ compat/ crystal/ guard/ heroic/ imports/
+│                      menu/ scroll/ slot/ soul/ trak/ trigger/.
 │
-├── se-platform/       Version + Folia ABSORPTION. Floor API + probed edges. Domain-free leaf.
+├── se/platform/       Version + Folia ABSORPTION. Floor API + probed edges. Domain-free leaf.
 │   ├── resolve/       Boot-time resolvers (Material/Sound/Particle/Enchantment/PotionEffect/
 │   │                  Attribute/EntityType): modern → legacy alias → Registry → warn+skip.
-│   │                  Implements the PlatformResolvers facade se-compile injects.
+│   │                  Implements the PlatformResolvers facade se/compile injects.
 │   ├── sched/         Scheduling abstraction (entity/region/global/async); the Sink dispatches here.
 │   ├── caps/          Capabilities probe.
-│   ├── protect/       ProtectionProvider SPI (WG/Factions/Towny/Lands/GriefPrevention/BentoBox).
-│   ├── economy/       EconomyProvider SPI (Vault) — atomic withdraw→deposit.
-│   ├── papi/          PlaceholderAPI bridge (expose placeholders + passthrough for vars).
-│   └── text/          Adventure; legacy &/# parse for config back-compat.
+│   ├── protect/       ProtectionProvider SPI (bridges live in se/integrate).
+│   ├── economy/       EconomyProvider SPI — atomic withdraw→deposit (Vault bridge in se/integrate).
+│   ├── content/       ContentReloader + ReloadResult/ReloadStep — the transactional reload (§10).
+│   └── item/          ItemGroups — the applies-to group vocabulary (e.g. [ARMOR] = union of pieces).
+│                      There is NO papi/ and NO text/ here: PAPI lives in se/integrate/papi (ADR-0027).
 │
-├── se-migrate/        Legacy NBT reader (isolated reflection) + EE/EA/AE config importer.
-│                      Reuses se-schema ParamSpec + se-platform alias maps; emits COMMENTED YAML.
+├── se/integrate/      Third-party integration bridges — bundled INTO the core jar, active out of
+│                      the box, but SOFT (compileOnly APIs, lazy classload; ADR-0027). Holds
+│                      protect/ (WorldGuard/Towny/Lands/SuperiorSkyblock/Factions), economy/ (Vault),
+│                      papi/ (PlaceholderAPI expansion + passthrough), anticheat/, combat/ (mcMMO),
+│                      entity/ (MythicMobs), item/ (ItemsAdder/Oraxen), and the Integrations registrar.
 │
-├── se-api/            PUBLIC surface ONLY: events, the registration SPI (effect/condition/
-│                      trigger/selector/source), read-only item/enchant queries. Add-ons compile here.
+├── se/migrate/        EE/EA/AE config importer: parse a legacy plugin's configs, map to the unified
+│                      vocabulary, emit COMMENTED reviewable YAML with `# TODO` markers. Pure logic.
+│                      (Legacy item-NBT reading was DESCOPED — §4.3.)
 │
-├── compat-folia/      Folia region/entity/global schedulers (probed by se-platform/sched).
-└── se-tester/         Live Paper + Folia in-server matrix harness.
+├── se/pack/           Config packs (ADR-0023): the pure ZIP/filesystem codec + staging/swap store
+│                      for a whole config surface (config.yml, lang.yml, content/, items/, menus/,
+│                      pack.yml). Knows nothing of Bukkit or the compiler; bootstrap wires apply().
+│
+├── se/api/            PUBLIC surface ONLY: events, the registration SPI (effect/condition/trigger/
+│                      selector/source), read-only item/enchant queries. Add-ons compile here.
+│
+├── se/bootstrap/      The StarEnchants JavaPlugin — the composition root (ADR-0014): probe caps,
+│                      init Scheduling, wire the Compiler, load content/, serve /se reload. Its
+│                      test/ tree holds CatalogValidationTest + CosmicPackValidationTest (§10).
+│
+├── se/compat-folia/   Folia region/entity/global schedulers (probed by se/platform/sched).
+│
+├── se/tester/         TOOL-ONLY (never shipped). Live Paper + Folia in-server matrix harness.
+├── se/imagegen/       TOOL-ONLY. Renders item tooltips/GUIs to committable PNGs by REUSING the
+│                      plugin's own server-free render code, so a preview can't drift from render.
+└── se/testfx/         TEST-SUPPORT ONLY. Shared unit-test fixtures (FakeEffectCtx, Defs, YamlFixture,
+                       RenderGolden, …) so the flat layout doesn't force per-module fixture copies.
 ```
+
+> Every module also carries a `-Pse.target=legacy` overlay tree (`se/<module>/overlay/{modern,legacy}`)
+> for the 1.8.9 build; the modern tree is the default (ADR-0036).
 
 ### 2.1 Why these boundaries (not the mirror's, not the federation's)
 
@@ -199,10 +227,12 @@ starenchants/
   taking a **`PlatformResolvers` facade by injection** — tests pass a fake; production passes
   `se-platform/resolve`. (This is the clean seam that lets cross-version resolution be a *compile
   dependency* without coupling the compiler to Bukkit — `[crit:perf]` graft #5.)
-- **`se-engine` is one module, not a god-`core` and not 14 contexts.** Inside it, the seven
-  packages (`systems`/`effect`/`condition`/`selector`/`trigger`/`interact`/`sink`/`stores`) are the
-  *named concerns of a data-oriented engine* (`[do]`), enforced by ArchUnit (`effect/` may not import
-  `Bukkit.getScheduler`; only `sink/` touches `se-platform/sched`). We get the federation's
+- **`se/engine` is one module, not a god-`core` and not 14 contexts.** Inside it, the packages
+  (`trigger`/`pipeline`/`effect`/`condition`/`selector`/`run`/`interact`/`sink`/`stores`, plus
+  `boot`/`spec`/`doc`) are the *named concerns of a data-oriented engine* (`[do]`) — there is no
+  `systems/`; the stateless per-trigger walk lives in `run` (AbilityExecutor) driven by `pipeline`.
+  Boundaries are enforced by ArchUnit (`effect/` may not import `Bukkit.getScheduler`; only `sink/`
+  touches `se/platform/sched`). We get the federation's
   *god-engine prevention* (the pipeline cannot grow with content because it delegates to registered
   kinds + arbiters) without its *18-module tax* (`[crit:maint]` fatal #3).
 - **`se-feature` shells are deliberately thin** (`[ax]`): a scroll/dust/menu is event wiring + calls
@@ -265,7 +295,7 @@ is a compiled check, not a string op:
 
 ```
 1. world blacklist        (ability.worldBlacklist & actorWorldBit) == 0          // primitive AND
-2. protection / region    ProtectionProvider.allows(actor, target/block)         // cached per tick
+2. protection / region    ProtectionProvider.allows(actor, target/block)         // uncached by design — every eval asks the providers; see ProtectionService
 3. trigger-match + slot    (ability.triggerMask & bit) != 0 && slot-applies       // re-check target!
 4. level bounds
 5. SUPPRESSION             SuppressionSet.contains(enchantId|groupId|typeId)       // §6.2, O(1)
@@ -273,26 +303,33 @@ is a compiled check, not a string op:
 7. condition + chanceΔ     CompiledCondition.eval(FactBuffer) → {flow, chanceΔ}    // AST walk, no alloc
 8. chance roll             tlrCurrent() < (baseChance + chanceΔ)   (FORCE ⇒ 100)  // [ax] TLR-per-use fix
 9. PreActivate event       cancellable; fired ONLY if a listener is registered    // [hf] alloc fix
-10. soul cost              SoulLedger.tryConsume(...)  (only if gem active)        // §6.3
+10. soul cost              SoulSpender.trySpend(...)   (only if gem active)        // §6.3, cross-gem SoulPool
 11. start cooldown         CooldownStore.arm(packedKey, cooldownTicks)
 12. run effects            emit intents → dispatch plan, with cumulative WAIT      // §3.6
 ```
 
 Notes that fix named catalog bugs: gate 3 **re-checks target applicability** (a helmet enchant no
 longer fires on ATTACK); chance is `roll [0,100) < chance` read as a `double` (fixes the
-`nextDouble(100)+1` quirk and `getInt` truncation); `skipChances/skipCooldown` (`/se addenchant`
-bypass) = "start the sequence at gate K" (`[cp]` idea, allocation-free).
+`nextDouble(100)+1` quirk and `getInt` truncation).
 
 ### 3.4 Conditions + variables: expression AST over a thread-local primitive `FactBuffer`
 
-The expression engine (`se-schema/grammar` → AST; `se-compile` validates against the variable
-vocabulary) yields a **flow + chance-delta** result (`STOP / FORCE / CONTINUE / ALLOW / ±chanceΔ`) —
-one compiled condition both *gates* and *tunes chance* (the Cosmic Enchants-style chance-delta). Live facts live in a
+The expression engine (`se/schema` grammar → AST; `se/compile` validates against the variable
+vocabulary and lowers to a **compiled `ConditionEvaluator`** — `engine/condition`) yields a **flow +
+chance-delta** result (`STOP / FORCE / CONTINUE / ALLOW / ±chanceΔ`) — one compiled condition both
+*gates* and *tunes chance* (the Cosmic Enchants-style chance-delta). Live facts live in a
 **thread-local reusable `FactBuffer` of primitives** (`[do]`; the *safe* version of pooling that
-`[crit:maint]` endorsed): a flat struct (`actorHealth`, `targetHealth`, `damage`, `combo`, a `long`
-flag bitset for `is_sneaking/blocking/flying`) populated **lazily, once per activation**, read by both
+`[crit:maint]` endorsed): a flat struct (`actor.health`, `victim.health`, `damage`, `combo`, a `long`
+flag bitset for `sneaking/blocking/flying/…`) populated **lazily, once per activation**, read by both
 conditions and effect args by compiled slot index. **Zero string parsing, zero boxing on the hot
 path.** PAPI/unknown tokens compile to a `PapiVarRef` resolved only when reached and only if present.
+
+**A condition is a compiled expression, not a pluggable class.** There is no `ConditionFn` SPI to
+implement per condition; the whole condition language is one AST evaluator over a **fact vocabulary**.
+The extension axis for authors is therefore **facts, not condition classes**: a new built-in variable
+is declared in `engine/condition/BuiltinVars` (the greppable `VarVocabulary`, slots append-only) and
+populated in `engine/run/FactPopulator` — the compiler then lets any `%scope.name%` expression use it.
+This is why conditions get richer without the pipeline or a switch growing.
 
 **Folia discipline for victim-derived facts (the hazard every critic named).** `%victim health%`/
 `%victim pose%` are *dynamic victim state*. On Folia, `EntityDamageByEntityEvent` fires on the
@@ -424,18 +461,22 @@ Two design rules the critics made non-negotiable:
 2. **Crystals as a list of keys** (`[do]`/`[ax]`/`[bc]`): the runtime resolves each key → its compiled
    `Ability`s, so crystal-`DISABLE_ENCHANT` works and the "last-of-a-type collapses" bug disappears.
 
-Lore/name are **rendered** from this state (`se-item/render`), deterministically, every time it
+Lore/name are **rendered** from this state (`se/item/render`), deterministically, every time it
 changes — never parsed back. Transmog/godly reorder the *render order*, not the stored state (kills the
 HYPIXEL index-diff fragility and the `WordUtils` break wholesale).
 
-### 4.3 Migration (read legacy, write modern, lazily, losslessly)
+### 4.3 Migration — config-only (legacy item-NBT reading DESCOPED)
 
-`ItemView` reads `se:*` first; on miss it reads the legacy NBT-API key (`customEnchantList` JSON,
-`customEnchantSlots`, `armor-value`, `modifiers` compound, `<type>-modifier`, soul/scroll/dust markers
-— the exact key table from `CATALOG §10`) via an **isolated reflective reader in `se-migrate`**, builds
-the modern record, and writes it on next mutation. Reads accept both during a deprecation window. Legacy
-ids resolve through the **same alias maps** the resolvers use. **Golden-item fixtures** (one serialized
-item per legacy form) are unit + live tests on every matrix version (`[do]`/`[ax]`, `[crit:correct]`).
+**Config migration shipped; the lazy legacy-item-NBT reader did not.** `se/migrate` translates another
+plugin's *configs* (EE/EA/AE) into commented, reviewable StarEnchants YAML (§10). The originally-planned
+reflective reader that would decode another plugin's on-item NBT (`customEnchantList` JSON,
+`customEnchantSlots`, `armor-value`, `modifiers`, …) into the modern PDC record on first touch was
+**never built and is dropped** — see the [Update] note in ADR-0005. An item written by a different
+plugin is read as vanilla: StarEnchants only recognises its own `se:*` PDC keys, and an unrecognised
+item carries no StarEnchants state. This is deliberate — StarEnchants is a fresh plugin with a config
+migrator, not a drop-in binary upgrade for another plugin's live items. `se/item` still owns its own
+forward-compatible read path across the version range (stable keys, §5.3); there is no cross-plugin
+item importer.
 
 ---
 
@@ -443,22 +484,35 @@ item per legacy form) are unit + live tests on every matrix version (`[do]`/`[ax
 
 ### 5.1 The codec: one read, one decode, stable keys
 
-`se-item/codec` reads **one combat-relevant record** (enchants/slots/crystals/set/heroic) and **a
+`se/item/codec` reads **one combat-relevant record** (enchants/slots/crystals/set/heroic) and **a
 separate economy/identity record** (so the per-hit decode never touches scroll/dust/crate markers —
 identity items are never on the combat hot path) (`[hf]`). Stable string keys keep it reorder-proof
 (§4.2); the format is compact but **not** an opaque single-byte-blob with persisted dense ids (`[hf]`'s
 mistake) — debuggability is preserved via `/se item dump`.
 
-### 5.2 The cache: content-hash + generation (the only sound key)
+### 5.2 The cache: raw-blob key + generation (the only sound key)
 
-`ItemView.of(stack)`: read the relevant PDC bytes, compute a **full content hash**; if `cache[hash, gen]`
-exists return it; else decode → cache. The key is **content-hash + a generation counter bumped on
-reload** — explicitly **NOT** ItemMeta identity, which `[crit:perf]` §6 proved both misses constantly
-(meta is copy-on-write per ItemStack) and can alias (a latent correctness bug shared by `[ax]`/`[cp]`/
-`[bc]`). Use a **full (non-truncated) hash or a write-generation counter** so a collision can never
-serve a stale view (`[crit:correct]` watch #4). In combat the same helmet hit 20×/sec decodes **once**;
-every later read is a hash lookup. This replaces a Cosmic Enchants-style `new NBTItem(item)` clone + Gson parse per slot
-per hit — the single biggest CPU win.
+`ItemViewCache.of(stack)` (`se/item/view`) reads the item's raw **combat-blob string** from PDC; if the
+current generation's map holds it, return the cached `ItemView`; else decode once and intern. Two
+deliberate choices:
+
+- **The key is the full raw blob string itself, not a computed hash.** The design brief called for a
+  "full content hash"; the shipped cache is stricter — it keys on the *entire* blob, so a collision is
+  impossible by construction rather than merely improbable. (`[crit:correct]` watch #4 is satisfied a
+  fortiori.) An empty/absent blob returns a shared empty view with no map touch or allocation.
+- **It is an injected instance cache, not a static/`ItemMeta`-identity cache.** The cache is a plain
+  object (holding the `CombatCodec`), constructed and wired at boot — explicitly **NOT** keyed on
+  `ItemMeta` identity, which `[crit:perf]` §6 proved both misses constantly (meta is copy-on-write per
+  `ItemStack`) and can alias.
+
+A **generation counter** guards reloads: `reload(gen)` swaps in a fresh per-generation map, so every
+prior view is dropped atomically — no stale reads survive a content swap. **Growth is bounded** by the
+number of *distinct gear configurations* seen within a generation (each distinct blob is one entry),
+and a reload resets the map, so the cache cannot grow without bound across a server's lifetime. It is
+lock-free across Folia region threads (immutable views, a `volatile` generation holder, a
+`ConcurrentHashMap` per generation). In combat the same helmet hit 20×/sec decodes **once**; every later
+read is a map lookup — replacing a Cosmic Enchants-style `new NBTItem(item)` clone + Gson parse per slot
+per hit, the single biggest CPU win.
 
 ### 5.3 The stable-key ↔ dense-id indirection (forward-compatibility)
 
@@ -471,19 +525,29 @@ items forward-compatible across the 9-year version range.
 ### 5.4 Component stores (where mutable runtime state lives — enumerable)
 
 The data-oriented discipline: **mutable per-player state is in named, enumerable stores**, not scattered
-in effect objects (`[do]`, `[crit:maint]` graft #7). Every store is concurrent, UUID-keyed, TTL-evicting,
-and cleared on quit + `onDisable` (fixing the Cosmic Enchants-style task/state leaks — neither original tears anything
-down).
+in effect objects (`[do]`, `[crit:maint]` graft #7). Every store is concurrent, keyed by a stable id
+(player/gem/projectile UUID), TTL-evicting where it holds a timed flag, and cleared on quit + `onDisable`
+(fixing the Cosmic Enchants-style task/state leaks — neither original tears anything down). The shipped
+set (`se/engine/src/engine/stores/`):
 
-| Store | Holds | Replaces |
-|---|---|---|
-| `CooldownStore` | packed `long` key → expiry tick | Cosmic Enchants-style scattered cooldown maps/tables |
-| `WornStateStore` | uuid → immutable `WornState` (§5.5) | `armorSetApplied`, per-hit full-set rescans |
-| `SoulModeStore` | uuid → active gem **by PDC UUID** | `soulPlayers` (slot-index, fragile) |
-| `SuppressionStore` | uuid → interned-id suppression sets w/ TTL | a Cosmic Enchants-style cross-plugin `EnchantActivationEvent` race |
-| `ProjectileStore` | projectile id → homing/source data | per-arrow `AutoLockTask` (one timer per arrow) |
-| `ChargeStore` | (uuid, ability) → stacking state | `Rage` per-effect maps |
-| `RepeatStore` | uuid → repeat task handles | (new, for RepeatingTrigger / soul drain) |
+| Store | Holds |
+|---|---|
+| `CooldownStore` | packed scope key → expiry tick (gate 6 `ready` / gate 11 `arm`) |
+| `SoulModeStore` | uuid → active soul gem, keyed by the gem's **PDC UUID** (not hotbar slot) |
+| `SuppressionStore` | uuid → interned id → expiry tick (timed `DISABLE_*`; the transient per-activation set is a separate arbiter) |
+| `ProjectileStore` | projectile UUID → runtime data + expiry (one shared store, not a timer per arrow) |
+| `ChargeStore` | uuid → interned ability id → stacking count + sliding-TTL expiry (Rage-style ramps) |
+| `RepeatStore` | uuid → (ability id → opaque task handle) for repeating triggers / soul drain |
+| `ComboStore` | uuid → combat streak (source of the `%combo%` fact); owned by combat dispatch |
+| `VarStore` | uuid → named writable variables (`SET_VAR` / `INVERT_VAR`), optionally time-limited |
+| `ImmuneStore` | uuid → timed damage immunity by cause (`IMMUNE`; read back by a separate damage listener) |
+| `KeepOnDeathStore` | uuid → "keep items next death" flag w/ TTL (`KEEP_ON_DEATH`) |
+| `KnockbackControlStore` | uuid → timed knockback multiplier (`KNOCKBACK_CONTROL`; also the Mental bridge, ADR-0026) |
+| `TeleblockStore` | uuid → timed teleport/pearl block (`TELEBLOCK`) |
+
+`WornStateStore` (§5.5) is the twelfth per-player store but lives with its data in `se/item/src/item/worn/`
+(uuid → immutable `WornState`), not under `engine/stores/`, because it is owned by the item-data service
+that resolves it.
 
 ### 5.5 `WornState` — event-driven, **multi-set**, pre-flattened, immutable
 
@@ -556,13 +620,28 @@ whether it reads actor- or target-suppression (`[crit:correct]` non-negotiable (
 docked `[do]` for). Because crystals are first-class `Ability` sources, **crystal-`DISABLE_ENCHANT`
 finally works** (dead in a Cosmic Enchants-style original). A cancellable `PreActivate` API event remains for add-on interception.
 
-### 6.3 Souls → single ledger authority
+### 6.3 Souls → a cross-gem affordability pool (SoulPool / SoulSpender)
 
-`SoulLedger` (in `se-engine/interact`) is the **only** code that debits souls. The pipeline calls it at
-gate 10, after `PreActivate` (Cosmic Enchants-style order preserved). It reads the active gem via **PDC UUID** (not hotbar
-slot), debits atomically (one authority ⇒ no double-spend across region threads), and re-renders the gem
-lore. `DRAIN_SOULS_CONSTANT` (dead in a Cosmic Enchants-style original) is a `RepeatingTrigger` ability via `RepeatStore`. Soul
-mutation on *another* player is `TARGET_ENTITY` affinity → routed to that player's thread.
+Soul spending is a **cross-gem `SoulPool`** (`se/engine/src/engine/interact/`), not a per-gem ledger. A
+player in soul mode has an in-memory pool whose invariant is `available == Σ(physical gem souls) −
+pending`, so gate 10's affordability check reads the pool, never the holder's inventory. The pipeline
+calls the pool through the `SoulSpender` seam (`SoulSpender.trySpend` — implemented by
+`feature.soul.SoulService` over the pool), at gate 10 after `PreActivate` (Cosmic Enchants-style order
+preserved).
+
+- **`trySpend` is atomic and any-thread**: it lowers `available` and raises `pending` under a per-player
+  stripe lock. This matters because combat fires on the **victim's** region thread while the gem-holder
+  is the attacker — the check can run on a foreign thread, and the pool must be correct there without an
+  inventory read.
+- **Least-first drain on the holder thread**: `takePending` hands the holder's own thread the souls
+  spent-but-not-yet-drained; the physical gems are then debited least-first and re-rendered. `resync`
+  re-establishes the invariant against physical truth after external inventory changes (pickup/drop)
+  without manufacturing or destroying souls.
+- All-or-nothing (no partial spend); a non-positive cost is always affordable and spends nothing.
+
+`DRAIN_SOULS_CONSTANT` (dead in a Cosmic Enchants-style original) is a repeating-trigger ability via
+`RepeatStore`. Soul mutation on *another* player is `TARGET_ENTITY` affinity → routed to that player's
+thread.
 
 ### 6.4 Slots → single ledger authority, persisted
 
@@ -571,14 +650,25 @@ purely from `ItemView` and **persisted in PDC** (fixes a Cosmic Enchants-style t
 default removes the 9-vs-10 split). Applying an enchant debits at *apply time* (a cold-path feature
 action, not the hot path); transmog/sort use `keepSlots`.
 
-### 6.5 Crystal stacking → list semantics
+### 6.5 Crystals → authored multi-ability items, runtime N-stack merge (ADR-0034/0035)
 
-Crystals are a list of keys (§4.2); N crystals of one type contribute N `Ability`s into `WornState`,
-which the damage fold/effect run combine correctly. No "last key wins." `apply-multiple` caps are
-enforced by the crystal feature shell at apply time. Synergy crystals are **generated** from
-`combines:[a,b]` at compile time (folding two sets' abilities), with an explicit per-pair override file
-able to win — **not** 132 hand-written files (`[ax]`/`[do]`; the migrator imports existing pairwise files
-as overrides).
+Crystals are **authored, multi-ability items** (ADR-0034): a crystal def carries its own abilities
+directly — there is **no `combines:[a,b]` compile-time generation** of synergy crystals from two sets
+(that story is dropped). A crystal is applied to gear at 100% and stored as a **list** on the item
+(§4.2), so multiple crystals coexist; N crystals of one type contribute N `Ability`s into `WornState`,
+combined correctly by the damage fold / effect run (no "last key wins").
+
+- **Runtime N-stack merge, capped by `crystals.max-merge`** (ADR-0034): identical crystals on a piece
+  merge into one stacked entry up to the configured cap, enforced by the crystal feature shell at apply
+  time.
+- **Per-crystal `stackable`** (ADR-0035): a crystal declares whether same-type copies may co-apply. A
+  non-stackable crystal blocks a same-type merge and is de-duplicated per wearer by the `WornResolver`.
+- **"Multi Crystal" rendering** (ADR-0035): a merged/stacked crystal renders under its multi-identity
+  name and lore rather than repeating a single crystal's display.
+- **Whole-entry extraction** (ADR-0035): gear-extract pops the entire stacked crystal entry intact,
+  not one ability of it.
+
+See ADR-0034 (rework) and ADR-0035 (stackability + multi-identity + extraction) for the shipped model.
 
 ### 6.6 Omni → wildcard in the ONE multi-set resolver (synchronous, read-time)
 
@@ -637,16 +727,20 @@ final class SmiteEffect implements EffectKind {
 - **Validation is total at load**: the `SPEC` makes a malformed line a **file/line diagnostic**, never a
   runtime `NumberFormatException`/`AIOOBE` mid-combat (`[ax]`, `[do]` `ArgSpec`).
 - **Registration is explicit and greppable** — a checked-in registry (or a trivial ServiceLoader/classpath
-  scan for `se-api` add-ons), **not** annotation-processor codegen as the primary mechanism
+  scan for `se/api` add-ons), **not** annotation-processor codegen as the primary mechanism
   (`[crit:maint]` fatal #5). A contributor can *see* the wiring.
-- **Same pattern** for `ConditionFn`, `TriggerKind`, `SelectorKind`, and the rare `AbilitySource`.
+- **Same pattern** for `TriggerKind`, `SelectorKind`, and the rare `AbilitySource`. **Conditions are the
+  exception**: there is no per-condition class — the condition language is one compiled expression AST,
+  so a new *fact* (a `%scope.name%` variable) is added by appending to `engine/condition/BuiltinVars` and
+  `engine/run/FactPopulator` (§3.4), not by registering a class.
 - **A new armor set / crystal / enchant is PURE YAML** — no code — compiled by the existing erasure into
-  `Ability`s and validated by `./gradlew validateContent` before it ships. 90% of "adding a feature" is
-  data, and the compiler guarantees it is correct before deploy.
+  `Ability`s and validated inside `./gradlew build` (the bootstrap `CatalogValidationTest` /
+  `CosmicPackValidationTest` compile the whole shipped library against a fake resolver; §10) before it
+  ships. 90% of "adding a feature" is data, and the compiler guarantees it is correct before deploy.
 - **Affinity is part of the SPI**, so Folia-correctness is a property a reviewer checks on one line, and
   the `Sink`-only mutation rule means even a mis-declared affinity cannot silently touch an entity off
   the right thread (it would route wrong, caught by the auto-generated per-non-local-effect Folia test —
-  `[hf]`). `se-tester` auto-generates a cross-region test for every `TARGET_ENTITY`/`REGION`/`AOE` effect:
+  `[hf]`). `se/tester` auto-generates a cross-region test for every `TARGET_ENTITY`/`REGION`/`AOE` effect:
   extensibility and coverage grow together.
 
 ---
@@ -659,20 +753,25 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
   primitive/bitset gates → expression AST over a thread-local primitive `FactBuffer` → emit pooled
   intents. **No string ops, no Gson, no item re-read, no map lookups, no YAML/DSL parse** in the inner
   loop. Damage folded once.
-- **Item read:** `ItemView` cache hit = one hash + lookup; miss = one compact decode (no JSON, no NBT
-  clone). Key is content-hash + generation (collision-safe).
+- **Item read:** `ItemView` cache hit = one map lookup; miss = one compact decode (no JSON, no NBT
+  clone). Key is the raw combat-blob string + generation (collision-*free*, §5.2).
 - **Worn-set resolve:** once per equip event, not per hit; result immutable + pre-flattened.
 - **Scheduler hops:** **zero** for all-`CONTEXT_LOCAL` abilities (the common attacker-side hit); ~1 per
   distinct target thread for cross-region/AoE (batched). Defense-side victim mutation costs 1 hop on
   Folia (stated honestly).
 - **Interning:** every name (enchant/group/world/material/potion/sound) is a dense int at runtime;
   stable string keys only at the PDC boundary.
-- **Cooldowns/repeaters:** O(1) primitive `long`→tick maps with TTL eviction (bounded, not the unbounded
-  HashMaps Cosmic Enchants-style engines leak).
+- **Cooldowns / suppression / repeaters (honest):** these stores are **boxed `ConcurrentHashMap`s with
+  lazy TTL** (expiry checked on read, entries reclaimed opportunistically), not the primitive
+  `long`-keyed open-addressed maps the original spec imagined. This costs a boxed key/value and a hash
+  per touch — **measured irrelevant** against the combat hot path (the inner combat loop is the `int[]`
+  walk; store touches are gate 6/11 and timed-flag reads, not per-effect), so it is **accepted as-is**
+  (ratified). They remain bounded (TTL eviction + quit/`onDisable` clear), unlike the unbounded HashMaps
+  Cosmic Enchants-style engines leak.
 - **`PreActivate`** fired only if a listener is registered (`[hf]`); **`ThreadLocalRandom.current()` per
   use** (`[ax]`, fixes a Cosmic Enchants-style captured-TLR bug, Folia-safe).
-- **Enforcement is a gate, not a hope** (`[hf]`/`[do]`): ArchUnit/CI lint bans `Bukkit.getScheduler()`,
-  `new NBTItem`, `ItemStack#clone`, `String#split`, regex compile, and YAML access inside `se-engine`
+- **Enforcement is a gate, not a hope** (`[hf]`/`[do]`): the ArchUnit/CI lint bans `Bukkit.getScheduler()`,
+  `new NBTItem`, `ItemStack#clone`, `String#split`, regex compile, and YAML access inside `se/engine`
   hot-path packages; a JMH bench asserts ~0 steady-state allocation on the per-hit pipeline and a
   throughput floor. **The number is the spec.** Cold paths (load/reload/menus/commands/item-apply) are
   unconstrained and parse/allocate freely, off the tick loop, swapped in atomically.
@@ -689,18 +788,24 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
   it only ever sees resolved handles. Unknown token → file/line diagnostic, **warn-and-skip that one op**,
   load never crashes. The migrator reuses the **same alias maps**.
 - **Folia is owned entirely by `Affinity` + the `Sink` + `Scheduling`** (§3.5–3.6). Effects emit intents;
-  the Sink routes by declared affinity via `se-platform/sched` → `compat-folia` on Folia, Bukkit scheduler
-  on Paper. Cross-entity intents hop to the target's thread (batched); `teleportAsync` is the only teleport
-  API exposed. Stores are concurrent + UUID-keyed. **The cross-region combat read is a first-class,
-  designed concern** (§3.4, §5.5): victim abilities read from an immutable `WornState` snapshot; dynamic
-  victim facts captured at event entry on the firing region — never a live cross-region victim read.
-- **Capability probes** (`se-platform/caps`) gate `compat-folia` and every newer-than-floor API used
+  the Sink routes by declared affinity via `se/platform/sched` → `se/compat-folia` on Folia, Bukkit
+  scheduler on Paper. Cross-entity intents hop to the target's thread (batched); `teleportAsync` is the
+  only teleport API exposed. Stores are concurrent + UUID-keyed. **The cross-region combat read is a
+  first-class, designed concern** (§3.4, §5.5): victim abilities read from an immutable `WornState`
+  snapshot; dynamic victim facts captured at event entry on the firing region — never a live cross-region
+  victim read.
+- **Capability probes** (`se/platform/caps`) gate `se/compat-folia` and every newer-than-floor API used
   inline (Brigadier, profile heads, `BlockData` sends, trident/dispenser events). The floor build calls
   `Firework#detonate()` directly (API since 1.19) instead of a Cosmic Enchants-style `InstantFirework`
   NMS; a `SkullCreator`-style NMS path is replaced by capability-gated `PlayerProfile`/`setOwnerProfile`.
   A Cosmic Enchants-style reflective `registerEvent` is **deleted** in favor of the one
   Paper-native listener set.
-- **Verified, never assumed:** `se-tester` boots real Paper AND Folia across the matrix (1.17.1 floor,
+- **Legacy 1.8.9 is a second tree in the SAME jar** (ADR-0036): the modern floor stays **1.17.1**; a
+  `-Pse.target=legacy` srcDir overlay (same-FQN whole-file swaps) compiles the whole plugin against a real
+  1.8.8 (`v1_8_R3`) jar, is downgraded 61→52 by JvmDowngrader, and is merged as the **base** classes of
+  the Multi-Release release jar (modern tree under `META-INF/versions/17/`). The JVM picks the tree at
+  load; testing stays era-specific (the tester is never MRJAR-merged).
+- **Verified, never assumed:** `se/tester` boots real Paper AND Folia across the matrix (1.17.1 floor,
   both sides of the 1.20.5 flip at 1.20.6, 1.21.x, the 26.1.x ceiling; Folia from ~1.19.4+). A green Paper
   run proves nothing about Folia.
 
@@ -726,21 +831,25 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
 - **The migrator is a first-class authoring tool** (`[ax]`, the best-in-class idea of `[crit:correct]`):
   `/se migrate --from ELITE|AE --in old/ --out new/ --report` reads AE/EE/EA YAML and **emits commented,
   reviewable StarEnchants YAML with inline TODOs** (not opaque transformed configs), reusing the same
-  `ParamSpec` to re-order/normalize args and the same alias maps to modernize enum names. It also reads
-  legacy item NBT (isolated reflection in `se-migrate`) into the modern PDC record on first touch (§4.3).
-- **Content is a CI-validated data artifact:** `./gradlew validateContent` compiles the entire bundled
-  library (and any test corpus) against a **fake** `PlatformResolvers`, failing the build on fatal
-  diagnostics — auditing hundreds of enchants is a reviewed diff, not a live-server gamble.
+  `ParamSpec` to re-order/normalize args and the same alias maps to modernize enum names. It is
+  **config-only**; the once-planned legacy item-NBT reader was descoped (§4.3, ADR-0005).
+- **Content is a CI-validated data artifact — inside `./gradlew build`, not a separate task.** The
+  bundled library and the shipped config packs are compiled against a **fake** `PlatformResolvers` by the
+  bootstrap unit tests `CatalogValidationTest` and `CosmicPackValidationTest` (`se/bootstrap/test`),
+  failing the build on fatal diagnostics. There is **no `./gradlew validateContent` task** — auditing
+  hundreds of enchants is a reviewed diff run by ordinary `build`, not a live-server gamble.
 
 ---
 
 ## 11. Build + test approach
 
-- **Gradle multi-module** per §2; `se-schema`/`se-compile` have **no Bukkit dependency** (pure;
-  JUnit only). `se-engine`/`se-item`/`se-feature`/`se-platform` compile against **paper-api 1.17.1**
-  (floor); `compat-*` compile against the newer API they need, loaded behind `Capabilities`. **One
-  universal shaded jar**; `api-version: '1.17'`; `folia-supported: true` once region-safe. **Java 17
-  class target** (per-version toolchains for the matrix: 17 ≤1.20.4, 21+ for 1.20.5+, CI on 25).
+- **Gradle multi-module** per §2; `se/schema`/`se/compile` have **no Bukkit dependency** (pure;
+  JUnit only). `se/engine`/`se/item`/`se/feature`/`se/platform` compile against **paper-api 1.17.1**
+  (floor); `se/compat-folia` compiles against the newer API it needs, loaded behind `Capabilities`. **One
+  Multi-Release release jar** (modern v61 tree + legacy v52 base tree, `scripts/build-mega-jar.sh`,
+  ADR-0036); `api-version: '1.17'`; `folia-supported: true`. **Java 17 class target** for the modern tree
+  (per-version toolchains for the matrix: 17 ≤1.20.4, 21+ for 1.20.5+, CI on 25); the legacy tree targets
+  Java 8 (v52).
 - **Two-layer gate, always in order** (`matrix-gate`):
   1. **`./gradlew build`** — pure-logic unit tests dominate and are cheap + total because the compiler,
      conditions, interaction arbiters, and codecs are Bukkit-free: golden YAML→Snapshot fixtures;
@@ -783,8 +892,9 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
    ledger.
 6. **One `ParamSpec` per kind, used four ways** — the DSL is a typed language; validation/completion/docs/
    migration can never drift; adding a kind ships its own docs and errors.
-7. **Stable-string-key item identity + content-hash cache** — items survive 9 years of version changes and
-   config reorders losslessly; the cache is the only collision-safe one in the field.
+7. **Stable-string-key item identity + raw-blob/generation cache** — items survive 9 years of version
+   changes and config reorders losslessly; the cache keys on the full blob (collision-*free*, §5.2) — the
+   only sound one in the field.
 
 Each of these is *specific to a huge live content library on Paper+Folia*; none would matter for a
 packet/anticheat plugin — which is precisely why mirroring that reference plugin's spine was the wrong default.
@@ -801,12 +911,17 @@ packet/anticheat plugin — which is precisely why mirroring that reference plug
 3. **`se-feature` granularity = one package per feature** inside the single `se-feature` module (no
    module-per-domain federation). Revisit only if a feature (e.g. menus, crates) grows large enough to
    warrant its own module.
-4. **Migration window = read legacy NBT indefinitely, write modern always.** Cheap on the miss path; no
-   forced sunset.
+4. **Migration = config-only (legacy item-NBT reading DESCOPED, §4.3, ADR-0005).** The original decision
+   ("read legacy NBT indefinitely, write modern always") was **not built and is dropped**: `se/migrate`
+   translates other plugins' *configs*, but StarEnchants never reads another plugin's on-item NBT — a
+   foreign item is read as vanilla. Deliberate: a fresh plugin with a config migrator, not a drop-in
+   binary upgrade.
 5. **PDC format = compact, stable-string-keyed, inspectable via `/se item dump`** (no separate debug-JSON
    mirror).
 6. **Commands = `/se` only** (alias `/star`), merging the full enchant + armor command surface with `effects | conditions |
    triggers | selectors | info | problems | reload | migrate | item dump` subcommands; the legacy per-feature
    command roots are **dropped** (ADR-0013).
-7. **Scope:** Cosmic Enchants-style marquee subsystems (GKits, StatTrak, loot/mob-drop tables) and the web panel are
-   **excluded**; they remain possible future add-ons via the `se-api` SPI.
+7. **Scope:** Cosmic Enchants-style marquee subsystems (GKits, loot/mob-drop tables) and the web panel
+   remain **excluded**; they stay possible future add-ons via the `se/api` SPI.
+   **[Amendment]** *StatTrak-style traks shipped* — v1.1.5 added `feature/trak` (four traks; ADR/heroic
+   batch, see MEMORY). GKits, loot/mob-drop tables, and the web panel are still out of scope.
