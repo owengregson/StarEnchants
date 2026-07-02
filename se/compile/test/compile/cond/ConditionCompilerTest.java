@@ -1,5 +1,6 @@
 package compile.cond;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -63,11 +64,12 @@ class ConditionCompilerTest {
     @Test
     void containsLowersToStrContains() {
         Diagnostics d = new Diagnostics();
-        Cond c = lower("%name% contains \"a|b\"", d);
+        Cond c = lower("%name% contains \"A|b\"", d);
         assertFalse(d.hasErrors());
         Cond.StrContains sc = assertInstanceOf(Cond.StrContains.class, c);
         assertEquals(new StrExpr.Var(0), sc.left());
-        assertEquals(new StrExpr.Lit("a|b"), sc.right());
+        // Alternatives are split on '|' and lower-cased once at load (empties dropped), so the hot path scans them directly.
+        assertArrayEquals(new String[] {"a", "b"}, sc.alternatives());
     }
 
     @Test
@@ -93,6 +95,7 @@ class ConditionCompilerTest {
     @ValueSource(strings = {
             "%name% matchesregex %name%", // regex pattern must be a literal, not a variable
             "%name% matchesregex \"[\"",  // invalid regex literal
+            "%name% contains %name%",     // contains alternatives must be a literal (pre-split at load)
             "%damage% contains \"x\"",    // string op on a numeric operand
             "%name% < \"x\"",             // ordering a string
             "%damage% == %name%",         // number compared with string

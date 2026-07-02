@@ -10,6 +10,8 @@ import schema.grammar.expr.ArithOp;
 import schema.grammar.expr.Cmp;
 import schema.grammar.expr.Expr;
 import schema.grammar.expr.StrOp;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -233,7 +235,13 @@ public final class ConditionCompiler {
                     "compare strings, e.g. %name% " + m.op().symbol() + " \"a\"");
         }
         if (m.op() == StrOp.CONTAINS) {
-            return Optional.of(new Cond.StrContains(strOf(l), strOf(r)));
+            // Like matchesregex, the alternative list is a literal — pre-split + lower-cased here (cold) so the
+            // hot path never calls String#split / toLowerCase (performance-hot-paths; the ArchUnit gate bans them).
+            if (!(m.right() instanceof Expr.StringLit alternatives)) {
+                return typeError(diags, m.source(), "contains needs a literal alternative list",
+                        "e.g. %actor.helditem% contains \"sword|axe\"");
+            }
+            return Optional.of(new Cond.StrContains(strOf(l), splitAlternatives(alternatives.value())));
         }
         // matchesregex: the pattern is a literal so a bad regex is caught at load, not per evaluation.
         if (!(m.right() instanceof Expr.StringLit literal)) {
@@ -246,6 +254,18 @@ public final class ConditionCompiler {
             return typeError(diags, m.source(), "invalid regex pattern: " + bad.getMessage(),
                     "fix the regular-expression syntax");
         }
+    }
+
+    /** Split a {@code |}-separated {@code contains} literal into lower-cased, non-empty alternatives (cold path). */
+    private static String[] splitAlternatives(String literal) {
+        String[] raw = literal.split("\\|");
+        int kept = 0;
+        for (String part : raw) {
+            if (!part.isEmpty()) {
+                raw[kept++] = part.toLowerCase(Locale.ROOT);
+            }
+        }
+        return Arrays.copyOf(raw, kept);
     }
 
     /** Lower an expression as a comparison operand (atom, parenthesised boolean, or nested compare). */
