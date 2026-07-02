@@ -19,11 +19,13 @@ public final class EffectSpec {
     private final ParamSpec paramSpec;
     private final Affinity affinity;
     private final List<TargetSpec> targets;
+    private final boolean needsActorOrigin;
 
-    private EffectSpec(ParamSpec paramSpec, Affinity affinity, List<TargetSpec> targets) {
+    private EffectSpec(ParamSpec paramSpec, Affinity affinity, List<TargetSpec> targets, boolean needsActorOrigin) {
         this.paramSpec = paramSpec;
         this.affinity = affinity;
         this.targets = List.copyOf(targets);
+        this.needsActorOrigin = needsActorOrigin;
     }
 
     public static Builder of(String head) {
@@ -50,6 +52,11 @@ public final class EffectSpec {
         return targets;
     }
 
+    /** Whether run() anchors on the actor — the executor captures the ADR-0043 origin snapshot before running it. */
+    public boolean needsActorOrigin() {
+        return needsActorOrigin;
+    }
+
     public String doc() {
         return paramSpec.doc();
     }
@@ -67,6 +74,7 @@ public final class EffectSpec {
         private final ParamSpec.Builder paramSpec;
         private final List<TargetSpec> targets = new ArrayList<>();
         private Affinity affinity = Affinity.CONTEXT_LOCAL;
+        private boolean needsActorOrigin;
 
         private Builder(String head) {
             this.paramSpec = ParamSpec.of(head);
@@ -99,6 +107,12 @@ public final class EffectSpec {
             return this;
         }
 
+        /** Declare that run() anchors on the actor, so the executor captures its origin snapshot (ADR-0043). */
+        public Builder actorOrigin() {
+            this.needsActorOrigin = true;
+            return this;
+        }
+
         public Builder doc(String doc) {
             paramSpec.doc(doc);
             return this;
@@ -110,7 +124,7 @@ public final class EffectSpec {
         }
 
         public EffectSpec build() {
-            return new EffectSpec(paramSpec.build(), affinity, targets);
+            return new EffectSpec(paramSpec.build(), affinity, targets, needsActorOrigin);
         }
     }
 }
