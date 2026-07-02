@@ -47,6 +47,9 @@ dependencies {
 
     testImplementation(libs.paper.api.floor)
     testImplementation(libs.mockito.core)
+
+    // Shared runtime fixtures: the Ability/WornState builders for WornResolver/WornFlattener tests.
+    testImplementation(project(":testfx"))
 }
 
 // The item-data service + render. ONE compact record codec over PDC (stable

@@ -24,6 +24,8 @@ dependencies {
     compileOnly(project(":compile"))
     compileOnly(project(":engine"))
     compileOnly(project(":item"))
+    // SchedulerBackend/TaskHandle for the shared scheduler doubles + EconomyService for the SinkEnv (Envs) fixture.
+    compileOnly(project(":platform"))
 
     // Fixtures reference Bukkit SPI types (EffectCtx returns LivingEntity/Location; a just-in-time
     // RenderGolden would walk an ItemStack). compileOnly — the floor API is server-provided, and every
