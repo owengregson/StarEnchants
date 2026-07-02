@@ -54,7 +54,7 @@ import schema.spec.HandleCategory;
  * {@code teleportAsync} (synchronous {@code teleport}); no {@code spigot()}/Adventure (NMS chat/title packets);
  * no {@code Entity.setInvulnerable} (NMS {@code invulnerable} field).
  */
-public final class DispatchSink extends DispatchSinkBase {
+public final class LegacyDispatchSink extends DispatchSinkBase {
 
     private static final Logger LOG = System.getLogger("StarEnchants.Sink");
 
@@ -68,7 +68,7 @@ public final class DispatchSink extends DispatchSinkBase {
      * TELEBLOCK / IMMUNE flags a hit writes visible to the separate knockback / death / teleport / damage events'
      * listeners.
      */
-    public DispatchSink(RenameResolvers resolvers, SinkEnv env) {
+    public LegacyDispatchSink(RenameResolvers resolvers, SinkEnv env) {
         super(env);
         this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
     }
@@ -143,43 +143,22 @@ public final class DispatchSink extends DispatchSinkBase {
     }
 
     @Override
-    public void addMaxHealth(LivingEntity target, double amount) {
-        // 1.8: shift the base max-health value directly; unequip restoration of this delta lands with WornState.
-        entityOp(target, () -> {
-            net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(target);
-            if (maxHealth != null) {
-                maxHealth.setValue(Math.max(1.0, maxHealth.getValue() + amount));
-            }
-        });
+    protected boolean hasMaxHealthAttribute(LivingEntity entity) {
+        return maxHealthInstance(entity) != null;
     }
 
     @Override
-    public void drainMaxHealth(LivingEntity target, double fraction, double baseline, double flat, int durationTicks) {
-        entityOp(target, () -> {
-            net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(target);
-            if (maxHealth == null) {
-                return;
-            }
-            double overhealth = maxHealth.getValue() - baseline;
-            double drain = overhealth * fraction + flat;
-            if (drain <= 0) {
-                return; // no overhealth to take
-            }
-            double newValue = Math.max(1.0, maxHealth.getValue() - drain);
-            double removed = maxHealth.getValue() - newValue; // exact delta (also when the clamp bit)
-            maxHealth.setValue(newValue);
-            if (target.getHealth() > newValue) {
-                target.setHealth(newValue); // clamp current down to the new cap
-            }
-            if (durationTicks > 0) {
-                Scheduling.onEntityLater(target, durationTicks, () -> {
-                    net.minecraft.server.v1_8_R3.AttributeInstance mh = maxHealthInstance(target);
-                    if (mh != null) {
-                        mh.setValue(mh.getValue() + removed); // add back exactly what was drained
-                    }
-                });
-            }
-        });
+    protected double maxHealthBase(LivingEntity entity) {
+        net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(entity);
+        return maxHealth != null ? maxHealth.getValue() : 0.0; // 1.8 attribute value == its base (no modifiers layer)
+    }
+
+    @Override
+    protected void setMaxHealthBase(LivingEntity entity, double value) {
+        net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(entity);
+        if (maxHealth != null) {
+            maxHealth.setValue(value);
+        }
     }
 
     /** The NMS max-health attribute instance for {@code entity}, or {@code null}. */

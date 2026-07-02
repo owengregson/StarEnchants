@@ -339,7 +339,7 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             this.rig = new CombatRig(plugin);
             engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
                     engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), new AtomicLong()::incrementAndGet);
-            CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), Stores.probe(),
+            CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(),
                     new ContentHolder(library), worn,
                     triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
                     actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited());

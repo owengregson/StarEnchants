@@ -2,7 +2,7 @@ package bootstrap.compat;
 
 import engine.run.ActorProbe;
 import engine.run.ModernActorProbe;
-import engine.sink.DispatchSinkFactory;
+import engine.sink.ModernDispatchSink;
 import engine.sink.SinkFactory;
 import feature.fx.ParticleFx;
 import item.codec.ItemStateStore;
@@ -41,7 +41,7 @@ public final class Wiring {
     }
 
     public SinkFactory sinkFactory() {
-        return new DispatchSinkFactory(handles);
+        return env -> new ModernDispatchSink(handles, env);
     }
 
     /** The physical item-data layer (§4.2): modern PDC. Injected into every codec + the lore renderer. */

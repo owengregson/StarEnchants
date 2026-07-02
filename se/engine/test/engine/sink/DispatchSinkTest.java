@@ -29,7 +29,7 @@ import testfx.Envs;
 import testfx.SyncSchedulerBackend;
 
 /**
- * The {@link DispatchSink} policy (§3.6): damage-fold and cancel feedback are synchronous, but every world
+ * The {@link ModernDispatchSink} policy (§3.6): damage-fold and cancel feedback are synchronous, but every world
  * mutation is deferred to flush and routed to its owning thread (the target may be a different entity/region),
  * preserving per-entity emission order. A {@link testfx.SyncSchedulerBackend} runs the deferred batches inline.
  */
@@ -45,7 +45,7 @@ class DispatchSinkTest {
 
     @Test
     void contributesToTheDamageFoldSynchronously() {
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.addOutgoingDamage(1.0);   // +100%
         sink.addFlatDamage(5.0);       // +5 flat, after the multiplier
         sink.addDamageReduction(0.5);  // -50% incoming
@@ -57,7 +57,7 @@ class DispatchSinkTest {
 
     @Test
     void cancelEventSetsTheReadBackFlag() {
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         assertFalse(sink.cancelled(), "a fresh sink must not be cancelled");
         sink.cancelEvent();
         assertTrue(sink.cancelled(), "cancelEvent must set the read-back flag");
@@ -67,7 +67,7 @@ class DispatchSinkTest {
     void worldMutationsAreDeferredUntilFlush() {
         LivingEntity target = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.ignite(target, 60);
         verifyNoInteractions(target); // captured, never applied inline on the firing thread
 
@@ -79,7 +79,7 @@ class DispatchSinkTest {
     void batchesIntentsForTheSameEntityInEmissionOrder() {
         LivingEntity target = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.ignite(target, 60);
         sink.extinguish(target);
         verifyNoInteractions(target);
@@ -94,7 +94,7 @@ class DispatchSinkTest {
     void deferredDamageHopsToTheEntityOnFlush() {
         LivingEntity target = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.damage(target, 7.5);
         verifyNoInteractions(target);
 
@@ -108,7 +108,7 @@ class DispatchSinkTest {
         Location to = mock(Location.class);
         when(to.clone()).thenReturn(to); // the sink clones the destination (it can outlive the tick under WAIT)
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.teleport(target, to);
         verifyNoInteractions(target);
 
@@ -120,7 +120,7 @@ class DispatchSinkTest {
     void flushIsIdempotent() {
         LivingEntity target = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.ignite(target, 40);
 
         sink.flush();
@@ -130,7 +130,7 @@ class DispatchSinkTest {
 
     @Test
     void ignoreArmorSetsTheReadBackFlag() {
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         assertFalse(sink.armorIgnored(), "a fresh sink must not ignore armor");
         sink.ignoreArmor();
         assertTrue(sink.armorIgnored(), "ignoreArmor must set the read-back flag");
@@ -147,7 +147,7 @@ class DispatchSinkTest {
             }
         };
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().souls(recording).build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().souls(recording).build());
         sink.removeSouls(holder, gemId, 5);
         assertEquals(0, debited[0], "the debit is captured, never applied inline on the firing thread");
 
@@ -161,7 +161,7 @@ class DispatchSinkTest {
         int[] calls = {0};
         SoulDebit recording = (h, g, amount) -> calls[0]++;
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().souls(recording).build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().souls(recording).build());
         sink.removeSouls(null, UUID.randomUUID(), 5);
         sink.removeSouls(holder, null, 5);
         sink.removeSouls(holder, UUID.randomUUID(), 0);
@@ -177,7 +177,7 @@ class DispatchSinkTest {
         when(holder.getUniqueId()).thenReturn(id);
         VarStore store = new VarStore();
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().vars(store).nowTicks(() -> 100L).build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().vars(store).nowTicks(() -> 100L).build());
         sink.setVar(holder, "rage", "1", 0); // per-player state, written immediately (no flush needed)
 
         assertEquals("1", store.get(id, "rage", 100L));
@@ -190,7 +190,7 @@ class DispatchSinkTest {
         when(holder.getUniqueId()).thenReturn(id);
         VarStore store = new VarStore();
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().vars(store).build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().vars(store).build());
         sink.invertVar(holder, "flag");
 
         assertEquals("1", store.get(id, "flag", 0L)); // unset → inverted to "1"
@@ -203,7 +203,7 @@ class DispatchSinkTest {
         when(holder.getUniqueId()).thenReturn(id);
         SuppressionStore store = new SuppressionStore();
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().suppression(store).nowTicks(() -> 100L).build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().suppression(store).nowTicks(() -> 100L).build());
         sink.suppress(holder, 1, 7, 40); // GROUP(1) scope id 7, for 40 ticks
 
         assertTrue(store.isSuppressed(id, CooldownStore.key(1, 7), 100L));
@@ -217,7 +217,7 @@ class DispatchSinkTest {
         when(victim.getUniqueId()).thenReturn(id);
         KnockbackControlStore store = new KnockbackControlStore();
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().knockback(store).nowTicks(() -> 100L).build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().knockback(store).nowTicks(() -> 100L).build());
         sink.controlKnockback(victim, 0.0, 5); // per-victim state, written immediately (no flush needed)
 
         assertEquals(0.0, store.multiplier(id, 100L)); // 0.0 is an active full-cancel, distinct from NaN "no control"
@@ -231,7 +231,7 @@ class DispatchSinkTest {
         when(player.getUniqueId()).thenReturn(id);
         KeepOnDeathStore store = new KeepOnDeathStore();
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().keepOnDeath(store).nowTicks(() -> 100L).build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().keepOnDeath(store).nowTicks(() -> 100L).build());
         sink.keepOnDeath(player, 40); // per-player flag, written immediately (no flush needed)
 
         assertTrue(store.shouldKeep(id, 100L));

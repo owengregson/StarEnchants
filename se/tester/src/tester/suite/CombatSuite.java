@@ -124,7 +124,7 @@ public final class CombatSuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
                 engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
-        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), Stores.probe(), holder, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
                 actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited());
         rig.listen(new CombatListener(dispatch));

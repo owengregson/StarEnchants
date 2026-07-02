@@ -25,7 +25,7 @@ import engine.pipeline.ActivationPipeline;
 import engine.selector.SelectorRegistry;
 import engine.selector.kind.SelfSelector;
 import engine.selector.kind.VictimSelector;
-import engine.sink.DispatchSink;
+import engine.sink.ModernDispatchSink;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
@@ -82,7 +82,7 @@ class ActorOriginCaptureTest {
         Player actor = mock(Player.class);
         when(actor.getLocation()).thenReturn(new Location(world, 3, 4, 5, 90f, 10f));
         when(actor.getEyeHeight()).thenReturn(1.62);
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(new Ability[] {probeAbility()}, new int[] {0}, activation(),
                 context(actor, null), sink, KEYS);
@@ -103,7 +103,7 @@ class ActorOriginCaptureTest {
     @Test
     void unflaggedKindNeverTriggersACapture() {
         Player actor = mock(Player.class); // getLocation() left unstubbed — the demand bit must never call it
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(new Ability[] {igniteAbility()}, new int[] {0}, activation(),
                 context(actor, null), sink, KEYS);
@@ -117,7 +117,7 @@ class ActorOriginCaptureTest {
         Player actor = mock(Player.class);
         when(actor.getLocation()).thenThrow(new IllegalStateException("wrong region"));
         executor.bindQuarantine(new AbilityQuarantine(null, KEYS, 1));
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(new Ability[] {probeAbility()}, new int[] {0}, activation(),
                 context(actor, null), sink, KEYS);
@@ -134,7 +134,7 @@ class ActorOriginCaptureTest {
         Player actor = mock(Player.class);
         when(actor.getLocation()).thenReturn(new Location(world, 1, 2, 3));
         when(actor.getEyeHeight()).thenReturn(1.62);
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         executor.runLifecycle(probeAbility(), context(actor, null), sink, false);
 

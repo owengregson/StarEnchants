@@ -11,7 +11,7 @@ import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.SelectorRegistry;
 import compile.model.StableKeyIndex;
-import engine.sink.DispatchSink;
+import engine.sink.ModernDispatchSink;
 import engine.stores.CooldownStore;
 import java.util.List;
 import java.util.UUID;
@@ -38,7 +38,7 @@ public class ExecutorBenchmark {
     private int[] candidates;
     private Activation activation;
     private ActivationContext context;
-    private DispatchSink sink;
+    private ModernDispatchSink sink;
     private StableKeyIndex keys;
 
     @Setup
@@ -56,7 +56,7 @@ public class ExecutorBenchmark {
         context = new ActivationContext(null, null, null, null);
         keys = new StableKeyIndex(List.of("enchants/bench"));
         // Reused across ops: the no-op effect emits nothing, so the sink's plan never fills and needs no flush.
-        sink = new DispatchSink(new RuntimeHandles(new RegistryResolvers()), testfx.Envs.sink().build());
+        sink = new ModernDispatchSink(new RuntimeHandles(new RegistryResolvers()), testfx.Envs.sink().build());
     }
 
     @Benchmark

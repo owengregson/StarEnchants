@@ -114,7 +114,7 @@ public final class EconomySuite implements Harness.Scenario {
                 new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
         engine.sink.SinkEnv env = new engine.sink.SinkEnv(economy, engine.sink.SoulDebit.NONE,
                 engine.stores.EngineStores.fresh(), tick::incrementAndGet);
-        CombatDispatch dispatch = new CombatDispatch(executor, new engine.sink.DispatchSinkFactory(handles), Stores.probe(), holder, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
                 actor -> Optional.empty(), env, CombatDispatch.Caps.unlimited());
         CombatRig rig = new CombatRig(plugin);
