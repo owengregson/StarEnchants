@@ -7,7 +7,6 @@ import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import feature.imports.ImportCode;
 import feature.menu.Menu;
-import feature.menu.MenuItems;
 import feature.menu.MenuRegistry;
 import feature.menu.ReferenceCatalog;
 import org.bukkit.Bukkit;
@@ -19,6 +18,7 @@ import item.codec.HeroicStat;
 import item.codec.ItemBlobStore;
 import item.codec.ItemFlagStore;
 import item.codec.ItemKeys;
+import platform.item.Inventories;
 import platform.lang.Messages;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -47,6 +47,10 @@ import schema.diag.Diagnostic;
 /**
  * The {@code /se} admin command (ADR-0014, §10). {@code /se} runs on the command thread, not a region
  * thread, so item/inventory work hops to the target player's own thread (Folia-correct).
+ *
+ * <p>Command replies deliberately bypass the {@link Messages#send} feedback gate (ADR-0041): {@code /se} is the
+ * operator/admin-echo surface — {@code messages.feedback} must never silence a command's response. All raw
+ * {@code sendMessage} in this class is that documented exemption.
  */
 public final class SeCommand implements CommandExecutor, TabCompleter {
 
@@ -386,8 +390,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         Scheduling.onEntity(player, () -> {
             ItemStack gem = souls.mintGem(startingSouls);
             // Overflow drops at the player's feet (their own region thread) rather than being lost.
-            player.getInventory().addItem(gem).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, gem);
             player.sendMessage(messages.format("command.give.gem"));
         });
     }
@@ -882,7 +885,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** Deliver {@code item} on the target's own region thread (overflow → feet); confirm to a distinct sender. */
     private void deliver(CommandSender sender, Player target, ItemStack item, String targetMsgKey, String itemLabel) {
         Scheduling.onEntity(target, () -> {
-            MenuItems.giveOrDrop(target, item);
+            Inventories.giveOrDrop(target, item);
             target.sendMessage(messages.format(targetMsgKey, "KEY", itemLabel, "KIND", itemLabel,
                     "TIER", itemLabel, "LEVEL", "", "ID", itemLabel));
         });
@@ -903,7 +906,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         Scheduling.onEntity(target, () -> {
-            MenuItems.giveOrDrop(target, crystals.mint(java.util.List.of(key)));
+            Inventories.giveOrDrop(target, crystals.mint(java.util.List.of(key)));
             target.sendMessage(messages.format("command.give.crystal", "KEY", key));
         });
         if (notSelf(sender, target)) {
@@ -930,7 +933,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         ItemStack item = minted.get();
         Scheduling.onEntity(target, () -> {
-            MenuItems.giveOrDrop(target, item);
+            Inventories.giveOrDrop(target, item);
             target.sendMessage(messages.format("command.give.set", "KEY", key, "PIECE", piece));
         });
         if (notSelf(sender, target)) {
@@ -986,7 +989,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         Scheduling.onEntity(target, () -> {
             ItemStack book = bookSuccess == null ? carriers.mintBook(key, bookLevel)
                     : carriers.mintBook(key, bookLevel, bookSuccess);
-            MenuItems.giveOrDrop(target, book);
+            Inventories.giveOrDrop(target, book);
             target.sendMessage(messages.format("command.give.book", "KEY", key, "LEVEL", bookLevel));
         });
         if (notSelf(sender, target)) {
@@ -1012,7 +1015,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         ItemStack book = rolled.get();
         Scheduling.onEntity(target, () -> {
-            MenuItems.giveOrDrop(target, book);
+            Inventories.giveOrDrop(target, book);
             target.sendMessage(messages.format("command.give.book", "KEY", tier, "LEVEL", 0));
         });
         if (notSelf(sender, target)) {
@@ -1033,7 +1036,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         Scheduling.onEntity(target, () -> {
-            MenuItems.giveOrDrop(target, unopenedBooks.mint(tier));
+            Inventories.giveOrDrop(target, unopenedBooks.mint(tier));
             target.sendMessage(messages.format("command.give.unopened", "TIER", tier));
         });
         if (notSelf(sender, target)) {
@@ -1111,8 +1114,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack crystal = crystals.mint(java.util.List.of(key));
-            player.getInventory().addItem(crystal).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, crystal);
             player.sendMessage(messages.format("command.give.crystal", "KEY", key));
         });
     }
@@ -1125,8 +1127,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack upgrade = heroics.mint();
-            player.getInventory().addItem(upgrade).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, upgrade);
             player.sendMessage(messages.format("command.give.heroic"));
         });
     }
@@ -1139,8 +1140,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack item = slots.mintOrb();
-            player.getInventory().addItem(item).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, item);
             player.sendMessage(messages.format("command.give.slot", "KIND", "slot expander"));
         });
     }
@@ -1152,8 +1152,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         Scheduling.onEntity(player, () -> {
-            player.getInventory().addItem(item).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, item);
             player.sendMessage(message);
         });
     }
@@ -1166,8 +1165,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack scroll = black ? scrolls.mintBlack() : scrolls.mintRandomizer();
-            player.getInventory().addItem(scroll).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, scroll);
             player.sendMessage(messages.format(black ? "command.give.blackscroll" : "command.give.randomizer"));
         });
     }
@@ -1189,8 +1187,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         Scheduling.onEntity(player, () -> {
             ItemStack book = unopenedBooks.mint(tier);
-            player.getInventory().addItem(book).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, book);
             player.sendMessage(messages.format("command.give.unopened", "TIER", tier));
         });
     }
@@ -1228,8 +1225,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         int bookLevel = level;
         Scheduling.onEntity(player, () -> {
             org.bukkit.inventory.ItemStack book = carriers.mintBook(key, bookLevel);
-            player.getInventory().addItem(book).values()
-                    .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+            Inventories.giveOrDrop(player, book);
             player.sendMessage(messages.format("command.give.book", "KEY", key, "LEVEL", bookLevel));
         });
     }

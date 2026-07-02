@@ -578,22 +578,22 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     || carrierCodec.read(stack) != null; // enchant books, magic dust, white scroll
         };
         getServer().getPluginManager().registerEvents(new feature.guard.VanillaGuardListener(isPluginItem), this);
-        getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx), this);
-        getServer().getPluginManager().registerEvents(new CrystalListener(crystals), this);
-        getServer().getPluginManager().registerEvents(new HeroicListener(heroics), this);
+        getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx, messages), this);
+        getServer().getPluginManager().registerEvents(new CrystalListener(crystals, messages), this);
+        getServer().getPluginManager().registerEvents(new HeroicListener(heroics, messages), this);
         if (features.slots()) {
-            getServer().getPluginManager().registerEvents(new SlotListener(slots), this);
+            getServer().getPluginManager().registerEvents(new SlotListener(slots, messages), this);
         } else {
             getLogger().info("slots feature disabled (config.yml features.slots) — slot-expander apply not registered");
         }
-        getServer().getPluginManager().registerEvents(new UnopenedBookListener(unopenedBooks), this);
+        getServer().getPluginManager().registerEvents(new UnopenedBookListener(unopenedBooks, messages), this);
         // §L scrolls feature gate.
         if (features.scrolls()) {
-            getServer().getPluginManager().registerEvents(new ScrollListener(scrolls), this);
-            getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems), this);
-            getServer().getPluginManager().registerEvents(new NametagListener(nametags), this);
+            getServer().getPluginManager().registerEvents(new ScrollListener(scrolls, messages), this);
+            getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems, messages), this);
+            getServer().getPluginManager().registerEvents(new NametagListener(nametags, messages), this);
             feature.scroll.NametagAnvil.installPreview(this, nametags); // modern: colour the anvil result preview (no-op on 1.8.9)
-            getServer().getPluginManager().registerEvents(new feature.trak.TrakListener(traks), this);
+            getServer().getPluginManager().registerEvents(new feature.trak.TrakListener(traks, messages), this);
         } else {
             getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");
         }
@@ -676,7 +676,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Enchant-icon names are styled by the enchant-book name template, so a menu name matches the book.
         java.util.function.Supplier<String> bookName = () -> items.config().enchantBookOrDefault().name();
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
-                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName);
+                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName, messages);
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
         GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config);
         // The operator "mint anything" catalogue (ADR-0030) — driven by the live tier list + trak kinds.
@@ -701,7 +701,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §I/§K physical godly-transmog gesture — scroll family, so it shares the features.scrolls() boot gate.
         if (features.scrolls()) {
             getServer().getPluginManager().registerEvents(
-                    new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec), this);
+                    new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec, messages), this);
         }
         // ADR-0030 user entry: /enchants opens the player hub (open to all; the hub's targets are perm-free).
         // Registered on the server command map like /splitsouls, so it needs no plugin.yml command entry.
