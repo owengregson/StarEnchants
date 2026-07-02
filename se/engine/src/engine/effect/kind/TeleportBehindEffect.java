@@ -9,6 +9,7 @@ import engine.spec.T;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /**
@@ -16,7 +17,8 @@ import schema.spec.D;
  * entity ({@code of}: the VICTIM slot — which on a DEFENSE trigger IS the attacker — or the ACTOR), facing the
  * same way the reference faces. The Sink verifies the spot is a safe landing (room + line of sight); on failure
  * {@code onFail: ONTOP} lands on the reference instead, {@code NONE} cancels. Stellar's Dimensional Shift escape;
- * any reposition-behind blink reuses it. The geometry is firing-thread value maths; the safety read is the Sink's.
+ * any reposition-behind blink reuses it. The ACTOR reference + sight-from read the ADR-0043 origin snapshot; the
+ * possibly-remote VICTIM-slot reference stays a Regions-guarded live read; the geometry is pure value maths.
  */
 public final class TeleportBehindEffect implements EffectKind {
 
@@ -26,6 +28,7 @@ public final class TeleportBehindEffect implements EffectKind {
             .param("onFail", D.enumOf("ONTOP", "NONE").def("ONTOP"))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
+            .actorOrigin()
             .doc("Teleport the mover(s) `distance` blocks behind the reference (of: VICTIM — the attacker on a "
                     + "DEFENSE trigger — or ACTOR), facing as it faces. Unsafe (blocked / wall between) → onFail "
                     + "ONTOP lands on the reference, NONE cancels.")
@@ -39,11 +42,21 @@ public final class TeleportBehindEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        LivingEntity reference = "ACTOR".equalsIgnoreCase(ctx.str("of")) ? ctx.actor() : ctx.victim();
-        if (reference == null) {
-            return;
+        Location refLoc;
+        if ("ACTOR".equalsIgnoreCase(ctx.str("of"))) {
+            refLoc = ctx.actorOrigin(); // ADR-0043 snapshot; null → uncapturable, no blink
+        } else {
+            LivingEntity reference = ctx.victim();
+            if (reference == null) {
+                return;
+            }
+            try {
+                refLoc = reference.getLocation(); // DEFENSE exposes the (possibly remote) attacker here
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("TeleportBehindEffect.reference", unreadable);
+                return;
+            }
         }
-        Location refLoc = reference.getLocation();
         if (refLoc == null) {
             return;
         }
@@ -67,7 +80,8 @@ public final class TeleportBehindEffect implements EffectKind {
         Location fallback = "NONE".equalsIgnoreCase(ctx.str("onFail")) ? null
                 : new Location(refLoc.getWorld(), refLoc.getX(), refLoc.getY(), refLoc.getZ(),
                         refLoc.getYaw(), refLoc.getPitch());
-        Location sightFrom = ctx.actor() != null ? ctx.actor().getEyeLocation() : refLoc;
+        Location eye = ctx.actorOriginEye();
+        Location sightFrom = eye != null ? eye : refLoc;
         for (LivingEntity mover : ctx.targets("who")) {
             sink.teleportSafe(mover, behind, fallback, sightFrom);
         }

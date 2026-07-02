@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import engine.sink.Sink;
@@ -47,5 +48,20 @@ class TempBlockEffectTest {
         Sink sink = mock(Sink.class);
         new TempBlockEffect().run(ctx("COLUMN"), sink); // height 2 → 2
         verify(sink, times(2)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean());
+    }
+
+    @Test
+    void skipsATargetWhoseLocationReadFaults() {
+        LivingEntity remote = mock(LivingEntity.class); // @Attacker on a DEFENSE trigger can be a cross-region shooter
+        when(remote.getLocation()).thenThrow(new IllegalStateException("wrong region"));
+        FakeEffectCtx ctx = FakeEffectCtx.create()
+                .with("shape", "POINT").with("material", 7).with("ticks", 60)
+                .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .targets("who", remote);
+        Sink sink = mock(Sink.class);
+
+        new TempBlockEffect().run(ctx, sink); // the thrown remote read is swallowed, not propagated
+
+        verifyNoInteractions(sink);
     }
 }

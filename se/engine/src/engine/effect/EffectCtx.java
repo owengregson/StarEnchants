@@ -8,8 +8,9 @@ import schema.spec.Args;
 
 /**
  * Read-only context one effect activation runs against (§3.5, §7): typed args, actors, and pre-resolved
- * selector targets, no parsing on the hot path. Everything reachable here is the firing-thread actor or a
- * snapshot-safe value — an effect never touches a live cross-region entity itself (§3.4).
+ * selector targets, no parsing on the hot path. On a combat pass the {@link #actor()}/{@link #victim()}
+ * handles may be cross-region (the resolved projectile shooter): positional actor state must come from
+ * {@link #actorOrigin()} (ADR-0043), and any per-target live read must be {@code Regions}-guarded (ADR-0042).
  */
 public interface EffectCtx {
 
@@ -34,6 +35,20 @@ public interface EffectCtx {
 
     /** The relevant block/area location (e.g. an AoE centre), or {@code null}. */
     Location location();
+
+    /**
+     * The actor's feet at activation — the ADR-0043 origin snapshot as a fresh Location (x/y/z, yaw/pitch,
+     * world) — or {@code null} when uncaptured (kind not flagged via {@code EffectSpec.actorOrigin()}, no
+     * actor, or the guarded cross-region capture failed). Fresh per call: hoist out of per-target loops.
+     */
+    default Location actorOrigin() {
+        return null;
+    }
+
+    /** The actor's eye point at activation (origin + captured eye height), or {@code null} as {@link #actorOrigin()}. */
+    default Location actorOriginEye() {
+        return null;
+    }
 
     /**
      * The living entities resolved for the named target slot (declared via

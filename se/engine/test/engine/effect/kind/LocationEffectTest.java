@@ -2,6 +2,7 @@ package engine.effect.kind;
 
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -128,6 +129,15 @@ class LocationEffectTest {
                     verify(sink).explode(loc, 4.0, false);
                     verifyNoMoreInteractions(sink);
                 }),
+                dynamicTest("EXPLODE skips a target whose location read faults → no-op (guarded)", () -> {
+                    LivingEntity remote = mock(LivingEntity.class); // @Attacker on a DEFENSE trigger can be cross-region
+                    when(remote.getLocation()).thenThrow(new IllegalStateException("wrong region"));
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("power", 4.0).with("breakBlocks", false).targets("who", remote);
+                    Sink sink = mock(Sink.class);
+                    new ExplodeEffect().run(ctx, sink); // the thrown remote read is swallowed, not propagated
+                    verifyNoInteractions(sink);
+                }),
                 dynamicTest("GUARD → guard(attacker, at, type, count, ttl, name)", () -> {
                     Location at = mock(Location.class);
                     LivingEntity attacker = mock(LivingEntity.class);
@@ -188,6 +198,29 @@ class LocationEffectTest {
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 7, 1, 200, 0.0, null);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_ENTITY on the actor spawns at the origin snapshot", () -> {
+                    Player self = mock(Player.class); // @Self resolves the actor into the "who" slot
+                    Location loc = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 5).with("count", 1).with("ttl", 0).with("health", 0.0)
+                            .with("owner", "none").actor(self).actorOrigin(loc).targets("who", self);
+                    Sink sink = mock(Sink.class);
+                    new SpawnEntityEffect().run(ctx, sink);
+                    verify(sink).spawnEntity(loc, 5, 1, 0, 0.0, null);
+                    verify(self, never()).getLocation(); // the snapshot is the sole actor read
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_ENTITY on the actor with no origin → activation-location fallback", () -> {
+                    Player self = mock(Player.class);
+                    Location fallback = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 7).with("count", 1).with("ttl", 0).with("health", 0.0)
+                            .with("owner", "none").actor(self).targets("who", self).location(fallback);
+                    Sink sink = mock(Sink.class);
+                    new SpawnEntityEffect().run(ctx, sink); // actor target skipped (no origin) → any=false → fallback
+                    verify(sink).spawnEntity(fallback, 7, 1, 0, 0.0, null);
                     verifyNoMoreInteractions(sink);
                 }));
     }

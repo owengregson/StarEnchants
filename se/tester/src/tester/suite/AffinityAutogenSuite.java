@@ -50,6 +50,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import platform.caps.Capabilities;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -57,6 +58,7 @@ import schema.spec.Param;
 import schema.spec.ParamType;
 import tester.fake.FakePlayers;
 import tester.harness.CombatRig;
+import tester.harness.CrossRegion;
 import tester.harness.Harness;
 
 /**
@@ -69,41 +71,35 @@ import tester.harness.Harness;
  * shape only a wrong-thread bug (an effect that touches an entity off its owning region) breaks.
  *
  * <p><strong>Why this staging.</strong> Mirrors {@link CrossRegionTeleportSuite}: the attacker sits at world
- * spawn (region A), each victim is a cow {@value #REGION_GAP} blocks away (region B), and the hit is fired on
+ * spawn (region A), each victim is a cow {@value CrossRegion#GAP} blocks away (region B), and the hit is fired on
  * the victim's region thread — where Folia delivers a real combat event. So a {@code @Self}-targeted intent
- * must hop B&rarr;A through the Sink; an effect that instead reads the (remote) actor inline throws on Folia,
- * is caught by the executor, and lands in the {@link AbilityQuarantine} — the fault channel this suite reads.
- * On Paper the two chunks share the one thread, so this is still a smoke of the whole dispatch path.
+ * must hop B&rarr;A through the Sink; kinds capture the actor origin at dispatch (ADR-0043), so a remote actor
+ * is never read in {@code run()}, and a wrong-thread intent that still faults is caught by the executor and
+ * lands in the {@link AbilityQuarantine} — the fault channel this suite reads. On Paper the two chunks share
+ * the one thread, so this is still a smoke of the whole dispatch path. The distinctness of the two regions is
+ * asserted on Folia (see {@code affinity.autogen.staging}), not merely assumed from the block gap.
  *
- * <p><strong>Skip list.</strong> {@link #SKIPS} names the non-local kinds that genuinely cannot run in this
- * staging (each reads a remote actor's live location in {@code run()}, so a cross-region firing thread would
- * fault). Every skip is PRINTED, and the suite asserts {@code non-local kinds == checks + skips} so a future
- * kind can never be silently dropped from Folia coverage.
+ * <p><strong>Skip list.</strong> {@link #SKIPS} names non-local kinds that cannot be synthesised as a check;
+ * post-ADR-0043 it is empty and the only remaining skips are dynamic (a kind whose args cannot be derived from
+ * its ParamSpec). Every skip is PRINTED, and the suite asserts {@code non-local kinds == checks + skips} so a
+ * future kind can never be silently dropped from Folia coverage.
  */
 public final class AffinityAutogenSuite implements Harness.Scenario {
 
-    /** Kinds that cannot be synthesised as a cross-region check, mapped to the reason (all PRINTED at run). */
+    /**
+     * Static skips: non-local kinds that cannot be synthesised as a cross-region check, mapped to the reason
+     * (all PRINTED at run). Empty since ADR-0043 (the five actor-reading kinds now capture the origin at
+     * dispatch, so they run cross-region); retained as the seam for any future genuinely-unstageable kind.
+     */
     private static final Map<String, String> SKIPS = new LinkedHashMap<>();
-
-    static {
-        String actorLoc = "reads the @Self target's live location (who.getLocation()) in run(); requires the "
-                + "actor local to the firing thread, so it cannot be exercised with a cross-region actor";
-        SKIPS.put("PARTICLE_RING", actorLoc);
-        SKIPS.put("WALKER", actorLoc);
-        SKIPS.put("SPAWN_ENTITY", actorLoc);
-        SKIPS.put("PARTICLE_LINE", "reads the actor's live location in run() to anchor the tether; requires the "
-                + "actor local to the firing thread");
-        SKIPS.put("TELEPORT_BEHIND", "reads the actor's eye-location in run() to compute the blink vector; "
-                + "cannot run when actor and victim occupy different regions");
-    }
 
     private static final Set<Affinity> NON_LOCAL = EnumSet.of(Affinity.TARGET_ENTITY, Affinity.REGION, Affinity.AOE);
 
-    /** {@value} blocks (32 chunks): comfortably a distinct Folia region from world spawn (as in the teleport suite). */
-    private static final int REGION_GAP = 512;
-
     /** Ticks between successive kinds — lets a kind's deferred (hopped) intents settle before the next hit. */
     private static final long STEP_TICKS = 2L;
+
+    /** The Folia-only assertion that the staged attacker and victim really sit in distinct regions (ADR-0043). */
+    private static final String STAGING = "affinity.autogen.staging";
 
     private final Plugin plugin;
 
@@ -168,6 +164,9 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
         }
         for (Firing firing : firings) {
             h.expect("affinity.autogen." + firing.head());
+        }
+        if (!firings.isEmpty()) {
+            h.expect(STAGING); // resolved on the first hit, once both regions are staged
         }
 
         plugin.getLogger().info("[affinity-autogen] non-local kinds=" + nonLocal.size()
@@ -347,7 +346,7 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             rig.listen(new CombatListener(dispatch));
             this.world = plugin.getServer().getWorlds().get(0);
             this.attackerAt = world.getSpawnLocation();
-            this.victimAt = attackerAt.clone().add(REGION_GAP, 0, REGION_GAP);
+            this.victimAt = attackerAt.clone().add(CrossRegion.GAP, 0, CrossRegion.GAP);
         }
 
         void start() {
@@ -390,6 +389,23 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
         }
 
         private void fireOnVictimRegion(int index, Firing firing, String check) {
+            if (index == 0) {
+                // Now on the victim's region thread: prove the (region-A) attacker is NOT owned by it, i.e. the
+                // CrossRegion.GAP really did stage two distinct Folia regions. Assumed before ADR-0043; asserted now.
+                if (!Capabilities.foliaPresent()) {
+                    plugin.getLogger().info("[affinity-autogen] single-threaded Paper — distinct-region staging not applicable");
+                    h.pass(STAGING);
+                } else {
+                    Boolean owned = CrossRegion.ownedByCurrentRegion(attacker);
+                    if (Boolean.TRUE.equals(owned)) {
+                        h.fail(STAGING, "attacker and victim collapsed into one region — cross-region staging is void");
+                    } else if (owned == null) {
+                        h.fail(STAGING, "cannot verify region ownership — the ownership API is absent on this Folia build");
+                    } else {
+                        h.pass(STAGING);
+                    }
+                }
+            }
             LivingEntity cow;
             try {
                 cow = rig.spawn(world, victimAt, EntityType.COW, LivingEntity.class);

@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /**
@@ -61,7 +62,13 @@ public final class TempBlockEffect implements EffectKind {
         // replace anything (mode 2, captured + restored on revert).
         int mode = airOnly ? 0 : (footprint ? 3 : 2);
         for (LivingEntity who : ctx.targets("who")) {
-            Location base = who.getLocation();
+            Location base;
+            try {
+                base = who.getLocation(); // T.VICTIM, but @Attacker on a DEFENSE trigger can be a cross-region shooter (ADR-0043)
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("TempBlockEffect.target", unreadable);
+                continue;
+            }
             World world = base.getWorld();
             if (world == null) {
                 continue;
