@@ -1,6 +1,5 @@
 package bootstrap;
 
-import bootstrap.compat.Bridges;
 import compile.Compiler;
 import compile.load.ContentHolder;
 import compile.load.ItemsHolder;
@@ -146,7 +145,7 @@ import schema.diag.Source;
 /**
  * The composition root (ADR-0014; §3): probe → install scheduling → load content → wire the combat
  * spine and feature listeners. One retained {@link RegistryResolvers} pairs compile-time interning with
- * the runtime resolver (§9; the modern/legacy split lives behind the {@code bootstrap.compat.Wiring} seam);
+ * the runtime resolver (§9; the modern/legacy split lives behind the {@code bootstrap.compat.EraBindings} seam);
  * reusing one compiler across reloads is safe — reload is single-flight.
  */
 public final class StarEnchantsPlugin extends JavaPlugin {
@@ -199,19 +198,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Same resolver instance every build (the §9 handle round-trip depends on it); only the effect spec
         // set changes as add-ons register, so a fresh compiler per reload is safe.
         Compiler compiler = ContentCompiler.production(resolvers, effectRegistry.get());
-        // Runtime resolver wiring (modern RuntimeHandles vs legacy NMS-by-name) lives behind the overlay seam.
-        bootstrap.compat.Wiring wiring = new bootstrap.compat.Wiring(resolvers);
-        feature.fx.ParticleFx particleFx = wiring.particleFx();
+        // The era bindings (ADR-0044): the one seam carrying every version-specific service — modern RuntimeHandles
+        // + :integrate bridges + raytrace, vs the legacy NMS edges + neutral integration defaults + the gear poll.
+        bootstrap.compat.EraServices bindings = new bootstrap.compat.EraBindings(resolvers);
+        feature.fx.ParticleFx particleFx = bindings.particleFx();
         // The physical item-data layer (§4.2, ADR-0044): era store (modern PDC / legacy NBT) injected into every
-        // codec + the lore renderer, off the version-specific Wiring seam (the interim bindings).
-        item.codec.ItemStateStore store = wiring.itemStateStore();
+        // codec + the lore renderer, off the era bindings.
+        item.codec.ItemStateStore store = bindings.itemStateStore();
         // The feature.compat era seams (§4, ADR-0044): hand access, drop suppression, projectile typing, and
-        // sound playback — each era-selected off the Wiring seam and ctor-injected into the feature shells.
-        feature.compat.Hands hands = wiring.hands();
-        feature.compat.DropControl dropControl = wiring.dropControl();
-        feature.compat.Projectiles projectiles = wiring.projectiles();
-        feature.compat.Sounds sounds = wiring.sounds();
-        feature.scroll.AnvilRename anvilRename = wiring.anvilRename(); // §I nametag rename (§4 era seam)
+        // sound playback — each era-selected off the bindings and ctor-injected into the feature shells.
+        feature.compat.Hands hands = bindings.hands();
+        feature.compat.DropControl dropControl = bindings.dropControl();
+        feature.compat.Projectiles projectiles = bindings.projectiles();
+        feature.compat.Sounds sounds = bindings.sounds();
+        feature.scroll.AnvilRename anvilRename = bindings.anvilRename(); // §I nametag rename (§4 era seam)
 
         Library initial = loadInitial(compiler, contentRoot);
         content = new ContentHolder(initial);
@@ -231,7 +231,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().messages().prefix(),
                 () -> master.config().messages().feedback(),
                 // §N PlaceholderAPI passthrough (ADR-0027): resolve other plugins' %…% when present, else identity.
-                Bridges.placeholderResolver(this, master.config().integrations()::enabled));
+                bindings.placeholderResolver(this, master.config().integrations()::enabled));
 
         MenusHolder menusHolder = new MenusHolder(MenusLoader.load(menusRoot));
 
@@ -239,7 +239,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), store);
         ItemViewCache itemViews = new ItemViewCache(codec, initial.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
-        WornResolver wornResolver = new WornResolver(wiring.equipSource(), itemViews, triggers.count(),
+        WornResolver wornResolver = new WornResolver(bindings.equipSource(), itemViews, triggers.count(),
                 triggers.attackTriggers(), triggers.defenseTriggers(),
                 () -> {                                            // §L per-feature master toggles (live)
                     MasterConfig.FeaturesSection ff = master.config().features();
@@ -352,7 +352,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Heroic upgrades (§F).
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade(), store);
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
-                () -> items.config().heroicOrDefault(), rolls, messages, itemGroups, wiring.vanillaStats());
+                () -> items.config().heroicOrDefault(), rolls, messages, itemGroups, bindings.vanillaStats());
 
         // Slot economy (§H). base MUST match the ItemEnchanter default so the cap is computed off the same base.
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess(), store);
@@ -392,7 +392,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 new SoulCodec(ItemKeys.of().soul(), store), () -> items.config().soulGemOrDefault(),
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx, hands, sounds); // §D deposit + §L msgs + particles + §4 seams
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
-        Bridges.registerPlaceholders(this, master.config().integrations()::enabled,
+        bindings.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),
                 // §D total souls across ALL carried gems (cached on the holder thread each tick — thread-safe here)
                 player -> soulService.soulTotal(player.getUniqueId()));
@@ -413,7 +413,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         List<ProtectionProvider> protectionProviders = new ArrayList<>();
         if (master.config().integrations().protection()) {
             protectionProviders.addAll(
-                    Bridges.protectionProviders(this, master.config().integrations()::enabled));
+                    bindings.protectionProviders(this, master.config().integrations()::enabled));
             protectionProviders.addAll(
                     ProtectionProviders.discover(getServer(), System.getLogger("StarEnchants.Protection")));
         } // §L config.yml integrations.protection: false → gate against none
@@ -434,7 +434,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().messageOnActivate(), content);
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
                 new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard, ActivationPipeline.Guard.ALLOW),
-                areaScan(), (key, ability, context) -> {
+                areaScan(bindings), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked
                     }
@@ -448,7 +448,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Economy bridge for MODIFY_MONEY (global thread): bundled Vault (§N, ADR-0027) → ServicesManager → no-ops.
         EconomyService economy;
         if (master.config().integrations().economy()) {
-            EconomyProvider bundled = Bridges.economyProvider(this, master.config().integrations()::enabled);
+            EconomyProvider bundled = bindings.economyProvider(this, master.config().integrations()::enabled);
             economy = bundled != null
                     ? new EconomyService(bundled)
                     : EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"));
@@ -464,21 +464,21 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §N soft integration hooks (ADR-0027), set once at boot, no-op when the target is absent — each a
         // reflective seam so the engine keeps no hard dep on these plugins:
         // anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT,
-        engine.sink.DispatchSinkBase.movementExemption(Bridges.antiCheatExemption(
+        engine.sink.DispatchSinkBase.movementExemption(bindings.antiCheatExemption(
                 this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat")));
         // mcMMO friendly-fire gate,
-        CombatDispatch.friendlyFire(Bridges.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
+        CombatDispatch.friendlyFire(bindings.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
         // %victim.mobtype% from MythicMobs' internal name,
         engine.run.FactPopulator.entityTypeResolver(
-                Bridges.mythicMobType(this, master.config().integrations()::enabled));
+                bindings.mythicMobType(this, master.config().integrations()::enabled));
         // itemsadder:… / oraxen:… custom-item materials in item/menu configs.
         item.mint.ItemFactory.customItemResolver(
-                Bridges.customItem(this, master.config().integrations()::enabled));
+                bindings.customItem(this, master.config().integrations()::enabled));
         // §L universal economy-item lore wrap width (lore.item-wrap), read live so a /se reload re-tunes it.
         item.mint.ItemFactory.itemWrapWidth(() -> master.config().lore().itemWrap());
         // §6.6 set-piece base enchants (Protection/Unbreaking/Sharpness) resolve cross-version behind the seam.
-        item.mint.ItemFactory.enchantResolver(wiring.enchantResolver());
-        CombatDispatch dispatch = new CombatDispatch(executor, wiring.sinkFactory(), wiring.actorProbe(), content, worn,
+        item.mint.ItemFactory.enchantResolver(bindings.enchantResolver());
+        CombatDispatch dispatch = new CombatDispatch(executor, bindings.sinkFactory(), bindings.actorProbe(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1),
                 soulService::bindingFor, sinkEnv, new CombatDispatch.Caps(
@@ -487,7 +487,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
                         () -> master.config().combat().pve()), projectiles);      // §L combat.pve gate (live) + §4 projectile typing
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
-        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, wiring.sinkFactory(), wiring.actorProbe(), content, worn, triggers,
+        TriggerDispatch triggerDispatch = new TriggerDispatch(executor, bindings.sinkFactory(), bindings.actorProbe(), content, worn, triggers,
                 soulService::bindingFor, sinkEnv, hands, dropControl);
         // §B REPEATING: one entity-owned repeating task per (player, ability), armed/torn-down by EquipListener.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
@@ -521,7 +521,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         EquipListener equipListener =
                 new EquipListener(worn, content, passives, lifecycle, passiveEffects, setMessages);
         getServer().getPluginManager().registerEvents(equipListener, this);
-        getServer().getPluginManager().registerEvents(wiring.armourChangeFeeder(equipListener), this);
+        getServer().getPluginManager().registerEvents(bindings.armourChangeFeeder(equipListener), this);
         // §B instant DISABLE: when a player is suppressed, drop their now-disabled passive buffs at once and
         // schedule their restore at the window's end (the periodic sweep is only the safety net).
         stores.suppression().onSuppress((playerId, durationTicks) -> {
@@ -542,7 +542,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope()), hands), this); // §F reduction-scope
         // ITEM_DAMAGE source (§4): the modern PlayerItemDamageEvent listener; on 1.8 an inert listener (the gear
         // poll fires ITEM_DAMAGE off-event).
-        getServer().getPluginManager().registerEvents(wiring.itemDamageSource(triggerDispatch), this);
+        getServer().getPluginManager().registerEvents(bindings.itemDamageSource(triggerDispatch), this);
         // A landing FALLING_BLOCK fires the IMPACT trigger on whoever it hit (druid Terrablender grass rain).
         getServer().getPluginManager().registerEvents(
                 new feature.combat.FallingBlockListener(triggerDispatch), this);
@@ -559,7 +559,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TeleblockListener(stores.teleblock(), tick::get), this);
         getServer().getPluginManager().registerEvents(new ImmuneListener(stores.immune(), tick::get, hands), this);
         // §C KNOCKBACK_CONTROL: capability-probed onto modern-bukkit or legacy destroystokyo; inert on neither.
-        KnockbackListener.Path knockbackPath = wiring.registerKnockback(this, stores.knockback(), tick::get);
+        KnockbackListener.Path knockbackPath = bindings.registerKnockback(this, stores.knockback(), tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
         // §N (ADR-0026): Mental OWNS player knockback, so the vanilla applier is discarded for players; bind
         // its KnockbackApplyEvent so KNOCKBACK_CONTROL composes onto Mental's vector instead of being lost.
@@ -601,7 +601,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
         // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events (§4: the
         // modern per-event save; on 1.8 an inert listener — the gear poll restores the lost durability post-hoc).
-        getServer().getPluginManager().registerEvents(wiring.heroicDurabilitySave(codec, rolls), this);
+        getServer().getPluginManager().registerEvents(bindings.heroicDurabilitySave(codec, rolls), this);
 
         // Arm players already online (a plugin /reload with players on); a fresh boot has none. Normal joins
         // are armed by EquipListener via PlayerJoinEvent.
@@ -708,7 +708,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // ADR-0030 user entry: /enchants opens the player hub (open to all; the hub's targets are perm-free).
         // Registered on the server command map like /splitsouls, so it needs no plugin.yml command entry.
         try {
-            bootstrap.compat.Commands.register(getServer(), "starenchants",
+            bindings.registerCommand(getServer(), "starenchants",
                     new UserMenuCommand("enchants", menus, messages));
         } catch (Throwable t) {
             getLogger().log(Level.WARNING, "could not register /enchants (use /se menu hub instead)", t);
@@ -732,7 +732,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §D /splitsouls — a top-level alias for /se split (the soul gem's lore advertises it). Registered on
         // the server command map like the command-trigger, so it needs no plugin.yml entry.
         try {
-            bootstrap.compat.Commands.register(getServer(), "starenchants",
+            bindings.registerCommand(getServer(), "starenchants",
                     new feature.soul.SplitSoulsCommand("splitsouls", soulService, messages));
         } catch (Throwable t) {
             getLogger().log(Level.WARNING, "could not register /splitsouls (use /se split instead)", t);
@@ -743,7 +743,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         var commandTrigger = master.config().commandTrigger();
         if (commandTrigger.enabled()) {
             try {
-                bootstrap.compat.Commands.register(getServer(), "starenchants", new CommandTriggerCommand(
+                bindings.registerCommand(getServer(), "starenchants", new CommandTriggerCommand(
                         commandTrigger.name(), commandTrigger.description(), triggerDispatch,
                         messages.format("command.not-a-player")));
                 getLogger().info("command-trigger registered: /" + commandTrigger.name());
@@ -794,9 +794,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
     /**
      * The world-access seam for selectors (§3.6). All run synchronously on the firing thread, so each
-     * touch is region-correct on Folia.
+     * touch is region-correct on Folia. {@code bindings} supplies the era targeting (modern raytrace / 1.8 LOS).
      */
-    private static AreaScan areaScan() {
+    private static AreaScan areaScan(bootstrap.compat.EraServices bindings) {
         return new AreaScan() {
             @Override
             public Iterable<LivingEntity> nearbyLiving(Location center, double radius) {
@@ -822,7 +822,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 if (from == null) {
                     return null;
                 }
-                Entity hit = bootstrap.compat.Targets.targetEntity(from, (int) Math.ceil(maxDistance));
+                Entity hit = bindings.targetEntity(from, (int) Math.ceil(maxDistance));
                 return hit instanceof LivingEntity living ? living : null;
             }
 
@@ -831,7 +831,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 if (from == null) {
                     return null;
                 }
-                org.bukkit.block.Block block = bootstrap.compat.Targets.targetBlock(from, (int) Math.ceil(maxDistance));
+                org.bukkit.block.Block block = bindings.targetBlock(from, (int) Math.ceil(maxDistance));
                 return block == null ? null : block.getLocation();
             }
 

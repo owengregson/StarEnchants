@@ -31,80 +31,109 @@ import item.codec.ItemStateStore;
 import item.codec.NbtItemStateStore;
 import item.worn.EquipSource;
 import item.worn.LegacyEquipSource;
-import java.util.Locale;
+import java.util.List;
 import java.util.Random;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
+import org.bukkit.Server;
+import org.bukkit.block.Block;
+import org.bukkit.command.Command;
+import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import platform.economy.EconomyProvider;
+import platform.protect.ProtectionProvider;
 import platform.resolve.RegistryResolvers;
 
 /**
- * Legacy (1.8.9) composition wiring — same-FQN counterpart to the {@code overlay/modern} impl. 1.8 has no
- * {@code RuntimeHandles} (it casts to Particle/Attribute): the legacy {@code DispatchSinkFactory} takes the
- * {@code RenameResolvers} directly (the legacy DispatchSink resolves ids to NMS by name), and the legacy
- * {@code ParticleFx} is the no-arg NMS-packet impl (docs/legacy-1.8.9-codeshare-design.md §4).
+ * Legacy (1.8.9) era bindings (ADR-0044): the one same-FQN {@code bootstrap} twin, implementing
+ * {@link EraServices}. 1.8 has no {@code RuntimeHandles} (its DispatchSink resolves ids to NMS by name) and no
+ * {@code :integrate} bridges (their plugin APIs are modern-Bukkit-typed), so the integration methods return the
+ * SAME neutral defaults {@code Integrations} yields when a plugin is absent — and every bridged plugin is
+ * modern-only, so it can never be installed on 1.8. It owns the 1.8 edges: the one {@link LegacyGearPoll}, the
+ * NMS knockback applier, the {@link LegacyTargets} line-of-sight scan, the {@code CraftServer} command-map cast,
+ * and the {@link LegacyEnchantResolver} pre-1.13 name mapping (docs/legacy-1.8.9-codeshare-design.md §4/§6).
  */
-public final class Wiring {
+public final class EraBindings implements EraServices {
 
     private final RegistryResolvers resolvers;
     // §6 the ONE legacy per-tick gear poll: the three era feeders attach their subscribers to it (ADR-0044).
-    private final LegacyGearPoll gearPoll = new LegacyGearPoll();
+    private final LegacyGearPoll gearPoll;
 
-    public Wiring(RegistryResolvers resolvers) {
+    public EraBindings(RegistryResolvers resolvers) {
         this.resolvers = resolvers;
+        this.gearPoll = new LegacyGearPoll();
     }
 
+    @Override
     public ParticleFx particleFx() {
         return new LegacyParticleFx();
     }
 
+    @Override
     public SinkFactory sinkFactory() {
         return env -> new LegacyDispatchSink(resolvers, env); // RegistryResolvers is a RenameResolvers
     }
 
     /** The physical item-data layer (§4.2): 1.8 NMS tags. Injected into every codec + the lore renderer. */
+    @Override
     public ItemStateStore itemStateStore() {
         return new NbtItemStateStore();
     }
 
     /** The worn/held equipment read (§3.3): 1.8 5-slot (main hand only). Injected into {@code WornResolver}. */
+    @Override
     public EquipSource equipSource() {
         return new LegacyEquipSource();
     }
 
     /** The entity/material fact reads (§3.3): 1.8-correct swim/glide/isAir/main-hand. Injected into {@code FactPopulator}. */
+    @Override
     public ActorProbe actorProbe() {
         return new LegacyActorProbe();
     }
 
     /** Hand/equipment access (§4): the single 1.8 hand (no off-hand). Injected into the feature shells. */
+    @Override
     public Hands hands() {
         return new LegacyHands();
     }
 
     /** Block-break drop suppression (§4): 1.8 cancel + clear (no {@code setDropItems}). Injected into {@code MineDrops}. */
+    @Override
     public DropControl dropControl() {
         return new LegacyDropControl();
     }
 
     /** Projectile-type routing (§4): 1.8 {@code Arrow} only. Injected into the combat router. */
+    @Override
     public Projectiles projectiles() {
         return new LegacyProjectiles();
     }
 
     /** Sound playback (§4): the shared resolver; 1.8 has no String overload, so key-form sounds are skipped. */
+    @Override
     public Sounds sounds() {
         return new Sounds(KeySoundFallback.NONE);
     }
 
     /** §F heroic vanilla stats (§4): 1.8 has no attribute API — keep the plugin-maths fold. Into {@code HeroicService}. */
+    @Override
     public VanillaStats vanillaStats() {
         return VanillaStats.NONE;
     }
 
     /** §I nametag rename (§4): 1.8 has no live anvil-rename field — chat capture. Into {@code NametagListener}. */
+    @Override
     public AnvilRename anvilRename() {
         return AnvilRename.UNSUPPORTED;
     }
@@ -113,18 +142,21 @@ public final class Wiring {
      * §C KNOCKBACK_CONTROL (§4): 1.8 fires no Paper knockback event, so the {@link NmsKnockbackApplier}
      * (knockback-resistance at the NMS source) is always the applier. Returns {@link KnockbackListener.Path#LEGACY}.
      */
+    @Override
     public KnockbackListener.Path registerKnockback(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks) {
         plugin.getServer().getPluginManager().registerEvents(new NmsKnockbackApplier(store, nowTicks), plugin);
         return KnockbackListener.Path.LEGACY;
     }
 
     /** §B armour-change source (§4/§6): the gear-poll armour-signature delta drives refresh; close is the backup. */
+    @Override
     public Listener armourChangeFeeder(EquipListener equip) {
         gearPoll.refreshEquip(equip::refresh);
         return new LegacyArmourCloseListener(equip);
     }
 
     /** ITEM_DAMAGE source (§4/§6): the gear-poll durability-rise subscriber fires it; no Bukkit event on 1.8. */
+    @Override
     public Listener itemDamageSource(TriggerDispatch dispatch) {
         gearPoll.fireItemDamage(player -> dispatch.fire(player, dispatch.itemDamage,
                 new ActivationContext(player, null, null, player.getLocation()), null));
@@ -132,29 +164,73 @@ public final class Wiring {
     }
 
     /** §F heroic durability save (§4/§6): the gear-poll heroic subscriber restores the lost durability post-hoc. */
+    @Override
     public Listener heroicDurabilitySave(CombatCodec codec, Random rolls) {
         gearPoll.heroicSave(new LegacyHeroicSave(codec, rolls));
         return NoopListener.INSTANCE;
     }
 
-    /**
-     * §6.6 set-piece base enchants: resolve a modern canonical enchant name to a 1.8 {@link Enchantment}. 1.8
-     * uses the pre-1.13 spelling ({@code PROTECTION} → {@code PROTECTION_ENVIRONMENTAL}, {@code UNBREAKING} →
-     * {@code DURABILITY}, {@code SHARPNESS} → {@code DAMAGE_ALL}), so the modern name is mapped before the
-     * {@code getByName} lookup. Miss → {@code null}.
-     */
-    @SuppressWarnings("deprecation") // Enchantment.getByName is the 1.8 lookup (deprecated-not-removed)
+    /** §6.6 set-piece base enchants: the pre-1.13 name mapping lives in {@link LegacyEnchantResolver}. */
+    @Override
     public Function<String, Enchantment> enchantResolver() {
-        return name -> {
-            String n = name == null ? "" : name.toUpperCase(Locale.ROOT);
-            String legacy = switch (n) {
-                case "PROTECTION" -> "PROTECTION_ENVIRONMENTAL";
-                case "UNBREAKING" -> "DURABILITY";
-                case "SHARPNESS" -> "DAMAGE_ALL";
-                default -> n;
-            };
-            Enchantment byLegacy = Enchantment.getByName(legacy);
-            return byLegacy != null ? byLegacy : Enchantment.getByName(n);
-        };
+        return new LegacyEnchantResolver();
+    }
+
+    // ── integration bridges: :integrate is EXCLUDED from the 1.8 tree, so return the neutral defaults ──
+    @Override
+    public BiFunction<Player, String, String> placeholderResolver(Plugin plugin, Predicate<String> enabled) {
+        return (player, text) -> text; // identity: no PlaceholderAPI on 1.8
+    }
+
+    @Override
+    public void registerPlaceholders(Plugin plugin, Predicate<String> enabled,
+                                     Predicate<Player> soulMode, ToIntFunction<Player> souls) {
+        // no PlaceholderAPI on 1.8 — nothing to register
+    }
+
+    @Override
+    public List<ProtectionProvider> protectionProviders(Plugin plugin, Predicate<String> enabled) {
+        return List.of();
+    }
+
+    @Override
+    public EconomyProvider economyProvider(Plugin plugin, Predicate<String> enabled) {
+        return null; // no Vault bridge on 1.8; the ServicesManager discovery path still runs
+    }
+
+    @Override
+    public Consumer<Player> antiCheatExemption(Plugin plugin, Predicate<String> enabled, System.Logger log) {
+        return player -> { };
+    }
+
+    @Override
+    public BiPredicate<Player, Player> mcmmoFriendlyFire(Plugin plugin, Predicate<String> enabled) {
+        return (attacker, victim) -> false;
+    }
+
+    @Override
+    public Function<Entity, String> mythicMobType(Plugin plugin, Predicate<String> enabled) {
+        return entity -> "";
+    }
+
+    @Override
+    public Function<String, ItemStack> customItem(Plugin plugin, Predicate<String> enabled) {
+        return material -> null;
+    }
+
+    // ── targeting (1.8 line-of-sight scan) + dynamic commands (CraftServer command map) ──
+    @Override
+    public Entity targetEntity(Player from, int maxDistance) {
+        return LegacyTargets.targetEntity(from, maxDistance);
+    }
+
+    @Override
+    public Block targetBlock(Player from, int maxDistance) {
+        return LegacyTargets.targetBlock(from, maxDistance);
+    }
+
+    @Override
+    public void registerCommand(Server server, String fallbackPrefix, Command command) {
+        ((CraftServer) server).getCommandMap().register(fallbackPrefix, command);
     }
 }
