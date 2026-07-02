@@ -29,15 +29,17 @@ public final class TriggerListeners implements Listener {
 
     private final TriggerDispatch dispatch;
     private final java.util.function.BooleanSupplier heroicAllScope; // §F: reduction-scope == ALL (live)
+    private final Hands hands;
 
     /** Default form: heroic reduction is ENTITY-scoped (environmental damage gets no heroic reduction). */
-    public TriggerListeners(TriggerDispatch dispatch) {
-        this(dispatch, () -> false);
+    public TriggerListeners(TriggerDispatch dispatch, Hands hands) {
+        this(dispatch, () -> false, hands);
     }
 
-    public TriggerListeners(TriggerDispatch dispatch, java.util.function.BooleanSupplier heroicAllScope) {
+    public TriggerListeners(TriggerDispatch dispatch, java.util.function.BooleanSupplier heroicAllScope, Hands hands) {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
         this.heroicAllScope = Objects.requireNonNull(heroicAllScope, "heroicAllScope");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -102,7 +104,7 @@ public final class TriggerListeners implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent event) {
-        if (!Hands.isMainHand(event)) {
+        if (!hands.isMainHand(event)) {
             return; // one fire per interaction — the off-hand pass is a duplicate of the same click
         }
         Player player = event.getPlayer();

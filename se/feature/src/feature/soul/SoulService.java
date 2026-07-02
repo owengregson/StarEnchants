@@ -56,6 +56,8 @@ public final class SoulService implements SoulDebit, SoulSpender {
     private final java.util.function.BooleanSupplier depositOnAnyKill; // read live so a reload can flip it (§D)
     private final platform.lang.Messages messages;
     private final feature.fx.ParticleFx particles; // on-activate/deactivate spawns; the aura is SoulParticleDriver
+    private final Hands hands;   // main-hand gem read (§4 era seam)
+    private final Sounds sounds; // toggle/use cue playback (§4 era seam)
     // §D per-player TOTAL souls across all carried gems, refreshed on the holder thread each maintain() tick;
     // read by the PAPI feed (in-memory, thread-safe — never a cross-region inventory read).
     private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
@@ -63,7 +65,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
     /** Particles are the on-activate/deactivate spawns; {@code depositOnAnyKill} gates deposit-on-any-kill. */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
-                       feature.fx.ParticleFx particles) {
+                       feature.fx.ParticleFx particles, Hands hands, Sounds sounds) {
         this.pool = Objects.requireNonNull(pool, "pool");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
@@ -71,6 +73,8 @@ public final class SoulService implements SoulDebit, SoulSpender {
         this.depositOnAnyKill = Objects.requireNonNull(depositOnAnyKill, "depositOnAnyKill");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.particles = Objects.requireNonNull(particles, "particles");
+        this.hands = Objects.requireNonNull(hands, "hands");
+        this.sounds = Objects.requireNonNull(sounds, "sounds");
     }
 
     /** {@code NO_GEM}: not holding a gem. {@code NO_SOULS}: held a zero gem — toggle already played the
@@ -101,7 +105,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
             particles.spawn(player, cfg.particles().disable());
             return Toggle.DISABLED;
         }
-        SoulData held = codec.read(Hands.mainHand(player));
+        SoulData held = codec.read(hands.mainHand(player));
         if (held == null) {
             return Toggle.NO_GEM; // not a gem in hand — the command reports soul.empty
         }
@@ -127,7 +131,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
      */
     private void playSounds(Player player, List<SoundCue> cues) {
         for (SoundCue cue : cues) {
-            Sounds.play(player, player.getLocation(), cue.name(), cue.volume(), cue.pitch());
+            sounds.play(player, player.getLocation(), cue.name(), cue.volume(), cue.pitch());
         }
     }
 

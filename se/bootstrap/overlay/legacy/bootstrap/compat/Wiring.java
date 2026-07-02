@@ -4,6 +4,14 @@ import engine.run.ActorProbe;
 import engine.run.LegacyActorProbe;
 import engine.sink.LegacyDispatchSink;
 import engine.sink.SinkFactory;
+import feature.compat.DropControl;
+import feature.compat.Hands;
+import feature.compat.KeySoundFallback;
+import feature.compat.LegacyDropControl;
+import feature.compat.LegacyHands;
+import feature.compat.LegacyProjectiles;
+import feature.compat.Projectiles;
+import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import item.codec.ItemStateStore;
 import item.codec.NbtItemStateStore;
@@ -49,6 +57,26 @@ public final class Wiring {
     /** The entity/material fact reads (§3.3): 1.8-correct swim/glide/isAir/main-hand. Injected into {@code FactPopulator}. */
     public ActorProbe actorProbe() {
         return new LegacyActorProbe();
+    }
+
+    /** Hand/equipment access (§4): the single 1.8 hand (no off-hand). Injected into the feature shells. */
+    public Hands hands() {
+        return new LegacyHands();
+    }
+
+    /** Block-break drop suppression (§4): 1.8 cancel + clear (no {@code setDropItems}). Injected into {@code MineDrops}. */
+    public DropControl dropControl() {
+        return new LegacyDropControl();
+    }
+
+    /** Projectile-type routing (§4): 1.8 {@code Arrow} only. Injected into the combat router. */
+    public Projectiles projectiles() {
+        return new LegacyProjectiles();
+    }
+
+    /** Sound playback (§4): the shared resolver; 1.8 has no String overload, so key-form sounds are skipped. */
+    public Sounds sounds() {
+        return new Sounds(KeySoundFallback.NONE);
     }
 
     /**

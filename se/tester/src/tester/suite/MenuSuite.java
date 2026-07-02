@@ -105,7 +105,7 @@ public final class MenuSuite implements Harness.Scenario {
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                     () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
             // caps drives the cross-version title cap
-            menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
+            menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()), Stores.hands());
             // Admin browser (§K) — the 3-level tier → enchant → level drill-down. Use an EE-style book name
             // (bold + underline) so the guard can prove the menu icon name mirrors the book's styling.
             CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded(), Stores.state());
@@ -125,7 +125,7 @@ public final class MenuSuite implements Harness.Scenario {
             return;
         }
 
-        MenuListener listener = new MenuListener();
+        MenuListener listener = new MenuListener(Stores.hands());
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
 
         World world = plugin.getServer().getWorlds().get(0);

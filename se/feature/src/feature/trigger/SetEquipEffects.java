@@ -23,10 +23,12 @@ public final class SetEquipEffects implements SetMessageDriver.SetTransition {
 
     private final Supplier<MasterConfig.SetsSection> config;
     private final ParticleFx particles;
+    private final Sounds sounds;
 
-    public SetEquipEffects(Supplier<MasterConfig.SetsSection> config, ParticleFx particles) {
+    public SetEquipEffects(Supplier<MasterConfig.SetsSection> config, ParticleFx particles, Sounds sounds) {
         this.config = Objects.requireNonNull(config, "config");
         this.particles = Objects.requireNonNull(particles, "particles");
+        this.sounds = Objects.requireNonNull(sounds, "sounds");
     }
 
     @Override
@@ -34,7 +36,7 @@ public final class SetEquipEffects implements SetMessageDriver.SetTransition {
         MasterConfig.SetsSection cfg = config.get();
         List<SoundCue> cues = equipped ? cfg.equipSound() : cfg.unequipSound();
         for (SoundCue cue : cues) {
-            Sounds.play(player, player.getLocation(), cue.name(), cue.volume(), cue.pitch());
+            sounds.play(player, player.getLocation(), cue.name(), cue.volume(), cue.pitch());
         }
         // A multi-coloured set name (e.g. KOTH) tints its equip cloud RAINBOW — each mote a random pastel —
         // instead of a single tint; every other set keeps the resolved single-colour spec.

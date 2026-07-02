@@ -2,6 +2,7 @@ package feature.carrier;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import item.codec.CarrierCodec;
 import java.util.Objects;
@@ -19,12 +20,13 @@ public final class CarrierListener extends ApplyGestureListener {
     private final CarrierService service;
     private final CarrierCodec codec;
 
-    public CarrierListener(CarrierService service, CarrierCodec codec, Messages messages) {
-        this(service, codec, ParticleFx.NONE, messages);
+    public CarrierListener(CarrierService service, CarrierCodec codec, Messages messages, Sounds sounds) {
+        this(service, codec, ParticleFx.NONE, messages, sounds);
     }
 
-    public CarrierListener(CarrierService service, CarrierCodec codec, ParticleFx particles, Messages messages) {
-        super(messages, particles);
+    public CarrierListener(CarrierService service, CarrierCodec codec, ParticleFx particles, Messages messages,
+                           Sounds sounds) {
+        super(messages, particles, sounds);
         this.service = Objects.requireNonNull(service, "service");
         this.codec = Objects.requireNonNull(codec, "codec");
     }

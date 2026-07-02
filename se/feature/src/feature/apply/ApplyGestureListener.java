@@ -27,14 +27,16 @@ public abstract class ApplyGestureListener implements Listener {
 
     protected final Messages messages;
     private final ParticleFx particles;
+    private final Sounds sounds;
 
-    protected ApplyGestureListener(Messages messages) {
-        this(messages, ParticleFx.NONE);
+    protected ApplyGestureListener(Messages messages, Sounds sounds) {
+        this(messages, ParticleFx.NONE, sounds);
     }
 
-    protected ApplyGestureListener(Messages messages, ParticleFx particles) {
+    protected ApplyGestureListener(Messages messages, ParticleFx particles, Sounds sounds) {
         this.messages = Objects.requireNonNull(messages, "messages");
         this.particles = Objects.requireNonNull(particles, "particles");
+        this.sounds = Objects.requireNonNull(sounds, "sounds");
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -85,7 +87,7 @@ public abstract class ApplyGestureListener implements Listener {
         GestureOutcome.Cue cue = result.cue();
         if (cue != null) {
             if (cue.sound() != null) {
-                Sounds.play(player, player.getLocation(), cue.sound().name(), cue.sound().volume(), cue.sound().pitch());
+                sounds.play(player, player.getLocation(), cue.sound().name(), cue.sound().volume(), cue.sound().pitch());
             }
             if (!cue.particles().isEmpty()) {
                 particles.spawn(player, cue.particles(), 1);

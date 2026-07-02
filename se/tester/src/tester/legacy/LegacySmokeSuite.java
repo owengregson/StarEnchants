@@ -370,7 +370,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.LegacyDispatchSink(resolvers, dsEnv), new engine.run.LegacyActorProbe(), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
-                actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited());
+                actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited(), new feature.compat.LegacyProjectiles());
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
@@ -445,13 +445,13 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                     () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
             // caps drives the cross-version title cap (1.8 rejects titles > 32 chars) — already version-aware.
-            menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
+            menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()), new feature.compat.LegacyHands());
         } catch (IOException e) {
             h.fail("legacy.gui.menuApplies", e);
             return;
         }
 
-        MenuListener listener = new MenuListener();
+        MenuListener listener = new MenuListener(new feature.compat.LegacyHands());
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
 
         World world = plugin.getServer().getWorlds().get(0);

@@ -5,10 +5,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 
 /**
- * Legacy (1.8.9) clicked-inventory resolution — same-FQN counterpart to the {@code overlay/modern} impl.
- * 1.8 has no {@code InventoryClickEvent.getClickedInventory()}, so it is derived from the raw slot: a raw
- * slot inside the top inventory's size is the top, otherwise the bottom (and a negative raw slot — a click
- * outside any inventory — is none). docs/legacy-1.8.9-codeshare-design.md §4.
+ * Clicked-inventory resolution — shared across eras (ADR-0044; docs/legacy-1.8.9-codeshare-design.md §4).
+ * {@code InventoryClickEvent.getClickedInventory()} does not exist on 1.8.9, so the clicked inventory is derived
+ * from the raw slot on every era: a raw slot inside the top inventory's size is the top, otherwise the bottom
+ * (and a negative raw slot — a click outside any inventory — is none). This is exactly the mapping
+ * {@code getClickedInventory()} implements by the {@code InventoryView} contract, so the derivation is
+ * behaviour-identical on modern and correct on 1.8.
  */
 public final class MenuClicks {
 

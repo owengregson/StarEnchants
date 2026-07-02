@@ -117,7 +117,7 @@ public final class SoulSuite implements Harness.Scenario {
         SoulPool pool = new SoulPool();
         SoulService soulService = new SoulService(pool, new SoulModeStore(), soulCodec,
                 compile.load.SoulGemConfig::defaults, () -> true, platform.lang.Messages.defaults(),
-                feature.fx.ParticleFx.NONE);
+                feature.fx.ParticleFx.NONE, Stores.hands(), Stores.sounds());
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), soulService), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();
@@ -125,7 +125,7 @@ public final class SoulSuite implements Harness.Scenario {
                 engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
-                soulService::bindingFor, env, CombatDispatch.Caps.unlimited());
+                soulService::bindingFor, env, CombatDispatch.Caps.unlimited(), Stores.projectiles());
         CombatRig rig = new CombatRig(plugin);
         rig.listen(new CombatListener(dispatch));
 

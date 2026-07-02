@@ -27,18 +27,21 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
     private final ContentHolder content;
     private final CombatCodec combat;
     private final ScrollService scrolls;
+    private final Hands hands; // bound-gear main-hand read/write (§4 era seam)
 
     /** Default-layout form (tests/fixtures). */
-    public GodlyTransmogMenu(ContentHolder content, CombatCodec combat, ScrollService scrolls, Capabilities caps) {
-        this(content, combat, scrolls, caps, compile.load.MenusConfig::empty);
+    public GodlyTransmogMenu(ContentHolder content, CombatCodec combat, ScrollService scrolls, Capabilities caps,
+                             Hands hands) {
+        this(content, combat, scrolls, caps, compile.load.MenusConfig::empty, hands);
     }
 
     public GodlyTransmogMenu(ContentHolder content, CombatCodec combat, ScrollService scrolls, Capabilities caps,
-                             java.util.function.Supplier<compile.load.MenusConfig> menus) {
+                             java.util.function.Supplier<compile.load.MenusConfig> menus, Hands hands) {
         super("transmog", MenuLayout.paged("&5&lGodly Transmog"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     /** Per-open binding: the working enchant order + the inventory slot it reorders ({@code -1} = main hand). */
@@ -86,8 +89,8 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
     }
 
     /** The bound gear ItemStack: the main hand for {@code slot == -1}, else the inventory slot. */
-    private static ItemStack gearAt(Player player, int slot) {
-        return slot < 0 ? Hands.mainHand(player) : player.getInventory().getItem(slot);
+    private ItemStack gearAt(Player player, int slot) {
+        return slot < 0 ? hands.mainHand(player) : player.getInventory().getItem(slot);
     }
 
     @Override
@@ -129,7 +132,7 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
             ItemStack gear = gearAt(click.player(), slot);
             if (scrolls.reorder(gear, order)) {
                 if (slot < 0) {
-                    Hands.setMainHand(click.player(), gear);
+                    hands.setMainHand(click.player(), gear);
                 } else {
                     click.player().getInventory().setItem(slot, gear);
                 }

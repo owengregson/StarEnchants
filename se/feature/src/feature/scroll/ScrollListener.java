@@ -2,6 +2,7 @@ package feature.scroll;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -15,8 +16,8 @@ public final class ScrollListener extends ApplyGestureListener {
 
     private final ScrollService service;
 
-    public ScrollListener(ScrollService service, Messages messages) {
-        super(messages);
+    public ScrollListener(ScrollService service, Messages messages, Sounds sounds) {
+        super(messages, sounds);
         this.service = Objects.requireNonNull(service, "service");
     }
 

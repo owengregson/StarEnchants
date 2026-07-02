@@ -119,7 +119,7 @@ public final class ConditionSuite implements Harness.Scenario {
                 engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
-                actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited());
+                actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited(), Stores.projectiles());
         CombatRig rig = new CombatRig(plugin);
         rig.listen(new CombatListener(dispatch));
 

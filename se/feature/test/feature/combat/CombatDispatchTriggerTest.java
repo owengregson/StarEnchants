@@ -3,6 +3,8 @@ package feature.combat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
+import feature.compat.ModernProjectiles;
+import feature.compat.Projectiles;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
@@ -22,29 +24,32 @@ class CombatDispatchTriggerTest {
     private static final int BOW = 1;
     private static final int TRIDENT = 2;
 
+    /** The real modern projectile typing — the {@code instanceof Trident/AbstractArrow} the routing pins. */
+    private static final Projectiles PROJECTILES = new ModernProjectiles();
+
     @Test
     void thrownTridentFiresTheTridentTrigger() {
-        assertEquals(TRIDENT, CombatDispatch.attackTrigger(mock(Trident.class), ATTACK, BOW, TRIDENT));
+        assertEquals(TRIDENT, CombatDispatch.attackTrigger(PROJECTILES, mock(Trident.class), ATTACK, BOW, TRIDENT));
     }
 
     @Test
     void bowArrowFiresTheBowTrigger() {
-        assertEquals(BOW, CombatDispatch.attackTrigger(mock(Arrow.class), ATTACK, BOW, TRIDENT));
+        assertEquals(BOW, CombatDispatch.attackTrigger(PROJECTILES, mock(Arrow.class), ATTACK, BOW, TRIDENT));
     }
 
     @Test
     void meleeFiresTheAttackTrigger() {
-        assertEquals(ATTACK, CombatDispatch.attackTrigger(mock(Player.class), ATTACK, BOW, TRIDENT));
+        assertEquals(ATTACK, CombatDispatch.attackTrigger(PROJECTILES, mock(Player.class), ATTACK, BOW, TRIDENT));
     }
 
     @Test
     void nonArrowProjectileFiresTheAttackTrigger() {
-        assertEquals(ATTACK, CombatDispatch.attackTrigger(mock(Snowball.class), ATTACK, BOW, TRIDENT));
+        assertEquals(ATTACK, CombatDispatch.attackTrigger(PROJECTILES, mock(Snowball.class), ATTACK, BOW, TRIDENT));
     }
 
     @Test
     void projectilesFallBackToAttackWhenTheDistinctTriggersAreUnwired() {
-        assertEquals(ATTACK, CombatDispatch.attackTrigger(mock(Arrow.class), ATTACK, -1, -1));
-        assertEquals(ATTACK, CombatDispatch.attackTrigger(mock(Trident.class), ATTACK, -1, -1));
+        assertEquals(ATTACK, CombatDispatch.attackTrigger(PROJECTILES, mock(Arrow.class), ATTACK, -1, -1));
+        assertEquals(ATTACK, CombatDispatch.attackTrigger(PROJECTILES, mock(Trident.class), ATTACK, -1, -1));
     }
 }

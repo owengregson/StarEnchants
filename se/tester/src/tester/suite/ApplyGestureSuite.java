@@ -99,14 +99,14 @@ public final class ApplyGestureSuite implements Harness.Scenario {
             crystals = new CrystalService(new CrystalItemCodec(keys.crystalItem(), Stores.state()),
                     new CrystalExtractorCodec(keys.crystalExtractor(), Stores.state()), enchanter, content,
                     CrystalConfig::defaults, () -> 4, Messages.defaults());
-            crystalLeaf = new CrystalListener(crystals, Messages.defaults());
+            crystalLeaf = new CrystalListener(crystals, Messages.defaults(), Stores.sounds());
             slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess(), Stores.state());
             SlotConfig slotCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
                     ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100, List.of("ALL"));
             slots = new SlotService(slotCodec, combat, lore, () -> slotCfg,
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, platform.lang.Messages.defaults(),
                     ItemGroups.standard(), new java.util.Random());
-            slotLeaf = new SlotListener(slots, Messages.defaults());
+            slotLeaf = new SlotListener(slots, Messages.defaults(), Stores.sounds());
         } catch (IOException e) {
             failAll(h, e.toString());
             return;

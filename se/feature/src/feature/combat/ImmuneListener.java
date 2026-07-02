@@ -23,10 +23,12 @@ public final class ImmuneListener implements Listener {
 
     private final ImmuneStore store;
     private final LongSupplier nowTicks;
+    private final Hands hands;
 
-    public ImmuneListener(ImmuneStore store, LongSupplier nowTicks) {
+    public ImmuneListener(ImmuneStore store, LongSupplier nowTicks, Hands hands) {
         this.store = Objects.requireNonNull(store, "store");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     /** Melee weapon (SWORD/AXE) and projectile immunity — the damager-typed hits. */
@@ -43,7 +45,7 @@ public final class ImmuneListener implements Listener {
             return;
         }
         if (event.getDamager() instanceof LivingEntity attacker && attacker.getEquipment() != null) {
-            String held = Hands.mainHand(attacker).getType().name();
+            String held = hands.mainHand(attacker).getType().name();
             if (held.endsWith("_SWORD") && store.isImmune(victim.getUniqueId(), ImmuneStore.Type.SWORD, now)) {
                 event.setCancelled(true);
             } else if (held.endsWith("_AXE") && store.isImmune(victim.getUniqueId(), ImmuneStore.Type.AXE, now)) {

@@ -2,6 +2,7 @@ package feature.heroic;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -15,8 +16,8 @@ public final class HeroicListener extends ApplyGestureListener {
 
     private final HeroicService service;
 
-    public HeroicListener(HeroicService service, Messages messages) {
-        super(messages);
+    public HeroicListener(HeroicService service, Messages messages, Sounds sounds) {
+        super(messages, sounds);
         this.service = Objects.requireNonNull(service, "service");
     }
 

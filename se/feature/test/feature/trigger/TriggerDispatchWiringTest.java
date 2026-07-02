@@ -9,6 +9,8 @@ import engine.run.AbilityExecutor;
 import engine.run.ActorProbe;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
+import feature.compat.DropControl;
+import feature.compat.Hands;
 import feature.soul.SoulBinding;
 import item.worn.WornStateStore;
 import java.util.Optional;
@@ -33,7 +35,8 @@ class TriggerDispatchWiringTest {
         Function<Player, Optional<SoulBinding>> noSouls = player -> Optional.empty();
         TriggerDispatch dispatch = new TriggerDispatch(
                 mock(AbilityExecutor.class), mock(SinkFactory.class), mock(ActorProbe.class), mock(ContentHolder.class),
-                mock(WornStateStore.class), triggers, noSouls, Envs.sink().build());
+                mock(WornStateStore.class), triggers, noSouls, Envs.sink().build(),
+                mock(Hands.class), mock(DropControl.class));
 
         assertEquals(id(triggers, "MINE"), dispatch.mine);
         assertEquals(id(triggers, "KILL"), dispatch.kill);

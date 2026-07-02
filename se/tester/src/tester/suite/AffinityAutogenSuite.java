@@ -342,7 +342,7 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(),
                     new ContentHolder(library), worn,
                     triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
-                    actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited());
+                    actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited(), Stores.projectiles());
             rig.listen(new CombatListener(dispatch));
             this.world = plugin.getServer().getWorlds().get(0);
             this.attackerAt = world.getSpawnLocation();
