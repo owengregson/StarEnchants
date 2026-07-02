@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.load.ScrollsConfig;
-import item.mint.ItemFactory;
 import org.junit.jupiter.api.Test;
+import platform.text.Colors;
 
 /**
  * The enchant-count name suffix transform (re-homed from {@code ScrollCountSuffixTest} when the suffix became
@@ -21,7 +21,7 @@ class EnchantCountSuffixTest {
     private static final String BASE = "§bMy Blade";
 
     private static String stamped(int count) {
-        return BASE + ItemFactory.color(TEMPLATE.replace(EnchantCountSuffix.COUNT_PLACEHOLDER, Integer.toString(count)));
+        return BASE + Colors.translate(TEMPLATE.replace(EnchantCountSuffix.COUNT_PLACEHOLDER, Integer.toString(count)));
     }
 
     @Test

@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import feature.menu.ReferenceCatalog;
 import item.codec.CombatState;
 import item.codec.HeroicStat;
-import item.lang.Messages;
+import platform.lang.Messages;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

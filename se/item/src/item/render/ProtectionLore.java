@@ -3,6 +3,7 @@ package item.render;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.ChatColor;
+import platform.text.Colors;
 
 /**
  * The applied-scroll PROTECTED lore lines, rendered from an item's protection state (never parsed back, §4.2).

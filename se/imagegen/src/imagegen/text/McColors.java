@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 /**
  * The 16 legacy colour codes → RGB, plus the text shadow Minecraft draws one pixel down-right under each glyph
- * (each channel at 25% — e.g. white {@code FFFFFF} → {@code 3F3F3F}). Codes match {@code item.render.Colors}.
+ * (each channel at 25% — e.g. white {@code FFFFFF} → {@code 3F3F3F}). Codes match {@code platform.text.Colors}.
  */
 public final class McColors {
 

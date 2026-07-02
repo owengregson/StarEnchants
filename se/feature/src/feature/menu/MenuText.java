@@ -5,6 +5,7 @@ import item.render.Descriptions;
 import java.util.List;
 import org.bukkit.ChatColor;
 import platform.caps.Capabilities;
+import platform.text.Colors;
 
 /**
  * Title rendering for menus (cross-version-item-api, paper-cross-version). The {@code String}-title
@@ -58,7 +59,7 @@ public final class MenuText {
 
     /** Translate {@code &} codes and truncate to the server's safe title length. */
     public static String title(String legacy, Capabilities caps) {
-        String colored = ChatColor.translateAlternateColorCodes('&', legacy == null ? "" : legacy);
+        String colored = Colors.translate(legacy == null ? "" : legacy);
         if (caps != null && caps.atLeast(1, 20, 0)) {
             return colored; // 1.20+ lifted the title-length cap
         }

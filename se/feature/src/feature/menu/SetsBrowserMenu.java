@@ -4,7 +4,7 @@ import compile.load.ContentHolder;
 import compile.load.MenusConfig;
 import compile.load.SetDef;
 import feature.apply.ItemEnchanter;
-import item.lang.Messages;
+import platform.lang.Messages;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;

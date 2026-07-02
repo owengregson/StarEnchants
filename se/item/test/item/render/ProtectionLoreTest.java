@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import platform.text.Colors;
 
 /**
  * Pure tests for the applied-scroll PROTECTED lines: the (guarded, holy) marker state maps to the ordered,

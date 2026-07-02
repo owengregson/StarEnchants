@@ -78,7 +78,7 @@ helper was byte-identical to production's translator, yet the assertion still
 diverged.) In a live suite assert the **state** (PDC, counts, booleans) or the
 **structure** of the change (base name kept, the count present, a re-apply idempotent),
 or compare against production's **own** output — never a string the test rebuilt.
-Colour translation lives once, in `item.mint.ItemFactory.color`;
+Colour translation lives once, in `platform.text.Colors.translate` (ADR-0033);
 `RenderingDisciplineArchTest` bans `ChatColor` from the harness so this can't creep back.
 
 ## Rule 2 — A family of one behavior is one data-driven test, not N files

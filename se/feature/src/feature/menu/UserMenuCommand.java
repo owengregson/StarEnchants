@@ -1,6 +1,6 @@
 package feature.menu;
 
-import item.lang.Messages;
+import platform.lang.Messages;
 import java.util.Objects;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

@@ -122,7 +122,7 @@ command.error.bad-number: "&cThat is not a number: &7{ARG}"
 ```
 
 Also add a help line to the list-valued `command.usage:` block. Access keys
-through `item.lang.Messages`, which reads a live `Supplier<Lang>` so a `/se reload`
+through `platform.lang.Messages`, which reads a live `Supplier<Lang>` so a `/se reload`
 swap takes effect on the next call:
 
 - `messages.format(key, "TOKEN", value)` — single line, with `{TOKEN}` pairs.

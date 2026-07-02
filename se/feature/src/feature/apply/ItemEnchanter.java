@@ -7,7 +7,7 @@ import compile.model.Snapshot;
 import engine.interact.SlotLedger;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
-import item.lang.Messages;
+import platform.lang.Messages;
 import item.render.LoreRenderer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

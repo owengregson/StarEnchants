@@ -1,10 +1,10 @@
-package item.render;
+package platform.text;
 
 /**
- * Legacy {@code '&'}→{@code '§'} colour-code translation (§4.2). No Bukkit, so rendered text is testable
- * without a server; legacy codes not Adventure is the codebase's floor-safe text stance (mirrors
- * {@code DispatchSink}). Only translates {@code '&'} before a valid code char (0-9, a-f, k-o, r, hex x);
- * a stray {@code '&'} is left untouched.
+ * Legacy {@code '&'}→{@code '§'} colour-code translation — the ONE home every module routes through
+ * (ADR-0033; docs/architecture.md §2). No Bukkit, so rendered text is testable without a server; legacy
+ * codes not Adventure is the codebase's floor-safe text stance. Only translates {@code '&'} before a valid
+ * code char (0-9, a-f, k-o, r, hex x); a stray {@code '&'} is left untouched.
  */
 public final class Colors {
 

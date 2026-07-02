@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import platform.text.Colors;
 
 /**
  * Renders lore from {@link CombatState}, never the reverse (§4.2): a deterministic projection rebuilt from

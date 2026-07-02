@@ -242,7 +242,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             // commits to an arbitrary bound gear item, not just the held one.
             item.codec.GodlyTransmogCodec godlyCodec = new item.codec.GodlyTransmogCodec(keys.godlyTransmog());
             ScrollService godly = new ScrollService(scrollCodec, combat, lore, carriers, holder,
-                    ScrollsConfig::defaults, new Random(8), item.lang.Messages.defaults(), godlyCodec);
+                    ScrollsConfig::defaults, new Random(8), platform.lang.Messages.defaults(), godlyCodec);
             ItemStack tool = godly.mintGodlyTransmog();
             if (!godly.isGodlyTransmog(tool)) {
                 throw new IllegalStateException("godly transmog tool not detected after mint");

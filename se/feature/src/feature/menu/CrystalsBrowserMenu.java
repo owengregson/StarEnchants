@@ -4,7 +4,7 @@ import compile.load.ContentHolder;
 import compile.load.CrystalDef;
 import compile.load.MenusConfig;
 import feature.crystal.CrystalService;
-import item.lang.Messages;
+import platform.lang.Messages;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;

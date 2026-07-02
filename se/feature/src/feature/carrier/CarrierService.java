@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
+import platform.text.Colors;
 
 /**
  * The book/dust/white-scroll application economy (ADR-0016; ADR-0019) — the cold path that mints these
@@ -43,7 +43,7 @@ public final class CarrierService {
     private final item.codec.AppliedSlot slot; // §I applied-utility marker set a white scroll occupies
     private final java.util.function.Consumer<ItemStack> protectionRefresh; // §I toggle the PROTECTED line, preserving the rest of the lore
     private final ItemGroups groups; // §I applies-to gate — the white scroll only protects the configured item kinds
-    private final item.lang.Messages messages; // §I the applies reject reads common.wrong-applies (single source)
+    private final platform.lang.Messages messages; // §I the applies reject reads common.wrong-applies (single source)
 
     /** Test/fixture form: every top-level item at its built-in likeness. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
@@ -65,7 +65,7 @@ public final class CarrierService {
         this(codec, enchanter, content, random, bookConfig, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
                 new item.codec.AppliedSlot("appliedslot"), protectionRefresh, ItemGroups.standard(),
-                item.lang.Messages.defaults());
+                platform.lang.Messages.defaults());
     }
 
     /** Book-numeral-default form: likeness suppliers supplied; the book level numeral defaults to Roman. */
@@ -75,7 +75,7 @@ public final class CarrierService {
                           java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
         this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100,
                 new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
-                item.lang.Messages.defaults());
+                platform.lang.Messages.defaults());
     }
 
     /**
@@ -94,7 +94,7 @@ public final class CarrierService {
                           java.util.function.IntSupplier maxBookSuccess,
                           item.codec.AppliedSlot slot,
                           java.util.function.Consumer<ItemStack> protectionRefresh,
-                          ItemGroups groups, item.lang.Messages messages) {
+                          ItemGroups groups, platform.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -526,7 +526,7 @@ public final class CarrierService {
                 effective, effective);
         List<String> lore = new ArrayList<>(raw.size());
         for (String line : raw) {
-            lore.add(color(line));
+            lore.add(Colors.translate(line));
         }
         meta.setLore(lore.isEmpty() ? null : lore);
         book.setItemMeta(meta);
@@ -557,10 +557,6 @@ public final class CarrierService {
     /** A book's base success: its explicit {@code baseSuccess} override (§I) when present, else 100 (always succeeds). */
     private static int baseSuccessOf(CarrierData data) {
         return data.hasBaseSuccess() ? data.baseSuccess() : 100;
-    }
-
-    private static String color(String raw) {
-        return ChatColor.translateAlternateColorCodes('&', raw);
     }
 
     private static void consume(ItemStack carrier) {

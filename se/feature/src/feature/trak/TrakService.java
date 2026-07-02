@@ -18,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
 import platform.sched.Scheduling;
+import platform.text.Colors;
 
 /**
  * The trak-gem economy (§I) — three gems (BlockTrak / MobTrak / SoulTrak) that, applied to gear, reveal a
@@ -39,14 +40,14 @@ public final class TrakService {
     private final AppliedSlot slot;
     private final ItemGroups groups;
     private final Supplier<TraksConfig> config;
-    private final item.lang.Messages messages;
+    private final platform.lang.Messages messages;
 
     public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config) {
-        this(codec, slot, groups, config, item.lang.Messages.defaults());
+        this(codec, slot, groups, config, platform.lang.Messages.defaults());
     }
 
     public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config,
-                       item.lang.Messages messages) {
+                       platform.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.slot = Objects.requireNonNull(slot, "slot");
         this.groups = Objects.requireNonNull(groups, "groups");
@@ -156,7 +157,7 @@ public final class TrakService {
         lore.removeIf(line -> isCountLine(line, cfg));
         for (Kind kind : Kind.values()) { // BLOCK, MOB, SOUL, FISH — a stable, deterministic line order
             if (slot.holds(item, slotKindOf(kind))) {
-                lore.add(ItemFactory.color(trakFor(kind).countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
+                lore.add(Colors.translate(trakFor(kind).countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
             }
         }
         meta.setLore(lore.isEmpty() ? null : lore);
@@ -184,7 +185,7 @@ public final class TrakService {
         if (idx <= 0) {
             return false; // need a non-empty prefix before {COUNT} to identify the line
         }
-        String prefix = ChatColor.stripColor(ItemFactory.color(fmt.substring(0, idx)));
+        String prefix = ChatColor.stripColor(Colors.translate(fmt.substring(0, idx)));
         return !prefix.isEmpty() && visibleLine != null && visibleLine.startsWith(prefix);
     }
 

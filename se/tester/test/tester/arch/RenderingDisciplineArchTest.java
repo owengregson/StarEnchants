@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
  * {@code §r§d} collapses to {@code §d}), so the rebuilt expectation drifts from the real value and the suite
  * fails on a formatting change that broke nothing. The canonical way in is re-implementing colour
  * translation, so this bans {@code org.bukkit.ChatColor} from the harness outright: colour translation lives
- * once, in {@code item.mint.ItemFactory.color}. A suite that must check rendered copy asserts STATE (PDC,
+ * once, in {@code platform.text.Colors.translate} (ADR-0033). A suite that must check rendered copy asserts STATE (PDC,
  * counts, booleans) or the STRUCTURE of the change, or compares against production's own output — never a
  * string it built itself.
  */
@@ -30,7 +30,7 @@ class RenderingDisciplineArchTest {
         ArchRule rule = noClasses().should().dependOnClassesThat()
                 .haveFullyQualifiedName("org.bukkit.ChatColor")
                 .because("a live suite must not reconstruct a production-rendered string — colour translation "
-                        + "belongs to item.mint.ItemFactory.color; assert STATE or compare against production's "
+                        + "belongs to platform.text.Colors.translate; assert STATE or compare against production's "
                         + "own output, never a string the test rebuilds (writing-tests Rule 1)");
         rule.check(harness);
     }

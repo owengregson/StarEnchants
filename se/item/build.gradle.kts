@@ -41,6 +41,10 @@ dependencies {
     // the Snapshot's stable-key map (for the codec later). Brings :schema transitively.
     api(project(":compile"))
 
+    // Lore/name rendering translates legacy '&' codes through platform.text.Colors — the single
+    // '&'→'§' home every module shares (ADR-0033). Internal to render, so implementation, not api.
+    implementation(project(":platform"))
+
     testImplementation(libs.paper.api.floor)
     testImplementation(libs.mockito.core)
 }

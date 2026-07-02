@@ -37,17 +37,17 @@ public final class CrystalService {
     private final ContentHolder content;
     private final Supplier<CrystalConfig> config;
     private final IntSupplier maxMerge; // §E crystals.max-merge — the global multi-crystal cap (read live)
-    private final item.lang.Messages messages; // §L lang.yml
+    private final platform.lang.Messages messages; // §L lang.yml
 
     /** Default-messages form (tests/fixtures). */
     public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
                           ContentHolder content, Supplier<CrystalConfig> config, IntSupplier maxMerge) {
-        this(codec, extractorCodec, enchanter, content, config, maxMerge, item.lang.Messages.defaults());
+        this(codec, extractorCodec, enchanter, content, config, maxMerge, platform.lang.Messages.defaults());
     }
 
     public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
                           ContentHolder content, Supplier<CrystalConfig> config, IntSupplier maxMerge,
-                          item.lang.Messages messages) {
+                          platform.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.extractorCodec = Objects.requireNonNull(extractorCodec, "extractorCodec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");

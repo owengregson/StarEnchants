@@ -26,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.sched.Scheduling;
+import platform.text.Colors;
 
 /**
  * The soul gameplay loop (§6.3, §D). Soul mode is a per-PLAYER ON/OFF that drains the player's gems
@@ -51,7 +52,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
     private final SoulCodec codec;
     private final Supplier<SoulGemConfig> config;
     private final java.util.function.BooleanSupplier depositOnAnyKill; // read live so a reload can flip it (§D)
-    private final item.lang.Messages messages;
+    private final platform.lang.Messages messages;
     private final feature.fx.ParticleFx particles; // on-activate/deactivate spawns; the aura is SoulParticleDriver
     // §I a line a separate system owns (white/holy PROTECTED, trak counts) that the gem re-render must PRESERVE
     // rather than wipe; default "preserve nothing" keeps the test/fixture forms server-free.
@@ -68,25 +69,25 @@ public final class SoulService implements SoulDebit, SoulSpender {
     /** As above, with a deposit toggle but default messages. */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill) {
-        this(pool, modes, codec, config, depositOnAnyKill, item.lang.Messages.defaults());
+        this(pool, modes, codec, config, depositOnAnyKill, platform.lang.Messages.defaults());
     }
 
     /** As above, with messages but no particle fx (the no-fx form). */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
-                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages) {
+                       java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages) {
         this(pool, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
     }
 
     /** Particles-but-no-lore-preservation form (the test/fixture canonical). */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
-                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
+                       java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
                        feature.fx.ParticleFx particles) {
         this(pool, modes, codec, config, depositOnAnyKill, messages, particles, line -> false);
     }
 
     /** Canonical form (composition root): {@code preservedLoreLine} marks scroll/trak lines to keep on re-render. */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
-                       java.util.function.BooleanSupplier depositOnAnyKill, item.lang.Messages messages,
+                       java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
                        feature.fx.ParticleFx particles, java.util.function.Predicate<String> preservedLoreLine) {
         this.pool = Objects.requireNonNull(pool, "pool");
         this.modes = Objects.requireNonNull(modes, "modes");
@@ -525,7 +526,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         SoulGemConfig cfg = config.get();
         String name = renderGemName(cfg, souls);
         if (name != null && !name.isBlank()) {
-            meta.setDisplayName(ItemFactory.color(name));
+            meta.setDisplayName(Colors.translate(name));
         }
         // Preserve applied-scroll PROTECTED lines + trak lines: a separate system owns them, so the gem-body
         // re-render must KEEP them rather than wipe them (§I robust composition — the white/holy scroll line fix).
@@ -543,7 +544,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         List<String> lore = new ArrayList<>();
         if (body != null) {
             for (String line : body) {
-                lore.add(ItemFactory.color(line));
+                lore.add(Colors.translate(line));
             }
         }
         lore.addAll(preserved); // already colour-translated when the scroll/trak stamped them

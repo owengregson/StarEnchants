@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
 import platform.sched.Scheduling;
+import platform.text.Colors;
 
 /**
  * The Godly Transmog reorder GUI (§K, §I): click two enchants to swap their lore positions (purely cosmetic —
@@ -160,6 +161,6 @@ public final class GodlyTransmogMenu extends PagedMenu<String> {
 
     /** Strip legacy colour codes from {@code name} so the prefix colour controls the icon name colour. */
     private static String stripColor(String name) {
-        return org.bukkit.ChatColor.stripColor(ItemFactory.color(name));
+        return org.bukkit.ChatColor.stripColor(Colors.translate(name));
     }
 }

@@ -5,7 +5,7 @@ import compile.load.EnchantDef;
 import compile.load.MenusConfig;
 import compile.load.TierRegistry;
 import feature.carrier.CarrierService;
-import item.lang.Messages;
+import platform.lang.Messages;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;

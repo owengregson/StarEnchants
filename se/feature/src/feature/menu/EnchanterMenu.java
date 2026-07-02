@@ -2,7 +2,7 @@ package feature.menu;
 
 import compile.load.ContentHolder;
 import feature.book.UnopenedBookService;
-import item.lang.Messages;
+import platform.lang.Messages;
 import item.mint.ItemFactory;
 import java.util.List;
 import java.util.Objects;
