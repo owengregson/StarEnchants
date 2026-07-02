@@ -129,6 +129,15 @@ class LocationEffectTest {
                     verify(sink).explode(loc, 4.0, false);
                     verifyNoMoreInteractions(sink);
                 }),
+                dynamicTest("EXPLODE skips a target whose location read faults → no-op (guarded)", () -> {
+                    LivingEntity remote = mock(LivingEntity.class); // @Attacker on a DEFENSE trigger can be cross-region
+                    when(remote.getLocation()).thenThrow(new IllegalStateException("wrong region"));
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("power", 4.0).with("breakBlocks", false).targets("who", remote);
+                    Sink sink = mock(Sink.class);
+                    new ExplodeEffect().run(ctx, sink); // the thrown remote read is swallowed, not propagated
+                    verifyNoInteractions(sink);
+                }),
                 dynamicTest("GUARD → guard(attacker, at, type, count, ttl, name)", () -> {
                     Location at = mock(Location.class);
                     LivingEntity attacker = mock(LivingEntity.class);

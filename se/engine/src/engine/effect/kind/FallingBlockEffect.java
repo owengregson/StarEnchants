@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /**
@@ -50,7 +51,13 @@ public final class FallingBlockEffect implements EffectKind {
         double carry = ctx.dbl("carry");
         UUID owner = ctx.actor() == null ? null : ctx.actor().getUniqueId();
         for (LivingEntity who : ctx.targets("who")) {
-            Location base = who.getLocation();
+            Location base;
+            try {
+                base = who.getLocation(); // T.VICTIM, but @Attacker on a DEFENSE trigger can be a cross-region shooter (ADR-0043)
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("FallingBlockEffect.target", unreadable);
+                continue;
+            }
             World world = base.getWorld();
             if (world == null) {
                 continue;

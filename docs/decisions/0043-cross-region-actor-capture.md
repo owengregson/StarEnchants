@@ -33,6 +33,20 @@ An audit found the same defect class in two non-default modes: `TeleportEffect`
 actor location, and NPEs on a null actor). Every other actor use in the kinds is an
 identity/UUID read or a Sink write (hopped by the plan), which is safe.
 
+The defect class is broader than the actor slot: it is **any live location read of a
+possibly-remote entity inside `run()`**. The actor is one such entity; a *resolved
+target* is another. A kind's default target is `T.VICTIM` — region-local on an ATTACK,
+but on a `DEFENSE` trigger the victim slot *is* the attacker, and a `@Attacker` selector
+resolves the possibly-remote projectile shooter. Four kinds read that resolved target's
+live location unguarded: `TempBlockEffect`, `ExplodeEffect`, `FallingBlockEffect`,
+`MarkZoneEffect`. The **shipped Yeti set is the motivating case** — its Fortified bonus
+(`docs`-authored in `content/sets/yeti.yml`) fires `TEMP_BLOCK { who: "@Attacker" }` on
+`trigger: DEFENSE`, so an arrow-shooter across a region boundary makes the ice-pillar
+effect read a cross-region entity's location on the victim's region thread. The two arms
+have distinct remedies: the actor's state is unknowable after the region hop, so it is
+**captured at dispatch** (Decisions A–C); a resolved target is only read where it is
+used, so its read stays live and is **`Regions`-guarded, fail-closed** (Decision E).
+
 `AffinityAutogenSuite` — the tester that fires each non-local kind across two Folia
 regions — statically **skipped exactly these five** because their inline remote read
 could not survive a cross-region firing thread. A precedent already existed for the
@@ -84,6 +98,19 @@ has since wandered.
   `Regions`-guarded in both overlay `DispatchSink`s.
 - **TELEPORT (`to: ACTOR`) / VELOCITY (`mode: away`)** — same class, folded in;
   `VELOCITY away` additionally stops NPEing on a null actor.
+
+## Decision E — resolved-target reads stay live, `Regions`-guarded
+
+The four non-actor kinds keep reading their resolved target's location live in `run()`
+(the target is only consumed there, so there is nothing to snapshot at dispatch), each
+read wrapped in the ADR-0042 `try`/`catch` + `Regions.swallowed` idiom that skips that
+target on a cross-region fault — the same guard the actor-anchored kinds already apply to
+their leftover non-actor reads (Decision B).
+
+- **TEMP_BLOCK / EXPLODE / FALLING_BLOCK / MARK_ZONE** — `who.getLocation()` is guarded;
+  a faulting read drops that whole target (no partial shape placed), the fail-closed
+  choice. No demand bit is needed — these never anchor on the actor, so there is no origin
+  to capture; the fix is purely the guard.
 
 ## Consequences
 

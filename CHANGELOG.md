@@ -155,7 +155,7 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- **Cross-region actor reads in effect bodies (ADR-0043).** PARTICLE_RING, PARTICLE_LINE,
+- **Cross-region reads in effect bodies (ADR-0043).** PARTICLE_RING, PARTICLE_LINE,
   WALKER, SPAWN_ENTITY and TELEPORT_BEHIND (plus TELEPORT `to: ACTOR` and VELOCITY `away`)
   read the acting player's live location inside `run()`; on Folia a combat activation
   executes on the victim's region thread, so a cross-region attacker (e.g. a projectile
@@ -163,7 +163,9 @@ versioning: [Semantic Versioning](https://semver.org/).
   executor captures an actor-origin snapshot (x/y/z, eye, yaw/pitch, world) on the firing
   thread at activation; `run()` reads only the snapshot, remaining per-target live reads are
   region-guarded and fail closed, and WALKER/ring geometry anchors where the actor stood when
-  the trigger fired.
+  the trigger fired. The same guard now also covers four kinds that read a *resolved target's*
+  live location — TEMP_BLOCK, EXPLODE, FALLING_BLOCK and MARK_ZONE — where a `@Attacker`
+  selector on a DEFENSE trigger (e.g. the Yeti set's ice-pillar) resolves the remote shooter.
 
 - **Per-player combat state is cleared on quit.** The quit-cleanup listener now covers
   every per-player engine store (several were missing, leaking entries until restart), and

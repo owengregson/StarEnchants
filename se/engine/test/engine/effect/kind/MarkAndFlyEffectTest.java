@@ -68,6 +68,21 @@ class MarkAndFlyEffectTest {
     }
 
     @Test
+    void markZoneSkipsATargetWhoseLocationReadFaults() {
+        Player actor = mock(Player.class);
+        when(actor.getUniqueId()).thenReturn(UUID.randomUUID());
+        LivingEntity remote = mock(LivingEntity.class); // @Attacker on a DEFENSE trigger can be a cross-region shooter
+        when(remote.getLocation()).thenThrow(new IllegalStateException("wrong region"));
+        FakeEffectCtx ctx = FakeEffectCtx.create()
+                .with("radius", 4.5).with("duration", 100).actor(actor).targets("who", remote);
+        Sink sink = mock(Sink.class);
+
+        new MarkZoneEffect().run(ctx, sink); // the thrown remote read is swallowed, not propagated
+
+        verifyNoInteractions(sink);
+    }
+
+    @Test
     void flyModeGrantsOutOfCombatAndStopRevokes() {
         Player p = mock(Player.class);
         when(p.getUniqueId()).thenReturn(UUID.randomUUID()); // fresh id → never combat-tagged → out of combat
