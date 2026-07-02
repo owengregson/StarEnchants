@@ -89,7 +89,10 @@ has since wandered.
 
 - Autogen fires **43/43** non-local kinds (0 static skips) plus a Folia
   `affinity.autogen.staging` assertion that the staged attacker and victim really sit
-  in distinct regions (previously assumed from the 512-block gap).
+  in distinct regions. The assertion immediately earned its keep: the historical
+  512-block gap **collapsed into one region** on a fresh Folia test world (so the
+  "cross-region" checks had been running same-region), and the autogen gap was widened
+  to genuinely distinct regions — now the fix is exercised with a truly remote actor.
 - Capture cost is one guarded read + one small record, only for activated
   origin-flagged abilities; the gate walk and JMH floors are unchanged (unflagged kinds
   pay a single boolean field read behind the `spec()` dereference the path already

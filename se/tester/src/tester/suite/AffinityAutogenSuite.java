@@ -96,8 +96,9 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
 
     private static final Set<Affinity> NON_LOCAL = EnumSet.of(Affinity.TARGET_ENTITY, Affinity.REGION, Affinity.AOE);
 
-    /** {@value} blocks (32 chunks): comfortably a distinct Folia region from world spawn (as in the teleport suite). */
-    private static final int REGION_GAP = 512;
+    /** {@value} blocks: far past Folia's region-merge radius, so world spawn and the victim own distinct regions
+     * (512 empirically collapses into one region on a fresh test world — the {@code staging} assertion caught it). */
+    private static final int REGION_GAP = 8192;
 
     /** Ticks between successive kinds — lets a kind's deferred (hopped) intents settle before the next hit. */
     private static final long STEP_TICKS = 2L;
@@ -404,7 +405,7 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
         private void fireOnVictimRegion(int index, Firing firing, String check) {
             if (index == 0) {
                 // Now on the victim's region thread: prove the (region-A) attacker is NOT owned by it, i.e. the
-                // 512-block gap really did stage two distinct Folia regions. Assumed before ADR-0043; asserted now.
+                // REGION_GAP really did stage two distinct Folia regions. Assumed before ADR-0043; asserted now.
                 if (!Capabilities.foliaPresent()) {
                     plugin.getLogger().info("[affinity-autogen] single-threaded Paper — distinct-region staging not applicable");
                     h.pass(STAGING);
