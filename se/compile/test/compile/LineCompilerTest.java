@@ -8,8 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
+import schema.grammar.EffectLine;
 import schema.spec.D;
 import schema.spec.ParamSpec;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -72,5 +75,47 @@ class LineCompilerTest {
     @Test
     void duplicateHeadsAreRejectedAtRegistryConstruction() {
         assertThrows(IllegalArgumentException.class, () -> MapSpecRegistry.of(smite(), smite()));
+    }
+
+    // 'label'/'boost' are optional with NO default — the shape that exposed toPositional's fabricated "".
+    private static ParamSpec mark() {
+        return ParamSpec.of("MARK")
+                .param("power", D.DOUBLE.min(0))
+                .param("label", D.STRING.optional())
+                .param("boost", D.DOUBLE.min(0).optional())
+                .build();
+    }
+
+    private static LineCompiler markCompiler() {
+        return new LineCompiler(MapSpecRegistry.of(mark()));
+    }
+
+    /** Absent optional-no-default in a verbose line is genuinely absent: no diagnostic, not present in args. */
+    @Test
+    void verboseLineOmittingOptionalNoDefaultLeavesItAbsent() {
+        Map<String, String> named = new LinkedHashMap<>();
+        named.put("power", "5");
+        Diagnostics d = new Diagnostics();
+        Optional<CompiledLine> r = markCompiler().compile(EffectLine.verbose("MARK", 1, named, null, SRC), d);
+        assertFalse(d.hasErrors());
+        assertEquals(0, d.all().size());               // no spurious E_TYPE on the non-STRING optional
+        assertTrue(r.isPresent());
+        assertEquals(5.0, r.get().args().dbl("power"));
+        assertFalse(r.get().args().has("boost"));      // non-STRING would have failed parse("")
+        assertFalse(r.get().args().has("label"));      // STRING would have been admitted as a present ""
+    }
+
+    @Test
+    void verboseLineWithOptionalNoDefaultRoundTrips() {
+        Map<String, String> named = new LinkedHashMap<>();
+        named.put("power", "5");
+        named.put("label", "hello");
+        named.put("boost", "2.5");
+        Diagnostics d = new Diagnostics();
+        Optional<CompiledLine> r = markCompiler().compile(EffectLine.verbose("MARK", 1, named, null, SRC), d);
+        assertFalse(d.hasErrors());
+        assertTrue(r.isPresent());
+        assertEquals("hello", r.get().args().str("label"));
+        assertEquals(2.5, r.get().args().dbl("boost"));
     }
 }
