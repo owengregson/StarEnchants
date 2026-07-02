@@ -1,6 +1,6 @@
 ---
 name: config-and-migration
-description: Use when working on the config schema/YAML, the DSL and ParamSpec, the compiler (resolve/typecheck/lower/erase/snapshot), diagnostics, transactional reload, catalog validation, or the EE/EA/AE and legacy-item migrator.
+description: Use when working on the config schema/YAML, the DSL and ParamSpec, the compiler (resolve/typecheck/lower/erase/snapshot), diagnostics, transactional reload, catalog validation, or the EE/EA/AE and legacy-config migrator.
 ---
 
 # Config + migration: content is a compiled program
@@ -49,9 +49,10 @@ diagnostics, `/se reload`, catalog validation, `/se problems`, or the migrator.
   live-server gamble (§10). Version-specific handle-token existence is validated
   live by the tester's `CatalogSuite` (`matrix-gate`), not here.
 - **Migrator emits commented, reviewable YAML with inline TODOs** (not opaque
-  transforms), reusing the same `ParamSpec` + alias maps (§10). It reads legacy
-  item NBT **lazily, losslessly** into the modern PDC record on first touch (§4.3)
-  — see **item-data-model**.
+  transforms), reusing the same `ParamSpec` + alias maps (§10). Migration is
+  **config-only**: it reads another plugin's authored config (EE/EA/AE YAML) and
+  re-expresses it in our DSL. It does **not** touch live item NBT — there is no
+  lazy in-place item rewrite (DESCOPED; see **item-data-model** and ADR-0005).
 
 ## ParamSpec — one declaration, four uses (§7)
 
@@ -71,6 +72,6 @@ annotation-processor codegen (§7, §13 #2).
 ## Boundaries (§2)
 
 `se-schema` = the DSL as a typed language. `se-compile` = the compiler (Bukkit-free
-via the injected facade). `se-migrate` = legacy NBT reader + EE/EA/AE importer.
+via the injected facade). `se-migrate` = EE/EA/AE + legacy-YAML config importer (config-only; no item NBT).
 PDC stores stable string keys; dense `Ability.id` is a per-run accelerator only —
 items resolve by stable key after any reorder (§5.3).
