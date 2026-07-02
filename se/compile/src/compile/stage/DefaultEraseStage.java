@@ -6,6 +6,7 @@ import compile.model.FactMask;
 import compile.model.FactMasks;
 import compile.model.Interner;
 import compile.model.Interners;
+import compile.model.ScopeKinds;
 import compile.model.SourceMap;
 import compile.model.StableKeyIndex;
 import schema.diag.DiagCode;
@@ -169,7 +170,7 @@ public final class DefaultEraseStage implements EraseStage {
             Args args = effect.args();
             if ("SUPPRESS".equals(effect.head()) && args.has("scope") && args.has("key")) {
                 Args rewritten = args
-                        .with("scope", (long) scopeKind(args.str("scope")))
+                        .with("scope", (long) ScopeKinds.of(args.str("scope")))
                         .with("key", (long) cooldownScopes.intern(args.str("key")));
                 out[i] = effect.withArgs(rewritten); // keep the stamped kindId (ADR-0039)
             } else {
@@ -177,14 +178,5 @@ public final class DefaultEraseStage implements EraseStage {
             }
         }
         return out;
-    }
-
-    /** The cooldown-scope kind for a {@code SUPPRESS} scope token (matches ActivationPipeline's SCOPE_* ids). */
-    private static int scopeKind(String scope) {
-        return switch (scope.toUpperCase(Locale.ROOT)) {
-            case "GROUP" -> 1;
-            case "TYPE" -> 2;
-            default -> 0; // ENCHANT
-        };
     }
 }

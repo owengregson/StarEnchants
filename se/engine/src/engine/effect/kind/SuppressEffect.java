@@ -36,7 +36,7 @@ public final class SuppressEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        int scopeKind = ctx.integer("scope"); // erased to 0/1/2 (enchant/group/type)
+        int scopeKind = ctx.integer("scope"); // erased to ScopeKinds.ENCHANT/GROUP/TYPE (0/1/2)
         int keyId = ctx.integer("key");       // erased to the cooldown-scope interner id
         int duration = ctx.integer("duration");
         for (LivingEntity target : ctx.targets("who")) {

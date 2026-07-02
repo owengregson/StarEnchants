@@ -4,7 +4,6 @@ import compile.load.ContentHolder;
 import compile.model.Ability;
 import compile.model.CompiledEffect;
 import compile.model.Snapshot;
-import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
 import item.worn.WornState;
 import item.worn.WornStateStore;
@@ -40,11 +39,6 @@ import org.bukkit.entity.Player;
  * respawn, the periodic sweep, and the suppression hooks); the per-player owned map is a {@link ConcurrentHashMap}.
  */
 public final class PassiveEffectDriver {
-
-    /** Cooldown-scope kinds (mirror {@code ActivationPipeline}): a {@code DISABLE_*} keys the same packed id. */
-    private static final int SCOPE_ENCHANT = 0;
-    private static final int SCOPE_GROUP = 1;
-    private static final int SCOPE_TYPE = 2;
 
     /** "Permanent" duration in ticks (~13.9h) — long enough to never lapse in a session; matches the authored
      *  permanent-buff convention. Re-applied each refresh, so it also returns within a sweep after a clear. */
@@ -146,7 +140,7 @@ public final class PassiveEffectDriver {
                 continue;
             }
             Ability ability = abilities[abilityId];
-            boolean disabled = isSuppressed(ability, suppression, player, now);
+            boolean disabled = suppression.suppressesAny(ability, player, now);
             for (CompiledEffect effect : ability.effects()) {
                 if (!"POTION".equals(effect.head()) || !"SELF".equals(effect.target().head())) {
                     continue; // only self-buff potions are maintained; other effect kinds keep their own lifecycle
@@ -162,15 +156,4 @@ public final class PassiveEffectDriver {
         }
     }
 
-    /** Whether any of {@code ability}'s three scopes is under an active timed {@code DISABLE_*} (gate-5 mirror). */
-    private static boolean isSuppressed(Ability ability, SuppressionStore suppression, UUID player, long now) {
-        return scopeSuppressed(ability.cdScopeEnchant(), SCOPE_ENCHANT, suppression, player, now)
-                || scopeSuppressed(ability.cdScopeGroup(), SCOPE_GROUP, suppression, player, now)
-                || scopeSuppressed(ability.cdScopeType(), SCOPE_TYPE, suppression, player, now);
-    }
-
-    private static boolean scopeSuppressed(int scopeId, int scopeKind, SuppressionStore suppression,
-                                           UUID player, long now) {
-        return scopeId >= 0 && suppression.isSuppressed(player, CooldownStore.key(scopeKind, scopeId), now);
-    }
 }
