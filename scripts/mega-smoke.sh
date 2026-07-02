@@ -69,7 +69,9 @@ jdk_modern()  { local v="$1" want=21; ver_lt "$v" "$FLIP" && want=17; ver_lt "$v
 # Sets RUN_VERDICT; never writes the verdict to stdout (logs go to stderr).
 run_one() { # run_one <platform> <version> <port>
   local platform="$1" version="$2" port="$3"; RUN_VERDICT="FAIL"
-  local run jdk srv_jar arch=()
+  # caffeinate keeps a laptop awake through the boot; it is macOS-only, so on Linux CI the prefix is empty.
+  local run jdk srv_jar arch=() caff=()
+  command -v caffeinate >/dev/null 2>&1 && caff=(caffeinate -i)
   run="$(mktemp -d "/tmp/se-mega.$platform-$version.XXXXXX")"; mkdir -p "$run/plugins"
   cp "$MEGA" "$run/plugins/StarEnchants.jar"
   echo "eula=true" > "$run/eula.txt"
@@ -124,7 +126,7 @@ EOF
   # Feed `se` (exercise the era-forked /se registration) then `stop` after the server settles. A unique
   # -Dse.smoke.id marker lets the watchdog reap the actual java process: it is a GRANDCHILD (under caffeinate,
   # and under `arch` on arm64), so pkill -P on $pid misses it — pkill -f on the marker catches it by cmdline.
-  ( cd "$run" && { sleep 55; printf 'se\nstop\n'; sleep 20; } | caffeinate -i ${arch[@]+"${arch[@]}"} "$jdk/bin/java" \
+  ( cd "$run" && { sleep 55; printf 'se\nstop\n'; sleep 20; } | ${caff[@]+"${caff[@]}"} ${arch[@]+"${arch[@]}"} "$jdk/bin/java" \
       -Xms512M -Xmx1280M -Ddisable.watchdog=true -Dcom.mojang.eula.agree=true -Dse.smoke.id="$port" "${jar_args[@]}" > boot.log 2>&1 ) &
   local pid=$! waited=0
   while kill -0 "$pid" 2>/dev/null; do
