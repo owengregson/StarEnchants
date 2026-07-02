@@ -3,6 +3,7 @@ package feature.scroll;
 import compile.load.ScrollsConfig;
 import feature.apply.Rolls;
 import feature.apply.GestureOutcome;
+import feature.compat.Mats;
 import item.codec.AppliedSlot;
 import item.codec.ScrollCodec;
 import item.mint.ItemFactory;
@@ -60,11 +61,9 @@ public final class HolyScrollService {
         ScrollsConfig.Holy cfg = config.get().holy();
         String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
         List<String> lore = Tokens.subLines(cfg.lore(), "KINDS", kinds);
-        // The default material (TOTEM_OF_UNDYING) is absent on 1.8; resolve by name and fall back to a
-        // floor-stable material so the build fallback is never null on legacy.
-        Material totem = Material.getMaterial("TOTEM_OF_UNDYING");
+        // The default material (TOTEM_OF_UNDYING) is absent on 1.8 — resolve by name with a floor-stable fallback.
         ItemStack stack = ItemFactory.buildItem(
-                cfg.material(), totem != null ? totem : Material.PAPER, cfg.name(), lore);
+                cfg.material(), Mats.or("TOTEM_OF_UNDYING", Material.PAPER), cfg.name(), lore);
         scrolls.mark(stack, HOLY);
         return stack;
     }

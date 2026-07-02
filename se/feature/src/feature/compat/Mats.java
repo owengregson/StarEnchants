@@ -26,6 +26,17 @@ public final class Mats {
         return material != null ? material : fallback;
     }
 
+    /** The first of {@code names} that exists on this version (resolved by name, never a hard constant), else {@code fallback}. */
+    public static Material first(Material fallback, String... names) {
+        for (String name : names) {
+            Material material = Material.getMaterial(name);
+            if (material != null) {
+                return material;
+            }
+        }
+        return fallback;
+    }
+
     /** Whether {@code material} is empty (no item). 1.8 has no {@code Material.isAir()}; {@code == AIR} is the cross-version test for an item slot. */
     public static boolean isAir(Material material) {
         return material == Material.AIR;
