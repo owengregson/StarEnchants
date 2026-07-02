@@ -21,9 +21,16 @@ single-segment FQN**. The active one is added as a `main` srcDir by
 - **May diverge (overlay only):** the platform edge — `DispatchSink`/`DispatchSinkFactory`
   (particles via packet, attributes via NMS `GenericAttributes`), `RuntimeHandles`/`RegistrySupport`
   (pre-flattening name→id tables), the NBT `ItemBlobStore`, `EquipSource`, `HeldItem`/`EntityCompat`.
+- **Era leaves only — the base is shared (ADR-0036).** When most of an overlay class is era-neutral, hoist
+  that core into an abstract base in `src/` (e.g. `engine.sink.DispatchSinkBase`, `feature.combat.EquipListenerBase`)
+  and keep the overlay class a **thin leaf** carrying only the version-specific calls behind `protected abstract`
+  hooks — do NOT hand-mirror the shared body into both overlays. A base in `src/` compiles into both era trees
+  automatically, so its class name is in both class sets and the soundness gate stays green (its bytecode forks
+  per era exactly like any other shared class). Reach for a base whenever the twins share more than their edge;
+  keep a bare overlay pair only when the whole body diverges.
 - **Must NOT diverge:** everything in `src/` — `Sink` (fully interned, zero version-volatile referents), the
   effect/condition/selector kinds, `WornState`/`ItemView`, the whole pure core. A same-FQN class may exist in
-  `src/` **or** an overlay, never both.
+  `src/` **or** an overlay, never both (the shared base and its leaf have *different* names, so this holds).
 
 ## `-Pse.target=legacy` → a disjoint buildDir
 

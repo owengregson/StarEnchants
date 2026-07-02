@@ -50,7 +50,13 @@ Recorded here as the ratified target the codebase is being steered toward (not y
   "twin-file copy tax", most visible in `DispatchSink`). The target is a shared, overlay-free
   `DispatchSinkBase` (and peers) holding the era-neutral logic, with a **thin `overlay/{modern,legacy}` leaf
   subclass** carrying only the genuinely version-specific calls. This shrinks the swapped surface to the
-  irreducible edge and removes the copy tax.
+  irreducible edge and removes the copy tax. **DELIVERED** (`refactor/dispatch-sink-era-core`): the
+  ~1000 shared lines of the two `DispatchSink` twins now live in `engine.sink.DispatchSinkBase` (shared
+  `src/`); each overlay `DispatchSink` is a thin leaf implementing only the platform-edge hooks (interned-id
+  resolution, NMS knockback/attribute/particle/title, durability, teleport, entity-spawn targeting). The
+  `EquipListener` pair is likewise reduced to `EquipListenerBase` + a modern `PlayerArmorChangeEvent` leaf and
+  a legacy per-tick-poll leaf. The shared base lands in **both** era class sets automatically (it is in
+  `src/`), so the soundness gate stays green.
 - **Extend the dual-compile gate to `:integrate` and `:api`.** These modules are currently outside the
   legacy dual-compile lane; bringing them under it closes the gap where an integration/public-API change
   could break the legacy build unnoticed. This lands in **`feat/legacy-gate-integrity`** this wave.
@@ -62,8 +68,9 @@ Recorded here as the ratified target the codebase is being steered toward (not y
   the swapped surface is the version edge only.
 - The soundness gate makes an unsound MRJAR (mismatched class sets) a **build failure**, not a runtime
   `NoClassDefFoundError`.
-- Cost: two overlays per era-specific class until the shared-base consolidation lands; the twin-file tax is
-  accepted in the interim, with the target above as the exit.
+- Cost: two overlays per era-specific class where the body genuinely diverges edge-to-edge. The shared-base
+  consolidation (above) has removed the twin-file tax for the largest offenders (`DispatchSink`,
+  `EquipListener`); remaining twins are small enough that a leaf pair is cheaper than a base.
 
 ## Alternatives considered
 
