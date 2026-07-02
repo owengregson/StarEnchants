@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * per-activation transient suppression set is a SEPARATE arbiter, not this; this store holds only
  * suppressions that outlast the activation that created them.
  */
-public final class SuppressionStore {
+public final class SuppressionStore implements PlayerScoped {
 
     /** Notified whenever a player is freshly suppressed, so a maintained-buff driver can drop the affected
      *  effects immediately (instant DISABLE) and schedule their restore at the window's end. */

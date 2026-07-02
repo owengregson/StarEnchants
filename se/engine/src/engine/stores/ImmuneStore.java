@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Each player holds one expiry tick per type (a small fixed array), so independent immunities coexist;
  * {@link Type#ALL} covers every cause.
  */
-public final class ImmuneStore {
+public final class ImmuneStore implements PlayerScoped {
 
     /** The damage causes an immunity can cover; the ordinal is the wire code passed through the {@code Sink}. */
     public enum Type {

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * on the next {@link #ready}/{@link #remainingTicks}, so the maps stay bounded without a sweeper. Time is
  * an explicit caller-supplied tick, never wall-clock — deterministic, Folia-correct, server-free to test.
  */
-public final class CooldownStore {
+public final class CooldownStore implements PlayerScoped {
 
     private final Map<UUID, Map<Long, Long>> expiryByPlayer = new ConcurrentHashMap<>();
 

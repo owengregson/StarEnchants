@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * are decoupled (and on Folia may be on different region threads), so this store bridges them; an inline
  * read-back cannot carry the flag across.
  */
-public final class KnockbackControlStore {
+public final class KnockbackControlStore implements PlayerScoped {
 
     /** A control: the knockback multiplier and the tick it stops applying. */
     private record Control(double multiplier, long expiry) {
