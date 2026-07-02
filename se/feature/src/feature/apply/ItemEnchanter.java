@@ -171,10 +171,10 @@ public final class ItemEnchanter {
     public ApplyResult checkCrystal(Material material, String baseKey) {
         CrystalDef def = crystal(baseKey);
         if (def == null) {
-            return ApplyResult.fail(messages.format("apply.crystal.no-such", "KEY", baseKey));
+            return ApplyResult.fail(messages.format("crystal.no-such", "KEY", baseKey));
         }
         if (content.snapshot().byStableKey(baseKey) == null) {
-            return ApplyResult.fail(messages.format("apply.crystal.no-compile", "KEY", baseKey));
+            return ApplyResult.fail(messages.format("crystal.no-compile", "KEY", baseKey));
         }
         if (!groups.matches(material, def.appliesTo())) {
             return ApplyResult.fail(messages.format("apply.not-applicable", "DISPLAY", def.display()));
@@ -256,14 +256,14 @@ public final class ItemEnchanter {
         }
         CombatState current = codec.read(gear);
         if (current.crystals().isEmpty()) {
-            return ExtractResult.fail(messages.format("apply.crystal.none"));
+            return ExtractResult.fail(messages.format("crystal.none"));
         }
         List<String> entries = new ArrayList<>(current.crystals());
         String popped = entries.remove(entries.size() - 1); // the whole last entry — a multi-crystal pops off intact
         CombatState next = current.withCrystals(entries); // preserves setWeaponKey; the slot always frees
         codec.write(gear, next);
         lore.apply(gear, next);
-        return ExtractResult.ok(popped, messages.format("apply.crystal.extracted"));
+        return ExtractResult.ok(popped);
     }
 
     /**
@@ -367,17 +367,17 @@ public final class ItemEnchanter {
      */
     public ApplyResult checkCrystalEntry(ItemStack gear, List<String> keys) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return ApplyResult.fail(messages.format("apply.crystal.on-item"));
+            return ApplyResult.fail(messages.format("crystal.on-item"));
         }
         if (gear.getAmount() > 1) {
-            return ApplyResult.fail(messages.format("apply.crystal.single-item"));
+            return ApplyResult.fail(messages.format("crystal.single-item"));
         }
         if (keys.isEmpty()) {
-            return ApplyResult.fail(messages.format("apply.crystal.not-crystal"));
+            return ApplyResult.fail(messages.format("crystal.not-crystal"));
         }
         int mergeCap = maxMerge.getAsInt();
         if (keys.size() > mergeCap) {
-            return ApplyResult.fail(messages.format("apply.crystal.max-reached", "MAX", mergeCap));
+            return ApplyResult.fail(messages.format("crystal.max-reached", "MAX", mergeCap));
         }
         String label = "";
         for (String key : keys) {
@@ -390,8 +390,7 @@ public final class ItemEnchanter {
         CombatState current = codec.read(gear);
         int crystalCap = crystalSlots.getAsInt();
         if (current.crystals().size() >= crystalCap) {
-            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap),
-                    ApplyResult.Reason.NO_CRYSTAL_SLOTS);
+            return ApplyResult.fail(messages.format("crystal.no-slots", "MAX", crystalCap));
         }
         return ApplyResult.ok(label);
     }
@@ -416,11 +415,11 @@ public final class ItemEnchanter {
             return ApplyResult.fail(messages.format("apply.hold-item"));
         }
         if (keys.isEmpty()) {
-            return ApplyResult.fail(messages.format("apply.crystal.not-crystal"));
+            return ApplyResult.fail(messages.format("crystal.not-crystal"));
         }
         int mergeCap = maxMerge.getAsInt();
         if (enforceSlots && keys.size() > mergeCap) {
-            return ApplyResult.fail(messages.format("apply.crystal.max-reached", "MAX", mergeCap));
+            return ApplyResult.fail(messages.format("crystal.max-reached", "MAX", mergeCap));
         }
         String label = "";
         for (String key : keys) {
@@ -433,15 +432,14 @@ public final class ItemEnchanter {
         CombatState current = codec.read(stack);
         int crystalCap = crystalSlots.getAsInt();
         if (enforceSlots && current.crystals().size() >= crystalCap) {
-            return ApplyResult.fail(messages.format("apply.crystal.no-slots", "MAX", crystalCap),
-                    ApplyResult.Reason.NO_CRYSTAL_SLOTS);
+            return ApplyResult.fail(messages.format("crystal.no-slots", "MAX", crystalCap));
         }
         List<String> crystals = new ArrayList<>(current.crystals());
         crystals.add(String.join(item.codec.CrystalItemData.DELIMITER, keys)); // ONE entry = ONE slot
         CombatState next = current.withCrystals(crystals); // preserves setWeaponKey
         codec.write(stack, next);
         lore.apply(stack, next);
-        return ApplyResult.ok(messages.format("apply.crystal.applied", "LABEL", label));
+        return ApplyResult.ok(messages.format("crystal.applied", "LABEL", label));
     }
 
     private EnchantDef enchant(String baseKey) {
