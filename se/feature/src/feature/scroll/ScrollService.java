@@ -2,7 +2,7 @@ package feature.scroll;
 
 import compile.load.ContentHolder;
 import compile.load.ScrollsConfig;
-import feature.carrier.CarrierResult;
+import feature.apply.GestureOutcome;
 import feature.carrier.CarrierService;
 import feature.compat.Mats;
 import item.codec.CombatCodec;
@@ -163,7 +163,7 @@ public final class ScrollService {
     }
 
     /** Dispatch a scroll-on-target gesture by the cursor scroll's kind. */
-    public ScrollResult interact(ItemStack cursor, ItemStack target) {
+    public GestureOutcome interact(ItemStack cursor, ItemStack target) {
         String kind = scrolls.kind(cursor);
         if (BLACK.equals(kind)) {
             return applyBlack(cursor, target);
@@ -174,7 +174,7 @@ public final class ScrollService {
         if (TRANSMOG.equals(kind)) {
             return applyTransmog(cursor, target);
         }
-        return ScrollResult.unchanged(null); // not a scroll this service owns (defensive)
+        return GestureOutcome.noop(null); // not a scroll this service owns (defensive)
     }
 
     /**
@@ -185,16 +185,16 @@ public final class ScrollService {
      * enchanted item, (re)stamped from state by {@link LoreRenderer#apply} (custom enchants only; vanilla never
      * counts), which the re-render below triggers. Consumable and re-applicable.
      */
-    private ScrollResult applyTransmog(ItemStack cursor, ItemStack gear) {
+    private GestureOutcome applyTransmog(ItemStack cursor, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return ScrollResult.unchanged(messages.format("scroll.transmog.apply-target"));
+            return GestureOutcome.noop(messages.format("scroll.transmog.apply-target"));
         }
         if (gear.getAmount() > 1) {
-            return ScrollResult.unchanged(messages.format("common.single-item"));
+            return GestureOutcome.noop(messages.format("common.single-item"));
         }
         CombatState current = combat.read(gear);
         if (current.enchants().isEmpty()) {
-            return ScrollResult.unchanged(messages.format("scroll.transmog.no-enchants"));
+            return GestureOutcome.noop(messages.format("scroll.transmog.no-enchants"));
         }
         Map<String, Integer> reordered = sortedByTierWeight(current.enchants());
         CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
@@ -202,7 +202,7 @@ public final class ScrollService {
         combat.write(gear, next);
         lore.apply(gear, next); // re-renders the sorted enchant lore AND (re)stamps the §I enchant-count suffix
         consume(cursor);
-        return ScrollResult.committed(gear, null, messages.format("scroll.transmog.success"));
+        return GestureOutcome.committed(gear, messages.format("scroll.transmog.success"));
     }
 
     /** Order custom enchants by rarity-tier weight (highest first); ties broken by key for determinism. */
@@ -269,20 +269,20 @@ public final class ScrollService {
      * (§I); the drawn book carries the scroll's stamped conversion success rate (a legacy scroll with no stamp
      * falls back to the global ceiling). Both the scroll's stamp and the apply re-cap to the live ceiling.
      */
-    private ScrollResult applyBlack(ItemStack cursor, ItemStack gear) {
+    private GestureOutcome applyBlack(ItemStack cursor, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return ScrollResult.unchanged(messages.format("scroll.black.apply-target"));
+            return GestureOutcome.noop(messages.format("scroll.black.apply-target"));
         }
         if (gear.getAmount() > 1) {
-            return ScrollResult.unchanged(messages.format("common.single-item"));
+            return GestureOutcome.noop(messages.format("common.single-item"));
         }
         ScrollsConfig.Black bcfg = config.get().black();
         if (!groups.matches(gear.getType(), bcfg.appliesTo())) {
-            return ScrollResult.unchanged(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(bcfg.appliesTo())));
+            return GestureOutcome.noop(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(bcfg.appliesTo())));
         }
         CombatState current = combat.read(gear);
         if (current.enchants().isEmpty()) {
-            return ScrollResult.unchanged(messages.format("scroll.black.no-enchants"));
+            return GestureOutcome.noop(messages.format("scroll.black.no-enchants"));
         }
         List<String> keys = new ArrayList<>(current.enchants().keySet());
         String key = keys.get(random.nextInt(keys.size()));
@@ -296,26 +296,24 @@ public final class ScrollService {
         combat.write(gear, next);
         lore.apply(gear, next);
         ItemStack book = carriers.mintBook(key, level, convert); // extracted enchant → a book at the conversion rate
-        return ScrollResult.committed(gear, book, messages.format("scroll.black.success", "ENCHANT", displayOf(key)));
+        return GestureOutcome.committed(gear, book, messages.format("scroll.black.success", "ENCHANT", displayOf(key)));
     }
 
     /** Randomizer scroll: reroll a book's success chance to a random value in the configured range. */
-    private ScrollResult applyRandomizer(ItemStack cursor, ItemStack book) {
+    private GestureOutcome applyRandomizer(ItemStack cursor, ItemStack book) {
         ScrollsConfig.Randomizer cfg = config.get().randomizer();
         if (book == null || book.getType() == Material.AIR) {
-            return ScrollResult.unchanged(messages.format("scroll.randomizer.apply-target"));
+            return GestureOutcome.noop(messages.format("scroll.randomizer.apply-target"));
         }
         if (book.getAmount() > 1) {
-            return ScrollResult.unchanged(messages.format("scroll.randomizer.single-book"));
+            return GestureOutcome.noop(messages.format("scroll.randomizer.single-book"));
         }
         int target = cfg.minPercent() + random.nextInt(cfg.maxPercent() - cfg.minPercent() + 1);
-        CarrierResult rolled = carriers.rerollSuccess(book, target);
-        if (!rolled.consumed()) {
-            return ScrollResult.unchanged(messages.format("scroll.randomizer.not-book")); // not a book — don't waste the scroll
+        if (!carriers.rerollSuccess(book, target)) {
+            return GestureOutcome.noop(messages.format("scroll.randomizer.not-book")); // not a book — don't waste the scroll
         }
         consume(cursor);
-        return ScrollResult.committed(book, null,
-                messages.format("scroll.randomizer.success", "PERCENT", target));
+        return GestureOutcome.committed(book, messages.format("scroll.randomizer.success", "PERCENT", target));
     }
 
     private String displayOf(String key) {

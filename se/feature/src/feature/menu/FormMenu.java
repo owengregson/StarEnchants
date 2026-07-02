@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.Inventories;
 
 /**
  * Base for a single-screen bench menu with item-input slots (§K, ADR-0030). Unlike {@link PagedMenu} it
@@ -127,7 +128,7 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
         for (int slot : inputSlots()) {
             ItemStack staged = holder.getInventory().getItem(slot);
             if (staged != null && staged.getType() != Material.AIR) {
-                MenuItems.giveOrDrop(player, staged);
+                Inventories.giveOrDrop(player, staged);
                 holder.getInventory().setItem(slot, null);
             }
         }

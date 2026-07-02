@@ -13,6 +13,7 @@ import java.util.function.Supplier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.Inventories;
 import platform.item.ItemGroups;
 
 /**
@@ -66,7 +67,7 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
             messages.send(player, "menu.crystals.preview-only");
             return;
         }
-        MenuItems.giveOrDrop(player, crystals.mint(List.of(def.key())));
+        Inventories.giveOrDrop(player, crystals.mint(List.of(def.key())));
         messages.send(player, "menu.crystals.minted", "CRYSTAL", def.display());
     }
 

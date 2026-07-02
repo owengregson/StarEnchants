@@ -9,6 +9,7 @@ import java.util.Set;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.Inventories;
 
 /**
  * The Alchemist combine bench (§K, ADR-0030): fuse two identical enchant books (same enchant + level, below
@@ -87,7 +88,7 @@ public final class AlchemistMenu extends FormMenu {
         }
         holder.getInventory().setItem(LEFT_INPUT, null);
         holder.getInventory().setItem(RIGHT_INPUT, null);
-        MenuItems.giveOrDrop(player, combined.get());
+        Inventories.giveOrDrop(player, combined.get());
         messages.send(player, "menu.alchemist.combined");
     }
 }

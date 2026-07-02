@@ -1,6 +1,7 @@
 package feature.slot;
 
 import compile.load.SlotConfig;
+import feature.apply.GestureOutcome;
 import feature.compat.Mats;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
@@ -97,32 +98,32 @@ public final class SlotService {
      * Applies {@code slotItem} onto {@code gear} (clamped to the hard cap). The slot item is consumed only
      * when it actually raises the count; gear already at the cap is a no-op that preserves the slot item.
      */
-    public SlotResult applyTo(ItemStack slotItem, ItemStack gear) {
+    public GestureOutcome applyTo(ItemStack slotItem, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return SlotResult.unchanged(messages.format("slot.not-gear"));
+            return GestureOutcome.noop(messages.format("slot.not-gear"));
         }
         if (gear.getAmount() > 1) {
-            return SlotResult.unchanged(messages.format("common.single-item"));
+            return GestureOutcome.noop(messages.format("common.single-item"));
         }
         SlotConfig cfg = config.get();
         if (!groups.matches(gear.getType(), cfg.appliesTo())) {
-            return SlotResult.unchanged(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
+            return GestureOutcome.noop(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
         }
         int grant = codec.amountOf(slotItem);
         if (grant <= 0) {
-            return SlotResult.unchanged(messages.format("slot.not-slot-item"));
+            return GestureOutcome.noop(messages.format("slot.not-slot-item"));
         }
         int base = baseSlots.getAsInt();
         int maxAdded = Math.max(0, cfg.hardCap() - base); // the cap is on TOTAL slots (base + added)
         CombatState current = combat.read(gear);
         if (current.added() >= maxAdded) {
-            return SlotResult.unchanged(messages.format("slot.at-cap")); // at-cap is a no-op; the orb is preserved
+            return GestureOutcome.noop(messages.format("slot.at-cap")); // at-cap is a no-op; the orb is preserved
         }
         // Apply roll (§H): a sub-100 orb may fail — the orb is spent but the gear is untouched (never destroyed).
         int success = codec.successOf(slotItem);
         if (java.util.concurrent.ThreadLocalRandom.current().nextInt(100) >= success) {
             consume(slotItem);
-            return SlotResult.failed(messages.format("slot.fail"));
+            return GestureOutcome.consumedOnly(messages.format("slot.fail"));
         }
         int newAdded = Math.min(current.added() + grant, maxAdded);
         CombatState next = current.withAdded(newAdded);
@@ -130,7 +131,7 @@ public final class SlotService {
         lore.apply(gear, next);
         consume(slotItem);
         int total = base + newAdded;
-        return SlotResult.committed(gear, messages.format("slot.apply", "SLOTS", total));
+        return GestureOutcome.committed(gear, messages.format("slot.apply", "SLOTS", total));
     }
 
     private static java.util.List<String> renderLore(java.util.List<String> lore, String amount, int success,

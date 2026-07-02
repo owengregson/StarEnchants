@@ -864,8 +864,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 return;
             }
             ItemStack stack = new ItemStack(material, count);
-            target.getInventory().addItem(stack).values()
-                    .forEach(extra -> target.getWorld().dropItemNaturally(target.getLocation(), extra));
+            platform.item.Inventories.giveOrDrop(target, stack);
         });
     }
 

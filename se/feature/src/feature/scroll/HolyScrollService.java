@@ -1,6 +1,7 @@
 package feature.scroll;
 
 import compile.load.ScrollsConfig;
+import feature.apply.GestureOutcome;
 import item.codec.AppliedSlot;
 import item.codec.ScrollCodec;
 import item.mint.ItemFactory;
@@ -89,29 +90,29 @@ public final class HolyScrollService {
      * keep marker to the gear's applied-utility set and consume the scroll; on a failed roll consume the scroll
      * without protecting. Refused (nothing consumed) if the target is invalid or already holy-protected.
      */
-    public ScrollResult applyTo(ItemStack cursor, ItemStack gear) {
+    public GestureOutcome applyTo(ItemStack cursor, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return ScrollResult.unchanged(messages.format("scroll.holy.apply-target"));
+            return GestureOutcome.noop(messages.format("scroll.holy.apply-target"));
         }
         if (gear.getAmount() > 1) {
-            return ScrollResult.unchanged(messages.format("common.single-item"));
+            return GestureOutcome.noop(messages.format("common.single-item"));
         }
         if (slot.holds(gear, AppliedSlot.HOLY)) {
-            return ScrollResult.unchanged(messages.format("scroll.holy.already"));
+            return GestureOutcome.noop(messages.format("scroll.holy.already"));
         }
         ScrollsConfig.Holy cfg = config.get().holy();
         if (!groups.matches(gear.getType(), cfg.appliesTo())) {
-            return ScrollResult.unchanged(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
+            return GestureOutcome.noop(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
         }
         int span = cfg.maxSuccess() - cfg.minSuccess();
         int success = span <= 0 ? cfg.minSuccess() : cfg.minSuccess() + random.nextInt(span + 1);
         consume(cursor); // spent whether the roll succeeds or fails
         if (random.nextInt(100) >= success) {
-            return ScrollResult.committed(gear, null, messages.format("scroll.holy.fail"));
+            return GestureOutcome.committed(gear, messages.format("scroll.holy.fail"));
         }
         slot.occupy(gear, AppliedSlot.HOLY);
         reRender.accept(gear); // stamp the HOLY PROTECTED line from the new keep marker
-        return ScrollResult.committed(gear, null, messages.format("scroll.holy.applied"));
+        return GestureOutcome.committed(gear, messages.format("scroll.holy.applied"));
     }
 
     /**

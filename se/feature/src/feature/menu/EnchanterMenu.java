@@ -9,6 +9,7 @@ import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.Inventories;
 
 /**
  * The Enchanter merchant GUI (§K): click an offer to buy a random {@link UnopenedBookService unopened book}
@@ -72,7 +73,7 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
             return;
         }
         player.setLevel(player.getLevel() - offer.costLevels()); // safe: the clicker's own region thread
-        MenuItems.giveOrDrop(player, unopenedBooks.mint(offer.tier()));
+        Inventories.giveOrDrop(player, unopenedBooks.mint(offer.tier()));
         messages.send(player, "menu.enchanter.bought", "TIER", offer.tier());
     }
 

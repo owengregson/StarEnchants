@@ -1,85 +1,72 @@
 package feature.scroll;
 
-import feature.compat.MenuClicks;
+import feature.apply.ApplyGestureListener;
+import feature.apply.GestureOutcome;
 import java.util.Objects;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import platform.lang.Messages;
 import platform.sched.Scheduling;
 
 /**
- * Item-nametag gesture glue (§I); logic lives in {@link NametagService}. Dragging a nametag onto gear begins a
- * rename. On modern servers ({@link NametagAnvil#supported()}) the rename is captured through a raw-Bukkit
- * ANVIL GUI — the player types the new name, legacy {@code &} colour codes are parsed, and the result-slot
- * click applies it; the 1.8.9 fork falls back to chat capture.
+ * Item-nametag gesture glue (§I); logic lives in {@link NametagService}. A thin leaf of the shared
+ * {@link ApplyGestureListener} (ADR-0041) — dragging a nametag onto gear begins a rename. On modern servers
+ * ({@link NametagAnvil#supported()}) the rename is captured through a raw-Bukkit ANVIL GUI — the player types
+ * the new name, legacy {@code &} colour codes are parsed, and the result-slot click applies it; the 1.8.9 fork
+ * falls back to chat capture. The anvil dialog lock runs in {@link #handledBeforeGesture}, ahead of the
+ * drag-onto-gear gesture, so a click inside our rename GUI is never re-interpreted.
  *
  * <p>Folia-correct: inventory events fire on the clicking player's own region thread; {@code AsyncPlayerChatEvent}
  * is async, so its mutation is hopped back.
  */
-public final class NametagListener implements Listener {
+public final class NametagListener extends ApplyGestureListener {
 
     private final NametagService service;
     private final boolean anvilMode = NametagAnvil.supported();
 
-    public NametagListener(NametagService service) {
+    public NametagListener(NametagService service, Messages messages) {
+        super(messages);
         this.service = Objects.requireNonNull(service, "service");
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    @SuppressWarnings("deprecation") // setCursor/getView: the floor-stable cursor/view path
-    public void onClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        // 1) A click inside OUR anvil rename GUI: lock the dialog; the result slot confirms the rename.
+    // A click inside OUR anvil rename GUI: lock the dialog; the result slot confirms the rename. Runs BEFORE
+    // the drag-onto-gear gesture (a shift-click inside the rename anvil must stay cancelled).
+    @Override
+    @SuppressWarnings("deprecation") // getView: the floor-stable view path
+    protected boolean handledBeforeGesture(Player player, InventoryClickEvent event) {
         if (anvilMode && service.inAnvil(player.getUniqueId()) && NametagAnvil.isAnvil(event.getView())) {
             event.setCancelled(true); // typing renames; no item may be pulled out
             if (event.getRawSlot() == NametagAnvil.RESULT_SLOT) {
                 confirmAnvil(player, event);
             }
-            return;
+            return true;
         }
-        // 2) Otherwise, the drag-nametag-onto-gear gesture (bottom inventory only).
-        if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT) {
-            return;
-        }
-        if (MenuClicks.clickedInventory(event) == null
-                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
-            return;
-        }
-        ItemStack cursor = event.getCursor();
-        if (!service.isNametag(cursor)) {
-            return; // the cursor is not a nametag — leave the click alone
-        }
-        ItemStack target = event.getCurrentItem();
-        if (target == null || target.getType() == Material.AIR || service.isNametag(target)) {
-            return; // no target, or nametag-onto-nametag (meaningless)
-        }
+        return false;
+    }
 
-        event.setCancelled(true);
+    @Override
+    protected boolean claimsCursor(ItemStack cursor) {
+        return service.isNametag(cursor);
+    }
+
+    @Override
+    protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
         // begin() refuses (null) when a rename is already pending, so a second nametag isn't consumed for nothing.
         String prompt = service.begin(player.getUniqueId(), target);
         if (prompt == null) {
-            player.sendMessage(service.busyMessage()); // §L lang.yml scroll.nametag.busy
-            return;
+            return GestureOutcome.noop(service.busyMessage()); // §L lang.yml scroll.nametag.busy
         }
         cursor.setAmount(cursor.getAmount() - 1); // a nametag is spent to begin the rename (refunded if aborted)
-        event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
-        player.updateInventory();
-        if (anvilMode) {
-            openAnvil(player, target.clone());
-        } else {
-            player.sendMessage(prompt); // 1.8.9 chat fallback
-        }
+        ItemStack preview = target.clone();
+        return anvilMode
+                ? GestureOutcome.consumedOnly(null).andThen(() -> openAnvil(player, preview))
+                : GestureOutcome.consumedOnly(prompt); // 1.8.9 chat fallback
     }
 
     /** Open the anvil rename GUI (with the target's clone in the input slot so its name pre-fills the field). */
@@ -92,6 +79,7 @@ public final class NametagListener implements Listener {
     }
 
     /** Read the anvil rename field and apply it to the captured target; then close the GUI. */
+    @SuppressWarnings("deprecation") // getView: the floor-stable view path
     private void confirmAnvil(Player player, InventoryClickEvent event) {
         String text = NametagAnvil.renameText(event.getView());
         if (text == null) {
@@ -102,7 +90,7 @@ public final class NametagListener implements Listener {
         event.getView().getTopInventory().clear(); // §I drop the display clone so the real anvil's close returns no dupe
         Scheduling.onEntity(player, player::closeInventory);
         if (message != null) {
-            player.sendMessage(message);
+            messages.sendText(player, message);
         }
     }
 
@@ -146,7 +134,7 @@ public final class NametagListener implements Listener {
         Scheduling.onEntity(player, () -> {
             String message = service.complete(player, text);
             if (message != null) {
-                player.sendMessage(message);
+                messages.sendText(player, message);
             }
         });
     }

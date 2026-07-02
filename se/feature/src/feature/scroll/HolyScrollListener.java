@@ -1,22 +1,24 @@
 package feature.scroll;
 
-import feature.compat.MenuClicks;
+import feature.apply.ApplyGestureListener;
+import feature.apply.GestureOutcome;
 import java.util.List;
 import java.util.Objects;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import platform.item.Inventories;
+import platform.lang.Messages;
 import platform.sched.Scheduling;
 
 /**
- * Holy white scroll glue (§I); logic lives in {@link HolyScrollService}. Three hooks, all Folia-correct (each
- * event fires on the affected player's own region thread):
+ * Holy white scroll glue (§I); logic lives in {@link HolyScrollService}. The apply gesture is a thin leaf of
+ * the shared {@link ApplyGestureListener} (ADR-0041); the death/respawn hooks are Folia-correct (each event
+ * fires on the affected player's own region thread):
  *
  * <ul>
  *   <li><b>apply</b> — drag the scroll onto gear to stamp its one-shot keep-on-death marker;</li>
@@ -26,48 +28,25 @@ import platform.sched.Scheduling;
  *   <li><b>respawn</b> — re-grant the stashed items.</li>
  * </ul>
  */
-public final class HolyScrollListener implements Listener {
+public final class HolyScrollListener extends ApplyGestureListener {
 
     private final HolyScrollService service;
     private final KeptItemsStore kept;
 
-    public HolyScrollListener(HolyScrollService service, KeptItemsStore kept) {
+    public HolyScrollListener(HolyScrollService service, KeptItemsStore kept, Messages messages) {
+        super(messages);
         this.service = Objects.requireNonNull(service, "service");
         this.kept = Objects.requireNonNull(kept, "kept");
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    @SuppressWarnings("deprecation") // setCursor/getView: the floor-stable cursor/view path
-    public void onClick(org.bukkit.event.inventory.InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        if (event.getClick() != org.bukkit.event.inventory.ClickType.LEFT
-                && event.getClick() != org.bukkit.event.inventory.ClickType.RIGHT) {
-            return;
-        }
-        if (MenuClicks.clickedInventory(event) == null
-                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
-            return;
-        }
-        ItemStack cursor = event.getCursor();
-        if (!service.isHolyScroll(cursor)) {
-            return;
-        }
-        ItemStack target = event.getCurrentItem();
-        if (target == null || target.getType() == Material.AIR || service.isHolyScroll(target)) {
-            return; // scroll-onto-scroll / empty slot is meaningless
-        }
-        event.setCancelled(true);
-        ScrollResult result = service.applyTo(cursor, target);
-        if (result.commit()) {
-            event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
-            event.setCurrentItem(result.newTarget());
-            player.updateInventory();
-        }
-        if (result.message() != null) {
-            player.sendMessage(result.message());
-        }
+    @Override
+    protected boolean claimsCursor(ItemStack cursor) {
+        return service.isHolyScroll(cursor);
+    }
+
+    @Override
+    protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
+        return service.applyTo(cursor, target);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -81,7 +60,7 @@ public final class HolyScrollListener implements Listener {
         }
         Player player = event.getEntity();
         kept.stash(player.getUniqueId(), saved);
-        player.sendMessage(service.keptMessage(saved.size()));
+        messages.sendText(player, service.keptMessage(saved.size()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -92,9 +71,7 @@ public final class HolyScrollListener implements Listener {
             return;
         }
         // One tick after respawn, on the player's own region thread, so the inventory is restored first.
-        Scheduling.onEntityLater(player, 1L, () -> saved.forEach(stack ->
-                player.getInventory().addItem(stack).values()
-                        .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra))));
+        Scheduling.onEntityLater(player, 1L, () -> saved.forEach(stack -> Inventories.giveOrDrop(player, stack)));
     }
 
     @EventHandler

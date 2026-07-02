@@ -16,6 +16,9 @@ import org.bukkit.inventory.ItemStack;
  * Soul gem inventory affordances (§D): combine two gems (souls sum into a fresh gem) plus anti-dupe guards
  * (a gem can never be placed as a block nor used as a crafting ingredient — a Cosmic Enchants-style
  * {@code SoulgemCraftEvent} analog).
+ *
+ * <p>Deliberately NOT an {@code ApplyGestureListener} (ADR-0041 §exemptions): the merge works in any inventory,
+ * LEFT-only, single-gem both sides, and replaces the cursor outright — grammar the shared gesture doesn't fit.
  */
 public final class SoulInventoryListener implements Listener {
 

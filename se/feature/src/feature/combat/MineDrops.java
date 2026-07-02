@@ -43,8 +43,8 @@ public final class MineDrops {
         feature.compat.Blocks.suppressVanillaDrops(event); // suppress the vanilla drop; we place the effective drops below
         if (teleportDrops) {
             for (ItemStack drop : drops) {
-                player.getInventory().addItem(drop).values()
-                        .forEach(overflow -> world.dropItemNaturally(block.getLocation(), overflow));
+                // Overflow drops at the BLOCK (not the player's feet), matching the pre-ADR-0041 behaviour.
+                platform.item.Inventories.giveOrDrop(player, drop, block.getLocation());
             }
         } else { // smelt only — drop in-world, centred on the block
             Location at = block.getLocation().add(0.5, 0.5, 0.5);
