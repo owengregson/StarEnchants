@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
 import platform.text.Colors;
+import schema.spec.Ranges;
 
 /**
  * The book/dust/white-scroll application economy (ADR-0016; ADR-0019) — the cold path that mints these
@@ -86,7 +87,7 @@ public final class CarrierService {
 
     /** Mint a FIXED-percent SUCCESS DUST conferring exactly {@code fixedPercent} (§I) — baked, so reload-stable. */
     public ItemStack mintDust(int fixedPercent) {
-        return buildDust(clampPercent(fixedPercent));
+        return buildDust(Ranges.clampPercent(fixedPercent));
     }
 
     /** Build a dust item; {@code fixedBonus > 0} bakes a fixed conferred bonus, {@code 0} = roll at apply. */
@@ -112,7 +113,7 @@ public final class CarrierService {
      * {@code {MAXSUCCESS}} = the live global {@code books.max-success} ceiling the boost is clamped to.
      */
     private String subDust(String s, String bonus, String min, String max) {
-        String cap = Integer.toString(clampPercent(maxBookSuccess.getAsInt()));
+        String cap = Integer.toString(Ranges.clampPercent(maxBookSuccess.getAsInt()));
         return s.replace("{BONUS}", bonus).replace("{MIN}", min).replace("{MAX}", max)
                 .replace("{MAXSUCCESS}", cap);
     }
@@ -126,7 +127,7 @@ public final class CarrierService {
 
     /** Mint a WHITE SCROLL at an EXPLICIT apply-success (§J {@code /se give whitescroll <player> <percent>}). */
     public ItemStack mintWhiteScroll(int fixedSuccess) {
-        return buildWhiteScroll(clampPercent(fixedSuccess));
+        return buildWhiteScroll(Ranges.clampPercent(fixedSuccess));
     }
 
     private ItemStack buildWhiteScroll(int success) {
@@ -237,7 +238,7 @@ public final class CarrierService {
      * book) — the lore shows that success/failure rate and the book carries a base-success override.
      */
     public ItemStack mintBook(String enchantKey, int level, int successChance) {
-        int chance = clampPercent(successChance);
+        int chance = Ranges.clampPercent(successChance);
         ItemStack stack = bookLikeness(enchantKey, level, chance);
         codec.write(stack, new CarrierData(BOOK_KEY, enchantKey, level, 0, chance));
         return stack;
@@ -255,7 +256,7 @@ public final class CarrierService {
         String enchant = displayOf(enchantKey);
         String tierColor = tierColorOf(enchantKey);
         String levelText = levelNumeral(level);
-        int shown = successChance < 0 ? 100 : clampPercent(successChance);
+        int shown = successChance < 0 ? 100 : Ranges.clampPercent(successChance);
         String display = subBook(cfg.name(), enchant, levelText, tierColor, shown, def);
         List<String> lore = bookLore(cfg, def, enchant, descriptionOf(enchantKey), tierColor, levelText,
                 successChance, shown);
@@ -521,7 +522,7 @@ public final class CarrierService {
 
     /** A base success chance plus an accumulated bonus, clamped to {@code [0, 100]}. */
     private static int effectiveSuccess(int base, int bonus) {
-        return Math.max(0, Math.min(100, base + Math.max(0, bonus)));
+        return Ranges.clampPercent(base + Math.max(0, bonus));
     }
 
     /** A book's base success: its explicit {@code baseSuccess} override (§I) when present, else 100 (always succeeds). */
@@ -533,10 +534,6 @@ public final class CarrierService {
         carrier.setAmount(carrier.getAmount() - 1);
     }
 
-    private static int clampPercent(int pct) {
-        return Math.max(0, Math.min(100, pct));
-    }
-
     /**
      * Clamp {@code pct} to the global {@code books.max-success} ceiling (§I, live) and {@code [0, 100]} — the
      * cap that binds RANDOMISED minting (unopened book / randomizer scroll), the black scroll conversion, and
@@ -544,7 +541,7 @@ public final class CarrierService {
      * routed through here, so they stay uncapped.
      */
     public int capBookSuccess(int pct) {
-        return Math.min(clampPercent(pct), clampPercent(maxBookSuccess.getAsInt()));
+        return Math.min(Ranges.clampPercent(pct), Ranges.clampPercent(maxBookSuccess.getAsInt()));
     }
 
     private static Material material(String token) {

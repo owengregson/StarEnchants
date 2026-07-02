@@ -1,6 +1,7 @@
 package item.codec;
 
 import java.util.Objects;
+import schema.spec.Ranges;
 
 /**
  * A carrier item's on-item state (ADR-0016; ADR-0019; item-data-model "identity record") — an item
@@ -32,7 +33,7 @@ public record CarrierData(String itemKey, String grantKey, int grantLevel, int s
         Objects.requireNonNull(grantKey, "grantKey");
         grantLevel = Math.max(0, grantLevel);
         successBonus = Math.max(0, successBonus);
-        baseSuccess = baseSuccess < 0 ? -1 : Math.min(100, baseSuccess);
+        baseSuccess = baseSuccess < 0 ? -1 : Ranges.clampPercent(baseSuccess);
     }
 
     /** A carrier with no accumulated success bonus (the common case — a freshly-minted book/scroll/dust). */

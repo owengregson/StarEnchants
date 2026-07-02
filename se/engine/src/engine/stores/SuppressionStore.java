@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import schema.spec.Ranges;
 
 /**
  * Per-player timed suppression: an interned id &rarr; expiry tick (docs/architecture.md §5.4). Home for
@@ -39,7 +40,7 @@ public final class SuppressionStore implements PlayerScoped {
             immuneChance.remove(player);
             return;
         }
-        int clamped = Math.min(100, chance);
+        int clamped = Ranges.clampPercent(chance);
         immuneChance.put(player, clamped);
         if (clamped >= 100) {
             expiryByPlayer.remove(player); // absolute immunity drops any DISABLE that landed before it armed

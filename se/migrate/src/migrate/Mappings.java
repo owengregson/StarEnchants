@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import migrate.model.MigratedCondition;
 import migrate.model.MigratedEffect;
+import schema.spec.Ranges;
 
 /**
  * The legacy → unified vocabulary tables: triggers, item-application groups, effect-target tokens, and a
@@ -523,7 +524,7 @@ public final class Mappings {
 
     /** A percentage clamped to 0..100, rendered without a trailing {@code .0}. */
     private static String clampPct(String s) {
-        return trimNumber(Math.max(0, Math.min(100, pct(s))));
+        return trimNumber(Ranges.clampPercent(pct(s)));
     }
 
     /** Translate one EE {@code condition:} string to a {@link MigratedCondition}; an unmappable one is a TODO. */
@@ -567,7 +568,7 @@ public final class Mappings {
         try {
             return switch (head) {
                 case "REDUCTION" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "DAMAGE_MOD:defense:add:" + Math.min(100, Math.max(0, intArg(parts[1]))),
+                        ? MigratedEffect.mapped(token, "DAMAGE_MOD:defense:add:" + Ranges.clampPercent(intArg(parts[1])),
                                 intArg(parts[1]) > 100 ? "clamped to the 0-100 reduction cap" : "")
                         : MigratedEffect.todo(token, "unexpected REDUCTION arg shape");
                 case "DAMAGE" -> MigratedEffect.todo(token,

@@ -8,6 +8,7 @@ import item.codec.CombatState;
 import item.codec.SlotItemCodec;
 import item.mint.ItemFactory;
 import item.render.LoreRenderer;
+import schema.spec.Ranges;
 import java.util.Objects;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
@@ -56,7 +57,7 @@ public final class SlotService {
     /** Mint an orb at an EXPLICIT success (§J {@code /se give orb <player> <percent>}), clamped {@code [0, 100]}. */
     public ItemStack mintOrb(int fixedSuccess) {
         SlotConfig cfg = config.get();
-        return buildOrb(cfg, Math.max(0, Math.min(100, fixedSuccess)));
+        return buildOrb(cfg, Ranges.clampPercent(fixedSuccess));
     }
 
     private ItemStack buildOrb(SlotConfig cfg, int success) {
