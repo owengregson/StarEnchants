@@ -132,6 +132,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
+import platform.caps.Regions;
 import platform.content.ContentReloader;
 import platform.economy.EconomyProvider;
 import platform.economy.EconomyService;
@@ -838,6 +839,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 try {
                     match = world.getBlockAt(start).getType();
                 } catch (RuntimeException offRegion) {
+                    Regions.swallowed("AreaScan.vein", offRegion);
                     return List.of(); // a cross-region/unloaded read on Folia — bail rather than crash
                 }
                 if (feature.compat.Mats.isAir(match)) {
@@ -858,6 +860,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     try {
                         type = world.getBlockAt(c[0], c[1], c[2]).getType();
                     } catch (RuntimeException offRegion) {
+                        Regions.swallowed("AreaScan.vein", offRegion);
                         continue;
                     }
                     if (type != match) {

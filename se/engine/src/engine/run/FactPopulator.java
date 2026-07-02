@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.util.function.UnaryOperator;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import platform.caps.Regions;
 
 /**
  * Fills a condition {@link FactBuffer} from one activation's live context (docs/architecture.md §3.4).
@@ -230,6 +231,7 @@ public final class FactPopulator {
             }
         } catch (RuntimeException unreadable) {
             // Folia: actor owned by another region (cross-region shooter on ATTACK) — default, never abort.
+            Regions.swallowed("FactPopulator.populateActor", unreadable);
         }
     }
 
@@ -255,6 +257,7 @@ public final class FactPopulator {
             }
         } catch (RuntimeException unreadable) {
             // Cross-region victim (e.g. the attacker exposed on the DEFENSE pass) or a read failure.
+            Regions.swallowed("FactPopulator.populateVictim", unreadable);
         }
     }
 
@@ -280,6 +283,7 @@ public final class FactPopulator {
                 }
             } catch (RuntimeException unreadable) {
                 // A block owned by another region — leave the block facts defaulted.
+                Regions.swallowed("FactPopulator.populateContext.block", unreadable);
             }
         }
         boolean wantsRaining = worldRainingSlot >= 0 && mask.readsFlag(worldRainingSlot);
@@ -302,6 +306,7 @@ public final class FactPopulator {
                 }
             } catch (RuntimeException unreadable) {
                 // Folia: weather/time are global-region-owned; a wrong-thread read defaults only these facts.
+                Regions.swallowed("FactPopulator.populateContext.world", unreadable);
             }
         }
     }
@@ -346,6 +351,7 @@ public final class FactPopulator {
             }
         } catch (RuntimeException unreadable) {
             // Cross-region actor (Folia) or a read failure — leave the derived facts defaulted.
+            Regions.swallowed("FactPopulator.populateDerived", unreadable);
         }
     }
 
