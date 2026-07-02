@@ -2,6 +2,7 @@ package compile.load;
 
 import java.util.List;
 import java.util.Objects;
+import schema.spec.Ranges;
 
 /**
  * The WHITE SCROLL (§I), loaded from {@code items/white-scroll.yml}: stamps a one-shot guard marker so the
@@ -22,10 +23,9 @@ public record WhiteScrollConfig(String material, String name, List<String> lore,
         Objects.requireNonNull(protectedLine, "protectedLine");
         lore = List.copyOf(lore);
         appliesTo = List.copyOf(appliesTo);
-        int lo = Math.max(0, Math.min(100, minSuccess));
-        int hi = Math.max(0, Math.min(100, maxSuccess));
-        minSuccess = Math.min(lo, hi); // order the pair so [min, max] is always valid (matches the other configs)
-        maxSuccess = Math.max(lo, hi);
+        Ranges.IntRange success = Ranges.percentRange(minSuccess, maxSuccess);
+        minSuccess = success.min(); // order the pair so [min, max] is always valid (matches the other configs)
+        maxSuccess = success.max();
     }
 
     public static WhiteScrollConfig defaults() {

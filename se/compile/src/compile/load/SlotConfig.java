@@ -2,6 +2,7 @@ package compile.load;
 
 import java.util.List;
 import java.util.Objects;
+import schema.spec.Ranges;
 
 /**
  * The SLOT ORB (§H), loaded from {@code items/slot-orb.yml}: each use raises a piece's slot count by
@@ -28,10 +29,9 @@ public record SlotConfig(
         appliesTo = List.copyOf(appliesTo);
         orbAmount = Math.max(1, orbAmount);
         hardCap = Math.max(1, hardCap);
-        int lo = Math.max(0, Math.min(100, minSuccess));
-        int hi = Math.max(0, Math.min(100, maxSuccess));
-        minSuccess = Math.min(lo, hi); // order the pair so [min, max] is always valid (matches the other configs)
-        maxSuccess = Math.max(lo, hi);
+        Ranges.IntRange success = Ranges.percentRange(minSuccess, maxSuccess);
+        minSuccess = success.min(); // order the pair so [min, max] is always valid (matches the other configs)
+        maxSuccess = success.max();
     }
 
     public static SlotConfig defaults() {
