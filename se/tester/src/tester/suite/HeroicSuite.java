@@ -45,13 +45,13 @@ import tester.harness.CombatRig;
 import tester.harness.Harness;
 
 /**
- * Heroic percent stats, live (§6, §6.1; §F/ADR-0021): a passive {@code HeroicStat} percent, summed at equip
- * and applied as the bounded multiplicative stage on the additive damage fold, unconditionally (no
- * chance/trigger gate). Observed as a ×(1+percent) health delta on a cow. Mojang-mapped only.
+ * Heroic percent stats, live (§6, §6.1; §F/ADR-0037): a passive {@code HeroicStat} percent, summed at equip
+ * into the SAME additive damage fold every enchant uses, unconditionally (no chance/trigger gate). Observed
+ * as a ×(1+percent) health delta on a cow. Mojang-mapped only.
  */
 public final class HeroicSuite implements Harness.Scenario {
 
-    /** +200% outgoing — base 1.0 × (1 + 2.0) = 3.0 dealt (below the fold's ×4 heroic cap). */
+    /** +200% outgoing — base 1.0 × (1 + 2.0) = 3.0 dealt (the sole outgoing contribution). */
     private static final double HEROIC_PERCENT = 2.0;
 
     private final Plugin plugin;

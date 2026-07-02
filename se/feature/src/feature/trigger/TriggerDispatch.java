@@ -60,7 +60,6 @@ public final class TriggerDispatch {
     private final TeleblockStore teleblock;
     private final ImmuneStore immune;
     private final LongSupplier nowTicks;
-    private final java.util.function.DoubleSupplier maxHeroicOutgoing; // §F config.yml heroic.max-outgoing-factor
     private final IntPredicate attackTrigger;
 
     public final int mine;
@@ -99,32 +98,16 @@ public final class TriggerDispatch {
                            SoulDebit souls, VarStore vars, SuppressionStore suppression,
                            KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
         this(executor, sinkFactory, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
-                suppression, knockback, keepOnDeath,
-                () -> engine.interact.DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
+                suppression, knockback, keepOnDeath, new TeleblockStore(), new ImmuneStore());
     }
 
-    /** As the heroic-ceiling ctor, additionally sharing the TELEBLOCK/IMMUNE stores with their listeners. */
+    /** Full ctor, additionally sharing the TELEBLOCK/IMMUNE stores with their separate-event listeners. */
     public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
                            Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
                            SoulDebit souls, VarStore vars, SuppressionStore suppression,
                            KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
-                           java.util.function.DoubleSupplier maxHeroicOutgoing) {
-        this(executor, sinkFactory, content, worn, triggers, nowTicks, soulBinder, economy, souls, vars,
-                suppression, knockback, keepOnDeath, new TeleblockStore(), new ImmuneStore(), maxHeroicOutgoing);
-    }
-
-    /**
-     * Full ctor plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor},
-     * §F) threaded into each per-event {@link SinkReadback}, read live so a reload re-tunes it.
-     */
-    public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                           WornStateStore worn, TriggerRegistry triggers, LongSupplier nowTicks,
-                           Function<Player, Optional<SoulBinding>> soulBinder, EconomyService economy,
-                           SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
-                           TeleblockStore teleblock, ImmuneStore immune,
-                           java.util.function.DoubleSupplier maxHeroicOutgoing) {
+                           TeleblockStore teleblock, ImmuneStore immune) {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
         this.economy = Objects.requireNonNull(economy, "economy");
@@ -136,7 +119,6 @@ public final class TriggerDispatch {
         this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
         this.immune = Objects.requireNonNull(immune, "immune");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
-        this.maxHeroicOutgoing = Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing");
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
         this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
         this.executor = Objects.requireNonNull(executor, "executor");
@@ -361,7 +343,7 @@ public final class TriggerDispatch {
 
     private SinkReadback newSink() {
         return sinkFactory.create(economy, souls, vars, suppression, knockback, keepOnDeath,
-                teleblock, immune, nowTicks, maxHeroicOutgoing);
+                teleblock, immune, nowTicks);
     }
 
     private static int worldId(Snapshot snapshot, ActivationContext context) {

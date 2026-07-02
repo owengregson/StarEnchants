@@ -155,20 +155,8 @@ public final class DispatchSink implements SinkReadback {
     public DispatchSink(RenameResolvers resolvers, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
                         KeepOnDeathStore keepOnDeath, LongSupplier nowTicks) {
-        this(resolvers, economy, souls, vars, suppression, knockback, keepOnDeath, nowTicks,
-                () -> DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
-    }
-
-    /**
-     * The heroic outgoing-damage ceiling (§F/ADR-0021) is a supplier so {@code /se reload} re-tunes the bound;
-     * the eight-arg ctor defaults it to {@link DamageFold#DEFAULT_MAX_HEROIC_OUTGOING_FACTOR}.
-     */
-    public DispatchSink(RenameResolvers resolvers, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
-                        KeepOnDeathStore keepOnDeath, LongSupplier nowTicks,
-                        java.util.function.DoubleSupplier maxHeroicOutgoing) {
         this(resolvers, economy, souls, vars, suppression, knockback, keepOnDeath,
-                new TeleblockStore(), new ImmuneStore(), nowTicks, maxHeroicOutgoing);
+                new TeleblockStore(), new ImmuneStore(), nowTicks);
     }
 
     /**
@@ -179,7 +167,7 @@ public final class DispatchSink implements SinkReadback {
     public DispatchSink(RenameResolvers resolvers, EconomyService economy, SoulDebit souls,
                         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
                         KeepOnDeathStore keepOnDeath, TeleblockStore teleblock, ImmuneStore immune,
-                        LongSupplier nowTicks, java.util.function.DoubleSupplier maxHeroicOutgoing) {
+                        LongSupplier nowTicks) {
         this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
         this.economy = Objects.requireNonNull(economy, "economy");
         this.souls = Objects.requireNonNull(souls, "souls");
@@ -190,7 +178,7 @@ public final class DispatchSink implements SinkReadback {
         this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
         this.immune = Objects.requireNonNull(immune, "immune");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
-        this.fold = new DamageFold(Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing"));
+        this.fold = new DamageFold();
     }
 
     // ── Read-backs (called by the firing system, never by an effect) ─────────────────────────────
@@ -292,16 +280,6 @@ public final class DispatchSink implements SinkReadback {
     @Override
     public void addFlatReduction(double amount) {
         fold.addFlatReduction(amount);
-    }
-
-    @Override
-    public void addHeroicOutgoing(double percent) {
-        fold.addHeroicOutgoing(percent);
-    }
-
-    @Override
-    public void addHeroicReduction(double percent) {
-        fold.addHeroicReduction(percent);
     }
 
     // ── Entity intents ───────────────────────────────────────────────────────────────────────────

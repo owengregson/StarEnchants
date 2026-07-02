@@ -58,7 +58,6 @@ public final class CombatDispatch {
     // composition root can register it with EngineStoreListener as the single quit-cleanup authority (§5.4).
     private final ComboStore combo;
     private final LongSupplier nowTicks;
-    private final java.util.function.DoubleSupplier maxHeroicOutgoing; // §F config.yml heroic.max-outgoing-factor
     private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
     private final java.util.function.DoubleSupplier maxBonusReduction; // §L config.yml combat.max-bonus-reduction (<0 = uncapped)
     private final java.util.function.BooleanSupplier pvpEnabled;       // §L config.yml combat.pvp
@@ -113,20 +112,7 @@ public final class CombatDispatch {
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
         this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
                 nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
-                () -> engine.interact.DamageFold.DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
-    }
-
-    /** As the full ctor, plus the live heroic outgoing-damage ceiling (config.yml {@code heroic.max-outgoing-factor}, §F). */
-    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
-                          int bowTriggerId, int tridentTriggerId,
-                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
-                          EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                          KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
-                          java.util.function.DoubleSupplier maxHeroicOutgoing) {
-        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
-                nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
-                new TeleblockStore(), new ImmuneStore(), new ComboStore(), maxHeroicOutgoing,
+                new TeleblockStore(), new ImmuneStore(), new ComboStore(),
                 () -> -1.0, () -> -1.0, () -> true, () -> true); // combat caps uncapped + PvP/PvE on by default
     }
 
@@ -141,7 +127,6 @@ public final class CombatDispatch {
                           EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
                           KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
                           TeleblockStore teleblock, ImmuneStore immune, ComboStore combo,
-                          java.util.function.DoubleSupplier maxHeroicOutgoing,
                           java.util.function.DoubleSupplier maxBonusDamage,
                           java.util.function.DoubleSupplier maxBonusReduction,
                           java.util.function.BooleanSupplier pvpEnabled,
@@ -158,7 +143,6 @@ public final class CombatDispatch {
         this.immune = Objects.requireNonNull(immune, "immune");
         this.combo = Objects.requireNonNull(combo, "combo");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
-        this.maxHeroicOutgoing = Objects.requireNonNull(maxHeroicOutgoing, "maxHeroicOutgoing");
         this.maxBonusDamage = Objects.requireNonNull(maxBonusDamage, "maxBonusDamage");
         this.maxBonusReduction = Objects.requireNonNull(maxBonusReduction, "maxBonusReduction");
         this.pvpEnabled = Objects.requireNonNull(pvpEnabled, "pvpEnabled");
@@ -200,7 +184,7 @@ public final class CombatDispatch {
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         SinkReadback sink = sinkFactory.create(economy, souls, vars, suppression, knockback, keepOnDeath,
-                teleblock, immune, nowTicks, maxHeroicOutgoing);
+                teleblock, immune, nowTicks);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
 
         // Combat tag (supreme's out-of-combat fly): both parties count as fighting on any hit between them.
