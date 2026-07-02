@@ -122,9 +122,10 @@ echo "[mega] 4/4  verify the merged MRJAR ..."
 # that generalises the old bootstrap.compat.Commands grep) live here — the composition-root-adjacent declaration.
 # Empty entries are simply not asserted, so this grows as the ADR-0044 era-erasure migration lands each binding.
 if [ "$MODULE" = "bootstrap" ]; then
-  # Grows as ADR-0044 lands each binding; bootstrap.compat.EraBindings (+ its command-binding role) joins last.
-  export SE_MEGA_BINDINGS="platform/resolve/HandleLookups"
-  export SE_MEGA_COMMAND_BINDING=""  # e.g. "bootstrap/compat/EraBindings"
+  # The two same-FQN bindings twins (ADR-0044): bootstrap.compat.EraBindings (the composition-root manifest,
+  # which also carries the v1_8_R3 command-map cast → the P5 era-direction check) and platform.resolve.HandleLookups.
+  export SE_MEGA_BINDINGS="platform/resolve/HandleLookups,bootstrap/compat/EraBindings"
+  export SE_MEGA_COMMAND_BINDING="bootstrap/compat/EraBindings"
 fi
 scripts/mega-jar-gate.sh "$MOD" "$LEG" "$ROOT"
 

@@ -9,14 +9,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 /**
- * Legacy (1.8.9) targeting — same-FQN counterpart to the {@code overlay/modern} impl. 1.8 has no
- * {@code getTargetEntity}/{@code getTargetBlockExact} raytrace; the entity target is approximated by a
- * line-of-sight scan over nearby entities, and the block target uses the 1.8 {@code getTargetBlock(Set,int)}
+ * Legacy (1.8.9) targeting (ADR-0044) — the era-exclusive {@code overlay/legacy} line-of-sight scan, extracted
+ * from the bindings (its {@code targetEntity} loop is real logic, not delegation). 1.8 has no
+ * {@code getTargetEntity}/{@code getTargetBlockExact} raytrace: the entity target is approximated by a
+ * dot-product scan over nearby entities, and the block target uses the 1.8 {@code getTargetBlock(Set,int)}
  * overload (docs/legacy-1.8.9-codeshare-design.md §4).
  */
-public final class Targets {
+public final class LegacyTargets {
 
-    private Targets() {
+    private LegacyTargets() {
     }
 
     public static Entity targetEntity(Player from, int maxDistance) {
