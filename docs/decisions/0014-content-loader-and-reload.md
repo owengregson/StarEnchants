@@ -44,8 +44,10 @@ new **`bootstrap`** module is the `StarEnchants` JavaPlugin composition root + `
 **Reload — transactional.** Build off-thread (the loader is pure), swap the
 `AtomicReference` on the global thread only when there are no blocking diagnostics;
 a fatal edit keeps the old content live (never takes the server down). `/se reload`
-and `/se reload --dry-run`. `validateContent` (gradle) runs `LibraryLoader` on bundled
-content against a fake `PlatformResolvers`, failing the build on blocking diagnostics.
+and `/se reload --dry-run`. Bundled content is validated **inside `./gradlew build`** — the bootstrap
+`CatalogValidationTest` / `CosmicPackValidationTest` run `LibraryLoader` against a fake
+`PlatformResolvers`, failing the build on blocking diagnostics (there is no separate `validateContent`
+gradle task).
 
 **SnakeYAML** is server-provided (`compileOnly`, not shaded — no version coupling).
 

@@ -12,11 +12,18 @@
 
 ## Execution status (2026-06-25) — the fork is SHIPPING (all phases done; Gate 4 live + CI-enforced)
 
-> **[Superseded 2026-06-26] Distribution is now a single Multi-Release mega-jar.** The legacy and modern
-> trees are pre-built and merged into ONE `StarEnchants-<ver>.jar` by `scripts/build-mega-jar.sh` (base =
-> legacy v52 tree, `META-INF/versions/17/` = modern v61 tree, `Multi-Release: true`); the JVM selects the
-> tree at load time. There is no longer a separate `-1.8.9`/`-legacy` release asset — see the §7, §9, and
-> §10 superseded notes below.
+> **[Superseded 2026-06-26 / ratified as ADR-0036 on 2026-07-01] Distribution is now a single Multi-Release
+> mega-jar.** The legacy and modern trees are pre-built and merged into ONE `StarEnchants-<ver>.jar` by
+> `scripts/build-mega-jar.sh` (base = legacy v52 tree, `META-INF/versions/17/` = modern v61 tree,
+> `Multi-Release: true`); the JVM selects the tree at load time. There is no longer a separate
+> `-1.8.9`/`-legacy` release asset — see the §7, §9, and §10 superseded notes below.
+>
+> **The accepted architecture of record is now [ADR-0036](decisions/0036-legacy-overlay-and-mrjar.md)**
+> (srcDir overlay + same-FQN whole-file swaps, `-Pse.target=legacy` dual-compile gate, JvmDowngrader 61→52,
+> single MRJAR + identical-class-set soundness gate, era-specific testing). ADR-0036 also records the
+> target-state direction — consolidating era-neutral logic into shared base classes (e.g. `DispatchSinkBase`
+> with thin era leaves) and extending the dual-compile gate to `:integrate`/`:api`. Where this design doc
+> and ADR-0036 differ, **ADR-0036 wins.**
 
 The maintainer greenlit building all phases AND shipping the optional second jar. The 1.8.9 fork is now
 **built, compile-verified against a real Spigot 1.8.8 (`v1_8_R3`) jar, and FUNCTIONALLY verified live**: a
