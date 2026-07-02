@@ -195,6 +195,31 @@ migration ships).
 - **A new Folia-relevant world mutation** → a live suite **with cross-region staging**
   and an exactly-once event count.
 
+### The compiler fuzz gate (registry-derived)
+
+`engine/boot/CompilerFuzzTest` + `LoaderFuzzTest` fuzz the content compiler and
+loader FROM the live registries: every registered effect/selector kind gets seeded
+valid + near-valid generated content on every `./gradlew build`, asserting totality
+(never throws; every fault a closed-set `DiagCode`) and erase-stage soundness.
+Coverage grows automatically with each registered kind — zero per-kind authoring.
+
+- **A new kind needs no fuzz edit** — the `@TestFactory` registry walk picks it up.
+  A new `ParamType.Kind`/`ValueKind` breaks `ContentFuzz`'s exhaustive switches at
+  compile time: extend the generator, never add a `default`.
+- **A kind that gains a `CrossRule` will fail its valid-content case** — teach
+  `ContentFuzz.validNamed` the rule; do not loosen the no-blocking-diags assertion.
+- **Determinism is load-bearing:** fixed `BASE_SEED`, per-(head,case) seeds, draws
+  only from deterministically ordered lists (`registry.kinds()`,
+  `TriggerRegistry.names()`, sorted var keys). Never draw by iterating a
+  `Map.copyOf`/`Set.of` collection — immutable-collection iteration order is salted
+  per JVM run.
+- Failures print `head / case / seed / generated content / diagnostics`; the seed
+  plus case index reproduces the sample exactly.
+- Pin a mutation's `DiagCode` only when it is deterministic for every kind
+  (unknown head/param/trigger, missing arg, range); fuzzier mutations assert
+  totality + closed codes + structural soundness only — pinning them breaks on
+  non-bugs.
+
 ### Anti-patterns — never do these
 
 - Assert an exact lore/menu/command string a production constant defines (Rule 1).
