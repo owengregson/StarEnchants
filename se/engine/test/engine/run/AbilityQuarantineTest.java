@@ -19,7 +19,7 @@ import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
 import engine.selector.SelectorRegistry;
 import engine.selector.kind.SelfSelector;
-import engine.sink.DispatchSink;
+import engine.sink.ModernDispatchSink;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
@@ -119,7 +119,7 @@ class AbilityQuarantineTest {
 
     private void fire(Ability[] abilities) {
         Player actor = mock(Player.class);
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         executor.run(abilities, new int[] {0}, Activation.builder(ACTOR, 0, TRIGGER, 0L).build(),
                 new ActivationContext(actor, null, null, null), sink, KEYS);
         sink.flush();

@@ -1,6 +1,6 @@
 package tester.suite;
 
-import engine.sink.DispatchSink;
+import engine.sink.ModernDispatchSink;
 import java.util.OptionalInt;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,7 +17,7 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 
 /**
- * Affinity-routed {@link DispatchSink}, live (§3.6): intents reach the right thread and mutate the world
+ * Affinity-routed {@link ModernDispatchSink}, live (§3.6): intents reach the right thread and mutate the world
  * across the cross-region hop only Folia exercises. Emitted from GLOBAL (a different thread than the targets'
  * regions on Folia) so the Sink must hop each deferred intent to its owning thread.
  */
@@ -62,7 +62,7 @@ public final class SinkSuite implements Harness.Scenario {
                     int glowstoneId = resolveId(resolvers.material("GLOWSTONE"), "GLOWSTONE");
                     Location blockAt = at.clone().add(0, 3, 0);
 
-                    DispatchSink sink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                    ModernDispatchSink sink = new ModernDispatchSink(handles, new engine.sink.SinkEnv(
                             platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
                             engine.stores.EngineStores.fresh(), () -> 0L));
                     sink.ignite(victim, 80);
@@ -111,7 +111,7 @@ public final class SinkSuite implements Harness.Scenario {
                     // its tick count elapses — driving DispatchPlan's delayed dispatch over the real
                     // Scheduling.onRegionLater (the Folia region delayed scheduler included).
                     Location waitAt = at.clone().add(2, 3, 0); // distinct from blockAt; air on the flat spawn
-                    DispatchSink waitSink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                    ModernDispatchSink waitSink = new ModernDispatchSink(handles, new engine.sink.SinkEnv(
                             platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
                             engine.stores.EngineStores.fresh(), () -> 0L));
                     waitSink.delay(10);

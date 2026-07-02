@@ -18,7 +18,7 @@ import engine.pipeline.ActivationPipeline;
 import engine.selector.SelectorRegistry;
 import engine.selector.kind.SelfSelector;
 import engine.selector.kind.VictimSelector;
-import engine.sink.DispatchSink;
+import engine.sink.ModernDispatchSink;
 import engine.stores.CooldownStore;
 import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
@@ -35,7 +35,7 @@ import testfx.RecordingSchedulerBackend;
 import testfx.SyncSchedulerBackend;
 
 /**
- * Wires REAL engine components (registries, pipeline, kinds, a real {@link DispatchSink}), mocking only the
+ * Wires REAL engine components (registries, pipeline, kinds, a real {@link ModernDispatchSink}), mocking only the
  * Bukkit entities. No live matrix run: the executor adds no Bukkit/version/thread surface of its own —
  * dispatcher routing is matrix-verified, selectors are pure, the pipeline is unit-tested elsewhere.
  */
@@ -66,7 +66,7 @@ class AbilityExecutorTest {
     void activatedAbilityRunsItsEffectOnTheResolvedTarget() {
         LivingEntity victim = mock(LivingEntity.class);
         Ability[] abilities = {ignite("VICTIM", 60, Affinity.TARGET_ENTITY)};
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(abilities, new int[] {0}, activation(), context(null, victim), sink, KEYS);
         sink.flush();
@@ -80,7 +80,7 @@ class AbilityExecutorTest {
         LivingEntity victim = mock(LivingEntity.class);
         Ability onOtherTrigger = Abilities.ability().trigger(5).affinity(Affinity.TARGET_ENTITY)
                 .effects(igniteEffect("VICTIM", 60, Affinity.TARGET_ENTITY)).build();
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(new Ability[] {onOtherTrigger}, new int[] {0}, activation(),
                 context(null, victim), sink, KEYS);
@@ -95,7 +95,7 @@ class AbilityExecutorTest {
     void effectAppliesOnFlushRegardlessOfAffinity() {
         LivingEntity victim = mock(LivingEntity.class);
         Ability[] abilities = {ignite("VICTIM", 40, Affinity.CONTEXT_LOCAL)};
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         executor.run(abilities, new int[] {0}, activation(), context(null, victim), sink, KEYS);
         sink.flush();
@@ -106,7 +106,7 @@ class AbilityExecutorTest {
     void selfSelectorResolvesToTheActor() {
         Player actor = mock(Player.class);
         Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         executor.run(abilities, new int[] {0}, activation(), context(actor, null), sink, KEYS);
         sink.flush();
@@ -125,7 +125,7 @@ class AbilityExecutorTest {
                 SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
                 new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE, listener);
         Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         observed.run(abilities, new int[] {0}, activation(), context(actor, null), sink, KEYS);
 
@@ -143,7 +143,7 @@ class AbilityExecutorTest {
                 SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
                 new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE, listener);
         Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         // An empty index (e.g. resolving an id from a different/reloaded snapshot) → null, not IOOBE.
         observed.run(abilities, new int[] {0}, activation(), context(actor, null), sink,
@@ -161,7 +161,7 @@ class AbilityExecutorTest {
         CompiledEffect good = igniteEffect("VICTIM", 60, Affinity.TARGET_ENTITY);
         Ability ability = Abilities.ability().trigger(TRIGGER).affinity(Affinity.TARGET_ENTITY)
                 .effects(missing, good).build();
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(new Ability[] {ability}, new int[] {0}, activation(),
                 context(null, victim), sink, KEYS);
@@ -185,7 +185,7 @@ class AbilityExecutorTest {
                 Affinity.TARGET_ENTITY, effects.idOf("IGNITE"));
         Ability ability = Abilities.ability().trigger(TRIGGER).affinity(Affinity.TARGET_ENTITY)
                 .effects(ignite).build();
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = stamped.run(new Ability[] {ability}, new int[] {0}, activation(),
                 context(null, victim), sink, KEYS);
@@ -199,7 +199,7 @@ class AbilityExecutorTest {
     void outOfRangeCandidateIdsAreSkipped() {
         LivingEntity victim = mock(LivingEntity.class);
         Ability[] abilities = {ignite("VICTIM", 60, Affinity.TARGET_ENTITY)};
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(abilities, new int[] {-1, 7, 0}, activation(), context(null, victim), sink, KEYS);
         sink.flush();
@@ -218,7 +218,7 @@ class AbilityExecutorTest {
                 new CompiledSelector("VICTIM", Args.empty()), 40, Affinity.TARGET_ENTITY);
         Ability ability = Abilities.ability().trigger(TRIGGER).affinity(Affinity.TARGET_ENTITY)
                 .effects(delayed).build();
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
 
         int activated = executor.run(new Ability[] {ability}, new int[] {0}, activation(),
                 context(null, victim), sink, KEYS);

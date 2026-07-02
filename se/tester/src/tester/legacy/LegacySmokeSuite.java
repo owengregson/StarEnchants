@@ -11,7 +11,6 @@ import engine.pipeline.ActivationPipeline;
 import engine.run.AbilityExecutor;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
-import engine.sink.DispatchSinkFactory;
 import engine.stores.CooldownStore;
 import engine.stores.KnockbackControlStore;
 import engine.trigger.BuiltinTriggers;
@@ -75,7 +74,7 @@ import tester.harness.Harness;
  * factory) that do not exist in the legacy overlay — so neither the entry nor those suites even COMPILE against
  * craftbukkit-1.8.8. The legacy build (tester/build.gradle.kts) therefore compiles ONLY this package, driven by
  * {@link LegacySmokePlugin} instead, and the legacy seams are used directly here (the legacy
- * {@code DispatchSinkFactory} takes a {@code RenameResolvers}; potions resolve via {@code PotionEffectType}).
+ * {@code LegacyDispatchSink} takes a {@code RenameResolvers}; potions resolve via {@code PotionEffectType}).
  *
  * <p>Every check is written 1.8-safe by hand (the tester compiles against the floor, not dual-compiled against
  * 1.8.8, so javac is NOT the net here — the live boot is): {@code getItemInHand}, never {@code getItemInMainHand};
@@ -369,7 +368,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         AtomicLong tick = new AtomicLong();
         engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
                 engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
-        CombatDispatch dispatch = new CombatDispatch(executor, new DispatchSinkFactory(resolvers), new engine.run.LegacyActorProbe(), holder, worn,
+        CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.LegacyDispatchSink(resolvers, dsEnv), new engine.run.LegacyActorProbe(), holder, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
                 actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited());
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);

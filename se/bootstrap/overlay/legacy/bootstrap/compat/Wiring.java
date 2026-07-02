@@ -2,7 +2,7 @@ package bootstrap.compat;
 
 import engine.run.ActorProbe;
 import engine.run.LegacyActorProbe;
-import engine.sink.DispatchSinkFactory;
+import engine.sink.LegacyDispatchSink;
 import engine.sink.SinkFactory;
 import feature.fx.ParticleFx;
 import item.codec.ItemStateStore;
@@ -33,7 +33,7 @@ public final class Wiring {
     }
 
     public SinkFactory sinkFactory() {
-        return new DispatchSinkFactory(resolvers); // RegistryResolvers is a RenameResolvers
+        return env -> new LegacyDispatchSink(resolvers, env); // RegistryResolvers is a RenameResolvers
     }
 
     /** The physical item-data layer (§4.2): 1.8 NMS tags. Injected into every codec + the lore renderer. */

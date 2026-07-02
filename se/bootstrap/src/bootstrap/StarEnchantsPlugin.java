@@ -457,7 +457,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §N soft integration hooks (ADR-0027), set once at boot, no-op when the target is absent — each a
         // reflective seam so the engine keeps no hard dep on these plugins:
         // anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT,
-        engine.sink.DispatchSink.movementExemption(Bridges.antiCheatExemption(
+        engine.sink.DispatchSinkBase.movementExemption(Bridges.antiCheatExemption(
                 this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat")));
         // mcMMO friendly-fire gate,
         CombatDispatch.friendlyFire(Bridges.mcmmoFriendlyFire(this, master.config().integrations()::enabled));

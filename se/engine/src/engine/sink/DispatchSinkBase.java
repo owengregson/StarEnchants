@@ -258,6 +258,44 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void addMaxHealth(LivingEntity target, double amount) {
+        entityOp(target, () -> {
+            // Shifts the base value directly; unequip restoration of this delta lands with WornState (§5.5).
+            if (hasMaxHealthAttribute(target)) {
+                setMaxHealthBase(target, Math.max(1.0, maxHealthBase(target) + amount));
+            }
+        });
+    }
+
+    @Override
+    public void drainMaxHealth(LivingEntity target, double fraction, double baseline, double flat, int durationTicks) {
+        entityOp(target, () -> {
+            if (!hasMaxHealthAttribute(target)) {
+                return;
+            }
+            double base = maxHealthBase(target);
+            double overhealth = base - baseline;
+            double drain = overhealth * fraction + flat;
+            if (drain <= 0) {
+                return; // no overhealth to take
+            }
+            double newBase = Math.max(1.0, base - drain);
+            double removed = base - newBase; // exact delta (also when the clamp bit)
+            setMaxHealthBase(target, newBase);
+            if (target.getHealth() > maxHealth(target)) {
+                target.setHealth(Math.max(0.0, maxHealth(target))); // clamp current down to the new cap
+            }
+            if (durationTicks > 0) {
+                Scheduling.onEntityLater(target, durationTicks, () -> {
+                    if (hasMaxHealthAttribute(target)) {
+                        setMaxHealthBase(target, maxHealthBase(target) + removed); // add back exactly what was drained
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
     public void kill(LivingEntity target) {
         entityOp(target, () -> target.setHealth(0.0));
     }
@@ -1142,6 +1180,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** The entity's maximum health (attribute on modern; NMS {@code GenericAttributes} on 1.8). */
     protected abstract double maxHealth(LivingEntity entity);
+
+    /** Whether {@code entity} exposes a max-health attribute this era can shift (else add/drain is a no-op). */
+    protected abstract boolean hasMaxHealthAttribute(LivingEntity entity);
+
+    /** The BASE (pre-modifier) max-health — modern {@code AttributeInstance.getBaseValue}; 1.8 NMS {@code getValue}. */
+    protected abstract double maxHealthBase(LivingEntity entity);
+
+    /** Set the BASE max-health — modern {@code AttributeInstance.setBaseValue}; 1.8 NMS {@code setValue}. */
+    protected abstract void setMaxHealthBase(LivingEntity entity, double value);
 
     /** Set a freshly-spawned living entity's max + current health (SPAWN_ENTITY's {@code health} param). */
     protected abstract void applySpawnHealth(LivingEntity entity, double health);

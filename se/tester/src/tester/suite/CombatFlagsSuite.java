@@ -1,6 +1,6 @@
 package tester.suite;
 
-import engine.sink.DispatchSink;
+import engine.sink.ModernDispatchSink;
 import engine.sink.SoulDebit;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
@@ -102,7 +102,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                 }
                 Scheduling.onEntity(attacker, () -> {
                     KeepOnDeathStore keepStore = new KeepOnDeathStore();
-                    DispatchSink keepSink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                    ModernDispatchSink keepSink = new ModernDispatchSink(handles, new engine.sink.SinkEnv(
                             EconomyService.NONE, SoulDebit.NONE,
                             new engine.stores.EngineStores(new VarStore(), new SuppressionStore(),
                                     new KnockbackControlStore(), keepStore, new engine.stores.TeleblockStore(),
@@ -119,7 +119,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                     });
 
                     Location guardAt = at.clone();
-                    DispatchSink guardSink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                    ModernDispatchSink guardSink = new ModernDispatchSink(handles, new engine.sink.SinkEnv(
                             EconomyService.NONE, SoulDebit.NONE, engine.stores.EngineStores.fresh(), () -> 0L));
                     guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard");
                     guardSink.flush();

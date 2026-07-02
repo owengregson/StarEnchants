@@ -40,7 +40,7 @@ import schema.spec.HandleCategory;
  * and durability rides {@link Damageable} item meta. Same-FQN counterpart to the {@code overlay/legacy} impl
  * (which wraps {@code RenameResolvers} + {@code v1_8_R3} NMS).
  */
-public final class DispatchSink extends DispatchSinkBase {
+public final class ModernDispatchSink extends DispatchSinkBase {
 
     private final RuntimeHandles handles;
 
@@ -49,7 +49,7 @@ public final class DispatchSink extends DispatchSinkBase {
      * TELEBLOCK / IMMUNE flags a hit writes visible to the separate knockback / death / teleport / damage events'
      * listeners.
      */
-    public DispatchSink(RuntimeHandles handles, SinkEnv env) {
+    public ModernDispatchSink(RuntimeHandles handles, SinkEnv env) {
         super(env);
         this.handles = Objects.requireNonNull(handles, "handles");
     }
@@ -94,43 +94,22 @@ public final class DispatchSink extends DispatchSinkBase {
     }
 
     @Override
-    public void addMaxHealth(LivingEntity target, double amount) {
-        entityOp(target, () -> {
-            // Shifts the base value directly; unequip restoration of this delta lands with WornState (§5.5).
-            AttributeInstance maxHealth = maxHealthAttribute(target);
-            if (maxHealth != null) {
-                maxHealth.setBaseValue(Math.max(1.0, maxHealth.getBaseValue() + amount));
-            }
-        });
+    protected boolean hasMaxHealthAttribute(LivingEntity entity) {
+        return maxHealthAttribute(entity) != null;
     }
 
     @Override
-    public void drainMaxHealth(LivingEntity target, double fraction, double baseline, double flat, int durationTicks) {
-        entityOp(target, () -> {
-            AttributeInstance maxHealth = maxHealthAttribute(target);
-            if (maxHealth == null) {
-                return;
-            }
-            double overhealth = maxHealth.getBaseValue() - baseline;
-            double drain = overhealth * fraction + flat;
-            if (drain <= 0) {
-                return; // no overhealth to take
-            }
-            double newBase = Math.max(1.0, maxHealth.getBaseValue() - drain);
-            double removed = maxHealth.getBaseValue() - newBase; // exact delta (also when the clamp bit)
-            maxHealth.setBaseValue(newBase);
-            if (target.getHealth() > maxHealth.getValue()) {
-                target.setHealth(Math.max(0.0, maxHealth.getValue())); // clamp current down to the new cap
-            }
-            if (durationTicks > 0) {
-                Scheduling.onEntityLater(target, durationTicks, () -> {
-                    AttributeInstance mh = maxHealthAttribute(target);
-                    if (mh != null) {
-                        mh.setBaseValue(mh.getBaseValue() + removed); // add back exactly what was drained
-                    }
-                });
-            }
-        });
+    protected double maxHealthBase(LivingEntity entity) {
+        AttributeInstance maxHealth = maxHealthAttribute(entity);
+        return maxHealth != null ? maxHealth.getBaseValue() : 0.0;
+    }
+
+    @Override
+    protected void setMaxHealthBase(LivingEntity entity, double value) {
+        AttributeInstance maxHealth = maxHealthAttribute(entity);
+        if (maxHealth != null) {
+            maxHealth.setBaseValue(value);
+        }
     }
 
     /** The max-health attribute instance for {@code entity}, resolved version-adaptively, or {@code null}. */

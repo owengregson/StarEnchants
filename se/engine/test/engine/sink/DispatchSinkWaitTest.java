@@ -16,7 +16,7 @@ import testfx.Envs;
 import testfx.RecordingSchedulerBackend;
 
 /**
- * The {@link DispatchSink} WAIT-tier policy (§3.6): a delay&gt;0 intent runs only when its timer fires,
+ * The {@link ModernDispatchSink} WAIT-tier policy (§3.6): a delay&gt;0 intent runs only when its timer fires,
  * distinct tiers schedule independently, and the damage fold ignores the delay (it cannot defer onto a spent
  * event). The per-owner hop's Folia-correctness is matrix-verified elsewhere; these add only the deferral.
  */
@@ -36,7 +36,7 @@ class DispatchSinkWaitTest {
     void delayZeroIntentsDispatchImmediatelyOnFlush() {
         LivingEntity target = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.delay(0);
         sink.ignite(target, 60);
         sink.flush();
@@ -50,7 +50,7 @@ class DispatchSinkWaitTest {
         LivingEntity immediate = mock(LivingEntity.class);
         LivingEntity later = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.delay(0);
         sink.ignite(immediate, 60);
         sink.delay(40);
@@ -71,7 +71,7 @@ class DispatchSinkWaitTest {
         LivingEntity a = mock(LivingEntity.class);
         LivingEntity b = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.delay(20);
         sink.ignite(a, 10);
         sink.delay(60);
@@ -93,7 +93,7 @@ class DispatchSinkWaitTest {
         LivingEntity delayed = mock(LivingEntity.class);
         LivingEntity instant = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.delay(40);
         sink.ignite(delayed, 10);
         sink.delay(0);
@@ -114,7 +114,7 @@ class DispatchSinkWaitTest {
         // default to immediate, never a stale tier.
         LivingEntity target = mock(LivingEntity.class);
 
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.ignite(target, 60);
         sink.flush();
 
@@ -124,7 +124,7 @@ class DispatchSinkWaitTest {
 
     @Test
     void damageFoldIgnoresTheDelayAndAppliesToTheFiringEvent() {
-        DispatchSink sink = new DispatchSink(handles, Envs.sink().build());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.delay(40);
         sink.addOutgoingDamage(1.0);    // must still fold onto the original hit, not defer onto a spent event
 
