@@ -105,6 +105,16 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Era erasure for the legacy overlay (ADR-0044, internal — no behaviour change).** The
+  same-FQN "whole-file swap" overlay twins are replaced by seam interfaces in `src/` plus
+  era-exclusive `Modern*`/`Legacy*` implementations, so cross-era parity is a per-era `javac`
+  fact. Exactly two composition-only bindings twins remain (`bootstrap.compat.EraBindings`,
+  which absorbs the former Wiring/Bridges/Targets/Commands seams, and
+  `platform.resolve.HandleLookups`); the three separate legacy per-tick gear polls unify into
+  one `LegacyGearPoll`; and the Multi-Release soundness gate is now derived from the tree +
+  module set + constant-pool proof (no hand allowlist), with a fast `EraTreeGateTest` running
+  in every build. The shipped 1.8.9 and modern behaviour is unchanged.
+
 - **Heroic damage folds additively (ADR-0037, supersedes ADR-0021).** A heroic piece's
   damage percent now joins the single additive fold like any enchant bonus, instead of a
   separate post-fold multiplicative stage; the `heroic.max-outgoing-factor` clamp is

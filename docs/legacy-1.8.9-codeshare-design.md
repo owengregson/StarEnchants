@@ -12,6 +12,17 @@
 
 ## Execution status (2026-06-25) — the fork is SHIPPING (all phases done; Gate 4 live + CI-enforced)
 
+> **[Superseded 2026-07-02 — ADR-0044 era erasure] The same-FQN "whole-file swap" seam style below is
+> superseded.** The unit of era variation is now the **seam**, not the file: a version-specific capability is a
+> seam interface in `src/` with era-exclusive `Modern*`/`Legacy*` impls under era-unique FQNs (parity is a
+> per-era `javac` fact), constructor-injected from the composition root. Only **two** composition-only same-FQN
+> twins remain — `bootstrap.compat.EraBindings` (absorbing the former Wiring/Bridges/Targets/Commands) and
+> `platform.resolve.HandleLookups`. The three legacy per-tick gear polls unify into one `LegacyGearPoll`, and
+> the MRJAR soundness gate is **derived** (`scripts/tools/MegaJarGate.java` + `EraTreeGateTest`), replacing the
+> hand `ALLOW_ERA_EXCLUSIVE` allowlists. §4's overlay-contents list below is **historical** (it names same-FQN
+> seams like `DispatchSink`/`ItemBlobStore`/`RegistrySupport`); the shipped tree uses the ADR-0044 shape. See
+> [ADR-0044](decisions/0044-era-erasure.md). Where this doc and ADR-0044 differ, **ADR-0044 wins**.
+>
 > **[Superseded 2026-06-26 / ratified as ADR-0036 on 2026-07-01] Distribution is now a single Multi-Release
 > mega-jar.** The legacy and modern trees are pre-built and merged into ONE `StarEnchants-<ver>.jar` by
 > `scripts/build-mega-jar.sh` (base = legacy v52 tree, `META-INF/versions/17/` = modern v61 tree,

@@ -8,6 +8,8 @@ plugins {
 // SinkReadback interfaces, the systems, the pipeline, the kinds, AbilityExecutor and FactPopulator stay
 // shared in src/ (1.8-safe). `-Pse.target=legacy` compiles main + overlay/legacy against the real Spigot
 // 1.8.8 server jar, so the legacy DispatchSink's NMS is javac-checked, not assumed.
+// ADR-0044: era code is era-exclusive Modern*/Legacy* impls of src/ seam interfaces (constructor-injected),
+// NOT same-FQN twins; the only same-FQN twins are the two composition-only bindings (EraBindings, HandleLookups).
 val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
 
 if (legacyTarget) {

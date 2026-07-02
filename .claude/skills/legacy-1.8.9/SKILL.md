@@ -10,27 +10,43 @@ codebase (`docs/legacy-1.8.9-codeshare-design.md`). The modern floor stays
 1.17.1; the shipped `StarEnchants-<ver>.jar` is a Multi-Release jar carrying both
 the modern v61 tree and this downgraded v52 tree, the JVM selecting one at load.
 
-## The overlay mechanism
+## The overlay mechanism (ADR-0044 — seams, not same-FQN twins)
 
 Each forking module keeps its shared, 1.8-safe logic in flat `src/` and adds two
-seam trees under `se/<module>/overlay/{modern,legacy}/` in the **same
-single-segment FQN**. The active one is added as a `main` srcDir by
-`-Pse.target` (default `modern`) — a whole-file swap, not a diff:
+trees under `se/<module>/overlay/{modern,legacy}/`. The active one is added as a
+`main` srcDir by `-Pse.target` (default `modern`):
 `sourceSets["main"].java.srcDir(if (legacy) "overlay/legacy" else "overlay/modern")`.
+**The unit of era variation is the seam, not the file** — the same-FQN whole-file
+swap of ADR-0036 is superseded (except the two bindings twins below):
 
-- **May diverge (overlay only):** the platform edge — `DispatchSink`/`DispatchSinkFactory`
-  (particles via packet, attributes via NMS `GenericAttributes`), `RuntimeHandles`/`RegistrySupport`
-  (pre-flattening name→id tables), the NBT `ItemBlobStore`, `EquipSource`, `HeldItem`/`EntityCompat`.
-- **Era leaves only — the base is shared (ADR-0036).** When most of an overlay class is era-neutral, hoist
-  that core into an abstract base in `src/` (e.g. `engine.sink.DispatchSinkBase`, `feature.combat.EquipListenerBase`)
-  and keep the overlay class a **thin leaf** carrying only the version-specific calls behind `protected abstract`
-  hooks — do NOT hand-mirror the shared body into both overlays. A base in `src/` compiles into both era trees
-  automatically, so its class name is in both class sets and the soundness gate stays green (its bytecode forks
-  per era exactly like any other shared class). Reach for a base whenever the twins share more than their edge;
-  keep a bare overlay pair only when the whole body diverges.
-- **Must NOT diverge:** everything in `src/` — `Sink` (fully interned, zero version-volatile referents), the
-  effect/condition/selector kinds, `WornState`/`ItemView`, the whole pure core. A same-FQN class may exist in
-  `src/` **or** an overlay, never both (the shared base and its leaf have *different* names, so this holds).
+- **Seams (the norm).** A version-specific capability is a **seam interface in
+  `src/`** (`Hands`, `ParticleFx`, `ItemStateStore`, `EquipSource`, `ActorProbe`,
+  `DropControl`, `Projectiles`, `VanillaStats`, `AnvilRename`, …) with two
+  **era-exclusive** impls under **era-unique FQNs** (`ModernHands`/`LegacyHands`,
+  `ModernDispatchSink`/`LegacyDispatchSink`, `ModernParticleFx`/`LegacyParticleFx`,
+  `PdcItemStateStore`/`NbtItemStateStore`, …). Parity is a per-era `javac` fact
+  (`implements`), not a convention, and drift can't slip past the merge gate. The
+  impls are **constructor-injected** from the composition root — shared consumers
+  name only the interface, never an era class (the `EraTreeGateTest` G1-c check
+  enforces this).
+- **Shared base + era leaf** stays valid where most of a class is era-neutral
+  (`engine.sink.DispatchSinkBase` + `ModernDispatchSink`/`LegacyDispatchSink`;
+  `feature.combat.EquipListener` shared + the era armour-change feeders). The base
+  is in `src/`, so it lands in both class sets automatically.
+- **Asymmetric seams** (one era works, the other stubs) are a shared default plus
+  one override: `VanillaStats.NONE` / `AnvilRename.UNSUPPORTED` in `src/`, the real
+  `ModernVanillaStats` / `ModernAnvilRename` in `overlay/modern`.
+- **The ONLY same-FQN twins are the two composition-only bindings:**
+  `bootstrap.compat.EraBindings` (implements the shared `EraServices` — the whole
+  era wiring manifest, absorbing the former Wiring/Bridges/Targets/Commands) and
+  `platform.resolve.HandleLookups`. Content rule (gated): **construction and
+  one-line delegation only** — no `if/for/while/switch/try`, no mutable fields.
+  Real per-era logic is extracted to era-exclusive classes (`LegacyTargets`,
+  `LegacyEnchantResolver`, `LegacyGearPoll`), NOT inlined into a binding.
+- **Must NOT diverge:** everything else in `src/` — `Sink`, the kinds,
+  `WornState`/`ItemView`, the pure core. A same-FQN class lives in `src/` **or** an
+  overlay, never both (a seam interface and its `Modern*`/`Legacy*` impls have
+  *different* names, so this holds).
 
 ## `-Pse.target=legacy` → a disjoint buildDir
 
@@ -49,19 +65,36 @@ runtime helpers under the `se_jdg` root so the jar is self-contained. Records,
 sealed types, and switch-expressions lower cleanly; a JDG version bump is a gated
 change requiring a fresh live smoke.
 
-## MRJAR soundness — only identical class sets may merge
+## MRJAR soundness — a DERIVED gate (ADR-0044), not a hand allowlist
 
 On a modern JVM the classloader serves `META-INF/versions/17/` for any class
 present there and the base (v52) copy otherwise. A class that exists in **only
-one** era's tree therefore loads with that era's bytecode and calls shared
-classes with the wrong-era signature → `NoSuchMethodError`. So merging is sound
-**only** when the two trees have identical class sets (bar the allowlisted
-era-exclusive seam pair). `build-mega-jar.sh` enforces this at build time and
-**rejects** a divergent tree. The **tester is excluded by design**: its two
-trees diverge in era-specific suites, so it is never MRJAR-merged — the modern
-matrix (`run-matrix.sh`) boots the modern tester, `legacy-smoke.sh` boots the
-downgraded legacy tester, and `mega-smoke.sh` boot-smokes the shipped plugin on
-both eras.
+one** era's tree, but is *reachable* from the other era's bytecode, would load
+with the wrong-era signature → `NoSuchMethodError`. `scripts/tools/MegaJarGate.java`
+(an ad-hoc-compiled ASM tool inside `build-mega-jar.sh`, like `Jdk8ApiGate`) proves
+soundness **derived from the tree**, replacing the old hand
+`ALLOW_ERA_EXCLUSIVE`(`_PREFIX`) allowlists:
+
+- **P1** era-exclusivity is derived from the overlay dirs (a class under exactly
+  one `overlay/<era>/` is legitimately one-era); a divergent class with no such
+  source fails.
+- **P2** a constant-pool walk asserts the modern jar references no legacy-exclusive
+  FQN and vice-versa (the jar-level restatement of the compile-time fact).
+- **P3** a legacy-excluded module (`:integrate`) is derived from the module set, not
+  a hard-coded prefix.
+- **P4/P5** the two bindings twins (`EraBindings`, `HandleLookups`, declared in
+  `build-mega-jar.sh`'s `SE_MEGA_BINDINGS`) must be present in both trees, and the
+  base `EraBindings` must reference `v1_8_R3` while its `versions/17` copy must not
+  (the era-direction check, generalising the old `Commands` grep).
+- **P6** the non-class resource trees match by SHA-256.
+
+The fast companion `EraTreeGateTest` runs in every `./gradlew build` (G1-a twin
+set = bindings; G1-b bindings composition-only; G1-c no src names an era class;
+G1-d `EraBindings implements EraServices`), so a broken seam fails locally. The
+**tester is excluded by design**: its era-specific suites live in `src/` includes
+(not overlay dirs), so P1 rejects it exactly as before — `run-matrix.sh` boots the
+modern tester, `legacy-smoke.sh` the downgraded legacy tester, `mega-smoke.sh`
+boot-smokes the shipped plugin on both eras.
 
 ## The gates
 
@@ -81,8 +114,14 @@ release). `SE_SKIP_JDK8_GATE=1` is a loud, local-only escape hatch.
 - **`Material.CLOCK`-class constants break the 1.8 compile.** Flattening renamed
   hundreds of Materials; a hard-referenced modern constant is absent on the 1.8
   jar. Resolve by name through the resolver, never a compile-time constant.
-- **`HeldItem` empty-hand NPE.** 1.8 `getItemInHand()` on an empty hand can
-  return null (modern returns AIR); the legacy `HeldItem` overlay must guard it.
+- **Empty-hand NPE.** 1.8 `getItemInHand()` on an empty hand can return null
+  (modern returns AIR); the `LegacyActorProbe` / `LegacyHands` impls must guard it.
+- **One legacy gear poll, not three.** 1.8 has no `PlayerArmorChangeEvent` /
+  `PlayerItemDamageEvent`, so equip-refresh, ITEM_DAMAGE, and heroic-durability are
+  all driven by the single `feature.trigger.LegacyGearPoll` (one repeating task, one
+  5-slot scan). Its **fixed per-slot subscriber order is load-bearing** — ITEM_DAMAGE
+  fires before any heroic restore, and the poll records the post-restore durability so
+  next tick sees no phantom delta. Do not re-split it into per-concern polls.
 - **Stale-jar selection.** `build-legacy/libs` can retain an old-version
   `-legacy.jar` a bare `find | head -1` would grab by directory order — a false
   PASS on old code. The scripts pin the **exact current-version filename**.

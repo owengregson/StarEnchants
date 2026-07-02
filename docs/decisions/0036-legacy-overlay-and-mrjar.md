@@ -3,6 +3,9 @@
 - **Status:** Accepted
 - **Date:** 2026-07-01
 - **Deciders:** project owner + agent
+- **Refined by:** ADR-0044 (era erasure — the same-FQN whole-file swap seam style below is
+  superseded by seams + era-exclusive impls for all but two composition-only bindings twins,
+  and the soundness gate becomes derived)
 - **Relates to:** ADR-0002 (version targets), ADR-0008 (cross-version + Folia),
   `docs/legacy-1.8.9-codeshare-design.md` (the design this ADR ratifies + amends),
   `scripts/build-mega-jar.sh`

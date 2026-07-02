@@ -10,6 +10,8 @@ plugins {
 // seam lives under overlay/<target>, selected as a srcDir of main by -Pse.target (default modern). So the
 // 1.8 jar is THIS module built with -Pse.target=legacy (which pulls every module's legacy overlay) — there
 // is no separate legacy composition-root module; the overlay mechanism shares the bootstrap too.
+// ADR-0044: era code is era-exclusive Modern*/Legacy* impls of src/ seam interfaces (constructor-injected),
+// NOT same-FQN twins; the only same-FQN twins are the two composition-only bindings (EraBindings, HandleLookups).
 val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
 
 if (legacyTarget) {

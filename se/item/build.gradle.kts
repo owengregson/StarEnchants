@@ -11,6 +11,8 @@ plugins {
 // REAL Spigot 1.8.8 server jar, so a 1.8-absent platform symbol is a javac error (Gate 1+1b), not a
 // runtime NoSuchMethodError. The default `./gradlew build` uses overlay/modern + paper-api and never
 // touches the 1.8 jar.
+// ADR-0044: era code is era-exclusive Modern*/Legacy* impls of src/ seam interfaces (constructor-injected),
+// NOT same-FQN twins; the only same-FQN twins are the two composition-only bindings (EraBindings, HandleLookups).
 val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
 
 if (legacyTarget) {
