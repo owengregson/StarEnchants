@@ -64,6 +64,9 @@ final class AddonBridge implements EffectKind {
         for (AddonSpec.AddonTarget t : addonSpec.targets()) {
             b.target(t.name(), t.selectorType());
         }
+        if (addonSpec.needsActorOrigin()) {
+            b.actorOrigin();
+        }
         return b.build();
     }
 
@@ -78,6 +81,8 @@ final class AddonBridge implements EffectKind {
         @Override public Player actor() { return ctx.actor(); }
         @Override public LivingEntity victim() { return ctx.victim(); }
         @Override public Location location() { return ctx.location(); }
+        @Override public Location actorOrigin() { return ctx.actorOrigin(); }
+        @Override public Location actorOriginEye() { return ctx.actorOriginEye(); }
     }
 
     /** The add-on's curated intent view over one activation's {@link Sink}; each call maps 1:1 to an engine intent. */

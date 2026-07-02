@@ -22,11 +22,14 @@ public final class AddonSpec {
     private final ParamSpec paramSpec;
     private final AddonAffinity affinity;
     private final List<AddonTarget> targets;
+    private final boolean needsActorOrigin;
 
-    private AddonSpec(ParamSpec paramSpec, AddonAffinity affinity, List<AddonTarget> targets) {
+    private AddonSpec(ParamSpec paramSpec, AddonAffinity affinity, List<AddonTarget> targets,
+                      boolean needsActorOrigin) {
         this.paramSpec = paramSpec;
         this.affinity = affinity;
         this.targets = List.copyOf(targets);
+        this.needsActorOrigin = needsActorOrigin;
     }
 
     public static Builder of(String head) {
@@ -51,6 +54,11 @@ public final class AddonSpec {
     /** The declared target selector slots, in declaration order. */
     public List<AddonTarget> targets() {
         return targets;
+    }
+
+    /** Whether run() anchors on the actor — the executor captures the ADR-0043 origin snapshot before running it. */
+    public boolean needsActorOrigin() {
+        return needsActorOrigin;
     }
 
     public String doc() {
@@ -81,6 +89,7 @@ public final class AddonSpec {
         private final ParamSpec.Builder paramSpec;
         private final List<AddonTarget> targets = new ArrayList<>();
         private AddonAffinity affinity = AddonAffinity.CONTEXT_LOCAL;
+        private boolean needsActorOrigin;
 
         private Builder(String head) {
             this.paramSpec = ParamSpec.of(head);
@@ -106,6 +115,12 @@ public final class AddonSpec {
             return this;
         }
 
+        /** Declare that run() anchors on the actor, so the executor captures its origin snapshot (ADR-0043). */
+        public Builder actorOrigin() {
+            this.needsActorOrigin = true;
+            return this;
+        }
+
         public Builder doc(String doc) {
             paramSpec.doc(doc);
             return this;
@@ -117,7 +132,7 @@ public final class AddonSpec {
         }
 
         public AddonSpec build() {
-            return new AddonSpec(paramSpec.build(), affinity, targets);
+            return new AddonSpec(paramSpec.build(), affinity, targets, needsActorOrigin);
         }
     }
 }
