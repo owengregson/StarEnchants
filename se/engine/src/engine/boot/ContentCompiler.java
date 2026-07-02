@@ -47,6 +47,8 @@ public final class ContentCompiler {
         SelectorRegistry selectors = BuiltinSelectors.registry();
         TriggerRegistry triggers = BuiltinTriggers.registry();
         VarResolver vars = BuiltinVars.vocabulary().asResolver();
+        // idOf stamps each effect/selector with its dense kind id (ADR-0039); the SAME registries back the
+        // executor's kind arrays, so a stamped id and its array position agree by construction.
         return Compiler.of(
                 effects.specRegistry(),
                 effects.affinityOf(),
@@ -54,6 +56,8 @@ public final class ContentCompiler {
                 effects.defaultSelectorOf(),
                 vars,
                 triggers.names(),
-                resolvers);
+                resolvers,
+                effects::idOf,
+                selectors::idOf);
     }
 }

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 /**
  * The default {@link LowerStage}: one authored {@link AbilityDef} &rarr; a {@link LoweredAbility}
@@ -42,21 +43,34 @@ public final class DefaultLowerStage implements LowerStage {
     private final SelectorCompiler selectorCompiler;
     private final Function<String, String> defaultSelectorOf;
     private final ConditionCompiler conditionCompiler;
+    private final ToIntFunction<String> effectIdOf;
+
+    /** Convenience: no dense-id stamping — every effect/selector {@code kindId} is {@code -1} (the head-fallback path). */
+    public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                             SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                             VarResolver vars) {
+        this(registry, affinityOf, selectors, defaultSelectorOf, vars, head -> -1, head -> -1);
+    }
 
     /**
      * @param affinityOf        effect head &rarr; declared {@link Affinity}; {@code null} &rarr; {@link Affinity#CONTEXT_LOCAL}
      * @param defaultSelectorOf effect head &rarr; default selector head; {@code null} &rarr; {@code SELF}
      * @param vars              condition variable vocabulary; unknown variables become PlaceholderAPI tokens
+     * @param effectIdOf        effect head &rarr; dense kind id stamped on each {@link CompiledEffect} (ADR-0039)
+     * @param selectorIdOf      selector head &rarr; dense kind id stamped on each {@link CompiledSelector} (ADR-0039)
      */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
-                             VarResolver vars) {
+                             VarResolver vars, ToIntFunction<String> effectIdOf,
+                             ToIntFunction<String> selectorIdOf) {
         Objects.requireNonNull(registry, "registry");
         this.affinityOf = Objects.requireNonNull(affinityOf, "affinityOf");
-        this.selectorCompiler = new SelectorCompiler(Objects.requireNonNull(selectors, "selectors"));
+        this.selectorCompiler = new SelectorCompiler(Objects.requireNonNull(selectors, "selectors"),
+                Objects.requireNonNull(selectorIdOf, "selectorIdOf"));
         this.defaultSelectorOf = Objects.requireNonNull(defaultSelectorOf, "defaultSelectorOf");
         this.conditionCompiler = new ConditionCompiler(Objects.requireNonNull(vars, "vars"));
         this.lineCompiler = new LineCompiler(registry);
+        this.effectIdOf = Objects.requireNonNull(effectIdOf, "effectIdOf");
     }
 
     /** Convenience: selector support, but the empty variable vocabulary. */
@@ -97,8 +111,8 @@ public final class DefaultLowerStage implements LowerStage {
             }
             compile.CompiledLine cl = compiled.get();
             CompiledSelector selector = resolveSelector(line, cl.head(), diags);
-            out.add(new CompiledEffect(
-                    cl.head(), lowerExprArgs(cl.args(), diags), selector, waitAccum, affinityOf(cl.head())));
+            out.add(new CompiledEffect(cl.head(), lowerExprArgs(cl.args(), diags), selector,
+                    waitAccum, affinityOf(cl.head()), effectIdOf.applyAsInt(cl.head())));
         }
 
         CompiledCondition condition = lowerCondition(def, diags);

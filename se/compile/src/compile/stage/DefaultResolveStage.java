@@ -76,8 +76,7 @@ public final class DefaultResolveStage implements ResolveStage {
             }
             args = args.with(p.name(), id.getAsInt());
         }
-        return new CompiledEffect(effect.head(), args, effect.target(),
-                effect.cumulativeWaitTicks(), effect.affinity());
+        return effect.withArgs(args); // keep the stamped kindId (ADR-0039)
     }
 
     private OptionalInt lookup(HandleCategory category, String token) {

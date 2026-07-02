@@ -23,6 +23,7 @@ package compile.model;
  * @param cdScopeType    interned cooldown-scope id (type scope), or {@code -1}
  * @param suppressKey    interned key (enchant id | group id | type) by which a {@code DISABLE_*} cancels this ability (§6.2), or {@code -1}
  * @param setPieces      for a {@link SourceKind#SET} bonus, the worn-piece count that completes the set (§6.6); {@code 0} for every non-set source
+ * @param factMask       the {@code FactBuffer} slots this ability reads (ADR-0039), unioned per trigger in the {@code WornState} so the populator computes only referenced facts; {@link FactMask#ALL} for hand-built abilities (populate everything)
  */
 public record Ability(
         int id,
@@ -42,7 +43,18 @@ public record Ability(
         int cdScopeGroup,
         int cdScopeType,
         int suppressKey,
-        int setPieces) {
+        int setPieces,
+        FactMask factMask) {
+
+    /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
+    public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
+                   int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
+                   CompiledEffect[] effects, int repeatTicks, Affinity affinity, int cdScopeEnchant,
+                   int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
+        this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
+                condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                suppressKey, setPieces, FactMask.ALL);
+    }
 
     public boolean firesOn(int triggerId) {
         return (triggerMask & (1 << triggerId)) != 0;

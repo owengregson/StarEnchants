@@ -629,7 +629,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 contentRoot, 0, published -> {
             itemViews.reload(published.snapshot().generation());
             executor.bindQuarantine(quarantineFor(published.snapshot())); // §10 fresh per snapshot — a fixed edit clears the block
-            executor.bindEffects(effectRegistry.get()); // ADR-0038: pick up add-on kinds registered before this swap
+            executor.bindContent(effectRegistry.get()); // ADR-0038/0039: atomic effect+selector kind pair, add-on kinds included
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
             if (master.config().reload().reResolvePlayers()) { // §L config.yml reload.re-resolve-players

@@ -6,7 +6,8 @@ import compile.model.Affinity;
 import engine.spec.TargetSpec;
 import schema.spec.ParamSpec;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -20,13 +21,30 @@ import java.util.function.Function;
  * fast at build. Also the seam that keeps the compiler pure yet affinity-aware: {@link #specRegistry()} and
  * {@link #affinityOf()} are built at boot and injected into the compiler, so {@code se-compile} never depends
  * on {@code se-engine} (§2.1).
+ *
+ * <p>Each head gets a dense {@code kindId} in registration order (ADR-0039): {@link #idOf} stamps it onto a
+ * {@link compile.model.CompiledEffect} at compile time and {@link #kindsById()} lets the executor dispatch by
+ * array index with no per-execution head lookup. Built-ins register in a fixed order and add-ons append
+ * (ADR-0038), so a head's id is stable across reloads — a snapshot compiled at generation N only references
+ * ids that are a prefix of generation N+1's array.
  */
 public final class EffectRegistry {
 
     private final Map<String, EffectKind> byHead;
+    private final EffectKind[] byId;
+    private final Map<String, Integer> idByHead;
 
-    private EffectRegistry(Map<String, EffectKind> byHead) {
-        this.byHead = Map.copyOf(byHead);
+    // {@code ordered} MUST preserve registration order (a LinkedHashMap) so dense ids are assigned in that
+    // order; Map.copyOf would drop the order, aliasing an id to the wrong head across reloads.
+    private EffectRegistry(Map<String, EffectKind> ordered) {
+        this.byHead = Collections.unmodifiableMap(new LinkedHashMap<>(ordered));
+        this.byId = ordered.values().toArray(new EffectKind[0]);
+        Map<String, Integer> ids = new LinkedHashMap<>();
+        int i = 0;
+        for (String head : ordered.keySet()) {
+            ids.put(head, i++);
+        }
+        this.idByHead = Collections.unmodifiableMap(ids);
     }
 
     public static Builder builder() {
@@ -36,6 +54,17 @@ public final class EffectRegistry {
     /** The kind registered under {@code head} (case-insensitive), if any. */
     public Optional<EffectKind> lookup(String head) {
         return Optional.ofNullable(byHead.get(head.toUpperCase(Locale.ROOT)));
+    }
+
+    /** The dense kind id of {@code head} (case-insensitive), or {@code -1} if unregistered (ADR-0039). */
+    public int idOf(String head) {
+        Integer id = idByHead.get(head.toUpperCase(Locale.ROOT));
+        return id == null ? -1 : id;
+    }
+
+    /** Kinds indexed by dense id, so the executor dispatches {@code kindsById()[effect.kindId()]} (ADR-0039). */
+    public EffectKind[] kindsById() {
+        return byId.clone();
     }
 
     /** Every registered head, in canonical upper-case form. */
@@ -83,9 +112,8 @@ public final class EffectRegistry {
     /** Builder enforcing unique, case-insensitive heads. */
     public static final class Builder {
 
-        // Plain HashMap: lookup is by head, and build() copies into an unordered Map.copyOf, so insertion order is
-        // never observed — the registry has no per-kind id, the head IS the identity.
-        private final Map<String, EffectKind> byHead = new HashMap<>();
+        // LinkedHashMap: registration order fixes the dense kind ids (ADR-0039), so it must be preserved to build().
+        private final Map<String, EffectKind> byHead = new LinkedHashMap<>();
 
         public Builder register(EffectKind kind) {
             Objects.requireNonNull(kind, "kind");

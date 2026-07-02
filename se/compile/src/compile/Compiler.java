@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 /**
  * The content compiler: authored {@link AbilityDef}s &rarr; an immutable {@link Snapshot} via the
@@ -83,8 +84,23 @@ public final class Compiler {
                               SpecRegistry selectors, Function<String, String> defaultSelectorOf,
                               VarResolver vars, List<String> canonicalTriggers,
                               PlatformResolvers resolvers) {
+        return of(registry, affinityOf, selectors, defaultSelectorOf, vars, canonicalTriggers, resolvers,
+                head -> -1, head -> -1);
+    }
+
+    /**
+     * As above, but stamping each effect/selector with its dense kind id (ADR-0039) so the executor dispatches
+     * by array index. {@code effectIdOf}/{@code selectorIdOf} come from the same registries whose {@code EffectKind[]}/
+     * {@code SelectorKind[]} the executor is bound to, so a stamped id and its array position agree by construction.
+     */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                              VarResolver vars, List<String> canonicalTriggers,
+                              PlatformResolvers resolvers, ToIntFunction<String> effectIdOf,
+                              ToIntFunction<String> selectorIdOf) {
         return new Compiler(
-                new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars),
+                new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars,
+                        effectIdOf, selectorIdOf),
                 new DefaultResolveStage(registry, resolvers),
                 new DefaultEraseStage(canonicalTriggers),
                 new DefaultSnapshotStage());

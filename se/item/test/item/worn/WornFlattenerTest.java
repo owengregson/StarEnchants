@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import compile.model.Ability;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
+import compile.model.FactMask;
 import compile.model.SourceKind;
 import item.codec.HeroicStat;
 import java.util.BitSet;
@@ -21,8 +22,12 @@ class WornFlattenerTest {
     private static final int TRIGGERS = 3;
 
     private static Ability ab(int id, int triggerMask) {
+        return abMask(id, triggerMask, FactMask.ALL);
+    }
+
+    private static Ability abMask(int id, int triggerMask, FactMask factMask) {
         return new Ability(id, 0, SourceKind.ENCHANT, triggerMask, 1, 100.0, 0, 0, 0L,
-                null, new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
+                null, new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0, factMask);
     }
 
     private static WornState flatten(int[] activeIds, Ability[] abilities) {
@@ -63,6 +68,21 @@ class WornFlattenerTest {
         assertEquals(0, w.combatAttack().length);
         assertEquals(0, w.combatDefense().length);
         assertEquals(0, w.byTrigger(0).length);
+    }
+
+    /** ADR-0039: the per-trigger mask is the UNION of the abilities firing on that trigger; other triggers are independent. */
+    @Test
+    void perTriggerFactMaskUnionsTheFiringAbilities() {
+        Ability[] abilities = {
+                abMask(0, 1 << 0, new FactMask(0b0001L, 0L, 0L)), // attack: reads num slot 0
+                abMask(1, 1 << 0, new FactMask(0b0100L, 0L, 0L)), // attack: reads num slot 2
+                abMask(2, 1 << 1, new FactMask(0L, 0b0010L, 0L)), // defense: reads flag slot 1
+        };
+        WornState w = flatten(new int[]{0, 1, 2}, abilities);
+
+        assertEquals(new FactMask(0b0101L, 0L, 0L), w.factMask(0)); // slots 0 and 2 unioned
+        assertEquals(new FactMask(0L, 0b0010L, 0L), w.factMask(1)); // defense untouched by attack's number slots
+        assertEquals(FactMask.NONE, w.factMask(2));                 // no ability fires on trigger 2
     }
 
     @Test

@@ -37,8 +37,10 @@ final class BenchWorld {
 
     /** Erase a single-ability synthetic snapshot; {@code abilities[0]} fires on {@link #TRIGGER} with the no-op effect. */
     static ErasedContent erased() {
+        // Stamp kindId/selectorId 0 — the sole registered NOOP kind/selector — so the executor takes the
+        // ADR-0039 dense-id fast path the bench is meant to measure, not the head-lookup fallback.
         CompiledEffect noop = new CompiledEffect("NOOP", Args.empty(),
-                new CompiledSelector("NOOP", Args.empty()), 0, Affinity.CONTEXT_LOCAL);
+                new CompiledSelector("NOOP", Args.empty(), 0), 0, Affinity.CONTEXT_LOCAL, 0);
         return new DefaultEraseStage().erase(List.of(
                 Defs.lowered().stableKey("enchants/bench").triggers(TRIGGER).chance(100.0)
                         .affinity(Affinity.CONTEXT_LOCAL).effects(noop).build()),
