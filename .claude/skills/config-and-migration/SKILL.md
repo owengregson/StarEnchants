@@ -1,6 +1,6 @@
 ---
 name: config-and-migration
-description: Use when working on the config schema/YAML, the DSL and ParamSpec, the compiler (resolve/typecheck/lower/erase/snapshot), diagnostics, transactional reload, validateContent, or the EE/EA/AE and legacy-item migrator.
+description: Use when working on the config schema/YAML, the DSL and ParamSpec, the compiler (resolve/typecheck/lower/erase/snapshot), diagnostics, transactional reload, catalog validation, or the EE/EA/AE and legacy-item migrator.
 ---
 
 # Config + migration: content is a compiled program
@@ -13,9 +13,9 @@ compiled `Ability[]`.
 ## Use when / not
 
 Use for the schema, the DSL grammar + `ParamSpec`, any compiler phase,
-diagnostics, `/se reload`, `validateContent`, or the migrator. **Not** for the
-runtime engine (**effect-engine**), PDC layout (**item-data-model**), or per-hit
-cost (**performance-hot-paths**).
+diagnostics, `/se reload`, catalog validation, `/se problems`, or the migrator.
+**Not** for the runtime engine (**effect-engine**), PDC layout
+(**item-data-model**), or per-hit cost (**performance-hot-paths**).
 
 ## The pipeline (`se-schema` → `se-compile`, both PURE, zero Bukkit)
 
@@ -42,9 +42,12 @@ cost (**performance-hot-paths**).
   diagnostics keep the OLD `Snapshot` live** — a bad edit never takes the server
   down. Clean → swap the `AtomicReference` on the global thread.
   `/se reload --dry-run` compiles + reports without swapping.
-- **`./gradlew validateContent`** compiles the whole bundled library against a
-  **fake `PlatformResolvers`**, failing on fatal diagnostics — hundreds of enchants
-  audited as a reviewed diff, not a live-server gamble (§10).
+- **Catalog validation runs inside `./gradlew build`** — `CatalogValidationTest`
+  / `CosmicPackValidationTest` (se-bootstrap) compile the whole bundled library
+  against a **permissive fake `PlatformResolvers`** and fail on any blocking
+  diagnostic, so hundreds of enchants are audited as a reviewed diff, not a
+  live-server gamble (§10). Version-specific handle-token existence is validated
+  live by the tester's `CatalogSuite` (`matrix-gate`), not here.
 - **Migrator emits commented, reviewable YAML with inline TODOs** (not opaque
   transforms), reusing the same `ParamSpec` + alias maps (§10). It reads legacy
   item NBT **lazily, losslessly** into the modern PDC record on first touch (§4.3)

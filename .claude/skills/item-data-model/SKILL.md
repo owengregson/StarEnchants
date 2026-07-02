@@ -12,7 +12,8 @@ never on the item. Lore/name are **rendered from state, never parsed back** (§4
 ## When to use / not
 
 Use for the PDC codec, `ItemView` caching, stable-key↔dense-id, stores, `WornState`,
-rendering, and legacy NBT migration. NOT for ability compilation (**effect-engine**)
+and rendering (legacy NBT item migration is DESCOPED — see the core-rules table).
+NOT for ability compilation (**effect-engine**)
 or damage/suppression/soul/slot resolution (**feature-interaction-rules**). See also
 **config-and-migration**, **performance-hot-paths**, **cross-version-item-api** (alias
 maps), and **folia-scheduling** (the cross-region victim read).
@@ -24,13 +25,13 @@ maps), and **folia-scheduling** (the cross-region victim read).
 | PDC = state only (identity + counters), never DSL/behavior | item names *which* defs by key; programs live in the Snapshot | 4.2 |
 | **Stable string keys** in PDC, never a dense index | dense ids reorder every reload; an old item must still resolve | 4.2, 5.3 |
 | Crystals are a **list** of keys; souls keyed by **PDC UUID** | fixes a Cosmic Enchants-style last-of-type collapse and slot-reorg loss | 4.2 |
-| Cache on **content-hash + generation**, NOT ItemMeta identity | meta is copy-on-write → misses constantly *and* can alias (stale view) | 5.2 |
-| Use a **full (untruncated) hash** or write-gen counter | a truncated hash collision could serve a stale view | 5.2 |
+| Cache on the **full raw blob string + generation**, NOT ItemMeta identity | meta is copy-on-write → misses constantly *and* can alias (stale view) | 5.2 |
+| Key on the **whole blob** (never a truncated hash), in a per-generation map | a truncated-hash collision could serve a stale view; a fresh per-gen map bounds growth | 5.2 |
 | Two records: combat vs economy/identity | identity items (scroll/dust/crate) never decode on the combat hot path | 5.1 |
 | `WornState.activeSets` is a **SET** (BitSet) | multi-set + omni completion is unrepresentable with one `activeSetId` | 5.5 |
 | `WornState` immutable, pre-flattened, swapped by ref | the safe cross-region victim read on Folia — read only this, never the live victim ItemStack | 5.5, 3.6 |
 | Resolve `WornState` on **equip change**, never per hit | event-driven (`PlayerArmorChangeEvent` + held-item change); debounced per tick | 5.5 |
-| Migrate legacy NBT lazily through the **same alias maps** | read legacy on miss, write modern on next mutation; unknown key → skip, never crash | 4.3, 5.3 |
+| ~~Migrate legacy NBT lazily in place~~ — **DESCOPED** | migration is config-only, not item-NBT; there is no lazy in-place item rewrite. See ADR-0005 (updated) | — |
 
 `byTrigger` / `combatAttack` / `combatDefense` are the pre-flattened **union over
 all active sources** (enchants + set + weapon + crystals + heroic), ordered — the
@@ -49,12 +50,15 @@ record WornState(
     int[]      combatAttack,            // attacker direction, pre-merged
     int[]      combatDefense) {}        // defender direction — safe cross-region read
 
-// se-item/view — content-hash + generation cache (§5.2)
-ItemView v = ItemView.of(stack);   // hit = one hash + lookup; miss = one compact decode
+// se-item/view — full-blob + generation cache, an INJECTED instance (§5.2)
+ItemView v = cache.of(stack);   // hit = one map lookup by raw blob; miss = one compact decode
 ```
 
-`ItemView.of` reads the relevant PDC bytes, computes the full content hash, and
-returns `cache[hash, gen]` if present, else decodes once. PDC stays **stable-key**;
+`ItemViewCache.of` reads the item's raw combat blob and uses that **full string**
+as the key into the current generation's `ConcurrentHashMap`, decoding once on a
+miss. Growth is bounded by the distinct gear configs seen within a generation;
+`reload` swaps a fresh per-generation map so every prior view drops atomically —
+no stale reads, no cross-reload growth. PDC stays **stable-key**;
 the dense `Ability.id` is a per-snapshot accelerator resolved through the persistent
 stable-key→id map (§5.3), reassigned freely each reload. Inspect with `/se item dump`.
 
