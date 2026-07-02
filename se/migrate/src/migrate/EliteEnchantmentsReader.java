@@ -31,20 +31,20 @@ public final class EliteEnchantmentsReader {
             String legacyType = LegacyYaml.string(e, "type", null);
             String legacyApplies = LegacyYaml.string(e, "applies", null);
             // DEFENSE enchants flip the foe selector to @Attacker (the entity that hit the wielder).
-            boolean defenseDir = "DEFENSE".equals(Mappings.trigger(legacyType));
+            boolean defenseDir = "DEFENSE".equals(Mappings.eeTrigger(legacyType));
             out.add(new MigratedEnchant(
                     id,
                     LegacyYaml.string(e, "name", id),
                     // Each source description line is its own lore line — join with '\n', not a space, so the
                     // render sites split it back to multiple lines (the loader/render treat '\n' as the separator).
                     String.join("\n", LegacyYaml.stringList(e, "description")),
-                    Mappings.trigger(legacyType),
-                    Mappings.appliesTo(legacyApplies),
+                    Mappings.eeTrigger(legacyType),
+                    Mappings.eeAppliesTo(legacyApplies),
                     LegacyYaml.string(e, "group", "imported").toLowerCase(java.util.Locale.ROOT),
                     levels(LegacyYaml.map(e, "levels"), defenseDir),
                     legacyType,
                     legacyApplies,
-                    Mappings.repeatTicks(legacyType)));
+                    Mappings.eeRepeatTicks(legacyType)));
         }
         return out;
     }
@@ -67,7 +67,7 @@ public final class EliteEnchantmentsReader {
             List<MigratedEffect> effects = new ArrayList<>();
             for (String token : LegacyYaml.stringList(lvl, "effects")) {
                 // One EE token can expand to several SE effects (a WRATH/FROST/ROT_DECAY compound).
-                effects.addAll(Mappings.effects(token, defenseDir));
+                effects.addAll(Mappings.eeEffects(token, defenseDir));
             }
             // An unmappable condition is TODO'd, never emitted raw — that would be invalid SE grammar.
             String legacyCondition = blankToNull(LegacyYaml.string(lvl, "condition", null));
