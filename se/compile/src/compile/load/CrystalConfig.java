@@ -36,8 +36,9 @@ public record CrystalConfig(
         String loreWhileOnItem,
         String loreWhileOnItemMulti,
         boolean sounds,
-        String soundApply,
-        String soundRemove,
+        /** Apply/remove feedback sounds — the legacy bare string still parses (SoundCue.fromField). */
+        SoundCue soundApply,
+        SoundCue soundRemove,
         String extractorMaterial,
         String extractorName,
         List<String> extractorLore) {
@@ -72,8 +73,8 @@ public record CrystalConfig(
                 "&d{CRYSTAL} &7Crystal",
                 "&d{CRYSTAL} &7Multi-Crystal",
                 true,
-                "block.amethyst_block.chime",
-                "block.amethyst_cluster.break",
+                new SoundCue("block.amethyst_block.chime", 1.0f, 1.0f),
+                new SoundCue("block.amethyst_cluster.break", 1.0f, 1.0f),
                 "AMETHYST_CLUSTER",
                 "&dCrystal Extractor",
                 List.of("&7Drag onto a crystal-bearing item or a", "&7multi-crystal to pop its topmost crystal."));

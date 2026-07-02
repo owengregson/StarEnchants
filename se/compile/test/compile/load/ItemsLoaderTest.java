@@ -162,6 +162,34 @@ class ItemsLoaderTest {
     }
 
     @Test
+    void dustSoundAcceptsTheBracketMapAndTheLegacyBareString(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("dust.yml"), """
+                type: dust
+                sound: { sound: block.note_block.pling, volume: 2 }
+                """);
+        DustConfig bracket = ItemsLoader.load(dir).dust().orElseThrow();
+        assertEquals(new SoundCue("block.note_block.pling", 2.0f, 1.0f), bracket.sound());
+
+        Files.writeString(dir.resolve("dust.yml"), """
+                type: dust
+                sound: entity.player.levelup
+                """);
+        DustConfig legacy = ItemsLoader.load(dir).dust().orElseThrow();
+        assertEquals(new SoundCue("entity.player.levelup", 1.0f, 1.0f), legacy.sound()); // back-compat lock
+    }
+
+    @Test
+    void crystalApplySoundAcceptsTheBracketMap(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("crystal.yml"), """
+                type: crystal
+                sounds:
+                  apply: { sound: block.beacon.activate, volume: 0.5, pitch: 1.5 }
+                """);
+        CrystalConfig crystal = ItemsLoader.load(dir).crystal().orElseThrow();
+        assertEquals(new SoundCue("block.beacon.activate", 0.5f, 1.5f), crystal.soundApply());
+    }
+
+    @Test
     void dustSuccessBonusShorthandIsAFixedRange(@TempDir Path dir) throws Exception {
         // `success-bonus` shorthand pins a fixed dust: min == max
         Files.writeString(dir.resolve("dust.yml"), "type: dust\nsuccess-bonus: 25\n");

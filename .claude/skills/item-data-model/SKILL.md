@@ -12,6 +12,9 @@ never on the item. Lore/name are **rendered from state, never parsed back** (§4
 Bukkit shell wired by a named-field `LoreRenderer.Config` record (ADR-0040).
 Apply-gesture services mutate PDC/marker state then recompose through the ADR-0040 seam
 and report a `GestureOutcome` (ADR-0041) — never `setLore` on gear, never raw `sendMessage`.
+Likeness `{TOKEN}` substitution goes through `platform.text.Tokens` (underscore-canonical,
+hyphen alias); the enchant-book `{DESCRIPTION}` line-expansion is `Tokens.expandLines`, while
+the crystal block-splice stays bespoke in `CrystalService` (ADR-0034).
 
 ## When to use / not
 

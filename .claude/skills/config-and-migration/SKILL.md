@@ -40,6 +40,9 @@ diagnostics, `/se reload`, catalog validation, `/se problems`, or the migrator.
   `compile.load.YamlNode.newYaml` and `migrate.LegacyYaml.newYaml` (migrate cannot
   reach compile), locked in lockstep by `testfx.YamlAcceptance`. The migrator
   tolerates duplicate keys deliberately — it parses other plugins' sloppy configs.
+- **`items/*.yml` sound fields** accept EITHER the bare string OR the
+  `{ sound: NAME, volume: V, pitch: P }` bracket map (`SoundCue.fromField`); a
+  bare string plays at volume/pitch 1.0.
 - **Diagnostics carry `Source(file,line,col)`** from SnakeYAML Marks through
   compile (§2 diag, §10). Surfaced at load, on `/se reload`, via `/se problems`.
   Never an exception. Codes come from the closed `schema.diag.DiagCode` enum —

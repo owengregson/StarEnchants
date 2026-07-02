@@ -3,6 +3,7 @@ package feature.crystal;
 import compile.load.ContentHolder;
 import compile.load.CrystalConfig;
 import compile.load.CrystalDef;
+import compile.load.SoundCue;
 import feature.apply.ApplyResult;
 import feature.apply.ExtractResult;
 import feature.apply.GestureOutcome;
@@ -231,11 +232,11 @@ public final class CrystalService {
         return ItemGroups.kindsLabel(intersection == null ? List.of() : intersection);
     }
 
-    private static String applySound(CrystalConfig cfg) {
+    private static SoundCue applySound(CrystalConfig cfg) {
         return cfg.sounds() ? cfg.soundApply() : null;
     }
 
-    private static String removeSound(CrystalConfig cfg) {
+    private static SoundCue removeSound(CrystalConfig cfg) {
         return cfg.sounds() ? cfg.soundRemove() : null;
     }
 

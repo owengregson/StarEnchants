@@ -15,7 +15,8 @@ lore:
 min-bonus: 10
 max-bonus: 25
 # Feedback played on a successful combine: a sound (namespaced, range-stable) + particle tokens
-# (alias-resolved). Leave sound blank / particles empty for none.
+# (alias-resolved). Leave sound blank / particles empty for none. `sound` also accepts the bracket form
+# { sound: NAME, volume: V, pitch: P }; the bare string below plays at volume/pitch 1.0.
 sound: "block.amethyst_block.chime"
 particles:
   - HAPPY_VILLAGER

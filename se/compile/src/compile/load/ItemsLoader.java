@@ -327,7 +327,7 @@ public final class ItemsLoader {
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 min, max,
-                orDefault(root.string("sound"), d.sound()),
+                SoundCue.fromField(root, "sound", d.sound(), diags),
                 root.has("particles") ? root.stringList("particles") : d.particles());
     }
 
@@ -429,8 +429,8 @@ public final class ItemsLoader {
                 orDefault(root.string("lore-while-on-item-multi"), nameMulti),
                 root.has("sounds") && sounds.has("enabled")
                         ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
-                orDefault(sounds.string("apply"), d.soundApply()),
-                orDefault(sounds.string("remove"), d.soundRemove()),
+                SoundCue.fromField(sounds, "apply", d.soundApply(), diags),
+                SoundCue.fromField(sounds, "remove", d.soundRemove(), diags),
                 orDefault(extractor.string("material"), d.extractorMaterial()),
                 orDefault(extractor.string("name"), d.extractorName()),
                 extractor.has("lore") ? extractor.stringList("lore") : d.extractorLore());

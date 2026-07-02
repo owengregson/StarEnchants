@@ -57,6 +57,42 @@ class SoundCueTest {
     }
 
     @Test
+    void fromFieldAbsentKeyYieldsTheFallback() {
+        Diagnostics diags = new Diagnostics();
+        SoundCue fallback = new SoundCue("FALL", 1.0f, 1.0f);
+        assertEquals(fallback, SoundCue.fromField(yaml("other: 1", diags), "sound", fallback, diags));
+    }
+
+    @Test
+    void fromFieldReadsTheLegacyBareStringAtUnitVolumeAndPitch() {
+        Diagnostics diags = new Diagnostics();
+        SoundCue cue = SoundCue.fromField(yaml("sound: block.x.y", diags), "sound", null, diags);
+        assertEquals(new SoundCue("block.x.y", 1.0f, 1.0f), cue);
+    }
+
+    @Test
+    void fromFieldBlankScalarYieldsTheFallback() {
+        Diagnostics diags = new Diagnostics();
+        SoundCue fallback = new SoundCue("FALL", 1.0f, 1.0f);
+        assertEquals(fallback, SoundCue.fromField(yaml("sound: \"\"", diags), "sound", fallback, diags));
+    }
+
+    @Test
+    void fromFieldReadsTheBracketMap() {
+        Diagnostics diags = new Diagnostics();
+        SoundCue cue = SoundCue.fromField(yaml("sound: { sound: BLOCK_X, volume: 2, pitch: 0.5 }", diags),
+                "sound", null, diags);
+        assertEquals(new SoundCue("BLOCK_X", 2.0f, 0.5f), cue);
+    }
+
+    @Test
+    void fromFieldMapWithoutASoundNameYieldsTheFallback() {
+        Diagnostics diags = new Diagnostics();
+        SoundCue fallback = new SoundCue("FALL", 1.0f, 1.0f);
+        assertEquals(fallback, SoundCue.fromField(yaml("sound: { volume: 2 }", diags), "sound", fallback, diags));
+    }
+
+    @Test
     void listReadsEachMappingAndSkipsTheNameless() {
         Diagnostics diags = new Diagnostics();
         YamlNode parent = yaml("""
