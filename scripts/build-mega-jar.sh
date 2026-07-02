@@ -108,46 +108,29 @@ rm -f "$ROOT/$MEGA"
     && find . -type f ! -path './META-INF/MANIFEST.MF' | LC_ALL=C sort | zip -qX@ "$ROOT/$MEGA" )
 
 echo "[mega] 4/4  verify the merged MRJAR ..."
-# SOUNDNESS GATE — the two trees' class sets must be IDENTICAL except for known era-exclusive seam classes.
-# Why this is load-bearing: on a modern JVM the classloader serves versions/17 for any class present there
-# and the base (v52) copy otherwise. So a class that exists ONLY in the base, if reachable from modern code,
-# loads as v52 and calls shared classes using their LEGACY signatures — but those shared classes resolve to
-# v61 (modern signatures, e.g. DispatchSinkFactory(RenameResolvers) vs (RuntimeHandles)) → NoSuchMethodError.
-# A clean merge therefore requires the modern and legacy class sets to MATCH; the only allowed difference is
-# the era-exclusive seam pair (each era's own impl of a swapped seam, which that era's code never cross-
-# references — verified). A larger divergence (e.g. the tester's era-specific suites) is UNSOUND to merge and
-# is rejected here. See docs/legacy-1.8.9-codeshare-design.md.
-ALLOW_ERA_EXCLUSIVE="item/codec/LegacyNbt.class platform/resolve/RuntimeHandles.class"
-# Modern-ONLY package prefixes: whole modules that are compiled into the modern tree but EXCLUDED from the
-# legacy tree because they cannot dual-compile on 1.8. `integrate/` (the third-party bridges) is such a module —
-# its bridged plugin APIs are modern-Bukkit-typed (docs/legacy-1.8.9-codeshare-design.md gate list). This is
-# sound in the one safe direction: the legacy tree never references integrate (the composition root reaches it
-# only via the modern bootstrap.compat.Bridges seam, whose legacy impl imports nothing from integrate), so a
-# versions/17-only integrate class is never loaded by legacy code. The danger the gate guards — a BASE-only
-# class calling a shared class with the wrong-era signature — cannot arise from a modern-only class.
-ALLOW_ERA_EXCLUSIVE_PREFIX="integrate/"
+# DERIVED SOUNDNESS GATE (ADR-0044 §7 G2) — scripts/tools/MegaJarGate.java, invoked via scripts/mega-jar-gate.sh.
+# Replaces the hand-maintained ALLOW_ERA_EXCLUSIVE(_PREFIX) allowlist that used to sit here: era-exclusivity is
+# now READ from the overlay tree (a one-era class must have a source under overlay/<era>/), the one modern-only
+# module (integrate) is DERIVED from the module set, and cross-era unreachability is PROVEN by a constant-pool
+# walk — no list to drift. Same load-bearing invariant as before: on a modern JVM the classloader serves
+# versions/17 for a class present there and the base (v52) copy otherwise, so a one-era class reachable from the
+# other era loads with the wrong-era bytecode → NoSuchMethodError. The gate reads the two INPUT jars ($MOD modern,
+# $LEG legacy) — their merge IS $MEGA. An era-divergent module (e.g. the tester's era-specific suites) is rejected
+# by P1 exactly as before. See scripts/tools/MegaJarGate.java (P1–P6) and docs/decisions/0044-*.md.
+#
+# The declared same-FQN bindings twins (P4) + the command-carrying binding (P5, the v1_8_R3 era-direction check
+# that generalises the old bootstrap.compat.Commands grep) live here — the composition-root-adjacent declaration.
+# Empty entries are simply not asserted, so this grows as the ADR-0044 era-erasure migration lands each binding.
+if [ "$MODULE" = "bootstrap" ]; then
+  export SE_MEGA_BINDINGS=""         # e.g. "bootstrap/compat/EraBindings,platform/resolve/HandleLookups"
+  export SE_MEGA_COMMAND_BINDING=""  # e.g. "bootstrap/compat/EraBindings"
+fi
+scripts/mega-jar-gate.sh "$MOD" "$LEG" "$ROOT"
+
+# The merged base (non-versions) vs versions/17 class-name sets — used only by the sentinel self-check below
+# (the derived gate above proves soundness; this picks any class present in both to verify the bytecode forked).
 base_set="$(zipinfo -1 "$ROOT/$MEGA" | grep '\.class$' | grep -v '^META-INF/versions/' | grep -v '^se_jdg/' | LC_ALL=C sort)"
 v17_set="$(zipinfo -1 "$ROOT/$MEGA" | sed -n 's#^META-INF/versions/17/\(.*\.class\)$#\1#p' | LC_ALL=C sort)"
-diverge="$(comm -3 <(printf '%s\n' "$base_set") <(printf '%s\n' "$v17_set") | tr -d '\t' | grep -v '^$' || true)"
-unsound=0
-for c in $diverge; do
-  case " $ALLOW_ERA_EXCLUSIVE " in
-    *" $c "*) continue ;;
-  esac
-  allowed_prefix=0
-  for p in $ALLOW_ERA_EXCLUSIVE_PREFIX; do
-    case "$c" in "$p"*) allowed_prefix=1 ;; esac
-  done
-  [ "$allowed_prefix" = "1" ] && continue
-  echo "ERROR: UNSOUND merge — '$c' exists in only ONE era's tree (not an allowlisted era seam)." >&2; unsound=1
-done
-if [ "$unsound" -ne 0 ]; then
-  echo "       A one-era-only class loads with its own bytecode version on the matching JVM and can call a" >&2
-  echo "       shared class with the wrong-era signature → NoSuchMethodError. Only a module whose two trees" >&2
-  echo "       have identical class sets (the shipped plugin) can be MRJAR-merged; era-divergent modules" >&2
-  echo "       (e.g. the tester, with its era-specific suites) cannot. Build + boot those per-era instead." >&2
-  exit 1
-fi
 
 # SELF-CHECK — assert the bytecode actually forked by era. Pick a sentinel class present in BOTH trees
 # (so it exists under base AND versions/17), then require the base copy be Java 8 (class v52) and the
@@ -166,16 +149,8 @@ if [ "$base_major" != "52" ] || [ "$v17_major" != "61" ] || [ "${mr:-0}" -lt 1 ]
   echo "ERROR: MRJAR self-check FAILED (sentinel=$sentinel: base class v=$base_major want 52; versions/17 v=$v17_major want 61; Multi-Release=$mr want ≥1)" >&2
   exit 1
 fi
-# Extra defense for the plugin's command seam: bootstrap.compat.Commands forks to v1_8_R3 on legacy and to
-# Server.getCommandMap() on modern, so base MUST reference v1_8_R3 and the versions/17 copy MUST NOT.
-if [ "$MODULE" = "bootstrap" ] && zipinfo -1 "$ROOT/$MEGA" | grep -Fxq 'bootstrap/compat/Commands.class'; then
-  if unzip -p "$ROOT/$MEGA" bootstrap/compat/Commands.class | grep -qa 'v1_8_R3'; then base_v18=1; else base_v18=0; fi
-  if unzip -p "$ROOT/$MEGA" META-INF/versions/17/bootstrap/compat/Commands.class | grep -qa 'v1_8_R3'; then v17_v18=1; else v17_v18=0; fi
-  if [ "$base_v18" -ne 1 ] || [ "$v17_v18" -ne 0 ]; then
-    echo "ERROR: command-seam check FAILED (base→1.8 v1_8_R3=$base_v18 want 1; versions/17→modern v1_8_R3=$v17_v18 want 0)" >&2
-    exit 1
-  fi
-fi
+# The command-seam v1_8_R3 direction check is now MegaJarGate P5 (generalised onto the command-carrying binding
+# via SE_MEGA_COMMAND_BINDING above), not a fixed bootstrap.compat.Commands grep — see the derived gate above.
 
 base_n="$(zipinfo -1 "$ROOT/$MEGA" | grep '\.class$' | grep -vc '^META-INF/versions/')"
 v17_n="$(zipinfo -1 "$ROOT/$MEGA" | grep -c '^META-INF/versions/17/.*\.class$')"
