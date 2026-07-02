@@ -75,13 +75,21 @@ tasks.register("jmhCheck") {
             }
             // The GC profiler reports allocation as the secondary metric "·gc.alloc.rate.norm" (bytes/op).
             val budget = allocBudgets[name]
-            val secondaryMetrics = row["secondaryMetrics"] as? Map<*, *>
-            val allocNorm = (secondaryMetrics?.get("·gc.alloc.rate.norm")
-                ?: secondaryMetrics?.get("gc.alloc.rate.norm")) as? Map<*, *>
-            if (budget != null && allocNorm != null) {
-                val bytes = (allocNorm["score"] as Number).toDouble()
-                if (bytes > budget) {
-                    failures += "$name allocation ${"%.1f".format(bytes)} B/op > budget ${"%.1f".format(budget)}"
+            if (budget != null) {
+                val secondaryMetrics = row["secondaryMetrics"] as? Map<*, *>
+                val allocNorm = (secondaryMetrics?.get("·gc.alloc.rate.norm")
+                    ?: secondaryMetrics?.get("gc.alloc.rate.norm")) as? Map<*, *>
+                // A missing allocation metric must FAIL, not silently skip the gate: it is the reliable
+                // regression signal, so a future JMH renaming the GC key would otherwise no-op the budget.
+                if (allocNorm == null) {
+                    failures += "$name allocation budget set but the GC metric 'gc.alloc.rate.norm' " +
+                        "(reported as '·gc.alloc.rate.norm') is absent from the JMH output — ensure the 'gc' " +
+                        "profiler is enabled and the metric key has not been renamed"
+                } else {
+                    val bytes = (allocNorm["score"] as Number).toDouble()
+                    if (bytes > budget) {
+                        failures += "$name allocation ${"%.1f".format(bytes)} B/op > budget ${"%.1f".format(budget)}"
+                    }
                 }
             }
         }
