@@ -8,15 +8,9 @@ import engine.run.ActivationContext;
 import engine.run.FactPopulator;
 import engine.sink.CombatTag;
 import engine.sink.DamageMarks;
+import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
-import engine.sink.SoulDebit;
 import engine.stores.ComboStore;
-import engine.stores.ImmuneStore;
-import engine.stores.KeepOnDeathStore;
-import engine.stores.KnockbackControlStore;
-import engine.stores.SuppressionStore;
-import engine.stores.TeleblockStore;
-import engine.stores.VarStore;
 import feature.soul.SoulBinding;
 import feature.trigger.TriggerRunner;
 import item.worn.WornStateStore;
@@ -32,7 +26,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import platform.economy.EconomyService;
 import engine.sink.SinkFactory;
 
 /**
@@ -46,16 +39,11 @@ public final class CombatDispatch {
     private final TriggerRunner runner;
     private final SinkFactory sinkFactory;
     private final ContentHolder content;
-    private final EconomyService economy;
-    private final SoulDebit souls;
-    private final VarStore vars;
-    private final SuppressionStore suppression;
-    private final KnockbackControlStore knockback;
-    private final KeepOnDeathStore keepOnDeath;
-    private final TeleblockStore teleblock;
-    private final ImmuneStore immune;
-    // Combat-local consecutive-hit streak (the %combo% fact); only combat writes it, but it is injected so the
-    // composition root can register it with EngineStoreListener as the single quit-cleanup authority (§5.4).
+    // The per-boot sink wiring, threaded to every per-event sink so a write and its separate-event reader share stores.
+    private final SinkEnv env;
+    // Combat-local consecutive-hit streak (the %combo% fact); cached from the shared aggregate. Only combat
+    // writes it, but the composition root registers the aggregate with EngineStoreListener as the single
+    // quit-cleanup authority (§5.4).
     private final ComboStore combo;
     private final LongSupplier nowTicks;
     private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
@@ -75,80 +63,37 @@ public final class CombatDispatch {
         friendlyFire = predicate == null ? (attacker, victim) -> false : predicate;
     }
 
-    /** Combat dispatch with NO soul system (the soul gate is never armed) and no economy. */
-    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
-                          LongSupplier nowTicks) {
-        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks,
-                actor -> Optional.empty(), EconomyService.NONE, SoulDebit.NONE, new VarStore(),
-                new SuppressionStore(), new KnockbackControlStore(), new KeepOnDeathStore());
-    }
-
-    /** Combat dispatch with a soul binder (no economy): an actor in soul mode arms gate 10 from their gem. */
-    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
-                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder) {
-        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
-                EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(),
-                new KnockbackControlStore(), new KeepOnDeathStore());
-    }
-
-    /** Combat dispatch with a soul binder + economy but no distinct BOW/TRIDENT triggers (arrow hits fire ATTACK). */
-    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
-                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
-                          EconomyService economy) {
-        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, -1, -1, nowTicks, soulBinder,
-                economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(),
-                new KnockbackControlStore(), new KeepOnDeathStore());
-    }
-
-    /** Full dispatch: distinct BOW/TRIDENT triggers + soul binder + economy; either trigger id {@code -1} falls those hits back to the Cosmic Enchants-style melee-only ATTACK. */
-    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
-                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
-                          int bowTriggerId, int tridentTriggerId,
-                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
-                          EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                          KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath) {
-        this(executor, sinkFactory, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId, tridentTriggerId,
-                nowTicks, soulBinder, economy, souls, vars, suppression, knockback, keepOnDeath,
-                new TeleblockStore(), new ImmuneStore(), new ComboStore(),
-                () -> -1.0, () -> -1.0, () -> true, () -> true); // combat caps uncapped + PvP/PvE on by default
+    /** §L combat.* live caps/gates (max-bonus-damage / max-bonus-reduction, {@code <0} = uncapped; pvp/pve keyed on the victim's player-ness). */
+    public record Caps(java.util.function.DoubleSupplier maxBonusDamage, java.util.function.DoubleSupplier maxBonusReduction,
+                       java.util.function.BooleanSupplier pvp, java.util.function.BooleanSupplier pve) {
+        /** Uncapped + PvP/PvE on — the config-absent defaults. */
+        public static Caps unlimited() {
+            return new Caps(() -> -1.0, () -> -1.0, () -> true, () -> true);
+        }
     }
 
     /**
-     * As above, plus the live combat caps (config.yml {@code combat.*}, §L): additive bonus ceilings
-     * ({@code < 0} ⇒ uncapped) and the {@code pvp}/{@code pve} gates keyed on the victim's player-ness.
+     * Full dispatch over the shared per-boot {@link SinkEnv}: distinct BOW/TRIDENT triggers ({@code -1} falls
+     * those hits back to the Cosmic Enchants-style melee-only ATTACK) + soul binder + live combat {@link Caps}
+     * (config.yml {@code combat.*}, §L).
      */
     public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
-                          LongSupplier nowTicks, Function<Player, Optional<SoulBinding>> soulBinder,
-                          EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                          KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath,
-                          TeleblockStore teleblock, ImmuneStore immune, ComboStore combo,
-                          java.util.function.DoubleSupplier maxBonusDamage,
-                          java.util.function.DoubleSupplier maxBonusReduction,
-                          java.util.function.BooleanSupplier pvpEnabled,
-                          java.util.function.BooleanSupplier pveEnabled) {
+                          Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env, Caps caps) {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
-        this.economy = Objects.requireNonNull(economy, "economy");
-        this.souls = Objects.requireNonNull(souls, "souls");
-        this.vars = Objects.requireNonNull(vars, "vars");
-        this.suppression = Objects.requireNonNull(suppression, "suppression");
-        this.knockback = Objects.requireNonNull(knockback, "knockback");
-        this.keepOnDeath = Objects.requireNonNull(keepOnDeath, "keepOnDeath");
-        this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
-        this.immune = Objects.requireNonNull(immune, "immune");
-        this.combo = Objects.requireNonNull(combo, "combo");
-        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
-        this.maxBonusDamage = Objects.requireNonNull(maxBonusDamage, "maxBonusDamage");
-        this.maxBonusReduction = Objects.requireNonNull(maxBonusReduction, "maxBonusReduction");
-        this.pvpEnabled = Objects.requireNonNull(pvpEnabled, "pvpEnabled");
-        this.pveEnabled = Objects.requireNonNull(pveEnabled, "pveEnabled");
+        this.env = Objects.requireNonNull(env, "env");
+        Objects.requireNonNull(caps, "caps");
+        this.combo = env.stores().combo();
+        this.nowTicks = env.nowTicks();
+        this.maxBonusDamage = caps.maxBonusDamage();
+        this.maxBonusReduction = caps.maxBonusReduction();
+        this.pvpEnabled = caps.pvp();
+        this.pveEnabled = caps.pve();
         // Shared VarStore: a condition's %name% reads what an earlier SET_VAR wrote (write side: the per-event sink).
-        this.runner = new TriggerRunner(executor, worn, soulBinder, nowTicks, FactPopulator.builtin(vars));
+        this.runner = new TriggerRunner(executor, worn, soulBinder, env.nowTicks(),
+                FactPopulator.builtin(env.stores().vars()));
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
         this.bowTriggerId = bowTriggerId;
@@ -183,8 +128,7 @@ public final class CombatDispatch {
         double incomingDamage = event.getDamage();
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
-        SinkReadback sink = sinkFactory.create(economy, souls, vars, suppression, knockback, keepOnDeath,
-                teleblock, immune, nowTicks);
+        SinkReadback sink = sinkFactory.create(env);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
 
         // Combat tag (supreme's out-of-combat fly): both parties count as fighting on any hit between them.

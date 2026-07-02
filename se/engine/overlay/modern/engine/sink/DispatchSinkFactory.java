@@ -1,13 +1,5 @@
 package engine.sink;
 
-import engine.stores.ImmuneStore;
-import engine.stores.KeepOnDeathStore;
-import engine.stores.KnockbackControlStore;
-import engine.stores.SuppressionStore;
-import engine.stores.TeleblockStore;
-import engine.stores.VarStore;
-import java.util.function.LongSupplier;
-import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 
 /**
@@ -24,10 +16,7 @@ public final class DispatchSinkFactory implements SinkFactory {
     }
 
     @Override
-    public SinkReadback create(EconomyService economy, SoulDebit souls, VarStore vars, SuppressionStore suppression,
-                               KnockbackControlStore knockback, KeepOnDeathStore keepOnDeath, TeleblockStore teleblock,
-                               ImmuneStore immune, LongSupplier nowTicks) {
-        return new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
-                teleblock, immune, nowTicks);
+    public SinkReadback create(SinkEnv env) {
+        return new DispatchSink(handles, env);
     }
 }

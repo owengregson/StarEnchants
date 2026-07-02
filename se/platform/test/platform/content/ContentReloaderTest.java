@@ -17,16 +17,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import platform.sched.SchedulerBackend;
 import platform.sched.Scheduling;
-import platform.sched.TaskHandle;
 import schema.spec.D;
 import schema.spec.ParamSpec;
+import testfx.SyncSchedulerBackend;
 
 /**
  * Transactional reloader (ADR-0014). An inline scheduler runs the off-thread build → global-thread
@@ -43,7 +40,7 @@ class ContentReloaderTest {
 
     @BeforeEach
     void setUp() {
-        Scheduling.install(new InlineBackend());
+        Scheduling.install(new SyncSchedulerBackend());
     }
 
     private static Compiler compiler() {
@@ -186,19 +183,5 @@ class ContentReloaderTest {
     void convenienceCtorHasNoFailure() {
         ReloadResult r = new ReloadResult(true, false, 3, 2, List.of());
         assertNull(r.failure());
-    }
-
-    /** Runs every scheduled task immediately on the calling thread (deterministic for tests). */
-    private static final class InlineBackend implements SchedulerBackend {
-        @Override public void onEntity(Entity entity, Runnable task) { task.run(); }
-        @Override public void onEntityLater(Entity entity, long delayTicks, Runnable task) { task.run(); }
-        @Override public TaskHandle repeatingEntity(Entity e, long i, long p, Runnable t) { t.run(); return TaskHandle.CANCELLED; }
-        @Override public void onRegion(Location location, Runnable task) { task.run(); }
-        @Override public void onRegionLater(Location location, long delayTicks, Runnable task) { task.run(); }
-        @Override public TaskHandle repeatingRegion(Location l, long i, long p, Runnable t) { t.run(); return TaskHandle.CANCELLED; }
-        @Override public void onGlobal(Runnable task) { task.run(); }
-        @Override public void onGlobalLater(long delayTicks, Runnable task) { task.run(); }
-        @Override public TaskHandle repeatingGlobal(long i, long p, Runnable t) { t.run(); return TaskHandle.CANCELLED; }
-        @Override public void async(Runnable task) { task.run(); }
     }
 }

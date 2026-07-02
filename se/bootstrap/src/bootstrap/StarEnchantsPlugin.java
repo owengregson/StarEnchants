@@ -30,16 +30,9 @@ import engine.run.AbilityQuarantine;
 import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
-import engine.stores.ComboStore;
-import engine.stores.CooldownStore;
-import engine.stores.ImmuneStore;
-import engine.stores.KeepOnDeathStore;
-import engine.stores.KnockbackControlStore;
-import engine.stores.TeleblockStore;
+import engine.stores.EngineStores;
 import engine.stores.RepeatStore;
 import engine.stores.SoulModeStore;
-import engine.stores.SuppressionStore;
-import engine.stores.VarStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.apply.ItemEnchanter;
@@ -395,15 +388,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 soulService, soulModes, () -> items.config().soulGemOrDefault(), particleFx);
         soulParticles.start();
 
-        // Each store below is ONE shared instance: an effect writes it through the per-event sink and a
-        // separate reader (a pipeline gate, or a different Bukkit event the same tick) reads it back.
-        VarStore vars = new VarStore();                  // §A SET_VAR/INVERT_VAR → conditions' %name%
-        SuppressionStore suppression = new SuppressionStore(); // §C SUPPRESS → gate 5 across DISABLE scopes
-        KnockbackControlStore knockback = new KnockbackControlStore(); // §C KNOCKBACK_CONTROL → knockback listener
-        KeepOnDeathStore keepOnDeath = new KeepOnDeathStore();        // §C KEEP_ON_DEATH → PlayerDeathEvent
-        // TELEBLOCK / IMMUNE (Cosmic Enchants exotic-effect ports): per-player timed flag → teleport / damage listeners.
-        TeleblockStore teleblock = new TeleblockStore();
-        ImmuneStore immune = new ImmuneStore();
+        // ONE shared aggregate of every per-player engine store (§A SET_VAR→%name%, §C SUPPRESS/gate 5,
+        // KNOCKBACK_CONTROL, KEEP_ON_DEATH, the TELEBLOCK/IMMUNE exotic ports, cooldowns, the combat streak): an
+        // effect writes a store through the per-event sink and a separate reader (a pipeline gate, or a
+        // different Bukkit event the same tick) reads it back — so it must be the SAME instance everywhere.
+        engine.stores.EngineStores stores = EngineStores.fresh();
 
         // Protection / region gate (gate 2): bundled providers (§N, ADR-0027) + ServicesManager; none ⇒ allow.
         // The guard takes the Activation's captured location + actor UUID — no live-Player cross-region read.
@@ -429,13 +418,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §L global message-on-activate: the holder ("BY you") + the other party ("ON you") get a configured line.
         feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
                 () -> master.config().messageOnActivate(), content);
-        // Named + registered with EngineStoreListener like its sibling stores, not inline in the pipeline, so the
-        // one quit-cleanup authority frees a leaver's cooldown entries (the TTL is the only other bound).
-        CooldownStore cooldowns = new CooldownStore();
-        // Combat-local streak store, hoisted here (not private in CombatDispatch) so it too is quit-cleaned there.
-        ComboStore combo = new ComboStore();
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
-                new ActivationPipeline(cooldowns, soulService, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
+                new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard, ActivationPipeline.Guard.ALLOW),
                 areaScan(), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked
@@ -460,6 +444,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (economy.present()) {
             getLogger().info("economy provider active");
         }
+        // The per-boot sink wiring: built ONCE and threaded to both dispatchers, so a sink write and its
+        // separate-event reader always see the SAME stores (no split-brain).
+        engine.sink.SinkEnv sinkEnv = new engine.sink.SinkEnv(economy, soulService, stores, tick::get);
         // §N soft integration hooks (ADR-0027), set once at boot, no-op when the target is absent — each a
         // reflective seam so the engine keeps no hard dep on these plugins:
         // anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT,
@@ -479,17 +466,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         item.mint.ItemFactory.enchantResolver(wiring.enchantResolver());
         CombatDispatch dispatch = new CombatDispatch(executor, wiring.sinkFactory(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
-                triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
-                soulService::bindingFor, economy, soulService, vars, suppression, knockback, keepOnDeath,
-                teleblock, immune, combo,
-                () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
-                () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
-                () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
-                () -> master.config().combat().pve());                    // §L combat.pve gate (live)
+                triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1),
+                soulService::bindingFor, sinkEnv, new CombatDispatch.Caps(
+                        () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
+                        () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
+                        () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
+                        () -> master.config().combat().pve()));                   // §L combat.pve gate (live)
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, wiring.sinkFactory(), content, worn, triggers,
-                tick::get, soulService::bindingFor, economy, soulService, vars, suppression, knockback,
-                keepOnDeath, teleblock, immune);
+                soulService::bindingFor, sinkEnv);
         // §B REPEATING: one entity-owned repeating task per (player, ability), armed/torn-down by EquipListener.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
                 new RepeatStore<TaskHandle>());
@@ -499,7 +484,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §B maintained passive POTION buffs: permanent-while-worn + suppression-aware + self-healing. The
         // authority for passive potions (runs after the lifecycle diff); re-derives from live worn state each
         // refresh, so a DISABLE_ENCHANT drops exactly the right effects and the correct set is restored after.
-        passiveEffects = new feature.trigger.PassiveEffectDriver(triggerDispatch, content, worn, suppression,
+        passiveEffects = new feature.trigger.PassiveEffectDriver(triggerDispatch, content, worn, stores.suppression(),
                 tick::get, triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
         // §6.6 set equip/remove: the authored per-set message on a completion transition PLUS the universal
         // equip/unequip sound+particle (one config for all sets; the dust takes the set's own colour).
@@ -521,7 +506,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 new EquipListener(worn, content, passives, lifecycle, passiveEffects, setMessages), this);
         // §B instant DISABLE: when a player is suppressed, drop their now-disabled passive buffs at once and
         // schedule their restore at the window's end (the periodic sweep is only the safety net).
-        suppression.onSuppress((playerId, durationTicks) -> {
+        stores.suppression().onSuppress((playerId, durationTicks) -> {
             Player target = getServer().getPlayer(playerId);
             if (target != null) {
                 Scheduling.onEntity(target, () -> passiveEffects.refresh(target));
@@ -548,21 +533,20 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Magma floor (devil's Hell's Kitchen) scorches the scene, not the health: cancel HOT_FLOOR in a hellfire zone.
         getServer().getPluginManager().registerEvents(new feature.combat.HellfireFloorListener(), this);
         getServer().getPluginManager().registerEvents(
-                new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune,
-                        cooldowns, combo, soulService), this);
+                new EngineStoreListener(stores, soulService), this);
         // §C KEEP_ON_DEATH at NORMAL priority — earlier than HolyScrollListener (HIGH) — so an enchant-kept
         // death never spends a holy scroll.
-        getServer().getPluginManager().registerEvents(new KeepOnDeathListener(keepOnDeath, tick::get), this);
+        getServer().getPluginManager().registerEvents(new KeepOnDeathListener(stores.keepOnDeath(), tick::get), this);
         // Cosmic Enchants exotic-effect ports: TELEBLOCK cancels teleport, IMMUNE cancels damage while flagged.
-        getServer().getPluginManager().registerEvents(new TeleblockListener(teleblock, tick::get), this);
-        getServer().getPluginManager().registerEvents(new ImmuneListener(immune, tick::get), this);
+        getServer().getPluginManager().registerEvents(new TeleblockListener(stores.teleblock(), tick::get), this);
+        getServer().getPluginManager().registerEvents(new ImmuneListener(stores.immune(), tick::get), this);
         // §C KNOCKBACK_CONTROL: capability-probed onto modern-bukkit or legacy destroystokyo; inert on neither.
-        KnockbackListener.Path knockbackPath = KnockbackListener.register(this, knockback, tick::get);
+        KnockbackListener.Path knockbackPath = KnockbackListener.register(this, stores.knockback(), tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
         // §N (ADR-0026): Mental OWNS player knockback, so the vanilla applier is discarded for players; bind
         // its KnockbackApplyEvent so KNOCKBACK_CONTROL composes onto Mental's vector instead of being lost.
         MentalKnockbackBridge.Path mentalPath = MentalKnockbackBridge.register(
-                this, knockback, tick::get, master.config().integrations().enabled("mental"));
+                this, stores.knockback(), tick::get, master.config().integrations().enabled("mental"));
         getLogger().info("Mental knockback coordination: " + mentalPath);
         // §I custom items do ONLY their intended action — suppress their vanilla mechanics (the orb's ender-eye
         // throw, a nametag renaming a mob, a food/potion-material item being consumed). Material-agnostic: keyed

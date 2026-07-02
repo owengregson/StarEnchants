@@ -62,7 +62,9 @@ public final class SinkSuite implements Harness.Scenario {
                     int glowstoneId = resolveId(resolvers.material("GLOWSTONE"), "GLOWSTONE");
                     Location blockAt = at.clone().add(0, 3, 0);
 
-                    DispatchSink sink = new DispatchSink(handles);
+                    DispatchSink sink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                            platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
+                            engine.stores.EngineStores.fresh(), () -> 0L));
                     sink.ignite(victim, 80);
                     sink.potion(victim, slowId, 0, 80);
                     sink.disarm(victim);
@@ -109,7 +111,9 @@ public final class SinkSuite implements Harness.Scenario {
                     // its tick count elapses — driving DispatchPlan's delayed dispatch over the real
                     // Scheduling.onRegionLater (the Folia region delayed scheduler included).
                     Location waitAt = at.clone().add(2, 3, 0); // distinct from blockAt; air on the flat spawn
-                    DispatchSink waitSink = new DispatchSink(handles);
+                    DispatchSink waitSink = new DispatchSink(handles, new engine.sink.SinkEnv(
+                            platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
+                            engine.stores.EngineStores.fresh(), () -> 0L));
                     waitSink.delay(10);
                     waitSink.blockChange(waitAt, glowstoneId);
                     waitSink.flush();

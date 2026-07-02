@@ -365,8 +365,11 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                             new EnchantActivateEvent(actor, key, ability.level()));
                 });
         AtomicLong tick = new AtomicLong();
+        engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
+                engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         CombatDispatch dispatch = new CombatDispatch(executor, new DispatchSinkFactory(resolvers), holder, worn,
-                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), tick::incrementAndGet);
+                triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(), -1, -1,
+                actor -> java.util.Optional.empty(), env, CombatDispatch.Caps.unlimited());
         plugin.getServer().getPluginManager().registerEvents(new CombatListener(dispatch), plugin);
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);

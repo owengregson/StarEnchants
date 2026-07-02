@@ -1,16 +1,9 @@
 package engine.sink;
 
-import engine.stores.ImmuneStore;
-import engine.stores.KeepOnDeathStore;
-import engine.stores.KnockbackControlStore;
-import engine.stores.SuppressionStore;
-import engine.stores.TeleblockStore;
-import engine.stores.VarStore;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.function.LongSupplier;
 import net.minecraft.server.v1_8_R3.ChatComponentText;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.EnumParticle;
@@ -36,7 +29,6 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import platform.caps.Regions;
-import platform.economy.EconomyService;
 import platform.resolve.RenameResolvers;
 import platform.sched.Scheduling;
 import platform.text.Colors;
@@ -71,47 +63,13 @@ public final class DispatchSink extends DispatchSinkBase {
 
     private final RenameResolvers resolvers;
 
-    /** The test default — economy/soul are no-ops, the stores are throwaways. */
-    public DispatchSink(RenameResolvers resolvers) {
-        this(resolvers, EconomyService.NONE, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
-    }
-
-    public DispatchSink(RenameResolvers resolvers, EconomyService economy) {
-        this(resolvers, economy, SoulDebit.NONE, new VarStore(), new SuppressionStore(), () -> 0L);
-    }
-
-    public DispatchSink(RenameResolvers resolvers, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, LongSupplier nowTicks) {
-        this(resolvers, economy, souls, vars, suppression, new KnockbackControlStore(), nowTicks);
-    }
-
-    public DispatchSink(RenameResolvers resolvers, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
-                        LongSupplier nowTicks) {
-        this(resolvers, economy, souls, vars, suppression, knockback, new KeepOnDeathStore(), nowTicks);
-    }
-
     /**
-     * Sharing the stores is what makes the KNOCKBACK_CONTROL / KEEP_ON_DEATH flags a hit writes visible to the
-     * separate knockback / death events' listeners.
+     * Sharing the stores (via the per-boot {@link SinkEnv}) is what makes the KNOCKBACK_CONTROL / KEEP_ON_DEATH /
+     * TELEBLOCK / IMMUNE flags a hit writes visible to the separate knockback / death / teleport / damage events'
+     * listeners.
      */
-    public DispatchSink(RenameResolvers resolvers, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
-                        KeepOnDeathStore keepOnDeath, LongSupplier nowTicks) {
-        this(resolvers, economy, souls, vars, suppression, knockback, keepOnDeath,
-                new TeleblockStore(), new ImmuneStore(), nowTicks);
-    }
-
-    /**
-     * The full sink. The shared {@link TeleblockStore}/{@link ImmuneStore} the TELEBLOCK / IMMUNE flags write
-     * are read back by the teleport / damage listeners on their separate events; shorter ctors default these to
-     * throwaways, so those flags are inert unless the real stores are threaded in.
-     */
-    public DispatchSink(RenameResolvers resolvers, EconomyService economy, SoulDebit souls,
-                        VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
-                        KeepOnDeathStore keepOnDeath, TeleblockStore teleblock, ImmuneStore immune,
-                        LongSupplier nowTicks) {
-        super(economy, souls, vars, suppression, knockback, keepOnDeath, teleblock, immune, nowTicks);
+    public DispatchSink(RenameResolvers resolvers, SinkEnv env) {
+        super(env);
         this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
     }
 

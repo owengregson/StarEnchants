@@ -56,7 +56,7 @@ public class ExecutorBenchmark {
         context = new ActivationContext(null, null, null, null);
         keys = new StableKeyIndex(List.of("enchants/bench"));
         // Reused across ops: the no-op effect emits nothing, so the sink's plan never fills and needs no flush.
-        sink = new DispatchSink(new RuntimeHandles(new RegistryResolvers()));
+        sink = new DispatchSink(new RuntimeHandles(new RegistryResolvers()), testfx.Envs.sink().build());
     }
 
     @Benchmark
