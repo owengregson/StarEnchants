@@ -42,11 +42,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -60,6 +58,7 @@ import schema.spec.Param;
 import schema.spec.ParamType;
 import tester.fake.FakePlayers;
 import tester.harness.CombatRig;
+import tester.harness.CrossRegion;
 import tester.harness.Harness;
 
 /**
@@ -72,7 +71,7 @@ import tester.harness.Harness;
  * shape only a wrong-thread bug (an effect that touches an entity off its owning region) breaks.
  *
  * <p><strong>Why this staging.</strong> Mirrors {@link CrossRegionTeleportSuite}: the attacker sits at world
- * spawn (region A), each victim is a cow {@value #REGION_GAP} blocks away (region B), and the hit is fired on
+ * spawn (region A), each victim is a cow {@value CrossRegion#GAP} blocks away (region B), and the hit is fired on
  * the victim's region thread — where Folia delivers a real combat event. So a {@code @Self}-targeted intent
  * must hop B&rarr;A through the Sink; kinds capture the actor origin at dispatch (ADR-0043), so a remote actor
  * is never read in {@code run()}, and a wrong-thread intent that still faults is caught by the executor and
@@ -95,10 +94,6 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
     private static final Map<String, String> SKIPS = new LinkedHashMap<>();
 
     private static final Set<Affinity> NON_LOCAL = EnumSet.of(Affinity.TARGET_ENTITY, Affinity.REGION, Affinity.AOE);
-
-    /** {@value} blocks: far past Folia's region-merge radius, so world spawn and the victim own distinct regions
-     * (512 empirically collapses into one region on a fresh test world — the {@code staging} assertion caught it). */
-    private static final int REGION_GAP = 8192;
 
     /** Ticks between successive kinds — lets a kind's deferred (hopped) intents settle before the next hit. */
     private static final long STEP_TICKS = 2L;
@@ -291,15 +286,6 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
         }
     }
 
-    /** {@code null} = the ownership API is absent (pre-1.20 Paper); every Folia build has it. */
-    private static Boolean ownedByCurrentRegion(Entity entity) {
-        try {
-            return (Boolean) Bukkit.class.getMethod("isOwnedByCurrentRegion", Entity.class).invoke(null, entity);
-        } catch (ReflectiveOperationException absent) {
-            return null;
-        }
-    }
-
     private static void write(Path root, String relative, String yaml) throws IOException {
         Path file = root.resolve(relative);
         Files.createDirectories(file.getParent());
@@ -360,7 +346,7 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             rig.listen(new CombatListener(dispatch));
             this.world = plugin.getServer().getWorlds().get(0);
             this.attackerAt = world.getSpawnLocation();
-            this.victimAt = attackerAt.clone().add(REGION_GAP, 0, REGION_GAP);
+            this.victimAt = attackerAt.clone().add(CrossRegion.GAP, 0, CrossRegion.GAP);
         }
 
         void start() {
@@ -405,12 +391,12 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
         private void fireOnVictimRegion(int index, Firing firing, String check) {
             if (index == 0) {
                 // Now on the victim's region thread: prove the (region-A) attacker is NOT owned by it, i.e. the
-                // REGION_GAP really did stage two distinct Folia regions. Assumed before ADR-0043; asserted now.
+                // CrossRegion.GAP really did stage two distinct Folia regions. Assumed before ADR-0043; asserted now.
                 if (!Capabilities.foliaPresent()) {
                     plugin.getLogger().info("[affinity-autogen] single-threaded Paper — distinct-region staging not applicable");
                     h.pass(STAGING);
                 } else {
-                    Boolean owned = ownedByCurrentRegion(attacker);
+                    Boolean owned = CrossRegion.ownedByCurrentRegion(attacker);
                     if (Boolean.TRUE.equals(owned)) {
                         h.fail(STAGING, "attacker and victim collapsed into one region — cross-region staging is void");
                     } else if (owned == null) {
