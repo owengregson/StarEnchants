@@ -45,15 +45,17 @@ public final class TrakService {
     // ADR-0040: applying/bumping a trak mutates PDC (marker + counter) then asks the composer to recompose — the
     // trak count lines are a state-driven SECTION now, not lore this service stamps by hand.
     private final java.util.function.Consumer<ItemStack> reRender;
+    private final Hands hands; // held-tool read/write for background trak tracking (§4 era seam)
 
     public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config,
-                       platform.lang.Messages messages, java.util.function.Consumer<ItemStack> reRender) {
+                       platform.lang.Messages messages, java.util.function.Consumer<ItemStack> reRender, Hands hands) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.slot = Objects.requireNonNull(slot, "slot");
         this.groups = Objects.requireNonNull(groups, "groups");
         this.config = Objects.requireNonNull(config, "config");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.reRender = Objects.requireNonNull(reRender, "reRender");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     public boolean isTrakGem(ItemStack stack) {
@@ -124,7 +126,7 @@ public final class TrakService {
     }
 
     private void track(Player player, Kind kind) {
-        ItemStack tool = Hands.mainHand(player);
+        ItemStack tool = hands.mainHand(player);
         if (tool == null || tool.getType() == Material.AIR) {
             return;
         }
@@ -135,7 +137,7 @@ public final class TrakService {
         if (slot.holds(tool, slotKindOf(kind))) {
             reRender.accept(tool); // an applied gem shows the live count — recompose from the bumped counter
         }
-        Hands.setMainHand(player, tool);
+        hands.setMainHand(player, tool);
     }
 
     /**

@@ -15,6 +15,8 @@ import compile.load.ParticleSpec;
 import compile.load.SoulGemConfig;
 import engine.interact.SoulPool;
 import engine.stores.SoulModeStore;
+import feature.compat.Hands;
+import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
@@ -54,7 +56,7 @@ class SoulModeEnforcementTest {
 
         ParticleFx fx = mock(ParticleFx.class);
         SoulService service = new SoulService(new SoulPool(), modes, codec, SoulGemConfig::defaults,
-                () -> true, platform.lang.Messages.defaults(), fx);
+                () -> true, platform.lang.Messages.defaults(), fx, mock(Hands.class), Sounds.NONE);
         return new Fixture(service, modes, player, playerId, fx);
     }
 

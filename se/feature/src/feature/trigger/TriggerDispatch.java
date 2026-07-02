@@ -21,6 +21,8 @@ import java.util.function.Function;
 import java.util.function.IntPredicate;
 import feature.combat.MineDrops;
 import feature.combat.ProjectileHoming;
+import feature.compat.DropControl;
+import feature.compat.Hands;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -47,6 +49,8 @@ public final class TriggerDispatch {
     // The per-boot sink wiring, threaded to every per-event sink so a write and its separate-event reader share stores.
     private final SinkEnv env;
     private final IntPredicate attackTrigger;
+    private final Hands hands;             // held-tool read for MINE effective drops (§4 era seam)
+    private final DropControl dropControl; // vanilla-drop suppression for SMELT/TELEPORT_DROPS (§4 era seam)
 
     public final int mine;
     public final int kill;
@@ -74,10 +78,13 @@ public final class TriggerDispatch {
      */
     public TriggerDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ActorProbe probe, ContentHolder content,
                            WornStateStore worn, TriggerRegistry triggers,
-                           Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env) {
+                           Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env,
+                           Hands hands, DropControl dropControl) {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
         this.env = Objects.requireNonNull(env, "env");
+        this.hands = Objects.requireNonNull(hands, "hands");
+        this.dropControl = Objects.requireNonNull(dropControl, "dropControl");
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write.
         this.runner = new TriggerRunner(executor, worn, soulBinder, env.nowTicks(),
                 FactPopulator.builtin(env.stores().vars(), probe));
@@ -137,7 +144,7 @@ public final class TriggerDispatch {
         if (sink.cancelled()) {
             event.setCancelled(true);
         } else {
-            MineDrops.apply(event, sink.smeltRequested(), sink.teleportDropsRequested());
+            MineDrops.apply(event, sink.smeltRequested(), sink.teleportDropsRequested(), hands, dropControl);
         }
         sink.flush();
     }

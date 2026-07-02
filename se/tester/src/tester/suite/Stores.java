@@ -2,6 +2,13 @@ package tester.suite;
 
 import engine.run.ActorProbe;
 import engine.run.ModernActorProbe;
+import feature.compat.DropControl;
+import feature.compat.Hands;
+import feature.compat.ModernDropControl;
+import feature.compat.ModernHands;
+import feature.compat.ModernProjectiles;
+import feature.compat.Projectiles;
+import feature.compat.Sounds;
 import item.codec.ItemStateStore;
 import item.codec.PdcItemStateStore;
 import item.render.LoreRenderer;
@@ -29,6 +36,22 @@ final class Stores {
 
     static ActorProbe probe() {
         return new ModernActorProbe();
+    }
+
+    static Hands hands() {
+        return new ModernHands();
+    }
+
+    static DropControl dropControl() {
+        return new ModernDropControl();
+    }
+
+    static Projectiles projectiles() {
+        return new ModernProjectiles();
+    }
+
+    static Sounds sounds() {
+        return new Sounds((player, at, key, volume, pitch) -> player.playSound(at, key, volume, pitch));
     }
 
     static LoreRenderer lore(LoreRenderer.Config config) {

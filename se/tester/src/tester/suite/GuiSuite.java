@@ -108,7 +108,7 @@ public final class GuiSuite implements Harness.Scenario {
             return;
         }
 
-        listener = new MenuListener();
+        listener = new MenuListener(Stores.hands());
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
 
         World world = plugin.getServer().getWorlds().get(0);

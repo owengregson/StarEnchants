@@ -18,6 +18,12 @@ import org.bukkit.event.inventory.InventoryDragEvent;
  */
 public final class MenuListener implements Listener {
 
+    private final Hands hands;
+
+    public MenuListener(Hands hands) {
+        this.hands = java.util.Objects.requireNonNull(hands, "hands");
+    }
+
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof MenuHolder holder)) {
@@ -46,7 +52,7 @@ public final class MenuListener implements Listener {
         ClickType type = event.getClick();
         // Cancel every action that could shuttle an item across slots into a locked/button slot.
         if (type.isShiftClick() || type == ClickType.NUMBER_KEY || type == ClickType.DOUBLE_CLICK
-                || Hands.isOffhandSwap(type) || type == ClickType.DROP || type == ClickType.CONTROL_DROP) {
+                || hands.isOffhandSwap(type) || type == ClickType.DROP || type == ClickType.CONTROL_DROP) {
             event.setCancelled(true);
             return;
         }

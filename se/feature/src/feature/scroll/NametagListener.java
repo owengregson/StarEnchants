@@ -2,6 +2,7 @@ package feature.scroll;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,8 +31,8 @@ public final class NametagListener extends ApplyGestureListener {
     private final NametagService service;
     private final boolean anvilMode = NametagAnvil.supported();
 
-    public NametagListener(NametagService service, Messages messages) {
-        super(messages);
+    public NametagListener(NametagService service, Messages messages, Sounds sounds) {
+        super(messages, sounds);
         this.service = Objects.requireNonNull(service, "service");
     }
 

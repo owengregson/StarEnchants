@@ -55,6 +55,7 @@ public final class CombatDispatch {
     private final int defenseTriggerId;
     private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
     private final int tridentTriggerId; // −1 ⇒ no distinct trident trigger; trident hits fall back to ATTACK
+    private final Projectiles projectiles; // trident/arrow-like typing for the attacker trigger (§4 era seam)
 
     /** §N friendly-fire gate (ADR-0027): two friendly players get NO SE combat effects. No-op by default. */
     private static volatile java.util.function.BiPredicate<Player, Player> friendlyFire = (attacker, victim) -> false;
@@ -81,10 +82,12 @@ public final class CombatDispatch {
     public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ActorProbe probe, ContentHolder content,
                           WornStateStore worn, int attackTriggerId, int defenseTriggerId,
                           int bowTriggerId, int tridentTriggerId,
-                          Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env, Caps caps) {
+                          Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env, Caps caps,
+                          Projectiles projectiles) {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
         this.env = Objects.requireNonNull(env, "env");
+        this.projectiles = Objects.requireNonNull(projectiles, "projectiles");
         Objects.requireNonNull(caps, "caps");
         this.combo = env.stores().combo();
         this.nowTicks = env.nowTicks();
@@ -147,7 +150,7 @@ public final class CombatDispatch {
 
         // Attack side: self = attacker, target = victim.
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
-            int attackId = attackTrigger(rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
+            int attackId = attackTrigger(projectiles, rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
             int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong()); // %combo% fact, §3.4
             // reaper's Mark of the Reaper: +N% from THIS attacker while the victim is marked by them. Consulted
             // BEFORE the attack abilities run, so a mark this hit sets (the 5% proc) applies only to LATER hits.
@@ -201,11 +204,11 @@ public final class CombatDispatch {
      * A trident is also arrow-like, so it is tested first (the {@link Projectiles} seam encapsulates the
      * 1.13/1.14 trident/abstract-arrow types, absent on 1.8).
      */
-    static int attackTrigger(Entity rawDamager, int attackId, int bowId, int tridentId) {
-        if (Projectiles.isTrident(rawDamager) && tridentId >= 0) {
+    static int attackTrigger(Projectiles projectiles, Entity rawDamager, int attackId, int bowId, int tridentId) {
+        if (projectiles.isTrident(rawDamager) && tridentId >= 0) {
             return tridentId;
         }
-        if (Projectiles.isArrowLike(rawDamager) && bowId >= 0) {
+        if (projectiles.isArrowLike(rawDamager) && bowId >= 0) {
             return bowId;
         }
         return attackId;

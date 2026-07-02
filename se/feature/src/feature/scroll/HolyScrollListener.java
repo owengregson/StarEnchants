@@ -2,6 +2,7 @@ package feature.scroll;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import java.util.List;
 import java.util.Objects;
 import org.bukkit.entity.Player;
@@ -33,8 +34,8 @@ public final class HolyScrollListener extends ApplyGestureListener {
     private final HolyScrollService service;
     private final KeptItemsStore kept;
 
-    public HolyScrollListener(HolyScrollService service, KeptItemsStore kept, Messages messages) {
-        super(messages);
+    public HolyScrollListener(HolyScrollService service, KeptItemsStore kept, Messages messages, Sounds sounds) {
+        super(messages, sounds);
         this.service = Objects.requireNonNull(service, "service");
         this.kept = Objects.requireNonNull(kept, "kept");
     }

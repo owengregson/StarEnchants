@@ -24,10 +24,12 @@ public final class UnopenedBookListener implements Listener {
 
     private final UnopenedBookService service;
     private final Messages messages;
+    private final Hands hands;
 
-    public UnopenedBookListener(UnopenedBookService service, Messages messages) {
+    public UnopenedBookListener(UnopenedBookService service, Messages messages, Hands hands) {
         this.service = Objects.requireNonNull(service, "service");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     // priority LOW, NOT ignoreCancelled: a RIGHT_CLICK_BLOCK with a non-use item often arrives already
@@ -35,7 +37,7 @@ public final class UnopenedBookListener implements Listener {
     // precedes TriggerListeners (HIGH), so the book claims the gesture ahead of INTERACT triggers.
     @EventHandler(priority = EventPriority.LOW)
     public void onInteract(PlayerInteractEvent event) {
-        if (!Hands.isMainHand(event)) {
+        if (!hands.isMainHand(event)) {
             return; // main-hand only — the off-hand pass of a two-hand interact would double-open
         }
         Action action = event.getAction();
@@ -44,7 +46,7 @@ public final class UnopenedBookListener implements Listener {
         }
         Player player = event.getPlayer();
         // Read from the main hand directly (not event.getItem(), which can be null on an air-click).
-        ItemStack used = Hands.mainHand(player);
+        ItemStack used = hands.mainHand(player);
         if (used == null || !service.isUnopened(used)) {
             return;
         }
@@ -52,9 +54,9 @@ public final class UnopenedBookListener implements Listener {
 
         GestureOutcome result = service.open(used);
         if (result.commit()) {
-            ItemStack hand = Hands.mainHand(player);
+            ItemStack hand = hands.mainHand(player);
             hand.setAmount(hand.getAmount() - 1);
-            Hands.setMainHand(player, hand.getAmount() <= 0 ? null : hand);
+            hands.setMainHand(player, hand.getAmount() <= 0 ? null : hand);
         }
         if (result.produced() != null) {
             Inventories.giveOrDrop(player, result.produced());

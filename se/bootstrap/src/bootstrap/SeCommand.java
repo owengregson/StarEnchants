@@ -138,6 +138,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final CarrierCodec carrierCodec;               // /se item dump — book/dust/white-scroll identity marker
     private final java.util.function.IntSupplier baseSlots; // /se item dump — base enchant slots for the max total
     private final ItemStateStore store;                     // /se item dump — probe raw on-item PDC/NBT key presence
+    private final feature.compat.Hands hands;               // main-hand read/write for /se enchant|unenchant|item (§4 era seam)
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -147,7 +148,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
               feature.trak.TrakService traks, PackStore packs, CombatCodec codec, CarrierCodec carrierCodec,
-              java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store) {
+              java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store,
+              feature.compat.Hands hands) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -172,6 +174,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.carrierCodec = carrierCodec;
         this.baseSlots = baseSlots;
         this.store = store;
+        this.hands = hands;
     }
 
     @Override
@@ -784,11 +787,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         int appliedLevel = level;
         Scheduling.onEntity(player, () -> {
-            ItemStack held = feature.compat.Hands.mainHand(player);
+            ItemStack held = hands.mainHand(player);
             // /se enchant is admin force-give → bypass the §G requires/blacklist relationship gates.
             ApplyResult result = enchanter.applyEnchant(held, key, appliedLevel, false);
             if (result.ok()) {
-                feature.compat.Hands.setMainHand(player, held);
+                hands.setMainHand(player, held);
                 // Mutating the held item in place fires no equip event; re-resolve or the new enchant
                 // sits in PDC + lore but inert until a re-equip.
                 refreshWorn.accept(player);
@@ -1107,10 +1110,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         String key = normalize(args[1], "enchants/");
         Scheduling.onEntity(player, () -> {
-            ItemStack held = feature.compat.Hands.mainHand(player);
+            ItemStack held = hands.mainHand(player);
             ApplyResult result = enchanter.removeEnchant(held, key);
             if (result.ok()) {
-                feature.compat.Hands.setMainHand(player, held);
+                hands.setMainHand(player, held);
                 refreshWorn.accept(player); // in-place mutation fires no equip event — re-resolve WornState
             }
             player.sendMessage(result.message());
@@ -1378,7 +1381,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         Scheduling.onEntity(player, () -> {
-            ItemStack held = feature.compat.Hands.mainHand(player);
+            ItemStack held = hands.mainHand(player);
             if (held == null || held.getType() == org.bukkit.Material.AIR) {
                 player.sendMessage(messages.format("command.dump.empty-hand"));
                 return;

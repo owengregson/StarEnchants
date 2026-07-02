@@ -205,6 +205,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // The physical item-data layer (§4.2, ADR-0044): era store (modern PDC / legacy NBT) injected into every
         // codec + the lore renderer, off the version-specific Wiring seam (the interim bindings).
         item.codec.ItemStateStore store = wiring.itemStateStore();
+        // The feature.compat era seams (§4, ADR-0044): hand access, drop suppression, projectile typing, and
+        // sound playback — each era-selected off the Wiring seam and ctor-injected into the feature shells.
+        feature.compat.Hands hands = wiring.hands();
+        feature.compat.DropControl dropControl = wiring.dropControl();
+        feature.compat.Projectiles projectiles = wiring.projectiles();
+        feature.compat.Sounds sounds = wiring.sounds();
 
         Library initial = loadInitial(compiler, contentRoot);
         content = new ContentHolder(initial);
@@ -375,7 +381,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Trak gems (§I): block/mob/soul lifetime counters tracked in the background on eligible gear (trakCodec
         // built above with the other codecs). Applying/bumping a trak recomposes the gear's lore from state.
         feature.trak.TrakService traks = new feature.trak.TrakService(trakCodec, appliedSlot, itemGroups,
-                () -> items.config().traksOrDefault(), messages, recompose);
+                () -> items.config().traksOrDefault(), messages, recompose, hands);
 
         // Souls (§D): the per-player cross-gem SoulPool is the spend authority. The SoulService owns it and is
         // ALSO the pipeline's gate-10 SoulSpender, so a gate-10 spend and the holder-thread drain share one pool.
@@ -383,7 +389,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulModeStore soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
         SoulService soulService = new SoulService(soulPool, soulModes,
                 new SoulCodec(ItemKeys.of().soul(), store), () -> items.config().soulGemOrDefault(),
-                () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
+                () -> master.config().souls().depositOnAnyKill(), messages, particleFx, hands, sounds); // §D deposit + §L msgs + particles + §4 seams
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
         Bridges.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),
@@ -478,10 +484,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
                         () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
                         () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
-                        () -> master.config().combat().pve()));                   // §L combat.pve gate (live)
+                        () -> master.config().combat().pve()), projectiles);      // §L combat.pve gate (live) + §4 projectile typing
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, wiring.sinkFactory(), wiring.actorProbe(), content, worn, triggers,
-                soulService::bindingFor, sinkEnv);
+                soulService::bindingFor, sinkEnv, hands, dropControl);
         // §B REPEATING: one entity-owned repeating task per (player, ability), armed/torn-down by EquipListener.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
                 new RepeatStore<TaskHandle>());
@@ -502,7 +508,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     }
                 },
                 () -> master.config().sets().messageUppercase(), // read live so a reload can flip it
-                new feature.trigger.SetEquipEffects(() -> master.config().sets(), particleFx));
+                new feature.trigger.SetEquipEffects(() -> master.config().sets(), particleFx, sounds));
 
         // §L feature toggles gate listener registration at BOOT: handlers can't be cleanly re-bound mid-run,
         // so a toggle change needs a restart.
@@ -522,13 +528,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         });
         if (features.souls()) {
             getServer().getPluginManager().registerEvents(new SoulListener(soulService), this);
-            getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService), this);
+            getServer().getPluginManager().registerEvents(new SoulInteractListener(soulService, hands), this);
             getServer().getPluginManager().registerEvents(new SoulInventoryListener(soulService), this);
         } else {
             getLogger().info("souls feature disabled (config.yml features.souls) — soul listeners not registered");
         }
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch,
-                () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope())), this); // §F reduction-scope
+                () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope()), hands), this); // §F reduction-scope
         // ITEM_DAMAGE lives in its own listener (the event is 1.9+; the legacy overlay is a no-op).
         getServer().getPluginManager().registerEvents(
                 new feature.trigger.DurabilityTriggerListener(triggerDispatch), this);
@@ -546,7 +552,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new KeepOnDeathListener(stores.keepOnDeath(), tick::get), this);
         // Cosmic Enchants exotic-effect ports: TELEBLOCK cancels teleport, IMMUNE cancels damage while flagged.
         getServer().getPluginManager().registerEvents(new TeleblockListener(stores.teleblock(), tick::get), this);
-        getServer().getPluginManager().registerEvents(new ImmuneListener(stores.immune(), tick::get), this);
+        getServer().getPluginManager().registerEvents(new ImmuneListener(stores.immune(), tick::get, hands), this);
         // §C KNOCKBACK_CONTROL: capability-probed onto modern-bukkit or legacy destroystokyo; inert on neither.
         KnockbackListener.Path knockbackPath = KnockbackListener.register(this, stores.knockback(), tick::get);
         getLogger().info("KNOCKBACK_CONTROL applier: " + knockbackPath);
@@ -568,23 +574,23 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     || heroics.isUpgrade(stack) || unopenedBooks.isUnopened(stack)
                     || carrierCodec.read(stack) != null; // enchant books, magic dust, white scroll
         };
-        getServer().getPluginManager().registerEvents(new feature.guard.VanillaGuardListener(isPluginItem), this);
-        getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx, messages), this);
-        getServer().getPluginManager().registerEvents(new CrystalListener(crystals, messages), this);
-        getServer().getPluginManager().registerEvents(new HeroicListener(heroics, messages), this);
+        getServer().getPluginManager().registerEvents(new feature.guard.VanillaGuardListener(isPluginItem, hands), this);
+        getServer().getPluginManager().registerEvents(new CarrierListener(carriers, carrierCodec, particleFx, messages, sounds), this);
+        getServer().getPluginManager().registerEvents(new CrystalListener(crystals, messages, sounds), this);
+        getServer().getPluginManager().registerEvents(new HeroicListener(heroics, messages, sounds), this);
         if (features.slots()) {
-            getServer().getPluginManager().registerEvents(new SlotListener(slots, messages), this);
+            getServer().getPluginManager().registerEvents(new SlotListener(slots, messages, sounds), this);
         } else {
             getLogger().info("slots feature disabled (config.yml features.slots) — slot-expander apply not registered");
         }
-        getServer().getPluginManager().registerEvents(new UnopenedBookListener(unopenedBooks, messages), this);
+        getServer().getPluginManager().registerEvents(new UnopenedBookListener(unopenedBooks, messages, hands), this);
         // §L scrolls feature gate.
         if (features.scrolls()) {
-            getServer().getPluginManager().registerEvents(new ScrollListener(scrolls, messages), this);
-            getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems, messages), this);
-            getServer().getPluginManager().registerEvents(new NametagListener(nametags, messages), this);
+            getServer().getPluginManager().registerEvents(new ScrollListener(scrolls, messages, sounds), this);
+            getServer().getPluginManager().registerEvents(new HolyScrollListener(holyScrolls, keptItems, messages, sounds), this);
+            getServer().getPluginManager().registerEvents(new NametagListener(nametags, messages, sounds), this);
             feature.scroll.NametagAnvil.installPreview(this, nametags); // modern: colour the anvil result preview (no-op on 1.8.9)
-            getServer().getPluginManager().registerEvents(new feature.trak.TrakListener(traks, messages), this);
+            getServer().getPluginManager().registerEvents(new feature.trak.TrakListener(traks, messages, sounds), this);
         } else {
             getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");
         }
@@ -667,9 +673,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Enchant-icon names are styled by the enchant-book name template, so a menu name matches the book.
         java.util.function.Supplier<String> bookName = () -> items.config().enchantBookOrDefault().name();
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
-                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName, messages);
+                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName, messages, hands);
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
-        GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config);
+        GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config, hands);
         // The operator "mint anything" catalogue (ADR-0030) — driven by the live tier list + trak kinds.
         MintCatalog mintCatalog = new MintCatalog(content, soulService, slots, heroics, crystals, scrolls,
                 holyScrolls, nametags, carriers, traks, unopenedBooks);
@@ -688,11 +694,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .register(new AlchemistMenu(carriers, caps, messages, menusHolder::config)) // combine books → +1
                 .register(new TinkererMenu(carriers, caps, messages, menusHolder::config))  // salvage book → XP
                 .register(new AdminBrowserMenu(content, carriers, caps, messages, menusHolder::config)); // admin grant
-        getServer().getPluginManager().registerEvents(new MenuListener(), this);
+        getServer().getPluginManager().registerEvents(new MenuListener(hands), this);
         // §I/§K physical godly-transmog gesture — scroll family, so it shares the features.scrolls() boot gate.
         if (features.scrolls()) {
             getServer().getPluginManager().registerEvents(
-                    new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec, messages), this);
+                    new feature.menu.GodlyTransmogListener(scrolls, transmogMenu, codec, messages, sounds), this);
         }
         // ADR-0030 user entry: /enchants opens the player hub (open to all; the hub's targets are perm-free).
         // Registered on the server command map like /splitsouls, so it needs no plugin.yml command entry.
@@ -713,7 +719,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
                     scrolls, unopenedBooks, holyScrolls, nametags, traks, packs, codec, carrierCodec,
-                    () -> master.config().slots().base(), messages, contentRoot, store);
+                    () -> master.config().slots().base(), messages, contentRoot, store, hands);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand);
         }

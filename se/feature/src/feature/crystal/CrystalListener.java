@@ -2,6 +2,7 @@ package feature.crystal;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryAction;
@@ -18,8 +19,8 @@ public final class CrystalListener extends ApplyGestureListener {
 
     private final CrystalService service;
 
-    public CrystalListener(CrystalService service, Messages messages) {
-        super(messages);
+    public CrystalListener(CrystalService service, Messages messages, Sounds sounds) {
+        super(messages, sounds);
         this.service = Objects.requireNonNull(service, "service");
     }
 

@@ -34,9 +34,11 @@ import org.bukkit.inventory.ItemStack;
 public final class VanillaGuardListener implements Listener {
 
     private final Predicate<ItemStack> isPluginItem;
+    private final Hands hands;
 
-    public VanillaGuardListener(Predicate<ItemStack> isPluginItem) {
+    public VanillaGuardListener(Predicate<ItemStack> isPluginItem, Hands hands) {
         this.isPluginItem = Objects.requireNonNull(isPluginItem, "isPluginItem");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     // LOW + NOT ignoreCancelled, mirroring the dedicated item listeners: DENY only the ITEM's vanilla use, never
@@ -57,7 +59,7 @@ public final class VanillaGuardListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onInteractEntity(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
-        if (isPluginItem.test(Hands.mainHand(player))) {
+        if (isPluginItem.test(hands.mainHand(player))) {
             event.setCancelled(true);
         }
     }

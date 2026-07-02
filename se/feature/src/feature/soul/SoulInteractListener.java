@@ -17,9 +17,11 @@ import org.bukkit.inventory.ItemStack;
 public final class SoulInteractListener implements Listener {
 
     private final SoulService souls;
+    private final Hands hands;
 
-    public SoulInteractListener(SoulService souls) {
+    public SoulInteractListener(SoulService souls, Hands hands) {
         this.souls = Objects.requireNonNull(souls, "souls");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     // priority LOW, NOT ignoreCancelled: a RIGHT_CLICK_BLOCK with a non-use item (the gem) often arrives
@@ -28,7 +30,7 @@ public final class SoulInteractListener implements Listener {
     // gem claims the gesture ahead of INTERACT enchant triggers.
     @EventHandler(priority = EventPriority.LOW)
     public void onInteract(PlayerInteractEvent event) {
-        if (!Hands.isMainHand(event)) {
+        if (!hands.isMainHand(event)) {
             return; // main-hand only: the off-hand pass would double-toggle
         }
         Action action = event.getAction();
@@ -38,7 +40,7 @@ public final class SoulInteractListener implements Listener {
         Player player = event.getPlayer();
         // Read the gem from the main hand directly (the hand toggle() also re-reads), not event.getItem(),
         // which can be null on a RIGHT_CLICK_AIR with no usable item.
-        ItemStack used = Hands.mainHand(player);
+        ItemStack used = hands.mainHand(player);
         if (used == null || !souls.isGem(used)) {
             return;
         }

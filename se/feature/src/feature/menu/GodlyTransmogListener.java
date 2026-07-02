@@ -2,6 +2,7 @@ package feature.menu;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import feature.scroll.ScrollService;
 import item.codec.CombatCodec;
 import java.util.Objects;
@@ -20,8 +21,8 @@ public final class GodlyTransmogListener extends ApplyGestureListener {
     private final GodlyTransmogMenu menu;
     private final CombatCodec combat;
 
-    public GodlyTransmogListener(ScrollService scrolls, GodlyTransmogMenu menu, CombatCodec combat, Messages messages) {
-        super(messages);
+    public GodlyTransmogListener(ScrollService scrolls, GodlyTransmogMenu menu, CombatCodec combat, Messages messages, Sounds sounds) {
+        super(messages, sounds);
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.menu = Objects.requireNonNull(menu, "menu");
         this.combat = Objects.requireNonNull(combat, "combat");

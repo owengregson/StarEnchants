@@ -1,5 +1,6 @@
 package feature.combat;
 
+import feature.compat.DropControl;
 import feature.compat.Hands;
 import feature.compat.Mats;
 import java.util.ArrayList;
@@ -30,7 +31,8 @@ public final class MineDrops {
     }
 
     /** Apply the requested MINE drop transforms to {@code event}. A no-op when neither flag is set. */
-    public static void apply(BlockBreakEvent event, boolean smelt, boolean teleportDrops) {
+    public static void apply(BlockBreakEvent event, boolean smelt, boolean teleportDrops, Hands hands,
+                             DropControl dropControl) {
         if (!smelt && !teleportDrops) {
             return;
         }
@@ -40,8 +42,8 @@ public final class MineDrops {
         if (world == null) {
             return;
         }
-        Collection<ItemStack> drops = effectiveDrops(block, player, smelt);
-        feature.compat.Blocks.suppressVanillaDrops(event); // suppress the vanilla drop; we place the effective drops below
+        Collection<ItemStack> drops = effectiveDrops(block, player, smelt, hands);
+        dropControl.suppressVanillaDrops(event); // suppress the vanilla drop; we place the effective drops below
         if (teleportDrops) {
             for (ItemStack drop : drops) {
                 // Overflow drops at the BLOCK (not the player's feet), matching the pre-ADR-0041 behaviour.
@@ -56,14 +58,14 @@ public final class MineDrops {
     }
 
     /** The drops to place: the smelted product when SMELT applies and the block has one, else the natural drops. */
-    private static Collection<ItemStack> effectiveDrops(Block block, Player player, boolean smelt) {
+    private static Collection<ItemStack> effectiveDrops(Block block, Player player, boolean smelt, Hands hands) {
         if (smelt) {
             Material smelted = SMELT.get(block.getType());
             if (smelted != null) {
                 return List.of(new ItemStack(smelted));
             }
         }
-        return new ArrayList<>(block.getDrops(Hands.mainHand(player)));
+        return new ArrayList<>(block.getDrops(hands.mainHand(player)));
     }
 
     private static Map<Material, Material> buildSmeltMap() {

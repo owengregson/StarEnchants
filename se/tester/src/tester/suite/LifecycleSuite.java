@@ -118,7 +118,7 @@ public final class LifecycleSuite implements Harness.Scenario {
         engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
                 engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         TriggerDispatch dispatch = new TriggerDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn, triggers,
-                actor -> Optional.empty(), env);
+                actor -> Optional.empty(), env, Stores.hands(), Stores.dropControl());
         LifecycleDriver lifecycle = new LifecycleDriver(dispatch, holder,
                 triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
 

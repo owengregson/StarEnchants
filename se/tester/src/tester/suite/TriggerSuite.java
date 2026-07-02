@@ -120,9 +120,9 @@ public final class TriggerSuite implements Harness.Scenario {
         engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
                 engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
         TriggerDispatch dispatch = new TriggerDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn, triggers,
-                actor -> Optional.empty(), env);
+                actor -> Optional.empty(), env, Stores.hands(), Stores.dropControl());
         CombatRig rig = new CombatRig(plugin);
-        rig.listen(new TriggerListeners(dispatch));
+        rig.listen(new TriggerListeners(dispatch, Stores.hands()));
 
         ItemStack pick = new ItemStack(Material.DIAMOND_PICKAXE);
         codec.write(pick, new CombatState(Map.of("enchants/excavate", 1), List.of()));

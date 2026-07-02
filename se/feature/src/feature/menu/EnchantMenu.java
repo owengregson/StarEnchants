@@ -32,33 +32,35 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     private final Consumer<Player> refreshWorn;
     private final Supplier<String> nameTemplate; // the enchant-book name template — icons match the book (§I/§K)
     private final platform.lang.Messages messages; // ADR-0041: apply feedback flows through the policy seam
+    private final Hands hands; // main-hand read/write for the apply-to-held path (§4 era seam)
 
     /** Default-layout form (tests/fixtures). */
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
-                       Capabilities caps) {
-        this(content, enchanter, refreshWorn, caps, MenusConfig::empty);
+                       Capabilities caps, Hands hands) {
+        this(content, enchanter, refreshWorn, caps, MenusConfig::empty, hands);
     }
 
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
-                       Capabilities caps, Supplier<MenusConfig> menus) {
-        this(content, enchanter, refreshWorn, caps, menus, () -> EnchantBookConfig.defaults().name());
+                       Capabilities caps, Supplier<MenusConfig> menus, Hands hands) {
+        this(content, enchanter, refreshWorn, caps, menus, () -> EnchantBookConfig.defaults().name(), hands);
     }
 
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
-                       Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate) {
-        this(content, enchanter, refreshWorn, caps, menus, nameTemplate, platform.lang.Messages.defaults());
+                       Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate, Hands hands) {
+        this(content, enchanter, refreshWorn, caps, menus, nameTemplate, platform.lang.Messages.defaults(), hands);
     }
 
     /** Canonical form (composition root) — {@code messages} routes apply feedback through the policy seam. */
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
                        Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate,
-                       platform.lang.Messages messages) {
+                       platform.lang.Messages messages, Hands hands) {
         super("apply", MenuLayout.paged("&d&lApply Enchant"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.refreshWorn = Objects.requireNonNull(refreshWorn, "refreshWorn");
         this.nameTemplate = Objects.requireNonNull(nameTemplate, "nameTemplate");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.hands = Objects.requireNonNull(hands, "hands");
     }
 
     @Override
@@ -79,10 +81,10 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     }
 
     private void applyEnchant(Player player, EnchantDef def) {
-        ItemStack held = Hands.mainHand(player);
+        ItemStack held = hands.mainHand(player);
         ApplyResult result = enchanter.applyEnchant(held, def.key(), 1);
         if (result.ok()) {
-            Hands.setMainHand(player, held);
+            hands.setMainHand(player, held);
             refreshWorn.accept(player); // no equip event fires, so re-resolve the cached WornState by hand
         }
         messages.sendText(player, result.message());

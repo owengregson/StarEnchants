@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import compile.load.Lang;
+import feature.compat.Sounds;
 import java.util.HashMap;
 import java.util.function.BiFunction;
 import org.bukkit.Location;
@@ -44,7 +45,7 @@ class ApplyGestureListenerTest {
         int applyCalls = 0;
 
         FakeLeaf(Messages messages, BiFunction<ItemStack, ItemStack, GestureOutcome> applyFn) {
-            super(messages);
+            super(messages, Sounds.NONE);
             this.applyFn = applyFn;
         }
 
@@ -71,7 +72,13 @@ class ApplyGestureListenerTest {
         return new Messages(Lang::defaults);
     }
 
-    /** Build a click; {@code topClick} routes {@code getClickedInventory} to the top (else the bottom) inventory. */
+    /** The top inventory's size — the raw-slot boundary the {@code MenuClicks} derivation splits top from bottom on. */
+    private static final int TOP_SIZE = 27;
+
+    /**
+     * Build a click; {@code topClick} places the raw slot inside (else past) the top inventory, so the shared
+     * {@code MenuClicks} raw-slot derivation (ADR-0044) resolves the clicked inventory to the top (else the bottom).
+     */
     private InventoryClickEvent event(ClickType click, ItemStack cursor, ItemStack current, boolean topClick) {
         player = mock(Player.class);
         playerInv = mock(PlayerInventory.class);
@@ -83,6 +90,7 @@ class ApplyGestureListenerTest {
         when(player.getLocation()).thenReturn(location);
         when(player.getWorld()).thenReturn(world);
         when(location.getWorld()).thenReturn(world);
+        when(top.getSize()).thenReturn(TOP_SIZE);
         InventoryClickEvent event = mock(InventoryClickEvent.class);
         InventoryView view = mock(InventoryView.class);
         when(event.getWhoClicked()).thenReturn(player);
@@ -93,7 +101,9 @@ class ApplyGestureListenerTest {
         when(event.getView()).thenReturn(view);
         when(view.getBottomInventory()).thenReturn(bottom);
         when(view.getTopInventory()).thenReturn(top);
-        when(event.getClickedInventory()).thenReturn(topClick ? top : bottom);
+        // A raw slot inside the top size resolves to the top inventory; past it, the bottom — the mapping the
+        // clicked-inventory derivation implements (a top click makes the gesture guard fall through).
+        when(event.getRawSlot()).thenReturn(topClick ? 5 : TOP_SIZE + 5);
         return event;
     }
 

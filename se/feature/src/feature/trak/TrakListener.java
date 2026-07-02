@@ -2,6 +2,7 @@ package feature.trak;
 
 import feature.apply.ApplyGestureListener;
 import feature.apply.GestureOutcome;
+import feature.compat.Sounds;
 import java.util.Objects;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,8 +22,8 @@ public final class TrakListener extends ApplyGestureListener {
 
     private final TrakService service;
 
-    public TrakListener(TrakService service, Messages messages) {
-        super(messages);
+    public TrakListener(TrakService service, Messages messages, Sounds sounds) {
+        super(messages, sounds);
         this.service = Objects.requireNonNull(service, "service");
     }
 

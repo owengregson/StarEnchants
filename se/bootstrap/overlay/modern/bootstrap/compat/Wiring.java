@@ -4,6 +4,13 @@ import engine.run.ActorProbe;
 import engine.run.ModernActorProbe;
 import engine.sink.ModernDispatchSink;
 import engine.sink.SinkFactory;
+import feature.compat.DropControl;
+import feature.compat.Hands;
+import feature.compat.ModernDropControl;
+import feature.compat.ModernHands;
+import feature.compat.ModernProjectiles;
+import feature.compat.Projectiles;
+import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import item.codec.ItemStateStore;
 import item.codec.PdcItemStateStore;
@@ -57,6 +64,26 @@ public final class Wiring {
     /** The entity/material fact reads (§3.3): modern swim/glide/isAir/main-hand. Injected into {@code FactPopulator}. */
     public ActorProbe actorProbe() {
         return new ModernActorProbe();
+    }
+
+    /** Hand/equipment access (§4): modern off-hand-aware. Injected into the feature shells. */
+    public Hands hands() {
+        return new ModernHands();
+    }
+
+    /** Block-break drop suppression (§4): modern {@code setDropItems(false)}. Injected into {@code MineDrops}. */
+    public DropControl dropControl() {
+        return new ModernDropControl();
+    }
+
+    /** Projectile-type routing (§4): modern {@code Trident}/{@code AbstractArrow}. Injected into the combat router. */
+    public Projectiles projectiles() {
+        return new ModernProjectiles();
+    }
+
+    /** Sound playback (§4): the shared resolver + the modern String-overload key-form fallback (1.9.4+). */
+    public Sounds sounds() {
+        return new Sounds((player, at, key, volume, pitch) -> player.playSound(at, key, volume, pitch));
     }
 
     /**
