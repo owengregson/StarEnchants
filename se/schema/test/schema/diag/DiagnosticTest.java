@@ -29,7 +29,7 @@ class DiagnosticTest {
 
     @Test
     void renderIncludesSeverityCodeMessageAndHint() {
-        Diagnostic d = Diagnostic.error("E_RANGE",
+        Diagnostic d = Diagnostic.error(DiagCode.E_RANGE,
                 "value 150 is above the maximum 100", Source.of("e.yml", 4, 12), "lower it");
         assertEquals("e.yml:4:12: error[E_RANGE]: value 150 is above the maximum 100 (hint: lower it)",
                 d.render());
@@ -37,7 +37,7 @@ class DiagnosticTest {
 
     @Test
     void renderOmitsHintWhenAbsent() {
-        Diagnostic d = Diagnostic.warning("W_EXTRA_ARGS", "ignored 1 extra argument",
+        Diagnostic d = Diagnostic.warning(DiagCode.W_EXTRA_ARGS, "ignored 1 extra argument",
                 Source.of("e.yml", 4, 1));
         assertEquals("e.yml:4:1: warning[W_EXTRA_ARGS]: ignored 1 extra argument", d.render());
     }
@@ -52,9 +52,9 @@ class DiagnosticTest {
     @Test
     void collectorTracksErrorsAndCounts() {
         Diagnostics diags = new Diagnostics();
-        diags.warning("W_X", "warn", Source.UNKNOWN);
+        diags.warning(DiagCode.W_EXTRA_ARGS, "warn", Source.UNKNOWN);
         assertFalse(diags.hasErrors());
-        diags.error("E_Y", "boom", Source.UNKNOWN);
+        diags.error(DiagCode.E_TYPE, "boom", Source.UNKNOWN);
         assertTrue(diags.hasErrors());
         assertEquals(2, diags.size());
         assertEquals(1, diags.count(Severity.ERROR));
@@ -63,8 +63,8 @@ class DiagnosticTest {
 
     @Test
     void mergeAppendsAllDiagnostics() {
-        Diagnostics a = new Diagnostics().info("I_A", "a", Source.UNKNOWN);
-        Diagnostics b = new Diagnostics().error("E_B", "b", Source.UNKNOWN);
+        Diagnostics a = new Diagnostics().info(DiagCode.W_EXTRA_ARGS, "a", Source.UNKNOWN);
+        Diagnostics b = new Diagnostics().error(DiagCode.E_TYPE, "b", Source.UNKNOWN);
         a.merge(b);
         assertEquals(2, a.size());
         assertTrue(a.hasErrors());

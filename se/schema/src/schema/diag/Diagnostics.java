@@ -18,27 +18,8 @@ public final class Diagnostics {
         return this;
     }
 
-    public Diagnostics error(String code, String message, Source source) {
-        return add(Diagnostic.error(code, message, source));
-    }
-
-    public Diagnostics error(String code, String message, Source source, String fixHint) {
-        return add(Diagnostic.error(code, message, source, fixHint));
-    }
-
-    public Diagnostics warning(String code, String message, Source source) {
-        return add(Diagnostic.warning(code, message, source));
-    }
-
-    public Diagnostics warning(String code, String message, Source source, String fixHint) {
-        return add(Diagnostic.warning(code, message, source, fixHint));
-    }
-
-    public Diagnostics info(String code, String message, Source source) {
-        return add(Diagnostic.info(code, message, source));
-    }
-
-    // DiagCode overloads — producers reference the constant; the wire string stays code.name().
+    // Producers reference DiagCode constants only; the String overloads are gone (ADR-0042), so an
+    // off-catalogue code cannot compile. Tests needing a synthetic code use the Diagnostic canonical constructor.
     public Diagnostics error(DiagCode code, String message, Source source) {
         return add(Diagnostic.error(code, message, source));
     }
