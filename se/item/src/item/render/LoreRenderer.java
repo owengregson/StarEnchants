@@ -1,11 +1,8 @@
 package item.render;
 
 import item.codec.CombatState;
-import item.codec.HeroicStat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
@@ -14,28 +11,135 @@ import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import platform.text.Colors;
 
 /**
- * Renders lore from {@link CombatState}, never the reverse (§4.2): a deterministic projection rebuilt from
- * scratch, never parsed back. An unknown stored key renders as {@code unknownLabel}, never crashing (§5.3).
- * The display lookup is injected (not Library) so {@link #lines} stays pure and server-free; only {@link #apply}
- * touches Bukkit.
+ * The Bukkit shell over {@link LoreComposer} (ADR-0040): reads an item's state feed (material, marker-derived
+ * protection lines, existing lore), asks the composer for the full ordered lore, and writes it back — plus the
+ * §I enchant-count name suffix. Lore is rendered from {@link CombatState}, never parsed back (§4.2); an unknown
+ * stored key renders as the style's {@code unknownLabel}, never crashing (§5.3). {@link #lines} stays pure and
+ * server-free (it is the composer's body pass); only {@link #apply} touches Bukkit.
  */
 public final class LoreRenderer {
 
-    private final Supplier<LoreStyle> style;
-    private final Function<String, String> displayNameOf;
-    private final Function<String, String> enchantColorOf;
-    private final SetLore setLore;
-    private final Function<ItemStack, List<String>> protectionLines;
-    private final Predicate<String> trakLine; // identifies an applied-trak count line so a re-render PRESERVES it
-    private final Supplier<String> countSuffix; // §I transmog name suffix template ({COUNT}); null/blank → no suffix
-    private final IntSupplier baseSlots;        // §H base enchant slots, for the orb "Enchantment Slots" line total
-    private final Supplier<String> slotsLine;   // §H orb slots-line template ({TOTAL}/{ADDED}); null/blank → no line
-    private final Supplier<String> heroicLine;  // §F HEROIC line template ({TYPE}/{+/-}/{AMOUNT}); blank → plain marker
-    private final Supplier<String> crystalLine; // §E on-gear crystal line template ({CRYSTAL}); null/blank → style fallback
-    private final Supplier<String> crystalLineMulti; // §E on-gear line for a MERGED crystal (ADR-0035); falls back to crystalLine
+    private final Config config;
+    private final LoreComposer composer;
+
+    /**
+     * The wiring for a renderer (ADR-0040): the presentation deps and the per-section templates, as NAMED
+     * fields instead of a positional constructor ladder. Build one with {@link #of(Supplier, Function)} (or the
+     * {@link LoreStyle} overload) and the fluent {@code with*} setters for whichever optional sections a pack
+     * uses; every unset field is a safe no-op default (no colour override, no set/protection/trak/orb/heroic/
+     * crystal section, base slots 0).
+     *
+     * @param style            re-read per render so a {@code /se reload} takes effect next render
+     * @param displayNameOf    stable key → display name (covers enchants AND crystals); {@code null} → {@code unknownLabel}
+     * @param enchantColorOf   per-enchant rarity-tier colour; {@code null}/blank → the style's {@code enchantColor}
+     * @param setLore          set-member authored lore, read live from state (§6.6)
+     * @param protectionLines  applied-scroll PROTECTED lines from an item's marker state (§I); empty when unprotected
+     * @param trakLine         marks an applied-trak count line so a body re-render PRESERVES it (a separate system owns it)
+     * @param countSuffix      §I transmog enchant-count name-suffix template ({@code {COUNT}}); {@code null}/blank → off
+     * @param baseSlots        §H base enchant slots, for the orb "Enchantment Slots" line total
+     * @param slotsLine        §H orb slots-line template ({@code {TOTAL}}/{@code {ADDED}}); {@code null}/blank → no line
+     * @param heroicLine       §F heroic line template ({@code {TYPE}}/{@code {+/-}}/{@code {AMOUNT}}); blank → plain marker
+     * @param crystalLine      §E on-gear crystal line template ({@code {CRYSTAL}}); {@code null}/blank → style fallback
+     * @param crystalLineMulti §E on-gear line for a MERGED crystal (ADR-0035); defaults to {@code crystalLine}
+     */
+    public record Config(
+            Supplier<LoreStyle> style,
+            Function<String, String> displayNameOf,
+            Function<String, String> enchantColorOf,
+            SetLore setLore,
+            Function<ItemStack, List<String>> protectionLines,
+            Predicate<String> trakLine,
+            Supplier<String> countSuffix,
+            IntSupplier baseSlots,
+            Supplier<String> slotsLine,
+            Supplier<String> heroicLine,
+            Supplier<String> crystalLine,
+            Supplier<String> crystalLineMulti) {
+
+        public Config {
+            Objects.requireNonNull(style, "style");
+            Objects.requireNonNull(displayNameOf, "displayNameOf");
+            Objects.requireNonNull(enchantColorOf, "enchantColorOf");
+            Objects.requireNonNull(setLore, "setLore");
+            Objects.requireNonNull(protectionLines, "protectionLines");
+            Objects.requireNonNull(trakLine, "trakLine");
+            Objects.requireNonNull(countSuffix, "countSuffix");
+            Objects.requireNonNull(baseSlots, "baseSlots");
+            Objects.requireNonNull(slotsLine, "slotsLine");
+            Objects.requireNonNull(heroicLine, "heroicLine");
+            Objects.requireNonNull(crystalLine, "crystalLine");
+            Objects.requireNonNull(crystalLineMulti, "crystalLineMulti");
+        }
+
+        /** A minimal config: a fixed style + a name lookup, every optional section defaulted off. */
+        public static Config of(LoreStyle style, Function<String, String> displayNameOf) {
+            Objects.requireNonNull(style, "style");
+            return of(() -> style, displayNameOf);
+        }
+
+        /** A minimal config: a live style supplier + a name lookup, every optional section defaulted off. */
+        public static Config of(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
+            return new Config(style, displayNameOf, key -> null, SetLore.NONE, stack -> List.of(),
+                    line -> false, () -> null, () -> 0, () -> null, () -> null, () -> null, () -> null);
+        }
+
+        public Config withEnchantColorOf(Function<String, String> enchantColorOf) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        public Config withSetLore(SetLore setLore) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        public Config withProtectionLines(Function<ItemStack, List<String>> protectionLines) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        public Config withTrakLine(Predicate<String> trakLine) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        public Config withCountSuffix(Supplier<String> countSuffix) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        public Config withBaseSlots(IntSupplier baseSlots) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        public Config withSlotsLine(Supplier<String> slotsLine) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        public Config withHeroicLine(Supplier<String> heroicLine) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        /**
+         * Set the §E on-gear crystal line template. The MERGED-crystal template defaults to this same template
+         * (no separate "Multi Crystal" line) — mirroring the old ladder — until {@link #withCrystalLineMulti}
+         * overrides it.
+         */
+        public Config withCrystalLine(Supplier<String> crystalLine) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLine);
+        }
+
+        public Config withCrystalLineMulti(Supplier<String> crystalLineMulti) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+    }
 
     /**
      * Set members' authored lore, looked up from state at render time so a worn piece keeps its flavour lore
@@ -60,187 +164,14 @@ public final class LoreRenderer {
         };
     }
 
-    public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf) {
-        this(() -> Objects.requireNonNull(style, "style"), displayNameOf, key -> null, SetLore.NONE);
-    }
-
-    public LoreRenderer(LoreStyle style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf) {
-        this(() -> Objects.requireNonNull(style, "style"), displayNameOf, enchantColorOf, SetLore.NONE);
-    }
-
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
-        this(style, displayNameOf, key -> null, SetLore.NONE);
-    }
-
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf, SetLore setLore) {
-        this(style, displayNameOf, key -> null, setLore);
-    }
-
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf, SetLore setLore) {
-        this(style, displayNameOf, enchantColorOf, setLore, stack -> List.of());
-    }
-
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines) {
-        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, line -> false);
-    }
-
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine) {
-        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
-                () -> null, () -> 0, () -> null);
-    }
-
-    /**
-     * Canonical renderer: {@code style} is re-read per render so a {@code /se reload} takes effect next render;
-     * {@code enchantColorOf} colours each enchant by rarity tier ({@code null}/blank → the style's default);
-     * {@code protectionLines} contributes the applied-scroll PROTECTED lines from an item's marker state (empty
-     * for an unprotected item), appended at the bottom of the body — above any trak count line; {@code trakLine}
-     * marks an applied-trak count line so {@link #apply} re-renders the body but PRESERVES the trak lines that a
-     * separate system owns (instead of clobbering them on every enchant change).
-     *
-     * <p>{@code countSuffix} is the §I transmog enchant-count name suffix template ({@link EnchantCountSuffix});
-     * when present, {@link #apply} stamps the CUSTOM-enchant count onto the display name (and strips it at zero),
-     * so the count is a fixed part of the name on any enchanted item. {@code baseSlots}/{@code slotsLine} render
-     * the §H "Enchantment Slots" line once an orb has added slots — placed in the body, so it sits below the
-     * enchant/set lines but above the protection + trak lines {@link #apply} appends after.
-     */
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
-            Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine) {
-        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
-                countSuffix, baseSlots, slotsLine, () -> null); // legacy-marker heroic line
-    }
-
-    /**
-     * Full renderer including the §F heroic line template ({@code heroicLine}; {@code {TYPE}}/{@code {+/-}}/
-     * {@code {AMOUNT}}, blank → the plain {@code &6&lHEROIC} marker). The heroic line renders in {@link #apply}
-     * after the body — below the orb slots line, above the protection + trak lines — since it needs the item's
-     * material for {@code {TYPE}} which the pure {@link #lines} does not see.
-     */
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
-            Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine,
-            Supplier<String> heroicLine) {
-        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
-                countSuffix, baseSlots, slotsLine, heroicLine, () -> null); // no crystal template → style fallback
-    }
-
-    /**
-     * Full renderer including the §E on-gear crystal line template ({@code crystalLine}; {@code {CRYSTAL}} renders
-     * the socketed crystal name(s), single-sourced with the mint via {@link CrystalNames}). Blank/{@code null} →
-     * the legacy {@code style.crystalColor()} fallback. The crystal line renders LAST in {@link #lines} — below the
-     * orb slots line — so on gear it sits above only the heroic + protection + trak lines {@link #apply} appends
-     * (ADR-0034 §5).
-     */
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
-            Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine,
-            Supplier<String> heroicLine, Supplier<String> crystalLine) {
-        // Merged-crystal on-gear line defaults to the single-crystal template (no separate "Multi Crystal" line).
-        this(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
-                countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLine);
-    }
-
-    /**
-     * Full renderer including the §E MERGED-crystal on-gear line template ({@code crystalLineMulti}, ADR-0035):
-     * a gear line for a multi-crystal renders from this template ({@code Multi Crystal (…)}) instead of the plain
-     * {@code crystalLine} ({@code Armor Crystal (…)}). Defaults to {@code crystalLine} when a pack doesn't set one.
-     */
-    public LoreRenderer(Supplier<LoreStyle> style, Function<String, String> displayNameOf,
-            Function<String, String> enchantColorOf, SetLore setLore,
-            Function<ItemStack, List<String>> protectionLines, Predicate<String> trakLine,
-            Supplier<String> countSuffix, IntSupplier baseSlots, Supplier<String> slotsLine,
-            Supplier<String> heroicLine, Supplier<String> crystalLine, Supplier<String> crystalLineMulti) {
-        this.style = Objects.requireNonNull(style, "style");
-        this.displayNameOf = Objects.requireNonNull(displayNameOf, "displayNameOf");
-        this.enchantColorOf = Objects.requireNonNull(enchantColorOf, "enchantColorOf");
-        this.setLore = Objects.requireNonNull(setLore, "setLore");
-        this.protectionLines = Objects.requireNonNull(protectionLines, "protectionLines");
-        this.trakLine = Objects.requireNonNull(trakLine, "trakLine");
-        this.countSuffix = Objects.requireNonNull(countSuffix, "countSuffix");
-        this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
-        this.slotsLine = Objects.requireNonNull(slotsLine, "slotsLine");
-        this.heroicLine = Objects.requireNonNull(heroicLine, "heroicLine");
-        this.crystalLine = Objects.requireNonNull(crystalLine, "crystalLine");
-        this.crystalLineMulti = Objects.requireNonNull(crystalLineMulti, "crystalLineMulti");
+    public LoreRenderer(Config config) {
+        this.config = Objects.requireNonNull(config, "config");
+        this.composer = new LoreComposer(config);
     }
 
     /** Body lore lines: one per enchant ({@code name level}), set lore, the orb slots line, then one per crystal. */
     public List<String> lines(CombatState state) {
-        LoreStyle style = this.style.get(); // live style, once per render (reload-swappable)
-        List<String> out = new ArrayList<>(state.enchants().size() + state.crystals().size());
-        for (Map.Entry<String, Integer> enchant : state.enchants().entrySet()) {
-            String name = nameOr(enchant.getKey(), style);
-            String level = style.roman() ? Numerals.roman(enchant.getValue()) : Integer.toString(enchant.getValue());
-            String tierColor = enchantColorOf.apply(enchant.getKey());        // per-tier colour (ADR-0016 §2)
-            String color = tierColor != null && !tierColor.isBlank() ? tierColor : style.enchantColor();
-            // A BLANK level-color makes the level numeral inherit the name's (tier) colour (§L config option);
-            // otherwise the numeral uses its own fixed colour.
-            String levelColor = style.levelColor().isBlank() ? color : style.levelColor();
-            out.add(Colors.translate(color + name + " " + levelColor + level));
-        }
-        // NB: the §E crystal line and §F heroic line are NOT emitted here yet — the crystal line sits BELOW the orb
-        // slots line (ADR-0034 §5) so it is appended after that block, and the heroic line needs the item material
-        // for {TYPE} so apply() adds it after the body. lines() stays pure + server-free.
-        if (state.setKey() != null) {
-            // Armour member: the set's shared armour lore (§6.6). No auto "(Set)" marker — the authored lore
-            // carries the SET BONUS block. Word-wrapped to the universal lore.item-wrap width like every other
-            // authored item lore (via wrapAll, NOT a per-line wrap loop, so the author's blank separator lines
-            // between the bonus block and the ability/footer survive — a bare wrap() drops an empty line).
-            for (String wrapped : TextWrap.wrapAll(setLore.armor(state.setKey()), item.mint.ItemFactory.itemWrapWidth())) {
-                out.add(Colors.translate(wrapped));
-            }
-        }
-        if (state.setWeaponKey() != null) {
-            // Weapon member: the set weapon's own authored lore (§6.6), wrapped to the same universal width,
-            // keeping its authored blank separators (wrapAll, as above).
-            for (String wrapped : TextWrap.wrapAll(setLore.weapon(state.setWeaponKey()), item.mint.ItemFactory.itemWrapWidth())) {
-                out.add(Colors.translate(wrapped));
-            }
-        }
-        // §H slot-expander feedback: shown only once an orb has ADDED slots. Emitted below the enchant/set lines.
-        if (state.added() > 0) {
-            String template = slotsLine.get();
-            if (template != null && !template.isBlank()) {
-                int total = baseSlots.getAsInt() + state.added();
-                out.add(Colors.translate(template
-                        .replace("{TOTAL}", Integer.toString(total))
-                        .replace("{ADDED}", Integer.toString(state.added()))));
-            }
-        }
-        // §E crystal line(s): rendered LAST in the body — below the orb slots line — so on gear the crystal sits
-        // above only the heroic + protection + trak lines apply() appends (ADR-0034 §5). One line per socketed
-        // entry, rendered as the crystal's own name via the on-item template (single-sourced with the mint).
-        String crystalTemplate = crystalLine.get();
-        String multiTemplate = crystalLineMulti.get();
-        for (String crystalEntry : state.crystals()) {
-            List<String> components = item.codec.CrystalItemData.componentsOf(crystalEntry);
-            // A merged (2+ component) entry renders from the "Multi Crystal" template (ADR-0035); a single uses the plain one.
-            String template = components.size() > 1 && multiTemplate != null && !multiTemplate.isBlank()
-                    ? multiTemplate : crystalTemplate;
-            if (template != null && !template.isBlank()) {
-                out.add(Colors.translate(CrystalNames.render(template, components, key -> nameOr(key, style))));
-            } else {
-                // Fallback (no template wired, e.g. tests): the legacy crystal-colour + names joined by " + ".
-                StringBuilder label = new StringBuilder();
-                for (String component : components) {
-                    if (label.length() > 0) {
-                        label.append(" + ");
-                    }
-                    label.append(nameOr(component, style));
-                }
-                out.add(Colors.translate(style.crystalColor() + label));
-            }
-        }
-        return out;
+        return composer.body(state);
     }
 
     /** Render onto {@code stack} in place; clears lore when state is empty. False if the item can't carry meta (air). */
@@ -253,25 +184,9 @@ public final class LoreRenderer {
         if (meta == null) {
             return false;
         }
-        // Preserve any applied-trak count lines: they are NOT part of CombatState (a separate system stamps
-        // them), so re-rendering the combat body must keep them rather than wipe them on every enchant change.
-        List<String> preservedTraks = new ArrayList<>();
-        if (meta.hasLore()) {
-            for (String line : meta.getLore()) {
-                if (trakLine.test(line)) {
-                    preservedTraks.add(line);
-                }
-            }
-        }
-        List<String> lore = lines(state);
-        // §F heroic line: rendered here (not in pure lines()) because {TYPE} needs the item material. Sits below
-        // the body's orb slots line and above the protection + trak lines appended next.
-        String heroic = heroicBodyLine(state.heroic(), kindOf(stack.getType()), heroicLine.get());
-        if (heroic != null) {
-            lore.add(heroic);
-        }
-        lore.addAll(protectionLines.apply(stack)); // applied-scroll PROTECTED lines, from marker state (§4.2)
-        lore.addAll(preservedTraks);                // re-stack the trak lines below the body + protection
+        List<String> existing = meta.hasLore() ? meta.getLore() : List.of();
+        List<String> lore = composer.compose(state, kindOf(stack.getType()),
+                config.protectionLines().apply(stack), existing);
         meta.setLore(lore.isEmpty() ? null : lore);
         stampCountSuffix(stack, meta, state.enchants().size());
         stack.setItemMeta(meta);
@@ -287,9 +202,9 @@ public final class LoreRenderer {
      */
     @SuppressWarnings("deprecation") // get/setDisplayName: the floor-stable item-meta path (matches #apply)
     private void stampCountSuffix(ItemStack stack, ItemMeta meta, int count) {
-        String template = countSuffix.get();
+        String template = config.countSuffix().get();
         if (template == null || template.isBlank()) {
-            return; // suffix feature off (the no-suffix test/fixture ctors)
+            return; // suffix feature off (the no-suffix test/fixture configs)
         }
         String current = meta.hasDisplayName() ? meta.getDisplayName() : null;
         String readable = readableName(stack.getType());
@@ -301,28 +216,6 @@ public final class LoreRenderer {
             // revert a name we previously DERIVED back to the vanilla item; keep a genuine custom name.
             meta.setDisplayName(base.isEmpty() || base.equals(readable) ? null : base);
         }
-    }
-
-    /**
-     * The on-item HEROIC body line for {@code stat}, or {@code null} when the item is not heroic. A non-zero
-     * {@code percentDamage} marks a WEAPON (rendered as {@code +N% DMG} outgoing); otherwise ARMOR
-     * ({@code -N% DMG} incoming reduction). {@code kind} fills {@code {TYPE}} (e.g. {@code SWORD}, {@code BOOTS}).
-     * A blank {@code template} falls back to the plain {@code &6&lHEROIC} marker. Pure — unit-tested.
-     */
-    static String heroicBodyLine(HeroicStat stat, String kind, String template) {
-        if (stat == null || stat.isZero()) {
-            return null;
-        }
-        if (template == null || template.isBlank()) {
-            return Colors.translate("&6&lHEROIC"); // legacy marker (fixtures / unconfigured)
-        }
-        boolean weapon = stat.percentDamage() > 0.0;
-        double pct = weapon ? stat.percentDamage() : stat.percentReduction();
-        int amount = (int) Math.round(pct * 100.0);
-        return Colors.translate(template
-                .replace("{TYPE}", kind == null ? "" : kind)
-                .replace("{+/-}", weapon ? "+" : "-")
-                .replace("{AMOUNT}", Integer.toString(amount)));
     }
 
     /** The gear kind label from a material — the last underscore segment ({@code DIAMOND_SWORD → "SWORD"}). */
@@ -346,10 +239,5 @@ public final class LoreRenderer {
             out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
         }
         return out.toString();
-    }
-
-    private String nameOr(String key, LoreStyle style) {
-        String display = displayNameOf.apply(key);
-        return display != null ? display : style.unknownLabel();
     }
 }

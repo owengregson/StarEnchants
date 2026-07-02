@@ -131,7 +131,7 @@ public final class ApplySuite implements Harness.Scenario {
                 return;
             }
             ContentHolder holder = new ContentHolder(library);
-            LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
+            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
             capped = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(), 1);
         } catch (IOException e) {

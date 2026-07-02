@@ -83,11 +83,11 @@ public final class CarrierSuite implements Harness.Scenario {
         CombatCodec combat = new CombatCodec(keys.combat());
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
         // The PROTECTED-line reader reads the SAME guarded byte the white scroll stamps, so the line tracks state.
-        LoreRenderer lore = new LoreRenderer(() -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k),
-                k -> null, LoreRenderer.SetLore.NONE,
-                stack -> item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack), false,
+        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config
+                .of(() -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k))
+                .withProtectionLines(stack -> item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack), false,
                         compile.load.WhiteScrollConfig.defaults().protectedLine(),
-                        compile.load.ScrollsConfig.defaults().holy().protectedLine()));
+                        compile.load.ScrollsConfig.defaults().holy().protectedLine())));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
         // §I the scroll protection refresh: stamps/removes PROTECTED on the gear's EXISTING lore (no body rebuild),
         // so it can't wipe authored/trak lore. This suite has no traks, so the trak predicate is false.

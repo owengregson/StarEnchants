@@ -29,7 +29,7 @@ public final class Fixtures {
             Map.entry("guardian", "Guardian"),
             Map.entry("berserk", "Berserk"));
 
-    private static final LoreRenderer LORE = new LoreRenderer(LoreStyle.DEFAULT, NAMES::get);
+    private static final LoreRenderer LORE = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES::get));
 
     /** Item-tooltip previews: a fully-kitted weapon, a set armour piece, and an enchantment book. */
     public static List<ItemFixture> tooltips() {
