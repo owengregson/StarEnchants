@@ -1,11 +1,9 @@
 package item.render;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import item.codec.CombatState;
-import item.codec.HeroicStat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,8 +11,8 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
 /**
- * The pure line-building of {@link LoreRenderer} — verified with no server. The display-name
- * lookup is a plain function, so the rendered (colour-translated) lines are deterministic text.
+ * The pure line-building of {@link LoreRenderer#lines} (the composer body pass) — verified with no server.
+ * The display-name lookup is a plain function, so the rendered (colour-translated) lines are deterministic text.
  */
 class LoreRendererTest {
 
@@ -23,27 +21,13 @@ class LoreRendererTest {
             "enchants/lifesteal", "&aLifesteal")::get;
 
     @Test
-    void heroicBodyLineSignsTheKindPercentByWeaponVsArmour() {
-        String template = "&6&lHEROIC {TYPE} (&e{+/-}{AMOUNT}% DMG&7)";
-        // A weapon (percentDamage > 0) → +outgoing; {TYPE} taken from the kind string.
-        assertEquals("§6§lHEROIC SWORD (§e+10% DMG§7)",
-                LoreRenderer.heroicBodyLine(new HeroicStat(0.10, 0.0, 0.20), "SWORD", template));
-        // Armour (percentReduction only) → -incoming.
-        assertEquals("§6§lHEROIC BOOTS (§e-10% DMG§7)",
-                LoreRenderer.heroicBodyLine(new HeroicStat(0.0, 0.10, 0.20), "BOOTS", template));
-        // Not heroic → no line; a blank template → the plain legacy marker.
-        assertNull(LoreRenderer.heroicBodyLine(HeroicStat.NONE, "SWORD", template));
-        assertEquals("§6§lHEROIC", LoreRenderer.heroicBodyLine(new HeroicStat(0.10, 0.0, 0.0), "SWORD", ""));
-    }
-
-    @Test
     void rendersOneOrderedLinePerEnchantWithRomanLevels() {
         Map<String, Integer> enchants = new LinkedHashMap<>();
         enchants.put("enchants/venom", 3);
         enchants.put("enchants/lifesteal", 1);
         CombatState state = new CombatState(enchants, List.of());
 
-        List<String> lines = new LoreRenderer(LoreStyle.DEFAULT, NAMES).lines(state);
+        List<String> lines = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)).lines(state);
 
         // enchantColor &7, the (possibly self-coloured) display, then levelColor &f + Roman level.
         assertEquals(List.of("§7Venom §fIII", "§7§aLifesteal §fI"), lines);
@@ -62,7 +46,8 @@ class LoreRendererTest {
         enchants.put("enchants/lifesteal", 1);
         CombatState state = new CombatState(enchants, List.of());
 
-        List<String> lines = new LoreRenderer(LoreStyle.DEFAULT, NAMES, tierColors).lines(state);
+        List<String> lines = new LoreRenderer(
+                LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES).withEnchantColorOf(tierColors)).lines(state);
 
         assertEquals(List.of("§6Venom §fIII", "§7§aLifesteal §fI"), lines);
     }
@@ -74,7 +59,8 @@ class LoreRendererTest {
         Function<String, String> tierColors = Map.of("enchants/venom", "&6")::get;
         CombatState state = new CombatState(Map.of("enchants/venom", 3), List.of());
 
-        List<String> lines = new LoreRenderer(inherit, NAMES, tierColors).lines(state);
+        List<String> lines = new LoreRenderer(
+                LoreRenderer.Config.of(inherit, NAMES).withEnchantColorOf(tierColors)).lines(state);
 
         assertEquals(List.of("§6Venom §6III"), lines); // name AND level both gold
     }
@@ -85,7 +71,7 @@ class LoreRendererTest {
         LoreStyle inherit = new LoreStyle("&7", "", "&b", true, "&8Unknown Enchant");
         CombatState state = new CombatState(Map.of("enchants/venom", 2), List.of());
 
-        List<String> lines = new LoreRenderer(inherit, NAMES).lines(state);
+        List<String> lines = new LoreRenderer(LoreRenderer.Config.of(inherit, NAMES)).lines(state);
 
         assertEquals(List.of("§7Venom §7II"), lines);
     }
@@ -94,7 +80,7 @@ class LoreRendererTest {
     void rendersUnknownLabelForAStoredKeyAbsentFromTheCatalog() {
         CombatState state = new CombatState(Map.of("enchants/ghost", 2), List.of());
 
-        List<String> lines = new LoreRenderer(LoreStyle.DEFAULT, NAMES).lines(state);
+        List<String> lines = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)).lines(state);
 
         assertEquals(List.of("§7§8Unknown Enchant §fII"), lines);
     }
@@ -104,7 +90,7 @@ class LoreRendererTest {
         LoreStyle arabic = new LoreStyle("&7", "&f", "&b", false, "&8Unknown Enchant");
         CombatState state = new CombatState(Map.of("enchants/venom", 5), List.of());
 
-        List<String> lines = new LoreRenderer(arabic, NAMES).lines(state);
+        List<String> lines = new LoreRenderer(LoreRenderer.Config.of(arabic, NAMES)).lines(state);
 
         assertEquals(List.of("§7Venom §f5"), lines);
     }
@@ -113,14 +99,15 @@ class LoreRendererTest {
     void rendersACrystalLinePerAppliedCrystal() {
         CombatState state = new CombatState(Map.of(), List.of("crystals/power"));
 
-        List<String> lines = new LoreRenderer(LoreStyle.DEFAULT, NAMES).lines(state);
+        List<String> lines = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)).lines(state);
 
         assertEquals(List.of("§b§8Unknown Enchant"), lines);
     }
 
     @Test
     void isEmptyForAnItemWithNoCombatState() {
-        assertTrue(new LoreRenderer(LoreStyle.DEFAULT, NAMES).lines(CombatState.EMPTY).isEmpty());
+        assertTrue(new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES))
+                .lines(CombatState.EMPTY).isEmpty());
     }
 
     @Test
@@ -141,7 +128,8 @@ class LoreRendererTest {
         };
         CombatState state = new CombatState(Map.of(), List.of(), "sets/druid", false);
 
-        List<String> lines = new LoreRenderer(() -> LoreStyle.DEFAULT, NAMES, setLore).lines(state);
+        List<String> lines = new LoreRenderer(
+                LoreRenderer.Config.of(() -> LoreStyle.DEFAULT, NAMES).withSetLore(setLore)).lines(state);
 
         assertEquals(List.of("§2§lDRUID SET BONUS", "§2* Deal more damage", "", "§2§lTERRABLENDER",
                 "§7§o(Requires all four.)"), lines);
@@ -152,12 +140,9 @@ class LoreRendererTest {
         // §H the orb "Enchantment Slots" line: rendered ONLY when added>0, LAST in the body (so apply() places
         // it below the enchant lines, above the protection/trak lines). Template + base are the test's own input.
         String slotsTemplate = "&a&l{TOTAL} Enchantment Slots &r&7(Orb [&a+{ADDED}&7])";
-        LoreRenderer renderer = new LoreRenderer(
-                () -> LoreStyle.DEFAULT, NAMES, key -> null, LoreRenderer.SetLore.NONE,
-                stack -> List.of(), line -> false,
-                () -> null,   // no count suffix (the name-stamp transform is pinned by EnchantCountSuffixTest)
-                () -> 9,      // base slots
-                () -> slotsTemplate);
+        LoreRenderer renderer = new LoreRenderer(LoreRenderer.Config.of(() -> LoreStyle.DEFAULT, NAMES)
+                .withBaseSlots(() -> 9)
+                .withSlotsLine(() -> slotsTemplate));
 
         CombatState noOrb = new CombatState(Map.of("enchants/venom", 1), List.of());
         assertEquals(List.of("§7Venom §fI"), renderer.lines(noOrb), "no orb applied -> no slots line");
@@ -172,13 +157,9 @@ class LoreRendererTest {
         // §ADR-0035: a single crystal renders the plain on-gear template; a MERGED (2+ component) entry renders
         // the "multi" template. Templates + names are the test's own input, so this pins the branch, not copy.
         Function<String, String> crystalNames = Map.of("crystals/a", "Aaa", "crystals/b", "Bbb")::get;
-        LoreRenderer renderer = new LoreRenderer(
-                () -> LoreStyle.DEFAULT, crystalNames, key -> null, LoreRenderer.SetLore.NONE,
-                stack -> List.of(), line -> false,
-                () -> null, () -> 0, () -> null, // countSuffix, baseSlots, slotsLine
-                () -> null,                      // heroicLine
-                () -> "&8S {CRYSTAL}",           // single-crystal on-gear template
-                () -> "&8M {CRYSTAL}");          // merged-crystal on-gear template
+        LoreRenderer renderer = new LoreRenderer(LoreRenderer.Config.of(() -> LoreStyle.DEFAULT, crystalNames)
+                .withCrystalLine(() -> "&8S {CRYSTAL}")        // single-crystal on-gear template
+                .withCrystalLineMulti(() -> "&8M {CRYSTAL}")); // merged-crystal on-gear template
 
         CombatState state = new CombatState(Map.of(), List.of("crystals/a", "crystals/a+crystals/b"));
         List<String> lines = renderer.lines(state);

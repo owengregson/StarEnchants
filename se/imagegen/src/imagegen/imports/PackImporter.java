@@ -131,18 +131,17 @@ public final class PackImporter {
 
     /** A library-backed renderer mirroring {@code StarEnchantsPlugin}'s cold-apply wiring (names, tier colours, set lore). */
     private static LoreRenderer renderer(Library library) {
-        return new LoreRenderer(
-                () -> LoreStyle.DEFAULT,
-                library::displayNameOf,
-                key -> {
+        return new LoreRenderer(LoreRenderer.Config
+                .of(() -> LoreStyle.DEFAULT, library::displayNameOf)
+                .withEnchantColorOf(key -> {
                     String tier = library.tierOf(key);
                     if (tier == null) {
                         return null;
                     }
                     TierRegistry.Tier resolved = library.tiers().tier(tier);
                     return resolved != null && !resolved.color().isBlank() ? resolved.color() : null;
-                },
-                new LoreRenderer.SetLore() {
+                })
+                .withSetLore(new LoreRenderer.SetLore() {
                     @Override public List<String> armor(String setKey) {
                         SetDef def = library.setDefOf(setKey);
                         return def != null ? def.armorLore() : List.of();
@@ -152,6 +151,6 @@ public final class PackImporter {
                         SetDef def = library.setDefOf(setKey);
                         return def != null ? def.weaponLore() : List.of();
                     }
-                });
+                }));
     }
 }

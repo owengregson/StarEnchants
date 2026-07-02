@@ -100,7 +100,7 @@ public final class MenuSuite implements Harness.Scenario {
                 return;
             }
             ContentHolder holder = new ContentHolder(library);
-            LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
+            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
             // caps drives the cross-version title cap
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));

@@ -102,11 +102,10 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         CombatCodec combat = new CombatCodec(keys.combat());
         // Wire the §I enchant-count suffix template (as the plugin does) so the transmog re-render stamps the
         // count onto the name — the suffix is now a renderer feature, not a ScrollService call.
-        LoreRenderer lore = new LoreRenderer(
-                () -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k),
-                key -> null, LoreRenderer.SetLore.NONE, stack -> List.of(), line -> false,
-                () -> ScrollsConfig.defaults().transmog().nameSuffix(),
-                () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> null);
+        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config
+                .of(() -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k))
+                .withCountSuffix(() -> ScrollsConfig.defaults().transmog().nameSuffix())
+                .withBaseSlots(() -> ItemEnchanter.DEFAULT_BASE_SLOTS));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));

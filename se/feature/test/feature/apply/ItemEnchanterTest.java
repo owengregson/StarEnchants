@@ -37,7 +37,7 @@ class ItemEnchanterTest {
     private static ItemEnchanter over(Library lib) {
         ContentHolder holder = new ContentHolder(lib);
         CombatCodec codec = new CombatCodec("combat");
-        LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key));
+        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
         return new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
     }
 

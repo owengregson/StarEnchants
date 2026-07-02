@@ -127,7 +127,7 @@ public final class HeroicVanillaStatsSuite implements Harness.Scenario {
                 "ENTITY", "", false, true /* diamond-stats */, true /* vanilla-stats */);
         HeroicUpgradeCodec upgrades = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());
         CombatCodec combat = new CombatCodec(ItemKeys.of().combat());
-        LoreRenderer lore = new LoreRenderer(LoreStyle.DEFAULT, key -> null);
+        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> null));
         return new HeroicService(upgrades, combat, lore, () -> cfg, new Random(), platform.lang.Messages.defaults(),
                 ItemGroups.standard());
     }

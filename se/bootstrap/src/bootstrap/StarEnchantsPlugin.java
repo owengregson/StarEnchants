@@ -271,18 +271,19 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         java.util.function.Consumer<org.bukkit.inventory.ItemStack> protectionRefresh = gear ->
                 item.render.ProtectionLoreRefresh.refresh(gear, protectionLinesFn.apply(gear), protectionLineP, trakLineP);
 
-        // Cold apply path. Lookups read the CURRENT library, so a reload re-renders against new content.
-        LoreRenderer lore = new LoreRenderer(() -> loreStyle(master.config()),
-                key -> content.library().displayNameOf(key),
-                key -> {                            // per-enchant rarity-tier colour (ADR-0016 §2); null → universal
+        // Cold apply path (ADR-0040): the composer's section wiring, as named Config fields. Lookups read the
+        // CURRENT library, so a reload re-renders against new content.
+        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config
+                .of(() -> loreStyle(master.config()), key -> content.library().displayNameOf(key))
+                .withEnchantColorOf(key -> {        // per-enchant rarity-tier colour (ADR-0016 §2); null → universal
                     String tier = content.library().tierOf(key);
                     if (tier == null) {
                         return null;
                     }
                     compile.load.TierRegistry.Tier t = content.library().tiers().tier(tier);
                     return t != null && !t.color().isBlank() ? t.color() : null;
-                },
-                new LoreRenderer.SetLore() {        // §6.6 set-member lore, read live from the current library
+                })
+                .withSetLore(new LoreRenderer.SetLore() { // §6.6 set-member lore, read live from the current library
                     @Override public java.util.List<String> armor(String setKey) {
                         compile.load.SetDef def = content.library().setDefOf(setKey);
                         return def != null ? def.armorLore() : java.util.List.of();
@@ -292,15 +293,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         compile.load.SetDef def = content.library().setDefOf(setKey);
                         return def != null ? def.weaponLore() : java.util.List.of();
                     }
-                },
-                protectionLinesFn, // §I applied-scroll PROTECTED lines, from marker state
-                trakLineP,         // §I preserve applied-trak count lines across a body re-render
-                () -> items.config().scrollsOrDefault().transmog().nameSuffix(), // §I enchant-count name suffix
-                () -> master.config().slots().base(),       // §H base slots → the orb "Enchantment Slots" total
-                () -> master.config().slots().loreLine(),   // §H orb "Enchantment Slots" line template
-                () -> items.config().heroicOrDefault().loreLine(), // §F HEROIC line template
-                () -> items.config().crystalOrDefault().loreWhileOnItem(),      // §E on-gear crystal line template
-                () -> items.config().crystalOrDefault().loreWhileOnItemMulti()); // §E merged-crystal on-gear line (ADR-0035)
+                })
+                .withProtectionLines(protectionLinesFn) // §I applied-scroll PROTECTED lines, from marker state
+                .withTrakLine(trakLineP)                // §I preserve applied-trak count lines across a body re-render
+                .withCountSuffix(() -> items.config().scrollsOrDefault().transmog().nameSuffix()) // §I enchant-count suffix
+                .withBaseSlots(() -> master.config().slots().base())   // §H base slots → orb "Enchantment Slots" total
+                .withSlotsLine(() -> master.config().slots().loreLine()) // §H orb "Enchantment Slots" line template
+                .withHeroicLine(() -> items.config().heroicOrDefault().loreLine()) // §F HEROIC line template
+                .withCrystalLine(() -> items.config().crystalOrDefault().loreWhileOnItem())        // §E on-gear crystal line
+                .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti())); // §E merged (ADR-0035)
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
