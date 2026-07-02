@@ -16,7 +16,7 @@ import java.util.UUID;
 public record EngineStores(
         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
         KeepOnDeathStore keepOnDeath, TeleblockStore teleblock, ImmuneStore immune,
-        CooldownStore cooldowns, ComboStore combo) {
+        CooldownStore cooldowns, ComboStore combo, WhyStore why) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -27,18 +27,19 @@ public record EngineStores(
         Objects.requireNonNull(immune, "immune");
         Objects.requireNonNull(cooldowns, "cooldowns");
         Objects.requireNonNull(combo, "combo");
+        Objects.requireNonNull(why, "why");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
     public static EngineStores fresh() {
         return new EngineStores(new VarStore(), new SuppressionStore(), new KnockbackControlStore(),
                 new KeepOnDeathStore(), new TeleblockStore(), new ImmuneStore(),
-                new CooldownStore(), new ComboStore());
+                new CooldownStore(), new ComboStore(), new WhyStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
     public List<PlayerScoped> all() {
-        return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo);
+        return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why);
     }
 
     /** Forget every store's state for one player (the quit sweep). */
