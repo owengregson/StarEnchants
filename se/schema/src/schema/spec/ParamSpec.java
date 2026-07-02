@@ -61,8 +61,11 @@ public final class ParamSpec {
 
         for (int i = 0; i < params.size(); i++) {
             Param p = params.get(i);
-            if (i < rawArgs.size()) {
-                p.type().parse(rawArgs.get(i), source, diags)
+            // A null element means "not supplied" (toPositional's absent-optional sentinel); treat it
+            // like running off the end so an absent optional-no-default never reaches type.parse("").
+            String raw = i < rawArgs.size() ? rawArgs.get(i) : null;
+            if (raw != null) {
+                p.type().parse(raw, source, diags)
                         .ifPresent(v -> values.put(p.name(), v));
             } else if (p.required()) {
                 diags.error(DiagCode.E_MISSING_ARG,
@@ -121,15 +124,18 @@ public final class ParamSpec {
     }
 
     /**
-     * Re-order a legacy named-arg map into this spec's positional order (the migrator's hook, §10).
-     * Absent params yield their default or an empty token, so the line round-trips back through {@link #parse}.
+     * Re-order a legacy named-arg map into this spec's positional order (the migrator's hook, §10), so the
+     * line round-trips through {@link #parse}. An absent param yields its default; an absent optional with no
+     * default yields {@code null} — a genuinely-absent sentinel, never a fabricated "" that parse would
+     * mis-type or (for STRING) admit as a present empty value. Required-absent keeps "" so the caller's
+     * missing-required guard still fires.
      */
     public List<String> toPositional(Map<String, String> named) {
         List<String> out = new ArrayList<>(params.size());
         for (Param p : params) {
             String v = named.get(p.name());
             if (v == null) {
-                v = p.type().defaultRaw().orElse("");
+                v = p.type().defaultRaw().orElse(p.required() ? "" : null);
             }
             out.add(v);
         }
