@@ -125,7 +125,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.content.ContentReloader;
-import integrate.Integrations;
 import platform.economy.EconomyProvider;
 import platform.economy.EconomyService;
 import platform.item.ItemGroups;
@@ -202,7 +201,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().messages().prefix(),
                 () -> master.config().messages().feedback(),
                 // §N PlaceholderAPI passthrough (ADR-0027): resolve other plugins' %…% when present, else identity.
-                Integrations.placeholderResolver(this, master.config().integrations()::enabled));
+                bootstrap.compat.Bridges.placeholderResolver(this, master.config().integrations()::enabled));
 
         MenusHolder menusHolder = new MenusHolder(MenusLoader.load(menusRoot));
 
@@ -352,7 +351,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx, // §D deposit + §L msgs + particles
                 line -> protectionLineP.test(line) || trakLineP.test(line)); // §I keep scroll/trak lines on gem re-render
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
-        Integrations.registerPlaceholders(this, master.config().integrations()::enabled,
+        bootstrap.compat.Bridges.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),
                 // §D total souls across ALL carried gems (cached on the holder thread each tick — thread-safe here)
                 player -> soulService.soulTotal(player.getUniqueId()));
@@ -377,7 +376,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         List<ProtectionProvider> protectionProviders = new ArrayList<>();
         if (master.config().integrations().protection()) {
             protectionProviders.addAll(
-                    Integrations.protectionProviders(this, master.config().integrations()::enabled));
+                    bootstrap.compat.Bridges.protectionProviders(this, master.config().integrations()::enabled));
             protectionProviders.addAll(
                     ProtectionProviders.discover(getServer(), System.getLogger("StarEnchants.Protection")));
         } // §L config.yml integrations.protection: false → gate against none
@@ -416,7 +415,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Economy bridge for MODIFY_MONEY (global thread): bundled Vault (§N, ADR-0027) → ServicesManager → no-ops.
         EconomyService economy;
         if (master.config().integrations().economy()) {
-            EconomyProvider bundled = Integrations.economyProvider(this, master.config().integrations()::enabled);
+            EconomyProvider bundled = bootstrap.compat.Bridges.economyProvider(this, master.config().integrations()::enabled);
             economy = bundled != null
                     ? new EconomyService(bundled)
                     : EconomyService.discover(getServer(), System.getLogger("StarEnchants.Economy"));
@@ -429,16 +428,16 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §N soft integration hooks (ADR-0027), set once at boot, no-op when the target is absent — each a
         // reflective seam so the engine keeps no hard dep on these plugins:
         // anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT,
-        engine.sink.DispatchSink.movementExemption(Integrations.antiCheatExemption(
+        engine.sink.DispatchSink.movementExemption(bootstrap.compat.Bridges.antiCheatExemption(
                 this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat")));
         // mcMMO friendly-fire gate,
-        CombatDispatch.friendlyFire(Integrations.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
+        CombatDispatch.friendlyFire(bootstrap.compat.Bridges.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
         // %victim.mobtype% from MythicMobs' internal name,
         engine.run.FactPopulator.entityTypeResolver(
-                Integrations.mythicMobType(this, master.config().integrations()::enabled));
+                bootstrap.compat.Bridges.mythicMobType(this, master.config().integrations()::enabled));
         // itemsadder:… / oraxen:… custom-item materials in item/menu configs.
         item.mint.ItemFactory.customItemResolver(
-                Integrations.customItem(this, master.config().integrations()::enabled));
+                bootstrap.compat.Bridges.customItem(this, master.config().integrations()::enabled));
         // §L universal economy-item lore wrap width (lore.item-wrap), read live so a /se reload re-tunes it.
         item.mint.ItemFactory.itemWrapWidth(() -> master.config().lore().itemWrap());
         // §6.6 set-piece base enchants (Protection/Unbreaking/Sharpness) resolve cross-version behind the seam.

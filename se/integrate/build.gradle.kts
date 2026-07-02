@@ -7,9 +7,24 @@ plugins {
     `java-library`
 }
 
+// ── Dual-compile gate (the OPTIONAL 1.8.9 fork) — docs/legacy-1.8.9-codeshare-design.md §6, Gate 1b ──
+// `-Pse.target=legacy` swaps the Bukkit compileOnly to the real Spigot 1.8.8 jar so the bridges are
+// javac-checked on 1.8. NOTE: this module is EXCLUDED from the legacy fat jar (bootstrap gates its dependency
+// on `legacyTarget`) because the bridged plugin APIs are compiled against a modern Bukkit — see the gate list
+// in the design doc. Kept gated so a future 1.8-safe bridge subset can be re-enabled without new wiring.
+val legacyTarget = (project.findProperty("se.target") as String?) == "legacy"
+
 // Each bridged plugin's API repo is declared ONLY here (mavenCentral + papermc come from the root). None of
 // these artifacts are bundled — they are compileOnly, so this affects the compile classpath only.
 repositories {
+    if (legacyTarget) {
+        mavenLocal {
+            content {
+                includeGroup("org.bukkit")
+                includeGroup("org.spigotmc")
+            }
+        }
+    }
     maven { url = uri("https://jitpack.io") }                               // Vault, Lands, FactionsUUID
     maven { url = uri("https://repo.glaremasters.me/repository/towny/") }   // Towny
     maven { url = uri("https://repo.bg-software.com/repository/api/") }      // SuperiorSkyblock2
@@ -21,8 +36,13 @@ repositories {
 }
 
 dependencies {
-    // Floor API: bridges touch Bukkit events/entities; the server provides it.
-    compileOnly(libs.paper.api.floor)
+    // Floor API: bridges touch Bukkit events/entities; the server provides it. The legacy lane swaps in the
+    // real 1.8.8 jar so the Bukkit surface is javac-checked on 1.8 (Gate 1b).
+    if (legacyTarget) {
+        compileOnly(libs.craftbukkit.legacy) { isTransitive = false }
+    } else {
+        compileOnly(libs.paper.api.floor)
+    }
     // The first-party SPIs these bridges implement. Shaded into the core fat jar alongside this module.
     implementation(project(":platform"))
 

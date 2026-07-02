@@ -510,6 +510,30 @@ platform errors fail at compile. It does **not** win on the headline percentage.
 refresh becomes a poller fork with different timing; pre-1.9 combat mechanics (attack
 cooldown, sweep) differ and the feature fork must re-implement them.
 
+### Per-module dual-compile gate coverage (the gate list)
+
+Every plugin module is compiled by `-Pse.target=legacy` against the **real Spigot 1.8.8** jar (Gate 1/1b),
+so a 1.8-absent symbol is a `javac` error, **with three documented exceptions**:
+
+- **`:api` — GATED.** The public event surface is floor-typed and 1.8-safe (`extends
+  org.bukkit.event.Event`, present since 1.8), so it dual-compiles clean; the legacy `compileOnly` swap keeps
+  that javac-enforced rather than merely asserted (§5 note 1).
+- **`:integrate` — EXCLUDED from the legacy tree.** Its third-party bridges reference plugin APIs compiled
+  against a **modern Bukkit**, so the module cannot dual-compile on 1.8 — e.g. `WorldGuardProvider` reaches
+  `org.bukkit.block.data.BlockData` (1.13+) through WorldEdit's `BukkitAdapter`; `PapiPassthrough`/
+  `SePlaceholderExpansion` compile against modern PlaceholderAPI; `Mcmmo`/`MythicMobs`/`CustomItems`/`AntiCheat`/
+  `VaultEconomyProvider` likewise. Rather than ship modern bytecode in the "legacy" jar (the green-then-latent
+  trap the dual-compile gate exists to kill), `:bootstrap` gates its dependency on `legacyTarget` and reaches
+  the bridges only through the `bootstrap.compat.Bridges` seam, whose **legacy impl returns the same neutral
+  defaults `Integrations` yields when a plugin is absent** — which on 1.8.9 is *always*, since every bridged
+  plugin is modern-only and cannot be installed there. `scripts/build-mega-jar.sh` allowlists the `integrate/`
+  prefix as modern-only in its soundness gate (a versions/17-only class is sound because legacy code never
+  references it).
+- **`:compat-folia` — EXEMPT.** It compiles against `folia-api` (a forward API, not the 1.8 server), so it is
+  not swapped to the 1.8 jar. This is safe because it is floor-typed and its one entry point
+  (`FoliaSchedulerBackend`) is loaded reflectively only when the `Capabilities` probe detects threaded regions
+  — which never happens on 1.8.9 — so it ships in both trees inert (no class-set divergence).
+
 ---
 
 ## 7. Build & CI
