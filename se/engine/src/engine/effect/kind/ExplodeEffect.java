@@ -6,7 +6,9 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /** {@code EXPLODE} — create an explosion at the target(s) (§7). */
@@ -31,7 +33,14 @@ public final class ExplodeEffect implements EffectKind {
         double power = ctx.dbl("power");
         boolean breakBlocks = ctx.bool("breakBlocks");
         for (LivingEntity target : ctx.targets("who")) {
-            sink.explode(target.getLocation(), power, breakBlocks);
+            Location at;
+            try {
+                at = target.getLocation(); // T.VICTIM, but @Attacker on a DEFENSE trigger can be a cross-region shooter (ADR-0043)
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("ExplodeEffect.target", unreadable);
+                continue;
+            }
+            sink.explode(at, power, breakBlocks);
         }
     }
 }

@@ -9,6 +9,7 @@ import engine.spec.T;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /**
@@ -44,7 +45,13 @@ public final class MarkZoneEffect implements EffectKind {
         double radius = ctx.dbl("radius");
         int duration = ctx.integer("duration");
         for (LivingEntity who : ctx.targets("who")) {
-            Location center = who.getLocation(); // firing-thread read; the victim is region-local on an ATTACK
+            Location center;
+            try {
+                center = who.getLocation(); // T.VICTIM, but @Attacker on a DEFENSE trigger can be a cross-region shooter (ADR-0043)
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("MarkZoneEffect.target", unreadable);
+                continue;
+            }
             sink.markZone(center, owner, radius, duration);
         }
     }
