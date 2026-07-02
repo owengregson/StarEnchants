@@ -361,12 +361,7 @@ public final class CarrierService {
     }
 
     private EnchantDef enchantDef(String key) {
-        for (EnchantDef def : content.library().catalog()) {
-            if (def.key().equals(key)) {
-                return def;
-            }
-        }
-        return null;
+        return content.library().enchantDefOf(key);
     }
 
     public record BookContents(String enchantKey, int level) {

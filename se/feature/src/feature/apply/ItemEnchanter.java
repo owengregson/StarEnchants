@@ -314,12 +314,7 @@ public final class ItemEnchanter {
     }
 
     private compile.load.SetDef set(String key) {
-        for (compile.load.SetDef def : content.library().sets()) {
-            if (def.key().equals(key)) {
-                return def;
-            }
-        }
-        return null;
+        return content.library().setDefOf(key);
     }
 
     /** How many of {@code def}'s prerequisites a successful apply would free (0 unless removes-required). */
@@ -426,20 +421,10 @@ public final class ItemEnchanter {
     }
 
     private EnchantDef enchant(String baseKey) {
-        for (EnchantDef def : content.library().catalog()) {
-            if (def.key().equals(baseKey)) {
-                return def;
-            }
-        }
-        return null;
+        return content.library().enchantDefOf(baseKey);
     }
 
     private CrystalDef crystal(String baseKey) {
-        for (CrystalDef def : content.library().crystals()) {
-            if (def.key().equals(baseKey)) {
-                return def;
-            }
-        }
-        return null;
+        return content.library().crystalDefOf(baseKey);
     }
 }

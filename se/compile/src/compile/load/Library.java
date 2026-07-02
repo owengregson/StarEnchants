@@ -42,6 +42,16 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         return null;
     }
 
+    /** The parsed {@link EnchantDef} for a stored enchant base key, or {@code null} if no content defines it. */
+    public EnchantDef enchantDefOf(String baseKey) {
+        for (EnchantDef def : catalog) {
+            if (def.key().equals(baseKey)) {
+                return def;
+            }
+        }
+        return null;
+    }
+
     /** The parsed {@link CrystalDef} for a stored crystal base key, or {@code null} if none defines it. */
     public CrystalDef crystalDefOf(String baseKey) {
         for (CrystalDef def : crystals) {
