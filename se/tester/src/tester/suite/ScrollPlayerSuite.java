@@ -3,7 +3,7 @@ package tester.suite;
 import compile.load.ScrollsConfig;
 import feature.scroll.HolyScrollService;
 import feature.scroll.NametagService;
-import feature.scroll.ScrollResult;
+import feature.apply.GestureOutcome;
 import item.codec.AppliedSlot;
 import item.codec.ItemKeys;
 import item.codec.ScrollCodec;
@@ -73,7 +73,7 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
                         h.guard("scroll.holy.appliesAndOccupiesSlot", () -> {
                             ItemStack scroll = holy.mint();
                             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-                            ScrollResult result = holy.applyTo(scroll, sword); // default 100% → always applies
+                            GestureOutcome result = holy.applyTo(scroll, sword); // default 100% → always applies
                             if (!result.commit()) {
                                 throw new IllegalStateException("holy apply did not commit at 100%: " + result);
                             }

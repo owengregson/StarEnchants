@@ -9,11 +9,9 @@ import compile.load.UnopenedBookConfig;
 import engine.boot.ContentCompiler;
 import feature.apply.ItemEnchanter;
 import feature.book.UnopenedBookService;
-import feature.book.UnopenedResult;
 import feature.carrier.CarrierService;
-import feature.scroll.ScrollResult;
 import feature.scroll.ScrollService;
-import feature.slot.SlotResult;
+import feature.apply.GestureOutcome;
 import feature.slot.SlotService;
 import item.codec.CarrierCodec;
 import item.codec.CarrierData;
@@ -132,7 +130,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 throw new IllegalStateException("first orb did not persist +3: " + combat.read(sword).added());
             }
             ItemStack orb = capSlots.mintOrb();
-            SlotResult capped = capSlots.applyTo(orb, sword); // 6 > cap 5 → clamp to 5, still commits
+            GestureOutcome capped = capSlots.applyTo(orb, sword); // 6 > cap 5 → clamp to 5, still commits
             if (combat.read(sword).added() != 5) {
                 throw new IllegalStateException("clamp did not land on the cap (5): " + combat.read(sword).added());
             }
@@ -140,7 +138,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 throw new IllegalStateException("the overshooting orb should clamp-and-commit (consuming it): " + capped);
             }
             ItemStack extra = capSlots.mintOrb();
-            SlotResult noop = capSlots.applyTo(extra, sword);
+            GestureOutcome noop = capSlots.applyTo(extra, sword);
             if (noop.commit() || extra.getAmount() != 1 || combat.read(sword).added() != 5) {
                 throw new IllegalStateException("a capped item must not consume a further orb: " + noop);
             }
@@ -150,7 +148,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             combat.write(sword, new CombatState(Map.of("enchants/sharp", 2), List.of()));
             ItemStack scroll = scrolls.mintBlack();
-            ScrollResult result = scrolls.interact(scroll, sword);
+            GestureOutcome result = scrolls.interact(scroll, sword);
             if (!result.commit() || result.produced() == null) {
                 throw new IllegalStateException("black scroll did not extract a book: " + result);
             }
@@ -180,8 +178,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             if (!unopened.isUnopened(mystery)) {
                 throw new IllegalStateException("minted unopened book not recognised");
             }
-            UnopenedResult result = unopened.open(mystery);
-            if (!result.opened() || result.produced() == null) {
+            GestureOutcome result = unopened.open(mystery);
+            if (!result.commit() || result.produced() == null) {
                 throw new IllegalStateException("unopened book did not reveal a book: " + result);
             }
             CarrierData book = carrierCodec.read(result.produced());
@@ -205,7 +203,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             ScrollService transmogScrolls = new ScrollService(scrollCodec, combat, lore, carriers, holder,
                     ScrollsConfig::defaults, new Random(7));
             ItemStack scroll = transmogScrolls.mintTransmog();
-            ScrollResult result = transmogScrolls.interact(scroll, sword);
+            GestureOutcome result = transmogScrolls.interact(scroll, sword);
             if (!result.commit()) {
                 throw new IllegalStateException("transmog did not apply: " + result);
             }

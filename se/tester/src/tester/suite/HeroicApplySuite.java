@@ -1,7 +1,7 @@
 package tester.suite;
 
 import compile.load.HeroicConfig;
-import feature.heroic.HeroicResult;
+import feature.apply.GestureOutcome;
 import feature.heroic.HeroicService;
 import item.codec.CombatCodec;
 import item.codec.HeroicUpgradeCodec;
@@ -46,7 +46,7 @@ public final class HeroicApplySuite implements Harness.Scenario {
         h.guard("heroic.apply.success", () -> {
             ItemStack upgrade = always.mint();
             ItemStack gear = new ItemStack(Material.DIAMOND_SWORD);
-            HeroicResult result = always.applyTo(upgrade, gear);
+            GestureOutcome result = always.applyTo(upgrade, gear);
             if (!result.commit()) {
                 throw new IllegalStateException("a 100% roll should succeed");
             }
@@ -65,7 +65,7 @@ public final class HeroicApplySuite implements Harness.Scenario {
         h.guard("heroic.apply.fail", () -> {
             ItemStack upgrade = never.mint();
             ItemStack gear = new ItemStack(Material.DIAMOND_SWORD);
-            HeroicResult result = never.applyTo(upgrade, gear);
+            GestureOutcome result = never.applyTo(upgrade, gear);
             if (!result.commit()) {
                 throw new IllegalStateException("a failed roll still commits (the upgrade is spent)");
             }
@@ -84,7 +84,7 @@ public final class HeroicApplySuite implements Harness.Scenario {
                 throw new IllegalStateException("setup: the gear should be heroic after the first apply");
             }
             ItemStack upgrade = always.mint();
-            HeroicResult result = always.applyTo(upgrade, heroicGear);
+            GestureOutcome result = always.applyTo(upgrade, heroicGear);
             if (result.commit()) {
                 throw new IllegalStateException("an already-heroic piece must be rejected");
             }
@@ -96,7 +96,7 @@ public final class HeroicApplySuite implements Harness.Scenario {
         h.guard("heroic.apply.notGear", () -> {
             ItemStack upgrade = always.mint();
             ItemStack notGear = new ItemStack(Material.STICK);
-            HeroicResult result = always.applyTo(upgrade, notGear);
+            GestureOutcome result = always.applyTo(upgrade, notGear);
             if (result.commit()) {
                 throw new IllegalStateException("a non-armour/weapon must be rejected");
             }
