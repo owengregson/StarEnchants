@@ -25,15 +25,20 @@ import org.bukkit.entity.LivingEntity;
  * the {@link ActivationPipeline} and emits every ACTIVATED one's effect intents into the sink
  * ({@link SinkReadback}) without touching the world. The caller flushes once after the gate walk.
  *
- * <p>Shared across snapshots; the only state is a volatile {@link AbilityQuarantine} rebound per reload.
- * Failures are isolated per effect and per ability so one bad unit never aborts the rest (§9 warn-and-skip),
- * and an ability that keeps faulting is quarantined for the life of its snapshot (§10).
+ * <p>Shared across snapshots; its only state is two volatile references rebound per reload — the
+ * {@link AbilityQuarantine} and the effect registry (so add-on kinds registered after boot become runnable,
+ * ADR-0038). Failures are isolated per effect and per ability so one bad unit never aborts the rest (§9
+ * warn-and-skip), and an ability that keeps faulting is quarantined for the life of its snapshot (§10).
  */
 public final class AbilityExecutor {
 
     private static final Logger LOG = System.getLogger("StarEnchants.Executor");
 
-    private final EffectRegistry effects;
+    // Rebound per reload so add-on effect kinds registered after boot become runnable (ADR-0038): a
+    // volatile reference-swap, never torn, mirroring the quarantine binding below. An add-on registers via
+    // StarEnchantsApi (after this plugin's onEnable), triggers a reload, and the composition root rebinds the
+    // built-in + add-on registry here. Read once per activation, so the hot path pays only a volatile read.
+    private volatile EffectRegistry effects;
     private final SelectorRegistry selectors;
     private final ActivationPipeline pipeline;
     private final AreaScan areaScan;
@@ -62,6 +67,11 @@ public final class AbilityExecutor {
     /** Bind the quarantine for the live snapshot; call on boot and on every reload swap so it resets per snapshot (§10). */
     public void bindQuarantine(AbilityQuarantine quarantine) {
         this.quarantine = Objects.requireNonNull(quarantine, "quarantine");
+    }
+
+    /** Rebind the effect registry (built-ins + registered add-on kinds); call on every reload swap so a newly registered add-on head becomes runnable (ADR-0038). */
+    public void bindEffects(EffectRegistry effects) {
+        this.effects = Objects.requireNonNull(effects, "effects");
     }
 
     /** The stable keys currently quarantined in the live snapshot — the read surface a command can query later (§10). */
@@ -136,6 +146,7 @@ public final class AbilityExecutor {
      * unconditional so a buff can never leak. No {@code WAIT} deferral — teardown must land with the unequip.
      */
     public void runLifecycle(Ability ability, ActivationContext context, SinkReadback sink, boolean stopping) {
+        EffectRegistry effects = this.effects; // read the volatile once per activation
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = effects.lookup(effect.head()).orElse(null);
@@ -166,6 +177,7 @@ public final class AbilityExecutor {
     // warn-and-skip, NOT a fault — the ability still activates and its sibling effects run (§9).
     private boolean runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
                                engine.condition.FactBuffer facts, AbilityQuarantine quarantine) {
+        EffectRegistry effects = this.effects; // read the volatile once per activation
         boolean faulted = false;
         for (CompiledEffect effect : ability.effects()) {
             try {

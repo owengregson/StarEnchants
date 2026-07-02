@@ -34,7 +34,16 @@ public final class ContentCompiler {
      * resolver would not know the interned ids. Reuse across reloads is safe — the reload path is single-flight.
      */
     public static Compiler production(PlatformResolvers resolvers) {
-        EffectRegistry effects = BuiltinEffects.registry();
+        return production(resolvers, BuiltinEffects.registry());
+    }
+
+    /**
+     * As {@link #production(PlatformResolvers)}, but with the GIVEN effect registry rather than the built-in
+     * one — the seam the bootstrap uses to compile add-on effect heads (ADR-0038): it passes a registry of
+     * the built-ins PLUS the registered add-on effect adapters, rebuilt each reload so a newly registered
+     * head becomes compilable. Selectors/triggers/vars stay the built-in set (add-ons contribute effects only).
+     */
+    public static Compiler production(PlatformResolvers resolvers, EffectRegistry effects) {
         SelectorRegistry selectors = BuiltinSelectors.registry();
         TriggerRegistry triggers = BuiltinTriggers.registry();
         VarResolver vars = BuiltinVars.vocabulary().asResolver();

@@ -15,9 +15,12 @@ import compile.load.MasterConfigLoader;
 import compile.load.MenusHolder;
 import compile.load.MenusLoader;
 import engine.boot.ContentCompiler;
+import engine.effect.EffectKind;
+import engine.effect.EffectRegistry;
 import engine.effect.kind.BuiltinEffects;
 import engine.interact.SoulPool;
 import engine.pipeline.ActivationPipeline;
+import api.StarEnchantsApi;
 import api.event.EnchantActivateEvent;
 import api.event.StarEnchantsReloadEvent;
 import compile.model.Ability;
@@ -115,14 +118,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.content.ContentReloader;
@@ -179,7 +186,21 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         Path menusRoot = getDataFolder().toPath().resolve("menus");
 
         RegistryResolvers resolvers = new RegistryResolvers();
-        Compiler compiler = ContentCompiler.production(resolvers);
+        // Add-on effect kinds (ADR-0038): registered at runtime through StarEnchantsApi, folded into the
+        // effect registry on EVERY build (initial compiler + executor + each reload) so an add-on head is
+        // both compilable and runnable and survives /se reload. Empty until an add-on registers — which
+        // happens after this onEnable (add-ons depend: [StarEnchants]) and then triggers a reload.
+        CopyOnWriteArrayList<EffectKind> addonKinds = new CopyOnWriteArrayList<>();
+        Collection<EffectKind> builtinEffects = BuiltinEffects.registry().kinds();
+        Supplier<EffectRegistry> effectRegistry = () -> {
+            EffectRegistry.Builder b = EffectRegistry.builder();
+            builtinEffects.forEach(b::register);
+            addonKinds.forEach(b::register);
+            return b.build();
+        };
+        // Same resolver instance every build (the §9 handle round-trip depends on it); only the effect spec
+        // set changes as add-ons register, so a fresh compiler per reload is safe.
+        Compiler compiler = ContentCompiler.production(resolvers, effectRegistry.get());
         // Runtime resolver wiring (modern RuntimeHandles vs legacy NMS-by-name) lives behind the overlay seam.
         bootstrap.compat.Wiring wiring = new bootstrap.compat.Wiring(resolvers);
         feature.fx.ParticleFx particleFx = wiring.particleFx();
@@ -391,7 +412,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         };
 
         // fireActivation fires EnchantActivateEvent per proc — Bukkit-aware here, so the engine stays event-API-free.
-        engine.effect.EffectRegistry effects = BuiltinEffects.registry();
+        // Built-ins + any registered add-on kinds (ADR-0038); the executor's copy is rebound per reload below.
+        EffectRegistry effects = effectRegistry.get();
         // §L global message-on-activate: the holder ("BY you") + the other party ("ON you") get a configured line.
         feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
                 () -> master.config().messageOnActivate(), content);
@@ -601,9 +623,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                         c.diagnostics(), () -> menusHolder.publish(c)); });
 
         // On a clean swap this hook advances the gen-keyed caches and re-resolves every online player.
-        reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
+        // The compiler is rebuilt per reload (not constant) so a newly registered add-on head compiles;
+        // the resolver is reused, so the §9 handle round-trip holds (ADR-0038).
+        reloader = new ContentReloader(content, () -> ContentCompiler.production(resolvers, effectRegistry.get()),
+                contentRoot, 0, published -> {
             itemViews.reload(published.snapshot().generation());
             executor.bindQuarantine(quarantineFor(published.snapshot())); // §10 fresh per snapshot — a fixed edit clears the block
+            executor.bindEffects(effectRegistry.get()); // ADR-0038: pick up add-on kinds registered before this swap
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
             if (master.config().reload().reResolvePlayers()) { // §L config.yml reload.re-resolve-players
@@ -618,6 +644,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 }
             }
         }, reloadSteps);
+
+        // ADR-0038: the public add-on service. Registered with Bukkit's ServicesManager (ServiceLoader is
+        // unreliable across plugin classloaders) so an add-on looks it up in its own onEnable and registers
+        // effect kinds / queries item state; registerEffect appends to addonKinds and triggers the reload above.
+        StarEnchantsApi apiService = new ApiService(addonKinds, effectRegistry, reloader, content, itemViews,
+                () -> master.config().slots().base());
+        getServer().getServicesManager().register(StarEnchantsApi.class, apiService, this, ServicePriority.Normal);
 
         // §L auto-reload (config.yml reload.auto-seconds; ≤ 0 = off). Armed once at boot — interval change needs a restart.
         int autoSeconds = master.config().reload().autoSeconds();
