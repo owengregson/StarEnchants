@@ -1,5 +1,6 @@
 package item.worn;
 
+import compile.model.FactMask;
 import item.codec.HeroicStat;
 import java.util.BitSet;
 
@@ -18,6 +19,9 @@ import java.util.BitSet;
  * @param byTrigger               per-trigger dense ability ids from ALL sources, ordered
  * @param combatAttack            attacker-direction ability ids, pre-merged
  * @param combatDefense           defender-direction ability ids, pre-merged
+ * @param triggerFactMask         per-trigger union of the referenced {@code FactBuffer} slots (ADR-0039),
+ *                                so the populator computes only the facts this wearer's trigger abilities
+ *                                read; {@code null} means "populate everything" (hand-built test states)
  */
 public record WornState(
         int gen,
@@ -26,9 +30,16 @@ public record WornState(
         HeroicStat heroic,
         int[][] byTrigger,
         int[] combatAttack,
-        int[] combatDefense) {
+        int[] combatDefense,
+        FactMask[] triggerFactMask) {
 
     private static final int[] NO_IDS = new int[0];
+
+    /** No per-trigger masks — {@link #factMask} then reports {@link FactMask#ALL} (populate everything). */
+    public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,
+                     int[][] byTrigger, int[] combatAttack, int[] combatDefense) {
+        this(gen, activeSets, activeCrystalAbilityIds, heroic, byTrigger, combatAttack, combatDefense, null);
+    }
 
     public static WornState empty(int gen) {
         return new WornState(gen, new BitSet(), NO_IDS, HeroicStat.NONE, new int[0][], NO_IDS, NO_IDS);
@@ -37,6 +48,17 @@ public record WornState(
     /** Ability ids firing on the interned {@code triggerId}; empty array if none (never {@code null}). */
     public int[] byTrigger(int triggerId) {
         return triggerId >= 0 && triggerId < byTrigger.length ? byTrigger[triggerId] : NO_IDS;
+    }
+
+    /**
+     * The union of {@code FactBuffer} slots the {@code triggerId} abilities read (ADR-0039), or
+     * {@link FactMask#ALL} when unknown — a safe superset, so a referenced fact is always populated.
+     */
+    public FactMask factMask(int triggerId) {
+        if (triggerFactMask == null || triggerId < 0 || triggerId >= triggerFactMask.length) {
+            return FactMask.ALL;
+        }
+        return triggerFactMask[triggerId];
     }
 
     public boolean isSetActive(int setId) {

@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -28,22 +29,30 @@ import java.util.stream.Collectors;
 public final class SelectorCompiler {
 
     private final SpecRegistry selectors;
+    private final ToIntFunction<String> idOf;
 
+    /** No id stamping: every selector's {@code kindId} is {@code -1} (the head-fallback path). */
     public SelectorCompiler(SpecRegistry selectors) {
+        this(selectors, head -> -1);
+    }
+
+    /** {@code idOf} stamps each selector's dense {@code kindId} against the registry build (ADR-0039). */
+    public SelectorCompiler(SpecRegistry selectors, ToIntFunction<String> idOf) {
         this.selectors = Objects.requireNonNull(selectors, "selectors");
+        this.idOf = Objects.requireNonNull(idOf, "idOf");
     }
 
     public CompiledSelector compileInline(String token, Source source, Diagnostics diags) {
         return SelectorAst.parse(token, source, diags)
                 .map(ast -> compile(ast, source, diags))
-                .orElse(CompiledSelector.SELF);
+                .orElse(self());
     }
 
     /** The kind's declared default selector (or {@code SELF}); validated with all-default args, so a builtin default selector must keep its args optional. */
     public CompiledSelector defaultFor(String selectorHead, Source source, Diagnostics diags) {
         if (selectorHead == null || selectorHead.isBlank()
                 || CompiledSelector.SELF.head().equalsIgnoreCase(selectorHead)) {
-            return CompiledSelector.SELF;
+            return self();
         }
         return compile(new SelectorAst(selectorHead, Map.of(), source), source, diags);
     }
@@ -53,13 +62,19 @@ public final class SelectorCompiler {
         if (found.isEmpty()) {
             diags.error(DiagCode.E_UNKNOWN_SELECTOR, "unknown selector '@" + ast.head() + "'", source,
                     "run /se selectors to list available selectors");
-            return CompiledSelector.SELF;
+            return self();
         }
         ParamSpec spec = found.get();
         warnUnknownArgs(ast, spec, source, diags);
         List<String> positional = spec.toPositional(ast.args());
         Args args = spec.parse(positional, source, diags);
-        return new CompiledSelector(spec.head(), args);
+        return new CompiledSelector(spec.head(), args, idOf.applyAsInt(spec.head()));
+    }
+
+    /** The self-target, stamped with its dense id so even a defaulted selector dispatches by index (ADR-0039); the -1 sentinel stays the shared {@link CompiledSelector#SELF} constant. */
+    private CompiledSelector self() {
+        int id = idOf.applyAsInt(CompiledSelector.SELF.head());
+        return id < 0 ? CompiledSelector.SELF : CompiledSelector.SELF.withKindId(id);
     }
 
     /** Flag any authored selector argument the spec does not declare (a likely typo). */

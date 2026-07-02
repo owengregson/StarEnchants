@@ -1,6 +1,7 @@
 package item.worn;
 
 import compile.model.Ability;
+import compile.model.FactMask;
 import item.codec.HeroicStat;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -36,8 +37,10 @@ public final class WornFlattener {
                                     HeroicStat heroic, IntPredicate attackTrigger,
                                     IntPredicate defenseTrigger) {
         List<List<Integer>> perTrigger = new ArrayList<>(triggerCount);
+        FactMask[] triggerMask = new FactMask[triggerCount];
         for (int t = 0; t < triggerCount; t++) {
             perTrigger.add(new ArrayList<>());
+            triggerMask[t] = FactMask.NONE;
         }
         List<Integer> attack = new ArrayList<>();
         List<Integer> defense = new ArrayList<>();
@@ -49,6 +52,9 @@ public final class WornFlattener {
             for (int t = 0; t < triggerCount; t++) {
                 if (ability.firesOn(t)) {
                     perTrigger.get(t).add(id);
+                    // Union the ability's referenced facts into the trigger's mask (ADR-0039): the populator
+                    // then computes only what SOME candidate on this trigger actually reads.
+                    triggerMask[t] = triggerMask[t].union(ability.factMask());
                     if (attackTrigger.test(t)) {
                         isAttack = true;
                     }
@@ -70,7 +76,7 @@ public final class WornFlattener {
             byTrigger[t] = toIntArray(perTrigger.get(t));
         }
         return new WornState(gen, activeSets, crystalAbilityIds.clone(), heroic,
-                byTrigger, toIntArray(attack), toIntArray(defense));
+                byTrigger, toIntArray(attack), toIntArray(defense), triggerMask);
     }
 
     private static int[] toIntArray(List<Integer> list) {

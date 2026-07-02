@@ -2,6 +2,7 @@ package engine.run;
 
 import compile.cond.VarBinding;
 import compile.cond.VarKind;
+import compile.model.FactMask;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
@@ -168,22 +169,31 @@ public final class FactPopulator {
     }
 
     public FactBuffer populate(ActivationContext context) {
-        return populate(context, 0L);
+        return populate(context, 0L, FactMask.ALL);
+    }
+
+    /** Populate every fact (unmasked) — the compatibility entry for callers with no per-wearer mask. */
+    public FactBuffer populate(ActivationContext context, long nowTicks) {
+        return populate(context, nowTicks, FactMask.ALL);
     }
 
     /**
-     * The thread-local buffer, cleared and repopulated from {@code context}. Returns the shared instance,
-     * valid until this method is next called on this thread. The unknown-token resolver reads the
-     * activator's dynamic var (at {@code nowTicks}) before PAPI — the read side of {@code SET_VAR}.
+     * The thread-local buffer, cleared and repopulated from {@code context}, computing ONLY the slots
+     * {@code mask} marks referenced (ADR-0039) — an unreferenced derived fact (the {@code %nearbyenemies%}
+     * entity scan, {@code %distance%}, {@code %victim.inzone%}, {@code %actor.groundblock%}) is skipped
+     * entirely. {@link FactBuffer#clear()} still zeroes every slot, so an unreferenced slot reads its
+     * default, never a stale value. Returns the shared instance, valid until this method is next called on
+     * this thread. The unknown-token resolver reads the activator's dynamic var (at {@code nowTicks}) before
+     * PAPI — the read side of {@code SET_VAR}.
      */
-    public FactBuffer populate(ActivationContext context, long nowTicks) {
+    public FactBuffer populate(ActivationContext context, long nowTicks, FactMask mask) {
         FactBuffer facts = buffer.get();
         facts.clear();
         if (context != null) {
-            populateActor(facts, context.actor());
-            populateVictim(facts, context.victim());
-            populateContext(facts, context);
-            populateDerived(facts, context);
+            populateActor(facts, context.actor(), mask);
+            populateVictim(facts, context.victim(), mask);
+            populateContext(facts, context, mask);
+            populateDerived(facts, context, mask);
             Player actor = context.actor();
             if (actor != null) {
                 UUID id = actor.getUniqueId();
@@ -198,38 +208,50 @@ public final class FactPopulator {
         return facts;
     }
 
-    private void populateActor(FactBuffer facts, Player actor) {
+    private void populateActor(FactBuffer facts, Player actor, FactMask mask) {
         if (actor == null) {
             return;
         }
         try {
             for (ActorNum f : actorNum) {
-                facts.setNumber(f.slot(), f.src().read(actor));
+                if (mask.readsNum(f.slot())) {
+                    facts.setNumber(f.slot(), f.src().read(actor));
+                }
             }
             for (ActorFlag f : actorFlag) {
-                facts.setFlag(f.slot(), f.src().read(actor));
+                if (mask.readsFlag(f.slot())) {
+                    facts.setFlag(f.slot(), f.src().read(actor));
+                }
             }
             for (ActorStr f : actorStr) {
-                facts.setString(f.slot(), f.src().read(actor));
+                if (mask.readsStr(f.slot())) {
+                    facts.setString(f.slot(), f.src().read(actor)); // e.g. the %actor.groundblock% block lookup
+                }
             }
         } catch (RuntimeException unreadable) {
             // Folia: actor owned by another region (cross-region shooter on ATTACK) — default, never abort.
         }
     }
 
-    private void populateVictim(FactBuffer facts, LivingEntity victim) {
+    private void populateVictim(FactBuffer facts, LivingEntity victim, FactMask mask) {
         if (victim == null) {
             return;
         }
         try {
             for (VictimNum f : victimNum) {
-                facts.setNumber(f.slot(), f.src().read(victim));
+                if (mask.readsNum(f.slot())) {
+                    facts.setNumber(f.slot(), f.src().read(victim));
+                }
             }
             for (VictimFlag f : victimFlag) {
-                facts.setFlag(f.slot(), f.src().read(victim));
+                if (mask.readsFlag(f.slot())) {
+                    facts.setFlag(f.slot(), f.src().read(victim));
+                }
             }
             for (VictimStr f : victimStr) {
-                facts.setString(f.slot(), f.src().read(victim));
+                if (mask.readsStr(f.slot())) {
+                    facts.setString(f.slot(), f.src().read(victim));
+                }
             }
         } catch (RuntimeException unreadable) {
             // Cross-region victim (e.g. the attacker exposed on the DEFENSE pass) or a read failure.
@@ -237,39 +259,44 @@ public final class FactPopulator {
     }
 
     // World weather/time are global-region-owned on Folia, so wrapped: a wrong-thread read defaults only those facts.
-    private void populateContext(FactBuffer facts, ActivationContext context) {
-        if (damageSlot >= 0) {
+    private void populateContext(FactBuffer facts, ActivationContext context, FactMask mask) {
+        if (damageSlot >= 0 && mask.readsNum(damageSlot)) {
             facts.setNumber(damageSlot, context.damage());
         }
-        if (comboSlot >= 0) {
+        if (comboSlot >= 0 && mask.readsNum(comboSlot)) {
             facts.setNumber(comboSlot, context.combo());
         }
+        boolean wantsBlockType = blockTypeSlot >= 0 && mask.readsStr(blockTypeSlot);
+        boolean wantsIsBlock = isBlockSlot >= 0 && mask.readsFlag(isBlockSlot);
         org.bukkit.block.Block block = context.block();
-        if (block != null && (blockTypeSlot >= 0 || isBlockSlot >= 0)) {
+        if (block != null && (wantsBlockType || wantsIsBlock)) {
             try {
                 org.bukkit.Material type = block.getType();
-                if (blockTypeSlot >= 0) {
+                if (wantsBlockType) {
                     facts.setString(blockTypeSlot, type.name());
                 }
-                if (isBlockSlot >= 0) {
+                if (wantsIsBlock) {
                     facts.setFlag(isBlockSlot, !EntityCompat.isAir(type));
                 }
             } catch (RuntimeException unreadable) {
                 // A block owned by another region — leave the block facts defaulted.
             }
         }
-        if (worldRainingSlot >= 0 || worldThunderingSlot >= 0 || worldTimeSlot >= 0) {
+        boolean wantsRaining = worldRainingSlot >= 0 && mask.readsFlag(worldRainingSlot);
+        boolean wantsThundering = worldThunderingSlot >= 0 && mask.readsFlag(worldThunderingSlot);
+        boolean wantsTime = worldTimeSlot >= 0 && mask.readsNum(worldTimeSlot);
+        if (wantsRaining || wantsThundering || wantsTime) {
             try {
                 org.bukkit.World world = context.actor() != null ? context.actor().getWorld()
                         : context.location() != null ? context.location().getWorld() : null;
                 if (world != null) {
-                    if (worldRainingSlot >= 0) {
+                    if (wantsRaining) {
                         facts.setFlag(worldRainingSlot, world.hasStorm());
                     }
-                    if (worldThunderingSlot >= 0) {
+                    if (wantsThundering) {
                         facts.setFlag(worldThunderingSlot, world.isThundering());
                     }
-                    if (worldTimeSlot >= 0) {
+                    if (wantsTime) {
                         facts.setNumber(worldTimeSlot, world.getTime());
                     }
                 }
@@ -280,9 +307,13 @@ public final class FactPopulator {
     }
 
     // Derived combat geometry (distance, nearbyenemies, victim.inzone); Folia-wrapped like the entity facts
-    // (default cross-region).
-    private void populateDerived(FactBuffer facts, ActivationContext context) {
-        if (distanceSlot < 0 && nearbyEnemiesSlot < 0 && victimInZoneSlot < 0) {
+    // (default cross-region). ADR-0039: each slot is mask-gated, so the expensive %nearbyenemies% entity scan
+    // runs ONLY when a worn condition/arg actually reads it.
+    private void populateDerived(FactBuffer facts, ActivationContext context, FactMask mask) {
+        boolean wantsDistance = distanceSlot >= 0 && mask.readsNum(distanceSlot);
+        boolean wantsInZone = victimInZoneSlot >= 0 && mask.readsFlag(victimInZoneSlot);
+        boolean wantsNearby = nearbyEnemiesSlot >= 0 && mask.readsNum(nearbyEnemiesSlot);
+        if (!wantsDistance && !wantsInZone && !wantsNearby) {
             return;
         }
         org.bukkit.entity.Player actor = context.actor();
@@ -290,13 +321,13 @@ public final class FactPopulator {
             return;
         }
         try {
-            if (distanceSlot >= 0) {
+            if (wantsDistance) {
                 LivingEntity victim = context.victim();
                 if (victim != null && victim.getWorld() == actor.getWorld()) {
                     facts.setNumber(distanceSlot, actor.getLocation().distance(victim.getLocation()));
                 }
             }
-            if (victimInZoneSlot >= 0) {
+            if (wantsInZone) {
                 LivingEntity victim = context.victim();
                 if (victim != null) {
                     // The zone is owned by the activating wearer; true when the victim stands in one of theirs.
@@ -304,7 +335,7 @@ public final class FactPopulator {
                             engine.sink.OwnerZones.contains(actor.getUniqueId(), victim.getLocation()));
                 }
             }
-            if (nearbyEnemiesSlot >= 0) {
+            if (wantsNearby) {
                 int count = 0;
                 for (org.bukkit.entity.Entity e : actor.getNearbyEntities(NEARBY_RADIUS, NEARBY_RADIUS, NEARBY_RADIUS)) {
                     if (e instanceof LivingEntity && !e.equals(actor)) {

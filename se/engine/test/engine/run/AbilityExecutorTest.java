@@ -171,6 +171,30 @@ class AbilityExecutorTest {
         verify(victim).setFireTicks(60);
     }
 
+    /** ADR-0039: an effect stamped with its dense kind id dispatches via the array index (the production fast path). */
+    @Test
+    void stampedKindIdDispatchesThroughTheFastPath() {
+        EffectRegistry effects = EffectRegistry.builder().register(new IgniteEffect()).build();
+        SelectorRegistry selectors = SelectorRegistry.builder()
+                .register(new VictimSelector()).register(new SelfSelector()).build();
+        AbilityExecutor stamped = new AbilityExecutor(effects, selectors,
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
+        LivingEntity victim = mock(LivingEntity.class);
+        CompiledEffect ignite = new CompiledEffect("IGNITE", Args.empty().with("duration", 60L),
+                new CompiledSelector("VICTIM", Args.empty(), selectors.idOf("VICTIM")), 0,
+                Affinity.TARGET_ENTITY, effects.idOf("IGNITE"));
+        Ability ability = new Ability(0, 0, SourceKind.ENCHANT, 1 << TRIGGER, 1, 100.0, 0, 0, 0L, null,
+                new CompiledEffect[] {ignite}, 0, Affinity.TARGET_ENTITY, -1, -1, -1, -1, 0);
+        DispatchSink sink = new DispatchSink(handles);
+
+        int activated = stamped.run(new Ability[] {ability}, new int[] {0}, activation(),
+                context(null, victim), sink, KEYS);
+        sink.flush();
+
+        assertEquals(1, activated);
+        verify(victim).setFireTicks(60);
+    }
+
     @Test
     void outOfRangeCandidateIdsAreSkipped() {
         LivingEntity victim = mock(LivingEntity.class);

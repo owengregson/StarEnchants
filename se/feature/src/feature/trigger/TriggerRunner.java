@@ -125,7 +125,9 @@ public final class TriggerRunner {
                 // (it emits a MissingStubError throw). The no-arg nextDouble() is ancient Random API — same
                 // uniform [0,100) result, untouched by the downgrade. Verified live by the legacy smoke combat check.
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
-                .facts(factPopulator.populate(context, now)) // gate-7 condition facts, read on the firing thread
+                // gate-7 condition facts, read on the firing thread; the mask computes ONLY the slots this
+                // trigger's worn abilities reference (ADR-0039), skipping e.g. the %nearbyenemies% scan otherwise.
+                .facts(factPopulator.populate(context, now, wornState.factMask(triggerId)))
                 .location(context.location()) // captured on the firing thread → safe for the gate-2 guard
                 // Cooldown buckets: the other combat party's kind (player vs mob) routes the cooldown, so an
                 // ability proc'd on a mob and on a player run on two independent cooldowns (gates 6 + 11).

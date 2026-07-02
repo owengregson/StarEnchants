@@ -1,6 +1,8 @@
 package engine.selector;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,6 +29,19 @@ class SelectorRegistryTest {
     void duplicateHeadFailsFast() {
         SelectorRegistry.Builder b = SelectorRegistry.builder().register(new SelfSelector());
         assertThrows(IllegalArgumentException.class, () -> b.register(new SelfSelector()));
+    }
+
+    /** ADR-0039: {@code idOf} indexes {@link SelectorRegistry#selectorsById()} case-insensitively; unknown is -1. */
+    @Test
+    void idOfIndexesSelectorsById() {
+        SelectorRegistry reg = BuiltinSelectors.registry();
+        SelectorKind[] byId = reg.selectorsById();
+
+        int selfId = reg.idOf("SELF");
+        assertTrue(selfId >= 0);
+        assertEquals(selfId, reg.idOf("self"));
+        assertSame(reg.lookup("SELF").orElseThrow(), byId[selfId]);
+        assertEquals(-1, reg.idOf("nope"));
     }
 
     @Test

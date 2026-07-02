@@ -3,12 +3,16 @@ package engine.run;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import compile.cond.VarBinding;
 import compile.cond.VarKind;
+import compile.model.FactMask;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
@@ -171,6 +175,46 @@ class FactPopulatorTest {
         assertFalse(f.flag(flag("victim.sneaking"))); // not a player → false, no crash
         assertFalse(f.flag(flag("victim.blocking")));
         assertFalse(f.flag(flag("victim.flying")));
+    }
+
+    /** ADR-0039: an unreferenced derived fact never runs — the 8-block entity scan is skipped when masked out. */
+    @Test
+    void maskedOutNearbyEnemiesSkipsTheEntityScan() {
+        Player actor = actor();
+        populator.populate(new ActivationContext(actor, null, null, null), 0L, FactMask.NONE);
+        verify(actor, never()).getNearbyEntities(anyDouble(), anyDouble(), anyDouble());
+    }
+
+    /** A masked-IN derived fact is computed and equals the eager (unmasked) path — gating never changes a referenced value. */
+    @Test
+    void maskedInNearbyEnemiesRunsTheScanWithTheEagerValue() {
+        int slot = num(null, "nearbyenemies");
+        Player masked = actor();
+        lenient().when(masked.getNearbyEntities(8.0, 8.0, 8.0))
+                .thenReturn(java.util.List.of(mock(LivingEntity.class), mock(LivingEntity.class)));
+        double maskedValue = populator.populate(new ActivationContext(masked, null, null, null), 0L,
+                new FactMask(1L << slot, 0L, 0L)).number(slot);
+
+        Player eager = actor();
+        lenient().when(eager.getNearbyEntities(8.0, 8.0, 8.0))
+                .thenReturn(java.util.List.of(mock(LivingEntity.class), mock(LivingEntity.class)));
+        double eagerValue = populator.populate(new ActivationContext(eager, null, null, null)).number(slot);
+
+        verify(masked).getNearbyEntities(8.0, 8.0, 8.0);
+        assertEquals(2.0, maskedValue);
+        assertEquals(eagerValue, maskedValue);
+    }
+
+    /** Only the mask's slots are populated: a referenced fact keeps its eager value, an unreferenced sibling stays default. */
+    @Test
+    void onlyMaskedSlotsArePopulated() {
+        int healthSlot = num("actor", "health");
+        int maxSlot = num("actor", "maxhealth");
+        FactBuffer f = populator.populate(new ActivationContext(actor(), null, null, null), 0L,
+                new FactMask(1L << healthSlot, 0L, 0L));
+
+        assertEquals(15.0, f.number(healthSlot)); // referenced → same value the eager path produces
+        assertEquals(0.0, f.number(maxSlot));      // unreferenced → default, never read from the entity
     }
 
     @Test

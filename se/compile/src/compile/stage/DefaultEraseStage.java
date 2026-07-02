@@ -2,6 +2,8 @@ package compile.stage;
 
 import compile.model.Ability;
 import compile.model.CompiledEffect;
+import compile.model.FactMask;
+import compile.model.FactMasks;
 import compile.model.Interner;
 import compile.model.Interners;
 import compile.model.SourceMap;
@@ -121,6 +123,7 @@ public final class DefaultEraseStage implements EraseStage {
             int cdScopeGroup = la.cdScopeGroup() == null ? -1 : cooldownScopes.intern(la.cdScopeGroup());
             int cdScopeType = la.cdScopeType() == null ? -1 : cooldownScopes.intern(la.cdScopeType());
 
+            CompiledEffect[] effects = eraseSuppressArgs(la.effects(), cooldownScopes);
             Ability ability = new Ability(
                     id,
                     la.defId(),
@@ -132,14 +135,15 @@ public final class DefaultEraseStage implements EraseStage {
                     la.soulCost(),
                     worldBlacklist,
                     la.condition(),
-                    eraseSuppressArgs(la.effects(), cooldownScopes),
+                    effects,
                     la.repeatTicks(),
                     la.affinity(),
                     cdScopeEnchant,
                     cdScopeGroup,
                     cdScopeType,
                     suppressKey,
-                    la.setPieces());
+                    la.setPieces(),
+                    FactMasks.of(la.condition(), effects)); // ADR-0039: only these slots get populated per hit
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());
@@ -167,8 +171,7 @@ public final class DefaultEraseStage implements EraseStage {
                 Args rewritten = args
                         .with("scope", (long) scopeKind(args.str("scope")))
                         .with("key", (long) cooldownScopes.intern(args.str("key")));
-                out[i] = new CompiledEffect(effect.head(), rewritten, effect.target(),
-                        effect.cumulativeWaitTicks(), effect.affinity());
+                out[i] = effect.withArgs(rewritten); // keep the stamped kindId (ADR-0039)
             } else {
                 out[i] = effect;
             }
