@@ -1,10 +1,12 @@
 # StarEnchants v3 re-architecture — build directives
 
-**Status: APPROVED FRAME, per-increment build pending.** This is the single
-reference for the v3 wave. It supersedes the config-v2 design (ADR 0016) and the
-earlier parity-correction notes where they conflict. Decisions here were settled
-2026-06-16/17 from the Cosmic Enchants-style parity fact-check (`docs/parity/parity-audit.md` +
-workflow `wf_96f2aaeb-89d`) and the user's per-item direction.
+**Status: DELIVERED (all sections).** These are now historical build directives —
+every section shipped across the v1.1.x–v1.2.x beta line; see ADRs 0016–0035 for
+what landed. Kept as the record of the wave's intent, not an open worklist. It
+supersedes the config-v2 design (ADR 0016) and the earlier parity-correction
+notes where they conflict. Decisions here were settled 2026-06-16/17 from the
+Cosmic Enchants-style parity fact-check (`docs/parity/parity-audit.md` + workflow
+`wf_96f2aaeb-89d`) and the user's per-item direction.
 
 Rule of thumb baked into every section: **deobf/ informs WHAT a feature is and
 HOW it should behave for players, never HOW we build it.** Architecture stays
@@ -342,10 +344,14 @@ EliteBosses/EliteMobs is intentionally out of scope (no usable public API; the u
 ## Out of scope (this whole wave)
 
 No custom crafting, no crates/lootboxes, no GKits, no web marketplace/panel, no
-StatTrak, no loot/mob-drop population, no custom-weapon item system. Do not
+loot/mob-drop population, no custom-weapon item system. Do not
 replicate Cosmic Enchants-style bugs (multiplicative enchant stacking — except the deliberate
 heroic stage §F; last-of-type crystal collapse; silent unknown-effect no-ops;
 fail-open conditions). No `/ee`+`/ea` aliases, no Splodgebox watermark.
+
+> **[Reversal]** StatTrak was later brought into scope and **shipped** as
+> `feature/trak` (four traks) in v1.1.5 — it is no longer out of scope (ADR-0007
+> update).
 
 ## Defaults I chose (flag on review if wrong)
 
