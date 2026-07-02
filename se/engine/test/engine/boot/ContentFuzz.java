@@ -312,7 +312,7 @@ final class ContentFuzz {
     private static String selectorArgs(SelectorKind selector, Random rnd) {
         StringBuilder sb = new StringBuilder();
         for (Param param : selector.spec().paramSpec().params()) {
-            if (!(param.required() || param.type().defaultRaw().isEmpty() || rnd.nextBoolean())) {
+            if (!(param.required() || rnd.nextBoolean())) {
                 continue;
             }
             if (sb.length() > 0) {
@@ -359,14 +359,14 @@ final class ContentFuzz {
         return p;
     }
 
-    /** For every required param emit a token; each optional-with-default param is included with probability ½. */
+    /** For every required param emit a token; each optional param — with or without default — is included with probability ½, so an absent optional round-trips for both shapes. */
     private static Map<String, Authored> validNamed(ParamSpec spec, Random rnd, int i, Vocab vocab) {
         Map<String, Authored> named = new LinkedHashMap<>();
         boolean firstNumericSeen = false;
         boolean unicode = i % 5 == 0;
         for (Param param : spec.params()) {
             ParamType type = param.type();
-            boolean include = param.required() || type.defaultRaw().isEmpty() || rnd.nextBoolean();
+            boolean include = param.required() || rnd.nextBoolean();
             if (!include) {
                 continue;
             }
@@ -493,7 +493,7 @@ final class ContentFuzz {
         StringBuilder body = new StringBuilder();
         boolean unicode = rnd.nextInt(5) == 0;
         for (Param param : kind.spec().paramSpec().params()) {
-            if (!(param.required() || param.type().defaultRaw().isEmpty() || rnd.nextBoolean())) {
+            if (!(param.required() || rnd.nextBoolean())) {
                 continue;
             }
             if (body.length() > 0) {
