@@ -2,6 +2,7 @@ package item.codec;
 
 import java.util.Locale;
 import org.bukkit.inventory.ItemStack;
+import schema.spec.Ranges;
 
 /**
  * Tags / detects a SCROLL by kind (§I): a PDC {@code STRING} under {@link ItemKeys#scroll()}, off the
@@ -48,12 +49,12 @@ public final class ScrollCodec {
     /** The black scroll's stored new-book conversion success rate (0–100), or {@code fallback} if absent. */
     public int convertOf(ItemStack stack, int fallback) {
         return hasConvert(stack)
-                ? Math.max(0, Math.min(100, ItemFlagStore.readInt(stack, convertKey, fallback)))
+                ? Ranges.clampPercent(ItemFlagStore.readInt(stack, convertKey, fallback))
                 : fallback;
     }
 
     /** Stamp the black scroll's rolled conversion success rate (clamped {@code [0, 100]}). */
     public void markConvert(ItemStack stack, int percent) {
-        ItemFlagStore.writeInt(stack, convertKey, Math.max(0, Math.min(100, percent)));
+        ItemFlagStore.writeInt(stack, convertKey, Ranges.clampPercent(percent));
     }
 }

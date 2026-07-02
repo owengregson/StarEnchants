@@ -1,6 +1,7 @@
 package item.codec;
 
 import org.bukkit.inventory.ItemStack;
+import schema.spec.Ranges;
 
 /**
  * Marks / detects a SLOT EXPANDER orb (§H), storing the {@code +N} it grants as a PDC {@code INTEGER}
@@ -29,7 +30,7 @@ public final class SlotItemCodec {
 
     /** The orb's rolled apply success chance (0–100), or {@code 100} when absent (a pre-success-roll orb). */
     public int successOf(ItemStack stack) {
-        return Math.max(0, Math.min(100, ItemFlagStore.readInt(stack, successKey, 100)));
+        return Ranges.clampPercent(ItemFlagStore.readInt(stack, successKey, 100));
     }
 
     /**
@@ -38,6 +39,6 @@ public final class SlotItemCodec {
      */
     public void mark(ItemStack stack, int amount, int success) {
         ItemFlagStore.writeInt(stack, key, Math.max(1, amount));
-        ItemFlagStore.writeInt(stack, successKey, Math.max(0, Math.min(100, success)));
+        ItemFlagStore.writeInt(stack, successKey, Ranges.clampPercent(success));
     }
 }
