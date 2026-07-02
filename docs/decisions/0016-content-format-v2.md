@@ -12,6 +12,7 @@
 > "alongside terse" / "v1 terse still loads" statements below are historical.
 >
 > **[Update 2026-07-01]** Three further reconciliations with what shipped:
+>
 > - **`scale:` / `$token` / `effects+:` were superseded by v3-directives explicit-levels.** The
 >   per-level authoring model is now the explicit `levels:` form of `docs/v3-directives.md` (no
 >   `scale`/`$token` scaling grammar, no `effects+` append). §3 below is historical.
