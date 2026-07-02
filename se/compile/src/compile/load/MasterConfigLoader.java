@@ -34,7 +34,7 @@ public final class MasterConfigLoader {
             return new MasterConfig(MasterConfig.FeaturesSection.defaults(), MasterConfig.CombatSection.defaults(),
                     MasterConfig.MessagesSection.defaults(), MasterConfig.BooksSection.defaults(),
                     MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
-                    MasterConfig.CrystalsSection.defaults(), MasterConfig.HeroicSection.defaults(),
+                    MasterConfig.CrystalsSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
                     MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
@@ -53,7 +53,6 @@ public final class MasterConfigLoader {
                 readSlots(root.child("slots"), diags),
                 readSouls(root.child("souls"), diags),
                 readCrystals(root.child("crystals"), diags),
-                readHeroic(root.child("heroic"), diags),
                 readLore(root.child("lore"), diags),
                 readIntegrations(root.child("integrations"), diags),
                 readReload(root.child("reload"), diags),
@@ -140,12 +139,6 @@ public final class MasterConfigLoader {
         return new MasterConfig.CrystalsSection(
                 parseInt(n.string("slots"), d.slots(), n, diags),
                 parseInt(n.string("max-merge"), d.maxMerge(), n, diags));
-    }
-
-    private static MasterConfig.HeroicSection readHeroic(YamlNode n, Diagnostics diags) {
-        MasterConfig.HeroicSection d = MasterConfig.HeroicSection.defaults();
-        return new MasterConfig.HeroicSection(
-                parseDouble(n.string("max-outgoing-factor"), d.maxOutgoingFactor(), n, diags));
     }
 
     private static MasterConfig.LoreSection readLore(YamlNode n, Diagnostics diags) {

@@ -14,7 +14,7 @@ features:
   enchants: true   # enchant effects fire in combat / on triggers
   sets: true       # armour-set bonuses (and the held-weapon set bonus) apply
   crystals: true   # crystal effects fire
-  heroic: true     # heroic flat stats feed the heroic damage stage
+  heroic: true     # heroic percents feed the additive damage fold
   slots: true      # the slot-expander orb can be applied to gear
   souls: true      # the soul gem system (deposit on kill, soul mode, gem inventory)
   scrolls: true    # scroll-family interactions (black/randomizer/transmog/holy/nametag/godly transmog)
@@ -103,12 +103,9 @@ crystals:
   # gear entry). 2 = a crystal may hold at most two combined effects.
   max-merge: 2
 
-# Heroic (§F / ADR-0021). The granted percents, success range and material-upgrade map are the upgrade's
-# likeness in items/heroic.yml. Only the bounded-multiplicative CLAMP CEILING is cross-cutting: heroic applies
-# as a distinct stage after the additive damage fold, outgoing x clamp(1 + sum, 0, max-outgoing-factor).
-heroic:
-  # The ceiling on the heroic outgoing-damage multiplier (>= 1.0). 4.0 = heroic can at most quadruple output.
-  max-outgoing-factor: 4.0
+# Heroic (§F / ADR-0037). The granted percents, success range and material-upgrade map are the upgrade's
+# likeness in items/heroic.yml. A heroic piece's percents feed the SAME additive damage fold every enchant
+# uses (ADR-0012) — a weapon adds its outgoing%, armour its reduction% — so there is no cross-cutting knob.
 
 # Lore render style (§L). Legacy '&' colour codes. Re-read on every lore render, so a reload restyles live.
 lore:

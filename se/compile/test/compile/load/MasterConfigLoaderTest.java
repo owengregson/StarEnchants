@@ -29,7 +29,6 @@ class MasterConfigLoaderTest {
         assertEquals(defaults.slots(), config.slots());
         assertEquals(defaults.souls(), config.souls());
         assertEquals(defaults.crystals(), config.crystals());
-        assertEquals(defaults.heroic(), config.heroic());
         assertEquals(defaults.lore(), config.lore());
         assertEquals(defaults.integrations(), config.integrations());
         assertEquals(defaults.reload(), config.reload());
@@ -133,8 +132,6 @@ class MasterConfigLoaderTest {
                 crystals:
                   slots: 3
                   max-merge: 8
-                heroic:
-                  max-outgoing-factor: 2.5
                 lore:
                   enchant-color: "&a"
                   level-color: "&e"
@@ -163,7 +160,6 @@ class MasterConfigLoaderTest {
         assertFalse(config.souls().depositOnAnyKill());
         assertEquals(3, config.crystals().slots());
         assertEquals(8, config.crystals().maxMerge());
-        assertEquals(2.5, config.heroic().maxOutgoingFactor());
         assertEquals("&a", config.lore().enchantColor());
         assertEquals("&e", config.lore().levelColor());
         assertEquals("&d", config.lore().crystalColor());
@@ -214,7 +210,6 @@ class MasterConfigLoaderTest {
         assertFalse(config.hasErrors());
         assertEquals(7, config.slots().base());
         assertEquals(1, config.crystals().slots());
-        assertEquals(4.0, config.heroic().maxOutgoingFactor());
         assertTrue(config.integrations().economy());
     }
 
@@ -239,8 +234,6 @@ class MasterConfigLoaderTest {
         Files.writeString(file, """
                 slots:
                   base: -5
-                heroic:
-                  max-outgoing-factor: 0.2
                 crystals:
                   max-merge: 0
                 """);
@@ -248,7 +241,6 @@ class MasterConfigLoaderTest {
         MasterConfig config = MasterConfigLoader.load(file);
 
         assertEquals(0, config.slots().base());              // clamped to ≥ 0
-        assertEquals(1.0, config.heroic().maxOutgoingFactor()); // clamped to ≥ 1.0
         assertEquals(1, config.crystals().maxMerge());       // clamped to ≥ 1
     }
 }

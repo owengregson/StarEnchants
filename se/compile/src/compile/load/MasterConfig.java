@@ -14,7 +14,7 @@ import schema.diag.Diagnostic;
  */
 public record MasterConfig(FeaturesSection features, CombatSection combat, MessagesSection messages,
                            BooksSection books, SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
-                           HeroicSection heroic, LoreSection lore, IntegrationsSection integrations,
+                           LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
                            MessageOnActivateSection messageOnActivate, SetsSection sets,
                            List<Diagnostic> diagnostics) {
@@ -27,7 +27,6 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         Objects.requireNonNull(slots, "slots");
         Objects.requireNonNull(souls, "souls");
         Objects.requireNonNull(crystals, "crystals");
-        Objects.requireNonNull(heroic, "heroic");
         Objects.requireNonNull(lore, "lore");
         Objects.requireNonNull(integrations, "integrations");
         Objects.requireNonNull(reload, "reload");
@@ -41,7 +40,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
     public static MasterConfig defaults() {
         return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MessagesSection.defaults(),
                 BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
-                HeroicSection.defaults(), LoreSection.defaults(), IntegrationsSection.defaults(),
+                LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
                 SetsSection.defaults(), List.of());
     }
@@ -121,22 +120,6 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
 
         public static CrystalsSection defaults() {
             return new CrystalsSection(1, 2);
-        }
-    }
-
-    /**
-     * Heroic bounded-multiplicative clamp ceiling (§F/ADR-0021). Heroic is a distinct multiplicative stage
-     * AFTER the additive fold: outgoing {@code ×clamp(1+Σ, 0, maxOutgoingFactor)}.
-     *
-     * @param maxOutgoingFactor ceiling on the heroic outgoing-damage multiplier (≥ 1.0; default 4.0)
-     */
-    public record HeroicSection(double maxOutgoingFactor) {
-        public HeroicSection {
-            maxOutgoingFactor = Math.max(1.0, maxOutgoingFactor);
-        }
-
-        public static HeroicSection defaults() {
-            return new HeroicSection(4.0);
         }
     }
 
