@@ -22,8 +22,12 @@
 > (srcDir overlay + same-FQN whole-file swaps, `-Pse.target=legacy` dual-compile gate, JvmDowngrader 61→52,
 > single MRJAR + identical-class-set soundness gate, era-specific testing). ADR-0036 also records the
 > target-state direction — consolidating era-neutral logic into shared base classes (e.g. `DispatchSinkBase`
-> with thin era leaves) and extending the dual-compile gate to `:integrate`/`:api`. Where this design doc
-> and ADR-0036 differ, **ADR-0036 wins.**
+> with thin era leaves) and extending the dual-compile gate to `:integrate`/`:api`. The shared-base
+> consolidation is now **DELIVERED** for the largest twins: `engine.sink.DispatchSinkBase` (shared) +
+> thin `overlay/{modern,legacy}` `DispatchSink` leaves, and `feature.combat.EquipListenerBase` (shared) +
+> its two armour-change-source leaves. So the "legacy `DispatchSink` (full `v1_8_R3` NMS)" seam noted below
+> is now the *leaf* over the shared base, not a whole-file twin. Where this design doc and ADR-0036 differ,
+> **ADR-0036 wins.**
 
 The maintainer greenlit building all phases AND shipping the optional second jar. The 1.8.9 fork is now
 **built, compile-verified against a real Spigot 1.8.8 (`v1_8_R3`) jar, and FUNCTIONALLY verified live**: a
