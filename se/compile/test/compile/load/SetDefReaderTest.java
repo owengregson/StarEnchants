@@ -311,4 +311,49 @@ class SetDefReaderTest {
         assertNull(parsed.def());
         assertTrue(parsed.abilities().isEmpty());
     }
+
+    @Test
+    void weaponBonusWithoutWeaponItemWarnsUnreachable() {
+        Diagnostics diags = new Diagnostics();
+        // Both bonuses carry effects so W_LOAD_EFFECTS cannot fire — the only warning must be the split code.
+        String yaml = """
+            complete: 1
+            armor:
+              pieces:
+                helmet: { material: DIAMOND_HELMET }
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 2 } }]
+              - on: weapon
+                trigger: ATTACK
+                effects: [{ HEAL: { amount: 1 } }]
+            """;
+        SetDefReader.read("sets/orphan-weapon", root(yaml, diags), counter(), diags);
+
+        assertCode(diags, DiagCode.W_LOAD_SET_WEAPON_UNREACHABLE);
+        assertFalse(diags.all().stream().anyMatch(d -> d.is(DiagCode.W_LOAD_EFFECTS)),
+                () -> diags.all().toString());
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+    }
+
+    @Test
+    void announceOutsideTheBoolVocabularyWarnsAndStaysOff() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            complete: 1
+            announce: "sometimes"
+            armor:
+              pieces:
+                helmet: { material: DIAMOND_HELMET }
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 2 } }]
+            """;
+        SetDefReader.Parsed parsed = SetDefReader.read("sets/announce", root(yaml, diags), counter(), diags);
+
+        assertFalse(parsed.def().announce());
+        assertCode(diags, DiagCode.W_LOAD_BOOL);
+    }
 }

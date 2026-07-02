@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.Objects;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
+import schema.diag.Severity;
 
 /**
  * One configured sound in our unified bracket form {@code { sound: NAME, volume: V, pitch: P }} — the same
@@ -63,15 +64,8 @@ public record SoundCue(String name, float volume, float pitch) {
     }
 
     private static float readFloat(YamlNode node, String key, float fallback, Diagnostics diags) {
-        String raw = node.string(key);
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        try {
-            return Float.parseFloat(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.warning(DiagCode.W_ITEM_NUM, "invalid number '" + raw + "', using " + fallback, node.sourceOf(key));
-            return fallback;
-        }
+        // parseFloat and (float) parseDouble accept the same lexical space and round identically.
+        return (float) ContentParse.doubleOr(node.string(key), fallback, key, Severity.WARNING, DiagCode.W_ITEM_NUM,
+                node.sourceOf(key), diags);
     }
 }

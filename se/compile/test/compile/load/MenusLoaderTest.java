@@ -2,12 +2,14 @@ package compile.load;
 
 import schema.diag.DiagCode;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -65,5 +67,20 @@ class MenusLoaderTest {
         assertFalse(config.hasErrors()); // a bad number warns, never blocks
         assertTrue(config.forMenu("apply").orElseThrow().rows().isEmpty());
         assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.W_MENU_NUM)));
+    }
+
+    @Test
+    void unlistableMenusDirIsAnIoDiagnosticNotAThrow(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("apply.yml"), "title: hi\n");
+        Assumptions.assumeTrue(dir.toFile().setReadable(false)); // root ignores chmod; Windows lacks POSIX
+        Assumptions.assumeFalse(Files.isReadable(dir));
+        try {
+            MenusConfig config = assertDoesNotThrow(() -> MenusLoader.load(dir));
+            assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.E_MENU_IO)),
+                    () -> config.diagnostics().toString());
+            assertTrue(config.forMenu("apply").isEmpty());
+        } finally {
+            dir.toFile().setReadable(true); // so @TempDir cleanup can delete it
+        }
     }
 }

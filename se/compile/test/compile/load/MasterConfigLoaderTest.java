@@ -229,6 +229,21 @@ class MasterConfigLoaderTest {
     }
 
     @Test
+    void invalidBooleanWarnsAndKeepsDefault(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                combat:
+                  pvp: maybe
+                """);
+
+        MasterConfig config = MasterConfigLoader.load(file);
+
+        assertFalse(config.hasErrors()); // a non-canonical boolean warns, never blocks
+        assertEquals(MasterConfig.CombatSection.defaults().pvp(), config.combat().pvp());
+        assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.W_CONFIG_BOOL)));
+    }
+
+    @Test
     void clampsOutOfRangeValues(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("config.yml");
         Files.writeString(file, """

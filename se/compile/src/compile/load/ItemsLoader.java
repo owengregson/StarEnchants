@@ -1,6 +1,7 @@
 package compile.load;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
+import schema.diag.Severity;
 import schema.diag.Source;
 
 /**
@@ -50,7 +52,7 @@ public final class ItemsLoader {
         if (itemsRoot == null || !Files.isDirectory(itemsRoot)) {
             return ItemsConfig.empty();
         }
-        for (Path file : configFiles(itemsRoot)) {
+        for (Path file : configFiles(itemsRoot, diags)) {
             String name = "items/" + itemsRoot.relativize(file);
             String yaml;
             try {
@@ -405,15 +407,7 @@ public final class ItemsLoader {
     }
 
     private static double parseDouble(String raw, double fallback, YamlNode root, Diagnostics diags) {
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        try {
-            return Double.parseDouble(raw.trim());
-        } catch (NumberFormatException e) {
-            diags.warning(DiagCode.W_ITEM_NUM, "invalid number '" + raw + "', using " + fallback, root.source());
-            return fallback;
-        }
+        return ContentParse.doubleOr(raw, fallback, null, Severity.WARNING, DiagCode.W_ITEM_NUM, root.source(), diags);
     }
 
     private static CrystalConfig readCrystal(YamlNode root, Diagnostics diags) {
@@ -486,12 +480,13 @@ public final class ItemsLoader {
             if (raw == null) {
                 continue;
             }
-            try {
-                out.put(entry.key(), Integer.parseInt(raw.trim()));
-            } catch (NumberFormatException bad) {
+            Integer amount = ContentParse.parseInt(raw);
+            if (amount == null) {
                 diags.warning(DiagCode.W_SOUL_MOB, "souls-per-mob[" + entry.key() + "] is not a number: " + raw,
                         entry.value().source());
+                continue;
             }
+            out.put(entry.key(), amount);
         }
         return out;
     }
@@ -508,17 +503,18 @@ public final class ItemsLoader {
             if (color == null) {
                 continue;
             }
-            try {
-                out.add(new SoulGemConfig.ColorTier(Integer.parseInt(entry.key().trim()), color));
-            } catch (NumberFormatException bad) {
+            Integer min = ContentParse.parseInt(entry.key());
+            if (min == null) {
                 diags.warning(DiagCode.W_SOUL_TIER, "soul-colors key is not a number: " + entry.key(),
                         entry.value().source());
+                continue;
             }
+            out.add(new SoulGemConfig.ColorTier(min, color));
         }
         return out.isEmpty() ? fallback : out;
     }
 
-    private static List<Path> configFiles(Path root) {
+    private static List<Path> configFiles(Path root, Diagnostics diags) {
         try (Stream<Path> stream = Files.list(root)) {
             return stream
                     .filter(p -> Files.isRegularFile(p))
@@ -528,21 +524,14 @@ public final class ItemsLoader {
                     })
                     .sorted()
                     .toList();
-        } catch (IOException e) {
-            return new ArrayList<>(); // the directory existed but became unreadable — load nothing, never throw
+        } catch (IOException | UncheckedIOException e) {
+            diags.error(DiagCode.E_ITEM_IO, "could not list items/: " + e.getMessage(), Source.ofFile("items"));
+            return List.of();
         }
     }
 
     private static int parseInt(String raw, int fallback, YamlNode root, Diagnostics diags) {
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException e) {
-            diags.warning(DiagCode.W_ITEM_NUM, "invalid number '" + raw + "', using " + fallback, root.source());
-            return fallback;
-        }
+        return ContentParse.intOr(raw, fallback, null, Severity.WARNING, DiagCode.W_ITEM_NUM, root.source(), diags);
     }
 
     private static String orDefault(String value, String fallback) {

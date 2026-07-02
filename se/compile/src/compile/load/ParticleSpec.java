@@ -3,6 +3,7 @@ package compile.load;
 import java.util.Objects;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
+import schema.diag.Severity;
 
 /**
  * A configured particle effect in our unified bracket form
@@ -65,28 +66,12 @@ public record ParticleSpec(String type, int colorR, int colorG, int colorB, int 
     }
 
     private static int readInt(YamlNode node, String key, int fallback, Diagnostics diags) {
-        String raw = node.string(key);
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        try {
-            return Integer.parseInt(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.warning(DiagCode.W_ITEM_NUM, "invalid number '" + raw + "', using " + fallback, node.sourceOf(key));
-            return fallback;
-        }
+        return ContentParse.intOr(node.string(key), fallback, key, Severity.WARNING, DiagCode.W_ITEM_NUM,
+                node.sourceOf(key), diags);
     }
 
     private static double readDouble(YamlNode node, String key, double fallback, Diagnostics diags) {
-        String raw = node.string(key);
-        if (raw == null || raw.isBlank()) {
-            return fallback;
-        }
-        try {
-            return Double.parseDouble(raw.trim());
-        } catch (NumberFormatException bad) {
-            diags.warning(DiagCode.W_ITEM_NUM, "invalid number '" + raw + "', using " + fallback, node.sourceOf(key));
-            return fallback;
-        }
+        return ContentParse.doubleOr(node.string(key), fallback, key, Severity.WARNING, DiagCode.W_ITEM_NUM,
+                node.sourceOf(key), diags);
     }
 }

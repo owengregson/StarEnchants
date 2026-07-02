@@ -137,13 +137,14 @@ final class SetDefReader {
                     + "' must declare at least one 'on: armor' bonus (bonuses:)", root.sourceOf("bonuses"));
         }
         if (weaponBonuses > 0 && !hasWeaponItem) {
-            diags.warning(DiagCode.W_LOAD_EFFECTS, "set '" + baseKey
+            diags.warning(DiagCode.W_LOAD_SET_WEAPON_UNREACHABLE, "set '" + baseKey
                     + "' has an on:weapon bonus but no weapon: item to hold — it can never fire",
                     root.sourceOf("bonuses"));
         }
 
         // Optional equip/remove announcement (§6.6) — authored verbatim per set; the driver substitutes nothing.
-        boolean announce = announceFlag(root.string("announce"));
+        boolean announce = ContentParse.boolOr(root.string("announce"), false, "announce", DiagCode.W_LOAD_BOOL,
+                root.sourceOf("announce"), diags);
         String equipMessage = root.string("equip-message");
         String removeMessage = root.string("remove-message");
 
@@ -156,15 +157,6 @@ final class SetDefReader {
     /** A bonus is weapon-scoped when {@code on: weapon} (case-insensitive); anything else (incl. absent) is armour. */
     private static boolean isWeaponScope(String on) {
         return on != null && on.trim().equalsIgnoreCase("weapon");
-    }
-
-    /** Lenient truthiness for the {@code announce} toggle: true/yes/on/1 (case-insensitive); absent ⇒ false. */
-    private static boolean announceFlag(String raw) {
-        if (raw == null) {
-            return false;
-        }
-        String s = raw.trim();
-        return s.equalsIgnoreCase("true") || s.equalsIgnoreCase("yes") || s.equalsIgnoreCase("on") || s.equals("1");
     }
 
     /**
@@ -183,12 +175,13 @@ final class SetDefReader {
             if (raw == null) {
                 continue;
             }
-            try {
-                out.put(entry.key(), Integer.parseInt(raw.trim()));
-            } catch (NumberFormatException bad) {
+            Integer level = ContentParse.parseInt(raw);
+            if (level == null) {
                 diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + entry.key()
                         + "' level is not a number: " + raw, entry.value().source());
+                continue;
             }
+            out.put(entry.key(), level);
         }
         return out;
     }
