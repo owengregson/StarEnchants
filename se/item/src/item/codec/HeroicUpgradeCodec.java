@@ -9,16 +9,18 @@ import org.bukkit.inventory.ItemStack;
 public final class HeroicUpgradeCodec {
 
     private final String key;
+    private final ItemStateStore store;
 
-    public HeroicUpgradeCodec(String key) {
+    public HeroicUpgradeCodec(String key, ItemStateStore store) {
         this.key = key;
+        this.store = store;
     }
 
     public boolean isUpgrade(ItemStack stack) {
-        return ItemFlagStore.hasByte(stack, key);
+        return store.hasByte(stack, key);
     }
 
     public void mark(ItemStack stack) {
-        ItemFlagStore.setByte(stack, key, true);
+        store.setByte(stack, key, true);
     }
 }

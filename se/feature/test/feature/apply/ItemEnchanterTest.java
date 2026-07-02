@@ -36,8 +36,11 @@ class ItemEnchanterTest {
 
     private static ItemEnchanter over(Library lib) {
         ContentHolder holder = new ContentHolder(lib);
-        CombatCodec codec = new CombatCodec("combat");
-        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
+        // checkEnchant/checkCrystal never read on-item state, so the injected store is an inert modern placeholder.
+        CombatCodec codec = new CombatCodec("combat", new item.codec.PdcItemStateStore());
+        LoreRenderer lore = new LoreRenderer(
+                LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)),
+                new item.codec.PdcItemStateStore());
         return new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                 () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());

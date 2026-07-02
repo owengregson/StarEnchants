@@ -3,6 +3,7 @@ package item.render;
 import item.codec.CombatState;
 import item.codec.ComposerMark;
 import item.codec.ItemKeys;
+import item.codec.ItemStateStore;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -25,7 +26,7 @@ public final class LoreRenderer {
 
     private final Config config;
     private final LoreComposer composer;
-    private final ComposerMark mark = new ComposerMark(ItemKeys.of().loreComposer());
+    private final ComposerMark mark;
 
     /**
      * The wiring for a renderer (ADR-0040): the presentation deps and the per-section templates, as NAMED
@@ -178,9 +179,10 @@ public final class LoreRenderer {
         };
     }
 
-    public LoreRenderer(Config config) {
+    public LoreRenderer(Config config, ItemStateStore store) {
         this.config = Objects.requireNonNull(config, "config");
         this.composer = new LoreComposer(config);
+        this.mark = new ComposerMark(ItemKeys.of().loreComposer(), store);
     }
 
     /** Body lore lines: one per enchant ({@code name level}), set lore, the orb slots line, then one per crystal. */

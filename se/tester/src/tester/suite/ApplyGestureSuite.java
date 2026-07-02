@@ -90,17 +90,17 @@ public final class ApplyGestureSuite implements Harness.Scenario {
             }
             ContentHolder content = new ContentHolder(library);
             ItemKeys keys = ItemKeys.of();
-            combat = new CombatCodec(keys.combat());
-            LoreRenderer lore = new LoreRenderer(
+            combat = new CombatCodec(keys.combat(), Stores.state());
+            LoreRenderer lore = Stores.lore(
                     LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key)));
             ItemEnchanter enchanter = new ItemEnchanter(combat, lore, content, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                     () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
-            crystals = new CrystalService(new CrystalItemCodec(keys.crystalItem()),
-                    new CrystalExtractorCodec(keys.crystalExtractor()), enchanter, content,
+            crystals = new CrystalService(new CrystalItemCodec(keys.crystalItem(), Stores.state()),
+                    new CrystalExtractorCodec(keys.crystalExtractor(), Stores.state()), enchanter, content,
                     CrystalConfig::defaults, () -> 4, Messages.defaults());
             crystalLeaf = new CrystalListener(crystals, Messages.defaults());
-            slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess());
+            slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess(), Stores.state());
             SlotConfig slotCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
                     ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100, List.of("ALL"));
             slots = new SlotService(slotCodec, combat, lore, () -> slotCfg,

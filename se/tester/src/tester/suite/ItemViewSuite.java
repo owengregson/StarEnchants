@@ -29,7 +29,7 @@ public final class ItemViewSuite implements Harness.Scenario {
         h.expect("itemview.decodeIdentity");
         h.expect("itemview.contentChange");
 
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
         ItemViewCache cache = new ItemViewCache(codec, 0);
 
         h.guard("itemview.decodeIdentity", () -> {

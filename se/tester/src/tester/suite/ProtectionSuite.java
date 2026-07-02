@@ -96,11 +96,11 @@ public final class ProtectionSuite implements Harness.Scenario {
         }
 
         ContentHolder holder = new ContentHolder(library);
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
         ItemViewCache itemViews = new ItemViewCache(codec, library.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornStateStore worn = new WornStateStore(
-                new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
+                new WornResolver(Stores.equip(), itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
         AtomicLong tick = new AtomicLong();
 
         World world = plugin.getServer().getWorlds().get(0);

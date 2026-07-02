@@ -125,9 +125,9 @@ public final class HeroicVanillaStatsSuite implements Harness.Scenario {
                 0.10, 0.10, 0.20,
                 Map.of("DIAMOND_CHESTPLATE", "GOLDEN_CHESTPLATE", "DIAMOND_SWORD", "GOLDEN_SWORD"),
                 "ENTITY", "", false, true /* diamond-stats */, true /* vanilla-stats */);
-        HeroicUpgradeCodec upgrades = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());
-        CombatCodec combat = new CombatCodec(ItemKeys.of().combat());
-        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> null));
+        HeroicUpgradeCodec upgrades = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade(), Stores.state());
+        CombatCodec combat = new CombatCodec(ItemKeys.of().combat(), Stores.state());
+        LoreRenderer lore = Stores.lore(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> null));
         return new HeroicService(upgrades, combat, lore, () -> cfg, new Random(), platform.lang.Messages.defaults(),
                 ItemGroups.standard());
     }

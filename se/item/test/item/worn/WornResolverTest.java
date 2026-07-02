@@ -26,6 +26,8 @@ class WornResolverTest {
     private static final IntPredicate ATTACK = t -> t == 0;
     private static final IntPredicate DEFENSE = t -> t == 1;
     private static final int TRIGGERS = 2;
+    // resolveFrom never reads equipment, so the injected EquipSource is a non-null placeholder.
+    private static final EquipSource EQUIP = entity -> null;
 
     // id 0 = enchants/lifesteal/3, id 1 = crystals/zap — both fire on attack trigger 0.
     private static final StableKeyIndex KEYS =
@@ -37,15 +39,15 @@ class WornResolverTest {
     }
 
     private static WornResolver resolver() {
-        return new WornResolver(null, TRIGGERS, ATTACK, DEFENSE); // itemViews unused by resolveFrom
+        return new WornResolver(EQUIP, null, TRIGGERS, ATTACK, DEFENSE); // itemViews unused by resolveFrom
     }
 
     private static WornResolver resolver(WornResolver.Features features) {
-        return new WornResolver(null, TRIGGERS, ATTACK, DEFENSE, () -> features);
+        return new WornResolver(EQUIP, null, TRIGGERS, ATTACK, DEFENSE, () -> features);
     }
 
     private static WornResolver resolver(java.util.Set<String> nonStackable) {
-        return new WornResolver(null, TRIGGERS, ATTACK, DEFENSE, () -> WornResolver.Features.ALL, () -> nonStackable);
+        return new WornResolver(EQUIP, null, TRIGGERS, ATTACK, DEFENSE, () -> WornResolver.Features.ALL, () -> nonStackable);
     }
 
     @Test

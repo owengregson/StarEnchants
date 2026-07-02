@@ -150,7 +150,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         // Heroic durability save: a per-item heroic chance restores lost durability via the legacy poll. The
         // poll (started by the ctor) must first record the item's prior durability, then detect the simulated
         // loss and restore it.
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
         new HeroicDurabilityListener(codec, new Random()); // ctor starts the per-tick durability poll
         Scheduling.onRegion(at, () -> {
             Player p;
@@ -238,7 +238,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         h.expect("legacy.item.blobSurvivesSetItemMeta");
         h.expect("legacy.item.degradesNetherite");
 
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
         ItemEnchanter enchanter;
         try {
             Path root = Files.createTempDirectory("se-legacy-item");
@@ -250,7 +250,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 return;
             }
             ContentHolder holder = new ContentHolder(library);
-            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
+            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)), new item.codec.NbtItemStateStore());
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                     () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
@@ -349,11 +349,11 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         }
 
         ContentHolder holder = new ContentHolder(library);
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
         ItemViewCache itemViews = new ItemViewCache(codec, library.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
         WornStateStore worn = new WornStateStore(
-                new WornResolver(itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
+                new WornResolver(new item.worn.LegacyEquipSource(), itemViews, triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
         EventProbe probe = new EventProbe();
         plugin.getServer().getPluginManager().registerEvents(probe, plugin);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
@@ -430,7 +430,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
     private void guiCheck(Harness h) {
         h.expect("legacy.gui.menuApplies");
 
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
         EnchantMenu menu;
         try {
             Path root = Files.createTempDirectory("se-legacy-gui");
@@ -441,7 +441,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 return;
             }
             ContentHolder holder = new ContentHolder(library);
-            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
+            LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)), new item.codec.NbtItemStateStore());
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                     () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());

@@ -16,28 +16,30 @@ public final class CarrierCodec {
 
     private final String carrierKey;
     private final String guardedKey;
+    private final ItemStateStore store;
 
-    public CarrierCodec(String carrierKey, String guardedKey) {
+    public CarrierCodec(String carrierKey, String guardedKey, ItemStateStore store) {
         this.carrierKey = carrierKey;
         this.guardedKey = guardedKey;
+        this.store = store;
     }
 
     /** The carrier state on {@code stack}, or {@code null} if it is not a carrier. */
     public CarrierData read(ItemStack stack) {
-        return decode(ItemBlobStore.read(stack, carrierKey));
+        return decode(store.read(stack, carrierKey));
     }
 
     public void write(ItemStack stack, CarrierData data) {
-        ItemBlobStore.write(stack, carrierKey, data == null ? null : encode(data));
+        store.write(stack, carrierKey, data == null ? null : encode(data));
     }
 
     /** Whether {@code gear} carries a guard-scroll marker that spares it from a failed apply. */
     public boolean isGuarded(ItemStack gear) {
-        return ItemFlagStore.hasByte(gear, guardedKey);
+        return store.hasByte(gear, guardedKey);
     }
 
     public void setGuarded(ItemStack gear, boolean guarded) {
-        ItemFlagStore.setByte(gear, guardedKey, guarded);
+        store.setByte(gear, guardedKey, guarded);
     }
 
     static String encode(CarrierData data) {

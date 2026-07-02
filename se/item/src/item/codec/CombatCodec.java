@@ -14,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
  *
  * <p>The blob is a pure self-delimiting string (unit-tested via {@link #encodeBlob}/{@link #decodeBlob});
  * the on-item round-trip is verified on a real server across the mapping flip, not assumed (§11). The
- * blob's storage form is owned by the {@link ItemBlobStore} seam (a STRING PDC entry on modern, a raw NMS
+ * blob's storage form is owned by the {@link ItemStateStore} seam (a STRING PDC entry on modern, a raw NMS
  * tag on the 1.8 legacy fork), so this codec stays version-agnostic.
  *
  * <p>Format: {@code v1 US <label> US <payload> US <label> US <payload> …} where {@code US} is the
@@ -34,9 +34,11 @@ public final class CombatCodec {
     private static final char KV = ':';      // key:level inside an enchant entry
 
     private final String combatKey;
+    private final ItemStateStore store;
 
-    public CombatCodec(String combatKey) {
+    public CombatCodec(String combatKey, ItemStateStore store) {
         this.combatKey = combatKey;
+        this.store = store;
     }
 
     public CombatState read(ItemStack stack) {
@@ -45,12 +47,12 @@ public final class CombatCodec {
 
     /** The raw blob — the {@code ItemView} cache key, read without paying the decode the cache elides (§5.2). */
     public String readBlob(ItemStack stack) {
-        return ItemBlobStore.read(stack, combatKey);
+        return store.read(stack, combatKey);
     }
 
     /** Clears the entry when {@code state} is empty (an empty {@code encode} returns {@code null} → remove). */
     public void write(ItemStack stack, CombatState state) {
-        ItemBlobStore.write(stack, combatKey, encode(state));
+        store.write(stack, combatKey, encode(state));
     }
 
     public CombatState decode(String blob) {

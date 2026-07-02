@@ -20,23 +20,26 @@ public final class TrakCodec {
     private final String mobsKey;
     private final String soulsKey;
     private final String fishKey;
+    private final ItemStateStore store;
 
-    public TrakCodec(String gemKey, String blocksKey, String mobsKey, String soulsKey, String fishKey) {
+    public TrakCodec(String gemKey, String blocksKey, String mobsKey, String soulsKey, String fishKey,
+                     ItemStateStore store) {
         this.gemKey = gemKey;
         this.blocksKey = blocksKey;
         this.mobsKey = mobsKey;
         this.soulsKey = soulsKey;
         this.fishKey = fishKey;
+        this.store = store;
     }
 
     /** Stamp {@code stack} as an unapplied trak gem of {@code kind}. */
     public void markGem(ItemStack stack, Kind kind) {
-        ItemBlobStore.write(stack, gemKey, kind.name());
+        store.write(stack, gemKey, kind.name());
     }
 
     /** The trak gem kind {@code stack} is, or {@code null} if it is not a trak gem. */
     public Kind gemKind(ItemStack stack) {
-        String raw = ItemBlobStore.read(stack, gemKey);
+        String raw = store.read(stack, gemKey);
         if (raw == null || raw.isBlank()) {
             return null;
         }
@@ -49,13 +52,13 @@ public final class TrakCodec {
 
     /** The lifetime count of {@code kind} on {@code stack} (0 if none). */
     public int count(ItemStack stack, Kind kind) {
-        return Math.max(0, ItemFlagStore.readInt(stack, counterKey(kind), 0));
+        return Math.max(0, store.readInt(stack, counterKey(kind), 0));
     }
 
     /** Bump the lifetime count of {@code kind} on {@code stack} by one and return the new value. */
     public int increment(ItemStack stack, Kind kind) {
         int next = count(stack, kind) + 1;
-        ItemFlagStore.writeInt(stack, counterKey(kind), next);
+        store.writeInt(stack, counterKey(kind), next);
         return next;
     }
 

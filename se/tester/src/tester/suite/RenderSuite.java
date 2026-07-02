@@ -21,7 +21,7 @@ public final class RenderSuite implements Harness.Scenario {
     private static final Function<String, String> NAMES = Map.of("enchants/venom", "Venom")::get;
     private static final List<String> EXPECTED = List.of("§7Venom §fIII");
 
-    private final LoreRenderer renderer = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES));
+    private final LoreRenderer renderer = Stores.lore(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES));
 
     @Override
     public void accept(Harness h) {

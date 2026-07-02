@@ -202,6 +202,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Runtime resolver wiring (modern RuntimeHandles vs legacy NMS-by-name) lives behind the overlay seam.
         bootstrap.compat.Wiring wiring = new bootstrap.compat.Wiring(resolvers);
         feature.fx.ParticleFx particleFx = wiring.particleFx();
+        // The physical item-data layer (§4.2, ADR-0044): era store (modern PDC / legacy NBT) injected into every
+        // codec + the lore renderer, off the version-specific Wiring seam (the interim bindings).
+        item.codec.ItemStateStore store = wiring.itemStateStore();
 
         Library initial = loadInitial(compiler, contentRoot);
         content = new ContentHolder(initial);
@@ -226,10 +229,10 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         MenusHolder menusHolder = new MenusHolder(MenusLoader.load(menusRoot));
 
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
-        CombatCodec codec = new CombatCodec(ItemKeys.of().combat());
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), store);
         ItemViewCache itemViews = new ItemViewCache(codec, initial.snapshot().generation());
         TriggerRegistry triggers = BuiltinTriggers.registry();
-        WornResolver wornResolver = new WornResolver(itemViews, triggers.count(),
+        WornResolver wornResolver = new WornResolver(wiring.equipSource(), itemViews, triggers.count(),
                 triggers.attackTriggers(), triggers.defenseTriggers(),
                 () -> {                                            // §L per-feature master toggles (live)
                     MasterConfig.FeaturesSection ff = master.config().features();
@@ -248,13 +251,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // §I the applied-utility marker set, shared by white/holy scrolls and the trak gems (independent markers).
         // Built before the renderer because the lore's PROTECTED-line reader closes over both of these.
-        item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot());
+        item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot(), store);
         // Carrier economy (ADR-0016). Carrier PDC is separate from the combat blob, so it never decodes hot.
-        CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
+        CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded(), store);
         // Trak counters (§I) — built before the renderer so the composer's trak SECTION reads them from state.
         item.codec.TrakCodec trakCodec = new item.codec.TrakCodec(ItemKeys.of().trakGem(),
                 ItemKeys.of().trakBlocks(), ItemKeys.of().trakMobs(), ItemKeys.of().trakSouls(),
-                ItemKeys.of().trakFish());
+                ItemKeys.of().trakFish(), store);
 
         // ADR-0040 sectioned composition: protection + trak lines are rendered from marker/counter STATE (never
         // parsed back), so the composer owns every section in one deterministic pass.
@@ -305,7 +308,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .withSlotsLine(() -> master.config().slots().loreLine()) // §H orb "Enchantment Slots" line template
                 .withHeroicLine(() -> items.config().heroicOrDefault().loreLine()) // §F HEROIC line template
                 .withCrystalLine(() -> items.config().crystalOrDefault().loreWhileOnItem())        // §E on-gear crystal line
-                .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti())); // §E merged (ADR-0035)
+                .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti()), // §E merged (ADR-0035)
+                store); // ADR-0044 the item-data store backs the renderer's composer-migration marker
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         // ADR-0040 the ONE recompose seam: a feature mutates PDC (guard/holy/trak marker + counters) then asks the
         // composer to re-render every section from state — replacing the old per-writer, text-classified lore edits.
@@ -332,32 +336,32 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 messages);                                     // §I applies reject reads common.wrong-applies
 
         // Physical crystal items (§E). A multi-crystal is one crystal-slot entry encoding "a+b".
-        CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem());
+        CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem(), store);
         item.codec.CrystalExtractorCodec crystalExtractorCodec =
-                new item.codec.CrystalExtractorCodec(ItemKeys.of().crystalExtractor());
+                new item.codec.CrystalExtractorCodec(ItemKeys.of().crystalExtractor(), store);
         CrystalService crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, enchanter, content,
                 () -> items.config().crystalOrDefault(), () -> master.config().crystals().maxMerge(), messages);
 
         // Heroic upgrades (§F).
-        HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());
+        HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade(), store);
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
                 () -> items.config().heroicOrDefault(), rolls, messages, itemGroups);
 
         // Slot economy (§H). base MUST match the ItemEnchanter default so the cap is computed off the same base.
-        SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess());
+        SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess(), store);
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(),
                 (java.util.function.IntSupplier) () -> master.config().slots().base(), messages, itemGroups, rolls);
 
         // Book-economy scrolls (§I). Distinct 'scroll' PDC tag, off the combat hot path.
-        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert());
+        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert(), store);
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
-                new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog());
+                new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog(), store);
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
                 () -> items.config().scrollsOrDefault(), rolls, messages, godlyTransmogCodec, itemGroups);
 
         // Unopened/randomized book (§I).
-        UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of().unopened());
+        UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of().unopened(), store);
         UnopenedBookService unopenedBooks = new UnopenedBookService(unopenedCodec, carriers, content,
                 () -> items.config().unopenedBookOrDefault(), rolls, messages);
 
@@ -378,7 +382,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulPool soulPool = new SoulPool();
         SoulModeStore soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
         SoulService soulService = new SoulService(soulPool, soulModes,
-                new SoulCodec(ItemKeys.of().soul()), () -> items.config().soulGemOrDefault(),
+                new SoulCodec(ItemKeys.of().soul(), store), () -> items.config().soulGemOrDefault(),
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
         Bridges.registerPlaceholders(this, master.config().integrations()::enabled,
@@ -709,7 +713,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
                     scrolls, unopenedBooks, holyScrolls, nametags, traks, packs, codec, carrierCodec,
-                    () -> master.config().slots().base(), messages, contentRoot);
+                    () -> master.config().slots().base(), messages, contentRoot, store);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand);
         }

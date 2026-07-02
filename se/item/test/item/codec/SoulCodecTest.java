@@ -2,8 +2,10 @@ package item.codec;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
 
 import java.util.UUID;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,5 +40,22 @@ class SoulCodecTest {
         SoulData next = SoulData.fresh(id).withSouls(7);
         assertEquals(id, next.gemId());
         assertEquals(7, next.souls());
+    }
+
+    @Test
+    void writesAndReadsBackThroughTheStateStore() {
+        // The seam (ADR-0044) makes the codec instance round-trip unit-testable: a map-backed FakeItemStateStore
+        // stands in for PDC/NBT, so write→read exercises the store path without a server.
+        ItemStack stack = mock(ItemStack.class);
+        SoulCodec codec = new SoulCodec("soul", new FakeItemStateStore());
+        UUID id = UUID.randomUUID();
+
+        codec.write(stack, new SoulData(id, 42));
+        SoulData back = codec.read(stack);
+        assertEquals(id, back.gemId());
+        assertEquals(42, back.souls());
+
+        codec.write(stack, null); // clearing removes the gem
+        assertNull(codec.read(stack));
     }
 }

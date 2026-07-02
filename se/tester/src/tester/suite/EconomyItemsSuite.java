@@ -97,29 +97,29 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         }
         ContentHolder holder = new ContentHolder(lib);
         ItemKeys keys = ItemKeys.of();
-        CombatCodec combat = new CombatCodec(keys.combat());
+        CombatCodec combat = new CombatCodec(keys.combat(), Stores.state());
         // Wire the §I enchant-count suffix template (as the plugin does) so the transmog re-render stamps the
         // count onto the name — the suffix is now a renderer feature, not a ScrollService call.
-        LoreRenderer lore = new LoreRenderer(LoreRenderer.Config
+        LoreRenderer lore = Stores.lore(LoreRenderer.Config
                 .of(() -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k))
                 .withCountSuffix(() -> ScrollsConfig.defaults().transmog().nameSuffix())
                 .withBaseSlots(() -> ItemEnchanter.DEFAULT_BASE_SLOTS));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                 () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
-        CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
+        CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded(), Stores.state());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1),
                 compile.load.EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
+                new item.codec.AppliedSlot("appliedslot", Stores.state()), gear -> { }, ItemGroups.standard(),
                 platform.lang.Messages.defaults());
-        SlotItemCodec slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess());
-        ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
+        SlotItemCodec slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess(), Stores.state());
+        ScrollCodec scrollCodec = new ScrollCodec(keys.scroll(), Stores.state());
         // Extraction always succeeds now; pin the conversion rate so the drawn book's outcome is exact.
         ScrollsConfig alwaysExtract = withBlackConvert(ScrollsConfig.defaults(), 100, 100);
         ScrollService scrolls = new ScrollService(scrollCodec, combat, lore, carriers, holder,
                 () -> alwaysExtract, new Random(2), platform.lang.Messages.defaults(), null, ItemGroups.standard());
-        UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(keys.unopened());
+        UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(keys.unopened(), Stores.state());
         UnopenedBookService unopened = new UnopenedBookService(unopenedCodec, carriers, holder,
                 UnopenedBookConfig::defaults, new Random(3), platform.lang.Messages.defaults());
 
@@ -245,7 +245,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
         h.guard("economy.godly.mintsAndReorders", () -> {
             // Godly-transmog is a reusable tool (own codec, not a one-shot scroll), and its menu reorder
             // commits to an arbitrary bound gear item, not just the held one.
-            item.codec.GodlyTransmogCodec godlyCodec = new item.codec.GodlyTransmogCodec(keys.godlyTransmog());
+            item.codec.GodlyTransmogCodec godlyCodec = new item.codec.GodlyTransmogCodec(keys.godlyTransmog(), Stores.state());
             ScrollService godly = new ScrollService(scrollCodec, combat, lore, carriers, holder,
                     ScrollsConfig::defaults, new Random(8), platform.lang.Messages.defaults(), godlyCodec,
                     ItemGroups.standard());

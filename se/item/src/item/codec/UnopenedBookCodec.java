@@ -9,9 +9,11 @@ import org.bukkit.inventory.ItemStack;
 public final class UnopenedBookCodec {
 
     private final String key;
+    private final ItemStateStore store;
 
-    public UnopenedBookCodec(String key) {
+    public UnopenedBookCodec(String key, ItemStateStore store) {
         this.key = key;
+        this.store = store;
     }
 
     public boolean isUnopened(ItemStack stack) {
@@ -20,11 +22,11 @@ public final class UnopenedBookCodec {
 
     /** The tier {@code stack} is scoped to, or {@code null} if it is not an unopened book. */
     public String tierOf(ItemStack stack) {
-        String raw = ItemBlobStore.read(stack, key);
+        String raw = store.read(stack, key);
         return raw == null || raw.isBlank() ? null : raw;
     }
 
     public void mark(ItemStack stack, String tier) {
-        ItemBlobStore.write(stack, key, tier);
+        store.write(stack, key, tier);
     }
 }

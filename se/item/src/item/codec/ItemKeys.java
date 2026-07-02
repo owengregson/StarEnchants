@@ -3,7 +3,7 @@ package item.codec;
 /**
  * The plugin's logical key names for on-item state (§4.2). Single key authority: these strings must
  * never drift, or items written under the old name stop resolving. They are <em>logical</em> names —
- * the {@link ItemBlobStore}/{@link ItemFlagStore} seam maps each to the platform's native key form
+ * the {@link ItemStateStore} seam maps each to the platform's native key form
  * (a {@code starenchants:}-namespaced PDC key on modern; a raw NMS tag name on the 1.8 legacy fork),
  * so the codecs and this holder stay free of any version-specific key type (PDC {@code NamespacedKey}
  * does not exist on 1.8.9 — docs/legacy-1.8.9-codeshare-design.md §3.1).
