@@ -19,7 +19,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0009](0009-git-workflow.md) | Git workflow: feature branch → PR → rebase-merge | Accepted |
 | [0010](0010-architecture-derivation.md) | Concrete architecture is self-derived via a design workshop | Accepted |
 | [0011](0011-engine-architecture.md) | Content-compiler + data-oriented runtime (see `docs/architecture.md`) | Accepted |
-| [0012](0012-damage-stacking.md) | Damage stacking is fully additive | Accepted |
+| [0012](0012-damage-stacking.md) | Damage stacking is fully additive | Accepted (full scope restored by 0037) |
 | [0013](0013-command-surface.md) | Single `/se` command root (drop separate legacy roots; `/enchants` player root added by 0030, `/star` alias) | Accepted |
 | [0014](0014-content-loader-and-reload.md) | Content loader + transactional reload | Accepted |
 | [0015](0015-spigot-floor-fakeplayer-deferred.md) | Spigot-floor fake-player deferred; floor covered by non-fake suites | Accepted |
@@ -28,7 +28,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0018](0018-spigot-floor-fakeplayer.md) | Spigot-floor fake-player harness — combat suites now run floor-wide | Accepted |
 | [0019](0019-dust-success-bonus-combining.md) | Dust carrier kind — success-bonus combining (the last deferred carrier) | Accepted |
 | [0020](0020-ae-migrator-dsl-coverage.md) | AdvancedEnchantments migrator — selector, condition, and effect DSL coverage | Accepted |
-| [0021](0021-heroic-multiplicative-stage.md) | Heroic as a bounded multiplicative stage (amends 0012's scope) | Accepted |
+| [0021](0021-heroic-multiplicative-stage.md) | Heroic as a bounded multiplicative stage (amends 0012's scope) | Superseded by 0037 |
 | [0022](0022-held-passive-lifecycle-and-command-trigger.md) | HELD/PASSIVE start-stop lifecycle + the COMMAND trigger (§B tail) | Accepted |
 | [0023](0023-config-packs.md) | Config packs (swappable whole-config presets) | Accepted |
 | [0024](0024-exotic-effect-ports.md) | Expression-valued effect args + the exotic Cosmic Enchants-style effect ports | Accepted |
@@ -44,6 +44,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0034](0034-crystals-rework.md) | Crystals rework — global likeness, multi-ability crystals, N-stack merge, 100% apply | Accepted |
 | [0035](0035-crystal-stackability-and-multi-identity.md) | Crystal stackability, multi-crystal identity, whole-entry extraction (amends 0034) | Accepted |
 | [0036](0036-legacy-overlay-and-mrjar.md) | Legacy 1.8.9 via srcDir overlay + a single Multi-Release jar (soundness-gated) | Accepted |
+| [0037](0037-heroic-additive-fold.md) | Heroic percents join the additive damage fold (supersedes 0021) | Accepted |
 
 ## Process
 

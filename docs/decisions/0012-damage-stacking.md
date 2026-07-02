@@ -4,6 +4,10 @@
 - **Date:** 2026-06-15
 - **Deciders:** owengregson
 
+> **Note:** ADR-0021 briefly narrowed this by carving heroic out into a distinct multiplicative stage;
+> [ADR-0037](0037-heroic-additive-fold.md) reversed that, restoring this ADR to its full scope — heroic
+> percents fold into the additive buckets like any other source.
+
 ## Context
 
 Damage/reduction bonuses come from five sources at once (enchant, armor set,

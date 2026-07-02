@@ -74,28 +74,21 @@ abilities fired. Because the accumulator stores compiled expression contribution
 (not just constants), an equation-capable `DAMAGE_INCREASE` still evaluates
 per-hit yet folds once.
 
-### The heroic stage
+### Heroic percents
 
-Heroic is the **one deliberate exception** to no-compounding (ADR
-[0021](../../decisions/0021-heroic-multiplicative-stage.md)): a distinct,
-*bounded multiplicative* stage layered on top of the additive fold (the `heroicOut`
-/ `heroicRed` clamps above). It is bounded — outgoing clamped to `[0, ceiling]`,
-reduction to `[0, 1]` — so it cannot run away. The percents come from a heroic
-*stat* stamped onto gear by `HeroicService#applyTo`
-(`se/feature/src/feature/heroic/HeroicService.java`):
-
-```java
-CombatState next = new CombatState(current.enchants(), current.crystals(), current.setKey(),
-        current.omni(), new HeroicStat(cfg.percentDamage(), cfg.percentReduction(), cfg.durability()),
-        current.added());
-combat.write(upgraded, next);
-```
+Heroic percents feed the **same additive fold** as any enchant contribution (ADR
+[0037](../../decisions/0037-heroic-additive-fold.md), which superseded the retired
+bounded-multiplicative stage of ADR
+[0021](../../decisions/0021-heroic-multiplicative-stage.md)): a heroic weapon adds
+its outgoing% into `Σ outgoing%`, heroic armour its reduction% into `Σ reduction%`.
+The percents come from a heroic *stat* stamped onto gear by `HeroicService#applyTo`
+(`se/feature/src/feature/heroic/HeroicService.java`).
 
 Heroic is not set-bound — any armour or weapon may be upgraded. The stat rides on
 the item's `CombatState`, the [worn-set resolver](performance-hot-paths.md) lifts
 it into `WornState#heroic`, and the firing system feeds it into the fold via
-`Sink#addHeroicOutgoing`/`addHeroicReduction` — *after* the additive fold, never
-summed into it.
+`Sink#addOutgoingDamage`/`addDamageReduction` — exactly like any enchant
+`DAMAGE_MOD`, so heroic dilutes additively with other buffs.
 
 ### Where the fold is committed
 
@@ -280,8 +273,9 @@ state, never the source of truth.
   not `event.setDamage`. The fold commits once on the firing thread.
 - **The fold is order-independent.** Same-side sources sum into one bucket; do not
   add per-source weighting that reintroduces order sensitivity.
-- **Heroic is the only multiplicative stage**, and it is bounded. Do not fold
-  heroic into the additive buckets.
+- **Heroic folds additively** (ADR-0037): a heroic weapon's outgoing% and armour's
+  reduction% sum into the ordinary buckets, like any enchant. There is no
+  multiplicative stage.
 - **Suppression is role-correct.** `DISABLE_ENCHANT` → defender, `DISABLE_GROUP`
   → activator; match the right per-role set.
 - **`SoulLedger` is the sole debit authority.** Never write souls to PDC directly
@@ -298,4 +292,4 @@ drives contributions; [the compiler](compiler-and-config.md) for how suppression
 keys and effects are interned; [the hot path](performance-hot-paths.md) for the
 `WornState` resolve; and [architecture spec](../../architecture.md) §6 plus ADRs
 [0012](../../decisions/0012-damage-stacking.md) and
-[0021](../../decisions/0021-heroic-multiplicative-stage.md) for the rationale.
+[0037](../../decisions/0037-heroic-additive-fold.md) for the rationale.
