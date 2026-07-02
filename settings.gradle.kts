@@ -35,10 +35,11 @@ listOf(
     "compat-folia",  // Folia region/entity/global schedulers
     // Live Paper + Folia in-server matrix harness.
     "tester",
-    // Test-support ONLY (never shipped): the shared unit-test fixtures every module's
-    // testImplementation reuses — FakeEffectCtx/SpecDrivenCtx, Defs, YamlFixture, RenderGolden,
-    // TtlStoreAdapter, CorpusLoader — so a record-arity change or a fixture lives in ONE place
-    // instead of being copy-pasted per module (docs/dev/internals/testing-architecture.md).
+    // Test-support ONLY (never shipped): the shared unit-test fixtures that exist today —
+    // FakeEffectCtx, SpecDrivenCtx, Defs — so a record-arity change lives in ONE place instead
+    // of being copy-pasted per module. The others the design records (YamlFixture/RenderGolden/
+    // TtlStoreAdapter/CorpusLoader) are built just-in-time when first needed
+    // (docs/dev/internals/testing-architecture.md).
     "testfx",
     // Tool-only (like tester, NOT shipped in the plugin jar): a Java2D generator that renders item
     // tooltips + GUIs to committable PNGs, reusing the plugin's own LoreRenderer so previews can't drift
