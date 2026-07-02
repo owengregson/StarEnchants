@@ -38,6 +38,7 @@ class EngineStoresTest {
         s.immune().immune(id, ImmuneStore.Type.of(0), 0L, 100);
         s.cooldowns().arm(id, CooldownStore.key(0, 1), 0L, 100);
         s.combo().hit(id, 0L);
+        s.why().record(id, 0L, 0, 7, 10, 0, 0);
 
         assertEquals("1", s.vars().get(id, "x", 0L));
         assertTrue(s.suppression().isSuppressed(id, 1L, 0L));
@@ -47,6 +48,7 @@ class EngineStoresTest {
         assertTrue(s.immune().isImmune(id, ImmuneStore.Type.of(0), 0L));
         assertFalse(s.cooldowns().ready(id, CooldownStore.key(0, 1), 0L));
         assertEquals(1, s.combo().current(id, 0L));
+        assertEquals(1, s.why().attempts(id).size());
 
         s.clearAll(id);
 
@@ -58,5 +60,6 @@ class EngineStoresTest {
         assertFalse(s.immune().isImmune(id, ImmuneStore.Type.of(0), 0L));
         assertTrue(s.cooldowns().ready(id, CooldownStore.key(0, 1), 0L));
         assertEquals(0, s.combo().current(id, 0L));
+        assertTrue(s.why().attempts(id).isEmpty());
     }
 }
