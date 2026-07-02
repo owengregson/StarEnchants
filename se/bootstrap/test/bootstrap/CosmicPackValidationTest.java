@@ -8,13 +8,20 @@ import compile.load.ItemsConfig;
 import compile.load.ItemsLoader;
 import compile.load.Library;
 import compile.load.LibraryLoader;
+import compile.load.MasterConfig;
+import compile.load.MasterConfigLoader;
+import compile.load.MenusConfig;
+import compile.load.MenusLoader;
 import compile.resolve.PlatformResolvers;
 import engine.boot.ContentCompiler;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -100,5 +107,48 @@ class CosmicPackValidationTest {
                 .collect(Collectors.joining("\n  "));
         assertFalse(config.hasErrors(), () -> "Cosmic pack items have blocking diagnostics:\n  " + errors);
         assertTrue(config.soulGem().isPresent(), "the Cosmic pack should carry a soul-gem likeness");
+    }
+
+    @Test
+    void cosmicPackMenusLoadClean() {
+        Path menus = PACK.resolve("menus");
+        assertTrue(Files.isDirectory(menus), "Cosmic pack menus not found");
+        MenusConfig config = MenusLoader.load(menus);
+        String errors = config.diagnostics().stream()
+                .filter(Diagnostic::blocking)
+                .map(Diagnostic::toString)
+                .collect(Collectors.joining("\n  "));
+        assertFalse(config.hasErrors(), () -> "Cosmic pack menus have blocking diagnostics:\n  " + errors);
+    }
+
+    @Test
+    void cosmicPackMasterConfigLoadsClean() {
+        Path configFile = PACK.resolve("config.yml");
+        assertTrue(Files.isRegularFile(configFile), "Cosmic pack config.yml not found");
+        MasterConfig master = MasterConfigLoader.load(configFile);
+        String errors = master.diagnostics().stream()
+                .filter(Diagnostic::blocking)
+                .map(Diagnostic::toString)
+                .collect(Collectors.joining("\n  "));
+        assertFalse(master.hasErrors(), () -> "Cosmic pack config.yml has blocking diagnostics:\n  " + errors);
+    }
+
+    // pack.yml is the ADR-0023 descriptor; the rest are the captured surface roots (pack.PackSurface FILES+DIRS).
+    // cosmic-pack.zip is a BUILD output (se/bootstrap/build.gradle.kts packCosmicPack), never a source entry.
+    private static final Set<String> ALLOWED_TOP_LEVEL = Set.of(
+            "pack.yml", "config.yml", "lang.yml", "content", "items", "menus");
+
+    @Test
+    void cosmicPackHasOnlySurfaceRootsAtTopLevel() throws Exception {
+        assertTrue(Files.isDirectory(PACK), "Cosmic pack source tree not found from " + Path.of("").toAbsolutePath());
+        try (Stream<Path> top = Files.list(PACK)) {
+            List<String> stray = top.map(p -> p.getFileName().toString())
+                    .filter(name -> !name.startsWith("."))
+                    .filter(name -> !ALLOWED_TOP_LEVEL.contains(name))
+                    .sorted()
+                    .toList();
+            assertTrue(stray.isEmpty(),
+                    () -> "cosmic-pack has top-level entries outside pack.yml + the surface roots: " + stray);
+        }
     }
 }
