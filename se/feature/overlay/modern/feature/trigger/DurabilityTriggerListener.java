@@ -9,9 +9,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 
 /**
- * Fires the ITEM_DAMAGE trigger on {@code PlayerItemDamageEvent}. Extracted from {@code TriggerListeners}
- * into an overlay because the event does not exist on 1.8.9 (docs/legacy-1.8.9-codeshare-design.md §4); the
- * legacy counterpart is a no-op (durability is not eventised on 1.8 — a §6 "degrades" feature).
+ * Fires the ITEM_DAMAGE trigger on {@code PlayerItemDamageEvent} — the era-exclusive {@code overlay/modern}
+ * source (ADR-0044). The event does not exist on 1.8.9 (docs/legacy-1.8.9-codeshare-design.md §4), where
+ * ITEM_DAMAGE is fired instead by the {@code LegacyGearPoll} durability-rise subscriber (§6).
  */
 public final class DurabilityTriggerListener implements Listener {
 

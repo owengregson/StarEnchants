@@ -17,16 +17,15 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import platform.sched.Scheduling;
 
 /**
- * The era-neutral core of the {@link WornStateStore} refresher — keeps each player's {@link WornState} fresh,
- * resolved on an equipment change (NOT per hit, §5.5) on the player's own region thread, and drives the §B
- * equipment-lifecycle mechanisms + maintained passive potion buffs on each refresh (ADR-0036). Both overlay
- * {@code EquipListener} leaves extend this and add ONLY their era-specific armour-change source: modern hooks
- * Paper's {@code PlayerArmorChangeEvent}; 1.8 (which lacks it) polls each player's armour signature per tick
- * (docs/legacy-1.8.9-codeshare-design.md §6). The join / held-item / respawn / quit lifecycle and the
- * {@link #refresh} pipeline are shared here; Bukkit registers the inherited {@code @EventHandler} methods on
- * the concrete leaf.
+ * The shared {@link WornStateStore} refresher — keeps each player's {@link WornState} fresh, resolved on an
+ * equipment change (NOT per hit, §5.5) on the player's own region thread, and drives the §B equipment-lifecycle
+ * mechanisms + maintained passive potion buffs on each refresh (ADR-0036/0044). The join / held-item / respawn /
+ * quit lifecycle and the {@link #refresh} pipeline live here (era-neutral); the era-specific armour-change SOURCE
+ * is a separate feeder that calls {@link #refresh}: modern hooks Paper's {@code PlayerArmorChangeEvent}
+ * ({@code ModernArmourChangeListener}); 1.8 (which lacks it) drives refresh from the per-tick {@code LegacyGearPoll}
+ * armour-signature delta plus an {@code InventoryCloseEvent} backup (docs/legacy-1.8.9-codeshare-design.md §6).
  */
-public abstract class EquipListenerBase implements Listener {
+public final class EquipListener implements Listener {
 
     private final WornStateStore worn;
     private final ContentHolder content;
@@ -35,8 +34,8 @@ public abstract class EquipListenerBase implements Listener {
     private final PassiveEffectDriver passiveEffects;
     private final SetMessageDriver setMessages;
 
-    protected EquipListenerBase(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
-                                LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, SetMessageDriver setMessages) {
+    public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
+                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, SetMessageDriver setMessages) {
         this.worn = worn;
         this.content = content;
         this.repeating = repeating;
@@ -73,8 +72,9 @@ public abstract class EquipListenerBase implements Listener {
         setMessages.clear(event.getPlayer().getUniqueId());
     }
 
-    /** Re-resolve {@code player}'s worn state and drive every equipment-lifecycle mechanism from it. */
-    protected void refresh(Player player) {
+    /** Re-resolve {@code player}'s worn state and drive every equipment-lifecycle mechanism from it. Called by
+     *  the shared lifecycle handlers and by the era armour-change feeders (modern event / legacy poll + close). */
+    public void refresh(Player player) {
         WornState state = worn.refresh(player, content.snapshot());
         repeating.arm(player, state);       // (re)arm REPEATING abilities (§B)
         lifecycle.refresh(player, state);   // START/STOP newly-(un)worn HELD/PASSIVE buffs (§B)

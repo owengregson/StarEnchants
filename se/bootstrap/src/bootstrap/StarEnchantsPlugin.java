@@ -516,8 +516,12 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         MasterConfig.FeaturesSection features = master.config().features();
 
         getServer().getPluginManager().registerEvents(new CombatListener(dispatch), this);
-        getServer().getPluginManager().registerEvents(
-                new EquipListener(worn, content, passives, lifecycle, passiveEffects, setMessages), this);
+        // The shared worn-state refresher (join/held/respawn/quit) + the era armour-change feeder that drives its
+        // refresh (modern PlayerArmorChangeEvent; 1.8 the gear-poll signature delta + an InventoryClose backup).
+        EquipListener equipListener =
+                new EquipListener(worn, content, passives, lifecycle, passiveEffects, setMessages);
+        getServer().getPluginManager().registerEvents(equipListener, this);
+        getServer().getPluginManager().registerEvents(wiring.armourChangeFeeder(equipListener), this);
         // §B instant DISABLE: when a player is suppressed, drop their now-disabled passive buffs at once and
         // schedule their restore at the window's end (the periodic sweep is only the safety net).
         stores.suppression().onSuppress((playerId, durationTicks) -> {
@@ -536,9 +540,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(new TriggerListeners(triggerDispatch,
                 () -> "ALL".equalsIgnoreCase(items.config().heroicOrDefault().reductionScope()), hands), this); // §F reduction-scope
-        // ITEM_DAMAGE lives in its own listener (the event is 1.9+; the legacy overlay is a no-op).
-        getServer().getPluginManager().registerEvents(
-                new feature.trigger.DurabilityTriggerListener(triggerDispatch), this);
+        // ITEM_DAMAGE source (§4): the modern PlayerItemDamageEvent listener; on 1.8 an inert listener (the gear
+        // poll fires ITEM_DAMAGE off-event).
+        getServer().getPluginManager().registerEvents(wiring.itemDamageSource(triggerDispatch), this);
         // A landing FALLING_BLOCK fires the IMPACT trigger on whoever it hit (druid Terrablender grass rain).
         getServer().getPluginManager().registerEvents(
                 new feature.combat.FallingBlockListener(triggerDispatch), this);
@@ -595,9 +599,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         } else {
             getLogger().info("scrolls feature disabled (config.yml features.scrolls) — scroll listeners not registered");
         }
-        // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events.
-        getServer().getPluginManager().registerEvents(
-                new feature.heroic.HeroicDurabilityListener(codec, rolls), this);
+        // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events (§4: the
+        // modern per-event save; on 1.8 an inert listener — the gear poll restores the lost durability post-hoc).
+        getServer().getPluginManager().registerEvents(wiring.heroicDurabilitySave(codec, rolls), this);
 
         // Arm players already online (a plugin /reload with players on); a fresh boot has none. Normal joins
         // are armed by EquipListener via PlayerJoinEvent.

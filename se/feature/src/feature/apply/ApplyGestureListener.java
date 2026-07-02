@@ -20,7 +20,7 @@ import platform.lang.Messages;
  * the player's OWN (bottom) inventory. Shared guard preamble + commit protocol; families parameterize via the
  * {@code claims*} hooks and {@link #apply}. Folia-correct: {@code InventoryClickEvent} fires on the clicking
  * player's own region thread, so cursor/inventory mutation and the overflow drop are in-thread. Bukkit
- * registers the inherited {@code @EventHandler} on each leaf (the {@code feature.combat.EquipListenerBase}
+ * registers the inherited {@code @EventHandler} on each leaf (the {@code feature.combat.EquipListener}
  * pattern).
  */
 public abstract class ApplyGestureListener implements Listener {

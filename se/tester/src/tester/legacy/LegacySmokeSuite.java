@@ -19,7 +19,6 @@ import feature.apply.ItemEnchanter;
 import feature.combat.CombatDispatch;
 import feature.combat.CombatListener;
 import feature.combat.KnockbackListener;
-import feature.heroic.HeroicDurabilityListener;
 import feature.menu.EnchantMenu;
 import feature.menu.MenuHolder;
 import feature.menu.MenuListener;
@@ -146,11 +145,12 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
 
-        // Heroic durability save: a per-item heroic chance restores lost durability via the legacy poll. The
-        // poll (started by the ctor) must first record the item's prior durability, then detect the simulated
-        // loss and restore it.
+        // Heroic durability save: a per-item heroic chance restores lost durability via the legacy gear poll. The
+        // poll (started by its ctor) must first record the item's prior durability, then detect the simulated
+        // loss and restore it via the heroic-save subscriber (ADR-0044 §6).
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
-        new HeroicDurabilityListener(codec, new Random()); // ctor starts the per-tick durability poll
+        feature.trigger.LegacyGearPoll gearPoll = new feature.trigger.LegacyGearPoll();
+        gearPoll.heroicSave(new feature.heroic.LegacyHeroicSave(codec, new Random()));
         Scheduling.onRegion(at, () -> {
             Player p;
             try {
