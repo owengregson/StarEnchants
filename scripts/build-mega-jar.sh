@@ -118,15 +118,28 @@ echo "[mega] 4/4  verify the merged MRJAR ..."
 # references — verified). A larger divergence (e.g. the tester's era-specific suites) is UNSOUND to merge and
 # is rejected here. See docs/legacy-1.8.9-codeshare-design.md.
 ALLOW_ERA_EXCLUSIVE="item/codec/LegacyNbt.class platform/resolve/RuntimeHandles.class"
+# Modern-ONLY package prefixes: whole modules that are compiled into the modern tree but EXCLUDED from the
+# legacy tree because they cannot dual-compile on 1.8. `integrate/` (the third-party bridges) is such a module —
+# its bridged plugin APIs are modern-Bukkit-typed (docs/legacy-1.8.9-codeshare-design.md gate list). This is
+# sound in the one safe direction: the legacy tree never references integrate (the composition root reaches it
+# only via the modern bootstrap.compat.Bridges seam, whose legacy impl imports nothing from integrate), so a
+# versions/17-only integrate class is never loaded by legacy code. The danger the gate guards — a BASE-only
+# class calling a shared class with the wrong-era signature — cannot arise from a modern-only class.
+ALLOW_ERA_EXCLUSIVE_PREFIX="integrate/"
 base_set="$(zipinfo -1 "$ROOT/$MEGA" | grep '\.class$' | grep -v '^META-INF/versions/' | grep -v '^se_jdg/' | LC_ALL=C sort)"
 v17_set="$(zipinfo -1 "$ROOT/$MEGA" | sed -n 's#^META-INF/versions/17/\(.*\.class\)$#\1#p' | LC_ALL=C sort)"
 diverge="$(comm -3 <(printf '%s\n' "$base_set") <(printf '%s\n' "$v17_set") | tr -d '\t' | grep -v '^$' || true)"
 unsound=0
 for c in $diverge; do
   case " $ALLOW_ERA_EXCLUSIVE " in
-    *" $c "*) ;;
-    *) echo "ERROR: UNSOUND merge — '$c' exists in only ONE era's tree (not an allowlisted era seam)." >&2; unsound=1 ;;
+    *" $c "*) continue ;;
   esac
+  allowed_prefix=0
+  for p in $ALLOW_ERA_EXCLUSIVE_PREFIX; do
+    case "$c" in "$p"*) allowed_prefix=1 ;; esac
+  done
+  [ "$allowed_prefix" = "1" ] && continue
+  echo "ERROR: UNSOUND merge — '$c' exists in only ONE era's tree (not an allowlisted era seam)." >&2; unsound=1
 done
 if [ "$unsound" -ne 0 ]; then
   echo "       A one-era-only class loads with its own bytecode version on the matching JVM and can call a" >&2

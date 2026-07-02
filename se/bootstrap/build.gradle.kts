@@ -68,7 +68,13 @@ dependencies {
     implementation(project(":api")) // public events fired at activation/reload points
     implementation(project(":migrate")) // /se migrate imports legacy EE/EA configs
     implementation(project(":pack")) // /se pack export/apply config packs (ADR-0023)
-    implementation(project(":integrate")) // §N third-party integrations, bundled + soft (ADR-0027)
+    // §N third-party integrations, bundled + soft (ADR-0027). EXCLUDED from the 1.8 tree: the bridged plugin
+    // APIs are modern-Bukkit-typed and cannot dual-compile on 1.8 (docs/legacy-1.8.9-codeshare-design.md gate
+    // list), so the composition root reaches them only through the bootstrap.compat.Bridges seam, whose legacy
+    // impl needs no integrate dependency. Every bridged plugin is modern-only, so nothing is lost on 1.8.9.
+    if (!legacyTarget) {
+        implementation(project(":integrate"))
+    }
 
     // The catalog-validation test compiles resources/content/ through the real LibraryLoader +
     // BuiltinEffects registry; the effect kinds reference Bukkit types and YAML is parsed, both
