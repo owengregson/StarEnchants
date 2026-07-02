@@ -64,6 +64,11 @@ class LibraryLoaderTest {
         assertNotNull(lib.snapshot().byStableKey("enchants/lifesteal/2"));
         assertNotNull(lib.snapshot().byStableKey("enchants/herald/1"));
         assertEquals(2, lib.catalog().size());
+
+        // enchantDefOf resolves a stored base key and returns null for an unknown one (cf. crystalDefOf/setDefOf).
+        assertNotNull(lib.enchantDefOf("enchants/lifesteal"));
+        assertEquals("enchants/lifesteal", lib.enchantDefOf("enchants/lifesteal").key());
+        assertNull(lib.enchantDefOf("enchants/nope"));
     }
 
     @Test

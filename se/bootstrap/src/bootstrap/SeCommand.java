@@ -925,7 +925,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String key = normalize(args[3], "crystals/");
-        if (content.library().crystals().stream().noneMatch(d -> d.key().equals(key))) {
+        if (content.library().crystalDefOf(key) == null) {
             sender.sendMessage(messages.format("command.error.no-such-crystal", "KEY", key));
             return;
         }
@@ -945,7 +945,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String key = normalize(args[3], "sets/");
-        if (content.library().sets().stream().noneMatch(d -> d.key().equals(key))) {
+        if (content.library().setDefOf(key) == null) {
             sender.sendMessage(messages.format("command.error.no-such-set", "KEY", key));
             return;
         }
@@ -980,8 +980,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String key = normalize(args[3], "enchants/");
-        EnchantDef def = content.library().catalog().stream()
-                .filter(d -> d.key().equals(key)).findFirst().orElse(null);
+        EnchantDef def = content.library().enchantDefOf(key);
         if (def == null) {
             sender.sendMessage(messages.format("command.error.no-such-enchant", "KEY", key));
             return;
@@ -1132,7 +1131,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String key = normalize(args[1], "crystals/");
-        if (content.library().crystals().stream().noneMatch(d -> d.key().equals(key))) {
+        if (content.library().crystalDefOf(key) == null) {
             player.sendMessage(messages.format("command.error.no-such-crystal", "KEY", key));
             return;
         }
@@ -1227,8 +1226,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String key = normalize(args[1], "enchants/");
-        EnchantDef def = content.library().catalog().stream()
-                .filter(d -> d.key().equals(key)).findFirst().orElse(null);
+        EnchantDef def = content.library().enchantDefOf(key);
         if (def == null) {
             player.sendMessage(messages.format("command.error.no-such-enchant", "KEY", key));
             return;
