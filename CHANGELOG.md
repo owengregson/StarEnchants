@@ -6,20 +6,6 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Changed
-
-- **Unified gear-apply gesture (ADR-0041).** The cursor-onto-gear apply gesture is now ONE
-  shared template — `feature.apply.ApplyGestureListener` with a single `GestureOutcome` shape
-  — that every family (scroll, holy scroll, nametag, crystal, slot orb, heroic, carrier, trak,
-  godly-transmog) is a thin leaf of; the per-feature `*Result` records are gone. Give-with-overflow
-  is one `platform.item.Inventories.giveOrDrop` helper, and result feedback flows through the
-  `Messages` policy seam (`sendText`/`sendLines`). No gameplay behaviour changes beyond three
-  accepted deltas: (1) apply and soul-mode feedback now honour the `messages.feedback` gate and
-  apply PlaceholderAPI (commands stay exempt, so operators are never silenced); (2) the drag-apply
-  no-slots line reads "This item has no free crystal slots ({MAX} max)."; (3) the crystal apply/extract
-  lang keys moved from `apply.crystal.*` to `crystal.*` — customisers who overrode an `apply.crystal.*`
-  key in their `lang.yml` must rename it to the matching `crystal.*` key.
-
 ### Added
 
 - **Crystal rework — Cosmic-style Armor Crystals (ADR-0034).** Crystals are now
@@ -81,6 +67,18 @@ versioning: [Semantic Versioning](https://semver.org/).
   0012 (fully-additive damage), 0013 (single `/se` command root).
 
 ### Changed
+
+- **Unified gear-apply gesture (ADR-0041).** The cursor-onto-gear apply gesture is now ONE
+  shared template — `feature.apply.ApplyGestureListener` with a single `GestureOutcome` shape
+  — that every family (scroll, holy scroll, nametag, crystal, slot orb, heroic, carrier, trak,
+  godly-transmog) is a thin leaf of; the per-feature `*Result` records are gone. Give-with-overflow
+  is one `platform.item.Inventories.giveOrDrop` helper, and result feedback flows through the
+  `Messages` policy seam (`sendText`/`sendLines`). No gameplay behaviour changes beyond three
+  accepted deltas: (1) apply and soul-mode feedback now honour the `messages.feedback` gate and
+  apply PlaceholderAPI (commands stay exempt, so operators are never silenced); (2) the drag-apply
+  no-slots line reads "This item has no free crystal slots ({MAX} max)."; (3) the crystal apply/extract
+  lang keys moved from `apply.crystal.*` to `crystal.*` — customisers who overrode an `apply.crystal.*`
+  key in their `lang.yml` must rename it to the matching `crystal.*` key.
 
 - **Unified message catalogue — one source of truth (ADR-0033).** Player-facing chat
   messages (§L) were maintained in three hand-synced copies (a Java `Lang.defaults()` map,

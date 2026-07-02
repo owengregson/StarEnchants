@@ -13,8 +13,8 @@ Each family also carried a near-identical per-feature `Result` record (`ScrollRe
 `SlotResult`, `HeroicResult`, `TrakResult`, `CarrierResult`, `UnopenedResult`) with divergent vocabulary
 (`consumed`/`commit`/`opened`, `give`/`produced`, `newTarget`). The give-with-overflow idiom
 (`addItem(...).values().forEach(drop)`) was inlined at ~16 sites next to an existing `MenuItems.giveOrDrop`
-helper (13 more call sites). Gesture result messages bypassed the `Messages.send` policy seam (feedback gate
-+ PlaceholderAPI) with raw `player.sendMessage`. And crystal apply/extract outcomes had two parallel lang-key
+helper (13 more call sites). Gesture result messages bypassed the `Messages.send` policy seam (feedback gate and
+PlaceholderAPI) with raw `player.sendMessage`. And crystal apply/extract outcomes had two parallel lang-key
 families (`apply.crystal.*` alongside `crystal.*`), one a true duplicate (`apply.crystal.no-slots` vs
 `crystal.no-slots`).
 
