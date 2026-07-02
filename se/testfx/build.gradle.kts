@@ -33,4 +33,9 @@ dependencies {
     // For a just-in-time YamlFixture round-tripping authored YAML through the real compiler; the server
     // bundles SnakeYAML, so it is compileOnly here and supplied by the consuming test classpath, never shaded.
     compileOnly("org.yaml:snakeyaml:2.2")
+
+    // The Purity fixture wraps ArchUnit's importer + rule DSL, so it is a real compile dependency of this
+    // module. api (not implementation) so a consumer calling Purity gets ArchUnit transitively — though every
+    // module already carries it via the root's shared test stack, this keeps the fixture self-contained.
+    api(libs.archunit.junit5)
 }

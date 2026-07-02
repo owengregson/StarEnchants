@@ -17,6 +17,7 @@ dependencies {
     // builtin effect registry, proving migrated YAML is valid StarEnchants content (not just well-formed).
     testImplementation(project(":engine"))
     testImplementation(libs.paper.api.floor) // the engine's effect kinds reference Bukkit types
+    testImplementation(project(":testfx")) // CorePurityArchTest calls testfx.Purity
 }
 
 // EE/EA/AE config importer (docs/architecture.md §2, §10): parse a legacy plugin's configs into a

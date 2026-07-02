@@ -2,6 +2,11 @@ plugins {
     `java-library`
 }
 
+dependencies {
+    // CorePurityArchTest calls testfx.Purity; the fixture is test-only, never a production dependency.
+    testImplementation(project(":testfx"))
+}
+
 // Config packs (ADR-0023): a pack is a single ZIP snapshot of the whole authored config surface
 // (config.yml, lang.yml, content/, items/, menus/) plus a pack.yml manifest. This module is the pure,
 // dependency-free codec + on-disk store — ZIP read/write via java.util.zip and filesystem staging/swap.
