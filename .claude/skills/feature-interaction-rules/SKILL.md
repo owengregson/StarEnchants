@@ -67,7 +67,8 @@ The DISABLE op's lowering records, per op, *whose* suppression it keys:
 
 `Ability.suppressKey` (interned enchant|group|type) makes gate 5 (SUPPRESSION) an
 int compare — case folded at compile time, killing a Cosmic Enchants-style case-sensitivity
-divergence. Because crystals are first-class `Ability` sources,
+divergence. The three-scope check is `SuppressionStore.suppressesAny` (shared by gate 5 and
+`PassiveEffectDriver` so the mirror cannot drift); the wire ids live in `compile.model.ScopeKinds`. Because crystals are first-class `Ability` sources,
 crystal-`DISABLE_ENCHANT` works (dead in a Cosmic Enchants-style design). A cancellable `PreActivate` event
 remains for add-on interception.
 

@@ -1,5 +1,6 @@
 package feature.apply;
 
+import compile.load.SoundCue;
 import java.util.List;
 import org.bukkit.inventory.ItemStack;
 
@@ -15,23 +16,23 @@ public record GestureOutcome(boolean commit, boolean consumeCursor, ItemStack ne
                              ItemStack produced, Cue cue, String message, Runnable followUp) {
 
     /** Sound + particle feedback for a committed gesture (both optional). */
-    public record Cue(String sound, List<String> particles) {
+    public record Cue(SoundCue sound, List<String> particles) {
         public Cue {
             particles = particles == null ? List.of() : List.copyOf(particles);
         }
 
         /** null when {@code sound} is null — a cue-less commit stays cue-less. */
-        public static Cue sound(String sound) {
+        public static Cue sound(SoundCue sound) {
             return sound == null ? null : new Cue(sound, List.of());
         }
 
-        /** null when there is nothing to play (blank sound + no particles). */
-        public static Cue of(String sound, List<String> particles) {
-            boolean noSound = sound == null || sound.isBlank();
+        /** null when there is nothing to play (blank/absent sound + no particles); a blank-name sound is nulled. */
+        public static Cue of(SoundCue sound, List<String> particles) {
+            boolean noSound = sound == null || sound.name().isBlank();
             if (noSound && (particles == null || particles.isEmpty())) {
                 return null;
             }
-            return new Cue(sound, particles);
+            return new Cue(noSound ? null : sound, particles);
         }
     }
 

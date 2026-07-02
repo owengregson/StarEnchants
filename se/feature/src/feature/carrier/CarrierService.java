@@ -407,7 +407,7 @@ public final class CarrierService {
      * re-render lore, and consume the {@code dust}. No-op (not a book, no bonus, already at 100%) leaves both
      * untouched.
      */
-    private GestureOutcome applyDustBonus(ItemStack dust, ItemStack book, int bonus, String sound,
+    private GestureOutcome applyDustBonus(ItemStack dust, ItemStack book, int bonus, compile.load.SoundCue sound,
                                           java.util.List<String> particles) {
         CarrierData bookData = codec.read(book);
         if (bookData == null || !isEnchantBook(bookData)) {

@@ -11,7 +11,8 @@ import schema.spec.Ranges;
  * bypassing the roll. The range is re-read live, not baked onto a random dust.
  */
 public record DustConfig(String material, String name, List<String> lore, int minBonus, int maxBonus,
-                         String sound, List<String> particles) {
+                         /** Apply-feedback sound — the legacy bare string still parses (SoundCue.fromField). */
+                         SoundCue sound, List<String> particles) {
 
     public DustConfig {
         Objects.requireNonNull(material, "material");
@@ -35,7 +36,7 @@ public record DustConfig(String material, String name, List<String> lore, int mi
                 List.of("&7Combine onto an enchant book to", "&7boost its success by &a+{BONUS}%&7."),
                 10,
                 25,
-                "block.amethyst_block.chime",
+                new SoundCue("block.amethyst_block.chime", 1.0f, 1.0f),
                 List.of("HAPPY_VILLAGER"));
     }
 }

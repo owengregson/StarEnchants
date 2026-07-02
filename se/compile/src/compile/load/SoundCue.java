@@ -51,6 +51,23 @@ public record SoundCue(String name, float volume, float pitch) {
         return new SoundCue(name.trim(), readFloat(node, "volume", 1.0f, diags), readFloat(node, "pitch", 1.0f, diags));
     }
 
+    /**
+     * Read {@code key} of {@code parent} as EITHER the legacy bare string (played at 1.0/1.0, as before) or our
+     * bracket map {@code { sound: NAME, volume: V, pitch: P }}; absent/blank/nameless → {@code fallback}.
+     */
+    static SoundCue fromField(YamlNode parent, String key, SoundCue fallback, Diagnostics diags) {
+        if (!parent.has(key)) {
+            return fallback;
+        }
+        YamlNode node = parent.child(key);
+        if (node.isScalar()) {
+            String name = node.scalar();
+            return name == null || name.isBlank() ? fallback : new SoundCue(name.trim(), 1.0f, 1.0f);
+        }
+        SoundCue cue = from(node, diags);
+        return cue == null ? fallback : cue;
+    }
+
     /** Read the sequence of sound mappings under {@code key} (each a bracket map), skipping any with no name. */
     static List<SoundCue> list(YamlNode parent, String key, Diagnostics diags) {
         List<SoundCue> out = new ArrayList<>();

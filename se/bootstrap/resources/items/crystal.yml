@@ -24,7 +24,8 @@ lore:
 # The line shown on crystal-bearing gear (below the orb-slots line, above the heroic line); the item name by default.
 lore-while-on-item: "&d{CRYSTAL} &7Crystal"
 lore-while-on-item-multi: "&d{CRYSTAL} &7Multi-Crystal"
-# Apply/merge and extract gesture sounds (namespaced keys, valid across the version range).
+# Apply/merge and extract gesture sounds (namespaced keys, valid across the version range). `apply`/`remove`
+# also accept the bracket form { sound: NAME, volume: V, pitch: P }; a bare string plays at volume/pitch 1.0.
 sounds:
   enabled: true
   apply: "block.amethyst_block.chime"

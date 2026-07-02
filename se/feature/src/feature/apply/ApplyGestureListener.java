@@ -82,10 +82,13 @@ public abstract class ApplyGestureListener implements Listener {
         if (result.consumeCursor() || result.commit()) {
             player.updateInventory();
         }
-        if (result.cue() != null) {
-            Sounds.play(player, player.getLocation(), result.cue().sound(), 1.0f, 1.0f); // null/blank-safe
-            if (!result.cue().particles().isEmpty()) {
-                particles.spawn(player, result.cue().particles(), 1);
+        GestureOutcome.Cue cue = result.cue();
+        if (cue != null) {
+            if (cue.sound() != null) {
+                Sounds.play(player, player.getLocation(), cue.sound().name(), cue.sound().volume(), cue.sound().pitch());
+            }
+            if (!cue.particles().isEmpty()) {
+                particles.spawn(player, cue.particles(), 1);
             }
         }
         if (result.message() != null) {

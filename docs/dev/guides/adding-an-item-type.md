@@ -167,7 +167,7 @@ private ItemStack mintGemStack(SoulData data) {
 
 static List<String> renderGemLore(SoulGemConfig cfg, int souls) {
     String soulColor = cfg.colorFor(souls);
-    // line.replace("{AMOUNT}", …).replace("{SOUL-COLOR}", soulColor)
+    // Tokens.sub(line, "AMOUNT", …, "SOUL_COLOR", soulColor)  // underscore-canonical; {SOUL-COLOR} still aliases
 }
 ```
 
