@@ -5,7 +5,6 @@ import feature.trigger.LifecycleDriver;
 import feature.trigger.PassiveEffectDriver;
 import feature.trigger.RepeatingDriver;
 import feature.trigger.SetMessageDriver;
-import item.worn.WornState;
 import item.worn.WornStateStore;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,42 +14,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import platform.sched.Scheduling;
 
 /**
- * Legacy (1.8.9) {@link WornStateStore} refresher — same-FQN counterpart to the {@code overlay/modern}
- * listener. 1.8 has no Paper {@code PlayerArmorChangeEvent}, so armour changes are caught by a per-tick poll of
- * each player's armour signature (Item 3, docs/legacy-1.8.9-codeshare-design.md §6) — catching right-click /
- * dispenser equips the instant they happen — backed up by {@link InventoryCloseEvent} (covers a same-material
- * swap the signature can't tell apart) plus join / held-item change. Polling is main-thread only (1.8 is never
- * Folia).
+ * Legacy (1.8.9) {@link WornStateStore} refresher — the era leaf over {@link EquipListenerBase}. 1.8 has no
+ * Paper {@code PlayerArmorChangeEvent}, so armour changes are caught by a per-tick poll of each player's armour
+ * signature (Item 3, docs/legacy-1.8.9-codeshare-design.md §6) — catching right-click / dispenser equips the
+ * instant they happen — backed up by {@link InventoryCloseEvent} (covers a same-material swap the signature
+ * can't tell apart). The join / held-item / respawn / quit lifecycle and the refresh pipeline are shared.
+ * Polling is main-thread only (1.8 is never Folia). Same-FQN counterpart to the {@code overlay/modern} listener.
  */
-public final class EquipListener implements Listener {
+public final class EquipListener extends EquipListenerBase {
 
-    private final WornStateStore worn;
-    private final ContentHolder content;
-    private final RepeatingDriver repeating;
-    private final LifecycleDriver lifecycle;
-    private final PassiveEffectDriver passiveEffects;
-    private final SetMessageDriver setMessages;
     /** Per-player armour signature (material + count of the 4 pieces), last seen by {@link #pollArmour}. */
     private final Map<UUID, String> lastArmour = new ConcurrentHashMap<>();
 
     public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
                          LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, SetMessageDriver setMessages) {
-        this.worn = worn;
-        this.content = content;
-        this.repeating = repeating;
-        this.lifecycle = lifecycle;
-        this.passiveEffects = passiveEffects;
-        this.setMessages = setMessages;
+        super(worn, content, repeating, lifecycle, passiveEffects, setMessages);
         Scheduling.repeatingGlobal(1L, 1L, this::pollArmour);
     }
 
@@ -78,45 +61,10 @@ public final class EquipListener implements Listener {
     }
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        refresh(event.getPlayer());
-    }
-
-    @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (event.getPlayer() instanceof Player player) {
             // armour may have changed while the inventory was open; refresh on the player's thread
             Scheduling.onEntityLater(player, 1L, () -> refresh(player));
         }
-    }
-
-    @EventHandler
-    public void onHeldChange(PlayerItemHeldEvent event) {
-        Player player = event.getPlayer();
-        Scheduling.onEntityLater(player, 1L, () -> refresh(player));
-    }
-
-    @EventHandler
-    public void onRespawn(PlayerRespawnEvent event) {
-        Player player = event.getPlayer();
-        // Death clears all potion effects; re-derive once respawned so a permanent passive buff returns at once.
-        Scheduling.onEntityLater(player, 1L, () -> refresh(player));
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        worn.remove(event.getPlayer().getUniqueId());
-        repeating.disarm(event.getPlayer().getUniqueId());
-        lifecycle.clear(event.getPlayer().getUniqueId());
-        passiveEffects.clear(event.getPlayer().getUniqueId());
-        setMessages.clear(event.getPlayer().getUniqueId());
-    }
-
-    private void refresh(Player player) {
-        WornState state = worn.refresh(player, content.snapshot());
-        repeating.arm(player, state);
-        lifecycle.refresh(player, state);
-        setMessages.refresh(player, state); // §6.6 announce a set becoming complete / dropping below threshold
-        passiveEffects.refresh(player); // reconcile maintained passive potion buffs LAST — it is the authority
     }
 }
