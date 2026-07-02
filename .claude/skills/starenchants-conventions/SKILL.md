@@ -70,6 +70,24 @@ feature by copying one sibling. This is what keeps a huge codebase legible.
 - **Modernize freely, but make divergences opt-in & documented.** Best
   behavior by default; gameplay-changing differences from Cosmic Enchants-style behavior are toggles.
 
+## Errors & logging (ADR-0042)
+
+- **Bukkit shells log via `plugin.getLogger()`** (JUL); plugin-less modules via
+  `System.Logger` named `StarEnchants.<Area>`.
+- **ALWAYS pass the `Throwable` as the log parameter** —
+  `log(Level.WARNING, "msg", t)` — never concatenate `t` / `t.getMessage()`
+  (that drops the stack exactly where reflection/IO failures need it).
+- **The expected Folia cross-region `RuntimeException` is guarded ONLY through
+  `platform.caps.Regions`** (`read` for cold callers, `swallowed` for hot ones)
+  — never a bare silent `catch (RuntimeException)`, which on Paper can only hide
+  a real bug (there it logs the full stack at FINE).
+- **The `compile` module never throws** — every loader fault, including an
+  unlistable directory, is a `DiagCode` diagnostic; numbers/bools parse only
+  through `ContentParse.intOr/doubleOr/boolOr` (content numbers block;
+  config/item/menu numbers warn-and-fall-back).
+- **`DiagCode` is CLOSED** — producers and tests reference the enum; the `String`
+  overloads are gone, so an off-catalogue code cannot compile.
+
 ## Style
 
 - Records over classes for data; immutable. Pure logic gets exhaustive unit
