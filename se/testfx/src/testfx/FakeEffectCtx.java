@@ -33,6 +33,8 @@ public final class FakeEffectCtx implements EffectCtx {
     private Player actor;
     private LivingEntity victim;
     private Location location;
+    private Location actorOrigin;
+    private Location actorOriginEye;
     private int level;
     private UUID activeGem;
 
@@ -88,6 +90,16 @@ public final class FakeEffectCtx implements EffectCtx {
 
     public FakeEffectCtx location(Location location) {
         this.location = location;
+        return this;
+    }
+
+    public FakeEffectCtx actorOrigin(Location actorOrigin) {
+        this.actorOrigin = actorOrigin;
+        return this;
+    }
+
+    public FakeEffectCtx actorOriginEye(Location actorOriginEye) {
+        this.actorOriginEye = actorOriginEye;
         return this;
     }
 
@@ -149,6 +161,16 @@ public final class FakeEffectCtx implements EffectCtx {
     @Override
     public Location location() {
         return location;
+    }
+
+    @Override
+    public Location actorOrigin() {
+        return actorOrigin;
+    }
+
+    @Override
+    public Location actorOriginEye() {
+        return actorOriginEye;
     }
 
     @Override

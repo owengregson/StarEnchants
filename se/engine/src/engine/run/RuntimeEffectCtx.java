@@ -29,11 +29,12 @@ final class RuntimeEffectCtx implements EffectCtx {
     private final int level;
     private final UUID activeGem;
     private final FactBuffer facts;
+    private final ActorOrigin origin;
 
     RuntimeEffectCtx(Args args, ActivationContext context,
                      Map<String, List<LivingEntity>> targetsBySlot,
                      Map<String, List<Location>> locationsBySlot, int level, UUID activeGem,
-                     FactBuffer facts) {
+                     FactBuffer facts, ActorOrigin origin) {
         this.args = args;
         this.context = context;
         this.targetsBySlot = targetsBySlot;
@@ -41,6 +42,7 @@ final class RuntimeEffectCtx implements EffectCtx {
         this.level = level;
         this.activeGem = activeGem;
         this.facts = facts;
+        this.origin = origin;
     }
 
     @Override
@@ -103,6 +105,16 @@ final class RuntimeEffectCtx implements EffectCtx {
     @Override
     public Location location() {
         return context.location();
+    }
+
+    @Override
+    public Location actorOrigin() {
+        return origin == null || !origin.present() ? null : origin.feet();
+    }
+
+    @Override
+    public Location actorOriginEye() {
+        return origin == null || !origin.present() ? null : origin.eye();
     }
 
     @Override

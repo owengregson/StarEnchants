@@ -150,6 +150,7 @@ public final class AbilityExecutor {
      */
     public void runLifecycle(Ability ability, ActivationContext context, SinkReadback sink, boolean stopping) {
         LinkedContent linked = this.linked; // read the volatile once per activation (atomic effect+selector pair)
+        ActorOrigin origin = null;
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = linked.effectFor(effect); // ADR-0039: dense-id dispatch, head-fallback only for -1
@@ -157,13 +158,17 @@ public final class AbilityExecutor {
                     LOG.log(Level.WARNING, "no effect kind registered for head " + effect.head());
                     continue;
                 }
+                if (kind.spec().needsActorOrigin() && origin == null) {
+                    // ADR-0043: one firing-thread snapshot per activated ability, before any region hop.
+                    origin = ActorOrigin.capture(context.actor());
+                }
                 SelectorKind selector = linked.selectorFor(effect.target());
                 RuntimeSelectorCtx sel = selector == null ? null
                         : new RuntimeSelectorCtx(context, effect.target().args(), areaScan);
                 List<LivingEntity> targets = selector == null ? List.of() : selector.resolve(sel);
                 List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), null, null);
+                        locationSlotMap(kind, locations), ability.level(), null, null, origin);
                 sink.delay(0);
                 if (stopping) {
                     kind.stop(ctx, sink);
@@ -182,12 +187,17 @@ public final class AbilityExecutor {
                                engine.condition.FactBuffer facts, AbilityQuarantine quarantine) {
         LinkedContent linked = this.linked; // read the volatile once per activation (atomic effect+selector pair)
         boolean faulted = false;
+        ActorOrigin origin = null;
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = linked.effectFor(effect); // ADR-0039: dense-id dispatch, head-fallback only for -1
                 if (kind == null) {
                     LOG.log(Level.WARNING, "no effect kind registered for head " + effect.head());
                     continue;
+                }
+                if (kind.spec().needsActorOrigin() && origin == null) {
+                    // ADR-0043: one firing-thread snapshot per activated ability, before any region hop.
+                    origin = ActorOrigin.capture(context.actor());
                 }
                 SelectorKind selector = linked.selectorFor(effect.target());
                 RuntimeSelectorCtx sel = selector == null ? null
@@ -198,7 +208,7 @@ public final class AbilityExecutor {
                     LOG.log(Level.WARNING, "no selector kind registered for head " + effect.target().head());
                 }
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), activeGem, facts);
+                        locationSlotMap(kind, locations), ability.level(), activeGem, facts, origin);
                 // WAIT (§3.6): defer only this effect's world-mutation intents by its accumulated tick tier.
                 // Targets are resolved now on the firing thread; inline feedback (fold/cancel) stays instant.
                 sink.delay(effect.cumulativeWaitTicks());
