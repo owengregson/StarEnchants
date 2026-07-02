@@ -4,6 +4,11 @@
 - **Date:** 2026-06-15
 - **Deciders:** owengregson
 
+> **[Update 2026-07-01] StatTrak reversed into scope.** This ADR (and ADR-0001/architecture.md §13.7)
+> originally listed StatTrak among the excluded marquee subsystems. That was reversed: **StatTrak-style
+> traks shipped in v1.1.5** as `feature/trak` (four traks). **GKits, loot-population, and mob-drop tables
+> remain excluded** as originally decided.
+
 ## Context
 
 Cosmic Enchants-style plugins carry many bugs (chance-math off-by-one,

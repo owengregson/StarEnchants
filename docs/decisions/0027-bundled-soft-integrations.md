@@ -53,6 +53,36 @@ Concretely:
 - **Mental** (ADR 0026) follows the same model — bundled, soft, reflective — though it lives in
   `feature.combat` because it shares the live `KnockbackControlStore` rather than implementing an SPI.
 
+## Amendment (2026-07-01): two sanctioned bridge shapes
+
+In practice `se/integrate/Integrations` grew **two** bridge shapes, both soft, differing only in what the
+registrar hands back and where the presence guard lives:
+
+1. **SPI shape** — the bridge implements a first-party interface (`ProtectionProvider` / `EconomyProvider`)
+   returned from a static factory (`create()` / `fromServices()`). The registrar guards it with the
+   string-only `active(plugin, enabled, PluginName, configKey)` presence check *before* touching the
+   factory, so the bridge class (which references the plugin's API) only loads when that plugin is present.
+2. **Bare functional-interface shape** — for hooks that are not a full SPI, the registrar returns a plain
+   `java.util.function` interface with a **no-op / identity absent default**, so the caller can invoke it
+   unconditionally. Same lazy-classload principle; the guard just decides *which* value is returned.
+
+Both keep classloading lazy — the difference is only **where** the guard sits per family:
+
+| Family | Bridge shape | Absent default | Guard location |
+|---|---|---|---|
+| Protection (WorldGuard/Towny/Lands/SuperiorSkyblock/Factions) | SPI (`ProtectionProvider`) | omitted from the list | registrar `active()` (presence + config) |
+| Economy (Vault) | SPI (`EconomyProvider`) | `null` | registrar `active()` |
+| PlaceholderAPI expansion | SPI-like install (`SePlaceholderExpansion`) | not installed | registrar `active()` |
+| PlaceholderAPI passthrough | `BiFunction<Player,String,String>` | identity (`(p,t)->t`) | registrar `active()` |
+| Anti-cheat exemption | `Consumer<Player>` | no-op | delegated into `AntiCheat.exemption(plugin, enabled, log)` |
+| mcMMO friendly-fire | `BiPredicate<Player,Player>` | constant `false` | registrar `enabled.test("mcmmo")` (then `Mcmmo.sameParty`) |
+| MythicMobs mob-type | `Function<Entity,String>` | constant `""` | registrar `enabled.test("mythicmobs")` |
+| Custom items (ItemsAdder/Oraxen) | `Function<String,ItemStack>` | `null`-resolver | delegated into `CustomItems.resolver(plugin, enabled)` |
+
+The registrar's own `active()` and the config-toggle checks touch only Strings + the core `Plugin` type, so
+verifying/running the registrar never resolves an absent plugin's API; a bridge (or its delegate's inner
+class) loads only when its guarded factory actually runs.
+
 ## Verification
 
 Per-bridge, three legs (as ADR 0017 established, minus the now-unnecessary separate-jar packaging):

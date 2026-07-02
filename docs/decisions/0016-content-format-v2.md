@@ -10,6 +10,15 @@
 > content, generated docs, and examples use the block `{ HEAD: { param: value } }` form only. Terse is
 > still **read by the migrator** when importing AE/EE/EA configs (it re-renders them as block). The
 > "alongside terse" / "v1 terse still loads" statements below are historical.
+>
+> **[Update 2026-07-01]** Three further reconciliations with what shipped:
+> - **`scale:` / `$token` / `effects+:` were superseded by v3-directives explicit-levels.** The
+>   per-level authoring model is now the explicit `levels:` form of `docs/v3-directives.md` (no
+>   `scale`/`$token` scaling grammar, no `effects+` append). §3 below is historical.
+> - **The `ItemDef` loader (§4) is realized as `items/<kind>/…` per-type dispatch** — one physical item
+>   per top-level `items/` file, `kind:` selecting the sub-schema, exactly as built.
+> - **Tier folders (§1) are demoted to operator-optional.** The stable key is still `<root>/<filename>`
+>   (tier never part of identity); tier sub-folders are a nicety, not a required layout.
 
 ## Context
 

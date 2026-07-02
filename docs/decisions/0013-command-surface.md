@@ -4,6 +4,12 @@
 - **Date:** 2026-06-15
 - **Deciders:** owengregson
 
+> **[Amendment 2026-07-01]** Two refinements landed after this ADR: (1) **ADR-0030 added `/enchants`** as a
+> second **player-facing** command root (the user hub), so the surface is now `/se` (operator console +
+> full tree) plus `/enchants` (player hub) — the "one root only" wording below predates the GUI overhaul.
+> (2) The **`/star` alias ships now** — it is added to `plugin.yml` in the `feat/diagnostic-commands` PR of
+> this wave. The dropping of the *legacy per-feature* command roots still holds.
+
 ## Context
 
 Cosmic Enchants-style plugins expose separate command roots for the enchant
