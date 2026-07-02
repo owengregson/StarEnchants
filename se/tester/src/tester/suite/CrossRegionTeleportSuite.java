@@ -37,11 +37,13 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import platform.caps.Capabilities;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
 import tester.fake.FakePlayers;
 import tester.harness.CombatRig;
+import tester.harness.CrossRegion;
 import tester.harness.Harness;
 
 /**
@@ -51,8 +53,10 @@ import tester.harness.Harness;
  * hard {@code IllegalStateException} on Folia. A naive inline teleport would pass every Paper run and wedge on a
  * real Folia server; only a genuinely cross-region scenario catches it.
  *
- * <p><strong>Staging.</strong> The attacker sits at world spawn; the cow victim sits 512 blocks away — far
- * enough to own a distinct Folia region. The hit is fired as {@code victim.damage(attacker)} ON THE VICTIM's
+ * <p><strong>Staging.</strong> The attacker sits at world spawn; the cow victim sits {@value CrossRegion#GAP}
+ * blocks away — far enough to own a distinct Folia region (a smaller gap can collapse into one region, so the
+ * distance is single-sourced with the autogen suite via {@link CrossRegion}, and asserted below). The hit is
+ * fired as {@code victim.damage(attacker)} ON THE VICTIM's
  * region thread — matching where Folia delivers a real combat event (the victim is mutated, so its region owns
  * the event). The victim is therefore touched on its own thread; the attacker is only referenced, and the
  * resulting {@code TELEPORT:VICTIM} must carry the far attacker across the boundary to the cow via the Sink's
@@ -70,8 +74,6 @@ public final class CrossRegionTeleportSuite implements Harness.Scenario {
               1: { chance: 100, effects: [{ TELEPORT: { to: VICTIM } }] }
             """;
 
-    /** 512 blocks (32 chunks): comfortably a different Folia region from world spawn, well inside any world. */
-    private static final int REGION_GAP = 512;
     /** Arrived once within this many blocks of the victim — the cross-region hop physically landed. */
     private static final double ARRIVED = 4.0;
     /** Generous: a cross-region {@code teleportAsync} may take a few extra ticks; PASS fires on arrival anyway. */
@@ -87,6 +89,8 @@ public final class CrossRegionTeleportSuite implements Harness.Scenario {
     public void accept(Harness h) {
         h.expect("teleport.crossRegionHopLandsActorOnVictim");
         String check = "teleport.crossRegionHopLandsActorOnVictim";
+        String staging = "teleport.crossRegion.staging";
+        h.expect(staging); // resolved on the victim's region thread, once both regions are staged
 
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
@@ -128,7 +132,7 @@ public final class CrossRegionTeleportSuite implements Harness.Scenario {
 
         World world = plugin.getServer().getWorlds().get(0);
         Location attackerAt = world.getSpawnLocation();
-        Location victimAt = attackerAt.clone().add(REGION_GAP, 0, REGION_GAP);
+        Location victimAt = attackerAt.clone().add(CrossRegion.GAP, 0, CrossRegion.GAP);
 
         // Two-chunk arena: force-load BOTH regions, then stage the attacker on the (primary) world-spawn thread.
         rig.onArena(attackerAt, victimAt, () -> {
@@ -145,6 +149,22 @@ public final class CrossRegionTeleportSuite implements Harness.Scenario {
             // Hop to the victim's distinct region to stage the cow and fire the hit there — where Folia delivers
             // a real combat event (the victim's region owns it).
             Scheduling.onRegion(victimAt, () -> {
+                // On the victim's region thread: prove the (world-spawn) attacker is NOT owned by it, i.e.
+                // CrossRegion.GAP really staged two distinct Folia regions — a collapsed gap makes the whole
+                // cross-region hop below teleport same-region and pass vacuously.
+                if (!Capabilities.foliaPresent()) {
+                    plugin.getLogger().info("[xregion-teleport] single-threaded Paper — distinct-region staging not applicable");
+                    h.pass(staging);
+                } else {
+                    Boolean owned = CrossRegion.ownedByCurrentRegion(attacker);
+                    if (Boolean.TRUE.equals(owned)) {
+                        h.fail(staging, "attacker and victim collapsed into one region — cross-region staging is void");
+                    } else if (owned == null) {
+                        h.fail(staging, "cannot verify region ownership — the ownership API is absent on this Folia build");
+                    } else {
+                        h.pass(staging);
+                    }
+                }
                 LivingEntity victim;
                 try {
                     victim = rig.spawn(world, victimAt, EntityType.COW, LivingEntity.class);
