@@ -20,7 +20,7 @@ single-segment FQN**. The active one is added as a `main` srcDir by
 
 - **May diverge (overlay only):** the platform edge — `DispatchSink`/`DispatchSinkFactory`
   (particles via packet, attributes via NMS `GenericAttributes`), `RuntimeHandles`/`RegistrySupport`
-  (pre-flattening name→id tables), the NBT `ItemBlobStore`, `LegacyEquipSource`, `HeldItem`/`EntityCompat`.
+  (pre-flattening name→id tables), the NBT `ItemBlobStore`, `EquipSource`, `HeldItem`/`EntityCompat`.
 - **Must NOT diverge:** everything in `src/` — `Sink` (fully interned, zero version-volatile referents), the
   effect/condition/selector kinds, `WornState`/`ItemView`, the whole pure core. A same-FQN class may exist in
   `src/` **or** an overlay, never both.
