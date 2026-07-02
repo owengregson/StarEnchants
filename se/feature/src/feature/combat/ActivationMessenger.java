@@ -2,7 +2,6 @@ package feature.combat;
 
 import compile.load.ContentHolder;
 import compile.load.MasterConfig;
-import compile.load.TierRegistry;
 import compile.model.Ability;
 import compile.model.SourceKind;
 import engine.run.ActivationContext;
@@ -98,11 +97,6 @@ public final class ActivationMessenger {
     }
 
     private String tierColorOf(String enchantKey) {
-        String tier = content.library().tierOf(enchantKey);
-        if (tier == null) {
-            return "&7";
-        }
-        TierRegistry.Tier t = content.library().tiers().tier(tier);
-        return t != null && !t.color().isBlank() ? t.color() : "&7";
+        return content.library().tiers().colorOf(content.library().tierOf(enchantKey));
     }
 }

@@ -78,7 +78,7 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
     }
 
     private String tierColor(String tier) {
-        return MenuText.tierColor(content.library().tiers(), tier);
+        return content.library().tiers().colorOf(tier);
     }
 
     private static String capitalize(String s) {

@@ -6,6 +6,7 @@ import compile.load.EnchantDef;
 import compile.load.MenusConfig;
 import compile.load.TierRegistry;
 import feature.apply.ApplyResult;
+import feature.carrier.CarrierService;
 import feature.compat.Hands;
 import feature.apply.ItemEnchanter;
 import item.mint.ItemFactory;
@@ -105,8 +106,8 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
         lore.add("&eClick to apply to your held item.");
         // The icon name is styled by the enchant-book name template (tier colour + any bold/underline), so it
         // matches the unapplied book; level-less here (no specific level in the apply menu).
-        String name = MenuText.enchantName(nameTemplate.get(),
-                MenuText.tierColor(content.library().tiers(), def.tier()), def.display(), "");
+        String name = CarrierService.bookDisplayName(nameTemplate.get(),
+                content.library().tiers().colorOf(def.tier()), def.display(), "");
         return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"), name, lore);
     }
 }

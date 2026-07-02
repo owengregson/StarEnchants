@@ -82,7 +82,7 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
     }
 
     private String tierColor(String tier) {
-        return MenuText.tierColor(content.library().tiers(), tier);
+        return content.library().tiers().colorOf(tier);
     }
 
     private static String tierLabel(String tier) {

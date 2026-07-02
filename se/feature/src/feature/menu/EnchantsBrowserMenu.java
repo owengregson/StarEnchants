@@ -4,6 +4,7 @@ import compile.load.ContentHolder;
 import compile.load.EnchantDef;
 import compile.load.MenusConfig;
 import compile.load.TierRegistry;
+import feature.carrier.CarrierService;
 import item.mint.ItemFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -150,14 +151,14 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
         }
         // The icon name is styled by the enchant-book name template (tier colour + any bold/underline), so it
         // matches the unapplied book; level-less in the browser.
-        String name = MenuText.enchantName(nameTemplate.get(),
-                MenuText.tierColor(content.library().tiers(), def.tier()), def.display(), "");
+        String name = CarrierService.bookDisplayName(nameTemplate.get(),
+                content.library().tiers().colorOf(def.tier()), def.display(), "");
         return ItemFactory.build(material("ENCHANTED_BOOK", "BOOK", "PAPER"), name, lore);
     }
 
     /** The tier's legacy colour code (e.g. {@code &b}), or grey when the tier is unregistered. */
     private String tierColor(String tier) {
-        return MenuText.tierColor(content.library().tiers(), tier);
+        return content.library().tiers().colorOf(tier);
     }
 
     private static String capitalize(String s) {
