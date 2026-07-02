@@ -11,7 +11,7 @@ import schema.spec.HandleCategory;
 /**
  * The platform-specific {@code fallbackAliases} hook: lossy degradations (e.g. the 1.8 lane) merge ON TOP of
  * the shared {@link Aliases} renames for resolution only, without entering {@link Aliases} (which the migrator
- * reuses). Mirrors how the legacy {@code RegistrySupport} maps {@code SOUL}&rarr;{@code SMOKE_LARGE}.
+ * reuses). Mirrors how the legacy {@code LegacyHandleLookup} maps {@code SOUL}&rarr;{@code SMOKE_LARGE}.
  */
 class RenameResolversFallbackTest {
 
