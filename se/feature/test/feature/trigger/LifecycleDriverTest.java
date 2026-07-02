@@ -11,22 +11,20 @@ import static org.mockito.Mockito.when;
 
 import compile.load.ContentHolder;
 import compile.model.Ability;
-import compile.model.Affinity;
-import compile.model.CompiledEffect;
 import compile.model.Snapshot;
-import compile.model.SourceKind;
 import compile.model.StableKeyIndex;
-import item.codec.HeroicStat;
 import item.worn.WornState;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import testfx.Abilities;
+import testfx.Snapshots;
+import testfx.WornStates;
 
 /**
  * Unit-pins the §B {@link LifecycleDriver} diff (ADR-0022): each {@link LifecycleDriver#refresh} compares the
@@ -58,14 +56,7 @@ class LifecycleDriverTest {
         }
         keys = new StableKeyIndex(keyList);
 
-        Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.abilities()).thenReturn(abilities);
-        when(snapshot.generation()).thenReturn(GEN);
-        when(snapshot.stableKeys()).thenReturn(keys);
-        when(snapshot.byStableKey(org.mockito.ArgumentMatchers.anyString())).thenAnswer(inv -> {
-            int id = keys.idOf(inv.getArgument(0));
-            return id < 0 ? null : abilities[id];
-        });
+        Snapshot snapshot = Snapshots.snapshot().abilities(abilities).generation(GEN).stableKeys(keys).build();
         ContentHolder content = mock(ContentHolder.class);
         when(content.snapshot()).thenReturn(snapshot);
 
@@ -125,8 +116,7 @@ class LifecycleDriverTest {
 
     @Test
     void aStaleWornStateIsSkipped() {
-        WornState stale = new WornState(GEN + 1, new BitSet(), new int[0], HeroicStat.NONE,
-                byTrigger(held(3)), new int[0], new int[0]);
+        WornState stale = WornStates.worn().gen(GEN + 1).byTrigger(byTrigger(held(3))).build();
         driver.refresh(player, stale);
         verify(dispatch, never()).fireLifecycle(eq(player), org.mockito.ArgumentMatchers.anyList(),
                 org.mockito.ArgumentMatchers.anyList());
@@ -162,14 +152,12 @@ class LifecycleDriverTest {
         // Trigger mask spans HELD + PASSIVE so the same ability could fire on either; the driver picks by
         // which byTrigger array carries the id (the worn() fixture decides that).
         int mask = (1 << HELD) | (1 << PASSIVE);
-        return new Ability(id, id, SourceKind.ENCHANT, mask, 1, 100.0, 0, 0, 0L,
-                null, new CompiledEffect[0], 0, Affinity.CONTEXT_LOCAL, -1, -1, -1, -1, 0);
+        return Abilities.ability().id(id).defId(id).triggerMask(mask).build();
     }
 
     /** A worn-state fixture; HELD/PASSIVE candidate id lists are supplied via {@link #held}/{@link #passive}. */
     private static WornState worn(int[]... slots) {
-        return new WornState(GEN, new BitSet(), new int[0], HeroicStat.NONE, byTrigger(slots),
-                new int[0], new int[0]);
+        return WornStates.worn().gen(GEN).byTrigger(byTrigger(slots)).build();
     }
 
     private static int[][] byTrigger(int[]... slots) {

@@ -10,7 +10,6 @@ import compile.load.Library;
 import compile.load.SetDef;
 import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
-import item.codec.HeroicStat;
 import item.worn.WornState;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -20,6 +19,8 @@ import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import testfx.Snapshots;
+import testfx.WornStates;
 
 /**
  * Unit tests for the set equip/remove announcer — it diffs the active sets across refreshes (keyed by stable
@@ -39,9 +40,7 @@ class SetMessageDriverTest {
     void setUp() {
         // setId 0 = sets/devil (announce on), setId 1 = sets/quiet (announce off).
         StableKeyIndex keys = new StableKeyIndex(List.of("sets/devil", "sets/quiet"));
-        Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.generation()).thenReturn(GEN);
-        when(snapshot.stableKeys()).thenReturn(keys);
+        Snapshot snapshot = Snapshots.snapshot().generation(GEN).stableKeys(keys).build();
 
         Library library = mock(Library.class);
         when(library.setDefOf("sets/devil")).thenReturn(setDef("sets/devil", true, "EQUIP devil", "REMOVE devil"));
@@ -125,6 +124,6 @@ class SetMessageDriverTest {
         for (int id : activeSetIds) {
             sets.set(id);
         }
-        return new WornState(gen, sets, new int[0], HeroicStat.NONE, new int[0][], new int[0], new int[0]);
+        return WornStates.worn().gen(gen).activeSets(sets).build();
     }
 }
