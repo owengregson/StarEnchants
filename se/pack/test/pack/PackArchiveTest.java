@@ -81,4 +81,30 @@ class PackArchiveTest {
         assertEquals("Colons: yes, \"quotes\" and \\backslash", parsed.description());
         assertTrue(manifest.toYaml().contains("name: \"p\""));
     }
+
+    // ── ADR-0046 fingerprint + surface stamp ──
+
+    @Test
+    void stampedManifestRoundTripsFingerprintAndSurface() {
+        PackManifest stamped = PackManifest.of("p", "d", "a", "t").stamped("1:abcdef012345", "effects 3 · selectors 2");
+        String yaml = stamped.toYaml();
+        assertTrue(yaml.contains("fingerprint: \"1:abcdef012345\""));
+        assertTrue(yaml.contains("surface: \"effects 3 · selectors 2\""));
+
+        PackManifest parsed = PackManifest.fromYaml(yaml, "fallback");
+        assertEquals("1:abcdef012345", parsed.fingerprint());
+        assertEquals("effects 3 · selectors 2", parsed.surface());
+    }
+
+    @Test
+    void unstampedManifestOmitsTheKeysAndParsesToEmpty() {
+        // Byte-compat with pre-0046 output: an unstamped export writes no fingerprint/surface lines.
+        String yaml = PackManifest.of("p", "d", "a", "t").toYaml();
+        assertFalse(yaml.contains("fingerprint:"));
+        assertFalse(yaml.contains("surface:"));
+
+        PackManifest parsed = PackManifest.fromYaml(yaml, "fallback"); // a yaml without the keys → empty both
+        assertEquals("", parsed.fingerprint());
+        assertEquals("", parsed.surface());
+    }
 }

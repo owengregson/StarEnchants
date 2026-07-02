@@ -41,7 +41,8 @@ class PackStoreTest {
         writeSurfaceA(data);
 
         PackStore store = new PackStore(data);
-        PackStore.ExportResult result = store.export("mine", "my pack", "owen", "2026-06-23T10:00:00");
+        PackStore.ExportResult result = store.export("mine", "my pack", "owen", "2026-06-23T10:00:00",
+                "1:feed", "effects 7");
 
         assertTrue(Files.isRegularFile(result.file()));
         assertEquals(6, result.fileCount()); // 2 files + 4 dir files; the .DS_Store dotfile is excluded
@@ -50,7 +51,10 @@ class PackStoreTest {
         assertEquals(1, packs.size());
         assertEquals("mine", packs.get(0).name());
         assertEquals("my pack", packs.get(0).manifest().description());
-        assertEquals("owen", store.info("mine").orElseThrow().author());
+        PackManifest info = store.info("mine").orElseThrow();
+        assertEquals("owen", info.author());
+        assertEquals("1:feed", info.fingerprint()); // ADR-0046 stamp survives export → peek
+        assertEquals("effects 7", info.surface());
     }
 
     @Test
@@ -58,7 +62,7 @@ class PackStoreTest {
         // Capture surface A as pack "a".
         writeSurfaceA(data);
         PackStore store = new PackStore(data);
-        store.export("a", "surface A", "se", "2026-06-23T10:00:00");
+        store.export("a", "surface A", "se", "2026-06-23T10:00:00", "1:aaaa", "effects 1");
 
         // Mutate the live config into a different surface B: change a file, drop one, add one.
         Files.writeString(data.resolve("config.yml"), "slots:\n  base: 12\n");
@@ -67,7 +71,7 @@ class PackStoreTest {
         write(data, "items/dust.yml", "type: dust\n");
 
         // Apply pack "a" — surface must become exactly A again, and B is backed up.
-        PackStore.ApplyResult applied = store.apply("a", "backup-test", "2026-06-23T11:00:00");
+        PackStore.ApplyResult applied = store.apply("a", "backup-test", "2026-06-23T11:00:00", "1:live", "effects 2");
         assertTrue(applied.hasBackup());
         assertEquals("backup-test", applied.backupName());
 
@@ -86,6 +90,7 @@ class PackStoreTest {
         assertEquals("slots:\n  base: 12\n", new String(backup.files().get("config.yml"), StandardCharsets.UTF_8));
         assertTrue(backup.files().containsKey("content/enchants/bleed.yml"));
         assertFalse(backup.files().containsKey("content/enchants/venom.yml"));
+        assertEquals("1:live", backup.manifest().fingerprint()); // ADR-0046: the auto-backup is stamped with the LIVE surface
     }
 
     @Test
@@ -102,7 +107,7 @@ class PackStoreTest {
         }
 
         PackStore store = new PackStore(data);
-        PackStore.ApplyResult applied = store.apply("sketchy", "backup-x", "2026-06-23T12:00:00");
+        PackStore.ApplyResult applied = store.apply("sketchy", "backup-x", "2026-06-23T12:00:00", "1:live", "s");
 
         assertTrue(Files.exists(data.resolve("config.yml")));
         assertTrue(Files.exists(data.resolve("content/enchants/x.yml")));
@@ -115,10 +120,40 @@ class PackStoreTest {
     @Test
     void invalidNamesAndMissingPacksAreRejected(@TempDir Path data) throws Exception {
         PackStore store = new PackStore(data);
-        assertThrows(IllegalArgumentException.class, () -> store.export("../bad", "", "", "t"));
-        assertThrows(IllegalArgumentException.class, () -> store.export("with/slash", "", "", "t"));
-        assertThrows(java.io.IOException.class, () -> store.apply("ghost", "backup", "t"));
+        assertThrows(IllegalArgumentException.class, () -> store.export("../bad", "", "", "t", "", ""));
+        assertThrows(IllegalArgumentException.class, () -> store.export("with/slash", "", "", "t", "", ""));
+        assertThrows(java.io.IOException.class, () -> store.apply("ghost", "backup", "t", "", ""));
         assertFalse(store.exists("ghost"));
         assertTrue(store.list().isEmpty()); // no packs/ dir yet
+    }
+
+    // ── ADR-0046 gate surface: load() + stageInto() ──
+
+    @Test
+    void loadReadsTheManifestAndFilesAndMissingIsEmpty(@TempDir Path data) throws Exception {
+        writeSurfaceA(data);
+        PackStore store = new PackStore(data);
+        store.export("a", "surface A", "se", "2026-06-23T10:00:00", "1:aaaa", "effects 1");
+
+        Pack loaded = store.load("a").orElseThrow();
+        assertEquals("1:aaaa", loaded.manifest().fingerprint());
+        assertTrue(loaded.files().containsKey("content/enchants/venom.yml"));
+        assertTrue(store.load("ghost").isEmpty());
+    }
+
+    @Test
+    void stageIntoWritesTheSurfaceAndSkipsEscapes(@TempDir Path data) throws Exception {
+        Map<String, byte[]> files = new LinkedHashMap<>();
+        files.put("config.yml", "ok: true\n".getBytes(StandardCharsets.UTF_8));
+        files.put("../escape.txt", "nope".getBytes(StandardCharsets.UTF_8));
+        files.put("evil.txt", "nope".getBytes(StandardCharsets.UTF_8));
+
+        Path scratch = data.resolve("scratch");
+        List<String> skipped = PackStore.stageInto(files, scratch);
+
+        assertTrue(Files.exists(scratch.resolve("config.yml")));
+        assertTrue(skipped.contains("../escape.txt"));
+        assertTrue(skipped.contains("evil.txt"));
+        assertFalse(Files.exists(data.resolve("escape.txt")), "a path-escape entry must never leave the scratch dir");
     }
 }

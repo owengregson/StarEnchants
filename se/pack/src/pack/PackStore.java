@@ -86,25 +86,45 @@ public final class PackStore {
         }
     }
 
+    /** Read a pack fully (manifest + file map) — the ADR-0046 apply gate needs both; {@link #info} peeks the manifest only. */
+    public Optional<Pack> load(String name) throws IOException {
+        if (!exists(name)) {
+            return Optional.empty();
+        }
+        try (InputStream in = Files.newInputStream(packFile(name))) {
+            return Optional.of(PackArchive.read(in));
+        }
+    }
+
+    /**
+     * Write {@code files} under {@code dir} through the escape-guarded surface writer — the ADR-0046 gate's
+     * staging seam, keeping {@link PackSurface} package-private. Out-of-surface entries are skipped and returned.
+     */
+    public static List<String> stageInto(Map<String, byte[]> files, Path dir) throws IOException {
+        return PackSurface.writeAll(files, dir);
+    }
+
     /**
      * Snapshot the live surface into {@code packs/<name>.zip}, overwriting any existing pack of that name.
+     * The caller stamps the live registry fingerprint + surface summary (ADR-0046); pass empty strings only
+     * from contexts with no registry (none in production).
      *
      * @throws IllegalArgumentException if {@code name} is not a safe identifier
      */
-    public ExportResult export(String name, String description, String author, String createdIso)
-            throws IOException {
+    public ExportResult export(String name, String description, String author, String createdIso,
+                               String fingerprint, String surface) throws IOException {
         if (!isValidName(name)) {
             throw new IllegalArgumentException("invalid pack name '" + name + "' (use letters/digits/_/-)");
         }
-        Map<String, byte[]> surface = PackSurface.collect(dataRoot);
+        Map<String, byte[]> captured = PackSurface.collect(dataRoot);
         PackManifest manifest = new PackManifest(name, description, author, PackManifest.CURRENT_FORMAT,
-                createdIso, surface.size());
+                createdIso, captured.size(), fingerprint, surface);
         Files.createDirectories(packsDir);
         Path file = packFile(name);
         try (OutputStream out = Files.newOutputStream(file)) {
-            PackArchive.write(out, manifest, surface);
+            PackArchive.write(out, manifest, captured);
         }
-        return new ExportResult(name, file, surface.size());
+        return new ExportResult(name, file, captured.size());
     }
 
     /**
@@ -113,8 +133,12 @@ public final class PackStore {
      *
      * @param backupLabel a safe pack name for the pre-apply backup (e.g. {@code backup-2026-06-23-1430})
      * @param createdIso  the ISO timestamp stamped into the backup manifest
+     * @param liveFingerprint the live registry fingerprint (ADR-0046) stamped onto the auto-backup — the
+     *                        backup snapshots the LIVE surface, so a later re-apply of it gates correctly
+     * @param liveSurface     the live surface summary stamped alongside {@code liveFingerprint}
      */
-    public ApplyResult apply(String name, String backupLabel, String createdIso) throws IOException {
+    public ApplyResult apply(String name, String backupLabel, String createdIso,
+                             String liveFingerprint, String liveSurface) throws IOException {
         if (!exists(name)) {
             throw new IOException("no such pack '" + name + "'");
         }
@@ -133,7 +157,7 @@ public final class PackStore {
         if (!current.isEmpty() && isValidName(backupLabel)) {
             PackManifest backupManifest = new PackManifest(backupLabel,
                     "Automatic backup taken before applying '" + name + "'.", "auto",
-                    PackManifest.CURRENT_FORMAT, createdIso, current.size());
+                    PackManifest.CURRENT_FORMAT, createdIso, current.size(), liveFingerprint, liveSurface);
             Files.createDirectories(packsDir);
             try (OutputStream out = Files.newOutputStream(packFile(backupLabel))) {
                 PackArchive.write(out, backupManifest, current);

@@ -53,7 +53,7 @@ public final class PackArchive {
             }
         }
         if (manifest == null) {
-            manifest = new PackManifest("pack", "", "", PackManifest.CURRENT_FORMAT, "", files.size());
+            manifest = new PackManifest("pack", "", "", PackManifest.CURRENT_FORMAT, "", files.size(), "", "");
         }
         return new Pack(manifest, files);
     }
