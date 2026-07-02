@@ -10,21 +10,14 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 /**
- * Legacy (1.8.9) particle feedback — same-FQN counterpart to the modern {@code overlay/modern} impl. 1.8
- * has no {@code org.bukkit.Particle}/{@code spawnParticle}, so particles are sent as the NMS
- * {@code PacketPlayOutWorldParticles} resolved by 1.8 {@code EnumParticle} name. Construction differs from
- * the modern impl (no {@code Particle} resolver), but the consumed surface — {@link #NONE} and
- * {@link #spawn} — is identical, so the shared {@code SoulParticleDriver} is blind to the difference.
- * (Routing config tokens through the legacy particle alias table is Gate-3/Phase-3 hardening.)
+ * Legacy (1.8.9) impl of {@link ParticleFx} — the era-exclusive {@code overlay/legacy} particle feedback
+ * (ADR-0044; §4). 1.8 has no {@code org.bukkit.Particle}/{@code spawnParticle}, so particles are sent as the NMS
+ * {@code PacketPlayOutWorldParticles} resolved by 1.8 {@code EnumParticle} name. (Routing config tokens through
+ * the legacy particle alias table is Gate-3/Phase-3 hardening.)
  */
-public final class ParticleFx {
+public final class LegacyParticleFx implements ParticleFx {
 
-    /** No-op fx for unit/synthetic contexts. */
-    public static final ParticleFx NONE = new ParticleFx();
-
-    public ParticleFx() {
-    }
-
+    @Override
     public void spawn(Player player, List<String> tokens, int count) {
         if (player == null || tokens == null || tokens.isEmpty()) {
             return;
@@ -50,8 +43,9 @@ public final class ParticleFx {
     /**
      * Degraded {@link ParticleSpec} spawn on 1.8.9: honours the count, spread, and y-offset, but 1.8 has no
      * coloured-dust API, so the RGB is dropped (a {@code DUST} token also won't resolve here — 1.8 names it
-     * {@code REDSTONE}). Same signature as the modern twin so the class sets match for the mega-jar merge.
+     * {@code REDSTONE}).
      */
+    @Override
     public void spawn(Player player, ParticleSpec spec) {
         if (player == null || spec == null || spec.isEmpty()) {
             return;

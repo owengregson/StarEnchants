@@ -18,7 +18,7 @@ import platform.sched.Scheduling;
 /**
  * Item-nametag gesture glue (§I); logic lives in {@link NametagService}. A thin leaf of the shared
  * {@link ApplyGestureListener} (ADR-0041) — dragging a nametag onto gear begins a rename. On modern servers
- * ({@link NametagAnvil#supported()}) the rename is captured through a raw-Bukkit ANVIL GUI — the player types
+ * ({@link AnvilRename#supported()}) the rename is captured through a raw-Bukkit ANVIL GUI — the player types
  * the new name, legacy {@code &} colour codes are parsed, and the result-slot click applies it; the 1.8.9 fork
  * falls back to chat capture. The anvil dialog lock runs in {@link #handledBeforeGesture}, ahead of the
  * drag-onto-gear gesture, so a click inside our rename GUI is never re-interpreted.
@@ -29,11 +29,14 @@ import platform.sched.Scheduling;
 public final class NametagListener extends ApplyGestureListener {
 
     private final NametagService service;
-    private final boolean anvilMode = NametagAnvil.supported();
+    private final AnvilRename anvilRename; // §4 era seam: real anvil rename (modern) vs chat capture (1.8)
+    private final boolean anvilMode;
 
-    public NametagListener(NametagService service, Messages messages, Sounds sounds) {
+    public NametagListener(NametagService service, Messages messages, Sounds sounds, AnvilRename anvilRename) {
         super(messages, sounds);
         this.service = Objects.requireNonNull(service, "service");
+        this.anvilRename = Objects.requireNonNull(anvilRename, "anvilRename");
+        this.anvilMode = anvilRename.supported();
     }
 
     // A click inside OUR anvil rename GUI: lock the dialog; the result slot confirms the rename. Runs BEFORE
@@ -41,9 +44,9 @@ public final class NametagListener extends ApplyGestureListener {
     @Override
     @SuppressWarnings("deprecation") // getView: the floor-stable view path
     protected boolean handledBeforeGesture(Player player, InventoryClickEvent event) {
-        if (anvilMode && service.inAnvil(player.getUniqueId()) && NametagAnvil.isAnvil(event.getView())) {
+        if (anvilMode && service.inAnvil(player.getUniqueId()) && anvilRename.isAnvil(event.getView())) {
             event.setCancelled(true); // typing renames; no item may be pulled out
-            if (event.getRawSlot() == NametagAnvil.RESULT_SLOT) {
+            if (event.getRawSlot() == AnvilRename.RESULT_SLOT) {
                 confirmAnvil(player, event);
             }
             return true;
@@ -75,14 +78,14 @@ public final class NametagListener extends ApplyGestureListener {
         service.markAnvil(player.getUniqueId());
         Scheduling.onEntity(player, () -> {
             player.closeInventory();
-            NametagAnvil.open(player, service.anvilTitle(), preview);
+            anvilRename.open(player, service.anvilTitle(), preview);
         });
     }
 
     /** Read the anvil rename field and apply it to the captured target; then close the GUI. */
     @SuppressWarnings("deprecation") // getView: the floor-stable view path
     private void confirmAnvil(Player player, InventoryClickEvent event) {
-        String text = NametagAnvil.renameText(event.getView());
+        String text = anvilRename.renameText(event.getView());
         if (text == null) {
             return; // nothing typed yet — leave the dialog open
         }
@@ -98,7 +101,7 @@ public final class NametagListener extends ApplyGestureListener {
     @EventHandler
     public void onAnvilDrag(InventoryDragEvent event) {
         if (anvilMode && event.getWhoClicked() instanceof Player player
-                && service.inAnvil(player.getUniqueId()) && NametagAnvil.isAnvil(event.getView())) {
+                && service.inAnvil(player.getUniqueId()) && anvilRename.isAnvil(event.getView())) {
             event.setCancelled(true); // no dragging items into our rename dialog
         }
     }
@@ -108,7 +111,7 @@ public final class NametagListener extends ApplyGestureListener {
         if (!anvilMode || !(event.getPlayer() instanceof Player player)) {
             return;
         }
-        if (!service.inAnvil(player.getUniqueId()) || !NametagAnvil.isAnvil(event.getView())) {
+        if (!service.inAnvil(player.getUniqueId()) || !anvilRename.isAnvil(event.getView())) {
             return;
         }
         // §I Drop the display clone BEFORE vanilla returns the anvil input (the close event fires first), so an

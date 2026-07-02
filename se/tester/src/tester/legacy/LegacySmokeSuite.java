@@ -187,7 +187,10 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         // knockback. Compared against an unflagged baseline so the assertion proves the hook acted, not that the
         // hit simply produced no knockback. Victims are offset from the attacker so the knockback has a direction.
         KnockbackControlStore store = new KnockbackControlStore();
-        KnockbackListener.register(plugin, store, () -> 0L); // 1.8 → registers the legacy EDBE applier
+        // 1.8 fires no Paper knockback event, so register the NMS knockback-resistance applier directly (the
+        // shared KnockbackListener probe would resolve NONE here) — mirroring the legacy bindings.
+        plugin.getServer().getPluginManager().registerEvents(
+                new feature.combat.NmsKnockbackApplier(store, () -> 0L), plugin);
         Scheduling.onRegion(at, () -> {
             Player atk;
             Player base;

@@ -37,7 +37,7 @@ public final class HeroicDurabilityListener implements Listener {
         // and the scaling collapses to the base heroic buff (no double protection) — read the effective max, not
         // the material max, so the two paths compose.
         double chance = HeroicDiamond.scaledWearCancel(
-                HeroicVanillaStats.effectiveMaxDurability(item), item.getType(), base);
+                ModernVanillaStats.effectiveMaxDurability(item), item.getType(), base);
         if (random.nextDouble() < chance) {
             event.setCancelled(true);
         }

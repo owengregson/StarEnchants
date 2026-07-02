@@ -129,7 +129,7 @@ public final class HeroicVanillaStatsSuite implements Harness.Scenario {
         CombatCodec combat = new CombatCodec(ItemKeys.of().combat(), Stores.state());
         LoreRenderer lore = Stores.lore(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> null));
         return new HeroicService(upgrades, combat, lore, () -> cfg, new Random(), platform.lang.Messages.defaults(),
-                ItemGroups.standard());
+                ItemGroups.standard(), new feature.heroic.ModernVanillaStats());
     }
 
     private static ItemStack forge(HeroicService service, Material input, Material expectedDisplay) {

@@ -29,9 +29,10 @@ import org.bukkit.persistence.PersistentDataType;
  * <p>Cross-version edges (verified against the cached reference jars, never guessed): the attribute is resolved
  * by REGISTRY KEY (the key dropped its {@code generic.} prefix at 1.21 — try modern then legacy), the modifier is
  * built with the {@code (UUID, name, amount, op, slot)} ctor (present floor → ceiling), and {@code setMaxDamage}
- * is reflected (it is 1.20.5+, absent on the floor). The 1.8.9 fork has its own no-op counterpart (same FQN).
+ * is reflected (it is 1.20.5+, absent on the floor). The 1.8.9 era binds {@link VanillaStats#NONE} instead
+ * (ADR-0044): the era-exclusive {@code overlay/modern} override of the {@link VanillaStats} seam.
  */
-public final class HeroicVanillaStats {
+public final class ModernVanillaStats implements VanillaStats {
 
     /** Resolved ONCE: the armour / toughness / attack-damage attributes by registry key (modern first, then ≤1.20.6). */
     private static final Attribute ARMOUR = byKey("armor", "generic.armor");
@@ -44,7 +45,7 @@ public final class HeroicVanillaStats {
     private static final Method HAS_MAX_DAMAGE = probeNoArg("hasMaxDamage");
     private static final Method GET_MAX_DAMAGE = probeNoArg("getMaxDamage");
 
-    private HeroicVanillaStats() {
+    public ModernVanillaStats() {
     }
 
     /**
@@ -83,7 +84,8 @@ public final class HeroicVanillaStats {
      * weapon) — the caller then drops the matching plugin-maths flat delta so the two never double-count. A
      * diamond/netherite display returns {@code false}.
      */
-    public static boolean apply(ItemStack stack, boolean weapon) {
+    @Override
+    public boolean apply(ItemStack stack, boolean weapon) {
         if (stack == null) {
             return false;
         }

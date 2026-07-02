@@ -13,9 +13,10 @@ import org.bukkit.plugin.Plugin;
 import platform.sched.Scheduling;
 
 /**
- * Modern (1.17.1+) anvil-rename seam for the item nametag (§I): opens a REAL server-side anvil so its rename
- * field is live. Same-FQN counterpart to the {@code overlay/legacy} stub — {@code AnvilInventory.getRenameText()}
- * was added in 1.11, so the 1.8.9 fork reports unsupported and the listener falls back to chat capture.
+ * Modern (1.17.1+) override of the {@link AnvilRename} seam for the item nametag (§I; ADR-0044): opens a REAL
+ * server-side anvil so its rename field is live. The 1.8.9 era binds {@link AnvilRename#UNSUPPORTED} instead
+ * ({@code AnvilInventory.getRenameText()}/{@code PrepareAnvilEvent} are 1.11/1.17), so the listener falls back
+ * to chat capture there.
  *
  * <p>A {@code createInventory(ANVIL)} inventory is NOT backed by a real anvil container, so {@code getRenameText()}
  * always returns null (the old bug — the confirm read nothing and the dialog re-rendered). {@link Player#openAnvil}
@@ -23,16 +24,14 @@ import platform.sched.Scheduling;
  * close so vanilla's input-return (which fires AFTER InventoryCloseEvent) never duplicates it. The result-slot
  * click is cancelled by the listener before vanilla's XP-affordability check, so the rename works at any level.
  */
-public final class NametagAnvil {
+public final class ModernAnvilRename implements AnvilRename {
 
-    /** The anvil result slot (rawSlot in the view's top inventory). */
-    public static final int RESULT_SLOT = 2;
-
-    private NametagAnvil() {
+    public ModernAnvilRename() {
     }
 
     /** Whether the raw-Bukkit anvil rename GUI is available on this server (always on modern). */
-    public static boolean supported() {
+    @Override
+    public boolean supported() {
         return true;
     }
 
@@ -41,7 +40,8 @@ public final class NametagAnvil {
      * pre-fills the name). {@code force=true} opens it without an anvil block; the title is the vanilla "Repair
      * &amp; Name" ({@link Player#openAnvil} takes no custom title — the rename field is what matters here).
      */
-    public static void open(Player player, String title, ItemStack input) {
+    @Override
+    public void open(Player player, String title, ItemStack input) {
         InventoryView view = player.openAnvil(player.getLocation(), true);
         if (view != null) {
             view.getTopInventory().setItem(0, input);
@@ -49,12 +49,14 @@ public final class NametagAnvil {
     }
 
     /** Whether {@code view}'s top inventory is an anvil. */
-    public static boolean isAnvil(InventoryView view) {
+    @Override
+    public boolean isAnvil(InventoryView view) {
         return view != null && view.getTopInventory() instanceof AnvilInventory;
     }
 
     /** The current rename-field text of {@code view}'s anvil, or {@code null} if absent/empty/not an anvil. */
-    public static String renameText(InventoryView view) {
+    @Override
+    public String renameText(InventoryView view) {
         if (view == null || !(view.getTopInventory() instanceof AnvilInventory anvil)) {
             return null;
         }
@@ -63,12 +65,13 @@ public final class NametagAnvil {
     }
 
     /**
-     * Register the coloured result-preview listener (modern only; the legacy stub is a no-op). On a real anvil,
+     * Register the coloured result-preview listener (modern only; UNSUPPORTED is a no-op). On a real anvil,
      * vanilla shows the typed name in the result slot as PLAIN text; this re-paints the result with the
      * {@code &}-translated name so the player previews the final colours. {@link PrepareAnvilEvent} does not
      * exist on 1.8.9, which is why this lives in the overlay and not the shared listener.
      */
-    public static void installPreview(Plugin plugin, NametagService service) {
+    @Override
+    public void installPreview(Plugin plugin, NametagService service) {
         plugin.getServer().getPluginManager().registerEvents(new PreviewListener(service), plugin);
     }
 

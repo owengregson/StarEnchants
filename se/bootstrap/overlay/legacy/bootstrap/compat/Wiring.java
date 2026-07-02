@@ -4,6 +4,9 @@ import engine.run.ActorProbe;
 import engine.run.LegacyActorProbe;
 import engine.sink.LegacyDispatchSink;
 import engine.sink.SinkFactory;
+import engine.stores.KnockbackControlStore;
+import feature.combat.KnockbackListener;
+import feature.combat.NmsKnockbackApplier;
 import feature.compat.DropControl;
 import feature.compat.Hands;
 import feature.compat.KeySoundFallback;
@@ -12,14 +15,19 @@ import feature.compat.LegacyHands;
 import feature.compat.LegacyProjectiles;
 import feature.compat.Projectiles;
 import feature.compat.Sounds;
+import feature.fx.LegacyParticleFx;
 import feature.fx.ParticleFx;
+import feature.heroic.VanillaStats;
+import feature.scroll.AnvilRename;
 import item.codec.ItemStateStore;
 import item.codec.NbtItemStateStore;
 import item.worn.EquipSource;
 import item.worn.LegacyEquipSource;
 import java.util.Locale;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.plugin.Plugin;
 import platform.resolve.RegistryResolvers;
 
 /**
@@ -37,7 +45,7 @@ public final class Wiring {
     }
 
     public ParticleFx particleFx() {
-        return new ParticleFx();
+        return new LegacyParticleFx();
     }
 
     public SinkFactory sinkFactory() {
@@ -77,6 +85,25 @@ public final class Wiring {
     /** Sound playback (§4): the shared resolver; 1.8 has no String overload, so key-form sounds are skipped. */
     public Sounds sounds() {
         return new Sounds(KeySoundFallback.NONE);
+    }
+
+    /** §F heroic vanilla stats (§4): 1.8 has no attribute API — keep the plugin-maths fold. Into {@code HeroicService}. */
+    public VanillaStats vanillaStats() {
+        return VanillaStats.NONE;
+    }
+
+    /** §I nametag rename (§4): 1.8 has no live anvil-rename field — chat capture. Into {@code NametagListener}. */
+    public AnvilRename anvilRename() {
+        return AnvilRename.UNSUPPORTED;
+    }
+
+    /**
+     * §C KNOCKBACK_CONTROL (§4): 1.8 fires no Paper knockback event, so the {@link NmsKnockbackApplier}
+     * (knockback-resistance at the NMS source) is always the applier. Returns {@link KnockbackListener.Path#LEGACY}.
+     */
+    public KnockbackListener.Path registerKnockback(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks) {
+        plugin.getServer().getPluginManager().registerEvents(new NmsKnockbackApplier(store, nowTicks), plugin);
+        return KnockbackListener.Path.LEGACY;
     }
 
     /**

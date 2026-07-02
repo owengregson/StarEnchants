@@ -11,16 +11,17 @@ import org.bukkit.event.Listener;
 
 /**
  * The KNOCKBACK_CONTROL applier for servers that fire Paper's legacy {@link EntityKnockbackByEntityEvent}
- * (floor &rarr; pre-1.20.6). {@link KnockbackListener} registers it only when the modern event is absent,
- * so this class never loads on a modern server and exactly one applier fires (no double-scale). The event
- * runs on the victim's region thread; the store is concurrent and UUID-keyed — Folia-safe.
+ * (floor &rarr; pre-1.20.6) — the era-exclusive {@code overlay/modern} applier (ADR-0044; the 1.8 era binds
+ * {@code NmsKnockbackApplier} instead). {@link KnockbackListener} registers it only when the modern event is
+ * absent, so exactly one applier fires (no double-scale). The event runs on the victim's region thread; the
+ * store is concurrent and UUID-keyed — Folia-safe.
  */
-final class LegacyKnockbackListener implements Listener {
+public final class LegacyKnockbackListener implements Listener {
 
     private final KnockbackControlStore store;
     private final LongSupplier nowTicks;
 
-    LegacyKnockbackListener(KnockbackControlStore store, LongSupplier nowTicks) {
+    public LegacyKnockbackListener(KnockbackControlStore store, LongSupplier nowTicks) {
         this.store = Objects.requireNonNull(store, "store");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
