@@ -2,7 +2,7 @@ package compile;
 
 import schema.spec.ParamSpec;
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -17,7 +17,8 @@ public final class MapSpecRegistry implements SpecRegistry {
     private final Map<String, ParamSpec> byHead;
 
     public MapSpecRegistry(Collection<ParamSpec> specs) {
-        Map<String, ParamSpec> map = new LinkedHashMap<>();
+        // Plain HashMap: lookup is by head and the final Map.copyOf is unordered, so insertion order buys nothing.
+        Map<String, ParamSpec> map = new HashMap<>();
         for (ParamSpec spec : specs) {
             String key = canonical(spec.head());
             ParamSpec prev = map.put(key, spec);

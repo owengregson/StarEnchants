@@ -20,10 +20,13 @@ import engine.pipeline.ActivationPipeline;
 import api.event.EnchantActivateEvent;
 import api.event.StarEnchantsReloadEvent;
 import compile.model.Ability;
+import compile.model.Snapshot;
 import engine.run.AbilityExecutor;
+import engine.run.AbilityQuarantine;
 import engine.run.ActivationContext;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
+import engine.stores.ComboStore;
 import engine.stores.CooldownStore;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
@@ -392,8 +395,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // §L global message-on-activate: the holder ("BY you") + the other party ("ON you") get a configured line.
         feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
                 () -> master.config().messageOnActivate(), content);
+        // Named + registered with EngineStoreListener like its sibling stores, not inline in the pipeline, so the
+        // one quit-cleanup authority frees a leaver's cooldown entries (the TTL is the only other bound).
+        CooldownStore cooldowns = new CooldownStore();
+        // Combat-local streak store, hoisted here (not private in CombatDispatch) so it too is quit-cleaned there.
+        ComboStore combo = new ComboStore();
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
-                new ActivationPipeline(new CooldownStore(), soulService, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
+                new ActivationPipeline(cooldowns, soulService, suppression, protectionGuard, ActivationPipeline.Guard.ALLOW),
                 areaScan(), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked
@@ -401,6 +409,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     fireActivation(key, ability, context);                 // EnchantActivateEvent (public API)
                     activationMessenger.onActivate(key, ability, context); // §L the configured BY/ON lines
                 });
+        // §10 runtime quarantine, bound to the live snapshot and rebound per reload (see the reloader callback).
+        executor.bindQuarantine(quarantineFor(content.snapshot()));
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
         // Economy bridge for MODIFY_MONEY (global thread): bundled Vault (§N, ADR-0027) → ServicesManager → no-ops.
@@ -437,7 +447,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
                 soulService::bindingFor, economy, soulService, vars, suppression, knockback, keepOnDeath,
-                teleblock, immune,
+                teleblock, immune, combo,
                 () -> master.config().heroic().maxOutgoingFactor(),       // §F heroic clamp ceiling
                 () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
                 () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
@@ -506,7 +516,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Magma floor (devil's Hell's Kitchen) scorches the scene, not the health: cancel HOT_FLOOR in a hellfire zone.
         getServer().getPluginManager().registerEvents(new feature.combat.HellfireFloorListener(), this);
         getServer().getPluginManager().registerEvents(
-                new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune), this);
+                new EngineStoreListener(vars, suppression, knockback, keepOnDeath, teleblock, immune,
+                        cooldowns, combo, soulService), this);
         // §C KEEP_ON_DEATH at NORMAL priority — earlier than HolyScrollListener (HIGH) — so an enchant-kept
         // death never spends a holy scroll.
         getServer().getPluginManager().registerEvents(new KeepOnDeathListener(keepOnDeath, tick::get), this);
@@ -594,6 +605,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // On a clean swap this hook advances the gen-keyed caches and re-resolves every online player.
         reloader = new ContentReloader(content, () -> compiler, contentRoot, 0, published -> {
             itemViews.reload(published.snapshot().generation());
+            executor.bindQuarantine(quarantineFor(published.snapshot())); // §10 fresh per snapshot — a fixed edit clears the block
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
             if (master.config().reload().reResolvePlayers()) { // §L config.yml reload.re-resolve-players
@@ -724,6 +736,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
     public ContentHolder content() {
         return content;
+    }
+
+    // §10: three faults of one ability disable it for the snapshot's life — enough to distinguish a genuinely
+    // broken content unit from a one-off transient, without letting it spam every hit.
+    private static final int QUARANTINE_THRESHOLD = 3;
+
+    /** A fresh quarantine for {@code snapshot}: dense-id fault counters keyed to this snapshot's SourceMap/keys. */
+    private static AbilityQuarantine quarantineFor(Snapshot snapshot) {
+        return new AbilityQuarantine(snapshot.sourceMap(), snapshot.stableKeys(), QUARANTINE_THRESHOLD);
     }
 
     /**
