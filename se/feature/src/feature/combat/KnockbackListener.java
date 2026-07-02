@@ -4,6 +4,7 @@ import engine.stores.KnockbackControlStore;
 import feature.compat.KnockbackSeam;
 import java.lang.reflect.Method;
 import java.util.function.LongSupplier;
+import java.util.logging.Level;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
@@ -77,8 +78,8 @@ public final class KnockbackListener {
                     eventClass, new Listener() { }, EventPriority.HIGH, executor, plugin, true);
         } catch (ReflectiveOperationException unexpected) {
             // classPresent already confirmed the class; a missing accessor would be a Paper API change.
-            plugin.getLogger().warning("KNOCKBACK_CONTROL: modern knockback event present but unhookable ("
-                    + unexpected.getMessage() + "); the effect will be inert on this server.");
+            plugin.getLogger().log(Level.WARNING, "KNOCKBACK_CONTROL: modern knockback event present but "
+                    + "unhookable; the effect will be inert on this server.", unexpected);
         }
     }
 
