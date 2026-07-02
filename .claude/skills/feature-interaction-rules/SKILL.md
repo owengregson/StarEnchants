@@ -27,7 +27,7 @@ allocation budget is in **performance-hot-paths**; cross-region commit rules in
 | --- | --- | --- |
 | Damage/reduction | `DamageFold` (§6.1) | Effects are FORBIDDEN from `event.setDamage`; they contribute deltas. ONE fold commits. |
 | DISABLE_ENCHANT/GROUP/TYPE | `SuppressionSet` (§6.2, §4.1) | Interned-id, O(1) membership at gate 5. Role-correct (see below). |
-| Souls | `SoulLedger` (§6.3) | The ONLY code that debits souls; reads the gem by **PDC UUID**, debits atomically. |
+| Souls | `SoulPool` + `SoulSpender` (§6.3) | Cross-gem pool. Gate 10 (`SoulSpender.trySpend`) spends the player's TOTAL over all gems, **all-or-nothing, atomically** — correct even on a foreign region thread. The physical gems (keyed by **PDC UUID**) drain **least-first** on the holder's own thread afterward; `SoulPool.resync` reconciles the in-memory pool against the PDC on pickup/drop without manufacturing or losing souls. |
 | Slots | `SlotLedger` (§6.4) | `max = base + addedSlots`, `used`, `remaining`; computed from `ItemView` and **persisted in PDC**. |
 | Crystals | list semantics (§6.5) | Crystals are a **LIST** of keys; N crystals → N `Ability`s. No last-of-type collapse. |
 | Omni / multi-set | `WornState` resolver (§5.5, §6.6) | Omni = wildcard resolved **synchronously, read-time** inside the ONE resolver; `activeSets` is a SET. |
@@ -66,8 +66,8 @@ remains for add-on interception.
 @Override public void run(EffectCtx ctx, Sink sink) {
     // CONTRIBUTE a delta — do NOT call event.setDamage (§6.1).
     sink.damageDelta(SourceKind.ENCHANT, +0.25);   // +25% outgoing, folded once
-    // SuppressionSet / SoulLedger / SlotLedger are reached the same way:
-    // via the Sink/gate, never by mutating shared state directly.
+    // SuppressionSet / the SoulPool / SlotLedger are reached the same way:
+    // via the gate/Sink (souls at gate 10), never by mutating shared state directly.
 }
 ```
 

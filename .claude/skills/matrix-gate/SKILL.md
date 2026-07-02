@@ -12,10 +12,29 @@ Two layers, always in order:
 <integration matrix>     # boot real Paper + Folia servers, run live suites
 ```
 
-The integration matrix boots a real server per (platform, version), installs
-the StarEnchants + tester jars, runs the in-server suites
-(`live-server-testing`), writes PASS/FAIL, and shuts down. The paired check
-fails the build on anything but a fresh PASS.
+The integration matrix (`scripts/run-matrix.sh`) boots a real server per
+(platform, version), installs the StarEnchants + tester jars, runs the in-server
+suites (`live-server-testing`), writes PASS/FAIL, and shuts down. The paired
+check fails the build on anything but a fresh PASS.
+
+## The legacy + mega smoke lanes (1.8.9 tree)
+
+The Paper/Folia matrix covers 1.17.1 → 26.1.x. The 1.8.9 half of the shipped
+Multi-Release jar has its **own** live gates — run them when touching the
+`-Pse.target=legacy` overlay, the mega-jar, or anything shared they compile:
+
+- **`scripts/legacy-smoke.sh`** — Gate 4. Boots the downgraded v52 **tester** on
+  a real craftbukkit-1.8.8 under JDK 8 and reads a fresh reduced-suite PASS the
+  same way (`test-results.txt`, mtime-checked). Proves the legacy tree links,
+  downgrades, resolves 1.8 names, and actually runs. A green modern matrix says
+  **nothing** about 1.8, exactly as a green Paper run says nothing about Folia.
+- **`scripts/mega-smoke.sh`** — boots the **merged mega-jar** on both eras (base
+  v52 on 1.8, `versions/17` v61 on Paper) and asserts the plugin ENABLES on each
+  with no wrong-era leak. A load/enable smoke, not the full suite: it proves the
+  merged artifact selects the right tree; the other two lanes own behaviour.
+
+The tester is **not** MRJAR-merged (its two trees diverge), so these lanes boot
+per-era jars — see the **legacy-1.8.9** skill.
 
 ## The matrix (Paper + Folia across the range)
 

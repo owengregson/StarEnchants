@@ -5,6 +5,11 @@ description: Use when writing or changing code that must run across StarEnchants
 
 # Cross-version Paper development (1.17.1 → 26.1.x)
 
+This skill covers the **modern** range (1.17.1 floor → 26.1.x ceiling). For the
+1.8.9 tree — the `-Pse.target=legacy` overlay, JvmDowngrader, the mega-jar, and
+its live gates — see the **legacy-1.8.9** skill; it is a separately-compiled
+tree, not a point in this range.
+
 ## The compilation model
 
 - `core` compiles against the **floor API** (paper-api 1.17.1) so the common

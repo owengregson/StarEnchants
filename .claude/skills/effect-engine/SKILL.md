@@ -32,11 +32,13 @@ interact, sink, stores). NOT for compiling YAML→`Ability` (that's the compiler
 
 ## The gate sequence (§3.3) — never reorder
 
-world-blacklist → protection → trigger-match + slot (re-check target) → level →
+world-blacklist → protection → trigger-match + slot → level →
 **SUPPRESSION** (O(1) interned-id set, §6.2) → cooldown (3 scopes) → condition +
-chanceΔ (AST, no alloc) → chance roll (`tlrCurrent() < base+Δ`) → `PreActivate`
-(only if a listener exists) → soul cost (`SoulLedger`, §6.3) → arm cooldown → run
-effects (intents, cumulative WAIT). `skipChances/skipCooldown` = "start at gate K."
+chanceΔ (AST, no alloc) → chance roll (injected supplier `< base+Δ`; a condition
+`FORCE`/`ALLOW` flow skips the roll) → `PreActivate` (injected `Guard`, cancellable)
+→ soul cost (gate 10 = `SoulSpender` debiting the cross-gem pool, only when a gem
+is active, §6.3) → arm cooldown → run effects (intents, cumulative WAIT). No gate
+is skippable; a gate stops the walk, it never "starts at gate K."
 
 ## Adding a kind — one class, one ParamSpec, one registration
 
