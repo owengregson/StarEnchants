@@ -220,6 +220,25 @@ tags/selection (the CI lane subsets by **version**, which is what the mapping-fl
 ceiling / Folia risk edges actually need); and the same two-chunk pattern could extend to AoE
 bystander effects (`DAMAGE_ARC`, `WRATH`) for cross-region coverage beyond teleport.
 
+**Auto-generated cross-region coverage per non-local kind** (`AffinityAutogenSuite`) — makes the
+architecture.md §7 promise ("`se/tester` auto-generates a cross-region test for every
+`TARGET_ENTITY`/`REGION`/`AOE` effect: extensibility and coverage grow together") real. At run time
+it enumerates the live `EffectRegistry` and, for every kind whose declared `Affinity` is non-local,
+synthesises a one-effect ATTACK enchant — args derived from the kind's *own* `ParamSpec` (declared
+default → numeric minimum → a per-type literal → the token the kind's `example` pins), never a
+re-typed literal — then fires it once with the attacker at world spawn and the cow victim 512 blocks
+away (a distinct Folia region), on the victim's region thread. A kind passes when its ability
+activates exactly once and its effects emit + flush with no run-time fault; the fault channel is a
+threshold-1 `AbilityQuarantine` (an effect that touches a remote entity off its owning region throws
+on Folia, the executor catches it, and it lands in `quarantinedKeys()`), plus the activation count and
+any synchronous throw. Adding a non-local kind therefore grows Folia coverage with no new suite. The
+**skip-list contract**: `SKIPS` is a static `head → reason` map for kinds that genuinely cannot run in
+this staging (each reads a *remote* actor's live location in `run()` — `PARTICLE_RING`, `PARTICLE_LINE`,
+`WALKER`, `SPAWN_ENTITY`, `TELEPORT_BEHIND`), a kind whose args can't be derived becomes a printed
+dynamic skip, and **every** skip is logged and declared as a resolved check. The suite asserts the
+totality identity `non-local kinds == checks + skips`, so a future kind can never be silently dropped
+from coverage — it is a check or a visible skip, never nothing.
+
 ## Infrastructure this requires
 
 The two-layer gate is sound (honest fresh-PASS reads, a closed stale-jar trap, a

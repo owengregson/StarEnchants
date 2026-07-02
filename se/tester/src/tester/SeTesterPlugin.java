@@ -8,6 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
+import tester.suite.AffinityAutogenSuite;
 import tester.suite.ApplySuite;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.CarrierSuite;
@@ -110,6 +111,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
         harness.add(new TeleportSuite(this));
         harness.add(new CrossRegionTeleportSuite(this)); // Folia: TELEPORT must hop the actor's scheduler across regions
+        // Auto-grown Folia coverage (architecture.md §7): a cross-region activation check per non-local effect kind.
+        harness.add(new AffinityAutogenSuite(this));
 
         getServer().getPluginManager().registerEvents(this, this);
     }
