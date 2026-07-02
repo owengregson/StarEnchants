@@ -11,6 +11,7 @@ import schema.diag.Diagnostics;
 import schema.diag.Severity;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
+import schema.spec.Ranges;
 
 /**
  * Shared field-parsing helpers for the content readers (ADR-0014): turn raw {@link YamlNode} text into
@@ -27,7 +28,7 @@ final class ContentParse {
         // NaN passes a naive range check (NaN < 0 and NaN > 100 are both false); guard it explicitly.
         if (Double.isNaN(chance) || chance < 0.0 || chance > 100.0) {
             diags.error(DiagCode.E_LOAD_CHANCE, "chance must be a number in [0,100], got " + chance, source);
-            return Double.isNaN(chance) ? 0.0 : Math.max(0.0, Math.min(100.0, chance));
+            return Double.isNaN(chance) ? 0.0 : Ranges.clampPercent(chance);
         }
         return chance;
     }

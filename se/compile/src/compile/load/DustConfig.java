@@ -2,6 +2,7 @@ package compile.load;
 
 import java.util.List;
 import java.util.Objects;
+import schema.spec.Ranges;
 
 /**
  * SUCCESS DUST (§I; ADR-0019), loaded from {@code items/dust.yml}: combined onto a book it raises its stored
@@ -18,10 +19,9 @@ public record DustConfig(String material, String name, List<String> lore, int mi
         Objects.requireNonNull(sound, "sound");
         lore = List.copyOf(lore);
         particles = List.copyOf(particles);
-        int lo = Math.max(0, Math.min(100, minBonus));
-        int hi = Math.max(0, Math.min(100, maxBonus));
-        minBonus = Math.min(lo, hi); // order the pair so [min, max] is always a valid range
-        maxBonus = Math.max(lo, hi);
+        Ranges.IntRange bonus = Ranges.percentRange(minBonus, maxBonus);
+        minBonus = bonus.min(); // order the pair so [min, max] is always a valid range
+        maxBonus = bonus.max();
     }
 
     public String bonusLabel() {

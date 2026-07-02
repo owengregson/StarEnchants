@@ -2,6 +2,7 @@ package compile.load;
 
 import java.util.List;
 import java.util.Objects;
+import schema.spec.Ranges;
 
 /** Internal grouping of the SCROLL family (§I), which share item-data machinery; each member is authored in its own {@code items/} file. */
 public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmog, Holy holy, Nametag nametag,
@@ -30,10 +31,9 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
             Objects.requireNonNull(name, "name");
             lore = List.copyOf(lore);
             appliesTo = List.copyOf(appliesTo);
-            int lo = Math.max(0, Math.min(100, minConvert));
-            int hi = Math.max(0, Math.min(100, maxConvert));
-            minConvert = Math.min(lo, hi); // order the pair so [min, max] is always a valid range
-            maxConvert = Math.max(lo, hi);
+            Ranges.IntRange convert = Ranges.percentRange(minConvert, maxConvert);
+            minConvert = convert.min(); // order the pair so [min, max] is always a valid range
+            maxConvert = convert.max();
         }
     }
 
@@ -43,10 +43,9 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
             lore = List.copyOf(lore);
-            int lo = Math.max(0, Math.min(100, minPercent));
-            int hi = Math.max(0, Math.min(100, maxPercent));
-            minPercent = Math.min(lo, hi);
-            maxPercent = Math.max(lo, hi);
+            Ranges.IntRange percent = Ranges.percentRange(minPercent, maxPercent);
+            minPercent = percent.min();
+            maxPercent = percent.max();
         }
     }
 
@@ -80,10 +79,9 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
             Objects.requireNonNull(protectedLine, "protectedLine");
             lore = List.copyOf(lore);
             appliesTo = List.copyOf(appliesTo);
-            int lo = Math.max(0, Math.min(100, minSuccess));
-            int hi = Math.max(0, Math.min(100, maxSuccess));
-            minSuccess = Math.min(lo, hi);
-            maxSuccess = Math.max(lo, hi);
+            Ranges.IntRange success = Ranges.percentRange(minSuccess, maxSuccess);
+            minSuccess = success.min();
+            maxSuccess = success.max();
         }
     }
 

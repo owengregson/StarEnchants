@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import schema.diag.Diagnostic;
+import schema.spec.Ranges;
 
 /**
  * Compiled snapshot of the master {@code config.yml} (§L) — cross-cutting knobs, swapped by reference in
@@ -57,7 +58,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
      */
     public record BooksSection(int maxSuccess) {
         public BooksSection {
-            maxSuccess = Math.max(0, Math.min(100, maxSuccess));
+            maxSuccess = Ranges.clampPercent(maxSuccess);
         }
 
         public static BooksSection defaults() {

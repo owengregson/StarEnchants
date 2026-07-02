@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import schema.spec.Ranges;
 
 /**
  * The heroic upgrade item (§F; ADR-0021), loaded from {@code items/heroic.yml}. NOT set-bound — applies to any
@@ -53,10 +54,9 @@ public record HeroicConfig(
         Objects.requireNonNull(name, "name");
         lore = List.copyOf(lore);
         materialUpgrades = Map.copyOf(materialUpgrades);
-        int lo = Math.max(0, Math.min(100, successMin));
-        int hi = Math.max(0, Math.min(100, successMax));
-        successMin = Math.min(lo, hi);
-        successMax = Math.max(lo, hi);
+        Ranges.IntRange success = Ranges.percentRange(successMin, successMax);
+        successMin = success.min();
+        successMax = success.max();
         reductionScope = reductionScope == null ? "ENTITY" : reductionScope.toUpperCase(Locale.ROOT);
         loreLine = loreLine == null ? "" : loreLine;
     }
