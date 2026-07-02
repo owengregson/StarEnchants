@@ -22,10 +22,12 @@ On failure the gear is unharmed — only the upgrade item is consumed.
 
 ## How heroic damage stacks
 
-Heroic damage is special: it is applied as its own stage *after* the additive damage fold (the sum
-of all the percent bonuses from enchants, sets, and crystals). The outgoing multiplier is clamped by
-`heroic.max-outgoing-factor` in `config.yml` (default **4.0** — heroic can at most quadruple your
-output). This keeps stacked heroic gear from running away.
+Heroic damage is an ordinary additive contribution: a heroic weapon's percent damage joins the same
+additive outgoing bucket as any enchant, set, or crystal bonus, and a heroic armour piece's percent
+reduction joins the additive reduction bucket. It carries no separate multiplier stage — it sums with
+every other percent source and dilutes additively alongside them, just like a diamond-tier gear
+bonus. (Heroic armour also grants real diamond-equivalent armour points and durability through the
+vanilla stat system.)
 
 :::tip Tune the risk
 The success chance is drawn from a `[success-min, success-max]` range in the heroic item config

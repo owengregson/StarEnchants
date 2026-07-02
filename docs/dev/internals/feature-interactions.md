@@ -40,12 +40,11 @@ final = base × (1 + Σ outgoing%) × (1 − Σ reduction%)
 ```
 
 `DamageFold` (`se/engine/src/engine/interact/DamageFold.java`) holds the buckets
-and applies them once. The full formula, including the flat terms and the bounded
-heroic stage:
+and applies them once. The full formula, including the flat terms (heroic percents
+sum into the same additive buckets, ADR-0037 — no separate stage):
 
 ```text
-folded = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)
-final  = max(0, folded × clamp(1 + Σ heroicOut%, 0, 4) × clamp(1 − Σ heroicRed%, 0, 1))
+final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)
 ```
 
 Each contribution is a plain `+=` into a bucket; the fold runs in `apply`:
@@ -56,11 +55,7 @@ public double apply(double base) {
     double cappedReduction = Math.min(reductionPercent, maxBonusReduction);
     double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing) + flatDamage;
     double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatReduction;
-    double folded = Math.max(0.0, mitigated);
-    double ceiling = Math.max(1.0, maxOutgoingFactor.getAsDouble());
-    double heroicOut = Math.min(ceiling, Math.max(0.0, 1.0 + heroicOutgoing));
-    double heroicRed = Math.max(0.0, Math.min(1.0, 1.0 - heroicReduction));
-    return Math.max(0.0, folded * heroicOut * heroicRed);
+    return Math.max(0.0, mitigated);
 }
 ```
 
@@ -100,7 +95,7 @@ caps, runs the attacker pass then the victim pass — each contributing into the
 
 ```java
 DispatchSink sink = new DispatchSink(handles, economy, souls, vars, suppression, knockback, keepOnDeath,
-        teleblock, immune, nowTicks, maxHeroicOutgoing);
+        teleblock, immune, nowTicks);
 sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // live combat caps
 …
 // Fold every damage contribution onto the event ONCE; honour a cancel; flush deferred work.
