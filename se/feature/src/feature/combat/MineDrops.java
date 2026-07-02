@@ -1,6 +1,7 @@
 package feature.combat;
 
 import feature.compat.Hands;
+import feature.compat.Mats;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
@@ -85,8 +86,8 @@ public final class MineDrops {
     }
 
     private static void put(Map<Material, Material> map, String block, String product) {
-        Material from = Material.matchMaterial(block);
-        Material to = Material.matchMaterial(product);
+        Material from = Mats.of(block);
+        Material to = Mats.of(product);
         if (from != null && to != null) {
             map.put(from, to);
         }

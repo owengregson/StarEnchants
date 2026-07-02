@@ -1,6 +1,7 @@
 package feature.menu;
 
 import compile.load.MenusConfig;
+import feature.compat.Mats;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -165,15 +166,9 @@ public abstract class PagedMenu<T> implements Menu {
 
     /**
      * The first of {@code names} that exists on this server (resolved by name — cross-version-safe; never a
-     * hard {@code Material} constant), or {@code STONE} as a last resort.
+     * hard {@code Material} constant), or {@code STONE} (present on every version) as a last resort.
      */
     protected static Material material(String... names) {
-        for (String name : names) {
-            Material material = Material.getMaterial(name);
-            if (material != null) {
-                return material;
-            }
-        }
-        return Material.STONE; // present on every version
+        return Mats.first(Material.STONE, names);
     }
 }
