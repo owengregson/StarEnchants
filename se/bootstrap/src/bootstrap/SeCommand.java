@@ -12,6 +12,13 @@ import feature.menu.MenuRegistry;
 import feature.menu.ReferenceCatalog;
 import org.bukkit.Bukkit;
 import feature.soul.SoulService;
+import item.codec.CarrierCodec;
+import item.codec.CombatCodec;
+import item.codec.CombatState;
+import item.codec.HeroicStat;
+import item.codec.ItemBlobStore;
+import item.codec.ItemFlagStore;
+import item.codec.ItemKeys;
 import item.lang.Messages;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -50,7 +57,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
      */
     static final List<CommandInfo> COMMANDS = List.of(
             CommandInfo.of("reload", "[--dry-run]", "Rebuild the content library off-thread and hot-swap it in (or just validate)."),
+            CommandInfo.of("problems", "", "Show the errors and warnings from the last content load."),
             CommandInfo.of("give", "<type> <player> [args]", "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player."),
+            CommandInfo.of("item", "dump", "Print the decoded StarEnchants state of the held item."),
             CommandInfo.of("enchant", "<key> [level]", "Apply an enchant to the held item (admin; bypasses apply rules)."),
             CommandInfo.of("removeenchant", "<key>", "Strip an enchant from the held item."),
             CommandInfo.alias("unenchant", "removeenchant"),
@@ -79,11 +88,17 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("triggers", "", "Browse the trigger reference in chat."),
             CommandInfo.of("conditions", "", "Browse the conditions reference in chat."),
             CommandInfo.of("variables", "", "Browse the condition variables in chat."),
-            CommandInfo.of("list", "", "List every enchant, set, and crystal."));
+            CommandInfo.of("list", "", "List every enchant, set, and crystal."),
+            CommandInfo.of("docs", "[vocabulary]", "Umbrella for the DSL reference: no arg lists the vocabularies; an arg opens one."));
 
     static final List<String> SUBCOMMANDS = COMMANDS.stream().map(CommandInfo::name).toList();
 
     static final List<String> PACK_ACTIONS = List.of("list", "info", "apply", "export");
+
+    static final List<String> ITEM_ACTIONS = List.of("dump");
+
+    /** The five DSL reference vocabularies {@code /se docs} routes to (each maps to a {@link ReferenceCatalog} category). */
+    static final List<String> DOC_VOCABS = List.of("effects", "conditions", "triggers", "selectors", "variables");
 
     /** Filename-safe stamp for an auto-backup pack name on {@code /se pack apply}. */
     private static final java.time.format.DateTimeFormatter BACKUP_STAMP =
@@ -116,6 +131,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.scroll.NametagService nametags;
     private final feature.trak.TrakService traks;
     private final PackStore packs;
+    private final CombatCodec codec;                       // /se item dump — decode the held item's combat state
+    private final CarrierCodec carrierCodec;               // /se item dump — book/dust/white-scroll identity marker
+    private final java.util.function.IntSupplier baseSlots; // /se item dump — base enchant slots for the max total
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -124,7 +142,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
-              feature.trak.TrakService traks, PackStore packs, Messages messages, Path contentRoot) {
+              feature.trak.TrakService traks, PackStore packs, CombatCodec codec, CarrierCodec carrierCodec,
+              java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -145,6 +164,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.nametags = nametags;
         this.traks = traks;
         this.packs = packs;
+        this.codec = codec;
+        this.carrierCodec = carrierCodec;
+        this.baseSlots = baseSlots;
     }
 
     @Override
@@ -155,7 +177,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> reload(sender, args);
+            case "problems" -> problems(sender);
             case "give" -> give(sender, args);
+            case "item" -> itemDump(sender, args);
             case "enchant" -> applyHeld(sender, args);
             case "removeenchant", "unenchant" -> removeHeld(sender, args);
             case "crystal" -> giveCrystal(sender, args);
@@ -186,6 +210,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "conditions" -> reference(sender, ReferenceCatalog.CONDITIONS);
             case "variables" -> reference(sender, ReferenceCatalog.VARIABLES);
             case "list" -> referenceList(sender);
+            case "docs" -> docs(sender, args);
             default -> usage(sender);
         }
         return true;
@@ -272,6 +297,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 case "migrate" -> filter(List.of("ee", "ea", "ae"), args[1]);
                 case "pack" -> filter(PACK_ACTIONS, args[1]);
                 case "reload" -> filter(List.of("--dry-run"), args[1]);
+                case "item" -> filter(ITEM_ACTIONS, args[1]);
+                case "docs" -> filter(DOC_VOCABS, args[1]);
                 default -> List.of();
             };
         }
@@ -1212,8 +1239,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         return key.indexOf('/') >= 0 ? key : prefix + key;
     }
 
+    /** {@code /se} / {@code /se help} — the command list, rendered from {@link #COMMANDS} so it can never drift. */
     private void usage(CommandSender sender) {
-        messages.lines("command.usage").forEach(sender::sendMessage);
+        sender.sendMessage(messages.format("command.help.header"));
+        for (CommandInfo info : COMMANDS) {
+            String usage = info.args().isEmpty() ? info.name() : info.name() + " " + info.args();
+            sender.sendMessage(messages.format("command.help.entry", "USAGE", usage, "DESCRIPTION", info.description()));
+        }
     }
 
     /**
@@ -1229,20 +1261,226 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /** How many non-blocking warnings {@code /se reload} lists inline before deferring the rest to {@code /se problems}. */
+    private static final int RELOAD_WARNING_PREVIEW = 5;
+
     private List<String> format(ReloadResult result) {
         List<String> lines = new ArrayList<>();
         if (result.errorCount() == 0) {
             lines.add(messages.format("command.reload.loaded",
                     "VERB", result.dryRun() ? "would load" : "loaded",
                     "COUNT", result.abilityCount(), "GEN", result.generation()));
-            return lines;
+        } else {
+            lines.add(messages.format("command.reload.errors-header", "N", result.errorCount()));
+            for (Diagnostic diagnostic : result.diagnostics()) {
+                if (diagnostic.blocking()) {
+                    lines.add(messages.format("command.reload.error-line", "DIAGNOSTIC", diagnostic.render()));
+                }
+            }
         }
-        lines.add(messages.format("command.reload.errors-header", "N", result.errorCount()));
-        for (Diagnostic diagnostic : result.diagnostics()) {
-            if (diagnostic.blocking()) {
-                lines.add(messages.format("command.reload.error-line", "DIAGNOSTIC", diagnostic));
+        // Warnings never block the swap, so they were silent before — surface a preview so a degraded-but-loaded
+        // reload is visible; the full list stays on /se problems.
+        List<Diagnostic> warnings = result.diagnostics().stream().filter(d -> !d.blocking()).toList();
+        if (!warnings.isEmpty()) {
+            lines.add(messages.format("command.reload.warnings-header", "N", warnings.size()));
+            for (int i = 0; i < warnings.size() && i < RELOAD_WARNING_PREVIEW; i++) {
+                lines.add(messages.format("command.reload.warning-line", "DIAGNOSTIC", warnings.get(i).render()));
+            }
+            if (warnings.size() > RELOAD_WARNING_PREVIEW) {
+                lines.add(messages.format("command.reload.warnings-more", "N", warnings.size() - RELOAD_WARNING_PREVIEW));
             }
         }
         return lines;
+    }
+
+    /**
+     * {@code /se problems} — the errors + warnings from the LAST content load, read live from the published
+     * {@link compile.load.Library} (its diagnostics are retained after the swap). Sent inline like the other
+     * chat dumps; the formatting is the pure, unit-tested {@link #problemLines}.
+     */
+    private void problems(CommandSender sender) {
+        problemLines(content.library().diagnostics(), messages).forEach(sender::sendMessage);
+    }
+
+    /** Pure {@code /se problems} rendering (server-free): a summary line, then each finding as {@code file:line severity[code] message}. */
+    static List<String> problemLines(List<Diagnostic> diagnostics, Messages messages) {
+        List<String> lines = new ArrayList<>();
+        if (diagnostics.isEmpty()) {
+            lines.add(messages.format("command.problems.none"));
+            return lines;
+        }
+        long errors = diagnostics.stream().filter(Diagnostic::blocking).count();
+        lines.add(messages.format("command.problems.summary", "ERRORS", errors, "WARNINGS", diagnostics.size() - errors));
+        for (Diagnostic diagnostic : diagnostics) {
+            String key = diagnostic.blocking() ? "command.problems.error-line" : "command.problems.warning-line";
+            lines.add(messages.format(key, "DIAGNOSTIC", diagnostic.render()));
+        }
+        return lines;
+    }
+
+    /**
+     * {@code /se docs [vocabulary]} — the umbrella over the five DSL reference vocabularies. No arg (or an
+     * unknown one) prints the index; a known vocabulary delegates to the same per-vocabulary {@link #reference}
+     * dump {@code /se effects|conditions|triggers|selectors|variables} use (pure routing, no new rendering).
+     */
+    private void docs(CommandSender sender, String[] args) {
+        String category = args.length >= 2 ? docsCategory(args[1]) : null;
+        if (category == null) {
+            messages.lines("command.docs.index").forEach(sender::sendMessage);
+            return;
+        }
+        reference(sender, category);
+    }
+
+    /** The {@link ReferenceCatalog} category a {@code /se docs <vocabulary>} arg routes to, or {@code null} if unknown. */
+    static String docsCategory(String vocabulary) {
+        return switch (vocabulary.toLowerCase(Locale.ROOT)) {
+            case "effects" -> ReferenceCatalog.EFFECTS;
+            case "conditions" -> ReferenceCatalog.CONDITIONS;
+            case "triggers" -> ReferenceCatalog.TRIGGERS;
+            case "selectors" -> ReferenceCatalog.SELECTORS;
+            case "variables" -> ReferenceCatalog.VARIABLES;
+            default -> null;
+        };
+    }
+
+    /**
+     * {@code /se item dump} — print the decoded StarEnchants state of the held item: combat state (enchants,
+     * slots, crystals, set, heroic) plus the identity markers and versioned {@code se:*} PDC keys present.
+     * The combat section is the pure, unit-tested {@link #combatLines}; markers/keys read the item directly.
+     */
+    private void itemDump(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.format("command.not-a-player"));
+            return;
+        }
+        if (args.length < 2 || !args[1].equalsIgnoreCase("dump")) {
+            sender.sendMessage(messages.format("command.item.usage"));
+            return;
+        }
+        Scheduling.onEntity(player, () -> {
+            ItemStack held = feature.compat.Hands.mainHand(player);
+            if (held == null || held.getType() == org.bukkit.Material.AIR) {
+                player.sendMessage(messages.format("command.dump.empty-hand"));
+                return;
+            }
+            CombatState combat = codec.read(held);
+            List<String> markers = dumpMarkers(held);
+            List<String> pdcKeys = dumpPdcKeys(held);
+            if (combat.isEmpty() && markers.isEmpty() && pdcKeys.isEmpty()) {
+                player.sendMessage(messages.format("command.dump.no-data"));
+                return;
+            }
+            player.sendMessage(messages.format("command.dump.header", "ITEM", held.getType().name()));
+            if (combat.isEmpty()) {
+                player.sendMessage(messages.format("command.dump.combat-none"));
+            } else {
+                combatLines(combat, baseSlots.getAsInt(), messages).forEach(player::sendMessage);
+            }
+            if (!markers.isEmpty()) {
+                player.sendMessage(messages.format("command.dump.markers", "MARKERS", String.join(", ", markers)));
+            }
+            if (!pdcKeys.isEmpty()) {
+                player.sendMessage(messages.format("command.dump.pdc-keys", "KEYS", String.join(", ", pdcKeys)));
+            }
+        });
+    }
+
+    /** Pure combat-state dump (server-free): enchants, slot accounting ({@code base + added} = max, used = enchant count), crystals, set, heroic. */
+    static List<String> combatLines(CombatState combat, int baseSlots, Messages messages) {
+        List<String> lines = new ArrayList<>();
+        if (combat.enchants().isEmpty()) {
+            lines.add(messages.format("command.dump.enchants-none"));
+        } else {
+            lines.add(messages.format("command.dump.enchants-header", "COUNT", combat.enchants().size()));
+            combat.enchants().forEach((key, level) ->
+                    lines.add(messages.format("command.dump.enchant", "KEY", key, "LEVEL", level)));
+        }
+        lines.add(messages.format("command.dump.slots",
+                "USED", combat.enchants().size(), "MAX", baseSlots + combat.added(), "ADDED", combat.added()));
+        if (combat.crystals().isEmpty()) {
+            lines.add(messages.format("command.dump.crystals-none"));
+        } else {
+            lines.add(messages.format("command.dump.crystals", "KEYS", String.join(", ", combat.crystals())));
+        }
+        if (combat.setKey() != null) {
+            lines.add(messages.format("command.dump.set", "SET", combat.setKey()));
+        }
+        if (combat.setWeaponKey() != null) {
+            lines.add(messages.format("command.dump.set-weapon", "SET", combat.setWeaponKey()));
+        }
+        if (combat.omni()) {
+            lines.add(messages.format("command.dump.omni"));
+        }
+        if (!combat.heroic().isZero()) {
+            HeroicStat heroic = combat.heroic();
+            lines.add(messages.format("command.dump.heroic",
+                    "DMG", pct(heroic.percentDamage()), "RED", pct(heroic.percentReduction()),
+                    "DUR", pct(heroic.durability()), "FLATDMG", heroic.flatDamage(), "FLATRED", heroic.flatReduction()));
+        }
+        return lines;
+    }
+
+    /** A fraction rendered as a whole-number percent (e.g. {@code 0.10} → {@code 10}). */
+    private static long pct(double fraction) {
+        return Math.round(fraction * 100.0);
+    }
+
+    /** The identity/economy item kinds present on {@code held}, as structural labels (never user-facing copy). */
+    private List<String> dumpMarkers(ItemStack held) {
+        List<String> markers = new ArrayList<>();
+        if (souls.isGem(held)) {
+            markers.add("soul-gem");
+        }
+        if (crystals.isCrystal(held)) {
+            markers.add("crystal");
+        }
+        if (crystals.isExtractor(held)) {
+            markers.add("crystal-extractor");
+        }
+        if (heroics.isUpgrade(held)) {
+            markers.add("heroic-upgrade");
+        }
+        if (slots.isSlotItem(held)) {
+            markers.add("slot-orb");
+        }
+        if (scrolls.isScroll(held)) {
+            markers.add("scroll");
+        }
+        if (scrolls.isGodlyTransmog(held)) {
+            markers.add("godly-transmog");
+        }
+        if (holyScrolls.isHolyScroll(held)) {
+            markers.add("holy-scroll");
+        }
+        if (nametags.isNametag(held)) {
+            markers.add("nametag");
+        }
+        if (traks.isTrakGem(held)) {
+            markers.add("trak-gem");
+        }
+        if (unopenedBooks.isUnopened(held)) {
+            markers.add("unopened-book");
+        }
+        if (carrierCodec.read(held) != null) {
+            markers.add("carrier");
+        }
+        return markers;
+    }
+
+    /** The logical {@code se:*} PDC keys physically present on {@code held} — probed across the blob/flag/int stores. */
+    private static List<String> dumpPdcKeys(ItemStack held) {
+        ItemKeys keys = ItemKeys.of();
+        List<String> present = new ArrayList<>();
+        for (String key : List.of(keys.combat(), keys.soul(), keys.carrier(), keys.guarded(), keys.crystalItem(),
+                keys.crystalExtractor(), keys.heroicUpgrade(), keys.slotItem(), keys.slotSuccess(), keys.scroll(),
+                keys.scrollConvert(), keys.unopened(), keys.godlyTransmog(), keys.appliedSlot(), keys.trakGem(),
+                keys.trakBlocks(), keys.trakMobs(), keys.trakSouls(), keys.trakFish())) {
+            if (ItemBlobStore.read(held, key) != null
+                    || ItemFlagStore.hasByte(held, key) || ItemFlagStore.hasInt(held, key)) {
+                present.add(key);
+            }
+        }
+        return present;
     }
 }

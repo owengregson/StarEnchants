@@ -38,8 +38,8 @@ class LangLoaderTest {
 
     @Test
     void readsMultiLineBlocks() {
-        List<String> usage = Lang.defaults().lines("command.usage");
-        assertTrue(usage.size() > 5, "a list block yields several lines");
+        List<String> usage = Lang.defaults().lines("command.pack.usage");
+        assertTrue(usage.size() > 3, "a list block yields several lines");
         assertFalse(usage.get(0).isBlank(), "the first line is real content");
     }
 
