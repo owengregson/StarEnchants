@@ -6,9 +6,11 @@ server) into one engine, cross-compatible **Paper 1.17.1 → 26.1.x + Folia** AN
 `-Pse.target=legacy` overlay and merged by `scripts/build-mega-jar.sh`; see
 `docs/legacy-1.8.9-codeshare-design.md`).
 
-> **Status: design & bootstrap.** The unique architecture is being derived (see
-> `docs/decisions/0010`); plugin code starts after it's approved. Do NOT scaffold
-> the module/source tree until then.
+> **Status: shipped (v1.2.x-beta).** The plugin is built and releasing on the
+> Multi-Release mega-jar. The self-derived architecture is approved and live
+> (derivation history: ADR-0010/0011); the real module/source tree is documented
+> in `docs/architecture.md §2`. Work is now feature/fix increments on a shipped
+> codebase, not a bootstrap — extend the existing tree, don't re-scaffold it.
 
 ## Read these before working
 
@@ -32,6 +34,7 @@ relevant one BEFORE working in its area:
 | `feature-interaction-rules` | features interact — damage stacking, suppression, souls, slots, crystals, omni |
 | `config-and-migration` | config/DSL/ParamSpec, the compiler, diagnostics, reload, the migrator |
 | `performance-hot-paths` | combat/item hot path, Affinity, Sink/cache/interning, the lint/JMH gate |
+| `legacy-1.8.9` | anything touching the 1.8.9 overlay, legacy builds, or the mega-jar |
 
 Decision rationale lives in `docs/decisions/` (ADRs). Domain vocabulary is in
 `docs/glossary.md`. The dev loop is in `docs/development.md`.
@@ -59,7 +62,7 @@ Decision rationale lives in `docs/decisions/` (ADRs). Domain vocabulary is in
 
 Feature branch → frequent Conventional Commits → PR (CI green) → **rebase-merge**
 (never squash). Enable hooks once: `scripts/setup-hooks.sh`. End AI-assisted
-commits with `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
+commits with `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
 See `CONTRIBUTING.md`.
 
 ## Verification gate
