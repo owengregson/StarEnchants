@@ -60,15 +60,27 @@ final class YamlNode {
      * them — force "last wins" so a file parses identically on every server's SnakeYAML. A 1.8-era server
      * bundles a SnakeYAML lacking {@code LoaderOptions} / the {@code Yaml(LoaderOptions)} ctor (a
      * {@link LinkageError}); the legacy fork relies on the server's SnakeYAML, so fall back to the
-     * version-stable no-arg {@code Yaml} (cross-version).
+     * version-stable no-arg {@code Yaml} (cross-version). A 64-alias cap bounds pathological alias bombs; the
+     * resulting parse failure is diagnosed as {@code E_LOAD_YAML} like any other malformed doc — {@link #compose}
+     * already catches the RuntimeException. This spec is kept in lockstep with {@code migrate.LegacyYaml.newYaml}
+     * via {@code testfx.YamlAcceptance}.
      */
     private static Yaml newYaml() {
         try {
             LoaderOptions options = new LoaderOptions();
-            options.setAllowDuplicateKeys(true);
+            options.setAllowDuplicateKeys(true);   // last wins on every SnakeYAML, like 1.x
+            capAliases(options);                   // alias-bomb cap; inner-guarded (younger API than LoaderOptions)
             return new Yaml(options);
         } catch (LinkageError oldSnakeYaml) {
-            return new Yaml();
+            return new Yaml();                     // 1.8-era: no LoaderOptions; natively dup-tolerant, no cap
+        }
+    }
+
+    private static void capAliases(LoaderOptions options) {
+        try {
+            options.setMaxAliasesForCollections(64);
+        } catch (LinkageError preCapSnakeYaml) {
+            // 1.18–1.25-era SnakeYAML: dup-key control exists but the cap doesn't — keep the dup-key tolerance
         }
     }
 
