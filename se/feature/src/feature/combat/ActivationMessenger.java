@@ -13,6 +13,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import platform.sched.Scheduling;
 import platform.text.Colors;
+import platform.text.Tokens;
 
 /**
  * The global message-on-activate sender (§L). When an enchant fires, the holder gets the "BY you" line (naming
@@ -71,12 +72,7 @@ public final class ActivationMessenger {
      * contract is unit-testable. {@code {TIER_COLOR}} expands to a colour code that the translate then applies.
      */
     public static String render(String template, String enchant, String tierColor, String victim, String attacker) {
-        String out = template
-                .replace("{ENCHANT}", enchant)
-                .replace("{TIER_COLOR}", tierColor)
-                .replace("{TIER-COLOR}", tierColor) // tolerate either spelling (cf. the carrier book lore)
-                .replace("{VICTIM}", victim)
-                .replace("{ATTACKER}", attacker);
+        String out = Tokens.sub(template, "ENCHANT", enchant, "TIER_COLOR", tierColor, "VICTIM", victim, "ATTACKER", attacker);
         return Colors.translate(out);
     }
 

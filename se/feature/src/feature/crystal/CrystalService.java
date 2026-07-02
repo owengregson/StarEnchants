@@ -20,6 +20,7 @@ import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
+import platform.text.Tokens;
 
 /**
  * The crystal item economy (docs/v3-directives.md §E, ADR-0034) — mints crystals from the ONE global likeness,
@@ -188,9 +189,11 @@ public final class CrystalService {
         List<String> out = new ArrayList<>(template.size() + descriptionBlock.size());
         for (String line : template) {
             if (line.contains("{DESCRIPTION}")) {
-                out.addAll(descriptionBlock); // a LINE-EXPANDING token: this template line becomes the whole block
+                // Bespoke block splice (ADR-0034): the template line is DROPPED and replaced by the whole
+                // description block — NOT the book's in-line Tokens.expandLines rule, which fills tokens per copy.
+                out.addAll(descriptionBlock);
             } else {
-                out.add(line.replace("{KINDS}", kinds));
+                out.add(Tokens.sub(line, "KINDS", kinds));
             }
         }
         return out;

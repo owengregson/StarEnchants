@@ -63,6 +63,7 @@ public record Lang(Map<String, String> singles, Map<String, List<String>> lists,
         return singles.containsKey(key);
     }
 
+    // compile cannot reach platform.text.Tokens — this catalogue substituter stays module-local.
     private static String substitute(String template, Object... kv) {
         if (kv.length == 0 || template.indexOf('{') < 0) {
             return template;

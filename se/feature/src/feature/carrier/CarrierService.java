@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
 import platform.text.Colors;
+import platform.text.Tokens;
 import schema.spec.Ranges;
 
 /**
@@ -114,8 +115,7 @@ public final class CarrierService {
      */
     private String subDust(String s, String bonus, String min, String max) {
         String cap = Integer.toString(Ranges.clampPercent(maxBookSuccess.getAsInt()));
-        return s.replace("{BONUS}", bonus).replace("{MIN}", min).replace("{MAX}", max)
-                .replace("{MAXSUCCESS}", cap);
+        return Tokens.sub(s, "BONUS", bonus, "MIN", min, "MAX", max, "MAXSUCCESS", cap);
     }
 
     /** Mint a WHITE SCROLL with a RANDOM apply-success rolled in the config {@code [min, max]} range (§I). */
@@ -134,7 +134,8 @@ public final class CarrierService {
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
         String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
         ItemStack stack = ItemFactory.buildItem(material(cfg.material()),
-                subPercent(cfg.name(), success, kinds), subPercentLore(cfg.lore(), success, kinds));
+                subPercent(cfg.name(), success, kinds),
+                Tokens.subLines(cfg.lore(), "SUCCESS", success, "FAILURE", 100 - success, "KINDS", kinds));
         // store the rolled success in the carrier's baseSuccess so applyProtect can roll against it
         codec.write(stack, new CarrierData(WHITE_SCROLL_KEY, "", 0, 0, success));
         return stack;
@@ -145,17 +146,7 @@ public final class CarrierService {
      * {@code {FAILURE}} = its complement, {@code {KINDS}} = the applies-to label.
      */
     private static String subPercent(String s, int success, String kinds) {
-        return s.replace("{SUCCESS}", Integer.toString(success))
-                .replace("{FAILURE}", Integer.toString(100 - success))
-                .replace("{KINDS}", kinds);
-    }
-
-    private static List<String> subPercentLore(List<String> lore, int success, String kinds) {
-        List<String> out = new ArrayList<>(lore.size());
-        for (String line : lore) {
-            out.add(subPercent(line, success, kinds));
-        }
-        return out;
+        return Tokens.sub(s, "SUCCESS", success, "FAILURE", 100 - success, "KINDS", kinds);
     }
 
     /**
@@ -257,7 +248,7 @@ public final class CarrierService {
         String tierColor = tierColorOf(enchantKey);
         String levelText = levelNumeral(level);
         int shown = successChance < 0 ? 100 : Ranges.clampPercent(successChance);
-        String display = subBook(cfg.name(), enchant, levelText, tierColor, shown, def);
+        String display = Tokens.sub(cfg.name(), bookKv(enchant, levelText, tierColor, shown, def));
         List<String> lore = bookLore(cfg, def, enchant, descriptionOf(enchantKey), tierColor, levelText,
                 successChance, shown);
         return ItemFactory.build(ItemFactory.material(cfg.material(), Material.ENCHANTED_BOOK), display, lore);
@@ -273,37 +264,23 @@ public final class CarrierService {
     private static List<String> bookLore(compile.load.EnchantBookConfig cfg, EnchantDef def, String enchant,
                                          String description, String tierColor, String levelText,
                                          int successChance, int shown) {
-        List<String> lore = new ArrayList<>();
-        for (String line : cfg.lore()) {
-            if (line.contains("{DESCRIPTION}")) {
-                // Authored newlines are hard breaks; a single authored line word-wraps to the universal
-                // lore.item-wrap width (the same global cap the scrolls / orb / set lore use — no per-book width).
-                for (String descLine : item.render.TextWrap.wrap(description, item.mint.ItemFactory.itemWrapWidth())) {
-                    lore.add(subBook(line.replace("{DESCRIPTION}", descLine), enchant, levelText, tierColor, shown, def));
-                }
-            } else {
-                lore.add(subBook(line, enchant, levelText, tierColor, shown, def));
-            }
-        }
+        Object[] kv = bookKv(enchant, levelText, tierColor, shown, def);
+        // {DESCRIPTION} expands per wrapped line: authored newlines are hard breaks; a single authored line
+        // word-wraps to the universal lore.item-wrap width (the same global cap the scrolls / orb / set lore use).
+        List<String> lore = new ArrayList<>(Tokens.expandLines(cfg.lore(), "DESCRIPTION",
+                item.render.TextWrap.wrap(description, item.mint.ItemFactory.itemWrapWidth()), kv));
         if (successChance >= 0) { // back-compat: a configured success-lore block still appends for explicit books
-            for (String line : cfg.successLore()) {
-                lore.add(subBook(line, enchant, levelText, tierColor, shown, def));
-            }
+            lore.addAll(Tokens.subLines(cfg.successLore(), kv));
         }
         return lore;
     }
 
-    /** Substitute every book placeholder in {@code line}. {@code def} may be {@code null} (unknown enchant). */
-    private static String subBook(String line, String enchant, String levelText, String tierColor, int shown,
-                                  EnchantDef def) {
-        String kinds = def == null ? "" : platform.item.ItemGroups.kindsLabel(def.appliesTo());
-        return line.replace("{ENCHANT}", enchant)
-                .replace("{LEVEL}", levelText)
-                .replace("{TIER_COLOR}", tierColor)
-                .replace("{TIER-COLOR}", tierColor) // tolerate either spelling
-                .replace("{SUCCESS}", Integer.toString(shown))
-                .replace("{FAILURE}", Integer.toString(100 - shown))
-                .replace("{KINDS}", kinds);
+    /** The book placeholder key/value pairs shared by the name and every lore line. {@code def} may be
+     *  {@code null} (unknown enchant → empty {@code {KINDS}}). */
+    private static Object[] bookKv(String enchant, String levelText, String tierColor, int shown, EnchantDef def) {
+        return new Object[] {"ENCHANT", enchant, "LEVEL", levelText, "TIER_COLOR", tierColor,
+                "SUCCESS", shown, "FAILURE", 100 - shown,
+                "KINDS", def == null ? "" : platform.item.ItemGroups.kindsLabel(def.appliesTo())};
     }
 
     /**

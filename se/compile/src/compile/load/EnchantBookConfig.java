@@ -7,7 +7,8 @@ import java.util.Objects;
  * The likeness shared by EVERY enchant book (§I), loaded from {@code items/enchant-book.yml}: no per-enchant
  * config — placeholders are filled per book. Recognised placeholders in {@code name}/{@code lore}:
  * {@code {ENCHANT}} (display name), {@code {LEVEL}} (granted level, Roman/Arabic per {@code lore.roman}),
- * {@code {TIER_COLOR}} (the enchant's rarity-tier colour code), {@code {SUCCESS}} / {@code {FAILURE}} (the
+ * {@code {TIER_COLOR}} (the enchant's rarity-tier colour code; the hyphen spelling {@code {TIER-COLOR}} is
+ * accepted as an alias), {@code {SUCCESS}} / {@code {FAILURE}} (the
  * apply success / 100-minus-success), {@code {KINDS}} (the grammatically-joined applies-to kinds), and
  * {@code {DESCRIPTION}} (the enchant's description, word-wrapped to the universal {@code lore.item-wrap} width —
  * each wrapped line becomes its own lore entry).

@@ -20,6 +20,7 @@ import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
+import platform.text.Tokens;
 
 /**
  * Scroll-family cold path (§I): mints the book-economy scrolls and applies one onto a target by its kind
@@ -87,7 +88,8 @@ public final class ScrollService {
         String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
         ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Mats.or("INK_SAC", Material.PAPER),
-                subConvert(cfg.name(), conv, kinds), subConvertLore(cfg.lore(), conv, kinds));
+                subConvert(cfg.name(), conv, kinds),
+                Tokens.subLines(cfg.lore(), "SUCCESS", conv, "FAILURE", 100 - conv, "KINDS", kinds));
         scrolls.mark(stack, BLACK);
         scrolls.markConvert(stack, conv);
         return stack;
@@ -98,17 +100,7 @@ public final class ScrollService {
      * {@code {FAILURE}} = its complement, {@code {KINDS}} = the applies-to label.
      */
     private static String subConvert(String s, int convert, String kinds) {
-        return s.replace("{SUCCESS}", Integer.toString(convert))
-                .replace("{FAILURE}", Integer.toString(100 - convert))
-                .replace("{KINDS}", kinds);
-    }
-
-    private static List<String> subConvertLore(List<String> lore, int convert, String kinds) {
-        List<String> out = new ArrayList<>(lore.size());
-        for (String line : lore) {
-            out.add(subConvert(line, convert, kinds));
-        }
-        return out;
+        return Tokens.sub(s, "SUCCESS", convert, "FAILURE", 100 - convert, "KINDS", kinds);
     }
 
     /** Mint a randomizer scroll (reroll an enchant book's success chance). */

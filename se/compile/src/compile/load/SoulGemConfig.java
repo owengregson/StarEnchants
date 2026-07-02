@@ -107,7 +107,7 @@ public record SoulGemConfig(
         return new SoulGemConfig(
                 "EMERALD",
                 "&aSoul Gem",
-                List.of("&7Souls: {SOUL-COLOR}{AMOUNT}", "&7Right-click to toggle soul mode."),
+                List.of("&7Souls: {SOUL_COLOR}{AMOUNT}", "&7Right-click to toggle soul mode."),
                 1,
                 Map.of(),
                 List.of(new ColorTier(1024, "&d"), new ColorTier(256, "&b"),

@@ -8,6 +8,7 @@ import engine.spec.EffectSpec;
 import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import platform.text.Tokens;
 import schema.spec.D;
 
 /**
@@ -77,6 +78,6 @@ public final class MessageEffect implements EffectKind {
         String attacker = ctx.actor() == null ? "" : ctx.actor().getName();
         LivingEntity victim = ctx.victim();
         String victimName = victim == null ? "" : victim.getName();
-        return s.replace("{ATTACKER}", attacker).replace("{VICTIM}", victimName);
+        return Tokens.sub(s, "ATTACKER", attacker, "VICTIM", victimName);
     }
 }
