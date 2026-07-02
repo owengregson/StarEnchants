@@ -73,6 +73,7 @@ tasks.register<Test>("regenDocs") {
     filter {
         includeTestsMatching("*ReferenceDocDriftTest")
         includeTestsMatching("*ReferenceCatalogDriftTest")
+        includeTestsMatching("*RegistryFingerprintDriftTest")
     }
     systemProperty("se.doc.regen", "true")
     outputs.upToDateWhen { false }
@@ -86,6 +87,7 @@ tasks.named<Test>("test") {
     inputs.files(
         rootProject.file("docs/reference/dsl-reference.md"),
         rootProject.file("website/src/data/catalog.json"),
+        rootProject.file("docs/reference/authoring-surface.txt"),
     ).withPropertyName("driftGoldens").optional()
 }
 
