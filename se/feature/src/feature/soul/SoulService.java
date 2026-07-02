@@ -28,6 +28,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.Inventories;
 import platform.sched.Scheduling;
 import platform.text.Colors;
+import platform.text.Tokens;
 
 /**
  * The soul gameplay loop (§6.3, §D). Soul mode is a per-PLAYER ON/OFF that drains the player's gems
@@ -176,9 +177,10 @@ public final class SoulService implements SoulDebit, SoulSpender {
         return subSoul(cfg.name(), Integer.toString(souls), cfg.colorFor(souls));
     }
 
-    /** Substitute the soul placeholders {@code {AMOUNT}} (the count) and {@code {SOUL-COLOR}} (its tier colour). */
+    /** Substitute the soul placeholders {@code {AMOUNT}} (the count) and {@code {SOUL_COLOR}} (its tier colour;
+     *  the legacy {@code {SOUL-COLOR}} hyphen spelling is still accepted via the Tokens alias). */
     private static String subSoul(String s, String amount, String soulColor) {
-        return s.replace("{AMOUNT}", amount).replace("{SOUL-COLOR}", soulColor);
+        return Tokens.sub(s, "AMOUNT", amount, "SOUL_COLOR", soulColor);
     }
 
     /**

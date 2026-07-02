@@ -2,6 +2,7 @@ package item.render;
 
 import java.util.List;
 import java.util.function.Function;
+import platform.text.Tokens;
 
 /**
  * Single source of truth for a crystal item's NAME string (ADR-0034 §1/§5). The {@code {CRYSTAL}} token expands
@@ -22,7 +23,7 @@ public final class CrystalNames {
 
     /** Render {@code template}'s {@code {CRYSTAL}} token from {@code componentKeys} (single or merged). */
     public static String render(String template, List<String> componentKeys, Function<String, String> displayNameOf) {
-        return template.replace("{CRYSTAL}", join(template, componentKeys, displayNameOf));
+        return Tokens.sub(template, "CRYSTAL", join(template, componentKeys, displayNameOf));
     }
 
     /** The comma-joined styled display names for {@code componentKeys} (an unknown key falls back to the key). */

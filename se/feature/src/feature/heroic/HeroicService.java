@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
+import platform.text.Tokens;
 
 /**
  * Heroic upgrade economy (docs/v3-directives.md §F; ADR-0021) — mints the upgrade and applies it on a
@@ -72,13 +73,9 @@ public final class HeroicService {
      */
     private String fillPlaceholders(String line, HeroicConfig cfg) {
         int success = cfg.successMax(); // headline success rate (cosmic sets min == max for a single number)
-        return line
-                .replace("{SUCCESS}", Integer.toString(success))
-                .replace("{FAILURE}", Integer.toString(100 - success))
-                .replace("{OUTGOING}", Integer.toString(pct(cfg.percentDamage())))
-                .replace("{INCOMING}", Integer.toString(pct(cfg.percentReduction())))
-                .replace("{DURABILITY}", Integer.toString(pct(cfg.durability())))
-                .replace("{KINDS}", ItemGroups.kindsLabel(List.of("ARMOR", "WEAPON")));
+        return Tokens.sub(line, "SUCCESS", success, "FAILURE", 100 - success,
+                "OUTGOING", pct(cfg.percentDamage()), "INCOMING", pct(cfg.percentReduction()),
+                "DURABILITY", pct(cfg.durability()), "KINDS", ItemGroups.kindsLabel(List.of("ARMOR", "WEAPON")));
     }
 
     private static int pct(double fraction) {

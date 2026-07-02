@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import platform.text.Tokens;
 
 /**
  * The unopened/randomized book cold path (§I) — mints a tier-scoped unopened book and opens one into a
@@ -48,8 +49,8 @@ public final class UnopenedBookService {
         UnopenedBookConfig cfg = config.get();
         ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Material.BOOK,
-                cfg.name().replace("{TIER}", tier),
-                renderLore(cfg.lore(), tier));
+                Tokens.sub(cfg.name(), "TIER", tier),
+                Tokens.subLines(cfg.lore(), "TIER", tier));
         codec.mark(stack, tier);
         return stack;
     }
@@ -104,11 +105,4 @@ public final class UnopenedBookService {
     private record Rolled(ItemStack book, String display, int level, int success) {
     }
 
-    private static List<String> renderLore(List<String> lore, String tier) {
-        List<String> out = new ArrayList<>(lore.size());
-        for (String line : lore) {
-            out.add(line.replace("{TIER}", tier));
-        }
-        return out;
-    }
 }

@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
+import platform.text.Tokens;
 
 /**
  * Holy white scroll (§I): APPLIED to a piece of gear (drag onto it) — on a successful apply roll it stamps a
@@ -57,10 +58,7 @@ public final class HolyScrollService {
     public ItemStack mint() {
         ScrollsConfig.Holy cfg = config.get().holy();
         String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
-        List<String> lore = new ArrayList<>(cfg.lore().size());
-        for (String line : cfg.lore()) {
-            lore.add(line.replace("{KINDS}", kinds));
-        }
+        List<String> lore = Tokens.subLines(cfg.lore(), "KINDS", kinds);
         // The default material (TOTEM_OF_UNDYING) is absent on 1.8; resolve by name and fall back to a
         // floor-stable material so the build fallback is never null on legacy.
         Material totem = Material.getMaterial("TOTEM_OF_UNDYING");

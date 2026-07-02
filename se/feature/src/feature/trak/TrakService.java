@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
 import platform.sched.Scheduling;
 import platform.text.Colors;
+import platform.text.Tokens;
 
 /**
  * The trak-gem economy (§I) — three gems (BlockTrak / MobTrak / SoulTrak) that, applied to gear, reveal a
@@ -63,10 +64,7 @@ public final class TrakService {
     public ItemStack mint(Kind kind) {
         TraksConfig.Trak cfg = trakFor(kind);
         String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
-        List<String> lore = new ArrayList<>(cfg.lore().size());
-        for (String line : cfg.lore()) {
-            lore.add(line.replace("{KINDS}", kinds));
-        }
+        List<String> lore = Tokens.subLines(cfg.lore(), "KINDS", kinds);
         // The per-kind material comes from the config token (resolved cross-version by ItemFactory, with a
         // FIRE_CHARGE→FIREBALL legacy degradation); SLIME_BALL is just a floor-stable last resort.
         ItemStack gem = ItemFactory.buildItem(cfg.material(), Material.SLIME_BALL, cfg.name(), lore);
@@ -151,7 +149,7 @@ public final class TrakService {
         List<String> out = new ArrayList<>();
         for (Kind kind : Kind.values()) {
             if (slot.holds(item, slotKindOf(kind))) {
-                out.add(Colors.translate(trakFor(cfg, kind).countFormat().replace("{COUNT}", formatCount(codec.count(item, kind)))));
+                out.add(Colors.translate(Tokens.sub(trakFor(cfg, kind).countFormat(), "COUNT", formatCount(codec.count(item, kind)))));
             }
         }
         return out;

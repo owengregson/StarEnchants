@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import platform.text.Colors;
+import platform.text.Tokens;
 
 /**
  * The one place lore COMPOSITION happens (ADR-0040): a deterministic, single-pass projection of item state
@@ -64,9 +65,7 @@ public final class LoreComposer {
             String template = config.slotsLine().get();
             if (template != null && !template.isBlank()) {
                 int total = config.baseSlots().getAsInt() + state.added();
-                out.add(Colors.translate(template
-                        .replace("{TOTAL}", Integer.toString(total))
-                        .replace("{ADDED}", Integer.toString(state.added()))));
+                out.add(Colors.translate(Tokens.sub(template, "TOTAL", total, "ADDED", state.added())));
             }
         }
         // §E crystal line(s): LAST in the body — below the orb slots line — so on gear they sit above only the
@@ -129,10 +128,8 @@ public final class LoreComposer {
         boolean weapon = stat.percentDamage() > 0.0;
         double pct = weapon ? stat.percentDamage() : stat.percentReduction();
         int amount = (int) Math.round(pct * 100.0);
-        return Colors.translate(template
-                .replace("{TYPE}", kind == null ? "" : kind)
-                .replace("{+/-}", weapon ? "+" : "-")
-                .replace("{AMOUNT}", Integer.toString(amount)));
+        return Colors.translate(Tokens.sub(template, "TYPE", kind == null ? "" : kind,
+                "+/-", weapon ? "+" : "-", "AMOUNT", amount));
     }
 
     private String nameOr(String key, LoreStyle style) {

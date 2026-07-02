@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Pure tests for soul-gem lore rendering + the configurable economy knobs — no Bukkit. Pins the
- * {@code {AMOUNT}} / {@code {SOUL-COLOR}} placeholder substitution (lore is rendered from state, never
+ * {@code {AMOUNT}} / {@code {SOUL_COLOR}} placeholder substitution — canonical underscore spelling, with the
+ * legacy {@code {SOUL-COLOR}} hyphen form still accepted via the Tokens alias (lore is rendered from state, never
  * parsed back), the now-CONFIGURABLE soul-colour tiers ({@link SoulGemConfig#colorFor}, a Cosmic Enchants-style plugin hard-coded
  * these), and the per-mob deposit resolution ({@link SoulGemConfig#soulsFor}). Returned lore lines stay
  * {@code &}-coded — the {@code ItemFactory} colours them.
@@ -25,7 +26,7 @@ final class SoulGemLoreTest {
     @Test
     void substitutesAmountAndColor() {
         List<String> lore = SoulService.renderGemLore(
-                withLore(List.of("&7Souls: {SOUL-COLOR}{AMOUNT}", "&7Right-click to toggle.")), 100);
+                withLore(List.of("&7Souls: {SOUL_COLOR}{AMOUNT}", "&7Right-click to toggle.")), 100);
         assertEquals("&7Souls: &a100", lore.get(0)); // 100 → green tier (default tiers)
         assertEquals("&7Right-click to toggle.", lore.get(1)); // no placeholders → verbatim
     }
@@ -38,6 +39,7 @@ final class SoulGemLoreTest {
 
     @Test
     void renderGemNameCarriesTheLiveCount() {
+        // Legacy hyphen spelling retained deliberately — locks the Tokens {SOUL_COLOR} → {SOUL-COLOR} alias.
         SoulGemConfig cfg = withName("&c&lSoul Gem [&r{SOUL-COLOR}&n&l{AMOUNT}&r&c&l]");
         assertEquals("&c&lSoul Gem [&r&a&n&l100&r&c&l]", SoulService.renderGemName(cfg, 100));
         assertEquals("&c&lSoul Gem [&r&7&n&l0&r&c&l]", SoulService.renderGemName(cfg, 0)); // empty → empty colour

@@ -8,6 +8,7 @@ import item.codec.CombatState;
 import item.codec.SlotItemCodec;
 import item.mint.ItemFactory;
 import item.render.LoreRenderer;
+import platform.text.Tokens;
 import schema.spec.Ranges;
 import java.util.Objects;
 import java.util.function.IntSupplier;
@@ -131,11 +132,7 @@ public final class SlotService {
      * apply odds), {@code {MAX}} (the total-slots cap), {@code {KINDS}} (the applies-to label).
      */
     private static String renderOrb(String s, String amount, int success, int hardCap, String kinds) {
-        return s.replace("{AMOUNT}", amount)
-                .replace("{SUCCESS}", Integer.toString(success))
-                .replace("{FAILURE}", Integer.toString(100 - success))
-                .replace("{MAX}", Integer.toString(hardCap))
-                .replace("{KINDS}", kinds);
+        return Tokens.sub(s, "AMOUNT", amount, "SUCCESS", success, "FAILURE", 100 - success, "MAX", hardCap, "KINDS", kinds);
     }
 
     private static void consume(ItemStack stack) {
