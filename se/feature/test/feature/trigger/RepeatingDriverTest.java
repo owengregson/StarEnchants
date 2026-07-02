@@ -21,6 +21,7 @@ import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 import testfx.Abilities;
 import testfx.RecordingSchedulerBackend;
+import testfx.Snapshots;
 import testfx.WornStates;
 
 /**
@@ -55,8 +56,7 @@ class RepeatingDriverTest {
         abilities[7] = ability(7, 40);
         abilities[9] = ability(9, 0);
 
-        Snapshot snapshot = mock(Snapshot.class);
-        when(snapshot.abilities()).thenReturn(abilities);
+        Snapshot snapshot = Snapshots.snapshot().abilities(abilities).build();
         ContentHolder content = mock(ContentHolder.class);
         when(content.snapshot()).thenReturn(snapshot);
 
