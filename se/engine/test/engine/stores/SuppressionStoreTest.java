@@ -2,7 +2,11 @@ package engine.stores;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import compile.model.Ability;
+import compile.model.ScopeKinds;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +14,15 @@ class SuppressionStoreTest {
 
     private final SuppressionStore store = new SuppressionStore();
     private final UUID p = UUID.randomUUID();
+
+    /** An ability with the given three cooldown-scope ids (-1 = no scope). */
+    private static Ability scoped(int enchant, int group, int type) {
+        Ability ability = mock(Ability.class);
+        when(ability.cdScopeEnchant()).thenReturn(enchant);
+        when(ability.cdScopeGroup()).thenReturn(group);
+        when(ability.cdScopeType()).thenReturn(type);
+        return ability;
+    }
 
     @Test
     void unsuppressedIdIsNotSuppressed() {
@@ -122,6 +135,26 @@ class SuppressionStoreTest {
         store.setImmune(p, 100);
         store.clearAll();
         assertFalse(store.isImmune(p));
+    }
+
+    @Test
+    void suppressesAnyChecksTheEnchantScope() {
+        store.suppress(p, CooldownStore.key(ScopeKinds.ENCHANT, 7), 0L, 200);
+        assertTrue(store.suppressesAny(scoped(7, -1, -1), p, 50L));
+        assertFalse(store.suppressesAny(scoped(8, -1, -1), p, 50L), "a different scope id is not suppressed");
+    }
+
+    @Test
+    void suppressesAnyIsFalseWhenNoScopeIsSet() {
+        store.suppress(p, CooldownStore.key(ScopeKinds.ENCHANT, 0), 0L, 200);
+        assertFalse(store.suppressesAny(scoped(-1, -1, -1), p, 50L), "an ability with no scopes is never suppressed");
+    }
+
+    @Test
+    void suppressesAnyChecksTheGroupScope() {
+        store.suppress(p, CooldownStore.key(ScopeKinds.GROUP, 3), 0L, 200);
+        assertTrue(store.suppressesAny(scoped(-1, 3, -1), p, 50L), "group-scope suppression flips the group-scoped ability");
+        assertFalse(store.suppressesAny(scoped(3, -1, -1), p, 50L), "the same id under the ENCHANT kind is a different key");
     }
 
     @Test

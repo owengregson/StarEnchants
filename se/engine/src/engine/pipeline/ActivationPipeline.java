@@ -1,6 +1,7 @@
 package engine.pipeline;
 
 import compile.model.Ability;
+import compile.model.ScopeKinds;
 import engine.condition.ConditionEvaluator;
 import engine.condition.ConditionResult;
 import engine.condition.Flow;
@@ -32,10 +33,6 @@ public final class ActivationPipeline {
         Guard ALLOW = (ability, activation) -> true;
     }
 
-    /** Cooldown scope kinds, packed into the {@link CooldownStore} key so the three never collide. */
-    private static final int SCOPE_ENCHANT = 0;
-    private static final int SCOPE_GROUP = 1;
-    private static final int SCOPE_TYPE = 2;
 
     private final CooldownStore cooldowns;
     private final SoulSpender spender;
@@ -116,20 +113,13 @@ public final class ActivationPipeline {
      * silences exactly the abilities whose scope lowered to that key.
      */
     private boolean suppressed(Ability ability, Activation act) {
-        return scopeSuppressed(ability.cdScopeEnchant(), SCOPE_ENCHANT, act)
-                || scopeSuppressed(ability.cdScopeGroup(), SCOPE_GROUP, act)
-                || scopeSuppressed(ability.cdScopeType(), SCOPE_TYPE, act);
-    }
-
-    private boolean scopeSuppressed(int scopeId, int scopeKind, Activation act) {
-        return scopeId >= 0
-                && suppression.isSuppressed(act.actor(), CooldownStore.key(scopeKind, scopeId), act.nowTicks());
+        return suppression.suppressesAny(ability, act.actor(), act.nowTicks());
     }
 
     private boolean cooldownsReady(Ability ability, Activation act) {
-        return scopeReady(ability.cdScopeEnchant(), SCOPE_ENCHANT, act)
-                && scopeReady(ability.cdScopeGroup(), SCOPE_GROUP, act)
-                && scopeReady(ability.cdScopeType(), SCOPE_TYPE, act);
+        return scopeReady(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, act)
+                && scopeReady(ability.cdScopeGroup(), ScopeKinds.GROUP, act)
+                && scopeReady(ability.cdScopeType(), ScopeKinds.TYPE, act);
     }
 
     private boolean scopeReady(int scopeId, int scopeKind, Activation act) {
@@ -141,9 +131,9 @@ public final class ActivationPipeline {
     }
 
     private void armCooldowns(Ability ability, Activation act) {
-        armScope(ability.cdScopeEnchant(), SCOPE_ENCHANT, ability.cooldownTicks(), act);
-        armScope(ability.cdScopeGroup(), SCOPE_GROUP, ability.cooldownTicks(), act);
-        armScope(ability.cdScopeType(), SCOPE_TYPE, ability.cooldownTicks(), act);
+        armScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability.cooldownTicks(), act);
+        armScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability.cooldownTicks(), act);
+        armScope(ability.cdScopeType(), ScopeKinds.TYPE, ability.cooldownTicks(), act);
     }
 
     private void armScope(int scopeId, int scopeKind, int durationTicks, Activation act) {

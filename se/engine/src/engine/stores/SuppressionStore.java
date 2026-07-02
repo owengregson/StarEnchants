@@ -1,5 +1,7 @@
 package engine.stores;
 
+import compile.model.Ability;
+import compile.model.ScopeKinds;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,6 +100,18 @@ public final class SuppressionStore implements PlayerScoped {
             return false;
         }
         return true;
+    }
+
+    /** Whether ANY of {@code ability}'s three cooldown scopes is under an active timed {@code DISABLE_*} — the
+     *  one three-scope check gate 5 and the passive-potion driver share, so the gate-5 mirror cannot drift. */
+    public boolean suppressesAny(Ability ability, UUID player, long nowTicks) {
+        return scopeSuppressed(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)
+                || scopeSuppressed(ability.cdScopeGroup(), ScopeKinds.GROUP, player, nowTicks)
+                || scopeSuppressed(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks);
+    }
+
+    private boolean scopeSuppressed(int scopeId, int scopeKind, UUID player, long nowTicks) {
+        return scopeId >= 0 && isSuppressed(player, CooldownStore.key(scopeKind, scopeId), nowTicks);
     }
 
     /** Forget every suppression (and any immunity) for one player (call on quit). */
