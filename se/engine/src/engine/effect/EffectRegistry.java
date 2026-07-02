@@ -6,8 +6,8 @@ import compile.model.Affinity;
 import engine.spec.TargetSpec;
 import schema.spec.ParamSpec;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -83,7 +83,9 @@ public final class EffectRegistry {
     /** Builder enforcing unique, case-insensitive heads. */
     public static final class Builder {
 
-        private final Map<String, EffectKind> byHead = new LinkedHashMap<>();
+        // Plain HashMap: lookup is by head, and build() copies into an unordered Map.copyOf, so insertion order is
+        // never observed — the registry has no per-kind id, the head IS the identity.
+        private final Map<String, EffectKind> byHead = new HashMap<>();
 
         public Builder register(EffectKind kind) {
             Objects.requireNonNull(kind, "kind");

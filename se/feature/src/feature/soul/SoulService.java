@@ -409,6 +409,11 @@ public final class SoulService implements SoulDebit, SoulSpender {
         return cachedTotal.getOrDefault(player, 0);
     }
 
+    /** Drop the cached soul total on quit — the eviction the EngineStoreListener wires as the one quit authority (§5.4). */
+    public void evictCache(UUID player) {
+        cachedTotal.remove(player);
+    }
+
     /**
      * Drain UP TO {@code amount} souls from {@code player}'s gems, LEAST-souls gem first, spilling to the next as
      * each empties; then enforce the cleanup invariant (a gem drained to zero is removed unless it is the lone
