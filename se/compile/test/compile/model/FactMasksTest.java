@@ -1,5 +1,6 @@
 package compile.model;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -8,6 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.RecordComponent;
+import java.util.regex.Pattern;
 import schema.diag.Source;
 import schema.grammar.expr.Cmp;
 import schema.spec.Args;
@@ -98,5 +102,99 @@ class FactMasksTest {
         // Unrepresentable in a 64-bit space → ALL (populate everything), never an aliased bit.
         FactMask mask = FactMasks.of(gate(new Cond.BoolVar(64)), NO_EFFECTS);
         assertSame(FactMask.ALL, mask);
+    }
+
+    /**
+     * The structural exhaustiveness guard (ADR-0039). {@link FactMasks} walks the {@code sealed}
+     * {@link Cond}/{@link NumExpr}/{@link StrExpr} hierarchies with an {@code else throw} rather than a
+     * compiler-checked {@code switch} (the module's class floor is Java 17, which lacks Java 21's
+     * sealed-switch exhaustiveness). This reflectively enumerates every permit of each hierarchy, builds a
+     * synthetic instance, and routes it through the walk: a permit added without a matching branch trips the
+     * {@code else throw} here — the same "add a node, the mask forgets its slots" bug a compile error would
+     * catch, turned into a red test instead of a silent wrong-gate at runtime.
+     */
+    @Test
+    void everySealedAstPermitIsWalkedWithoutThrowing() {
+        Class<?>[] condPermits = Cond.class.getPermittedSubclasses();
+        Class<?>[] numPermits = NumExpr.class.getPermittedSubclasses();
+        Class<?>[] strPermits = StrExpr.class.getPermittedSubclasses();
+        assertTrue(condPermits.length > 0 && numPermits.length > 0 && strPermits.length > 0,
+                "sealed AST types must permit subtypes — a zero-length list would make this guard vacuous");
+
+        for (Class<?> permit : condPermits) {
+            Cond node = (Cond) synthetic(permit);
+            assertDoesNotThrow(() -> FactMasks.of(gate(node), NO_EFFECTS),
+                    () -> "FactMasks#cond does not handle Cond permit " + permit.getName());
+        }
+        for (Class<?> permit : numPermits) {
+            NumExpr node = (NumExpr) synthetic(permit);
+            // A NumExpr is reached as an expression-valued effect arg.
+            CompiledEffect effect = new CompiledEffect("EFFECT", Args.empty().with("v", node),
+                    CompiledSelector.SELF, 0, Affinity.CONTEXT_LOCAL);
+            assertDoesNotThrow(() -> FactMasks.of(null, new CompiledEffect[] {effect}),
+                    () -> "FactMasks#num does not handle NumExpr permit " + permit.getName());
+        }
+        for (Class<?> permit : strPermits) {
+            StrExpr node = (StrExpr) synthetic(permit);
+            // A StrExpr is only reached through a Cond; StrCmp routes both operands into str().
+            Cond wrap = new Cond.StrCmp(node, true, node);
+            assertDoesNotThrow(() -> FactMasks.of(gate(wrap), NO_EFFECTS),
+                    () -> "FactMasks#str does not handle StrExpr permit " + permit.getName());
+        }
+    }
+
+    /** Build a permit via its canonical record constructor, filling each component with a synthetic value. */
+    private static Object synthetic(Class<?> permit) {
+        assertTrue(permit.isRecord(), () -> "AST permit " + permit.getName() + " is expected to be a record");
+        RecordComponent[] components = permit.getRecordComponents();
+        Class<?>[] paramTypes = new Class<?>[components.length];
+        Object[] args = new Object[components.length];
+        for (int i = 0; i < components.length; i++) {
+            paramTypes[i] = components[i].getType();
+            args[i] = syntheticValue(paramTypes[i]);
+        }
+        try {
+            Constructor<?> ctor = permit.getDeclaredConstructor(paramTypes);
+            ctor.setAccessible(true);
+            return ctor.newInstance(args);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("cannot construct synthetic " + permit.getName(), e);
+        }
+    }
+
+    private static Object syntheticValue(Class<?> type) {
+        if (type == boolean.class) {
+            return false;
+        }
+        if (type == int.class) {
+            return 0;
+        }
+        if (type == double.class) {
+            return 0.0;
+        }
+        if (type == String.class) {
+            return "x";
+        }
+        if (type == String[].class) {
+            return new String[] {"x"};
+        }
+        if (type == Pattern.class) {
+            return Pattern.compile("x");
+        }
+        if (type.isEnum()) {
+            return type.getEnumConstants()[0]; // e.g. Cmp / NumExpr.Op — never read by the walk
+        }
+        // Leaf operands for the recursive AST param types (slot-free, so they walk without throwing).
+        if (type == Cond.class) {
+            return new Cond.BoolLit(false);
+        }
+        if (type == NumExpr.class) {
+            return new NumExpr.Lit(0);
+        }
+        if (type == StrExpr.class) {
+            return new StrExpr.Lit("");
+        }
+        throw new IllegalStateException("no synthetic value for AST constructor parameter type " + type.getName()
+                + "; extend syntheticValue(...) when introducing a new node component shape");
     }
 }
