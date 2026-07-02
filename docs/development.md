@@ -41,34 +41,37 @@ before running the live matrix. On non-macOS, point it at them with
   committed; it informs *what* to build, never *how*. The `pre-commit` hook
   refuses to commit anything under it.
 
-> The Gradle build and run tasks referenced here land with the project scaffold
-> (after the architecture is approved). This document defines the intended loop
-> and the commands so the tooling is ready the moment the build exists. Anything
-> not yet wired is marked **(planned)**.
+> The inner loop is **script-driven**, not `run-paper`/`run-folia` Gradle tasks —
+> those were never wired. `scripts/run-matrix.sh`, `scripts/mega-smoke.sh`, and
+> `scripts/legacy-smoke.sh` build the jar and boot a real server for you. The
+> server jars come from the gitignored reference cache (`reference-cache`).
 
 ## The fast inner loop
 
 ```bash
-./gradlew runPaper           # (planned) boot a dev Paper server with the freshly
-                             # built plugin auto-installed; edit → re-run → see it
-./gradlew runFolia           # (planned) same, on a real Folia server
+scripts/run-matrix.sh paper:1.21.4     # rebuild + boot ONE real Paper server, run
+                                       # the live suites, read a fresh PASS/FAIL
+scripts/run-matrix.sh folia:1.20.6     # same, on a real Folia server
 ```
 
-These use the `run-paper`/`run-folia` Gradle tasks (xyz.jpenilla.run-paper),
-which download and cache the server jar, install the freshly-built StarEnchants
-jar, and boot — so "see your change" is a single command. Pick the version with
-a property, e.g. `./gradlew runPaper -Pmc=1.21.4` **(planned)**.
+`run-matrix.sh` auto-rebuilds the tester fat jar before every run (since #56, so
+it never boots a stale jar — pass `--no-build` to skip only right after a fresh
+build). Prefer a **single target** over `--all` for the edit→see-it loop: pass
+only the `platform:version` whose code path you changed (the scheduler path, say,
+needs one Paper + one Folia). To smoke the *shipped* Multi-Release jar itself,
+`scripts/mega-smoke.sh` boots the one mega-jar on both eras and
+`scripts/legacy-smoke.sh` boots the downgraded 1.8 tester (see the legacy section).
 
 Why not hot-reload? Bukkit plugin reload is unsafe in general (leaks listeners,
-tasks, classloaders). The reliable fast loop is rebuild + re-run the dev server;
-the run task makes that quick. In-game `/se reload` reloads **config**, never
+tasks, classloaders). The reliable fast loop is rebuild + re-boot a real server;
+the scripts make that one command. In-game `/se reload` reloads **config**, never
 code.
 
 ## The full test gate
 
 ```bash
 ./gradlew build              # compile + unit tests (pure logic) — always first
-<integration matrix>         # boot real Paper AND Folia servers across the
+scripts/run-matrix.sh --all  # boot real Paper AND Folia servers across the
                              # version matrix; run the in-server live suites;
                              # write PASS/FAIL per (platform, version)
 ```
@@ -94,16 +97,45 @@ scripts/run-matrix.sh --all          # 1. local pre-release gate: all targets PA
 # 3. open a PR with that bump, get CI green, rebase-merge to main
 ```
 
-On merge, `.github/workflows/release.yml` runs `./gradlew build :bootstrap:jar`,
-creates the `v<version>` tag, and publishes a GitHub Release with the universal
-plugin jar (`StarEnchants-<version>.jar` + `.sha256`) and auto-generated notes.
+On merge, `.github/workflows/release.yml` builds and publishes a **single
+Multi-Release mega-jar** — `StarEnchants-<version>.jar` (+ `.sha256`) is the SOLE
+artifact, one download that covers every supported version. It carries the modern
+Java-17 (class v61) tree the JVM loads on Paper/Folia 1.17.1 → 26.1.x and the
+legacy Java-8 (class v52) tree it loads on Minecraft 1.8.x; `scripts/build-mega-jar.sh`
+merges the two pre-built trees (base = legacy v52, `META-INF/versions/17/` = modern
+v61, `Multi-Release: true`) and self-checks the era seam. There is no separate 1.8
+asset. Before that build the workflow runs two gates that BOTH must pass or the
+release fails: the unit gate (`./gradlew build`) and the **live 1.8 legacy smoke**
+(`scripts/legacy-smoke.sh` boots a BuildTools-compiled craftbukkit-1.8.8 under JDK 8),
+so per the §11 ownership commitment the legacy tree never ships without its Gate-4
+green. (Landing this wave: `feat/legacy-gate-integrity` adds a `scripts/mega-smoke.sh`
+boot step that proves the merged mega-jar enables on both eras before it is published.)
+
 `-SNAPSHOT` versions never release, and an existing `v<version>` is a no-op, so
 ordinary merges never publish. After releasing, bump back to the next
 `-SNAPSHOT` (e.g. `1.0.1-SNAPSHOT`). `workflow_dispatch` re-runs the check by hand.
 
-The release build runs the **unit gate only** — the live Paper+Folia matrix needs
-the gitignored server reference cache, so it stays the local pre-release gate (run
-it before the bump).
+The release runs the **unit + live-1.8 gates only** — the live Paper+Folia matrix
+needs the gitignored server reference cache, so it stays the local pre-release gate
+(run `scripts/run-matrix.sh --all` before the bump).
+
+## Legacy 1.8.9 build
+
+The 1.8 tree is a **separately-compiled** overlay of the same modules, not a
+second codebase. `-Pse.target=legacy` swaps each module's overlay and redirects
+the build to a disjoint `build-legacy/` buildDir (so the modern `build/` jar is
+never clobbered), then compiles against a real Spigot 1.8.8 + `v1_8_R3` jar.
+
+```bash
+scripts/build-legacy-jar.sh          # dual-compile + JvmDowngrader 61→52 → the legacy jar
+scripts/legacy-smoke.sh              # boot it live on craftbukkit-1.8.8 under JDK 8 (Gate 4)
+```
+
+`build-legacy-jar.sh` needs **JDK 8** available (for the closed-world JDK-8 API
+gate and the live boot) plus the BuildTools-local craftbukkit-1.8.8 in `~/.m2`.
+The shipped mega-jar merges this legacy tree with the modern one; the full
+overlay mechanism, gates, and traps are in the **legacy-1.8.9** skill and
+`docs/legacy-1.8.9-codeshare-design.md`.
 
 ## Version matrix (target)
 
@@ -125,4 +157,5 @@ See the `nms-archaeology` skill.
 - `scripts/setup-hooks.sh` — enable shared git hooks once per clone.
 - Dev servers run under `run/` (gitignored); delete it to reset world state.
 - Pass `-Ddisable.watchdog=true` when running heavy suites locally so a slow
-  tick doesn't trip the legacy watchdog **(the run tasks set this)**.
+  tick doesn't trip the watchdog **(the `run-matrix.sh`/`legacy-smoke.sh`/`mega-smoke.sh`
+  scripts already set this on the servers they boot)**.
