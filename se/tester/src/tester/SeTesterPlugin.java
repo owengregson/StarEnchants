@@ -9,6 +9,7 @@ import platform.caps.Capabilities;
 import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.AffinityAutogenSuite;
+import tester.suite.ApplyGestureSuite;
 import tester.suite.ApplySuite;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.CarrierSuite;
@@ -99,6 +100,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new EconomySuite(this)); // MODIFY_MONEY via a discovered economy provider
         harness.add(new MenuSuite(this));
         harness.add(new GuiSuite(this)); // §K benches: input-slot lock, combine, salvage, close-return
+        harness.add(new ApplyGestureSuite(this)); // ADR-0041: shared gesture base commits/ignores real clicks
         harness.add(new CrystalSuite(this));
         harness.add(new SetSuite(this));
         harness.add(new HeroicSuite(this));

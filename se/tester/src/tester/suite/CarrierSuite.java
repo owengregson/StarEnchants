@@ -6,7 +6,7 @@ import compile.load.Library;
 import compile.load.LibraryLoader;
 import engine.boot.ContentCompiler;
 import feature.apply.ItemEnchanter;
-import feature.carrier.CarrierResult;
+import feature.apply.GestureOutcome;
 import feature.carrier.CarrierService;
 import item.codec.CarrierCodec;
 import item.codec.CarrierData;
@@ -143,8 +143,8 @@ public final class CarrierSuite implements Harness.Scenario {
             // One carrier must never affect a whole stack (dupe/mass-loss guard).
             ItemStack book = carriers.mintBook("enchants/zap", 1);
             ItemStack stacked = new ItemStack(Material.DIAMOND_SWORD, 2);
-            CarrierResult result = carriers.applyTo(book, stacked);
-            if (result.consumed()) {
+            GestureOutcome result = carriers.applyTo(book, stacked);
+            if (result.consumeCursor()) {
                 throw new IllegalStateException("a stacked target must not consume the carrier");
             }
             if (book.getAmount() != 1) {
@@ -191,8 +191,8 @@ public final class CarrierSuite implements Harness.Scenario {
         h.guard("carrier.dust.fixedBoostsBook", () -> {
             ItemStack book = carriers.mintBook("enchants/zap", 1, 50);
             ItemStack dust = carriers.mintDust(15); // fixed +15%
-            CarrierResult result = carriers.applyTo(dust, book);
-            if (!result.consumed() || dust.getAmount() != 0) {
+            GestureOutcome result = carriers.applyTo(dust, book);
+            if (!result.consumeCursor() || dust.getAmount() != 0) {
                 throw new IllegalStateException("the fixed dust was not consumed onto the book: " + result);
             }
             CarrierData bookData = carrierCodec.read(book);
@@ -210,8 +210,8 @@ public final class CarrierSuite implements Harness.Scenario {
                         + bookData);
             }
             ItemStack extra = carriers.mintDust(15);
-            CarrierResult result = carriers.applyTo(extra, book); // maxed book: no-op
-            if (result.consumed() || extra.getAmount() != 1) {
+            GestureOutcome result = carriers.applyTo(extra, book); // maxed book: no-op
+            if (result.consumeCursor() || extra.getAmount() != 1) {
                 throw new IllegalStateException("a dust on a maxed book must be a no-op: " + result);
             }
         });
@@ -230,8 +230,8 @@ public final class CarrierSuite implements Harness.Scenario {
         h.guard("carrier.dust.rejectsNonBook", () -> {
             ItemStack dust = carriers.mintDust(15);
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-            CarrierResult result = carriers.applyTo(dust, sword);
-            if (result.consumed() || dust.getAmount() != 1) {
+            GestureOutcome result = carriers.applyTo(dust, sword);
+            if (result.consumeCursor() || dust.getAmount() != 1) {
                 throw new IllegalStateException("dust on non-book gear must be a no-op: " + result);
             }
         });

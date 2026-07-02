@@ -3,7 +3,7 @@ package tester.suite;
 import com.google.common.collect.Multimap;
 import compile.load.HeroicConfig;
 import feature.heroic.HeroicDiamond;
-import feature.heroic.HeroicResult;
+import feature.apply.GestureOutcome;
 import feature.heroic.HeroicService;
 import item.codec.CombatCodec;
 import item.codec.HeroicUpgradeCodec;
@@ -133,7 +133,7 @@ public final class HeroicVanillaStatsSuite implements Harness.Scenario {
     }
 
     private static ItemStack forge(HeroicService service, Material input, Material expectedDisplay) {
-        HeroicResult result = service.applyTo(service.mint(), new ItemStack(input));
+        GestureOutcome result = service.applyTo(service.mint(), new ItemStack(input));
         if (!result.commit() || result.newTarget() == null) {
             throw new IllegalStateException("a 100% heroic roll should succeed and produce a piece");
         }
