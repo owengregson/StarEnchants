@@ -1,6 +1,7 @@
 package feature.combat;
 
 import engine.stores.KnockbackControlStore;
+import feature.compat.KnockbackSeam;
 import java.lang.reflect.Method;
 import java.util.function.LongSupplier;
 import org.bukkit.entity.Entity;
@@ -16,10 +17,11 @@ import org.bukkit.util.Vector;
 
 /**
  * Registers the KNOCKBACK_CONTROL applier for whichever knockback event THIS server fires (§C combat-flags,
- * {@code paper-cross-version}) — chosen by class-presence probe, never a version-string {@code if}: the
- * modern {@code EntityKnockbackEvent} (1.20.6+, off the floor classpath, hooked reflectively) is preferred
- * when present, else the legacy {@link LegacyKnockbackListener}. Exactly one applier runs per server, so no
- * double-scale. {@link #resolve} is the pure (unit-tested) decision; {@link #register} the side effect.
+ * {@code paper-cross-version}). The applier {@link Path} is chosen by the compile-time era seam
+ * {@link KnockbackSeam}: on the modern tree it probes the events (the 1.20.6+ {@code EntityKnockbackEvent},
+ * hooked reflectively, else Paper's legacy event, else none); on the 1.8 tree it is always the NMS applier —
+ * so no 1.8-only runtime class probe lives in shared code. Exactly one applier runs per server (no
+ * double-scale). {@link #resolve} is the pure (unit-tested) modern decision; {@link #register} the side effect.
  */
 public final class KnockbackListener {
 
@@ -30,14 +32,12 @@ public final class KnockbackListener {
     public static final String MODERN_EVENT = "org.bukkit.event.entity.EntityKnockbackEvent";
     /** The legacy destroystokyo knockback event (floor &rarr; pre-1.20.6). */
     public static final String LEGACY_EVENT = "com.destroystokyo.paper.event.entity.EntityKnockbackByEntityEvent";
-    /** The optional 1.8.9 lane marker — it fires no knockback event, so the applier hooks the hit at NMS level. */
-    static final String LEGACY_18_MARKER = "net.minecraft.server.v1_8_R3.MinecraftServer";
 
     private KnockbackListener() {
     }
 
     /** Prefer the modern event when present; else the legacy one; else neither (KNOCKBACK_CONTROL inert). */
-    static Path resolve(boolean modernPresent, boolean legacyPresent) {
+    public static Path resolve(boolean modernPresent, boolean legacyPresent) {
         if (modernPresent) {
             return Path.MODERN;
         }
@@ -46,24 +46,20 @@ public final class KnockbackListener {
 
     /**
      * Register the applier this server fires its knockback through, reading {@code store} for a victim's
-     * active {@code KNOCKBACK_CONTROL} flag. A no-op if neither event class is present (KNOCKBACK_CONTROL
-     * simply has no effect on such a server). Returns the chosen {@link Path} (for logging/verification).
+     * active {@code KNOCKBACK_CONTROL} flag. A no-op when {@link KnockbackSeam} resolves {@link Path#NONE}
+     * (KNOCKBACK_CONTROL simply has no effect on such a server). Returns the chosen {@link Path} (for
+     * logging/verification).
      */
     public static Path register(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks) {
-        Path path = resolve(classPresent(MODERN_EVENT), classPresent(LEGACY_EVENT));
+        Path path = KnockbackSeam.resolve();
         switch (path) {
             case MODERN -> registerModern(plugin, store, nowTicks);
+            // On the modern tree LegacyKnockbackListener wraps Paper's legacy event; on the 1.8 tree its
+            // same-FQN overlay is the NMS knockback-resistance applier — the era seam picks which is compiled.
             case LEGACY -> plugin.getServer().getPluginManager().registerEvents(
                     new LegacyKnockbackListener(store, nowTicks), plugin);
             case NONE -> {
-                // No Paper knockback event. On the optional 1.8.9 lane the legacy LegacyKnockbackListener hooks
-                // the always-present EntityDamageByEntityEvent and applies the control at the NMS knockback-
-                // resistance source; on any other event-less server KNOCKBACK_CONTROL stays inert as before.
-                if (classPresent(LEGACY_18_MARKER)) {
-                    plugin.getServer().getPluginManager().registerEvents(
-                            new LegacyKnockbackListener(store, nowTicks), plugin);
-                    path = Path.LEGACY;
-                }
+                // No knockback applier on this server — KNOCKBACK_CONTROL stays inert.
             }
         }
         return path;
@@ -113,16 +109,6 @@ public final class KnockbackListener {
             }
         } catch (ReflectiveOperationException ignored) {
             // Best-effort scale; a cancel (above) is the exact, always-available path.
-        }
-    }
-
-    /** Whether {@code className} resolves on this server's classpath. */
-    private static boolean classPresent(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException absent) {
-            return false;
         }
     }
 }
