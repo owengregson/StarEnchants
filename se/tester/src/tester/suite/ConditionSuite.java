@@ -102,7 +102,7 @@ public final class ConditionSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("condition.firesWhenMet", e.toString());
+            h.fail("condition.firesWhenMet", e);
             return;
         }
 

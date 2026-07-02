@@ -89,14 +89,14 @@ public final class EconomySuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("economy.giveMoneyDepositsToActor", e.toString());
+            h.fail("economy.giveMoneyDepositsToActor", e);
             return;
         }
 
         // Same ServicesManager path the bootstrap uses, so this exercises discovery too.
         FakeEconomy bank = new FakeEconomy();
         plugin.getServer().getServicesManager().register(EconomyProvider.class, bank, plugin, ServicePriority.Normal);
-        EconomyService economy = EconomyService.discover(plugin.getServer(), System.getLogger("se.test.economy"));
+        EconomyService economy = EconomyService.discover(plugin.getServer(), System.getLogger("StarEnchants.Economy"));
         if (!economy.present()) {
             h.fail("economy.giveMoneyDepositsToActor", "EconomyService.discover did not find the registered provider");
             plugin.getServer().getServicesManager().unregister(EconomyProvider.class, bank);

@@ -74,7 +74,7 @@ public final class HeroicSuite implements Harness.Scenario {
             Path root = Files.createTempDirectory("se-heroic-suite");
             library = LibraryLoader.load(root, compiler, 0);
         } catch (IOException e) {
-            h.fail("heroic.percentDamageAmplifiesHit", e.toString());
+            h.fail("heroic.percentDamageAmplifiesHit", e);
             return;
         }
 

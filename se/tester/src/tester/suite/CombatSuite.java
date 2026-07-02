@@ -97,7 +97,7 @@ public final class CombatSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("combat.enchantFiresOnHit", e.toString());
+            h.fail("combat.enchantFiresOnHit", e);
             return;
         }
 

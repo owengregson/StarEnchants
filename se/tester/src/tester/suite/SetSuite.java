@@ -85,7 +85,7 @@ public final class SetSuite implements Harness.Scenario {
             }
             bonusId = bonus.id();
         } catch (IOException e) {
-            h.fail("set.activatesWhenWorn", e.toString());
+            h.fail("set.activatesWhenWorn", e);
             return;
         }
 

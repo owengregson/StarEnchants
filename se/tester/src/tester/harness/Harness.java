@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.plugin.Plugin;
 import platform.sched.Scheduling;
@@ -68,6 +69,12 @@ public final class Harness {
         log.warning("[check] FAIL " + name + " — " + reason);
     }
 
+    /** Record a failing check caused by {@code t}: toString to the results file, the FULL stack to the log (ADR-0042). */
+    public void fail(String name, Throwable t) {
+        results.put(name, "FAIL: " + t);
+        log.log(Level.WARNING, "[check] FAIL " + name, t);
+    }
+
     /**
      * Run {@code body} on the CALLING thread, recording {@code name} PASS if it returns and FAIL
      * if it throws. Used inside a scheduled callback so a wrong-region/wrong-thread access (which
@@ -78,7 +85,7 @@ public final class Harness {
             body.run();
             pass(name);
         } catch (Throwable t) {
-            fail(name, t.toString());
+            fail(name, t);
         }
     }
 
@@ -93,7 +100,7 @@ public final class Harness {
                     try {
                         scenario.accept(this);
                     } catch (Throwable t) {
-                        fail("scenario.launch", t.toString());
+                        fail("scenario.launch", t);
                     }
                 }
             }

@@ -64,8 +64,8 @@ public final class ContentLoaderSuite implements Harness.Scenario {
             root = Files.createTempDirectory("se-content-suite");
             write(root, "enchants/spark.yml", SPARK);
         } catch (IOException e) {
-            h.fail("content.load.handleResolves", e.toString());
-            h.fail("content.reload.swaps", e.toString());
+            h.fail("content.load.handleResolves", e);
+            h.fail("content.reload.swaps", e);
             return;
         }
 
@@ -87,7 +87,7 @@ public final class ContentLoaderSuite implements Harness.Scenario {
         try {
             write(root, "enchants/bolt.yml", BOLT);
         } catch (IOException e) {
-            h.fail("content.reload.swaps", e.toString());
+            h.fail("content.reload.swaps", e);
             return;
         }
         reloader.reload(result -> h.guard("content.reload.swaps", () -> {
@@ -117,8 +117,8 @@ public final class ContentLoaderSuite implements Harness.Scenario {
             write(croot, "enchants/spark.yml", SPARK); // clean content so the transaction can commit
             items = Files.createTempDirectory("se-txn-items"); // starts EMPTY → soulGem absent
         } catch (IOException e) {
-            h.fail("content.reload.transaction", e.toString());
-            h.fail("content.reload.aborts", e.toString());
+            h.fail("content.reload.transaction", e);
+            h.fail("content.reload.aborts", e);
             return;
         }
 
@@ -135,7 +135,7 @@ public final class ContentLoaderSuite implements Harness.Scenario {
         try {
             write(items, "soul-gem.yml", SOUL_GEM); // stage content for the source to swap in
         } catch (IOException e) {
-            h.fail("content.reload.transaction", e.toString());
+            h.fail("content.reload.transaction", e);
         }
         okReloader.reload(result -> h.guard("content.reload.transaction", () -> {
             if (!result.published()) {

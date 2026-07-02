@@ -65,7 +65,7 @@ public final class WornResolverSuite implements Harness.Scenario {
             snapshot = library.snapshot();
             expectedId = snapshot.stableKeys().idOf("enchants/lifesteal/3");
         } catch (IOException e) {
-            h.fail("worn.resolveFromArmor", e.toString());
+            h.fail("worn.resolveFromArmor", e);
             return;
         }
         if (expectedId < 0) {

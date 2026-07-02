@@ -253,7 +253,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
         } catch (IOException e) {
-            h.fail("legacy.item.applyAndRender", e.toString());
+            h.fail("legacy.item.applyAndRender", e);
             return;
         }
 
@@ -342,7 +342,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("legacy.combat.enchantFiresOnHit", e.toString());
+            h.fail("legacy.combat.enchantFiresOnHit", e);
             return;
         }
 
@@ -441,7 +441,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
             // caps drives the cross-version title cap (1.8 rejects titles > 32 chars) — already version-aware.
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
         } catch (IOException e) {
-            h.fail("legacy.gui.menuApplies", e.toString());
+            h.fail("legacy.gui.menuApplies", e);
             return;
         }
 

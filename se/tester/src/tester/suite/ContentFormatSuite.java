@@ -55,7 +55,7 @@ public final class ContentFormatSuite implements Harness.Scenario {
         } catch (IOException e) {
             for (String key : new String[] {
                     "content.format.verbose", "content.format.levels", "content.format.tier"}) {
-                h.fail(key, e.toString());
+                h.fail(key, e);
             }
             return;
         }

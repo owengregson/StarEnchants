@@ -102,7 +102,7 @@ public final class LifecycleSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("lifecycle.heldBuffStartsOnEquip", e.toString());
+            h.fail("lifecycle.heldBuffStartsOnEquip", e);
             return;
         }
 

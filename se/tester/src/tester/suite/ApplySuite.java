@@ -135,7 +135,7 @@ public final class ApplySuite implements Harness.Scenario {
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
             capped = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(), 1);
         } catch (IOException e) {
-            h.fail("item.apply.enchant", e.toString());
+            h.fail("item.apply.enchant", e);
             return;
         }
 
