@@ -3,6 +3,7 @@ package feature.book;
 import compile.load.ContentHolder;
 import compile.load.EnchantDef;
 import compile.load.UnopenedBookConfig;
+import feature.apply.Rolls;
 import feature.apply.GestureOutcome;
 import feature.carrier.CarrierService;
 import item.codec.UnopenedBookCodec;
@@ -95,8 +96,8 @@ public final class UnopenedBookService {
         }
         EnchantDef chosen = pool.get(random.nextInt(pool.size()));
         int level = 1 + random.nextInt(Math.max(1, chosen.maxLevel()));
-        int success = carriers.capBookSuccess( // randomised mint respects the global books.max-success ceiling
-                cfg.minSuccess() + random.nextInt(cfg.maxSuccess() - cfg.minSuccess() + 1));
+        // randomised mint respects the global books.max-success ceiling
+        int success = carriers.capBookSuccess(Rolls.between(random, cfg.minSuccess(), cfg.maxSuccess()));
         return java.util.Optional.of(new Rolled(carriers.mintBook(chosen.key(), level, success),
                 chosen.display(), level, success));
     }

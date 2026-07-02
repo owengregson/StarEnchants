@@ -2,6 +2,7 @@ package feature.heroic;
 
 import compile.load.HeroicConfig;
 import feature.apply.GestureOutcome;
+import feature.apply.Rolls;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.HeroicStat;
@@ -98,9 +99,9 @@ public final class HeroicService {
         }
         HeroicConfig cfg = config.get();
         boolean weapon = groups.matches(gear.getType(), List.of("WEAPON")); // else armour (validated above)
-        int chance = cfg.successMin() + random.nextInt(cfg.successMax() - cfg.successMin() + 1);
+        int chance = Rolls.between(random, cfg.successMin(), cfg.successMax());
         consume(upgrade); // spent whether the roll succeeds or fails
-        if (random.nextInt(100) >= chance) {
+        if (!Rolls.passes(random, chance)) {
             // Like the other consumables: a failed attempt optionally DESTROYS the gear (else leaves it intact).
             // commit + null newTarget clears the clicked slot — today's destroy-on-fail behaviour (ADR-0041).
             ItemStack result = cfg.destroyOnFail() ? null : gear;

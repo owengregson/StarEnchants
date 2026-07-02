@@ -1,6 +1,7 @@
 package feature.scroll;
 
 import compile.load.ScrollsConfig;
+import feature.apply.Rolls;
 import feature.apply.GestureOutcome;
 import item.codec.AppliedSlot;
 import item.codec.ScrollCodec;
@@ -87,10 +88,9 @@ public final class HolyScrollService {
         if (!groups.matches(gear.getType(), cfg.appliesTo())) {
             return GestureOutcome.noop(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
         }
-        int span = cfg.maxSuccess() - cfg.minSuccess();
-        int success = span <= 0 ? cfg.minSuccess() : cfg.minSuccess() + random.nextInt(span + 1);
+        int success = Rolls.between(random, cfg.minSuccess(), cfg.maxSuccess());
         consume(cursor); // spent whether the roll succeeds or fails
-        if (random.nextInt(100) >= success) {
+        if (!Rolls.passes(random, success)) {
             return GestureOutcome.committed(gear, messages.format("scroll.holy.fail"));
         }
         slot.occupy(gear, AppliedSlot.HOLY);

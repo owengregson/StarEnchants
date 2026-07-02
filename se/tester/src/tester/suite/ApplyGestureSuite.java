@@ -105,7 +105,7 @@ public final class ApplyGestureSuite implements Harness.Scenario {
                     ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100, List.of("ALL"));
             slots = new SlotService(slotCodec, combat, lore, () -> slotCfg,
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, platform.lang.Messages.defaults(),
-                    ItemGroups.standard());
+                    ItemGroups.standard(), new java.util.Random());
             slotLeaf = new SlotListener(slots, Messages.defaults());
         } catch (IOException e) {
             failAll(h, e.toString());

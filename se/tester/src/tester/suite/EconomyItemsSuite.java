@@ -130,7 +130,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                     ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100, List.of("ALL")); // 100/100 = always succeeds; ALL so the cap test isolates the cap
             SlotService capSlots = new SlotService(slotCodec, combat, lore, () -> capCfg,
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, platform.lang.Messages.defaults(),
-                    ItemGroups.standard());
+                    ItemGroups.standard(), new Random(4));
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             capSlots.applyTo(capSlots.mintOrb(), sword); // +3 → 3
             if (combat.read(sword).added() != 3) {

@@ -316,8 +316,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().crystals().maxMerge(),   // §E components per entry (merge cap)
                 messages);                                     // §L ApplyResult reason strings
 
+        // ONE RNG for every apply/mint economy — injected so rolls are stubbable (Rolls)
+        java.util.Random rolls = new java.util.Random();
+
         // Carrier economy (ADR-0016) — carrierCodec/appliedSlot built above (the lore PROTECTED-line reader uses them).
-        CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, new java.util.Random(),
+        CarrierService carriers = new CarrierService(carrierCodec, enchanter, content, rolls,
                 () -> items.config().enchantBookOrDefault(),   // §I enchant book
                 () -> items.config().dustOrDefault(),          // §I success dust
                 () -> items.config().whiteScrollOrDefault(),   // §I white scroll
@@ -338,29 +341,29 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Heroic upgrades (§F).
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
-                () -> items.config().heroicOrDefault(), new java.util.Random(), messages, itemGroups);
+                () -> items.config().heroicOrDefault(), rolls, messages, itemGroups);
 
         // Slot economy (§H). base MUST match the ItemEnchanter default so the cap is computed off the same base.
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess());
         SlotService slots = new SlotService(slotItemCodec, codec, lore,
                 () -> items.config().slotsOrDefault(),
-                (java.util.function.IntSupplier) () -> master.config().slots().base(), messages, itemGroups);
+                (java.util.function.IntSupplier) () -> master.config().slots().base(), messages, itemGroups, rolls);
 
         // Book-economy scrolls (§I). Distinct 'scroll' PDC tag, off the combat hot path.
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert());
         item.codec.GodlyTransmogCodec godlyTransmogCodec =
                 new item.codec.GodlyTransmogCodec(ItemKeys.of().godlyTransmog());
         ScrollService scrolls = new ScrollService(scrollCodec, codec, lore, carriers, content,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, godlyTransmogCodec, itemGroups);
+                () -> items.config().scrollsOrDefault(), rolls, messages, godlyTransmogCodec, itemGroups);
 
         // Unopened/randomized book (§I).
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of().unopened());
         UnopenedBookService unopenedBooks = new UnopenedBookService(unopenedCodec, carriers, content,
-                () -> items.config().unopenedBookOrDefault(), new java.util.Random(), messages);
+                () -> items.config().unopenedBookOrDefault(), rolls, messages);
 
         // Survival + cosmetic scrolls (§I) — both share the 'scroll' PDC tag + scrolls config.
         HolyScrollService holyScrolls = new HolyScrollService(scrollCodec, appliedSlot,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, recompose, itemGroups);
+                () -> items.config().scrollsOrDefault(), rolls, messages, recompose, itemGroups);
         feature.scroll.KeptItemsStore keptItems = new feature.scroll.KeptItemsStore(); // §I holy death→respawn stash
         NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(),
                 messages, codec); // §I codec → re-append the enchant-count suffix on rename + preview
@@ -583,7 +586,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         }
         // Heroic durability (§F): a heroic item's per-item durability chance cancels item-damage events.
         getServer().getPluginManager().registerEvents(
-                new feature.heroic.HeroicDurabilityListener(codec, new java.util.Random()), this);
+                new feature.heroic.HeroicDurabilityListener(codec, rolls), this);
 
         // Arm players already online (a plugin /reload with players on); a fresh boot has none. Normal joins
         // are armed by EquipListener via PlayerJoinEvent.
