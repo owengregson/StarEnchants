@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 import platform.caps.Capabilities;
+import platform.caps.Regions;
 
 /**
  * The single scheduling entry point for the whole plugin (docs/architecture.md §3.5–3.6;
@@ -27,6 +28,7 @@ public final class Scheduling {
         Objects.requireNonNull(plugin, "plugin");
         Objects.requireNonNull(capabilities, "capabilities");
         backend = capabilities.folia() ? loadFoliaBackend(plugin) : new BukkitSchedulerBackend(plugin);
+        Regions.install(capabilities.folia());
     }
 
     /** Install an explicit backend (tests / embedding). */

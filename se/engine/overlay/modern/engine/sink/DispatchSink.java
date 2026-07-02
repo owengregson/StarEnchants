@@ -33,6 +33,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
+import platform.caps.Regions;
 import platform.economy.EconomyService;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -207,7 +208,8 @@ public final class DispatchSink extends DispatchSinkBase {
     /** Whether {@code dest} has body room (feet + head passable) and an unobstructed sight line from {@code from}. */
     @Override
     protected boolean isSafeDestination(Location dest, Location from) {
-        try {
+        // Cold teleport path — a cross-region / unloaded read is not provably safe → caller uses the fallback.
+        return Regions.read("DispatchSink.isSafeDestination", () -> {
             World world = dest.getWorld();
             if (world == null) {
                 return false;
@@ -229,9 +231,7 @@ public final class DispatchSink extends DispatchSinkBase {
                 }
             }
             return true;
-        } catch (RuntimeException unreadable) {
-            return false; // cross-region / unloaded chunk → not provably safe → caller uses the fallback
-        }
+        }, false);
     }
 
     // ── Inventory / durability leaves (modern: main-hand slot + Damageable item meta) ─────────────

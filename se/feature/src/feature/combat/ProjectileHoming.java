@@ -7,6 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.util.Vector;
+import platform.caps.Regions;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 
@@ -96,6 +97,7 @@ public final class ProjectileHoming {
             projectile.setVelocity(steered.add(new Vector(0.0, 0.03, 0.0)));
         } catch (RuntimeException crossRegionOrGone) {
             // Folia cross-region target read, or the entity vanished mid-flight — stop homing, fly ballistic.
+            Regions.swallowed("ProjectileHoming.step", crossRegionOrGone);
             cancel(self);
         }
     }

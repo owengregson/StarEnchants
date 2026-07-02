@@ -35,6 +35,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
+import platform.caps.Regions;
 import platform.economy.EconomyService;
 import platform.resolve.RenameResolvers;
 import platform.sched.Scheduling;
@@ -295,16 +296,15 @@ public final class DispatchSink extends DispatchSinkBase {
     /** 1.8 room check: feet + head must be non-solid. No LOS ray (BlockIterator) — {@code from} is ignored. */
     @Override
     protected boolean isSafeDestination(Location dest, Location from) {
-        try {
+        // Cold teleport path — a cross-region / unloaded read is not provably safe → caller uses the fallback.
+        return Regions.read("DispatchSink.isSafeDestination", () -> {
             if (dest.getWorld() == null) {
                 return false;
             }
             Block feet = dest.getBlock();
             Block head = feet.getRelative(0, 1, 0);
             return !feet.getType().isSolid() && !head.getType().isSolid();
-        } catch (RuntimeException unreadable) {
-            return false;
-        }
+        }, false);
     }
 
     // ── Inventory / durability leaves (1.8: main hand only + durability on the ItemStack) ─────────
