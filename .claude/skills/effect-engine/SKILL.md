@@ -30,6 +30,7 @@ interact, sink, stores). NOT for compiling YAML→`Ability` (that's the compiler
 | Effects emit INTENTS into the dispatch plan; CI lint bans `Bukkit.getScheduler()` / direct entity mutation in `effect/` | §3.5 |
 | `Affinity` declared per `EffectKind`, folded MAX to ability level; `CONTEXT_LOCAL` runs INLINE (zero hop) | §3.6 |
 | Victim/defense facts come from the immutable `WornState` snapshot or event payload — never a live cross-region victim read | §3.4, §5.5 |
+| Actor positional state in `run()` is the demand-captured origin snapshot — declare `.actorOrigin()` on the spec, read `ctx.actorOrigin()`/`actorOriginEye()`; never `actor().getLocation()` in an effect body; leftover per-target live reads are `Regions`-guarded (ADR-0043) | §3.4–3.5 |
 
 ## The gate sequence (§3.3) — never reorder
 
@@ -45,7 +46,8 @@ is skippable; a gate stops the walk, it never "starts at gate K."
 
 Implement `EffectKind` / `ConditionFn` / `TriggerKind` / `SelectorKind`, declare
 its `ParamSpec` (the one spec used four ways: validate / complete / `/se docs` /
-migrate, §7) and its `Affinity`, then register it in the explicit greppable
+migrate, §7) and its `Affinity` (and `.actorOrigin()` when it anchors on the actor,
+ADR-0043), then register it in the explicit greppable
 registry (no annotation-processor codegen as primary). A new set/crystal/enchant
 is PURE YAML — no code. `run` is hot-path: typed args, pre-resolved selectors,
 intents only — it never parses and never touches an entity (`sink.lightningAndDamage(e,
