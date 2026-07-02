@@ -24,8 +24,9 @@ interact, sink, stores). NOT for compiling YAML→`Ability` (that's the compiler
 | --- | --- |
 | Systems iterate, effects are kinds, content is rows — a system never knows what `DAMAGE` does | §3.1 |
 | No string/opcode at runtime: flyweight `EffectKind` + typed-args record; conditions = pre-built AST over int slots | §3.2, §4.1 |
+| Effect/selector dispatch is by dense `kindId` (array index into the executor's `LinkedContent` pair), stamped at compile — NOT a per-execution head lookup (ADR-0039) | §3.5 |
 | All 5 sources lower to ONE `Ability` record; `sourceKind` is a tag, not a type | §4.1 |
-| Conditions read a thread-local primitive `FactBuffer`, populated lazily once per activation — zero boxing | §3.4 |
+| Conditions read a thread-local primitive `FactBuffer`; the populator computes ONLY the slots the wearer's per-trigger `FactMask` marks referenced (ADR-0039) — the `%nearbyenemies%` scan et al. are skipped when unread — zero boxing | §3.4 |
 | Effects emit INTENTS into the dispatch plan; CI lint bans `Bukkit.getScheduler()` / direct entity mutation in `effect/` | §3.5 |
 | `Affinity` declared per `EffectKind`, folded MAX to ability level; `CONTEXT_LOCAL` runs INLINE (zero hop) | §3.6 |
 | Victim/defense facts come from the immutable `WornState` snapshot or event payload — never a live cross-region victim read | §3.4, §5.5 |

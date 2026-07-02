@@ -327,9 +327,13 @@ chance-delta** result (`STOP / FORCE / CONTINUE / ALLOW / ±chanceΔ`) — one c
 *gates* and *tunes chance* (the Cosmic Enchants-style chance-delta). Live facts live in a
 **thread-local reusable `FactBuffer` of primitives** (`[do]`; the *safe* version of pooling that
 `[crit:maint]` endorsed): a flat struct (`actor.health`, `victim.health`, `damage`, `combo`, a `long`
-flag bitset for `sneaking/blocking/flying/…`) populated **lazily, once per activation**, read by both
-conditions and effect args by compiled slot index. **Zero string parsing, zero boxing on the hot
-path.** PAPI/unknown tokens compile to a `PapiVarRef` resolved only when reached and only if present.
+flag bitset for `sneaking/blocking/flying/…`) populated **once per activation**, read by both
+conditions and effect args by compiled slot index. Population is **demand-driven** (ADR-0039): each
+`Ability` carries a compiled `FactMask` of the slots its condition and effect args reference, the
+`WornState` folds a per-trigger union once per equip, and `FactPopulator` computes **only** those slots —
+so an unreferenced derived fact (the `%nearbyenemies%` entity scan, `%distance%`, `%actor.groundblock%`,
+`%victim.inzone%`) is never computed. **Zero string parsing, zero boxing on the hot path.** PAPI/unknown
+tokens compile to a `PapiVarRef` resolved only when reached and only if present.
 
 **A condition is a compiled expression, not a pluggable class.** There is no `ConditionFn` SPI to
 implement per condition; the whole condition language is one AST evaluator over a **fact vocabulary**.

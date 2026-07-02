@@ -19,8 +19,8 @@ folds **once** (§6.1) — never `event.setDamage` from an effect; contribute a 
 | --- | --- |
 | `Bukkit.getScheduler()` / direct entity mutation | declare an `Affinity`; emit a Sink intent (§3.5–3.6) |
 | `new NBTItem`, `ItemStack#clone`, Gson, NBT clone | `cache.of(stack)`: one blob-key lookup (§5.2) |
-| `String#split`, regex compile, YAML/DSL parse, map lookups | compiled at load; dense-int indices at runtime |
-| string ops / boxing in conditions or effect args | thread-local primitive `FactBuffer` by slot (§3.4) |
+| `String#split`, regex compile, YAML/DSL parse, map lookups | compiled at load; dense-int indices at runtime — effect/selector dispatch is a `kindId` array index, not a head lookup (ADR-0039) |
+| string ops / boxing in conditions or effect args | thread-local primitive `FactBuffer` by slot, populated demand-driven per the ability's `FactMask` (§3.4, ADR-0039) |
 
 **Interning:** every name (enchant/group/world/material/potion/sound) is a **dense int at
 runtime**; stable strings exist **only at the PDC boundary** (§5.3, §8). See **item-data-model**.
@@ -33,7 +33,10 @@ runtime**; stable strings exist **only at the PDC boundary** (§5.3, §8). See *
   (copy-on-write) and can alias (§5.2). A helmet hit 20×/sec decodes once.
 - **Worn-set resolve** runs **once per equip event, never per hit**; the result is immutable,
   multi-set, pre-flattened per direction — set/omni/crystal cost **nothing** per hit (§5.5). The
-  victim path reads only this snapshot, never the live `ItemStack`.
+  victim path reads only this snapshot, never the live `ItemStack`. The same resolve folds a
+  **per-trigger `FactMask`** (the union of the trigger's abilities' referenced fact slots), so the
+  populator later computes only those slots — an unread `%nearbyenemies%`/`%distance%`/`%groundblock%`
+  costs nothing (ADR-0039).
 
 ## Scheduler-hop budget (Affinity — §3.6)
 
