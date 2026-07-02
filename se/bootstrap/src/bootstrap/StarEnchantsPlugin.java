@@ -448,7 +448,6 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1), tick::get,
                 soulService::bindingFor, economy, soulService, vars, suppression, knockback, keepOnDeath,
                 teleblock, immune, combo,
-                () -> master.config().heroic().maxOutgoingFactor(),       // §F heroic clamp ceiling
                 () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
                 () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
                 () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
@@ -456,8 +455,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         TriggerDispatch triggerDispatch = new TriggerDispatch(executor, wiring.sinkFactory(), content, worn, triggers,
                 tick::get, soulService::bindingFor, economy, soulService, vars, suppression, knockback,
-                keepOnDeath, teleblock, immune,
-                () -> master.config().heroic().maxOutgoingFactor()); // §F heroic clamp ceiling
+                keepOnDeath, teleblock, immune);
         // §B REPEATING: one entity-owned repeating task per (player, ability), armed/torn-down by EquipListener.
         passives = new RepeatingDriver(triggerDispatch, content, triggers.idOf("REPEATING").orElse(-1),
                 new RepeatStore<TaskHandle>());
@@ -949,7 +947,6 @@ public final class StarEnchantsPlugin extends JavaPlugin {
     private void logMaster(MasterConfig config) {
         getLogger().info("config.yml loaded: slots.base=" + config.slots().base()
                 + ", crystals.slots=" + config.crystals().slots()
-                + ", heroic.max-outgoing-factor=" + config.heroic().maxOutgoingFactor()
                 + ", integrations[protection=" + config.integrations().protection()
                 + ", economy=" + config.integrations().economy() + "]"
                 + ", reload.auto-seconds=" + config.reload().autoSeconds()

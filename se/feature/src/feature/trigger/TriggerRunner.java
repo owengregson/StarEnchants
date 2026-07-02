@@ -82,7 +82,7 @@ public final class TriggerRunner {
     public void contributeHeroicReduction(int generation, Player actor, SinkReadback sink) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState != null && wornState.gen() == generation) {
-            sink.addHeroicReduction(wornState.heroic().percentReduction());
+            sink.addDamageReduction(wornState.heroic().percentReduction()); // §F additive fold (ADR-0037)
             sink.addFlatReduction(wornState.heroic().flatReduction()); // §F diamond armour delta, under reduction-scope ALL
         }
     }
@@ -108,10 +108,10 @@ public final class TriggerRunner {
                              WornState wornState, int[] candidates, boolean applyHeroic) {
         if (applyHeroic) {
             if (attackSide) {
-                sink.addHeroicOutgoing(wornState.heroic().percentDamage()); // §F multiplicative stage
+                sink.addOutgoingDamage(wornState.heroic().percentDamage()); // §F additive fold (ADR-0037)
                 sink.addFlatDamage(wornState.heroic().flatDamage());        // §F diamond base-attack delta (gold→diamond)
             } else {
-                sink.addHeroicReduction(wornState.heroic().percentReduction());
+                sink.addDamageReduction(wornState.heroic().percentReduction()); // §F additive fold (ADR-0037)
                 sink.addFlatReduction(wornState.heroic().flatReduction());  // §F diamond armour delta
             }
         }

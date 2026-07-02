@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Hand-computed damage-fold corpus (§6.8) proving the additive, order-independent policy
- * (ADR-0012): final = max(0, (base × (1 + Σout%) + ΣflatDmg) × (1 − Σred%) − ΣflatRed).
+ * (ADR-0012, restored to full scope by ADR-0037): final =
+ * max(0, (base × (1 + Σout%) + ΣflatDmg) × (1 − Σred%) − ΣflatRed). Heroic percents feed the
+ * same buckets as any enchant contribution — no separate multiplicative stage.
  */
 class DamageFoldTest {
 
@@ -112,44 +114,36 @@ class DamageFoldTest {
     }
 
     @Test
-    void heroicOutgoingIsAMultiplicativeStageOnTopOfTheFold() {
-        // folded = 10 × 1.2 = 12; heroic ×(1 + 0.5) = ×1.5 → 18 (multiplicative, NOT summed into the fold).
+    void heroicPercentsSumIntoTheOutgoingBucketWithEnchants() {
+        // ADR-0037: two heroic weapon pieces (+50% each) + one enchant DAMAGE_MOD (+25%) all land in the ONE
+        // outgoing bucket → +125% → ×2.25, NOT a separate multiplicative stage. base 10 × 2.25 = 22.5.
         DamageFold f = new DamageFold();
-        f.addOutgoing(0.20);
-        f.addHeroicOutgoing(0.50);
-        assertEquals(18.0, f.apply(10.0), EPS);
+        f.addOutgoing(0.50); // heroic piece
+        f.addOutgoing(0.50); // heroic piece
+        f.addOutgoing(0.25); // enchant DAMAGE_MOD
+        assertEquals(22.5, f.apply(10.0), EPS);
     }
 
     @Test
-    void heroicReductionMultipliesAfterTheFold() {
-        // folded = 10; heroic ×(1 − 0.25) = ×0.75 → 7.5
+    void heroicReductionSumsWithEnchantReduction() {
+        // Heroic armour (−20%) + an enchant reduction (−30%) sum to −50% in the parallel bucket → ×0.5 → 5.0.
         DamageFold f = new DamageFold();
-        f.addHeroicReduction(0.25);
-        assertEquals(7.5, f.apply(10.0), EPS);
+        f.addReduction(0.20); // heroic piece
+        f.addReduction(0.30); // enchant reduction
+        assertEquals(5.0, f.apply(10.0), EPS);
     }
 
     @Test
-    void heroicCompoundsRatherThanSums() {
-        // +100% outgoing in the fold = ×2 → 20; heroic +100% = ×2 again → 40 (compounds, the §F exception).
+    void flatsStillApplyInAdrOrderWhenHeroicPercentsAreFolded() {
+        // Heroic folded into the additive buckets, flats keep their ADR-0012 placement:
+        // (10 × (1 + 0.75) + 5) × (1 − 0.40) − 1 = (17.5 + 5) × 0.6 − 1 = 13.5 − 1 = 12.5.
         DamageFold f = new DamageFold();
-        f.addOutgoing(1.0);
-        f.addHeroicOutgoing(1.0);
-        assertEquals(40.0, f.apply(10.0), EPS);
-    }
-
-    @Test
-    void heroicOutgoingIsBoundedAtQuadruple() {
-        // +500% heroic would be ×6, but the stage is clamped to ×4 → 40, not 60.
-        DamageFold f = new DamageFold();
-        f.addHeroicOutgoing(5.0);
-        assertEquals(40.0, f.apply(10.0), EPS);
-    }
-
-    @Test
-    void heroicReductionBeyondHundredPercentClampsToZero() {
-        DamageFold f = new DamageFold();
-        f.addHeroicReduction(1.5);
-        assertEquals(0.0, f.apply(10.0), EPS);
+        f.addOutgoing(0.50); // heroic weapon
+        f.addOutgoing(0.25); // enchant DAMAGE_MOD
+        f.addFlatDamage(5.0); // heroic diamond base-attack delta
+        f.addReduction(0.40); // enchant reduction
+        f.addFlatReduction(1.0);
+        assertEquals(12.5, f.apply(10.0), EPS);
     }
 
     @Test
@@ -187,15 +181,11 @@ class DamageFoldTest {
         f.addFlatReduction(2.0);
         f.addOutgoing(0.5);
         f.addReduction(0.5);
-        f.addHeroicOutgoing(0.5);
-        f.addHeroicReduction(0.5);
         f.reset();
         assertEquals(10.0, f.apply(10.0), EPS);
         assertEquals(0.0, f.flatDamage(), EPS);
         assertEquals(0.0, f.flatReduction(), EPS);
         assertEquals(0.0, f.outgoingPercent(), EPS);
         assertEquals(0.0, f.reductionPercent(), EPS);
-        assertEquals(0.0, f.heroicOutgoing(), EPS);
-        assertEquals(0.0, f.heroicReduction(), EPS);
     }
 }

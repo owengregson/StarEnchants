@@ -32,12 +32,6 @@ public interface Sink {
     /** Add a flat damage reduction to the defense side (§6.1), subtracted last so it absorbs exactly this amount regardless of percent context. */
     void addFlatReduction(double amount);
 
-    /** Add the attacker's heroic outgoing percent (§F, ADR-0021): a bounded multiplicative stage applied AFTER the additive fold, not summed into it. */
-    void addHeroicOutgoing(double percent);
-
-    /** Add the defender's heroic damage-reduction percent (§F): the multiplicative reduction stage. */
-    void addHeroicReduction(double percent);
-
     // ── Entity intents (interned handle ids for version-volatile referents) ──
 
     void damage(LivingEntity target, double amount);

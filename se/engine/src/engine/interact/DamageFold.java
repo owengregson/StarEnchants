@@ -6,17 +6,13 @@ package engine.interact;
  * never call {@code event.setDamage}; they contribute deltas here and the pipeline calls
  * {@link #apply} once after the gate walk.
  *
- * <p><strong>Fully additive, no cross-source compounding</strong> (ADR-0012): all outgoing
- * percentages sum into one factor and all reductions into a parallel factor, so the result
- * is order-independent and the registration-order multiplicative compounding (the catalog's
- * worst combat bug) cannot occur.
+ * <p><strong>Fully additive, no cross-source compounding</strong> (ADR-0012, restored to full
+ * scope by ADR-0037): all outgoing percentages sum into one factor and all reductions into a
+ * parallel factor, so the result is order-independent and the registration-order multiplicative
+ * compounding (the catalog's worst combat bug) cannot occur. Heroic percents feed the same
+ * additive buckets as any enchant contribution — there is no separate multiplicative stage.
  *
- * <pre>folded = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)
- *final  = max(0, folded × clamp(1 + Σ heroicOut%, 0, 4) × clamp(1 − Σ heroicRed%, 0, 1))</pre>
- *
- * <p>Heroic (§F, ADR-0021) is a distinct bounded <em>multiplicative</em> stage on top of
- * the additive fold — the one deliberate exception to ADR-0012's no-compounding rule, and
- * bounded so it cannot run away.
+ * <pre>final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)</pre>
  *
  * <p>Flat-term placement gives predictable, percent-independent stats: flat damage adds
  * after the outgoing multiplier (so the attacker's own buffs don't inflate it) but still
@@ -32,31 +28,13 @@ package engine.interact;
  */
 public final class DamageFold {
 
-    /** Default heroic ceiling: at most 4× outgoing damage (§F/ADR-0021). */
-    public static final double DEFAULT_MAX_HEROIC_OUTGOING_FACTOR = 4.0;
-
-    /** Live heroic ceiling (config.yml {@code heroic.max-outgoing-factor}, §F). */
-    private final java.util.function.DoubleSupplier maxOutgoingFactor;
-
     private double flatDamage;
     private double flatReduction;
     private double outgoingPercent;
     private double reductionPercent;
-    private double heroicOutgoing;
-    private double heroicReduction;
     // Combat caps (config.yml combat.*): ceilings on the summed additive fractions; +inf = uncapped.
     private double maxBonusOutgoing = Double.POSITIVE_INFINITY;
     private double maxBonusReduction = Double.POSITIVE_INFINITY;
-
-    /** Built-in heroic ceiling (the common test/fixture form). */
-    public DamageFold() {
-        this(() -> DEFAULT_MAX_HEROIC_OUTGOING_FACTOR);
-    }
-
-    /** Heroic ceiling read live per {@link #apply} so {@code /se reload} re-tunes it. */
-    public DamageFold(java.util.function.DoubleSupplier maxOutgoingFactor) {
-        this.maxOutgoingFactor = java.util.Objects.requireNonNull(maxOutgoingFactor, "maxOutgoingFactor");
-    }
 
     /**
      * Additive combat caps for this event (config.yml {@code combat.max-bonus-damage} /
@@ -88,31 +66,13 @@ public final class DamageFold {
         flatReduction += amount;
     }
 
-    /**
-     * Contribute the attacker's heroic outgoing percent (fraction, +10% = {@code 0.10}).
-     * Unlike {@link #addOutgoing}, this compounds the folded result as a bounded
-     * multiplicative stage rather than summing into the additive fold (§F, ADR-0021).
-     */
-    public void addHeroicOutgoing(double percent) {
-        heroicOutgoing += percent;
-    }
-
-    /** Contribute the defender's heroic reduction percent (fraction, −10% = {@code 0.10}), §F. */
-    public void addHeroicReduction(double percent) {
-        heroicReduction += percent;
-    }
-
     /** Fold {@code base} with every contribution into the final damage, never negative (§6.1). */
     public double apply(double base) {
         double cappedOutgoing = Math.min(outgoingPercent, maxBonusOutgoing);
         double cappedReduction = Math.min(reductionPercent, maxBonusReduction);
         double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing) + flatDamage;
         double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatReduction;
-        double folded = Math.max(0.0, mitigated);
-        double ceiling = Math.max(1.0, maxOutgoingFactor.getAsDouble());
-        double heroicOut = Math.min(ceiling, Math.max(0.0, 1.0 + heroicOutgoing));
-        double heroicRed = Math.max(0.0, Math.min(1.0, 1.0 - heroicReduction));
-        return Math.max(0.0, folded * heroicOut * heroicRed);
+        return Math.max(0.0, mitigated);
     }
 
     /** Reset every bucket for reuse on the next event. */
@@ -121,8 +81,6 @@ public final class DamageFold {
         flatReduction = 0.0;
         outgoingPercent = 0.0;
         reductionPercent = 0.0;
-        heroicOutgoing = 0.0;
-        heroicReduction = 0.0;
     }
 
     // Summed-bucket accessors for diagnostics / display.
@@ -141,13 +99,5 @@ public final class DamageFold {
 
     public double flatReduction() {
         return flatReduction;
-    }
-
-    public double heroicOutgoing() {
-        return heroicOutgoing;
-    }
-
-    public double heroicReduction() {
-        return heroicReduction;
     }
 }
