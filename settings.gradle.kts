@@ -45,6 +45,10 @@ listOf(
     // tooltips + GUIs to committable PNGs, reusing the plugin's own LoreRenderer so previews can't drift
     // (docs/screenshot-rendering.md). Run via `./gradlew :imagegen:renderImages`.
     "imagegen",
+    // Tool-only (like tester/imagegen, NEVER shipped): the JMH microbenchmarks that guard the combat hot path
+    // (docs/architecture.md §8, performance-hot-paths). `:bench:jmhCheck` runs a short pass and FAILS the build
+    // on a throughput floor or a per-op allocation budget regression; bootstrap never depends on it.
+    "bench",
     // Third-party plugin integrations — bundled INTO the core fat jar and active out of the box, but
     // SOFT: each plugin's API is compileOnly (never bundled) and each bridge only loads when its plugin is
     // present, so no integration plugin is ever required (docs/decisions/0027, superseding 0017).

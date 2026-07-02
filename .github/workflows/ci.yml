@@ -49,6 +49,39 @@ jobs:
             echo "::notice::Gradle build not scaffolded yet — skipping (foundation phase)."
           fi
 
+  # The JMH hot-path gate (docs/architecture.md §8, performance-hot-paths): a short-mode pass that FAILS on a
+  # throughput floor or a per-op allocation budget regression. Its own job so it parallelizes with the build.
+  bench:
+    name: JMH hot-path gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDKs 17 + 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: |
+            17
+            21
+
+      - name: Cache Gradle
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: JMH throughput + allocation gate
+        run: |
+          if [ -x ./gradlew ]; then
+            ./gradlew :bench:jmhCheck --stacktrace
+          else
+            echo "::notice::Gradle build not scaffolded yet — skipping (foundation phase)."
+          fi
+
   # The real-server integration matrix (Paper AND Folia across the version range) lives in its own
   # workflow, live-matrix.yml: a curated risk-edge subset on every PR (blocking) + the full range nightly
   # (advisory). The 1.8.9 lane is legacy.yml. The `./gradlew build` above already enforces the per-module
