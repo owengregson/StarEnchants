@@ -42,9 +42,9 @@ class LangCatalogueDriftTest {
     // messages.format("key") / messages.lines("key") — the key is the first string arg.
     private static final Pattern FORMAT_OR_LINES = Pattern.compile(
             "\\b(?:messages|lang)\\.(?:format|lines)\\(\\s*\"([a-z][a-z0-9]*(?:[.-][a-z0-9]+)+)\"");
-    // messages.send(recipient, "key", …) — the key is the SECOND arg (the recipient comes first).
+    // messages.send/sendLines(recipient, "key", …) — the key is the SECOND arg (the recipient comes first).
     private static final Pattern SEND = Pattern.compile(
-            "\\bmessages\\.send\\(\\s*[^,]+,\\s*\"([a-z][a-z0-9]*(?:[.-][a-z0-9]+)+)\"");
+            "\\bmessages\\.send(?:Lines)?\\(\\s*[^,]+,\\s*\"([a-z][a-z0-9]*(?:[.-][a-z0-9]+)+)\"");
 
     @Test
     void bundledDefaultsLoadCleanAndAreNonEmpty() {

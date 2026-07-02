@@ -70,4 +70,25 @@ public final class Messages {
         // §N PlaceholderAPI passthrough; identity (no-op cost) when PAPI is absent.
         player.sendMessage(placeholders.apply(player, format(key, kv)));
     }
+
+    /**
+     * Send an ALREADY-formatted line through the same policy seam as {@link #send} (feedback gate + PAPI).
+     * Null/blank is skipped. For service-composed gesture results (ADR-0041) whose args were formatted upstream.
+     */
+    public void sendText(Player player, String formatted) {
+        if (formatted == null || formatted.isBlank() || !feedback.getAsBoolean()) {
+            return;
+        }
+        player.sendMessage(placeholders.apply(player, formatted));
+    }
+
+    /** Multi-line send through the policy seam; blank spacer lines are preserved verbatim. */
+    public void sendLines(Player player, String key, Object... kv) {
+        if (!feedback.getAsBoolean()) {
+            return;
+        }
+        for (String line : lines(key, kv)) {
+            player.sendMessage(placeholders.apply(player, line));
+        }
+    }
 }
