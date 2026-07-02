@@ -90,7 +90,7 @@ public final class Mappings {
      * {@code REPEATING} / {@code REPEATING-<seconds>} both map to the {@code REPEATING} trigger (the period
      * is read separately by {@link #repeatTicks}).
      */
-    public static String trigger(String legacyType) {
+    public static String eeTrigger(String legacyType) {
         if (legacyType == null) {
             return null;
         }
@@ -102,7 +102,7 @@ public final class Mappings {
     }
 
     /** The REPEATING period in ticks for an EE {@code REPEATING-<seconds>} type (0 if not a repeating type). */
-    public static int repeatTicks(String legacyType) {
+    public static int eeRepeatTicks(String legacyType) {
         if (legacyType == null) {
             return 0;
         }
@@ -129,7 +129,7 @@ public final class Mappings {
     }
 
     /** Map a legacy applies group to StarEnchants {@code applies-to}, or empty if unknown. */
-    public static List<String> appliesTo(String legacyApplies) {
+    public static List<String> eeAppliesTo(String legacyApplies) {
         if (legacyApplies == null) {
             return List.of();
         }
@@ -141,15 +141,15 @@ public final class Mappings {
             "(?i)(isPlayerHealth|isTargetHealth)\\s*(<=|>=|<|>|==|!=|=)\\s*(-?\\d+(?:\\.\\d+)?)");
 
     /** Translate an EE effect token defaulting to the ATTACK direction (the wielder is the aggressor). */
-    public static MigratedEffect effect(String legacyToken) {
-        return effect(legacyToken, false);
+    public static MigratedEffect eeEffect(String legacyToken) {
+        return eeEffect(legacyToken, false);
     }
 
     /**
      * Translate one EE token to the LIST of SE effects it becomes — a singleton, except a compound
      * ({@code WRATH}/{@code FROST}/{@code ROT_DECAY}) that expands to several effects reproducing it.
      */
-    public static List<MigratedEffect> effects(String legacyToken, boolean defenseDirection) {
+    public static List<MigratedEffect> eeEffects(String legacyToken, boolean defenseDirection) {
         String token = legacyToken == null ? "" : legacyToken.trim();
         String[] parts = token.split(":");
         String head = parts.length == 0 ? "" : parts[0].trim().toUpperCase(Locale.ROOT);
@@ -158,7 +158,7 @@ public final class Mappings {
                 case "WRATH" -> wrath(token, parts);
                 case "FROST" -> frost(token, defenseDirection);
                 case "ROT_DECAY" -> rotDecay(token, defenseDirection);
-                default -> List.of(effect(token, defenseDirection));
+                default -> List.of(eeEffect(token, defenseDirection));
             };
         } catch (NumberFormatException badNumber) {
             return List.of(MigratedEffect.todo(token, "could not parse a numeric argument: " + badNumber.getMessage()));
@@ -206,14 +206,14 @@ public final class Mappings {
      * Translate one EE effect token, direction-aware: {@code defenseDirection} flips the foe selector to
      * {@code @Attacker} on a DEFENSE enchant (vs {@code @Victim} on attack).
      */
-    public static MigratedEffect effect(String legacyToken, boolean defenseDirection) {
+    public static MigratedEffect eeEffect(String legacyToken, boolean defenseDirection) {
         String token = legacyToken == null ? "" : legacyToken.trim();
         // EE's ender-walker uses a "DEFENSE;<factor>;<inner-effect>" compound — port the inner effect and note
         // the EE damage-threshold factor was dropped (StarEnchants has no per-effect threshold gate).
         if (token.toUpperCase(Locale.ROOT).startsWith("DEFENSE;")) {
             String[] seg = token.split(";", 3);
             if (seg.length == 3) {
-                MigratedEffect inner = effect(seg[2], defenseDirection);
+                MigratedEffect inner = eeEffect(seg[2], defenseDirection);
                 return inner.mapped()
                         ? MigratedEffect.mapped(token, inner.se(),
                                 "EE DEFENSE-threshold factor " + seg[1] + " dropped (no SE per-effect gate)")

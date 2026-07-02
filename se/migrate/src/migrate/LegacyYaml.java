@@ -56,10 +56,6 @@ final class LegacyYaml {
         return v == null ? fallback : String.valueOf(v);
     }
 
-    static boolean has(Map<?, ?> parent, String key) {
-        return parent != null && parent.get(key) != null;
-    }
-
     static Integer intOrNull(Map<?, ?> parent, String key) {
         Object v = parent == null ? null : parent.get(key);
         if (v instanceof Number n) {

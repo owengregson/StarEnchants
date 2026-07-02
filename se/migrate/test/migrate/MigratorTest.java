@@ -193,20 +193,20 @@ class MigratorTest {
 
     @Test
     void translatesVerifiedCoreEffectsFaithfully() {
-        assertEquals("DAMAGE:6:@Victim", Mappings.effect("DAMAGE:1:6:TARGET").se()); // random range → max
-        assertEquals("IGNITE:60:@Victim", Mappings.effect("FLAME:3:TARGET").se()); // seconds → ticks (x20)
-        assertEquals("MODIFY_EXP:30:give", Mappings.effect("EXP:30").se());
-        assertEquals("EXTINGUISH:@Self", Mappings.effect("EXTINGUISH:PLAYER").se());
-        assertEquals("MESSAGE:&aStruck!", Mappings.effect("MESSAGE:&aStruck!:PLAYER").se());
+        assertEquals("DAMAGE:6:@Victim", Mappings.eeEffect("DAMAGE:1:6:TARGET").se()); // random range → max
+        assertEquals("IGNITE:60:@Victim", Mappings.eeEffect("FLAME:3:TARGET").se()); // seconds → ticks (x20)
+        assertEquals("MODIFY_EXP:30:give", Mappings.eeEffect("EXP:30").se());
+        assertEquals("EXTINGUISH:@Self", Mappings.eeEffect("EXTINGUISH:PLAYER").se());
+        assertEquals("MESSAGE:&aStruck!", Mappings.eeEffect("MESSAGE:&aStruck!:PLAYER").se());
     }
 
     @Test
     void messageStripsTheTrailingTargetButNeverTruncatesAColonBody() {
-        assertEquals("MESSAGE:&aStruck!", Mappings.effect("MESSAGE:&aStruck!:PLAYER").se());
-        assertEquals("MESSAGE:hello", Mappings.effect("MESSAGE:hello").se()); // no target
+        assertEquals("MESSAGE:&aStruck!", Mappings.eeEffect("MESSAGE:&aStruck!:PLAYER").se());
+        assertEquals("MESSAGE:hello", Mappings.eeEffect("MESSAGE:hello").se()); // no target
         // A body that itself contains ':' would be split by the effect lexer — demote to a TODO, never emit a
         // silently-truncated MESSAGE.
-        assertFalse(Mappings.effect("MESSAGE:Time left 5:00:PLAYER").mapped(),
+        assertFalse(Mappings.eeEffect("MESSAGE:Time left 5:00:PLAYER").mapped(),
                 "a colon-bearing message body must be a TODO, not a truncated token");
     }
 
@@ -233,102 +233,102 @@ class MigratorTest {
         assertFalse(result.diagnostics().hasErrors(), "an unmapped effect is a warning, never an error");
         // A genuinely-unknown head still degrades to a TODO, never a guess — a future/custom EE effect with no
         // SE equivalent must not crash the load.
-        assertFalse(Mappings.effect("TOTALLY_UNKNOWN_EFFECT:1").mapped(),
+        assertFalse(Mappings.eeEffect("TOTALLY_UNKNOWN_EFFECT:1").mapped(),
                 "an unrecognised effect head must be a TODO, never guessed");
     }
 
     @Test
     void translatesTheExpandedEeEffectVocabulary() {
         // Combat (ATTACK direction): the foe is @Victim.
-        assertEquals("POTION:CONFUSION:1:60:@Victim", Mappings.effect("POTION:CONFUSION:1:TARGET:3").se()); // sec→ticks
-        assertEquals("POTION:FAST_DIGGING:1:200:@Self", Mappings.effect("POTION:FAST_DIGGING:1:PLAYER").se()); // no-dur default
-        assertEquals("MODIFY_HEALTH:2:give:@Self", Mappings.effect("HEAL:ADD:1:2").se());        // range → max
-        assertEquals("MODIFY_HEALTH:50:give:@Self", Mappings.effect("HEAL:ADD:40:50:PLAYER").se()); // trailing target ignored
-        assertEquals("DAMAGE_MOD:defense:add:1.85", Mappings.effect("REDUCTION:1.85").se());     // decimal kept
-        assertEquals("DAMAGE_MOD:defense:add:100", Mappings.effect("REDUCTION:150").se());       // clamped to 100
-        assertEquals("DAMAGE_MOD:attack:add:25", Mappings.effect("DAMAGE_INCREASE:25").se());
-        assertEquals("DAMAGE_MOD:attack:add:-50", Mappings.effect("DAMAGE_INCREASE:-50").se()); // negative self-nerf
-        assertEquals("REMOVE_POTION:POISON:@Self", Mappings.effect("CURE:POISON:true").se());
-        assertEquals("SOUND:ENTITY_GENERIC_EXPLODE:2:5", Mappings.effect("SOUND:ENTITY_GENERIC_EXPLODE:2:5").se());
-        assertEquals("PARTICLE:FLAME", Mappings.effect("PARTICLE:FLAME").se());
-        assertEquals("PARTICLE:DAMAGE_INDICATOR", Mappings.effect("PARTICLE:BLEED:TARGET").se()); // EE vanity name → real
-        assertEquals("PARTICLE:CRIT:7", Mappings.effect("PARTICLE:BLOCK_BREAK;CACTUS:PLAYER").se()); // compound → generic
-        assertEquals("DURABILITY:10:item:restore", Mappings.effect("ADD_DURABILITY:10").se());
-        assertEquals("DURABILITY:2:armor:damage:@Victim", Mappings.effect("DAMAGE_ARMOR:2").se());
-        assertEquals("DAMAGE:3.25:@Aoe", Mappings.effect("DAMAGE_ARC:3.25").se());               // decimal arc damage
-        assertEquals("LIGHTNING:5:@Victim", Mappings.effect("LIGHTNING:TARGET:REAL").se());
-        assertEquals("EXPLODE:1:false:@Victim", Mappings.effect("EXPLODE:1:false:TARGET").se());
-        assertEquals("VELOCITY:add:0:5:0:@Self", Mappings.effect("THROW:0:5:0:PLAYER").se());
-        assertEquals("SPAWN_ENTITY:PRIMED_TNT:2", Mappings.effect("TNT:2:PLAYER").se());
+        assertEquals("POTION:CONFUSION:1:60:@Victim", Mappings.eeEffect("POTION:CONFUSION:1:TARGET:3").se()); // sec→ticks
+        assertEquals("POTION:FAST_DIGGING:1:200:@Self", Mappings.eeEffect("POTION:FAST_DIGGING:1:PLAYER").se()); // no-dur default
+        assertEquals("MODIFY_HEALTH:2:give:@Self", Mappings.eeEffect("HEAL:ADD:1:2").se());        // range → max
+        assertEquals("MODIFY_HEALTH:50:give:@Self", Mappings.eeEffect("HEAL:ADD:40:50:PLAYER").se()); // trailing target ignored
+        assertEquals("DAMAGE_MOD:defense:add:1.85", Mappings.eeEffect("REDUCTION:1.85").se());     // decimal kept
+        assertEquals("DAMAGE_MOD:defense:add:100", Mappings.eeEffect("REDUCTION:150").se());       // clamped to 100
+        assertEquals("DAMAGE_MOD:attack:add:25", Mappings.eeEffect("DAMAGE_INCREASE:25").se());
+        assertEquals("DAMAGE_MOD:attack:add:-50", Mappings.eeEffect("DAMAGE_INCREASE:-50").se()); // negative self-nerf
+        assertEquals("REMOVE_POTION:POISON:@Self", Mappings.eeEffect("CURE:POISON:true").se());
+        assertEquals("SOUND:ENTITY_GENERIC_EXPLODE:2:5", Mappings.eeEffect("SOUND:ENTITY_GENERIC_EXPLODE:2:5").se());
+        assertEquals("PARTICLE:FLAME", Mappings.eeEffect("PARTICLE:FLAME").se());
+        assertEquals("PARTICLE:DAMAGE_INDICATOR", Mappings.eeEffect("PARTICLE:BLEED:TARGET").se()); // EE vanity name → real
+        assertEquals("PARTICLE:CRIT:7", Mappings.eeEffect("PARTICLE:BLOCK_BREAK;CACTUS:PLAYER").se()); // compound → generic
+        assertEquals("DURABILITY:10:item:restore", Mappings.eeEffect("ADD_DURABILITY:10").se());
+        assertEquals("DURABILITY:2:armor:damage:@Victim", Mappings.eeEffect("DAMAGE_ARMOR:2").se());
+        assertEquals("DAMAGE:3.25:@Aoe", Mappings.eeEffect("DAMAGE_ARC:3.25").se());               // decimal arc damage
+        assertEquals("LIGHTNING:5:@Victim", Mappings.eeEffect("LIGHTNING:TARGET:REAL").se());
+        assertEquals("EXPLODE:1:false:@Victim", Mappings.eeEffect("EXPLODE:1:false:TARGET").se());
+        assertEquals("VELOCITY:add:0:5:0:@Self", Mappings.eeEffect("THROW:0:5:0:PLAYER").se());
+        assertEquals("SPAWN_ENTITY:PRIMED_TNT:2", Mappings.eeEffect("TNT:2:PLAYER").se());
         assertEquals("SPAWN_ENTITY:IRON_GOLEM:1:400:0:activator",
-                Mappings.effect("SPAWN:IRON_GOLEM:20:1:10:&b&l%player%").se());
-        assertEquals("SUPPRESS:GROUP:common:200:@Victim", Mappings.effect("DISABLE_ENCHANTMENT_GROUP:COMMON:10").se());
+                Mappings.eeEffect("SPAWN:IRON_GOLEM:20:1:10:&b&l%player%").se());
+        assertEquals("SUPPRESS:GROUP:common:200:@Victim", Mappings.eeEffect("DISABLE_ENCHANTMENT_GROUP:COMMON:10").se());
         assertEquals("SUPPRESS:ENCHANT:enchants/immortal:80:@Victim",
-                Mappings.effect("DISABLE_ENCHANTMENT:immortal:4").se());
-        assertEquals("SUPPRESS:TYPE:DEFENSE:100:@Victim", Mappings.effect("DISABLE_ENCHANTMENT_TYPE:DEFENSE:5").se());
-        assertEquals("DAMAGE_MOD:defense:add:100", Mappings.effect("DAMAGE_CANCEL").se()); // ≈ cancel the hit
-        assertEquals("IGNORE_ARMOR", Mappings.effect("ARMOR_CANCEL").se());
+                Mappings.eeEffect("DISABLE_ENCHANTMENT:immortal:4").se());
+        assertEquals("SUPPRESS:TYPE:DEFENSE:100:@Victim", Mappings.eeEffect("DISABLE_ENCHANTMENT_TYPE:DEFENSE:5").se());
+        assertEquals("DAMAGE_MOD:defense:add:100", Mappings.eeEffect("DAMAGE_CANCEL").se()); // ≈ cancel the hit
+        assertEquals("IGNORE_ARMOR", Mappings.eeEffect("ARMOR_CANCEL").se());
     }
 
     @Test
     void translatesTheExoticEeEffects() {
         // Simple 1:1 exotic effects (ATTACK direction → the foe is @Victim).
-        assertEquals("KNOCKBACK_CONTROL:0:2:@Victim", Mappings.effect("SHACKLE").se());
-        assertEquals("DROP_ITEM:PLAYER_HEAD:1", Mappings.effect("DROP_HEAD:TARGET").se());
-        assertEquals("DAMAGE:8:@Victim", Mappings.effect("SNIPER").se());
-        assertEquals("REMOVE_ARMOR:@Victim", Mappings.effect("REMOVE_ARMOR").se());
-        assertEquals("MODIFY_HEALTH:12:set:@Victim", Mappings.effect("REDUCE_HEARTS:12:5").se());
-        assertEquals("TELEBLOCK:400:@Victim", Mappings.effect("TELEBLOCK:20").se());           // seconds → ticks
-        assertEquals("IMMUNE:potion:100:@Self", Mappings.effect("IMMUNE:POTION").se());        // no duration → 100t
-        assertEquals("SMELT", Mappings.effect("SMELT").se());
-        assertEquals("TELEPORT_DROPS", Mappings.effect("TELEPORT_DROPS").se());
-        assertEquals("SEEK", Mappings.effect("AUTO_LOCK").se());
-        assertEquals("REMOVE_SOULS:300:@Victim", Mappings.effect("REMOVE_SOULS:300:TARGET").se()); // drains the foe
-        assertEquals("REMOVE_SOULS:4", Mappings.effect("DRAIN_SOULS_CONSTANT:1:4").se());       // actor, instant
+        assertEquals("KNOCKBACK_CONTROL:0:2:@Victim", Mappings.eeEffect("SHACKLE").se());
+        assertEquals("DROP_ITEM:PLAYER_HEAD:1", Mappings.eeEffect("DROP_HEAD:TARGET").se());
+        assertEquals("DAMAGE:8:@Victim", Mappings.eeEffect("SNIPER").se());
+        assertEquals("REMOVE_ARMOR:@Victim", Mappings.eeEffect("REMOVE_ARMOR").se());
+        assertEquals("MODIFY_HEALTH:12:set:@Victim", Mappings.eeEffect("REDUCE_HEARTS:12:5").se());
+        assertEquals("TELEBLOCK:400:@Victim", Mappings.eeEffect("TELEBLOCK:20").se());           // seconds → ticks
+        assertEquals("IMMUNE:potion:100:@Self", Mappings.eeEffect("IMMUNE:POTION").se());        // no duration → 100t
+        assertEquals("SMELT", Mappings.eeEffect("SMELT").se());
+        assertEquals("TELEPORT_DROPS", Mappings.eeEffect("TELEPORT_DROPS").se());
+        assertEquals("SEEK", Mappings.eeEffect("AUTO_LOCK").se());
+        assertEquals("REMOVE_SOULS:300:@Victim", Mappings.eeEffect("REMOVE_SOULS:300:TARGET").se()); // drains the foe
+        assertEquals("REMOVE_SOULS:4", Mappings.eeEffect("DRAIN_SOULS_CONSTANT:1:4").se());       // actor, instant
 
         // Dynamic scaling → expression-valued DAMAGE_MOD over the new facts.
-        assertEquals("DAMAGE_MOD:attack:add:%combo% * 40", Mappings.effect("RAGE:0.4").se());
-        assertEquals("DAMAGE_MOD:attack:add:%nearbyenemies% * 8", Mappings.effect("GANK").se());
-        assertEquals("DAMAGE_MOD:attack:add:25 - %distance% * 7", Mappings.effect("DAMAGE_DISTANCE").se());
+        assertEquals("DAMAGE_MOD:attack:add:%combo% * 40", Mappings.eeEffect("RAGE:0.4").se());
+        assertEquals("DAMAGE_MOD:attack:add:%nearbyenemies% * 8", Mappings.eeEffect("GANK").se());
+        assertEquals("DAMAGE_MOD:attack:add:25 - %distance% * 7", Mappings.eeEffect("DAMAGE_DISTANCE").se());
         assertEquals("DAMAGE_MOD:attack:add:(%actor.health%*2.5 - 1) * 100",
-                Mappings.effect("DAMAGE_INCREASE:playerHealth*2.5").se());
+                Mappings.eeEffect("DAMAGE_INCREASE:playerHealth*2.5").se());
     }
 
     @Test
     void expandsCompoundEeEffectsToSeveralEffects() {
         // WRATH → a lightning storm: 4 SE effects over @Aoe (radius from the EE arg, max-damage from the range).
-        var wrath = Mappings.effects("WRATH:3:1:2:&cNatures Wrath", false);
+        var wrath = Mappings.eeEffects("WRATH:3:1:2:&cNatures Wrath", false);
         assertEquals(4, wrath.size());
         assertEquals("LIGHTNING:0:@Aoe{r=3}", wrath.get(0).se());
         assertEquals("DAMAGE:2:@Aoe{r=3}", wrath.get(1).se());
         assertEquals("POTION:SLOWNESS:3:200:@Aoe{r=3}", wrath.get(2).se());
         assertEquals("POTION:BLINDNESS:1:260:@Aoe{r=3}", wrath.get(3).se());
         // FROST → a permafrost field + debuffs on the foe (DEFENSE direction → @Attacker).
-        var frost = Mappings.effects("FROST", true);
+        var frost = Mappings.eeEffects("FROST", true);
         assertEquals(4, frost.size());
         assertEquals("WALKER:PACKED_ICE:400:3:@Attacker", frost.get(0).se());
         // ROT_DECAY → rotting zombies + wither + armour decay on the foe.
-        var rot = Mappings.effects("ROT_DECAY", false);
+        var rot = Mappings.eeEffects("ROT_DECAY", false);
         assertEquals(3, rot.size());
         assertEquals("SPAWN_ENTITY:ZOMBIE:3:100:100:none:@Victim", rot.get(0).se());
         // A non-compound token expands to a singleton list (delegates to effect()).
-        assertEquals(1, Mappings.effects("SMELT", false).size());
+        assertEquals(1, Mappings.eeEffects("SMELT", false).size());
     }
 
     @Test
     void eeEffectsAreDirectionAwareOnDefense() {
         // DEFENSE direction: the foe is @Attacker (the entity that struck the wielder); the wielder is @Self.
-        assertEquals("DAMAGE:6:@Attacker", Mappings.effect("DAMAGE:1:6:TARGET", true).se());
-        assertEquals("POTION:WITHER:1:80:@Attacker", Mappings.effect("POTION:WITHER:1:TARGET:4", true).se());
-        assertEquals("MODIFY_HEALTH:3:give:@Self", Mappings.effect("HEAL:ADD:2:3", true).se()); // self-heal both ways
+        assertEquals("DAMAGE:6:@Attacker", Mappings.eeEffect("DAMAGE:1:6:TARGET", true).se());
+        assertEquals("POTION:WITHER:1:80:@Attacker", Mappings.eeEffect("POTION:WITHER:1:TARGET:4", true).se());
+        assertEquals("MODIFY_HEALTH:3:give:@Self", Mappings.eeEffect("HEAL:ADD:2:3", true).se()); // self-heal both ways
         assertEquals("SUPPRESS:GROUP:rare:200:@Attacker",
-                Mappings.effect("DISABLE_ENCHANTMENT_GROUP:RARE:10", true).se());
+                Mappings.eeEffect("DISABLE_ENCHANTMENT_GROUP:RARE:10", true).se());
     }
 
     @Test
     void eeDefenseCompoundEffectPortsTheInnerEffect() {
         // ender-walker: "DEFENSE;<factor>;HEAL:ADD:1:2" → the inner HEAL maps; the threshold factor is dropped.
-        var compound = Mappings.effect("DEFENSE;2.5;HEAL:ADD:1:3", true);
+        var compound = Mappings.eeEffect("DEFENSE;2.5;HEAL:ADD:1:3", true);
         assertTrue(compound.mapped());
         assertEquals("MODIFY_HEALTH:3:give:@Self", compound.se());
     }
@@ -345,9 +345,9 @@ class MigratorTest {
 
     @Test
     void eeRepeatingTypeMapsToTheRepeatTrigger() {
-        assertEquals("REPEATING", Mappings.trigger("REPEATING-5"));
-        assertEquals(100, Mappings.repeatTicks("REPEATING-5")); // 5s × 20
-        assertEquals(0, Mappings.repeatTicks("ATTACK"));
+        assertEquals("REPEATING", Mappings.eeTrigger("REPEATING-5"));
+        assertEquals(100, Mappings.eeRepeatTicks("REPEATING-5")); // 5s × 20
+        assertEquals(0, Mappings.eeRepeatTicks("ATTACK"));
     }
 
     @Test

@@ -45,19 +45,13 @@ final class V2Effects {
             kvs.add(param.name() + ": " + scalar(args.get(i)));
         }
         if (selector != null) {
-            kvs.add("who: " + q(selector));
+            kvs.add("who: " + SchemaWriter.q(selector));
         }
         return "{ " + head + ": {" + (kvs.isEmpty() ? "}" : " " + String.join(", ", kvs) + " }") + " }";
     }
 
     /** A YAML flow scalar: bare for a plain integer/decimal, else a double-quoted string. */
     private static String scalar(String value) {
-        return value.matches("-?\\d+(\\.\\d+)?") ? value : q(value);
-    }
-
-    /** A YAML double-quoted scalar — escapes backslash/quote and control chars a legacy token may carry. */
-    private static String q(String s) {
-        return '"' + s.replace("\\", "\\\\").replace("\"", "\\\"")
-                .replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r") + '"';
+        return value.matches("-?\\d+(\\.\\d+)?") ? value : SchemaWriter.q(value);
     }
 }

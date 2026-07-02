@@ -184,7 +184,7 @@ public final class SchemaWriter {
      * plus the control characters a raw legacy string can carry (newline/tab/CR) — an unescaped LF inside
      * a double-quoted scalar would otherwise produce invalid YAML on reload.
      */
-    private static String q(String s) {
+    static String q(String s) {
         return '"' + s.replace("\\", "\\\\").replace("\"", "\\\"")
                 .replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r") + '"';
     }
