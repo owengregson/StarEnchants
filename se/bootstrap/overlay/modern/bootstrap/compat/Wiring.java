@@ -1,5 +1,7 @@
 package bootstrap.compat;
 
+import engine.run.ActorProbe;
+import engine.run.ModernActorProbe;
 import engine.sink.DispatchSinkFactory;
 import engine.sink.SinkFactory;
 import feature.fx.ParticleFx;
@@ -50,6 +52,11 @@ public final class Wiring {
     /** The worn/held equipment read (§3.3): modern 6-slot (incl. off-hand). Injected into {@code WornResolver}. */
     public EquipSource equipSource() {
         return new ModernEquipSource();
+    }
+
+    /** The entity/material fact reads (§3.3): modern swim/glide/isAir/main-hand. Injected into {@code FactPopulator}. */
+    public ActorProbe actorProbe() {
+        return new ModernActorProbe();
     }
 
     /**

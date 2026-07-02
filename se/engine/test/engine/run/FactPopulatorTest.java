@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 class FactPopulatorTest {
 
     private static final VarVocabulary VOCAB = BuiltinVars.vocabulary();
-    private final FactPopulator populator = FactPopulator.builtin();
+    private final FactPopulator populator = FactPopulator.builtin(new ModernActorProbe());
 
     private static int num(String scope, String name) {
         return slot(scope, name, VarKind.NUM);
@@ -98,7 +98,7 @@ class FactPopulatorTest {
         when(player.getUniqueId()).thenReturn(id);
         VarStore vars = new VarStore();
         vars.set(id, "rage", "1", 100L, 0); // a dynamic var SET_VAR wrote for this player
-        FactPopulator pop = new FactPopulator(BuiltinVars.vocabulary(), vars, token -> "papi:" + token);
+        FactPopulator pop = new FactPopulator(BuiltinVars.vocabulary(), vars, token -> "papi:" + token, new ModernActorProbe());
 
         FactBuffer f = pop.populate(new ActivationContext(player, null, null, null), 100L);
 

@@ -1,5 +1,7 @@
 package bootstrap.compat;
 
+import engine.run.ActorProbe;
+import engine.run.LegacyActorProbe;
 import engine.sink.DispatchSinkFactory;
 import engine.sink.SinkFactory;
 import feature.fx.ParticleFx;
@@ -42,6 +44,11 @@ public final class Wiring {
     /** The worn/held equipment read (§3.3): 1.8 5-slot (main hand only). Injected into {@code WornResolver}. */
     public EquipSource equipSource() {
         return new LegacyEquipSource();
+    }
+
+    /** The entity/material fact reads (§3.3): 1.8-correct swim/glide/isAir/main-hand. Injected into {@code FactPopulator}. */
+    public ActorProbe actorProbe() {
+        return new LegacyActorProbe();
     }
 
     /**

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 
 import compile.load.ContentHolder;
 import engine.run.AbilityExecutor;
+import engine.run.ActorProbe;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.soul.SoulBinding;
@@ -31,7 +32,7 @@ class TriggerDispatchWiringTest {
         TriggerRegistry triggers = BuiltinTriggers.registry();
         Function<Player, Optional<SoulBinding>> noSouls = player -> Optional.empty();
         TriggerDispatch dispatch = new TriggerDispatch(
-                mock(AbilityExecutor.class), mock(SinkFactory.class), mock(ContentHolder.class),
+                mock(AbilityExecutor.class), mock(SinkFactory.class), mock(ActorProbe.class), mock(ContentHolder.class),
                 mock(WornStateStore.class), triggers, noSouls, Envs.sink().build());
 
         assertEquals(id(triggers, "MINE"), dispatch.mine);

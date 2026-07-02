@@ -1,5 +1,7 @@
 package tester.suite;
 
+import engine.run.ActorProbe;
+import engine.run.ModernActorProbe;
 import item.codec.ItemStateStore;
 import item.codec.PdcItemStateStore;
 import item.render.LoreRenderer;
@@ -23,6 +25,10 @@ final class Stores {
 
     static EquipSource equip() {
         return new ModernEquipSource();
+    }
+
+    static ActorProbe probe() {
+        return new ModernActorProbe();
     }
 
     static LoreRenderer lore(LoreRenderer.Config config) {
