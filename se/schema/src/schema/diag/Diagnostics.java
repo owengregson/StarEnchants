@@ -59,6 +59,11 @@ public final class Diagnostics {
         return add(Diagnostic.info(code, message, source));
     }
 
+    /** Collect with the severity as data — the ContentParse helper family's entry (ADR-0042). */
+    public Diagnostics add(Severity severity, DiagCode code, String message, Source source) {
+        return add(new Diagnostic(severity, code.name(), message, source, null));
+    }
+
     public Diagnostics merge(Diagnostics other) {
         entries.addAll(other.entries);
         return this;

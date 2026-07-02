@@ -13,6 +13,10 @@ package schema.diag;
  * <p>Codes are grouped by the stage/loader that emits them. Two duplicate-key codes are
  * intentionally distinct: {@link #E_DUP_KEY} is one compilation claiming a content key twice
  * (erase stage), {@link #E_DUPLICATE_KEY} is two files resolving to the same key (library loader).
+ *
+ * <p>These names also supersede the last dotted string codes ({@code reload.busy}, {@code reload.failed},
+ * {@code migrate.*}): the String overloads on {@link Diagnostics}/{@link Diagnostic} are gone, so the set is
+ * compiler-enforced — an off-catalogue code cannot be produced (ADR-0042).
  */
 public enum DiagCode {
 
@@ -62,6 +66,7 @@ public enum DiagCode {
     E_CONFIG_IO,
     E_CONFIG_SHAPE,
     W_CONFIG_NUM,
+    W_CONFIG_BOOL,         // a config.yml boolean outside the canonical vocabulary — warned, fallback kept
     W_UNKNOWN_KEY,
     W_TIER_FOLDER_MISMATCH,
 
@@ -78,6 +83,7 @@ public enum DiagCode {
     E_LOAD_CHANCE,         // a chance: value is outside [0,100] or non-numeric
     E_LOAD_INT,            // a value that must be an integer is not
     E_LOAD_DOUBLE,         // a value that must be a number is not
+    W_LOAD_BOOL,           // a value that must be a boolean is outside the true/yes/on/1 | false/no/off/0 vocabulary — warned, fallback kept
     E_LOAD_ENCHANT,        // an enchant file is not a YAML mapping
     E_LOAD_ENCHANT_TRIGGER,// an enchant declares no trigger
     E_LOAD_ENCHANT_LEVELS, // an enchant declares no levels: map
@@ -91,6 +97,7 @@ public enum DiagCode {
     E_LOAD_SET_COMPLETE,   // a set's completion count is not positive
     E_LOAD_SET_WEAPON,     // a set weapon declares no material
     E_LOAD_SET_TRIGGER,    // a set bonus declares no trigger
+    W_LOAD_SET_WEAPON_UNREACHABLE, // an on:weapon bonus with no weapon: item to hold — it can never fire (split from W_LOAD_EFFECTS)
     W_LOAD_EFFECTS,        // an ability declares no effects — warned, kept
 
     // Items loader (per-item config + soul-gem maps).
@@ -112,6 +119,16 @@ public enum DiagCode {
     E_MENU_SHAPE,
     W_MENU_DUP,
     W_MENU_NUM,
+
+    // Transactional reload (platform.content.ReloadResult) — result-level faults; Source is UNKNOWN.
+    E_RELOAD_BUSY,         // single-flight rejection: another reload is already in progress
+    E_RELOAD_FAILED,       // the off-thread build threw; the Throwable rides ReloadResult.failure()
+
+    // Migrator (se/migrate) — import-review findings; the migrator never blocks, it flags gaps.
+    W_MIGRATE_ID,          // an unsafe legacy id was skipped (path-escape guard)
+    W_MIGRATE_TRIGGER,     // a legacy type has no StarEnchants trigger — set one manually
+    W_MIGRATE_APPLIES,     // a legacy applies list was not recognised — set applies-to manually
+    W_MIGRATE_EFFECT,      // a legacy effect token was not translated — see the inline note
 
     // Selector argument hygiene.
     W_SELECTOR_DUP_ARG,
