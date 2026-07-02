@@ -50,6 +50,24 @@ class SeCommandCompletionTest {
         assertTrue(SeCommand.complete(new String[] {"import", "SE1:"}, ENCHANTS, CRYSTALS).isEmpty());
     }
 
+    @Test
+    void problemsIsASubcommandWithNoArgumentCompletion() {
+        assertEquals(List.of("problems"), SeCommand.complete(new String[] {"prob"}, ENCHANTS, CRYSTALS));
+        assertTrue(SeCommand.complete(new String[] {"problems", ""}, ENCHANTS, CRYSTALS).isEmpty());
+    }
+
+    @Test
+    void itemCompletesTheDumpAction() {
+        assertEquals(SeCommand.ITEM_ACTIONS, SeCommand.complete(new String[] {"item", ""}, ENCHANTS, CRYSTALS));
+        assertEquals(List.of("dump"), SeCommand.complete(new String[] {"item", "du"}, ENCHANTS, CRYSTALS));
+    }
+
+    @Test
+    void docsCompletesTheReferenceVocabularies() {
+        assertEquals(SeCommand.DOC_VOCABS, SeCommand.complete(new String[] {"docs", ""}, ENCHANTS, CRYSTALS));
+        assertEquals(List.of("conditions"), SeCommand.complete(new String[] {"docs", "cond"}, ENCHANTS, CRYSTALS));
+    }
+
     // §J give-tree + removeenchant completion
 
     private static final List<String> PLAYERS = List.of("Bob", "Alice");

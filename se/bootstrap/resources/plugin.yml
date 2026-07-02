@@ -14,10 +14,9 @@ softdepend: [Mental, WorldGuard, Vault, Towny, Lands, SuperiorSkyblock2, Faction
 commands:
   se:
     description: StarEnchants admin command.
-    usage: |-
-      /se reload [--dry-run] — rebuild content
-      /se enchant <key> [level] — apply an enchant to the held item
-      /se crystal <key> — apply a crystal to the held item
+    aliases: [star]
+    # The real, always-current help is /se help (rendered from SeCommand.COMMANDS); this stanza is flavour only.
+    usage: Run /se help for the full command list.
     permission: starenchants.admin
 permissions:
   starenchants.admin:

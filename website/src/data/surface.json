@@ -2,7 +2,9 @@
   "version": 1,
   "commands": [
     { "name": "reload", "args": "[--dry-run]", "description": "Rebuild the content library off-thread and hot-swap it in (or just validate).", "alias": false },
+    { "name": "problems", "args": "", "description": "Show the errors and warnings from the last content load.", "alias": false },
     { "name": "give", "args": "<type> <player> [args]", "description": "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player.", "alias": false },
+    { "name": "item", "args": "dump", "description": "Print the decoded StarEnchants state of the held item.", "alias": false },
     { "name": "enchant", "args": "<key> [level]", "description": "Apply an enchant to the held item (admin; bypasses apply rules).", "alias": false },
     { "name": "removeenchant", "args": "<key>", "description": "Strip an enchant from the held item.", "alias": false },
     { "name": "unenchant", "args": "", "description": "Alias of /se removeenchant.", "alias": true },
@@ -31,7 +33,8 @@
     { "name": "triggers", "args": "", "description": "Browse the trigger reference in chat.", "alias": false },
     { "name": "conditions", "args": "", "description": "Browse the conditions reference in chat.", "alias": false },
     { "name": "variables", "args": "", "description": "Browse the condition variables in chat.", "alias": false },
-    { "name": "list", "args": "", "description": "List every enchant, set, and crystal.", "alias": false }
+    { "name": "list", "args": "", "description": "List every enchant, set, and crystal.", "alias": false },
+    { "name": "docs", "args": "[vocabulary]", "description": "Umbrella for the DSL reference: no arg lists the vocabularies; an arg opens one.", "alias": false }
   ],
   "tiers": {
     "default": "common",
