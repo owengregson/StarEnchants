@@ -55,6 +55,10 @@ dependencies {
     // Shared fixtures: FakeEffectCtx (a real, strict EffectCtx that throws on an unset param) and
     // SpecDrivenCtx, used by the collapsed effect-kind wiring tables in place of per-test ctx mocks.
     testImplementation(project(":testfx"))
+
+    // LoaderFuzzTest drives compile.load.LibraryLoader, which parses YAML via the server-provided
+    // SnakeYAML (compileOnly in :compile) — supply it at test runtime, matching :bootstrap's tests.
+    testRuntimeOnly("org.yaml:snakeyaml:2.2")
 }
 
 // `./gradlew regenDocs` runs the drift tests in regen mode; the engine half rewrites the DSL

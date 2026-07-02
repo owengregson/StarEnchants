@@ -91,6 +91,17 @@ versioning: [Semantic Versioning](https://semver.org/).
 - Approved architecture: `docs/architecture.md` (content-compiler + data-oriented
   runtime, derived via a multi-lens design workshop) and ADRs 0011 (architecture),
   0012 (fully-additive damage), 0013 (single `/se` command root).
+- **ParamSpec-derived content fuzz gate.** `./gradlew build` now fuzzes the content
+  compiler and loader from the live registries: for every registered effect and
+  selector kind, seeded generators derive valid and adversarial near-valid content
+  from the kind's own `ParamSpec` (wrong types, boundary/huge numbers, unknown
+  heads/params/triggers, unicode, malformed selectors/conditions, duplicate keys,
+  pathological YAML) and assert the compiler never throws — every fault is a
+  closed-set `DiagCode` diagnostic — and that accepted content is erase-stage sound
+  (dense-id/array agreement, trigger-mask vocabulary, affinity fold, cumulative
+  WAIT, SUPPRESS scope/key interning, handle interning). Fully seeded and
+  deterministic, bounded to seconds, and a new kind is fuzzed automatically with
+  zero per-kind test authoring.
 
 ### Changed
 
