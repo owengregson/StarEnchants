@@ -1,5 +1,6 @@
 package feature.book;
 
+import feature.apply.GestureOutcome;
 import feature.compat.Hands;
 import java.util.Objects;
 import org.bukkit.entity.Player;
@@ -9,18 +10,24 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import platform.item.Inventories;
+import platform.lang.Messages;
 
 /**
  * Right-click a held unopened/randomized book to reveal a random enchant book from its tier (§I).
- * Bukkit-thin glue — logic is in {@link UnopenedBookService}. Folia-correct: fires on the player's own
- * region thread, touching only their own held item.
+ * Bukkit-thin glue — logic is in {@link UnopenedBookService}. This ADOPTS the {@link GestureOutcome} shape and
+ * {@link Inventories}/{@link Messages#sendText} seams (ADR-0041) but is NOT an {@code ApplyGestureListener}: it
+ * is a {@code PlayerInteractEvent} (a held right-click), not a cursor-onto-gear click. Folia-correct: fires on
+ * the player's own region thread, touching only their own held item.
  */
 public final class UnopenedBookListener implements Listener {
 
     private final UnopenedBookService service;
+    private final Messages messages;
 
-    public UnopenedBookListener(UnopenedBookService service) {
+    public UnopenedBookListener(UnopenedBookService service, Messages messages) {
         this.service = Objects.requireNonNull(service, "service");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     // priority LOW, NOT ignoreCancelled: a RIGHT_CLICK_BLOCK with a non-use item often arrives already
@@ -43,18 +50,17 @@ public final class UnopenedBookListener implements Listener {
         }
         event.setCancelled(true); // claim the gesture: the book does nothing else on right-click
 
-        UnopenedResult result = service.open(used);
-        if (result.opened()) {
+        GestureOutcome result = service.open(used);
+        if (result.commit()) {
             ItemStack hand = Hands.mainHand(player);
             hand.setAmount(hand.getAmount() - 1);
             Hands.setMainHand(player, hand.getAmount() <= 0 ? null : hand);
-            if (result.produced() != null) {
-                player.getInventory().addItem(result.produced()).values()
-                        .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
-            }
+        }
+        if (result.produced() != null) {
+            Inventories.giveOrDrop(player, result.produced());
         }
         if (result.message() != null) {
-            player.sendMessage(result.message());
+            messages.sendText(player, result.message());
         }
     }
 }

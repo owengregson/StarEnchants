@@ -25,6 +25,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import platform.item.Inventories;
 import platform.sched.Scheduling;
 import platform.text.Colors;
 
@@ -111,7 +112,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
             flushPending(player); // settle owed drains to PDC before dropping the pool, else a spend refunds
             modes.deactivate(id);
             pool.disable(id);
-            messageLines(player, messages.lines("soul.deactivate"));
+            messages.sendLines(player, "soul.deactivate");
             playSounds(player, cfg.sounds().toggleOff());
             particles.spawn(player, cfg.particles().disable());
             return Toggle.DISABLED;
@@ -122,31 +123,17 @@ public final class SoulService implements SoulDebit, SoulSpender {
         }
         // F: right-clicking a ZERO-soul gem never enables — fail out instantly with the soul.empty feedback.
         if (held.souls() <= 0) {
-            messageLines(player, messages.lines("soul.empty"));
+            messages.sendLines(player, "soul.empty");
             playSounds(player, cfg.sounds().toggleOff());
             particles.spawn(player, cfg.particles().disable());
             return Toggle.NO_SOULS;
         }
         modes.activate(id, id); // the stored marker is just "on" (the player's own id); the pool holds the souls
         pool.enable(id, totalSouls(player));
-        messageLines(player, messages.lines("soul.activate"));
+        messages.sendLines(player, "soul.activate");
         playSounds(player, cfg.sounds().toggleOn());
         particles.spawn(player, cfg.particles().enable());
         return Toggle.ENABLED;
-    }
-
-    /** Send a single message (already colour-translated by {@code Messages.format}); a blank line is skipped. */
-    private static void message(Player player, String raw) {
-        if (raw != null && !raw.isBlank()) {
-            player.sendMessage(raw);
-        }
-    }
-
-    /** Send a multi-line message (already colour-translated by {@code Messages.lines}); a blank line stays blank. */
-    private static void messageLines(Player player, List<String> lines) {
-        for (String line : lines) {
-            player.sendMessage(line);
-        }
     }
 
     /**
@@ -296,8 +283,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         int remain = have - amount;
         writeGem(inv, held, data.withSouls(remain));
         ItemStack fresh = mintGemStack(new SoulData(UUID.randomUUID(), amount));
-        inv.addItem(fresh).values()
-                .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+        Inventories.giveOrDrop(player, fresh);
         playSounds(player, config.get().sounds().split());
         return new SplitResult(SplitResult.Status.OK, amount, remain);
     }
@@ -386,7 +372,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
             modes.deactivate(id);
             pool.disable(id);
             SoulGemConfig cfg = config.get();
-            messageLines(player, messages.lines("soul.empty"));
+            messages.sendLines(player, "soul.empty");
             playSounds(player, cfg.sounds().toggleOff());
             particles.spawn(player, cfg.particles().disable());
         } else {
@@ -440,7 +426,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
     /** The per-spend feedback: the {@code soul.soul-use} line (the new TOTAL) + use sound + use particle. */
     private void soulUseFeedback(Player player) {
         SoulGemConfig cfg = config.get();
-        message(player, messages.format("soul.soul-use", "AMOUNT", pool.total(player.getUniqueId())));
+        messages.sendText(player, messages.format("soul.soul-use", "AMOUNT", pool.total(player.getUniqueId())));
         playSounds(player, cfg.sounds().use());
         particles.spawn(player, cfg.particles().use());
     }

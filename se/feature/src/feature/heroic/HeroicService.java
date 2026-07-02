@@ -1,6 +1,7 @@
 package feature.heroic;
 
 import compile.load.HeroicConfig;
+import feature.apply.GestureOutcome;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.HeroicStat;
@@ -96,18 +97,18 @@ public final class HeroicService {
     }
 
     /** Attempt to upgrade {@code gear} with the heroic {@code upgrade} (consumed either way). */
-    public HeroicResult applyTo(ItemStack upgrade, ItemStack gear) {
+    public GestureOutcome applyTo(ItemStack upgrade, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
-            return HeroicResult.unchanged(messages.format("heroic.not-gear"));
+            return GestureOutcome.noop(messages.format("heroic.not-gear"));
         }
         if (gear.getAmount() > 1) {
-            return HeroicResult.unchanged(messages.format("common.single-item"));
+            return GestureOutcome.noop(messages.format("common.single-item"));
         }
         if (!groups.matches(gear.getType(), List.of("ARMOR", "WEAPON"))) {
-            return HeroicResult.unchanged(messages.format("heroic.not-gear")); // §F: armour/weapons only
+            return GestureOutcome.noop(messages.format("heroic.not-gear")); // §F: armour/weapons only
         }
         if (!combat.read(gear).heroic().isZero()) {
-            return HeroicResult.unchanged(messages.format("heroic.already-heroic"));
+            return GestureOutcome.noop(messages.format("heroic.already-heroic"));
         }
         HeroicConfig cfg = config.get();
         boolean weapon = groups.matches(gear.getType(), List.of("WEAPON")); // else armour (validated above)
@@ -115,8 +116,9 @@ public final class HeroicService {
         consume(upgrade); // spent whether the roll succeeds or fails
         if (random.nextInt(100) >= chance) {
             // Like the other consumables: a failed attempt optionally DESTROYS the gear (else leaves it intact).
+            // commit + null newTarget clears the clicked slot — today's destroy-on-fail behaviour (ADR-0041).
             ItemStack result = cfg.destroyOnFail() ? null : gear;
-            return HeroicResult.committed(result, messages.format("heroic.fail"));
+            return GestureOutcome.committed(result, messages.format("heroic.fail"));
         }
         ItemStack upgraded = withUpgradedMaterial(gear, cfg);
         // §F diamond-equivalence (gold display, diamond function). When vanilla-stats is on (ADR-0031/0032), the
@@ -142,7 +144,7 @@ public final class HeroicService {
         CombatState next = current.withHeroic(stat); // preserves setWeaponKey (a heroic-upgraded set weapon stays one)
         combat.write(upgraded, next);
         lore.apply(upgraded, next); // re-render from state (enchants/crystals + HEROIC line)
-        return HeroicResult.committed(upgraded, messages.format("heroic.success"));
+        return GestureOutcome.committed(upgraded, messages.format("heroic.success"));
     }
 
     /**

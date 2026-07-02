@@ -5,6 +5,7 @@ import compile.load.CrystalConfig;
 import compile.load.CrystalDef;
 import feature.apply.ApplyResult;
 import feature.apply.ExtractResult;
+import feature.apply.GestureOutcome;
 import feature.apply.ItemEnchanter;
 import feature.compat.Mats;
 import item.codec.CrystalExtractorCodec;
@@ -99,10 +100,10 @@ public final class CrystalService {
     }
 
     /** Crystal-on-something gesture: target crystal → MERGE (up to the cap), else APPLY to gear. */
-    public CrystalResult interact(ItemStack cursor, ItemStack target) {
+    public GestureOutcome interact(ItemStack cursor, ItemStack target) {
         CrystalItemData crystal = codec.read(cursor);
         if (crystal == null) {
-            return CrystalResult.unchanged(null);
+            return GestureOutcome.noop(null);
         }
         CrystalItemData targetCrystal = codec.read(target);
         if (targetCrystal != null) {
@@ -111,47 +112,42 @@ public final class CrystalService {
         return apply(cursor, crystal, target);
     }
 
-    private CrystalResult apply(ItemStack cursor, CrystalItemData crystal, ItemStack gear) {
+    private GestureOutcome apply(ItemStack cursor, CrystalItemData crystal, ItemStack gear) {
         CrystalConfig cfg = config.get();
         ApplyResult eligible = enchanter.checkCrystalEntry(gear, crystal.keys());
         if (!eligible.ok()) {
-            // The drag-onto-gear gesture shows its own crystal.no-slots wording; any other ineligibility keeps
-            // the enchanter's reason. Branch on the STRUCTURAL reason, never the rendered text — sniffing the
-            // message string breaks the moment apply.crystal.no-slots is customised in lang.yml.
-            String message = eligible.reason() == ApplyResult.Reason.NO_CRYSTAL_SLOTS
-                    ? messages.format("crystal.no-slots") : eligible.message();
-            return CrystalResult.unchanged(message); // never consume on an ineligible target
+            return GestureOutcome.noop(eligible.message()); // never consume on an ineligible target
         }
         // 100% apply (ADR-0034 §3): no roll — an eligible crystal always lands, then the cursor is spent.
         enchanter.applyCrystalEntry(gear, crystal.keys(), true);
         consume(cursor);
-        return CrystalResult.committed(gear, applySound(cfg),
+        return GestureOutcome.committed(gear, GestureOutcome.Cue.sound(applySound(cfg)),
                 messages.format("crystal.apply-success", "CRYSTAL", label(crystal.keys())));
     }
 
     /** Merge two crystals (cursor ON TOP of the target) into one multi-crystal, capped at {@code max-merge}. */
-    private CrystalResult merge(ItemStack cursor, CrystalItemData cursorCrystal, ItemStack target, CrystalItemData targetCrystal) {
+    private GestureOutcome merge(ItemStack cursor, CrystalItemData cursorCrystal, ItemStack target, CrystalItemData targetCrystal) {
         if (target.getAmount() > 1) {
-            return CrystalResult.unchanged(messages.format("crystal.merge-single"));
+            return GestureOutcome.noop(messages.format("crystal.merge-single"));
         }
         int cap = maxMerge.getAsInt();
         CrystalItemData merged = targetCrystal.mergeWith(cursorCrystal, cap); // target keeps the slot; cursor lands on top
         if (merged == null) {
-            return CrystalResult.unchanged(messages.format("crystal.merge-cap", "MAX", cap));
+            return GestureOutcome.noop(messages.format("crystal.merge-cap", "MAX", cap));
         }
         // §ADR-0035: a non-stackable crystal cannot merge with another of the same type into one multi-crystal.
         String clash = duplicateNonStackable(merged.keys());
         if (clash != null) {
-            return CrystalResult.unchanged(messages.format("crystal.merge-not-stackable", "CRYSTAL", label(List.of(clash))));
+            return GestureOutcome.noop(messages.format("crystal.merge-not-stackable", "CRYSTAL", label(List.of(clash))));
         }
         ItemStack multi = mint(merged);
         consume(cursor);
-        return CrystalResult.committed(multi, applySound(config.get()),
+        return GestureOutcome.committed(multi, GestureOutcome.Cue.sound(applySound(config.get())),
                 messages.format("crystal.merge", "CRYSTAL", label(merged.keys())));
     }
 
     /** Extractor gesture: pop the topmost single off a multi-crystal ITEM, else off crystal-bearing GEAR. */
-    public CrystalResult extract(ItemStack cursor, ItemStack target) {
+    public GestureOutcome extract(ItemStack cursor, ItemStack target) {
         CrystalItemData targetCrystal = codec.read(target);
         if (targetCrystal != null) {
             return extractFromCrystal(cursor, target, targetCrystal);
@@ -160,34 +156,34 @@ public final class CrystalService {
     }
 
     /** Pop {@code gear}'s last crystal entry and mint it back to the player; no-op when gear carries none. */
-    private CrystalResult extractFromGear(ItemStack cursor, ItemStack gear) {
+    private GestureOutcome extractFromGear(ItemStack cursor, ItemStack gear) {
         ExtractResult result = enchanter.extractCrystal(gear);
         if (!result.ok()) {
-            return CrystalResult.unchanged(result.message());
+            return GestureOutcome.noop(result.message());
         }
         // The whole entry pops off intact (§ADR-0035): a merged entry mints back as ONE multi-crystal, which a
         // further extractor gesture on that item then splits into singles (extractFromCrystal).
         List<String> popped = CrystalItemData.componentsOf(result.poppedEntry());
         ItemStack minted = mint(new CrystalItemData(popped));
         consume(cursor);
-        return CrystalResult.extracted(gear, minted, removeSound(config.get()),
+        return GestureOutcome.committed(gear, minted, GestureOutcome.Cue.sound(removeSound(config.get())),
                 messages.format("crystal.extract-success", "CRYSTAL", label(popped)));
     }
 
     /** Split the topmost single off a multi-crystal ITEM: the item becomes the remainder, the single goes back. */
-    private CrystalResult extractFromCrystal(ItemStack cursor, ItemStack crystalItem, CrystalItemData data) {
+    private GestureOutcome extractFromCrystal(ItemStack cursor, ItemStack crystalItem, CrystalItemData data) {
         if (crystalItem.getAmount() > 1) {
-            return CrystalResult.unchanged(messages.format("crystal.merge-single")); // a stack of >1 is ambiguous
+            return GestureOutcome.noop(messages.format("crystal.merge-single")); // a stack of >1 is ambiguous
         }
         if (!data.isMulti()) {
-            return CrystalResult.unchanged(messages.format("crystal.extract-not-multi")); // a single has nothing to split
+            return GestureOutcome.noop(messages.format("crystal.extract-not-multi")); // a single has nothing to split
         }
         List<String> components = new ArrayList<>(data.keys());
         String popped = components.remove(components.size() - 1); // the topmost (most-recently-merged) crystal
         ItemStack single = mint(CrystalItemData.single(popped));
         ItemStack remainder = mint(new CrystalItemData(components));
         consume(cursor);
-        return CrystalResult.extracted(remainder, single, removeSound(config.get()),
+        return GestureOutcome.committed(remainder, single, GestureOutcome.Cue.sound(removeSound(config.get())),
                 messages.format("crystal.extract-success", "CRYSTAL", label(List.of(popped))));
     }
 

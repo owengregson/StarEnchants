@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.Inventories;
 import platform.item.ItemGroups;
 
 /**
@@ -107,7 +108,7 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
             return;
         }
         enchanter.mintSetPiece(def.key(), row.piece().token()).ifPresentOrElse(piece -> {
-            MenuItems.giveOrDrop(player, piece);
+            Inventories.giveOrDrop(player, piece);
             messages.send(player, "menu.sets.minted", "PIECE", row.piece().slotLabel(), "SET", def.display());
         }, () -> messages.send(player, "menu.sets.mint-failed", "PIECE", row.piece().slotLabel()));
     }

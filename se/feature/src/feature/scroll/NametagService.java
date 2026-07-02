@@ -199,7 +199,6 @@ public final class NametagService {
 
     /** Return one nametag to the player; overflow drops at their feet. */
     private void refund(Player player) {
-        player.getInventory().addItem(mint()).values()
-                .forEach(extra -> player.getWorld().dropItemNaturally(player.getLocation(), extra));
+        platform.item.Inventories.giveOrDrop(player, mint());
     }
 }

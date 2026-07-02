@@ -3,6 +3,7 @@ package feature.carrier;
 import compile.load.ContentHolder;
 import compile.load.EnchantDef;
 import feature.apply.ApplyResult;
+import feature.apply.GestureOutcome;
 import feature.apply.ItemEnchanter;
 import item.mint.ItemFactory;
 import item.codec.CarrierCodec;
@@ -193,17 +194,17 @@ public final class CarrierService {
      * Apply {@code carrier} to {@code target}, mutating both. A no-op (not a carrier / ineligible target /
      * unsupported kind) leaves both stacks untouched.
      */
-    public CarrierResult applyTo(ItemStack carrier, ItemStack target) {
+    public GestureOutcome applyTo(ItemStack carrier, ItemStack target) {
         CarrierData data = codec.read(carrier);
         if (data == null) {
-            return CarrierResult.noop(messages.format("carrier.not-carrier"));
+            return GestureOutcome.noop(messages.format("carrier.not-carrier"));
         }
         if (target == null || target.getType() == Material.AIR) {
-            return CarrierResult.noop(messages.format("carrier.apply-target"));
+            return GestureOutcome.noop(messages.format("carrier.apply-target"));
         }
         // ONE carrier affects ONE item — applying to a stack would be a dupe / mass-loss exploit.
         if (target.getAmount() > 1) {
-            return CarrierResult.noop(messages.format("carrier.single-item"));
+            return GestureOutcome.noop(messages.format("carrier.single-item"));
         }
 
         // Success dust: the one carrier-onto-carrier interaction (ADR-0019). Fixed dust confers its baked
@@ -217,7 +218,7 @@ public final class CarrierService {
             return applyProtect(carrier, target, data);
         }
         if (!data.grants()) {
-            return CarrierResult.noop(messages.format("carrier.grants-nothing"));
+            return GestureOutcome.noop(messages.format("carrier.grants-nothing"));
         }
 
         String grant = data.grantKey();
@@ -226,7 +227,7 @@ public final class CarrierService {
                 ? enchanter.checkCrystalEntry(target, java.util.List.of(grant)) // §E crystal-slot gate
                 : enchanter.checkApplicable(target, grant, data.grantLevel()); // §G/§H gate before consuming
         if (!check.ok()) {
-            return CarrierResult.noop(check.message()); // ineligible target → don't waste the carrier
+            return GestureOutcome.noop(check.message()); // ineligible target → don't waste the carrier
         }
 
         int base = baseSuccessOf(data); // an unopened-book output / randomizer reroll overrides the default 100
@@ -237,19 +238,19 @@ public final class CarrierService {
             ApplyResult applied = crystal
                     ? enchanter.applyCrystal(target, grant)
                     : enchanter.applyEnchant(target, grant, data.grantLevel());
-            return CarrierResult.consumed(applied.message());
+            return GestureOutcome.committed(target, applied.message());
         }
         if (codec.isGuarded(target)) {
             codec.setGuarded(target, false);
             slot.release(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I the white scroll's guard is spent
             reRender.accept(target); // recompose: the PROTECTED line drops now the guard is gone (rendered from state)
-            return CarrierResult.consumed(messages.format("carrier.fail-protected"));
+            return GestureOutcome.committed(target, messages.format("carrier.fail-protected"));
         }
         if (destroyOnFail) {
-            target.setAmount(0);
-            return CarrierResult.consumed(messages.format("carrier.fail-shattered"));
+            target.setAmount(0); // amount 0 → the base clears the clicked slot (the shattered gear)
+            return GestureOutcome.committed(target, messages.format("carrier.fail-shattered"));
         }
-        return CarrierResult.consumed(messages.format("carrier.fail-unharmed"));
+        return GestureOutcome.committed(target, messages.format("carrier.fail-unharmed"));
     }
 
     private int rolledDustBonus(compile.load.DustConfig cfg) {
@@ -427,18 +428,19 @@ public final class CarrierService {
 
     /**
      * Reroll {@code book}'s success to {@code targetPercent} (§I randomizer scroll) — sets a base-success
-     * override, clears any dust bonus, re-renders lore. No-op (not an enchant book) leaves it untouched.
+     * override, clears any dust bonus, re-renders lore. Returns whether it rewrote the book (a non-book is a
+     * no-op that leaves it untouched); the caller composes the player feedback (ADR-0041).
      */
-    public CarrierResult rerollSuccess(ItemStack book, int targetPercent) {
+    public boolean rerollSuccess(ItemStack book, int targetPercent) {
         CarrierData data = codec.read(book);
         if (data == null || !isEnchantBook(data)) {
-            return CarrierResult.noop(messages.format("scroll.randomizer.not-book"));
+            return false;
         }
         int target = capBookSuccess(targetPercent); // randomizer respects the global ceiling (§I)
         CarrierData updated = data.withBaseSuccess(target);
         codec.write(book, updated);
         reRenderBookLore(book, updated);
-        return CarrierResult.consumed(messages.format("carrier.success-now", "PERCENT", target));
+        return true;
     }
 
     /**
@@ -465,51 +467,51 @@ public final class CarrierService {
      * re-render lore, and consume the {@code dust}. No-op (not a book, no bonus, already at 100%) leaves both
      * untouched.
      */
-    private CarrierResult applyDustBonus(ItemStack dust, ItemStack book, int bonus, String sound,
-                                         java.util.List<String> particles) {
+    private GestureOutcome applyDustBonus(ItemStack dust, ItemStack book, int bonus, String sound,
+                                          java.util.List<String> particles) {
         CarrierData bookData = codec.read(book);
         if (bookData == null || !isEnchantBook(bookData)) {
-            return CarrierResult.noop(messages.format("carrier.dust.only-book"));
+            return GestureOutcome.noop(messages.format("carrier.dust.only-book"));
         }
         int base = baseSuccessOf(bookData);
         int cap = capBookSuccess(100); // global ceiling dust may lift a book TO — it snaps, never overflows (§I)
         if (effectiveSuccess(base, bookData.successBonus()) >= cap) {
-            return CarrierResult.noop(messages.format("carrier.dust.ceiling", "MAX", cap));
+            return GestureOutcome.noop(messages.format("carrier.dust.ceiling", "MAX", cap));
         }
         if (bonus <= 0) {
-            return CarrierResult.noop(messages.format("carrier.dust.no-bonus"));
+            return GestureOutcome.noop(messages.format("carrier.dust.no-bonus"));
         }
         int newBonus = Math.max(0, Math.min(bookData.successBonus() + bonus, cap - base)); // base + bonus ≤ cap
         CarrierData updated = bookData.withSuccessBonus(newBonus);
         codec.write(book, updated);
         reRenderBookLore(book, updated);
         consume(dust);
-        return CarrierResult.consumed(
-                messages.format("carrier.success-now", "PERCENT", effectiveSuccess(base, newBonus)), sound, particles);
+        return GestureOutcome.committed(book, GestureOutcome.Cue.of(sound, particles),
+                messages.format("carrier.success-now", "PERCENT", effectiveSuccess(base, newBonus)));
     }
 
     /**
      * Stamp the one-shot guard marker on {@code target} (white scroll), rolling the scroll's own success first
      * (§I): a failed roll spends the scroll WITHOUT protecting and never destroys the gear (only books destroy).
      */
-    private CarrierResult applyProtect(ItemStack carrier, ItemStack target, CarrierData data) {
+    private GestureOutcome applyProtect(ItemStack carrier, ItemStack target, CarrierData data) {
         if (codec.isGuarded(target)) {
-            return CarrierResult.noop(messages.format("white-scroll.already"));
+            return GestureOutcome.noop(messages.format("white-scroll.already"));
         }
         compile.load.WhiteScrollConfig cfg = whiteScrollConfig.get();
         if (!groups.matches(target.getType(), cfg.appliesTo())) { // §I gate: only the configured kinds
-            return CarrierResult.noop(messages.format("common.wrong-applies",
+            return GestureOutcome.noop(messages.format("common.wrong-applies",
                     "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
         }
         int success = data.hasBaseSuccess() ? data.baseSuccess() : 100;
         consume(carrier); // a use is spent whether the roll succeeds or fails
         if (random.nextInt(100) >= success) {
-            return CarrierResult.consumed(messages.format("white-scroll.fail"));
+            return GestureOutcome.committed(target, messages.format("white-scroll.fail"));
         }
         codec.setGuarded(target, true);
         slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I add the white-scroll marker (coexists with traks/holy)
         reRender.accept(target); // recompose: the PROTECTED line appears from the new guard state (rendered from state)
-        return CarrierResult.consumed(messages.format("white-scroll.applied"));
+        return GestureOutcome.committed(target, messages.format("white-scroll.applied"));
     }
 
     /** Re-render an enchant book's lore from state (never parsed back), so a dust combine or reroll shows the new success. */

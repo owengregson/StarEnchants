@@ -1,6 +1,7 @@
 package feature.trak;
 
 import compile.load.TraksConfig;
+import feature.apply.GestureOutcome;
 import feature.compat.Hands;
 import item.codec.AppliedSlot;
 import item.codec.TrakCodec;
@@ -87,29 +88,29 @@ public final class TrakService {
      * item or already carries this trak; else add this trak's marker (it never clashes with another trak or a
      * scroll), stamp the live count line, and consume the gem.
      */
-    public TrakResult applyTo(ItemStack gem, ItemStack gear) {
+    public GestureOutcome applyTo(ItemStack gem, ItemStack gear) {
         Kind kind = codec.gemKind(gem);
         if (kind == null) {
-            return TrakResult.noop(null); // not a trak gem (defensive)
+            return GestureOutcome.noop(null); // not a trak gem (defensive)
         }
         if (gear == null || gear.getType() == Material.AIR) {
-            return TrakResult.noop(messages.format("trak.apply-target"));
+            return GestureOutcome.noop(messages.format("trak.apply-target"));
         }
         if (gear.getAmount() > 1) {
-            return TrakResult.noop(messages.format("common.single-item"));
+            return GestureOutcome.noop(messages.format("common.single-item"));
         }
         TraksConfig.Trak cfg = trakFor(kind);
         if (!groups.matches(gear.getType(), cfg.appliesTo())) {
-            return TrakResult.noop(messages.format("trak.wrong-kind", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
+            return GestureOutcome.noop(messages.format("trak.wrong-kind", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
         }
         String slotKind = slotKindOf(kind);
         if (slot.holds(gear, slotKind)) {
-            return TrakResult.noop(messages.format("trak.already"));
+            return GestureOutcome.noop(messages.format("trak.already"));
         }
         slot.occupy(gear, slotKind);
         reRender.accept(gear); // recompose: the new marker surfaces this trak's live count line
         gem.setAmount(gem.getAmount() - 1);
-        return TrakResult.committed(messages.format("trak.applied"));
+        return GestureOutcome.committed(gear, messages.format("trak.applied"));
     }
 
     /** Background block-break tracking: bump the held tool's lifetime count; refresh its line if it shows it. */

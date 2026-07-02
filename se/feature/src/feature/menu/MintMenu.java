@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.caps.Capabilities;
+import platform.item.Inventories;
 
 /**
  * The operator "Mint Items" GUI (ADR-0030): a paged grid of every mintable plugin item, each tile rendered as
@@ -66,7 +67,7 @@ public final class MintMenu extends PagedMenu<MintMenu.Tile> {
             messages.send(player, "menu.mint.unavailable", "ITEM", tile.label());
             return;
         }
-        MenuItems.giveOrDrop(player, minted);
+        Inventories.giveOrDrop(player, minted);
         messages.send(player, "menu.mint.given", "ITEM", displayName(minted, tile.label()));
     }
 

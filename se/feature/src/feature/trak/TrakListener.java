@@ -1,64 +1,39 @@
 package feature.trak;
 
-import feature.compat.MenuClicks;
+import feature.apply.ApplyGestureListener;
+import feature.apply.GestureOutcome;
 import java.util.Objects;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import platform.lang.Messages;
 
 /**
- * Trak-gem glue (§I); logic lives in {@link TrakService}. Dragging a gem onto eligible gear applies it; block
- * breaks and kills feed the background lifetime counters. Folia-correct: each event fires on the acting
- * player's own region thread, where reading/writing their held item is region-safe.
+ * Trak-gem glue (§I); logic lives in {@link TrakService}. The apply gesture is a thin leaf of the shared
+ * {@link ApplyGestureListener} (ADR-0041); block breaks and kills feed the background lifetime counters, each
+ * firing on the acting player's own region thread (Folia-correct).
  */
-public final class TrakListener implements Listener {
+public final class TrakListener extends ApplyGestureListener {
 
     private final TrakService service;
 
-    public TrakListener(TrakService service) {
+    public TrakListener(TrakService service, Messages messages) {
+        super(messages);
         this.service = Objects.requireNonNull(service, "service");
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    @SuppressWarnings("deprecation") // setCursor/getView: the floor-stable cursor/view path
-    public void onClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        if (event.getClick() != ClickType.LEFT && event.getClick() != ClickType.RIGHT) {
-            return;
-        }
-        if (MenuClicks.clickedInventory(event) == null
-                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
-            return;
-        }
-        ItemStack cursor = event.getCursor();
-        if (!service.isTrakGem(cursor)) {
-            return;
-        }
-        ItemStack target = event.getCurrentItem();
-        if (target == null || target.getType() == Material.AIR || service.isTrakGem(target)) {
-            return; // no target, or gem-onto-gem (meaningless)
-        }
-        event.setCancelled(true);
-        TrakResult result = service.applyTo(cursor, target);
-        if (result.commit()) {
-            event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
-            event.setCurrentItem(target);
-            player.updateInventory();
-        }
-        if (result.message() != null) {
-            player.sendMessage(result.message());
-        }
+    @Override
+    protected boolean claimsCursor(ItemStack cursor) {
+        return service.isTrakGem(cursor);
+    }
+
+    @Override
+    protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
+        return service.applyTo(cursor, target);
     }
 
     @EventHandler(ignoreCancelled = true)

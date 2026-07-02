@@ -30,6 +30,7 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
     private final ItemEnchanter enchanter;
     private final Consumer<Player> refreshWorn;
     private final Supplier<String> nameTemplate; // the enchant-book name template — icons match the book (§I/§K)
+    private final platform.lang.Messages messages; // ADR-0041: apply feedback flows through the policy seam
 
     /** Default-layout form (tests/fixtures). */
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
@@ -44,11 +45,19 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
                        Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate) {
+        this(content, enchanter, refreshWorn, caps, menus, nameTemplate, platform.lang.Messages.defaults());
+    }
+
+    /** Canonical form (composition root) — {@code messages} routes apply feedback through the policy seam. */
+    public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
+                       Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate,
+                       platform.lang.Messages messages) {
         super("apply", MenuLayout.paged("&d&lApply Enchant"), caps, menus);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.refreshWorn = Objects.requireNonNull(refreshWorn, "refreshWorn");
         this.nameTemplate = Objects.requireNonNull(nameTemplate, "nameTemplate");
+        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     @Override
@@ -75,7 +84,7 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
             Hands.setMainHand(player, held);
             refreshWorn.accept(player); // no equip event fires, so re-resolve the cached WornState by hand
         }
-        player.sendMessage(result.message());
+        messages.sendText(player, result.message());
     }
 
     @Override

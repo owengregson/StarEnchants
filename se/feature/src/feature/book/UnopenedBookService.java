@@ -3,6 +3,7 @@ package feature.book;
 import compile.load.ContentHolder;
 import compile.load.EnchantDef;
 import compile.load.UnopenedBookConfig;
+import feature.apply.GestureOutcome;
 import feature.carrier.CarrierService;
 import item.codec.UnopenedBookCodec;
 import item.mint.ItemFactory;
@@ -63,19 +64,21 @@ public final class UnopenedBookService {
      * Open the unopened {@code book}, minting the rolled concrete book. An empty tier yields nothing and
      * preserves the book; otherwise one is consumed and the rolled book produced.
      */
-    public UnopenedResult open(ItemStack book) {
+    public GestureOutcome open(ItemStack book) {
         String tier = codec.tierOf(book);
         if (tier == null) {
-            return UnopenedResult.nothing(null);
+            return GestureOutcome.noop(null);
         }
         java.util.Optional<Rolled> rolled = rollDetailed(tier);
         if (rolled.isEmpty()) {
-            return UnopenedResult.nothing(messages.format("book.unopened.empty-tier"));
+            return GestureOutcome.noop(messages.format("book.unopened.empty-tier"));
         }
         Rolled r = rolled.get();
         String message = messages.format("book.unopened.open",
                 "ENCHANT", r.display(), "LEVEL", r.level(), "PERCENT", r.success());
-        return UnopenedResult.opened(r.book(), message);
+        // The listener owns the hand (a held right-click, not a bottom-inventory click), so this outcome is
+        // never routed through the base — commit with a null target just marks "spend one from the hand".
+        return GestureOutcome.committed(null, r.book(), message);
     }
 
     /** The same roll {@link #open} performs, exposed for the §J {@code /se give book ... random <tier>} form. */

@@ -1,75 +1,46 @@
 package feature.crystal;
 
-import feature.compat.MenuClicks;
-import feature.compat.Sounds;
-import java.util.Map;
+import feature.apply.ApplyGestureListener;
+import feature.apply.GestureOutcome;
 import java.util.Objects;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+import platform.lang.Messages;
 
 /**
- * Crystal gesture glue (docs/v3-directives.md §E); logic lives in {@link CrystalService}. Folia-correct:
- * {@code InventoryClickEvent} fires on the clicking player's own region thread, so the cursor/inventory
- * mutation here is in-thread.
+ * Crystal gesture glue (docs/v3-directives.md §E); logic lives in {@link CrystalService}. A thin leaf of the
+ * shared {@link ApplyGestureListener} (ADR-0041); it additionally claims the crystal-onto-crystal merge, so it
+ * widens the accepted click shapes and lets a crystal target another crystal.
  */
-public final class CrystalListener implements Listener {
+public final class CrystalListener extends ApplyGestureListener {
 
     private final CrystalService service;
 
-    public CrystalListener(CrystalService service) {
+    public CrystalListener(CrystalService service, Messages messages) {
+        super(messages);
         this.service = Objects.requireNonNull(service, "service");
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    @SuppressWarnings("deprecation") // setCursor/getView: the floor-stable cursor/view path
-    public void onClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
-            return;
-        }
-        // SWAP_WITH_CURSOR is the crystal-onto-crystal merge gesture; shift/number/double clicks excluded.
-        boolean ours = event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT
-                || event.getAction() == InventoryAction.SWAP_WITH_CURSOR;
-        if (!ours) {
-            return;
-        }
-        if (MenuClicks.clickedInventory(event) == null
-                || MenuClicks.clickedInventory(event) != event.getView().getBottomInventory()) {
-            return;
-        }
-        ItemStack cursor = event.getCursor();
-        ItemStack target = event.getCurrentItem();
-        if (target == null || target.getType() == Material.AIR) {
-            return;
-        }
-        boolean extractor = service.isExtractor(cursor);
-        if (!extractor && !service.isCrystal(cursor)) {
-            return;
-        }
+    @Override
+    protected boolean claimsClick(InventoryClickEvent event) {
+        // SWAP_WITH_CURSOR is the crystal-onto-crystal merge gesture; shift/number/double clicks stay excluded.
+        return super.claimsClick(event) || event.getAction() == InventoryAction.SWAP_WITH_CURSOR;
+    }
 
-        event.setCancelled(true);
-        CrystalResult result = extractor ? service.extract(cursor, target) : service.interact(cursor, target);
-        if (result.commit()) {
-            event.setCursor(cursor.getAmount() <= 0 ? null : cursor);
-            event.setCurrentItem(result.newTarget() != null && result.newTarget().getAmount() <= 0
-                    ? null : result.newTarget());
-            if (result.give() != null) {
-                Map<Integer, ItemStack> overflow = player.getInventory().addItem(result.give());
-                overflow.values().forEach(left -> player.getWorld().dropItemNaturally(player.getLocation(), left));
-            }
-            player.updateInventory();
-        }
-        if (result.sound() != null) {
-            Sounds.play(player, player.getLocation(), result.sound(), 1.0f, 1.0f);
-        }
-        if (result.message() != null) {
-            player.sendMessage(result.message());
-        }
+    @Override
+    protected boolean claimsCursor(ItemStack cursor) {
+        return service.isExtractor(cursor) || service.isCrystal(cursor);
+    }
+
+    @Override
+    protected boolean claimsTarget(ItemStack cursor, ItemStack target) {
+        return true; // crystal-onto-crystal merges, so a crystal target is claimed too
+    }
+
+    @Override
+    protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
+        return service.isExtractor(cursor) ? service.extract(cursor, target) : service.interact(cursor, target);
     }
 }
