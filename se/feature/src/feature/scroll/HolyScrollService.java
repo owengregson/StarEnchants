@@ -38,22 +38,7 @@ public final class HolyScrollService {
     private final Consumer<ItemStack> reRender; // refresh gear lore so the HOLY PROTECTED line tracks the marker
     private final ItemGroups groups; // §I applies-to gate — the holy scroll only protects the configured item kinds
 
-    /** Default-messages form (tests/fixtures). */
-    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random) {
-        this(scrolls, slot, config, random, platform.lang.Messages.defaults());
-    }
-
-    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
-                             platform.lang.Messages messages) {
-        this(scrolls, slot, config, random, messages, gear -> { });
-    }
-
-    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
-                             platform.lang.Messages messages, Consumer<ItemStack> reRender) {
-        this(scrolls, slot, config, random, messages, reRender, ItemGroups.standard());
-    }
-
-    /** Canonical form (composition root). */
+    /** {@code reRender} recomposes gear lore after a guard toggle (ADR-0040). */
     public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
                              platform.lang.Messages messages, Consumer<ItemStack> reRender, ItemGroups groups) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");

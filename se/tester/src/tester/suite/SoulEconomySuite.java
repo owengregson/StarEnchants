@@ -47,7 +47,8 @@ public final class SoulEconomySuite implements Harness.Scenario {
 
         ItemKeys keys = ItemKeys.of();
         SoulCodec codec = new SoulCodec(keys.soul());
-        SoulService souls = new SoulService(new SoulPool(), new SoulModeStore(), codec, SoulGemConfig::defaults);
+        SoulService souls = new SoulService(new SoulPool(), new SoulModeStore(), codec, SoulGemConfig::defaults,
+                () -> true, platform.lang.Messages.defaults(), feature.fx.ParticleFx.NONE);
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();

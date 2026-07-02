@@ -48,8 +48,10 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
         ItemKeys keys = ItemKeys.of();
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
         AppliedSlot slot = new AppliedSlot(keys.appliedSlot());
-        HolyScrollService holy = new HolyScrollService(scrollCodec, slot, ScrollsConfig::defaults, new Random(1)); // 100%
-        NametagService nametags = new NametagService(scrollCodec, ScrollsConfig::defaults);
+        HolyScrollService holy = new HolyScrollService(scrollCodec, slot, ScrollsConfig::defaults, new Random(1),
+                platform.lang.Messages.defaults(), gear -> { }, platform.item.ItemGroups.standard()); // 100%
+        NametagService nametags = new NametagService(scrollCodec, ScrollsConfig::defaults,
+                platform.lang.Messages.defaults(), null);
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();

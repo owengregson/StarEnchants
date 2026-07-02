@@ -104,18 +104,24 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 .of(() -> LoreStyle.DEFAULT, k -> holder.library().displayNameOf(k))
                 .withCountSuffix(() -> ScrollsConfig.defaults().transmog().nameSuffix())
                 .withBaseSlots(() -> ItemEnchanter.DEFAULT_BASE_SLOTS));
-        ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
+        ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard(),
+                () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded());
-        CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1));
+        CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1),
+                compile.load.EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
+                compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
+                new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
+                platform.lang.Messages.defaults());
         SlotItemCodec slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess());
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll());
         // Extraction always succeeds now; pin the conversion rate so the drawn book's outcome is exact.
         ScrollsConfig alwaysExtract = withBlackConvert(ScrollsConfig.defaults(), 100, 100);
         ScrollService scrolls = new ScrollService(scrollCodec, combat, lore, carriers, holder,
-                () -> alwaysExtract, new Random(2));
+                () -> alwaysExtract, new Random(2), platform.lang.Messages.defaults(), null, ItemGroups.standard());
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(keys.unopened());
         UnopenedBookService unopened = new UnopenedBookService(unopenedCodec, carriers, holder,
-                UnopenedBookConfig::defaults, new Random(3));
+                UnopenedBookConfig::defaults, new Random(3), platform.lang.Messages.defaults());
 
         h.guard("economy.slot.persistsAndCaps", () -> {
             // maxAdded (5) is not a multiple of the orb's +3, so the second orb overshoots the cap and must
@@ -123,7 +129,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             SlotConfig capCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
                     ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100, List.of("ALL")); // 100/100 = always succeeds; ALL so the cap test isolates the cap
             SlotService capSlots = new SlotService(slotCodec, combat, lore, () -> capCfg,
-                    ItemEnchanter.DEFAULT_BASE_SLOTS);
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, platform.lang.Messages.defaults(),
+                    ItemGroups.standard());
             ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
             capSlots.applyTo(capSlots.mintOrb(), sword); // +3 → 3
             if (combat.read(sword).added() != 3) {
@@ -201,7 +208,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             combat.write(sword, new CombatState(
                     new java.util.LinkedHashMap<>(Map.of("enchants/sharp", 1, "enchants/tough", 1)), List.of()));
             ScrollService transmogScrolls = new ScrollService(scrollCodec, combat, lore, carriers, holder,
-                    ScrollsConfig::defaults, new Random(7));
+                    ScrollsConfig::defaults, new Random(7), platform.lang.Messages.defaults(), null,
+                    ItemGroups.standard());
             ItemStack scroll = transmogScrolls.mintTransmog();
             GestureOutcome result = transmogScrolls.interact(scroll, sword);
             if (!result.commit()) {
@@ -239,7 +247,8 @@ public final class EconomyItemsSuite implements Harness.Scenario {
             // commits to an arbitrary bound gear item, not just the held one.
             item.codec.GodlyTransmogCodec godlyCodec = new item.codec.GodlyTransmogCodec(keys.godlyTransmog());
             ScrollService godly = new ScrollService(scrollCodec, combat, lore, carriers, holder,
-                    ScrollsConfig::defaults, new Random(8), platform.lang.Messages.defaults(), godlyCodec);
+                    ScrollsConfig::defaults, new Random(8), platform.lang.Messages.defaults(), godlyCodec,
+                    ItemGroups.standard());
             ItemStack tool = godly.mintGodlyTransmog();
             if (!godly.isGodlyTransmog(tool)) {
                 throw new IllegalStateException("godly transmog tool not detected after mint");

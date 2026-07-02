@@ -251,7 +251,9 @@ public final class LegacySmokeSuite implements Harness.Scenario {
             }
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
-            enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
+            enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
         } catch (IOException e) {
             h.fail("legacy.item.applyAndRender", e);
             return;
@@ -440,7 +442,9 @@ public final class LegacySmokeSuite implements Harness.Scenario {
             }
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
-            ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
+            ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
             // caps drives the cross-version title cap (1.8 rejects titles > 32 chars) — already version-aware.
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
         } catch (IOException e) {

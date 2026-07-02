@@ -48,24 +48,7 @@ public final class ItemEnchanter {
     private final IntSupplier maxMerge;      // §E crystals.max-merge (components per entry)
     private final Messages messages;
 
-    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
-                         platform.item.ItemGroups groups) {
-        this(codec, lore, content, groups, DEFAULT_BASE_SLOTS);
-    }
-
-    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
-                         platform.item.ItemGroups groups, int baseSlots) {
-        this(codec, lore, content, groups, baseSlots, DEFAULT_CRYSTAL_SLOTS);
-    }
-
-    /** Fixed slot counts and default messages — the common test/fixture form. */
-    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
-                         platform.item.ItemGroups groups, int baseSlots, int crystalSlots) {
-        this(codec, lore, content, groups, () -> Math.max(0, baseSlots), () -> Math.max(0, crystalSlots),
-                () -> DEFAULT_MAX_MERGE, Messages.defaults());
-    }
-
-    /** Canonical ctor (composition root): slot/merge caps are read per apply so a reload re-tunes them live. */
+    /** Slot/merge caps are read per apply so a reload re-tunes them live. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
                          IntSupplier maxMerge, Messages messages) {

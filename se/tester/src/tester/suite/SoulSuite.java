@@ -116,7 +116,8 @@ public final class SoulSuite implements Harness.Scenario {
         // ONE pool shared by the pipeline (gate 10 spends it) and the soul service that owns it.
         SoulPool pool = new SoulPool();
         SoulService soulService = new SoulService(pool, new SoulModeStore(), soulCodec,
-                compile.load.SoulGemConfig::defaults);
+                compile.load.SoulGemConfig::defaults, () -> true, platform.lang.Messages.defaults(),
+                feature.fx.ParticleFx.NONE);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), soulService), AreaScan.NONE);
         AtomicLong tick = new AtomicLong();

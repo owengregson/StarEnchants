@@ -32,18 +32,7 @@ public final class HeroicService {
     private final platform.lang.Messages messages; // §L lang.yml
     private final ItemGroups groups; // §F: gate applyTo to armour/weapons
 
-    /** Default-messages form (tests/fixtures). */
-    public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
-                         Supplier<HeroicConfig> config, Random random) {
-        this(upgrades, combat, lore, config, random, platform.lang.Messages.defaults());
-    }
-
-    /** As above with messages; the armour/weapon group table defaults to {@link ItemGroups#standard()}. */
-    public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
-                         Supplier<HeroicConfig> config, Random random, platform.lang.Messages messages) {
-        this(upgrades, combat, lore, config, random, messages, ItemGroups.standard());
-    }
-
+    /** {@code groups} is the armour/weapon group table gating heroic's applies-to. */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
                          Supplier<HeroicConfig> config, Random random, platform.lang.Messages messages,
                          ItemGroups groups) {

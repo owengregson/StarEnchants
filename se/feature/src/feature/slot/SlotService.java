@@ -30,25 +30,7 @@ public final class SlotService {
     private final platform.lang.Messages messages;
     private final ItemGroups groups; // §H applies-to gate — the orb only expands the configured item kinds
 
-    /** Fixed base-slots + default messages form (tests/fixtures). */
-    public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
-                       Supplier<SlotConfig> config, int baseSlots) {
-        this(codec, combat, lore, config, () -> Math.max(0, baseSlots));
-    }
-
-    /** As above with a live base-slots supplier but default messages. */
-    public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
-                       Supplier<SlotConfig> config, IntSupplier baseSlots) {
-        this(codec, combat, lore, config, baseSlots, platform.lang.Messages.defaults());
-    }
-
-    /** As above with explicit messages but the standard item groups (tests/fixtures). */
-    public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
-                       Supplier<SlotConfig> config, IntSupplier baseSlots, platform.lang.Messages messages) {
-        this(codec, combat, lore, config, baseSlots, messages, ItemGroups.standard());
-    }
-
-    /** Canonical form (composition root). */
+    /** {@code baseSlots} is read live so a reload re-tunes the orb's slot ceiling. */
     public SlotService(SlotItemCodec codec, CombatCodec combat, LoreRenderer lore,
                        Supplier<SlotConfig> config, IntSupplier baseSlots, platform.lang.Messages messages,
                        ItemGroups groups) {

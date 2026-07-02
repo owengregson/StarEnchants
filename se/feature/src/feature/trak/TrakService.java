@@ -45,15 +45,6 @@ public final class TrakService {
     // trak count lines are a state-driven SECTION now, not lore this service stamps by hand.
     private final java.util.function.Consumer<ItemStack> reRender;
 
-    public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config) {
-        this(codec, slot, groups, config, platform.lang.Messages.defaults());
-    }
-
-    public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config,
-                       platform.lang.Messages messages) {
-        this(codec, slot, groups, config, messages, gear -> { });
-    }
-
     public TrakService(TrakCodec codec, AppliedSlot slot, ItemGroups groups, Supplier<TraksConfig> config,
                        platform.lang.Messages messages, java.util.function.Consumer<ItemStack> reRender) {
         this.codec = Objects.requireNonNull(codec, "codec");

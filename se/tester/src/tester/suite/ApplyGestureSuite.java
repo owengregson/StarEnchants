@@ -93,15 +93,19 @@ public final class ApplyGestureSuite implements Harness.Scenario {
             combat = new CombatCodec(keys.combat());
             LoreRenderer lore = new LoreRenderer(
                     LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key)));
-            ItemEnchanter enchanter = new ItemEnchanter(combat, lore, content, ItemGroups.standard());
+            ItemEnchanter enchanter = new ItemEnchanter(combat, lore, content, ItemGroups.standard(),
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
             crystals = new CrystalService(new CrystalItemCodec(keys.crystalItem()),
                     new CrystalExtractorCodec(keys.crystalExtractor()), enchanter, content,
-                    CrystalConfig::defaults, () -> 4);
+                    CrystalConfig::defaults, () -> 4, Messages.defaults());
             crystalLeaf = new CrystalListener(crystals, Messages.defaults());
             slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess());
             SlotConfig slotCfg = new SlotConfig("ENDER_EYE", "&5Orb", List.of(), 3,
                     ItemEnchanter.DEFAULT_BASE_SLOTS + 5, 100, 100, List.of("ALL"));
-            slots = new SlotService(slotCodec, combat, lore, () -> slotCfg, ItemEnchanter.DEFAULT_BASE_SLOTS);
+            slots = new SlotService(slotCodec, combat, lore, () -> slotCfg,
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, platform.lang.Messages.defaults(),
+                    ItemGroups.standard());
             slotLeaf = new SlotListener(slots, Messages.defaults());
         } catch (IOException e) {
             failAll(h, e.toString());
