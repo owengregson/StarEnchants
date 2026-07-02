@@ -599,8 +599,8 @@ multiplicative buckets**). After the gate walk over attacker `combatAttack[]` + 
 **one fold** computes the final damage with the approved **fully-additive** policy (ADR-0012):
 `final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)` — all
 same-side percentages summed, **no multiplicative stacking across sources** — and writes the event
-**once**. Order-independent by construction; heroic flat stats + set DAMAGE/REDUCTION + crystal + weapon
-all feed the same additive accumulator — no special-casing (fixes the catalog's worst combat bug:
+**once**. Order-independent by construction; heroic percents + flats (ADR-0037) + set DAMAGE/REDUCTION +
+crystal + weapon all feed the same additive accumulator — no special-casing (fixes the catalog's worst combat bug:
 registration-order multiplicative compounding). Flat **damage** is added after the outgoing multiplier
 (not inflated by the attacker's own buffs) but is still reduced by the defender; flat **reduction** is
 subtracted last, absorbing its advertised amount — so flat stats stay predictable (ADR-0012). `DAMAGE_INCREASE` is
@@ -904,8 +904,9 @@ packet/anticheat plugin — which is precisely why mirroring that reference plug
 ## 13. Resolved decisions (user-approved 2026-06-15)
 
 1. **Damage stacking = FULLY ADDITIVE** (ADR-0012): `final = base × (1 + Σ outgoing%) × (1 − Σ reduction%)`;
-   all same-side sources summed; **no multiplicative stacking across sources**. A per-server config knob to
-   switch policies may be added later but is not required.
+   all same-side sources summed; **no multiplicative stacking across sources** — heroic percents fold in
+   identically (ADR-0037), not as a separate stage. A per-server config knob to switch policies may be
+   added later but is not required.
 2. **`ParamSpec` discovery = an explicit, greppable, checked-in registry as the primary mechanism**; a
    ServiceLoader/classpath scan is offered for `se-api` add-ons. No annotation-processor codegen as primary.
 3. **`se-feature` granularity = one package per feature** inside the single `se-feature` module (no

@@ -1,9 +1,14 @@
 # ADR 0021: Heroic as a bounded multiplicative stage (amends 0012's scope)
 
-- **Status:** Accepted
+- **Status:** Superseded by [0037](0037-heroic-additive-fold.md)
 - **Date:** 2026-06-17
 - **Deciders:** project owner + engine work
 - **Relates to:** ADR 0012 (fully-additive damage fold) — this narrows its scope; docs/v3-directives.md §F
+
+> **Superseded by [ADR-0037](0037-heroic-additive-fold.md) (2026-07-01).** The distinct bounded
+> multiplicative stage and its clamp knob (`heroic.max-outgoing-factor`) are retired: heroic percents now
+> join the ordinary ADR-0012 additive fold like any enchant contribution. The `HeroicStat` blob format is
+> unchanged. The content below is kept for historical rationale only.
 
 ## Context
 
