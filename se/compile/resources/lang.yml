@@ -140,7 +140,8 @@ command.pack.apply-note: "&7Config swapped + reloaded. &8Toggled features/integr
 command.pack.export-done: "&aExported the current config as pack &f{NAME}&a ({FILES} files)."
 command.pack.error: "&cPack operation failed: &f{ERROR}"
 
-# ── Enchant/crystal apply results (ItemEnchanter — book/menu/gesture/command) ──────────────────────────
+# ── Enchant apply results (ItemEnchanter — book/menu/gesture/command; crystal wording lives with the ──────
+# ── gesture guards below under the crystal.* family) ────────────────────────────────────────────────────
 apply.no-such-enchant: "&cNo such enchant: &f{KEY}"
 apply.level-range: "&cLevel must be 1–{MAX} for &f{KEY}"
 apply.level-undefined: "&cLevel {LEVEL} of &f{KEY} &cis not defined."
@@ -154,16 +155,6 @@ apply.applied-suffix: "{MSG} &7applied (level {LEVEL})."
 apply.hold-item: "&cHold an item first."
 apply.not-present: "&cThe held item does not carry &f{KEY}&c."
 apply.removed: "&aRemoved &f{KEY}&a from the held item."
-apply.crystal.no-such: "&cNo such crystal: &f{KEY}"
-apply.crystal.no-compile: "&c{KEY} &cdid not compile."
-apply.crystal.on-item: "&cApply the crystal onto an item."
-apply.crystal.single-item: "&cApply the crystal to a single item — split the stack first."
-apply.crystal.not-crystal: "&cThat is not a crystal."
-apply.crystal.no-slots: "&cThis item has no free crystal slots ({MAX} max)."
-apply.crystal.max-reached: "&cThis item already holds the maximum {MAX} crystals."
-apply.crystal.applied: "{LABEL} &7crystal applied."
-apply.crystal.none: "&cThat item carries no crystal to extract."
-apply.crystal.extracted: "&aExtracted the crystal."
 
 # ── Menu chat replies (the GUI's chat feedback; titles/labels are menu LAYOUT — see menus/) ─────────────
 menu.alchemist.bad-input: "&cPlace a single enchant book in each slot."
@@ -193,6 +184,14 @@ menu.console.reload-fail: "&cContent has &f{N} &cerror(s) — see /se reload for
 # ── Gesture/service guards (the drag-onto-gear rejections; every one routed through Messages/lang) ──────
 common.single-item: "&cApply to a single item — split the stack first."
 common.wrong-applies: "&cThis can only be applied to: &f{KINDS}&c."
+crystal.no-such: "&cNo such crystal: &f{KEY}"
+crystal.no-compile: "&c{KEY} &cdid not compile."
+crystal.on-item: "&cApply the crystal onto an item."
+crystal.single-item: "&cApply the crystal to a single item — split the stack first."
+crystal.not-crystal: "&cThat is not a crystal."
+crystal.max-reached: "&cThis item already holds the maximum {MAX} crystals."
+crystal.none: "&cThat item carries no crystal to extract."
+crystal.applied: "{LABEL} &7crystal applied."
 crystal.merge-single: "&cMerge onto a single crystal — split the stack first."
 crystal.merge-cap: "&cThat multi-crystal is full — a crystal holds at most {MAX} effects."
 crystal.merge-not-stackable: "&f{CRYSTAL} &cis not stackable — it can't merge with another of the same type."
@@ -229,7 +228,7 @@ soul.empty:
   - " "
 soul.soul-use: "&7Souls remaining: &a{AMOUNT}"
 crystal.apply-success: "&aApplied &f{CRYSTAL}&a to your item."
-crystal.no-slots: "&cThat item has no free crystal slot."
+crystal.no-slots: "&cThis item has no free crystal slots ({MAX} max)."
 crystal.merge: "&dMerged into a multi-crystal: &f{CRYSTAL}&d."
 crystal.extract-success: "&aExtracted &f{CRYSTAL}&a back into a crystal."
 heroic.success: "&6Heroic upgrade succeeded! &7Your gear is now &6heroic&7."
