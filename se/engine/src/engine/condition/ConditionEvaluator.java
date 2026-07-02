@@ -63,7 +63,7 @@ public final class ConditionEvaluator {
             return c.equal() == (test(c.left(), f) == test(c.right(), f));
         }
         if (node instanceof Cond.StrContains c) {
-            return containsAny(str(c.left(), f), str(c.right(), f));
+            return containsAny(str(c.left(), f), c.alternatives());
         }
         if (node instanceof Cond.Regex c) {
             String value = str(c.left(), f);
@@ -113,15 +113,21 @@ public final class ConditionEvaluator {
         return a == null ? b == null : a.equalsIgnoreCase(b);
     }
 
-    /** True if {@code haystack} contains any {@code |}-separated alternative (case-insensitive); null/empty is fail-closed false. */
-    private static boolean containsAny(String haystack, String needles) {
-        if (haystack == null || needles == null) {
+    /**
+     * True if {@code haystack} contains any pre-lowered {@code alternative} (case-insensitive substring); a
+     * null haystack is fail-closed false. Alternatives are split + lower-cased at compile ({@link Cond.StrContains}),
+     * so this is an allocation-free {@code regionMatches} scan — no {@code split}/{@code toLowerCase} on the hot path.
+     */
+    private static boolean containsAny(String haystack, String[] alternatives) {
+        if (haystack == null) {
             return false;
         }
-        String hay = haystack.toLowerCase(java.util.Locale.ROOT);
-        for (String alternative : needles.split("\\|")) {
-            if (!alternative.isEmpty() && hay.contains(alternative.toLowerCase(java.util.Locale.ROOT))) {
-                return true;
+        for (String alternative : alternatives) {
+            int last = haystack.length() - alternative.length();
+            for (int i = 0; i <= last; i++) {
+                if (haystack.regionMatches(true, i, alternative, 0, alternative.length())) {
+                    return true;
+                }
             }
         }
         return false;

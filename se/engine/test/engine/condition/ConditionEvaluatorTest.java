@@ -139,11 +139,13 @@ class ConditionEvaluatorTest {
     void containsIsCaseInsensitiveSubstringWithPipeOr() {
         FactBuffer f = new FactBuffer(0, 0, 1);
         f.setString(0, "Diamond Sword");
-        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("sword")), f));
-        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("axe|sword")), f)); // pipe-OR, 2nd hits
-        assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("axe|bow")), f));
+        // Alternatives arrive pre-lowered from the compiler; the scan is case-insensitive against the raw haystack.
+        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new String[] {"sword"}), f));
+        assertTrue(pass(new Cond.StrContains(new StrExpr.Var(0), new String[] {"axe", "sword"}), f)); // pipe-OR, 2nd hits
+        assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new String[] {"axe", "bow"}), f));
+        assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new String[] {}), f)); // no alternatives → false
         f.setString(0, null);
-        assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new StrExpr.Lit("x")), f)); // null haystack → false
+        assertFalse(pass(new Cond.StrContains(new StrExpr.Var(0), new String[] {"x"}), f)); // null haystack → false
     }
 
     @Test

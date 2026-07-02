@@ -35,11 +35,13 @@ public sealed interface Cond
     record BoolCmp(Cond left, boolean equal, Cond right) implements Cond {}
 
     /**
-     * A {@code contains} membership test: true if {@code left} contains any of the {@code |}-separated
-     * alternatives in {@code right} (case-insensitive). Both operands are string-valued; {@code right}
-     * is typically a literal but may be a variable/placeholder, split on {@code |} at evaluation time.
+     * A {@code contains} membership test: true if {@code left} contains any of {@code alternatives}
+     * (case-insensitive substring). Like {@link Regex}, the alternative list is a literal split on {@code |}
+     * and lower-cased ONCE at load, so the hot path is an allocation-free {@code regionMatches} scan — never
+     * a per-evaluation {@code String#split} + {@code toLowerCase} (docs/architecture.md §3.4, performance-hot-paths).
+     * Empty alternatives are dropped at compile, so the array is never {@code null} and holds no empty string.
      */
-    record StrContains(StrExpr left, StrExpr right) implements Cond {}
+    record StrContains(StrExpr left, String[] alternatives) implements Cond {}
 
     /**
      * A {@code matchesregex} full-match test: true if {@code left} fully matches {@code pattern}. The
