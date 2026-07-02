@@ -29,12 +29,14 @@ public final class ItemKeys {
     private final String trakMobs;
     private final String trakSouls;
     private final String trakFish;
+    private final String loreComposer;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
                      String slotItem, String slotSuccess, String scroll, String scrollConvert,
                      String unopened, String godlyTransmog, String appliedSlot,
-                     String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish) {
+                     String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
+                     String loreComposer) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -54,12 +56,14 @@ public final class ItemKeys {
         this.trakMobs = trakMobs;
         this.trakSouls = trakSouls;
         this.trakFish = trakFish;
+        this.loreComposer = loreComposer;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
-                "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish");
+                "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
+                "lorecomposer");
     }
 
     public String combat() {
@@ -151,5 +155,11 @@ public final class ItemKeys {
     /** Per-item lifetime fish-caught counter (§I). */
     public String trakFish() {
         return trakFish;
+    }
+
+    /** Versioned marker stamped when {@link item.render.LoreRenderer} composes an item (ADR-0040 §migration); its
+     *  absence flags pre-composer lore that the one-time legacy migration shim reconciles on first recompose. */
+    public String loreComposer() {
+        return loreComposer;
     }
 }

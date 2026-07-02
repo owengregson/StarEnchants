@@ -63,25 +63,38 @@ is byte-identical (content and order). The live `RenderSuite` pins (e.g. `§7Ven
 
 ## Consequences
 
-**Landed in this change:** the `LoreComposer` + `LoreRenderer.Config` foundation. The
-full ordered composition now lives in `LoreComposer.compose`; `LoreRenderer.lines`
-delegates to `LoreComposer.body`; the constructor ladder is gone; all call sites build
-a `Config`. Byte-identity is proven by `LoreComposerTest` (the composition contract:
-body-first, then heroic, protection, then only the trak lines from existing lore, in
-order) and the unchanged `LoreRendererTest` / `RenderSuite`.
+**The composition foundation.** The full ordered composition lives in
+`LoreComposer.compose`; `LoreRenderer.lines` delegates to `LoreComposer.body`; the
+twelve-constructor ladder is replaced by a single `LoreRenderer.Config` record; all
+call sites (composition root, imagegen, tests) build a `Config`. Every section —
+including the applied-scroll PROTECTED lines and the applied-trak count lines — is
+rendered from marker/counter **state** (`withProtectionLines` / `withTrakLines`), never
+preserved by matching visible text. Byte-identity is pinned by `LoreComposerTest`
+(body → heroic → protection → traks, in order) and the unchanged `LoreRendererTest` /
+`RenderSuite`.
 
-**Staged (one-release-scoped) follow-up — the classifier retirement:** the target end
-state moves `TrakService` / `SoulService` / the scroll services off lore mutation
-entirely — they mutate PDC and ask the composer to recompose — and stamps a **versioned
-composer marker** (a PDC byte via the `ItemKeys`/codec idiom) on compose. On the first
-recompose of an unmarked item, the legacy prefix classifiers run **once** as a
-migration shim (strip the recognised protection/trak/count lines, then compose fresh);
-marked items never consult the classifiers. This step touches the soul-gem / economy
-body render and the trak count render, whose byte-identity is only provable on the live
-Paper+Folia matrix, so it lands as its own matrix-gated change on top of this
-foundation. Until then the classifiers remain wired as before (behaviour unchanged),
-and this ADR documents the shim as **one-release-scoped**: it exists solely to migrate
-lore written by pre-composer builds and is removed a release after the marker ships.
+**The classifier retirement (landed).** `TrakService`, `SoulService`, and the white /
+holy scroll services no longer mutate `ItemMeta` lore: they mutate PDC state and call
+the one recompose seam (`LoreRenderer#apply`, wired as a `Consumer<ItemStack>` in the
+composition root). `TrakService.countLines` renders the trak section from state and is
+injected as the composer's `trakLines` provider; the trak/scroll writers' hand-stamped
+lore edits (and `ProtectionLoreRefresh`) are gone. The load-bearing-template hazard is
+removed: re-theming a count/protection format can no longer break a classifier on the
+permanent path, because there is no classifier on the permanent path.
+
+**The migration shim (one-release-scoped).** A **versioned composer marker**
+(`ComposerMark`, a PDC integer via the `ItemKeys`/`ItemFlagStore` idiom) is stamped on
+every `apply`. Its absence flags lore written by a pre-composer build; on such an
+item's **first** recompose the legacy prefix classifiers run **once** inside
+`LegacyLoreShim` (drop the recognised protection/trak lines and any line the fresh
+render reproduces, keep genuine authored head above the composed sections), then the
+marker is stamped. A marked item never consults the classifiers again — which is what
+makes the shim **bounded** (marker-gated) and **non-looping** (the stamp is written
+after compose). The classifiers (`ProtectionLore.isProtectionLine`,
+`TrakService.isCountLine`) survive **only** as this shim's recogniser, injected as the
+migration-only `legacyLoreLine` predicate. The shim exists solely to migrate
+pre-composer lore and is removed a release after the marker ships (bump
+`ComposerMark.VERSION` only if a future layout change needs a fresh pass).
 
 ## Alternatives considered
 

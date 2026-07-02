@@ -1,6 +1,8 @@
 package item.render;
 
 import item.codec.CombatState;
+import item.codec.ComposerMark;
+import item.codec.ItemKeys;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,6 +25,7 @@ public final class LoreRenderer {
 
     private final Config config;
     private final LoreComposer composer;
+    private final ComposerMark mark = new ComposerMark(ItemKeys.of().loreComposer());
 
     /**
      * The wiring for a renderer (ADR-0040): the presentation deps and the per-section templates, as NAMED
@@ -36,7 +39,9 @@ public final class LoreRenderer {
      * @param enchantColorOf   per-enchant rarity-tier colour; {@code null}/blank → the style's {@code enchantColor}
      * @param setLore          set-member authored lore, read live from state (§6.6)
      * @param protectionLines  applied-scroll PROTECTED lines from an item's marker state (§I); empty when unprotected
-     * @param trakLine         marks an applied-trak count line so a body re-render PRESERVES it (a separate system owns it)
+     * @param trakLines        applied-trak count lines from an item's marker + counter state (§I); empty when none
+     * @param legacyLoreLine   MIGRATION-ONLY (ADR-0040): recognises a pre-composer managed line by its visible text
+     *                         so the one-time shim can drop it; consulted only for unmarked items, never the permanent path
      * @param countSuffix      §I transmog enchant-count name-suffix template ({@code {COUNT}}); {@code null}/blank → off
      * @param baseSlots        §H base enchant slots, for the orb "Enchantment Slots" line total
      * @param slotsLine        §H orb slots-line template ({@code {TOTAL}}/{@code {ADDED}}); {@code null}/blank → no line
@@ -50,7 +55,8 @@ public final class LoreRenderer {
             Function<String, String> enchantColorOf,
             SetLore setLore,
             Function<ItemStack, List<String>> protectionLines,
-            Predicate<String> trakLine,
+            Function<ItemStack, List<String>> trakLines,
+            Predicate<String> legacyLoreLine,
             Supplier<String> countSuffix,
             IntSupplier baseSlots,
             Supplier<String> slotsLine,
@@ -64,7 +70,8 @@ public final class LoreRenderer {
             Objects.requireNonNull(enchantColorOf, "enchantColorOf");
             Objects.requireNonNull(setLore, "setLore");
             Objects.requireNonNull(protectionLines, "protectionLines");
-            Objects.requireNonNull(trakLine, "trakLine");
+            Objects.requireNonNull(trakLines, "trakLines");
+            Objects.requireNonNull(legacyLoreLine, "legacyLoreLine");
             Objects.requireNonNull(countSuffix, "countSuffix");
             Objects.requireNonNull(baseSlots, "baseSlots");
             Objects.requireNonNull(slotsLine, "slotsLine");
@@ -82,46 +89,53 @@ public final class LoreRenderer {
         /** A minimal config: a live style supplier + a name lookup, every optional section defaulted off. */
         public static Config of(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
             return new Config(style, displayNameOf, key -> null, SetLore.NONE, stack -> List.of(),
-                    line -> false, () -> null, () -> 0, () -> null, () -> null, () -> null, () -> null);
+                    stack -> List.of(), line -> false, () -> null, () -> 0, () -> null, () -> null, () -> null, () -> null);
         }
 
         public Config withEnchantColorOf(Function<String, String> enchantColorOf) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
         public Config withSetLore(SetLore setLore) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
         public Config withProtectionLines(Function<ItemStack, List<String>> protectionLines) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
-        public Config withTrakLine(Predicate<String> trakLine) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+        /** The applied-trak count lines rendered from marker + counter state (§I); replaces the old preserve-by-text seam. */
+        public Config withTrakLines(Function<ItemStack, List<String>> trakLines) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+        }
+
+        /** MIGRATION-ONLY (ADR-0040): the recogniser the one-time legacy shim uses on unmarked items. */
+        public Config withLegacyLoreLine(Predicate<String> legacyLoreLine) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
         public Config withCountSuffix(Supplier<String> countSuffix) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
         public Config withBaseSlots(IntSupplier baseSlots) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
         public Config withSlotsLine(Supplier<String> slotsLine) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
         public Config withHeroicLine(Supplier<String> heroicLine) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
 
@@ -131,12 +145,12 @@ public final class LoreRenderer {
          * overrides it.
          */
         public Config withCrystalLine(Supplier<String> crystalLine) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLine);
         }
 
         public Config withCrystalLineMulti(Supplier<String> crystalLineMulti) {
-            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLine,
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
                     countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
         }
     }
@@ -174,7 +188,12 @@ public final class LoreRenderer {
         return composer.body(state);
     }
 
-    /** Render onto {@code stack} in place; clears lore when state is empty. False if the item can't carry meta (air). */
+    /**
+     * Render onto {@code stack} in place; clears lore when state is empty. False if the item can't carry meta (air).
+     * Every section — including protection + trak lines — is composed from state, so this is the ONE recompose seam
+     * feature systems call after mutating PDC. An item that predates the composer is migrated ONCE here
+     * (marker-gated, {@link LegacyLoreShim}); marked items compose straight from state, never touching a classifier.
+     */
     @SuppressWarnings("deprecation") // get/setLore(List<String>): deprecated-not-removed across the whole range.
     public boolean apply(ItemStack stack, CombatState state) {
         if (stack == null) {
@@ -184,12 +203,15 @@ public final class LoreRenderer {
         if (meta == null) {
             return false;
         }
-        List<String> existing = meta.hasLore() ? meta.getLore() : List.of();
         List<String> lore = composer.compose(state, kindOf(stack.getType()),
-                config.protectionLines().apply(stack), existing);
+                config.protectionLines().apply(stack), config.trakLines().apply(stack));
+        if (!mark.isCurrent(stack)) {
+            lore = LegacyLoreShim.migrate(meta.hasLore() ? meta.getLore() : List.of(), lore, config.legacyLoreLine());
+        }
         meta.setLore(lore.isEmpty() ? null : lore);
         stampCountSuffix(stack, meta, state.enchants().size());
         stack.setItemMeta(meta);
+        mark.stamp(stack); // flips the item to composer-owned so the shim runs at most once (bounded, non-looping)
         return true;
     }
 

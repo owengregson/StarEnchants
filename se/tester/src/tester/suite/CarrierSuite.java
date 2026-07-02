@@ -89,22 +89,17 @@ public final class CarrierSuite implements Harness.Scenario {
                         compile.load.WhiteScrollConfig.defaults().protectedLine(),
                         compile.load.ScrollsConfig.defaults().holy().protectedLine())));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
-        // §I the scroll protection refresh: stamps/removes PROTECTED on the gear's EXISTING lore (no body rebuild),
-        // so it can't wipe authored/trak lore. This suite has no traks, so the trak predicate is false.
-        String whiteLine = compile.load.WhiteScrollConfig.defaults().protectedLine();
-        java.util.function.Consumer<ItemStack> protectionRefresh = gear ->
-                item.render.ProtectionLoreRefresh.refresh(gear,
-                        item.render.ProtectionLore.lines(carrierCodec.isGuarded(gear), false, whiteLine, ""),
-                        line -> item.render.ProtectionLore.isProtectionLine(line, whiteLine, ""),
-                        line -> false);
+        // ADR-0040 recompose seam: a guard toggle recomposes the gear's whole lore from state, so the PROTECTED
+        // line tracks the marker (the composer renders it via withProtectionLines above).
+        java.util.function.Consumer<ItemStack> recompose = gear -> lore.apply(gear, combat.read(gear));
         // Default likeness: books never destroy on fail.
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1),
-                EnchantBookConfig::defaults, protectionRefresh);
+                EnchantBookConfig::defaults, recompose);
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
         EnchantBookConfig destroyLikeness = new EnchantBookConfig(
                 "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true);
         CarrierService destroyer = new CarrierService(
-                carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness, protectionRefresh);
+                carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness, recompose);
 
         h.guard("carrier.book.applies", () -> {
             ItemStack book = carriers.mintBook("enchants/zap", 1);

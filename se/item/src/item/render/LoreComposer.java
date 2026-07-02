@@ -15,9 +15,10 @@ import platform.text.Colors;
  * order IS the contract), each from {@link CombatState} + the injected {@link LoreRenderer.Config} templates,
  * never parsed back from text (§4.2).
  *
- * <p>Pure and server-free: {@link #compose} takes the material kind, the already-computed protection lines,
- * and the item's existing lore as plain values, so the whole composition is unit-testable with hand-built
- * state. {@link LoreRenderer} is the thin Bukkit shell that feeds it and writes the result onto an item.
+ * <p>Pure and server-free: {@link #compose} takes the material kind and the already-computed protection + trak
+ * lines (both rendered from marker/counter state by the caller) as plain values, so the whole composition is
+ * unit-testable with hand-built state. {@link LoreRenderer} is the thin Bukkit shell that feeds it, writes the
+ * result onto an item, and migrates pre-composer lore once via {@link LegacyLoreShim}.
  */
 public final class LoreComposer {
 
@@ -95,25 +96,20 @@ public final class LoreComposer {
     }
 
     /**
-     * The full ordered lore for a piece of gear: {@link #body} + the heroic line ({@code kind} fills its
-     * {@code {TYPE}}) + {@code protection} (the applied-scroll PROTECTED lines, already computed from marker
-     * state) + the trak count lines preserved from {@code existingLore} ({@link LoreRenderer.Config#trakLine}).
-     * Pure: no Bukkit, so byte-for-byte testable against hand-built inputs.
+     * The full ordered lore for a piece of gear, every section from state (ADR-0040): {@link #body} + the heroic
+     * line ({@code kind} fills its {@code {TYPE}}) + {@code protection} (the applied-scroll PROTECTED lines) +
+     * {@code traks} (the applied-trak count lines). {@code protection} and {@code traks} are rendered from marker
+     * state by the caller — never parsed back from text (§4.2) — so re-theming a template can no longer break a
+     * classifier. Pure: no Bukkit, so byte-for-byte testable against hand-built inputs.
      */
-    public List<String> compose(CombatState state, String kind, List<String> protection, List<String> existingLore) {
+    public List<String> compose(CombatState state, String kind, List<String> protection, List<String> traks) {
         List<String> lore = body(state);
         String heroic = heroicBodyLine(state.heroic(), kind, config.heroicLine().get());
         if (heroic != null) {
             lore.add(heroic);
         }
         lore.addAll(protection); // applied-scroll PROTECTED lines, from marker state (§4.2)
-        // Preserve any applied-trak count lines: they are NOT part of CombatState (a separate system stamps
-        // them), so a body re-render must keep them rather than wipe them on every enchant change.
-        for (String line : existingLore) {
-            if (config.trakLine().test(line)) {
-                lore.add(line);
-            }
-        }
+        lore.addAll(traks);      // applied-trak count lines, from marker + counter state (§I)
         return lore;
     }
 

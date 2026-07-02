@@ -41,7 +41,7 @@ public final class CarrierService {
     private final java.util.function.BooleanSupplier roman; // §L lore.roman — book level numeral style, read live
     private final java.util.function.IntSupplier maxBookSuccess; // §I books.max-success — global success ceiling, live
     private final item.codec.AppliedSlot slot; // §I applied-utility marker set a white scroll occupies
-    private final java.util.function.Consumer<ItemStack> protectionRefresh; // §I toggle the PROTECTED line, preserving the rest of the lore
+    private final java.util.function.Consumer<ItemStack> reRender; // ADR-0040: recompose gear lore after mutating guard state
     private final ItemGroups groups; // §I applies-to gate — the white scroll only protects the configured item kinds
     private final platform.lang.Messages messages; // §I the applies reject reads common.wrong-applies (single source)
 
@@ -58,13 +58,13 @@ public final class CarrierService {
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
     }
 
-    /** Test form: book likeness + the §I protection refresh; dust/white-scroll defaults, a fresh applied-slot. */
+    /** Test form: book likeness + the §I lore-recompose seam; dust/white-scroll defaults, a fresh applied-slot. */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
-                          java.util.function.Consumer<ItemStack> protectionRefresh) {
+                          java.util.function.Consumer<ItemStack> reRender) {
         this(codec, enchanter, content, random, bookConfig, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), protectionRefresh, ItemGroups.standard(),
+                new item.codec.AppliedSlot("appliedslot"), reRender, ItemGroups.standard(),
                 platform.lang.Messages.defaults());
     }
 
@@ -83,8 +83,9 @@ public final class CarrierService {
      * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style;
      * {@code maxBookSuccess} (the live {@code books.max-success} setting) is the global success ceiling that
      * binds randomised minting and dust (guaranteed/admin books are exempt — see {@link #capBookSuccess});
-     * {@code slot} is the shared applied-utility marker set a white scroll occupies (§I); {@code protectionRefresh}
-     * re-stamps the PROTECTED line from marker state WITHOUT a full re-render (so it never wipes economy/trak lore).
+     * {@code slot} is the shared applied-utility marker set a white scroll occupies (§I); {@code reRender}
+     * recomposes the gear's lore from state after a guard toggle (ADR-0040 — the composer re-renders the
+     * PROTECTED line, and every other section, from marker state, so no writer stamps lore by hand).
      */
     public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
                           java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
@@ -93,7 +94,7 @@ public final class CarrierService {
                           java.util.function.BooleanSupplier roman,
                           java.util.function.IntSupplier maxBookSuccess,
                           item.codec.AppliedSlot slot,
-                          java.util.function.Consumer<ItemStack> protectionRefresh,
+                          java.util.function.Consumer<ItemStack> reRender,
                           ItemGroups groups, platform.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
@@ -105,7 +106,7 @@ public final class CarrierService {
         this.roman = Objects.requireNonNull(roman, "roman");
         this.maxBookSuccess = Objects.requireNonNull(maxBookSuccess, "maxBookSuccess");
         this.slot = Objects.requireNonNull(slot, "slot");
-        this.protectionRefresh = Objects.requireNonNull(protectionRefresh, "protectionRefresh");
+        this.reRender = Objects.requireNonNull(reRender, "reRender");
         this.groups = Objects.requireNonNull(groups, "groups");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
@@ -241,7 +242,7 @@ public final class CarrierService {
         if (codec.isGuarded(target)) {
             codec.setGuarded(target, false);
             slot.release(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I the white scroll's guard is spent
-            protectionRefresh.accept(target); // drop the PROTECTED line now the guard is gone (preserve the rest)
+            reRender.accept(target); // recompose: the PROTECTED line drops now the guard is gone (rendered from state)
             return CarrierResult.consumed(messages.format("carrier.fail-protected"));
         }
         if (destroyOnFail) {
@@ -507,7 +508,7 @@ public final class CarrierService {
         }
         codec.setGuarded(target, true);
         slot.occupy(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I add the white-scroll marker (coexists with traks/holy)
-        protectionRefresh.accept(target); // stamp the PROTECTED line from the new guard state (preserve the rest)
+        reRender.accept(target); // recompose: the PROTECTED line appears from the new guard state (rendered from state)
         return CarrierResult.consumed(messages.format("white-scroll.applied"));
     }
 

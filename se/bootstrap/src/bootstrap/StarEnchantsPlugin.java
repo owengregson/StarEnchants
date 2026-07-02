@@ -253,23 +253,28 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         item.codec.AppliedSlot appliedSlot = new item.codec.AppliedSlot(ItemKeys.of().appliedSlot());
         // Carrier economy (ADR-0016). Carrier PDC is separate from the combat blob, so it never decodes hot.
         CarrierCodec carrierCodec = new CarrierCodec(ItemKeys.of().carrier(), ItemKeys.of().guarded());
+        // Trak counters (§I) — built before the renderer so the composer's trak SECTION reads them from state.
+        item.codec.TrakCodec trakCodec = new item.codec.TrakCodec(ItemKeys.of().trakGem(),
+                ItemKeys.of().trakBlocks(), ItemKeys.of().trakMobs(), ItemKeys.of().trakSouls(),
+                ItemKeys.of().trakFish());
 
-        // §I Robust lore composition: identify trak count lines (by the format's visible prefix) and PROTECTED
-        // lines (by the templates' visible text) so each lore writer PRESERVES the others' lines. This is what
-        // lets a soul gem keep its authored lore, and traks survive, when a scroll is applied (and vice versa).
-        java.util.function.Predicate<String> trakLineP = line ->
-                feature.trak.TrakService.isCountLine(line, items.config().traksOrDefault());
-        java.util.function.Predicate<String> protectionLineP = line -> item.render.ProtectionLore.isProtectionLine(line,
-                items.config().whiteScrollOrDefault().protectedLine(),
-                items.config().scrollsOrDefault().holy().protectedLine());
+        // ADR-0040 sectioned composition: protection + trak lines are rendered from marker/counter STATE (never
+        // parsed back), so the composer owns every section in one deterministic pass.
         java.util.function.Function<org.bukkit.inventory.ItemStack, java.util.List<String>> protectionLinesFn = stack ->
                 item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack),
                         appliedSlot.holds(stack, item.codec.AppliedSlot.HOLY),
                         items.config().whiteScrollOrDefault().protectedLine(),
                         items.config().scrollsOrDefault().holy().protectedLine());
-        // Scroll appliers re-stamp ONLY the PROTECTED line(s), preserving the body / authored economy lore + traks.
-        java.util.function.Consumer<org.bukkit.inventory.ItemStack> protectionRefresh = gear ->
-                item.render.ProtectionLoreRefresh.refresh(gear, protectionLinesFn.apply(gear), protectionLineP, trakLineP);
+        java.util.function.Function<org.bukkit.inventory.ItemStack, java.util.List<String>> trakLinesFn = stack ->
+                feature.trak.TrakService.countLines(stack, trakCodec, appliedSlot, items.config().traksOrDefault());
+        // MIGRATION-ONLY (ADR-0040): the visible-text classifiers survive here ONLY to let the composer's one-time
+        // legacy shim recognise a pre-composer protection/trak line on an unmarked item; the permanent path never
+        // consults them (marked items render straight from state), so re-theming a template can no longer break it.
+        java.util.function.Predicate<String> legacyLoreLine = line ->
+                item.render.ProtectionLore.isProtectionLine(line,
+                        items.config().whiteScrollOrDefault().protectedLine(),
+                        items.config().scrollsOrDefault().holy().protectedLine())
+                || feature.trak.TrakService.isCountLine(line, items.config().traksOrDefault());
 
         // Cold apply path (ADR-0040): the composer's section wiring, as named Config fields. Lookups read the
         // CURRENT library, so a reload re-renders against new content.
@@ -295,7 +300,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     }
                 })
                 .withProtectionLines(protectionLinesFn) // §I applied-scroll PROTECTED lines, from marker state
-                .withTrakLine(trakLineP)                // §I preserve applied-trak count lines across a body re-render
+                .withTrakLines(trakLinesFn)             // §I applied-trak count lines, from marker + counter state
+                .withLegacyLoreLine(legacyLoreLine)     // ADR-0040 one-time migration recogniser (unmarked items only)
                 .withCountSuffix(() -> items.config().scrollsOrDefault().transmog().nameSuffix()) // §I enchant-count suffix
                 .withBaseSlots(() -> master.config().slots().base())   // §H base slots → orb "Enchantment Slots" total
                 .withSlotsLine(() -> master.config().slots().loreLine()) // §H orb "Enchantment Slots" line template
@@ -303,6 +309,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 .withCrystalLine(() -> items.config().crystalOrDefault().loreWhileOnItem())        // §E on-gear crystal line
                 .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti())); // §E merged (ADR-0035)
         ItemGroups itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
+        // ADR-0040 the ONE recompose seam: a feature mutates PDC (guard/holy/trak marker + counters) then asks the
+        // composer to re-render every section from state — replacing the old per-writer, text-classified lore edits.
+        java.util.function.Consumer<org.bukkit.inventory.ItemStack> recompose = gear -> lore.apply(gear, codec.read(gear));
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
                 () -> master.config().crystals().slots(),      // §E per-item crystal slots (entries)
@@ -317,7 +326,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 () -> master.config().lore().roman(),          // book level numeral style (lore.roman, live)
                 () -> master.config().books().maxSuccess(),    // §I global success ceiling (books.max-success, live)
                 appliedSlot,                                   // §I white scroll occupies this
-                protectionRefresh,                             // §I toggle PROTECTED without wiping the rest of the lore
+                recompose,                                     // ADR-0040 recompose gear lore after a guard toggle
                 itemGroups,                                    // §I white-scroll applies-to gate
                 messages);                                     // §I applies reject reads common.wrong-applies
 
@@ -353,17 +362,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // Survival + cosmetic scrolls (§I) — both share the 'scroll' PDC tag + scrolls config.
         HolyScrollService holyScrolls = new HolyScrollService(scrollCodec, appliedSlot,
-                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, protectionRefresh, itemGroups);
+                () -> items.config().scrollsOrDefault(), new java.util.Random(), messages, recompose, itemGroups);
         feature.scroll.KeptItemsStore keptItems = new feature.scroll.KeptItemsStore(); // §I holy death→respawn stash
         NametagService nametags = new NametagService(scrollCodec, () -> items.config().scrollsOrDefault(),
                 messages, codec); // §I codec → re-append the enchant-count suffix on rename + preview
 
-        // Trak gems (§I): block/mob/soul lifetime counters tracked in the background on eligible gear.
-        item.codec.TrakCodec trakCodec = new item.codec.TrakCodec(ItemKeys.of().trakGem(),
-                ItemKeys.of().trakBlocks(), ItemKeys.of().trakMobs(), ItemKeys.of().trakSouls(),
-                ItemKeys.of().trakFish());
+        // Trak gems (§I): block/mob/soul lifetime counters tracked in the background on eligible gear (trakCodec
+        // built above with the other codecs). Applying/bumping a trak recomposes the gear's lore from state.
         feature.trak.TrakService traks = new feature.trak.TrakService(trakCodec, appliedSlot, itemGroups,
-                () -> items.config().traksOrDefault(), messages);
+                () -> items.config().traksOrDefault(), messages, recompose);
 
         // Souls (§D): the per-player cross-gem SoulPool is the spend authority. The SoulService owns it and is
         // ALSO the pipeline's gate-10 SoulSpender, so a gate-10 spend and the holder-thread drain share one pool.
@@ -371,8 +378,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         SoulModeStore soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
         SoulService soulService = new SoulService(soulPool, soulModes,
                 new SoulCodec(ItemKeys.of().soul()), () -> items.config().soulGemOrDefault(),
-                () -> master.config().souls().depositOnAnyKill(), messages, particleFx, // §D deposit + §L msgs + particles
-                line -> protectionLineP.test(line) || trakLineP.test(line)); // §I keep scroll/trak lines on gem re-render
+                () -> master.config().souls().depositOnAnyKill(), messages, particleFx); // §D deposit + §L msgs + particles
         // §N PlaceholderAPI expansion (ADR-0027). Accessors are plain JDK-typed, so PAPI never loads internals.
         Bridges.registerPlaceholders(this, master.config().integrations()::enabled,
                 player -> soulModes.isActive(player.getUniqueId()),

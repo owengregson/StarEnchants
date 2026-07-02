@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
  * exact set of lines {@link LoreComposer#compose} emits, verified with no server. Fragile per-section strings
  * are single-sourced by composing against the composer's OWN {@link LoreComposer#body} output rather than
  * re-typing them — this pins the ORDER + INCLUSION (the contract), not the section text those other tests own.
+ * Protection + trak lines arrive as pre-rendered sections (rendered from state by the caller, ADR-0040).
  */
 class LoreComposerTest {
 
@@ -31,26 +32,24 @@ class LoreComposerTest {
                 .withSlotsLine(() -> "&a&l{TOTAL} Slots +{ADDED}")
                 .withCrystalLine(() -> "&8S {CRYSTAL}")
                 .withCrystalLineMulti(() -> "&8M {CRYSTAL}")
-                .withHeroicLine(() -> HEROIC)
-                .withTrakLine(line -> line.startsWith("§8TRAK")));
+                .withHeroicLine(() -> HEROIC));
     }
 
     @Test
-    void composeAppendsHeroicThenProtectionThenPreservedTraksAfterTheBody() {
+    void composeAppendsHeroicThenProtectionThenTraksAfterTheBody() {
         LoreComposer composer = composer();
         // enchants + orb slots + a merged crystal + a weapon heroic stat — every body section at once.
         CombatState state = new CombatState(Map.of("enchants/venom", 3),
                 List.of("crystals/a+crystals/b"), null, false, new HeroicStat(0.10, 0.0, 0.20), 2);
-        List<String> existing = List.of("§8TRAK 5", "some unrelated line", "§8TRAK 9");
         List<String> protection = List.of("§fPROTECTED");
+        List<String> traks = List.of("§8TRAK 5", "§8TRAK 9"); // rendered from state by the caller, passed as a section
 
         List<String> expected = new ArrayList<>(composer.body(state)); // the body sections, in their own order
         expected.add(LoreComposer.heroicBodyLine(state.heroic(), "SWORD", HEROIC));
         expected.addAll(protection);         // protection sits below the heroic line
-        expected.add("§8TRAK 5");            // then ONLY the trak lines from existing, in their existing order
-        expected.add("§8TRAK 9");            // ("some unrelated line" is dropped — not a trak line)
+        expected.addAll(traks);              // then the trak section, in order
 
-        assertEquals(expected, composer.compose(state, "SWORD", protection, existing));
+        assertEquals(expected, composer.compose(state, "SWORD", protection, traks));
     }
 
     @Test
