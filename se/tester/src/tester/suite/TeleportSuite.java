@@ -92,7 +92,7 @@ public final class TeleportSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("teleport.movesActorToVictim", e.toString());
+            h.fail("teleport.movesActorToVictim", e);
             return;
         }
 

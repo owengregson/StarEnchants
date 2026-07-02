@@ -91,7 +91,7 @@ public final class ProtectionSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("protection.blockedInProtectedRegion", e.toString());
+            h.fail("protection.blockedInProtectedRegion", e);
             return;
         }
 

@@ -116,7 +116,7 @@ public final class MenuSuite implements Harness.Scenario {
             keenDef = holder.library().catalog().stream()
                     .filter(d -> d.key().equals("enchants/keen")).findFirst().orElseThrow();
         } catch (IOException e) {
-            h.fail("menu.clickAppliesEnchant", e.toString());
+            h.fail("menu.clickAppliesEnchant", e);
             return;
         }
 

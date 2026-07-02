@@ -69,7 +69,7 @@ public final class ImportSuite implements Harness.Scenario {
             holder = new ContentHolder(initial);
             reloader = new ContentReloader(holder, ContentCompiler::production, root, 0);
         } catch (IOException e) {
-            h.fail("import.applies", e.toString());
+            h.fail("import.applies", e);
             return;
         }
 
@@ -89,7 +89,7 @@ public final class ImportSuite implements Harness.Scenario {
             Files.createDirectories(target.getParent());
             Files.writeString(target, yaml, java.nio.charset.StandardCharsets.UTF_8);
         } catch (IOException e) {
-            h.fail("import.applies", e.toString());
+            h.fail("import.applies", e);
             return;
         }
         reloader.reload(result -> h.guard("import.applies", () -> {

@@ -102,7 +102,7 @@ public final class CrossRegionTeleportSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail(check, e.toString());
+            h.fail(check, e);
             return;
         }
 

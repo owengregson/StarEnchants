@@ -89,7 +89,7 @@ public final class CrystalSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("crystal.firesOnHit", e.toString());
+            h.fail("crystal.firesOnHit", e);
             return;
         }
 

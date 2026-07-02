@@ -104,7 +104,7 @@ public final class TriggerSuite implements Harness.Scenario {
                 return;
             }
         } catch (IOException e) {
-            h.fail("trigger.mineFiresOnBlockBreak", e.toString());
+            h.fail("trigger.mineFiresOnBlockBreak", e);
             return;
         }
 
