@@ -21,6 +21,7 @@ public final class VelocityEffect implements EffectKind {
             .param("strength", D.DOUBLE.min(0).def(0))
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
+            .actorOrigin()
             .doc("Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the "
                     + "activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.")
             .example("{ VELOCITY: { mode: add, x: 0, y: 1.2, z: 0 } }")
@@ -35,7 +36,10 @@ public final class VelocityEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         String mode = ctx.str("mode");
         if ("away".equalsIgnoreCase(mode)) {
-            Location from = ctx.actor().getLocation();
+            Location from = ctx.actorOrigin(); // ADR-0043 snapshot; null → uncapturable actor, no shove
+            if (from == null) {
+                return;
+            }
             double strength = ctx.dbl("strength");
             for (LivingEntity target : ctx.targets("who")) {
                 sink.knockback(target, from, strength);

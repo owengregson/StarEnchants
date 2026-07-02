@@ -6,7 +6,10 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /**
@@ -24,6 +27,7 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("owner", D.enumOf("none", "activator").def("none"))
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
+            .actorOrigin()
             .doc("Spawn count entities of type at the target's (or activation) location; ttl ticks until "
                     + "removal (0 = permanent), optional starting health, and owner=activator to tame an owned "
                     + "summon to the activator. Replaces SPAWN/TNT.")
@@ -41,11 +45,27 @@ public final class SpawnEntityEffect implements EffectKind {
         int count = ctx.integer("count");
         int ttl = ctx.integer("ttl");
         double health = ctx.dbl("health");
-        java.util.UUID owner = "activator".equalsIgnoreCase(ctx.str("owner")) && ctx.actor() != null
-                ? ctx.actor().getUniqueId() : null;
+        Player actor = ctx.actor();
+        java.util.UUID owner = "activator".equalsIgnoreCase(ctx.str("owner")) && actor != null
+                ? actor.getUniqueId() : null;
+        Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {
-            sink.spawnEntity(who.getLocation(), type, count, ttl, health, owner);
+            Location base;
+            if (who == actor) {
+                base = origin; // null → uncapturable actor origin: fall through to the ctx.location() fallback
+            } else {
+                try {
+                    base = who.getLocation();
+                } catch (RuntimeException unreadable) {
+                    Regions.swallowed("SpawnEntityEffect.target", unreadable);
+                    continue;
+                }
+            }
+            if (base == null) {
+                continue;
+            }
+            sink.spawnEntity(base, type, count, ttl, health, owner);
             any = true;
         }
         if (!any && ctx.location() != null) {

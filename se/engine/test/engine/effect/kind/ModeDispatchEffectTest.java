@@ -2,6 +2,7 @@ package engine.effect.kind;
 
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -360,17 +361,22 @@ class ModeDispatchEffectTest {
                     verify(sink).launch(b, 0.0, 1.2, 0.0);
                     verifyNoMoreInteractions(sink);
                 }),
-                dynamicTest("VELOCITY away → knockback from the actor", () -> {
+                dynamicTest("VELOCITY away → knockback from the actor origin snapshot", () -> {
                     LivingEntity a = mock(LivingEntity.class);
-                    Player actor = mock(Player.class);
                     Location loc = mock(Location.class);
-                    when(actor.getLocation()).thenReturn(loc);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("mode", "away").with("strength", 1.5).actor(actor).targets("who", a);
+                            .with("mode", "away").with("strength", 1.5).actorOrigin(loc).targets("who", a);
                     Sink sink = mock(Sink.class);
                     new VelocityEffect().run(ctx, sink);
                     verify(sink).knockback(a, loc, 1.5);
                     verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("VELOCITY away with no origin → no-op", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("mode", "away").with("strength", 1.5).targets("who", mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new VelocityEffect().run(ctx, sink); // uncapturable actor origin → no shove (also no NPE)
+                    verifyNoInteractions(sink);
                 }));
     }
 
@@ -389,17 +395,30 @@ class ModeDispatchEffectTest {
                     verify(sink).teleport(mover, victimLoc);
                     verifyNoMoreInteractions(sink);
                 }),
-                dynamicTest("TELEPORT to ACTOR → each target to the actor's location", () -> {
-                    Player actor = mock(Player.class);
+                dynamicTest("TELEPORT to ACTOR → each target to the actor origin snapshot", () -> {
                     Location actorLoc = mock(Location.class);
-                    when(actor.getLocation()).thenReturn(actorLoc);
                     LivingEntity mover = mock(LivingEntity.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("to", "ACTOR").actor(actor).targets("who", mover);
+                            .with("to", "ACTOR").actorOrigin(actorLoc).targets("who", mover);
                     Sink sink = mock(Sink.class);
                     new TeleportEffect().run(ctx, sink);
                     verify(sink).teleport(mover, actorLoc);
                     verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("TELEPORT to ACTOR with no origin → no-op", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create().with("to", "ACTOR"); // uncapturable actor origin
+                    Sink sink = mock(Sink.class);
+                    new TeleportEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }),
+                dynamicTest("TELEPORT to VICTIM whose getLocation faults → no-op (guarded)", () -> {
+                    LivingEntity victim = mock(LivingEntity.class);
+                    when(victim.getLocation()).thenThrow(new IllegalStateException("wrong region"));
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("to", "VICTIM").victim(victim).targets("who", mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new TeleportEffect().run(ctx, sink); // the thrown remote read is swallowed, not propagated
+                    verifyNoInteractions(sink);
                 }),
                 dynamicTest("TELEPORT to VICTIM with no victim → no-op", () -> {
                     FakeEffectCtx ctx = FakeEffectCtx.create().with("to", "VICTIM"); // non-combat: victim() null
@@ -411,11 +430,33 @@ class ModeDispatchEffectTest {
 
     @TestFactory
     List<DynamicTest> walker() {
-        // the `replace` enum maps to the Sink's 0/1/2 replace-mode.
+        // the `replace` enum maps to the Sink's 0/1/2 replace-mode. The three live rows use a non-actor target;
+        // the last two exercise the actor anchor (the ADR-0043 origin snapshot).
         return List.of(
                 walkerRow("WALKER AIR_ONLY → mode 0", "AIR_ONLY", 0),
                 walkerRow("WALKER REPLACEABLE → mode 1", "REPLACEABLE", 1),
-                walkerRow("WALKER ANY → mode 2", "ANY", 2));
+                walkerRow("WALKER ANY → mode 2", "ANY", 2),
+                dynamicTest("WALKER on the actor anchors at the origin snapshot", () -> {
+                    Player self = mock(Player.class);
+                    Location loc = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("material", 42).with("ticks", 80).with("radius", 1).with("replace", "REPLACEABLE")
+                            .actor(self).actorOrigin(loc).targets("who", self);
+                    Sink sink = mock(Sink.class);
+                    new WalkerEffect().run(ctx, sink);
+                    verify(sink).tempPlatform(loc, 42, 1, 80, 1);
+                    verify(self, never()).getLocation(); // the snapshot is the sole actor read
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("WALKER on the actor with no origin → no-op", () -> {
+                    Player self = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("material", 42).with("ticks", 80).with("radius", 1).with("replace", "REPLACEABLE")
+                            .actor(self).targets("who", self); // no actorOrigin → uncapturable, fail closed
+                    Sink sink = mock(Sink.class);
+                    new WalkerEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }));
     }
 
     private static DynamicTest walkerRow(String label, String replace, int mode) {

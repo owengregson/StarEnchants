@@ -6,7 +6,10 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import platform.caps.Regions;
 import schema.spec.D;
 
 /**
@@ -23,6 +26,7 @@ public final class WalkerEffect implements EffectKind {
             .param("replace", D.enumOf("AIR_ONLY", "REPLACEABLE", "ANY").def("REPLACEABLE"))
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
+            .actorOrigin()
             .doc("Lay a temporary platform of a material under the target for a duration (then revert), "
                     + "out to a radius. replace = AIR_ONLY | REPLACEABLE (air/liquid) | ANY.")
             .example("{ WALKER: { material: ICE, ticks: 80, radius: 1 } }")
@@ -43,8 +47,24 @@ public final class WalkerEffect implements EffectKind {
             case "ANY" -> 2;
             default -> 1; // REPLACEABLE
         };
+        Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
+        Player actor = ctx.actor();
         for (LivingEntity who : ctx.targets("who")) {
-            sink.tempPlatform(who.getLocation(), material, radius, ticks, mode);
+            Location base;
+            if (who == actor) {
+                base = origin; // platform anchors where the actor stood at activation; null → fail closed, skip
+            } else {
+                try {
+                    base = who.getLocation();
+                } catch (RuntimeException unreadable) {
+                    Regions.swallowed("WalkerEffect.target", unreadable);
+                    continue;
+                }
+            }
+            if (base == null) {
+                continue;
+            }
+            sink.tempPlatform(base, material, radius, ticks, mode);
         }
     }
 }
