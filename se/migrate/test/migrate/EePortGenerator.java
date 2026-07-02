@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import schema.spec.ParamSpec;
 
@@ -95,7 +96,7 @@ class EePortGenerator {
         long blocking = library.diagnostics().stream().filter(Diagnostic::blocking).count();
         TreeMap<String, Integer> unmapped = new TreeMap<>();
         for (Diagnostic d : result.diagnostics().all()) {
-            if (d.code().equals("migrate.effect")) {
+            if (d.is(DiagCode.W_MIGRATE_EFFECT)) {
                 String head = effectHead(d.message());
                 unmapped.merge(head, 1, Integer::sum);
             }
@@ -117,7 +118,7 @@ class EePortGenerator {
         System.out.println("================================\n");
     }
 
-    /** Extract the legacy effect token head from a {@code migrate.effect} diagnostic message. */
+    /** Extract the legacy effect token head from a {@code W_MIGRATE_EFFECT} diagnostic message. */
     private static String effectHead(String message) {
         // message form: 'id': effect 'TOKEN:args' was not translated — note
         int open = message.indexOf("effect '");

@@ -8,6 +8,7 @@ import migrate.model.MigratedEffect;
 import migrate.model.MigratedEnchant;
 import migrate.model.MigratedLevel;
 import migrate.model.MigratedSet;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.spec.ParamSpec;
@@ -80,7 +81,7 @@ public final class Migrator {
         Diagnostics diagnostics = new Diagnostics();
         Source source = Source.ofFile("EliteArmor/" + id + ".yml");
         if (!SAFE_ID.matcher(id).matches()) {
-            diagnostics.warning("migrate.id", "skipped set with unsafe id '" + id
+            diagnostics.warning(DiagCode.W_MIGRATE_ID, "skipped set with unsafe id '" + id
                     + "' (only letters/digits/_/- allowed)", source);
             return new Result(files, diagnostics);
         }
@@ -98,16 +99,16 @@ public final class Migrator {
         for (MigratedEnchant enchant : enchants) {
             Source source = Source.ofFile(sourcePrefix + enchant.id());
             if (!SAFE_ID.matcher(enchant.id()).matches()) {
-                diagnostics.warning("migrate.id", "skipped enchant with unsafe id '" + enchant.id()
+                diagnostics.warning(DiagCode.W_MIGRATE_ID, "skipped enchant with unsafe id '" + enchant.id()
                         + "' (only letters/digits/_/- allowed)", source);
                 continue;
             }
             if (enchant.trigger() == null) {
-                diagnostics.warning("migrate.trigger", "enchant '" + enchant.id() + "': legacy type '"
+                diagnostics.warning(DiagCode.W_MIGRATE_TRIGGER, "enchant '" + enchant.id() + "': legacy type '"
                         + enchant.legacyTrigger() + "' has no StarEnchants trigger — set one manually", source);
             }
             if (enchant.appliesTo().isEmpty() && enchant.legacyApplies() != null) {
-                diagnostics.warning("migrate.applies", "enchant '" + enchant.id() + "': legacy applies '"
+                diagnostics.warning(DiagCode.W_MIGRATE_APPLIES, "enchant '" + enchant.id() + "': legacy applies '"
                         + enchant.legacyApplies() + "' was not recognised — set applies-to manually", source);
             }
             warnUnmappedEffects(enchant.id(), enchantLevelsEffects(enchant), diagnostics, source);
@@ -124,7 +125,7 @@ public final class Migrator {
                                             Diagnostics diagnostics, Source source) {
         for (MigratedEffect effect : effects) {
             if (!effect.mapped()) {
-                diagnostics.warning("migrate.effect", "'" + id + "': effect '" + effect.legacy()
+                diagnostics.warning(DiagCode.W_MIGRATE_EFFECT, "'" + id + "': effect '" + effect.legacy()
                         + "' was not translated — " + effect.note(), source);
             }
         }
