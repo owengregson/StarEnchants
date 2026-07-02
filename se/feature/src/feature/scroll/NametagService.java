@@ -38,15 +38,6 @@ public final class NametagService {
     // Players whose currently-open anvil is OUR rename GUI (modern path), so a real anvil is never hijacked.
     private final java.util.Set<UUID> anvilSessions = ConcurrentHashMap.newKeySet();
 
-    /** Default-messages, no-suffix form (tests/fixtures that never assert the §I enchant-count suffix). */
-    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config) {
-        this(scrolls, config, platform.lang.Messages.defaults(), null);
-    }
-
-    public NametagService(ScrollCodec scrolls, Supplier<ScrollsConfig> config, platform.lang.Messages messages) {
-        this(scrolls, config, messages, null);
-    }
-
     /**
      * Canonical form (composition root): {@code combat} reads the renamed item's custom-enchant count so the §I
      * {@code [N]} suffix is re-appended on rename (and shown in the preview) — the suffix is a fixed part of the

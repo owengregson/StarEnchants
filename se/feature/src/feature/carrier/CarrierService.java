@@ -46,39 +46,6 @@ public final class CarrierService {
     private final ItemGroups groups; // §I applies-to gate — the white scroll only protects the configured item kinds
     private final platform.lang.Messages messages; // §I the applies reject reads common.wrong-applies (single source)
 
-    /** Test/fixture form: every top-level item at its built-in likeness. */
-    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random) {
-        this(codec, enchanter, content, random, compile.load.EnchantBookConfig::defaults,
-                compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
-    }
-
-    /** Book-config form: the general enchant-book likeness supplied; dust/white-scroll at their defaults. */
-    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
-                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig) {
-        this(codec, enchanter, content, random, bookConfig,
-                compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults);
-    }
-
-    /** Test form: book likeness + the §I lore-recompose seam; dust/white-scroll defaults, a fresh applied-slot. */
-    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
-                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
-                          java.util.function.Consumer<ItemStack> reRender) {
-        this(codec, enchanter, content, random, bookConfig, compile.load.DustConfig::defaults,
-                compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), reRender, ItemGroups.standard(),
-                platform.lang.Messages.defaults());
-    }
-
-    /** Book-numeral-default form: likeness suppliers supplied; the book level numeral defaults to Roman. */
-    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
-                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
-                          java.util.function.Supplier<compile.load.DustConfig> dustConfig,
-                          java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig) {
-        this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, () -> true, () -> 100,
-                new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
-                platform.lang.Messages.defaults());
-    }
-
     /**
      * Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes
      * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style;

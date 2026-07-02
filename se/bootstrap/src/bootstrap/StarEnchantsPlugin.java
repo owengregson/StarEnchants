@@ -338,7 +338,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Heroic upgrades (§F).
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade());
         HeroicService heroics = new HeroicService(heroicCodec, codec, lore,
-                () -> items.config().heroicOrDefault(), new java.util.Random(), messages);
+                () -> items.config().heroicOrDefault(), new java.util.Random(), messages, itemGroups);
 
         // Slot economy (§H). base MUST match the ItemEnchanter default so the cap is computed off the same base.
         SlotItemCodec slotItemCodec = new SlotItemCodec(ItemKeys.of().slotItem(), ItemKeys.of().slotSuccess());

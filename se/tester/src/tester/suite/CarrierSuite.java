@@ -88,18 +88,26 @@ public final class CarrierSuite implements Harness.Scenario {
                 .withProtectionLines(stack -> item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack), false,
                         compile.load.WhiteScrollConfig.defaults().protectedLine(),
                         compile.load.ScrollsConfig.defaults().holy().protectedLine())));
-        ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard());
+        ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard(),
+                () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
         // ADR-0040 recompose seam: a guard toggle recomposes the gear's whole lore from state, so the PROTECTED
         // line tracks the marker (the composer renders it via withProtectionLines above).
         java.util.function.Consumer<ItemStack> recompose = gear -> lore.apply(gear, combat.read(gear));
         // Default likeness: books never destroy on fail.
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1),
-                EnchantBookConfig::defaults, recompose);
+                EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
+                compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
+                new item.codec.AppliedSlot("appliedslot"), recompose, ItemGroups.standard(),
+                platform.lang.Messages.defaults());
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
         EnchantBookConfig destroyLikeness = new EnchantBookConfig(
                 "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true);
         CarrierService destroyer = new CarrierService(
-                carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness, recompose);
+                carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness,
+                compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
+                () -> 100, new item.codec.AppliedSlot("appliedslot"), recompose, ItemGroups.standard(),
+                platform.lang.Messages.defaults());
 
         h.guard("carrier.book.applies", () -> {
             ItemStack book = carriers.mintBook("enchants/zap", 1);

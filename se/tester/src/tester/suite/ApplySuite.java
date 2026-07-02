@@ -132,8 +132,12 @@ public final class ApplySuite implements Harness.Scenario {
             }
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
-            enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
-            capped = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(), 1);
+            enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
+            capped = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
+                    () -> 1, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
         } catch (IOException e) {
             h.fail("item.apply.enchant", e);
             return;

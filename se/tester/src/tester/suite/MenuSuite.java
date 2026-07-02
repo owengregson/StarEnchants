@@ -101,7 +101,9 @@ public final class MenuSuite implements Harness.Scenario {
             }
             ContentHolder holder = new ContentHolder(library);
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
-            ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
+            ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
             // caps drives the cross-version title cap
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()));
             // Admin browser (§K) — the 3-level tier → enchant → level drill-down. Use an EE-style book name
@@ -111,7 +113,10 @@ public final class MenuSuite implements Harness.Scenario {
                     "ENCHANTED_BOOK", "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}",
                     compile.load.EnchantBookConfig.defaults().lore(), java.util.List.of(), false);
             CarrierService carriers = new CarrierService(
-                    carrierCodec, enchanter, holder, new Random(1), () -> underlined);
+                    carrierCodec, enchanter, holder, new Random(1), () -> underlined,
+                    compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
+                    () -> 100, new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
+                    platform.lang.Messages.defaults());
             adminMenu = new AdminBrowserMenu(holder, carriers, Capabilities.probe(plugin.getServer()));
             keenDef = holder.library().catalog().stream()
                     .filter(d -> d.key().equals("enchants/keen")).findFirst().orElseThrow();

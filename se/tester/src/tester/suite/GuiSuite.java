@@ -92,9 +92,14 @@ public final class GuiSuite implements Harness.Scenario {
             ItemKeys keys = ItemKeys.of();
             CombatCodec combat = new CombatCodec(keys.combat());
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key)));
-            ItemEnchanter enchanter = new ItemEnchanter(combat, lore, content, ItemGroups.standard());
+            ItemEnchanter enchanter = new ItemEnchanter(combat, lore, content, ItemGroups.standard(),
+                    () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
             carriers = new CarrierService(new CarrierCodec(keys.carrier(), keys.guarded()), enchanter, content,
-                    new Random(1));
+                    new Random(1), compile.load.EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
+                    compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
+                    new item.codec.AppliedSlot("appliedslot"), gear -> { }, ItemGroups.standard(),
+                    platform.lang.Messages.defaults());
             Capabilities caps = Capabilities.probe(plugin.getServer());
             alchemist = new AlchemistMenu(carriers, caps);
             tinkerer = new TinkererMenu(carriers, caps);

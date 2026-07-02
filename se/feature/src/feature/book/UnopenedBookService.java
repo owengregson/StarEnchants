@@ -29,12 +29,6 @@ public final class UnopenedBookService {
     private final Random random;
     private final platform.lang.Messages messages;
 
-    /** Default-messages form (tests/fixtures). */
-    public UnopenedBookService(UnopenedBookCodec codec, CarrierService carriers, ContentHolder content,
-                               Supplier<UnopenedBookConfig> config, Random random) {
-        this(codec, carriers, content, config, random, platform.lang.Messages.defaults());
-    }
-
     public UnopenedBookService(UnopenedBookCodec codec, CarrierService carriers, ContentHolder content,
                                Supplier<UnopenedBookConfig> config, Random random, platform.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");

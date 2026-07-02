@@ -59,24 +59,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
     // read by the PAPI feed (in-memory, thread-safe — never a cross-region inventory read).
     private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
 
-    /** Soul service with deposit-on-any-kill always on + default messages (the common test/fixture form). */
-    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config) {
-        this(pool, modes, codec, config, () -> true);
-    }
-
-    /** As above, with a deposit toggle but default messages. */
-    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
-                       java.util.function.BooleanSupplier depositOnAnyKill) {
-        this(pool, modes, codec, config, depositOnAnyKill, platform.lang.Messages.defaults());
-    }
-
-    /** As above, with messages but no particle fx (the no-fx form). */
-    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
-                       java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages) {
-        this(pool, modes, codec, config, depositOnAnyKill, messages, feature.fx.ParticleFx.NONE);
-    }
-
-    /** Canonical form (composition root): particles for the on-activate/deactivate spawns. */
+    /** Particles are the on-activate/deactivate spawns; {@code depositOnAnyKill} gates deposit-on-any-kill. */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
                        feature.fx.ParticleFx particles) {

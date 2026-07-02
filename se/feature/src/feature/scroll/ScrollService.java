@@ -44,25 +44,7 @@ public final class ScrollService {
     private final item.codec.GodlyTransmogCodec godlyCodec; // null in tests that never mint the godly tool
     private final ItemGroups groups; // §I applies-to gate — the black scroll only extracts from the configured item kinds
 
-    /** Default-messages form (tests/fixtures). */
-    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
-                         ContentHolder content, Supplier<ScrollsConfig> config, Random random) {
-        this(scrolls, combat, lore, carriers, content, config, random, platform.lang.Messages.defaults());
-    }
-
-    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
-                         ContentHolder content, Supplier<ScrollsConfig> config, Random random,
-                         platform.lang.Messages messages) {
-        this(scrolls, combat, lore, carriers, content, config, random, messages, null);
-    }
-
-    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
-                         ContentHolder content, Supplier<ScrollsConfig> config, Random random,
-                         platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec) {
-        this(scrolls, combat, lore, carriers, content, config, random, messages, godlyCodec, ItemGroups.standard());
-    }
-
-    /** Full form (the composition root) — {@code godlyCodec} enables minting the physical godly-transmog tool. */
+    /** {@code godlyCodec} enables minting the physical godly-transmog tool (null disables it). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
                          platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec, ItemGroups groups) {

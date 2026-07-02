@@ -38,7 +38,9 @@ class ItemEnchanterTest {
         ContentHolder holder = new ContentHolder(lib);
         CombatCodec codec = new CombatCodec("combat");
         LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)));
-        return new ItemEnchanter(codec, lore, holder, ItemGroups.standard());
+        return new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
+                () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
     }
 
     private static void write(Path root, String relative, String yaml) throws IOException {

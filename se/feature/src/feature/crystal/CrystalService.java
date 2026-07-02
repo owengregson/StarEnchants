@@ -40,12 +40,6 @@ public final class CrystalService {
     private final IntSupplier maxMerge; // §E crystals.max-merge — the global multi-crystal cap (read live)
     private final platform.lang.Messages messages; // §L lang.yml
 
-    /** Default-messages form (tests/fixtures). */
-    public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
-                          ContentHolder content, Supplier<CrystalConfig> config, IntSupplier maxMerge) {
-        this(codec, extractorCodec, enchanter, content, config, maxMerge, platform.lang.Messages.defaults());
-    }
-
     public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
                           ContentHolder content, Supplier<CrystalConfig> config, IntSupplier maxMerge,
                           platform.lang.Messages messages) {
