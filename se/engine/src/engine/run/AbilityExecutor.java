@@ -25,8 +25,9 @@ import org.bukkit.entity.LivingEntity;
  * the {@link ActivationPipeline} and emits every ACTIVATED one's effect intents into the sink
  * ({@link SinkReadback}) without touching the world. The caller flushes once after the gate walk.
  *
- * <p>Stateless and shareable. Failures are isolated per effect and per ability so one bad unit never
- * aborts the rest (§9 warn-and-skip).
+ * <p>Shared across snapshots; the only state is a volatile {@link AbilityQuarantine} rebound per reload.
+ * Failures are isolated per effect and per ability so one bad unit never aborts the rest (§9 warn-and-skip),
+ * and an ability that keeps faulting is quarantined for the life of its snapshot (§10).
  */
 public final class AbilityExecutor {
 
@@ -37,6 +38,11 @@ public final class AbilityExecutor {
     private final ActivationPipeline pipeline;
     private final AreaScan areaScan;
     private final ActivationListener listener;
+
+    // Per-snapshot fault quarantine (§10), rebound by the composition root on each reload swap so a fixed edit
+    // clears the block. The executor is shared across snapshots, so this is the one mutable field — a volatile
+    // reference-swap, never torn. Inert until bound (unit tests keep the NONE default).
+    private volatile AbilityQuarantine quarantine = AbilityQuarantine.NONE;
 
     public AbilityExecutor(EffectRegistry effects, SelectorRegistry selectors,
                            ActivationPipeline pipeline, AreaScan areaScan) {
@@ -53,6 +59,16 @@ public final class AbilityExecutor {
         this.listener = Objects.requireNonNull(listener, "listener");
     }
 
+    /** Bind the quarantine for the live snapshot; call on boot and on every reload swap so it resets per snapshot (§10). */
+    public void bindQuarantine(AbilityQuarantine quarantine) {
+        this.quarantine = Objects.requireNonNull(quarantine, "quarantine");
+    }
+
+    /** The stable keys currently quarantined in the live snapshot — the read surface a command can query later (§10). */
+    public List<String> quarantinedKeys() {
+        return quarantine.quarantinedKeys();
+    }
+
     /**
      * Evaluate each candidate ability and run every ACTIVATED one's effects into {@code sink}.
      * {@code stableKeys} MUST pair with {@code abilities} (this snapshot's index) so a listener key names
@@ -63,20 +79,28 @@ public final class AbilityExecutor {
      */
     public int run(Ability[] abilities, int[] candidateIds, Activation activation,
                    ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys) {
+        AbilityQuarantine quarantine = this.quarantine;
         int activated = 0;
         for (int id : candidateIds) {
             if (id < 0 || id >= abilities.length) {
                 continue; // stale/foreign id (e.g. across a reload)
             }
+            if (quarantine.isDisabled(id)) {
+                continue; // §10: disabled for the life of this snapshot after repeated faults — skip before effects run
+            }
             Ability ability = abilities[id];
             try {
                 if (pipeline.evaluate(ability, activation).activated()) {
-                    runEffects(ability, context, sink, activation.activeGem(), activation.facts());
+                    boolean faulted = runEffects(ability, context, sink, activation.activeGem(), activation.facts(), quarantine);
                     activated++;
                     notifyActivation(ability, context, stableKeys);
+                    if (faulted) {
+                        quarantine.recordFailure(id, ability.defId());
+                    }
                 }
             } catch (Throwable failed) {
-                LOG.log(Level.WARNING, "ability " + id + " failed during execution", failed);
+                LOG.log(Level.WARNING, "ability " + quarantine.describe(ability.defId()) + " failed during execution", failed);
+                quarantine.recordFailure(id, ability.defId());
             }
         }
         return activated;
@@ -138,8 +162,11 @@ public final class AbilityExecutor {
         }
     }
 
-    private void runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
-                            engine.condition.FactBuffer facts) {
+    // Returns true if any effect KIND threw (a genuine fault the quarantine counts). An unregistered head is
+    // warn-and-skip, NOT a fault — the ability still activates and its sibling effects run (§9).
+    private boolean runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
+                               engine.condition.FactBuffer facts, AbilityQuarantine quarantine) {
+        boolean faulted = false;
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = effects.lookup(effect.head()).orElse(null);
@@ -162,9 +189,12 @@ public final class AbilityExecutor {
                 sink.delay(effect.cumulativeWaitTicks());
                 kind.run(ctx, sink);
             } catch (Throwable failed) {
-                LOG.log(Level.WARNING, "effect " + effect.head() + " failed during execution", failed);
+                faulted = true;
+                LOG.log(Level.WARNING, "effect " + effect.head() + " of " + quarantine.describe(ability.defId())
+                        + " failed during execution", failed);
             }
         }
+        return faulted;
     }
 
     /** Bind resolved entity targets to the effect's primary slot; empty map for effects that declare none. */
