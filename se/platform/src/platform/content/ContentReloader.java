@@ -166,8 +166,9 @@ public final class ContentReloader {
                 boolean publish = !dryRun && clean;
                 Scheduling.onGlobal(() -> finish(library, built, publish, dryRun, onDone));
             } catch (Throwable buildFailure) {
-                // build() threw (e.g. I/O fault walking the tree) — report + release the guard on the
-                // global thread, so the operator never waits forever on a stranded reload.
+                // build() threw (the loader diagnoses I/O itself since ADR-0042, so this is a compiler/OOM-grade
+                // fault) — report + release the guard on the global thread, so the operator never waits forever
+                // on a stranded reload.
                 Scheduling.onGlobal(() -> {
                     try {
                         onDone.accept(ReloadResult.failure(buildFailure));
