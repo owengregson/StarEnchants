@@ -290,24 +290,25 @@ public final class CarrierService {
      * the caller translates).
      */
     public String bookDisplayName(String enchantKey, int level) {
-        String tierColor = tierColorOf(enchantKey);
-        String name = bookConfig.get().name()
-                .replace("{TIER_COLOR}", tierColor)
-                .replace("{TIER-COLOR}", tierColor)
-                .replace("{ENCHANT}", displayOf(enchantKey));
-        return level <= 0
-                ? name.replace(" {LEVEL}", "").replace("{LEVEL}", "")
-                : name.replace("{LEVEL}", levelNumeral(level));
+        return bookDisplayName(bookConfig.get().name(), tierColorOf(enchantKey), displayOf(enchantKey),
+                level <= 0 ? "" : levelNumeral(level));
+    }
+
+    /**
+     * Fill the enchant-book name template (§I) — the single book display-name rule the menus reuse:
+     * {@code {TIER_COLOR}} (hyphen alias accepted) and {@code {ENCHANT}} always; a null/blank {@code levelText}
+     * drops the trailing {@code " {LEVEL}"} slot.
+     */
+    public static String bookDisplayName(String template, String tierColor, String display, String levelText) {
+        String out = Tokens.sub(template, "TIER_COLOR", tierColor == null ? "" : tierColor, "ENCHANT", display);
+        return levelText == null || levelText.isBlank()
+                ? out.replace(" {LEVEL}", "").replace("{LEVEL}", "")
+                : Tokens.sub(out, "LEVEL", levelText);
     }
 
     /** The enchant's rarity-tier colour code (e.g. {@code &e}), or grey ({@code &7}) for no/unknown tier. */
     private String tierColorOf(String enchantKey) {
-        String tier = content.library().tierOf(enchantKey);
-        if (tier == null) {
-            return "&7";
-        }
-        compile.load.TierRegistry.Tier t = content.library().tiers().tier(tier);
-        return t != null && !t.color().isBlank() ? t.color() : "&7";
+        return content.library().tiers().colorOf(content.library().tierOf(enchantKey));
     }
 
     /** Render a level as a Roman numeral or Arabic number per the live {@code lore.roman} setting. */

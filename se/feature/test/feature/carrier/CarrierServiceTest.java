@@ -29,4 +29,20 @@ class CarrierServiceTest {
         assertEquals(5, CarrierService.salvageLevels(5));
         assertEquals(1, CarrierService.salvageLevels(0), "a zero/garbage level still refunds at least one");
     }
+
+    @Test
+    void bookDisplayNameAppliesTheTemplateStylingIncludingUnderline() {
+        // The EE-pack book name template (bold + underline) — the single renderer the menu icons reuse.
+        String template = "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}";
+        // Level-less (apply/browse): the " {LEVEL}" slot is dropped, no trailing space.
+        assertEquals("&e&l&nMolten", CarrierService.bookDisplayName(template, "&e", "Molten", ""));
+        // Levelled (admin level view): the level fills the slot.
+        assertEquals("&e&l&nMolten III", CarrierService.bookDisplayName(template, "&e", "Molten", "III"));
+    }
+
+    @Test
+    void bookDisplayNameToleratesBothPlaceholderSpellingsAndNullColour() {
+        assertEquals("&6Sharpness", CarrierService.bookDisplayName("{TIER-COLOR}{ENCHANT} {LEVEL}", "&6", "Sharpness", ""));
+        assertEquals("Sharpness", CarrierService.bookDisplayName("{TIER_COLOR}{ENCHANT} {LEVEL}", null, "Sharpness", null));
+    }
 }

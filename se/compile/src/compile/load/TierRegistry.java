@@ -44,6 +44,13 @@ public final class TierRegistry {
         return tiers.get(name);
     }
 
+    /** The tier's legacy colour code (e.g. {@code &e}), or grey ({@code &7}) for a null/unregistered/colourless tier. */
+    public String colorOf(String name) {
+        if (name == null) return "&7";
+        Tier t = tiers.get(name);
+        return t != null && !t.color().isBlank() ? t.color() : "&7";
+    }
+
     public Collection<Tier> tiers() {
         return tiers.values();
     }

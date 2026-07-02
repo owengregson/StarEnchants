@@ -1,6 +1,5 @@
 package feature.menu;
 
-import compile.load.TierRegistry;
 import item.render.Descriptions;
 import java.util.List;
 import org.bukkit.ChatColor;
@@ -18,33 +17,6 @@ public final class MenuText {
     static final int LEGACY_TITLE_LIMIT = 32;
 
     private MenuText() {
-    }
-
-    /** A tier's legacy colour code (e.g. {@code &e}), or grey ({@code &7}) when the tier is null/unregistered. */
-    public static String tierColor(TierRegistry tiers, String tier) {
-        if (tier == null) {
-            return "&7";
-        }
-        TierRegistry.Tier t = tiers.tier(tier);
-        return t != null && !t.color().isBlank() ? t.color() : "&7";
-    }
-
-    /**
-     * An enchant name styled by the enchant-book {@code name:} template, so a menu icon's name matches the
-     * unapplied book (single source of truth). Fills the template's {@code {TIER_COLOR}} / {@code {ENCHANT}} /
-     * {@code {LEVEL}} placeholders; a blank {@code level} drops the {@code " {LEVEL}"} slot (a level-less icon).
-     * The returned string still carries {@code '&'} codes — the caller's {@code ItemFactory.build} translates.
-     */
-    public static String enchantName(String template, String tierColor, String display, String level) {
-        String tc = tierColor == null ? "" : tierColor;
-        String lvl = level == null ? "" : level;
-        String out = template
-                .replace("{TIER_COLOR}", tc)
-                .replace("{TIER-COLOR}", tc)
-                .replace("{ENCHANT}", display);
-        return lvl.isBlank()
-                ? out.replace(" {LEVEL}", "").replace("{LEVEL}", "")
-                : out.replace("{LEVEL}", lvl);
     }
 
     /**

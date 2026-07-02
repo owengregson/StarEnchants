@@ -140,7 +140,7 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
     @Override
     protected String titleFor(MenuHolder holder) {
         if (VIEW_LEVELS.equals(holder.view()) && holder.payload() instanceof EnchantDef def) {
-            return MenuText.tierColor(content.library().tiers(), def.tier()) + def.display() + " &cLevels";
+            return content.library().tiers().colorOf(def.tier()) + def.display() + " &cLevels";
         }
         if (VIEW_ENCHANTS.equals(holder.view()) && holder.selection() != null) {
             return tierColor(holder.selection()) + capitalize(holder.selection()) + " &cEnchants";
@@ -219,7 +219,7 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
     }
 
     private String tierColor(String tier) {
-        return MenuText.tierColor(content.library().tiers(), tier);
+        return content.library().tiers().colorOf(tier);
     }
 
     private static String capitalize(String s) {
