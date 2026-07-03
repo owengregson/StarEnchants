@@ -20,11 +20,13 @@ import platform.economy.EconomyService;
  *
  * <p>{@code tempBlocks} is the ONE per-boot {@link TempBlockLedger} shared across every per-event sink, so
  * overlapping temp-block placements from separate activations compound instead of clobbering (a fresh
- * per-event ledger could not — the sink is allocated per activation). Shared via the env for the same reason
- * the stores are, never a mutable static.
+ * per-event ledger could not — the sink is allocated per activation). {@code trails} is the ONE per-boot
+ * {@link TrailWalker} for the same reason: the footprint snake's path memory must survive across the SEPARATE
+ * activations a REPEATING trigger fires. Both shared via the env like the stores, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
-                      Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks) {
+                      Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
+                      TrailWalker trails) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -33,6 +35,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(nowTicks, "nowTicks");
         Objects.requireNonNull(movementExemption, "movementExemption");
         Objects.requireNonNull(tempBlocks, "tempBlocks");
+        Objects.requireNonNull(trails, "trails");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -40,9 +43,10 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         return of(economy, souls, stores, nowTicks, player -> { });
     }
 
-    /** The composition-root shape: an anti-cheat exemption plus a fresh per-boot temp-block ledger. */
+    /** The composition-root shape: an anti-cheat exemption plus a fresh per-boot temp-block ledger and trail memory. */
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                              Consumer<Player> movementExemption) {
-        return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger());
+        return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
+                new TrailWalker());
     }
 }

@@ -92,6 +92,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final ImmuneStore immune;
     /** The ONE per-boot ledger (via {@link SinkEnv}), so temp blocks from separate events compound, not clobber. */
     private final TempBlockLedger<BlockState> tempBlocks;
+    /** The ONE per-boot trail memory (via {@link SinkEnv}), so the footprint snake connects across activations. */
+    private final TrailWalker trails;
 
     private boolean cancelled;
     private boolean armorIgnored;
@@ -123,6 +125,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
         this.tempBlocks = env.tempBlocks();
+        this.trails = env.trails();
         this.fold = new DamageFold();
     }
 
@@ -872,6 +875,48 @@ public abstract class DispatchSinkBase implements SinkReadback {
             TempBlockLedger.Pending pending = tempBlocks.place(key, material.ordinal(), durationTicks, nowTicks.getAsLong());
             Scheduling.onRegionLater(pos, pending.delayTicks(),
                     () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
+        });
+    }
+
+    @Override
+    public void tempBlockTrail(int trailKeyDefId, UUID walker, Location currentCell, int materialId, int durationTicks) {
+        Location pos = currentCell.clone(); // own the cell: a WAIT tier can defer this to a later tick
+        // The walk (memory read/write + staircase) runs on the WALKER's own region — regionOp targets the
+        // current cell, and a REPEATING trigger fires on the wearer's region, so one key has a single writer.
+        regionOp(pos, () -> {
+            Material material = material(materialId);
+            World world = pos.getWorld();
+            if (material == null || !material.isBlock() || world == null || walker == null) {
+                return;
+            }
+            int typeId = material.ordinal();
+            UUID worldId = world.getUID();
+            for (TrailWalker.Step cell : trails.walk(trailKeyDefId, walker, worldId,
+                    pos.getBlockX(), pos.getBlockY(), pos.getBlockZ(), nowTicks.getAsLong())) {
+                int bx = cell.x();
+                int bz = cell.z();
+                int baseY = cell.y();
+                // Re-key EACH cell to its OWN region: the ground-snap reads, the block set, the shared-ledger
+                // mutation and the revert must all run on the cell's owning thread — a trail line may straddle a
+                // Folia region boundary. On Paper onRegion is a direct inline call; on Folia only straddlers hop.
+                Location cellAt = new Location(world, bx, baseY, bz);
+                Scheduling.onRegion(cellAt, () -> {
+                    int y = TrailWalker.snapY(baseY,
+                            canReplace(world.getBlockAt(bx, baseY, bz), 3),
+                            canReplace(world.getBlockAt(bx, baseY + 1, bz), 3),
+                            canReplace(world.getBlockAt(bx, baseY - 1, bz), 3));
+                    if (y == TrailWalker.SKIP) {
+                        return; // a jump over air — pause the snake, never scaffold
+                    }
+                    // Solid ground only (mode 3), captured + restored on revert; through the shared ledger so a
+                    // trail crossing a magma floor compounds and the final revert restores the true original.
+                    TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, y, bz);
+                    TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, nowTicks.getAsLong());
+                    Location revertAt = new Location(world, bx, y, bz);
+                    Scheduling.onRegionLater(revertAt, pending.delayTicks(),
+                            () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
+                });
+            }
         });
     }
 

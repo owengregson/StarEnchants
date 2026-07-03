@@ -222,6 +222,19 @@ public interface Sink {
      */
     void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable);
 
+    /**
+     * Stamp the next cell of a walker's footprint SNAKE — the radius-0 {@code FOOTPRINT} trail (devil's
+     * netherrack path). Unlike {@link #tempBlock}, which stamps one point, this joins the walker's previous
+     * cell to {@code currentCell} with a 4-connected staircase so a sprint leaves no gaps and a diagonal reads
+     * as clean L-steps, never corner-touching stamps. The path memory keyed {@code (trailKeyDefId, walker)}
+     * rides the sink's shared {@code TrailWalker} so it survives across the REPEATING trigger's separate
+     * activations; a teleport / death / relog / world change restarts at the current cell. Each staircase cell
+     * ground-snaps to solid floor (climbing a one-block stair, pausing over air) and reverts after
+     * {@code durationTicks} through the shared {@code TempBlockLedger}, each on its OWN region (a line may
+     * straddle a Folia region boundary).
+     */
+    void tempBlockTrail(int trailKeyDefId, UUID walker, Location currentCell, int materialId, int durationTicks);
+
     /** Drop {@code count} of a material as an item entity at {@code at} (DROP_ITEM). */
     void dropItem(Location at, int materialId, int count);
 
