@@ -18,9 +18,10 @@ import schema.spec.D;
  * {@code TEMP_BLOCK} — place a temporary block shape that self-reverts after {@code ticks} (the Sink layers
  * overlapping placements through its shared {@code TempBlockLedger}, so a stacked trail/floor compounds and the
  * final revert restores the true original, never an intermediate temp block). Shapes: {@code POINT}
- * (one block at the target's feet, +{@code dy}), {@code FOOTPRINT} (a (2r+1)² square at feet level +{@code dy}),
- * {@code COLUMN} (a {@code height}-tall pillar, optionally {@code ahead} blocks in the target's facing). Used by
- * yeti (ice pillar + packed-ice footprint), fantasy (cobweb at feet), and devil (netherrack trail / floor).
+ * (one block at the target's feet, +{@code dy}), {@code FOOTPRINT} (a (2r+1)² square at feet level +{@code dy};
+ * radius 0 routes to the sink's {@code TrailWalker} snake so consecutive stamps join into a gapless 4-connected
+ * path), {@code COLUMN} (a {@code height}-tall pillar, optionally {@code ahead} blocks in the target's facing).
+ * Used by yeti (ice pillar + packed-ice footprint), fantasy (cobweb at feet), and devil (netherrack trail / floor).
  */
 public final class TempBlockEffect implements EffectKind {
 
@@ -38,7 +39,9 @@ public final class TempBlockEffect implements EffectKind {
             .doc("Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / "
                     + "COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces "
                     + "air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet "
-                    + "(never air, so a trail can't scaffold); other shapes replace anything and restore on revert.")
+                    + "(never air, so a trail can't scaffold); other shapes replace anything and restore on revert. "
+                    + "A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, "
+                    + "4-connected footprint path even at sprint speed and on diagonals.")
             .example("{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }")
             .build();
 
@@ -79,9 +82,17 @@ public final class TempBlockEffect implements EffectKind {
             int bz = base.getBlockZ();
             switch (shape) {
                 case "FOOTPRINT" -> {
-                    for (int dx = -radius; dx <= radius; dx++) {
-                        for (int dz = -radius; dz <= radius; dz++) {
-                            place(sink, world, bx + dx, by, bz + dz, material, ticks, mode);
+                    if (radius == 0) {
+                        // The snake: hand the walker's current cell to the sink, which joins it to the previous
+                        // cell as a 4-connected trail (no gaps at sprint speed, clean L-steps on diagonals). The
+                        // effect stays stateless — the sink owns the path memory (the MARK_ZONE precedent).
+                        sink.tempBlockTrail(ctx.sourceDefId(), who.getUniqueId(),
+                                new Location(world, bx, by, bz), material, ticks);
+                    } else {
+                        for (int dx = -radius; dx <= radius; dx++) {
+                            for (int dz = -radius; dz <= radius; dz++) {
+                                place(sink, world, bx + dx, by, bz + dz, material, ticks, mode);
+                            }
                         }
                     }
                 }
