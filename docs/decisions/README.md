@@ -54,7 +54,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0044](0044-era-erasure.md) | Era erasure — seams + era-exclusive impls replace same-FQN overlay twins; two composition-only bindings; derived MRJAR gate (refines 0036) | Accepted |
 | [0045](0045-se-why-flight-recorder.md) | /se why gate-walk flight recorder — per-player packed ring, always-on, render-time resolution | Accepted |
 | [0046](0046-pack-abi-fingerprint.md) | Pack ABI fingerprints — registry fingerprint stamped at export + dry-run compile gate on apply | Accepted |
-| [0047](0047-feature-module-wiring-erasure.md) | Feature-module wiring erasure — one FeatureModule record + ordered Modules registry + ModuleFold; onEnable is a ~20-line fold, onDisable is fold.stop(); derived mint/guard/sweep/disable; two static installers become instance wiring; ModuleTreeGateTest ratchets it | Accepted |
+| [0047](0047-feature-module-wiring-erasure.md) | Feature-module wiring erasure — one FeatureModule record + ordered Modules registry + ModuleFold; onEnable is a ~15-line fold, onDisable is fold.stop(); derived mint/guard/sweep/disable + `/se modules`; two static installers become instance wiring; ModuleTreeGate + RegistryWiring gates ratchet it | Accepted |
 
 ## Process
 

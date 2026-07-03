@@ -210,9 +210,13 @@ starenchants/
 │                      CURATED facade on :schema — depends on NOTHING else in the repo; the bootstrap
 │                      adapts it to the engine (ADR-0038). Add-ons compile here.
 │
-├── se/bootstrap/      The StarEnchants JavaPlugin — the composition root (ADR-0014): probe caps,
-│                      init Scheduling, wire the Compiler, load content/, serve /se reload. Its
-│                      test/ tree holds CatalogValidationTest + CosmicPackValidationTest (§10).
+├── se/bootstrap/      The StarEnchants JavaPlugin — the composition root (ADR-0014, ADR-0047):
+│                      `BootCore` builds the feature-neutral substrate (caps/Scheduling/Compiler/
+│                      content/…); `onEnable` folds the ordered `Modules` registry of 19
+│                      `FeatureModule`s through `ModuleFold` into the shipped listener/command/menu/
+│                      mint wiring; `onDisable` is `fold.stop()`. Its test/ tree holds
+│                      CatalogValidationTest + CosmicPackValidationTest (§10) plus the structural
+│                      ModuleTreeGate and the semantic RegistryWiring gates.
 │
 ├── se/compat-folia/   Folia region/entity/global schedulers (probed by se/platform/sched).
 │
@@ -538,8 +542,11 @@ items forward-compatible across the 9-year version range.
 The data-oriented discipline: **mutable per-player state is in named, enumerable stores**, not scattered
 in effect objects (`[do]`, `[crit:maint]` graft #7). Every store is concurrent, keyed by a stable id
 (player/gem/projectile UUID), TTL-evicting where it holds a timed flag, and cleared on quit + `onDisable`
-(fixing the Cosmic Enchants-style task/state leaks — neither original tears anything down). The shipped
-set (`se/engine/src/engine/stores/`):
+(fixing the Cosmic Enchants-style task/state leaks — neither original tears anything down). The quit
+sweep is **one authority** (ADR-0047): a single `EngineStoreListener` clears every `EngineStores` store
+plus every feature-owned per-player store a module *declares* (`FeatureModule.playerStores` — souls'
+soul-total cache, the kept-items stash, the pending nametag captures), so a feature's quit cleanup is a
+declaration, not a scattered `PlayerQuitEvent` handler. The shipped set (`se/engine/src/engine/stores/`):
 
 | Store | Holds |
 |---|---|
@@ -755,6 +762,14 @@ final class SmiteEffect implements EffectKind {
   the right thread (it would route wrong, caught by the auto-generated per-non-local-effect Folia test —
   `[hf]`). `se/tester` auto-generates a cross-region test for every `TARGET_ENTITY`/`REGION`/`AOE` effect:
   extensibility and coverage grow together.
+- **The same "one file, registered explicitly" rule holds at the composition root** (ADR-0047): a whole
+  feature's *wiring* is one `bootstrap.wire.FeatureModule` — its listeners, dynamic commands, mint
+  declarations (the ONE source the mint menu / `/se give` / self-mint rows derive from), menus, declared
+  per-player stores, plugin-item guard contribution, boot/live toggle, boot actions and disable stops —
+  added as one `*Module` file plus one line in the ordered `Modules` registry. `onEnable` is a `ModuleFold`
+  over that registry, never a hand-wired `registerEvents`; `ModuleTreeGateTest` fails the build on
+  off-registry wiring, an orphan module, an un-adjudicated static installer, or a hand-built mint list, and
+  `RegistryWiringTest` pins the golden listener / stop / menu orders and the derived mint sets.
 
 ---
 
