@@ -1,5 +1,6 @@
 package engine.stores;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -155,6 +156,47 @@ class SuppressionStoreTest {
         store.suppress(p, CooldownStore.key(ScopeKinds.GROUP, 3), 0L, 200);
         assertTrue(store.suppressesAny(scoped(-1, 3, -1), p, 50L), "group-scope suppression flips the group-scoped ability");
         assertFalse(store.suppressesAny(scoped(3, -1, -1), p, 50L), "the same id under the ENCHANT kind is a different key");
+    }
+
+    @Test
+    void blockedDetailReportsTheArmedScopeAndSuppressorDefId() {
+        store.suppress(p, CooldownStore.key(ScopeKinds.GROUP, 3), 0L, 200, 42);
+        long d = store.blockedDetail(scoped(-1, 3, -1), p, 50L);
+        assertEquals(ScopeKinds.GROUP, SuppressionStore.detailScopeKind(d));
+        assertEquals(3, SuppressionStore.detailScopeId(d));
+        assertEquals(42, SuppressionStore.detailByDefId(d));
+    }
+
+    @Test
+    void blockedDetailIsZeroWhenNoScopeIsBlocked() {
+        assertEquals(0L, store.blockedDetail(scoped(7, -1, -1), p, 0L));
+    }
+
+    @Test
+    void blockedDetailIsZeroOnceTheWindowExpires() {
+        store.suppress(p, CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 40, 9);
+        assertTrue(store.blockedDetail(scoped(5, -1, -1), p, 0L) != 0L); // active
+        assertEquals(0L, store.blockedDetail(scoped(5, -1, -1), p, 40L)); // half-open: expired at 40
+    }
+
+    @Test
+    void fourArgSuppressIsUnattributed() {
+        store.suppress(p, CooldownStore.key(ScopeKinds.TYPE, 2), 0L, 100); // no byDefId
+        long d = store.blockedDetail(scoped(-1, -1, 2), p, 10L);
+        assertEquals(ScopeKinds.TYPE, SuppressionStore.detailScopeKind(d));
+        assertEquals(2, SuppressionStore.detailScopeId(d));
+        assertEquals(-1, SuppressionStore.detailByDefId(d));
+    }
+
+    @Test
+    void laterExpiryMergeAdoptsTheLaterWindowsDefId() {
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, 1);
+        store.suppress(p, key, 0L, 50, 11);   // expiry 50, by 11
+        store.suppress(p, key, 0L, 200, 22);  // longer → adopts by 22
+        assertEquals(22, SuppressionStore.detailByDefId(store.blockedDetail(scoped(1, -1, -1), p, 60L)));
+
+        store.suppress(p, key, 0L, 20, 33);   // shorter (expiry 20) → the live 200-window stands
+        assertEquals(22, SuppressionStore.detailByDefId(store.blockedDetail(scoped(1, -1, -1), p, 60L)));
     }
 
     @Test
