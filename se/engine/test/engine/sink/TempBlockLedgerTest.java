@@ -222,6 +222,48 @@ class TempBlockLedgerTest {
         assertEquals(STONE, blocks.typeAt(K));
     }
 
+    // (h) A scheduled revert that never fires (chunk unload / dropped region task) would strand the temp block
+    // forever. A later place() past the newest deadline + grace self-heals: it restores the TRUE original, drops
+    // the abandoned entry, then captures fresh — so the new layer sits over the original, never the leaked block.
+    @Test
+    void placeOverLongAbandonedEntry_selfHealsToOriginalThenPlacesFresh() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        Pending magma = ledger.place(K, MAGMA, 100, 0); // floor at t0, deadline 100; its revert never fires
+        assertEquals(MAGMA, blocks.typeAt(K));
+
+        long late = 100 + TempBlockLedger.STALE_GRACE_TICKS + 1; // past deadline + grace → abandoned
+        Pending ice = ledger.place(K, ICE, 40, late);
+        assertEquals(ICE, blocks.typeAt(K));
+        assertEquals(1, blocks.restores, "the abandoned magma was reverted to STONE before the fresh placement");
+        assertEquals(2, blocks.captures, "the stale entry dropped, so ICE captured a FRESH original (the STONE)");
+
+        // the abandoned magma's late revert is now a no-op (its entry is gone) — it can never clobber the ICE
+        ledger.revert(K, magma.layerId(), magma.seq(), late);
+        assertEquals(ICE, blocks.typeAt(K));
+        assertEquals(1, blocks.restores);
+
+        // ICE's own revert restores the TRUE original (stone), proving the self-heal re-based the capture
+        ledger.revert(K, ice.layerId(), ice.seq(), late + ice.delayTicks());
+        assertEquals(STONE, blocks.typeAt(K));
+        assertEquals(2, blocks.restores);
+    }
+
+    // (h′) An entry only just past its newest deadline (inside the grace window) is a normal in-flight refresh,
+    // NOT abandoned: place() layers over it and keeps the one captured original — the self-heal must not fire.
+    @Test
+    void placeWithinGraceWindow_doesNotSelfHeal_keepsSharedOriginal() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        ledger.place(K, MAGMA, 100, 0);                                 // deadline 100
+        ledger.place(K, NETHERRACK, 40, 100 + TempBlockLedger.STALE_GRACE_TICKS); // still within grace
+        assertEquals(NETHERRACK, blocks.typeAt(K));
+        assertEquals(1, blocks.captures, "within grace the entry is kept — no fresh capture, no self-heal restore");
+        assertEquals(0, blocks.restores);
+    }
+
     // (g) The canReplace decision, single-sourced here, consults the live block's air/liquid/solid predicates.
     @Test
     void replaceableConsultsTheLiveBlockPerMode() {

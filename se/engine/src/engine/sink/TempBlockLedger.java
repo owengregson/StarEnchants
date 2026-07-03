@@ -15,12 +15,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * correctly through it — a per-event sink cannot, being freshly allocated per activation.
  *
  * <p><strong>Consistency model.</strong> Every {@link #place}/{@link #revert} for one {@link Key} runs on that
- * key's OWNING region thread by construction: the sink enters via {@code regionOp(pos)} and schedules each
- * revert via {@code Scheduling.onRegionLater(pos)}, both targeting the same Folia region (the main thread on
- * Paper). So one key's {@link Entry} — its layer list, each layer's deadline/seq — is mutated single-threaded
+ * key's OWNING region thread by construction: the sink enters via {@code regionOp(pos)} — and a {@code WALKER}
+ * platform re-keys each tile to its own region via {@code Scheduling.onRegion(tile)} first — then schedules
+ * each revert via {@code Scheduling.onRegionLater(pos)}, both targeting the same Folia region (the main thread
+ * on Paper). So one key's {@link Entry} — its layer list, each layer's deadline/seq — is mutated single-threaded
  * and needs no per-entry lock; the {@link ConcurrentHashMap} only guards the cross-region MAP structure while
- * different keys' region threads add/drop entries concurrently. (A {@code WALKER} radius straddling a region
- * boundary is treated as the platform origin's region, exactly as the pre-ledger code placed it.)
+ * different keys' region threads add/drop entries concurrently.
  *
  * <p>The place/revert DECISION logic is pure and drives the world only through the {@link BlockOps} seam
  * (type-id reads/writes + capture/restore of the {@code S} original token), so it is unit-tested by
@@ -84,6 +84,14 @@ public final class TempBlockLedger<S> {
         }
     }
 
+    /**
+     * Ticks an entry may outlive its newest deadline before {@link #place} treats it as abandoned — a scheduled
+     * revert that never fired (chunk unload, a dropped region task), which would strand the entry and its temp
+     * block forever — and self-heals it. Generous (60s @ 20 tps) so a normal in-flight refresh is never mistaken
+     * for a leak.
+     */
+    static final long STALE_GRACE_TICKS = 1200;
+
     private final BlockOps<S> ops;
     private final ConcurrentHashMap<Key, Entry<S>> entries = new ConcurrentHashMap<>();
     private final AtomicLong nextLayerId = new AtomicLong();
@@ -97,10 +105,19 @@ public final class TempBlockLedger<S> {
      * deadline-relative delay). First placement over a live-free tile captures the original once; a
      * same-material top refresh only extends the deadline and bumps the seq (no re-capture, no block touch),
      * so the earlier scheduled revert goes stale and exactly one restore fires at the final deadline; a
-     * different material pushes a new layer over the current one. Never re-captures the original.
+     * different material pushes a new layer over the current one. Never re-captures the original. An entry whose
+     * every layer is long past its deadline (its reverts never fired — {@link #STALE_GRACE_TICKS}) is
+     * force-reverted and dropped first, so this placement starts fresh over the true original, not a leaked block.
      */
     Pending place(Key key, int typeId, int ticks, long now) {
         Entry<S> entry = entries.get(key);
+        if (entry != null && expired(entry, now)) {
+            // A scheduled revert never fired (chunk unload / dropped region task): the entry — and its temp block
+            // in the world — would leak forever. Force the normal revert (honour an external change, else restore
+            // the true original), drop the abandoned entry, then fall through to a fresh capture over it.
+            healExpired(key, entry);
+            entry = null;
+        }
         if (entry == null) {
             entry = new Entry<>(ops.captureOriginal(key));
             Layer layer = pushLayer(entry, typeId, now + ticks);
@@ -155,6 +172,24 @@ public final class TempBlockLedger<S> {
         } else {
             ops.setTypeId(key, entry.layers.get(entry.layers.size() - 1).typeId);
         }
+    }
+
+    /** Whether every layer's deadline is so far past that its scheduled revert must have been dropped. */
+    private static boolean expired(Entry<?> entry, long now) {
+        long newest = Long.MIN_VALUE;
+        for (Layer layer : entry.layers) {
+            newest = Math.max(newest, layer.deadline);
+        }
+        return newest < now - STALE_GRACE_TICKS;
+    }
+
+    /** Force-revert an abandoned entry: honour an external change (restore nothing), else restore the original; always drop it. */
+    private void healExpired(Key key, Entry<S> entry) {
+        Layer visible = entry.layers.get(entry.layers.size() - 1);
+        if (ops.readTypeId(key) == visible.typeId) {
+            ops.restoreOriginal(key, entry.original); // still our block → put the captured original back
+        }
+        entries.remove(key); // external change or restored — the leaked entry is gone either way
     }
 
     private Layer pushLayer(Entry<S> entry, int typeId, long deadline) {
