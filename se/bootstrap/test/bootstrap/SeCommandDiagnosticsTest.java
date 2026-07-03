@@ -89,4 +89,55 @@ class SeCommandDiagnosticsTest {
         assertTrue(body.contains("E_TESTONLY") && body.contains("boom in a level"), body);
         assertTrue(body.contains("W_TESTONLY"), body);
     }
+
+    // ── /se pack apply gate rendering (ADR-0046) ──
+
+    @Test
+    void gateMatchCleanIsASingleLineWithTheAbilityCount() {
+        PackGate.Report report = new PackGate.Report(
+                PackGate.FingerprintStatus.MATCH, "1:live", "1:live", 42, List.of());
+        List<String> lines = SeCommand.gateLines(report, Messages.defaults(), "cosmic", false);
+        assertEquals(1, lines.size()); // MATCH → no explanation line; clean → one gate-clean line
+        assertTrue(lines.get(0).contains("42"), lines.get(0)); // the would-load ability count
+    }
+
+    @Test
+    void gateMismatchErrorsNoForceRendersEveryBlockingLineThenAbort() {
+        Diagnostic e1 = new Diagnostic(Severity.ERROR, "E_ONE", "first boom", Source.of("enchants/a.yml", 3, 1), null);
+        Diagnostic e2 = new Diagnostic(Severity.ERROR, "E_TWO", "second boom", Source.of("enchants/b.yml", 5, 2), null);
+        PackGate.Report report = new PackGate.Report(
+                PackGate.FingerprintStatus.MISMATCH, "1:liveaaaaaaaa", "1:packbbbbbbbb", 0, List.of(e1, e2));
+        List<String> lines = SeCommand.gateLines(report, Messages.defaults(), "cosmic", false);
+
+        assertEquals(5, lines.size()); // mismatch + errors-count + 2 blocking lines + abort
+        String body = String.join("\n", lines);
+        assertTrue(body.contains("first boom") && body.contains("second boom"), body); // every blocking line rendered
+        assertTrue(body.contains("1:packbbbbbbbb") && body.contains("1:liveaaaaaaaa"), body); // both short forms in the explanation
+        assertTrue(lines.get(lines.size() - 1).contains("cosmic"), lines.get(lines.size() - 1)); // abort names the pack for the retry
+    }
+
+    @Test
+    void gateUnstampedErrorsWithForceRendersUnstampedThenForced() {
+        Diagnostic e = new Diagnostic(Severity.ERROR, "E_ONE", "boom", Source.of("enchants/a.yml", 3, 1), null);
+        PackGate.Report report = new PackGate.Report(
+                PackGate.FingerprintStatus.UNSTAMPED, "1:live", "", 0, List.of(e));
+        List<String> lines = SeCommand.gateLines(report, Messages.defaults(), "cosmic", true);
+
+        assertEquals(4, lines.size()); // unstamped + errors-count + 1 blocking line + forced
+        assertTrue(String.join("\n", lines).contains("boom"), lines.toString());
+        // The forced verdict (not abort) — abort is the only line that names the pack.
+        assertTrue(!lines.get(lines.size() - 1).contains("cosmic"), lines.get(lines.size() - 1));
+    }
+
+    @Test
+    void gateMatchWarningsProceedsWithACountLine() {
+        Diagnostic w1 = new Diagnostic(Severity.WARNING, "W_ONE", "smell a", Source.UNKNOWN, null);
+        Diagnostic w2 = new Diagnostic(Severity.WARNING, "W_TWO", "smell b", Source.UNKNOWN, null);
+        Diagnostic w3 = new Diagnostic(Severity.WARNING, "W_THREE", "smell c", Source.UNKNOWN, null);
+        PackGate.Report report = new PackGate.Report(
+                PackGate.FingerprintStatus.MATCH, "1:live", "1:live", 0, List.of(w1, w2, w3));
+        List<String> lines = SeCommand.gateLines(report, Messages.defaults(), "cosmic", false);
+        assertEquals(1, lines.size()); // MATCH → no explanation; warnings-only → one count line
+        assertTrue(lines.get(0).contains("3"), lines.get(0)); // the warning count
+    }
 }

@@ -99,6 +99,7 @@ tasks.register<Test>("regenDocs") {
     filter {
         includeTestsMatching("*SurfaceCatalogDriftTest")
         includeTestsMatching("*ContentIndexDriftTest")
+        includeTestsMatching("*CosmicPackFingerprintDriftTest")
     }
     systemProperty("se.doc.regen", "true")
     systemProperty("se.index.regen", "true") // ContentIndexDriftTest's regen flag
@@ -112,6 +113,10 @@ tasks.register<Test>("regenDocs") {
 tasks.named<Test>("test") {
     inputs.files(rootProject.file("website/src/data/surface.json"))
         .withPropertyName("surfaceGolden").optional()
+    // The cosmic-pack manifest golden (ADR-0046): read via a repo-root walk, so declare it content-hashed or a
+    // hand-edited stamp is hidden FROM-CACHE by CosmicPackFingerprintDriftTest — the same §M drift hole.
+    inputs.files(layout.projectDirectory.file("packs-src/cosmic-pack/pack.yml"))
+        .withPropertyName("cosmicPackManifest").optional()
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder, and fold the built config-pack

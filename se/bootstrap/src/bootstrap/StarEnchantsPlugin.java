@@ -14,6 +14,7 @@ import compile.load.MasterConfigLoader;
 import compile.load.MenusHolder;
 import compile.load.MenusLoader;
 import engine.boot.ContentCompiler;
+import engine.boot.RegistryFingerprint;
 import engine.effect.EffectKind;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.BuiltinEffects;
@@ -638,8 +639,11 @@ public final class StarEnchantsPlugin extends JavaPlugin {
 
         // On a clean swap this hook advances the gen-keyed caches and re-resolves every online player.
         // The compiler is rebuilt per reload (not constant) so a newly registered add-on head compiles;
-        // the resolver is reused, so the §9 handle round-trip holds (ADR-0038).
-        reloader = new ContentReloader(content, () -> ContentCompiler.production(resolvers, effectRegistry.get()),
+        // the resolver is reused, so the §9 handle round-trip holds (ADR-0038). The ADR-0046 pack gate
+        // dry-runs through the SAME factory (same resolvers instance — the §9 invariant), so its compile
+        // sees exactly what the reloader would.
+        Supplier<Compiler> compilerFactory = () -> ContentCompiler.production(resolvers, effectRegistry.get());
+        reloader = new ContentReloader(content, compilerFactory,
                 contentRoot, 0, published -> {
             itemViews.reload(published.snapshot().generation());
             executor.bindQuarantine(quarantineFor(published.snapshot())); // §10 fresh per snapshot — a fixed edit clears the block
@@ -714,8 +718,13 @@ public final class StarEnchantsPlugin extends JavaPlugin {
             getLogger().log(Level.WARNING, "could not register /enchants (use /se menu hub instead)", t);
         }
 
-        // Config packs (ADR-0023). /se pack apply pairs the on-disk swap with the transactional reloader.
+        // Config packs (ADR-0023). /se pack apply pairs the on-disk swap with the transactional
+        // reloader; the ADR-0046 gate pre-flights a pack against the live authoring surface first.
         PackStore packs = new PackStore(getDataFolder().toPath());
+        PackGate packGate = new PackGate(
+                compilerFactory, // the same factory the reloader uses (§9 resolver reuse)
+                () -> RegistryFingerprint.hash(effectRegistry.get()),
+                () -> RegistryFingerprint.summary(effectRegistry.get()));
 
         PluginCommand command = getCommand("se");
         if (command != null) {
@@ -724,7 +733,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
                     scrolls, unopenedBooks, holyScrolls, nametags, traks, packs, codec, carrierCodec,
-                    () -> master.config().slots().base(), messages, contentRoot, store, hands);
+                    () -> master.config().slots().base(), messages, contentRoot, store, hands, packGate);
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand);
         }

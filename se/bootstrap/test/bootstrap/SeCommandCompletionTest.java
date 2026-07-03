@@ -123,6 +123,8 @@ class SeCommandCompletionTest {
         assertEquals(List.of("cosmic-pack"), completePack("pack", "apply", "cos"));
         assertTrue(completePack("pack", "export", "").isEmpty());                    // export takes a NEW name
         assertTrue(completePack("pack", "list", "x").isEmpty());                     // list takes no further arg
+        assertEquals(List.of("--force"), completePack("pack", "apply", "cosmic-pack", "")); // arg 3 = the flag
+        assertTrue(completePack("pack", "info", "cosmic-pack", "").isEmpty());       // only apply offers --force
     }
 
     @Test
