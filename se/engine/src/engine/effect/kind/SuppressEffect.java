@@ -41,7 +41,7 @@ public final class SuppressEffect implements EffectKind {
         int duration = ctx.integer("duration");
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {
-                sink.suppress(p, scopeKind, keyId, duration);
+                sink.suppress(p, scopeKind, keyId, duration, ctx.sourceDefId());
             }
         }
     }

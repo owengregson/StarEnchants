@@ -68,6 +68,12 @@ public interface EffectCtx {
     /** The activating ability's level (enchants; {@code 0} for other sources). */
     int level();
 
+    /** The defId of the ability this effect belongs to, for op-visible attribution (ADR-0045); {@code -1} for
+     *  hand-built contexts. */
+    default int sourceDefId() {
+        return -1;
+    }
+
     /**
      * The activator's active soul-gem id, or {@code null} when they are not in soul mode (REMOVE_SOULS).
      * Souls bind to the activator, so this is the actor's gem — not a target's.

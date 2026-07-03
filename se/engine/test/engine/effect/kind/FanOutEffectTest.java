@@ -139,9 +139,9 @@ class FanOutEffectTest {
                         (s, p) -> verify(s).setVar(p, "rage", "1", 200)),
                 playerOnly("INVERT_VAR → invertVar(name)", new InvertVarEffect(),
                         c -> c.with("name", "flag"), (s, p) -> verify(s).invertVar(p, "flag")),
-                playerOnly("SUPPRESS → suppress(scope, key, duration)", new SuppressEffect(),
-                        c -> c.with("scope", 1).with("key", 7).with("duration", 200),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200)));
+                playerOnly("SUPPRESS → suppress(scope, key, duration, sourceDefId)", new SuppressEffect(),
+                        c -> c.with("scope", 1).with("key", 7).with("duration", 200).sourceDefId(88),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88)));
     }
 
     /** POTION's §B/ADR-0022 lifecycle teardown: on unequip, {@code stop} emits the exact inverse and nothing else. */

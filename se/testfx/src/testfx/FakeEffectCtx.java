@@ -36,6 +36,7 @@ public final class FakeEffectCtx implements EffectCtx {
     private Location actorOrigin;
     private Location actorOriginEye;
     private int level;
+    private int sourceDefId = -1;
     private UUID activeGem;
 
     public static FakeEffectCtx create() {
@@ -113,6 +114,11 @@ public final class FakeEffectCtx implements EffectCtx {
         return this;
     }
 
+    public FakeEffectCtx sourceDefId(int sourceDefId) {
+        this.sourceDefId = sourceDefId;
+        return this;
+    }
+
     // ── EffectCtx ────────────────────────────────────────────────────────────────────────────────────
     @Override
     public double dbl(String name) {
@@ -186,6 +192,11 @@ public final class FakeEffectCtx implements EffectCtx {
     @Override
     public int level() {
         return level;
+    }
+
+    @Override
+    public int sourceDefId() {
+        return sourceDefId;
     }
 
     @Override
