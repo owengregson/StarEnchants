@@ -1,6 +1,7 @@
 package feature.menu;
 
 import item.mint.ItemFactory;
+import item.mint.VanillaEnchants;
 import java.util.List;
 import java.util.Objects;
 import org.bukkit.Material;
@@ -33,12 +34,12 @@ public record NavButton(String material, Material fallback, String name, List<St
     }
 
     /** Render this button to an icon, appending {@code extraLore} (e.g. a "Page 2/5" line), {@code glow} optional. */
-    public ItemStack icon(List<String> extraLore, boolean glow) {
+    public ItemStack icon(VanillaEnchants vanilla, List<String> extraLore, boolean glow) {
         List<String> full = extraLore == null || extraLore.isEmpty()
                 ? lore
                 : concat(lore, extraLore);
         ItemStack icon = ItemFactory.build(material, fallback, name, full);
-        return glow ? MenuIcons.glow(icon) : icon;
+        return glow ? MenuIcons.glow(vanilla, icon) : icon;
     }
 
     private static List<String> concat(List<String> a, List<String> b) {

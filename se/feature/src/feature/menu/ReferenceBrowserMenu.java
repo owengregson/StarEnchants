@@ -25,11 +25,12 @@ public final class ReferenceBrowserMenu extends PagedMenu<ReferenceBrowserMenu.R
 
     /** Default-layout form (tests/fixtures). */
     public ReferenceBrowserMenu(Capabilities caps) {
-        this(caps, compile.load.MenusConfig::empty);
+        this(caps, compile.load.MenusConfig::empty, item.mint.VanillaEnchants.NONE);
     }
 
-    public ReferenceBrowserMenu(Capabilities caps, java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("reference", MenuLayout.paged("&e&lDSL Reference"), caps, menus);
+    public ReferenceBrowserMenu(Capabilities caps, java.util.function.Supplier<compile.load.MenusConfig> menus,
+                                item.mint.VanillaEnchants vanilla) {
+        super("reference", MenuLayout.paged("&e&lDSL Reference"), caps, menus, vanilla);
         this.catalog = ReferenceCatalog.build();
     }
 

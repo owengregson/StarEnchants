@@ -18,8 +18,9 @@ public final class UserHubMenu extends HubMenu {
 
     private final MenuRegistry registry;
 
-    public UserHubMenu(MenuRegistry registry, Capabilities caps, Supplier<MenusConfig> menus) {
-        super("hub", null, MenuLayout.sized(5, "&d&lStarEnchants &8• &7Menu"), caps, menus);
+    public UserHubMenu(MenuRegistry registry, Capabilities caps, Supplier<MenusConfig> menus,
+                       item.mint.VanillaEnchants vanilla) {
+        super("hub", null, MenuLayout.sized(5, "&d&lStarEnchants &8• &7Menu"), caps, menus, vanilla);
         this.registry = registry;
     }
 
@@ -37,27 +38,27 @@ public final class UserHubMenu extends HubMenu {
     @Override
     protected void layoutTiles(MenuHolder holder) {
         // Row 1 — the four actionable stations (the things a player DOES).
-        tile(holder, 10, MenuIcons.tile("ENCHANTING_TABLE", Material.BOOKSHELF, "&b&lEnchanter",
+        tile(holder, 10, MenuIcons.tile(vanilla,"ENCHANTING_TABLE", Material.BOOKSHELF, "&b&lEnchanter",
                 List.of("&7Buy a random mystery enchant", "&7book with your experience levels."),
                 "&eClick to open the shop."), open("enchanter"));
-        tile(holder, 12, MenuIcons.tile("BREWING_STAND", Material.GLASS_BOTTLE, "&a&lAlchemist",
+        tile(holder, 12, MenuIcons.tile(vanilla,"BREWING_STAND", Material.GLASS_BOTTLE, "&a&lAlchemist",
                 List.of("&7Fuse two matching enchant books", "&7into one of the next level."),
                 "&eClick to open the bench."), open("alchemist"));
-        tile(holder, 14, MenuIcons.tile("GRINDSTONE", Material.ANVIL, "&6&lTinkerer",
+        tile(holder, 14, MenuIcons.tile(vanilla,"GRINDSTONE", Material.ANVIL, "&6&lTinkerer",
                 List.of("&7Break an enchant book down", "&7for an experience refund."),
                 "&eClick to open the bench."), open("tinkerer"));
-        tile(holder, 16, MenuIcons.tile("END_CRYSTAL", Material.NETHER_STAR, "&5&lGodly Transmog",
+        tile(holder, 16, MenuIcons.tile(vanilla,"END_CRYSTAL", Material.NETHER_STAR, "&5&lGodly Transmog",
                 List.of("&7Re-order the enchant lore on", "&7your held item, line by line."),
                 "&eClick to open the editor."), open("transmog"));
 
         // Row 3 — the read-only catalogues (the things a player SEES).
-        tile(holder, 29, MenuIcons.tile("ENCHANTED_BOOK", Material.BOOK, "&3&lEnchant Catalogue",
+        tile(holder, 29, MenuIcons.tile(vanilla,"ENCHANTED_BOOK", Material.BOOK, "&3&lEnchant Catalogue",
                 List.of("&7Browse every custom enchant,", "&7grouped by rarity tier."),
                 "&eClick to browse."), open("enchants"));
-        tile(holder, 31, MenuIcons.tile("DIAMOND_CHESTPLATE", Material.IRON_CHESTPLATE, "&3&lArmour Sets",
+        tile(holder, 31, MenuIcons.tile(vanilla,"DIAMOND_CHESTPLATE", Material.IRON_CHESTPLATE, "&3&lArmour Sets",
                 List.of("&7Browse every armour set and", "&7preview its pieces and bonus."),
                 "&eClick to browse."), open("sets"));
-        tile(holder, 33, MenuIcons.tile("AMETHYST_SHARD", Material.QUARTZ, "&3&lCrystals",
+        tile(holder, 33, MenuIcons.tile(vanilla,"AMETHYST_SHARD", Material.QUARTZ, "&3&lCrystals",
                 List.of("&7Browse every socketable crystal", "&7and what it grants your gear."),
                 "&eClick to browse."), open("crystals"));
     }

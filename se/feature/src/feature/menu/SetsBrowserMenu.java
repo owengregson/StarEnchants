@@ -45,12 +45,12 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
 
     /** Default-messages form (tests/fixtures). */
     public SetsBrowserMenu(ContentHolder content, ItemEnchanter enchanter, Capabilities caps) {
-        this(content, enchanter, caps, Messages.defaults(), MenusConfig::empty);
+        this(content, enchanter, caps, Messages.defaults(), MenusConfig::empty, item.mint.VanillaEnchants.NONE);
     }
 
     public SetsBrowserMenu(ContentHolder content, ItemEnchanter enchanter, Capabilities caps, Messages messages,
-                           Supplier<MenusConfig> menus) {
-        super("sets", MenuLayout.paged("&3&lArmour Sets"), caps, menus);
+                           Supplier<MenusConfig> menus, item.mint.VanillaEnchants vanilla) {
+        super("sets", MenuLayout.paged("&3&lArmour Sets"), caps, menus, vanilla);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.messages = Objects.requireNonNull(messages, "messages");

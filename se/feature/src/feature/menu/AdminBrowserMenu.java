@@ -63,12 +63,12 @@ public final class AdminBrowserMenu extends PagedMenu<AdminBrowserMenu.Row> {
     }
 
     public AdminBrowserMenu(ContentHolder content, CarrierService carriers, Capabilities caps, Messages messages) {
-        this(content, carriers, caps, messages, MenusConfig::empty);
+        this(content, carriers, caps, messages, MenusConfig::empty, item.mint.VanillaEnchants.NONE);
     }
 
     public AdminBrowserMenu(ContentHolder content, CarrierService carriers, Capabilities caps, Messages messages,
-                            Supplier<MenusConfig> menus) {
-        super("admin", MenuLayout.paged("&d&lGrant Books"), caps, menus);
+                            Supplier<MenusConfig> menus, item.mint.VanillaEnchants vanilla) {
+        super("admin", MenuLayout.paged("&d&lGrant Books"), caps, menus, vanilla);
         this.content = Objects.requireNonNull(content, "content");
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");

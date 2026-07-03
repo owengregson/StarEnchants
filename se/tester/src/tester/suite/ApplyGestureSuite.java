@@ -95,7 +95,7 @@ public final class ApplyGestureSuite implements Harness.Scenario {
                     LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> content.library().displayNameOf(key)));
             ItemEnchanter enchanter = new ItemEnchanter(combat, lore, content, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
             crystals = new CrystalService(new CrystalItemCodec(keys.crystalItem(), Stores.state()),
                     new CrystalExtractorCodec(keys.crystalExtractor(), Stores.state()), enchanter, content,
                     CrystalConfig::defaults, () -> 4, Messages.defaults());

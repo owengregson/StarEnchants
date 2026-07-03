@@ -47,14 +47,15 @@ public final class EnchantMenu extends PagedMenu<EnchantDef> {
 
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
                        Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate, Hands hands) {
-        this(content, enchanter, refreshWorn, caps, menus, nameTemplate, platform.lang.Messages.defaults(), hands);
+        this(content, enchanter, refreshWorn, caps, menus, nameTemplate, platform.lang.Messages.defaults(), hands,
+                item.mint.VanillaEnchants.NONE);
     }
 
     /** Canonical form (composition root) — {@code messages} routes apply feedback through the policy seam. */
     public EnchantMenu(ContentHolder content, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
                        Capabilities caps, Supplier<MenusConfig> menus, Supplier<String> nameTemplate,
-                       platform.lang.Messages messages, Hands hands) {
-        super("apply", MenuLayout.paged("&d&lApply Enchant"), caps, menus);
+                       platform.lang.Messages messages, Hands hands, item.mint.VanillaEnchants vanilla) {
+        super("apply", MenuLayout.paged("&d&lApply Enchant"), caps, menus, vanilla);
         this.content = Objects.requireNonNull(content, "content");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.refreshWorn = Objects.requireNonNull(refreshWorn, "refreshWorn");

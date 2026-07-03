@@ -40,17 +40,18 @@ public final class EnchantsBrowserMenu extends PagedMenu<EnchantsBrowserMenu.Row
     }
 
     public EnchantsBrowserMenu(ContentHolder content, Capabilities caps, Supplier<MenusConfig> menus) {
-        this(content, caps, menus, () -> compile.load.EnchantBookConfig.defaults().name());
+        this(content, caps, menus, () -> compile.load.EnchantBookConfig.defaults().name(),
+                item.mint.VanillaEnchants.NONE);
     }
 
     public EnchantsBrowserMenu(ContentHolder content, Capabilities caps, Supplier<MenusConfig> menus,
-                               Supplier<String> nameTemplate) {
-        this(content, caps, "enchants", "&3&lEnchant Catalogue", menus, nameTemplate);
+                               Supplier<String> nameTemplate, item.mint.VanillaEnchants vanilla) {
+        this(content, caps, "enchants", "&3&lEnchant Catalogue", menus, nameTemplate, vanilla);
     }
 
     EnchantsBrowserMenu(ContentHolder content, Capabilities caps, String name, String title,
-                        Supplier<MenusConfig> menus, Supplier<String> nameTemplate) {
-        super(name, MenuLayout.paged(title), caps, menus);
+                        Supplier<MenusConfig> menus, Supplier<String> nameTemplate, item.mint.VanillaEnchants vanilla) {
+        super(name, MenuLayout.paged(title), caps, menus, vanilla);
         this.content = Objects.requireNonNull(content, "content");
         this.nameTemplate = Objects.requireNonNull(nameTemplate, "nameTemplate");
     }

@@ -30,12 +30,13 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
 
     public EnchanterMenu(ContentHolder content, UnopenedBookService unopenedBooks, Capabilities caps,
                          Messages messages) {
-        this(content, unopenedBooks, caps, messages, compile.load.MenusConfig::empty);
+        this(content, unopenedBooks, caps, messages, compile.load.MenusConfig::empty, item.mint.VanillaEnchants.NONE);
     }
 
     public EnchanterMenu(ContentHolder content, UnopenedBookService unopenedBooks, Capabilities caps,
-                         Messages messages, java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("enchanter", MenuLayout.paged("&b&lEnchanter &8• &7Books"), caps, menus);
+                         Messages messages, java.util.function.Supplier<compile.load.MenusConfig> menus,
+                         item.mint.VanillaEnchants vanilla) {
+        super("enchanter", MenuLayout.paged("&b&lEnchanter &8• &7Books"), caps, menus, vanilla);
         this.content = Objects.requireNonNull(content, "content");
         this.unopenedBooks = Objects.requireNonNull(unopenedBooks, "unopenedBooks");
         this.messages = Objects.requireNonNull(messages, "messages");

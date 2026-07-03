@@ -1,6 +1,7 @@
 package feature.menu;
 
 import item.mint.ItemFactory;
+import item.mint.VanillaEnchants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,17 +50,17 @@ public final class MenuIcons {
     /**
      * Give {@code stack} the enchantment-glint shimmer WITHOUT a visible enchant line — the cross-version trick
      * for "featured"/"selected" menu icons (ADR-0030). Adds a harmless vanilla enchant via the boot-wired,
-     * already-covered {@link ItemFactory#applyVanillaEnchants} (correct on 1.8 → 26.1.x; a resolver miss in a
-     * pure context just adds nothing) and hides it with the floor-stable {@link ItemFlag#HIDE_ENCHANTS}. Lives
-     * here, not in {@code item}, because it only means anything against a live server (exercised by the live
-     * matrix, not unit tests). Cosmetic only — never throws.
+     * already-covered {@link VanillaEnchants#apply} (correct on 1.8 → 26.1.x; a resolver miss in a pure context
+     * just adds nothing) and hides it with the floor-stable {@link ItemFlag#HIDE_ENCHANTS}. Lives here, not in
+     * {@code item}, because it only means anything against a live server (exercised by the live matrix, not unit
+     * tests). Cosmetic only — never throws.
      */
-    public static ItemStack glow(ItemStack stack) {
+    public static ItemStack glow(VanillaEnchants vanilla, ItemStack stack) {
         if (stack == null) {
             return null;
         }
         try {
-            ItemFactory.applyVanillaEnchants(stack, Map.of("UNBREAKING", 1));
+            vanilla.apply(stack, Map.of("UNBREAKING", 1));
             ItemMeta meta = stack.getItemMeta();
             if (meta != null) {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
@@ -98,13 +99,13 @@ public final class MenuIcons {
     }
 
     /** A previous/next page button, with a live "Page x of y" line appended under its themed lore. */
-    public static ItemStack page(NavButton button, int targetPage, int pageCount) {
-        return button.icon(List.of("&8Page &7" + targetPage + " &8of &7" + pageCount), false);
+    public static ItemStack page(VanillaEnchants vanilla, NavButton button, int targetPage, int pageCount) {
+        return button.icon(vanilla, List.of("&8Page &7" + targetPage + " &8of &7" + pageCount), false);
     }
 
     /** The back / close / info buttons — themed name + lore, no dynamic suffix. */
-    public static ItemStack plain(NavButton button) {
-        return button.icon(List.of(), false);
+    public static ItemStack plain(VanillaEnchants vanilla, NavButton button) {
+        return button.icon(vanilla, List.of(), false);
     }
 
     /**
@@ -118,7 +119,7 @@ public final class MenuIcons {
      * @param description   body lines (legacy {@code &} codes); blank entries become spacer lines
      * @param action        the call-to-action line (e.g. "&eClick to open."), or blank for a non-interactive tile
      */
-    public static ItemStack tile(String materialToken, Material fallback, String name,
+    public static ItemStack tile(VanillaEnchants vanilla, String materialToken, Material fallback, String name,
                                  List<String> description, String action) {
         List<String> lore = new ArrayList<>();
         for (String line : description) {
@@ -130,12 +131,13 @@ public final class MenuIcons {
             lore.add(action);
         }
         ItemStack icon = ItemFactory.build(materialToken, fallback, name, lore);
-        return interactive ? glow(icon) : icon;
+        return interactive ? glow(vanilla, icon) : icon;
     }
 
     /** Convenience tile from a vanilla material. */
-    public static ItemStack tile(Material material, String name, List<String> description, String action) {
-        return tile(material.name(), material, name, description, action);
+    public static ItemStack tile(VanillaEnchants vanilla, Material material, String name,
+                                 List<String> description, String action) {
+        return tile(vanilla, material.name(), material, name, description, action);
     }
 
     /**
@@ -144,7 +146,7 @@ public final class MenuIcons {
      * the input so the catalogue's template stack is never mutated.
      */
     @SuppressWarnings("deprecation") // getLore/setLore(List<String>): the floor-stable item-meta path
-    public static ItemStack receiveTile(ItemStack minted, String action) {
+    public static ItemStack receiveTile(VanillaEnchants vanilla, ItemStack minted, String action) {
         ItemStack icon = minted.clone();
         org.bukkit.inventory.meta.ItemMeta meta = icon.getItemMeta();
         if (meta != null) {
@@ -158,6 +160,6 @@ public final class MenuIcons {
             meta.setLore(lore);
             icon.setItemMeta(meta);
         }
-        return glow(icon);
+        return glow(vanilla, icon);
     }
 }

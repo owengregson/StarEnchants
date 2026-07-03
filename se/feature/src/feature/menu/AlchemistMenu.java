@@ -35,12 +35,13 @@ public final class AlchemistMenu extends FormMenu {
     }
 
     public AlchemistMenu(CarrierService carriers, Capabilities caps, Messages messages) {
-        this(carriers, caps, messages, compile.load.MenusConfig::empty);
+        this(carriers, caps, messages, compile.load.MenusConfig::empty, item.mint.VanillaEnchants.NONE);
     }
 
     public AlchemistMenu(CarrierService carriers, Capabilities caps, Messages messages,
-                         java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("alchemist", MenuLayout.form(5, "&a&lAlchemist &8• &7Combine"), caps, menus);
+                         java.util.function.Supplier<compile.load.MenusConfig> menus,
+                         item.mint.VanillaEnchants vanilla) {
+        super("alchemist", MenuLayout.form(5, "&a&lAlchemist &8• &7Combine"), caps, menus, vanilla);
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
@@ -63,9 +64,9 @@ public final class AlchemistMenu extends FormMenu {
 
     @Override
     protected void layoutControls(MenuHolder holder) {
-        holder.set(LEFT_LABEL, MenuIcons.tile("LIME_STAINED_GLASS_PANE", org.bukkit.Material.PAPER,
+        holder.set(LEFT_LABEL, MenuIcons.tile(vanilla,"LIME_STAINED_GLASS_PANE", org.bukkit.Material.PAPER,
                 "&e① First Book", List.of("&7Drop the first enchant book", "&7in the slot below."), ""), null);
-        holder.set(RIGHT_LABEL, MenuIcons.tile("LIME_STAINED_GLASS_PANE", org.bukkit.Material.PAPER,
+        holder.set(RIGHT_LABEL, MenuIcons.tile(vanilla,"LIME_STAINED_GLASS_PANE", org.bukkit.Material.PAPER,
                 "&e② Second Book", List.of("&7Drop the matching book", "&7in the slot below."), ""), null);
         holder.set(COMBINE_BUTTON, actionButton("ANVIL", "&a&l✦ Combine ✦",
                 List.of("&7Fuse the two books above into", "&7one of the next level.", "",

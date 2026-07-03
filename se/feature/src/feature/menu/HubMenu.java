@@ -1,6 +1,7 @@
 package feature.menu;
 
 import compile.load.MenusConfig;
+import item.mint.VanillaEnchants;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -20,13 +21,15 @@ public abstract class HubMenu implements Menu {
     private final Supplier<MenuLayout> layout;
     private final Supplier<MenuTheme> theme;
     private final Capabilities caps;
+    /** Cross-version enchant-glint applier (ADR-0047) — was a boot-wired static; now threaded from the root. */
+    protected final VanillaEnchants vanilla;
 
     /**
      * @param permission the node required to open this hub, or {@code null} to inherit the {@code /se} gate
      *                   (the user-facing hubs pass {@code null}; the operator console passes the admin node)
      */
     protected HubMenu(String name, String permission, MenuLayout defaultLayout, Capabilities caps,
-                      Supplier<MenusConfig> menus) {
+                      Supplier<MenusConfig> menus, VanillaEnchants vanilla) {
         this.name = Objects.requireNonNull(name, "name").toLowerCase(Locale.ROOT);
         this.permission = permission;
         Objects.requireNonNull(defaultLayout, "defaultLayout");
@@ -34,6 +37,7 @@ public abstract class HubMenu implements Menu {
         this.layout = () -> MenuLayout.from(defaultLayout, menus.get().forMenu(this.name).orElse(null));
         this.theme = () -> MenuTheme.from(MenuTheme.DEFAULT, menus.get().forMenu(this.name).orElse(null));
         this.caps = caps;
+        this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
     }
 
     @Override
@@ -74,7 +78,7 @@ public abstract class HubMenu implements Menu {
         MenuIcons.fillAll(holder, layout); // a solid glass backdrop — the tiles pop against it
         placeInfo(holder, layout, theme);
         if (layout.closeSlot() >= 0) {
-            holder.set(layout.closeSlot(), MenuIcons.plain(theme.close()),
+            holder.set(layout.closeSlot(), MenuIcons.plain(vanilla, theme.close()),
                     click -> click.player().closeInventory());
         }
         layoutTiles(holder);
@@ -88,7 +92,7 @@ public abstract class HubMenu implements Menu {
         String title = infoTitle();
         NavButton info = title == null ? theme.info()
                 : new NavButton(theme.info().material(), theme.info().fallback(), title, infoLore());
-        holder.set(slot, MenuIcons.plain(info), null);
+        holder.set(slot, MenuIcons.plain(vanilla, info), null);
     }
 
     /** Place one tile at {@code slot} bound to {@code action} ({@code null} for a non-interactive tile). */

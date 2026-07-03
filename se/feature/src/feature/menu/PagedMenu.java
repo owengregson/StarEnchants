@@ -2,6 +2,7 @@ package feature.menu;
 
 import compile.load.MenusConfig;
 import feature.compat.Mats;
+import item.mint.VanillaEnchants;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -26,10 +27,12 @@ public abstract class PagedMenu<T> implements Menu {
     private final Supplier<MenuLayout> layout;
     private final Supplier<MenuTheme> theme;
     private final Capabilities caps;
+    /** Cross-version enchant-glint applier (ADR-0047) — was a boot-wired static; now threaded from the root. */
+    protected final VanillaEnchants vanilla;
 
     /** Fixed-layout form (tests/fixtures): the programmatic default is used verbatim, no menus/ override. */
-    protected PagedMenu(String name, MenuLayout layout, Capabilities caps) {
-        this(name, layout, caps, MenusConfig::empty);
+    protected PagedMenu(String name, MenuLayout layout, Capabilities caps, VanillaEnchants vanilla) {
+        this(name, layout, caps, MenusConfig::empty, vanilla);
     }
 
     /**
@@ -37,13 +40,15 @@ public abstract class PagedMenu<T> implements Menu {
      * with this menu's {@code menus/<name>.yml} override (§L), re-resolved on every render so a {@code /se
      * reload} re-lays-out the next open.
      */
-    protected PagedMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus) {
+    protected PagedMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus,
+                        VanillaEnchants vanilla) {
         this.name = Objects.requireNonNull(name, "name").toLowerCase(Locale.ROOT);
         Objects.requireNonNull(defaultLayout, "defaultLayout");
         Objects.requireNonNull(menus, "menus");
         this.layout = () -> MenuLayout.from(defaultLayout, menus.get().forMenu(this.name).orElse(null));
         this.theme = () -> MenuTheme.from(MenuTheme.DEFAULT, menus.get().forMenu(this.name).orElse(null));
         this.caps = caps; // nullable in pure tests; MenuText degrades to the conservative 32-char cap
+        this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
     }
 
     @Override
@@ -128,21 +133,21 @@ public abstract class PagedMenu<T> implements Menu {
         placeInfo(holder, layout, theme);
 
         if (page > 0) {
-            bind(holder, layout.prevSlot(), MenuIcons.page(theme.prev(), page, pages),
+            bind(holder, layout.prevSlot(), MenuIcons.page(vanilla, theme.prev(), page, pages),
                     click -> { click.holder().setPage(page - 1); reopen(click); });
         }
         if (page < pages - 1) {
-            bind(holder, layout.nextSlot(), MenuIcons.page(theme.next(), page + 2, pages),
+            bind(holder, layout.nextSlot(), MenuIcons.page(vanilla, theme.next(), page + 2, pages),
                     click -> { click.holder().setPage(page + 1); reopen(click); });
         }
         if (showBack(holder)) {
-            bind(holder, layout.backSlot(), MenuIcons.plain(theme.back()), this::onBack);
+            bind(holder, layout.backSlot(), MenuIcons.plain(vanilla, theme.back()), this::onBack);
         } else {
             // Root menu (no opener): clear the back slot so it is empty, not the filler pane fillFrame painted —
             // a root shows only a close button (the back slot must read as "no back here", per ADR-0030 nav).
             bind(holder, layout.backSlot(), null, null);
         }
-        bind(holder, layout.closeSlot(), MenuIcons.plain(theme.close()),
+        bind(holder, layout.closeSlot(), MenuIcons.plain(vanilla, theme.close()),
                 click -> click.player().closeInventory());
     }
 
@@ -155,7 +160,7 @@ public abstract class PagedMenu<T> implements Menu {
         String title = infoTitle(holder);
         NavButton info = title == null ? theme.info()
                 : new NavButton(theme.info().material(), theme.info().fallback(), title, infoLore(holder));
-        holder.set(slot, MenuIcons.plain(info), null);
+        holder.set(slot, MenuIcons.plain(vanilla, info), null);
     }
 
     private void bind(MenuHolder holder, int slot, ItemStack icon, ClickAction action) {
