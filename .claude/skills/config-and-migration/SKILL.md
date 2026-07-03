@@ -64,6 +64,13 @@ diagnostics, `/se reload`, catalog validation, `/se problems`, or the migrator.
   **config-only**: it reads another plugin's authored config (EE/EA/AE YAML) and
   re-expresses it in our DSL. It does **not** touch live item NBT — there is no
   lazy in-place item rewrite (DESCOPED; see **item-data-model** and ADR-0005).
+- **Packs are gated artifacts (ADR-0046)**: export stamps a registry fingerprint
+  (`engine.boot.RegistryFingerprint`, canonical text committed at
+  `docs/reference/authoring-surface.txt` + drift test); `/se pack apply` dry-run compiles the
+  whole pack surface through the REAL loaders before touching disk — extend the fingerprint's
+  canonical serialization (and bump its `1:` version) only when the authoring surface's
+  serialization format itself changes; regen goldens (`./gradlew regenDocs`) after adding any
+  kind/param/trigger/var.
 
 ## ParamSpec — one declaration, four uses (§7)
 

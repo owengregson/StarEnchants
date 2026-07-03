@@ -8,6 +8,15 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Pack ABI fingerprints (ADR-0046).** `/se pack export` stamps a fingerprint of the live
+  authoring surface (effect/selector heads + parameter signatures, triggers, condition
+  operators, variables) into the pack manifest, and `/se pack apply` pre-checks every pack —
+  fingerprint compare plus a full dry-run compile through the real loaders — before touching
+  a single live file. Incompatible packs abort with the exact `file:line` failures
+  (`--force` overrides); old unstamped packs still get the dry-run. The shipped cosmic pack
+  is stamped and drift-guarded; the canonical surface is committed at
+  `docs/reference/authoring-surface.txt`.
+
 - **Operator diagnostics & reference commands.** `/se problems` prints the retained
   compile/reload diagnostics (with warning counts) so a bad content file stays inspectable
   after the reload banner scrolls by; `/se item dump` decodes the held item's full engine
