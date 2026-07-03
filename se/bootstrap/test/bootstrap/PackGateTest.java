@@ -47,6 +47,9 @@ class PackGateTest {
         assertTrue(report.clean());
         assertTrue(report.abilityCount() > 0, "the enchant should load one ability");
         assertTrue(report.blocking().isEmpty());
+        // Fingerprint + surface are the one gate-time snapshot the apply stamps its backup from.
+        assertEquals("1:live", report.liveFingerprint());
+        assertEquals("effects 1", report.liveSurface());
     }
 
     @Test
