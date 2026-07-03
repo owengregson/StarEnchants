@@ -41,6 +41,7 @@ import tester.suite.SoulEconomySuite;
 import tester.suite.SoulSuite;
 import tester.suite.TeleportSuite;
 import tester.suite.TriggerSuite;
+import tester.suite.WhySuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
 import tester.suite.ScrollPlayerSuite;
@@ -110,6 +111,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new SoulEconomySuite(this)); // §D: deposit-on-any-kill + combine + split
         harness.add(new ScrollPlayerSuite(this)); // §I: holy death-save + nametag rename
         harness.add(new TriggerSuite(this));
+        harness.add(new WhySuite(this)); // ADR-0045: record → decode under real region threading
         harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
         harness.add(new TeleportSuite(this));
         harness.add(new CrossRegionTeleportSuite(this)); // Folia: TELEPORT must hop the actor's scheduler across regions
