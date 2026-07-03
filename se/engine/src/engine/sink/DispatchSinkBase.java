@@ -1048,14 +1048,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void suppress(Player target, int scopeKind, int scopeId, int durationTicks) {
+        suppress(target, scopeKind, scopeId, durationTicks, -1);
+    }
+
+    @Override
+    public void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId) {
         if (target == null || scopeId < 0) {
             return;
         }
         // Per-player in-memory state keyed by the (scopeKind, scopeId) cooldown-scope packing — the same
         // key gate 5 reads for the suppressed abilities. The store is concurrent, so writing it on the
         // firing thread is Folia-safe (only the target's UUID is captured; no cross-region entity read).
+        // byDefId attributes the window to the emitting DISABLE_* ability (ADR-0045: /se why names it).
         suppression.suppress(target.getUniqueId(), CooldownStore.key(scopeKind, scopeId),
-                nowTicks.getAsLong(), durationTicks);
+                nowTicks.getAsLong(), durationTicks, byDefId);
     }
 
     @Override

@@ -324,6 +324,14 @@ public interface Sink {
     void suppress(Player target, int scopeKind, int scopeId, int durationTicks);
 
     /**
+     * As {@link #suppress(Player, int, int, int)} but attributed to the emitting ability (ADR-0045: {@code /se
+     * why} names the suppressor). The default drops the attribution for sinks that do not record it.
+     */
+    default void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId) {
+        suppress(target, scopeKind, scopeId, durationTicks);
+    }
+
+    /**
      * Set {@code target}'s suppression-immunity CHANCE in {@code [0,100]} (SUPPRESS_IMMUNE — dragon's Dovahkiin;
      * {@code 0} lifts it): each {@link #suppress} aimed at them rolls it, so {@code 100} no-ops every suppression
      * and a lower value ignores that fraction (ADR-0034). A maintained PASSIVE flag — armed on equip, lifted on
