@@ -11,9 +11,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Server-free tests for the vanilla-enchant applier (ADR-0047 instance wiring). The meta-touching enchant
- * application is exercised live (like the former {@code ItemFactory.applyVanillaEnchants}); here we pin the
- * guard branches and that a resolver miss is silently skipped, never throwing — so a bad set-piece enchant
- * name can never crash a mint.
+ * application is exercised live; here we pin the guard branches and that a resolver miss is silently
+ * skipped, never throwing — so a bad set-piece enchant name can never crash a mint.
  */
 final class VanillaEnchantsTest {
 
