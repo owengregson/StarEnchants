@@ -32,12 +32,13 @@ public final class TinkererMenu extends FormMenu {
     }
 
     public TinkererMenu(CarrierService carriers, Capabilities caps, Messages messages) {
-        this(carriers, caps, messages, compile.load.MenusConfig::empty);
+        this(carriers, caps, messages, compile.load.MenusConfig::empty, item.mint.VanillaEnchants.NONE);
     }
 
     public TinkererMenu(CarrierService carriers, Capabilities caps, Messages messages,
-                        java.util.function.Supplier<compile.load.MenusConfig> menus) {
-        super("tinkerer", MenuLayout.form(5, "&6&lTinkerer &8• &7Salvage Books"), caps, menus);
+                        java.util.function.Supplier<compile.load.MenusConfig> menus,
+                        item.mint.VanillaEnchants vanilla) {
+        super("tinkerer", MenuLayout.form(5, "&6&lTinkerer &8• &7Salvage Books"), caps, menus, vanilla);
         this.carriers = Objects.requireNonNull(carriers, "carriers");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
@@ -59,7 +60,7 @@ public final class TinkererMenu extends FormMenu {
 
     @Override
     protected void layoutControls(MenuHolder holder) {
-        holder.set(INPUT_LABEL, MenuIcons.tile("ORANGE_STAINED_GLASS_PANE", org.bukkit.Material.PAPER,
+        holder.set(INPUT_LABEL, MenuIcons.tile(vanilla,"ORANGE_STAINED_GLASS_PANE", org.bukkit.Material.PAPER,
                 "&e① Enchant Book", List.of("&7Drop the book to salvage", "&7in the slot below."), ""), null);
         holder.set(SALVAGE_BUTTON, actionButton("FURNACE", "&6&l✦ Salvage ✦",
                 List.of("&7Break the book down for an", "&7experience-level refund.", "",

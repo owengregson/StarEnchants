@@ -7,6 +7,7 @@ import compile.model.Snapshot;
 import engine.interact.SlotLedger;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
+import item.mint.VanillaEnchants;
 import platform.lang.Messages;
 import item.render.LoreRenderer;
 import java.util.ArrayList;
@@ -47,11 +48,12 @@ public final class ItemEnchanter {
     private final IntSupplier crystalSlots;  // §E crystals.slots (entries per item)
     private final IntSupplier maxMerge;      // §E crystals.max-merge (components per entry)
     private final Messages messages;
+    private final VanillaEnchants vanilla;   // §6.6 cross-version set-piece base enchants (ADR-0047 instance wiring)
 
     /** Slot/merge caps are read per apply so a reload re-tunes them live. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
-                         IntSupplier maxMerge, Messages messages) {
+                         IntSupplier maxMerge, Messages messages, VanillaEnchants vanilla) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
@@ -60,6 +62,7 @@ public final class ItemEnchanter {
         this.crystalSlots = Objects.requireNonNull(crystalSlots, "crystalSlots");
         this.maxMerge = Objects.requireNonNull(maxMerge, "maxMerge");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
     }
 
     /** Validate (without mutating) that enchant {@code baseKey} at {@code level} may sit on {@code material}. */
@@ -271,7 +274,7 @@ public final class ItemEnchanter {
                     false, item.codec.HeroicStat.NONE, 0); // weaponMember(setKey) + carried custom enchants
             codec.write(stack, next);
             lore.apply(stack, next);
-            item.mint.ItemFactory.applyVanillaEnchants(stack, vanillaEnchants(def.weaponEnchants()));
+            vanilla.apply(stack, vanillaEnchants(def.weaponEnchants()));
             return java.util.Optional.of(stack);
         }
         for (compile.load.SetDef.Member member : def.armorMembers()) {
@@ -284,7 +287,7 @@ public final class ItemEnchanter {
                 CombatState next = new CombatState(customEnchants(def.armorEnchants()), List.of(), setKey, false);
                 codec.write(stack, next);
                 lore.apply(stack, next);
-                item.mint.ItemFactory.applyVanillaEnchants(stack, vanillaEnchants(def.armorEnchants()));
+                vanilla.apply(stack, vanillaEnchants(def.armorEnchants()));
                 return java.util.Optional.of(stack);
             }
         }

@@ -30,12 +30,12 @@ public final class CrystalsBrowserMenu extends PagedMenu<CrystalDef> {
 
     /** Default-messages form (tests/fixtures). */
     public CrystalsBrowserMenu(ContentHolder content, CrystalService crystals, Capabilities caps) {
-        this(content, crystals, caps, Messages.defaults(), MenusConfig::empty);
+        this(content, crystals, caps, Messages.defaults(), MenusConfig::empty, item.mint.VanillaEnchants.NONE);
     }
 
     public CrystalsBrowserMenu(ContentHolder content, CrystalService crystals, Capabilities caps,
-                               Messages messages, Supplier<MenusConfig> menus) {
-        super("crystals", MenuLayout.paged("&3&lCrystals"), caps, menus);
+                               Messages messages, Supplier<MenusConfig> menus, item.mint.VanillaEnchants vanilla) {
+        super("crystals", MenuLayout.paged("&3&lCrystals"), caps, menus, vanilla);
         this.content = Objects.requireNonNull(content, "content");
         this.crystals = Objects.requireNonNull(crystals, "crystals");
         this.messages = Objects.requireNonNull(messages, "messages");

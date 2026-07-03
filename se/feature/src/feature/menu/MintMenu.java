@@ -28,8 +28,9 @@ public final class MintMenu extends PagedMenu<MintMenu.Tile> {
     private final MintCatalog catalog;
     private final Messages messages;
 
-    public MintMenu(MintCatalog catalog, Capabilities caps, Messages messages, Supplier<MenusConfig> menus) {
-        super("mint", MenuLayout.paged("&6&lMint Items"), caps, menus);
+    public MintMenu(MintCatalog catalog, Capabilities caps, Messages messages, Supplier<MenusConfig> menus,
+                    item.mint.VanillaEnchants vanilla) {
+        super("mint", MenuLayout.paged("&6&lMint Items"), caps, menus, vanilla);
         this.catalog = Objects.requireNonNull(catalog, "catalog");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
@@ -53,7 +54,7 @@ public final class MintMenu extends PagedMenu<MintMenu.Tile> {
 
     @Override
     protected ItemStack icon(MenuHolder holder, Tile tile) {
-        return MenuIcons.receiveTile(tile.template(), "&eClick to receive one.");
+        return MenuIcons.receiveTile(vanilla,tile.template(), "&eClick to receive one.");
     }
 
     @Override

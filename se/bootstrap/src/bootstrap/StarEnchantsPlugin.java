@@ -323,11 +323,15 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // ADR-0040 the ONE recompose seam: a feature mutates PDC (guard/holy/trak marker + counters) then asks the
         // composer to re-render every section from state — replacing the old per-writer, text-classified lore edits.
         java.util.function.Consumer<org.bukkit.inventory.ItemStack> recompose = gear -> lore.apply(gear, codec.read(gear));
+        // §6.6 set-piece base enchants (Protection/Unbreaking/Sharpness) resolve cross-version behind the era
+        // seam as instance wiring (ADR-0047, retires the ItemFactory static); also threaded to every menu for
+        // the enchant-glint shimmer.
+        item.mint.VanillaEnchants vanillaEnchants = new item.mint.VanillaEnchants(bindings.enchantResolver());
         ItemEnchanter enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
                 () -> master.config().crystals().slots(),      // §E per-item crystal slots (entries)
                 () -> master.config().crystals().maxMerge(),   // §E components per entry (merge cap)
-                messages);                                     // §L ApplyResult reason strings
+                messages, vanillaEnchants);                    // §L ApplyResult strings + §6.6 vanilla enchants
 
         // ONE RNG for every apply/mint economy — injected so rolls are stubbable (Rolls)
         java.util.Random rolls = new java.util.Random();
@@ -480,8 +484,6 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 bindings.customItem(this, master.config().integrations()::enabled));
         // §L universal economy-item lore wrap width (lore.item-wrap), read live so a /se reload re-tunes it.
         item.mint.ItemFactory.itemWrapWidth(() -> master.config().lore().itemWrap());
-        // §6.6 set-piece base enchants (Protection/Unbreaking/Sharpness) resolve cross-version behind the seam.
-        item.mint.ItemFactory.enchantResolver(bindings.enchantResolver());
         CombatDispatch dispatch = new CombatDispatch(executor, bindings.sinkFactory(), bindings.actorProbe(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1),
@@ -686,27 +688,29 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         // Enchant-icon names are styled by the enchant-book name template, so a menu name matches the book.
         java.util.function.Supplier<String> bookName = () -> items.config().enchantBookOrDefault().name();
         EnchantMenu applyMenu = new EnchantMenu(content, enchanter,
-                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName, messages, hands);
+                player -> worn.refresh(player, content.snapshot()), caps, menusHolder::config, bookName, messages, hands,
+                vanillaEnchants);
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
-        GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config, hands);
+        GodlyTransmogMenu transmogMenu = new GodlyTransmogMenu(content, codec, scrolls, caps, menusHolder::config, hands,
+                vanillaEnchants);
         // The operator "mint anything" catalogue (ADR-0030) — driven by the live tier list + trak kinds.
         MintCatalog mintCatalog = new MintCatalog(content, soulService, slots, heroics, crystals, scrolls,
                 holyScrolls, nametags, carriers, traks, unopenedBooks);
         // The hubs look siblings up live from the registry, so registration order is irrelevant.
         MenuRegistry menus = new MenuRegistry();
-        menus.register(new UserHubMenu(menus, caps, menusHolder::config))                  // /enchants player landing
-                .register(new OperatorConsoleMenu(menus, reloader, messages, caps, menusHolder::config)) // /se menu
-                .register(new MintMenu(mintCatalog, caps, messages, menusHolder::config))  // operator: mint anything
+        menus.register(new UserHubMenu(menus, caps, menusHolder::config, vanillaEnchants))  // /enchants player landing
+                .register(new OperatorConsoleMenu(menus, reloader, messages, caps, menusHolder::config, vanillaEnchants)) // /se menu
+                .register(new MintMenu(mintCatalog, caps, messages, menusHolder::config, vanillaEnchants))  // operator: mint anything
                 .register(applyMenu)
-                .register(new EnchantsBrowserMenu(content, caps, menusHolder::config, bookName)) // tier → enchant catalog
-                .register(new SetsBrowserMenu(content, enchanter, caps, messages, menusHolder::config)) // sets → pieces → mint
-                .register(new CrystalsBrowserMenu(content, crystals, caps, messages, menusHolder::config)) // browse + mint
-                .register(new ReferenceBrowserMenu(caps, menusHolder::config))             // effects/selectors/…
+                .register(new EnchantsBrowserMenu(content, caps, menusHolder::config, bookName, vanillaEnchants)) // tier → enchant catalog
+                .register(new SetsBrowserMenu(content, enchanter, caps, messages, menusHolder::config, vanillaEnchants)) // sets → pieces → mint
+                .register(new CrystalsBrowserMenu(content, crystals, caps, messages, menusHolder::config, vanillaEnchants)) // browse + mint
+                .register(new ReferenceBrowserMenu(caps, menusHolder::config, vanillaEnchants))             // effects/selectors/…
                 .register(transmogMenu)                                                    // reorder lore (held or bound)
-                .register(new EnchanterMenu(content, unopenedBooks, caps, messages, menusHolder::config)) // buy books
-                .register(new AlchemistMenu(carriers, caps, messages, menusHolder::config)) // combine books → +1
-                .register(new TinkererMenu(carriers, caps, messages, menusHolder::config))  // salvage book → XP
-                .register(new AdminBrowserMenu(content, carriers, caps, messages, menusHolder::config)); // admin grant
+                .register(new EnchanterMenu(content, unopenedBooks, caps, messages, menusHolder::config, vanillaEnchants)) // buy books
+                .register(new AlchemistMenu(carriers, caps, messages, menusHolder::config, vanillaEnchants)) // combine books → +1
+                .register(new TinkererMenu(carriers, caps, messages, menusHolder::config, vanillaEnchants))  // salvage book → XP
+                .register(new AdminBrowserMenu(content, carriers, caps, messages, menusHolder::config, vanillaEnchants)); // admin grant
         getServer().getPluginManager().registerEvents(new MenuListener(hands), this);
         // §I/§K physical godly-transmog gesture — scroll family, so it shares the features.scrolls() boot gate.
         if (features.scrolls()) {

@@ -2,6 +2,7 @@ package feature.menu;
 
 import compile.load.MenusConfig;
 import item.mint.ItemFactory;
+import item.mint.VanillaEnchants;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -27,20 +28,24 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
     private final Supplier<MenuLayout> layout;
     private final Supplier<MenuTheme> theme;
     private final Capabilities caps;
+    /** Cross-version enchant-glint applier (ADR-0047) — was a boot-wired static; now threaded from the root. */
+    protected final VanillaEnchants vanilla;
 
     /** Fixed-layout form (tests/fixtures): the programmatic default is used verbatim, no menus/ override. */
-    protected FormMenu(String name, MenuLayout layout, Capabilities caps) {
-        this(name, layout, caps, MenusConfig::empty);
+    protected FormMenu(String name, MenuLayout layout, Capabilities caps, VanillaEnchants vanilla) {
+        this(name, layout, caps, MenusConfig::empty, vanilla);
     }
 
     /** Canonical form: layout + chrome = defaults merged with the live {@code menus/<name>.yml} (§L), per render. */
-    protected FormMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus) {
+    protected FormMenu(String name, MenuLayout defaultLayout, Capabilities caps, Supplier<MenusConfig> menus,
+                       VanillaEnchants vanilla) {
         this.name = Objects.requireNonNull(name, "name").toLowerCase(Locale.ROOT);
         Objects.requireNonNull(defaultLayout, "defaultLayout");
         Objects.requireNonNull(menus, "menus");
         this.layout = () -> MenuLayout.from(defaultLayout, menus.get().forMenu(this.name).orElse(null));
         this.theme = () -> MenuTheme.from(MenuTheme.DEFAULT, menus.get().forMenu(this.name).orElse(null));
         this.caps = caps;
+        this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
     }
 
     @Override
@@ -77,12 +82,12 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
         fillBackground(holder, layout);
         placeInfo(holder, layout, theme);
         if (layout.closeSlot() >= 0 && !inputSlots().contains(layout.closeSlot())) {
-            holder.set(layout.closeSlot(), MenuIcons.plain(theme.close()),
+            holder.set(layout.closeSlot(), MenuIcons.plain(vanilla, theme.close()),
                     click -> click.player().closeInventory());
         }
         // A back button only when this bench was opened from a hub (a command-opened bench shows close only).
         if (holder.previous() != null && layout.backSlot() >= 0 && !inputSlots().contains(layout.backSlot())) {
-            holder.set(layout.backSlot(), MenuIcons.plain(theme.back()), this::onBack);
+            holder.set(layout.backSlot(), MenuIcons.plain(vanilla, theme.back()), this::onBack);
         }
         layoutControls(holder); // overwrites the background where the bench wants a control
     }
@@ -119,7 +124,7 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
         String title = infoTitle();
         NavButton info = title == null ? theme.info()
                 : new NavButton(theme.info().material(), theme.info().fallback(), title, infoLore());
-        holder.set(slot, MenuIcons.plain(info), null);
+        holder.set(slot, MenuIcons.plain(vanilla, info), null);
     }
 
     @Override
@@ -140,7 +145,7 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
     }
 
     /** A glowing control-button variant for the bench's primary action, so it stands out from labels. */
-    protected static ItemStack actionButton(String materialToken, String name, List<String> lore) {
-        return MenuIcons.glow(button(materialToken, name, lore));
+    protected ItemStack actionButton(String materialToken, String name, List<String> lore) {
+        return MenuIcons.glow(vanilla, button(materialToken, name, lore));
     }
 }

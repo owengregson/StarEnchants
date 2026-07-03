@@ -90,7 +90,7 @@ public final class CarrierSuite implements Harness.Scenario {
                         compile.load.ScrollsConfig.defaults().holy().protectedLine())));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
         // ADR-0040 recompose seam: a guard toggle recomposes the gear's whole lore from state, so the PROTECTED
         // line tracks the marker (the composer renders it via withProtectionLines above).
         java.util.function.Consumer<ItemStack> recompose = gear -> lore.apply(gear, combat.read(gear));

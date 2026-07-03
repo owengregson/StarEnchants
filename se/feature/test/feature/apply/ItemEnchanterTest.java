@@ -43,7 +43,7 @@ class ItemEnchanterTest {
                 new item.codec.PdcItemStateStore());
         return new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults());
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
     }
 
     private static void write(Path root, String relative, String yaml) throws IOException {
