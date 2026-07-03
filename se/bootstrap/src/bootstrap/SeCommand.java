@@ -150,8 +150,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final item.worn.WornStateStore worn;            // /se why — the target's resolved worn gear (not-worn diagnosis)
     private final java.util.function.LongSupplier nowTicks; // /se why — the current game tick, for "N s ago"
 
-    SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
-              Path migrationTarget, MenuRegistry menus, ContentHolder content,
+    public SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
+              SoulService souls, Path migrationTarget, MenuRegistry menus, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
               feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,

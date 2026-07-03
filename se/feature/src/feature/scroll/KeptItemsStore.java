@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
  * <p>Cleared on quit to avoid leaking — the narrow window of "died, quit before respawning" forfeits the
  * stash, an acceptable trade for not retaining items indefinitely.
  */
-public final class KeptItemsStore {
+public final class KeptItemsStore implements engine.stores.PlayerScoped {
 
     private final Map<UUID, List<ItemStack>> pending = new ConcurrentHashMap<>();
 

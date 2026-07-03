@@ -10,7 +10,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import platform.lang.Messages;
 import platform.sched.Scheduling;
@@ -143,8 +142,4 @@ public final class NametagListener extends ApplyGestureListener {
         });
     }
 
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        service.clear(event.getPlayer().getUniqueId()); // never reuse a stale capture after a relog
-    }
 }
