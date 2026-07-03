@@ -41,17 +41,20 @@ dependencies {
 }
 
 // ── The gate: a short pass that fails on a throughput floor OR a per-op allocation budget ──────────────────
-// Calibrated once locally on 2026-07-01 (short mode: gateWalk ~129M ops/s ≈0 B/op, effectExecution ~17M ops/s
+// Calibrated once locally on 2026-07-01 (short mode: gateWalk ~129M ops/s ≈0 B/op, gateWalkRecorded ~139M ops/s
+// ≈0 B/op — the CHM get + atomic claim + two volatile stores are ~free, ADR-0045, effectExecution ~17M ops/s
 // ≈0 B/op — the ctx objects scalar-replace). The allocation budget is the reliable regression signal (a per-hit
 // clone / NBT / gson parse spikes it by hundreds-to-thousands of bytes); the throughput floor is deliberately
 // well under 50% of local because short-mode variance + a shared CI runner are far slower/noisier, yet the
 // floors still trip on the order-of-magnitude drop a hot-path parse or map-lookup regression causes.
 val throughputFloors = mapOf(
     "bench.PipelineBenchmark.gateWalk" to 3_000_000.0,      // ops/s; measured ~129M
+    "bench.PipelineBenchmark.gateWalkRecorded" to 1_500_000.0, // ops/s; the always-on /se why record path (ADR-0045); measured ~139M
     "bench.ExecutorBenchmark.effectExecution" to 500_000.0, // ops/s; measured ~17M (extra margin: noisier, entity path)
 )
 val allocBudgets = mapOf(
     "bench.PipelineBenchmark.gateWalk" to 16.0,          // bytes/op; measured ~0 (allocates nothing)
+    "bench.PipelineBenchmark.gateWalkRecorded" to 16.0,  // bytes/op; the ring is pre-sized, record is store-only; measured ~0
     "bench.ExecutorBenchmark.effectExecution" to 256.0,  // bytes/op; measured ~0 (headroom if the ctx objects don't scalar-replace on CI)
 )
 

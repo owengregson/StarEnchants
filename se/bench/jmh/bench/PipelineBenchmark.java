@@ -6,6 +6,8 @@ import engine.interact.SoulSpender;
 import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
 import engine.stores.CooldownStore;
+import engine.stores.SuppressionStore;
+import engine.stores.WhyStore;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -23,6 +25,7 @@ import org.openjdk.jmh.annotations.State;
 public class PipelineBenchmark {
 
     private ActivationPipeline pipeline;
+    private ActivationPipeline recordedPipeline; // wired with a live WhyStore, as production is (ADR-0045)
     private Ability ability;
     private Activation activation;
 
@@ -30,6 +33,10 @@ public class PipelineBenchmark {
     public void setUp() {
         ErasedContent erased = BenchWorld.erased();
         pipeline = new ActivationPipeline(new CooldownStore(), SoulSpender.NONE);
+        WhyStore why = new WhyStore();
+        why.generation(1);
+        recordedPipeline = new ActivationPipeline(new CooldownStore(), SoulSpender.NONE, new SuppressionStore(),
+                ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW, why);
         ability = erased.abilities()[0];
         int triggerId = BenchWorld.triggerId(erased.interners());
         // Immutable, reused every op: default chance roll (0.0) passes the 100% chance gate with no allocation.
@@ -39,5 +46,12 @@ public class PipelineBenchmark {
     @Benchmark
     public boolean gateWalk() {
         return pipeline.evaluate(ability, activation).activated();
+    }
+
+    /** The always-on production record path: every op takes the full walk + an ACTIVATED record (the ring
+     *  wraps continuously — exactly the steady-state write path). */
+    @Benchmark
+    public boolean gateWalkRecorded() {
+        return recordedPipeline.evaluate(ability, activation).activated();
     }
 }
