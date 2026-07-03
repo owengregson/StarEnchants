@@ -38,6 +38,8 @@ public final class SinkSuite implements Harness.Scenario {
         h.expect("sink.wait.deferred");
         h.expect("sink.tempBlock.compound.original");
         h.expect("sink.tempBlock.compound.sharedEnv");
+        h.expect("sink.trail.snake.stamped");
+        h.expect("sink.trail.snake.restored");
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -204,6 +206,100 @@ public final class SinkSuite implements Harness.Scenario {
                                 }
                                 sharedAt.getBlock().setType(Material.AIR);
                             }));
+
+                    // The footprint SNAKE (the radius-0 FOOTPRINT fix): two activations a diagonal 3-block sprint
+                    // apart, over ONE shared env (so the trail memory connects across them), must lay a GAPLESS,
+                    // 4-connected netherrack path — never the skipped/corner-touching stamps a single-point place
+                    // produced — then, after the ticks expire, restore the stone floor beneath (riding the ledger).
+                    // Lay a stone box first so each cell ground-snaps to solid; assert a single 4-connected
+                    // netherrack component reaching from A to B (a gap or 8-connected corner-touch fails the BFS).
+                    Material stoneMat = handles.material(stoneId);
+                    Material netherMat = handles.material(netherId);
+                    int tx0 = at.getBlockX() + 1;
+                    int tz0 = at.getBlockZ() + 2;
+                    int ty = at.getBlockY() + 3; // above the flat spawn floor; distinct from the sibling tiles (z-offset 0)
+                    for (int fcx = 0; fcx <= 1; fcx++) {
+                        for (int fcz = 0; fcz <= 1; fcz++) {
+                            world.setChunkForceLoaded(cx + fcx, cz + fcz, true); // the 4x4 box may touch the +x/+z chunk
+                        }
+                    }
+                    for (int bx = tx0; bx <= tx0 + 3; bx++) {
+                        for (int bz = tz0; bz <= tz0 + 3; bz++) {
+                            Location floor = new Location(world, bx, ty, bz);
+                            // Each cell on its OWN region (submitted before the trail flush → laid first on that thread).
+                            Scheduling.onRegion(floor, () -> floor.getBlock().setType(stoneMat, false));
+                        }
+                    }
+
+                    java.util.UUID trailWalker = java.util.UUID.randomUUID();
+                    int trailDef = 4242;
+                    engine.sink.SinkEnv trailEnv = engine.sink.SinkEnv.of(
+                            platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
+                            engine.stores.EngineStores.fresh(), () -> 0L); // ONE env → ONE shared TrailWalker
+                    Location cellA = new Location(world, tx0, ty, tz0);
+                    Location cellB = new Location(world, tx0 + 3, ty, tz0 + 3); // a diagonal 3-block sprint from A
+                    ModernDispatchSink trailA = new ModernDispatchSink(handles, trailEnv); // activation 1: restart → stamps A
+                    trailA.tempBlockTrail(trailDef, trailWalker, cellA, netherId, 10);
+                    trailA.flush();
+                    ModernDispatchSink trailB = new ModernDispatchSink(handles, trailEnv); // activation 2: walk A→B → the staircase
+                    trailB.tempBlockTrail(trailDef, trailWalker, cellB, netherId, 10);
+                    trailB.flush();
+
+                    Scheduling.onRegionLater(cellA, 4L, () -> h.guard("sink.trail.snake.stamped", () -> {
+                        java.util.Set<Long> trailCells = new java.util.HashSet<>();
+                        for (int bx = tx0; bx <= tx0 + 3; bx++) {
+                            for (int bz = tz0; bz <= tz0 + 3; bz++) {
+                                if (world.getBlockAt(bx, ty, bz).getType() == netherMat) {
+                                    trailCells.add(cellKey(bx, bz));
+                                }
+                            }
+                        }
+                        long aKey = cellKey(tx0, tz0);
+                        long bKey = cellKey(tx0 + 3, tz0 + 3);
+                        if (!trailCells.contains(aKey)) {
+                            throw new IllegalStateException("the trail's start cell A was never stamped");
+                        }
+                        // BFS from A over 4-connected netherrack: the fix promises a gapless edge-connected path.
+                        java.util.Set<Long> seen = new java.util.HashSet<>();
+                        java.util.Deque<Long> queue = new java.util.ArrayDeque<>();
+                        seen.add(aKey);
+                        queue.add(aKey);
+                        while (!queue.isEmpty()) {
+                            long c = queue.poll();
+                            int px = (int) (c >> 32);
+                            int pz = (int) c;
+                            for (long nk : new long[] {cellKey(px + 1, pz), cellKey(px - 1, pz),
+                                    cellKey(px, pz + 1), cellKey(px, pz - 1)}) {
+                                if (trailCells.contains(nk) && seen.add(nk)) {
+                                    queue.add(nk);
+                                }
+                            }
+                        }
+                        if (!seen.contains(bKey)) {
+                            throw new IllegalStateException("the trail has a gap — cell B is not 4-connected to A "
+                                    + "(the skip-at-speed / diagonal corner-touch bug); connected cells=" + seen.size());
+                        }
+                        if (seen.size() != trailCells.size()) {
+                            throw new IllegalStateException("stray netherrack not on the A→B path; connected="
+                                    + seen.size() + " total=" + trailCells.size());
+                        }
+                        if (seen.size() < 4) {
+                            throw new IllegalStateException("the trail is too short to be a snake; cells=" + seen.size());
+                        }
+                    }));
+
+                    Scheduling.onRegionLater(cellA, 30L, () -> h.guard("sink.trail.snake.restored", () -> {
+                        for (int bx = tx0; bx <= tx0 + 3; bx++) {
+                            for (int bz = tz0; bz <= tz0 + 3; bz++) {
+                                Material actual = world.getBlockAt(bx, ty, bz).getType();
+                                if (actual != stoneMat) {
+                                    throw new IllegalStateException("the trail did not restore the stone floor at ("
+                                            + bx + "," + bz + "); got " + actual);
+                                }
+                                world.getBlockAt(bx, ty, bz).setType(Material.AIR, false); // clean the arena
+                            }
+                        }
+                    }));
                 });
             });
         });
@@ -215,6 +311,11 @@ public final class SinkSuite implements Harness.Scenario {
         stand.setGravity(false);
         stand.setPersistent(true);
         return stand;
+    }
+
+    /** Pack a block's (x, z) into one long so a cell set / BFS keys on it (x in the high word, z in the low). */
+    private static long cellKey(int x, int z) {
+        return ((long) x << 32) | (z & 0xffffffffL);
     }
 
     private static int resolveId(OptionalInt id, String token) {
