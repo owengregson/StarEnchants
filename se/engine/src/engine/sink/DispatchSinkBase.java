@@ -820,21 +820,29 @@ public abstract class DispatchSinkBase implements SinkReadback {
             UUID worldId = world.getUID();
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
-                    Block block = world.getBlockAt(cx + dx, y, cz + dz);
-                    if (!canReplace(block, replaceMode)) {
-                        continue;
-                    }
-                    if (durationTicks <= 0) {
-                        block.setType(material, false); // permanent — untracked (a trap relies on its duration)
-                        continue;
-                    }
-                    // Each tile through the shared ledger with its own revert (like tempBlock), so an
-                    // overlapping trail/floor compounds instead of clobbering. Reverts ride origin's region
-                    // (where the place ran) so one platform tile stays single-threaded (ledger consistency model).
-                    TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, cx + dx, y, cz + dz);
-                    TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
-                    Scheduling.onRegionLater(origin, pending.delayTicks(),
-                            () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
+                    int bx = cx + dx;
+                    int bz = cz + dz;
+                    Location tileAt = new Location(world, bx, y, bz);
+                    // Re-key EACH tile to its OWN region: the canReplace read, the block set, the shared-ledger
+                    // mutation and the revert must all run on the tile's owning thread — never origin's — or a
+                    // tile in a neighbouring Folia region has its block AND its ledger Entry touched cross-region.
+                    // On Paper onRegion is a direct inline call (unchanged); on Folia only straddle tiles hop.
+                    Scheduling.onRegion(tileAt, () -> {
+                        Block block = world.getBlockAt(bx, y, bz);
+                        if (!canReplace(block, replaceMode)) {
+                            return;
+                        }
+                        if (durationTicks <= 0) {
+                            block.setType(material, false); // permanent — untracked (a trap relies on its duration)
+                            return;
+                        }
+                        // Through the shared ledger with its own revert (like tempBlock), so an overlapping
+                        // trail/floor compounds instead of clobbering; the revert rides THIS tile's region.
+                        TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, y, bz);
+                        TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                        Scheduling.onRegionLater(tileAt, pending.delayTicks(),
+                                () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
+                    });
                 }
             }
         });

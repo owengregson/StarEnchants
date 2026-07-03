@@ -37,6 +37,7 @@ public final class SinkSuite implements Harness.Scenario {
         h.expect("sink.region.block.handle");
         h.expect("sink.wait.deferred");
         h.expect("sink.tempBlock.compound.original");
+        h.expect("sink.tempBlock.compound.sharedEnv");
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -169,6 +170,39 @@ public final class SinkSuite implements Harness.Scenario {
                                             + "original; expected " + expected + " got " + actual);
                                 }
                                 compoundAt.getBlock().setType(Material.AIR);
+                            }));
+
+                    // The TRUE production shape: two SEPARATE activations sharing the ONE per-boot ledger (a
+                    // DEFENSE magma floor + a REPEATING netherrack trail write the same tile). A per-event sink
+                    // mints a fresh ledger and could NOT compound across activations — only the shared SinkEnv
+                    // can. Build ONE env, two sinks over it; the floor sets STONE then layers a longer magma, the
+                    // trail then layers a shorter netherrack on top (submission-ordered on the shared region, so
+                    // magma is captured before netherrack). After both revert, STONE — the true original — must
+                    // return, never a stranded temp block.
+                    int magmaId = resolveId(resolvers.material("MAGMA_BLOCK"), "MAGMA_BLOCK");
+                    int netherId = resolveId(resolvers.material("NETHERRACK"), "NETHERRACK");
+                    Location sharedAt = at.clone().add(4, 6, 0); // distinct tile (compoundAt is +4,+3); same forced chunk
+                    engine.sink.SinkEnv sharedEnv = engine.sink.SinkEnv.of(
+                            platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
+                            engine.stores.EngineStores.fresh(), () -> 0L); // ONE env → ONE shared TempBlockLedger
+                    ModernDispatchSink floorSink = new ModernDispatchSink(handles, sharedEnv); // activation A
+                    ModernDispatchSink trailSink = new ModernDispatchSink(handles, sharedEnv); // activation B
+
+                    floorSink.blockChange(sharedAt, stoneId);              // the true original, set first
+                    floorSink.tempBlock(sharedAt, magmaId, 14, 2, false);  // A: magma floor, longer (reverts last)
+                    floorSink.flush();
+                    trailSink.tempBlock(sharedAt, netherId, 6, 2, false);  // B: netherrack trail on top, shorter (reverts first)
+                    trailSink.flush();
+
+                    Scheduling.onRegionLater(sharedAt, 24L, () ->
+                            h.guard("sink.tempBlock.compound.sharedEnv", () -> {
+                                Material expected = handles.material(stoneId);
+                                Material actual = sharedAt.getBlock().getType();
+                                if (expected == null || actual != expected) {
+                                    throw new IllegalStateException("two activations over one shared ledger did not "
+                                            + "restore the original; expected " + expected + " got " + actual);
+                                }
+                                sharedAt.getBlock().setType(Material.AIR);
                             }));
                 });
             });
