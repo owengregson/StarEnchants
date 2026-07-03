@@ -36,6 +36,7 @@ public final class SinkSuite implements Harness.Scenario {
         h.expect("sink.entity.disarm.crossThread");
         h.expect("sink.region.block.handle");
         h.expect("sink.wait.deferred");
+        h.expect("sink.tempBlock.compound.original");
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -142,6 +143,33 @@ public final class SinkSuite implements Harness.Scenario {
                         }
                         waitAt.getBlock().setType(Material.AIR);
                     }));
+
+                    // Compounding temp blocks (the devil netherrack-trail-over-magma-floor bug): two overlapping
+                    // tempBlock placements with different lifetimes at ONE tile must, after both revert, leave the
+                    // TRUE original — not the intermediate temp block the closure-based revert stranded. Set STONE,
+                    // layer a short GLOWSTONE then a longer DIAMOND_BLOCK over it (mode 2 = replace anything, one
+                    // shared per-sink ledger), and after both deadlines assert STONE returned.
+                    int stoneId = resolveId(resolvers.material("STONE"), "STONE");
+                    int diamondId = resolveId(resolvers.material("DIAMOND_BLOCK"), "DIAMOND_BLOCK");
+                    Location compoundAt = at.clone().add(4, 3, 0); // distinct from blockAt/waitAt; same forced chunk
+                    ModernDispatchSink compoundSink = new ModernDispatchSink(handles, engine.sink.SinkEnv.of(
+                            platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
+                            engine.stores.EngineStores.fresh(), () -> 0L));
+                    compoundSink.blockChange(compoundAt, stoneId);              // the true original, set first
+                    compoundSink.tempBlock(compoundAt, glowstoneId, 6, 2, false);  // short layer (reverts first, buried)
+                    compoundSink.tempBlock(compoundAt, diamondId, 12, 2, false);   // longer layer on top (reverts last)
+                    compoundSink.flush();
+
+                    Scheduling.onRegionLater(compoundAt, 20L, () ->
+                            h.guard("sink.tempBlock.compound.original", () -> {
+                                Material expected = handles.material(stoneId);
+                                Material actual = compoundAt.getBlock().getType();
+                                if (expected == null || actual != expected) {
+                                    throw new IllegalStateException("compounding temp blocks did not restore the "
+                                            + "original; expected " + expected + " got " + actual);
+                                }
+                                compoundAt.getBlock().setType(Material.AIR);
+                            }));
                 });
             });
         });
