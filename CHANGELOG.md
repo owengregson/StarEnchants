@@ -210,6 +210,14 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **The 1-block FOOTPRINT trail skipped blocks and cut corners.** The trail sampled the
+  wearer's feet once per activation, so sprinting left gaps and diagonal movement stamped
+  corner-touching blocks. A radius-0 `FOOTPRINT` now draws a 4-connected "snake": the sink
+  interpolates a Bresenham staircase from the last stamped block to the current one (every
+  consecutive block shares an edge), ground-snapping ±1 for stairs, skipping air (jumping
+  pauses the trail), and restarting across teleports/world changes. No content or authoring
+  surface change; larger radii and other shapes are untouched.
+
 - **Compounding temp blocks stranded the wrong block on revert.** When two temporary-block
   placements overlapped one tile — the devil set's repeating NETHERRACK footprint walking over
   the Hell's Kitchen MAGMA_BLOCK floor — each placement captured whatever was currently there as
