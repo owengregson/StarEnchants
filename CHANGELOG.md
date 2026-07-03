@@ -121,6 +121,19 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Feature-module wiring erasure (ADR-0047, internal — no behaviour change).** The 592-line
+  hand-wired `onEnable` is replaced by one `FeatureModule` record per feature, an explicit
+  ordered `Modules` registry of 19 modules, and a `ModuleFold` that reproduces the exact shipped
+  listener registration sequence (golden-pinned; two proven-disjoint listener moves aside).
+  `onEnable` is now a ~20-line fold and `onDisable` is `fold.stop()`; the plugin holds the single
+  `registerEvents` edge. The vanilla-mechanic guard, the quit-cleanup sweep and the disable list
+  are derived from module declarations, and two boot-time static installers become instance
+  wiring (the anti-cheat movement exemption rides `SinkEnv`; vanilla-enchant application becomes
+  a `VanillaEnchants` instance). A `ModuleTreeGateTest` makes off-registry wiring a build
+  failure. Shipped behaviour is unchanged except two accepted micro-deltas (the derived `/se
+  give` tab-suggestion order, and boot log-line ordering within `onEnable` — same lines, same
+  tick).
+
 - **Era erasure for the legacy overlay (ADR-0044, internal — no behaviour change).** The
   same-FQN "whole-file swap" overlay twins are replaced by seam interfaces in `src/` plus
   era-exclusive `Modern*`/`Legacy*` implementations, so cross-era parity is a per-era `javac`

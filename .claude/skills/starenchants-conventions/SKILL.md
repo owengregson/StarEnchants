@@ -52,6 +52,15 @@ is a **small local change**: implement one interface, register it in one place.
 No giant switch statements; no editing five files. A new contributor adds a
 feature by copying one sibling. This is what keeps a huge codebase legible.
 
+This holds at the composition root too (ADR-0047): a whole feature's wiring is
+ONE `bootstrap.wire.FeatureModule` — its listeners, dynamic commands, mint
+declarations, menus, per-player stores, plugin-item guard contribution, toggle
+(with declared boot/live depth), boot actions and disable stops — added as one
+`*Module` file plus one line in the ordered `Modules` registry. `onEnable` is a
+`ModuleFold` over that registry (never hand-wire a `registerEvents` in the plugin
+class); `onDisable` is `fold.stop()`. `ModuleTreeGateTest` fails the build on
+off-registry wiring, an orphan module, or a new un-adjudicated static installer.
+
 ## Invariants (every change must preserve)
 
 - **Folia-correct or it doesn't ship.** All entity/world mutation goes through
