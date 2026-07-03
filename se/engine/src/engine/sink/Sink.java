@@ -205,18 +205,20 @@ public interface Sink {
 
     /**
      * Lay a temporary platform of a material in the block layer beneath {@code center}, out to
-     * {@code radius} blocks each way, then revert to the captured prior blocks after {@code durationTicks}
-     * (WALKER). {@code replaceMode}: 0 = only air, 1 = air or liquid, 2 = anything. Best-effort revert
-     * (no temp-block ledger): re-firing over a still-active platform may make a tile permanent.
+     * {@code radius} blocks each way, then revert after {@code durationTicks} (WALKER). {@code replaceMode}:
+     * 0 = only air, 1 = air or liquid, 2 = anything. Each tile routes through the shared {@code TempBlockLedger}
+     * (one revert per tile), so overlapping platforms/trails compound and every tile returns to its true
+     * original — never stranded permanent.
      */
     void tempPlatform(Location center, int materialId, int radius, int durationTicks, int replaceMode);
 
     /**
-     * Place ONE temporary block at {@code at} of an interned material, reverting to the captured prior block
-     * after {@code durationTicks} — but only if the tile is still ours then (overlap-safe, no shared ledger).
-     * {@code replaceMode}: 0 = air only, 1 = air/liquid, 2 = anything. The shape geometry lives in
-     * {@code TEMP_BLOCK}; this is the per-position primitive. {@code unbreakable} is reserved (best-effort, not
-     * yet guarded — a short-lived trap relies on its duration).
+     * Place ONE temporary block at {@code at} of an interned material, reverting after {@code durationTicks}
+     * ({@code replaceMode}: 0 = air only, 1 = air/liquid, 2 = anything). Overlapping placements at one tile
+     * stack as layers in the sink's shared {@code TempBlockLedger}, so the final revert restores the true
+     * original rather than an intermediate temp block. The shape geometry lives in {@code TEMP_BLOCK}; this is
+     * the per-position primitive. {@code unbreakable} is reserved (best-effort — a short-lived trap relies on
+     * its duration).
      */
     void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable);
 

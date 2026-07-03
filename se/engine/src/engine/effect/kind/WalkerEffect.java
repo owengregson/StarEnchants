@@ -14,8 +14,8 @@ import schema.spec.D;
 
 /**
  * {@code WALKER} — lay a temporary frost-walker/bridge platform beneath the target, reverting after {@code ticks}
- * (§C). The revert is best-effort (no temp-block ledger): re-firing over a still-active platform can capture an
- * already-placed tile as "prior" and leave it permanent — adequate for a transient walk-assist.
+ * (§C). Each tile routes through the sink's shared {@code TempBlockLedger}, so re-firing over a still-active
+ * platform (or over a temp-block trail) layers instead of stranding a tile permanent.
  */
 public final class WalkerEffect implements EffectKind {
 
