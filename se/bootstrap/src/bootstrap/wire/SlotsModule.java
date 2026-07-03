@@ -1,9 +1,11 @@
 package bootstrap.wire;
 
+import feature.menu.Mintable;
 import feature.slot.SlotListener;
 import feature.slot.SlotService;
 import item.codec.ItemKeys;
 import item.codec.SlotItemCodec;
+import java.util.List;
 
 /**
  * Slot economy (§H, ADR-0047): the enchantment-slot expander orb. BOOT-gated on {@code features.slots} — the
@@ -13,6 +15,7 @@ final class SlotsModule {
 
     private final BootCore core;
     final SlotService slots;
+    final List<Mintable> mints;
 
     SlotsModule(BootCore core) {
         this.core = core;
@@ -23,6 +26,7 @@ final class SlotsModule {
                 () -> core.items().config().slotsOrDefault(),
                 (java.util.function.IntSupplier) () -> core.master().config().slots().base(),
                 core.messages(), core.itemGroups(), core.rolls());
+        this.mints = List.of(Mints.orb(slots));
     }
 
     FeatureModule module() {
@@ -31,6 +35,7 @@ final class SlotsModule {
                         () -> core.master().config().features().slots(),
                         "slots feature disabled (config.yml features.slots) — slot-expander apply not registered"))
                 .events(new SlotListener(slots, core.messages(), core.sounds()))
+                .mints(mints)
                 .pluginItem(slots::isSlotItem)
                 .lang("slot", "command.give.slot")
                 .build();

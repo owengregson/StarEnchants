@@ -9,6 +9,8 @@ import feature.apply.ItemEnchanter;
 import feature.imports.ImportCode;
 import feature.menu.Menu;
 import feature.menu.MenuRegistry;
+import feature.menu.MintIo;
+import feature.menu.Mintable;
 import feature.menu.ReferenceCatalog;
 import org.bukkit.Bukkit;
 import feature.soul.SoulService;
@@ -26,6 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -112,11 +115,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private static final java.time.format.DateTimeFormatter BACKUP_STAMP =
             java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss");
 
-    static final List<String> GIVE_TYPES =
-            List.of("gem", "crystal", "extractor", "book", "set", "heroic", "upgrade", "orb",
-                    "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag",
-                    "dust", "whitescroll", "unopened", "blocktrak", "mobtrak", "soultrak", "fishtrak");
-
     static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
 
     private final ContentReloader reloader;
@@ -129,7 +127,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final MenuRegistry menus;
     private final ContentHolder content;
     private final java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs;
-    private final feature.carrier.CarrierService carriers;
     private final feature.crystal.CrystalService crystals;
     private final feature.heroic.HeroicService heroics;
     private final feature.slot.SlotService slots;
@@ -149,11 +146,15 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final java.util.function.Supplier<java.util.List<String>> quarantined; // /se why — live quarantined stable keys (§10)
     private final item.worn.WornStateStore worn;            // /se why — the target's resolved worn gear (not-worn diagnosis)
     private final java.util.function.LongSupplier nowTicks; // /se why — the current game tick, for "N s ago"
+    private final MintIo io;                                 // ADR-0047 the mint-delivery handle passed to give/self bodies
+    private final List<String> giveTypes;                   // ADR-0047 derived /se give <type> list (canonical then aliases)
+    private final Map<String, Mintable> giveIndex;          // ADR-0047 canonical + alias → mintable (/se give dispatch)
+    private final Map<String, Mintable> selfIndex;          // ADR-0047 type → mintable with a self() row (/se <type> dispatch)
 
     public SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
               SoulService souls, Path migrationTarget, MenuRegistry menus, ContentHolder content,
               java.util.function.Function<String, schema.spec.ParamSpec> migrateSpecs,
-              feature.carrier.CarrierService carriers, feature.crystal.CrystalService crystals,
+              feature.crystal.CrystalService crystals,
               feature.heroic.HeroicService heroics, feature.slot.SlotService slots,
               feature.scroll.ScrollService scrolls, feature.book.UnopenedBookService unopenedBooks,
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
@@ -161,7 +162,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store,
               feature.compat.Hands hands, PackGate packGate, engine.stores.WhyStore why,
               java.util.function.Supplier<java.util.List<String>> quarantined, item.worn.WornStateStore worn,
-              java.util.function.LongSupplier nowTicks) {
+              java.util.function.LongSupplier nowTicks, List<Mintable> mintables, MintIo io) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -172,7 +173,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.menus = menus;
         this.content = content;
         this.migrateSpecs = migrateSpecs;
-        this.carriers = carriers;
         this.crystals = crystals;
         this.heroics = heroics;
         this.slots = slots;
@@ -192,6 +192,28 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.quarantined = quarantined;
         this.worn = worn;
         this.nowTicks = nowTicks;
+        this.io = io;
+        // ADR-0047: the three mint surfaces derive from the ONE declaration set — the give-type list, the give
+        // dispatch (canonical + aliases), and the /se <type> self-mint dispatch (types with a self() row).
+        List<String> types = new ArrayList<>();
+        Map<String, Mintable> byGiveKey = new HashMap<>();
+        Map<String, Mintable> bySelfType = new HashMap<>();
+        for (Mintable mintable : mintables) {
+            types.add(mintable.type());
+            byGiveKey.put(mintable.type(), mintable);
+            if (mintable.self() != null) {
+                bySelfType.put(mintable.type(), mintable);
+            }
+        }
+        for (Mintable mintable : mintables) {
+            for (String alias : mintable.aliases()) {
+                types.add(alias);
+                byGiveKey.put(alias, mintable);
+            }
+        }
+        this.giveTypes = List.copyOf(types);
+        this.giveIndex = Map.copyOf(byGiveKey);
+        this.selfIndex = Map.copyOf(bySelfType);
     }
 
     @Override
@@ -208,22 +230,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "item" -> itemDump(sender, args);
             case "enchant" -> applyHeld(sender, args);
             case "removeenchant", "unenchant" -> removeHeld(sender, args);
-            case "crystal" -> giveCrystal(sender, args);
-            case "heroic" -> giveHeroic(sender);
-            case "orb" -> giveSlotItem(sender);
-            case "gem" -> giveGem(sender, args);
-            case "book" -> giveBook(sender, args);
-            case "blackscroll" -> giveScroll(sender, true);
-            case "randomizer" -> giveScroll(sender, false);
-            case "transmog" -> giveSimpleItem(sender, scrolls.mintTransmog(), messages.format("command.give.transmog"));
-            case "godlytransmog" -> giveSimpleItem(sender, scrolls.mintGodlyTransmog(),
-                    messages.format("command.give.godlytransmog"));
-            case "holy" -> giveSimpleItem(sender, holyScrolls.mint(), messages.format("command.give.holy"));
-            case "nametag" -> giveSimpleItem(sender, nametags.mint(), messages.format("command.give.nametag"));
-            case "dust" -> giveSimpleItem(sender, dustFor(args, 1), messages.format("command.give.dust"));
-            case "whitescroll" -> giveSimpleItem(sender, carriers.mintWhiteScroll(),
-                    messages.format("command.give.whitescroll"));
-            case "unopened" -> giveUnopened(sender, args);
             case "soulmode" -> toggleSoulMode(sender);
             case "split" -> splitSoul(sender, args);
             case "migrate" -> migrate(sender, args);
@@ -237,9 +243,20 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "variables" -> reference(sender, ReferenceCatalog.VARIABLES);
             case "list" -> referenceList(sender);
             case "docs" -> docs(sender, args);
-            default -> usage(sender);
+            // The 14 self-mint types (ADR-0047) are no longer hand-cased — each derives from its Mintable's self().
+            default -> selfMintOrUsage(sender, args);
         }
         return true;
+    }
+
+    /** {@code /se <type>} self-mint dispatch: a type with a declared {@code self()} row mints it, else usage. */
+    private void selfMintOrUsage(CommandSender sender, String[] args) {
+        Mintable mintable = selfIndex.get(args[0].toLowerCase(Locale.ROOT));
+        if (mintable != null && mintable.self() != null) {
+            mintable.self().run(sender, args, io);
+        } else {
+            usage(sender);
+        }
     }
 
     @Override
@@ -254,7 +271,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 .withPackNames(packNamesQuietly())
                 // enchant key → max level, so completion can offer the valid levels of a chosen enchant.
                 .withEnchantMaxLevels(content.library().catalog().stream()
-                        .collect(Collectors.toMap(EnchantDef::key, EnchantDef::maxLevel, (a, b) -> a)));
+                        .collect(Collectors.toMap(EnchantDef::key, EnchantDef::maxLevel, (a, b) -> a)))
+                .withGiveTypes(giveTypes); // ADR-0047 derived /se give <type> list
         return complete(args, completions);
     }
 
@@ -270,51 +288,57 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     /** The tab-completion vocabularies (§J); tests start from {@link #none()} and set only the lists they exercise. */
     record Completions(List<String> enchantKeys, List<String> crystalKeys, List<String> tierNames,
                        List<String> menuNames, List<String> playerNames, List<String> setKeys,
-                       List<String> packNames, Map<String, Integer> enchantMaxLevels) {
+                       List<String> packNames, Map<String, Integer> enchantMaxLevels, List<String> giveTypes) {
 
         static Completions none() {
             return new Completions(List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
-                    List.of(), Map.of());
+                    List.of(), Map.of(), List.of());
         }
 
         Completions withEnchantKeys(List<String> enchantKeys) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
         }
 
         Completions withCrystalKeys(List<String> crystalKeys) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
         }
 
         Completions withTierNames(List<String> tierNames) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
         }
 
         Completions withMenuNames(List<String> menuNames) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
         }
 
         Completions withPlayerNames(List<String> playerNames) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
         }
 
         Completions withSetKeys(List<String> setKeys) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
         }
 
         Completions withPackNames(List<String> packNames) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
         }
 
         Completions withEnchantMaxLevels(Map<String, Integer> enchantMaxLevels) {
             return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
-                    packNames, enchantMaxLevels);
+                    packNames, enchantMaxLevels, giveTypes);
+        }
+
+        /** The derived {@code /se give <type>} list (ADR-0047): canonical mint types then aliases, registry order. */
+        Completions withGiveTypes(List<String> giveTypes) {
+            return new Completions(enchantKeys, crystalKeys, tierNames, menuNames, playerNames, setKeys,
+                    packNames, enchantMaxLevels, giveTypes);
         }
     }
 
@@ -333,13 +357,14 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         List<String> setKeys = c.setKeys();
         List<String> packNames = c.packNames();
         Map<String, Integer> enchantMaxLevels = c.enchantMaxLevels();
+        List<String> giveTypes = c.giveTypes();
         if (args.length <= 1) {
             return filter(SUBCOMMANDS, args.length == 0 ? "" : args[0]);
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (args.length == 2) {
             return switch (sub) {
-                case "give" -> filter(GIVE_TYPES, args[1]);
+                case "give" -> filter(giveTypes, args[1]);
                 case "why" -> filter(playerNames, args[1]);
                 case "enchant", "book", "removeenchant", "unenchant" -> filter(enchantKeys, args[1]);
                 case "crystal" -> filter(crystalKeys, args[1]);
@@ -426,30 +451,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             }
         }
         return out;
-    }
-
-    /** {@code /se gem [amount]} — mint a soul gem to yourself, optionally pre-loaded with {@code amount} souls. */
-    private void giveGem(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        int amount = 0;
-        if (args.length >= 2) {
-            try {
-                amount = Math.max(0, Integer.parseInt(args[1]));
-            } catch (NumberFormatException bad) {
-                sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[1]));
-                return;
-            }
-        }
-        int startingSouls = amount; // effectively-final for the entity-thread mint
-        Scheduling.onEntity(player, () -> {
-            ItemStack gem = souls.mintGem(startingSouls);
-            // Overflow drops at the player's feet (their own region thread) rather than being lost.
-            Inventories.giveOrDrop(player, gem);
-            player.sendMessage(messages.format("command.give.gem"));
-        });
     }
 
     private void toggleSoulMode(CommandSender sender) {
@@ -890,105 +891,26 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         });
     }
 
-    /** {@code /se give <type> <player> [type-args…]} — the §J give-to-player surface (delivery via {@link #deliver}). */
+    /**
+     * {@code /se give <type> <player> [type-args…]} — resolve the target, then delegate to the type's declared
+     * {@link Mintable} (ADR-0047 §7). The per-type give bodies moved verbatim into the module {@code Mints}; an
+     * unknown type falls to the usage message exactly as the old {@code default} arm did.
+     */
     private void give(CommandSender sender, String[] args) {
         if (args.length < 3) {
             sender.sendMessage(messages.format("command.give.usage"));
             return;
         }
-        String type = args[1].toLowerCase(Locale.ROOT);
         Player target = resolveTarget(sender, args[2]);
         if (target == null) {
             return; // resolveTarget messaged the sender
         }
-        switch (type) {
-            case "gem" -> {
-                int amount = 0;
-                if (args.length >= 4) {
-                    try {
-                        amount = Integer.parseInt(args[3]);
-                    } catch (NumberFormatException bad) {
-                        sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[3]));
-                        return;
-                    }
-                }
-                deliver(sender, target, souls.mintGem(amount), "command.give.gem", "soul gem");
-            }
-            case "heroic", "upgrade" -> deliver(sender, target, heroics.mint(), "command.give.heroic", "heroic upgrade");
-            case "orb" -> giveOrbTo(sender, target, args);
-            case "blackscroll" -> giveBlackScrollTo(sender, target, args);
-            case "randomizer" -> deliver(sender, target, scrolls.mintRandomizer(), "command.give.randomizer", "randomizer scroll");
-            case "transmog" -> deliver(sender, target, scrolls.mintTransmog(), "command.give.transmog", "transmog scroll");
-            case "holy" -> deliver(sender, target, holyScrolls.mint(), "command.give.holy", "holy white scroll");
-            case "nametag" -> deliver(sender, target, nametags.mint(), "command.give.nametag", "item nametag");
-            case "blocktrak" -> deliver(sender, target,
-                    traks.mint(item.codec.TrakCodec.Kind.BLOCK), "command.give.trak", "blocktrak gem");
-            case "mobtrak" -> deliver(sender, target,
-                    traks.mint(item.codec.TrakCodec.Kind.MOB), "command.give.trak", "mobtrak gem");
-            case "soultrak" -> deliver(sender, target,
-                    traks.mint(item.codec.TrakCodec.Kind.SOUL), "command.give.trak", "soultrak gem");
-            case "fishtrak" -> deliver(sender, target,
-                    traks.mint(item.codec.TrakCodec.Kind.FISH), "command.give.trak", "fishtrak gem");
-            case "dust" -> giveDustTo(sender, target, args);
-            case "whitescroll" -> giveWhiteScrollTo(sender, target, args);
-            case "crystal" -> giveCrystalTo(sender, target, args);
-            case "extractor" -> deliver(sender, target, crystals.mintExtractor(), "command.give.extractor", "crystal extractor");
-            case "book" -> giveBookTo(sender, target, args);
-            case "unopened" -> giveUnopenedTo(sender, target, args);
-            case "set" -> giveSetTo(sender, target, args);
-            default -> sender.sendMessage(messages.format("command.give.usage"));
-        }
-    }
-
-    /** {@code /se give blackscroll <player> [convert-percent]} — a percent fixes the drawn book's success rate. */
-    private void giveBlackScrollTo(CommandSender sender, Player target, String[] args) {
-        ItemStack scroll;
-        if (args.length >= 4) {
-            int pct;
-            try {
-                pct = Integer.parseInt(args[3]);
-            } catch (NumberFormatException bad) {
-                sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[3]));
-                return;
-            }
-            scroll = scrolls.mintBlack(pct);
-        } else {
-            scroll = scrolls.mintBlack();
-        }
-        deliver(sender, target, scroll, "command.give.blackscroll", "black scroll");
-    }
-
-    /** {@code /se give orb <player> [success-percent]} — a percent fixes the orb's apply success. */
-    private void giveOrbTo(CommandSender sender, Player target, String[] args) {
-        Integer pct = optionalPercent(sender, args);
-        if (pct == null && args.length >= 4) {
-            return; // a bad number was supplied; optionalPercent messaged the sender
-        }
-        ItemStack orb = pct == null ? slots.mintOrb() : slots.mintOrb(pct);
-        deliver(sender, target, orb, "command.give.slot", "slot expander");
-    }
-
-    /** {@code /se give whitescroll <player> [success-percent]} — a percent fixes the scroll's apply success. */
-    private void giveWhiteScrollTo(CommandSender sender, Player target, String[] args) {
-        Integer pct = optionalPercent(sender, args);
-        if (pct == null && args.length >= 4) {
+        Mintable mintable = giveIndex.get(args[1].toLowerCase(Locale.ROOT));
+        if (mintable == null) {
+            sender.sendMessage(messages.format("command.give.usage"));
             return;
         }
-        ItemStack scroll = pct == null ? carriers.mintWhiteScroll() : carriers.mintWhiteScroll(pct);
-        deliver(sender, target, scroll, "command.give.whitescroll", "white scroll");
-    }
-
-    /** Parse an optional {@code args[3]} percent: {@code null} when absent OR malformed (the latter is messaged). */
-    private Integer optionalPercent(CommandSender sender, String[] args) {
-        if (args.length < 4) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(args[3]);
-        } catch (NumberFormatException bad) {
-            sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[3]));
-            return null;
-        }
+        mintable.give(sender, target, args, io);
     }
 
     /** Resolve an online-player target by exact name, messaging the sender if none matches. */
@@ -998,194 +920,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(messages.format("command.error.no-such-player", "PLAYER", name));
         }
         return target;
-    }
-
-    /** Deliver {@code item} on the target's own region thread (overflow → feet); confirm to a distinct sender. */
-    private void deliver(CommandSender sender, Player target, ItemStack item, String targetMsgKey, String itemLabel) {
-        Scheduling.onEntity(target, () -> {
-            Inventories.giveOrDrop(target, item);
-            target.sendMessage(messages.format(targetMsgKey, "KEY", itemLabel, "KIND", itemLabel,
-                    "TIER", itemLabel, "LEVEL", "", "ID", itemLabel));
-        });
-        if (!(sender instanceof Player p) || !p.getUniqueId().equals(target.getUniqueId())) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", itemLabel, "PLAYER", target.getName()));
-        }
-    }
-
-    /** {@code /se give crystal <player> <key>} — mint a crystal for the target. */
-    private void giveCrystalTo(CommandSender sender, Player target, String[] args) {
-        if (args.length < 4) {
-            sender.sendMessage(messages.format("command.crystal.usage"));
-            return;
-        }
-        String key = normalize(args[3], "crystals/");
-        if (content.library().crystalDefOf(key) == null) {
-            sender.sendMessage(messages.format("command.error.no-such-crystal", "KEY", key));
-            return;
-        }
-        Scheduling.onEntity(target, () -> {
-            Inventories.giveOrDrop(target, crystals.mint(java.util.List.of(key)));
-            target.sendMessage(messages.format("command.give.crystal", "KEY", key));
-        });
-        if (notSelf(sender, target)) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", key, "PLAYER", target.getName()));
-        }
-    }
-
-    /** {@code /se give set <player> <set> <member>} — mint a declared set member (§6.6); undeclared fails cleanly. */
-    private void giveSetTo(CommandSender sender, Player target, String[] args) {
-        if (args.length < 5) {
-            sender.sendMessage(messages.format("command.set.usage"));
-            return;
-        }
-        String key = normalize(args[3], "sets/");
-        if (content.library().setDefOf(key) == null) {
-            sender.sendMessage(messages.format("command.error.no-such-set", "KEY", key));
-            return;
-        }
-        String piece = args[4];
-        java.util.Optional<ItemStack> minted = enchanter.mintSetPiece(key, piece);
-        if (minted.isEmpty()) {
-            sender.sendMessage(messages.format("command.give.set-piece", "PIECE", piece, "KEY", key));
-            return;
-        }
-        ItemStack item = minted.get();
-        Scheduling.onEntity(target, () -> {
-            Inventories.giveOrDrop(target, item);
-            target.sendMessage(messages.format("command.give.set", "KEY", key, "PIECE", piece));
-        });
-        if (notSelf(sender, target)) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", key + " " + piece,
-                    "PLAYER", target.getName()));
-        }
-    }
-
-    /**
-     * {@code /se give book <player> <enchant> [level] [success]} — mint an enchant book for the target;
-     * {@code /se give book <player> random <tier>} mints a CONCRETE random enchant book from that tier.
-     */
-    private void giveBookTo(CommandSender sender, Player target, String[] args) {
-        if (args.length < 4) {
-            sender.sendMessage(messages.format("command.book.usage"));
-            return;
-        }
-        if ("random".equalsIgnoreCase(args[3])) {
-            giveRandomBookTo(sender, target, args);
-            return;
-        }
-        String key = normalize(args[3], "enchants/");
-        EnchantDef def = content.library().enchantDefOf(key);
-        if (def == null) {
-            sender.sendMessage(messages.format("command.error.no-such-enchant", "KEY", key));
-            return;
-        }
-        int level = 1;
-        if (args.length >= 5) {
-            try {
-                level = Integer.parseInt(args[4]);
-            } catch (NumberFormatException bad) {
-                sender.sendMessage(messages.format("command.error.bad-level", "ARG", args[4]));
-                return;
-            }
-        }
-        if (level < 1 || level > def.maxLevel()) {
-            sender.sendMessage(messages.format("command.error.level-range", "MAX", def.maxLevel(), "KEY", key));
-            return;
-        }
-        Integer success = null;
-        if (args.length >= 6) {
-            try {
-                success = Integer.parseInt(args[5]);
-            } catch (NumberFormatException bad) {
-                sender.sendMessage(messages.format("command.error.bad-number", "ARG", args[5]));
-                return;
-            }
-        }
-        int bookLevel = level;
-        Integer bookSuccess = success;
-        Scheduling.onEntity(target, () -> {
-            ItemStack book = bookSuccess == null ? carriers.mintBook(key, bookLevel)
-                    : carriers.mintBook(key, bookLevel, bookSuccess);
-            Inventories.giveOrDrop(target, book);
-            target.sendMessage(messages.format("command.give.book", "KEY", key, "LEVEL", bookLevel));
-        });
-        if (notSelf(sender, target)) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", key, "PLAYER", target.getName()));
-        }
-    }
-
-    /** {@code /se give book <player> random <tier>} — mint a CONCRETE random enchant book from that tier. */
-    private void giveRandomBookTo(CommandSender sender, Player target, String[] args) {
-        if (args.length < 5) {
-            sender.sendMessage(messages.format("command.book.usage"));
-            return;
-        }
-        String tier = args[4];
-        if (!content.library().tiers().isTier(tier)) {
-            sender.sendMessage(messages.format("command.error.no-such-tier", "TIER", tier));
-            return;
-        }
-        java.util.Optional<ItemStack> rolled = unopenedBooks.roll(tier);
-        if (rolled.isEmpty()) {
-            sender.sendMessage(messages.format("command.error.no-such-tier", "TIER", tier)); // valid tier, but empty
-            return;
-        }
-        ItemStack book = rolled.get();
-        Scheduling.onEntity(target, () -> {
-            Inventories.giveOrDrop(target, book);
-            target.sendMessage(messages.format("command.give.book", "KEY", tier, "LEVEL", 0));
-        });
-        if (notSelf(sender, target)) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", "random " + tier + " book",
-                    "PLAYER", target.getName()));
-        }
-    }
-
-    /** {@code /se give unopened <player> <tier>} — mint a tier-scoped unopened book for the target. */
-    private void giveUnopenedTo(CommandSender sender, Player target, String[] args) {
-        if (args.length < 4) {
-            sender.sendMessage(messages.format("command.unopened.usage"));
-            return;
-        }
-        String tier = args[3];
-        if (!content.library().tiers().isTier(tier)) {
-            sender.sendMessage(messages.format("command.error.no-such-tier", "TIER", tier));
-            return;
-        }
-        Scheduling.onEntity(target, () -> {
-            Inventories.giveOrDrop(target, unopenedBooks.mint(tier));
-            target.sendMessage(messages.format("command.give.unopened", "TIER", tier));
-        });
-        if (notSelf(sender, target)) {
-            tell(sender, messages.format("command.give.delivered", "ITEM", tier, "PLAYER", target.getName()));
-        }
-    }
-
-    /**
-     * {@code /se give dust <player> [percent]} — mint a success dust for the target. With no percent it is a
-     * RANDOM-bonus dust (rolls the configured {@code [min, max]} range when combined); with a percent it
-     * confers exactly that fixed bonus (§I).
-     */
-    private void giveDustTo(CommandSender sender, Player target, String[] args) {
-        deliver(sender, target, dustFor(args, 3), "command.give.dust", "success dust");
-    }
-
-    /** Mint a success dust from {@code args[idx]}: a parseable percent → a FIXED dust, else a RANDOM-range dust. */
-    private ItemStack dustFor(String[] args, int idx) {
-        java.util.OptionalInt percent = dustPercent(args, idx);
-        return percent.isPresent() ? carriers.mintDust(percent.getAsInt()) : carriers.mintDust();
-    }
-
-    /** Parse an optional dust percent at {@code args[idx]}; absent or non-numeric ⇒ empty (a random dust). */
-    private static java.util.OptionalInt dustPercent(String[] args, int idx) {
-        if (args.length <= idx) {
-            return java.util.OptionalInt.empty();
-        }
-        try {
-            return java.util.OptionalInt.of(Integer.parseInt(args[idx].trim()));
-        } catch (NumberFormatException e) {
-            return java.util.OptionalInt.empty();
-        }
     }
 
     /** {@code /se removeenchant <enchant>} / {@code unenchant} — strip an enchant from the sender's held item. */
@@ -1207,142 +941,6 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 refreshWorn.accept(player); // in-place mutation fires no equip event — re-resolve WornState
             }
             player.sendMessage(result.message());
-        });
-    }
-
-    private static boolean notSelf(CommandSender sender, Player target) {
-        return !(sender instanceof Player p) || !p.getUniqueId().equals(target.getUniqueId());
-    }
-
-    /** {@code /se crystal <key>} — mint a physical crystal item and give it (drag it onto gear to apply). */
-    private void giveCrystal(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        if (args.length < 2) {
-            sender.sendMessage(messages.format("command.crystal.usage"));
-            return;
-        }
-        String key = normalize(args[1], "crystals/");
-        if (content.library().crystalDefOf(key) == null) {
-            player.sendMessage(messages.format("command.error.no-such-crystal", "KEY", key));
-            return;
-        }
-        Scheduling.onEntity(player, () -> {
-            ItemStack crystal = crystals.mint(java.util.List.of(key));
-            Inventories.giveOrDrop(player, crystal);
-            player.sendMessage(messages.format("command.give.crystal", "KEY", key));
-        });
-    }
-
-    /** {@code /se heroic} — mint a heroic upgrade item and give it (drag it onto armour/weapon to attempt). */
-    private void giveHeroic(CommandSender sender) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        Scheduling.onEntity(player, () -> {
-            ItemStack upgrade = heroics.mint();
-            Inventories.giveOrDrop(player, upgrade);
-            player.sendMessage(messages.format("command.give.heroic"));
-        });
-    }
-
-    /** {@code /se orb} — mint a slot expander (+N) and give it. */
-    private void giveSlotItem(CommandSender sender) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        Scheduling.onEntity(player, () -> {
-            ItemStack item = slots.mintOrb();
-            Inventories.giveOrDrop(player, item);
-            player.sendMessage(messages.format("command.give.slot", "KIND", "slot expander"));
-        });
-    }
-
-    /** Give a pre-minted item to the sender on their own thread (overflow drops at feet), with a message. */
-    private void giveSimpleItem(CommandSender sender, ItemStack item, String message) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        Scheduling.onEntity(player, () -> {
-            Inventories.giveOrDrop(player, item);
-            player.sendMessage(message);
-        });
-    }
-
-    /** {@code /se blackscroll} / {@code /se randomizer} — mint a book-economy scroll and give it. */
-    private void giveScroll(CommandSender sender, boolean black) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        Scheduling.onEntity(player, () -> {
-            ItemStack scroll = black ? scrolls.mintBlack() : scrolls.mintRandomizer();
-            Inventories.giveOrDrop(player, scroll);
-            player.sendMessage(messages.format(black ? "command.give.blackscroll" : "command.give.randomizer"));
-        });
-    }
-
-    /** {@code /se unopened <tier>} — mint a tier-scoped unopened book (right-click it to reveal a book). */
-    private void giveUnopened(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        if (args.length < 2) {
-            sender.sendMessage(messages.format("command.unopened.usage"));
-            return;
-        }
-        String tier = args[1];
-        if (!content.library().tiers().isTier(tier)) {
-            player.sendMessage(messages.format("command.error.no-such-tier", "TIER", tier));
-            return;
-        }
-        Scheduling.onEntity(player, () -> {
-            ItemStack book = unopenedBooks.mint(tier);
-            Inventories.giveOrDrop(player, book);
-            player.sendMessage(messages.format("command.give.unopened", "TIER", tier));
-        });
-    }
-
-    /** {@code /se book <enchant> [level]} — mint an enchant book carrier and give it to the sender. */
-    private void giveBook(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage(messages.format("command.not-a-player"));
-            return;
-        }
-        if (args.length < 2) {
-            sender.sendMessage(messages.format("command.book.usage"));
-            return;
-        }
-        String key = normalize(args[1], "enchants/");
-        EnchantDef def = content.library().enchantDefOf(key);
-        if (def == null) {
-            player.sendMessage(messages.format("command.error.no-such-enchant", "KEY", key));
-            return;
-        }
-        int level = 1;
-        if (args.length >= 3) {
-            try {
-                level = Integer.parseInt(args[2]);
-            } catch (NumberFormatException bad) {
-                sender.sendMessage(messages.format("command.error.bad-level", "ARG", args[2]));
-                return;
-            }
-        }
-        if (level < 1 || level > def.maxLevel()) {
-            player.sendMessage(messages.format("command.error.level-range", "MAX", def.maxLevel(), "KEY", key));
-            return;
-        }
-        int bookLevel = level;
-        Scheduling.onEntity(player, () -> {
-            org.bukkit.inventory.ItemStack book = carriers.mintBook(key, bookLevel);
-            Inventories.giveOrDrop(player, book);
-            player.sendMessage(messages.format("command.give.book", "KEY", key, "LEVEL", bookLevel));
         });
     }
 

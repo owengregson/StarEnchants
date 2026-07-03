@@ -1,6 +1,8 @@
 package bootstrap.wire;
 
 import feature.menu.MenuRegistry;
+import feature.menu.Mintable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,12 +54,27 @@ public final class Modules {
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);
         this.sets = new SetsModule(core);
+
+        // The ONE mint declaration set (ADR-0047 §7), gathered in registry order — the single source the mint menu,
+        // /se give and the self-mint rows all derive from (identical instances to the folded module mintables).
+        List<Mintable> allMintables = new ArrayList<>();
+        allMintables.addAll(souls.mints);
+        allMintables.addAll(carriers.mints);
+        allMintables.addAll(crystals.mints);
+        allMintables.addAll(heroic.mints);
+        allMintables.addAll(slots.mints);
+        allMintables.addAll(books.mints);
+        allMintables.addAll(scrolls.mints);
+        allMintables.addAll(traks.mints);
+        allMintables.addAll(sets.mints);
+        List<Mintable> mintables = List.copyOf(allMintables);
+
         // reload is CONSTRUCTED before menus (the operator console needs the reloader), but the REGISTRY keeps
         // menus at 17 and reload at 18 — registry order governs the fold; construction order is this ctor.
         this.reload = new ReloadModule(core, equip);
-        this.menus = new MenusModule(core, reload, carriers, crystals, heroic, slots, books, scrolls, traks);
-        this.commands = new CommandsModule(core, reload, menus, carriers, crystals, heroic, slots, books, scrolls,
-                traks);
+        this.menus = new MenusModule(core, reload, scrolls, mintables);
+        this.commands = new CommandsModule(core, reload, menus, crystals, heroic, slots, books, scrolls, traks,
+                mintables);
 
         this.registry = List.of(combat.module(), equip.module(), souls.module(), triggers.module(),
                 controls.module(), stores.module(), guard.module(), carriers.module(), crystals.module(),

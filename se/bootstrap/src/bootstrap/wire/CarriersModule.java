@@ -4,7 +4,9 @@ import feature.carrier.CarrierListener;
 import feature.carrier.CarrierService;
 import feature.menu.AdminBrowserMenu;
 import feature.menu.AlchemistMenu;
+import feature.menu.Mintable;
 import feature.menu.TinkererMenu;
+import java.util.List;
 
 /**
  * Carrier economy (ADR-0016, ADR-0047): enchant books / success dust / white scroll. {@code CarrierService} is
@@ -14,6 +16,7 @@ final class CarriersModule {
 
     private final BootCore core;
     final CarrierService carriers;
+    final List<Mintable> mints;
 
     CarriersModule(BootCore core) {
         this.core = core;
@@ -27,12 +30,16 @@ final class CarriersModule {
                 core.recompose(),                                     // ADR-0040 recompose gear lore after a toggle
                 core.itemGroups(),                                    // §I white-scroll applies-to gate
                 core.messages());                                     // §I applies reject reads common.wrong-applies
+        // The `book` mint rides the books module (its random-tier path needs the unopened-book roll); carriers
+        // owns success dust + the white scroll.
+        this.mints = List.of(Mints.dust(carriers), Mints.whitescroll(carriers));
     }
 
     FeatureModule module() {
         return FeatureModule.named("carriers")
                 .events(new CarrierListener(carriers, core.carrierCodec(), core.particleFx(), core.messages(),
                         core.sounds()))
+                .mints(mints)
                 .menu(110, new AlchemistMenu(carriers, core.caps(), core.messages(), core.menusHolder()::config,
                         core.vanillaEnchants()))
                 .menu(120, new TinkererMenu(carriers, core.caps(), core.messages(), core.menusHolder()::config,
@@ -40,7 +47,7 @@ final class CarriersModule {
                 .menu(130, new AdminBrowserMenu(core.content(), carriers, core.caps(), core.messages(),
                         core.menusHolder()::config, core.vanillaEnchants()))
                 .pluginItem(stack -> core.carrierCodec().read(stack) != null) // enchant books, magic dust, white scroll
-                .lang("carrier", "command.give.book", "command.give.dust", "command.give.whitescroll")
+                .lang("carrier", "command.give.dust", "command.give.whitescroll")
                 .build();
     }
 }

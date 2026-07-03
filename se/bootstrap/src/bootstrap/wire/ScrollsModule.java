@@ -1,6 +1,7 @@
 package bootstrap.wire;
 
 import feature.menu.GodlyTransmogMenu;
+import feature.menu.Mintable;
 import feature.scroll.HolyScrollListener;
 import feature.scroll.HolyScrollService;
 import feature.scroll.KeptItemsStore;
@@ -11,6 +12,7 @@ import feature.scroll.ScrollService;
 import item.codec.GodlyTransmogCodec;
 import item.codec.ItemKeys;
 import item.codec.ScrollCodec;
+import java.util.List;
 
 /**
  * Book-economy + cosmetic scrolls (§I, ADR-0047): black/randomizer/transmog/godly scrolls, the holy white
@@ -26,6 +28,7 @@ final class ScrollsModule {
     final NametagService nametags;
     final KeptItemsStore keptItems;
     final GodlyTransmogMenu transmogMenu;
+    final List<Mintable> mints;
 
     ScrollsModule(BootCore core, CarriersModule carriers) {
         this.core = core;
@@ -43,6 +46,8 @@ final class ScrollsModule {
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
         this.transmogMenu = new GodlyTransmogMenu(core.content(), core.codec(), scrolls, core.caps(),
                 core.menusHolder()::config, core.hands(), core.vanillaEnchants());
+        this.mints = List.of(Mints.blackscroll(scrolls), Mints.randomizer(scrolls), Mints.transmog(scrolls),
+                Mints.godlytransmog(scrolls), Mints.holy(holyScrolls), Mints.nametag(nametags));
     }
 
     FeatureModule module() {
@@ -57,6 +62,7 @@ final class ScrollsModule {
                 .install("anvil rename preview", () -> core.anvilRename().installPreview(core.plugin(), nametags))
                 .store(keptItems)
                 .store(nametags)
+                .mints(mints)
                 .menu(90, transmogMenu)
                 .pluginItem(stack -> scrolls.isScroll(stack) || scrolls.isGodlyTransmog(stack)
                         || holyScrolls.isHolyScroll(stack) || nametags.isNametag(stack))

@@ -3,8 +3,10 @@ package bootstrap.wire;
 import feature.book.UnopenedBookListener;
 import feature.book.UnopenedBookService;
 import feature.menu.EnchanterMenu;
+import feature.menu.Mintable;
 import item.codec.ItemKeys;
 import item.codec.UnopenedBookCodec;
+import java.util.List;
 
 /**
  * Unopened/randomized books (§I, ADR-0047): a sealed book that opens into a random enchant of its tier. Layers
@@ -14,12 +16,17 @@ final class BooksModule {
 
     private final BootCore core;
     final UnopenedBookService unopenedBooks;
+    final List<Mintable> mints;
 
     BooksModule(BootCore core, CarriersModule carriers) {
         this.core = core;
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of().unopened(), core.store());
         this.unopenedBooks = new UnopenedBookService(unopenedCodec, carriers.carriers, core.content(),
                 () -> core.items().config().unopenedBookOrDefault(), core.rolls(), core.messages());
+        // The enchant `book` mint lives here: its random-tier path rolls an unopened book, so it needs BOTH the
+        // carrier economy and the unopened-book service — this module sees both.
+        this.mints = List.of(Mints.book(carriers.carriers, unopenedBooks, core.content()),
+                Mints.unopened(unopenedBooks, core.content()));
     }
 
     FeatureModule module() {
@@ -28,8 +35,9 @@ final class BooksModule {
                 .events(new UnopenedBookListener(unopenedBooks, core.messages(), core.hands()))
                 .menu(100, new EnchanterMenu(core.content(), unopenedBooks, core.caps(), core.messages(),
                         core.menusHolder()::config, core.vanillaEnchants()))
+                .mints(mints)
                 .pluginItem(unopenedBooks::isUnopened)
-                .lang("command.give.unopened")
+                .lang("command.give.book", "command.give.unopened")
                 .build();
     }
 }

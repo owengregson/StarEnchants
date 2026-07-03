@@ -139,6 +139,12 @@ public record FeatureModule(
             return this;
         }
 
+        /** Declare a module's whole mint set at once (the shared instances also gathered for the mint surfaces). */
+        public Builder mints(List<Mintable> mintables) {
+            this.mintables.addAll(mintables);
+            return this;
+        }
+
         public Builder menu(int rank, Menu menu) {
             menus.add(new MenuEntry(rank, menu));
             return this;

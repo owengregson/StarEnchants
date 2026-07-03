@@ -33,6 +33,9 @@ import org.junit.jupiter.api.Test;
  *       the build un-adjudicated (the two dissolved statics stay dissolved).</li>
  *   <li><b>G2-d</b> — disable monopoly: {@code StarEnchantsPlugin} names no {@code clearAll(} / {@code disarmAll(}
  *       / {@code engine.sink.} token (onDisable is the fold's) and {@code onDisable} calls {@code fold.stop}.</li>
+ *   <li><b>G2-e</b> — mint monopoly: {@code MintCatalog.Entry} construction lives only under {@code bootstrap/wire}
+ *       (the module {@code Mints}) or {@code MintCatalog} itself, and the old {@code GIVE_TYPES} hand-list is gone —
+ *       the module-declared mintables are the ONE source the three mint surfaces derive from (ADR-0047 §7).</li>
  * </ul>
  */
 class ModuleTreeGateTest {
@@ -143,6 +146,37 @@ class ModuleTreeGateTest {
         }
         assertTrue(plugin.contains("fold.stop"),
                 "module-gate: onDisable must call fold.stop() (ADR-0047 G2-d).");
+    }
+
+    // ── G2-e mint monopoly ──────────────────────────────────────────────────────────────────────
+
+    @Test
+    void g2eMintEntryConstructionIsConfinedToTheModuleMints() {
+        for (Path source : shippedSrc()) {
+            String code = stripCommentsAndStrings(read(source));
+            if (!code.contains("MintCatalog.Entry(")) {
+                continue;
+            }
+            String unix = source.toString().replace('\\', '/');
+            boolean allowed = unix.contains("/bootstrap/wire/")
+                    || source.getFileName().toString().equals("MintCatalog.java");
+            if (!allowed) {
+                fail("module-gate: " + rel(source) + " constructs a MintCatalog.Entry — mint tiles derive from the "
+                        + "module-declared Mintables (bootstrap/wire Mints), the ONE mint source; nothing else may "
+                        + "hand-build a mint entry (ADR-0047 G2-e).");
+            }
+        }
+    }
+
+    @Test
+    void g2eGiveTypesHandListIsGone() {
+        for (Path source : bootstrapSrc()) {
+            String code = stripCommentsAndStrings(read(source));
+            if (code.contains("GIVE_TYPES")) {
+                fail("module-gate: " + rel(source) + " names GIVE_TYPES — the /se give type list derives from the "
+                        + "module mintables now (types then aliases); the hand-list must not return (ADR-0047 G2-e).");
+            }
+        }
     }
 
     // ── helpers (the EraTreeGate source-scan pattern) ───────────────────────────────────────────
