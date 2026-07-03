@@ -17,6 +17,13 @@ versioning: [Semantic Versioning](https://semver.org/).
   is stamped and drift-guarded; the canonical surface is committed at
   `docs/reference/authoring-surface.txt`.
 
+- **`/se why` — the activation flight recorder (ADR-0045).** Every gate-walk attempt is recorded
+  into a per-player 64-entry primitive ring (allocation-free, always on); `/se why <player> [key]`
+  renders the recent attempts — "stopped at gate 6: cooldown — 32 ticks remaining", "suppressed —
+  DISABLE_GROUP(defense) from sets/yeti", "fired (rolled 12.3 < 25%)" — answering the #1 operator
+  support question ("why didn't X fire?") without guesswork. Ids resolve at render time; a new JMH
+  row (`gateWalkRecorded`) floors the always-on cost.
+
 - **Operator diagnostics & reference commands.** `/se problems` prints the retained
   compile/reload diagnostics (with warning counts) so a bad content file stays inspectable
   after the reload banner scrolls by; `/se item dump` decodes the held item's full engine
