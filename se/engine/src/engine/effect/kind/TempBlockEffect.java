@@ -15,8 +15,9 @@ import platform.caps.Regions;
 import schema.spec.D;
 
 /**
- * {@code TEMP_BLOCK} — place a temporary block shape that self-reverts after {@code ticks} (the Sink restores
- * the captured prior block, but only if it is still ours — overlap-safe, no ledger needed). Shapes: {@code POINT}
+ * {@code TEMP_BLOCK} — place a temporary block shape that self-reverts after {@code ticks} (the Sink layers
+ * overlapping placements through its shared {@code TempBlockLedger}, so a stacked trail/floor compounds and the
+ * final revert restores the true original, never an intermediate temp block). Shapes: {@code POINT}
  * (one block at the target's feet, +{@code dy}), {@code FOOTPRINT} (a (2r+1)² square at feet level +{@code dy}),
  * {@code COLUMN} (a {@code height}-tall pillar, optionally {@code ahead} blocks in the target's facing). Used by
  * yeti (ice pillar + packed-ice footprint), fantasy (cobweb at feet), and devil (netherrack trail / floor).

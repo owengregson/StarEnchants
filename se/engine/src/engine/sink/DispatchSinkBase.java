@@ -90,6 +90,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     private final TeleblockStore teleblock;
     private final ImmuneStore immune;
+    /** The ONE per-boot ledger (via {@link SinkEnv}), so temp blocks from separate events compound, not clobber. */
+    private final TempBlockLedger<BlockState> tempBlocks;
 
     private boolean cancelled;
     private boolean armorIgnored;
@@ -120,6 +122,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.immune = env.stores().immune();
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
+        this.tempBlocks = env.tempBlocks();
         this.fold = new DamageFold();
     }
 
@@ -812,19 +815,27 @@ public abstract class DispatchSinkBase implements SinkReadback {
             int y = origin.getBlockY() - 1; // the layer under the target's feet
             int cx = origin.getBlockX();
             int cz = origin.getBlockZ();
-            List<BlockState> prior = new java.util.ArrayList<>();
+            int typeId = material.ordinal();
+            long now = nowTicks.getAsLong();
+            UUID worldId = world.getUID();
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     Block block = world.getBlockAt(cx + dx, y, cz + dz);
-                    if (canReplace(block, replaceMode)) {
-                        prior.add(block.getState()); // capture for the revert
-                        block.setType(material, false);
+                    if (!canReplace(block, replaceMode)) {
+                        continue;
                     }
+                    if (durationTicks <= 0) {
+                        block.setType(material, false); // permanent — untracked (a trap relies on its duration)
+                        continue;
+                    }
+                    // Each tile through the shared ledger with its own revert (like tempBlock), so an
+                    // overlapping trail/floor compounds instead of clobbering. Reverts ride origin's region
+                    // (where the place ran) so one platform tile stays single-threaded (ledger consistency model).
+                    TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, cx + dx, y, cz + dz);
+                    TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                    Scheduling.onRegionLater(origin, pending.delayTicks(),
+                            () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
                 }
-            }
-            if (durationTicks > 0 && !prior.isEmpty()) {
-                // Best-effort revert on the same region thread; restores each captured prior block.
-                Scheduling.onRegionLater(origin, durationTicks, () -> prior.forEach(s -> s.update(true, false)));
             }
         });
     }
@@ -842,28 +853,24 @@ public abstract class DispatchSinkBase implements SinkReadback {
             if (!canReplace(block, replaceMode)) {
                 return;
             }
-            Material prior = block.getType();
-            block.setType(material, false);
-            if (durationTicks > 0) {
-                // Revert only if the tile is STILL ours — a later placement that overwrote it owns the revert now.
-                Scheduling.onRegionLater(pos, durationTicks, () -> {
-                    Block current = pos.getBlock();
-                    if (current.getType() == material) {
-                        current.setType(prior, false);
-                    }
-                });
+            if (durationTicks <= 0) {
+                block.setType(material, false); // permanent — untracked (a trap relies on its duration)
+                return;
             }
+            // Route through the shared ledger: overlapping placements (a REPEATING trail over a DEFENSE floor)
+            // stack as layers and the final revert restores the TRUE original, never an intermediate temp block.
+            TempBlockLedger.Key key = new TempBlockLedger.Key(
+                    world.getUID(), pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
+            TempBlockLedger.Pending pending = tempBlocks.place(key, material.ordinal(), durationTicks, nowTicks.getAsLong());
+            Scheduling.onRegionLater(pos, pending.delayTicks(),
+                    () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
         });
     }
 
-    /** Whether a temp-platform may overwrite this block: 0 = air only, 1 = air/liquid, 3 = solid only, 2 = anything. */
+    /** The temp-block replace gate, consulting the LIVE block; the decision is single-sourced in the ledger. */
     private boolean canReplace(Block block, int replaceMode) {
-        return switch (replaceMode) {
-            case 0 -> isAir(block.getType());
-            case 1 -> isAir(block.getType()) || block.isLiquid();
-            case 3 -> block.getType().isSolid(); // solid-only: a footprint replaces the ground it sits on, never air
-            default -> true;
-        };
+        Material type = block.getType();
+        return TempBlockLedger.replaceable(replaceMode, isAir(type), block.isLiquid(), type.isSolid());
     }
 
     @Override

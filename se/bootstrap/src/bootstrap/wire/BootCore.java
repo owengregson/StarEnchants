@@ -405,7 +405,7 @@ public final class BootCore {
                 plugin, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat"));
         // The per-boot sink wiring: built ONCE and threaded to both dispatchers, so a sink write and its
         // separate-event reader always see the SAME stores (no split-brain).
-        this.sinkEnv = new SinkEnv(economy, soulService, stores, tick::get, movementExemption);
+        this.sinkEnv = SinkEnv.of(economy, soulService, stores, tick::get, movementExemption);
         // mcMMO friendly-fire gate,
         CombatDispatch.friendlyFire(bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled));
         // %victim.mobtype% from MythicMobs' internal name,

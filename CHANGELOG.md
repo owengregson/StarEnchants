@@ -210,6 +210,16 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Compounding temp blocks stranded the wrong block on revert.** When two temporary-block
+  placements overlapped one tile — the devil set's repeating NETHERRACK footprint walking over
+  the Hell's Kitchen MAGMA_BLOCK floor — each placement captured whatever was currently there as
+  its "original", so the last revert restored an intermediate temp block (the magma) permanently
+  instead of the true ground (stone); the WALKER platform was worse, force-restoring its captured
+  states over anything placed since. Both now route through one shared, per-position layered
+  ledger (`TempBlockLedger`) that captures the true original exactly once, stacks overlapping
+  placements as layers, coalesces same-material re-fires, drops the entry untouched if the world
+  changed the tile, and restores the real original only when the last layer expires.
+
 - **Cross-region reads in effect bodies (ADR-0043).** PARTICLE_RING, PARTICLE_LINE,
   WALKER, SPAWN_ENTITY and TELEPORT_BEHIND (plus TELEPORT `to: ACTOR` and VELOCITY `away`)
   read the acting player's live location inside `run()`; on Folia a combat activation

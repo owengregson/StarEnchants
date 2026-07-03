@@ -4,6 +4,7 @@ import engine.stores.EngineStores;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import platform.economy.EconomyService;
 
@@ -16,9 +17,14 @@ import platform.economy.EconomyService;
  * briefly exempts a player before StarEnchants moves them (VELOCITY/TELEPORT), preventing false flags. It
  * rides the env as instance wiring rather than a mutable static installer; {@link #of} supplies the inert
  * no-op default for the many non-root construction sites (tests, tester suites) that integrate no anti-cheat.
+ *
+ * <p>{@code tempBlocks} is the ONE per-boot {@link TempBlockLedger} shared across every per-event sink, so
+ * overlapping temp-block placements from separate activations compound instead of clobbering (a fresh
+ * per-event ledger could not — the sink is allocated per activation). Shared via the env for the same reason
+ * the stores are, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
-                      Consumer<Player> movementExemption) {
+                      Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -26,10 +32,17 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(stores, "stores");
         Objects.requireNonNull(nowTicks, "nowTicks");
         Objects.requireNonNull(movementExemption, "movementExemption");
+        Objects.requireNonNull(tempBlocks, "tempBlocks");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks) {
-        return new SinkEnv(economy, souls, stores, nowTicks, player -> { });
+        return of(economy, souls, stores, nowTicks, player -> { });
+    }
+
+    /** The composition-root shape: an anti-cheat exemption plus a fresh per-boot temp-block ledger. */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption) {
+        return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger());
     }
 }
