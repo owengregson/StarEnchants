@@ -30,7 +30,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0020](0020-ae-migrator-dsl-coverage.md) | AdvancedEnchantments migrator — selector, condition, and effect DSL coverage | Accepted |
 | [0021](0021-heroic-multiplicative-stage.md) | Heroic as a bounded multiplicative stage (amends 0012's scope) | Superseded by 0037 |
 | [0022](0022-held-passive-lifecycle-and-command-trigger.md) | HELD/PASSIVE start-stop lifecycle + the COMMAND trigger (§B tail) | Accepted |
-| [0023](0023-config-packs.md) | Config packs (swappable whole-config presets) | Accepted |
+| [0023](0023-config-packs.md) | Config packs (swappable whole-config presets) (fingerprint + apply gate added by 0046) | Accepted |
 | [0024](0024-exotic-effect-ports.md) | Expression-valued effect args + the exotic Cosmic Enchants-style effect ports | Accepted |
 | [0025](0025-automated-releases.md) | Automated releases — version-bump-driven GitHub Release of the universal jar | Accepted |
 | [0026](0026-mental-knockback-coordination.md) | Coordinate KNOCKBACK_CONTROL with the Mental knockback plugin (reflective core edge) | Accepted |
@@ -52,6 +52,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0042](0042-error-and-logging-policy.md) | One error-handling + logging policy — closed DiagCode set, non-throwing loaders, the Regions cross-region guard, throwable-as-log-parameter | Accepted |
 | [0043](0043-cross-region-actor-capture.md) | Demand-captured actor-origin snapshot — effect bodies never read a remote actor (capture-at-dispatch) | Accepted |
 | [0044](0044-era-erasure.md) | Era erasure — seams + era-exclusive impls replace same-FQN overlay twins; two composition-only bindings; derived MRJAR gate (refines 0036) | Accepted |
+| [0046](0046-pack-abi-fingerprint.md) | Pack ABI fingerprints — registry fingerprint stamped at export + dry-run compile gate on apply | Accepted |
 
 ## Process
 
