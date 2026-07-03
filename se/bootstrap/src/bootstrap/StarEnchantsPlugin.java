@@ -736,7 +736,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                     getDataFolder().toPath().resolve("migrated"), menus, content,
                     head -> migrateSpecs.lookup(head).orElse(null), carriers, crystals, heroics, slots,
                     scrolls, unopenedBooks, holyScrolls, nametags, traks, packs, codec, carrierCodec,
-                    () -> master.config().slots().base(), messages, contentRoot, store, hands, packGate);
+                    () -> master.config().slots().base(), messages, contentRoot, store, hands, packGate,
+                    stores.why(), executor::quarantinedKeys, worn, tick::get); // ADR-0046 pack gate + ADR-0045 /se why
             command.setExecutor(seCommand);
             command.setTabCompleter(seCommand);
         }

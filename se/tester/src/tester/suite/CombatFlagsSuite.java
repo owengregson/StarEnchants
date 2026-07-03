@@ -108,7 +108,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                             new engine.stores.EngineStores(new VarStore(), new SuppressionStore(),
                                     new KnockbackControlStore(), keepStore, new engine.stores.TeleblockStore(),
                                     new engine.stores.ImmuneStore(), new engine.stores.CooldownStore(),
-                                    new engine.stores.ComboStore()), () -> 0L));
+                                    new engine.stores.ComboStore(), new engine.stores.WhyStore()), () -> 0L));
                     keepSink.keepOnDeath(attacker, 100);
                     h.guard("combatflags.keepOnDeathArmsStore", () -> {
                         if (!keepStore.shouldKeep(attacker.getUniqueId(), 0L)) {

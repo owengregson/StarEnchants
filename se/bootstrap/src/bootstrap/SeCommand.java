@@ -64,6 +64,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     static final List<CommandInfo> COMMANDS = List.of(
             CommandInfo.of("reload", "[--dry-run]", "Rebuild the content library off-thread and hot-swap it in (or just validate)."),
             CommandInfo.of("problems", "", "Show the errors and warnings from the last content load."),
+            CommandInfo.of("why", "<player> [key]",
+                    "Explain a player's recent activation attempts — which gate stopped each one and why."),
             CommandInfo.of("give", "<type> <player> [args]", "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player."),
             CommandInfo.of("item", "dump", "Print the decoded StarEnchants state of the held item."),
             CommandInfo.of("enchant", "<key> [level]", "Apply an enchant to the held item (admin; bypasses apply rules)."),
@@ -143,6 +145,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final ItemStateStore store;                     // /se item dump — probe raw on-item PDC/NBT key presence
     private final feature.compat.Hands hands;               // main-hand read/write for /se enchant|unenchant|item (§4 era seam)
     private final PackGate packGate;                        // /se pack apply pre-flight (ADR-0046); the live fingerprint supplier rides inside it
+    private final engine.stores.WhyStore why;               // /se why — the per-player activation flight recorder (ADR-0045)
+    private final java.util.function.Supplier<java.util.List<String>> quarantined; // /se why — live quarantined stable keys (§10)
+    private final item.worn.WornStateStore worn;            // /se why — the target's resolved worn gear (not-worn diagnosis)
+    private final java.util.function.LongSupplier nowTicks; // /se why — the current game tick, for "N s ago"
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -153,7 +159,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
               feature.trak.TrakService traks, PackStore packs, CombatCodec codec, CarrierCodec carrierCodec,
               java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store,
-              feature.compat.Hands hands, PackGate packGate) {
+              feature.compat.Hands hands, PackGate packGate, engine.stores.WhyStore why,
+              java.util.function.Supplier<java.util.List<String>> quarantined, item.worn.WornStateStore worn,
+              java.util.function.LongSupplier nowTicks) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -180,6 +188,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.store = store;
         this.hands = hands;
         this.packGate = packGate;
+        this.why = why;
+        this.quarantined = quarantined;
+        this.worn = worn;
+        this.nowTicks = nowTicks;
     }
 
     @Override
@@ -191,6 +203,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> reload(sender, args);
             case "problems" -> problems(sender);
+            case "why" -> why(sender, args);
             case "give" -> give(sender, args);
             case "item" -> itemDump(sender, args);
             case "enchant" -> applyHeld(sender, args);
@@ -327,6 +340,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (sub) {
                 case "give" -> filter(GIVE_TYPES, args[1]);
+                case "why" -> filter(playerNames, args[1]);
                 case "enchant", "book", "removeenchant", "unenchant" -> filter(enchantKeys, args[1]);
                 case "crystal" -> filter(crystalKeys, args[1]);
                 case "unopened" -> filter(tierNames, args[1]);
@@ -341,6 +355,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         }
         if (sub.equals("give") && args.length == 3) {
             return filter(playerNames, args[2]); // /se give <type> <player>
+        }
+        if (sub.equals("why") && args.length == 3) { // /se why <player> <key> — any content key filters the recorder
+            List<String> keys = new ArrayList<>(enchantKeys.size() + setKeys.size() + crystalKeys.size());
+            keys.addAll(enchantKeys);
+            keys.addAll(setKeys);
+            keys.addAll(crystalKeys);
+            return filter(keys, args[2]);
         }
         if (sub.equals("pack") && args.length == 3) {
             String action = args[1].toLowerCase(Locale.ROOT); // /se pack <info|apply> <name>
@@ -1391,6 +1412,28 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
      */
     private void problems(CommandSender sender) {
         problemLines(content.library().diagnostics(), messages).forEach(sender::sendMessage);
+    }
+
+    /**
+     * {@code /se why <player> [key]} — render the player's recent activation attempts from the flight recorder
+     * (ADR-0045). Runs on the global/command thread: it reads only the copied ring, the immutable
+     * {@link compile.model.Snapshot}, the immutable {@link item.worn.WornState}, and thread-safe name lookups —
+     * no entity state is touched, so no Folia scheduling hop is needed.
+     */
+    private void why(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(messages.format("command.why.usage"));
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]); // rings are per-session; quit sweeps them
+        if (target == null) {
+            sender.sendMessage(messages.format("command.why.no-player", "NAME", args[1]));
+            return;
+        }
+        String filter = args.length >= 3 ? args[2].toLowerCase(Locale.ROOT) : null;
+        WhyRender.lines(why.attempts(target.getUniqueId()), content.snapshot(), nowTicks.getAsLong(),
+                filter, quarantined.get(), worn.get(target.getUniqueId()), target.getName(), messages)
+                .forEach(sender::sendMessage);
     }
 
     /** Pure {@code /se problems} rendering (server-free): a summary line, then each finding as {@code file:line severity[code] message}. */
