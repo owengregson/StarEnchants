@@ -98,9 +98,13 @@ public final class ActivationPipeline {
         }
         if (suppressed(ability, act)) {
             long d = suppression.blockedDetail(ability, act.actor(), act.nowTicks());
+            // d==0 is the benign cross-region race: suppressesAny won, then the window evicted before
+            // blockedDetail re-read it. No live window to attribute, so record unattributed (pB -1) — else
+            // detailByDefId(0)=0 would render a spurious "from <defId 0's key>" clause in /se why.
+            int byDefId = d == 0 ? -1 : SuppressionStore.detailByDefId(d);
             return record(GateOutcome.SUPPRESSED, ability, act,
                     WhyRing.packScope(1, SuppressionStore.detailScopeKind(d), SuppressionStore.detailScopeId(d)),
-                    SuppressionStore.detailByDefId(d));
+                    byDefId);
         }
         // 6. cooldown (three scopes) — primitive long map; remaining captured for the flight recorder
         long cd = blockedCooldown(ability, act); // 0 = all ready

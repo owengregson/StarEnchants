@@ -122,6 +122,15 @@ class WhyRenderTest {
     }
 
     @Test
+    void theCrossRegionEvictionRaceRendersUnattributedNotAttributedToDefIdZero() {
+        // gate 5's benign d==0 race (blockedDetail found no live window) packs ENCHANT/scope 0, unattributed
+        // (pB -1); the row names the scope but drops the "from" clause — never attributing it to defId 0's key.
+        String result = M.fragment("command.why.suppressed", "SCOPE", "ENCHANT", "KEY", "defense", "BY", "");
+        assertEquals(attemptLine(result),
+                row(at(GateOutcome.SUPPRESSED, WhyRing.packScope(1, ScopeKinds.ENCHANT, 0), -1)));
+    }
+
+    @Test
     void aGenMismatchRowRendersStaleWithTheRawDefId() {
         WhyRing.Attempt old = new WhyRing.Attempt(0L, 40L, VENOM, GateOutcome.ACTIVATED.ordinal(), 0, GEN - 1, 0, 0);
         assertEquals(M.format("command.why.stale", "AGO", 3L, "DEFID", VENOM), row(old));

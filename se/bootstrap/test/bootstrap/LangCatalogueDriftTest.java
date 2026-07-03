@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
  * <ol>
  *   <li>the bundled resource loads clean and non-empty — a packaging slip that dropped it would blank every
  *       message, so fail the build instead;</li>
- *   <li>every message key {@code messages.format/lines/send("…")} referenced in production code exists in the
+ *   <li>every message key {@code messages.format/lines/fragment/send("…")} referenced in production code exists in the
  *       catalogue — this is what turns the class of bug this refactor fixed (a menu looking up a key that only
  *       lived in the shipped yml, not the fallback) into an offline build failure rather than a live
  *       {@code &c<key>?} marker;</li>
@@ -39,9 +39,10 @@ import org.junit.jupiter.api.Test;
  */
 class LangCatalogueDriftTest {
 
-    // messages.format("key") / messages.lines("key") — the key is the first string arg.
+    // messages.format/lines/fragment("key") — the key is the first string arg. fragment carries the /se why
+    // gate clauses (ADR-0045), the only route for ~16 command.why.* keys, so it must be pinned here too.
     private static final Pattern FORMAT_OR_LINES = Pattern.compile(
-            "\\b(?:messages|lang)\\.(?:format|lines)\\(\\s*\"([a-z][a-z0-9]*(?:[.-][a-z0-9]+)+)\"");
+            "\\b(?:messages|lang)\\.(?:format|lines|fragment)\\(\\s*\"([a-z][a-z0-9]*(?:[.-][a-z0-9]+)+)\"");
     // messages.send/sendLines(recipient, "key", …) — the key is the SECOND arg (the recipient comes first).
     private static final Pattern SEND = Pattern.compile(
             "\\bmessages\\.send(?:Lines)?\\(\\s*[^,]+,\\s*\"([a-z][a-z0-9]*(?:[.-][a-z0-9]+)+)\"");
