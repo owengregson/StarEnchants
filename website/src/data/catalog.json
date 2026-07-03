@@ -2357,7 +2357,7 @@
     },
   {
     "head": "TEMP_BLOCK",
-    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert.",
+    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals.",
     "affinity": "REGION",
     "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
     "example": "{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }",
