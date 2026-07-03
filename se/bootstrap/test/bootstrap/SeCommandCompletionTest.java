@@ -104,6 +104,20 @@ class SeCommandCompletionTest {
     }
 
     @Test
+    void whyCompletesPlayersThenAnyContentKey() {
+        assertEquals(PLAYERS, complete("why", ""));                    // arg 1 = online player
+        assertEquals(List.of("Alice"), complete("why", "Al"));
+        // arg 2 = any enchant/set/crystal key, in that order, filtered by prefix.
+        List<String> merged = new java.util.ArrayList<>(ENCHANTS);
+        merged.addAll(SETS);
+        merged.addAll(CRYSTALS);
+        assertEquals(merged, complete("why", "Alice", ""));
+        assertEquals(List.of("enchants/venom"), complete("why", "Alice", "enchants/venom"));
+        assertEquals(List.of("sets/yeti"), complete("why", "Alice", "sets/y"));
+        assertEquals(List.of("crystals/frost"), complete("why", "Alice", "crystals/f"));
+    }
+
+    @Test
     void giveSetCompletesSetKeys() {
         assertEquals(SETS, complete("give", "set", "Bob", ""));               // arg 3 = set key (@sets)
         assertEquals(List.of("sets/yeti"), complete("give", "set", "Bob", "sets/y"));

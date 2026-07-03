@@ -53,6 +53,16 @@ public final class Messages {
         return feedback.getAsBoolean();
     }
 
+    /**
+     * The catalogue template for {@code key} with {@code {TOKEN}}s substituted, WITHOUT the message prefix or
+     * the {@code &}&rarr;{@code §} translate — for composing a FRAGMENT into a line that is itself sent through
+     * {@link #format} (so the prefix lands once at the start, never embedded mid-line, and the whole line
+     * translates in one pass). See {@code /se why} (ADR-0045).
+     */
+    public String fragment(String key, Object... kv) {
+        return lang.get().format(key, kv);
+    }
+
     public List<String> lines(String key, Object... kv) {
         List<String> raw = lang.get().lines(key, kv);
         List<String> out = new ArrayList<>(raw.size());

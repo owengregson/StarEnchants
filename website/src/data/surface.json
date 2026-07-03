@@ -3,6 +3,7 @@
   "commands": [
     { "name": "reload", "args": "[--dry-run]", "description": "Rebuild the content library off-thread and hot-swap it in (or just validate).", "alias": false },
     { "name": "problems", "args": "", "description": "Show the errors and warnings from the last content load.", "alias": false },
+    { "name": "why", "args": "<player> [key]", "description": "Explain a player's recent activation attempts — which gate stopped each one and why.", "alias": false },
     { "name": "give", "args": "<type> <player> [args]", "description": "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player.", "alias": false },
     { "name": "item", "args": "dump", "description": "Print the decoded StarEnchants state of the held item.", "alias": false },
     { "name": "enchant", "args": "<key> [level]", "description": "Apply an enchant to the held item (admin; bypasses apply rules).", "alias": false },
