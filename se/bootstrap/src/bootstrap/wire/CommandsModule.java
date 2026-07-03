@@ -5,6 +5,7 @@ import bootstrap.SeCommand;
 import engine.boot.RegistryFingerprint;
 import feature.menu.Mintable;
 import java.util.List;
+import java.util.function.Supplier;
 import org.bukkit.command.PluginCommand;
 import pack.PackStore;
 
@@ -21,7 +22,7 @@ final class CommandsModule {
 
     CommandsModule(BootCore core, ReloadModule reload, MenusModule menus, CrystalsModule crystals,
                    HeroicModule heroic, SlotsModule slots, BooksModule books, ScrollsModule scrolls,
-                   TraksModule traks, List<Mintable> mintables) {
+                   TraksModule traks, List<Mintable> mintables, Supplier<ModuleFold.Report> foldReport) {
         this.core = core;
         // Config packs (ADR-0023). /se pack apply pairs the on-disk swap with the transactional reloader; the
         // ADR-0046 gate pre-flights a pack against the live authoring surface first.
@@ -38,7 +39,8 @@ final class CommandsModule {
                 scrolls.nametags, traks.traks, packs, core.codec(), core.carrierCodec(),
                 () -> core.master().config().slots().base(), core.messages(), core.contentRoot(), core.store(),
                 core.hands(), packGate, core.stores().why(), core.executor()::quarantinedKeys, core.worn(),
-                core.tick()::get, mintables, Give.io(core.messages())); // ADR-0047 derived mint dispatch
+                core.tick()::get, mintables, Give.io(core.messages()),
+                foldReport); // ADR-0047 derived mint dispatch + /se modules report
     }
 
     FeatureModule module() {

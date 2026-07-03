@@ -4,6 +4,7 @@ import feature.menu.MenuRegistry;
 import feature.menu.Mintable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * The ordered registry of every {@link FeatureModule} (ADR-0047): explicit, compile-checked construction — no
@@ -37,7 +38,7 @@ public final class Modules {
     /** THE ordered registry — the fold order (differs from construction order only for reload↔menus). */
     final List<FeatureModule> registry;
 
-    public Modules(BootCore core) {
+    public Modules(BootCore core, Supplier<ModuleFold.Report> foldReport) {
         this.combat = new CombatModule(core);
         this.equip = new EquipModule(core);
         this.souls = new SoulsModule(core);
@@ -74,7 +75,7 @@ public final class Modules {
         this.reload = new ReloadModule(core, equip);
         this.menus = new MenusModule(core, reload, scrolls, mintables);
         this.commands = new CommandsModule(core, reload, menus, crystals, heroic, slots, books, scrolls, traks,
-                mintables);
+                mintables, foldReport);
 
         this.registry = List.of(combat.module(), equip.module(), souls.module(), triggers.module(),
                 controls.module(), stores.module(), guard.module(), carriers.module(), crystals.module(),

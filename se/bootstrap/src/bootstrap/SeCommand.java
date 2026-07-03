@@ -1,5 +1,6 @@
 package bootstrap;
 
+import bootstrap.wire.ModuleFold;
 import compile.load.ContentHolder;
 import compile.load.CrystalDef;
 import compile.load.EnchantDef;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import migrate.Migrator;
@@ -69,6 +71,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("problems", "", "Show the errors and warnings from the last content load."),
             CommandInfo.of("why", "<player> [key]",
                     "Explain a player's recent activation attempts — which gate stopped each one and why."),
+            CommandInfo.of("modules", "",
+                    "Show every feature module — toggle state and depth, wired listeners, commands, mint types, stores."),
             CommandInfo.of("give", "<type> <player> [args]", "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player."),
             CommandInfo.of("item", "dump", "Print the decoded StarEnchants state of the held item."),
             CommandInfo.of("enchant", "<key> [level]", "Apply an enchant to the held item (admin; bypasses apply rules)."),
@@ -150,6 +154,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final List<String> giveTypes;                   // ADR-0047 derived /se give <type> list (canonical then aliases)
     private final Map<String, Mintable> giveIndex;          // ADR-0047 canonical + alias → mintable (/se give dispatch)
     private final Map<String, Mintable> selfIndex;          // ADR-0047 type → mintable with a self() row (/se <type> dispatch)
+    private final Supplier<ModuleFold.Report> modulesReport; // /se modules — the frozen fold report (ADR-0047)
 
     public SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
               SoulService souls, Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -162,7 +167,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store,
               feature.compat.Hands hands, PackGate packGate, engine.stores.WhyStore why,
               java.util.function.Supplier<java.util.List<String>> quarantined, item.worn.WornStateStore worn,
-              java.util.function.LongSupplier nowTicks, List<Mintable> mintables, MintIo io) {
+              java.util.function.LongSupplier nowTicks, List<Mintable> mintables, MintIo io,
+              Supplier<ModuleFold.Report> modulesReport) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -193,6 +199,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.worn = worn;
         this.nowTicks = nowTicks;
         this.io = io;
+        this.modulesReport = modulesReport;
         // ADR-0047: the three mint surfaces derive from the ONE declaration set — the give-type list, the give
         // dispatch (canonical + aliases), and the /se <type> self-mint dispatch (types with a self() row).
         List<String> types = new ArrayList<>();
@@ -226,6 +233,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "reload" -> reload(sender, args);
             case "problems" -> problems(sender);
             case "why" -> why(sender, args);
+            case "modules" -> modules(sender);
             case "give" -> give(sender, args);
             case "item" -> itemDump(sender, args);
             case "enchant" -> applyHeld(sender, args);
@@ -1010,6 +1018,16 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
      */
     private void problems(CommandSender sender) {
         problemLines(content.library().diagnostics(), messages).forEach(sender::sendMessage);
+    }
+
+    /**
+     * {@code /se modules} — render the frozen {@link ModuleFold.Report} (ADR-0047): every feature module in
+     * registry order with its toggle depth/state, wired listeners, dynamic commands, mint types, menus, swept
+     * player stores and disable stops. The report is captured at wire time (listeners cannot re-register mid-run);
+     * LIVE toggle states are read live at render. Runs on the command thread — the pure {@link ModulesRender}.
+     */
+    private void modules(CommandSender sender) {
+        ModulesRender.lines(modulesReport.get(), messages).forEach(sender::sendMessage);
     }
 
     /**

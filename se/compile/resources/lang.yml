@@ -109,6 +109,25 @@ command.why.worn-note-listening: "&7{KEY} is on {PLAYER}'s worn gear (listens on
 command.why.worn-note-missing: "&7{KEY} is not on {PLAYER}'s resolved worn gear — check it is applied and equipped."
 command.why.unknown-key: "&cNo enchant/set/crystal matches &f{KEY}&c in the loaded content."
 
+# /se modules — the feature-module registry (ADR-0047): one line per module (registry order), then its wired
+# listeners / commands / mints / menus / stores / disable stops. BOOT gates show the wire-time verdict (a restart
+# decides them); LIVE gates read their config now (the listeners register regardless).
+command.modules.header: "&e{COUNT} feature modules &7(registry order):"
+command.modules.name: "&f{NAME} &8— {TOGGLE}"
+command.modules.toggle-always: "&7always on"
+command.modules.toggle-boot: "&7{KEY} = {STATE} &8(boot gate)"
+command.modules.toggle-live: "&7{KEY} = {STATE} &8(live, per worn-resolve)"
+command.modules.state-on: "&aon"
+command.modules.state-off: "&coff"
+command.modules.listeners: "&8  listeners: &7{LIST}"
+command.modules.skipped: "&8  skipped (toggle off): &7{LIST}"
+command.modules.installs: "&8  installs: &7{LIST}"
+command.modules.commands: "&8  commands: &7{LIST}"
+command.modules.mints: "&8  mints: &7{LIST}"
+command.modules.menus: "&8  menus: &7{LIST}"
+command.modules.stores: "&8  player stores swept on quit: &7{N}"
+command.modules.stops: "&8  on disable: &7{LIST}"
+
 # /se docs [vocabulary] — the umbrella index of the five DSL reference vocabularies (delegates to /se effects|… with an arg).
 command.docs.index:
   - "&eReference vocabularies &7— /se docs <name>:"
