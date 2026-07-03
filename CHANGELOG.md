@@ -125,14 +125,19 @@ versioning: [Semantic Versioning](https://semver.org/).
   hand-wired `onEnable` is replaced by one `FeatureModule` record per feature, an explicit
   ordered `Modules` registry of 19 modules, and a `ModuleFold` that reproduces the exact shipped
   listener registration sequence (golden-pinned; two proven-disjoint listener moves aside).
-  `onEnable` is now a ~20-line fold and `onDisable` is `fold.stop()`; the plugin holds the single
+  `onEnable` is now a ~15-line fold and `onDisable` is `fold.stop()`; the plugin holds the single
   `registerEvents` edge. The vanilla-mechanic guard, the quit-cleanup sweep and the disable list
-  are derived from module declarations, and two boot-time static installers become instance
-  wiring (the anti-cheat movement exemption rides `SinkEnv`; vanilla-enchant application becomes
-  a `VanillaEnchants` instance). A `ModuleTreeGateTest` makes off-registry wiring a build
-  failure. Shipped behaviour is unchanged except two accepted micro-deltas (the derived `/se
-  give` tab-suggestion order, and boot log-line ordering within `onEnable` — same lines, same
-  tick).
+  are derived from module declarations; the triplicated mint surface collapses to ONE `Mintable`
+  declaration per item type behind three derived views (the mint menu, `/se give <type>`, the
+  `/se <type>` self-mint rows); and two boot-time static installers become instance wiring (the
+  anti-cheat movement exemption rides `SinkEnv`; vanilla-enchant application becomes a
+  `VanillaEnchants` instance). A `ModuleTreeGateTest` (structural) and a `RegistryWiringTest`
+  (semantic golden orders) make off-registry wiring a build failure. Shipped behaviour is
+  unchanged except two accepted micro-deltas (the derived `/se give` tab-suggestion order, and
+  boot log-line ordering within `onEnable` — same lines, same tick).
+- **`/se modules`** — a new operator command that lists every feature module in registry order
+  with its toggle state and depth (boot vs live), wired listeners, dynamic commands, mint types,
+  menus, swept player stores and disable stops (ADR-0047).
 
 - **Era erasure for the legacy overlay (ADR-0044, internal — no behaviour change).** The
   same-FQN "whole-file swap" overlay twins are replaced by seam interfaces in `src/` plus

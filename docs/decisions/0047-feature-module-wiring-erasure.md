@@ -61,15 +61,19 @@ composition point behind ONE record + ONE structural gate. The feature axis is t
 
 7. **Structural gates** — `ModuleTreeGateTest` (lexical: registration monopoly, module
    membership, the static-installer ratchet, the disable monopoly, the mint monopoly) makes
-   off-registry wiring a build failure; the semantic goldens (listener/stop/menu order) are
-   pinned by a real boot and the fold's mechanics tests.
+   off-registry wiring a build failure; `RegistryWiringTest` (semantic: the real `Modules`
+   registry built against doubles) pins the golden listener / stop / menu orders, the derived
+   mint give-key set and curated tile order, the `COMMANDS`↔self-mint drift lock, and toggle-key
+   validity; the fold's own mechanics are unit-pinned by `ModuleFoldTest`.
 
 ## Consequences
 
-- `onEnable` 592 → ~20 lines; `onDisable` is `fold.stop()`; `registerEvents` sites in the plugin
-  class 28 → 1 (the `PluginRegistrar` edge). ~108 hand-wired points become one ordered registry
-  of 19 small module files. Mint: 3 hand-lists → 1 declaration set with 3 derived views. Mutable
-  static installers 6 → 4 (frozen by the gate).
+- `onEnable` 592 → ~15 lines (build `BootCore`, construct `Modules`, one `ModuleFold.wire` call);
+  `onDisable` is `fold.stop()`; `registerEvents` sites in the plugin class 28 → 1 (the
+  `PluginRegistrar` edge). ~108 hand-wired points become one ordered registry of 19 small module
+  files. Mint: 3 hand-lists → 1 declaration set (`Mintable`) with 3 derived views (the mint menu,
+  `/se give <type>`, the `/se <type>` self-mint rows). Mutable static installers 6 → 4 (frozen by
+  the gate).
 - Adding a feature = one module file + one registry line (+ its COMMANDS rows). Toggle depth is a
   stated, introspectable property (`/se modules`), not an accident of code position.
 - Boot order becomes a reviewed artifact (a golden diff). Cost: two goldens to regen on feature
