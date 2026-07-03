@@ -26,7 +26,7 @@
     { "name": "split", "args": "<amount>", "description": "Split souls off your active gem into a new gem.", "alias": false },
     { "name": "migrate", "args": "<ee|ea|ae> <path>", "description": "Import EliteEnchantments / EliteArmor / AdvancedEnchantments configs into the unified schema.", "alias": false },
     { "name": "import", "args": "<code>", "description": "Import an enchant from an SE1 code (e.g. from the web Enchant Creator) and reload.", "alias": false },
-    { "name": "pack", "args": "<list|info|apply|export> [name]", "description": "Manage config-pack ZIP snapshots of your whole setup.", "alias": false },
+    { "name": "pack", "args": "<list|info|apply|export> [name] [--force]", "description": "Manage config-pack ZIP snapshots of your whole setup.", "alias": false },
     { "name": "menu", "args": "[name]", "description": "Open an operator GUI (no name = the console; or mint, admin, sets, crystals, apply, browsers).", "alias": false },
     { "name": "effects", "args": "", "description": "Browse the effect reference in chat.", "alias": false },
     { "name": "selectors", "args": "", "description": "Browse the selector reference in chat.", "alias": false },

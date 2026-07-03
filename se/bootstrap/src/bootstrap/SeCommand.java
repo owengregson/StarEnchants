@@ -3,6 +3,7 @@ package bootstrap;
 import compile.load.ContentHolder;
 import compile.load.CrystalDef;
 import compile.load.EnchantDef;
+import engine.boot.RegistryFingerprint;
 import feature.apply.ApplyResult;
 import feature.apply.ItemEnchanter;
 import feature.imports.ImportCode;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,6 +33,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import migrate.Migrator;
+import pack.Pack;
 import pack.PackStore;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -84,7 +87,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("split", "<amount>", "Split souls off your active gem into a new gem."),
             CommandInfo.of("migrate", "<ee|ea|ae> <path>", "Import EliteEnchantments / EliteArmor / AdvancedEnchantments configs into the unified schema."),
             CommandInfo.of("import", "<code>", "Import an enchant from an SE1 code (e.g. from the web Enchant Creator) and reload."),
-            CommandInfo.of("pack", "<list|info|apply|export> [name]", "Manage config-pack ZIP snapshots of your whole setup."),
+            CommandInfo.of("pack", "<list|info|apply|export> [name] [--force]", "Manage config-pack ZIP snapshots of your whole setup."),
             CommandInfo.of("menu", "[name]", "Open an operator GUI (no name = the console; or mint, admin, sets, crystals, apply, browsers)."),
             CommandInfo.of("effects", "", "Browse the effect reference in chat."),
             CommandInfo.of("selectors", "", "Browse the selector reference in chat."),
@@ -139,6 +142,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final java.util.function.IntSupplier baseSlots; // /se item dump — base enchant slots for the max total
     private final ItemStateStore store;                     // /se item dump — probe raw on-item PDC/NBT key presence
     private final feature.compat.Hands hands;               // main-hand read/write for /se enchant|unenchant|item (§4 era seam)
+    private final PackGate packGate;                        // /se pack apply pre-flight (ADR-0046); the live fingerprint supplier rides inside it
 
     SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn, SoulService souls,
               Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -149,7 +153,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.scroll.HolyScrollService holyScrolls, feature.scroll.NametagService nametags,
               feature.trak.TrakService traks, PackStore packs, CombatCodec codec, CarrierCodec carrierCodec,
               java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store,
-              feature.compat.Hands hands) {
+              feature.compat.Hands hands, PackGate packGate) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -175,6 +179,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.baseSlots = baseSlots;
         this.store = store;
         this.hands = hands;
+        this.packGate = packGate;
     }
 
     @Override
@@ -340,6 +345,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         if (sub.equals("pack") && args.length == 3) {
             String action = args[1].toLowerCase(Locale.ROOT); // /se pack <info|apply> <name>
             return action.equals("info") || action.equals("apply") ? filter(packNames, args[2]) : List.of();
+        }
+        if (sub.equals("pack") && args.length == 4 && args[1].equalsIgnoreCase("apply")) {
+            return filter(List.of("--force"), args[3]); // /se pack apply <name> --force (only apply offers the flag)
         }
         // /se book <enchant> <level> and /se enchant <key> <level> — offer the chosen enchant's valid levels.
         if (args.length == 3 && (sub.equals("book") || sub.equals("enchant"))) {
@@ -681,6 +689,13 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 tell(sender, messages.format("command.pack.info", "NAME", manifest.name(),
                         "DESC", manifest.description(), "AUTHOR", manifest.author(),
                         "CREATED", manifest.created(), "FILES", manifest.fileCount()));
+                if (!manifest.fingerprint().isEmpty()) {
+                    // Whole-line keys (not a composed COMPAT fragment) so the two states stay translatable as wholes.
+                    String key = manifest.fingerprint().equals(packGate.liveFingerprint())
+                            ? "command.pack.info-surface-match" : "command.pack.info-surface-differs";
+                    tell(sender, messages.format(key, "SURFACE", manifest.surface(),
+                            "FP", RegistryFingerprint.shortForm(manifest.fingerprint())));
+                }
             } catch (IOException e) {
                 tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
             }
@@ -688,9 +703,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se pack apply <name>} — back up the current config, swap in the pack, reload transactionally.
-     * Boot-gated wiring (souls/slots/scrolls listeners, integration toggles, command-trigger) still needs
-     * a restart — reported in the apply note.
+     * {@code /se pack apply <name> [--force]} — pre-flight the pack against the live authoring surface
+     * (ADR-0046): compare fingerprints then dry-run compile the WHOLE surface; abort untouched on any
+     * blocking fault unless {@code --force}. On a clean/forced apply: back up the current config, swap in
+     * the pack, reload transactionally. Boot-gated wiring (souls/slots/scrolls listeners, integration
+     * toggles, command-trigger) still needs a restart — reported in the apply note.
      */
     private void packApply(CommandSender sender, String[] args) {
         if (args.length < 3) {
@@ -706,13 +723,24 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(messages.format("command.pack.unknown", "NAME", name));
             return;
         }
+        boolean force = Arrays.stream(args).skip(3).anyMatch(a -> a.equalsIgnoreCase("--force"));
         sender.sendMessage(messages.format("command.pack.apply-start", "NAME", name));
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         String createdIso = now.toString();
         String backupLabel = "backup-" + now.format(BACKUP_STAMP);
         Scheduling.async(() -> {
             try {
-                PackStore.ApplyResult applied = packs.apply(name, backupLabel, createdIso);
+                Pack pack = packs.load(name).orElseThrow(() -> new IOException("no such pack '" + name + "'"));
+                // Pre-flight in the staging dir BEFORE any disk mutation; the report explains + decides.
+                PackGate.Report gateReport = packGate.check(pack);
+                for (String line : gateLines(gateReport, messages, name, force)) {
+                    tell(sender, line);
+                }
+                if (!gateReport.clean() && !force) {
+                    return; // disk untouched, no backup, no reload
+                }
+                PackStore.ApplyResult applied = packs.apply(name, backupLabel, createdIso,
+                        gateReport.liveFingerprint(), packGate.liveSurface());
                 tell(sender, messages.format("command.pack.apply-done", "NAME", applied.manifest().name(),
                         "FILES", applied.fileCount(),
                         "BACKUP", applied.hasBackup() ? applied.backupName() : "(none)"));
@@ -720,13 +748,50 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     tell(sender, messages.format("command.pack.apply-skipped", "N", applied.skipped().size()));
                 }
                 // Same transactional reload as /se reload: a faulty pack keeps the previous in-memory
-                // state and reports its diagnostics here.
+                // state and reports its diagnostics here (so a forced erroring apply holds disk-vs-memory split).
                 reloader.reload(result -> report(sender, result));
                 tell(sender, messages.format("command.pack.apply-note"));
             } catch (IOException e) {
                 tell(sender, messages.format("command.pack.error", "ERROR", String.valueOf(e.getMessage())));
             }
         });
+    }
+
+    /**
+     * Pure gate-report rendering for {@code /se pack apply} (ADR-0046); the async caller sends the lines.
+     * The fingerprint line is the fast explanation (nothing on MATCH — the compile result speaks); errors
+     * render EVERY blocking diagnostic (no cap, the {@code report()} precedent) via the reused
+     * {@code command.reload.error-line}, warnings a count only, then the abort/forced verdict.
+     */
+    static List<String> gateLines(PackGate.Report report, Messages messages, String name, boolean force) {
+        List<String> lines = new ArrayList<>();
+        switch (report.status()) {
+            case MISMATCH -> lines.add(messages.format("command.pack.gate-mismatch",
+                    "PACK", RegistryFingerprint.shortForm(report.packFingerprint()),
+                    "LIVE", RegistryFingerprint.shortForm(report.liveFingerprint())));
+            case UNSTAMPED -> lines.add(messages.format("command.pack.gate-unstamped"));
+            case MATCH -> { /* a match needs no explanation line — the compile result speaks */ }
+            default -> { }
+        }
+        if (report.clean()) {
+            if (report.warningCount() == 0) {
+                lines.add(messages.format("command.pack.gate-clean", "ABILITIES", report.abilityCount()));
+            } else {
+                lines.add(messages.format("command.pack.gate-warnings", "N", report.warningCount()));
+            }
+            return lines;
+        }
+        List<Diagnostic> blocking = report.blocking();
+        lines.add(messages.format("command.pack.gate-errors", "N", blocking.size()));
+        for (Diagnostic diagnostic : blocking) {
+            lines.add(messages.format("command.reload.error-line", "DIAGNOSTIC", diagnostic.render()));
+        }
+        if (report.warningCount() > 0) {
+            lines.add(messages.format("command.pack.gate-warnings", "N", report.warningCount()));
+        }
+        lines.add(force ? messages.format("command.pack.gate-forced")
+                : messages.format("command.pack.gate-abort", "NAME", name));
+        return lines;
     }
 
     /** {@code /se pack export <name> [description…]} — snapshot the live config into a new pack. */
@@ -747,7 +812,9 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         String createdIso = java.time.LocalDateTime.now().toString();
         Scheduling.async(() -> {
             try {
-                PackStore.ExportResult result = packs.export(name, description, author, createdIso);
+                // Fingerprint the live registry off the command thread (hashing walks the registries).
+                PackStore.ExportResult result = packs.export(name, description, author, createdIso,
+                        packGate.liveFingerprint(), packGate.liveSurface());
                 tell(sender, messages.format("command.pack.export-done", "NAME", result.name(),
                         "FILES", result.fileCount()));
             } catch (IOException e) {
