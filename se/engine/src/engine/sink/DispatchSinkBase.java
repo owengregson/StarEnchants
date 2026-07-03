@@ -78,6 +78,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final KnockbackControlStore knockback;
     private final KeepOnDeathStore keepOnDeath;
     private final LongSupplier nowTicks;
+    /**
+     * §N anti-cheat movement exemption (ADR-0027, ADR-0047): invoked before StarEnchants moves a PLAYER
+     * (VELOCITY / TELEPORT) so a bundled anti-cheat bridge can briefly exempt them, preventing false flags.
+     * Rides the {@link SinkEnv} as instance wiring (no mutable static installer); {@link SinkEnv#of} supplies
+     * the inert no-op default for tests and tester suites.
+     */
+    private final Consumer<Player> movementExemption;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold;
 
@@ -93,20 +100,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private boolean flushed;
     private int delayTicks;
 
-    /**
-     * §N anti-cheat movement exemption (ADR-0027): invoked before StarEnchants moves a PLAYER (VELOCITY /
-     * TELEPORT) so a bundled anti-cheat bridge can briefly exempt them, preventing false flags. Static no-op
-     * default (inert in tests, free per event).
-     */
-    private static volatile Consumer<Player> movementExemption = player -> { };
-
-    /** Install the anti-cheat movement-exemption hook (boot-time). A {@code null} hook resets to no-op. */
-    public static void movementExemption(Consumer<Player> hook) {
-        movementExemption = hook == null ? player -> { } : hook;
-    }
-
     /** Exempt {@code target} from anti-cheat movement checks if it is a player (runs on the target thread). */
-    private static void exemptMovement(Entity target) {
+    private void exemptMovement(Entity target) {
         if (target instanceof Player player) {
             movementExemption.accept(player);
         }
@@ -124,6 +119,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.teleblock = env.stores().teleblock();
         this.immune = env.stores().immune();
         this.nowTicks = env.nowTicks();
+        this.movementExemption = env.movementExemption();
         this.fold = new DamageFold();
     }
 

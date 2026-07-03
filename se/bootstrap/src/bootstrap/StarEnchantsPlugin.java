@@ -115,6 +115,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import org.bukkit.Location;
@@ -461,14 +462,14 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         if (economy.present()) {
             getLogger().info("economy provider active");
         }
+        // §N soft integration hooks (ADR-0027), resolved once at boot, no-op when the target is absent — each a
+        // reflective seam so the engine keeps no hard dep on these plugins.
+        // anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT — rides the SinkEnv (ADR-0047).
+        Consumer<Player> movementExemption = bindings.antiCheatExemption(
+                this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat"));
         // The per-boot sink wiring: built ONCE and threaded to both dispatchers, so a sink write and its
         // separate-event reader always see the SAME stores (no split-brain).
-        engine.sink.SinkEnv sinkEnv = new engine.sink.SinkEnv(economy, soulService, stores, tick::get);
-        // §N soft integration hooks (ADR-0027), set once at boot, no-op when the target is absent — each a
-        // reflective seam so the engine keeps no hard dep on these plugins:
-        // anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT,
-        engine.sink.DispatchSinkBase.movementExemption(bindings.antiCheatExemption(
-                this, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat")));
+        engine.sink.SinkEnv sinkEnv = new engine.sink.SinkEnv(economy, soulService, stores, tick::get, movementExemption);
         // mcMMO friendly-fire gate,
         CombatDispatch.friendlyFire(bindings.mcmmoFriendlyFire(this, master.config().integrations()::enabled));
         // %victim.mobtype% from MythicMobs' internal name,

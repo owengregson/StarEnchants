@@ -337,7 +337,7 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             this.quarantine = new AbilityQuarantine(snapshot.sourceMap(), snapshot.stableKeys(), 1);
             executor.bindQuarantine(quarantine);
             this.rig = new CombatRig(plugin);
-            engine.sink.SinkEnv env = new engine.sink.SinkEnv(platform.economy.EconomyService.NONE,
+            engine.sink.SinkEnv env = engine.sink.SinkEnv.of(platform.economy.EconomyService.NONE,
                     engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), new AtomicLong()::incrementAndGet);
             CombatDispatch dispatch = new CombatDispatch(executor, dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(),
                     new ContentHolder(library), worn,

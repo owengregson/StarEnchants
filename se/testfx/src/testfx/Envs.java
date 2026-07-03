@@ -115,7 +115,7 @@ public final class Envs {
             EngineStores stores = storesOverride != null ? storesOverride
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
                             combo, why);
-            return new SinkEnv(economy, souls, stores, nowTicks);
+            return SinkEnv.of(economy, souls, stores, nowTicks);
         }
     }
 }
