@@ -34,9 +34,13 @@ public final class PackGate {
 
     public enum FingerprintStatus { MATCH, MISMATCH, UNSTAMPED }
 
-    /** One pre-flight verdict. {@code abilityCount} is what the pack WOULD load. */
-    public record Report(FingerprintStatus status, String liveFingerprint, String packFingerprint,
-                         int abilityCount, List<Diagnostic> diagnostics) {
+    /**
+     * One pre-flight verdict. {@code liveFingerprint} and {@code liveSurface} are the SAME gate-time registry
+     * snapshot — both captured in one {@link #check} read so the apply's backup stamps a consistent pair.
+     * {@code abilityCount} is what the pack WOULD load.
+     */
+    public record Report(FingerprintStatus status, String liveFingerprint, String liveSurface,
+                         String packFingerprint, int abilityCount, List<Diagnostic> diagnostics) {
 
         public Report {
             diagnostics = List.copyOf(diagnostics);
@@ -76,7 +80,10 @@ public final class PackGate {
 
     public Report check(Pack pack) {
         String packFp = pack.manifest().fingerprint();
+        // Fingerprint + surface from ONE gate-time read: the apply stamps its backup from both, so they must
+        // describe the same live snapshot (a second surface walk could race an addon registering in between).
         String liveFp = liveFingerprint.get();
+        String liveSfc = liveSurface.get();
         FingerprintStatus status = packFp.isEmpty() ? FingerprintStatus.UNSTAMPED
                 : packFp.equals(liveFp) ? FingerprintStatus.MATCH : FingerprintStatus.MISMATCH;
 
@@ -94,10 +101,10 @@ public final class PackGate {
             diagnostics.addAll(MasterConfigLoader.load(scratch.resolve("config.yml")).diagnostics());
             diagnostics.addAll(LangLoader.load(scratch.resolve("lang.yml")).diagnostics());
             diagnostics.addAll(MenusLoader.load(scratch.resolve("menus")).diagnostics());
-            return new Report(status, liveFp, packFp, library.snapshot().abilityCount(), diagnostics);
+            return new Report(status, liveFp, liveSfc, packFp, library.snapshot().abilityCount(), diagnostics);
         } catch (IOException io) {
             // Only staging I/O throws (ADR-0042 loaders never do); carry it as one blocking diagnostic → abort.
-            return new Report(status, liveFp, packFp, 0,
+            return new Report(status, liveFp, liveSfc, packFp, 0,
                     List.of(Diagnostic.error(DiagCode.E_CONFIG_IO,
                             "pack pre-check staging failed: " + io.getMessage(), Source.UNKNOWN)));
         } finally {

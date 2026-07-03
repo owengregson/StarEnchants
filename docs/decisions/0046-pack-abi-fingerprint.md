@@ -108,6 +108,12 @@ until the errors are fixed — `gate-forced` states exactly that. The gate compi
 `content/`, because a broken `lang.yml` or `config.yml` would otherwise swap disk and then fail the reload —
 the precise failure mode this feature exists to prevent.
 
+**Edge case — `--force` with no pack name.** The flag is honoured only from `args[3]` on
+(`Arrays.stream(args).skip(3)`), so `/se pack apply --force` — the three tokens `[pack, apply, --force]` —
+clears the `args.length < 3` usage guard and `--force` is read as the pack *name* (`args[2]`, not a flag).
+Being `[A-Za-z0-9_-]+` it passes `isValidName`, then misses `exists`, so the operator gets the ordinary
+not-found reply — disk untouched, a clear response to a typo, so this is deliberately not special-cased.
+
 **4. Add-on semantics (ADR-0038).** The fingerprint is computed from the **live** `EffectRegistry`
 (builtins + registered add-on kinds); selectors/triggers/vars remain builtin-only, exactly mirroring
 `ContentCompiler.production`'s sourcing. So a pack exported on a server with add-on X bakes X's heads into its

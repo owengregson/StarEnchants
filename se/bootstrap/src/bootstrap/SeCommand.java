@@ -739,8 +739,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 if (!gateReport.clean() && !force) {
                     return; // disk untouched, no backup, no reload
                 }
+                // Backup stamps the fingerprint AND surface from the gate-time snapshot (one registry read),
+                // not a second live walk — the two describe the same instant.
                 PackStore.ApplyResult applied = packs.apply(name, backupLabel, createdIso,
-                        gateReport.liveFingerprint(), packGate.liveSurface());
+                        gateReport.liveFingerprint(), gateReport.liveSurface());
                 tell(sender, messages.format("command.pack.apply-done", "NAME", applied.manifest().name(),
                         "FILES", applied.fileCount(),
                         "BACKUP", applied.hasBackup() ? applied.backupName() : "(none)"));
