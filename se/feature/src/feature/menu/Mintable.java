@@ -43,9 +43,4 @@ public interface Mintable {
     default int tileRank() {
         return Integer.MAX_VALUE;
     }
-
-    /** Tab completion for {@code /se give <type> <player> <argIndex≥3>} (crystal keys, tiers, set members, …). */
-    default List<String> completeGiveArg(int argIndex, Library library) {
-        return List.of();
-    }
 }
