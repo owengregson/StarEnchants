@@ -3,9 +3,11 @@ package bootstrap.wire;
 import feature.crystal.CrystalListener;
 import feature.crystal.CrystalService;
 import feature.menu.CrystalsBrowserMenu;
+import feature.menu.Mintable;
 import item.codec.CrystalExtractorCodec;
 import item.codec.CrystalItemCodec;
 import item.codec.ItemKeys;
+import java.util.List;
 
 /**
  * Physical crystal items (§E, ADR-0047): a multi-crystal is one crystal-slot entry encoding "a+b". The
@@ -16,6 +18,7 @@ final class CrystalsModule {
 
     private final BootCore core;
     final CrystalService crystals;
+    final List<Mintable> mints;
 
     CrystalsModule(BootCore core) {
         this.core = core;
@@ -25,6 +28,7 @@ final class CrystalsModule {
         this.crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, core.enchanter(), core.content(),
                 () -> core.items().config().crystalOrDefault(), () -> core.master().config().crystals().maxMerge(),
                 core.messages());
+        this.mints = List.of(Mints.crystal(crystals, core.content()), Mints.extractor(crystals));
     }
 
     FeatureModule module() {
@@ -33,6 +37,7 @@ final class CrystalsModule {
                 .events(new CrystalListener(crystals, core.messages(), core.sounds()))
                 .menu(70, new CrystalsBrowserMenu(core.content(), crystals, core.caps(), core.messages(),
                         core.menusHolder()::config, core.vanillaEnchants()))
+                .mints(mints)
                 .pluginItem(stack -> crystals.isCrystal(stack) || crystals.isExtractor(stack))
                 .lang("crystal", "command.give.crystal", "command.give.extractor")
                 .build();

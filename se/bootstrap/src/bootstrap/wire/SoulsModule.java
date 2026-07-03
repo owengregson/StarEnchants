@@ -1,11 +1,13 @@
 package bootstrap.wire;
 
+import feature.menu.Mintable;
 import feature.soul.SoulInteractListener;
 import feature.soul.SoulInventoryListener;
 import feature.soul.SoulListener;
 import feature.soul.SoulParticleDriver;
 import feature.soul.SoulService;
 import feature.soul.SplitSoulsCommand;
+import java.util.List;
 
 /**
  * Souls (§D, ADR-0047): the three soul listeners (BOOT-gated on {@code features.souls}), the {@code /splitsouls}
@@ -16,9 +18,11 @@ final class SoulsModule {
 
     private final BootCore core;
     private final SoulParticleDriver soulParticles;
+    final List<Mintable> mints;
 
     SoulsModule(BootCore core) {
         this.core = core;
+        this.mints = List.of(Mints.gem(core.soulService()));
         // §N PlaceholderAPI expansion (ADR-0027) — unconditional (not souls-toggle-gated), consumed post-boot.
         core.bindings().registerPlaceholders(core.plugin(), core.master().config().integrations()::enabled,
                 player -> core.soulModes().isActive(player.getUniqueId()),
@@ -42,6 +46,7 @@ final class SoulsModule {
                         () -> new SplitSoulsCommand("splitsouls", souls, core.messages()),
                         "could not register /splitsouls (use /se split instead)"))
                 .store(souls::evictCache) // the soul-total cache (SoulListener.clear flushes owed drain + mode)
+                .mints(mints)
                 .pluginItem(souls::isGem)
                 .boot(soulParticles::start)
                 .stop("soul aura task", soulParticles::stop)

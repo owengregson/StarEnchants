@@ -2,8 +2,10 @@ package bootstrap.wire;
 
 import feature.heroic.HeroicListener;
 import feature.heroic.HeroicService;
+import feature.menu.Mintable;
 import item.codec.HeroicUpgradeCodec;
 import item.codec.ItemKeys;
+import java.util.List;
 
 /**
  * Heroic upgrades (§F, ADR-0047). The item-damage durability save listener rides here, right after the heroic
@@ -14,6 +16,7 @@ final class HeroicModule {
 
     private final BootCore core;
     final HeroicService heroics;
+    final List<Mintable> mints;
 
     HeroicModule(BootCore core) {
         this.core = core;
@@ -21,6 +24,7 @@ final class HeroicModule {
         this.heroics = new HeroicService(heroicCodec, core.codec(), core.lore(),
                 () -> core.items().config().heroicOrDefault(), core.rolls(), core.messages(), core.itemGroups(),
                 core.bindings().vanillaStats());
+        this.mints = List.of(Mints.heroic(heroics));
     }
 
     FeatureModule module() {
@@ -29,6 +33,7 @@ final class HeroicModule {
                 .events(new HeroicListener(heroics, core.messages(), core.sounds()))
                 // Heroic durability (§F): the modern per-event save; on 1.8 an inert listener (the gear poll restores).
                 .events(core.bindings().heroicDurabilitySave(core.codec(), core.rolls()))
+                .mints(mints)
                 .pluginItem(heroics::isUpgrade)
                 .lang("heroic", "command.give.heroic")
                 .build();

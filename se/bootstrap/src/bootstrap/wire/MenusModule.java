@@ -5,10 +5,12 @@ import feature.menu.MenuListener;
 import feature.menu.MenuRegistry;
 import feature.menu.MintCatalog;
 import feature.menu.MintMenu;
+import feature.menu.Mintable;
 import feature.menu.OperatorConsoleMenu;
 import feature.menu.ReferenceBrowserMenu;
 import feature.menu.UserHubMenu;
 import feature.menu.UserMenuCommand;
+import java.util.List;
 
 /**
  * The GUI framework (§K, ADR-0047): the shared {@code MenuRegistry} plus the hub, operator console, mint menu
@@ -27,18 +29,14 @@ final class MenusModule {
     private final MintMenu mintMenu;
     private final ReferenceBrowserMenu referenceBrowser;
 
-    MenusModule(BootCore core, ReloadModule reload, CarriersModule carriers, CrystalsModule crystals,
-                HeroicModule heroic, SlotsModule slots, BooksModule books, ScrollsModule scrolls,
-                TraksModule traks) {
+    MenusModule(BootCore core, ReloadModule reload, ScrollsModule scrolls, List<Mintable> mintables) {
         this.core = core;
         this.scrolls = scrolls;
         this.userHub = new UserHubMenu(registry, core.caps(), core.menusHolder()::config, core.vanillaEnchants());
         this.operatorConsole = new OperatorConsoleMenu(registry, reload.reloader, core.messages(), core.caps(),
                 core.menusHolder()::config, core.vanillaEnchants());
-        // The operator "mint anything" catalogue (ADR-0030) — driven by the live tier list + trak kinds.
-        MintCatalog mintCatalog = new MintCatalog(core.content(), core.soulService(), slots.slots, heroic.heroics,
-                crystals.crystals, scrolls.scrolls, scrolls.holyScrolls, scrolls.nametags, carriers.carriers,
-                traks.traks, books.unopenedBooks);
+        // The operator "mint anything" catalogue (ADR-0030, ADR-0047) — derived from the module-declared mintables.
+        MintCatalog mintCatalog = new MintCatalog(mintables, core.content());
         this.mintMenu = new MintMenu(mintCatalog, core.caps(), core.messages(), core.menusHolder()::config,
                 core.vanillaEnchants());
         this.referenceBrowser = new ReferenceBrowserMenu(core.caps(), core.menusHolder()::config,

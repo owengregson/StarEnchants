@@ -17,11 +17,17 @@ class SeCommandCompletionTest {
     private static final java.util.Map<String, Integer> MAX_LEVELS = java.util.Map.of(
             "enchants/venom", 3, "enchants/vigor", 5, "enchants/blast", 1);
 
+    /** The derived {@code /se give <type>} list (ADR-0047): canonical mint types then aliases, registry order. */
+    private static final List<String> GIVE_TYPES = List.of("gem", "dust", "whitescroll", "book", "unopened",
+            "crystal", "extractor", "heroic", "orb", "blackscroll", "randomizer", "transmog", "godlytransmog",
+            "holy", "nametag", "blocktrak", "mobtrak", "soultrak", "fishtrak", "set", "upgrade");
+
     /** The enchant+crystal vocabularies every case shares; the give/level cases extend it. */
     private static final SeCommand.Completions BASE =
             SeCommand.Completions.none().withEnchantKeys(ENCHANTS).withCrystalKeys(CRYSTALS);
     private static final SeCommand.Completions GIVE =
-            BASE.withTierNames(List.of("common", "rare")).withPlayerNames(PLAYERS).withSetKeys(SETS);
+            BASE.withTierNames(List.of("common", "rare")).withPlayerNames(PLAYERS).withSetKeys(SETS)
+                    .withGiveTypes(GIVE_TYPES);
 
     @Test
     void firstTokenCompletesSubcommands() {
