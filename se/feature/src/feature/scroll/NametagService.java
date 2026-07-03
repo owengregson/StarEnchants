@@ -26,7 +26,7 @@ import platform.text.Colors;
  * {@link ItemStack#isSimilar(ItemStack) identity}. Concurrent because the chat event fires async; the
  * mutation is hopped to the region thread by the listener (Folia).
  */
-public final class NametagService {
+public final class NametagService implements engine.stores.PlayerScoped {
 
     public static final String NAMETAG = "NAMETAG";
 

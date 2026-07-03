@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import platform.item.Inventories;
@@ -73,10 +72,5 @@ public final class HolyScrollListener extends ApplyGestureListener {
         }
         // One tick after respawn, on the player's own region thread, so the inventory is restored first.
         Scheduling.onEntityLater(player, 1L, () -> saved.forEach(stack -> Inventories.giveOrDrop(player, stack)));
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        kept.clear(event.getPlayer().getUniqueId());
     }
 }

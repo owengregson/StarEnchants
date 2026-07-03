@@ -33,7 +33,7 @@ import platform.content.ContentReloader;
  * {@code /se reload}. Item queries decode through the same {@link ItemViewCache} the combat path uses; enchant
  * keys and reloads read/drive the live {@link ContentHolder} / {@link ContentReloader}.
  */
-final class ApiService implements StarEnchantsApi {
+public final class ApiService implements StarEnchantsApi {
 
     private final CopyOnWriteArrayList<EffectKind> addonKinds;
     private final Supplier<EffectRegistry> effectRegistry;
@@ -42,7 +42,7 @@ final class ApiService implements StarEnchantsApi {
     private final ItemViewCache itemViews;
     private final IntSupplier baseSlots;
 
-    ApiService(CopyOnWriteArrayList<EffectKind> addonKinds, Supplier<EffectRegistry> effectRegistry,
+    public ApiService(CopyOnWriteArrayList<EffectKind> addonKinds, Supplier<EffectRegistry> effectRegistry,
                ContentReloader reloader, ContentHolder content, ItemViewCache itemViews, IntSupplier baseSlots) {
         this.addonKinds = Objects.requireNonNull(addonKinds, "addonKinds");
         this.effectRegistry = Objects.requireNonNull(effectRegistry, "effectRegistry");
