@@ -33,7 +33,7 @@ class SeCommandCompletionTest {
     void firstTokenCompletesSubcommands() {
         assertEquals(SeCommand.SUBCOMMANDS, SeCommand.complete(new String[] {""}, BASE));
         assertEquals(List.of("reload"), SeCommand.complete(new String[] {"rel"}, BASE));
-        assertEquals(List.of("menu", "migrate"), SeCommand.complete(new String[] {"m"}, BASE)
+        assertEquals(List.of("menu", "migrate", "modules"), SeCommand.complete(new String[] {"m"}, BASE)
                 .stream().sorted().toList());
     }
 

@@ -29,7 +29,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         core = BootCore.boot(this);
-        Modules modules = new Modules(core);
+        // /se modules reads the fold report through this supplier; the fold is assigned just below, before any
+        // command can run (commands execute only after onEnable returns), so EMPTY is a never-observed placeholder.
+        Modules modules = new Modules(core, () -> fold == null ? ModuleFold.Report.EMPTY : fold.report());
         fold = ModuleFold.wire(
                 new PluginRegistrar(),
                 modules.registry(),
