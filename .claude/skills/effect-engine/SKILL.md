@@ -42,6 +42,10 @@ chanceΔ (AST, no alloc) → chance roll (injected supplier `< base+Δ`; a condi
 is active, §6.3) → arm cooldown → run effects (intents, cumulative WAIT). No gate
 is skippable; a gate stops the walk, it never "starts at gate K."
 
+Every `evaluate` also reports `(defId, trigger, verdict, per-gate payload)` to the
+injected `WhyRecorder` (a per-player packed ring in `WhyStore`, ADR-0045) — `/se why`
+renders it; payloads are captured at the failing gate, names resolve at render time.
+
 ## Adding a kind — one class, one ParamSpec, one registration
 
 Implement `EffectKind` / `ConditionFn` / `TriggerKind` / `SelectorKind`, declare

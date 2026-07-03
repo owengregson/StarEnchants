@@ -65,7 +65,8 @@ These are LIVE build gates, not conventions:
   `se-engine` hot-path packages — a stray hot-path allocation or scheduler hop is a
   `./gradlew build` failure, caught before review.
 - A **JMH bench** asserts ~0 steady-state allocation on the per-hit pipeline **and** a
-  throughput floor; a regression fails the build. Verify on the real matrix too — see
+  throughput floor (incl. `gateWalkRecorded` — the always-on `/se why` record path,
+  ADR-0045); a regression fails the build. Verify on the real matrix too — see
   **matrix-gate**.
 
 Effects emit intents and never schedule, so an author cannot write a Folia or allocation bug — see
