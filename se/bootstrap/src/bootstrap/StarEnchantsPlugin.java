@@ -434,7 +434,8 @@ public final class StarEnchantsPlugin extends JavaPlugin {
         feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
                 () -> master.config().messageOnActivate(), content);
         AbilityExecutor executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
-                new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard, ActivationPipeline.Guard.ALLOW),
+                new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard,
+                        ActivationPipeline.Guard.ALLOW, stores.why()), // ADR-0045: record every gate walk into the flight recorder
                 areaScan(bindings), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked
@@ -444,6 +445,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 });
         // §10 runtime quarantine, bound to the live snapshot and rebound per reload (see the reloader callback).
         executor.bindQuarantine(quarantineFor(content.snapshot()));
+        stores.why().generation(content.snapshot().generation()); // ADR-0045: stamp records so /se why resolves per snapshot
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         compile.SpecRegistry migrateSpecs = effects.specRegistry();
         // Economy bridge for MODIFY_MONEY (global thread): bundled Vault (§N, ADR-0027) → ServicesManager → no-ops.
@@ -647,6 +649,7 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 contentRoot, 0, published -> {
             itemViews.reload(published.snapshot().generation());
             executor.bindQuarantine(quarantineFor(published.snapshot())); // §10 fresh per snapshot — a fixed edit clears the block
+            stores.why().generation(published.snapshot().generation()); // ADR-0045: rebind gen so post-reload records resolve
             executor.bindContent(effectRegistry.get()); // ADR-0038/0039: atomic effect+selector kind pair, add-on kinds included
             getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
