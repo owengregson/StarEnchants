@@ -227,11 +227,12 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
      * @param slots    register the slot-expander apply gesture
      * @param souls    register the soul system (deposit, soul mode, gem inventory)
      * @param scrolls  register the scroll-family interactions (black/randomizer/transmog/holy/nametag/godly)
+     * @param useItems the right-click use-item gesture is live (the listener claims a held use-item, §3.6)
      */
     public record FeaturesSection(boolean enchants, boolean sets, boolean crystals, boolean heroic,
-                                  boolean slots, boolean souls, boolean scrolls) {
+                                  boolean slots, boolean souls, boolean scrolls, boolean useItems) {
         public static FeaturesSection defaults() {
-            return new FeaturesSection(true, true, true, true, true, true, true);
+            return new FeaturesSection(true, true, true, true, true, true, true, true);
         }
     }
 

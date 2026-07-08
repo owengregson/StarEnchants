@@ -30,13 +30,14 @@ public final class ItemKeys {
     private final String trakSouls;
     private final String trakFish;
     private final String loreComposer;
+    private final String useItem;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
                      String slotItem, String slotSuccess, String scroll, String scrollConvert,
                      String unopened, String godlyTransmog, String appliedSlot,
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
-                     String loreComposer) {
+                     String loreComposer, String useItem) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -57,13 +58,14 @@ public final class ItemKeys {
         this.trakSouls = trakSouls;
         this.trakFish = trakFish;
         this.loreComposer = loreComposer;
+        this.useItem = useItem;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
-                "lorecomposer");
+                "lorecomposer", "useitem");
     }
 
     public String combat() {
@@ -161,5 +163,10 @@ public final class ItemKeys {
      *  absence flags pre-composer lore that the one-time legacy migration shim reconciles on first recompose. */
     public String loreComposer() {
         return loreComposer;
+    }
+
+    /** A right-click use-item (§3): the PDC string under this key is the use-item's def key. */
+    public String useItem() {
+        return useItem;
     }
 }

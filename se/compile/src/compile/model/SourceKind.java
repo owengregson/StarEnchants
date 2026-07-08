@@ -1,7 +1,7 @@
 package compile.model;
 
 /**
- * Which of the five content sources an {@link Ability} was erased from — a <em>tag</em>, never a subtype, so
+ * Which content source an {@link Ability} was erased from — a <em>tag</em>, never a subtype, so
  * per-source special-casing is structurally impossible (docs/architecture.md §4.1, §12.2). Used only for
  * diagnostics, the {@link SourceMap}, and the rare source-aware gate.
  */
@@ -18,5 +18,8 @@ public enum SourceKind {
     CRYSTAL,
 
     /** A heroic flat-stat source. */
-    HEROIC
+    HEROIC,
+
+    /** A right-click use-item's ability (its own content family, {@code content/use-items/}), fired by the USE trigger. */
+    USE_ITEM
 }

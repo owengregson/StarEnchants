@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -99,6 +100,31 @@ class LibraryLoaderTest {
         assertEquals("&bJolt", lib.displayNameOf("crystals/jolt"));
         assertEquals("Lifesteal", lib.displayNameOf("enchants/lifesteal"));
         assertNull(lib.displayNameOf("crystals/missing"));
+    }
+
+    @Test
+    void loadsUseItemsAsTheirOwnFamilyKeyedByTheStemAndLookedUpByKey(@TempDir Path root) throws IOException {
+        write(root, "use-items/rage-crystal.yml", """
+            name: "&cRage Crystal"
+            material: RED_DYE
+            cooldown: 1200
+            effects: [{ MESSAGE: { text: rage } }]
+            """);
+
+        Library lib = LibraryLoader.load(root, compiler(), 11);
+
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+        // The stored key is the bare stem; the ability is namespaced use:<stem> (no /level — a use-item is level-less).
+        compile.model.Ability ability = lib.snapshot().byStableKey("use:rage-crystal");
+        assertNotNull(ability);
+        assertEquals(compile.model.SourceKind.USE_ITEM, ability.sourceKind());
+        assertEquals(1, lib.useItems().size());
+        assertEquals("rage-crystal", lib.useItems().get(0).key());
+        // by-key lookup resolves the codec-stored key and returns null for an unknown one (cf. crystalDefOf/setDefOf).
+        assertNotNull(lib.useItemDefOf("rage-crystal"));
+        assertEquals(1200, lib.useItemDefOf("rage-crystal").cooldownTicks());
+        assertEquals(List.of("use:rage-crystal"), lib.useItemDefOf("rage-crystal").stableKeys());
+        assertNull(lib.useItemDefOf("nope"));
     }
 
     @Test
