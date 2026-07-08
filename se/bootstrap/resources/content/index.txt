@@ -75,3 +75,4 @@ sets/phantom.yml
 sets/titan.yml
 sets/yeti.yml
 tiers.yml
+use-items/rage-crystal.yml

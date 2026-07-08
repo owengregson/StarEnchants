@@ -8,6 +8,16 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Use-items — right-click content items (ADR-0048).** A new content family
+  `content/use-items/*.yml`: a right-click item (its own material/name/lore/shiny/consumable)
+  whose abilities fire on use. They lower to the same source-erased `Ability`s as enchants and
+  crystals (implicit `USE` trigger) and run the full gate sequence — cooldown, condition, chance,
+  souls, suppression — so they interact with every other feature for free. A `commands:` field
+  lowers to `RUN_COMMAND` effects (run as console or the activating player, with
+  `{PLAYER}`/`{UUID}`/`{WORLD}` tokens). Lore renders the cooldown as `{TIME_FORMATTED}`; universal
+  `use-item.*` feedback covers success/cooldown/fail. Ships the `rage-crystal` template; toggled by
+  `features.use-items`. Add one by dropping a YAML file — no code.
+
 - **Pack ABI fingerprints (ADR-0046).** `/se pack export` stamps a fingerprint of the live
   authoring surface (effect/selector heads + parameter signatures, triggers, condition
   operators, variables) into the pack manifest, and `/se pack apply` pre-checks every pack —
@@ -120,6 +130,13 @@ versioning: [Semantic Versioning](https://semver.org/).
   zero per-kind test authoring.
 
 ### Changed
+
+- **Cosmic-pack item likenesses refreshed.** Five economy items were re-themed to their
+  Cosmic-Enchants-style names/materials: the unopened book (`{TIER_NAME}`/`{TIER_COLOR}` tokens +
+  `(Right Click)` hint), the crystal **Extractor** (bucket), **Magic Dust** (glowstone,
+  `{MIN}-{MAX}%`), **Randomizer Dust** (redstone — the rename is cosmetic; failure stays
+  `100 − success`), and the **Godly Transmog Scroll** (writable book). `WRITABLE_BOOK`/`RED_DYE`
+  gained 1.8-lane material degradations.
 
 - **Feature-module wiring erasure (ADR-0047, internal — no behaviour change).** The 592-line
   hand-wired `onEnable` is replaced by one `FeatureModule` record per feature, an explicit

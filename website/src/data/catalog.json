@@ -1910,10 +1910,10 @@
     },
   {
     "head": "RUN_COMMAND",
-    "doc": "Run a command from the console. Affinity GLOBAL — runs on the global thread.",
+    "doc": "Run a command as the console (default) or as the activating player. The `{PLAYER}`/`{UUID}`/`{WORLD}` tokens expand to the actor's name, uuid, and world. Affinity GLOBAL — the console path runs on the global thread; the player path runs on the actor's own thread.",
     "affinity": "GLOBAL",
-    "usage": "{ RUN_COMMAND: { command: <string> } }",
-    "example": "{ RUN_COMMAND: { command: \"eco give %player% 100\" } }",
+    "usage": "{ RUN_COMMAND: { command: <string>, as: <enum{console|player}=console> } }",
+    "example": "{ RUN_COMMAND: { command: \"eco give {PLAYER} 100\" } }",
     "params": [
       {
         "name": "command",
@@ -1926,6 +1926,21 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "as",
+        "kind": "ENUM",
+        "label": "enum{console|player}",
+        "required": false,
+        "default": "console",
+        "min": null,
+        "max": null,
+        "enum": [
+          "console",
+          "player"
+          ],
+        "handle": null,
+        "doc": "who runs it: console (default) or the player"
         }
       ],
     "targets": []
@@ -3147,6 +3162,13 @@
     "direction": "NEUTRAL",
     "usesHeld": false,
     "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "USE",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
     "needsTarget": false
     }
   ],
