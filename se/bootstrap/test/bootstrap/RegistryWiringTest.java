@@ -61,7 +61,7 @@ class RegistryWiringTest {
             "EngineStoreListener", "VanillaGuardListener",
             "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",
-            "SlotListener", "UnopenedBookListener",
+            "SlotListener", "UnopenedBookListener", "UseItemListener",
             "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener",
             "MenuListener", "GodlyTransmogListener");
 
@@ -75,8 +75,8 @@ class RegistryWiringTest {
             "crystals", "reference", "transmog", "enchanter", "alchemist", "tinkerer", "admin");
 
     private static final Set<String> GOLDEN_GIVE_KEYS = Set.of("gem", "dust", "whitescroll", "book", "unopened",
-            "crystal", "extractor", "heroic", "upgrade", "orb", "blackscroll", "randomizer", "transmog",
-            "godlytransmog", "holy", "nametag", "blocktrak", "mobtrak", "soultrak", "fishtrak", "set");
+            "useitem", "use-item", "crystal", "extractor", "heroic", "upgrade", "orb", "blackscroll", "randomizer",
+            "transmog", "godlytransmog", "holy", "nametag", "blocktrak", "mobtrak", "soultrak", "fishtrak", "set");
 
     private static final Set<String> GOLDEN_SELF_MINTS = Set.of("gem", "crystal", "heroic", "orb", "book",
             "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "dust", "whitescroll",
@@ -278,7 +278,9 @@ class RegistryWiringTest {
             Toggle toggle = module.toggle();
             if (!toggle.key().isEmpty()) {
                 assertTrue(toggle.key().startsWith("features."), "toggle key not under features.: " + toggle.key());
-                String field = toggle.key().substring("features.".length());
+                // Toggle keys carry the kebab CONFIG path (features.use-items) an operator edits; the record
+                // component is the camelCase Java name (useItems). Normalise before matching.
+                String field = camel(toggle.key().substring("features.".length()));
                 assertTrue(featureFields.contains(field),
                         "toggle key '" + toggle.key() + "' is not a FeaturesSection component");
             }
@@ -288,6 +290,21 @@ class RegistryWiringTest {
                         "BOOT module '" + module.name() + "' has neither a disabled log nor the traks exemption");
             }
         }
+    }
+
+    private static String camel(String kebab) {
+        StringBuilder out = new StringBuilder(kebab.length());
+        boolean up = false;
+        for (int i = 0; i < kebab.length(); i++) {
+            char c = kebab.charAt(i);
+            if (c == '-') {
+                up = true;
+            } else {
+                out.append(up ? Character.toUpperCase(c) : c);
+                up = false;
+            }
+        }
+        return out.toString();
     }
 
     // ── quit sweep declared stores ───────────────────────────────────────────────────────────────
