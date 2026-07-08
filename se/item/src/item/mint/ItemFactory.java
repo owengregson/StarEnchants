@@ -46,7 +46,10 @@ public final class ItemFactory {
             Map.entry("NETHERITE_HOE", "DIAMOND_HOE"),
             Map.entry("NETHERITE_BLOCK", "DIAMOND_BLOCK"),
             Map.entry("NETHERITE_INGOT", "DIAMOND"),
-            Map.entry("FIRE_CHARGE", "FIREBALL")); // 1.13 rename: the SoulTrak gem's material on the 1.8 lane
+            Map.entry("FIRE_CHARGE", "FIREBALL"), // 1.13 rename: the SoulTrak gem's material on the 1.8 lane
+            Map.entry("WRITABLE_BOOK", "BOOK_AND_QUILL"), // 1.13 rename: the Godly Transmog scroll on the 1.8 lane
+            // 1.8's real red dye was INK_SACK+data (unexpressible by name here); REDSTONE is the closest red item.
+            Map.entry("RED_DYE", "REDSTONE"));
 
     /** The closest older-server equivalent of a newer material, or {@code null} if none is registered. */
     static String legacyFallback(String upperToken) {

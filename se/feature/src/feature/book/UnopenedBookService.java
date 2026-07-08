@@ -45,15 +45,30 @@ public final class UnopenedBookService {
         return codec.isUnopened(stack);
     }
 
-    /** Mint an unopened book scoped to {@code tier} ({@code {TIER}} substituted into the config likeness). */
+    /**
+     * Mint an unopened book scoped to {@code tier}, substituting the tier tokens into the config likeness:
+     * {@code {TIER}} = the raw key; {@code {TIER_NAME}} = first-letter-capitalized; {@code {TIER_COLOR}} =
+     * the tier's colour code from tiers.yml.
+     */
     public ItemStack mint(String tier) {
         UnopenedBookConfig cfg = config.get();
+        String color = content.library().tiers().colorOf(tier);
+        String name = capitalize(tier);
+        Object[] tokens = {"TIER", tier, "TIER_NAME", name, "TIER_COLOR", color};
         ItemStack stack = ItemFactory.buildItem(
                 cfg.material(), Material.BOOK,
-                Tokens.sub(cfg.name(), "TIER", tier),
-                Tokens.subLines(cfg.lore(), "TIER", tier));
+                Tokens.sub(cfg.name(), tokens),
+                Tokens.subLines(cfg.lore(), tokens));
         codec.mark(stack, tier);
         return stack;
+    }
+
+    /** {@code tier} with its first letter upper-cased; null/empty passes through unchanged. */
+    private static String capitalize(String tier) {
+        if (tier == null || tier.isEmpty()) {
+            return tier;
+        }
+        return Character.toUpperCase(tier.charAt(0)) + tier.substring(1);
     }
 
     /**

@@ -34,8 +34,8 @@ sounds:
 # comes back as one multi-crystal (ADR-0035); apply the extractor again to THAT crystal item to split its
 # topmost single off. On a multi-crystal ITEM it pops the topmost single.
 extractor:
-  material: AMETHYST_CLUSTER
-  name: "&dCrystal Extractor"
+  material: BUCKET
+  name: "&f&lCrystal Extractor"
   lore:
-    - "&7Drag onto gear to pop its crystal off"
-    - "&7whole, or onto a multi-crystal to split it."
+    - "&eRemoves a single crystal from a piece of armor or multi-crystal."
+    - "&7Drag n' Drop on an item to apply."
