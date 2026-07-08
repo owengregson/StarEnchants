@@ -212,7 +212,7 @@ starenchants/
 │
 ├── se/bootstrap/      The StarEnchants JavaPlugin — the composition root (ADR-0014, ADR-0047):
 │                      `BootCore` builds the feature-neutral substrate (caps/Scheduling/Compiler/
-│                      content/…); `onEnable` folds the ordered `Modules` registry of 19
+│                      content/…); `onEnable` folds the ordered `Modules` registry of 20
 │                      `FeatureModule`s through `ModuleFold` into the shipped listener/command/menu/
 │                      mint wiring; `onDisable` is `fold.stop()`. Its test/ tree holds
 │                      CatalogValidationTest + CosmicPackValidationTest (§10) plus the structural
@@ -430,7 +430,7 @@ an otherwise-identical struct — *uniform handling is the only thing representa
 record Ability(
     int          id,            // dense per-snapshot index (NOT persisted; §5.3)
     int          defId,         // back-ref to def for op-visible diagnostics/sourceMap
-    short        sourceKind,    // ENCHANT | SET | WEAPON | CRYSTAL | HEROIC  (a tag, not a type)
+    short        sourceKind,    // ENCHANT | SET | WEAPON | CRYSTAL | HEROIC | USE_ITEM  (a tag, not a type)
     int          triggerMask,   // bitset of Trigger ordinals
     byte         level,         // enchants; 0 otherwise
     double       baseChance,    // normalized [0,100)  (fixes nextDouble(100)+1 + getInt truncation)
@@ -753,10 +753,14 @@ final class SmiteEffect implements EffectKind {
   exception**: there is no per-condition class — the condition language is one compiled expression AST,
   so a new *fact* (a `%scope.name%` variable) is added by appending to `engine/condition/BuiltinVars` and
   `engine/run/FactPopulator` (§3.4), not by registering a class.
-- **A new armor set / crystal / enchant is PURE YAML** — no code — compiled by the existing erasure into
-  `Ability`s and validated inside `./gradlew build` (the bootstrap `CatalogValidationTest` /
+- **A new armor set / crystal / enchant / use-item is PURE YAML** — no code — compiled by the existing
+  erasure into `Ability`s and validated inside `./gradlew build` (the bootstrap `CatalogValidationTest` /
   `CosmicPackValidationTest` compile the whole shipped library against a fake resolver; §10) before it
-  ships. 90% of "adding a feature" is data, and the compiler guarantees it is correct before deploy.
+  ships. 90% of "adding a feature" is data, and the compiler guarantees it is correct before deploy. A
+  **use-item** (`content/use-items/*.yml`, ADR-0048) is the newest content family: a right-click item whose
+  abilities lower to the same source-erased `Ability`s (implicit `USE` trigger) and run through the full gate
+  sequence, so it interacts with every other feature for free — the one new code axis is the cold-path
+  outcome seam (`AbilityExecutor.runUse` → a compact `UseAttempt`) the listener renders feedback from.
 - **Affinity is part of the SPI**, so Folia-correctness is a property a reviewer checks on one line, and
   the `Sink`-only mutation rule means even a mis-declared affinity cannot silently touch an entity off
   the right thread (it would route wrong, caught by the auto-generated per-non-local-effect Folia test —

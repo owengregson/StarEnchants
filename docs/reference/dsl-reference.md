@@ -538,12 +538,13 @@ Debit souls from a soul gem: @Self (default) charges the activator's active gem,
 
 ### RUN_COMMAND
 
-Run a command from the console. Affinity GLOBAL — runs on the global thread.
+Run a command as the console (default) or as the activating player. The `{PLAYER}`/`{UUID}`/`{WORLD}` tokens expand to the actor's name, uuid, and world. Affinity GLOBAL — the console path runs on the global thread; the player path runs on the actor's own thread.
 
 - _affinity_: `GLOBAL`
-- _usage_: `{ RUN_COMMAND: { command: <string> } }`
+- _usage_: `{ RUN_COMMAND: { command: <string>, as: <enum{console|player}=console> } }`
 - _param_ `command` `string`
-- _example_: `{ RUN_COMMAND: { command: "eco give %player% 100" } }`
+- _param_ `as` `enum{console|player}` — who runs it: console (default) or the player
+- _example_: `{ RUN_COMMAND: { command: "eco give {PLAYER} 100" } }`
 
 ### SEEK
 
@@ -891,6 +892,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `COMMAND` | NEUTRAL | false | true | false |
 | `IMPACT` | ATTACK | false | true | true |
 | `EXP_GAIN` | NEUTRAL | false | true | false |
+| `USE` | NEUTRAL | true | false | false |
 
 ## Conditions
 

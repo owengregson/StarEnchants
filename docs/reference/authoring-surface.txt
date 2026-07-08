@@ -148,6 +148,7 @@ effect REMOVE_SOULS
   param amount INT required min=1 max=- enum=- handle=- default=-
 effect RUN_COMMAND
   param command STRING required min=- max=- enum=- handle=- default=-
+  param as ENUM optional min=- max=- enum=console,player handle=- default=console
 effect SEEK
 effect SET_BLOCK
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
@@ -262,6 +263,7 @@ trigger MINE
 trigger PASSIVE
 trigger REPEATING
 trigger TRIDENT
+trigger USE
 [operators]
 cmp !=
 cmp <
