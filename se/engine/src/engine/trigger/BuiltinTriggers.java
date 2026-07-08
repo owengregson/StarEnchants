@@ -47,6 +47,8 @@ public final class BuiltinTriggers {
                 .register(Trigger.attack("IMPACT"))
                 // Fired by TriggerListeners.onExpChange on a PlayerExpChangeEvent; EXP_MULTIPLY scales it in place. Appended last.
                 .register(Trigger.neutral("EXP_GAIN"))
+                // Fired only by the use-item right-click flow (UseItemListener → UseItemService); held-item, NEUTRAL. Appended last.
+                .register(Trigger.held("USE"))
                 .build();
     }
 }

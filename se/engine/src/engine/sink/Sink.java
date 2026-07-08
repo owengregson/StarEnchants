@@ -269,6 +269,13 @@ public interface Sink {
 
     void consoleCommand(String command);
 
+    /**
+     * Run {@code command} as {@code actor} ({@link Player#performCommand}) on the actor's own thread — the
+     * player-side counterpart to {@link #consoleCommand} (RUN_COMMAND {@code as: player}). Unlike the console
+     * path it is an actor intent, so it routes to the actor's entity thread; a null actor is a no-op.
+     */
+    void playerCommand(Player actor, String command);
+
     // ── Economy intents (routed to the global thread; a no-op without an economy provider) ──
 
     /** Deposit {@code amount} into the player's account (GIVE_MONEY). */

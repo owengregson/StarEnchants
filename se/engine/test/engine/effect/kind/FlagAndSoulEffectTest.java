@@ -5,12 +5,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import engine.effect.EffectKind;
 import engine.sink.Sink;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -47,8 +49,39 @@ class FlagAndSoulEffectTest {
                 flag("TELEPORT_DROPS → teleportDrops", new TeleportDropsEffect(), c -> { },
                         s -> verify(s).teleportDrops()),
                 flag("SEEK → seek", new SeekEffect(), c -> { }, s -> verify(s).seek()),
+                // 'as' is a compiler-defaulted param (console); FakeEffectCtx synthesizes no defaults, so feed it.
                 flag("RUN_COMMAND → consoleCommand(command)", new RunCommandEffect(),
-                        c -> c.with("command", "say hi"), s -> verify(s).consoleCommand("say hi")));
+                        c -> c.with("command", "say hi").with("as", "console"),
+                        s -> verify(s).consoleCommand("say hi")));
+    }
+
+    @TestFactory
+    List<DynamicTest> runCommandAsAndTokens() {
+        return List.of(
+                dynamicTest("RUN_COMMAND as:player → performs as the actor's entity", () -> {
+                    Player actor = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("command", "spawn").with("as", "player");
+                    Sink sink = mock(Sink.class);
+                    new RunCommandEffect().run(ctx, sink);
+                    verify(sink).playerCommand(actor, "spawn"); // player path, not console
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("RUN_COMMAND fills {PLAYER}/{UUID}/{WORLD} from the actor", () -> {
+                    UUID id = UUID.fromString("00000000-0000-0000-0000-0000000000ab");
+                    World world = mock(World.class);
+                    when(world.getName()).thenReturn("nether");
+                    Player actor = mock(Player.class);
+                    when(actor.getName()).thenReturn("Steve");
+                    when(actor.getUniqueId()).thenReturn(id);
+                    when(actor.getWorld()).thenReturn(world);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("command", "tp {PLAYER} in {WORLD} [{UUID}]").with("as", "console");
+                    Sink sink = mock(Sink.class);
+                    new RunCommandEffect().run(ctx, sink);
+                    verify(sink).consoleCommand("tp Steve in nether [" + id + "]"); // default as:console
+                    verifyNoMoreInteractions(sink);
+                }));
     }
 
     @TestFactory

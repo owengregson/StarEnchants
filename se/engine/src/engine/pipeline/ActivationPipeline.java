@@ -144,6 +144,17 @@ public final class ActivationPipeline {
         return record(GateOutcome.ACTIVATED, ability, act, rollBp, chanceBp);
     }
 
+    /**
+     * The remaining ticks on {@code ability}'s first blocked cooldown scope against {@code act}, or {@code 0}
+     * when every scope is ready — the read-back the COLD use-item path surfaces as {@code {TIME_FORMATTED}}
+     * (§3.6). A pure read (the same lazy eviction gate 6 does), so calling it after an {@code ON_COOLDOWN}
+     * verdict reports the identical remainder the gate saw.
+     */
+    public long remainingCooldownTicks(Ability ability, Activation act) {
+        long cd = blockedCooldown(ability, act);
+        return cd == 0 ? 0 : (cd >>> 32);
+    }
+
     /** Report one attempt's verdict + per-gate payload to the recorder, then return the verdict (ADR-0045). */
     private GateOutcome record(GateOutcome out, Ability ability, Activation act, int pA, int pB) {
         recorder.record(act.actor(), act.nowTicks(), act.triggerId(), ability.defId(), out.ordinal(), pA, pB);
