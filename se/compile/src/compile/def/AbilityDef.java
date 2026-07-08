@@ -7,10 +7,10 @@ import java.util.List;
 
 /**
  * One authored ability in its pre-compilation form — the uniform input the compiler erases into an
- * {@link compile.model.Ability} (docs/architecture.md §4.1). Source erasure starts here: all five sources
- * (enchant / set / weapon / crystal / heroic) load into this one shape tagged with {@link #sourceKind},
- * rather than five parallel hierarchies. Fields are authored-text-shaped (effect lines lexed not validated,
- * names not interned) until the lower and erase stages type, intern, and id-assign them.
+ * {@link compile.model.Ability} (docs/architecture.md §4.1). Source erasure starts here: every source
+ * (enchant / set / weapon / crystal / heroic / use-item) loads into this one shape tagged with
+ * {@link #sourceKind}, rather than one hierarchy per source. Fields are authored-text-shaped (effect lines
+ * lexed not validated, names not interned) until the lower and erase stages type, intern, and id-assign them.
  *
  * @param stableKey       reorder-proof identity stored in PDC (§4.2, §5.3); unique per snapshot
  * @param defId           stable authoring id for the {@link compile.model.SourceMap}

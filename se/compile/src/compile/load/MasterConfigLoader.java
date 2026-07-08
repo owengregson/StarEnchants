@@ -97,7 +97,8 @@ public final class MasterConfigLoader {
                 parseBool(n.string("heroic"), d.heroic(), n, diags),
                 parseBool(n.string("slots"), d.slots(), n, diags),
                 parseBool(n.string("souls"), d.souls(), n, diags),
-                parseBool(n.string("scrolls"), d.scrolls(), n, diags));
+                parseBool(n.string("scrolls"), d.scrolls(), n, diags),
+                parseBool(n.string("use-items"), d.useItems(), n, diags));
     }
 
     private static MasterConfig.CombatSection readCombat(YamlNode n, Diagnostics diags) {

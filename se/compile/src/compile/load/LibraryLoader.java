@@ -52,6 +52,7 @@ public final class LibraryLoader {
         List<EnchantDef> catalog = new ArrayList<>();
         List<CrystalDef> crystals = new ArrayList<>();
         List<SetDef> sets = new ArrayList<>();
+        List<UseItemDef> useItems = new ArrayList<>();
         List<AbilityDef> defs = new ArrayList<>();
         int[] nextDefId = {0};
         Set<String> seenKeys = new HashSet<>();
@@ -104,10 +105,28 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
+        for (Path file : sourceFiles(contentRoot, "use-items", diags)) {
+            KeyTier kt = keyTierOf(contentRoot, "use-items", file, tiers);
+            if (!claim(kt.key(), contentRoot, file, seenKeys, diags)) {
+                continue;
+            }
+            YamlNode root = composeOf(contentRoot, file, diags);
+            if (root == null) {
+                continue;
+            }
+            // A use-item's stored key is the bare filename stem (like a crystal drops its tier folder); the ability
+            // stable keys namespace it as use:<stem>. The source-prefixed kt.key() is claimed only for file dedup.
+            String stem = stripExtension(file.getFileName().toString());
+            UseItemDefReader.Parsed parsed = UseItemDefReader.read(stem, root, () -> nextDefId[0]++, diags);
+            if (parsed.def() != null) {
+                useItems.add(parsed.def());
+            }
+            defs.addAll(parsed.abilities());
+        }
         validateRelationships(catalog, diags); // §G: requires/blacklist must name existing enchants
         validateSetEnchants(sets, catalog, diags); // §6.6: a set's custom enchant refs must exist (in range)
         Snapshot snapshot = compiler.compile(defs, generation, diags);
-        return new Library(snapshot, catalog, crystals, sets, tiers, diags.all());
+        return new Library(snapshot, catalog, crystals, sets, useItems, tiers, diags.all());
     }
 
     /**

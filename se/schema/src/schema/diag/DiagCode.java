@@ -91,6 +91,8 @@ public enum DiagCode {
     W_LOAD_ENCHANT_RELATIONSHIPS, // a requires/blacklist relationship is suspect (non-blocking)
     E_LOAD_CRYSTAL,        // a crystal file is not a YAML mapping
     E_LOAD_CRYSTAL_TRIGGER,// a crystal declares no trigger
+    E_LOAD_USE_ITEM,       // a use-item file is not a YAML mapping, is missing its name/material, or has an empty abilities list
+    W_LOAD_USE_TRIGGER,    // a use-item declares an explicit trigger — the USE trigger is implicit, so it is forced and the authored value ignored
     E_LOAD_SET,            // a set file is not a YAML mapping
     E_LOAD_SET_ARMOR,      // a set is missing its armor: block or declares no pieces
     E_LOAD_SET_MEMBER,     // an armour piece declares no material
