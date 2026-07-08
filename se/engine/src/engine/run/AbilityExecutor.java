@@ -8,6 +8,7 @@ import engine.effect.EffectKind;
 import engine.effect.EffectRegistry;
 import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
+import engine.pipeline.GateOutcome;
 import engine.selector.SelectorKind;
 import engine.selector.SelectorRegistry;
 import engine.sink.SinkReadback;
@@ -117,6 +118,64 @@ public final class AbilityExecutor {
             }
         }
         return activated;
+    }
+
+    /**
+     * The COLD use-item path (§3.6, docs/decisions/0048-use-items.md): evaluate the explicit {@code candidateIds}
+     * (a held use-item's abilities, resolved from its def's stable keys — NOT a worn {@code byTrigger} set) and
+     * run every ACTIVATED one's effects into {@code sink}, exactly like {@link #run} but returning a compact
+     * {@link UseAttempt} the feature layer renders feedback from instead of the void hot-path fold. Separate
+     * from {@link #run} so the combat hot path's signature/allocation profile is untouched. Does NOT flush.
+     */
+    public UseAttempt runUse(Ability[] abilities, int[] candidateIds, Activation activation,
+                             ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys) {
+        AbilityQuarantine quarantine = this.quarantine;
+        boolean activated = false;
+        boolean onCooldown = false;
+        long cooldownRemaining = 0;
+        int conditionIndex = -1;
+        boolean chanceFailed = false;
+        for (int i = 0; i < candidateIds.length; i++) {
+            int id = candidateIds[i];
+            if (id < 0 || id >= abilities.length) {
+                continue; // stale/unresolved stable key (e.g. across a reload) — the aligned index is skipped
+            }
+            if (quarantine.isDisabled(id)) {
+                continue; // §10: disabled for the life of this snapshot after repeated faults
+            }
+            Ability ability = abilities[id];
+            try {
+                GateOutcome outcome = pipeline.evaluate(ability, activation);
+                switch (outcome) {
+                    case ACTIVATED -> {
+                        boolean faulted = runEffects(ability, context, sink, activation.activeGem(),
+                                activation.facts(), quarantine);
+                        activated = true;
+                        notifyActivation(ability, context, stableKeys);
+                        if (faulted) {
+                            quarantine.recordFailure(id, ability.defId());
+                        }
+                    }
+                    case ON_COOLDOWN -> {
+                        onCooldown = true;
+                        cooldownRemaining = Math.max(cooldownRemaining,
+                                pipeline.remainingCooldownTicks(ability, activation));
+                    }
+                    case CONDITION_FAILED -> {
+                        if (conditionIndex < 0) {
+                            conditionIndex = i; // first condition stop; index aligns with the def's ability order
+                        }
+                    }
+                    case CHANCE_FAILED -> chanceFailed = true;
+                    default -> { } // world/protection/trigger/level/suppression/souls/cancel → the BLOCKED bucket
+                }
+            } catch (Throwable failed) {
+                LOG.log(Level.WARNING, "use-item ability " + quarantine.describe(ability.defId())
+                        + " failed during execution", failed);
+                quarantine.recordFailure(id, ability.defId());
+            }
+        }
+        return new UseAttempt(activated, onCooldown, cooldownRemaining, conditionIndex, chanceFailed);
     }
 
     // Failure isolated so a bad observer never aborts the hit. Key resolved against the run's own snapshot

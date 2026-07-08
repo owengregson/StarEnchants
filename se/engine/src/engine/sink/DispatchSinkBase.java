@@ -1017,6 +1017,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
         globalOp(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
     }
 
+    @Override
+    public void playerCommand(Player actor, String command) {
+        // Runs on the actor's own thread (entityOp): performCommand dispatches as the player, region-correct on
+        // Folia. performCommand exists on the 1.8 floor API, so this stays in the shared base.
+        entityOp(actor, () -> actor.performCommand(command));
+    }
+
     // ── Economy intents ──────────────────────────────────────────────────────────────────────────
 
     @Override

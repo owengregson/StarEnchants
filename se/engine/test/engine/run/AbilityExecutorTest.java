@@ -1,6 +1,8 @@
 package engine.run;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -231,6 +233,44 @@ class AbilityExecutorTest {
 
         recording.runDelayed();
         verify(victim).setFireTicks(60);
+    }
+
+    /** §3.6 cold use-item path: a candidate activates once, then its armed cooldown reports the remaining ticks. */
+    @Test
+    void runUseActivatesThenReportsTheRemainingCooldownOnReuse() {
+        Player actor = mock(Player.class);
+        Ability withCooldown = Abilities.ability().trigger(TRIGGER).affinity(Affinity.TARGET_ENTITY)
+                .cooldown(200).cooldownScope(0, -1, -1) // arm the enchant scope so gate 6 blocks the reuse
+                .effects(igniteEffect("SELF", 80, Affinity.TARGET_ENTITY)).build();
+        Ability[] abilities = {withCooldown};
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        UseAttempt first = executor.runUse(abilities, new int[] {0}, activation(), context(actor, null), sink, KEYS);
+        sink.flush(); // the effect intent applies on flush; the cooldown armed at gate 11 regardless
+        assertTrue(first.activated());
+        verify(actor).setFireTicks(80);
+
+        UseAttempt second = executor.runUse(abilities, new int[] {0}, activation(), context(actor, null),
+                new ModernDispatchSink(handles, Envs.sink().build()), KEYS); // same tick, cooldown still hot
+        assertFalse(second.activated());
+        assertTrue(second.onCooldown());
+        assertEquals(200L, second.cooldownRemainingTicks());
+    }
+
+    /** The collapse distinguishes a chance miss from a block, and runs no effect (§3.6). */
+    @Test
+    void runUseCollapsesAZeroChanceToTheChanceSignal() {
+        Player actor = mock(Player.class);
+        Ability neverRolls = Abilities.ability().trigger(TRIGGER).affinity(Affinity.TARGET_ENTITY)
+                .chance(0).effects(igniteEffect("SELF", 80, Affinity.TARGET_ENTITY)).build();
+
+        UseAttempt attempt = executor.runUse(new Ability[] {neverRolls}, new int[] {0}, activation(),
+                context(actor, null), new ModernDispatchSink(handles, Envs.sink().build()), KEYS);
+
+        assertFalse(attempt.activated());
+        assertTrue(attempt.chanceFailed());
+        assertEquals(-1, attempt.conditionCandidateIndex());
+        verifyNoInteractions(actor);
     }
 
     private static Activation activation() {
