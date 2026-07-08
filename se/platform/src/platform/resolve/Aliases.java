@@ -57,7 +57,8 @@ public final class Aliases {
     private static final Map<String, String> MATERIAL = Map.ofEntries(
             Map.entry("SULPHUR", "GUNPOWDER"),
             Map.entry("GRASS", "SHORT_GRASS"),
-            Map.entry("WOOL", "WHITE_WOOL"));
+            Map.entry("WOOL", "WHITE_WOOL"),
+            Map.entry("BOOK_AND_QUILL", "WRITABLE_BOOK")); // 1.13 rename; the resolver interns it both ways
 
     // 1.21.x dropped the GENERIC_ / HORSE_ / ZOMBIE_ prefixes on attribute keys.
     private static final Map<String, String> ATTRIBUTE = Map.ofEntries(

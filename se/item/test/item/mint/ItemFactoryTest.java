@@ -43,4 +43,12 @@ final class ItemFactoryTest {
         assertEquals("DIAMOND_SPADE", ItemFactory.legacyFallback("NETHERITE_SHOVEL"));
         assertNull(ItemFactory.legacyFallback("STONE"));
     }
+
+    @Test
+    void legacyFallbackCoversTheUseItemLikenessMaterials() {
+        // Godly Transmog is WRITABLE_BOOK (1.13 rename → BOOK_AND_QUILL on 1.8); RED_DYE has no by-name 1.8
+        // equivalent (real red dye was INK_SACK+data), so it degrades to REDSTONE (a red item that exists).
+        assertEquals("BOOK_AND_QUILL", ItemFactory.legacyFallback("WRITABLE_BOOK"));
+        assertEquals("REDSTONE", ItemFactory.legacyFallback("RED_DYE"));
+    }
 }

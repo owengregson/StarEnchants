@@ -12,6 +12,7 @@ class HandleResolverTest {
 
     private static final Map<String, String> POTIONS = Aliases.forCategory(HandleCategory.POTION_EFFECT);
     private static final Map<String, String> SOUNDS = Aliases.forCategory(HandleCategory.SOUND);
+    private static final Map<String, String> MATERIALS = Aliases.forCategory(HandleCategory.MATERIAL);
 
     @Test
     void resolvesAModernTokenThatExistsDirectly() {
@@ -63,5 +64,15 @@ class HandleResolverTest {
                 HandleResolver.resolve("BLOCK_ANVIL_LAND", SOUNDS, Set.of("ANVIL_LAND")::contains).orElseThrow());
         assertEquals("WITHER_SPAWN",
                 HandleResolver.resolve("ENTITY_WITHER_SPAWN", SOUNDS, Set.of("WITHER_SPAWN")::contains).orElseThrow());
+    }
+
+    @Test
+    void resolvesWritableBookBothWaysAcrossThe113MaterialRename() {
+        // Godly Transmog names WRITABLE_BOOK; on a 1.8 server only BOOK_AND_QUILL exists (and forward the
+        // other way when a 1.8 config is loaded on a modern server).
+        assertEquals("BOOK_AND_QUILL",
+                HandleResolver.resolve("WRITABLE_BOOK", MATERIALS, Set.of("BOOK_AND_QUILL")::contains).orElseThrow());
+        assertEquals("WRITABLE_BOOK",
+                HandleResolver.resolve("BOOK_AND_QUILL", MATERIALS, Set.of("WRITABLE_BOOK")::contains).orElseThrow());
     }
 }

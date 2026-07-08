@@ -3,8 +3,8 @@
 # enchant display order by hand. One physical item per file; reload with /se reload.
 type: godly-transmog
 
-material: NETHER_STAR
-name: "&5Godly Transmog"
+material: WRITABLE_BOOK
+name: "&6&lGodly Transmog Scroll"
 lore:
-  - "&7Drag onto enchanted gear to"
-  - "&7reorder its enchants by hand."
+  - "&eAllows you to customize the order of enchantments on your equipment."
+  - "&7Drag n' Drop on an item to apply."
