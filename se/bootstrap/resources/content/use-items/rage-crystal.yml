@@ -1,0 +1,22 @@
+# Rage Crystal — a right-click USE-ITEM (§3.6, docs/decisions/0048-use-items.md). The filename stem
+# (rage-crystal) is the def key an item stores; it doubles as the authoring template for the family, so every
+# field is commented. Its abilities compile through the SAME pipeline as enchants/crystals (source-erased,
+# full gate sequence: suppression, cooldown, condition, chance, souls), so a use-item interacts with every
+# other feature for free. The USE trigger is IMPLICIT — do NOT declare a `trigger:` (it is warned and forced).
+name: "&c&lRage Crystal&r &7(Right Click)&r"   # display name (colours inline); used verbatim + as {NAME} in messages
+material: RED_DYE                               # resolved cross-version at mint (degrades to REDSTONE on the 1.8 lane)
+consumable: true        # true = one item is consumed on a successful use; false = a reusable tool
+shiny: false            # true = the minted item carries an enchant glint
+lore:
+  - "&eConsume to gain a temporary strength buff, at the cost of movement speed."
+  - ""
+  - "&eCooldown: &f&n{TIME_FORMATTED}&r"       # {TIME_FORMATTED} in LORE renders the a0 cooldown below, h/m/s
+  - "&7Right Click while holding this item to apply."
+permission: ""          # optional Bukkit permission checked at use time; empty = everyone
+cooldown: 1200          # ticks (standard ability cooldown, gate 6) — 60s; also what {TIME_FORMATTED} shows
+chance: 100             # activation chance percent (gate 8)
+condition: ""           # optional condition DSL, same grammar as enchants; failing it renders {CONDITION} in the fail message
+effects:                # Strength II + Slowness I on self for 12s (240 ticks)
+  - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 240, who: "@Self" } }
+  - { POTION: { effect: "SLOW", level: 1, duration: 240, who: "@Self" } }
+commands: []            # strings (run as console) or { as: player|console, run: "..." }; {PLAYER}/{UUID}/{WORLD} substituted

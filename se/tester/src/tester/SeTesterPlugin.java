@@ -41,6 +41,7 @@ import tester.suite.SoulEconomySuite;
 import tester.suite.SoulSuite;
 import tester.suite.TeleportSuite;
 import tester.suite.TriggerSuite;
+import tester.suite.UseItemSuite;
 import tester.suite.WhySuite;
 import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
@@ -111,6 +112,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new SoulEconomySuite(this)); // §D: deposit-on-any-kill + combine + split
         harness.add(new ScrollPlayerSuite(this)); // §I: holy death-save + nametag rename
         harness.add(new TriggerSuite(this));
+        harness.add(new UseItemSuite(this)); // §3.6/ADR-0048: right-click use-item → shared pipeline (potions, consume, cooldown, commands)
         harness.add(new WhySuite(this)); // ADR-0045: record → decode under real region threading
         harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
         harness.add(new TeleportSuite(this));

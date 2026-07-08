@@ -18,6 +18,7 @@ features:
   slots: true      # the slot-expander orb can be applied to gear
   souls: true      # the soul gem system (deposit on kill, soul mode, gem inventory)
   scrolls: true    # scroll-family interactions (black/randomizer/transmog/holy/nametag/godly transmog)
+  use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
 # reduction%; these ceil those sums. A negative value = no cap (the default — current behaviour). pvp/pve gate

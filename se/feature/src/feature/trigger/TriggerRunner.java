@@ -1,12 +1,14 @@
 package feature.trigger;
 
 import compile.model.Ability;
+import compile.model.FactMask;
 import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
 import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.FactPopulator;
+import engine.run.UseAttempt;
 import engine.sink.SinkReadback;
 import feature.soul.SoulBinding;
 import item.worn.WornState;
@@ -96,6 +98,26 @@ public final class TriggerRunner {
         }
         runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
                 wornState, candidates, true);
+    }
+
+    /**
+     * The COLD use-item entry point (§3.6): run a held use-item's EXPLICIT candidate abilities on {@code USE} and
+     * report a compact {@link UseAttempt}. Unlike the trigger paths this does NOT read {@code byTrigger} or apply
+     * the worn heroic fold — a use-item's abilities live on the held item, not worn gear — and it resolves the full
+     * {@link FactMask} (cold path, a safe superset) so any authored condition's facts are populated. The Activation
+     * is built identically to {@link #runResolved} (chance supplier, facts, location, target bucket, soul mode);
+     * the CALLER owns the sink lifecycle (flush after this returns).
+     */
+    public UseAttempt runUse(Ability[] abilities, int generation, int worldId, int triggerId, Player actor,
+                             ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys, int[] candidates) {
+        long now = nowTicks.getAsLong();
+        Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
+                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
+                .facts(factPopulator.populate(context, now, FactMask.ALL))
+                .location(context.location())
+                .targetBucket(context.victim() instanceof Player ? 1 : 0);
+        soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
+        return executor.runUse(abilities, candidates, builder.build(), context, sink, stableKeys);
     }
 
     private void runResolved(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,

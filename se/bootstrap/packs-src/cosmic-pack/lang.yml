@@ -14,3 +14,11 @@ command.soul.split-usage: "&7Usage: &f/splitsouls [amount]&r"
 command.soul.split-ok: "&a&l(!)&r &aSoul gem has been split."
 command.soul.split-too-many: "&c&l(!)&r &cYou don't have enough souls to do that!"
 soul.soul-use: "&e&l** SOULS: &6&n&l{AMOUNT}&r&e&l **"
+
+# ── Use-items (§3.6, Cosmic-Enchants likeness) ─────────────────────────────────────────────────────────
+# The universal right-click use-item feedback, re-themed to match the pack. {NAME} = the item's display name;
+# {TIME_FORMATTED} = the remaining cooldown; {CONDITION} = the failed condition source (may be empty). A blank
+# success is silent (the potion/effect is its own feedback).
+use-item.success: ""
+use-item.cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
+use-item.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"

@@ -7,6 +7,7 @@ import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.ActorProbe;
 import engine.run.FactPopulator;
+import engine.run.UseAttempt;
 import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
 import engine.trigger.TriggerRegistry;
@@ -71,6 +72,7 @@ public final class TriggerDispatch {
     public final int command; // §B COMMAND — fired by the configured CommandTriggerCommand
     public final int impact;  // fired by a landing FALLING_BLOCK via FallingBlockListener (victim = what it hit)
     public final int expGain; // fired by TriggerListeners.onExpChange; scales the PlayerExpChangeEvent's XP in place
+    public final int use;     // §3.6 USE — fired only by the use-item right-click flow (UseItemService)
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -109,6 +111,7 @@ public final class TriggerDispatch {
         this.command = triggers.idOf("COMMAND").orElse(-1);
         this.impact = triggers.idOf("IMPACT").orElse(-1);
         this.expGain = triggers.idOf("EXP_GAIN").orElse(-1);
+        this.use = triggers.idOf("USE").orElse(-1);
     }
 
     /**
@@ -306,6 +309,30 @@ public final class TriggerDispatch {
             event.setAmount(Math.max(0, (int) Math.round(event.getAmount() * m)));
         }
         sink.flush();
+    }
+
+    /**
+     * Fire the §3.6 USE trigger for a right-clicked use-item: resolve {@code stableKeys} (the def's ability keys,
+     * in order) to dense ids against the CURRENT snapshot — so the run and its read-back share one snapshot even
+     * across a concurrent reload — run them through the shared cold-path machinery, flush, and return the compact
+     * {@link UseAttempt} the {@link feature.useitem.UseItemService} renders feedback from. A {@code -1} key stays
+     * {@code -1} in the candidate array so the returned condition index still aligns with the def's ability order.
+     */
+    public UseAttempt fireUse(Player actor, java.util.List<String> stableKeys) {
+        if (use < 0) {
+            return UseAttempt.none();
+        }
+        Snapshot snapshot = content.snapshot();
+        int[] candidates = new int[stableKeys.size()];
+        for (int i = 0; i < candidates.length; i++) {
+            candidates[i] = snapshot.stableKeys().idOf(stableKeys.get(i));
+        }
+        ActivationContext context = new ActivationContext(actor, null, null, actor.getLocation());
+        SinkReadback sink = newSink();
+        UseAttempt attempt = runner.runUse(snapshot.abilities(), snapshot.generation(),
+                worldId(snapshot, context), use, actor, context, sink, snapshot.stableKeys(), candidates);
+        sink.flush();
+        return attempt;
     }
 
     private SinkReadback newSink() {

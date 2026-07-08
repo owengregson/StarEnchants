@@ -15,6 +15,8 @@ import feature.scroll.ScrollService;
 import feature.slot.SlotService;
 import feature.soul.SoulService;
 import feature.trak.TrakService;
+import feature.useitem.UseItemService;
+import compile.load.UseItemDef;
 import item.codec.TrakCodec;
 import java.util.List;
 import java.util.Locale;
@@ -486,6 +488,53 @@ final class Mints {
                     for (compile.load.TierRegistry.Tier tier : library.tiers().tiers()) {
                         String name = tier.name();
                         out.add(new MintCatalog.Entry(name + " unopened book", () -> unopenedBooks.mint(name)));
+                    }
+                    return out;
+                })
+                .build();
+    }
+
+    /** {@code useitem} (alias {@code use-item}) — a right-click use-item by key (§3.6); no self row. */
+    static Mintable useItem(UseItemService useItems, ContentHolder content) {
+        return Mint.type("useitem").aliases("use-item")
+                .give((sender, target, args, io) -> {
+                    if (args.length < 4) {
+                        sender.sendMessage(io.messages().format("command.useitem.usage"));
+                        return;
+                    }
+                    String key = args[3]; // the codec stores the bare filename stem — no source-prefix normalise
+                    if (content.library().useItemDefOf(key) == null) {
+                        sender.sendMessage(io.messages().format("command.error.no-such-useitem", "KEY", key));
+                        return;
+                    }
+                    int amount = 1;
+                    if (args.length >= 5) {
+                        try {
+                            amount = Math.max(1, Integer.parseInt(args[4]));
+                        } catch (NumberFormatException bad) {
+                            sender.sendMessage(io.messages().format("command.error.bad-number", "ARG", args[4]));
+                            return;
+                        }
+                    }
+                    int give = amount;
+                    Scheduling.onEntity(target, () -> {
+                        ItemStack item = useItems.mint(key);
+                        if (item != null) {
+                            item.setAmount(give);
+                            Inventories.giveOrDrop(target, item);
+                        }
+                        target.sendMessage(io.messages().format("command.give.useitem", "KEY", key));
+                    });
+                    if (Give.notSelf(sender, target)) {
+                        Give.tell(sender, io.messages().format("command.give.delivered",
+                                "ITEM", key, "PLAYER", target.getName()));
+                    }
+                })
+                .tiles(150, library -> {
+                    List<MintCatalog.Entry> out = new java.util.ArrayList<>();
+                    for (UseItemDef def : library.useItems()) {
+                        String defKey = def.key();
+                        out.add(new MintCatalog.Entry(defKey + " use-item", () -> useItems.mint(defKey)));
                     }
                     return out;
                 })

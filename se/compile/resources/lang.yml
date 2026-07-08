@@ -22,6 +22,7 @@ command.error.bad-level: "&cLevel must be a number, got &f{ARG}"
 command.error.level-range: "&cLevel must be 1–{MAX} for &f{KEY}"
 command.error.no-such-enchant: "&cNo such enchant: &f{KEY}"
 command.error.no-such-crystal: "&cNo such crystal: &f{KEY}"
+command.error.no-such-useitem: "&cNo such use-item: &f{KEY}"
 command.error.no-such-tier: "&cNo such tier: &f{TIER}"
 command.reload.start: "&7StarEnchants: {MODE} content…"
 command.reload.loaded: "&aStarEnchants: {VERB} {COUNT} abilities (generation {GEN})."
@@ -47,6 +48,7 @@ command.enchant.usage: "&eUsage: /se enchant <key> [level]"
 command.removeenchant.usage: "&eUsage: /se removeenchant <enchant> &7— strips it from the held item"
 command.crystal.usage: "&eUsage: /se crystal <key> &7— a crystal you drag onto gear to apply"
 command.unopened.usage: "&eUsage: /se unopened <tier> &7— right-click it to reveal a random book"
+command.useitem.usage: "&eUsage: /se give useitem <player> <key> [amount] &7— a right-click item you consume/hold"
 command.book.usage: "&eUsage: /se book <enchant> [level] &7— a book you drag onto gear to apply it"
 command.give.crystal: "&aMinted a crystal: &f{KEY}&a. &7Drag it onto gear to apply."
 command.give.extractor: "&aMinted a crystal extractor. &7Drag it onto crystal-bearing gear to extract."
@@ -71,6 +73,7 @@ command.give.dust: "&aMinted success dust. &7Drag it onto an enchant book to boo
 command.give.whitescroll: "&fMinted a white scroll. &7Drag it onto gear to protect it from a failed enchant."
 command.give.unopened: "&bMinted an unopened &f{TIER} &bbook. &7Right-click it to reveal a random enchant book."
 command.give.book: "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a."
+command.give.useitem: "&aMinted the use-item &f{KEY}&a. &7Right-click while holding it to use."
 command.reference.header: "&e{CATEGORY} &7({COUNT}): &f{ITEMS}"
 command.reference.list: "&eReference: &f{CATEGORIES} &7— /se effects|selectors|triggers|conditions|variables"
 
@@ -319,6 +322,13 @@ trak.already: "&7That item already has this trak."
 trak.occupied: "&cThat item already has another applied item — only one fits."
 book.unopened.open: "&aYou revealed &f{ENCHANT} {LEVEL}&a (&f{PERCENT}%&a success)!"
 book.unopened.empty-tier: "&cThere are no enchants in that tier to reveal."
+
+# ── Use-items (§3.6) — the UNIVERSAL feedback for every right-click use-item, sent WITHOUT the message prefix. ─
+# {NAME} = the use-item's display name (colours intact); {TIME_FORMATTED} = the remaining cooldown (h/m/s);
+# {CONDITION} = the authored condition source that failed (may be empty). A success set to "" is silent.
+use-item.success: ""
+use-item.cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
+use-item.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
 
 # ── Carrier apply outcomes (enchant books, success dust, white scroll — the drag-onto-gear economy) ──────
 # The carrier is a book/dust/white-scroll dragged onto gear. A failed roll spends the carrier; the enchant

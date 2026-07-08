@@ -27,6 +27,7 @@ public final class Modules {
     final HeroicModule heroic;
     final SlotsModule slots;
     final BooksModule books;
+    final UseItemsModule useItems;
     final ScrollsModule scrolls;
     final TraksModule traks;
     final EnchantsModule enchants;
@@ -51,6 +52,7 @@ public final class Modules {
         this.heroic = new HeroicModule(core);
         this.slots = new SlotsModule(core);
         this.books = new BooksModule(core, carriers);      // layers on the carrier economy
+        this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
         this.scrolls = new ScrollsModule(core, carriers);  // layers on the carrier economy
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);
@@ -65,6 +67,7 @@ public final class Modules {
         allMintables.addAll(heroic.mints);
         allMintables.addAll(slots.mints);
         allMintables.addAll(books.mints);
+        allMintables.addAll(useItems.mints);
         allMintables.addAll(scrolls.mints);
         allMintables.addAll(traks.mints);
         allMintables.addAll(sets.mints);
@@ -79,8 +82,9 @@ public final class Modules {
 
         this.registry = List.of(combat.module(), equip.module(), souls.module(), triggers.module(),
                 controls.module(), stores.module(), guard.module(), carriers.module(), crystals.module(),
-                heroic.module(), slots.module(), books.module(), scrolls.module(), traks.module(),
-                enchants.module(), sets.module(), menus.module(), reload.module(), commands.module());
+                heroic.module(), slots.module(), books.module(), useItems.module(), scrolls.module(),
+                traks.module(), enchants.module(), sets.module(), menus.module(), reload.module(),
+                commands.module());
     }
 
     /** The ordered fold registry (the composition root folds this). */
