@@ -11,27 +11,33 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import platform.lang.Messages;
-import platform.text.Colors;
-import platform.text.TimeFormat;
+import platform.item.EdibleItems;
 
 /**
  * Right-click a held use-item to fire its abilities (§3.6, docs/decisions/0048-use-items.md). Bukkit-thin glue —
- * logic is in {@link UseItemService}; this clones {@link feature.book.UnopenedBookListener}'s guard structure
- * (priority LOW, NOT ignoreCancelled, main-hand only, RIGHT_CLICK_AIR|BLOCK) and renders the UNIVERSAL use-item
- * feedback (shared by every use-item, keyed in lang.yml, sent WITHOUT the global message prefix). Folia-correct:
+ * the activation tail is the shared {@link UseItemRunner}; this clones {@link feature.book.UnopenedBookListener}'s
+ * guard structure (priority LOW, NOT ignoreCancelled, main-hand only, RIGHT_CLICK_AIR|BLOCK). Folia-correct:
  * fires on the player's own region thread, touching only their held item.
+ *
+ * <p>The one branch (the is-food design spec): an {@code is-food} def on a server where {@link EdibleItems} is
+ * enabled (1.20.5+) is NOT claimed here — the right-click is left to start the vanilla eat animation, and
+ * {@link UseItemConsumeListener} fires the abilities when the eat completes. Every other case (non-food items, and
+ * {@code is-food} on a sub-1.20.5 server) still claims the right-click and fires immediately — which is where
+ * "no-op below 1.20.5" falls out.
  */
 public final class UseItemListener implements Listener {
 
     private final UseItemService service;
-    private final Messages messages;
+    private final UseItemRunner runner;
+    private final EdibleItems edibleItems;
     private final Hands hands;
     private final BooleanSupplier enabled; // §L features.use-items — live; a disabled flag leaves the item inert
 
-    public UseItemListener(UseItemService service, Messages messages, Hands hands, BooleanSupplier enabled) {
+    public UseItemListener(UseItemService service, UseItemRunner runner, EdibleItems edibleItems, Hands hands,
+                           BooleanSupplier enabled) {
         this.service = Objects.requireNonNull(service, "service");
-        this.messages = Objects.requireNonNull(messages, "messages");
+        this.runner = Objects.requireNonNull(runner, "runner");
+        this.edibleItems = Objects.requireNonNull(edibleItems, "edibleItems");
         this.hands = Objects.requireNonNull(hands, "hands");
         this.enabled = Objects.requireNonNull(enabled, "enabled");
     }
@@ -57,50 +63,13 @@ public final class UseItemListener implements Listener {
         if (!enabled.getAsBoolean()) {
             return; // feature disabled: leave the item inert (do not claim the gesture)
         }
-        event.setCancelled(true); // claim the gesture: a use-item does nothing else on right-click
-
         UseItemDef def = service.defOf(key);
-        if (def == null) {
-            sendFail(player, "", ""); // a stale key an old item still carries — inert, but explain the failure
+        // An is-food item on a ≥1.20.5 server: let the vanilla eat BEGIN (do NOT cancel, which would abort the
+        // animation). UseItemConsumeListener fires the abilities when the eat completes.
+        if (def != null && def.isFood() && edibleItems.enabled()) {
             return;
         }
-        if (!def.permission().isEmpty() && !player.hasPermission(def.permission())) {
-            sendFail(player, def.name(), "");
-            return;
-        }
-        UseOutcome outcome = service.use(player, def);
-        switch (outcome.result()) {
-            case ACTIVATED -> {
-                if (def.consumable()) {
-                    consumeMainHand(player, key);
-                }
-                sendUniversal(player, "use-item.success", "NAME", def.name());
-            }
-            case ON_COOLDOWN -> sendUniversal(player, "use-item.cooldown", "NAME", def.name(),
-                    "TIME_FORMATTED", TimeFormat.hmsFromTicks(outcome.cooldownRemainingTicks()));
-            case CONDITION_FAILED -> sendFail(player, def.name(), outcome.conditionSource());
-            case CHANCE_FAILED, BLOCKED -> { } // the roll just did not land / a non-feedback gate — silent
-        }
-    }
-
-    // Re-read after the effects flush: a pathological ability could have emptied or swapped the held slot
-    // (e.g. commands: ["clear {PLAYER}"] or a disarm effect). Only decrement if the same use-item is still held,
-    // so we never NPE on an emptied hand nor charge an item the abilities replaced it with.
-    private void consumeMainHand(Player player, String key) {
-        ItemStack hand = hands.mainHand(player);
-        if (hand == null || !key.equals(service.keyOf(hand))) {
-            return;
-        }
-        hand.setAmount(hand.getAmount() - 1);
-        hands.setMainHand(player, hand.getAmount() <= 0 ? null : hand);
-    }
-
-    private void sendFail(Player player, String name, String condition) {
-        sendUniversal(player, "use-item.fail", "NAME", name, "CONDITION", condition);
-    }
-
-    /** Render a UNIVERSAL use-item message: no prefix (fragment), fill tokens, translate colours, send; empty ⇒ silent. */
-    private void sendUniversal(Player player, String key, Object... tokens) {
-        messages.sendText(player, Colors.translate(messages.fragment(key, tokens)));
+        event.setCancelled(true); // claim the gesture: a use-item does nothing else on right-click
+        runner.activate(player, key);
     }
 }

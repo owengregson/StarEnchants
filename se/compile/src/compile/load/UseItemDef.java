@@ -20,6 +20,10 @@ import java.util.List;
  * @param material         raw material token; resolved cross-version at mint, not here
  * @param lore             authored lore lines, verbatim (the feature layer substitutes {@code {TIME_FORMATTED}})
  * @param consumable       whether one item is consumed on a successful use ({@code true}) vs a reusable tool
+ * @param isFood           whether the item must be EATEN (real eat animation) to trigger, not click-triggered;
+ *                         forces edibility at mint on 1.20.5+ and is a no-op below (degrades to one-click).
+ *                         Composes with {@link #consumable}: it decides HOW you trigger, {@code consumable}
+ *                         decides WHETHER one item is removed on a successful use.
  * @param shiny            whether the minted item carries an enchant glint
  * @param permission       Bukkit permission gating use, checked at use time; {@code ""} = everyone
  * @param cooldownTicks    ability a0's cooldown, surfaced in lore as {@code {TIME_FORMATTED}}
@@ -33,6 +37,7 @@ public record UseItemDef(
         String material,
         List<String> lore,
         boolean consumable,
+        boolean isFood,
         boolean shiny,
         String permission,
         int cooldownTicks,

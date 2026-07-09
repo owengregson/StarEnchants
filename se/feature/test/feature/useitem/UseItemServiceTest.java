@@ -2,6 +2,7 @@ package feature.useitem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import compile.load.ContentHolder;
@@ -10,9 +11,12 @@ import engine.run.UseAttempt;
 import feature.trigger.TriggerDispatch;
 import item.codec.UseItemCodec;
 import item.mint.VanillaEnchants;
+import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
+import platform.item.EdibleItems;
 
 /**
  * The §3.6 use-item outcome collapse: {@link UseItemService#use} maps the engine's {@link UseAttempt} to a
@@ -24,14 +28,59 @@ class UseItemServiceTest {
 
     // Two abilities: a0 with no condition, a1 with an authored one — so a condition stop at index 1 must name a1's.
     private static final UseItemDef DEF = new UseItemDef("rage", "&cRage", "RED_DYE", List.of(),
-            true, false, "", 1200, List.of("", "%health% < 6"), List.of("use:rage", "use:rage/a1"));
+            true, false, false, "", 1200, List.of("", "%health% < 6"), List.of("use:rage", "use:rage/a1"));
+
+    // An is-food def (isFood=true): mint must force it edible through the seam.
+    private static final UseItemDef FOOD_DEF = new UseItemDef("apple", "&aApple", "APPLE", List.of(),
+            true, true, false, "", 0, List.of(""), List.of("use:apple"));
+
+    /** A fake edibility seam that records which stacks it was asked to make edible (no live server). */
+    private static final class RecordingEdible extends EdibleItems {
+        final List<ItemStack> made = new ArrayList<>();
+
+        @Override
+        public boolean enabled() {
+            return true;
+        }
+
+        @Override
+        public void makeEdible(ItemStack stack) {
+            made.add(stack);
+        }
+    }
+
+    private static UseItemService serviceWith(EdibleItems edible) {
+        return new UseItemService(mock(ContentHolder.class), mock(UseItemCodec.class),
+                mock(TriggerDispatch.class), VanillaEnchants.NONE, edible);
+    }
+
+    @Test
+    void mintForcesEdibilityOnlyForAnIsFoodDef() {
+        RecordingEdible edible = new RecordingEdible();
+        UseItemService service = serviceWith(edible);
+        ItemStack foodStack = mock(ItemStack.class);
+        ItemStack clickStack = mock(ItemStack.class);
+
+        service.applyEdible(FOOD_DEF, foodStack);
+        service.applyEdible(DEF, clickStack); // DEF.isFood() is false → the seam is never touched
+
+        assertEquals(List.of(foodStack), edible.made);
+    }
+
+    @Test
+    void underADisabledSeamAnIsFoodMintIsNeverMutated() {
+        UseItemService service = serviceWith(EdibleItems.NONE); // sub-1.20.5 / reflection-absent → disabled
+        ItemStack stack = mock(ItemStack.class);
+        service.applyEdible(FOOD_DEF, stack);
+        verifyNoInteractions(stack); // is-food, but disabled → degrades to one-click, item untouched
+    }
 
     private UseItemService serviceReturning(UseAttempt attempt) {
         TriggerDispatch dispatch = mock(TriggerDispatch.class);
         Player player = mock(Player.class);
         when(dispatch.fireUse(player, DEF.stableKeys())).thenReturn(attempt);
         UseItemService service = new UseItemService(mock(ContentHolder.class), mock(UseItemCodec.class),
-                dispatch, VanillaEnchants.NONE);
+                dispatch, VanillaEnchants.NONE, EdibleItems.NONE);
         this.player = player;
         return service;
     }
