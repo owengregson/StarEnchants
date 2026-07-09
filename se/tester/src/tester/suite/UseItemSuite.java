@@ -15,7 +15,9 @@ import engine.stores.CooldownStore;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.trigger.TriggerDispatch;
+import feature.useitem.UseItemConsumeListener;
 import feature.useitem.UseItemListener;
+import feature.useitem.UseItemRunner;
 import feature.useitem.UseItemService;
 import item.codec.CombatCodec;
 import item.codec.ItemKeys;
@@ -40,6 +42,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
+import platform.caps.Capabilities;
+import platform.item.EdibleItems;
 import platform.lang.Messages;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
@@ -149,8 +153,13 @@ public final class UseItemSuite implements Harness.Scenario {
         TriggerDispatch dispatch = new TriggerDispatch(executor,
                 dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn, triggers,
                 actor -> Optional.empty(), env, Stores.hands(), Stores.dropControl());
-        UseItemService service = new UseItemService(holder, codec, dispatch, VanillaEnchants.NONE);
-        UseItemListener listener = new UseItemListener(service, Messages.defaults(), Stores.hands(), () -> true);
+        // Real boot-resolved edibility seam for this server (is-food forces edibility on 1.20.5+). The rage/cmd
+        // items below are not is-food, so this leaves them as ordinary one-click use-items.
+        EdibleItems edibleItems = EdibleItems.of(Capabilities.probe(plugin.getServer()));
+        UseItemService service = new UseItemService(holder, codec, dispatch, VanillaEnchants.NONE, edibleItems);
+        UseItemRunner runner = new UseItemRunner(service, Messages.defaults(), Stores.hands());
+        UseItemListener listener = new UseItemListener(service, runner, edibleItems, Stores.hands(), () -> true);
+        UseItemConsumeListener consumeListener = new UseItemConsumeListener(service, runner, () -> true);
 
         ItemStack rage = service.mint("rage-crystal");
         ItemStack commander = service.mint("cmd-crystal");
@@ -162,6 +171,7 @@ public final class UseItemSuite implements Harness.Scenario {
 
         CombatRig rig = new CombatRig(plugin);
         rig.listen(listener);
+        rig.listen(consumeListener); // registered for parity; the is-food eat→consume flow is a matrix follow-up
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();

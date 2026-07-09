@@ -78,7 +78,7 @@ class UseItemDefReaderTest {
 
     @Test
     void omittedFlagsTakeTheDocumentedDefaults() {
-        // §3.7: consumable true, shiny false, permission "" when omitted.
+        // §3.7: consumable true, shiny false, is-food false, permission "" when omitted.
         Diagnostics diags = new Diagnostics();
         String yaml = """
             name: "&aTool"
@@ -90,8 +90,44 @@ class UseItemDefReaderTest {
         assertFalse(diags.hasErrors(), () -> diags.all().toString());
         assertTrue(def.consumable(), "consumable defaults true");
         assertFalse(def.shiny(), "shiny defaults false");
+        assertFalse(def.isFood(), "is-food defaults false");
         assertEquals("", def.permission());
         assertEquals(0, def.cooldownTicks());
+    }
+
+    @Test
+    void isFoodParsesTrueAndFalse() {
+        Diagnostics on = new Diagnostics();
+        UseItemDef eaten = UseItemDefReader.read("eaten",
+                root("name: \"&aE\"\nmaterial: APPLE\nis-food: true\neffects: []\n", on), counter(), on).def();
+        assertFalse(on.hasErrors(), () -> on.all().toString());
+        assertTrue(eaten.isFood());
+
+        Diagnostics off = new Diagnostics();
+        UseItemDef clicked = UseItemDefReader.read("clicked",
+                root("name: \"&aC\"\nmaterial: STICK\nis-food: false\neffects: []\n", off), counter(), off).def();
+        assertFalse(off.hasErrors(), () -> off.all().toString());
+        assertFalse(clicked.isFood());
+    }
+
+    @Test
+    void aBadIsFoodValueWarnsAndFallsBackToFalse() {
+        Diagnostics diags = new Diagnostics();
+        UseItemDef def = UseItemDefReader.read("x",
+                root("name: \"&aX\"\nmaterial: STICK\nis-food: maybe\neffects: []\n", diags), counter(), diags).def();
+        assertCode(diags, DiagCode.W_LOAD_BOOL);
+        assertFalse(diags.hasErrors(), "a bad boolean is a warning, not a block");
+        assertFalse(def.isFood(), "a bad is-food value falls back to the false default");
+    }
+
+    @Test
+    void anUnknownRootKeyIsStillFlaggedAlongsideIsFood() {
+        // is-food joined ROOT_KEYS, but a genuinely-unknown key must still warn (ROOT_KEYS did not go permissive).
+        Diagnostics diags = new Diagnostics();
+        UseItemDefReader.read("x",
+                root("name: \"&aX\"\nmaterial: STICK\nis-food: true\nnonsense: 1\neffects: []\n", diags),
+                counter(), diags);
+        assertCode(diags, DiagCode.W_UNKNOWN_KEY);
     }
 
     @Test

@@ -28,7 +28,7 @@ import schema.grammar.EffectLine;
 final class UseItemDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "name", "material", "consumable", "shiny", "lore", "permission", "commands", "abilities",
+            "name", "material", "consumable", "is-food", "shiny", "lore", "permission", "commands", "abilities",
             // single-ability shorthand (a use-item with exactly one ability authors these at the top level):
             "trigger", "chance", "cooldown", "condition", "effects");
     private static final Set<String> ABILITY_KEYS = Set.of(
@@ -58,6 +58,8 @@ final class UseItemDefReader {
         List<String> lore = root.stringList("lore");
         boolean consumable = ContentParse.boolOr(root.string("consumable"), true, "consumable",
                 DiagCode.W_LOAD_BOOL, root.sourceOf("consumable"), diags);
+        boolean isFood = ContentParse.boolOr(root.string("is-food"), false, "is-food",
+                DiagCode.W_LOAD_BOOL, root.sourceOf("is-food"), diags);
         boolean shiny = ContentParse.boolOr(root.string("shiny"), false, "shiny",
                 DiagCode.W_LOAD_BOOL, root.sourceOf("shiny"), diags);
         String permission = orEmpty(ContentParse.blankToNull(root.string("permission")));
@@ -102,7 +104,7 @@ final class UseItemDefReader {
 
         // Lore {TIME_FORMATTED} renders a0's cooldown, so a def with no abilities carries a zero cooldown.
         int cooldownTicks = abilities.isEmpty() ? 0 : abilities.get(0).cooldownTicks();
-        UseItemDef def = new UseItemDef(key, name, material, lore, consumable, shiny, permission,
+        UseItemDef def = new UseItemDef(key, name, material, lore, consumable, isFood, shiny, permission,
                 cooldownTicks, conditionSources, stableKeys);
         return new Parsed(def, abilities);
     }
