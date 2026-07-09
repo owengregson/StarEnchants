@@ -8,6 +8,13 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Use-items `is-food` — eat to trigger.** A use-item with `is-food: true` must be
+  EATEN (real eating animation) before its abilities fire, and is forced edible on any
+  material via the reflective `EdibleItems` seam (food component on 1.20.5–1.21.1, the
+  `consumable` data component on 1.21.2+; a no-op one-click below 1.20.5 and on 1.8).
+  Eating is a pure trigger gesture — no hunger — with the vanilla consume cancelled so the
+  plugin owns the one-item consume.
+
 - **Use-items — right-click content items (ADR-0048).** A new content family
   `content/use-items/*.yml`: a right-click item (its own material/name/lore/shiny/consumable)
   whose abilities fire on use. They lower to the same source-erased `Ability`s as enchants and
@@ -131,6 +138,16 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Interaction-abuse hardening — player-visible balance changes.** Several fixes below
+  change gameplay: Rage's combo damage is now capped (`combat.max-bonus-damage`, default
+  +500%) and combos reset on a victim switch; Ender Walker's heal gates on a real hit plus a
+  cooldown; Tinkerer salvage now refunds a random 1..(book buy cost) levels (can read "1
+  level"); Alchemist combine yields the better of the two inputs' success, not a guaranteed
+  book; a keepInventory death now DROPS a staged bench book instead of keeping it; and vanilla
+  anvil/grindstone/smithing are blocked on plugin set gear (durability pressure; no free
+  Mending or netherite). Heroic weapons forged before this build keep their old modifiers until
+  re-forged.
+
 - **Cosmic-pack item likenesses refreshed.** Five economy items were re-themed to their
   Cosmic-Enchants-style names/materials: the unopened book (`{TIER_NAME}`/`{TIER_COLOR}` tokens +
   `(Right Click)` hint), the crystal **Extractor** (bucket), **Magic Dust** (glowstone,
@@ -226,6 +243,20 @@ versioning: [Semantic Versioning](https://semver.org/).
   display-identical, just single-sourced.
 
 ### Fixed
+
+- **Interaction-abuse pass — 40 player-exploitable bugs closed.** A parallel review swept every
+  player-facing interaction surface for ways to dupe, cheat, or grief. Highlights: the
+  Enchanter→Tinkerer infinite-XP printer and the Alchemist guaranteed-book launder; money/XP
+  transfer effects minting from nothing; cooldowns and opponent-applied debuffs (teleblock/
+  suppression) surviving a relog instead of being wiped; a non-atomic Folia cooldown that
+  double-procced across regions; worn-state not refreshing on dual-wield / off-hand-to-chest /
+  broken-weapon / same-slot swaps (stale bonuses, one item buffing two players); the Scarecrow
+  temp-helmet dupe/destroy and free pumpkin; the default Holy White Scroll acting as a real
+  Totem of Undying; holy-scroll death-stash duplication; timed FLY/INVINCIBLE/health buffs
+  stranded by logout; temp-block harvesting/deletion and Folia revert loss; vanilla
+  anvil/grindstone/smithing laundering plugin gear; whole-stack nametag renames; bounty/MINE
+  paying for farmed kills and player-placed blocks; and RUN_COMMAND trusting a crafted player
+  name. All fixed with unit coverage; the live Paper+Folia matrix is the pre-release gate.
 
 - **The 1-block FOOTPRINT trail skipped blocks and cut corners.** The trail sampled the
   wearer's feet once per activation, so sprinting left gaps and diagonal movement stamped
