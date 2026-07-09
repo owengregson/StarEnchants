@@ -1,21 +1,28 @@
-# Bounty — slaying a foe pays out a reward.
+# Bounty — slaying a PLAYER pays out a reward.
+# The per-level `condition` gates the payout to player kills only (%victim.type% == "PLAYER"),
+# so mob grinders and breeding pens no longer print currency. An operator who wants mob bounties
+# deletes the condition line. (Two-player kill-trading is still possible but bounded by the death
+# cost; layer a per-target `cooldown:` here if that needs closing.)
 tier: uncommon
 display: "&eBounty"
-description: "Collect a reward for every kill."
+description: "Collect a reward for every player you slay."
 trigger: KILL
 applies-to: [WEAPON]
 group: combat
 levels:
   1:
     chance: 100
+    condition: "%victim.type% == \"PLAYER\""
     effects:
       - { MODIFY_MONEY: { amount: 50 } }
   2:
     chance: 100
+    condition: "%victim.type% == \"PLAYER\""
     effects:
       - { MODIFY_MONEY: { amount: 100 } }
   3:
     chance: 100
+    condition: "%victim.type% == \"PLAYER\""
     effects:
       - { MODIFY_MONEY: { amount: 200 } }
       - { MESSAGE: { text: "&eBounty collected!" } }

@@ -24,6 +24,7 @@ class MasterConfigLoaderTest {
         // retune. A regression where the absent path diverges from defaults() for any section still fails here.
         assertEquals(defaults.features(), config.features());
         assertEquals(defaults.combat(), config.combat());
+        assertEquals(defaults.mining(), config.mining());
         assertEquals(defaults.messages(), config.messages());
         assertEquals(defaults.books(), config.books());
         assertEquals(defaults.slots(), config.slots());
@@ -35,6 +36,40 @@ class MasterConfigLoaderTest {
         assertEquals(defaults.commandTrigger(), config.commandTrigger());
         assertEquals(defaults.messageOnActivate(), config.messageOnActivate());
         assertEquals(defaults.sets(), config.sets());
+        assertEquals(defaults.stations(), config.stations());
+    }
+
+    @Test
+    void stationGuardsDefaultOnAndParseExplicitFalse(@TempDir Path dir) throws Exception {
+        MasterConfig.StationsSection d = MasterConfig.StationsSection.defaults();
+        assertTrue(d.anvilGuard() && d.grindstoneGuard() && d.smithingGuard(), "all station guards on by default");
+
+        Path file = dir.resolve("stations.yml");
+        Files.writeString(file, """
+                stations:
+                  anvil-guard: false
+                  grindstone-guard: false
+                  smithing-guard: true
+                """);
+        MasterConfig.StationsSection s = MasterConfigLoader.load(file).stations();
+        assertFalse(s.anvilGuard());
+        assertFalse(s.grindstoneGuard());
+        assertTrue(s.smithingGuard()); // explicit true, and an absent section would also default true
+
+        // a garbage value and an absent section both fall back to the on default
+        Path garbage = dir.resolve("garbage-stations.yml");
+        Files.writeString(garbage, """
+                stations:
+                  anvil-guard: maybe
+                """);
+        assertTrue(MasterConfigLoader.load(garbage).stations().anvilGuard());
+
+        Path absent = dir.resolve("absent-stations.yml");
+        Files.writeString(absent, """
+                combat:
+                  pvp: false
+                """);
+        assertTrue(MasterConfigLoader.load(absent).stations().smithingGuard());
     }
 
     @Test
@@ -122,6 +157,36 @@ class MasterConfigLoaderTest {
     }
 
     @Test
+    void miningGuardDefaultsOnAndParsesExplicitFalse(@TempDir Path dir) throws Exception {
+        assertTrue(MasterConfig.MiningSection.defaults().placedBlockGuard(), "guard is on by default");
+
+        Path off = dir.resolve("off.yml");
+        Files.writeString(off, """
+                mining:
+                  placed-block-guard: false
+                """);
+        assertFalse(MasterConfigLoader.load(off).mining().placedBlockGuard());
+
+        // an absent key, and a garbage value, both fall back to the on default
+        Path garbage = dir.resolve("garbage.yml");
+        Files.writeString(garbage, """
+                mining:
+                  placed-block-guard: maybe
+                """);
+        assertTrue(MasterConfigLoader.load(garbage).mining().placedBlockGuard());
+
+        Path absent = dir.resolve("absent.yml");
+        Files.writeString(absent, """
+                combat:
+                  pvp: false
+                """);
+        assertTrue(MasterConfigLoader.load(absent).mining().placedBlockGuard());
+        // an absent engine section defaults the offline-state and temp-block sweep periods
+        assertEquals(6000, MasterConfigLoader.load(absent).engine().offlineStateSweepTicks());
+        assertEquals(600, MasterConfigLoader.load(absent).engine().tempBlockSweepTicks());
+    }
+
+    @Test
     void parsesEverySection(@TempDir Path dir) throws Exception {
         Path file = dir.resolve("config.yml");
         Files.writeString(file, """
@@ -151,11 +216,16 @@ class MasterConfigLoaderTest {
                   enabled: false
                   name: ability
                   description: "Cast it."
+                engine:
+                  offline-state-sweep-ticks: 1200
+                  temp-block-sweep-ticks: 300
                 """);
 
         MasterConfig config = MasterConfigLoader.load(file);
 
         assertFalse(config.hasErrors());
+        assertEquals(1200, config.engine().offlineStateSweepTicks());
+        assertEquals(300, config.engine().tempBlockSweepTicks());
         assertEquals(12, config.slots().base());
         assertFalse(config.souls().depositOnAnyKill());
         assertEquals(3, config.crystals().slots());

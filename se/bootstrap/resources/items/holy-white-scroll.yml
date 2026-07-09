@@ -6,6 +6,9 @@
 # reload with /se reload. Messages live in lang.yml (scroll.holy.*).
 type: holy-white-scroll
 
+# The TOTEM_OF_UNDYING likeness is DISPLAY ONLY: the vanilla totem pop is suppressed (HolyTotemGuard), so the
+# scroll keeps one marked item through death — it does NOT prevent the death like a real totem. On 1.8.9 there
+# is no totem item or pop to suppress. The shipped cosmic pack overrides this to MAP.
 material: TOTEM_OF_UNDYING
 name: "&fHoly White Scroll"
 # {KINDS} expands to the grammatically-joined applies-to label.

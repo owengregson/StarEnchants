@@ -39,8 +39,9 @@ public final class StarEnchantsPlugin extends JavaPlugin {
                 pluginItem -> new VanillaGuardListener(
                         stack -> stack != null && stack.getType() != Material.AIR && pluginItem.test(stack),
                         core.hands()),
-                // §5.4 the quit sweeper over EngineStores + every module's declared per-player stores.
-                extra -> new EngineStoreListener(core.stores(), extra),
+                // §5.4 the quit sweeper over EngineStores + every module's declared per-player stores; the
+                // monotonic tick lets it RETAIN combat windows across a relog (only elapsed entries are shed).
+                extra -> new EngineStoreListener(core.stores(), extra, core.tick()::get),
                 new BindingsCommandRegistrar(),
                 modules.menuRegistry(),
                 core.coreStops());

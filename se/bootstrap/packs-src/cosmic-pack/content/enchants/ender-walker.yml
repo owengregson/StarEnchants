@@ -23,14 +23,22 @@ levels:
     effects:
       - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
   3:
+    # The heal only fires on a real hit (>= 1.5 dmg) and at most once per 2s, so a poke/0-dmg snowball spam
+    # can't heal-lock the wearer. The level-wide gate also gates the IMMUNE refresh (one ability per level).
+    condition: "%damage% >= 1.5"
+    cooldown: 40
     effects:
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from DEFENSE;1.5;HEAL:ADD:1:2 — EE DEFENSE-threshold factor 1.5 dropped (no SE per-effect gate)
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }
   4:
+    condition: "%damage% >= 2.5"
+    cooldown: 40
     effects:
-      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }  # from DEFENSE;2.5;HEAL:ADD:1:3 — EE DEFENSE-threshold factor 2.5 dropped (no SE per-effect gate)
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
+      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }
   5:
+    condition: "%damage% >= 3"
+    cooldown: 40
     effects:
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from DEFENSE;3;HEAL:ADD:2:4 — EE DEFENSE-threshold factor 3 dropped (no SE per-effect gate)
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
+      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }

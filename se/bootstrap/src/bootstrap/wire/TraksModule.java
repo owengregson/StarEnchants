@@ -1,6 +1,7 @@
 package bootstrap.wire;
 
 import feature.menu.Mintable;
+import feature.trak.ShotWeapons;
 import feature.trak.TrakListener;
 import feature.trak.TrakService;
 import item.codec.TrakCodec;
@@ -31,10 +32,13 @@ final class TraksModule {
     }
 
     FeatureModule module() {
+        // §I F19: one launcher tracker feeds the kill-credit resolution and its own shoot/launch bookkeeping.
+        ShotWeapons shotWeapons = new ShotWeapons(core.projectiles(), core.hands());
         return FeatureModule.named("traks")
                 .toggle(Toggle.boot("features.scrolls",
                         () -> core.master().config().features().scrolls(), ""))
-                .events(new TrakListener(traks, core.messages(), core.sounds()))
+                .events(new TrakListener(traks, core.messages(), core.sounds(), core.hands(), shotWeapons))
+                .events(shotWeapons)
                 .mints(mints)
                 .pluginItem(traks::isTrakGem)
                 .lang("trak", "command.give.trak")

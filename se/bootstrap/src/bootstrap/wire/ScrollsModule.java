@@ -4,6 +4,7 @@ import feature.menu.GodlyTransmogMenu;
 import feature.menu.Mintable;
 import feature.scroll.HolyScrollListener;
 import feature.scroll.HolyScrollService;
+import feature.scroll.HolyTotemGuard;
 import feature.scroll.KeptItemsStore;
 import feature.scroll.NametagListener;
 import feature.scroll.NametagService;
@@ -60,6 +61,9 @@ final class ScrollsModule {
                 .events(new NametagListener(nametags, core.messages(), core.sounds(), core.anvilRename()))
                 // modern: colour the anvil result preview (no-op on 1.8.9).
                 .install("anvil rename preview", () -> core.anvilRename().installPreview(core.plugin(), nametags))
+                // §I F23: a TOTEM_OF_UNDYING-likeness holy scroll must not pop as a vanilla totem (ABSENT on 1.8).
+                .install("holy totem-pop guard", () -> core.plugin().getLogger().info(
+                        "holy totem-pop guard: " + HolyTotemGuard.register(core.plugin(), holyScrolls, core.hands())))
                 .store(keptItems)
                 .store(nametags)
                 .mints(mints)

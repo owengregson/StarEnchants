@@ -21,13 +21,32 @@ features:
   use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
-# reduction%; these ceil those sums. A negative value = no cap (the default — current behaviour). pvp/pve gate
-# whether StarEnchants combat effects apply at all in that context. All read live on /se reload.
+# reduction%; these ceil those sums. A negative value = no cap; outgoing defaults to +500% so a pre-charged
+# combo streak cannot one-shot. pvp/pve gate whether StarEnchants combat effects apply at all in that context.
+# All read live on /se reload.
 combat:
-  max-bonus-damage: -1.0      # ceiling on summed outgoing-damage fraction (e.g. 5.0 = at most +500%); <0 = uncapped
+  max-bonus-damage: 5.0       # ceiling on summed outgoing-damage fraction (5.0 = at most +500%); <0 = uncapped
   max-bonus-reduction: -1.0   # ceiling on summed damage-reduction fraction (e.g. 0.8 = at most 80%); <0 = uncapped
   pvp: true                   # apply combat effects in player-vs-player hits
   pve: true                   # apply combat effects in player-vs-environment hits
+
+# Mining rewards (cross-cutting). Read live on /se reload.
+mining:
+  # Suppress the MINE trigger on a block a player placed since the last server start, so a place/break loop
+  # cannot farm MINE rewards (XP, money, auto-smelt, teleport-drops). This suppresses the WHOLE MINE dispatch on
+  # a placed block — QoL MINE effects are gated too (vanilla-consistent, mcMMO-precedented). Placement memory is
+  # boot-lifetime only: a restart forgets prior placements. false = reward every break (the old behaviour).
+  placed-block-guard: true
+
+# Vanilla-station guards on plugin SET gear. Read live on /se reload. Set pieces and set weapons carry their whole
+# plugin identity (set key, custom enchants, crystals, heroic) in item NBT, which vanilla stations copy wholesale —
+# so an unguarded station would bolt off-design stats onto gear the pack balanced as diamond. Each guard denies one
+# station on set gear; false = restore that station's vanilla behaviour. A bare anvil RENAME of set gear always
+# works (it adds no stats). Grindstone/smithing exist only on modern servers (1.14/1.16+); on 1.8.9 only the anvil.
+stations:
+  anvil-guard: true       # deny anvil combine/repair on set gear (adding Mending etc. / cheap repair); rename stays allowed
+  grindstone-guard: true  # deny grindstone disenchant/merge on set gear (cashing minted vanilla enchants for XP)
+  smithing-guard: true    # deny the smithing-table netherite upgrade on set gear
 
 # Player feedback (chat style). prefix is prepended to every message the plugin sends through its message
 # facade (chat feedback only — never item names/lore). feedback toggles the keyed gameplay-feedback channel
@@ -126,3 +145,15 @@ command-trigger:
   enabled: true                                     # register the command at boot
   name: cast                                        # the command players run (no leading slash): /cast
   description: "Trigger your COMMAND enchantments."  # shown in tab/help listings
+
+# Engine runtime. Combat-integrity per-player state — ability cooldowns and victim-applied teleport-block /
+# suppression windows — is RETAINED across a relog (against the monotonic game tick), so a quick
+# disconnect+reconnect can no longer skip a long cooldown (e.g. Phoenix) or shed a landed debuff. An offline
+# player's entries are only read again on rejoin; this periodic sweep evicts already-elapsed ones to bound
+# memory for players who never return. Armed once at boot (restart to re-tune), so NOT a /se reload knob.
+engine:
+  offline-state-sweep-ticks: 6000   # sweep interval in ticks (6000 = 5 min); <= 0 disables the periodic sweep
+  # Temp cosmetic blocks (magma floors, footprint trails) revert on a timer; on Folia a chunk unload can drop that
+  # timer and strand the block. Chunk-load re-arms the revert; this sweep also force-reverts any loaded-chunk tile
+  # whose timer was dropped. Armed once at boot (restart to re-tune).
+  temp-block-sweep-ticks: 600       # sweep interval in ticks (600 = 30s); <= 0 disables the periodic sweep

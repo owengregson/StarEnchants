@@ -76,14 +76,22 @@ public interface EraServices {
     AnvilRename anvilRename();
 
     // ── era listeners / registration ──
-    /** §B armour-change feeder that drives {@link EquipListener#refresh} (modern event / 1.8 poll + close). */
+    /** §B armour-change feeder that drives {@link EquipListener#refresh} (modern event / 1.8 poll). */
     Listener armourChangeFeeder(EquipListener equip);
+
+    /** §B hand-change feeder that drives {@link EquipListener#refresh} on off-hand swap / pickup-into-empty-hand
+     *  (modern only; 1.8 has no off-hand, so an inert listener — G02/F09). */
+    Listener handChangeFeeder(EquipListener equip);
 
     /** ITEM_DAMAGE source (modern {@code PlayerItemDamageEvent}; 1.8 an inert listener — the poll fires it). */
     Listener itemDamageSource(TriggerDispatch dispatch);
 
     /** §F heroic durability save (modern per-event cancel; 1.8 an inert listener — the poll restores post-hoc). */
     Listener heroicDurabilitySave(CombatCodec codec, Random rolls);
+
+    /** Vanilla-station guard (G04/G05/G06): modern smithing/grindstone/anvil prepare-event guard; 1.8 the
+     *  anvil-click twin (the only station that exists there). */
+    Listener stationGuard(feature.guard.StationGuardRules rules);
 
     /** §C KNOCKBACK_CONTROL: register the applier this server fires knockback through; returns the chosen path. */
     KnockbackListener.Path registerKnockback(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks);

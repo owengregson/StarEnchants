@@ -366,7 +366,7 @@ Send feedback on a channel: chat (default), actionbar, or title (with subtitle +
 
 ### MODIFY_EXP
 
-Modify a player target's experience: give to them, take from them, or transfer (take from the target and grant the total to the activator). Replaces GIVE_EXP.
+Modify a player target's experience: give to them, take from them, or transfer (move at most the target's experience to the activator — never more than they hold). Replaces GIVE_EXP.
 
 - _affinity_: `TARGET_ENTITY`
 - _usage_: `{ MODIFY_EXP: { amount: <int[0..]>, mode: <enum{give|take|transfer}=give> } }`
@@ -399,7 +399,7 @@ Modify a target's health: give heals them, take deals direct health damage, tran
 
 ### MODIFY_MONEY
 
-Modify a player target's balance: give to them, take from them, transfer (take from the target and give the total to the activator), or steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].
+Modify a player target's balance: give to them, take from them, transfer (move at most the target's balance to the activator — never more than they hold), or steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].
 
 - _affinity_: `TARGET_ENTITY`
 - _usage_: `{ MODIFY_MONEY: { amount: <double[0..]>, mode: <enum{give|take|transfer|steal_percent}=give> } }`
@@ -538,7 +538,7 @@ Debit souls from a soul gem: @Self (default) charges the activator's active gem,
 
 ### RUN_COMMAND
 
-Run a command as the console (default) or as the activating player. The `{PLAYER}`/`{UUID}`/`{WORLD}` tokens expand to the actor's name, uuid, and world. Affinity GLOBAL — the console path runs on the global thread; the player path runs on the actor's own thread.
+Run a command as the console (default) or as the activating player. The `{PLAYER}`/`{UUID}`/`{WORLD}` tokens expand to the actor's name, uuid, and world. Affinity GLOBAL — the console path runs on the global thread; the player path runs on the actor's own thread. The `{PLAYER}` token refuses to run the command when the actor's name falls outside the standard `[A-Za-z0-9_]` (1-16) username charset.
 
 - _affinity_: `GLOBAL`
 - _usage_: `{ RUN_COMMAND: { command: <string>, as: <enum{console|player}=console> } }`

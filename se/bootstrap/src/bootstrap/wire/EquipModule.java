@@ -53,15 +53,17 @@ final class EquipModule {
                 },
                 () -> core.master().config().sets().messageUppercase(), // read live so a reload can flip it
                 new SetEquipEffects(() -> core.master().config().sets(), core.particleFx(), core.sounds()));
-        // The shared worn-state refresher (join/held/respawn/quit); the era armour-change feeder drives its refresh.
+        // The shared worn-state refresher (join/held/respawn/quit + hand-mutation feeders); the era armour-/hand-change
+        // feeders drive its refresh. The EquipSource + ItemViewCache back the F09 hand-signature reconcile.
         this.equipListener = new EquipListener(core.worn(), core.content(), passives, lifecycle, passiveEffects,
-                setMessages);
+                setMessages, core.bindings().equipSource(), core.itemViews());
     }
 
     FeatureModule module() {
         return FeatureModule.named("equip")
                 .events(equipListener)
                 .events(core.bindings().armourChangeFeeder(equipListener))
+                .events(core.bindings().handChangeFeeder(equipListener))
                 // §B instant DISABLE: drop a suppressed player's passive buffs at once, restore at window end.
                 .install("suppression-refresh hook", () -> core.stores().suppression().onSuppress(
                         (playerId, durationTicks) -> {
@@ -84,9 +86,15 @@ final class EquipModule {
                     }
                 })
                 // §B passive-potion maintenance sweep: the safety net (equip/respawn/suppression refresh instantly).
+                // It also carries the F09 hand-signature reconcile — a drifted hand (a /clear'd or effect-swapped
+                // item that fired no event) refreshes fully here, so we skip the redundant passive re-derive then.
                 .boot(() -> Scheduling.repeatingGlobal(PASSIVE_SWEEP_TICKS, PASSIVE_SWEEP_TICKS, () -> {
                     for (Player player : core.plugin().getServer().getOnlinePlayers()) {
-                        Scheduling.onEntity(player, () -> passiveEffects.refresh(player));
+                        Scheduling.onEntity(player, () -> {
+                            if (!equipListener.reconcile(player)) {
+                                passiveEffects.refresh(player);
+                            }
+                        });
                     }
                 }))
                 .stop("REPEATING tasks", passives::disarmAll)

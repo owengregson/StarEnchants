@@ -9,6 +9,7 @@ import feature.combat.EquipListener;
 import feature.combat.KnockbackListener;
 import feature.combat.LegacyKnockbackListener;
 import feature.combat.ModernArmourChangeListener;
+import feature.combat.ModernHandChangeListener;
 import feature.heroic.HeroicDurabilityListener;
 import feature.trigger.DurabilityTriggerListener;
 import feature.trigger.TriggerDispatch;
@@ -157,6 +158,12 @@ public final class EraBindings implements EraServices {
         return new ModernArmourChangeListener(equip);
     }
 
+    /** §B hand-change source (§4/§6): modern off-hand swap + pickup-into-empty-hand. Drives {@code EquipListener.refresh}. */
+    @Override
+    public Listener handChangeFeeder(EquipListener equip) {
+        return new ModernHandChangeListener(equip);
+    }
+
     /** ITEM_DAMAGE source (§4): modern {@code PlayerItemDamageEvent} listener (1.8 fires it from the gear poll). */
     @Override
     public Listener itemDamageSource(TriggerDispatch dispatch) {
@@ -167,6 +174,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Listener heroicDurabilitySave(CombatCodec codec, Random rolls) {
         return new HeroicDurabilityListener(codec, rolls);
+    }
+
+    /** Vanilla-station guard (G04/G05/G06): modern smithing/grindstone/anvil prepare-event guard on set gear. */
+    @Override
+    public Listener stationGuard(feature.guard.StationGuardRules rules) {
+        return new feature.guard.ModernStationGuard(rules);
     }
 
     /**
