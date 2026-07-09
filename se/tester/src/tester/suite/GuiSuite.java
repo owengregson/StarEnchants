@@ -176,8 +176,12 @@ public final class GuiSuite implements Harness.Scenario {
             if (view.getTopInventory().getItem(TINKERER_INPUT) != null) {
                 throw new IllegalStateException("salvage did not consume the book");
             }
-            if (player.getLevel() != 3) {
-                throw new IllegalStateException("salvage refunded " + player.getLevel() + " levels, expected 3");
+            // Salvage now refunds a uniform-random 1..N levels (N = the tier's book buy cost), so a salvage
+            // always returns at least one level. The exact 1..N range is pinned in CarrierServiceTest; the live
+            // check only proves the book was consumed and a real refund landed on the player.
+            if (player.getLevel() < 1) {
+                throw new IllegalStateException("salvage refunded " + player.getLevel()
+                        + " levels, expected at least 1");
             }
         });
 
