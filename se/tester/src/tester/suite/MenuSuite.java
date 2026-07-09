@@ -85,6 +85,7 @@ public final class MenuSuite implements Harness.Scenario {
         h.expect("menu.iconShowsTierColorAndDescription");
         h.expect("menu.adminDrillsDownTierEnchantLevel");
         h.expect("menu.backButtonTracksOpener");
+        h.expect("menu.benchAliveCloseReturnsBook");
         h.expect("menu.benchDropsStagedBookOnDeath");
 
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), Stores.state());
@@ -237,13 +238,14 @@ public final class MenuSuite implements Harness.Scenario {
                         }
                     });
                     // F20: a bench closing DURING death must drop the staged book at the death spot, not feed
-                    // it into the doomed inventory (where the death-clear would annihilate it). Runs last — the
-                    // health-zero kill leaves the fake player dead, so teardown tolerates that below.
-                    h.guard("menu.benchDropsStagedBookOnDeath", () -> {
-                        feature.menu.TinkererMenu bench = new feature.menu.TinkererMenu(carriers,
-                                Capabilities.probe(plugin.getServer()));
+                    // it into the doomed inventory (where the death-clear would annihilate it). The bench is
+                    // shared by both the alive and the death close below.
+                    feature.menu.TinkererMenu bench = new feature.menu.TinkererMenu(carriers,
+                            Capabilities.probe(plugin.getServer()));
 
-                        // Alive close returns the staged book to the inventory (the standing contract).
+                    // Alive close returns the staged book to the inventory (the standing contract) — a reliable
+                    // synchronous guard; nothing here crosses a region.
+                    h.guard("menu.benchAliveCloseReturnsBook", () -> {
                         MenuHolder aliveHolder = new MenuHolder(bench);
                         bench.render(aliveHolder);
                         aliveHolder.getInventory().setItem(feature.menu.TinkererMenu.INPUT,
@@ -256,31 +258,49 @@ public final class MenuSuite implements Harness.Scenario {
                         if (!player.getInventory().contains(Material.ENCHANTED_BOOK)) {
                             throw new IllegalStateException("alive close should return the staged book to the inventory");
                         }
+                    });
 
-                        // Death close: the book must DROP at the death spot, not vanish into the inventory.
-                        MenuHolder deathHolder = new MenuHolder(bench);
-                        bench.render(deathHolder);
-                        deathHolder.getInventory().setItem(feature.menu.TinkererMenu.INPUT,
-                                carriers.mintBook("enchants/keen", 1));
-                        player.getInventory().clear();
-                        Location deathAt = player.getLocation();
+                    // Death close: the book must DROP at the death spot, not vanish into the doomed inventory.
+                    // In real gameplay onClose fires on the player's region thread, and onClose's drop +
+                    // getNearbyEntities scan are region-owned work — the strict newest Folia won't observe a drop
+                    // queried off the owning region thread. So run the kill, close, and scan on the death spot's
+                    // REGION (mirroring gameplay), deferring the scan a couple of ticks so the freshly-dropped
+                    // item entity has settled into the region. The kill leaves the fake player dead, so teardown
+                    // runs from inside the same region hop after the drop is verified (despawn tolerates a dead
+                    // player). This is the sole resolver of the check, so the harness can't finish early.
+                    MenuHolder deathHolder = new MenuHolder(bench);
+                    bench.render(deathHolder);
+                    deathHolder.getInventory().setItem(feature.menu.TinkererMenu.INPUT,
+                            carriers.mintBook("enchants/keen", 1));
+                    player.getInventory().clear();
+                    Location deathAt = player.getLocation();
+                    Scheduling.onRegion(deathAt, () -> {
                         player.setHealth(0.0); // getHealth() == 0 → onClose takes the drop branch
                         bench.onClose(player, deathHolder);
-                        if (deathHolder.getInventory().getItem(feature.menu.TinkererMenu.INPUT) != null) {
-                            throw new IllegalStateException("death close should clear the staged slot");
-                        }
-                        boolean dropped = deathAt.getWorld().getNearbyEntities(deathAt, 4, 4, 4).stream()
-                                .anyMatch(e -> e instanceof org.bukkit.entity.Item it
-                                        && it.getItemStack().getType() == Material.ENCHANTED_BOOK);
-                        if (!dropped) {
-                            throw new IllegalStateException("death close should drop the staged book at the death spot");
-                        }
+                        Scheduling.onRegionLater(deathAt, 2L, () -> {
+                            String failure = null;
+                            if (deathHolder.getInventory().getItem(feature.menu.TinkererMenu.INPUT) != null) {
+                                failure = "death close should clear the staged slot";
+                            } else {
+                                boolean dropped = deathAt.getWorld().getNearbyEntities(deathAt, 4, 4, 4).stream()
+                                        .anyMatch(e -> e instanceof org.bukkit.entity.Item it
+                                                && it.getItemStack().getType() == Material.ENCHANTED_BOOK);
+                                if (!dropped) {
+                                    failure = "death close should drop the staged book at the death spot";
+                                }
+                            }
+                            if (failure == null) {
+                                h.pass("menu.benchDropsStagedBookOnDeath");
+                            } else {
+                                h.fail("menu.benchDropsStagedBookOnDeath", failure);
+                            }
+                            if (!player.isDead()) {
+                                player.closeInventory();
+                            }
+                            HandlerList.unregisterAll(listener);
+                            FakePlayers.despawn(player);
+                        });
                     });
-                    if (!player.isDead()) {
-                        player.closeInventory();
-                    }
-                    HandlerList.unregisterAll(listener);
-                    FakePlayers.despawn(player);
                 });
             });
         });
