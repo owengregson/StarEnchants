@@ -28,6 +28,16 @@ import java.util.concurrent.atomic.AtomicLong;
  * backing. The material identity {@code typeId} is opaque to the core — it only ever tests equality and
  * re-sets it — so the caller may use any stable within-run mapping (the sink uses {@code Material.ordinal()}).
  *
+ * <p><strong>The feature-layer guard API (F25/F26/F29).</strong> A handful of public entry points let the
+ * {@code TempBlockGuardListener} enforce the {@code unbreakable}/immovable contract that the coordinate-keyed
+ * ledger otherwise cannot: {@link #reclaim}, {@link #revertAt}, {@link #rearmChunk} and {@link #healIfExpired}
+ * MUST run on the target key's OWNING region thread (their events — break/chunk-load/the region-hopped sweep —
+ * always do), so they observe the same single-threaded layer list as {@link #place}/{@link #revert}.
+ * {@link #isEmpty}, {@link #guarded} and {@link #forEachTile} are the only sanctioned CROSS-region reads: they
+ * touch just the {@link ConcurrentHashMap} structure (key presence / weakly-consistent key iteration), never a
+ * layer list, so a piston/explosion/sweep on a neighbouring region may call them safely — a stale read at worst
+ * cancels one already-doomed piston stroke or skips one tile this pass.
+ *
  * @param <S> the captured-original token type — {@code BlockState} in production, {@code Integer} in tests
  */
 public final class TempBlockLedger<S> {
@@ -57,7 +67,17 @@ public final class TempBlockLedger<S> {
     }
 
     /** The revert a placement asks the caller to schedule: the target layer's identity + seq, and the delay. */
-    record Pending(long layerId, long seq, long delayTicks) {
+    public record Pending(long layerId, long seq, long delayTicks) {
+    }
+
+    /** Receives one re-armed revert per live layer during {@link #rearmChunk} — the caller schedules each. */
+    public interface RearmSink {
+        void schedule(int x, int y, int z, long layerId, long seq, long delayTicks);
+    }
+
+    /** Visits every live tile coordinate for {@link #forEachTile}; the caller hops each to its owning region. */
+    public interface TileVisitor {
+        void tile(UUID world, int x, int y, int z);
     }
 
     /** One temporary layer over a position. {@code deadline}/{@code seq} mutate on a same-material refresh. */
@@ -85,10 +105,12 @@ public final class TempBlockLedger<S> {
     }
 
     /**
-     * Ticks an entry may outlive its newest deadline before {@link #place} treats it as abandoned — a scheduled
-     * revert that never fired (chunk unload, a dropped region task), which would strand the entry and its temp
-     * block forever — and self-heals it. Generous (60s @ 20 tps) so a normal in-flight refresh is never mistaken
-     * for a leak.
+     * Ticks an entry may outlive its newest deadline before it is treated as abandoned — a scheduled revert that
+     * never fired (chunk unload, a dropped region task), which would strand the entry and its temp block forever.
+     * Three paths reclaim such a leak (F29): {@link #place} self-heals an entry it is about to overwrite, the
+     * periodic {@link #healIfExpired} sweep force-reverts loaded-chunk leaks, and {@link #rearmChunk} replays the
+     * dropped reverts on chunk reload (which clamps the delay, so a reload heals near-instantly rather than
+     * waiting out this grace). Generous (60s @ 20 tps) so a normal in-flight refresh is never mistaken for a leak.
      */
     static final long STALE_GRACE_TICKS = 1200;
 
@@ -171,6 +193,92 @@ public final class TempBlockLedger<S> {
             entries.remove(key);
         } else {
             ops.setTypeId(key, entry.layers.get(entry.layers.size() - 1).typeId);
+        }
+    }
+
+    /** Whether the ledger tracks no tile — the world-event listeners' allocation-free fast-path gate. */
+    public boolean isEmpty() {
+        return entries.isEmpty();
+    }
+
+    /**
+     * Whether a tile is a tracked temp block. A read-only {@link ConcurrentHashMap} lookup, safe to call from any
+     * region thread (see the class consistency model) — the piston/explosion/flow guards use it to spot a tile
+     * that a neighbouring region owns without ever touching that entry's layer list.
+     */
+    public boolean guarded(UUID world, int x, int y, int z) {
+        return entries.containsKey(new Key(world, x, y, z));
+    }
+
+    /**
+     * Mine-as-early-revert: pop ALL layers at a tile at once and restore the TRUE original, so a broken/displaced
+     * temp block yields no vanilla drop and never strands the captured original. Returns whether it reclaimed.
+     * MUST run on the key's owning region thread. No-op (returns {@code false}) if the tile is untracked, or if
+     * the world already shows something other than our visible layer — a foreign change we must NOT hijack; the
+     * scheduled {@link #revert}'s drop branch handles that entry. Every still-pending scheduled revert for the
+     * key then no-ops on the entry-null guard, so no cancellation machinery is needed. Mirrors {@link #healExpired}.
+     */
+    public boolean reclaim(UUID world, int x, int y, int z) {
+        Key key = new Key(world, x, y, z);
+        Entry<S> entry = entries.get(key);
+        if (entry == null) {
+            return false;
+        }
+        Layer visible = entry.layers.get(entry.layers.size() - 1);
+        if (ops.readTypeId(key) != visible.typeId) {
+            return false; // the world diverged — leave the entry for revert()'s drop branch
+        }
+        ops.restoreOriginal(key, entry.original);
+        entries.remove(key);
+        return true;
+    }
+
+    /** A public wrapper over {@link #revert} for the feature-layer chunk-load re-arm (F29). Owning thread only. */
+    public void revertAt(UUID world, int x, int y, int z, long layerId, long seq, long now) {
+        revert(new Key(world, x, y, z), layerId, seq, now);
+    }
+
+    /**
+     * Re-arm a revert for EVERY layer of every entry in the given chunk (F29): a Folia chunk unload can drop the
+     * scheduled region task, stranding the temp block until reload. On {@code ChunkLoadEvent} the owning region
+     * thread — which owns every key in the chunk — replays each layer's revert with the deadline-relative delay
+     * (clamped to {@code >= 1} so a past-deadline stranded tile heals next tick, not after the stale grace). A
+     * duplicate delivery (Paper's original task also fired, or a fast unload/reload that retained it) is a
+     * harmless no-op on {@link #revert}'s entry-null + seq guard. Re-arms buried layers too — a long floor under a
+     * short trail has its own dropped revert, which {@link #revert} handles as a buried pop.
+     */
+    public void rearmChunk(UUID world, int chunkX, int chunkZ, long now, RearmSink out) {
+        for (Key key : entries.keySet()) {
+            if (!key.world().equals(world) || (key.x() >> 4) != chunkX || (key.z() >> 4) != chunkZ) {
+                continue;
+            }
+            Entry<S> entry = entries.get(key); // in-chunk key → this thread owns it → the layer read is race-free
+            if (entry == null) {
+                continue;
+            }
+            for (Layer layer : entry.layers) {
+                out.schedule(key.x(), key.y(), key.z(), layer.id, layer.seq, Math.max(1, layer.deadline - now));
+            }
+        }
+    }
+
+    /**
+     * Visit every live tile coordinate (F29 self-heal sweep). Iterates only the weakly-consistent key set and
+     * NEVER touches a layer list, so it is safe from the global sweep thread; the visitor hops each tile to its
+     * owning region before {@link #healIfExpired} reads that entry.
+     */
+    public void forEachTile(TileVisitor v) {
+        for (Key key : entries.keySet()) {
+            v.tile(key.world(), key.x(), key.y(), key.z());
+        }
+    }
+
+    /** Force-revert a tile whose scheduled revert was dropped and is now past the stale grace. Owning thread only. */
+    public void healIfExpired(UUID world, int x, int y, int z, long now) {
+        Key key = new Key(world, x, y, z);
+        Entry<S> entry = entries.get(key);
+        if (entry != null && expired(entry, now)) {
+            healExpired(key, entry);
         }
     }
 

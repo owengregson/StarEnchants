@@ -210,4 +210,44 @@ class SuppressionStoreTest {
         store.clearAll();
         assertFalse(store.isSuppressed(q, 1, 0L));
     }
+
+    @Test
+    void clearImmunityLiftsImmunityButLeavesWindows() {
+        store.suppress(p, 1, 0L, 100);
+        store.setImmune(p, 50); // partial, so it doesn't drop the live window
+        store.clearImmunity(p);
+        assertTrue(store.isSuppressed(p, 1, 50L), "the suppression window survives the immunity clear");
+
+        // absolute immunity, then clearImmunity, lifts it fully
+        store.setImmune(p, 100);
+        assertTrue(store.isImmune(p));
+        store.clearImmunity(p);
+        assertFalse(store.isImmune(p));
+    }
+
+    @Test
+    void evictElapsedDropsElapsedWindowsButKeepsLiveOnes() {
+        store.suppress(p, 1, 0L, 40);   // expires at 40
+        store.suppress(p, 2, 0L, 200);  // expires at 200
+        store.evictElapsed(p, 100L);
+        assertFalse(store.isSuppressed(p, 1, 100L)); // elapsed dropped
+        assertTrue(store.isSuppressed(p, 2, 100L));  // live kept
+    }
+
+    @Test
+    void evictElapsedLeavesImmunityUntouched() {
+        store.setImmune(p, 100); // windows only — immunity is quit-volatile, cleared separately
+        store.evictElapsed(p, 100L);
+        assertTrue(store.isImmune(p), "the sweep evicts elapsed windows, never immunity");
+    }
+
+    @Test
+    void evictElapsedAllPlayersSweepsElapsedButKeepsLive() {
+        UUID q = UUID.randomUUID();
+        store.suppress(p, 1, 0L, 40);   // expires at 40
+        store.suppress(q, 1, 0L, 200);  // expires at 200
+        store.evictElapsed(100L);
+        assertFalse(store.isSuppressed(p, 1, 100L));
+        assertTrue(store.isSuppressed(q, 1, 100L));
+    }
 }

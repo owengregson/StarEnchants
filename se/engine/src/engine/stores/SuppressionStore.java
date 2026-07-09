@@ -15,7 +15,7 @@ import schema.spec.Ranges;
  * suppressions that outlast the activation that created them. Each window also carries the DISABLE_* ability
  * that armed it, so {@code /se why} can name the suppressor (ADR-0045).
  */
-public final class SuppressionStore implements PlayerScoped {
+public final class SuppressionStore implements RetainedStore {
 
     /** Notified whenever a player is freshly suppressed, so a maintained-buff driver can drop the affected
      *  effects immediately (instant DISABLE) and schedule their restore at the window's end. */
@@ -176,10 +176,38 @@ public final class SuppressionStore implements PlayerScoped {
         return (int) (d >> 32);
     }
 
-    /** Forget every suppression (and any immunity) for one player (call on quit). */
+    /** Forget every suppression (and any immunity) for one player (a full clear — NOT the quit sweep). */
     public void clear(UUID player) {
         expiryByPlayer.remove(player);
         immuneChance.remove(player);
+    }
+
+    /**
+     * Remove only {@code player}'s suppression-immunity CHANCE, leaving timed suppression WINDOWS intact — the
+     * quit sweep half of the relog fix. The immunity is self-state re-derived from worn gear by the passive
+     * lifecycle within ~2s of rejoin (dragon's {@code SUPPRESS_IMMUNE}), so dropping it on quit is safe, while a
+     * DISABLE_* window an opponent landed must survive the relog.
+     */
+    public void clearImmunity(UUID player) {
+        immuneChance.remove(player);
+    }
+
+    /** Drop {@code player}'s elapsed suppression windows at {@code nowTicks}, keeping live ones; drop an emptied map. */
+    @Override
+    public void evictElapsed(UUID player, long nowTicks) {
+        // Windows only (never immunity, which the quit sweep clears separately). Atomic per key, like CooldownStore.
+        expiryByPlayer.computeIfPresent(player, (id, ids) -> {
+            ids.values().removeIf(w -> nowTicks >= w.expiry());
+            return ids.isEmpty() ? null : ids;
+        });
+    }
+
+    /** Drop every player's elapsed suppression windows at {@code nowTicks} (the periodic offline-state sweep). */
+    @Override
+    public void evictElapsed(long nowTicks) {
+        for (UUID player : expiryByPlayer.keySet()) {
+            evictElapsed(player, nowTicks);
+        }
     }
 
     /** Forget every suppression (and all immunity) for every player (call on disable). */

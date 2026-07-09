@@ -47,6 +47,8 @@ class MarkAndFlyEffectTest {
         UUID id = UUID.randomUUID();
         when(actor.getUniqueId()).thenReturn(id);
         LivingEntity victim = mock(LivingEntity.class);
+        UUID victimId = UUID.randomUUID();
+        when(victim.getUniqueId()).thenReturn(victimId);
         Location center = new Location(mock(World.class), 4, 64, -2); // real Location (getX/Y/Z are final)
         when(victim.getLocation()).thenReturn(center);
         FakeEffectCtx ctx = FakeEffectCtx.create()
@@ -55,7 +57,7 @@ class MarkAndFlyEffectTest {
 
         new MarkZoneEffect().run(ctx, sink);
 
-        verify(sink).markZone(center, id, 4.5, 100); // distinct values pin the arg order + the actor-as-owner
+        verify(sink).markZone(center, id, victimId, 4.5, 100); // pins arg order: actor-owner, target-victim, radius, duration
     }
 
     @Test

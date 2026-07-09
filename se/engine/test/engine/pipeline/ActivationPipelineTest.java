@@ -13,6 +13,10 @@ import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
 import schema.diag.Source;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import testfx.Abilities;
 
@@ -218,5 +222,105 @@ class ActivationPipelineTest {
         spender.balance = 10;
         assertEquals(GateOutcome.CHANCE_FAILED, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
         assertEquals(10, spender.balance);
+    }
+
+    @Test
+    void gate6ReservationSerializesConcurrentHitsAndRollsBackOnCancel() throws Exception {
+        // F05: gate 6 atomically RESERVES the cooldown, so a same-tick concurrent hit on the same key can't also
+        // pass. Park T1 inside the PreActivate guard (past gate 6, reservation held), fire a second evaluate on the
+        // main thread, then have T1's guard deny — the rollback must leave the cooldown ready for a third hit.
+        Ab a = new Ab();
+        a.cdEnchant = 1;
+        a.cooldownTicks = 40;
+
+        CountDownLatch parked = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        AtomicInteger guardCalls = new AtomicInteger();
+        ActivationPipeline.Guard preActivate = (ab, ctx) -> {
+            if (guardCalls.getAndIncrement() == 0) {
+                parked.countDown();                     // T1 has reserved the cooldown at gate 6
+                try {
+                    release.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return false;                           // deny → CANCELLED, which must roll the reservation back
+            }
+            return true;                                // later hits allow
+        };
+        ActivationPipeline p = new ActivationPipeline(cooldowns, spender,
+                ActivationPipeline.Guard.ALLOW, preActivate);
+
+        AtomicReference<GateOutcome> t1 = new AtomicReference<>();
+        Thread worker = new Thread(() -> t1.set(p.evaluate(a.build(), act().build())));
+        worker.start();
+        assertTrue(parked.await(2, TimeUnit.SECONDS));
+
+        // The concurrent hit sees T1's live reservation and is turned away at gate 6 (never reaching the guard).
+        assertEquals(GateOutcome.ON_COOLDOWN, p.evaluate(a.build(), act().build()));
+
+        release.countDown();
+        worker.join(2000);
+        assertEquals(GateOutcome.CANCELLED, t1.get());
+
+        // Rollback proven: with the reservation released, a fresh hit now activates.
+        assertEquals(GateOutcome.ACTIVATED, p.evaluate(a.build(), act().build()));
+        assertEquals(2, guardCalls.get()); // T1 + the third hit; the ON_COOLDOWN hit stopped at gate 6
+    }
+
+    @Test
+    void chanceFailRollsBackSoARetrySameTickActivates() {
+        // A chance-fail must NOT arm the cooldown — the gate-6 reservation is released on the fail path.
+        Ab a = new Ab();
+        a.cdEnchant = 3;
+        a.cooldownTicks = 40;
+        a.baseChance = 50.0;
+        assertEquals(GateOutcome.CHANCE_FAILED, pipeline.evaluate(a.build(), act().chanceRoll(() -> 75.0).build()));
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().chanceRoll(() -> 25.0).build()));
+    }
+
+    @Test
+    void useChanceFailArmsCooldownSoSpamCantRetryForFree() {
+        // F16 use path: with spendCooldownOnChanceFail=true a failed roll KEEPS the gate-6 reservation, so the
+        // failed attempt spends the cooldown — a spammed sub-100% use-item is throttled one attempt per window.
+        Ab a = new Ab();
+        a.cdEnchant = 7;
+        a.cooldownTicks = 40;
+        a.baseChance = 50.0;
+        assertEquals(GateOutcome.CHANCE_FAILED,
+                pipeline.evaluate(a.build(), act().chanceRoll(() -> 75.0).build(), true)); // fail arms the cooldown
+        assertEquals(GateOutcome.ON_COOLDOWN,
+                pipeline.evaluate(a.build(), act().chanceRoll(() -> 25.0).build(), true)); // same tick → blocked
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), Activation.builder(ACTOR, 3, 0, 140L).chanceRoll(() -> 25.0).build(), true));
+    }
+
+    @Test
+    void hotChanceFailStillReleasesCooldownSoProcEnchantsRollEveryHit() {
+        // F16 regression: the hot path (2-arg / false) must keep releasing on a chance fail, or a sub-100% proc
+        // enchant with a cooldown would almost never fire.
+        Ab a = new Ab();
+        a.cdEnchant = 8;
+        a.cooldownTicks = 40;
+        a.baseChance = 50.0;
+        assertEquals(GateOutcome.CHANCE_FAILED,
+                pipeline.evaluate(a.build(), act().chanceRoll(() -> 75.0).build(), false));
+        assertEquals(GateOutcome.ACTIVATED, // same tick, no cooldown accrued
+                pipeline.evaluate(a.build(), act().chanceRoll(() -> 25.0).build(), false));
+    }
+
+    @Test
+    void partialReservationRollsBackTheAcquiredScopeWhenALaterScopeIsBlocked() {
+        // enchant scope ready, group scope pre-armed: gate 6 acquires enchant, finds group blocked, and must
+        // roll the enchant reservation back so another ability sharing that enchant scope stays free.
+        Ab a = new Ab();
+        a.cdEnchant = 1;
+        a.cdGroup = 2;
+        a.cooldownTicks = 40;
+        cooldowns.arm(ACTOR, CooldownStore.key(1, 2, 0), 100L, 40); // group scope pre-armed by "another ability"
+
+        assertEquals(GateOutcome.ON_COOLDOWN, pipeline.evaluate(a.build(), act().build()));
+        assertTrue(cooldowns.ready(ACTOR, CooldownStore.key(0, 1, 0), 100L),
+                "the enchant scope's brief reservation must be rolled back");
     }
 }

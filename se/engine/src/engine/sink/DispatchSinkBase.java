@@ -39,6 +39,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import platform.economy.EconomyService;
+import platform.item.Inventories;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 import platform.text.Colors;
@@ -94,6 +95,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final TempBlockLedger<BlockState> tempBlocks;
     /** The ONE per-boot trail memory (via {@link SinkEnv}), so the footprint snake connects across activations. */
     private final TrailWalker trails;
+    /** The ONE per-boot timed-revert registry (via {@link SinkEnv}), so the quit drain can restore a logout-stranded buff. */
+    private final TimedRevert timedReverts;
 
     private boolean cancelled;
     private boolean armorIgnored;
@@ -126,6 +129,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.movementExemption = env.movementExemption();
         this.tempBlocks = env.tempBlocks();
         this.trails = env.trails();
+        this.timedReverts = env.timedReverts();
         this.fold = new DamageFold();
     }
 
@@ -213,6 +217,23 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
     }
 
+    /**
+     * Schedule a timed-buff teardown that also survives the player logging out mid-window (F07/F08). For a
+     * PLAYER target the revert is registered with the {@link TimedRevert} registry under a token; the expiry
+     * timer claims that token so it runs exactly once, and the quit drain runs any that the timer never reached
+     * — so the reverted flag is what persists to disk. Non-player targets keep the direct schedule (mobs never
+     * quit; registering them would leak entries when their region unloads).
+     */
+    private void revertLater(LivingEntity target, int durationTicks, Runnable revert) {
+        if (target instanceof Player player) {
+            UUID id = player.getUniqueId();
+            long token = timedReverts.begin(id, revert);
+            Scheduling.onEntityLater(target, durationTicks, () -> timedReverts.runOnce(id, token));
+        } else {
+            Scheduling.onEntityLater(target, durationTicks, revert);
+        }
+    }
+
     protected void globalOp(Runnable op) {
         // Global work (e.g. console commands) always routes to the global region thread, never
         // inline on a firing region thread — even under a CONTEXT_LOCAL ability — so Folia's
@@ -288,7 +309,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 target.setHealth(Math.max(0.0, maxHealth(target))); // clamp current down to the new cap
             }
             if (durationTicks > 0) {
-                Scheduling.onEntityLater(target, durationTicks, () -> {
+                // Restore-on-quit too (F07): a victim who combat-logs mid-drain gets the exact removed delta back
+                // BEFORE the playerdata save, so the reduction can never be made permanent by pressuring a log-out.
+                revertLater(target, durationTicks, () -> {
                     if (hasMaxHealthAttribute(target)) {
                         setMaxHealthBase(target, maxHealthBase(target) + removed); // add back exactly what was drained
                     }
@@ -350,6 +373,41 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void transferExp(Player from, Player to, int amount) {
+        if (from == null || to == null || amount <= 0) {
+            return;
+        }
+        // Read the victim's real total and debit it atomically on the victim's own region thread, then credit
+        // exactly what was withdrawn on the recipient's own thread (never re-entering the already-flushed plan).
+        // Clamping to the true total mints nothing off a poor victim and never relies on the negative-giveExp clamp.
+        entityOp(from, () -> {
+            int amt = Math.max(0, Math.min(amount, totalXpPoints(from)));
+            if (amt > 0) {
+                from.giveExp(-amt);
+                Scheduling.onEntity(to, () -> to.giveExp(amt));
+            }
+        });
+    }
+
+    /**
+     * {@code player}'s TOTAL experience in points via the vanilla level→points curve (unchanged since MC 1.8,
+     * so era-safe for the shared base) plus the fractional progress into the current level. Preferred over
+     * {@link Player#getTotalExperience()}, which is known-stale after {@code setLevel}.
+     */
+    static int totalXpPoints(Player player) {
+        int level = player.getLevel();
+        long atLevel;
+        if (level <= 16) {
+            atLevel = (long) level * level + 6L * level;
+        } else if (level <= 31) {
+            atLevel = Math.round(2.5 * level * level - 40.5 * level + 360);
+        } else {
+            atLevel = Math.round(4.5 * level * level - 162.5 * level + 2220);
+        }
+        return (int) (atLevel + Math.round(player.getExp() * player.getExpToLevel()));
+    }
+
+    @Override
     public void takeFood(Player target, int foodPoints) {
         entityOp(target, () -> target.setFoodLevel(Math.max(0, target.getFoodLevel() - foodPoints)));
     }
@@ -373,7 +431,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
             target.setAllowFlight(true);
             target.setFlying(true);
             if (durationTicks >= 0) {
-                Scheduling.onEntityLater(target, durationTicks, () -> clearTemporaryFlight(target));
+                // Revert-on-quit too (F08): a logout mid-window otherwise persists mayfly forever. The quit drain
+                // clears it before the save, costing an abuser only the tail of their own buff on a mid-window relog.
+                revertLater(target, durationTicks, () -> clearTemporaryFlight(target));
             }
         });
     }
@@ -398,8 +458,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
             target.setWalkSpeed((float) Math.max(-1.0, Math.min(1.0, speed)));
             if (durationTicks >= 0) {
                 // Restore the vanilla default (0.2) rather than the captured prior value, so re-firing the
-                // buff before it elapses can never leak an inflated speed upward.
-                Scheduling.onEntityLater(target, durationTicks, () -> target.setWalkSpeed(0.2f));
+                // buff before it elapses can never leak an inflated speed upward. Revert-on-quit too (F08): a
+                // logout mid-window would otherwise persist the inflated abilities.walkSpeed to disk.
+                revertLater(target, durationTicks, () -> target.setWalkSpeed(0.2f));
             }
         });
     }
@@ -409,7 +470,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
         entityOp(target, () -> {
             applyInvulnerable(target, true);
             if (durationTicks >= 0) {
-                Scheduling.onEntityLater(target, durationTicks, () -> applyInvulnerable(target, false));
+                // Revert-on-quit too (F08): a logout mid-window otherwise persists the Invulnerable NBT forever.
+                revertLater(target, durationTicks, () -> applyInvulnerable(target, false));
             }
         });
     }
@@ -510,14 +572,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void markZone(Location center, UUID owner, double radius, int durationTicks) {
+    public void markZone(Location center, UUID owner, UUID victim, double radius, int durationTicks) {
         if (center == null || owner == null || center.getWorld() == null) {
             return;
         }
         // Inline per-owner registry write (no entity hop): the centre was resolved on the firing thread, so
-        // reading its world id + x/z here is region-correct. Consulted later by the %victim.inzone% fact.
+        // reading its world id + x/z here is region-correct. Consulted later by the %victim.inzone% fact; the
+        // magma-immunity is scoped to `victim`.
         OwnerZones.mark(owner, center.getWorld().getUID(), center.getX(), center.getZ(),
-                radius, durationTicks * 50L); // ticks → ms
+                radius, durationTicks * 50L, victim); // ticks → ms
     }
 
     @Override
@@ -581,7 +644,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 return;
             }
             ItemStack original = armor[slotIndex];
-            if (!TempEquip.swap(target.getUniqueId(), slotIndex, original == null ? null : original.clone())) {
+            if (!TempEquip.swap(target.getUniqueId(), slotIndex,
+                    original == null ? null : original.clone(), placeholder)) {
                 return; // a swap is already active on this slot — never double-swap
             }
             armor[slotIndex] = new ItemStack(placeholder);
@@ -593,17 +657,35 @@ public abstract class DispatchSinkBase implements SinkReadback {
         });
     }
 
-    /** Restore a swapped slot to its original, but only while it is still our placeholder (don't clobber a re-equip). */
+    /**
+     * Restore a swapped slot to its original. The original never vanishes (F21): if the victim re-equipped the
+     * slot during the window we leave that item alone and hand the original back to their inventory (overflow
+     * drops at their feet), reclaiming the one minted placeholder by material in either non-slot case.
+     */
     private static void restoreSwap(Player target, UUID id, int slotIndex, Material placeholder) {
-        ItemStack original = TempEquip.end(id, slotIndex);
-        if (original == null) {
+        TempEquip.Swap swap = TempEquip.end(id, slotIndex);
+        if (swap == null) {
             return; // already ended (the death/quit listener restored it)
         }
+        ItemStack original = TempEquip.isAir(swap.original()) ? null : swap.original();
         ItemStack[] armor = target.getInventory().getArmorContents();
-        if (slotIndex < armor.length && armor[slotIndex] != null && armor[slotIndex].getType() == placeholder) {
-            armor[slotIndex] = TempEquip.isAir(original) ? null : original;
+        ItemStack inSlot = slotIndex < armor.length ? armor[slotIndex] : null;
+        if (slotIndex < armor.length && inSlot != null && inSlot.getType() == placeholder) {
+            armor[slotIndex] = original; // still our placeholder — swap it straight back for the original
             target.getInventory().setArmorContents(armor);
+            return;
         }
+        // The victim moved/removed the pumpkin: reclaim the one minted placeholder from wherever it landed.
+        target.getInventory().removeItem(new ItemStack(placeholder, 1));
+        if (original == null) {
+            return; // the slot was empty pre-swap — nothing to give back
+        }
+        if (slotIndex < armor.length && TempEquip.isAir(inSlot)) {
+            armor[slotIndex] = original; // the slot is free again — restore it to its natural home
+            target.getInventory().setArmorContents(armor);
+            return;
+        }
+        Inventories.giveOrDrop(target, original); // re-equipped with something else — never clobber it
     }
 
     @Override
@@ -973,7 +1055,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, double carriedDamage) {
+    public void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target, double carriedDamage) {
         Location loc = at.clone();
         regionOp(loc, () -> {
             Material material = material(materialId);
@@ -986,7 +1068,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             fb.setHurtEntities(false); // no vanilla anvil-style damage — the impact is the IMPACT trigger's effects
             // Track EVERY cosmetic block (owner or not) so the landing listener cancels its placement; an owner
             // additionally drives the IMPACT abilities. A FALLING_BLOCK is always cosmetic and must never stick.
-            FallingBlockCasts.bind(fb.getUniqueId(), owner, carriedDamage);
+            FallingBlockCasts.bind(fb.getUniqueId(), owner, target, carriedDamage);
             if (ttlTicks > 0) {
                 UUID fbId = fb.getUniqueId();
                 Scheduling.onEntityLater(fb, ttlTicks, () -> { // never landed (void/edge) → forget + clean up
@@ -1044,6 +1126,24 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         UUID id = target.getUniqueId();
         globalOp(() -> economy.withdraw(id, amount));
+    }
+
+    @Override
+    public void transferMoney(Player from, Player to, double amount) {
+        if (from == null || to == null || amount <= 0) {
+            return;
+        }
+        UUID fromId = from.getUniqueId();
+        UUID toId = to.getUniqueId();
+        // Clamp to the victim's live balance BEFORE the withdraw so the (all-or-nothing) withdraw succeeds and
+        // the deposit equals exactly what was charged — a broke victim moves nothing rather than minting the
+        // full amount. Read-balance + withdraw + deposit in ONE global-thread task so no money op interleaves.
+        globalOp(() -> {
+            double amt = Math.min(amount, economy.balance(fromId));
+            if (amt > 0 && economy.withdraw(fromId, amt)) {
+                economy.deposit(toId, amt);
+            }
+        });
     }
 
     @Override

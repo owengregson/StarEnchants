@@ -24,11 +24,13 @@ class FallingBlockCastsTest {
     void bindThenLandReturnsTheCastOnceThenNothing() {
         UUID block = UUID.randomUUID();
         UUID owner = UUID.randomUUID();
-        FallingBlockCasts.bind(block, owner, 7.0);
+        UUID target = UUID.randomUUID();
+        FallingBlockCasts.bind(block, owner, target, 7.0);
         assertTrue(FallingBlockCasts.isTracked(block));
 
         FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(block);
         assertEquals(owner, cast.owner());
+        assertEquals(target, cast.target()); // the aimed entity round-trips so the landing hits only it
         assertEquals(7.0, cast.damage());
         assertFalse(FallingBlockCasts.isTracked(block)); // unbound after landing
         assertNull(FallingBlockCasts.onLand(block));      // a second landing of the same block claims nothing
@@ -37,7 +39,7 @@ class FallingBlockCastsTest {
     @Test
     void forgetUnbindsAMissedBlock() {
         UUID block = UUID.randomUUID();
-        FallingBlockCasts.bind(block, UUID.randomUUID(), 1.0);
+        FallingBlockCasts.bind(block, UUID.randomUUID(), UUID.randomUUID(), 1.0);
         FallingBlockCasts.forget(block);
         assertFalse(FallingBlockCasts.isTracked(block));
         assertNull(FallingBlockCasts.onLand(block));
@@ -48,7 +50,7 @@ class FallingBlockCastsTest {
         UUID block = UUID.randomUUID();
         // An owner-less cosmetic (e.g. environment-fired): still tracked so the listener cancels its placement —
         // a FALLING_BLOCK must never stick — but it carries a null owner so no IMPACT fires.
-        FallingBlockCasts.bind(block, null, 1.0);
+        FallingBlockCasts.bind(block, null, null, 1.0);
         assertTrue(FallingBlockCasts.isTracked(block));
 
         FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(block);

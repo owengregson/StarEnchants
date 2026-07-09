@@ -145,7 +145,9 @@ public final class AbilityExecutor {
             }
             Ability ability = abilities[id];
             try {
-                GateOutcome outcome = pipeline.evaluate(ability, activation);
+                // spendCooldownOnChanceFail=true: a use-item charges per ATTEMPT, so a failed roll arms the cooldown
+                // and right-click spam can't retry a sub-100% use-item for free (the hot #run path must NOT do this).
+                GateOutcome outcome = pipeline.evaluate(ability, activation, true);
                 switch (outcome) {
                     case ACTIVATED -> {
                         boolean faulted = runEffects(ability, context, sink, activation.activeGem(),

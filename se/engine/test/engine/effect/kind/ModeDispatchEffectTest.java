@@ -178,7 +178,7 @@ class ModeDispatchEffectTest {
                         c -> c.with("amount", 100.0).with("mode", "give"), (s, p) -> verify(s).giveMoney(p, 100.0)),
                 player("MONEY take → takeMoney", new MoneyEffect(),
                         c -> c.with("amount", 50.0).with("mode", "take"), (s, p) -> verify(s).takeMoney(p, 50.0)),
-                dynamicTest("MONEY transfer → take victim + give actor (non-player target skipped)", () -> {
+                dynamicTest("MONEY transfer → clamped transferMoney per player target (non-player skipped)", () -> {
                     Player victim = mock(Player.class);
                     Player actor = mock(Player.class);
                     LivingEntity mob = mock(LivingEntity.class);
@@ -186,8 +186,17 @@ class ModeDispatchEffectTest {
                             .with("amount", 25.0).with("mode", "transfer").targets("who", victim, mob).actor(actor);
                     Sink sink = mock(Sink.class);
                     new MoneyEffect().run(ctx, sink);
+                    // the Sink moves at most the victim's balance, so a broke victim mints nothing (F31)
+                    verify(sink).transferMoney(victim, actor, 25.0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MONEY transfer with no actor → plain takeMoney (nothing to credit)", () -> {
+                    Player victim = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("amount", 25.0).with("mode", "transfer").targets("who", victim);
+                    Sink sink = mock(Sink.class);
+                    new MoneyEffect().run(ctx, sink);
                     verify(sink).takeMoney(victim, 25.0);
-                    verify(sink).giveMoney(actor, 25.0);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("MONEY steal_percent → fraction of victim's balance to the actor", () -> {
@@ -210,7 +219,7 @@ class ModeDispatchEffectTest {
                         c -> c.with("amount", 50).with("mode", "give"), (s, p) -> verify(s).giveExp(p, 50)),
                 player("EXP take → takeExp", new ExpEffect(),
                         c -> c.with("amount", 20).with("mode", "take"), (s, p) -> verify(s).takeExp(p, 20)),
-                dynamicTest("EXP transfer → take victim + give actor (non-player target skipped)", () -> {
+                dynamicTest("EXP transfer → clamped transferExp per player target (non-player skipped)", () -> {
                     Player victim = mock(Player.class);
                     Player actor = mock(Player.class);
                     LivingEntity mob = mock(LivingEntity.class);
@@ -218,8 +227,17 @@ class ModeDispatchEffectTest {
                             .with("amount", 25).with("mode", "transfer").targets("who", victim, mob).actor(actor);
                     Sink sink = mock(Sink.class);
                     new ExpEffect().run(ctx, sink);
+                    // the Sink moves at most the victim's real XP, so a poor victim mints nothing (F32)
+                    verify(sink).transferExp(victim, actor, 25);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("EXP transfer with no actor → plain takeExp (nothing to credit)", () -> {
+                    Player victim = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("amount", 25).with("mode", "transfer").targets("who", victim);
+                    Sink sink = mock(Sink.class);
+                    new ExpEffect().run(ctx, sink);
                     verify(sink).takeExp(victim, 25);
-                    verify(sink).giveExp(actor, 25);
                     verifyNoMoreInteractions(sink);
                 }));
     }

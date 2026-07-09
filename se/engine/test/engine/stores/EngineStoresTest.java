@@ -25,6 +25,77 @@ class EngineStoresTest {
         assertEquals(EngineStores.class.getRecordComponents().length, fresh.all().size());
     }
 
+    /** Every store must classify itself for the quit sweep — a new one CANNOT default into either partition. */
+    @Test
+    void everyComponentIsInExactlyOneQuitPartition() throws Exception {
+        EngineStores fresh = EngineStores.fresh();
+        for (RecordComponent c : EngineStores.class.getRecordComponents()) {
+            Object value = c.getAccessor().invoke(fresh);
+            boolean volatileMember = fresh.quitVolatile().stream().anyMatch(store -> store == value);
+            boolean retainedMember = fresh.quitRetained().stream().anyMatch(store -> store == value);
+            assertTrue(volatileMember ^ retainedMember,
+                    c.getName() + " must be in EXACTLY ONE of quitVolatile / quitRetained");
+        }
+        // the two partitions together cover every store (nothing silently dropped from the sweep)
+        assertEquals(fresh.all().size(), fresh.quitVolatile().size() + fresh.quitRetained().size());
+        // the retained partition is exactly the RetainedStore-typed stores (the structural marker)
+        assertTrue(fresh.quitRetained().stream().allMatch(store -> store instanceof RetainedStore));
+    }
+
+    @Test
+    void quitSweepClearsVolatileButRetainsLiveCombatWindows() {
+        UUID id = UUID.randomUUID();
+        EngineStores s = EngineStores.fresh();
+
+        // volatile state
+        s.vars().set(id, "x", "1", 0L, 100);
+        s.combo().hit(id, UUID.randomUUID(), 0L);
+        // retained combat windows, all still LIVE at the sweep tick
+        s.cooldowns().arm(id, CooldownStore.key(0, 1), 0L, 400);
+        s.teleblock().block(id, 0L, 400);
+        s.suppression().suppress(id, 5L, 0L, 400);
+        // one already-ELAPSED cooldown that the sweep should shed
+        s.cooldowns().arm(id, CooldownStore.key(0, 2), 0L, 40);
+
+        s.quitSweep(id, 100L);
+
+        assertNull(s.vars().get(id, "x", 100L));            // volatile cleared
+        assertEquals(0, s.combo().current(id, 100L));       // volatile cleared
+        // retained windows survive the relog, read at a LATER tick against the same monotonic clock
+        assertFalse(s.cooldowns().ready(id, CooldownStore.key(0, 1), 200L));
+        assertTrue(s.teleblock().isBlocked(id, 200L));
+        assertTrue(s.suppression().isSuppressed(id, 5L, 200L));
+        // the elapsed cooldown was dropped
+        assertTrue(s.cooldowns().ready(id, CooldownStore.key(0, 2), 100L));
+    }
+
+    @Test
+    void quitSweepClearsSuppressionImmunity() {
+        UUID id = UUID.randomUUID();
+        EngineStores s = EngineStores.fresh();
+        s.suppression().setImmune(id, 100); // self-state re-derived from worn gear on rejoin
+        assertTrue(s.suppression().isImmune(id));
+
+        s.quitSweep(id, 100L);
+
+        assertFalse(s.suppression().isImmune(id), "the quit sweep drops self-derived suppression immunity");
+    }
+
+    @Test
+    void evictElapsedSweepsRetainedStoresAcrossPlayers() {
+        UUID id = UUID.randomUUID();
+        EngineStores s = EngineStores.fresh();
+        s.cooldowns().arm(id, CooldownStore.key(0, 1), 0L, 40);  // elapses at 40
+        s.teleblock().block(id, 0L, 400);                        // live to 400
+        s.suppression().suppress(id, 5L, 0L, 40);                // elapses at 40
+
+        s.evictElapsed(100L);
+
+        assertTrue(s.cooldowns().ready(id, CooldownStore.key(0, 1), 100L));
+        assertFalse(s.suppression().isSuppressed(id, 5L, 100L));
+        assertTrue(s.teleblock().isBlocked(id, 100L)); // still live
+    }
+
     @Test
     void clearAllFreesEveryStore() {
         UUID id = UUID.randomUUID();
@@ -37,7 +108,7 @@ class EngineStoresTest {
         s.teleblock().block(id, 0L, 100);
         s.immune().immune(id, ImmuneStore.Type.of(0), 0L, 100);
         s.cooldowns().arm(id, CooldownStore.key(0, 1), 0L, 100);
-        s.combo().hit(id, 0L);
+        s.combo().hit(id, UUID.randomUUID(), 0L);
         s.why().record(id, 0L, 0, 7, 10, 0, 0);
 
         assertEquals("1", s.vars().get(id, "x", 0L));

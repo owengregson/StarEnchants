@@ -81,6 +81,44 @@ class FlagAndSoulEffectTest {
                     new RunCommandEffect().run(ctx, sink);
                     verify(sink).consoleCommand("tp Steve in nether [" + id + "]"); // default as:console
                     verifyNoMoreInteractions(sink);
+                }),
+                // F34: a {PLAYER}-bearing template refuses to dispatch when the actor's name is non-standard —
+                // never perturb a console command with a crafted offline-mode username. Refuse, don't strip.
+                dynamicTest("RUN_COMMAND refuses a {PLAYER} template with a non-standard name (console + player)", () -> {
+                    Player actor = mock(Player.class);
+                    when(actor.getName()).thenReturn("a b\" ; op x");
+                    for (String as : new String[] {"console", "player"}) {
+                        FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                                .with("command", "eco give {PLAYER} 100").with("as", as);
+                        Sink sink = mock(Sink.class);
+                        new RunCommandEffect().run(ctx, sink);
+                        verifyNoInteractions(sink); // neither the console nor the player arm dispatches
+                    }
+                }),
+                dynamicTest("RUN_COMMAND with no token dispatches even for a hostile name (short-circuit stays actor-free)", () -> {
+                    Player actor = mock(Player.class);
+                    when(actor.getName()).thenReturn("bad name!");
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("command", "save-all").with("as", "console");
+                    Sink sink = mock(Sink.class);
+                    new RunCommandEffect().run(ctx, sink);
+                    verify(sink).consoleCommand("save-all"); // no '{' → never reads the name
+                    verifyNoMoreInteractions(sink);
+                }));
+    }
+
+    @TestFactory
+    List<DynamicTest> runCommandSafeName() {
+        return List.of(
+                dynamicTest("safeName accepts the Mojang username charset (1-16, [A-Za-z0-9_])", () -> {
+                    for (String ok : new String[] {"a", "Steve", "Notch_99", "ABCDEFGHIJKLMNOP" /* 16 */}) {
+                        org.junit.jupiter.api.Assertions.assertTrue(RunCommandEffect.safeName(ok), ok);
+                    }
+                }),
+                dynamicTest("safeName rejects empty, over-length, and out-of-charset names", () -> {
+                    for (String bad : new String[] {"", "ABCDEFGHIJKLMNOPQ" /* 17 */, "a b", "Notch\"", "na-me", "über"}) {
+                        org.junit.jupiter.api.Assertions.assertFalse(RunCommandEffect.safeName(bad), bad);
+                    }
                 }));
     }
 

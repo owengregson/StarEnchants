@@ -52,7 +52,8 @@ public final class MarkZoneEffect implements EffectKind {
                 Regions.swallowed("MarkZoneEffect.target", unreadable);
                 continue;
             }
-            sink.markZone(center, owner, radius, duration);
+            // The zone is laid under exactly the entity it targets, so the magma-immunity follows that entity only.
+            sink.markZone(center, owner, who.getUniqueId(), radius, duration);
         }
     }
 }

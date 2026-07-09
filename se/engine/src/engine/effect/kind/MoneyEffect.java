@@ -22,9 +22,10 @@ public final class MoneyEffect implements EffectKind {
             .param("mode", D.enumOf("give", "take", "transfer", "steal_percent").def("give"))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
-            .doc("Modify a player target's balance: give to them, take from them, transfer (take from the target "
-                    + "and give the total to the activator), or steal_percent (give the activator that PERCENT of the "
-                    + "target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].")
+            .doc("Modify a player target's balance: give to them, take from them, transfer (move at most the "
+                    + "target's balance to the activator — never more than they hold), or steal_percent (give the "
+                    + "activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces "
+                    + "GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].")
             .example("{ MODIFY_MONEY: { amount: 100, mode: give, who: \"@Self\" } }")
             .build();
 
@@ -49,20 +50,19 @@ public final class MoneyEffect implements EffectKind {
             return;
         }
         boolean transfer = "transfer".equalsIgnoreCase(mode);
-        boolean take = transfer || "take".equalsIgnoreCase(mode);
-        int taken = 0;
+        boolean take = "take".equalsIgnoreCase(mode);
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {
-                if (take) {
-                    sink.takeMoney(p, amount);
-                    taken++;
+                if (transfer && ctx.actor() != null) {
+                    // Each victim is clamped to their own balance, so the activator gains only what was charged
+                    // (never the full amount off a victim who cannot pay).
+                    sink.transferMoney(p, ctx.actor(), amount);
+                } else if (transfer || take) {
+                    sink.takeMoney(p, amount); // plain take, or transfer with no activator to credit
                 } else {
                     sink.giveMoney(p, amount);
                 }
             }
-        }
-        if (transfer && taken > 0 && ctx.actor() != null) {
-            sink.giveMoney(ctx.actor(), amount * taken); // the activator gains what was taken (steal)
         }
     }
 }

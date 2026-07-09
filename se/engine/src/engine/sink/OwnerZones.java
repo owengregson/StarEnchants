@@ -19,19 +19,21 @@ public final class OwnerZones {
     private OwnerZones() {
     }
 
-    private record Zone(UUID world, double x, double z, double radiusSq, long expiryMs) {
+    private record Zone(UUID world, double x, double z, double radiusSq, long expiryMs, UUID victim) {
     }
 
     private static final Map<UUID, Queue<Zone>> ZONES = new ConcurrentHashMap<>();
 
     /** Register a zone owned by {@code owner}: a cylinder of {@code radius} blocks at ({@code x},{@code z}) in
-     *  {@code world}, active for {@code durationMs}. No-op on a null owner/world or a non-positive radius/duration. */
-    public static void mark(UUID owner, UUID world, double x, double z, double radius, long durationMs) {
+     *  {@code world}, active for {@code durationMs}, laid under {@code victim} (nullable — a victimless zone still
+     *  serves the {@code %victim.inzone%} fact but grants nobody magma immunity). No-op on a null owner/world or a
+     *  non-positive radius/duration. */
+    public static void mark(UUID owner, UUID world, double x, double z, double radius, long durationMs, UUID victim) {
         if (owner == null || world == null || radius <= 0 || durationMs <= 0) {
             return;
         }
         ZONES.computeIfAbsent(owner, k -> new ConcurrentLinkedQueue<>())
-                .add(new Zone(world, x, z, radius * radius, System.currentTimeMillis() + durationMs));
+                .add(new Zone(world, x, z, radius * radius, System.currentTimeMillis() + durationMs, victim));
     }
 
     /** Whether {@code loc} lies inside any of {@code owner}'s currently-active zones (expired ones self-evict). */
@@ -65,17 +67,18 @@ public final class OwnerZones {
         return inside;
     }
 
-    /** Whether {@code loc} lies inside ANY owner's active zone — e.g. to suppress the magma burn over a hellfire
-     *  floor for everyone standing on it, not just the victim it was laid under. Expired zones self-evict. */
-    public static boolean anyContains(Location loc) {
-        if (loc == null || loc.getWorld() == null || ZONES.isEmpty()) {
+    /** Whether {@code entity} is the intended victim of an active zone it is standing in — the magma-burn immunity
+     *  over a hellfire floor is scoped to the entity the floor was laid under, NOT everyone on it (so an ally or the
+     *  wearer cannot surf a proc'd cylinder over natural magma). Scans every owner's zones; expired ones self-evict. */
+    public static boolean immuneFor(UUID entity, Location loc) {
+        if (entity == null || loc == null || loc.getWorld() == null || ZONES.isEmpty()) {
             return false;
         }
         long now = System.currentTimeMillis();
         UUID world = loc.getWorld().getUID();
         double x = loc.getX();
         double z = loc.getZ();
-        boolean inside = false;
+        boolean immune = false;
         for (Queue<Zone> zones : ZONES.values()) {
             for (java.util.Iterator<Zone> it = zones.iterator(); it.hasNext();) {
                 Zone zone = it.next();
@@ -83,16 +86,16 @@ public final class OwnerZones {
                     it.remove(); // sweep expired zones as we pass them
                     continue;
                 }
-                if (world.equals(zone.world())) {
+                if (entity.equals(zone.victim()) && world.equals(zone.world())) {
                     double dx = x - zone.x();
                     double dz = z - zone.z();
                     if (dx * dx + dz * dz <= zone.radiusSq()) {
-                        inside = true; // keep scanning so every queue still gets its expiry sweep
+                        immune = true; // keep scanning so every queue still gets its expiry sweep
                     }
                 }
             }
         }
-        return inside;
+        return immune;
     }
 
     /** Forget one owner's zones (quit). */

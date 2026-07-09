@@ -21,8 +21,13 @@ public final class FallingBlockCasts {
     private FallingBlockCasts() {
     }
 
-    /** The IMPACT payload handed to the dispatch when a tracked block lands ({@code owner} may be null). */
-    public record Cast(UUID owner, double damage) {
+    /**
+     * The IMPACT payload handed to the dispatch when a tracked block lands. {@code owner} may be null (no player
+     * source → no IMPACT). {@code target} is the entity the grid was aimed at — the IMPACT lands only when THAT
+     * entity is under the block, so a bystander who happens to be nearest can never eat the carried hit; also
+     * nullable (an owner-less/targetless cosmetic).
+     */
+    public record Cast(UUID owner, UUID target, double damage) {
     }
 
     private static final Map<UUID, Cast> BY_ENTITY = new ConcurrentHashMap<>();
@@ -30,11 +35,11 @@ public final class FallingBlockCasts {
     /**
      * Track a freshly-spawned cosmetic falling block so its placement is cancelled on landing. {@code owner} may
      * be {@code null} (no player source) — the block is still tracked (and so never places); it just fires no
-     * IMPACT. {@link ConcurrentHashMap} forbids a null value, so an owner-less cast carries a null owner field.
+     * IMPACT. {@code target} records the entity the grid was aimed at so the landing hits only it.
      */
-    public static void bind(UUID entity, UUID owner, double damage) {
+    public static void bind(UUID entity, UUID owner, UUID target, double damage) {
         if (entity != null) {
-            BY_ENTITY.put(entity, new Cast(owner, damage));
+            BY_ENTITY.put(entity, new Cast(owner, target, damage));
         }
     }
 

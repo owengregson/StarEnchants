@@ -21,8 +21,8 @@ public final class ExpEffect implements EffectKind {
             .param("mode", D.enumOf("give", "take", "transfer").def("give"))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
-            .doc("Modify a player target's experience: give to them, take from them, or transfer (take "
-                    + "from the target and grant the total to the activator). Replaces GIVE_EXP.")
+            .doc("Modify a player target's experience: give to them, take from them, or transfer (move at most "
+                    + "the target's experience to the activator — never more than they hold). Replaces GIVE_EXP.")
             .example("{ MODIFY_EXP: { amount: 50, mode: give, who: \"@Self\" } }")
             .build();
 
@@ -34,21 +34,21 @@ public final class ExpEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         int amount = ctx.integer("amount");
-        boolean transfer = "transfer".equalsIgnoreCase(ctx.str("mode"));
-        boolean take = transfer || "take".equalsIgnoreCase(ctx.str("mode"));
-        int taken = 0;
+        String mode = ctx.str("mode");
+        boolean transfer = "transfer".equalsIgnoreCase(mode);
+        boolean take = "take".equalsIgnoreCase(mode);
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {
-                if (take) {
-                    sink.takeExp(p, amount);
-                    taken++;
+                if (transfer && ctx.actor() != null) {
+                    // Each victim is clamped to their own XP, so the activator gains only what was withdrawn
+                    // (never the full amount off a victim holding less).
+                    sink.transferExp(p, ctx.actor(), amount);
+                } else if (transfer || take) {
+                    sink.takeExp(p, amount); // plain take, or transfer with no activator to credit
                 } else {
                     sink.giveExp(p, amount);
                 }
             }
-        }
-        if (transfer && taken > 0 && ctx.actor() != null) {
-            sink.giveExp(ctx.actor(), amount * taken); // the activator gains what was taken (steal)
         }
     }
 }
