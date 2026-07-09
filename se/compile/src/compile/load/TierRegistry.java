@@ -17,6 +17,15 @@ public final class TierRegistry {
      *             {@code weight} (the default when {@code cost:} is omitted) — see {@code EnchanterOffers}.
      */
     public record Tier(String name, String color, int weight, boolean glint, int cost) {
+
+        /**
+         * The Enchanter's per-book XP-level price for this tier: the explicit {@code cost:} when set, else
+         * derived from {@code weight} (rarer = pricier), at least one level. The single rule the Enchanter
+         * charges and the Tinkerer caps its salvage refund at, so buy price and refund cap can never diverge.
+         */
+        public int bookCostLevels() {
+            return cost >= 0 ? cost : Math.max(1, weight / 5);
+        }
     }
 
     /** The fallback registry used when {@code content/tiers.yml} is absent or empty. */

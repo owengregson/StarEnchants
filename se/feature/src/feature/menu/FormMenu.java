@@ -129,11 +129,19 @@ public abstract class FormMenu implements Menu, InteractiveMenu {
 
     @Override
     public void onClose(Player player, MenuHolder holder) {
-        // Return anything the player staged but didn't consume, so a closed bench never eats items.
+        // Return anything the player staged but didn't consume, so a closed bench never eats items. During a
+        // death the close event fires BEFORE the inventory clear, so addItem would feed the doomed inventory
+        // and the staged book would be wiped — drop it at the death spot instead so it survives (getReason() is
+        // Paper-only and absent on the 1.8.8 lane; isDead()/getHealth() are era-universal and 0 here).
+        boolean dying = player.isDead() || player.getHealth() <= 0;
         for (int slot : inputSlots()) {
             ItemStack staged = holder.getInventory().getItem(slot);
             if (staged != null && staged.getType() != Material.AIR) {
-                Inventories.giveOrDrop(player, staged);
+                if (dying) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), staged);
+                } else {
+                    Inventories.giveOrDrop(player, staged);
+                }
                 holder.getInventory().setItem(slot, null);
             }
         }
