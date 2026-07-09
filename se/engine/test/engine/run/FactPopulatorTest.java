@@ -237,7 +237,7 @@ class FactPopulatorTest {
         LivingEntity victim = mock(LivingEntity.class);
         lenient().when(victim.getWorld()).thenReturn(world);
 
-        OwnerZones.mark(actorId, zoneWorld, 0, 0, 4.0, 60_000L);
+        OwnerZones.mark(actorId, zoneWorld, 0, 0, 4.0, 60_000L, null); // %victim.inzone% reads by owner, not victim
         try {
             when(victim.getLocation()).thenReturn(new Location(world, 1, 64, 1)); // dist 1.4 < 4 → inside
             assertTrue(populator.populate(new ActivationContext(actor, victim, null, null)).flag(slot));

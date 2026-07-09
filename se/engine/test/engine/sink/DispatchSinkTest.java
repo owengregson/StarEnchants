@@ -3,8 +3,11 @@ package engine.sink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -14,14 +17,22 @@ import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.mockito.InOrder;
+import platform.economy.EconomyProvider;
+import platform.economy.EconomyService;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
@@ -236,5 +247,179 @@ class DispatchSinkTest {
 
         assertTrue(store.shouldKeep(id, 100L));
         assertFalse(store.shouldKeep(id, 140L), "expires at tick 140");
+    }
+
+    // ── F31: transferMoney moves at most the victim's balance, never minting on a broke victim ──
+
+    /** A trivial in-memory economy: withdraw is all-or-nothing (matches the real provider contract). */
+    private static EconomyService economyOf(Map<UUID, Double> balances) {
+        return new EconomyService(new EconomyProvider() {
+            @Override
+            public double balance(UUID player) {
+                return balances.getOrDefault(player, 0.0);
+            }
+
+            @Override
+            public boolean withdraw(UUID player, double amount) {
+                if (amount <= 0) {
+                    return true;
+                }
+                double bal = balances.getOrDefault(player, 0.0);
+                if (bal < amount) {
+                    return false;
+                }
+                balances.put(player, bal - amount);
+                return true;
+            }
+
+            @Override
+            public void deposit(UUID player, double amount) {
+                if (amount > 0) {
+                    balances.merge(player, amount, Double::sum);
+                }
+            }
+        });
+    }
+
+    @Test
+    void transferMoneyClampsToTheVictimsBalanceSoNothingIsMinted() {
+        UUID fromId = UUID.randomUUID();
+        UUID toId = UUID.randomUUID();
+        Player from = mock(Player.class);
+        Player to = mock(Player.class);
+        when(from.getUniqueId()).thenReturn(fromId);
+        when(to.getUniqueId()).thenReturn(toId);
+        Map<UUID, Double> balances = new HashMap<>(Map.of(fromId, 30.0, toId, 0.0));
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().economy(economyOf(balances)).build());
+        sink.transferMoney(from, to, 50.0); // asks for 50, victim only holds 30
+        sink.flush();
+
+        assertEquals(0.0, balances.get(fromId), 1e-9, "victim charged exactly what they held");
+        assertEquals(30.0, balances.get(toId), 1e-9, "actor credited only what was charged — no minting");
+    }
+
+    @Test
+    void transferMoneyFromABrokeVictimMovesNothing() {
+        UUID fromId = UUID.randomUUID();
+        UUID toId = UUID.randomUUID();
+        Player from = mock(Player.class);
+        Player to = mock(Player.class);
+        when(from.getUniqueId()).thenReturn(fromId);
+        when(to.getUniqueId()).thenReturn(toId);
+        Map<UUID, Double> balances = new HashMap<>(Map.of(fromId, 0.0, toId, 5.0));
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().economy(economyOf(balances)).build());
+        sink.transferMoney(from, to, 50.0);
+        sink.flush();
+
+        assertEquals(0.0, balances.get(fromId), 1e-9);
+        assertEquals(5.0, balances.get(toId), 1e-9, "a broke victim credits the actor nothing");
+    }
+
+    @Test
+    void transferMoneyMovesTheFullAmountFromARichVictim() {
+        UUID fromId = UUID.randomUUID();
+        UUID toId = UUID.randomUUID();
+        Player from = mock(Player.class);
+        Player to = mock(Player.class);
+        when(from.getUniqueId()).thenReturn(fromId);
+        when(to.getUniqueId()).thenReturn(toId);
+        Map<UUID, Double> balances = new HashMap<>(Map.of(fromId, 100.0, toId, 0.0));
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().economy(economyOf(balances)).build());
+        sink.transferMoney(from, to, 50.0);
+        sink.flush();
+
+        assertEquals(50.0, balances.get(fromId), 1e-9);
+        assertEquals(50.0, balances.get(toId), 1e-9);
+    }
+
+    @Test
+    void selfTransferMoneyIsNetZero() {
+        UUID id = UUID.randomUUID();
+        Player self = mock(Player.class);
+        when(self.getUniqueId()).thenReturn(id);
+        Map<UUID, Double> balances = new HashMap<>(Map.of(id, 30.0));
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().economy(economyOf(balances)).build());
+        sink.transferMoney(self, self, 50.0); // the who:@Self printer variant
+        sink.flush();
+
+        assertEquals(30.0, balances.get(id), 1e-9, "withdraw then deposit onto the same account nets zero");
+    }
+
+    // ── F32: transferExp moves at most the victim's real total, computed from the vanilla curve ──
+
+    @Test
+    void transferExpMovesAtMostTheVictimsRealTotal() {
+        Player victim = mock(Player.class);
+        Player actor = mock(Player.class);
+        when(victim.getLevel()).thenReturn(1); // level 1 = 7 points on the vanilla curve
+        when(victim.getExp()).thenReturn(0f);
+        when(victim.getExpToLevel()).thenReturn(9);
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.transferExp(victim, actor, 50); // asks for 50, victim only holds 7
+        sink.flush();
+
+        verify(victim).giveExp(-7); // clamped to what the victim actually holds
+        verify(actor).giveExp(7);   // actor credited exactly what was withdrawn — nothing minted
+    }
+
+    @Test
+    void transferExpFromABrokeVictimMintsNothing() {
+        Player victim = mock(Player.class);
+        Player actor = mock(Player.class);
+        when(victim.getLevel()).thenReturn(0);
+        when(victim.getExp()).thenReturn(0f);
+        when(victim.getExpToLevel()).thenReturn(7);
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.transferExp(victim, actor, 50);
+        sink.flush();
+
+        verify(victim, never()).giveExp(anyInt());
+        verify(actor, never()).giveExp(anyInt());
+    }
+
+    @Test
+    void transferExpMovesTheFullAmountFromARichVictim() {
+        Player victim = mock(Player.class);
+        Player actor = mock(Player.class);
+        when(victim.getLevel()).thenReturn(40); // far more than 50 points
+        when(victim.getExp()).thenReturn(0f);
+        when(victim.getExpToLevel()).thenReturn(9);
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.transferExp(victim, actor, 50);
+        sink.flush();
+
+        verify(victim).giveExp(-50);
+        verify(actor).giveExp(50);
+    }
+
+    @TestFactory
+    List<DynamicTest> totalXpPointsFollowsTheVanillaCurve() {
+        // level → total points at the start of that level (three curve segments: <=16, 17-31, >=32).
+        int[][] rows = {{0, 0}, {1, 7}, {16, 352}, {17, 394}, {31, 1507}, {32, 1628}};
+        List<DynamicTest> tests = new ArrayList<>();
+        for (int[] row : rows) {
+            tests.add(dynamicTest("level " + row[0] + " → " + row[1] + " points", () -> {
+                Player p = mock(Player.class);
+                when(p.getLevel()).thenReturn(row[0]);
+                when(p.getExp()).thenReturn(0f);
+                when(p.getExpToLevel()).thenReturn(1);
+                assertEquals(row[1], DispatchSinkBase.totalXpPoints(p));
+            }));
+        }
+        tests.add(dynamicTest("fractional progress adds round(exp × expToLevel) into the current level", () -> {
+            Player p = mock(Player.class);
+            when(p.getLevel()).thenReturn(5); // 5*5 + 6*5 = 55
+            when(p.getExp()).thenReturn(0.5f);
+            when(p.getExpToLevel()).thenReturn(17);
+            assertEquals(55 + Math.round(0.5f * 17), DispatchSinkBase.totalXpPoints(p));
+        }));
+        return tests;
     }
 }

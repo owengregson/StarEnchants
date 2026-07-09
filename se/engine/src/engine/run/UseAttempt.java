@@ -12,7 +12,8 @@ package engine.run;
  * @param cooldownRemainingTicks   the greatest remaining cooldown across the blocked candidates (0 if none)
  * @param conditionCandidateIndex  the index (into the caller's candidate array, aligned to the def's ability
  *                                 order) of the FIRST candidate that stopped at the condition gate, else {@code -1}
- * @param chanceFailed             a candidate stopped at the chance-roll gate (gate 8)
+ * @param chanceFailed             a candidate stopped at the chance-roll gate (gate 8); the cold path charges the
+ *                                 cooldown on this fail, so a spammed sub-100% use-item is throttled per attempt
  */
 public record UseAttempt(boolean activated, boolean onCooldown, long cooldownRemainingTicks,
                          int conditionCandidateIndex, boolean chanceFailed) {

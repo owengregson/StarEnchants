@@ -42,7 +42,47 @@ public record EngineStores(
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why);
     }
 
-    /** Forget every store's state for one player (the quit sweep). */
+    /**
+     * The stores forgotten WHOLESALE on quit: private/transient/diagnostic state that a relog should not carry
+     * (writable vars, knockback control, keep-on-death, damage immunity, combo streak, the /se why ring). Clearing
+     * these on quit is the conservative direction — worn-derived buffs re-establish on rejoin.
+     */
+    public List<PlayerScoped> quitVolatile() {
+        return List.of(vars, knockback, keepOnDeath, immune, combo, why);
+    }
+
+    /**
+     * The combat-integrity stores RETAINED across a relog: cooldowns and victim-applied teleblock/suppression
+     * windows. Only their already-elapsed entries are shed on quit, so a ~5-10s disconnect+reconnect cannot skip a
+     * live cooldown or shed a landed debuff (the monotonic tick keeps a surviving absolute expiry valid on rejoin).
+     */
+    public List<RetainedStore> quitRetained() {
+        return List.of(cooldowns, teleblock, suppression);
+    }
+
+    /**
+     * The quit sweep: clear the {@link #quitVolatile} stores, drop the self-derived suppression immunity (windows
+     * survive), and evict only the {@link #quitRetained} stores' elapsed entries at {@code nowTicks}. A full clear
+     * is {@link #clearAll(UUID)}.
+     */
+    public void quitSweep(UUID player, long nowTicks) {
+        for (PlayerScoped store : quitVolatile()) {
+            store.clear(player);
+        }
+        suppression.clearImmunity(player); // self-state re-derived on rejoin; DISABLE_* windows survive below
+        for (RetainedStore store : quitRetained()) {
+            store.evictElapsed(player, nowTicks);
+        }
+    }
+
+    /** Drop every retained store's elapsed entries across all players at {@code nowTicks} (the offline-state sweep). */
+    public void evictElapsed(long nowTicks) {
+        for (RetainedStore store : quitRetained()) {
+            store.evictElapsed(nowTicks);
+        }
+    }
+
+    /** Forget every store's state for one player (a full clear, e.g. on disable). */
     public void clearAll(UUID player) {
         for (PlayerScoped store : all()) {
             store.clear(player);

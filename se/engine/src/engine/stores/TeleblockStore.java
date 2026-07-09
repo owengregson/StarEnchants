@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * back and cancels the launch. The store bridges the two decoupled events — on Folia the write thread may
  * differ from the launch-event thread (cf. {@link KnockbackControlStore}).
  */
-public final class TeleblockStore implements PlayerScoped {
+public final class TeleblockStore implements RetainedStore {
 
     private final Map<UUID, Long> expiry = new ConcurrentHashMap<>();
 
@@ -36,9 +36,24 @@ public final class TeleblockStore implements PlayerScoped {
         return true;
     }
 
-    /** Drop {@code player}'s block (on quit). */
+    /** Drop {@code player}'s block (a full clear — NOT the relog-preserving quit sweep). */
     public void clear(UUID player) {
         expiry.remove(player);
+    }
+
+    /** Drop {@code player}'s block only if it has already elapsed at {@code nowTicks} (the quit sweep). */
+    @Override
+    public void evictElapsed(UUID player, long nowTicks) {
+        Long until = expiry.get(player);
+        if (until != null && nowTicks >= until) {
+            expiry.remove(player, until); // value-matched: a concurrent re-block survives
+        }
+    }
+
+    /** Drop every player's elapsed block at {@code nowTicks} (the periodic offline-state sweep). */
+    @Override
+    public void evictElapsed(long nowTicks) {
+        expiry.entrySet().removeIf(e -> nowTicks >= e.getValue());
     }
 
     /** Drop every block (on disable). */

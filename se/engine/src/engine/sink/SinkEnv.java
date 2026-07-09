@@ -22,11 +22,13 @@ import platform.economy.EconomyService;
  * overlapping temp-block placements from separate activations compound instead of clobbering (a fresh
  * per-event ledger could not — the sink is allocated per activation). {@code trails} is the ONE per-boot
  * {@link TrailWalker} for the same reason: the footprint snake's path memory must survive across the SEPARATE
- * activations a REPEATING trigger fires. Both shared via the env like the stores, never a mutable static.
+ * activations a REPEATING trigger fires. {@code timedReverts} is the ONE per-boot {@link TimedRevert} for the
+ * same reason: a timed buff's revert closure must outlive the per-event sink so the quit drain can run it when
+ * a player logs out mid-window (F07/F08). All three shared via the env like the stores, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
-                      TrailWalker trails) {
+                      TrailWalker trails, TimedRevert timedReverts) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -36,6 +38,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(movementExemption, "movementExemption");
         Objects.requireNonNull(tempBlocks, "tempBlocks");
         Objects.requireNonNull(trails, "trails");
+        Objects.requireNonNull(timedReverts, "timedReverts");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -47,6 +50,6 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                              Consumer<Player> movementExemption) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
-                new TrailWalker());
+                new TrailWalker(), new TimedRevert());
     }
 }

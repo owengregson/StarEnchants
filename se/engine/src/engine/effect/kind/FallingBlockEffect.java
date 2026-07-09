@@ -51,6 +51,7 @@ public final class FallingBlockEffect implements EffectKind {
         double carry = ctx.dbl("carry");
         UUID owner = ctx.actor() == null ? null : ctx.actor().getUniqueId();
         for (LivingEntity who : ctx.targets("who")) {
+            UUID target = who.getUniqueId(); // the grid is aimed at THIS entity — its IMPACT lands only on it
             Location base;
             try {
                 base = who.getLocation(); // T.VICTIM, but @Attacker on a DEFENSE trigger can be a cross-region shooter (ADR-0043)
@@ -68,7 +69,7 @@ public final class FallingBlockEffect implements EffectKind {
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
                     // +0.5 centres each block on its column so the grid falls straight down onto the target.
-                    sink.fallingBlock(new Location(world, bx + dx + 0.5, by, bz + dz + 0.5), material, ttl, owner, carry);
+                    sink.fallingBlock(new Location(world, bx + dx + 0.5, by, bz + dz + 0.5), material, ttl, owner, target, carry);
                 }
             }
         }

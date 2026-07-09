@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import engine.sink.TempBlockLedger.Key;
 import engine.sink.TempBlockLedger.Pending;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -262,6 +264,197 @@ class TempBlockLedgerTest {
         assertEquals(NETHERRACK, blocks.typeAt(K));
         assertEquals(1, blocks.captures, "within grace the entry is kept — no fresh capture, no self-heal restore");
         assertEquals(0, blocks.restores);
+    }
+
+    // ---- F25: reclaim (mine-as-early-revert) ----
+
+    // Reclaiming a live single-layer tile restores the true original exactly once, drops the entry, and a later
+    // scheduled revert for that layer is a no-op — so a mined temp block yields no drop and deletes no original.
+    @Test
+    void reclaimSingleLayer_restoresOriginalOnce_thenScheduledRevertNoOps() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, GOLD);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        Pending magma = ledger.place(K, MAGMA, 100, 0);
+        assertEquals(MAGMA, blocks.typeAt(K));
+
+        assertTrue(ledger.reclaim(WORLD, 0, 64, 0));
+        assertEquals(GOLD, blocks.typeAt(K), "reclaim restores the captured original");
+        assertEquals(1, blocks.restores);
+        assertTrue(ledger.isEmpty(), "the entry is gone after reclaim");
+
+        ledger.revert(K, magma.layerId(), magma.seq(), 100); // the still-pending scheduled revert
+        assertEquals(GOLD, blocks.typeAt(K));
+        assertEquals(1, blocks.restores, "the scheduled revert no-ops on the now-absent entry");
+    }
+
+    // Reclaiming a STACKED tile (magma floor + netherrack trail) pops ALL layers and restores the TRUE original,
+    // never the buried intermediate layer.
+    @Test
+    void reclaimStacked_restoresTrueOriginalNotIntermediateLayer() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        ledger.place(K, MAGMA, 100, 0);
+        ledger.place(K, NETHERRACK, 40, 10);
+        assertEquals(NETHERRACK, blocks.typeAt(K));
+
+        assertTrue(ledger.reclaim(WORLD, 0, 64, 0));
+        assertEquals(STONE, blocks.typeAt(K), "the whole stack pops back to the true original");
+        assertTrue(ledger.isEmpty());
+    }
+
+    // Reclaiming a tile the world changed out from under us returns false, restores nothing, and LEAVES the entry
+    // for revert()'s drop branch — reclaim must never hijack a foreign block's break.
+    @Test
+    void reclaimAfterExternalChange_returnsFalse_leavesEntryForRevertDropBranch() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        Pending magma = ledger.place(K, MAGMA, 100, 0);
+        blocks.current.put(K, AIR); // the world diverged (some other plugin/piston changed it)
+
+        assertFalse(ledger.reclaim(WORLD, 0, 64, 0));
+        assertEquals(0, blocks.restores, "a diverged tile is never hijacked");
+        assertFalse(ledger.isEmpty(), "the entry is retained for the scheduled revert");
+
+        ledger.revert(K, magma.layerId(), magma.seq(), 100); // its own drop branch drops the entry, restores nothing
+        assertEquals(AIR, blocks.typeAt(K));
+        assertEquals(0, blocks.restores);
+        assertTrue(ledger.isEmpty());
+    }
+
+    // Reclaiming an untracked tile is a false no-op.
+    @Test
+    void reclaimUntracked_isFalseNoOp() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+        assertFalse(ledger.reclaim(WORLD, 0, 64, 0));
+        assertEquals(0, blocks.restores);
+    }
+
+    // guarded()/isEmpty() flip correctly across place / revert / reclaim.
+    @Test
+    void guardedAndIsEmpty_trackEntryLifecycle() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        assertTrue(ledger.isEmpty());
+        assertFalse(ledger.guarded(WORLD, 0, 64, 0));
+
+        Pending p = ledger.place(K, ICE, 20, 0);
+        assertFalse(ledger.isEmpty());
+        assertTrue(ledger.guarded(WORLD, 0, 64, 0));
+        assertFalse(ledger.guarded(WORLD, 1, 64, 0), "a neighbouring tile is not guarded");
+
+        ledger.revert(K, p.layerId(), p.seq(), 20);
+        assertTrue(ledger.isEmpty());
+        assertFalse(ledger.guarded(WORLD, 0, 64, 0));
+    }
+
+    // ---- F29: chunk-load re-arm, self-heal sweep ----
+
+    // rearmChunk emits every layer of every in-chunk key (delay clamped >= 1) and skips keys in other
+    // chunks/worlds; feeding the emitted tuples back through revert after their deadlines restores the TRUE
+    // original exactly once, and a duplicate delivery no-ops.
+    @Test
+    void rearmChunk_emitsEveryInChunkLayer_skipsOthers_revertIdempotent() {
+        UUID otherWorld = UUID.fromString("00000000-0000-0000-0000-0000000000bb");
+        Key farChunk = new Key(WORLD, 200, 64, 0); // chunkX 12 — different chunk
+        Key otherWorldKey = new Key(otherWorld, 0, 64, 0);
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE).seed(farChunk, GOLD).seed(otherWorldKey, ICE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        Pending magma = ledger.place(K, MAGMA, 100, 0);       // in chunk (0,0)
+        Pending nether = ledger.place(K, NETHERRACK, 40, 10);  // second layer at K
+        ledger.place(farChunk, MAGMA, 100, 0);                 // other chunk — must be skipped
+        ledger.place(otherWorldKey, MAGMA, 100, 0);            // other world — must be skipped
+
+        record Emit(int x, int y, int z, long id, long seq, long delay) { }
+        List<Emit> emitted = new ArrayList<>();
+        ledger.rearmChunk(WORLD, 0, 0, 130, (x, y, z, id, seq, delay) ->
+                emitted.add(new Emit(x, y, z, id, seq, delay)));
+
+        assertEquals(2, emitted.size(), "both layers of the sole in-chunk key are re-armed, nothing else");
+        for (Emit e : emitted) {
+            assertEquals(0, e.x());
+            assertEquals(64, e.y());
+            assertEquals(0, e.z());
+            assertTrue(e.delay() >= 1, "a past-deadline layer clamps its delay to >= 1");
+        }
+        // Both deadlines (100, 50) are past now (130) → each re-armed with delay clamped to 1.
+        long magmaSeq = emitted.stream().filter(e -> e.id() == magma.layerId()).findFirst().orElseThrow().seq();
+        long netherSeq = emitted.stream().filter(e -> e.id() == nether.layerId()).findFirst().orElseThrow().seq();
+        assertEquals(magma.seq(), magmaSeq);
+        assertEquals(nether.seq(), netherSeq);
+
+        // Deliver the re-armed reverts. Both layers are already past their deadlines (the stranded-reload case), so
+        // popping the top netherrack sweeps the now-exposed expired magma in one pass straight to the TRUE original.
+        ledger.revertAt(WORLD, 0, 64, 0, nether.layerId(), netherSeq, 131);
+        assertEquals(STONE, blocks.typeAt(K), "a stranded stack heals straight to the true original on reload");
+        // The magma delivery and a duplicate netherrack delivery are harmless no-ops (the entry is already gone).
+        ledger.revertAt(WORLD, 0, 64, 0, magma.layerId(), magmaSeq, 131);
+        ledger.revertAt(WORLD, 0, 64, 0, nether.layerId(), netherSeq, 131);
+        assertEquals(STONE, blocks.typeAt(K));
+        assertEquals(1, blocks.restores, "the true original is restored exactly once across re-arm + duplicates");
+    }
+
+    // rearmChunk emits a future-deadline layer with its real (positive) remaining delay, not the clamp.
+    @Test
+    void rearmChunk_futureDeadlineKeepsRealDelay() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+        ledger.place(K, MAGMA, 100, 0); // deadline 100
+
+        long[] delay = {-1};
+        ledger.rearmChunk(WORLD, 0, 0, 40, (x, y, z, id, seq, d) -> delay[0] = d);
+        assertEquals(60, delay[0], "deadline 100 at now 40 re-arms with 60 ticks left");
+    }
+
+    // healIfExpired no-ops within the stale grace, restores-and-drops past it, and drops-without-restore when the
+    // world diverged.
+    @Test
+    void healIfExpired_graceThenRestore_divergedDropsWithoutRestore() {
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+        ledger.place(K, MAGMA, 100, 0); // deadline 100
+
+        ledger.healIfExpired(WORLD, 0, 64, 0, 100 + TempBlockLedger.STALE_GRACE_TICKS); // still within grace
+        assertEquals(MAGMA, blocks.typeAt(K), "within grace this is a live entry — no heal");
+        assertEquals(0, blocks.restores);
+        assertFalse(ledger.isEmpty());
+
+        ledger.healIfExpired(WORLD, 0, 64, 0, 100 + TempBlockLedger.STALE_GRACE_TICKS + 1); // past grace
+        assertEquals(STONE, blocks.typeAt(K), "an abandoned loaded-chunk tile heals to its original");
+        assertEquals(1, blocks.restores);
+        assertTrue(ledger.isEmpty());
+
+        // Diverged case: the tile was changed under us → heal drops the entry, restores nothing.
+        FakeBlocks b2 = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> l2 = new TempBlockLedger<>(b2);
+        l2.place(K, MAGMA, 100, 0);
+        b2.current.put(K, AIR);
+        l2.healIfExpired(WORLD, 0, 64, 0, 100 + TempBlockLedger.STALE_GRACE_TICKS + 1);
+        assertEquals(AIR, b2.typeAt(K));
+        assertEquals(0, b2.restores, "a diverged abandoned tile restores nothing");
+        assertTrue(l2.isEmpty());
+    }
+
+    // forEachTile visits exactly the live keys and never mutates.
+    @Test
+    void forEachTile_visitsExactlyLiveKeys() {
+        Key k2 = new Key(WORLD, 5, 70, 3);
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE).seed(k2, GOLD);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+        ledger.place(K, MAGMA, 100, 0);
+        ledger.place(k2, ICE, 100, 0);
+
+        List<Key> visited = new ArrayList<>();
+        ledger.forEachTile((w, x, y, z) -> visited.add(new Key(w, x, y, z)));
+        assertEquals(2, visited.size());
+        assertTrue(visited.contains(K));
+        assertTrue(visited.contains(k2));
+        assertEquals(2, blocks.sets, "forEachTile is a pure read — only the two place() sets touched the world");
     }
 
     // (g) The canReplace decision, single-sourced here, consults the live block's air/liquid/solid predicates.

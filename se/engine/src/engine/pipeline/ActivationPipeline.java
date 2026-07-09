@@ -19,10 +19,14 @@ import java.util.Objects;
  * and runs each through {@link #evaluate}; {@link GateOutcome#ACTIVATED} means the caller runs the
  * ability's effects (gate 12).
  *
- * <p>Gates 1, 3–8, 10, 11 are pure logic over the {@link Ability} and {@link Activation}; gate 2
+ * <p>Gates 1, 3–8, 10 are pure logic over the {@link Ability} and {@link Activation}; gate 2
  * (protection) and gate 9 ({@code PreActivate}) are injected {@link Guard}s (default allow) so the
- * cross-version/Bukkit edges stay outside this pure core. The side-effecting gates run only after every
- * preceding gate passes: souls debit (gate 10) AFTER {@code PreActivate}, cooldown armed last (gate 11).
+ * cross-version/Bukkit edges stay outside this pure core. Gate 6 atomically RESERVES the cooldown (a fused
+ * check-and-arm, so two same-tick Folia hits on one key can't both pass); any later gate failure
+ * (condition/chance/{@code PreActivate}/souls) RELEASES it, and ACTIVATED commits it implicitly — the
+ * pass-then-arm window is zero-width. The souls debit (gate 10) runs AFTER {@code PreActivate}. Exception: the
+ * cold use-item path ({@code spendCooldownOnChanceFail}) keeps the reservation on a chance fail, so a spammed
+ * sub-100% use-item is charged the cooldown per attempt.
  *
  * <p>Every {@code evaluate} reports {@code (defId, trigger, verdict, per-gate payload)} to the injected
  * {@link WhyRecorder} (ADR-0045); payloads are captured at the failing gate and names resolve at render time.
@@ -71,8 +75,21 @@ public final class ActivationPipeline {
     }
 
     /** Run {@code ability} through every gate against {@code act}, returning where it stopped. Every path
-     *  reports its verdict + per-gate payload to the {@link WhyRecorder} on the way out (ADR-0045). */
+     *  reports its verdict + per-gate payload to the {@link WhyRecorder} on the way out (ADR-0045). The combat
+     *  hot path uses this 2-arg form: a chance/condition fail RELEASES the gate-6 reservation, so a sub-100%
+     *  proc enchant with a cooldown still rolls every hit. */
     public GateOutcome evaluate(Ability ability, Activation act) {
+        return evaluate(ability, act, false);
+    }
+
+    /**
+     * As {@link #evaluate(Ability, Activation)}, but {@code spendCooldownOnChanceFail} charges a failed chance
+     * roll (gate 8) the cooldown: the gate-6 reservation STANDS instead of being released, so the failed attempt
+     * arms the cooldown. Only the COLD use-item path passes {@code true} — a use-item charges per ATTEMPT, so
+     * right-click spam can't retry a sub-100% roll for free. The hot path must keep {@code false} or a proc
+     * enchant rolling chance under a cooldown would almost never fire.
+     */
+    public GateOutcome evaluate(Ability ability, Activation act, boolean spendCooldownOnChanceFail) {
         // 1. world blacklist — primitive AND
         if (ability.blockedInWorld(act.worldId())) {
             return record(GateOutcome.BLOCKED_WORLD, ability, act, act.worldId(), 0);
@@ -106,8 +123,9 @@ public final class ActivationPipeline {
                     WhyRing.packScope(1, SuppressionStore.detailScopeKind(d), SuppressionStore.detailScopeId(d)),
                     byDefId);
         }
-        // 6. cooldown (three scopes) — primitive long map; remaining captured for the flight recorder
-        long cd = blockedCooldown(ability, act); // 0 = all ready
+        // 6. cooldown (three scopes) — atomically RESERVE here (check-and-arm fused) so two same-tick Folia hits
+        //    on one key can't both pass; a later gate failure rolls the reservation back, ACTIVATED commits it.
+        long cd = reserveCooldowns(ability, act); // 0 = all reserved/ready
         if (cd != 0) {
             return record(GateOutcome.ON_COOLDOWN, ability, act,
                     (int) cd,           // low 32: packScope(0, scopeKind, scopeId)
@@ -116,6 +134,7 @@ public final class ActivationPipeline {
         // 7. condition + chanceΔ — AST walk over the primitive FactBuffer, no alloc
         ConditionResult cond = ConditionEvaluator.eval(ability.condition(), act.facts());
         if (cond.flow() == Flow.STOP) {
+            releaseCooldowns(ability, act); // a condition fail must NOT arm the cooldown
             return record(GateOutcome.CONDITION_FAILED, ability, act, 0, 0);
         }
         // 8. chance roll — roll [0,100) < (base + Δ); FORCE/ALLOW skip the roll. Basis points are captured for
@@ -127,20 +146,25 @@ public final class ActivationPipeline {
             double roll = act.chanceRoll().getAsDouble();
             rollBp = (int) Math.round(roll * 100.0);
             if (!(roll < chance)) {
+                if (!spendCooldownOnChanceFail) {
+                    releaseCooldowns(ability, act); // hot path: a chance fail must NOT arm the cooldown
+                }
+                // use path: keep the gate-6 reservation so the failed attempt spends the cooldown (charge-per-attempt).
                 return record(GateOutcome.CHANCE_FAILED, ability, act, rollBp, chanceBp);
             }
         }
         // 9. PreActivate — injected; cancellable
         if (!preActivate.allows(ability, act)) {
+            releaseCooldowns(ability, act);
             return record(GateOutcome.CANCELLED, ability, act, 0, 0);
         }
         // 10. soul cost — only if a gem is active (§3.3); single-authority debit. Fail code = pA (0 no gem, 1 pool short).
         int soulFail = consumeSouls(ability, act);
         if (soulFail >= 0) {
+            releaseCooldowns(ability, act);
             return record(GateOutcome.NO_SOULS, ability, act, soulFail, ability.soulCost());
         }
-        // 11. start cooldown
-        armCooldowns(ability, act);
+        // 11. ACTIVATED — the gate-6 reservation IS the arm, so commit is implicit (zero-width pass-then-arm window).
         return record(GateOutcome.ACTIVATED, ability, act, rollBp, chanceBp);
     }
 
@@ -198,16 +222,54 @@ public final class ActivationPipeline {
         return rem == 0 ? 0 : (rem << 32) | (WhyRing.packScope(0, scopeKind, scopeId) & 0xFFFF_FFFFL);
     }
 
-    private void armCooldowns(Ability ability, Activation act) {
-        armScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability.cooldownTicks(), act);
-        armScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability.cooldownTicks(), act);
-        armScope(ability.cdScopeType(), ScopeKinds.TYPE, ability.cooldownTicks(), act);
+    /**
+     * Atomically reserve {@code ability}'s three scopes (enchant&rarr;group&rarr;type) at gate 6: each acquire
+     * both checks and arms, so two same-tick Folia hits on one key can't both pass (exactly one wins the CAS). On
+     * the first blocked scope, release the scopes already acquired and return {@code (remaining << 32) |
+     * packScope(0, scopeKind, scopeId)} — byte-identical to the old check-only payload — else {@code 0}. A later
+     * gate failure calls {@link #releaseCooldowns}; ACTIVATED commits the reservation implicitly.
+     */
+    private long reserveCooldowns(Ability ability, Activation act) {
+        long r = acquireScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
+        if (r != 0) {
+            return r;
+        }
+        r = acquireScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability, act);
+        if (r != 0) {
+            releaseScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
+            return r;
+        }
+        r = acquireScope(ability.cdScopeType(), ScopeKinds.TYPE, ability, act);
+        if (r != 0) {
+            releaseScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
+            releaseScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability, act);
+            return r;
+        }
+        return 0;
     }
 
-    private void armScope(int scopeId, int scopeKind, int durationTicks, Activation act) {
-        if (scopeId >= 0) {
-            cooldowns.arm(act.actor(), CooldownStore.key(scopeKind, scopeId, act.targetBucket()),
-                    act.nowTicks(), durationTicks);
+    private long acquireScope(int scopeId, int scopeKind, Ability ability, Activation act) {
+        if (scopeId < 0) {
+            return 0; // no cooldown on this scope
+        }
+        // Cooldowns route by target bucket (mob vs player): proccing on a mob never spends the player route's cooldown.
+        long rem = cooldowns.tryAcquire(act.actor(),
+                CooldownStore.key(scopeKind, scopeId, act.targetBucket()), act.nowTicks(), ability.cooldownTicks());
+        return rem == 0 ? 0 : (rem << 32) | (WhyRing.packScope(0, scopeKind, scopeId) & 0xFFFF_FFFFL);
+    }
+
+    /** Roll back every scope reservation gate 6 made for {@code ability} — restores readiness on a later fail. */
+    private void releaseCooldowns(Ability ability, Activation act) {
+        releaseScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
+        releaseScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability, act);
+        releaseScope(ability.cdScopeType(), ScopeKinds.TYPE, ability, act);
+    }
+
+    private void releaseScope(int scopeId, int scopeKind, Ability ability, Activation act) {
+        // Only a positive-duration scope wrote a reservation; the reserved expiry is recomputable (no carried state).
+        if (scopeId >= 0 && ability.cooldownTicks() > 0) {
+            cooldowns.release(act.actor(), CooldownStore.key(scopeKind, scopeId, act.targetBucket()),
+                    act.nowTicks() + ability.cooldownTicks());
         }
     }
 

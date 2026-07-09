@@ -63,6 +63,14 @@ public interface Sink {
     /** Withdraw experience points from a player (clamped at zero). */
     void takeExp(Player target, int amount);
 
+    /**
+     * Move at most what {@code from} actually holds of {@code amount} experience points to {@code to}
+     * (MODIFY_EXP transfer). The available-XP read and the debit happen atomically on {@code from}'s own
+     * region thread, so nothing is credited that was not withdrawn — a victim with less XP than {@code amount}
+     * mints no XP. A null party or a non-positive amount is a no-op.
+     */
+    void transferExp(Player from, Player to, int amount);
+
     /** Drain food points from a player (clamped at zero); the give counterpart is {@link #feed}. */
     void takeFood(Player target, int foodPoints);
 
@@ -176,9 +184,10 @@ public interface Sink {
      * Spawn ONE falling block of an interned material at {@code at} that never drops an item or hurts entities
      * and is removed after {@code ttlTicks} — FALLING_BLOCK. When {@code owner} is non-null the block is bound
      * to an IMPACT cast carrying {@code carriedDamage}, so the landing listener fires {@code owner}'s
-     * {@code IMPACT}-triggered abilities on whatever it lands on (druid's Terrablender; any "debris" reuses it).
+     * {@code IMPACT}-triggered abilities on {@code target} — the entity the grid was aimed at — when it lands
+     * under it (druid's Terrablender; any "debris" reuses it).
      */
-    void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, double carriedDamage);
+    void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target, double carriedDamage);
 
     /**
      * Summon {@code count} guardian mobs of an interned type at {@code at}, each set to target
@@ -217,8 +226,9 @@ public interface Sink {
      * ({@code replaceMode}: 0 = air only, 1 = air/liquid, 2 = anything). Overlapping placements at one tile
      * stack as layers in the sink's shared {@code TempBlockLedger}, so the final revert restores the true
      * original rather than an intermediate temp block. The shape geometry lives in {@code TEMP_BLOCK}; this is
-     * the per-position primitive. {@code unbreakable} is reserved (best-effort — a short-lived trap relies on
-     * its duration).
+     * the per-position primitive. {@code unbreakable} is accepted-but-moot: the {@code TempBlockGuardListener}
+     * guard now enforces unbreakability (and immovability) for EVERY tracked tile via the shared ledger, so a
+     * temp block can no longer be mined for a free drop or displaced off its key regardless of this flag (F25/F26).
      */
     void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable);
 
@@ -285,6 +295,14 @@ public interface Sink {
     void takeMoney(Player target, double amount);
 
     /**
+     * Move at most what {@code from} actually holds of {@code amount} to {@code to} (MODIFY_MONEY transfer).
+     * The balance-read, withdraw, and deposit happen atomically on the global thread, so nothing is credited
+     * that was not charged — a victim who cannot pay mints nothing. A no-op without an economy provider, with
+     * a null party, or a non-positive amount.
+     */
+    void transferMoney(Player from, Player to, double amount);
+
+    /**
      * Transfer {@code fraction} (0..1, clamped) of {@code from}'s CURRENT balance to {@code to}
      * (MODIFY_MONEY steal_percent). The balance-read, withdraw, and deposit happen atomically on the global
      * thread so no other money op interleaves; only the amount actually withdrawn is deposited. A no-op
@@ -327,12 +345,13 @@ public interface Sink {
 
     /**
      * Register a wearer-owned area zone — a cylinder of {@code radius} blocks centred on {@code center} (the
-     * victim's location, captured on the firing thread) owned by {@code owner}, active for {@code durationTicks}
-     * (MARK_ZONE — devil's hellfire floor). Consulted by the {@code %victim.inzone%} fact so a separate ATTACK
-     * bonus deals more to an enemy standing in it. A per-owner registry write, inline like {@link #mark} (no
-     * entity hop): only the centre's primitives (world id, x, z) are read.
+     * victim's location, captured on the firing thread) owned by {@code owner}, laid under {@code victim}
+     * (nullable), active for {@code durationTicks} (MARK_ZONE — devil's hellfire floor). Consulted by the
+     * {@code %victim.inzone%} fact so a separate ATTACK bonus deals more to an enemy standing in it, and by the
+     * hellfire magma-immunity — which is scoped to {@code victim} only. A per-owner registry write, inline like
+     * {@link #mark} (no entity hop): only the centre's primitives (world id, x, z) are read.
      */
-    void markZone(Location center, UUID owner, double radius, int durationTicks);
+    void markZone(Location center, UUID owner, UUID victim, double radius, int durationTicks);
 
     // ── Suppression intents (SUPPRESS_ENCHANT — disable an enchant/group/type for a player) ──
 
