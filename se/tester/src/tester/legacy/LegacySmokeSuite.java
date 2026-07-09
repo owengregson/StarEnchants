@@ -133,6 +133,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         combatCheck(h);
         guiCheck(h);
         degradeChecks(h);
+        gearPollChecks(h);
     }
 
     // ── §6 degrades (Item 3): the heroic-durability poll restores; the NMS knockback-resistance hook reduces ──
@@ -149,7 +150,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         // poll (started by its ctor) must first record the item's prior durability, then detect the simulated
         // loss and restore it via the heroic-save subscriber (ADR-0044 §6).
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
-        feature.trigger.LegacyGearPoll gearPoll = new feature.trigger.LegacyGearPoll();
+        feature.trigger.LegacyGearPoll gearPoll = new feature.trigger.LegacyGearPoll(codec::readBlob);
         gearPoll.heroicSave(new feature.heroic.LegacyHeroicSave(codec, new Random()));
         Scheduling.onRegion(at, () -> {
             Player p;
@@ -230,6 +231,144 @@ public final class LegacySmokeSuite implements Harness.Scenario {
 
     private static double horizontal(Vector v) {
         return Math.sqrt(v.getX() * v.getX() + v.getZ() * v.getZ());
+    }
+
+    // ── §6 gear-poll identity (F10/F11): the 1.8 poll tracks each slot's combat-state blob, not just material ──
+
+    @SuppressWarnings("deprecation") // setDurability/getDurability(short) + setItemInHand: the 1.8 durability/hand API.
+    private void gearPollChecks(Harness h) {
+        h.expect("legacy.gearpoll.identityRefresh");
+        h.expect("legacy.gearpoll.swapNoFreeRepair");
+
+        World world = plugin.getServer().getWorlds().get(0);
+        Location at = world.getSpawnLocation();
+
+        // F10: a same-material armour swap and an in-place blob rewrite BOTH change the poll's armour signature now,
+        // so worn state refreshes within a tick; an identical re-set does NOT (no refresh churn).
+        CombatCodec codecA = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
+        feature.trigger.LegacyGearPoll pollA = new feature.trigger.LegacyGearPoll(codecA::readBlob);
+        AtomicInteger refreshes = new AtomicInteger();
+        Scheduling.onRegion(at, () -> {
+            Player p;
+            try {
+                p = FakePlayers.spawn(world, "se_lc_gpr");
+            } catch (Throwable t) {
+                h.fail("legacy.gearpoll.identityRefresh", "spawn on 1.8: " + t);
+                return;
+            }
+            // Filter by UUID: the shared poll scans every online player, so only this player's refresh counts here.
+            pollA.refreshEquip(pl -> {
+                if (pl.getUniqueId().equals(p.getUniqueId())) {
+                    refreshes.incrementAndGet();
+                }
+            });
+            Scheduling.onEntity(p, () -> {
+                ItemStack enchanted = new ItemStack(Material.DIAMOND_CHESTPLATE);
+                codecA.write(enchanted, new CombatState(Map.of("enchants/keen", 1), List.of()));
+                p.getInventory().setChestplate(enchanted);
+                Scheduling.onEntityLater(p, 5L, () -> { // baseline the enchanted piece
+                    int afterBaseline = refreshes.get();
+                    // (a) same Material + count, but a PLAIN piece (blob null) → signature changes → refresh.
+                    p.getInventory().setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
+                    Scheduling.onEntityLater(p, 4L, () -> {
+                        int afterSwap = refreshes.get();
+                        // (b) in-place blob rewrite on the worn piece (the crystal-extract gesture) → refresh.
+                        ItemStack worn = p.getInventory().getChestplate();
+                        codecA.write(worn, new CombatState(Map.of("enchants/keen", 2), List.of()));
+                        p.getInventory().setChestplate(worn);
+                        Scheduling.onEntityLater(p, 4L, () -> {
+                            int afterRewrite = refreshes.get();
+                            // (c) negative control: re-set the identical piece (equal blob) → NO refresh.
+                            ItemStack same = p.getInventory().getChestplate();
+                            p.getInventory().setChestplate(same == null ? null : same.clone());
+                            Scheduling.onEntityLater(p, 4L, () -> {
+                                int afterResame = refreshes.get();
+                                h.guard("legacy.gearpoll.identityRefresh", () -> {
+                                    if (afterSwap <= afterBaseline) {
+                                        throw new IllegalStateException("same-material swap did not refresh worn state "
+                                                + "on 1.8 (F10): baseline=" + afterBaseline + " swap=" + afterSwap);
+                                    }
+                                    if (afterRewrite <= afterSwap) {
+                                        throw new IllegalStateException("in-place blob rewrite did not refresh worn "
+                                                + "state on 1.8 (F10): swap=" + afterSwap + " rewrite=" + afterRewrite);
+                                    }
+                                    if (afterResame != afterRewrite) {
+                                        throw new IllegalStateException("identical re-set spuriously refreshed on 1.8 "
+                                                + "(signature churn): rewrite=" + afterRewrite + " resame=" + afterResame);
+                                    }
+                                });
+                                FakePlayers.despawn(p);
+                            });
+                        });
+                    });
+                });
+            });
+        });
+
+        // F11: swapping a MORE-damaged same-material heroic item over a fresher baseline reads as a swap (identity
+        // differs), so no free heroic repair and no spurious ITEM_DAMAGE; a genuine in-place wear still restores.
+        CombatCodec codecB = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
+        feature.trigger.LegacyGearPoll pollB = new feature.trigger.LegacyGearPoll(codecB::readBlob);
+        pollB.heroicSave(new feature.heroic.LegacyHeroicSave(codecB, new Random()));
+        AtomicInteger itemDamage = new AtomicInteger();
+        Scheduling.onRegion(at, () -> {
+            Player p;
+            try {
+                p = FakePlayers.spawn(world, "se_lc_gps");
+            } catch (Throwable t) {
+                h.fail("legacy.gearpoll.swapNoFreeRepair", "spawn on 1.8: " + t);
+                return;
+            }
+            pollB.fireItemDamage(pl -> {
+                if (pl.getUniqueId().equals(p.getUniqueId())) {
+                    itemDamage.incrementAndGet();
+                }
+            });
+            Scheduling.onEntity(p, () -> {
+                setHand(p, new ItemStack(Material.DIAMOND_SWORD)); // pristine plain sword, durability 0
+                Scheduling.onEntityLater(p, 5L, () -> { // baseline the plain sword
+                    int damageBeforeSwap = itemDamage.get();
+                    ItemStack heroic = new ItemStack(Material.DIAMOND_SWORD);
+                    // Always-save heroic durability (chance 1.0), pre-damaged to 500.
+                    codecB.write(heroic, new CombatState(Map.of(), List.of(), null, null, false,
+                            new HeroicStat(0.0, 0.0, 1.0), 0));
+                    heroic.setDurability((short) 500);
+                    setHand(p, heroic);
+                    Scheduling.onEntityLater(p, 6L, () -> {
+                        h.guard("legacy.gearpoll.swapNoFreeRepair", () -> {
+                            short dur = handItem(p).getDurability();
+                            if (dur != 500) {
+                                throw new IllegalStateException("same-material swap free-repaired the heroic item on "
+                                        + "1.8 (F11): durability=" + dur + " (expected 500, no restore to the plain "
+                                        + "sword's 0)");
+                            }
+                            if (itemDamage.get() != damageBeforeSwap) {
+                                throw new IllegalStateException("swap spuriously fired ITEM_DAMAGE on 1.8 (F11): "
+                                        + "before=" + damageBeforeSwap + " after=" + itemDamage.get());
+                            }
+                        });
+                        // Genuine in-place wear on the SAME heroic sword → identity matches → the save fires normally.
+                        ItemStack held = handItem(p);
+                        held.setDurability((short) 510);
+                        setHand(p, held);
+                        Scheduling.onEntityLater(p, 6L, () -> {
+                            h.guard("legacy.gearpoll.swapNoFreeRepair", () -> {
+                                short dur = handItem(p).getDurability();
+                                if (dur != 500) {
+                                    throw new IllegalStateException("identity gate broke the legitimate heroic save "
+                                            + "on 1.8 (F11): durability=" + dur + " (expected 500)");
+                                }
+                                if (itemDamage.get() <= damageBeforeSwap) {
+                                    throw new IllegalStateException("genuine in-place wear did not fire ITEM_DAMAGE on "
+                                            + "1.8 (F11): before=" + damageBeforeSwap + " after=" + itemDamage.get());
+                                }
+                            });
+                            FakePlayers.despawn(p);
+                        });
+                    });
+                });
+            });
+        });
     }
 
     // ── Item path (no player): compile → apply → render → blob survives setItemMeta → 1.8 material degrade ──

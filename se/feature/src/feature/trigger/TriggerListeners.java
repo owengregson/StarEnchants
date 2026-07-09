@@ -30,21 +30,31 @@ public final class TriggerListeners implements Listener {
     private final TriggerDispatch dispatch;
     private final java.util.function.BooleanSupplier heroicAllScope; // §F: reduction-scope == ALL (live)
     private final Hands hands;
+    private final PlacedBlockTracker placed; // nullable: no placed-block guard (tester rigs)
+    private final java.util.function.BooleanSupplier miningGuard; // §F33: placed-block guard enabled (live)
 
-    /** Default form: heroic reduction is ENTITY-scoped (environmental damage gets no heroic reduction). */
+    /** Default form: heroic reduction is ENTITY-scoped (environmental damage gets no heroic reduction), no guard. */
     public TriggerListeners(TriggerDispatch dispatch, Hands hands) {
-        this(dispatch, () -> false, hands);
+        this(dispatch, () -> false, hands, null, () -> false);
     }
 
-    public TriggerListeners(TriggerDispatch dispatch, java.util.function.BooleanSupplier heroicAllScope, Hands hands) {
+    public TriggerListeners(TriggerDispatch dispatch, java.util.function.BooleanSupplier heroicAllScope, Hands hands,
+            PlacedBlockTracker placed, java.util.function.BooleanSupplier miningGuard) {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
         this.heroicAllScope = Objects.requireNonNull(heroicAllScope, "heroicAllScope");
         this.hands = Objects.requireNonNull(hands, "hands");
+        this.placed = placed;
+        this.miningGuard = Objects.requireNonNull(miningGuard, "miningGuard");
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMine(BlockBreakEvent event) {
         Player player = event.getPlayer();
+        // §F33: a block the breaker placed pays no MINE reward. Runs BEFORE the tracker's MONITOR unmark, so the
+        // mark is still visible here; the whole dispatch is skipped (QoL MINE effects included, config-gated).
+        if (placed != null && miningGuard.getAsBoolean() && placed.isPlaced(event.getBlock())) {
+            return;
+        }
         // the broken block backs the %block.type%/%isblock% facts (region-owned on this thread)
         dispatch.fireMine(player,
                 new ActivationContext(player, null, null, event.getBlock().getLocation(), 0.0, event.getBlock()),

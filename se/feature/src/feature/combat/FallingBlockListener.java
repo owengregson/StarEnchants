@@ -17,10 +17,12 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 
 /**
  * Fires the {@code IMPACT} trigger when a tracked {@code FALLING_BLOCK} lands (druid's Terrablender grass, any
- * "debris" cosmetic): cancels the block placement (it never sticks), finds the player it landed on, and runs
- * the spawner's IMPACT abilities on them via {@link TriggerDispatch#fireImpact} — so the impact is fully
- * author-defined. A grid's many landings are deduped by a short cooldown on the IMPACT ability. The event fires
- * on the block's own region thread, co-region with the player it landed on, so the proximity read is Folia-safe.
+ * "debris" cosmetic): cancels the block placement (it never sticks), checks whether the entity the grid was
+ * AIMED at is under the landing, and runs the spawner's IMPACT abilities on it via {@link TriggerDispatch#fireImpact}
+ * — so the impact is fully author-defined and a bystander who happens to be nearest can never eat the carried hit
+ * (if the aimed target stepped away, the landing is purely cosmetic). A grid's many landings are deduped by a short
+ * cooldown on the IMPACT ability. The event fires on the block's own region thread, co-region with the entity it
+ * landed on, so the proximity read is Folia-safe.
  *
  * <p>Runs at {@link EventPriority#LOWEST} and does NOT {@code ignoreCancelled}: a cosmetic block must be removed
  * the instant it would touch down, BEFORE any region plugin (WorldGuard, spawn protection) gets the event — if
@@ -48,18 +50,19 @@ public final class FallingBlockListener implements Listener {
         event.setCancelled(true); // a cosmetic block — never let it place
         FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(entity.getUniqueId());
         entity.remove();
-        if (cast == null || cast.owner() == null) {
-            return; // an owner-less cosmetic block: cancelled + removed above, but no IMPACT to fire
+        if (cast == null || cast.owner() == null || cast.target() == null) {
+            return; // an owner-less/targetless cosmetic block: cancelled + removed above, but no IMPACT to fire
         }
         Player owner = Bukkit.getPlayer(cast.owner());
-        LivingEntity victim = playerNear(event.getBlock().getLocation(), owner);
+        LivingEntity victim = aimedTargetNear(event.getBlock().getLocation(), cast.target());
         if (owner != null && victim != null) {
             dispatch.fireImpact(owner, victim, cast.damage());
         }
     }
 
-    /** A player (other than {@code exclude}) within {@link #HIT_RADIUS} of where the block settled, or null. */
-    private static LivingEntity playerNear(Location at, Player exclude) {
+    /** The AIMED target (by UUID, player OR mob) within {@link #HIT_RADIUS} of where the block settled, or null if
+     *  it isn't under the landing — so only the entity the grid was rained on takes the IMPACT, never a bystander. */
+    private static LivingEntity aimedTargetNear(Location at, java.util.UUID target) {
         Location center = at.clone().add(0.5, 0.5, 0.5);
         World world = center.getWorld();
         if (world == null) {
@@ -67,8 +70,8 @@ public final class FallingBlockListener implements Listener {
         }
         // Region-bounded query (Folia-safe on the block's own region), not a world-wide cross-region scan.
         for (Entity e : world.getNearbyEntities(center, HIT_RADIUS, HIT_RADIUS, HIT_RADIUS)) {
-            if (e instanceof Player p && !p.equals(exclude)) {
-                return p;
+            if (e instanceof LivingEntity living && target.equals(e.getUniqueId())) {
+                return living;
             }
         }
         return null;

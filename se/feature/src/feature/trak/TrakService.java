@@ -118,17 +118,32 @@ public final class TrakService {
     /**
      * Background kill tracking: a player victim counts toward SoulTrak, any other toward MobTrak. The death
      * event fires on the victim's region, so this hops to the KILLER's own thread before touching their
-     * inventory (Folia cross-region safety; cf. {@code SoulService.onKill}).
+     * inventory (Folia cross-region safety; cf. {@code SoulService.onKill}). {@code fatalWeapon} is the item
+     * that dealt the killing blow (§I F19), snapshotted at blow time by the caller; the credit is dropped
+     * unless it still matches the killer's main hand at track time, so a held-at-death swap cannot mis-credit.
      */
-    public void trackKill(Player killer, boolean victimIsPlayer) {
+    public void trackKill(Player killer, boolean victimIsPlayer, ItemStack fatalWeapon) {
         Kind kind = victimIsPlayer ? Kind.SOUL : Kind.MOB;
-        Scheduling.onEntity(killer, () -> track(killer, kind));
+        Scheduling.onEntity(killer, () -> track(killer, kind, fatalWeapon));
     }
 
     private void track(Player player, Kind kind) {
+        track(player, kind, null);
+    }
+
+    /**
+     * Bump the held tool's lifetime count for {@code kind}. When {@code fatalWeapon} is non-null (the kill
+     * path) the current main hand must still match that blow-time snapshot, or the credit is dropped — never
+     * mis-credit a weapon that was swapped in after the blow. Block/fish tracking passes null (their events
+     * already fire on the acting thread holding the acting tool).
+     */
+    private void track(Player player, Kind kind, ItemStack fatalWeapon) {
         ItemStack tool = hands.mainHand(player);
         if (tool == null || tool.getType() == Material.AIR) {
             return;
+        }
+        if (fatalWeapon != null && !fatalWeapon.isSimilar(tool)) {
+            return; // the blow-time weapon is no longer in hand (swap during the kill hop) — drop the credit
         }
         if (!groups.matches(tool.getType(), trakFor(kind).appliesTo())) {
             return; // only eligible tools/weapons accumulate, bounding the background writes

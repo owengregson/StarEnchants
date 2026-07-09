@@ -87,6 +87,13 @@ public final class HeroicVanillaStatsSuite implements Harness.Scenario {
                 throw new IllegalStateException("HAND modifiers must include the diamond attack modifier " + modifier
                         + ", got " + mods.values());
             }
+            // The attack-speed penalty must be restated too (else the explicit set drops it and the sword swings at
+            // the bare 4.0 base): diamond sword speed (1.6) − player base (4.0) = −2.4.
+            double speedModifier = HeroicDiamond.diamondAttackSpeed(Material.GOLDEN_SWORD) - 4.0; // −2.4
+            if (!hasAmount(mods, speedModifier)) {
+                throw new IllegalStateException("HAND modifiers must include the diamond attack-speed modifier "
+                        + speedModifier + ", got " + mods.values());
+            }
         });
 
         h.guard("heroic.vanilla.visibleTooltip", () -> {

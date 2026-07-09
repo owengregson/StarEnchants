@@ -25,6 +25,14 @@ import org.bukkit.inventory.ItemStack;
  * {@code -1} and is skipped — never a crash. Multiplicity is preserved (an enchant on two pieces
  * contributes twice).
  *
+ * <p><strong>Hand attribution (G01).</strong> An off-hand item never swings in vanilla, so it contributes
+ * no attacker-direction procs, no summed heroic flat stats, no set-completion count, and no held
+ * set-weapon bonus — only its DEFENSE / NEUTRAL / HELD / PASSIVE effects (e.g. an off-hand shield's
+ * defensive enchant) stay live. The split is decided here at resolve time and baked into the flattened
+ * arrays, so the combat hot path is unchanged and pays nothing. A bow/trident fired FROM the off-hand
+ * therefore loses its SE attack-side procs (the firing hand is unknowable under source erasure at
+ * arrow-hit time) — main-hand the weapon to keep them.
+ *
  * <p>Sets resolve here too: each piece's {@code setKey}/{@code omni} (§6.6) feeds {@link SetResolver},
  * whose active-set {@code BitSet} joins {@link WornState#activeSets()} and contributes each completed
  * set's bonus ability id (a set's dense id is its set id; its threshold is that ability's
@@ -89,7 +97,14 @@ public final class WornResolver {
             return WornState.empty(snapshot.generation());
         }
         List<CombatState> combats = new ArrayList<>();
-        for (int slot = 0; slot < gear.length; slot++) { // 0-3 armour, 4+ hands (EquipSource contract)
+        // Index into `combats` where off-hand-sourced states begin (G01): everything at/after it came from the
+        // off-hand slot, which never swings, so its attacker-direction procs are dropped downstream. Stays at the
+        // full size on 1.8 (no off-hand slot) → no off-hand region → today's behaviour bit-for-bit.
+        int offhandFrom = -1;
+        for (int slot = 0; slot < gear.length; slot++) { // 0-3 armour, 4 main hand, 5 off-hand (EquipSource contract)
+            if (slot == ARMOR_SLOTS + 1 && offhandFrom < 0) {
+                offhandFrom = combats.size(); // the off-hand slot begins here, whether or not it holds anything
+            }
             ItemStack piece = gear[slot];
             // A held armour piece is NOT equipped, so none of its bonuses (passive effects, combat enchants,
             // set membership) apply — only armour worn in its slot counts. Non-armour held items (weapons,
@@ -99,7 +114,10 @@ public final class WornResolver {
             }
             addCombat(piece, combats);
         }
-        return resolveFrom(combats, snapshot.stableKeys(), snapshot.abilities(), snapshot.generation());
+        if (offhandFrom < 0) {
+            offhandFrom = combats.size(); // no off-hand slot in the equipment array (1.8)
+        }
+        return resolveFrom(combats, offhandFrom, snapshot.stableKeys(), snapshot.abilities(), snapshot.generation());
     }
 
     /** Equipment-array index where the hand slots begin; indices below this are the four armour slots. */
@@ -128,9 +146,20 @@ public final class WornResolver {
         }
     }
 
-    /** Pure resolution + flatten over already-decoded combat states (version-agnostic core). */
+    /** Pure resolution + flatten over already-decoded combat states (version-agnostic core); no off-hand region. */
     WornState resolveFrom(List<CombatState> combats, StableKeyIndex keys, Ability[] abilities, int generation) {
-        List<Integer> mergedIds = new ArrayList<>();
+        return resolveFrom(combats, combats.size(), keys, abilities, generation);
+    }
+
+    /**
+     * Pure resolution + flatten over already-decoded combat states (version-agnostic core). States at index
+     * {@code >= offhandFrom} come from the off-hand slot (G01): they never contribute attacker-direction procs,
+     * heroic flat stats, set membership, or a held set-weapon bonus — an off-hand item never swings.
+     */
+    WornState resolveFrom(List<CombatState> combats, int offhandFrom, StableKeyIndex keys, Ability[] abilities,
+                          int generation) {
+        List<Integer> mergedIds = new ArrayList<>();   // armour + main-hand sourced ids
+        List<Integer> offhandIds = new ArrayList<>();  // off-hand sourced ids (attack-direction dropped by flatten)
         List<Integer> crystalIds = new ArrayList<>();
         List<Integer> wornSetIds = new ArrayList<>();
         List<String> heldWeaponSetKeys = new ArrayList<>(); // sets whose WEAPON this entity holds (§6.6)
@@ -139,15 +168,18 @@ public final class WornResolver {
         Features f = features.get(); // §L master toggles: a disabled feature's source is skipped
         java.util.Set<String> nonStackable = nonStackableCrystals.get(); // §ADR-0035 crystals that dedup per wearer
         java.util.Set<String> seenNonStackable = new java.util.HashSet<>(); // non-stackable keys already contributed
-        for (CombatState combat : combats) {
-            if (f.heroic()) {
-                heroic = heroic.plus(combat.heroic()); // heroic flat stats sum across worn pieces (§6)
+        for (int i = 0; i < combats.size(); i++) {
+            CombatState combat = combats.get(i);
+            boolean offhand = i >= offhandFrom; // off-hand pieces are processed last (armour, then main, then off)
+            List<Integer> firing = offhand ? offhandIds : mergedIds; // route the off-hand's firing ids apart
+            if (f.heroic() && !offhand) {
+                heroic = heroic.plus(combat.heroic()); // heroic flat stats sum across WORN + main-hand pieces (§6)
             }
             if (f.enchants()) {
                 for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
                     int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
                     if (id >= 0) {
-                        mergedIds.add(id);
+                        firing.add(id);
                     }
                 }
             }
@@ -161,12 +193,13 @@ public final class WornResolver {
                             continue;
                         }
                         // §ADR-0035: a NON-stackable crystal contributes once per wearer — skip a repeat on another
-                        // piece/slot (and, via this continue, its /aN chain too). Enchants and stackable crystals
-                        // keep full multiplicity (an enchant on two pieces still fires twice).
+                        // piece/slot (and, via this continue, its /aN chain too). The seen-set spans both hands, so
+                        // an armour copy (processed first) wins over an off-hand copy. Enchants and stackable
+                        // crystals keep full multiplicity (an enchant on two pieces still fires twice).
                         if (nonStackable.contains(crystalKey) && !seenNonStackable.add(crystalKey)) {
                             continue;
                         }
-                        mergedIds.add(id);   // fires on triggers like any source...
+                        firing.add(id);      // fires on triggers like any source (off-hand: attack dir dropped)...
                         crystalIds.add(id);  // ...and tracked as the dedicated crystal source (§5.5)
                         // A multi-ability crystal keys its further bonuses <key>/a1, /a2, … (dense, no gaps),
                         // exactly like a set's extra armour bonuses (ADR-0034). Walk them so every bonus fires.
@@ -175,7 +208,7 @@ public final class WornResolver {
                             if (extra < 0) {
                                 break;
                             }
-                            mergedIds.add(extra);
+                            firing.add(extra);
                             crystalIds.add(extra);
                         }
                     }
@@ -183,8 +216,9 @@ public final class WornResolver {
             }
             // §6.6: omni piece = wildcard toward any partially-worn set; ARMOUR piece contributes its
             // set id. A WEAPON member never counts toward completion — held separately, it grants the
-            // set's additional weapon bonus only once the armour set is complete.
-            if (f.sets()) {
+            // set's additional weapon bonus only once the armour set is complete. An off-hand item is neither
+            // worn armour nor the swinging weapon, so it contributes to neither (G01).
+            if (f.sets() && !offhand) {
                 if (combat.omni()) {
                     omniCount++;
                 } else if (combat.setKey() != null) {
@@ -225,8 +259,8 @@ public final class WornResolver {
                 }
             }
         }
-        return WornFlattener.flatten(generation, toIntArray(mergedIds), abilities, triggerCount,
-                activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger);
+        return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds), abilities,
+                triggerCount, activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger);
     }
 
     private static int[] toIntArray(List<Integer> values) {

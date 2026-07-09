@@ -68,7 +68,7 @@ public final class CombatDispatch {
     /** §L combat.* live caps/gates (max-bonus-damage / max-bonus-reduction, {@code <0} = uncapped; pvp/pve keyed on the victim's player-ness). */
     public record Caps(java.util.function.DoubleSupplier maxBonusDamage, java.util.function.DoubleSupplier maxBonusReduction,
                        java.util.function.BooleanSupplier pvp, java.util.function.BooleanSupplier pve) {
-        /** Uncapped + PvP/PvE on — the config-absent defaults. */
+        /** Uncapped + PvP/PvE on — the uncapped wiring the tester suites use (the config defaults a finite outgoing cap). */
         public static Caps unlimited() {
             return new Caps(() -> -1.0, () -> -1.0, () -> true, () -> true);
         }
@@ -151,7 +151,7 @@ public final class CombatDispatch {
         // Attack side: self = attacker, target = victim.
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(projectiles, rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
-            int streak = combo.hit(attackerPlayer.getUniqueId(), nowTicks.getAsLong()); // %combo% fact, §3.4
+            int streak = combo.hit(attackerPlayer.getUniqueId(), victimEntity.getUniqueId(), nowTicks.getAsLong()); // %combo% fact, §3.4 — same-target only
             // reaper's Mark of the Reaper: +N% from THIS attacker while the victim is marked by them. Consulted
             // BEFORE the attack abilities run, so a mark this hit sets (the 5% proc) applies only to LATER hits.
             if (victim != null) {

@@ -40,6 +40,8 @@ public final class SinkSuite implements Harness.Scenario {
         h.expect("sink.tempBlock.compound.sharedEnv");
         h.expect("sink.trail.snake.stamped");
         h.expect("sink.trail.snake.restored");
+        h.expect("sink.tempBlock.guard.mineReclaim");
+        h.expect("sink.tempBlock.guard.pistonCancel");
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -300,6 +302,74 @@ public final class SinkSuite implements Harness.Scenario {
                             }
                         }
                     }));
+
+                    // The F25/F26 guard end-to-end: place a MAGMA temp tile over a GOLD_BLOCK, then fire a
+                    // synthetic BlockBreakEvent and a synthetic BlockPistonExtendEvent at that tile through a real
+                    // TempBlockGuardListener over the SAME ledger the sink used. The break must be cancelled and the
+                    // GOLD_BLOCK restored instantly (no free magma drop, no deleted ground); the piston must be
+                    // cancelled (the cosmetic tile refuses to move). A long duration keeps the timer revert clear.
+                    int goldId = resolveId(resolvers.material("GOLD_BLOCK"), "GOLD_BLOCK");
+                    Location guardAt = at.clone().add(6, 3, 0); // fresh tile in the forced chunk
+                    engine.sink.SinkEnv guardEnv = engine.sink.SinkEnv.of(
+                            platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
+                            engine.stores.EngineStores.fresh(), () -> 0L);
+                    ModernDispatchSink guardSink = new ModernDispatchSink(handles, guardEnv);
+                    guardSink.blockChange(guardAt, goldId);              // the true original the guard must restore
+                    guardSink.tempBlock(guardAt, magmaId, 400, 2, false); // long-lived so the timer revert stays clear
+                    guardSink.flush();
+
+                    feature.combat.TempBlockGuardListener guard =
+                            new feature.combat.TempBlockGuardListener(guardEnv.tempBlocks(), () -> 0L);
+
+                    Scheduling.onRegionLater(guardAt, 6L, () -> {
+                        org.bukkit.entity.Player miner;
+                        try {
+                            miner = tester.fake.FakePlayers.spawn(world, "se_sink_guard");
+                        } catch (Throwable t) {
+                            h.fail("sink.tempBlock.guard.mineReclaim", "fake-player spawn: " + t);
+                            h.fail("sink.tempBlock.guard.pistonCancel", "fake-player spawn: " + t);
+                            return;
+                        }
+                        org.bukkit.block.Block tile = guardAt.getBlock();
+                        Material expectedGold = handles.material(goldId);
+
+                        h.guard("sink.tempBlock.guard.mineReclaim", () -> {
+                            if (tile.getType() != handles.material(magmaId)) {
+                                throw new IllegalStateException("temp tile not laid before the guard test; got "
+                                        + tile.getType());
+                            }
+                            org.bukkit.event.block.BlockBreakEvent brk =
+                                    new org.bukkit.event.block.BlockBreakEvent(tile, miner);
+                            guard.onBreak(brk);
+                            if (!brk.isCancelled()) {
+                                throw new IllegalStateException("mining a temp tile was not cancelled");
+                            }
+                            if (tile.getType() != expectedGold) {
+                                throw new IllegalStateException("reclaim did not restore the original GOLD_BLOCK; got "
+                                        + tile.getType());
+                            }
+                        });
+
+                        // Re-lay the tile for the piston check (the reclaim above consumed the entry).
+                        ModernDispatchSink relay = new ModernDispatchSink(handles, guardEnv);
+                        relay.tempBlock(guardAt, magmaId, 400, 2, false);
+                        relay.flush();
+                        Scheduling.onRegionLater(guardAt, 4L, () -> {
+                            h.guard("sink.tempBlock.guard.pistonCancel", () -> {
+                                org.bukkit.event.block.BlockPistonExtendEvent piston =
+                                        new org.bukkit.event.block.BlockPistonExtendEvent(
+                                                guardAt.clone().add(-1, 0, 0).getBlock(),
+                                                java.util.List.of(guardAt.getBlock()),
+                                                org.bukkit.block.BlockFace.EAST);
+                                guard.onPistonExtend(piston);
+                                if (!piston.isCancelled()) {
+                                    throw new IllegalStateException("a piston pushing a temp tile was not cancelled");
+                                }
+                            });
+                            guardAt.getBlock().setType(Material.AIR, false); // clean the arena
+                            tester.fake.FakePlayers.despawn(miner);
+                        });
+                    });
                 });
             });
         });
