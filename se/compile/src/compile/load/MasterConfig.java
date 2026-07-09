@@ -13,16 +13,19 @@ import schema.spec.Ranges;
  * to some value: absent/unreadable yields {@link #defaults()}; a malformed file yields a diagnostic and
  * defaults for the faulted section.
  */
-public record MasterConfig(FeaturesSection features, CombatSection combat, MessagesSection messages,
+public record MasterConfig(FeaturesSection features, CombatSection combat, MiningSection mining,
+                           MessagesSection messages,
                            BooksSection books, SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
                            LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
-                           MessageOnActivateSection messageOnActivate, SetsSection sets,
+                           MessageOnActivateSection messageOnActivate, SetsSection sets, EngineSection engine,
+                           StationsSection stations,
                            List<Diagnostic> diagnostics) {
 
     public MasterConfig {
         Objects.requireNonNull(features, "features");
         Objects.requireNonNull(combat, "combat");
+        Objects.requireNonNull(mining, "mining");
         Objects.requireNonNull(messages, "messages");
         Objects.requireNonNull(books, "books");
         Objects.requireNonNull(slots, "slots");
@@ -34,16 +37,19 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
         Objects.requireNonNull(commandTrigger, "commandTrigger");
         Objects.requireNonNull(messageOnActivate, "messageOnActivate");
         Objects.requireNonNull(sets, "sets");
+        Objects.requireNonNull(engine, "engine");
+        Objects.requireNonNull(stations, "stations");
         diagnostics = List.copyOf(diagnostics);
     }
 
     /** The built-in master config — every section at its default; used when {@code config.yml} is absent. */
     public static MasterConfig defaults() {
-        return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MessagesSection.defaults(),
+        return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MiningSection.defaults(),
+                MessagesSection.defaults(),
                 BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
                 LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
-                SetsSection.defaults(), List.of());
+                SetsSection.defaults(), EngineSection.defaults(), StationsSection.defaults(), List.of());
     }
 
     /**
@@ -247,7 +253,63 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Messa
      */
     public record CombatSection(double maxBonusDamage, double maxBonusReduction, boolean pvp, boolean pve) {
         public static CombatSection defaults() {
-            return new CombatSection(-1.0, -1.0, true, true);
+            // A finite outgoing cap (+500% summed) so a pre-charged combo/stack streak cannot compound into a
+            // one-shot; reduction stays uncapped. Operators wanting the old behaviour set max-bonus-damage: -1.
+            return new CombatSection(5.0, -1.0, true, true);
+        }
+    }
+
+    /**
+     * Mining-reward guards, read live on reload.
+     *
+     * @param placedBlockGuard suppress the whole MINE trigger dispatch on a block a player placed since boot
+     *                         (default true), so place/break loops cannot farm MINE rewards (XP, money, drops);
+     *                         {@code false} restores the vanilla behaviour of rewarding every break. QoL MINE
+     *                         effects (auto-smelt, teleport-drops) are gated too — mcMMO-precedented. Placement
+     *                         memory is boot-lifetime only (a restart forgets prior placements).
+     */
+    public record MiningSection(boolean placedBlockGuard) {
+        public static MiningSection defaults() {
+            return new MiningSection(true);
+        }
+    }
+
+    /**
+     * Vanilla-station guards on plugin SET gear (G04/G05/G06), read live on reload. Each blocks a vanilla station
+     * from bolting off-design stats onto a set piece or set weapon whose plugin identity (set key, custom enchants,
+     * crystals, heroic) rides the item's NBT untouched: smithing = the netherite upgrade; grindstone = cashing the
+     * minted vanilla enchants for XP + the durability-merge repair; anvil = enchanted-book stats (Mending) + cheap
+     * repair. All default true; {@code false} restores the vanilla behaviour for that one station. A bare anvil
+     * RENAME of set gear is always allowed (it adds no stats and shares the nametag path), guarded or not.
+     *
+     * @param anvilGuard      deny anvil combine/repair on set gear (a lone rename stays allowed)
+     * @param grindstoneGuard deny grindstone disenchant/merge on set gear (modern only — no grindstone on 1.8.9)
+     * @param smithingGuard   deny the smithing-table upgrade on set gear (modern only — no smithing table on 1.8.9)
+     */
+    public record StationsSection(boolean anvilGuard, boolean grindstoneGuard, boolean smithingGuard) {
+        public static StationsSection defaults() {
+            return new StationsSection(true, true, true);
+        }
+    }
+
+    /**
+     * Engine-runtime knobs, read at boot. Combat-integrity per-player state (cooldowns, victim-applied
+     * teleblock/suppression) is RETAINED across a relog so a quick reconnect can't skip it; an offline player's
+     * entries are only read again on rejoin, so a periodic global sweep drops elapsed ones to bound memory.
+     *
+     * @param offlineStateSweepTicks period (ticks) of the offline-state sweep that evicts elapsed retained
+     *                               entries; {@code <= 0} disables it (lazy eviction on rejoin still bounds a
+     *                               returning player). Default 6000 (5 min) — well above the longest shipped
+     *                               window. Armed once at boot on the global scheduler, so a change needs a
+     *                               restart, not a {@code /se reload}.
+     * @param tempBlockSweepTicks period (ticks) of the temp-block self-heal sweep that force-reverts a loaded-chunk
+     *                            temp tile whose scheduled revert was dropped (F29 — a retired region task); {@code
+     *                            <= 0} disables it (chunk-load re-arm still reclaims unload-stranded tiles). Default
+     *                            600 (30s). Armed once at boot on the global scheduler — a change needs a restart.
+     */
+    public record EngineSection(int offlineStateSweepTicks, int tempBlockSweepTicks) {
+        public static EngineSection defaults() {
+            return new EngineSection(6000, 600);
         }
     }
 

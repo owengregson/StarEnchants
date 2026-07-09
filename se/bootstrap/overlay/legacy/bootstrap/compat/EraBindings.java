@@ -8,7 +8,6 @@ import engine.run.ActivationContext;
 import engine.stores.KnockbackControlStore;
 import feature.combat.EquipListener;
 import feature.combat.KnockbackListener;
-import feature.combat.LegacyArmourCloseListener;
 import feature.combat.NmsKnockbackApplier;
 import feature.combat.NoopListener;
 import feature.compat.DropControl;
@@ -27,6 +26,7 @@ import feature.scroll.AnvilRename;
 import feature.trigger.LegacyGearPoll;
 import feature.trigger.TriggerDispatch;
 import item.codec.CombatCodec;
+import item.codec.ItemKeys;
 import item.codec.ItemStateStore;
 import item.codec.NbtItemStateStore;
 import item.worn.EquipSource;
@@ -71,7 +71,11 @@ public final class EraBindings implements EraServices {
 
     public EraBindings(RegistryResolvers resolvers) {
         this.resolvers = resolvers;
-        this.gearPoll = new LegacyGearPoll();
+        // Poll identity = the item's combat-state blob, read via the SAME era store + logical key CombatCodec uses,
+        // so it pairs with heroicSave's own read without depending on BootCore's codec (not built yet at ctor time).
+        ItemStateStore store = new NbtItemStateStore();
+        String combatKey = ItemKeys.of().combat();
+        this.gearPoll = new LegacyGearPoll(item -> store.read(item, combatKey));
     }
 
     @Override
@@ -148,11 +152,18 @@ public final class EraBindings implements EraServices {
         return KnockbackListener.Path.LEGACY;
     }
 
-    /** §B armour-change source (§4/§6): the gear-poll armour-signature delta drives refresh; close is the backup. */
+    /** §B armour-change source (§4/§6): the gear-poll armour-signature delta drives refresh. The close-refresh
+     *  backup is now the era-neutral {@code EquipListener.onInventoryClose}, so this feeder is otherwise inert. */
     @Override
     public Listener armourChangeFeeder(EquipListener equip) {
         gearPoll.refreshEquip(equip::refresh);
-        return new LegacyArmourCloseListener(equip);
+        return NoopListener.INSTANCE;
+    }
+
+    /** §B hand-change source (§4/§6): 1.8 has no off-hand and no swap/pickup-into-empty semantics, so inert. */
+    @Override
+    public Listener handChangeFeeder(EquipListener equip) {
+        return NoopListener.INSTANCE;
     }
 
     /** ITEM_DAMAGE source (§4/§6): the gear-poll durability-rise subscriber fires it; no Bukkit event on 1.8. */
@@ -168,6 +179,12 @@ public final class EraBindings implements EraServices {
     public Listener heroicDurabilitySave(CombatCodec codec, Random rolls) {
         gearPoll.heroicSave(new LegacyHeroicSave(codec, rolls));
         return NoopListener.INSTANCE;
+    }
+
+    /** Vanilla-station guard (G06): the anvil is the only guarded station on 1.8 (no grindstone/smithing table). */
+    @Override
+    public Listener stationGuard(feature.guard.StationGuardRules rules) {
+        return new feature.guard.LegacyAnvilGuard(rules);
     }
 
     /** §6.6 set-piece base enchants: the pre-1.13 name mapping lives in {@link LegacyEnchantResolver}. */

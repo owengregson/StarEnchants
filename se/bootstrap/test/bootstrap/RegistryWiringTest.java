@@ -47,22 +47,28 @@ class RegistryWiringTest {
     // ── inert era listeners: the seam-provided listeners get STABLE names for the golden ────────────
     static final class ArmourFeeder implements Listener { }
 
+    static final class HandChangeFeeder implements Listener { }
+
     static final class ItemDamageSource implements Listener { }
 
     static final class HeroicDurabilitySave implements Listener { }
 
+    static final class StationGuard implements Listener { }
+
     /** The golden global listener registration sequence, all toggles on (§2 with EngineStoreListener after Immune,
      *  heroic-durability right after Heroic). Fold Events + the materialized guard/sweep, in registry order. */
     private static final List<String> GOLDEN_LISTENERS = List.of(
-            "CombatListener", "EquipListener", "ArmourFeeder",
+            "CombatListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
-            "TriggerListeners", "ItemDamageSource", "FallingBlockListener",
-            "TempEquipListener", "HellfireFloorListener", "KeepOnDeathListener", "TeleblockListener", "ImmuneListener",
-            "EngineStoreListener", "VanillaGuardListener",
+            "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
+            "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
+            "HellfireFloorListener", "KeepOnDeathListener",
+            "TeleblockListener", "ImmuneListener",
+            "EngineStoreListener", "VanillaGuardListener", "StationGuard",
             "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",
-            "SlotListener", "UnopenedBookListener", "UseItemListener",
-            "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener",
+            "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
+            "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener", "ShotWeapons",
             "MenuListener", "GodlyTransmogListener");
 
     private static final List<String> GOLDEN_STOPS = List.of(
@@ -100,8 +106,10 @@ class RegistryWiringTest {
         when(bindings.vanillaStats()).thenReturn(mock(feature.heroic.VanillaStats.class));
         when(bindings.anvilRename()).thenReturn(mock(feature.scroll.AnvilRename.class));
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
+        when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
         when(bindings.heroicDurabilitySave(any(), any())).thenReturn(new HeroicDurabilitySave());
+        when(bindings.stationGuard(any())).thenReturn(new StationGuard());
 
         org.bukkit.plugin.java.JavaPlugin plugin = mock(org.bukkit.plugin.java.JavaPlugin.class);
         org.bukkit.Server server = mock(org.bukkit.Server.class);
@@ -123,6 +131,7 @@ class RegistryWiringTest {
         when(core.particleFx()).thenReturn(mock(feature.fx.ParticleFx.class));
         when(core.store()).thenReturn(mock(item.codec.ItemStateStore.class));
         when(core.hands()).thenReturn(mock(feature.compat.Hands.class));
+        when(core.projectiles()).thenReturn(mock(feature.compat.Projectiles.class));
         when(core.sounds()).thenReturn(mock(feature.compat.Sounds.class));
         when(core.anvilRename()).thenReturn(mock(feature.scroll.AnvilRename.class));
         when(core.addonKinds()).thenReturn(new CopyOnWriteArrayList<>());
@@ -149,6 +158,8 @@ class RegistryWiringTest {
         when(core.soulModes()).thenReturn(new SoulModeStore());
         when(core.soulService()).thenReturn(mock(feature.soul.SoulService.class));
         when(core.stores()).thenReturn(EngineStores.fresh());
+        when(core.sinkEnv()).thenReturn(engine.sink.SinkEnv.of(platform.economy.EconomyService.NONE,
+                engine.sink.SoulDebit.NONE, EngineStores.fresh(), new AtomicLong()::get));
         when(core.executor()).thenReturn(mock(engine.run.AbilityExecutor.class));
         when(core.dispatch()).thenReturn(mock(feature.combat.CombatDispatch.class));
         when(core.triggerDispatch()).thenReturn(mock(feature.trigger.TriggerDispatch.class));

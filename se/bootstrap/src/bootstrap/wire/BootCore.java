@@ -143,6 +143,7 @@ public final class BootCore {
 
     // item spine
     private final CombatCodec codec;
+    private final feature.guard.StationGuardRules stationGuardRules;
     private final ItemViewCache itemViews;
     private final TriggerRegistry triggers;
     private final WornResolver wornResolver;
@@ -246,6 +247,20 @@ public final class BootCore {
 
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
         this.codec = new CombatCodec(ItemKeys.of().combat(), store);
+        // Vanilla-station guard (G04/G05/G06): set-gear test = the PDC setKey/setWeaponKey ItemEnchanter stamps
+        // (material-agnostic, so a smithing-upgraded netherite piece still reads as set gear); the three station
+        // toggles read live so a /se reload re-tunes them. Consumed by the era-seam station guard in GuardModule.
+        this.stationGuardRules = new feature.guard.StationGuardRules(
+                stack -> {
+                    if (stack == null || stack.getType() == org.bukkit.Material.AIR) {
+                        return false;
+                    }
+                    item.codec.CombatState state = codec.read(stack);
+                    return state.setKey() != null || state.setWeaponKey() != null;
+                },
+                () -> master.config().stations().anvilGuard(),
+                () -> master.config().stations().grindstoneGuard(),
+                () -> master.config().stations().smithingGuard());
         this.itemViews = new ItemViewCache(codec, initial.snapshot().generation());
         this.triggers = BuiltinTriggers.registry();
         this.wornResolver = new WornResolver(bindings.equipSource(), itemViews, triggers.count(),
@@ -350,6 +365,15 @@ public final class BootCore {
         // ONE shared aggregate of every per-player engine store: an effect writes a store through the per-event
         // sink and a separate reader reads it back — so it must be the SAME instance everywhere.
         this.stores = EngineStores.fresh();
+
+        // §5.4 offline-state sweep (F03): the quit sweep RETAINS a leaving player's live combat windows against
+        // the monotonic tick (so a relog can't skip a cooldown or shed a landed debuff); those entries are only
+        // read again on rejoin, so a periodic global-thread sweep evicts elapsed ones to bound a never-returner.
+        // Folia-safe — pure concurrent-map ops, no entity/world access. Armed once at boot (restart to re-tune).
+        int sweepPeriod = master.config().engine().offlineStateSweepTicks();
+        if (sweepPeriod > 0) {
+            Scheduling.repeatingGlobal(sweepPeriod, sweepPeriod, () -> stores.evictElapsed(tick.get()));
+        }
 
         // Protection / region gate (gate 2): bundled providers (§N, ADR-0027) + ServicesManager; none ⇒ allow.
         List<ProtectionProvider> protectionProviders = new ArrayList<>();
@@ -486,6 +510,8 @@ public final class BootCore {
     public Path menusRoot() { return menusRoot; }
 
     public CombatCodec codec() { return codec; }
+
+    public feature.guard.StationGuardRules stationGuardRules() { return stationGuardRules; }
 
     public ItemViewCache itemViews() { return itemViews; }
 

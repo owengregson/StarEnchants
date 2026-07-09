@@ -33,12 +33,14 @@ public final class MasterConfigLoader {
         } catch (IOException e) {
             diags.error(DiagCode.E_CONFIG_IO, "could not read config.yml: " + e.getMessage(), Source.ofFile("config.yml"));
             return new MasterConfig(MasterConfig.FeaturesSection.defaults(), MasterConfig.CombatSection.defaults(),
+                    MasterConfig.MiningSection.defaults(),
                     MasterConfig.MessagesSection.defaults(), MasterConfig.BooksSection.defaults(),
                     MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
                     MasterConfig.CrystalsSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
                     MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
+                    MasterConfig.EngineSection.defaults(), MasterConfig.StationsSection.defaults(),
                     diags.all());
         }
         YamlNode root = YamlNode.compose("config.yml", yaml, diags);
@@ -49,6 +51,7 @@ public final class MasterConfigLoader {
         return new MasterConfig(
                 readFeatures(root.child("features"), diags),
                 readCombat(root.child("combat"), diags),
+                readMining(root.child("mining"), diags),
                 readMessages(root.child("messages"), diags),
                 readBooks(root.child("books"), diags),
                 readSlots(root.child("slots"), diags),
@@ -60,6 +63,8 @@ public final class MasterConfigLoader {
                 readCommandTrigger(root.child("command-trigger"), diags),
                 readMessageOnActivate(root.child("message-on-activate"), diags),
                 readSets(root.child("sets"), diags),
+                readEngine(root.child("engine"), diags),
+                readStations(root.child("stations"), diags),
                 diags.all());
     }
 
@@ -108,6 +113,27 @@ public final class MasterConfigLoader {
                 parseDouble(n.string("max-bonus-reduction"), d.maxBonusReduction(), n, diags),
                 parseBool(n.string("pvp"), d.pvp(), n, diags),
                 parseBool(n.string("pve"), d.pve(), n, diags));
+    }
+
+    private static MasterConfig.MiningSection readMining(YamlNode n, Diagnostics diags) {
+        MasterConfig.MiningSection d = MasterConfig.MiningSection.defaults();
+        return new MasterConfig.MiningSection(
+                parseBool(n.string("placed-block-guard"), d.placedBlockGuard(), n, diags));
+    }
+
+    private static MasterConfig.StationsSection readStations(YamlNode n, Diagnostics diags) {
+        MasterConfig.StationsSection d = MasterConfig.StationsSection.defaults();
+        return new MasterConfig.StationsSection(
+                parseBool(n.string("anvil-guard"), d.anvilGuard(), n, diags),
+                parseBool(n.string("grindstone-guard"), d.grindstoneGuard(), n, diags),
+                parseBool(n.string("smithing-guard"), d.smithingGuard(), n, diags));
+    }
+
+    private static MasterConfig.EngineSection readEngine(YamlNode n, Diagnostics diags) {
+        MasterConfig.EngineSection d = MasterConfig.EngineSection.defaults();
+        return new MasterConfig.EngineSection(
+                parseInt(n.string("offline-state-sweep-ticks"), d.offlineStateSweepTicks(), n, diags),
+                parseInt(n.string("temp-block-sweep-ticks"), d.tempBlockSweepTicks(), n, diags));
     }
 
     private static MasterConfig.MessagesSection readMessages(YamlNode n, Diagnostics diags) {

@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import feature.combat.FallingBlockListener;
 import feature.trigger.CommandTriggerCommand;
+import feature.trigger.PlacedBlockTracker;
 import feature.trigger.TriggerListeners;
 
 /**
@@ -19,10 +20,14 @@ final class TriggersModule {
     FeatureModule module() {
         // §B COMMAND trigger: the dynamic name is read once at wire time (a name change needs a restart).
         String name = core.master().config().commandTrigger().name();
+        // §F33 one placement tracker feeds both the MINE gate and its own place/break/piston bookkeeping.
+        PlacedBlockTracker placed = new PlacedBlockTracker();
         return FeatureModule.named("triggers")
                 .events(new TriggerListeners(core.triggerDispatch(),
                         () -> "ALL".equalsIgnoreCase(core.items().config().heroicOrDefault().reductionScope()),
-                        core.hands())) // §F reduction-scope
+                        core.hands(), placed,
+                        () -> core.master().config().mining().placedBlockGuard())) // §F reduction-scope + §F33 guard
+                .events(placed)
                 // ITEM_DAMAGE source (§4): modern PlayerItemDamageEvent listener; on 1.8 an inert listener.
                 .events(core.bindings().itemDamageSource(core.triggerDispatch()))
                 // A landing FALLING_BLOCK fires the IMPACT trigger on whoever it hit (druid Terrablender grass rain).
