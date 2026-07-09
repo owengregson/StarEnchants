@@ -14,16 +14,36 @@ import java.util.function.IntPredicate;
  * per-trigger index and the two combat-direction arrays the systems walk.
  *
  * <p>Multiplicity is preserved — a stacked crystal contributes its id once per stack, running (and
- * folding) once per stack (§6.5). Order follows {@code activeAbilityIds}, the resolver's merge order.
+ * folding) once per stack (§6.5). Order follows the resolver's merge order (main-hand/armour ids first,
+ * off-hand ids appended).
+ *
+ * <p><strong>Off-hand attribution (G01).</strong> An off-hand item never swings in vanilla, so its
+ * attacker-direction procs must not ride a main-hand hit. The off-hand ids are flattened separately with
+ * every attacker-direction trigger EXCLUDED — they never join the {@code attack} array nor any
+ * attack-trigger index — while their DEFENSE / NEUTRAL / HELD triggers keep working (an off-hand shield's
+ * defensive/passive enchants stay live). This is a resolve-time decision, so the hit path pays nothing.
  */
 public final class WornFlattener {
+
+    private static final int[] NO_IDS = new int[0];
 
     private WornFlattener() {
     }
 
+    /** Convenience overload with no off-hand ids (all ids treated as main-hand/armour sourced). */
+    public static WornState flatten(int gen, int[] activeAbilityIds, Ability[] abilities,
+                                    int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
+                                    HeroicStat heroic, IntPredicate attackTrigger,
+                                    IntPredicate defenseTrigger) {
+        return flatten(gen, activeAbilityIds, NO_IDS, abilities, triggerCount, activeSets,
+                crystalAbilityIds, heroic, attackTrigger, defenseTrigger);
+    }
+
     /**
      * @param gen              the snapshot generation
-     * @param activeAbilityIds the complete merged list of active ability ids, in run order
+     * @param mainIds          the merged active ability ids from armour + main-hand, in run order
+     * @param offhandIds       the active ability ids from the off-hand item, in run order — appended with
+     *                         attacker-direction triggers excluded (an off-hand item never swings, G01)
      * @param abilities        the snapshot's ability array (indexed by id, for trigger masks)
      * @param triggerCount     the number of interned triggers (sizes the per-trigger index)
      * @param activeSets       the resolved active armor sets (see {@link SetResolver})
@@ -32,7 +52,7 @@ public final class WornFlattener {
      * @param attackTrigger    whether an interned trigger id is an attacker-side combat trigger
      * @param defenseTrigger   whether an interned trigger id is a defender-side combat trigger
      */
-    public static WornState flatten(int gen, int[] activeAbilityIds, Ability[] abilities,
+    public static WornState flatten(int gen, int[] mainIds, int[] offhandIds, Ability[] abilities,
                                     int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
                                     HeroicStat heroic, IntPredicate attackTrigger,
                                     IntPredicate defenseTrigger) {
@@ -45,7 +65,7 @@ public final class WornFlattener {
         List<Integer> attack = new ArrayList<>();
         List<Integer> defense = new ArrayList<>();
 
-        for (int id : activeAbilityIds) {
+        for (int id : mainIds) {
             Ability ability = abilities[id];
             boolean isAttack = false;
             boolean isDefense = false;
@@ -65,6 +85,26 @@ public final class WornFlattener {
             }
             if (isAttack) {
                 attack.add(id);
+            }
+            if (isDefense) {
+                defense.add(id);
+            }
+        }
+
+        // Off-hand ids: skip every attacker-direction trigger (a stowed off-hand item never swings, G01);
+        // defensive/neutral/held triggers still index and still land in the defense array.
+        for (int id : offhandIds) {
+            Ability ability = abilities[id];
+            boolean isDefense = false;
+            for (int t = 0; t < triggerCount; t++) {
+                if (!ability.firesOn(t) || attackTrigger.test(t)) {
+                    continue;
+                }
+                perTrigger.get(t).add(id);
+                triggerMask[t] = triggerMask[t].union(ability.factMask());
+                if (defenseTrigger.test(t)) {
+                    isDefense = true;
+                }
             }
             if (isDefense) {
                 defense.add(id);

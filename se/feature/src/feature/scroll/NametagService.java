@@ -23,8 +23,9 @@ import platform.text.Colors;
  *
  * <p>The pending store holds a <em>clone of the target item</em>, not a slot index: the player may move the
  * item between the click and the (async) chat line, so the rename re-locates the exact stack by
- * {@link ItemStack#isSimilar(ItemStack) identity}. Concurrent because the chat event fires async; the
- * mutation is hopped to the region thread by the listener (Folia).
+ * {@link ItemStack#isSimilar(ItemStack) identity} — which ignores stack size, so {@link #complete} re-checks
+ * amount at commit and refuses a grown stack (one nametag renames one item). Concurrent because the chat event
+ * fires async; the mutation is hopped to the region thread by the listener (Folia).
  */
 public final class NametagService implements engine.stores.PlayerScoped {
 
@@ -144,6 +145,12 @@ public final class NametagService implements engine.stores.PlayerScoped {
             return messages.format("scroll.nametag.target-gone");
         }
         ItemStack item = player.getInventory().getItem(slot);
+        if (item.getAmount() > 1) {
+            // The captured single item grew into a stack between begin() and confirm (isSimilar ignores size, so
+            // locate() re-matched it) — refuse rather than rename the whole stack for one nametag; refund like target-gone.
+            refund(player);
+            return messages.format("common.single-item");
+        }
         ItemMeta meta = item.getItemMeta();
         if (meta == null) {
             refund(player);

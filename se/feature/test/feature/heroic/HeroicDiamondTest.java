@@ -49,6 +49,15 @@ class HeroicDiamondTest {
     }
 
     @Test
+    void diamondAttackSpeedIsTheRealVanillaWeaponSwingRateInclBase() {
+        // Total incl. the player base 4.0, as the "N Attack Speed" tooltip shows; the written modifier is this − 4.
+        assertEquals(1.6, HeroicDiamond.diamondAttackSpeed(Material.GOLDEN_SWORD)); // diamond sword 1.6 (modifier −2.4)
+        assertEquals(1.0, HeroicDiamond.diamondAttackSpeed(Material.GOLDEN_AXE));   // diamond axe 1.0 (modifier −3.0)
+        assertEquals(1.6, HeroicDiamond.diamondAttackSpeed(Material.DIAMOND_SWORD));
+        assertEquals(0.0, HeroicDiamond.diamondAttackSpeed(Material.GOLDEN_HELMET)); // not a weapon
+    }
+
+    @Test
     void diamondMaterialNameIsTheStandInForSubDiamondGearElseNull() {
         assertEquals("DIAMOND_SWORD", HeroicDiamond.diamondMaterialName(Material.GOLDEN_SWORD));
         assertEquals("DIAMOND_AXE", HeroicDiamond.diamondMaterialName(Material.GOLDEN_AXE));

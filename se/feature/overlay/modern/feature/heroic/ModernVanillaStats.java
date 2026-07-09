@@ -20,8 +20,9 @@ import org.bukkit.persistence.PersistentDataType;
  * weak display material's defaults) and — where the platform supports it (Minecraft 1.20.5+) — a custom diamond
  * max durability. So the armour points and durability are correct on the HUD and read by other combat plugins
  * that recompute from vanilla armour/durability — e.g. Mental's "restore 1.8 armour/durability", which a heroic
- * gold piece otherwise defeats (it sees gold's points). A sub-diamond WEAPON likewise carries a real diamond
- * {@code attack_damage} modifier (ADR 0032). No {@code HIDE_ATTRIBUTES}: an explicit modifier set suppresses the
+ * gold piece otherwise defeats (it sees gold's points). A sub-diamond WEAPON likewise carries real diamond
+ * {@code attack_damage} AND {@code attack_speed} modifiers (ADR 0032) — the speed penalty is written explicitly
+ * because an explicit modifier set suppresses the display material's default swing-rate too. No {@code HIDE_ATTRIBUTES}: an explicit modifier set suppresses the
  * display material's defaults, so the vanilla tooltip renders exactly the diamond values. Every heroic piece also
  * carries the vendor-neutral {@code combat:effective_material} marker naming the diamond it stands in for, so an
  * era-combat plugin (Mental) presents/computes the legacy form on its own servers (docs/…/effective-material-contract).
@@ -38,6 +39,7 @@ public final class ModernVanillaStats implements VanillaStats {
     private static final Attribute ARMOUR = byKey("armor", "generic.armor");
     private static final Attribute TOUGHNESS = byKey("armor_toughness", "generic.armor_toughness");
     private static final Attribute ATTACK_DAMAGE = byKey("attack_damage", "generic.attack_damage");
+    private static final Attribute ATTACK_SPEED = byKey("attack_speed", "generic.attack_speed");
 
     /** {@code Damageable.setMaxDamage} (1.20.5+) reflected once; {@code null} on an older platform (no override). */
     private static final Method SET_MAX_DAMAGE = probeSetMaxDamage();
@@ -126,10 +128,21 @@ public final class ModernVanillaStats implements VanillaStats {
         return true;
     }
 
-    /** Replace a sub-diamond weapon's attack with diamond's — modifier = diamond total − base 1.0, on the hand. */
+    /**
+     * Replace a sub-diamond weapon's attack with diamond's — the attack_damage modifier (diamond total − base 1.0)
+     * AND the attack_speed modifier (diamond total − base 4.0, i.e. a sword's −2.4 / an axe's −3.0) on the hand.
+     * An explicit modifier set suppresses ALL of the display material's defaults, so the speed penalty must be
+     * restated too or the weapon would inherit the bare 4.0 base swing rate. If attack_speed can't be resolved,
+     * write nothing and fall back to the plugin-maths flat delta (which never suppresses defaults).
+     */
     private static boolean writeWeapon(ItemMeta meta, Material type) {
+        if (ATTACK_SPEED == null) {
+            return false;
+        }
         addModifier(meta, ATTACK_DAMAGE, "attack_damage", EquipmentSlot.HAND,
                 HeroicDiamond.diamondAttackDamage(type) - 1.0);
+        addModifier(meta, ATTACK_SPEED, "attack_speed", EquipmentSlot.HAND,
+                HeroicDiamond.diamondAttackSpeed(type) - 4.0);
         return true;
     }
 

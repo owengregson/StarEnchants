@@ -60,6 +60,10 @@ public final class NametagListener extends ApplyGestureListener {
 
     @Override
     protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
+        // One nametag renames one item — cost parity with every other apply family (a stack must be split first).
+        if (target.getAmount() > 1) {
+            return GestureOutcome.noop(messages.format("common.single-item"));
+        }
         // begin() refuses (null) when a rename is already pending, so a second nametag isn't consumed for nothing.
         String prompt = service.begin(player.getUniqueId(), target);
         if (prompt == null) {

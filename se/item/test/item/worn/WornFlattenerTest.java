@@ -82,6 +82,38 @@ class WornFlattenerTest {
         assertEquals(FactMask.NONE, w.factMask(2));                 // no ability fires on trigger 2
     }
 
+    /** G01: off-hand ids are appended with every attacker-direction trigger excluded; defense/neutral stay. */
+    @Test
+    void offhandIdsAreExcludedFromAttackDirectionOnly() {
+        Ability[] abilities = {
+                ab(0, 1 << 0),                 // main: attack only
+                ab(1, 1 << 1),                 // off-hand: defense only
+                ab(2, (1 << 0) | (1 << 2)),    // off-hand: attack + break (neutral)
+        };
+        // id 0 is main-hand sourced; ids 1,2 are off-hand sourced.
+        WornState w = WornFlattener.flatten(7, new int[]{0}, new int[]{1, 2}, abilities, TRIGGERS,
+                new BitSet(), new int[0], HeroicStat.NONE, ATTACK, DEFENSE);
+
+        assertArrayEquals(new int[]{0}, w.byTrigger(0), "off-hand id 2's ATTACK trigger is dropped");
+        assertArrayEquals(new int[]{1}, w.byTrigger(1), "off-hand DEFENSE enchant stays indexed");
+        assertArrayEquals(new int[]{2}, w.byTrigger(2), "off-hand NEUTRAL (break) trigger stays indexed");
+        assertArrayEquals(new int[]{0}, w.combatAttack(), "off-hand id never lands in the attack array");
+        assertArrayEquals(new int[]{1}, w.combatDefense(), "off-hand DEFENSE id lands in the defense array");
+    }
+
+    /** G01: the per-trigger fact mask unions only the off-hand triggers that survive the attack-direction exclusion. */
+    @Test
+    void offhandFactMaskUnionsOnlyIncludedTriggers() {
+        Ability[] abilities = {
+                abMask(0, 1 << 0, new FactMask(0b0001L, 0L, 0L)), // off-hand: attack, reads num slot 0 → EXCLUDED
+                abMask(1, 1 << 1, new FactMask(0b0010L, 0L, 0L)), // off-hand: defense, reads num slot 1 → included
+        };
+        WornState w = WornFlattener.flatten(7, new int[0], new int[]{0, 1}, abilities, TRIGGERS,
+                new BitSet(), new int[0], HeroicStat.NONE, ATTACK, DEFENSE);
+        assertEquals(FactMask.NONE, w.factMask(0), "excluded attack trigger contributes no mask");
+        assertEquals(new FactMask(0b0010L, 0L, 0L), w.factMask(1), "surviving defense trigger's mask is unioned");
+    }
+
     @Test
     void emptyFactoryIsConsistent() {
         WornState w = WornState.empty(3);

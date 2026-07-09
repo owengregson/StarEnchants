@@ -50,6 +50,24 @@ public final class HeroicDiamond {
     }
 
     /**
+     * Diamond's total attack SPEED for a weapon kind (player base 4.0 included, as the vanilla "N Attack Speed"
+     * tooltip shows): {@code sword 1.6, axe 1.0}, or {@code 0} for a non-weapon. The REAL value the vanilla-stats
+     * writer restates as an {@code attack_speed} modifier (the amount is this minus the base 4.0, so a sword
+     * carries −2.4 and an axe −3.0), so a heroic sub-diamond weapon keeps diamond's slower swing rate instead of
+     * inheriting the base 4.0 once an explicit attack_damage modifier suppresses the display material's defaults.
+     */
+    public static double diamondAttackSpeed(Material material) {
+        String name = material.name();
+        if (name.endsWith("_SWORD")) {
+            return 1.6;
+        }
+        if (name.endsWith("_AXE")) {
+            return 1.0;
+        }
+        return 0.0;
+    }
+
+    /**
      * The {@code DIAMOND_<kind>} material NAME a sub-diamond heroic piece stands in for — the value of the
      * neutral {@code combat:effective_material} marker so an era-combat plugin treats the display-swapped piece
      * as diamond. {@code null} when {@code material} is already diamond/netherite (no stand-in needed) or is not

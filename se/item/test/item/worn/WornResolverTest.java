@@ -110,6 +110,96 @@ class WornResolverTest {
         assertEquals(2, worn.byTrigger(0).length); // lifesteal on two pieces → id 0 twice
     }
 
+    // ── G01 hand attribution: an off-hand item never swings ──────────────────────────────────────
+    // id 0 fires on ATTACK (trigger 0), id 1 fires on DEFENSE (trigger 1).
+    private static final StableKeyIndex HAND_KEYS =
+            new StableKeyIndex(List.of("enchants/rage/1", "enchants/guard/1"));
+    private static final Ability[] HAND_ABILITIES = {ability(0, 1 << 0), ability(1, 1 << 1)};
+
+    private static CombatState ench(String key, int level) {
+        return new CombatState(Map.of(key, level), List.of());
+    }
+
+    @Test
+    void offhandAttackEnchantContributesNoAttackProc() {
+        // The single item is off-hand (offhandFrom = 0): its ATTACK enchant must not ride a main-hand swing.
+        WornState worn = resolver().resolveFrom(List.of(ench("enchants/rage", 1)), 0, HAND_KEYS, HAND_ABILITIES, 1);
+        assertEquals(0, worn.byTrigger(0).length, "off-hand attack enchant is not in the attack trigger");
+        assertEquals(0, worn.combatAttack().length, "…nor the attack array");
+    }
+
+    @Test
+    void sameAttackEnchantOnBothHandsFiresOnce() {
+        // index 0 = main hand, index 1 = off-hand; the same ATTACK enchant on both fires ONCE (main-hand only).
+        WornState worn = resolver().resolveFrom(
+                List.of(ench("enchants/rage", 1), ench("enchants/rage", 1)), 1, HAND_KEYS, HAND_ABILITIES, 1);
+        assertArrayEquals(new int[] {0}, worn.byTrigger(0), "attack multiplicity is main-hand-only now");
+        assertArrayEquals(new int[] {0}, worn.combatAttack());
+    }
+
+    @Test
+    void offhandDefenseEnchantStillDefends() {
+        // An off-hand shield's DEFENSE enchant stays live — only attacker-direction procs are dropped.
+        WornState worn = resolver().resolveFrom(List.of(ench("enchants/guard", 1)), 0, HAND_KEYS, HAND_ABILITIES, 1);
+        assertArrayEquals(new int[] {1}, worn.byTrigger(1), "off-hand defensive enchant fires on DEFENSE");
+        assertArrayEquals(new int[] {1}, worn.combatDefense());
+    }
+
+    @Test
+    void offhandHeroicIsNotSummed() {
+        CombatState main = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.20, 0.0, 0.0));
+        CombatState off = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.30, 0.0, 0.0));
+        WornState worn = resolver().resolveFrom(List.of(main, off), 1, HAND_KEYS, HAND_ABILITIES, 1);
+        assertEquals(0.20, worn.heroic().percentDamage(), 1e-9, "off-hand heroic flat stats are not summed");
+    }
+
+    @Test
+    void offhandSetWeaponGrantsNoWeaponBonus() {
+        // id 0 = sets/yeti armour bonus (DEFENSE, completes at 3); id 1 = sets/yeti/w1 (ATTACK, gated on held weapon).
+        StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/w1"));
+        Ability[] abilities = {
+            Abilities.ability().sourceKind(SourceKind.SET).triggerMask(1 << 1).level(0).setPieces(3).build(),
+            Abilities.ability().id(1).sourceKind(SourceKind.SET).triggerMask(1 << 0).level(0).build()
+        };
+        CombatState armor = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+        CombatState weapon = CombatState.weaponMember("sets/yeti");
+
+        // 3 armour (complete) + the set weapon in the OFF-HAND (offhandFrom = 3): the /w bonus must not fire.
+        WornState offhandWeapon = resolver().resolveFrom(List.of(armor, armor, armor, weapon), 3, keys, abilities, 1);
+        assertEquals(true, offhandWeapon.isSetActive(0), "the armour set is still complete");
+        assertEquals(0, offhandWeapon.byTrigger(0).length, "a set weapon parked in the off-hand grants no /w bonus");
+
+        // Same gear, weapon in the MAIN hand (offhandFrom = 4 → no off-hand region): the /w bonus fires.
+        WornState mainWeapon = resolver().resolveFrom(List.of(armor, armor, armor, weapon), 4, keys, abilities, 1);
+        assertArrayEquals(new int[] {1}, mainWeapon.byTrigger(0), "the same weapon in the main hand unlocks /w1");
+    }
+
+    @Test
+    void nonStackableCrystalArmourWinsOverOffhand() {
+        // §ADR-0035 seen-set spans both hands: an armour copy (processed first) wins, so the crystal fires ONCE
+        // on the attack direction — the off-hand copy is deduped, not the armour one.
+        StableKeyIndex keys = new StableKeyIndex(List.of("crystals/dark"));
+        Ability[] abilities = {ability(0, 1 << 0)};
+        CombatState armour = new CombatState(Map.of(), List.of("crystals/dark"));
+        CombatState offhand = new CombatState(Map.of(), List.of("crystals/dark"));
+        WornState worn = resolver(java.util.Set.of("crystals/dark"))
+                .resolveFrom(List.of(armour, offhand), 1, keys, abilities, 1);
+        assertArrayEquals(new int[] {0}, worn.byTrigger(0), "non-stackable crystal fires once (armour wins)");
+    }
+
+    @Test
+    void noOffhandRegionReproducesLegacyOutputBitForBit() {
+        // offhandFrom == list.size() → every piece is main-hand/armour, so output matches the non-offhand overload.
+        CombatState a = ench("enchants/rage", 1);
+        CombatState b = ench("enchants/guard", 1);
+        WornState viaLegacy = resolver().resolveFrom(List.of(a, b), HAND_KEYS, HAND_ABILITIES, 1);
+        WornState viaFull = resolver().resolveFrom(List.of(a, b), 2, HAND_KEYS, HAND_ABILITIES, 1);
+        assertArrayEquals(viaLegacy.byTrigger(0), viaFull.byTrigger(0));
+        assertArrayEquals(viaLegacy.byTrigger(1), viaFull.byTrigger(1));
+        assertArrayEquals(viaLegacy.combatAttack(), viaFull.combatAttack());
+        assertArrayEquals(viaLegacy.combatDefense(), viaFull.combatDefense());
+    }
+
     // A SET bonus: id 0, fires on DEFENSE (trigger 1), completes at 3 worn pieces (setPieces=3).
     private static final StableKeyIndex SET_KEYS = new StableKeyIndex(List.of("sets/yeti"));
     private static final Ability[] SET_ABILITIES = {
