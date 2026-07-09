@@ -69,11 +69,20 @@ public final class EnchanterMenu extends PagedMenu<EnchanterOffers.Offer> {
     @Override
     protected void onSelect(MenuClick click, EnchanterOffers.Offer offer) {
         Player player = click.player();
-        if (player.getLevel() < offer.costLevels()) {
-            messages.send(player, "menu.enchanter.too-poor", "COST", offer.costLevels());
+        // Re-read the tier's price from the LIVE snapshot on click — the Offer captured at menu-open is only a
+        // tier key. A reload that raised the price (or removed the tier) between open and click must charge the
+        // current cost, not the stale one the icon still shows.
+        compile.load.TierRegistry.Tier tier = content.library().tiers().tier(offer.tier());
+        if (tier == null) {
+            messages.send(player, "menu.enchanter.unavailable");
             return;
         }
-        player.setLevel(player.getLevel() - offer.costLevels()); // safe: the clicker's own region thread
+        int cost = EnchanterOffers.priceFor(tier);
+        if (player.getLevel() < cost) {
+            messages.send(player, "menu.enchanter.too-poor", "COST", cost);
+            return;
+        }
+        player.setLevel(player.getLevel() - cost); // safe: the clicker's own region thread
         Inventories.giveOrDrop(player, unopenedBooks.mint(offer.tier()));
         messages.send(player, "menu.enchanter.bought", "TIER", offer.tier());
     }

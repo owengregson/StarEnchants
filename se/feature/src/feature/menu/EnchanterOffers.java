@@ -23,15 +23,10 @@ public final class EnchanterOffers {
     }
 
     /**
-     * The book price for a tier in XP levels: the tier's explicit {@code cost:} when set (configurable per
-     * group/tier in {@code tiers.yml}), else derived from its {@code weight} via {@link #cost(int)}.
+     * The book price for a tier in XP levels — delegates to {@link TierRegistry.Tier#bookCostLevels()} so the
+     * Enchanter's charge and the Tinkerer's salvage-refund cap read the identical rule from {@code tiers.yml}.
      */
     public static int priceFor(TierRegistry.Tier tier) {
-        return tier.cost() >= 0 ? tier.cost() : cost(tier.weight());
-    }
-
-    /** EXP-level cost from a tier weight (rarer = pricier), at least one level — the fallback when no {@code cost:}. */
-    public static int cost(int weight) {
-        return Math.max(1, weight / 5);
+        return tier.bookCostLevels();
     }
 }

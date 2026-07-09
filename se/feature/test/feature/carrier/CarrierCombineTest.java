@@ -1,6 +1,5 @@
 package feature.carrier;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,11 +29,5 @@ class CarrierCombineTest {
         assertFalse(CarrierService.combinable("enchants/keen", 5, "enchants/keen", 5, 5)); // already max
         assertFalse(CarrierService.combinable("enchants/keen", 0, "enchants/keen", 0, 5)); // level 0 is not a book
     }
-
-    @Test
-    void salvageLevelsRefundsTheBookLevelAtLeastOne() {
-        assertEquals(1, CarrierService.salvageLevels(0)); // never a zero refund
-        assertEquals(1, CarrierService.salvageLevels(1));
-        assertEquals(5, CarrierService.salvageLevels(5));
-    }
+    // The salvage refund curve is pinned in CarrierServiceTest (single source for the static's range family).
 }

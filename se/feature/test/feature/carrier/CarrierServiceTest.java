@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -24,10 +25,30 @@ class CarrierServiceTest {
     }
 
     @Test
-    void salvageRefundsTheBookLevelAtLeastOne() {
-        assertEquals(1, CarrierService.salvageLevels(1));
-        assertEquals(5, CarrierService.salvageLevels(5));
-        assertEquals(1, CarrierService.salvageLevels(0), "a zero/garbage level still refunds at least one");
+    void salvageRefundIsUniformInOneToTierCostFlooredAtOne() {
+        // The Tinkerer refund is a uniform draw in [1, N] where N is the tier's buy price — capped at what the
+        // Enchanter charged so the buy→open→salvage loop can never profit. Pin the range, not the RNG sequence.
+        Random rng = new Random(42);
+        for (int cap : new int[] {0, 1, 5, 30}) {
+            int hi = Math.max(1, cap);
+            int seenLow = Integer.MAX_VALUE;
+            int seenHigh = Integer.MIN_VALUE;
+            for (int i = 0; i < 1000; i++) {
+                int refund = CarrierService.salvageLevels(rng, cap);
+                assertTrue(refund >= 1 && refund <= hi,
+                        "refund " + refund + " out of [1," + hi + "] at cap " + cap);
+                seenLow = Math.min(seenLow, refund);
+                seenHigh = Math.max(seenHigh, refund);
+            }
+            if (cap <= 1) { // a 0-cost/unknown tier always refunds exactly one — worst case break-even
+                assertEquals(1, seenLow);
+                assertEquals(1, seenHigh);
+            }
+            if (cap == 5) { // both endpoints reachable → the range really is [1, N], not a constant
+                assertEquals(1, seenLow, "the low endpoint 1 must occur");
+                assertEquals(5, seenHigh, "the tier-cost endpoint must occur");
+            }
+        }
     }
 
     @Test

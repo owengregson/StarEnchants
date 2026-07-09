@@ -42,13 +42,14 @@ public final class CarrierSuite implements Harness.Scenario {
             applies-to: [SWORD]
             levels:
               1: { chance: 100, effects: [{ IGNITE: { duration: 40, who: "@Victim" } }] }
+              2: { chance: 100, effects: [{ IGNITE: { duration: 80, who: "@Victim" } }] }
             """;
 
     private static final String[] KEYS = {
         "carrier.book.applies", "carrier.book.showsDescription", "carrier.book.stackGuard", "carrier.book.destroyOnFail",
         "carrier.scroll.whiteScrollProtects", "carrier.dust.fixedBoostsBook", "carrier.dust.cappedAndIdempotent",
         "carrier.dust.boostedBookApplies", "carrier.dust.rejectsNonBook", "carrier.dust.gestureEligibility",
-        "carrier.dust.randomInRange",
+        "carrier.dust.randomInRange", "carrier.book.combineTakesBetterSuccessCapped",
     };
 
     private final Plugin plugin;
@@ -107,6 +108,13 @@ public final class CarrierSuite implements Harness.Scenario {
                 carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness,
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
                 () -> 100, new item.codec.AppliedSlot("appliedslot", Stores.state()), recompose, ItemGroups.standard(),
+                platform.lang.Messages.defaults());
+        // A server that lowers books.max-success below 100 to cap every randomised book — proves the Alchemist
+        // combine respects that ceiling instead of laundering a guaranteed 100% book through it.
+        CarrierService capped = new CarrierService(
+                carrierCodec, enchanter, holder, new Random(1), EnchantBookConfig::defaults,
+                compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
+                () -> 50, new item.codec.AppliedSlot("appliedslot", Stores.state()), recompose, ItemGroups.standard(),
                 platform.lang.Messages.defaults());
 
         h.guard("carrier.book.applies", () -> {
@@ -275,6 +283,40 @@ public final class CarrierSuite implements Harness.Scenario {
                 if (bonus < 10 || bonus > 25) {
                     throw new IllegalStateException("random dust bonus out of [10,25]: " + bonus);
                 }
+            }
+        });
+
+        // The Alchemist combine takes the BETTER of the two inputs' effective success (never a free
+        // guaranteed/never-destroy book) and clamps it to books.max-success — F02.
+        h.guard("carrier.book.combineTakesBetterSuccessCapped", () -> {
+            ItemStack a = carriers.mintBook("enchants/zap", 1, 25); // 25% success
+            ItemStack b = carriers.mintBook("enchants/zap", 1, 60); // 60% success
+            CarrierData out = carrierCodec.read(carriers.combineBooks(a, b)
+                    .orElseThrow(() -> new IllegalStateException("two matching books should combine")));
+            if (out == null || out.grantLevel() != 2) {
+                throw new IllegalStateException("combined book should be one level higher: " + out);
+            }
+            if (!out.hasBaseSuccess() || out.baseSuccess() != 60) {
+                throw new IllegalStateException("combined book should carry the better input success (60), not a "
+                        + "guaranteed 100%: " + out);
+            }
+
+            // With a 50% ceiling the same combine clamps to books.max-success — no punch-through.
+            CarrierData clamped = carrierCodec.read(capped
+                    .combineBooks(capped.mintBook("enchants/zap", 1, 25), capped.mintBook("enchants/zap", 1, 60))
+                    .orElseThrow(() -> new IllegalStateException("capped combine should still combine")));
+            if (clamped == null || !clamped.hasBaseSuccess() || clamped.baseSuccess() != 50) {
+                throw new IllegalStateException("a lowered ceiling must cap the combined success at 50: " + clamped);
+            }
+
+            // A guaranteed (2-arg) input laundered through combine is still bound by the ceiling — its eff 100
+            // caps to 50, so the never-destroy form can't be handed to a player.
+            CarrierData laundered = carrierCodec.read(capped
+                    .combineBooks(capped.mintBook("enchants/zap", 1), capped.mintBook("enchants/zap", 1, 10))
+                    .orElseThrow(() -> new IllegalStateException("guaranteed + explicit should combine")));
+            if (laundered == null || !laundered.hasBaseSuccess() || laundered.baseSuccess() != 50) {
+                throw new IllegalStateException("a guaranteed input must not launder a 100% book past the ceiling: "
+                        + laundered);
             }
         });
     }

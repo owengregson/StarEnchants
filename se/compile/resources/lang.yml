@@ -224,6 +224,7 @@ menu.tinkerer.bad-input: "&cPlace a single enchant book to salvage."
 menu.tinkerer.not-book: "&cThat isn't an enchant book."
 menu.tinkerer.salvaged: "&aSalvaged for &a{LEVELS} &alevel{S}."
 menu.enchanter.too-poor: "&cYou need &a{COST} &clevels to buy that."
+menu.enchanter.unavailable: "&cThat offer is no longer available."
 menu.enchanter.bought: "&aBought a &f{TIER} &amystery book."
 menu.admin.granted: "&aGranted a guaranteed &f{DISPLAY} &alevel &f{LEVEL} &abook."
 # Mint Items GUI (operator self-mint).

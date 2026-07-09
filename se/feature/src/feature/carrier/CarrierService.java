@@ -341,12 +341,30 @@ public final class CarrierService {
         if (def == null || !combinable(x.enchantKey(), x.level(), y.enchantKey(), y.level(), def.maxLevel())) {
             return java.util.Optional.empty();
         }
-        return java.util.Optional.of(mintBook(x.enchantKey(), x.level() + 1));
+        // The upgrade inherits the better of the two inputs' effective success (never a free guaranteed/
+        // never-destroy book), clamped to the live books.max-success ceiling — combining can't launder two
+        // risky books into a 100% apply that bypasses the roll and the gear-destruction risk.
+        CarrierData da = codec.read(a);
+        CarrierData db = codec.read(b);
+        int effA = effectiveSuccess(baseSuccessOf(da), da.successBonus());
+        int effB = effectiveSuccess(baseSuccessOf(db), db.successBonus());
+        return java.util.Optional.of(
+                mintBook(x.enchantKey(), x.level() + 1, capBookSuccess(Math.max(effA, effB))));
     }
 
-    /** EXP-level refund for salvaging a book of {@code level} (the Tinkerer): the book's level, at least one. */
+    /**
+     * EXP-level refund for salvaging a book (the Tinkerer): a uniform-random draw in {@code [1, N]} where
+     * {@code N} is the Enchanter's buy price for the book's rarity tier (read live from {@code tiers.yml}). The
+     * refund can never exceed what the tier cost to buy, so Enchanter&rarr;open&rarr;Tinkerer can never profit
+     * — worst case break-even at a cost-1 tier.
+     */
     public java.util.Optional<Integer> salvageLevels(ItemStack book) {
-        return bookContents(book).map(c -> salvageLevels(c.level()));
+        return bookContents(book).map(c -> {
+            String tierName = content.library().tierOf(c.enchantKey());
+            compile.load.TierRegistry.Tier tier = content.library().tiers().tier(tierName);
+            int cap = tier == null ? 1 : tier.bookCostLevels();
+            return salvageLevels(random, cap);
+        });
     }
 
     /** Whether two books combine: same enchant, same level, below that enchant's max. Pure. */
@@ -354,9 +372,14 @@ public final class CarrierService {
         return keyA.equals(keyB) && levelA == levelB && levelA >= 1 && levelA < maxLevel;
     }
 
-    /** EXP levels refunded for salvaging a book of {@code bookLevel} — its level, at least one. Pure. */
-    public static int salvageLevels(int bookLevel) {
-        return Math.max(1, bookLevel);
+    /**
+     * EXP levels refunded for a salvage: a uniform-random draw in {@code [1, N]} where {@code N} is the tier's
+     * buy price ({@code tierCostLevels}, floored at 1 so a 0-cost/unknown tier still refunds exactly one).
+     * Pure; the roll is injected so the refund is deterministic in tests. Expected value {@code (N+1)/2 <= N},
+     * so the buy&rarr;open&rarr;salvage loop never exceeds the price paid.
+     */
+    public static int salvageLevels(java.util.Random random, int tierCostLevels) {
+        return 1 + random.nextInt(Math.max(1, tierCostLevels));
     }
 
     private EnchantDef enchantDef(String key) {
