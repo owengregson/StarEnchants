@@ -11,7 +11,7 @@ lore:
   - "&eConsume to gain a temporary strength buff, at the cost of movement speed."
   - ""
   - "&eCooldown: &f&n{TIME_FORMATTED}&r"       # {TIME_FORMATTED} in LORE renders the a0 cooldown below, h/m/s
-  - "&7Right Click while holding this item to apply."
+  - "&7Right click while holding to apply."
 permission: ""          # optional Bukkit permission checked at use time; empty = everyone
 cooldown: 1200          # ticks (standard ability cooldown, gate 6) — 60s; also what {TIME_FORMATTED} shows
 chance: 100             # activation chance percent (gate 8)
