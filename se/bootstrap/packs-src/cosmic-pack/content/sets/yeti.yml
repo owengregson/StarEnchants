@@ -45,16 +45,17 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
-  # Fortified — 25% on being hit (30s cd): negate the hit and freeze the attacker in ice for 3s — a 2-tall pillar
-  # one block ahead of them + a 3x3 packed-ice footprint at their feet, placed only where it replaces air.
+  # Fortified — 25% on being hit (30s cd): negate the hit and freeze the ground under the attacker for 3s — a
+  # mixed frost-palette footprint that replaces only solid ground (never air), so it reads as a floor, not a wall.
   - on: armor
     trigger: DEFENSE
     chance: 25
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_BREEZE_HURT|ENTITY_POLAR_BEAR_HURT", volume: 1.0, pitch: 1.0 } }
       - { CANCEL: {} }
-      - { TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, airOnly: true, who: "@Attacker" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: PACKED_ICE, radius: 1, ticks: 60, airOnly: true, who: "@Attacker" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", palette-scale: 2, radius: 1, dy: -1, ticks: 60, airOnly: false, who: "@Attacker" } }
+      - { PARTICLE: { particle: SNOWFLAKE, count: 15, who: "@Attacker" } }
       - { MESSAGE: { channel: title, text: "&b&l** FORTIFIED **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&b&l** FORTIFIED &r&7[&f{VICTIM}&7] &r&b&l**" } }
   - on: weapon
