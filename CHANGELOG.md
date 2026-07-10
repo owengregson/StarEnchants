@@ -6,6 +6,34 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Rage rework.** Rage stacks are now first-class: max stacks = the enchant level, the
+  damage expression reads the clamped stack count, every stack plays a blaze-hit whose
+  pitch steps down an absolute ladder (1.45 at zero stacks to 0.85 at six), each hit
+  flashes a Rage Stacks actionbar, and a broken combo (window lapse or victim switch)
+  flashes a BROKEN title with a high-pitched blaze-death.
+- **Guard summons fight for you.** Guardians' iron golems and Spirits' blazes now
+  auto-target the enemy who triggered them (and keep the Blood Link owner binding).
+- **Frost and hell floors replace the ground, not the air.** PermaFrost and the Yeti
+  set's Fortified now lay a noisy frost palette (ice / blue ice / packed ice / snow
+  block) into the ground under the attacker, like the Devil floor — which itself gained
+  a glowstone / netherrack / magma / quartz-ore palette. TEMP_BLOCK now takes up to four
+  materials with a palette scale that clusters them into connected patches. PermaFrost's
+  cooldown is sextupled.
+- **Cues play on the right entity, with real spread.** Particle bursts gained a default
+  spatial spread and mid-body anchoring, defense-retaliation cues now burst on the
+  attacker and self-buff cues on the wearer (15 re-anchored), and every armor set's
+  active ability pops a curated sound + particle (modern-only sounds carry floor
+  fallbacks via new "A|B" handle chains). Dodge/Ethereal Dodge, Inversion and Divine
+  Immolation got new sounds.
+
+### Fixed
+
+- **Soul gem × holy white scroll.** Merging two gems no longer destroys a holy white
+  scroll carried by either input, the gem's soul-count name bracket survives a holy
+  apply, and the HOLY PROTECTED lore line survives every soul-count re-render.
+
 ## [1.6.1-beta] — 2026-07-10
 
 ### Fixed
