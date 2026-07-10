@@ -2,6 +2,7 @@ package engine.sink;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -13,8 +14,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import engine.stores.CooldownStore;
+import engine.stores.DamageCapStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
+import engine.stores.OutgoingDebuffStore;
+import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.VarStore;
 import java.util.ArrayList;
@@ -145,6 +149,61 @@ class DispatchSinkTest {
         assertFalse(sink.armorIgnored(), "a fresh sink must not ignore armor");
         sink.ignoreArmor();
         assertTrue(sink.armorIgnored(), "ignoreArmor must set the read-back flag");
+    }
+
+    @Test
+    void requestEchoStrikeSetsTheReadBackFlag() {
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        assertFalse(sink.echoRequested(), "a fresh sink must not request an echo pass");
+        sink.requestEchoStrike();
+        assertTrue(sink.echoRequested(), "requestEchoStrike must set the read-back flag the dispatcher reads (ECHO_STRIKE)");
+    }
+
+    @Test
+    void reflectMarkWritesTheReflectStoreInline() {
+        ReflectMarksStore store = new ReflectMarksStore();
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().reflectMarks(store).nowTicks(() -> 0L).build());
+        Player p = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(p.getUniqueId()).thenReturn(id);
+        sink.reflectMark(p, 20.0, 80); // inline (no flush) — a per-player window write, not a deferred intent
+        assertEquals(20.0, store.active(id, 0L));
+    }
+
+    @Test
+    void weakenWritesTheOutgoingDebuffStoreInline() {
+        OutgoingDebuffStore store = new OutgoingDebuffStore();
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().outgoingDebuff(store).nowTicks(() -> 0L).build());
+        Player p = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(p.getUniqueId()).thenReturn(id);
+        sink.weaken(p, 15.0, 100);
+        assertEquals(15.0, store.active(id, 0L));
+    }
+
+    @Test
+    void armDamageCapComputesCapFromLastTakenTimesFactor() {
+        DamageCapStore store = new DamageCapStore();
+        Player p = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(p.getUniqueId()).thenReturn(id);
+        store.recordLastTaken(id, 10.0);
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
+        sink.armDamageCap(p, 0.5, true, 100);
+        DamageCapStore.Cap cap = store.consumeArmed(id, 0L);
+        assertEquals(5.0, cap.value(), "the cap is fixed at last-taken × factor at arm time");
+        assertTrue(cap.reflectOverflow());
+    }
+
+    @Test
+    void armDamageCapWithNoLastTakenHistoryArmsNothing() {
+        DamageCapStore store = new DamageCapStore();
+        Player p = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(p.getUniqueId()).thenReturn(id);
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
+        sink.armDamageCap(p, 0.5, false, 100); // no recorded hit → value 0 → nothing armed
+        assertNull(store.consumeArmed(id, 0L));
     }
 
     @Test

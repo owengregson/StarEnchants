@@ -49,6 +49,8 @@ class FlagAndSoulEffectTest {
                 flag("TELEPORT_DROPS → teleportDrops", new TeleportDropsEffect(), c -> { },
                         s -> verify(s).teleportDrops()),
                 flag("SEEK → seek", new SeekEffect(), c -> { }, s -> verify(s).seek()),
+                flag("ECHO_STRIKE → requestEchoStrike", new EchoStrikeEffect(), c -> { },
+                        s -> verify(s).requestEchoStrike()),
                 // 'as' is a compiler-defaulted param (console); FakeEffectCtx synthesizes no defaults, so feed it.
                 flag("RUN_COMMAND → consoleCommand(command)", new RunCommandEffect(),
                         c -> c.with("command", "say hi").with("as", "console"),
