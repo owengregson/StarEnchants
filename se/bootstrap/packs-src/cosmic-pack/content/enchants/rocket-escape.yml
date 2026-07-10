@@ -1,13 +1,9 @@
 # Imported from EliteEnchantments (id: rocket-escape). Review before shipping.
 display: "Rocket Escape"
 description:
-  - "&bAt low health, when hit,"
-  - "&blaunches you into the air to"
-  - "&bescape."
-  - ""
-  - "&b&lI: &f🎲 30% &7| &f⌛ 8s"
-  - "&b&lII: &f🎲 60% &7| &f⌛ 8s"
-  - "&b&lIII: &f🎲 80% &7| &f⌛ 8s"
+  - "&eAt low health, when hit,"
+  - "&elaunches you into the air to"
+  - "&eescape."
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "rare"

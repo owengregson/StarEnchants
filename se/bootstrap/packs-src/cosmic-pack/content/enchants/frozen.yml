@@ -1,12 +1,8 @@
 # Imported from EliteEnchantments (id: frozen). Review before shipping.
 display: "Frozen"
 description:
-  - "&bWhen hit, applies Slowness to"
-  - "&bthe attacker."
-  - ""
-  - "&b&lI: &f🎲 5% &7| &f⌛ 3s"
-  - "&b&lII: &f🎲 8% &7| &f⌛ 3s"
-  - "&b&lIII: &f🎲 12% &7| &f⌛ 3s"
+  - "&eWhen hit, applies Slowness to"
+  - "&ethe attacker."
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "rare"

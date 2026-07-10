@@ -1,12 +1,8 @@
 # Imported from EliteEnchantments (id: shackle). Review before shipping.
 display: "Shackle"
 description:
-  - "&bOn hit, stops mobs from spawners"
-  - "&bfrom taking knockback."
-  - ""
-  - "&b&lI: &f🎲 25%"
-  - "&b&lII: &f🎲 50%"
-  - "&b&lIII: &f🎲 100%"
+  - "&eOn hit, stops mobs from spawners"
+  - "&efrom taking knockback."
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "rare"

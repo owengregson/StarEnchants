@@ -1,14 +1,10 @@
 # Imported from EliteEnchantments (id: titan-trap). Review before shipping.
 display: "Titan Trap"
 description:
-  - "&dMythic upgrade for Trap."
-  - "&dApplies longer, stronger"
-  - "&dSlowness."
+  - "&eMythic upgrade for Trap."
+  - "&eApplies longer, stronger"
+  - "&eSlowness."
   - "&c&l(!)&r &7Requires &bTrap"
-  - ""
-  - "&d&lI: &f🎲 2.25% &7| &f⌛ 7s"
-  - "&d&lII: &f🎲 4% &7| &f⌛ 7s"
-  - "&d&lIII: &f🎲 6% &7| &f⌛ 7s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "mythic"

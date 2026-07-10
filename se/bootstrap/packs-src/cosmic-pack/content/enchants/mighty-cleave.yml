@@ -1,16 +1,10 @@
 # Imported from EliteEnchantments (id: mighty-cleave). Review before shipping.
 display: "Mighty Cleave"
 description:
-  - "&dMythic upgrade for Cleave."
-  - "&dStrikes a wider arc around the"
-  - "&dtarget."
+  - "&eMythic upgrade for Cleave."
+  - "&eStrikes a wider arc around the"
+  - "&etarget."
   - "&c&l(!)&r &7Requires &eCleave"
-  - ""
-  - "&d&lI: &f🎲 3.25% &7| &f▲ 3.25m &7| &f⌛ 4s"
-  - "&d&lII: &f🎲 4.75% &7| &f▲ 3.5m &7| &f⌛ 4s"
-  - "&d&lIII: &f🎲 6% &7| &f▲ 3.75m &7| &f⌛ 4s"
-  - "&d&lIV: &f🎲 7.5% &7| &f▲ 4m &7| &f⌛ 4s"
-  - "&d&lV: &f🎲 9% &7| &f▲ 4.25m &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "mythic"

@@ -1,12 +1,8 @@
 # Imported from EliteEnchantments (id: confusion). Review before shipping.
 display: "Confusion"
 description:
-  - "&7On hit, applies Nausea to the"
-  - "&7target."
-  - ""
-  - "&7&lI: &f🎲 1.05% &7| &f⌛ 2s"
-  - "&7&lII: &f🎲 1.95% &7| &f⌛ 2s"
-  - "&7&lIII: &f🎲 2.5% &7| &f⌛ 2s"
+  - "&eOn hit, applies Nausea to the"
+  - "&etarget."
 trigger: ATTACK
 applies-to: [AXE]
 group: "common"

@@ -1,12 +1,8 @@
 # Imported from EliteEnchantments (id: blind). Review before shipping.
 display: "Blind"
 description:
-  - "&bOn hit, applies Blindness to the"
-  - "&btarget."
-  - ""
-  - "&b&lI: &f🎲 7.5% &7| &f⌛ 3s"
-  - "&b&lII: &f🎲 9% &7| &f⌛ 3s"
-  - "&b&lIII: &f🎲 12% &7| &f⌛ 3s"
+  - "&eOn hit, applies Blindness to the"
+  - "&etarget."
 trigger: ATTACK
 applies-to: [SWORD]
 group: "rare"

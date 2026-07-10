@@ -1,14 +1,8 @@
 # Imported from EliteEnchantments (id: blacksmith). Review before shipping.
 display: "Blacksmith"
 description:
-  - "&6On hit, repairs your armor but"
-  - "&6the hit deals reduced damage."
-  - ""
-  - "&6&lI: &f🎲 2.75% &7| &f▲ +10 pt. &7| &f⌛ 5s"
-  - "&6&lII: &f🎲 4% &7| &f▲ +10 pt. &7| &f⌛ 5s"
-  - "&6&lIII: &f🎲 6% &7| &f▲ +10 pt. &7| &f⌛ 5s"
-  - "&6&lIV: &f🎲 9% &7| &f▲ +20 pt. &7| &f⌛ 5s"
-  - "&6&lV: &f🎲 11.25% &7| &f▲ +20 pt. &7| &f⌛ 5s"
+  - "&eOn hit, repairs your armor but"
+  - "&ethe hit deals reduced damage."
 trigger: ATTACK
 applies-to: [AXE]
 group: "legendary"

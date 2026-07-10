@@ -1,16 +1,10 @@
 # Imported from EliteEnchantments (id: master-blacksmith). Review before shipping.
 display: "Master Blacksmith"
 description:
-  - "&dMythic upgrade for Blacksmith."
-  - "&dRepairs more armor with a"
-  - "&dsmaller damage penalty."
+  - "&eMythic upgrade for Blacksmith."
+  - "&eRepairs more armor with a"
+  - "&esmaller damage penalty."
   - "&c&l(!)&r &7Requires &6Blacksmith"
-  - ""
-  - "&d&lI: &f🎲 4.5% &7| &f▲ +25 pt. &7| &f⌛ 3s"
-  - "&d&lII: &f🎲 7.5% &7| &f▲ +25 pt. &7| &f⌛ 3s"
-  - "&d&lIII: &f🎲 9.5% &7| &f▲ +25 pt. &7| &f⌛ 3s"
-  - "&d&lIV: &f🎲 11% &7| &f▲ +35 pt. &7| &f⌛ 3s"
-  - "&d&lV: &f🎲 13% &7| &f▲ +35 pt. &7| &f⌛ 3s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "mythic"

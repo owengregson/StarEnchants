@@ -1,14 +1,8 @@
 # Imported from EliteEnchantments (id: wither). Review before shipping.
 display: "Wither"
 description:
-  - "&bWhen hit, applies Wither to the"
-  - "&battacker."
-  - ""
-  - "&b&lI: &f🎲 3% &7| &f⌛ 4s"
-  - "&b&lII: &f🎲 5% &7| &f⌛ 4s"
-  - "&b&lIII: &f🎲 7% &7| &f⌛ 4s"
-  - "&b&lIV: &f🎲 9% &7| &f⌛ 4s"
-  - "&b&lV: &f🎲 11% &7| &f⌛ 4s"
+  - "&eWhen hit, applies Wither to the"
+  - "&eattacker."
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "rare"
