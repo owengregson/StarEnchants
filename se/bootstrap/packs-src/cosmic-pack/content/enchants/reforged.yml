@@ -1,80 +1,71 @@
 # Imported from EliteEnchantments (id: reforged). Review before shipping.
 display: "Reforged"
 description:
-  - "&bWhile mining, restores"
-  - "&bdurability to the tool."
-  - ""
-  - "&b&lI: &f🎲 8% &7| &f▲ +10 pt."
-  - "&b&lII: &f🎲 16% &7| &f▲ +10 pt."
-  - "&b&lIII: &f🎲 24% &7| &f▲ +10 pt."
-  - "&b&lIV: &f🎲 32% &7| &f▲ +10 pt."
-  - "&b&lV: &f🎲 40% &7| &f▲ +10 pt."
-  - "&b&lVI: &f🎲 48% &7| &f▲ +10 pt."
-  - "&b&lVII: &f🎲 56% &7| &f▲ +10 pt."
-  - "&b&lVIII: &f🎲 74% &7| &f▲ +10 pt."
-  - "&b&lIX: &f🎲 82% &7| &f▲ +10 pt."
-  - "&b&lX: &f🎲 100% &7| &f▲ +10 pt."
-trigger: MINE
+  - "&eYour tool sometimes refuses to"
+  - "&elose durability."
+trigger: ITEM_DAMAGE
 applies-to: [TOOL]
 group: "rare"
 tier: rare
+condition: "!%itemdamage.armor%"
 levels:
   1:
     chance: 8
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   2:
     chance: 16
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   3:
     chance: 24
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   4:
     chance: 32
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   5:
     chance: 40
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   6:
     chance: 48
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   7:
     chance: 56
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   8:
     chance: 74
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   9:
     chance: 82
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   10:
+    chance: 100
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
