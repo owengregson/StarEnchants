@@ -119,7 +119,7 @@ public final class MenuSuite implements Harness.Scenario {
                     carrierCodec, enchanter, holder, new Random(1), () -> underlined,
                     compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
                     () -> 100, new item.codec.AppliedSlot("appliedslot", Stores.state()), gear -> { }, ItemGroups.standard(),
-                    platform.lang.Messages.defaults());
+                    platform.lang.Messages.defaults(), compile.load.MasterConfig.ApplyCuesSection::defaults);
             adminMenu = new AdminBrowserMenu(holder, carriers, Capabilities.probe(plugin.getServer()));
             keenDef = holder.library().catalog().stream()
                     .filter(d -> d.key().equals("enchants/keen")).findFirst().orElseThrow();

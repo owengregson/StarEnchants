@@ -37,6 +37,7 @@ class MasterConfigLoaderTest {
         assertEquals(defaults.messageOnActivate(), config.messageOnActivate());
         assertEquals(defaults.sets(), config.sets());
         assertEquals(defaults.stations(), config.stations());
+        assertEquals(defaults.applyCues(), config.applyCues());
     }
 
     @Test
@@ -99,6 +100,32 @@ class MasterConfigLoaderTest {
         assertEquals(12, sets.equipParticle().colorR());
         assertEquals(20, sets.equipParticle().amount());
         assertTrue(sets.unequipParticle().isEmpty()); // omitted → nothing spawned
+    }
+
+    @Test
+    void parsesApplyCues(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                apply-cues:
+                  success:
+                    sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 0.5, pitch: 2.0 }
+                    particles:
+                      - HAPPY_VILLAGER
+                      - TOTEM
+                  fail:
+                    sound: ENTITY_ANVIL_LAND
+                """);
+
+        MasterConfig.ApplyCuesSection cues = MasterConfigLoader.load(file).applyCues();
+
+        assertEquals("ENTITY_PLAYER_LEVELUP", cues.successSound().name());
+        assertEquals(0.5f, cues.successSound().volume());
+        assertEquals(2.0f, cues.successSound().pitch());
+        assertEquals(java.util.List.of("HAPPY_VILLAGER", "TOTEM"), cues.successParticles());
+        // a bare-string sound parses at 1.0/1.0; an omitted particles list falls back to the default
+        assertEquals("ENTITY_ANVIL_LAND", cues.failSound().name());
+        assertEquals(1.0f, cues.failSound().pitch());
+        assertEquals(MasterConfig.ApplyCuesSection.defaults().failParticles(), cues.failParticles());
     }
 
     @Test

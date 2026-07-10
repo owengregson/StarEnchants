@@ -112,7 +112,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 compile.load.EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
                 new item.codec.AppliedSlot("appliedslot", Stores.state()), gear -> { }, ItemGroups.standard(),
-                platform.lang.Messages.defaults());
+                platform.lang.Messages.defaults(), compile.load.MasterConfig.ApplyCuesSection::defaults);
         SlotItemCodec slotCodec = new SlotItemCodec(keys.slotItem(), keys.slotSuccess(), Stores.state());
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll(), Stores.state());
         // Extraction always succeeds now; pin the conversion rate so the drawn book's outcome is exact.

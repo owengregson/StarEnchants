@@ -19,7 +19,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
                            LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
                            MessageOnActivateSection messageOnActivate, SetsSection sets, EngineSection engine,
-                           StationsSection stations,
+                           StationsSection stations, ApplyCuesSection applyCues,
                            List<Diagnostic> diagnostics) {
 
     public MasterConfig {
@@ -39,6 +39,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
         Objects.requireNonNull(sets, "sets");
         Objects.requireNonNull(engine, "engine");
         Objects.requireNonNull(stations, "stations");
+        Objects.requireNonNull(applyCues, "applyCues");
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -49,7 +50,8 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
                 BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
                 LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
-                SetsSection.defaults(), EngineSection.defaults(), StationsSection.defaults(), List.of());
+                SetsSection.defaults(), EngineSection.defaults(), StationsSection.defaults(),
+                ApplyCuesSection.defaults(), List.of());
     }
 
     /**
@@ -389,6 +391,35 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
 
         public static SetsSection defaults() {
             return new SetsSection(false, true, List.of(), List.of(), ParticleSpec.none(), ParticleSpec.none());
+        }
+    }
+
+    /**
+     * Universal enchant-book apply feedback (config.yml {@code apply-cues}), read live on reload. A SUCCESSFUL
+     * book application to gear plays {@code successSound} + {@code successParticles}; any FAILED one (protected,
+     * shattered, or unharmed) plays {@code failSound} + {@code failParticles}. Each sound is our unified
+     * {@code { sound: NAME, volume: V, pitch: P }} bracket form (a bare string parses too); each particle list is
+     * alias-resolved tokens. The cues ride the {@code GestureOutcome.Cue} plumbing the success dust already uses,
+     * so a blank sound + empty list is simply silent.
+     *
+     * @param successSound     sound played when a book applies successfully
+     * @param successParticles particle tokens spawned at the applier on success
+     * @param failSound        sound played when a book application fails
+     * @param failParticles    particle tokens spawned at the applier on failure
+     */
+    public record ApplyCuesSection(SoundCue successSound, List<String> successParticles,
+                                   SoundCue failSound, List<String> failParticles) {
+        public ApplyCuesSection {
+            Objects.requireNonNull(successSound, "successSound");
+            Objects.requireNonNull(failSound, "failSound");
+            successParticles = List.copyOf(successParticles);
+            failParticles = List.copyOf(failParticles);
+        }
+
+        public static ApplyCuesSection defaults() {
+            return new ApplyCuesSection(
+                    new SoundCue("entity.player.levelup", 0.7f, 1.4f), List.of("HAPPY_VILLAGER"),
+                    new SoundCue("entity.item.break", 1.0f, 1.0f), List.of("SMOKE_NORMAL"));
         }
     }
 }

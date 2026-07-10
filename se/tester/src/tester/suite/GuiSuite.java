@@ -99,7 +99,7 @@ public final class GuiSuite implements Harness.Scenario {
                     new Random(1), compile.load.EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
                     compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
                     new item.codec.AppliedSlot("appliedslot", Stores.state()), gear -> { }, ItemGroups.standard(),
-                    platform.lang.Messages.defaults());
+                    platform.lang.Messages.defaults(), compile.load.MasterConfig.ApplyCuesSection::defaults);
             Capabilities caps = Capabilities.probe(plugin.getServer());
             alchemist = new AlchemistMenu(carriers, caps);
             tinkerer = new TinkererMenu(carriers, caps);

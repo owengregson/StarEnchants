@@ -29,7 +29,8 @@ final class CarriersModule {
                 core.appliedSlot(),                                   // §I white scroll occupies this
                 core.recompose(),                                     // ADR-0040 recompose gear lore after a toggle
                 core.itemGroups(),                                    // §I white-scroll applies-to gate
-                core.messages());                                     // §I applies reject reads common.wrong-applies
+                core.messages(),                                      // §I applies reject reads common.wrong-applies
+                () -> core.master().config().applyCues());            // universal book-apply feedback (config.yml apply-cues, live)
         // The `book` mint rides the books module (its random-tier path needs the unopened-book roll); carriers
         // owns success dust + the white scroll.
         this.mints = List.of(Mints.dust(carriers), Mints.whitescroll(carriers));

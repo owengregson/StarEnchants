@@ -99,6 +99,21 @@ books:
   # explicit /se give book <success>, which are admin overrides.
   max-success: 100
 
+# Universal enchant-book apply feedback. When a book is applied to gear, a SUCCESSFUL apply plays the success
+# cue and a FAILED one (whether the gear shattered, was protected by a white scroll, or survived unharmed) plays
+# the fail cue. `sound` is our unified { sound: NAME, volume: V, pitch: P } bracket form (a bare string plays at
+# 1.0/1.0); `particles` is a list of particle tokens spawned at the applier (alias-resolved, degrade on 1.8.9).
+# Leave a sound blank / particles empty for silence. Read live on /se reload.
+apply-cues:
+  success:
+    sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 0.7, pitch: 1.4 }
+    particles:
+      - HAPPY_VILLAGER
+  fail:
+    sound: { sound: ENTITY_ITEM_BREAK, volume: 1.0, pitch: 1.0 }
+    particles:
+      - SMOKE_NORMAL
+
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
 slots:

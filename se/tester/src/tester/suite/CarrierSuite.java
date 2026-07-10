@@ -100,7 +100,7 @@ public final class CarrierSuite implements Harness.Scenario {
                 EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
                 compile.load.WhiteScrollConfig::defaults, () -> true, () -> 100,
                 new item.codec.AppliedSlot("appliedslot", Stores.state()), recompose, ItemGroups.standard(),
-                platform.lang.Messages.defaults());
+                platform.lang.Messages.defaults(), compile.load.MasterConfig.ApplyCuesSection::defaults);
         // destroy-on-fail ON, for the shatter + white-scroll-protect cases.
         EnchantBookConfig destroyLikeness = new EnchantBookConfig(
                 "ENCHANTED_BOOK", "{ENCHANT} &7Book", List.of(), List.of(), true);
@@ -108,14 +108,14 @@ public final class CarrierSuite implements Harness.Scenario {
                 carrierCodec, enchanter, holder, new Random(1), () -> destroyLikeness,
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
                 () -> 100, new item.codec.AppliedSlot("appliedslot", Stores.state()), recompose, ItemGroups.standard(),
-                platform.lang.Messages.defaults());
+                platform.lang.Messages.defaults(), compile.load.MasterConfig.ApplyCuesSection::defaults);
         // A server that lowers books.max-success below 100 to cap every randomised book — proves the Alchemist
         // combine respects that ceiling instead of laundering a guaranteed 100% book through it.
         CarrierService capped = new CarrierService(
                 carrierCodec, enchanter, holder, new Random(1), EnchantBookConfig::defaults,
                 compile.load.DustConfig::defaults, compile.load.WhiteScrollConfig::defaults, () -> true,
                 () -> 50, new item.codec.AppliedSlot("appliedslot", Stores.state()), recompose, ItemGroups.standard(),
-                platform.lang.Messages.defaults());
+                platform.lang.Messages.defaults(), compile.load.MasterConfig.ApplyCuesSection::defaults);
 
         h.guard("carrier.book.applies", () -> {
             ItemStack book = carriers.mintBook("enchants/zap", 1);

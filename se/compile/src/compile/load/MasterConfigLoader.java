@@ -41,6 +41,7 @@ public final class MasterConfigLoader {
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
                     MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
                     MasterConfig.EngineSection.defaults(), MasterConfig.StationsSection.defaults(),
+                    MasterConfig.ApplyCuesSection.defaults(),
                     diags.all());
         }
         YamlNode root = YamlNode.compose("config.yml", yaml, diags);
@@ -65,7 +66,20 @@ public final class MasterConfigLoader {
                 readSets(root.child("sets"), diags),
                 readEngine(root.child("engine"), diags),
                 readStations(root.child("stations"), diags),
+                readApplyCues(root.child("apply-cues"), diags),
                 diags.all());
+    }
+
+    /** Universal enchant-book apply feedback — a success cue and a fail cue, each a sound + particle-token list. */
+    private static MasterConfig.ApplyCuesSection readApplyCues(YamlNode n, Diagnostics diags) {
+        MasterConfig.ApplyCuesSection d = MasterConfig.ApplyCuesSection.defaults();
+        YamlNode success = n.child("success");
+        YamlNode fail = n.child("fail");
+        return new MasterConfig.ApplyCuesSection(
+                SoundCue.fromField(success, "sound", d.successSound(), diags),
+                success.has("particles") ? success.stringList("particles") : d.successParticles(),
+                SoundCue.fromField(fail, "sound", d.failSound(), diags),
+                fail.has("particles") ? fail.stringList("particles") : d.failParticles());
     }
 
     /** Universal armour-set equip/unequip feedback — message-uppercase + use-set-color flags + sound/particle. */
