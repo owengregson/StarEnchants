@@ -36,6 +36,13 @@ public interface Sink {
 
     void damage(LivingEntity target, double amount);
 
+    /**
+     * Deal {@code percentOfMax}% of the TARGET's own maximum health as damage (DAMAGE {@code percent-of-max} —
+     * ADR-0049 Natures Wrath). The max-health read + the damage both run on the target's own region thread, so
+     * a cross-region victim is never read off-thread. A non-positive percent is a no-op.
+     */
+    void damagePercentOfMax(LivingEntity target, double percentOfMax);
+
     void heal(LivingEntity target, double amount);
 
     /** Set the target's current health to {@code health} (clamped to [0, max]) — MODIFY_HEALTH's {@code set} mode. */
@@ -194,9 +201,11 @@ public interface Sink {
      * {@code target} (the attacker) if it is a mob (GUARD). {@code ttlTicks > 0} auto-removes each after
      * that many ticks; a non-blank {@code name} is shown above each. A targeted superset of
      * {@link #spawnEntity} — the spawn runs on {@code at}'s region and the target reference is captured on
-     * the firing thread (only stored on the mob, never read cross-region).
+     * the firing thread (only stored on the mob, never read cross-region). When {@code owner} is non-null each
+     * guard is bound to it in {@code GuardianCasts}, so a hit on the guard fires the owner's {@code GUARDIAN_HURT}
+     * abilities (ADR-0049 Blood Link).
      */
-    void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name);
+    void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner);
 
     /** Spawn an explosion at a location, optionally breaking blocks. */
     void explode(Location at, double power, boolean breakBlocks);
@@ -204,8 +213,14 @@ public interface Sink {
     /** Spawn a cosmetic firework at a location with the given flight power (FIREWORK). */
     void firework(Location at, int power);
 
-    /** Launch {@code count} projectiles of an entity type from the shooter's eye at {@code speed} (PROJECTILE). */
-    void launchProjectile(Player shooter, int entityTypeId, int count, double speed);
+    /**
+     * Launch {@code count} projectiles of an entity type from the shooter's eye at {@code speed} (PROJECTILE).
+     * For an {@link org.bukkit.entity.Explosive} projectile, {@code explosiveYield >= 0} sets its blast yield and
+     * {@code incendiary} sets whether the blast lights fires (ADR-0049 Hellfire); a negative yield keeps the
+     * vanilla default and both are inert on a non-explosive projectile.
+     */
+    void launchProjectile(Player shooter, int entityTypeId, int count, double speed, double explosiveYield,
+                          boolean incendiary);
 
     void blockChange(Location at, int blockDataId);
 
@@ -251,6 +266,20 @@ public interface Sink {
     void sound(Location at, int soundId, float volume, float pitch);
 
     void particle(Location at, int particleId, int count);
+
+    /**
+     * Spawn {@code count} particles at {@code at} carrying an interned block material as BLOCK_CRACK/BLOCK_DUST
+     * data (ADR-0049 Bleed's redstone crack). {@code blockMaterialId < 0} means no block data (a plain burst); a
+     * material the resolved particle does not accept falls back to a plain burst in the overlay leaf.
+     */
+    void particle(Location at, int particleId, int count, int blockMaterialId);
+
+    /**
+     * Spawn {@code count} particles at {@code target}'s OWN location, read AT DISPATCH time on the target's region
+     * thread (deferred-safe, like {@link #potion}), with optional block data ({@code blockMaterialId < 0} = none).
+     * The PARTICLE {@code who}-slot path (ADR-0049) — a per-target burst that lands where each target actually is.
+     */
+    void particle(LivingEntity target, int particleId, int count, int blockMaterialId);
 
     /**
      * Draw {@code count} coloured-dust motes at a single point — the per-point primitive for the shaped-particle
@@ -373,12 +402,54 @@ public interface Sink {
     }
 
     /**
+     * As {@link #suppress(Player, int, int, int, int)} but selecting the mode (ADR-0049 SUPPRESS {@code mode}):
+     * {@code nextHit == false} is the timed DISABLE_* window ({@code durationTicks}); {@code nextHit == true} arms
+     * a one-shot (Neutralize) that suppresses the target's scope for their next {@code charges} incoming hits, then
+     * clears — consumed by the combat dispatcher after each hit, never by time. The default routes to the timed form.
+     */
+    default void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
+                          boolean nextHit, int charges) {
+        suppress(target, scopeKind, scopeId, durationTicks, byDefId);
+    }
+
+    /**
      * Set {@code target}'s suppression-immunity CHANCE in {@code [0,100]} (SUPPRESS_IMMUNE — dragon's Dovahkiin;
      * {@code 0} lifts it): each {@link #suppress} aimed at them rolls it, so {@code 100} no-ops every suppression
      * and a lower value ignores that fraction (ADR-0034). A maintained PASSIVE flag — armed on equip, lifted on
      * unequip by the HELD/PASSIVE lifecycle — so it can never leak. Player-only.
      */
     void suppressImmune(Player target, int chance);
+
+    // ── ADR-0049 combat marks (per-player windows read by the combat dispatcher at the fold-commit site) ──
+
+    /**
+     * Mark {@code afflicted} so {@code percent}% of THEIR outgoing damage reflects back onto them for
+     * {@code durationTicks} (REFLECT — Hex). A per-player window write, inline like {@link #mark} (the UUID is
+     * captured on the firing thread, no entity hop); consulted when {@code afflicted} is the attacker on a later hit.
+     */
+    void reflectMark(Player afflicted, double percent, int durationTicks);
+
+    /**
+     * Debuff {@code target}'s outgoing damage by {@code percent}% for {@code durationTicks} (WEAKEN — Destruction),
+     * NON-STACKING (stronger percent / later expiry). A per-player window write, inline like {@link #mark};
+     * consulted on {@code target}'s later attack side.
+     */
+    void weaken(Player target, double percent, int durationTicks);
+
+    /**
+     * Arm a one-shot damage cap for {@code target} (DAMAGE_CAP — Diminish): the target's next incoming hit within
+     * {@code durationTicks} is capped at {@code factor} × their LAST-taken damage, and if {@code reflectOverflow}
+     * the excess is dealt back to the attacker. The cap value is computed AT ARM time from the last-taken history
+     * (no history arms nothing). A per-player window write, inline like {@link #mark}.
+     */
+    void armDamageCap(Player target, double factor, boolean reflectOverflow, int durationTicks);
+
+    /**
+     * Request one extra pass of the attacker-side activation walk over the same hit (ECHO_STRIKE — Double Strike):
+     * the dispatcher re-runs the walk exactly once and folds both passes into the ONE event commit. An inline
+     * read-back like {@link #cancelEvent()}; a second request during the echo pass is ignored (no third pass).
+     */
+    void requestEchoStrike();
 
     // ── Event control ──
 

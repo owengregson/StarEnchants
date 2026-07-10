@@ -79,8 +79,11 @@ class FanOutEffectTest {
     @TestFactory
     List<DynamicTest> livingTargetIntents() {
         return List.of(
-                entity("DAMAGE → damage", new DamageEffect(),
-                        c -> c.with("amount", 6.0), (s, t) -> verify(s).damage(t, 6.0)),
+                entity("DAMAGE → damage (flat amount only, percent-of-max 0)", new DamageEffect(),
+                        c -> c.with("amount", 6.0).with("percent-of-max", 0.0), (s, t) -> verify(s).damage(t, 6.0)),
+                entity("DAMAGE → damagePercentOfMax (percent-of-max only, amount 0)", new DamageEffect(),
+                        c -> c.with("amount", 0.0).with("percent-of-max", 10.0),
+                        (s, t) -> verify(s).damagePercentOfMax(t, 10.0)),
                 entity("CURE (default ALL) → cureByCategory(0)", new CureEffect(),
                         c -> c.with("category", "ALL"), (s, t) -> verify(s).cureByCategory(t, 0)),
                 entity("CURE category HARMFUL → cureByCategory(1)", new CureEffect(),
@@ -139,9 +142,16 @@ class FanOutEffectTest {
                         (s, p) -> verify(s).setVar(p, "rage", "1", 200)),
                 playerOnly("INVERT_VAR → invertVar(name)", new InvertVarEffect(),
                         c -> c.with("name", "flag"), (s, p) -> verify(s).invertVar(p, "flag")),
-                playerOnly("SUPPRESS → suppress(scope, key, duration, sourceDefId)", new SuppressEffect(),
-                        c -> c.with("scope", 1).with("key", 7).with("duration", 200).sourceDefId(88),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88)));
+                playerOnly("SUPPRESS timed → suppress(scope, key, duration, sourceDefId, nextHit=false, charges)",
+                        new SuppressEffect(),
+                        c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 0).with("charges", 1)
+                                .sourceDefId(88),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1)),
+                playerOnly("SUPPRESS next-hit → suppress(..., nextHit=true, charges) — Neutralize one-shot",
+                        new SuppressEffect(),
+                        c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 1).with("charges", 2)
+                                .sourceDefId(88),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, true, 2)));
     }
 
     /** POTION's §B/ADR-0022 lifecycle teardown: on unequip, {@code stop} emits the exact inverse and nothing else. */

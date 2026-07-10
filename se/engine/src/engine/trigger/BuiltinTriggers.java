@@ -33,7 +33,9 @@ public final class BuiltinTriggers {
                 .register(Trigger.neutral("DEATH"))
                 .register(Trigger.held("HELD"))
                 .register(Trigger.held("BREAK"))
-                .register(Trigger.held("ITEM_DAMAGE"))
+                // ADR-0049: neutral (not held) so WORN armor abilities also walk it — a durability loss can be on
+                // armor (itemdamage.armor) or the held item, distinguished by the fact, not the trigger direction.
+                .register(Trigger.neutral("ITEM_DAMAGE"))
                 .register(Trigger.held("EAT"))
                 .register(Trigger.held("FISHING"))
                 .register(Trigger.held("INTERACT"))
@@ -49,6 +51,8 @@ public final class BuiltinTriggers {
                 .register(Trigger.neutral("EXP_GAIN"))
                 // Fired only by the use-item right-click flow (UseItemListener → UseItemService); held-item, NEUTRAL. Appended last.
                 .register(Trigger.held("USE"))
+                // Fired by GuardianHurtListener when a summoned guardian takes damage; runs the OWNER's abilities (Blood Link). Appended last.
+                .register(Trigger.neutral("GUARDIAN_HURT"))
                 .build();
     }
 }

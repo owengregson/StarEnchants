@@ -54,8 +54,8 @@ class LocationEffectTest {
                 atLocation("SOUND → sound(id, volume, pitch)", new SoundEffect(),
                         c -> c.with("sound", 3).with("volume", 1.0).with("pitch", 1.0),
                         (s, loc) -> verify(s).sound(loc, 3, 1.0f, 1.0f)),
-                atLocation("PARTICLE → particle(id, count)", new ParticleEffect(),
-                        c -> c.with("particle", 9).with("count", 20), (s, loc) -> verify(s).particle(loc, 9, 20)));
+                atLocation("PARTICLE → particle(id, count, block=-1) at the activation location (no who)", new ParticleEffect(),
+                        c -> c.with("particle", 9).with("count", 20), (s, loc) -> verify(s).particle(loc, 9, 20, -1)));
     }
 
     @TestFactory
@@ -138,7 +138,7 @@ class LocationEffectTest {
                     new ExplodeEffect().run(ctx, sink); // the thrown remote read is swallowed, not propagated
                     verifyNoInteractions(sink);
                 }),
-                dynamicTest("GUARD → guard(attacker, at, type, count, ttl, name)", () -> {
+                dynamicTest("GUARD → guard(attacker, at, type, count, ttl, name, owner) — no actor → null owner", () -> {
                     Location at = mock(Location.class);
                     LivingEntity attacker = mock(LivingEntity.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create().location(at)
@@ -146,16 +146,31 @@ class LocationEffectTest {
                             .targets("who", attacker);
                     Sink sink = mock(Sink.class);
                     new GuardEffect().run(ctx, sink);
-                    verify(sink).guard(attacker, at, 42, 2, 200, "&bGuardian");
+                    verify(sink).guard(attacker, at, 42, 2, 200, "&bGuardian", null);
                     verifyNoMoreInteractions(sink);
                 }),
-                dynamicTest("PROJECTILE → launchProjectile(actor, type, count, speed)", () -> {
+                dynamicTest("GUARD → owner is the activation actor (ADR-0049 Blood Link binding)", () -> {
+                    Location at = mock(Location.class);
+                    LivingEntity attacker = mock(LivingEntity.class);
+                    UUID ownerId = UUID.randomUUID();
+                    Player owner = mock(Player.class);
+                    when(owner.getUniqueId()).thenReturn(ownerId);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().location(at).actor(owner)
+                            .with("type", 42).with("count", 1).with("ttl", 200).with("name", "&bGuardian")
+                            .targets("who", attacker);
+                    Sink sink = mock(Sink.class);
+                    new GuardEffect().run(ctx, sink);
+                    verify(sink).guard(attacker, at, 42, 1, 200, "&bGuardian", ownerId);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("PROJECTILE → launchProjectile(actor, type, count, speed, yield, incendiary)", () -> {
                     Player actor = mock(Player.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
-                            .with("type", 6).with("count", 3).with("speed", 1.5);
+                            .with("type", 6).with("count", 3).with("speed", 1.5).with("yield", 2.0)
+                            .with("incendiary", true);
                     Sink sink = mock(Sink.class);
                     new ProjectileEffect().run(ctx, sink);
-                    verify(sink).launchProjectile(actor, 6, 3, 1.5);
+                    verify(sink).launchProjectile(actor, 6, 3, 1.5, 2.0, true);
                     verifyNoMoreInteractions(sink);
                 }));
     }

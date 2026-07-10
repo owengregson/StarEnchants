@@ -24,10 +24,28 @@ class AreaSelectorsTest {
         when(ctx.location()).thenReturn(CENTER);
         lenient().when(ctx.actor()).thenReturn(actor);
         when(ctx.dbl("r")).thenReturn(r);
-        when(ctx.args()).thenReturn(Args.empty().with("filter", filter));
+        when(ctx.args()).thenReturn(Args.empty().with("filter", filter).with("exclude", "none"));
         lenient().when(ctx.integer("limit")).thenReturn(limit);
         when(ctx.nearbyLiving(CENTER, r)).thenReturn(nearby);
         return ctx;
+    }
+
+    @Test
+    void aoeExcludeVictimDropsThePrimaryCombatVictim() {
+        Player actor = mock(Player.class);
+        LivingEntity victim = mock(LivingEntity.class);
+        LivingEntity bystander = mock(LivingEntity.class);
+        SelectorCtx ctx = mock(SelectorCtx.class);
+        when(ctx.location()).thenReturn(CENTER);
+        lenient().when(ctx.actor()).thenReturn(actor);
+        when(ctx.victim()).thenReturn(victim);
+        when(ctx.dbl("r")).thenReturn(6.0);
+        when(ctx.args()).thenReturn(Args.empty().with("filter", "ALL").with("exclude", "victim"));
+        lenient().when(ctx.integer("limit")).thenReturn(0);
+        when(ctx.nearbyLiving(CENTER, 6.0)).thenReturn(List.of(victim, bystander));
+
+        // Destruction hits everyone AROUND the victim, never the victim itself.
+        assertEquals(List.of(bystander), new AoeSelector().resolve(ctx));
     }
 
     private static LivingEntity at(double distSq) {

@@ -38,6 +38,9 @@ public interface SinkReadback extends Sink {
     /** Whether an effect asked the fired projectile to home onto a target (AUTO_LOCK). */
     boolean seekRequested();
 
+    /** Whether an effect requested an extra attacker-side echo pass (ECHO_STRIKE). Read by the combat dispatcher. */
+    boolean echoRequested();
+
     /** Schedule every deferred intent on its owning thread; call once after the gate walk. Idempotent. */
     void flush();
 

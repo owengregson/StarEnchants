@@ -2,9 +2,12 @@ package engine.sink;
 
 import engine.interact.DamageFold;
 import engine.stores.CooldownStore;
+import engine.stores.DamageCapStore;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
+import engine.stores.OutgoingDebuffStore;
+import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
@@ -91,6 +94,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     private final TeleblockStore teleblock;
     private final ImmuneStore immune;
+    private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
+    private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
+    private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
     /** The ONE per-boot ledger (via {@link SinkEnv}), so temp blocks from separate events compound, not clobber. */
     private final TempBlockLedger<BlockState> tempBlocks;
     /** The ONE per-boot trail memory (via {@link SinkEnv}), so the footprint snake connects across activations. */
@@ -103,6 +109,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private boolean smeltRequested;
     private boolean teleportDropsRequested;
     private boolean seekRequested;
+    private boolean echoRequested; // ADR-0049 ECHO_STRIKE: one extra attacker-side pass over this hit
     private double expMultiplier = 1.0;
     private boolean flushed;
     private int delayTicks;
@@ -125,6 +132,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.keepOnDeath = env.stores().keepOnDeath();
         this.teleblock = env.stores().teleblock();
         this.immune = env.stores().immune();
+        this.reflectMarks = env.stores().reflectMarks();
+        this.outgoingDebuff = env.stores().outgoingDebuff();
+        this.damageCap = env.stores().damageCap();
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
         this.tempBlocks = env.tempBlocks();
@@ -175,6 +185,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public boolean seekRequested() {
         return seekRequested;
+    }
+
+    /** Whether an effect requested an extra attacker-side echo pass (ECHO_STRIKE). Read by the combat dispatcher. */
+    @Override
+    public boolean echoRequested() {
+        return echoRequested;
     }
 
     /** Schedule every deferred intent on its owning thread; call once after the gate walk. Idempotent. */
@@ -268,6 +284,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void damage(LivingEntity target, double amount) {
         entityOp(target, () -> target.damage(amount));
+    }
+
+    @Override
+    public void damagePercentOfMax(LivingEntity target, double percentOfMax) {
+        if (percentOfMax <= 0) {
+            return;
+        }
+        // The max-health read and the damage both run on the target's own thread (entityOp) — never a cross-region
+        // max-health read. Uses the era-adaptive maxHealth() leaf, so it is version-stable.
+        entityOp(target, () -> target.damage(maxHealth(target) * percentOfMax / 100.0));
     }
 
     @Override
@@ -584,6 +610,32 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void reflectMark(Player afflicted, double percent, int durationTicks) {
+        if (afflicted != null) {
+            // Per-player window write, inline like mark() (the UUID is captured on the firing thread — no entity
+            // hop, no cross-region read). Consulted by CombatDispatch when this player is a later attacker.
+            reflectMarks.mark(afflicted.getUniqueId(), percent, nowTicks.getAsLong(), durationTicks);
+        }
+    }
+
+    @Override
+    public void weaken(Player target, double percent, int durationTicks) {
+        if (target != null) {
+            // Non-stacking outgoing-damage debuff; inline per-player write consulted on the target's later attack side.
+            outgoingDebuff.weaken(target.getUniqueId(), percent, nowTicks.getAsLong(), durationTicks);
+        }
+    }
+
+    @Override
+    public void armDamageCap(Player target, double factor, boolean reflectOverflow, int durationTicks) {
+        if (target != null) {
+            // Cap value fixed AT ARM time from the wearer's last-taken damage (no history → value 0 → arms nothing).
+            double value = damageCap.lastTaken(target.getUniqueId()) * factor;
+            damageCap.arm(target.getUniqueId(), value, reflectOverflow, nowTicks.getAsLong(), durationTicks);
+        }
+    }
+
+    @Override
     public void disarm(LivingEntity target) {
         // Runs on the target's own thread (entityOp), so reading its equipment + dropping at its
         // location is region-correct — never a cross-region read.
@@ -761,21 +813,24 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 if (health > 0 && spawned instanceof LivingEntity living) {
                     applySpawnHealth(living, health);
                 }
-                if (ownerId != null && spawned instanceof Tameable tame) {
-                    // Owned/tamed summon: resolve by the Tameable CAPABILITY (a stable interface across the
-                    // range), never a volatile constant. setOwner accepts an offline AnimalTamer; tame so it sticks.
-                    tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
-                    tame.setTamed(true);
+                if (ownerId != null) {
+                    // ADR-0049: bind EVERY owned spawn to its owner so a hit on it fires GUARDIAN_HURT (Blood Link);
+                    // era-agnostic (no entity PDC), independent of the Tameable tagging below.
+                    GuardianCasts.bind(spawned.getUniqueId(), ownerId);
+                    if (spawned instanceof Tameable tame) {
+                        // Owned/tamed summon: resolve by the Tameable CAPABILITY (a stable interface across the
+                        // range), never a volatile constant. setOwner accepts an offline AnimalTamer; tame so it sticks.
+                        tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
+                        tame.setTamed(true);
+                    }
                 }
-                if (ttlTicks > 0) {
-                    Scheduling.onEntityLater(spawned, ttlTicks, spawned::remove);
-                }
+                bindTtlForget(spawned, ttlTicks);
             }
         });
     }
 
     @Override
-    public void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name) {
+    public void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner) {
         Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
             EntityType type = entityType(entityTypeId);
@@ -789,11 +844,23 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     setGuardTarget(spawned, target); // path to + attack the attacker (era-specific targeting API)
                 }
                 applyGuardName(spawned, name);
-                if (ttlTicks > 0) {
-                    Scheduling.onEntityLater(spawned, ttlTicks, spawned::remove);
+                if (owner != null) {
+                    GuardianCasts.bind(spawned.getUniqueId(), owner); // ADR-0049: a hit on the guard fires the owner's GUARDIAN_HURT
                 }
+                bindTtlForget(spawned, ttlTicks);
             }
         });
+    }
+
+    /** Auto-remove {@code spawned} after {@code ttlTicks} (if positive), forgetting any GuardianCasts binding first. */
+    private static void bindTtlForget(Entity spawned, int ttlTicks) {
+        if (ttlTicks > 0) {
+            UUID spawnedId = spawned.getUniqueId();
+            Scheduling.onEntityLater(spawned, ttlTicks, () -> {
+                GuardianCasts.forget(spawnedId); // harmless no-op for an unbound spawn
+                spawned.remove();
+            });
+        }
     }
 
     /** Apply an optional custom name (with {@code &}-colour codes) to a freshly-summoned guard. */
@@ -835,7 +902,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void launchProjectile(Player shooter, int entityTypeId, int count, double speed) {
+    public void launchProjectile(Player shooter, int entityTypeId, int count, double speed, double explosiveYield,
+                                 boolean incendiary) {
         entityOp(shooter, () -> {
             EntityType type = entityType(entityTypeId);
             World world = shooter.getWorld();
@@ -857,6 +925,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 entity.setVelocity(velocity);
                 if (entity instanceof Projectile projectile) {
                     projectile.setShooter(shooter);
+                }
+                // ADR-0049 Hellfire: an explosive projectile (fireball) gets a level-scaled blast + optional fire.
+                // Guarded by the Explosive CAPABILITY (no Fireball class reference), so it is version-stable.
+                if (entity instanceof org.bukkit.entity.Explosive explosive) {
+                    if (explosiveYield >= 0) {
+                        explosive.setYield((float) explosiveYield);
+                    }
+                    explosive.setIsIncendiary(incendiary);
                 }
             }
         });
@@ -1228,6 +1304,21 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
+                         boolean nextHit, int charges) {
+        if (target == null || scopeId < 0) {
+            return;
+        }
+        long key = CooldownStore.key(scopeKind, scopeId);
+        if (nextHit) {
+            // ADR-0049 Neutralize: an event-scoped one-shot the combat dispatcher burns after each hit, not by time.
+            suppression.armOneShot(target.getUniqueId(), key, charges, byDefId);
+        } else {
+            suppression.suppress(target.getUniqueId(), key, nowTicks.getAsLong(), durationTicks, byDefId);
+        }
+    }
+
+    @Override
     public void suppressImmune(Player target, int chance) {
         if (target != null) {
             // Per-player immunity CHANCE in the shared SuppressionStore, rolled by suppress()'s write-veto. The
@@ -1310,6 +1401,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void seek() {
         seekRequested = true;
+    }
+
+    @Override
+    public void requestEchoStrike() {
+        echoRequested = true; // inline read-back: the combat dispatcher re-runs the attacker walk once
     }
 
     /** Strip temporarily-granted flight, but never from a player who can fly by game mode. */

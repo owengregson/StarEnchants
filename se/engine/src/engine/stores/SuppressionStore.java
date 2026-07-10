@@ -2,6 +2,8 @@ package engine.stores;
 
 import compile.model.Ability;
 import compile.model.ScopeKinds;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +30,21 @@ public final class SuppressionStore implements RetainedStore {
     private record Window(long expiry, int byDefId) {
     }
 
+    /** One armed one-shot (Neutralize, ADR-0049): remaining charges + the ability that armed it. Event-scoped, never timed. */
+    private record Charge(int charges, int byDefId) {
+    }
+
+    /** Defensive cap on how many distinct one-shot scope keys a single player can hold armed (drop oldest beyond this). */
+    private static final int MAX_ARMED = 16;
+
     private final Map<UUID, Map<Long, Window>> expiryByPlayer = new ConcurrentHashMap<>();
+    /**
+     * Parallel armed one-shot suppressions ({@code SUPPRESS} mode {@code next-hit}, ADR-0049 Neutralize): a
+     * packed scope key &rarr; remaining charges, consumed by {@link #consumeEventScoped} at the end of a hit —
+     * NEVER by time. The inner map is an insertion-ordered {@link LinkedHashMap} (synchronised) so a runaway
+     * arming drops the OLDEST beyond {@value #MAX_ARMED}.
+     */
+    private final Map<UUID, Map<Long, Charge>> armedByPlayer = new ConcurrentHashMap<>();
     /**
      * Per-player suppression-immunity CHANCE in {@code [1,100]} (dragon's Dovahkiin, ADR-0034): each
      * {@link #suppress} rolls it, so {@code 100} is absolute immunity and a lower value ignores that fraction of
@@ -97,6 +113,66 @@ public final class SuppressionStore implements RetainedStore {
     }
 
     /**
+     * Arm a one-shot suppression of packed scope key {@code id} for {@code player} with {@code charges} charges
+     * (ADR-0049 Neutralize, {@code SUPPRESS} mode {@code next-hit}): each of the player's next {@code charges}
+     * incoming hits resolves with that scope suppressed, then it clears. Immunity is NOT rolled (the one-shot is
+     * an offensive neutralise, not a durable DISABLE window). Re-arming refreshes to the larger charge count; the
+     * map is capped at {@value #MAX_ARMED} keys, dropping the oldest.
+     */
+    public void armOneShot(UUID player, long id, int charges, int byDefId) {
+        if (charges <= 0) {
+            return;
+        }
+        Map<Long, Charge> armed = armedByPlayer.computeIfAbsent(player, k -> new LinkedHashMap<>());
+        synchronized (armed) {
+            armed.merge(id, new Charge(charges, byDefId), (a, b) -> new Charge(Math.max(a.charges(), b.charges()), b.byDefId()));
+            if (armed.size() > MAX_ARMED) {
+                Iterator<Long> it = armed.keySet().iterator();
+                it.next(); // the eldest (LinkedHashMap insertion order)
+                it.remove();
+            }
+        }
+        onSuppress.onSuppress(player, 0); // instant drop of maintained buffs; the restore is event-scoped, not timed
+    }
+
+    /**
+     * Burn one charge off EVERY armed one-shot for {@code player}, removing exhausted entries — called once at the
+     * end of a hit against them (event-scoped, ADR-0049). A no-op when nothing is armed.
+     */
+    public void consumeEventScoped(UUID player) {
+        Map<Long, Charge> armed = armedByPlayer.get(player);
+        if (armed == null) {
+            return;
+        }
+        synchronized (armed) {
+            Iterator<Map.Entry<Long, Charge>> it = armed.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<Long, Charge> e = it.next();
+                Charge c = e.getValue();
+                if (c.charges() <= 1) {
+                    it.remove();
+                } else {
+                    e.setValue(new Charge(c.charges() - 1, c.byDefId()));
+                }
+            }
+            if (armed.isEmpty()) {
+                armedByPlayer.remove(player, armed);
+            }
+        }
+    }
+
+    /** The armed one-shot charge for {@code id}, or {@code null} — the read both the gate mirror and detail share. */
+    private Charge armed(UUID player, long id) {
+        Map<Long, Charge> armed = armedByPlayer.get(player);
+        if (armed == null) {
+            return null;
+        }
+        synchronized (armed) {
+            return armed.get(id);
+        }
+    }
+
+    /**
      * @return {@code true} if {@code id} has an active suppression for {@code player} at {@code nowTicks}.
      *     An elapsed one is evicted lazily; the window is half-open {@code [start, expiry)}.
      */
@@ -131,7 +207,13 @@ public final class SuppressionStore implements RetainedStore {
     }
 
     private boolean scopeSuppressed(int scopeId, int scopeKind, UUID player, long nowTicks) {
-        return scopeId >= 0 && isSuppressed(player, CooldownStore.key(scopeKind, scopeId), nowTicks);
+        if (scopeId < 0) {
+            return false;
+        }
+        long key = CooldownStore.key(scopeKind, scopeId);
+        // A scope is suppressed by an active timed DISABLE_* window OR an armed one-shot (Neutralize) — gate 5 reads
+        // both as a pure check; the one-shot is burned by consumeEventScoped after the hit, never here (ADR-0049).
+        return isSuppressed(player, key, nowTicks) || armed(player, key) != null;
     }
 
     /**
@@ -142,21 +224,34 @@ public final class SuppressionStore implements RetainedStore {
      * (defId 0, ENCHANT, id 0) detail — which also packs to {@code 0} — is reported, not skipped.
      */
     public long blockedDetail(Ability ability, UUID player, long nowTicks) {
-        Window w;
-        if ((w = scopeWindow(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)) != null) {
-            return detail(w.byDefId(), ScopeKinds.ENCHANT, ability.cdScopeEnchant());
+        int d;
+        if ((d = scopeByDefId(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)) != NONE) {
+            return detail(d, ScopeKinds.ENCHANT, ability.cdScopeEnchant());
         }
-        if ((w = scopeWindow(ability.cdScopeGroup(), ScopeKinds.GROUP, player, nowTicks)) != null) {
-            return detail(w.byDefId(), ScopeKinds.GROUP, ability.cdScopeGroup());
+        if ((d = scopeByDefId(ability.cdScopeGroup(), ScopeKinds.GROUP, player, nowTicks)) != NONE) {
+            return detail(d, ScopeKinds.GROUP, ability.cdScopeGroup());
         }
-        if ((w = scopeWindow(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks)) != null) {
-            return detail(w.byDefId(), ScopeKinds.TYPE, ability.cdScopeType());
+        if ((d = scopeByDefId(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks)) != NONE) {
+            return detail(d, ScopeKinds.TYPE, ability.cdScopeType());
         }
         return 0;
     }
 
-    private Window scopeWindow(int scopeId, int scopeKind, UUID player, long nowTicks) {
-        return scopeId < 0 ? null : window(player, CooldownStore.key(scopeKind, scopeId), nowTicks);
+    /** Sentinel "no blocking window/one-shot" (a real byDefId can be {@code -1}, so {@code NONE} must differ). */
+    private static final int NONE = Integer.MIN_VALUE;
+
+    /** The suppressor defId for a blocked scope (timed window first, else armed one-shot), or {@link #NONE} if unblocked. */
+    private int scopeByDefId(int scopeId, int scopeKind, UUID player, long nowTicks) {
+        if (scopeId < 0) {
+            return NONE;
+        }
+        long key = CooldownStore.key(scopeKind, scopeId);
+        Window w = window(player, key, nowTicks);
+        if (w != null) {
+            return w.byDefId();
+        }
+        Charge c = armed(player, key);
+        return c != null ? c.byDefId() : NONE;
     }
 
     private static long detail(int byDefId, int scopeKind, int scopeId) {
@@ -176,9 +271,10 @@ public final class SuppressionStore implements RetainedStore {
         return (int) (d >> 32);
     }
 
-    /** Forget every suppression (and any immunity) for one player (a full clear — NOT the quit sweep). */
+    /** Forget every suppression (timed, one-shot, and immunity) for one player (a full clear — NOT the quit sweep). */
     public void clear(UUID player) {
         expiryByPlayer.remove(player);
+        armedByPlayer.remove(player);
         immuneChance.remove(player);
     }
 
@@ -210,9 +306,10 @@ public final class SuppressionStore implements RetainedStore {
         }
     }
 
-    /** Forget every suppression (and all immunity) for every player (call on disable). */
+    /** Forget every suppression (timed, one-shot, and all immunity) for every player (call on disable). */
     public void clearAll() {
         expiryByPlayer.clear();
+        armedByPlayer.clear();
         immuneChance.clear();
     }
 }
