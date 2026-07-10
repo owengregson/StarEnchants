@@ -1,19 +1,8 @@
 # Imported from EliteEnchantments (id: undead-ruse). Review before shipping.
 display: "Undead Ruse"
 description:
-  - "&bOn hit, summons zombies that"
-  - "&bfight for you."
-  - ""
-  - "&b&lI: &f🎲 0.25% &7| &f▲ 2x &7| &f⌛ 10s"
-  - "&b&lII: &f🎲 0.5% &7| &f▲ 2x &7| &f⌛ 10s"
-  - "&b&lIII: &f🎲 0.75% &7| &f▲ 3x &7| &f⌛ 10s"
-  - "&b&lIV: &f🎲 0.85% &7| &f▲ 3x &7| &f⌛ 10s"
-  - "&b&lV: &f🎲 1% &7| &f▲ 3x &7| &f⌛ 10s"
-  - "&b&lVI: &f🎲 2% &7| &f▲ 4x &7| &f⌛ 10s"
-  - "&b&lVII: &f🎲 3% &7| &f▲ 4x &7| &f⌛ 10s"
-  - "&b&lVIII: &f🎲 4% &7| &f▲ 4x &7| &f⌛ 10s"
-  - "&b&lIX: &f🎲 5% &7| &f▲ 4x &7| &f⌛ 10s"
-  - "&b&lX: &f🎲 6% &7| &f▲ 5x &7| &f⌛ 10s"
+  - "&eOn hit, summons zombies that"
+  - "&efight for you."
 trigger: ATTACK
 applies-to: [ARMOR]
 group: "rare"

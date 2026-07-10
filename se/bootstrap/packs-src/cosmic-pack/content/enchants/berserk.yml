@@ -1,15 +1,9 @@
 # Imported from EliteEnchantments (id: berserk). Review before shipping.
 display: "Berserk"
 description:
-  - "&aOn hit, grants you Strength but"
-  - "&aalso Mining Fatigue for a few"
-  - "&aseconds."
-  - ""
-  - "&a&lI: &f🎲 1.25% &7| &f▲ 3s &7| &f⌛ 5s"
-  - "&a&lII: &f🎲 2.95% &7| &f▲ 3s &7| &f⌛ 5s"
-  - "&a&lIII: &f🎲 4.5% &7| &f▲ 3s &7| &f⌛ 5s"
-  - "&a&lIV: &f🎲 6% &7| &f▲ 3s &7| &f⌛ 5s"
-  - "&a&lV: &f🎲 8% &7| &f▲ 3s &7| &f⌛ 5s"
+  - "&eOn hit, grants you Strength but"
+  - "&ealso Mining Fatigue for a few"
+  - "&eseconds."
 trigger: ATTACK
 applies-to: [AXE]
 group: "uncommon"

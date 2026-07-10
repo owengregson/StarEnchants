@@ -1,14 +1,10 @@
 # Imported from EliteEnchantments (id: alien-implants). Review before shipping.
 display: "Alien Implants"
 description:
-  - "&dMythic upgrade for Implants."
-  - "&dRestores more health and hunger,"
-  - "&dmore often."
+  - "&eMythic upgrade for Implants."
+  - "&eRestores more health and hunger,"
+  - "&emore often."
   - "&c&l(!)&r &7Requires &eImplants"
-  - ""
-  - "&d&lI: &f🎲 30% &7| &f▲ +2❤"
-  - "&d&lII: &f🎲 60% &7| &f▲ +2❤"
-  - "&d&lIII: &f🎲 90% &7| &f▲ +2❤"
 trigger: REPEATING
 repeat: 40
 applies-to: [HELMET]

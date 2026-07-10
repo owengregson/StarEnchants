@@ -1,18 +1,9 @@
 # Imported from EliteEnchantments (id: disarmor). Review before shipping.
 display: "Disarmor"
 description:
-  - "&6On hit against a low-health"
-  - "&6target, removes a piece of their"
-  - "&6armor."
-  - ""
-  - "&6&lI: &f🎲 0.5% &7| &f⌛ 4s"
-  - "&6&lII: &f🎲 1% &7| &f⌛ 4s"
-  - "&6&lIII: &f🎲 1.5% &7| &f⌛ 4s"
-  - "&6&lIV: &f🎲 2% &7| &f⌛ 4s"
-  - "&6&lV: &f🎲 2.75% &7| &f⌛ 4s"
-  - "&6&lVI: &f🎲 3.5% &7| &f⌛ 4s"
-  - "&6&lVII: &f🎲 4.5% &7| &f⌛ 4s"
-  - "&6&lVIII: &f🎲 5.25% &7| &f⌛ 4s"
+  - "&eOn hit against a low-health"
+  - "&etarget, removes a piece of their"
+  - "&earmor."
 trigger: ATTACK
 applies-to: [SWORD]
 group: "legendary"

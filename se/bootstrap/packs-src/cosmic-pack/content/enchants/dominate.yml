@@ -3,11 +3,6 @@ display: "Dominate"
 description:
   - "&eOn hit, reduces the damage the"
   - "&etarget deals for a short time."
-  - ""
-  - "&e&lI: &f🎲 5% &7| &f▲ 5% &7| &f⌛ 6s"
-  - "&e&lII: &f🎲 7.5% &7| &f▲ 10% &7| &f⌛ 6s"
-  - "&e&lIII: &f🎲 10% &7| &f▲ 15% &7| &f⌛ 6s"
-  - "&e&lIV: &f🎲 12.5% &7| &f▲ 20% &7| &f⌛ 6s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "epic"

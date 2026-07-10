@@ -1,8 +1,8 @@
 # Imported from EliteEnchantments (id: aquatic). Review before shipping.
 display: "Aquatic"
 description:
-  - "&7Grants permanent Water"
-  - "&7Breathing."
+  - "&eGrants permanent Water"
+  - "&eBreathing."
 trigger: PASSIVE
 applies-to: [HELMET]
 group: "common"

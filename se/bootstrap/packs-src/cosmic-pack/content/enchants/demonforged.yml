@@ -1,13 +1,8 @@
 # Imported from EliteEnchantments (id: demonforged). Review before shipping.
 display: "Demonforged"
 description:
-  - "&bOn hit, damages the durability"
-  - "&bof the target's armor."
-  - ""
-  - "&b&lI: &f🎲 1.5% &7| &f▲ 1 pt. &7| &f⌛ 7s"
-  - "&b&lII: &f🎲 2.75% &7| &f▲ 1 pt. &7| &f⌛ 7s"
-  - "&b&lIII: &f🎲 4% &7| &f▲ 1 pt. &7| &f⌛ 7s"
-  - "&b&lIV: &f🎲 6% &7| &f▲ 1 pt. &7| &f⌛ 7s"
+  - "&eOn hit, damages the durability"
+  - "&eof the target's armor."
 trigger: ATTACK
 applies-to: [SWORD]
 group: "rare"

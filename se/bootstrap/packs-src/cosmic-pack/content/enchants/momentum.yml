@@ -3,11 +3,6 @@ display: "Momentum"
 description:
   - "&eWhen hit, clears Slowness from"
   - "&eyourself."
-  - ""
-  - "&e&lI: &f🎲 5% &7| &f⌛ 3s"
-  - "&e&lII: &f🎲 7% &7| &f⌛ 3s"
-  - "&e&lIII: &f🎲 9% &7| &f⌛ 3s"
-  - "&e&lIV: &f🎲 10% &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [BOOTS]
 group: "epic"

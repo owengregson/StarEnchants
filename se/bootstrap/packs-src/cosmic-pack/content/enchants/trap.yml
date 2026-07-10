@@ -1,12 +1,8 @@
 # Imported from EliteEnchantments (id: trap). Review before shipping.
 display: "Trap"
 description:
-  - "&bOn hit, applies strong Slowness"
-  - "&bto the target."
-  - ""
-  - "&b&lI: &f🎲 3% &7| &f⌛ 4s"
-  - "&b&lII: &f🎲 6% &7| &f⌛ 4s"
-  - "&b&lIII: &f🎲 9% &7| &f⌛ 4s"
+  - "&eOn hit, applies strong Slowness"
+  - "&eto the target."
 trigger: ATTACK
 applies-to: [SWORD]
 group: "rare"

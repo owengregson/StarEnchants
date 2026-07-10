@@ -1,15 +1,11 @@
 # Imported from EliteEnchantments (id: reflective-block). Review before shipping.
 display: "Reflective Block"
 description:
-  - "&dMythic upgrade for Block."
-  - "&dWhile blocking, greatly reduces"
-  - "&dor fully negates incoming damage"
-  - "&dand strikes the attacker back."
+  - "&eMythic upgrade for Block."
+  - "&eWhile blocking, greatly reduces"
+  - "&eor fully negates incoming damage"
+  - "&eand strikes the attacker back."
   - "&c&l(!)&r &7Requires &eBlock"
-  - ""
-  - "&d&lI: &f🎲 45% &7| &f▲ 80% &7| &f⌛ 5s"
-  - "&d&lII: &f🎲 65% &7| &f▲ 90% &7| &f⌛ 5s"
-  - "&d&lIII: &f🎲 80% &7| &f▲ 100% &7| &f⌛ 5s"
 trigger: DEFENSE
 applies-to: [SWORD]
 group: "mythic"

@@ -3,14 +3,6 @@ display: "Cleave"
 description:
   - "&eOn hit, strikes all enemies in"
   - "&ean arc around the target."
-  - ""
-  - "&e&lI: &f🎲 1.75% &7| &f▲ 2m &7| &f⌛ 4s"
-  - "&e&lII: &f🎲 3% &7| &f▲ 2m &7| &f⌛ 4s"
-  - "&e&lIII: &f🎲 4.5% &7| &f▲ 3m &7| &f⌛ 4s"
-  - "&e&lIV: &f🎲 6% &7| &f▲ 3m &7| &f⌛ 4s"
-  - "&e&lV: &f🎲 7.25% &7| &f▲ 4m &7| &f⌛ 4s"
-  - "&e&lVI: &f🎲 8% &7| &f▲ 4m &7| &f⌛ 4s"
-  - "&e&lVII: &f🎲 9% &7| &f▲ 4m &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "epic"

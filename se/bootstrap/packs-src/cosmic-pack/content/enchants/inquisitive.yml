@@ -1,13 +1,8 @@
 # Imported from EliteEnchantments (id: inquisitive). Review before shipping.
 display: "Inquisitive"
 description:
-  - "&6Killing a mob grants bonus"
-  - "&6experience."
-  - ""
-  - "&6&lI: &f🎲 7.5% &7| &f▲ +10 XP"
-  - "&6&lII: &f🎲 15% &7| &f▲ +15 XP"
-  - "&6&lIII: &f🎲 22.5% &7| &f▲ +20 XP"
-  - "&6&lIV: &f🎲 30% &7| &f▲ +25 XP"
+  - "&eKilling a mob grants bonus"
+  - "&eexperience."
 trigger: KILL
 applies-to: [SWORD]
 group: "legendary"

@@ -1,15 +1,10 @@
 # Imported from EliteEnchantments (id: paladin-armored). Review before shipping.
 display: "Paladin Armored"
 description:
-  - "&dMythic upgrade for Armored."
-  - "&dHeavily reduces sword damage and"
-  - "&dclears your debuffs."
+  - "&eMythic upgrade for Armored."
+  - "&eHeavily reduces sword damage and"
+  - "&eclears your debuffs."
   - "&c&l(!)&r &7Requires &6Armored"
-  - ""
-  - "&d&lI: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&d&lII: &f🎲 20% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&d&lIII: &f🎲 30% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&d&lIV: &f🎲 40% &7| &f▲ 50% &7| &f⌛ 4s"
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "mythic"

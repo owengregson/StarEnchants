@@ -3,10 +3,6 @@ display: "Implants"
 description:
   - "&ePeriodically restores health and"
   - "&ehunger."
-  - ""
-  - "&e&lI: &f🎲 15% &7| &f▲ +1❤"
-  - "&e&lII: &f🎲 20% &7| &f▲ +1❤"
-  - "&e&lIII: &f🎲 25% &7| &f▲ +1❤"
 trigger: REPEATING
 repeat: 100
 applies-to: [HELMET]

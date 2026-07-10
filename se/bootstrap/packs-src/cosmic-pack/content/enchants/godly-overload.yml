@@ -1,14 +1,10 @@
 # Imported from EliteEnchantments (id: godly-overload). Review before shipping.
 display: "Godly Overload"
 description:
-  - "&dMythic upgrade for Overload."
-  - "&dGreatly increases your maximum"
-  - "&dhealth."
+  - "&eMythic upgrade for Overload."
+  - "&eGreatly increases your maximum"
+  - "&ehealth."
   - "&c&l(!)&r &7Requires &6Overload"
-  - ""
-  - "&d&lI: &f▲ Lvl IV"
-  - "&d&lII: &f▲ Lvl V"
-  - "&d&lIII: &f▲ Lvl VI"
 trigger: PASSIVE
 applies-to: [ARMOR]
 group: "mythic"

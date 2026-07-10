@@ -4,10 +4,6 @@ description:
   - "&eOn hit at low health, deals"
   - "&ebonus damage that grows as your"
   - "&ehealth falls."
-  - ""
-  - "&e&lI: &f🎲 3.25% &7| &f⌛ 5s"
-  - "&e&lII: &f🎲 5% &7| &f⌛ 5s"
-  - "&e&lIII: &f🎲 7.5% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [SWORD]
 group: "epic"

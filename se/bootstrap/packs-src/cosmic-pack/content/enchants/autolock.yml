@@ -1,14 +1,8 @@
 # Imported from EliteEnchantments (id: autolock). Review before shipping.
 display: "Auto Lock"
 description:
-  - "&cYour arrows home in on nearby"
-  - "&ctargets."
-  - ""
-  - "&c&lI: &f⌛ 9s &7| &f☄ 10"
-  - "&c&lII: &f⌛ 8s &7| &f☄ 10"
-  - "&c&lIII: &f⌛ 7s &7| &f☄ 7"
-  - "&c&lIV: &f⌛ 5s &7| &f☄ 7"
-  - "&c&lV: &f⌛ 3s &7| &f☄ 5"
+  - "&eYour arrows home in on nearby"
+  - "&etargets."
 trigger: BOW_FIRE
 applies-to: [BOW]
 group: "soul"

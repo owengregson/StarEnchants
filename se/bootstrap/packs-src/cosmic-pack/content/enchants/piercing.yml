@@ -2,12 +2,6 @@
 display: "Piercing"
 description:
   - "&eArrows deal bonus damage on hit."
-  - ""
-  - "&e&lI: &f🎲 4.25% &7| &f▲ 7% &7| &f⌛ 4s"
-  - "&e&lII: &f🎲 6.5% &7| &f▲ 7% &7| &f⌛ 4s"
-  - "&e&lIII: &f🎲 9% &7| &f▲ 7% &7| &f⌛ 4s"
-  - "&e&lIV: &f🎲 11.25% &7| &f▲ 7% &7| &f⌛ 4s"
-  - "&e&lV: &f🎲 14% &7| &f▲ 7% &7| &f⌛ 4s"
 trigger: BOW
 applies-to: [BOW]
 group: "epic"
