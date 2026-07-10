@@ -55,6 +55,8 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0045](0045-se-why-flight-recorder.md) | /se why gate-walk flight recorder — per-player packed ring, always-on, render-time resolution | Accepted |
 | [0046](0046-pack-abi-fingerprint.md) | Pack ABI fingerprints — registry fingerprint stamped at export + dry-run compile gate on apply | Accepted |
 | [0047](0047-feature-module-wiring-erasure.md) | Feature-module wiring erasure — one FeatureModule record + ordered Modules registry + ModuleFold; onEnable is a ~15-line fold, onDisable is fold.stop(); derived mint/guard/sweep/disable + `/se modules`; two static installers become instance wiring; ModuleTreeGate + RegistryWiring gates ratchet it | Accepted |
+| [0048](0048-use-items.md) | Use-items — right-click content family (`content/use-items/*.yml`), implicit USE trigger, commands lower to RUN_COMMAND, universal `use-item.*` feedback | Accepted |
+| [0049](0049-cosmic-behavior-alignment.md) | Cosmic behavior alignment — ratified per-enchant resolution matrix from the description audit (Bleed DoT root, durability guards, amplifiers, gank logic, one-shot suppression, Soul Drinker) + whole-pack description regeneration (&e body, no stat lines, item-style applies line) | Accepted |
 
 ## Process
 
