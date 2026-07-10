@@ -88,7 +88,9 @@ public final class Aliases {
             Map.entry("VILLAGER_HAPPY", "HAPPY_VILLAGER"),
             Map.entry("SMOKE_NORMAL", "SMOKE"),
             Map.entry("SMOKE_LARGE", "LARGE_SMOKE"),
-            Map.entry("REDSTONE", "DUST"));
+            Map.entry("REDSTONE", "DUST"),
+            Map.entry("BLOCK_CRACK", "BLOCK"),
+            Map.entry("BLOCK_DUST", "BLOCK"));
 
     /** The alias map for a category (empty if none registered). */
     public static Map<String, String> forCategory(HandleCategory category) {

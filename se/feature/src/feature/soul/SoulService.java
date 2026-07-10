@@ -361,6 +361,15 @@ public final class SoulService implements SoulDebit, SoulSpender {
     }
 
     /**
+     * Forget the manual-toggle debounce for {@code id} — the live suites' seam for exercising back-to-back
+     * toggles without waiting out the 0.5s window (a relog does the same through {@link #clear}). Gameplay
+     * never calls this; the debounce itself is pinned by its own live check.
+     */
+    public void forgetToggleDebounce(UUID id) {
+        lastToggleNanos.remove(id);
+    }
+
+    /**
      * Per-tick maintenance on the player's OWN region thread. Settles any owed gate-10 drain, enforces the
      * zero-gem cleanup invariant (for every player), refreshes the cached total, and — in soul mode — keeps the
      * pool in sync or AUTO-DISABLES (with the disable feedback) when no souls remain anywhere.
