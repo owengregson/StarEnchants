@@ -1,15 +1,13 @@
 # Imported from EliteEnchantments (id: rogue). Review before shipping.
 display: "Rogue"
 description:
-  - "&cOn hit, deals double damage."
-  - ""
-  - "&c&lI: &f🎲 3.25% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
-  - "&c&lII: &f🎲 6.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
-  - "&c&lIII: &f🎲 8.5% &7| &f▲ 100% &7| &f⌛ 5s &7| &f☄ 100"
+  - "&eDeals heavy bonus damage when"
+  - "&estriking from behind."
 trigger: ATTACK
 applies-to: [AXE]
 group: "soul"
 tier: soul
+condition: "%actor.behindvictim%"
 levels:
   1:
     chance: 3.25
@@ -17,18 +15,18 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 1.6 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }
   2:
     chance: 6.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 1.6 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 75 } }
   3:
     chance: 8.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 1.6 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }
