@@ -271,15 +271,19 @@ public interface Sink {
      * Spawn {@code count} particles at {@code at} carrying an interned block material as BLOCK_CRACK/BLOCK_DUST
      * data (ADR-0049 Bleed's redstone crack). {@code blockMaterialId < 0} means no block data (a plain burst); a
      * material the resolved particle does not accept falls back to a plain burst in the overlay leaf.
+     * {@code offsetX/Y/Z} are the per-axis spread (0 = a point burst — byte-identical to the old zero-offset call).
      */
-    void particle(Location at, int particleId, int count, int blockMaterialId);
+    void particle(Location at, int particleId, int count, int blockMaterialId,
+                  double offsetX, double offsetY, double offsetZ);
 
     /**
-     * Spawn {@code count} particles at {@code target}'s OWN location, read AT DISPATCH time on the target's region
-     * thread (deferred-safe, like {@link #potion}), with optional block data ({@code blockMaterialId < 0} = none).
-     * The PARTICLE {@code who}-slot path (ADR-0049) — a per-target burst that lands where each target actually is.
+     * Spawn {@code count} particles at {@code target}'s MID-BODY (its feet + half its height), read AT DISPATCH time
+     * on the target's region thread (deferred-safe, like {@link #potion}), with optional block data
+     * ({@code blockMaterialId < 0} = none) and the per-axis {@code offsetX/Y/Z} spread. The PARTICLE {@code who}-slot
+     * path (ADR-0049) — a per-target burst that lands where each target actually is.
      */
-    void particle(LivingEntity target, int particleId, int count, int blockMaterialId);
+    void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                  double offsetX, double offsetY, double offsetZ);
 
     /**
      * Draw {@code count} coloured-dust motes at a single point — the per-point primitive for the shaped-particle

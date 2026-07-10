@@ -54,8 +54,10 @@ class LocationEffectTest {
                 atLocation("SOUND → sound(id, volume, pitch)", new SoundEffect(),
                         c -> c.with("sound", 3).with("volume", 1.0).with("pitch", 1.0),
                         (s, loc) -> verify(s).sound(loc, 3, 1.0f, 1.0f)),
-                atLocation("PARTICLE → particle(id, count, block=-1) at the activation location (no who)", new ParticleEffect(),
-                        c -> c.with("particle", 9).with("count", 20), (s, loc) -> verify(s).particle(loc, 9, 20, -1)));
+                atLocation("PARTICLE → particle(id, count, block=-1, spread on X/Z, spread-y on Y) at the activation location (no who)",
+                        new ParticleEffect(),
+                        c -> c.with("particle", 9).with("count", 20).with("spread", 1.5).with("spread-y", 2.0),
+                        (s, loc) -> verify(s).particle(loc, 9, 20, -1, 1.5, 2.0, 1.5)));
     }
 
     @TestFactory
