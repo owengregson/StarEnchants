@@ -25,11 +25,13 @@ public final class UnopenedBookListener implements Listener {
     private final UnopenedBookService service;
     private final Messages messages;
     private final Hands hands;
+    private final BookRevealFx fanfare;
 
-    public UnopenedBookListener(UnopenedBookService service, Messages messages, Hands hands) {
+    public UnopenedBookListener(UnopenedBookService service, Messages messages, Hands hands, BookRevealFx fanfare) {
         this.service = Objects.requireNonNull(service, "service");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.hands = Objects.requireNonNull(hands, "hands");
+        this.fanfare = Objects.requireNonNull(fanfare, "fanfare");
     }
 
     // priority LOW, NOT ignoreCancelled: a RIGHT_CLICK_BLOCK with a non-use item often arrives already
@@ -60,6 +62,10 @@ public final class UnopenedBookListener implements Listener {
         }
         if (result.produced() != null) {
             Inventories.giveOrDrop(player, result.produced());
+            // Reveal flourish: tier-coloured firework + the revealed book's name as a subtitle. In-region (we
+            // are on the opener's own thread), so the fanfare needs no scheduler hop.
+            service.revealOf(result.produced())
+                    .ifPresent(reveal -> fanfare.celebrate(player, reveal.tierColor(), reveal.name()));
         }
         if (result.message() != null) {
             messages.sendText(player, result.message());

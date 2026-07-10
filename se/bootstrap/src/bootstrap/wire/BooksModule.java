@@ -1,5 +1,6 @@
 package bootstrap.wire;
 
+import feature.book.BookRevealFx;
 import feature.book.UnopenedBookListener;
 import feature.book.UnopenedBookService;
 import feature.menu.EnchanterMenu;
@@ -38,7 +39,7 @@ final class BooksModule {
     FeatureModule module() {
         return FeatureModule.named("books")
                 // position above the scrolls block, NOT scroll-gated today.
-                .events(new UnopenedBookListener(unopenedBooks, core.messages(), core.hands()))
+                .events(new UnopenedBookListener(unopenedBooks, core.messages(), core.hands(), new BookRevealFx()))
                 .menu(100, new EnchanterMenu(core.content(), unopenedBooks, core.caps(), core.messages(),
                         core.menusHolder()::config, core.vanillaEnchants(),
                         carriers.carriers::mintWhiteScroll, scrolls.scrolls::mintBlack))
