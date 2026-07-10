@@ -8,6 +8,26 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Cosmic-pack PvP rebalance (ADR-0050).** The whole pack is re-budgeted around a
+  6–10-hit time-to-kill between maxed god kits. Damage-increasing enchants with
+  conditions now apply consistently (chance up, magnitude down: Insanity/Barbarian/
+  Execute-family fire on every qualifying hit for single-digit percents instead of
+  lottery nukes), Rage tops out at +90% on a full six-stack combo instead of +240%,
+  and the invincibility stack is dismantled: heroic armor drops to −3% per piece,
+  set reductions land in the 5–15% band, always-on per-piece reductions are budgeted
+  ×4, and summed custom reduction is hard-capped at 60% (`combat.max-bonus-reduction`)
+  while outgoing caps at +350%. Full negates (Dodge, Inversion) are now true event
+  cancels with 4×-aware chances, so the cap can't clamp them and they can't inflate
+  the reduction bucket. Hidden always-on power was surfaced and gated: Reaper/Spooky
+  no longer apply permanent Wither II/Blindness II on every weapon hit, Stellar's
+  every-hit 20-HP absorption becomes a 20%-chance cooldown proc, Ender Walker's
+  ungated debuff immunity is chance/cooldown-gated, Godly Overload tops at +12 max HP,
+  Sniper's fold-bypassing 8-hp arrows drop to 2–4, and Dominate (which reduced its own
+  wielder's damage — an import bug) now `WEAKEN`s the victim's outgoing damage.
+- **Quieter repeating and passive cues.** Repeating effects no longer play sounds
+  (particles stay) unless they consume souls on activation, and passive/held effects
+  that apply once on equip lost their one-shot sound-and-particle pops — the universal
+  equip cues already cover that moment.
 - **Rage rework.** Rage stacks are now first-class: max stacks = the enchant level, the
   damage expression reads the clamped stack count, every stack plays a blaze-hit whose
   pitch steps down an absolute ladder (1.45 at zero stacks to 0.85 at six), each hit
