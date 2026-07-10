@@ -51,9 +51,10 @@ public final class Modules {
         this.crystals = new CrystalsModule(core);
         this.heroic = new HeroicModule(core);
         this.slots = new SlotsModule(core);
-        this.books = new BooksModule(core, carriers);      // layers on the carrier economy
-        this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
         this.scrolls = new ScrollsModule(core, carriers);  // layers on the carrier economy
+        this.books = new BooksModule(core, carriers, scrolls); // layers on the carrier economy; the Enchanter's
+                                                                // scroll tiles take the white/black scroll mints
+        this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);
         this.sets = new SetsModule(core);

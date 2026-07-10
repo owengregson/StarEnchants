@@ -6,6 +6,19 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Merchant GUIs re-laid in the Cosmic Enchants likeness.** The Alchemist is now a
+  three-row exchange window — two book slots up top, a live centre preview of the exact
+  book the exchange forges, and a bottom-centre CLICK TO EXCHANGE pane. The Tinkerer is a
+  six-row split trade window ("You | Tinkerer"): stage any number of books on the left,
+  each mirrors an experience-bottle preview of its honest refund range on the right, and
+  the red ACCEPT panes salvage everything at once. The Enchanter is a fixed storefront —
+  a tier-coloured tile per rarity (priced live from `tiers.yml`) with White/Black Scroll
+  tiles flanking the premium shelf, both priced level with a legendary book. Benches got
+  a live input-change hook so previews re-render as items are staged; mechanics are
+  unchanged (free combine, `[1, N]` salvage roll, XP-level pricing).
+
 ### Added
 
 - **Use-items `is-food` — eat to trigger.** A use-item with `is-food: true` must be

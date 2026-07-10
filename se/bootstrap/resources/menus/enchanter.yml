@@ -1,6 +1,7 @@
-# Enchanter merchant GUI — buy a random mystery enchant book with XP levels (/se menu enchanter, or a hub).
-# The offer pricing / buy behaviour stays in code. See menus/apply.yml for the full field list.
+# Enchanter merchant GUI — a fixed storefront: one tier-coloured tile per rarity (priced from tiers.yml),
+# with the white/black scroll tiles flanking the premium shelf (/se menu enchanter, or a hub). The offer
+# pricing / buy behaviour stays in code. A storefront fills its whole backdrop with the filler (frame is
+# ignored). See menus/apply.yml for the full field list.
 
 title: "&b&lEnchanter &8• &7Books"
-frame: "border"
-filler: "LIGHT_BLUE_STAINED_GLASS_PANE"
+filler: "GRAY_STAINED_GLASS_PANE"

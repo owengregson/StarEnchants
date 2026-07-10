@@ -1,6 +1,6 @@
-# Enchanter merchant GUI — buy mystery enchant books from the enchanter.
-# Tiles list each tier's price and odds. See menus/apply.yml for the full field list.
+# Enchanter merchant GUI — a fixed storefront: a tier-coloured tile per rarity (common → godly, priced from
+# tiers.yml) with the white/black scroll tiles flanking the premium shelf. A storefront fills its whole
+# backdrop, so frame is omitted. See menus/apply.yml for the full field list.
 
 title: "&b&l❖ Enchanter ❖"
-frame: "border"
 filler: "BLACK_STAINED_GLASS_PANE"

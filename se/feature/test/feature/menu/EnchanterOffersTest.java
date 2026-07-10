@@ -27,6 +27,23 @@ class EnchanterOffersTest {
     }
 
     @Test
+    void scrollPriceMatchesLegendaryElsePriciestTier() {
+        // With a legendary tier, both scrolls cost exactly a legendary book (the Cosmic Enchants-style shop) —
+        // even when pricier tiers exist above it.
+        TierRegistry.Tier legendary = new TierRegistry.Tier("legendary", "&6", 50, true, 15);
+        java.util.List<TierRegistry.Tier> all = java.util.List.of(
+                new TierRegistry.Tier("common", "&7", 10, false, 1),
+                legendary,
+                new TierRegistry.Tier("godly", "&4", 80, true, 30));
+        assertEquals(15, EnchanterOffers.scrollPriceLevels(legendary, all));
+        // Without one, the priciest tier's book price stands in, floored at one for an empty registry.
+        assertEquals(9, EnchanterOffers.scrollPriceLevels(null, java.util.List.of(
+                new TierRegistry.Tier("common", "&7", 10, false, 2),
+                new TierRegistry.Tier("epic", "&e", 40, true, 9))));
+        assertEquals(1, EnchanterOffers.scrollPriceLevels(null, java.util.List.of()));
+    }
+
+    @Test
     void priceForDelegatesToBookCostLevels() {
         // The Enchanter charge and the Tinkerer salvage cap read the SAME rule — priceFor is a thin delegate.
         TierRegistry.Tier explicit = new TierRegistry.Tier("rare", "&b", 30, false, 7);

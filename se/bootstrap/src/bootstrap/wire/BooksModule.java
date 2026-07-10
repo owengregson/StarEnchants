@@ -15,11 +15,17 @@ import java.util.List;
 final class BooksModule {
 
     private final BootCore core;
+    private final CarriersModule carriers;
+    private final ScrollsModule scrolls;
     final UnopenedBookService unopenedBooks;
     final List<Mintable> mints;
 
-    BooksModule(BootCore core, CarriersModule carriers) {
+    /** {@code scrolls} supplies the black-scroll mint for the Enchanter's scroll tiles; the white scroll
+     *  rides the carrier economy. Constructed after the scrolls module for exactly this hand-off. */
+    BooksModule(BootCore core, CarriersModule carriers, ScrollsModule scrolls) {
         this.core = core;
+        this.carriers = carriers;
+        this.scrolls = scrolls;
         UnopenedBookCodec unopenedCodec = new UnopenedBookCodec(ItemKeys.of().unopened(), core.store());
         this.unopenedBooks = new UnopenedBookService(unopenedCodec, carriers.carriers, core.content(),
                 () -> core.items().config().unopenedBookOrDefault(), core.rolls(), core.messages());
@@ -34,7 +40,8 @@ final class BooksModule {
                 // position above the scrolls block, NOT scroll-gated today.
                 .events(new UnopenedBookListener(unopenedBooks, core.messages(), core.hands()))
                 .menu(100, new EnchanterMenu(core.content(), unopenedBooks, core.caps(), core.messages(),
-                        core.menusHolder()::config, core.vanillaEnchants()))
+                        core.menusHolder()::config, core.vanillaEnchants(),
+                        carriers.carriers::mintWhiteScroll, scrolls.scrolls::mintBlack))
                 .mints(mints)
                 .pluginItem(unopenedBooks::isUnopened)
                 .lang("command.give.book", "command.give.unopened")
