@@ -360,7 +360,10 @@ public final class BootCore {
         this.soulModes = new SoulModeStore(); // shared by the service + the §D while-active aura driver
         this.soulService = new SoulService(soulPool, soulModes,
                 new SoulCodec(ItemKeys.of().soul(), store), () -> items.config().soulGemOrDefault(),
-                () -> master.config().souls().depositOnAnyKill(), messages, particleFx, hands, sounds);
+                () -> master.config().souls().depositOnAnyKill(), messages, particleFx, hands, sounds,
+                // §I a gem can carry the holy keep-marker; combine/split carry it and the re-render appends its
+                // protected line — the SAME marker seam + protection-line function the LoreRenderer uses.
+                appliedSlot, protectionLinesFn);
 
         // ONE shared aggregate of every per-player engine store: an effect writes a store through the per-event
         // sink and a separate reader reads it back — so it must be the SAME instance everywhere.

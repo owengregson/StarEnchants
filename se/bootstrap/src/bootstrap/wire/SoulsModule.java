@@ -33,6 +33,11 @@ final class SoulsModule {
                 () -> core.items().config().soulGemOrDefault(), core.particleFx());
     }
 
+    /** The engine-spine soul service — exposed so a later module (scrolls) can route gem re-renders through it (§4). */
+    SoulService souls() {
+        return core.soulService();
+    }
+
     FeatureModule module() {
         SoulService souls = core.soulService();
         return FeatureModule.named("souls")
