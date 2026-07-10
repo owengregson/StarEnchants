@@ -47,7 +47,9 @@ bonuses:
     chance: 15
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WARDEN_DIG|BLOCK_ROOTED_DIRT_BREAK", volume: 1.0, pitch: 2.0 } }
       - { FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, ttl: 40, carry: "%damage%", who: "@Victim" } }
+      - { PARTICLE: { particle: COMPOSTER, count: 15 } }
       - { MESSAGE: { channel: title, text: "&2&l** TERRABLENDER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&2&l** TERRABLENDER &r&7[&f{VICTIM}&7] &r&2&l**" } }
   # IMPACT — fired when a Terrablender grass block lands ON a player. The short cooldown dedups the grid's many
