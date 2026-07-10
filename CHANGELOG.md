@@ -6,6 +6,8 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.0-beta] — 2026-07-09
+
 ### Changed
 
 - **Cosmic enchant behavior alignment (ADR-0049).** ~40 enchants now do what their
