@@ -1,16 +1,10 @@
 # Imported from EliteEnchantments (id: bewitched-hex). Review before shipping.
 display: "Bewitched Hex"
 description:
-  - "&dMythic upgrade for Hex."
-  - "&dDeals more bonus damage and"
-  - "&dweakens the target for longer."
+  - "&eCurses the target so a larger share"
+  - "&eof the damage they deal is turned"
+  - "&eback on them for longer."
   - "&c&l(!)&r &7Requires &6Hex"
-  - ""
-  - "&d&lI: &f🎲 3.5% &7| &f▲ 15% &7| &f⌛ 5s"
-  - "&d&lII: &f🎲 4.5% &7| &f▲ 15% &7| &f⌛ 5s"
-  - "&d&lIII: &f🎲 5.5% &7| &f▲ 15% &7| &f⌛ 5s"
-  - "&d&lIV: &f🎲 6.5% &7| &f▲ 15% &7| &f⌛ 5s"
-  - "&d&lV: &f🎲 7.5% &7| &f▲ 15% &7| &f⌛ 5s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "mythic"
@@ -24,37 +18,32 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
-      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+      - { REFLECT: { percent: 20, duration: 160, who: "@Victim" } }
   2:
     chance: 4.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
-      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+      - { REFLECT: { percent: 22, duration: 160, who: "@Victim" } }
   3:
     chance: 5.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
-      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+      - { REFLECT: { percent: 25, duration: 160, who: "@Victim" } }
   4:
     chance: 6.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
-      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+      - { REFLECT: { percent: 28, duration: 160, who: "@Victim" } }
   5:
     chance: 7.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
-      - { DAMAGE: { amount: 6, who: "@Victim" } }  # from DAMAGE:1:6:TARGET — legacy random range 1-6 collapsed to its max
+      - { REFLECT: { percent: 30, duration: 160, who: "@Victim" } }
