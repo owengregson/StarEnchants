@@ -279,23 +279,33 @@ public final class ModernDispatchSink extends DispatchSinkBase {
 
     @Override
     public void particle(Location at, int particleId, int count) {
-        particle(at, particleId, count, -1);
+        particle(at, particleId, count, -1, 0.0, 0.0, 0.0); // addon/no-block path: a plain point burst
     }
 
     @Override
-    public void particle(Location at, int particleId, int count, int blockMaterialId) {
+    public void particle(Location at, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ) {
         Location pos = at.clone(); // own the point: a WAIT tier can defer this to a later tick
-        regionOp(pos, () -> spawnParticleAt(pos, particleId, count, blockMaterialId));
+        regionOp(pos, () -> spawnParticleAt(pos, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ));
     }
 
     @Override
-    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId) {
-        // Entity-anchored (the PARTICLE who-slot): read the target's location AT DISPATCH on its own region thread.
-        entityOp(target, () -> spawnParticleAt(target.getLocation(), particleId, count, blockMaterialId));
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ) {
+        // Entity-anchored (the PARTICLE who-slot): read the target's mid-body AT DISPATCH on its own region thread.
+        entityOp(target, () -> spawnParticleAt(midBody(target), particleId, count, blockMaterialId,
+                offsetX, offsetY, offsetZ));
     }
 
-    /** Spawn a resolved particle at {@code at}, carrying BLOCK_CRACK/BLOCK_DUST block data when a material is given. */
-    private void spawnParticleAt(Location at, int particleId, int count, int blockMaterialId) {
+    /** The burst anchor for an entity: its feet + half its height, so a burst frames the body rather than the ground. */
+    private static Location midBody(LivingEntity target) {
+        return target.getLocation().add(0.0, target.getHeight() * 0.5, 0.0);
+    }
+
+    /** Spawn a resolved particle at {@code at} with the given per-axis spread, carrying BLOCK_CRACK/BLOCK_DUST block
+     *  data when a material is given (zero offsets reproduce the old point burst exactly). */
+    private void spawnParticleAt(Location at, int particleId, int count, int blockMaterialId,
+                                double offsetX, double offsetY, double offsetZ) {
         Particle resolved = handles.particle(particleId);
         World world = at.getWorld();
         if (resolved == null || world == null) {
@@ -305,14 +315,14 @@ public final class ModernDispatchSink extends DispatchSinkBase {
             Material block = material(blockMaterialId);
             if (block != null && block.isBlock()) {
                 try {
-                    world.spawnParticle(resolved, at, count, block.createBlockData());
+                    world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ, block.createBlockData());
                     return;
                 } catch (IllegalArgumentException notBlockData) {
                     // the resolved particle takes no block data — fall through to a plain burst
                 }
             }
         }
-        world.spawnParticle(resolved, at, count);
+        world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ);
     }
 
     @Override

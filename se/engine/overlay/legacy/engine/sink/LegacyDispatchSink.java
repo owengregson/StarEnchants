@@ -348,23 +348,29 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     @Override
     public void particle(Location at, int particleId, int count) {
         // 1.8: no Bukkit Particle — spawn via the NMS particle packet sent to players in the same world.
-        regionOp(at, () -> sendParticleAt(at, particleId, count));
+        regionOp(at, () -> sendParticleAt(at, particleId, count, 0f, 0f, 0f));
     }
 
     @Override
-    public void particle(Location at, int particleId, int count, int blockMaterialId) {
+    public void particle(Location at, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ) {
         // 1.8 has no block-crack particle data — the block material is dropped; a plain burst is the fallback (§10).
-        regionOp(at, () -> sendParticleAt(at, particleId, count));
+        // The packet DOES carry the offset spread, so mixed-position bursts still work.
+        regionOp(at, () -> sendParticleAt(at, particleId, count, (float) offsetX, (float) offsetY, (float) offsetZ));
     }
 
     @Override
-    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId) {
-        // Entity-anchored: read the target's location AT DISPATCH on its own region thread; block data dropped as above.
-        entityOp(target, () -> sendParticleAt(target.getLocation(), particleId, count));
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ) {
+        // Entity-anchored: read the target's mid-body AT DISPATCH on its own region thread (getHeight is absent on
+        // 1.8, so use a flat +1.0 body-centre); block data dropped as above.
+        entityOp(target, () -> sendParticleAt(target.getLocation().add(0.0, 1.0, 0.0), particleId, count,
+                (float) offsetX, (float) offsetY, (float) offsetZ));
     }
 
-    /** Send a plain NMS particle packet at {@code at} to nearby players (the shared body for the particle overloads). */
-    private void sendParticleAt(Location at, int particleId, int count) {
+    /** Send an NMS particle packet at {@code at} (with the per-axis offset spread) to nearby players (the shared
+     *  body for the particle overloads). */
+    private void sendParticleAt(Location at, int particleId, int count, float offsetX, float offsetY, float offsetZ) {
         EnumParticle resolved = particle(particleId);
         World world = at.getWorld();
         if (resolved == null || world == null) {
@@ -373,7 +379,7 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
                 resolved, true,
                 (float) at.getX(), (float) at.getY(), (float) at.getZ(),
-                0f, 0f, 0f, // no offset spread
+                offsetX, offsetY, offsetZ, // offset spread (0 = the old point burst)
                 0f,         // particle data/speed
                 Math.max(1, count));
         for (Player viewer : world.getPlayers()) {

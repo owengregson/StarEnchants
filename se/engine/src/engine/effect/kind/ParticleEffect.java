@@ -22,10 +22,14 @@ public final class ParticleEffect implements EffectKind {
             .param("particle", D.particle())
             .param("count", D.INT.min(0).def(1))
             .param("block", D.material().optional())
+            .param("spread", D.DOUBLE.min(0).max(4).def(0.4))
+            .param("spread-y", D.DOUBLE.min(-1).max(4).def(-1))
             .target("who", T.HERE)
             .affinity(Affinity.REGION)
-            .doc("Spawn particles at the activation location, or at each entity in `who` when given. `block` "
-                    + "carries a block material as crack/dust data. No-op if there is no location.")
+            .doc("Spawn particles at the activation location, or at each entity in `who` when given (centered on "
+                    + "the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the "
+                    + "horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where "
+                    + "the -1 default means \"use `spread`\". No-op if there is no location.")
             .example("{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: \"@Victim\" } }")
             .build();
 
@@ -39,17 +43,24 @@ public final class ParticleEffect implements EffectKind {
         int particleId = ctx.integer("particle");
         int count = ctx.integer("count");
         int blockId = ctx.args().has("block") ? ctx.integer("block") : -1; // optional block-crack material → interned id, or none
+        double spread = ctx.dbl("spread");
+        double spreadY = spreadY(spread, ctx.dbl("spread-y")); // horizontal offset on X/Z; the -1 sentinel folds Y onto it
         java.util.Iterator<LivingEntity> targets = ctx.targets("who").iterator();
         if (targets.hasNext()) {
             // who resolved entities: a per-target burst read at each target's own location at dispatch time.
             do {
-                sink.particle(targets.next(), particleId, count, blockId);
+                sink.particle(targets.next(), particleId, count, blockId, spread, spreadY, spread);
             } while (targets.hasNext());
             return;
         }
         org.bukkit.Location loc = ctx.location(); // no who (default @Here): the original activation-location burst
         if (loc != null) {
-            sink.particle(loc, particleId, count, blockId);
+            sink.particle(loc, particleId, count, blockId, spread, spreadY, spread);
         }
+    }
+
+    /** The vertical particle offset: a negative {@code spreadY} (the {@code -1} default sentinel) folds onto {@code spread}. */
+    static double spreadY(double spread, double spreadY) {
+        return spreadY < 0 ? spread : spreadY;
     }
 }
