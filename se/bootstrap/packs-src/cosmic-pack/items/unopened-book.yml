@@ -11,6 +11,6 @@ material: BOOK
 name: "{TIER_COLOR}&l{TIER_NAME} Enchantment Book &r&7(Right Click)&r"
 lore:
   - "&eExamine to receive a random {TIER} enchantment book, with randomized success and failure chances."
-  - "&7Right click while holding to apply."
+  - "&7Right Click while holding to apply."
 min-success: 25
 max-success: 100
