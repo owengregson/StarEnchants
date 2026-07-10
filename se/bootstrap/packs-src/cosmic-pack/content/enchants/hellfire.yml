@@ -1,51 +1,45 @@
 # Imported from EliteEnchantments (id: hellfire). Review before shipping.
 display: "Hellfire"
 description:
-  - "&eArrows explode on impact without"
-  - "&ebreaking blocks."
-  - ""
-  - "&e&lI: &f🎲 3% &7| &f⌛ 4s"
-  - "&e&lII: &f🎲 6% &7| &f⌛ 4s"
-  - "&e&lIII: &f🎲 9% &7| &f⌛ 4s"
-  - "&e&lIV: &f🎲 12% &7| &f⌛ 4s"
-  - "&e&lV: &f🎲 15% &7| &f⌛ 4s"
-trigger: BOW
+  - "&eYour arrows fly as explosive"
+  - "&efireballs."
+trigger: BOW_FIRE
 applies-to: [BOW]
 group: "epic"
 tier: epic
 levels:
   1:
-    chance: 3
-    cooldown: 80
+    chance: 100
     effects:
       - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { EXPLODE: { power: 1, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:1:false:TARGET — EE fire flag dropped; breakBlocks=false
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 1.5, yield: 0, incendiary: false } }
   2:
-    chance: 6
-    cooldown: 80
+    chance: 100
     effects:
       - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { EXPLODE: { power: 1, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:1:false:TARGET — EE fire flag dropped; breakBlocks=false
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 1.75, yield: 0, incendiary: false } }
   3:
-    chance: 9
-    cooldown: 80
+    chance: 100
     effects:
       - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { EXPLODE: { power: 2, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:2:false:TARGET — EE fire flag dropped; breakBlocks=false
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.0, yield: 0, incendiary: false } }
   4:
-    chance: 12
-    cooldown: 80
+    chance: 100
     effects:
       - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { EXPLODE: { power: 2, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:2:false:TARGET — EE fire flag dropped; breakBlocks=false
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.25, yield: 0, incendiary: false } }
   5:
-    chance: 15
-    cooldown: 80
+    chance: 100
     effects:
       - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { EXPLODE: { power: 3, breakBlocks: "false", who: "@Victim" } }  # from EXPLODE:3:false:TARGET — EE fire flag dropped; breakBlocks=false
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.5, yield: 0, incendiary: false } }

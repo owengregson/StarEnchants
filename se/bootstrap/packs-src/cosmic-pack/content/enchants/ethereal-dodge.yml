@@ -1,60 +1,54 @@
 # Imported from EliteEnchantments (id: ethereal-dodge). Review before shipping.
 display: "Ethereal Dodge"
 description:
-  - "&dMythic upgrade for Dodge."
-  - "&dNegates an attack and grants"
-  - "&dSpeed."
+  - "&eNegates attacks and grants a burst of"
+  - "&eSpeed; fall damage can never touch you."
   - "&c&l(!)&r &7Requires &eDodge"
-  - ""
-  - "&d&lI: &f🎲 2.75% &7| &f▲ 6s &7| &f⌛ 5s"
-  - "&d&lII: &f🎲 4.25% &7| &f▲ 6s &7| &f⌛ 5s"
-  - "&d&lIII: &f🎲 6.25% &7| &f▲ 6s &7| &f⌛ 5s"
-  - "&d&lIV: &f🎲 8.25% &7| &f▲ 6s &7| &f⌛ 5s"
-  - "&d&lV: &f🎲 10% &7| &f▲ 6s &7| &f⌛ 5s"
-trigger: DEFENSE
+trigger: [DEFENSE, FALL]
 applies-to: [BOOTS]
 group: "mythic"
 tier: mythic
+condition: "%damagecause% == \"FALL\" : %force%"
 requires: ["enchants/dodge"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 2.75
-    cooldown: 100
+    chance: 3.75
+    cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
   2:
-    chance: 4.25
-    cooldown: 100
+    chance: 5.5
+    cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
   3:
-    chance: 6.25
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
-  4:
     chance: 8.25
-    cooldown: 100
+    cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
-  5:
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
+  4:
     chance: 10
-    cooldown: 100
+    cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
+  5:
+    chance: 12
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }

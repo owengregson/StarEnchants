@@ -1,28 +1,24 @@
 # Imported from EliteEnchantments (id: cactus). Review before shipping.
 display: "Cactus"
 description:
-  - "&bWhen hit, deals damage back to"
-  - "&bthe attacker; your armor takes"
-  - "&bno durability loss."
-  - ""
-  - "&b&lI: &f🎲 4% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
-  - "&b&lII: &f🎲 8% &7| &f▲ 1-4❤ &7| &f⌛ 5s"
+  - "&eWhen hit, lashes the attacker with"
+  - "&ea spray of thorns."
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "rare"
 tier: rare
 levels:
   1:
-    chance: 4
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 0.9, pitch: 1.0 } }
-      - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
-      - { PARTICLE: { particle: "CRIT", count: 7 } }  # from PARTICLE:BLOCK_BREAK;CACTUS:PLAYER — EE compound/block-crack particle → a thematic generic (cosmetic only)
-  2:
     chance: 8
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_BEE_STING", volume: 0.9, pitch: 1.0 } }
-      - { DAMAGE: { amount: 4, who: "@Attacker" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
-      - { PARTICLE: { particle: "CRIT", count: 7 } }  # from PARTICLE:BLOCK_BREAK;CACTUS:PLAYER — EE compound/block-crack particle → a thematic generic (cosmetic only)
+      - { PARTICLE: { particle: "CRIT", count: 7 } }
+      - { DAMAGE: { amount: 3, who: "@Attacker" } }
+  2:
+    chance: 12
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 7 } }
+      - { DAMAGE: { amount: 3, who: "@Attacker" } }

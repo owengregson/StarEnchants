@@ -1,13 +1,9 @@
 # Imported from EliteEnchantments (id: mighty-cactus). Review before shipping.
 display: "Mighty Cactus"
 description:
-  - "&dMythic upgrade for Cactus."
-  - "&dDeals much more damage back to"
-  - "&dattackers."
+  - "&eWhen hit, lashes the attacker with a"
+  - "&emuch heavier spray of thorns."
   - "&c&l(!)&r &7Requires &bCactus"
-  - ""
-  - "&d&lI: &f🎲 6% &7| &f▲ 3-6❤ &7| &f⌛ 5s"
-  - "&d&lII: &f🎲 9% &7| &f▲ 4-8❤ &7| &f⌛ 5s"
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "mythic"
@@ -16,16 +12,16 @@ requires: ["enchants/cactus"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 6
+    chance: 15
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 6, who: "@Attacker" } }  # from DAMAGE:3:6:TARGET — legacy random range 3-6 collapsed to its max
+      - { DAMAGE: { amount: 5, who: "@Attacker" } }
   2:
-    chance: 9
+    chance: 20
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:4:8:TARGET — legacy random range 4-8 collapsed to its max
+      - { DAMAGE: { amount: 7, who: "@Attacker" } }

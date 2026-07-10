@@ -1,31 +1,22 @@
 # Imported from EliteEnchantments (id: clarity). Review before shipping.
 display: "Clarity"
 description:
-  - "&6When hit, cures Blindness and"
-  - "&6briefly prevents it."
-  - ""
-  - "&6&lI: &f🎲 50%"
-  - "&6&lII: &f🎲 80%"
-  - "&6&lIII: &f🎲 100%"
-trigger: DEFENSE
+  - "&eYou cannot be blinded."
+trigger: REPEATING
 applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
+repeat: 40
 levels:
   1:
-    chance: 50
+    chance: 100
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.6 } }
-      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }
   2:
-    chance: 80
+    chance: 100
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.6 } }
-      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }
   3:
+    chance: 100
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.6 } }
-      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }

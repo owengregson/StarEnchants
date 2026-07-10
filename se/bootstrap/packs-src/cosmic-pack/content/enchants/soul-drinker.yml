@@ -1,0 +1,16 @@
+# New content (ADR-0049): soul-tier hunger suppressor.
+display: "Soul Drinker"
+description:
+  - "&eDrinks your souls to hold your"
+  - "&ehunger at bay."
+trigger: REPEATING
+applies-to: [ARMOR]
+group: "soul"
+tier: soul
+repeat: 20
+soul-cost: 2
+levels:
+  1:
+    chance: 100
+    effects:
+      - { MODIFY_FOOD: { amount: 20, mode: "give" } }
