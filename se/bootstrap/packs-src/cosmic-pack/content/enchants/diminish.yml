@@ -1,15 +1,8 @@
 # Imported from EliteEnchantments (id: diminish). Review before shipping.
 display: "Diminish"
 description:
-  - "&6When hit, halves the damage"
-  - "&6taken."
-  - ""
-  - "&6&lI: &f🎲 1.75% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&6&lII: &f🎲 3% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&6&lIII: &f🎲 4.5% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&6&lIV: &f🎲 6% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&6&lV: &f🎲 7.5% &7| &f▲ 50% &7| &f⌛ 4s"
-  - "&6&lVI: &f🎲 10% &7| &f▲ 50% &7| &f⌛ 4s"
+  - "&eAfter it procs, the next blow against"
+  - "&eyou is capped at half the last one."
 trigger: DEFENSE
 applies-to: [CHESTPLATE]
 group: "legendary"
@@ -21,39 +14,39 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_CAP: { factor: 0.5, reflect: false, duration: 100 } }
   2:
     chance: 3
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_CAP: { factor: 0.5, reflect: false, duration: 100 } }
   3:
     chance: 4.5
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_CAP: { factor: 0.5, reflect: false, duration: 100 } }
   4:
     chance: 6
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_CAP: { factor: 0.5, reflect: false, duration: 100 } }
   5:
     chance: 7.5
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_CAP: { factor: 0.5, reflect: false, duration: 100 } }
   6:
     chance: 10
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_CAP: { factor: 0.5, reflect: false, duration: 100 } }

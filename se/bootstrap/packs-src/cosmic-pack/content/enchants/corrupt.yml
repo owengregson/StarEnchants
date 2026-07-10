@@ -1,13 +1,8 @@
 # Imported from EliteEnchantments (id: corrupt). Review before shipping.
 display: "Corrupt"
 description:
-  - "&eOn hit, deals bonus damage and"
-  - "&edisables the target's Inversion."
-  - ""
-  - "&e&lI: &f🎲 1.75% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
-  - "&e&lII: &f🎲 3% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
-  - "&e&lIII: &f🎲 4% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
-  - "&e&lIV: &f🎲 5% &7| &f▲ 1-2❤ &7| &f⌛ 4s"
+  - "&eCorrupts the target so their next"
+  - "&eInversion heal fails."
 trigger: ATTACK
 applies-to: [AXE]
 group: "epic"
@@ -19,33 +14,25 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 1, who: "@Victim" } }
   2:
     chance: 3
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 1, who: "@Victim" } }
   3:
     chance: 4
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 1, who: "@Victim" } }
   4:
     chance: 5
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 1, who: "@Victim" } }

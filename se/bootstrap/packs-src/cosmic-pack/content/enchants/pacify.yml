@@ -1,44 +1,38 @@
 # Imported from EliteEnchantments (id: pacify). Review before shipping.
 display: "Pacify"
 description:
-  - "&eArrows deal no normal damage,"
-  - "&edealing a small fixed amount"
-  - "&einstead."
-  - ""
-  - "&e&lI: &f▲ 1-4❤ &7| &f⌛ 3s"
-  - "&e&lII: &f▲ 1-4❤ &7| &f⌛ 3s"
-  - "&e&lIII: &f▲ 1-4❤ &7| &f⌛ 3s"
-  - "&e&lIV: &f▲ 1-4❤ &7| &f⌛ 3s"
+  - "&eYour arrows pacify the target,"
+  - "&edisabling their Rage."
 trigger: BOW
 applies-to: [BOW]
 group: "epic"
 tier: epic
 levels:
   1:
+    chance: 5
     cooldown: 60
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }
   2:
+    chance: 7.5
     cooldown: 60
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }
   3:
+    chance: 10
     cooldown: 60
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }
   4:
+    chance: 12.5
     cooldown: 60
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }

@@ -1,15 +1,9 @@
 # Imported from EliteEnchantments (id: maliciously-corrupt). Review before shipping.
 display: "Maliciously Corrupt"
 description:
-  - "&dMythic upgrade for Corrupt."
-  - "&dDeals more damage and suppresses"
-  - "&dInversion for longer."
+  - "&eCorrupts the target so their next two"
+  - "&eInversion heals fail."
   - "&c&l(!)&r &7Requires &eCorrupt"
-  - ""
-  - "&d&lI: &f🎲 1.75% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
-  - "&d&lII: &f🎲 3% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
-  - "&d&lIII: &f🎲 4% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
-  - "&d&lIV: &f🎲 5% &7| &f▲ 2-4❤ &7| &f⌛ 4s"
 trigger: ATTACK
 applies-to: [AXE]
 group: "mythic"
@@ -18,38 +12,30 @@ requires: ["enchants/corrupt"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 1.75
+    chance: 3.5
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
       - { PARTICLE: { particle: "SOUL", count: 14 } }
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 2, who: "@Victim" } }
   2:
-    chance: 3
-    cooldown: 80
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
-      - { PARTICLE: { particle: "SOUL", count: 14 } }
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
-  3:
-    chance: 4
-    cooldown: 80
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
-      - { PARTICLE: { particle: "SOUL", count: 14 } }
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
-  4:
     chance: 5
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
       - { PARTICLE: { particle: "SOUL", count: 14 } }
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 2, who: "@Victim" } }
+  3:
+    chance: 6.5
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
+      - { PARTICLE: { particle: "SOUL", count: 14 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 2, who: "@Victim" } }
+  4:
+    chance: 8
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
+      - { PARTICLE: { particle: "SOUL", count: 14 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 2, who: "@Victim" } }
