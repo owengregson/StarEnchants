@@ -188,6 +188,44 @@ class SuppressionStoreTest {
         assertEquals(-1, SuppressionStore.detailByDefId(d));
     }
 
+    // ── ADR-0049 Neutralize one-shot (SUPPRESS mode next-hit): event-scoped, never timed ──
+
+    @Test
+    void armedOneShotBlocksAtGateFiveAndClearsAfterOneEvent() {
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, 7);
+        store.armOneShot(p, key, 1, 42);
+        assertTrue(store.suppressesAny(scoped(7, -1, -1), p, 0L), "an armed one-shot blocks at gate 5");
+        assertTrue(store.suppressesAny(scoped(7, -1, -1), p, 5L), "gate 5 is a pure read — it does not consume the charge");
+        store.consumeEventScoped(p);
+        assertFalse(store.suppressesAny(scoped(7, -1, -1), p, 10L), "one event consumes the single charge");
+    }
+
+    @Test
+    void armedOneShotWithTwoChargesSurvivesOneEvent() {
+        long key = CooldownStore.key(ScopeKinds.GROUP, 3);
+        store.armOneShot(p, key, 2, 9);
+        store.consumeEventScoped(p);
+        assertTrue(store.suppressesAny(scoped(-1, 3, -1), p, 0L), "charges=2 survives one event");
+        store.consumeEventScoped(p);
+        assertFalse(store.suppressesAny(scoped(-1, 3, -1), p, 0L), "and clears after the second");
+    }
+
+    @Test
+    void armedOneShotNeverExpiresByTime() {
+        store.armOneShot(p, CooldownStore.key(ScopeKinds.TYPE, 2), 1, -1);
+        // Event-scoped, not timed: even a far-future read still blocks — only consumeEventScoped clears it.
+        assertTrue(store.suppressesAny(scoped(-1, -1, 2), p, 1_000_000L));
+    }
+
+    @Test
+    void blockedDetailAttributesTheOneShotSuppressor() {
+        store.armOneShot(p, CooldownStore.key(ScopeKinds.ENCHANT, 5), 1, 77);
+        long d = store.blockedDetail(scoped(5, -1, -1), p, 0L);
+        assertEquals(ScopeKinds.ENCHANT, SuppressionStore.detailScopeKind(d));
+        assertEquals(5, SuppressionStore.detailScopeId(d));
+        assertEquals(77, SuppressionStore.detailByDefId(d));
+    }
+
     @Test
     void laterExpiryMergeAdoptsTheLaterWindowsDefId() {
         long key = CooldownStore.key(ScopeKinds.ENCHANT, 1);

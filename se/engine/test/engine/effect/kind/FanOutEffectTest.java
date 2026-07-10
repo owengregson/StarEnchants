@@ -151,7 +151,17 @@ class FanOutEffectTest {
                         new SuppressEffect(),
                         c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 1).with("charges", 2)
                                 .sourceDefId(88),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, true, 2)));
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, true, 2)),
+                playerOnly("REFLECT → reflectMark(percent, duration) — Hex, player-only", new ReflectEffect(),
+                        c -> c.with("percent", 20.0).with("duration", 80),
+                        (s, p) -> verify(s).reflectMark(p, 20.0, 80)),
+                playerOnly("WEAKEN → weaken(percent, duration) — Destruction, player-only", new WeakenEffect(),
+                        c -> c.with("percent", 15.0).with("duration", 100),
+                        (s, p) -> verify(s).weaken(p, 15.0, 100)),
+                playerOnly("DAMAGE_CAP → armDamageCap(factor, reflect, duration) — Diminish, player-only",
+                        new DamageCapEffect(),
+                        c -> c.with("factor", 0.5).with("reflect", true).with("duration", 100),
+                        (s, p) -> verify(s).armDamageCap(p, 0.5, true, 100)));
     }
 
     /** POTION's §B/ADR-0022 lifecycle teardown: on unequip, {@code stop} emits the exact inverse and nothing else. */
