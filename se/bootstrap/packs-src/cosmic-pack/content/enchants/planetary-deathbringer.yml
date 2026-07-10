@@ -1,14 +1,9 @@
 # Imported from EliteEnchantments (id: planetary-deathbringer). Review before shipping.
 display: "Planetary Deathbringer"
 description:
-  - "&dMythic upgrade for Deathbringer."
-  - "&dA guaranteed critical strike"
-  - "&dthat triggers far more often."
+  - "&eA guaranteed critical strike that"
+  - "&edeals even more devastating damage."
   - "&c&l(!)&r &7Requires &6Deathbringer"
-  - ""
-  - "&d&lI: &f▲ 50% &7| &f⌛ 20s"
-  - "&d&lII: &f▲ 50% &7| &f⌛ 20s"
-  - "&d&lIII: &f▲ 50% &7| &f⌛ 20s"
 trigger: ATTACK
 applies-to: [ARMOR]
 group: "mythic"
@@ -21,16 +16,16 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 150 } }
   2:
     cooldown: 400
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 150 } }
   3:
     cooldown: 400
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 150 } }

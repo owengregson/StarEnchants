@@ -1,14 +1,8 @@
 # Imported from EliteEnchantments (id: chain-lifesteal). Review before shipping.
 display: "Chain Lifesteal"
 description:
-  - "&4On hit, restores a chunk of your"
-  - "&4health."
-  - ""
-  - "&4&lI: &f🎲 3.25% &7| &f▲ +2-4❤ &7| &f⌛ 6s"
-  - "&4&lII: &f🎲 5% &7| &f▲ +2-4❤ &7| &f⌛ 6s"
-  - "&4&lIII: &f🎲 7.5% &7| &f▲ +3-4❤ &7| &f⌛ 6s"
-  - "&4&lIV: &f🎲 9% &7| &f▲ +5-6❤ &7| &f⌛ 6s"
-  - "&4&lV: &f🎲 12% &7| &f▲ +5-6❤ &7| &f⌛ 6s"
+  - "&eOn hit, restores health that scales"
+  - "&ewith the enemies near the fight."
 trigger: ATTACK
 applies-to: [ARMOR]
 group: "godly"
@@ -20,32 +14,32 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "HEART", count: 6 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
   2:
     chance: 5
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "HEART", count: 6 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
   3:
     chance: 7.5
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "HEART", count: 6 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
   4:
     chance: 9
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "HEART", count: 6 } }
-      - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }  # from HEAL:ADD:5:6 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: "3 + %nearbyenemies%", mode: "give", who: "@Self" } }
   5:
     chance: 12
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "HEART", count: 6 } }
-      - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }  # from HEAL:ADD:5:6 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: "3 + %nearbyenemies%", mode: "give", who: "@Self" } }

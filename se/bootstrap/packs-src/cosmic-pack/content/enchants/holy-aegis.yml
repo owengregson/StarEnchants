@@ -1,20 +1,14 @@
 # Imported from EliteEnchantments (id: holy-aegis). Review before shipping.
 display: "Holy Aegis"
 description:
-  - "&dMythic upgrade for Aegis."
-  - "&dReduces more incoming damage."
+  - "&eWhen a gank piles on, damage from the"
+  - "&eextra attackers is heavily blunted."
   - "&c&l(!)&r &7Requires &6Aegis"
-  - ""
-  - "&d&lI: &f🎲 4% &7| &f▲ 25% &7| &f⌛ 3s"
-  - "&d&lII: &f🎲 5% &7| &f▲ 25% &7| &f⌛ 3s"
-  - "&d&lIII: &f🎲 6% &7| &f▲ 25% &7| &f⌛ 3s"
-  - "&d&lIV: &f🎲 7% &7| &f▲ 25% &7| &f⌛ 3s"
-  - "&d&lV: &f🎲 8% &7| &f▲ 25% &7| &f⌛ 3s"
-  - "&d&lVI: &f🎲 9% &7| &f▲ 25% &7| &f⌛ 3s"
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "mythic"
 tier: mythic
+condition: "%attackerindex% > 1"
 requires: ["enchants/aegis"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
@@ -24,39 +18,39 @@ levels:
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
   2:
     chance: 5
     cooldown: 60
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
   3:
     chance: 6
     cooldown: 60
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
   4:
     chance: 7
     cooldown: 60
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
   5:
     chance: 8
     cooldown: 60
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
   6:
     chance: 9
     cooldown: 60
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 14 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
