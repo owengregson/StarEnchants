@@ -20,9 +20,9 @@ lore:
   - "&a{SUCCESS}% Success Rate"
   - "&c{FAILURE}% Failure Rate"
   - ""
-  - "{TIER_COLOR}{DESCRIPTION}"
+  - "&e{DESCRIPTION}"
   - ""
-  - "&7{KINDS} Enchantment"
+  - "&eApplies to: &r&f&n{KINDS}"
   - "&7Drag n' Drop on an item to apply."
 # {DESCRIPTION} word-wraps at the single universal width, config.yml lore.item-wrap — the same one the scrolls,
 # orb, dust, soul gem, traks, and set lore all use. There is no per-book width any more.
