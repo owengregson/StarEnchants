@@ -319,7 +319,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 h.fail("legacy.gearpoll.swapNoFreeRepair", "spawn on 1.8: " + t);
                 return;
             }
-            pollB.fireItemDamage(pl -> {
+            pollB.fireItemDamage((pl, armor, delta) -> {
                 if (pl.getUniqueId().equals(p.getUniqueId())) {
                     itemDamage.incrementAndGet();
                 }

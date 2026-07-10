@@ -3,6 +3,7 @@ package bootstrap.wire;
 import engine.sink.CombatTag;
 import engine.sink.DamageMarks;
 import engine.sink.FallingBlockCasts;
+import engine.sink.GuardianCasts;
 import engine.sink.OwnerZones;
 import engine.sink.TempEquip;
 
@@ -21,6 +22,7 @@ final class StoresModule {
         return FeatureModule.named("stores")
                 .quitSweep()
                 .stop("falling-block casts", FallingBlockCasts::clearAll) // in-flight falling-block impact bindings
+                .stop("guardian casts", GuardianCasts::clearAll)          // summoned-guardian owner bindings (Blood Link)
                 .stop("combat tags", CombatTag::clearAll)                 // supreme's out-of-combat fly
                 .stop("damage marks", DamageMarks::clearAll)              // reaper's Mark of the Reaper
                 .stop("owner zones", OwnerZones::clearAll)                // devil's Hell's Kitchen hellfire zones

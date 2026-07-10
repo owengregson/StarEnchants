@@ -73,6 +73,7 @@ public final class TriggerDispatch {
     public final int impact;  // fired by a landing FALLING_BLOCK via FallingBlockListener (victim = what it hit)
     public final int expGain; // fired by TriggerListeners.onExpChange; scales the PlayerExpChangeEvent's XP in place
     public final int use;     // §3.6 USE — fired only by the use-item right-click flow (UseItemService)
+    public final int guardianHurt; // fired by GuardianHurtListener when a summoned guardian is hurt (victim = the guardian)
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -112,6 +113,7 @@ public final class TriggerDispatch {
         this.impact = triggers.idOf("IMPACT").orElse(-1);
         this.expGain = triggers.idOf("EXP_GAIN").orElse(-1);
         this.use = triggers.idOf("USE").orElse(-1);
+        this.guardianHurt = triggers.idOf("GUARDIAN_HURT").orElse(-1);
     }
 
     /**
@@ -293,6 +295,22 @@ public final class TriggerDispatch {
         ActivationContext context =
                 new ActivationContext(owner, victim, null, victim.getLocation(), carriedDamage, null);
         fire(owner, impact, context, null);
+    }
+
+    /**
+     * Fire the GUARDIAN_HURT trigger — a summoned guardian owned by {@code owner} took {@code damage} (ADR-0049
+     * Blood Link). Runs {@code owner}'s GUARDIAN_HURT abilities (gated normally) with the hit damage exposed as
+     * {@code %damage%}; the guardian rides the context as the victim so facts (health, distance) can read it.
+     * Modeled on {@link #fireImpact}: runs on the guardian's region, {@code owner}'s worn state resolves from the
+     * immutable WornState, and any owner mutation (Blood Link's heal) routes through the sink.
+     */
+    public void fireGuardianHurt(Player owner, LivingEntity guardian, double damage) {
+        if (guardianHurt < 0 || owner == null || guardian == null) {
+            return;
+        }
+        ActivationContext context =
+                new ActivationContext(owner, guardian, null, guardian.getLocation(), damage, null);
+        fire(owner, guardianHurt, context, null);
     }
 
     /** Fire EXP_GAIN, then scale the gained XP by the accumulated EXP_MULTIPLY factor (recursion-safe: no new XP granted). */

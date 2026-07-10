@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Fires the ITEM_DAMAGE trigger on {@code PlayerItemDamageEvent} — the era-exclusive {@code overlay/modern}
@@ -24,7 +25,24 @@ public final class DurabilityTriggerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamage(PlayerItemDamageEvent event) {
         Player player = event.getPlayer();
-        dispatch.fire(player, dispatch.itemDamage,
-                new ActivationContext(player, null, null, player.getLocation()), event);
+        // ADR-0049: expose the durability points as %damage% and whether the worn armor (vs the held item) took the
+        // loss as %itemdamage.armor% — armor is now walked too (the trigger is neutral). getDamage() is int points.
+        boolean armor = wornArmor(player, event.getItem());
+        ActivationContext context = new ActivationContext(player, null, null, player.getLocation(),
+                event.getDamage(), null, 0, "", armor, 0, 0);
+        dispatch.fire(player, dispatch.itemDamage, context, event);
+    }
+
+    /** Whether {@code item} is one of {@code player}'s worn armor pieces (by reference/equals against the armor slots). */
+    private static boolean wornArmor(Player player, ItemStack item) {
+        if (item == null) {
+            return false;
+        }
+        for (ItemStack piece : player.getInventory().getArmorContents()) {
+            if (piece == item || item.equals(piece)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

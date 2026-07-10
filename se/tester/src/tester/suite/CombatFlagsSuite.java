@@ -108,7 +108,10 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                             new engine.stores.EngineStores(new VarStore(), new SuppressionStore(),
                                     new KnockbackControlStore(), keepStore, new engine.stores.TeleblockStore(),
                                     new engine.stores.ImmuneStore(), new engine.stores.CooldownStore(),
-                                    new engine.stores.ComboStore(), new engine.stores.WhyStore()), () -> 0L));
+                                    new engine.stores.ComboStore(), new engine.stores.WhyStore(),
+                                    new engine.stores.RecentAttackersStore(), new engine.stores.ReflectMarksStore(),
+                                    new engine.stores.OutgoingDebuffStore(), new engine.stores.DamageCapStore()),
+                                    () -> 0L));
                     keepSink.keepOnDeath(attacker, 100);
                     h.guard("combatflags.keepOnDeathArmsStore", () -> {
                         if (!keepStore.shouldKeep(attacker.getUniqueId(), 0L)) {
@@ -122,7 +125,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                     Location guardAt = at.clone();
                     ModernDispatchSink guardSink = new ModernDispatchSink(handles, engine.sink.SinkEnv.of(
                             EconomyService.NONE, SoulDebit.NONE, engine.stores.EngineStores.fresh(), () -> 0L));
-                    guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard");
+                    guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard", null); // null owner: no GUARDIAN_HURT binding in this check
                     guardSink.flush();
                     Scheduling.onRegionLater(guardAt, 2L, () -> {
                         h.guard("combatflags.guardSpawnsTargetingAttacker", () -> {

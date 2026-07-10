@@ -61,6 +61,7 @@ class RegistryWiringTest {
             "CombatListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
+            "GuardianHurtListener",
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
             "TeleblockListener", "ImmuneListener",
@@ -74,7 +75,7 @@ class RegistryWiringTest {
     private static final List<String> GOLDEN_STOPS = List.of(
             "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives",   // equip
             "soul aura task",                                                 // souls
-            "falling-block casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
+            "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
             "bStats");                                                        // coreStops
 
     private static final List<String> GOLDEN_MENUS = List.of("hub", "console", "mint", "apply", "enchants", "sets",
