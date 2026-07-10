@@ -57,6 +57,12 @@ public final class BuiltinVars {
                 .string("block.type")
                 .string("victim.mobtype")  // MythicMobs, via a soft hook (§N)
                 .string("actor.groundblock") // Material name of the block beneath the actor's feet (e.g. %actor.groundblock% contains "ICE")
+                // ADR-0049 gank/reflect/item-damage facts — appended (slots are append-only per §3.4).
+                .number("recentattackers")   // distinct attackers that hit the actor within the recent gank window
+                .number("attackerindex")     // 1-based first-seen order of THIS attacker among the actor's recent attackers (defense side); 0 if absent
+                .flag("actor.behindvictim")  // the actor is behind the victim's body facing (dot < 0); false with no victim
+                .string("damagecause")       // Bukkit DamageCause name of the triggering damage event; empty for non-damage
+                .flag("itemdamage.armor")    // ITEM_DAMAGE: the damaged item is a worn ARMOR piece (vs the held item)
                 .build();
     }
 }

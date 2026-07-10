@@ -90,6 +90,12 @@ public final class FactPopulator {
     private final int distanceSlot;       // actor↔victim distance in blocks (derived, Folia-guarded)
     private final int nearbyEnemiesSlot;  // living entities within NEARBY_RADIUS (derived, Folia-guarded)
     private final int victimInZoneSlot;   // victim inside an actor-owned MARK_ZONE (derived, Folia-guarded)
+    // ADR-0049: gank/cause/item-damage context facts (carried on the ActivationContext) + one derived (behindvictim).
+    private final int recentAttackersSlot;   // distinct recent attackers (from the context; sourced in CombatDispatch)
+    private final int attackerIndexSlot;     // 1-based first-seen order of THIS attacker (from the context)
+    private final int damageCauseSlot;       // DamageCause name of the triggering event (from the context)
+    private final int itemDamageArmorSlot;   // ITEM_DAMAGE: worn-armor vs held (from the context)
+    private final int actorBehindVictimSlot; // actor behind the victim's facing (derived, Folia-guarded)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -159,6 +165,11 @@ public final class FactPopulator {
         this.distanceSlot = slot(vocabulary, "distance", VarKind.NUM);
         this.nearbyEnemiesSlot = slot(vocabulary, "nearbyenemies", VarKind.NUM);
         this.victimInZoneSlot = slot(vocabulary, "victim.inzone", VarKind.BOOL);
+        this.recentAttackersSlot = slot(vocabulary, "recentattackers", VarKind.NUM);
+        this.attackerIndexSlot = slot(vocabulary, "attackerindex", VarKind.NUM);
+        this.damageCauseSlot = slot(vocabulary, "damagecause", VarKind.STR);
+        this.itemDamageArmorSlot = slot(vocabulary, "itemdamage.armor", VarKind.BOOL);
+        this.actorBehindVictimSlot = slot(vocabulary, "actor.behindvictim", VarKind.BOOL);
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
@@ -271,6 +282,20 @@ public final class FactPopulator {
         if (comboSlot >= 0 && mask.readsNum(comboSlot)) {
             facts.setNumber(comboSlot, context.combo());
         }
+        // ADR-0049 context facts: the gank counts + cause + item-damage flag are computed by the dispatcher on the
+        // firing thread and carried on the context (never a live entity read here), so they need no Folia guard.
+        if (recentAttackersSlot >= 0 && mask.readsNum(recentAttackersSlot)) {
+            facts.setNumber(recentAttackersSlot, context.recentAttackers());
+        }
+        if (attackerIndexSlot >= 0 && mask.readsNum(attackerIndexSlot)) {
+            facts.setNumber(attackerIndexSlot, context.attackerIndex());
+        }
+        if (damageCauseSlot >= 0 && mask.readsStr(damageCauseSlot)) {
+            facts.setString(damageCauseSlot, context.damageCauseName());
+        }
+        if (itemDamageArmorSlot >= 0 && mask.readsFlag(itemDamageArmorSlot)) {
+            facts.setFlag(itemDamageArmorSlot, context.itemDamageArmor());
+        }
         boolean wantsBlockType = blockTypeSlot >= 0 && mask.readsStr(blockTypeSlot);
         boolean wantsIsBlock = isBlockSlot >= 0 && mask.readsFlag(isBlockSlot);
         org.bukkit.block.Block block = context.block();
@@ -320,7 +345,8 @@ public final class FactPopulator {
         boolean wantsDistance = distanceSlot >= 0 && mask.readsNum(distanceSlot);
         boolean wantsInZone = victimInZoneSlot >= 0 && mask.readsFlag(victimInZoneSlot);
         boolean wantsNearby = nearbyEnemiesSlot >= 0 && mask.readsNum(nearbyEnemiesSlot);
-        if (!wantsDistance && !wantsInZone && !wantsNearby) {
+        boolean wantsBehind = actorBehindVictimSlot >= 0 && mask.readsFlag(actorBehindVictimSlot);
+        if (!wantsDistance && !wantsInZone && !wantsNearby && !wantsBehind) {
             return;
         }
         org.bukkit.entity.Player actor = context.actor();
@@ -351,10 +377,29 @@ public final class FactPopulator {
                 }
                 facts.setNumber(nearbyEnemiesSlot, count);
             }
+            if (wantsBehind) {
+                LivingEntity victim = context.victim();
+                if (victim != null && victim.getWorld() == actor.getWorld()) {
+                    facts.setFlag(actorBehindVictimSlot, behindVictim(actor, victim));
+                }
+            }
         } catch (RuntimeException unreadable) {
             // Cross-region actor (Folia) or a read failure — leave the derived facts defaulted.
             Regions.swallowed("FactPopulator.populateDerived", unreadable);
         }
+    }
+
+    /**
+     * Whether {@code actor} stands behind {@code victim}'s body facing (ADR-0049 Rogue): the horizontal angle
+     * between the victim's facing (yaw → direction, y flattened) and the victim→actor vector exceeds 90°, i.e.
+     * their dot is negative. Only the SIGN matters, so neither vector is normalised (a zero vector — same column,
+     * or a straight-up look — yields dot 0 = not behind).
+     */
+    private static boolean behindVictim(Player actor, LivingEntity victim) {
+        org.bukkit.util.Vector facing = victim.getLocation().getDirection().setY(0);
+        org.bukkit.util.Vector toActor = actor.getLocation().toVector()
+                .subtract(victim.getLocation().toVector()).setY(0);
+        return facing.dot(toActor) < 0;
     }
 
     /** Cross-version-stable {@code getMaxHealth()} (the Attribute API flipped at 1.21.3). */

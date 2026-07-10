@@ -16,7 +16,9 @@ import java.util.UUID;
 public record EngineStores(
         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
         KeepOnDeathStore keepOnDeath, TeleblockStore teleblock, ImmuneStore immune,
-        CooldownStore cooldowns, ComboStore combo, WhyStore why) {
+        CooldownStore cooldowns, ComboStore combo, WhyStore why,
+        RecentAttackersStore recentAttackers, ReflectMarksStore reflectMarks,
+        OutgoingDebuffStore outgoingDebuff, DamageCapStore damageCap) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -28,36 +30,44 @@ public record EngineStores(
         Objects.requireNonNull(cooldowns, "cooldowns");
         Objects.requireNonNull(combo, "combo");
         Objects.requireNonNull(why, "why");
+        Objects.requireNonNull(recentAttackers, "recentAttackers");
+        Objects.requireNonNull(reflectMarks, "reflectMarks");
+        Objects.requireNonNull(outgoingDebuff, "outgoingDebuff");
+        Objects.requireNonNull(damageCap, "damageCap");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
     public static EngineStores fresh() {
         return new EngineStores(new VarStore(), new SuppressionStore(), new KnockbackControlStore(),
                 new KeepOnDeathStore(), new TeleblockStore(), new ImmuneStore(),
-                new CooldownStore(), new ComboStore(), new WhyStore());
+                new CooldownStore(), new ComboStore(), new WhyStore(),
+                new RecentAttackersStore(), new ReflectMarksStore(), new OutgoingDebuffStore(), new DamageCapStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
     public List<PlayerScoped> all() {
-        return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why);
+        return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
+                recentAttackers, reflectMarks, outgoingDebuff, damageCap);
     }
 
     /**
      * The stores forgotten WHOLESALE on quit: private/transient/diagnostic state that a relog should not carry
-     * (writable vars, knockback control, keep-on-death, damage immunity, combo streak, the /se why ring). Clearing
-     * these on quit is the conservative direction — worn-derived buffs re-establish on rejoin.
+     * (writable vars, knockback control, keep-on-death, damage immunity, combo streak, the /se why ring, the
+     * recent-attacker gank window, and the self-armed Diminish cap). Clearing these on quit is the conservative
+     * direction — worn-derived buffs re-establish on rejoin and a self-armed cap only protects its owner.
      */
     public List<PlayerScoped> quitVolatile() {
-        return List.of(vars, knockback, keepOnDeath, immune, combo, why);
+        return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap);
     }
 
     /**
-     * The combat-integrity stores RETAINED across a relog: cooldowns and victim-applied teleblock/suppression
-     * windows. Only their already-elapsed entries are shed on quit, so a ~5-10s disconnect+reconnect cannot skip a
-     * live cooldown or shed a landed debuff (the monotonic tick keeps a surviving absolute expiry valid on rejoin).
+     * The combat-integrity stores RETAINED across a relog: cooldowns and victim-applied teleblock / suppression /
+     * reflect-mark / outgoing-debuff windows. Only their already-elapsed entries are shed on quit, so a ~5-10s
+     * disconnect+reconnect cannot skip a live cooldown or shed an opponent-landed window (the monotonic tick keeps a
+     * surviving absolute expiry valid on rejoin).
      */
     public List<RetainedStore> quitRetained() {
-        return List.of(cooldowns, teleblock, suppression);
+        return List.of(cooldowns, teleblock, suppression, reflectMarks, outgoingDebuff);
     }
 
     /**

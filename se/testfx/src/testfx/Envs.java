@@ -4,10 +4,14 @@ import engine.sink.SinkEnv;
 import engine.sink.SoulDebit;
 import engine.stores.ComboStore;
 import engine.stores.CooldownStore;
+import engine.stores.DamageCapStore;
 import engine.stores.EngineStores;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
+import engine.stores.OutgoingDebuffStore;
+import engine.stores.RecentAttackersStore;
+import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
@@ -43,6 +47,10 @@ public final class Envs {
         private CooldownStore cooldowns = new CooldownStore();
         private ComboStore combo = new ComboStore();
         private WhyStore why = new WhyStore();
+        private RecentAttackersStore recentAttackers = new RecentAttackersStore();
+        private ReflectMarksStore reflectMarks = new ReflectMarksStore();
+        private OutgoingDebuffStore outgoingDebuff = new OutgoingDebuffStore();
+        private DamageCapStore damageCap = new DamageCapStore();
         private EngineStores storesOverride = null;
 
         public SinkEnvBuilder economy(EconomyService economy) {
@@ -105,6 +113,26 @@ public final class Envs {
             return this;
         }
 
+        public SinkEnvBuilder recentAttackers(RecentAttackersStore recentAttackers) {
+            this.recentAttackers = recentAttackers;
+            return this;
+        }
+
+        public SinkEnvBuilder reflectMarks(ReflectMarksStore reflectMarks) {
+            this.reflectMarks = reflectMarks;
+            return this;
+        }
+
+        public SinkEnvBuilder outgoingDebuff(OutgoingDebuffStore outgoingDebuff) {
+            this.outgoingDebuff = outgoingDebuff;
+            return this;
+        }
+
+        public SinkEnvBuilder damageCap(DamageCapStore damageCap) {
+            this.damageCap = damageCap;
+            return this;
+        }
+
         /** Fully override the aggregate; the per-store slots are then ignored. */
         public SinkEnvBuilder stores(EngineStores stores) {
             this.storesOverride = stores;
@@ -114,7 +142,7 @@ public final class Envs {
         public SinkEnv build() {
             EngineStores stores = storesOverride != null ? storesOverride
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
-                            combo, why);
+                            combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap);
             return SinkEnv.of(economy, souls, stores, nowTicks);
         }
     }
