@@ -442,13 +442,15 @@ Set the player target's walk speed for a span of ticks, then restore the default
 
 ### PARTICLE
 
-Spawn particles at the activation location, or at each entity in `who` when given. `block` carries a block material as crack/dust data. No-op if there is no location.
+Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means "use `spread`". No-op if there is no location.
 
 - _affinity_: `REGION`
-- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material> } }`
+- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1> } }`
 - _param_ `particle` `particle`
 - _param_ `count` `int[0..]`
 - _param_ `block` `material`
+- _param_ `spread` `double[0..4]`
+- _param_ `spread-y` `double[-1..4]`
 - _target_ `who`: selector `HERE`
 - _example_: `{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: "@Victim" } }`
 
@@ -711,12 +713,16 @@ Send the block's drops straight to the breaker's inventory (this MINE activation
 
 ### TEMP_BLOCK
 
-Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals.
+Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise).
 
 - _affinity_: `REGION`
-- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
+- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
 - _param_ `shape` `enum{POINT|FOOTPRINT|COLUMN}`
 - _param_ `material` `material`
+- _param_ `material2` `material`
+- _param_ `material3` `material`
+- _param_ `material4` `material`
+- _param_ `palette-scale` `int[1..8]`
 - _param_ `ticks` `ticks[0..]`
 - _param_ `radius` `int[0..4]`
 - _param_ `height` `int[1..8]`
@@ -1011,6 +1017,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%nearbyenemies%` | NUM |
 | `%onfire%` | BOOL |
 | `%onground%` | BOOL |
+| `%ragestacks%` | NUM |
 | `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |
 | `%sprinting%` | BOOL |

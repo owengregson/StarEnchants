@@ -1495,9 +1495,9 @@
     },
   {
     "head": "PARTICLE",
-    "doc": "Spawn particles at the activation location, or at each entity in `who` when given. `block` carries a block material as crack/dust data. No-op if there is no location.",
+    "doc": "Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means \"use `spread`\". No-op if there is no location.",
     "affinity": "REGION",
-    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material> } }",
+    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1> } }",
     "example": "{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: \"@Victim\" } }",
     "params": [
       {
@@ -1534,6 +1534,30 @@
         "max": null,
         "enum": [],
         "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "spread",
+        "kind": "DOUBLE",
+        "label": "double[0..4]",
+        "required": false,
+        "default": "0.4",
+        "min": 0,
+        "max": 4,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "spread-y",
+        "kind": "DOUBLE",
+        "label": "double[-1..4]",
+        "required": false,
+        "default": "-1",
+        "min": -1,
+        "max": 4,
+        "enum": [],
+        "handle": null,
         "doc": ""
         }
       ],
@@ -2551,9 +2575,9 @@
     },
   {
     "head": "TEMP_BLOCK",
-    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals.",
+    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise).",
     "affinity": "REGION",
-    "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
+    "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
     "example": "{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }",
     "params": [
       {
@@ -2582,6 +2606,54 @@
         "max": null,
         "enum": [],
         "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "material2",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "material3",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "material4",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "palette-scale",
+        "kind": "INT",
+        "label": "int[1..8]",
+        "required": false,
+        "default": "2",
+        "min": 1,
+        "max": 8,
+        "enum": [],
+        "handle": null,
         "doc": ""
         },
       {
@@ -3576,6 +3648,10 @@
   {
     "name": "onground",
     "type": "BOOL"
+    },
+  {
+    "name": "ragestacks",
+    "type": "NUM"
     },
   {
     "name": "recentattackers",
