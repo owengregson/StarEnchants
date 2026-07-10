@@ -31,6 +31,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
     private static final String[] KEYS = {
         "soul.depositOnAnyKill", "soul.combineSumsAndRetires", "soul.splitCarvesAndKeeps",
         "soul.spendPersistsByIdentity", "soul.toggleOffFlushesSpend", "soul.multiGemDrainsLeastFirstAndCleansUp",
+        "soul.toggleDebounceRejectsSpam",
     };
 
     private final Plugin plugin;
@@ -111,6 +112,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         player.getInventory().clear();
                         ItemStack g = gem(souls, codec, 10);
                         player.getInventory().setItemInMainHand(g);
+                        souls.forgetToggleDebounce(player.getUniqueId()); // guards toggle far faster than a player can
                         if (souls.toggle(player) != SoulService.Toggle.ENABLED) {
                             throw new IllegalStateException("toggle-on did not enable soul mode");
                         }
@@ -131,8 +133,10 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         player.getInventory().clear();
                         ItemStack g = gem(souls, codec, 10);
                         player.getInventory().setItemInMainHand(g);
+                        souls.forgetToggleDebounce(player.getUniqueId());
                         souls.toggle(player); // ENABLED, seeds the pool from 10
                         souls.trySpend(player.getUniqueId(), 3); // spend 10 -> 7 (drain may be deferred)
+                        souls.forgetToggleDebounce(player.getUniqueId()); // bypass the 0.5s window between the two toggles
                         souls.toggle(player); // DISABLED — must flush the pending 3 to PDC before dropping the pool
                         SoulData after = codec.read(player.getInventory().getItemInMainHand());
                         if (after == null || after.souls() != 7) {
@@ -150,6 +154,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         ItemStack high = gem(souls, codec, 500);
                         player.getInventory().setItemInMainHand(low); // a gem with souls in hand → toggle enables
                         player.getInventory().setItem(18, high);
+                        souls.forgetToggleDebounce(player.getUniqueId());
                         if (souls.toggle(player) != SoulService.Toggle.ENABLED) {
                             throw new IllegalStateException("toggle did not enable soul mode");
                         }
@@ -176,6 +181,24 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         if (souls.bindingFor(player).isPresent()) {
                             throw new IllegalStateException("soul mode did not turn off when total souls hit zero");
                         }
+                    });
+
+                    // The manual-toggle debounce itself: a second toggle inside the 0.5s window is refused and
+                    // changes nothing (the seam above bypasses it; this pins that gameplay spam cannot strobe).
+                    h.guard("soul.toggleDebounceRejectsSpam", () -> {
+                        player.getInventory().clear();
+                        player.getInventory().setItemInMainHand(gem(souls, codec, 5));
+                        souls.forgetToggleDebounce(player.getUniqueId());
+                        if (souls.toggle(player) != SoulService.Toggle.ENABLED) {
+                            throw new IllegalStateException("first toggle did not enable soul mode");
+                        }
+                        if (souls.toggle(player) != SoulService.Toggle.TOO_FAST) {
+                            throw new IllegalStateException("an immediate second toggle was not debounced");
+                        }
+                        if (souls.bindingFor(player).isEmpty()) {
+                            throw new IllegalStateException("the debounced toggle must leave soul mode enabled");
+                        }
+                        souls.clear(player); // reset for the guards below (also drops the debounce entry)
                     });
 
                     // Deposit-on-any-kill: onKill DEFERS to the killer's thread, so assert after a few ticks.
