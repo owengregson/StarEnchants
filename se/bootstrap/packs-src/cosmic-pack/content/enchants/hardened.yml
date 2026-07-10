@@ -1,32 +1,29 @@
 # Imported from EliteEnchantments (id: hardened). Review before shipping.
 display: "Hardened"
 description:
-  - "&bWhen hit, restores durability to"
-  - "&byour armor."
-  - ""
-  - "&b&lI: &f🎲 6.25% &7| &f▲ +2 pt."
-  - "&b&lII: &f🎲 9% &7| &f▲ +2 pt."
-  - "&b&lIII: &f🎲 11% &7| &f▲ +2 pt."
-trigger: DEFENSE
+  - "&eYour armor sometimes refuses to"
+  - "&elose durability."
+trigger: ITEM_DAMAGE
 applies-to: [ARMOR]
 group: "rare"
 tier: rare
+condition: "%itemdamage.armor%"
 levels:
   1:
-    chance: 6.25
+    chance: 20
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   2:
-    chance: 9
+    chance: 35
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
   3:
-    chance: 11
+    chance: 50
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
+      - { CANCEL: {} }
