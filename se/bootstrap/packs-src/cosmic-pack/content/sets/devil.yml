@@ -53,19 +53,19 @@ bonuses:
     chance: 100
     effects:
       - { TEMP_BLOCK: { shape: FOOTPRINT, material: NETHERRACK, radius: 0, dy: -1, ticks: 40, airOnly: false, who: "@Self" } }
-  # Hell's Kitchen — 15% on hit (30s cd): lay a 7x7 hellish MAGMA floor under the victim for 5s (only over solid
-  # ground), with flame + a blaze roar, and stake out a wearer-owned hellfire zone over it (read by %victim.inzone%
-  # below). The zone also suppresses the magma's HOT_FLOOR burn, so the floor scorches the scene, not the health,
-  # of anyone caught standing on it.
+  # Hell's Kitchen — 15% on hit (30s cd): lay a 7x7 hellish magma-and-netherrack floor under the victim for 5s
+  # (only over solid ground), with flame + an infernal boom, and stake out a wearer-owned hellfire zone over it
+  # (read by %victim.inzone% below). The zone also suppresses the magma's HOT_FLOOR burn, so the floor scorches the
+  # scene, not the health, of anyone caught standing on it.
   - on: armor
     trigger: ATTACK
     chance: 15
     cooldown: 600
     effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: MAGMA_BLOCK, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_PREPARE_MIRROR", volume: 1.0, pitch: 0.75 } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "MAGMA_BLOCK", material2: "NETHERRACK", material3: "GLOWSTONE", material4: "NETHER_QUARTZ_ORE", palette-scale: 2, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
       - { MARK_ZONE: { radius: 4.5, duration: 100, who: "@Victim" } }
       - { PARTICLE: { particle: FLAME, count: 40 } }
-      - { SOUND: { sound: ENTITY_BLAZE_SHOOT } }
       - { MESSAGE: { channel: title, text: "&4&l** HELL'S KITCHEN **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&4&l** HELL'S KITCHEN &r&7[&f{VICTIM}&7] &r&4&l**" } }
   # While striking an enemy who is standing in one of our active hellfire zones, hit them for +35% (the floor
