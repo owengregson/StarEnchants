@@ -97,6 +97,50 @@ class ResolveStageTest {
     }
 
     @Test
+    void fallbackChainResolvesTheFirstCandidateThatIsKnown() {
+        SpecRegistry reg = potionRegistry();
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("POTION:STRENGTH|WEAKNESS:1:100"), d);
+
+        // Both resolve; the FIRST in the chain must win (distinct ids so a wrong pick is visible).
+        PlatformResolvers resolvers = FakeResolvers.builder()
+                .potionEffect("STRENGTH", 7).potionEffect("WEAKNESS", 9).build();
+        LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
+
+        assertFalse(d.hasErrors());
+        assertEquals(7, resolved.effects().get(0).args().integer("effect"));
+    }
+
+    @Test
+    void fallbackChainSkipsAnUnknownFirstCandidateAndUsesTheNext() {
+        SpecRegistry reg = potionRegistry();
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("POTION:BOGUS|STRENGTH:1:100"), d);
+
+        // BOGUS is absent on this version; the chain falls through to STRENGTH.
+        PlatformResolvers resolvers = FakeResolvers.builder().potionEffect("STRENGTH", 7).build();
+        LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
+
+        assertFalse(d.hasErrors());
+        assertEquals(7, resolved.effects().get(0).args().integer("effect"));
+    }
+
+    @Test
+    void fallbackChainWithNoKnownCandidateErrorsAndDropsTheEffect() {
+        SpecRegistry reg = potionRegistry();
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("POTION:BOGUS|ALSOBOGUS:1:100"), d);
+
+        LoweredAbility resolved =
+                new DefaultResolveStage(reg, PlatformResolvers.none()).resolve(lowered, d);
+
+        assertTrue(d.hasErrors());
+        assertTrue(d.all().get(0).is(DiagCode.E_UNKNOWN_HANDLE));
+        assertTrue(d.all().get(0).message().contains("BOGUS|ALSOBOGUS"), "the diagnostic carries the full chain");
+        assertTrue(resolved.effects().isEmpty(), "the whole-chain miss warn-and-skips the effect");
+    }
+
+    @Test
     void compilerResolvesHandlesEndToEnd() {
         SpecRegistry reg = potionRegistry();
         PlatformResolvers resolvers = FakeResolvers.builder().potionEffect("STRENGTH", 7).build();

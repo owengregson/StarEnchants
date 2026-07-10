@@ -20,6 +20,12 @@ import java.util.OptionalInt;
  * The default {@link ResolveStage}: resolves each effect's {@code HANDLE}-typed params from authored
  * tokens to interned ids via the injected {@link PlatformResolvers} (docs/architecture.md §9). Injection
  * keeps {@code se-compile} Bukkit-free — production wires {@code se-platform}'s resolvers, tests a fake.
+ *
+ * <p>A handle token may be a {@code A|B|C} FALLBACK CHAIN (any category): the candidates are resolved in
+ * order and the FIRST that resolves on this version wins, so {@code ENTITY_BREEZE_WIND_BURST|ENTITY_POLAR_BEAR_HURT}
+ * loads the modern sound on 1.21+ and the fallback on the floor — per-version selection at compile time, zero
+ * runtime cost. If NONE of the chain resolves the effect is warn-and-skipped ({@link DiagCode#E_UNKNOWN_HANDLE},
+ * message carrying the full chain).
  */
 public final class DefaultResolveStage implements ResolveStage {
 
@@ -65,7 +71,7 @@ public final class DefaultResolveStage implements ResolveStage {
             if (!(current instanceof String token)) {
                 continue; // already an int (re-resolved) or otherwise not a token
             }
-            OptionalInt id = lookup(type.handleCategory(), token);
+            OptionalInt id = resolveChain(type.handleCategory(), token);
             if (id.isEmpty()) {
                 diags.error(DiagCode.E_UNKNOWN_HANDLE,
                         "unknown " + type.handleCategory().label() + " '" + token
@@ -77,6 +83,27 @@ public final class DefaultResolveStage implements ResolveStage {
             args = args.with(p.name(), id.getAsInt());
         }
         return effect.withArgs(args); // keep the stamped kindId (ADR-0039)
+    }
+
+    /**
+     * Resolve a handle token, honouring the {@code A|B|C} fallback chain: the first candidate that resolves on this
+     * version wins (its id is interned by {@link #lookup}). A token with no {@code '|'} is the plain single lookup.
+     */
+    private OptionalInt resolveChain(HandleCategory category, String token) {
+        if (token.indexOf('|') < 0) {
+            return lookup(category, token);
+        }
+        for (String candidate : token.split("\\|")) {
+            String trimmed = candidate.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            OptionalInt id = lookup(category, trimmed);
+            if (id.isPresent()) {
+                return id;
+            }
+        }
+        return OptionalInt.empty();
     }
 
     private OptionalInt lookup(HandleCategory category, String token) {
