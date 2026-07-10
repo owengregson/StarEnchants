@@ -43,8 +43,10 @@ public final class GuardEffect implements EffectKind {
         int count = ctx.integer("count");
         int ttl = ctx.integer("ttl");
         String name = ctx.str("name");
+        // The activation actor owns each summoned guard (ADR-0049: a hit on it fires the owner's GUARDIAN_HURT).
+        java.util.UUID owner = ctx.actor() == null ? null : ctx.actor().getUniqueId();
         for (LivingEntity attacker : ctx.targets("who")) {
-            sink.guard(attacker, ctx.location(), type, count, ttl, name);
+            sink.guard(attacker, ctx.location(), type, count, ttl, name, owner);
         }
     }
 }

@@ -9,15 +9,21 @@ import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
 import schema.spec.D;
 
-/** {@code DAMAGE} — deal extra damage to the target(s) (§7). */
+/**
+ * {@code DAMAGE} — deal extra damage to the target(s) (§7): a flat {@code amount} and/or a
+ * {@code percent-of-max} of the TARGET's own maximum health (ADR-0049 Natures Wrath). The two combine (sum) when
+ * both are given; at least one should be non-zero.
+ */
 public final class DamageEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("DAMAGE")
-            .param("amount", D.DOUBLE.min(0))
+            .param("amount", D.DOUBLE.min(0).def(0))
+            .param("percent-of-max", D.DOUBLE.min(0).max(100).def(0))
             .target("who", T.VICTIM)
             .affinity(Affinity.CONTEXT_LOCAL)
-            .doc("Deal a flat amount of extra damage to the target.")
-            .example("{ DAMAGE: { amount: 6 } }")
+            .doc("Deal extra damage to the target: a flat amount and/or percent-of-max of the target's own "
+                    + "maximum health (they sum when both are given).")
+            .example("{ DAMAGE: { amount: 6, percent-of-max: 10 } }")
             .build();
 
     @Override
@@ -28,8 +34,14 @@ public final class DamageEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         double amount = ctx.dbl("amount");
+        double percentOfMax = ctx.dbl("percent-of-max");
         for (LivingEntity target : ctx.targets("who")) {
-            sink.damage(target, amount);
+            if (amount > 0) {
+                sink.damage(target, amount);
+            }
+            if (percentOfMax > 0) {
+                sink.damagePercentOfMax(target, percentOfMax);
+            }
         }
     }
 }

@@ -36,13 +36,26 @@ Clear active potion effects of one category from the target(s): ALL (default), H
 
 ### DAMAGE
 
-Deal a flat amount of extra damage to the target.
+Deal extra damage to the target: a flat amount and/or percent-of-max of the target's own maximum health (they sum when both are given).
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ DAMAGE: { amount: <double[0..]> } }`
+- _usage_: `{ DAMAGE: { amount: <double[0..]=0>, percent-of-max: <double[0..100]=0> } }`
 - _param_ `amount` `double[0..]`
+- _param_ `percent-of-max` `double[0..100]`
 - _target_ `who`: selector `VICTIM`
-- _example_: `{ DAMAGE: { amount: 6 } }`
+- _example_: `{ DAMAGE: { amount: 6, percent-of-max: 10 } }`
+
+### DAMAGE_CAP
+
+Cap the wearer's next incoming hit at factor times the last damage they took, for a duration in ticks; with reflect, the overflow above the cap is dealt back to the attacker (Diminish). Self-only; no cap is armed until at least one hit has been taken.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ DAMAGE_CAP: { factor: <double[0..]=0.5>, reflect: <bool=false>, duration: <ticks[0..]=100> } }`
+- _param_ `factor` `double[0..]`
+- _param_ `reflect` `bool`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }`
 
 ### DAMAGE_MOD
 
@@ -98,6 +111,14 @@ Modify durability of the player's held item and/or worn armor: restore (amount<0
 - _param_ `mode` `enum{restore|damage}`
 - _target_ `who`: selector `SELF`
 - _example_: `{ DURABILITY: { amount: -1, target: item } }`
+
+### ECHO_STRIKE
+
+Re-run the attack activation once over the same hit (enchants can re-proc); all damage folds into the one event. No effect off the attack side.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ ECHO_STRIKE: {} }`
+- _example_: `{ ECHO_STRIKE: {} }`
 
 ### EQUIP_SWAP
 
@@ -421,13 +442,15 @@ Set the player target's walk speed for a span of ticks, then restore the default
 
 ### PARTICLE
 
-Spawn particles at the activation location. No-op if there is no location.
+Spawn particles at the activation location, or at each entity in `who` when given. `block` carries a block material as crack/dust data. No-op if there is no location.
 
 - _affinity_: `REGION`
-- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1> } }`
+- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material> } }`
 - _param_ `particle` `particle`
 - _param_ `count` `int[0..]`
-- _example_: `{ PARTICLE: { particle: FLAME, count: 20 } }`
+- _param_ `block` `material`
+- _target_ `who`: selector `HERE`
+- _example_: `{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: "@Victim" } }`
 
 ### PARTICLE_LINE
 
@@ -487,14 +510,27 @@ Strip a potion effect from the target(s) and continuously deny it for `ticks` (a
 
 ### PROJECTILE
 
-Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS via the ARROW type).
+Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS via the ARROW type). For an explosive projectile, yield sets the blast (-1 = vanilla default) and incendiary lights fires.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ PROJECTILE: { type: <entity_type>, count: <int[1..]=1>, speed: <double[0..]=1.5> } }`
+- _usage_: `{ PROJECTILE: { type: <entity_type>, count: <int[1..]=1>, speed: <double[0..]=1.5>, yield: <double=-1>, incendiary: <bool=false> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `speed` `double[0..]`
-- _example_: `{ PROJECTILE: { type: ARROW, count: 3, speed: 1.5 } }`
+- _param_ `yield` `double`
+- _param_ `incendiary` `bool`
+- _example_: `{ PROJECTILE: { type: FIREBALL, count: 1, speed: 1.5, yield: 2, incendiary: true } }`
+
+### REFLECT
+
+Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ REFLECT: { percent: <double[0..]>, duration: <ticks[0..]=80> } }`
+- _param_ `percent` `double[0..]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ REFLECT: { percent: 20, duration: 80, who: "@Victim" } }`
 
 ### REMOVE_ARMOR
 
@@ -611,13 +647,15 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 
 ### SUPPRESS
 
-Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE). Default target the combat victim.
+Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE}>, key: <string>, duration: <ticks[0..]=200> } }`
+- _usage_: `{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }`
 - _param_ `scope` `enum{ENCHANT|GROUP|TYPE}`
 - _param_ `key` `string`
 - _param_ `duration` `ticks[0..]`
+- _param_ `mode` `enum{timed|next-hit}`
+- _param_ `charges` `int[1..]`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: "@Victim" } }`
 
@@ -715,6 +753,17 @@ Lay a temporary platform of a material under the target for a duration (then rev
 - _target_ `who`: selector `SELF`
 - _example_: `{ WALKER: { material: ICE, ticks: 80, radius: 1 } }`
 
+### WEAKEN
+
+Debuff the target's outgoing damage by a percent for a duration in ticks (non-stacking). Player targets only; default target the combat victim.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ WEAKEN: { percent: <double[0..]>, duration: <ticks[0..]=100> } }`
+- _param_ `percent` `double[0..]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ WEAKEN: { percent: 15, duration: 100, who: "@Victim" } }`
+
 ## Selectors
 
 Choose WHO an effect targets (`@Self`, `@Victim`, `@Aoe`, …). Routing is the effect's; a selector carries no affinity.
@@ -739,13 +788,14 @@ Every player within r blocks of the target, except the activator.
 
 ### AOE
 
-Living entities within r blocks of the target, except the activator; optionally filtered and capped.
+Living entities within r blocks of the target, except the activator; optionally filtered, capped, and with the combat victim excluded.
 
-- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0> } }`
+- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }`
 - _param_ `r` `double[0..]` — radius in blocks
 - _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to include
 - _param_ `limit` `int[0..]` — max targets, nearest first (0 = unlimited)
-- _example_: `@Aoe{r=6, filter=MONSTERS}`
+- _param_ `exclude` `enum{none|victim}` — remove the combat victim from the matches (Destruction hits everyone BUT the primary victim)
+- _example_: `@Aoe{r=6, filter=MONSTERS, exclude=victim}`
 
 ### ATTACKER
 
@@ -882,7 +932,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `DEATH` | NEUTRAL | false | true | false |
 | `HELD` | NEUTRAL | true | false | false |
 | `BREAK` | NEUTRAL | true | false | false |
-| `ITEM_DAMAGE` | NEUTRAL | true | false | false |
+| `ITEM_DAMAGE` | NEUTRAL | false | true | false |
 | `EAT` | NEUTRAL | true | false | false |
 | `FISHING` | NEUTRAL | true | false | false |
 | `INTERACT` | NEUTRAL | true | false | false |
@@ -893,6 +943,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `IMPACT` | ATTACK | false | true | true |
 | `EXP_GAIN` | NEUTRAL | false | true | false |
 | `USE` | NEUTRAL | true | false | false |
+| `GUARDIAN_HURT` | NEUTRAL | false | true | false |
 
 ## Conditions
 
@@ -934,6 +985,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 
 | Variable | Type |
 | --- | --- |
+| `%actor.behindvictim%` | BOOL |
 | `%actor.food%` | NUM |
 | `%actor.gamemode%` | STR |
 | `%actor.groundblock%` | STR |
@@ -945,17 +997,21 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%actor.totalexp%` | NUM |
 | `%actor.type%` | STR |
 | `%actor.world%` | STR |
+| `%attackerindex%` | NUM |
 | `%block.type%` | STR |
 | `%blocking%` | BOOL |
 | `%combo%` | NUM |
 | `%damage%` | NUM |
+| `%damagecause%` | STR |
 | `%distance%` | NUM |
 | `%flying%` | BOOL |
 | `%gliding%` | BOOL |
 | `%isblock%` | BOOL |
+| `%itemdamage.armor%` | BOOL |
 | `%nearbyenemies%` | NUM |
 | `%onfire%` | BOOL |
 | `%onground%` | BOOL |
+| `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |
 | `%sprinting%` | BOOL |
 | `%swimming%` | BOOL |

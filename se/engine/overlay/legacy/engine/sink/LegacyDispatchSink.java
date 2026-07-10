@@ -348,24 +348,39 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     @Override
     public void particle(Location at, int particleId, int count) {
         // 1.8: no Bukkit Particle — spawn via the NMS particle packet sent to players in the same world.
-        regionOp(at, () -> {
-            EnumParticle resolved = particle(particleId);
-            World world = at.getWorld();
-            if (resolved == null || world == null) {
-                return;
+        regionOp(at, () -> sendParticleAt(at, particleId, count));
+    }
+
+    @Override
+    public void particle(Location at, int particleId, int count, int blockMaterialId) {
+        // 1.8 has no block-crack particle data — the block material is dropped; a plain burst is the fallback (§10).
+        regionOp(at, () -> sendParticleAt(at, particleId, count));
+    }
+
+    @Override
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId) {
+        // Entity-anchored: read the target's location AT DISPATCH on its own region thread; block data dropped as above.
+        entityOp(target, () -> sendParticleAt(target.getLocation(), particleId, count));
+    }
+
+    /** Send a plain NMS particle packet at {@code at} to nearby players (the shared body for the particle overloads). */
+    private void sendParticleAt(Location at, int particleId, int count) {
+        EnumParticle resolved = particle(particleId);
+        World world = at.getWorld();
+        if (resolved == null || world == null) {
+            return;
+        }
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
+                resolved, true,
+                (float) at.getX(), (float) at.getY(), (float) at.getZ(),
+                0f, 0f, 0f, // no offset spread
+                0f,         // particle data/speed
+                Math.max(1, count));
+        for (Player viewer : world.getPlayers()) {
+            if (viewer.getLocation().distanceSquared(at) <= 64 * 64) { // vanilla long-distance cutoff
+                sendPacket(viewer, packet);
             }
-            PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
-                    resolved, true,
-                    (float) at.getX(), (float) at.getY(), (float) at.getZ(),
-                    0f, 0f, 0f, // no offset spread
-                    0f,         // particle data/speed
-                    Math.max(1, count));
-            for (Player viewer : world.getPlayers()) {
-                if (viewer.getLocation().distanceSquared(at) <= 64 * 64) { // vanilla long-distance cutoff
-                    sendPacket(viewer, packet);
-                }
-            }
-        });
+        }
     }
 
     @Override

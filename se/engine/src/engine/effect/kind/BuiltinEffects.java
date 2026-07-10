@@ -93,6 +93,12 @@ public final class BuiltinEffects {
                 .register(new MarkZoneEffect()) // actor-owned area zone read by %victim.inzone% (devil hellfire)
                 // EXP_GAIN read-back: scale the triggering PlayerExpChangeEvent's XP in the listener, never grant new XP.
                 .register(new ExpMultiplyEffect())
+                // ADR-0049 combat primitives: per-player marks the combat dispatcher reads at the fold-commit site,
+                // plus the attacker-side echo re-proc. Order is only for reading (lookup is by head).
+                .register(new ReflectEffect())    // Hex: reflect a portion of the target's outgoing damage back onto them
+                .register(new WeakenEffect())     // Destruction: non-stacking outgoing-damage debuff on the target
+                .register(new DamageCapEffect())  // Diminish: cap the wearer's next hit at a fraction of the last taken
+                .register(new EchoStrikeEffect()) // Double Strike: re-run the attacker walk once over the same hit
                 .build();
     }
 }

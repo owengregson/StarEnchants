@@ -22,10 +22,13 @@ public final class SuppressEffect implements EffectKind {
             .param("scope", D.enumOf("ENCHANT", "GROUP", "TYPE"))
             .param("key", D.STRING)
             .param("duration", D.TICKS.def(200))
+            .param("mode", D.enumOf("timed", "next-hit").def("timed"))
+            .param("charges", D.INT.min(1).def(1))
             .target("who", T.VICTIM)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Disable a target's enchant/group/type (the key) for a duration in ticks "
-                    + "(DISABLE_ENCHANT/GROUP/TYPE). Default target the combat victim.")
+                    + "(DISABLE_ENCHANT/GROUP/TYPE). mode: timed (the duration window) or next-hit (a one-shot that "
+                    + "clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.")
             .example("{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: \"@Victim\" } }")
             .build();
 
@@ -39,9 +42,11 @@ public final class SuppressEffect implements EffectKind {
         int scopeKind = ctx.integer("scope"); // erased to ScopeKinds.ENCHANT/GROUP/TYPE (0/1/2)
         int keyId = ctx.integer("key");       // erased to the cooldown-scope interner id
         int duration = ctx.integer("duration");
+        boolean nextHit = ctx.integer("mode") == 1; // enum erased to ordinal: 0=timed, 1=next-hit
+        int charges = ctx.integer("charges");
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {
-                sink.suppress(p, scopeKind, keyId, duration, ctx.sourceDefId());
+                sink.suppress(p, scopeKind, keyId, duration, ctx.sourceDefId(), nextHit, charges);
             }
         }
     }

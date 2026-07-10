@@ -71,17 +71,80 @@
     },
   {
     "head": "DAMAGE",
-    "doc": "Deal a flat amount of extra damage to the target.",
+    "doc": "Deal extra damage to the target: a flat amount and/or percent-of-max of the target's own maximum health (they sum when both are given).",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ DAMAGE: { amount: <double[0..]> } }",
-    "example": "{ DAMAGE: { amount: 6 } }",
+    "usage": "{ DAMAGE: { amount: <double[0..]=0>, percent-of-max: <double[0..100]=0> } }",
+    "example": "{ DAMAGE: { amount: 6, percent-of-max: 10 } }",
     "params": [
       {
         "name": "amount",
         "kind": "DOUBLE",
         "label": "double[0..]",
-        "required": true,
-        "default": null,
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "percent-of-max",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "DAMAGE_CAP",
+    "doc": "Cap the wearer's next incoming hit at factor times the last damage they took, for a duration in ticks; with reflect, the overflow above the cap is dealt back to the attacker (Diminish). Self-only; no cap is armed until at least one hit has been taken.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ DAMAGE_CAP: { factor: <double[0..]=0.5>, reflect: <bool=false>, duration: <ticks[0..]=100> } }",
+    "example": "{ DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }",
+    "params": [
+      {
+        "name": "factor",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "reflect",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
         "min": 0,
         "max": null,
         "enum": [],
@@ -92,7 +155,7 @@
     "targets": [
       {
         "name": "who",
-        "selector": "VICTIM"
+        "selector": "SELF"
         }
       ]
     },
@@ -322,6 +385,15 @@
         "selector": "SELF"
         }
       ]
+    },
+  {
+    "head": "ECHO_STRIKE",
+    "doc": "Re-run the attack activation once over the same hit (enchants can re-proc); all damage folds into the one event. No effect off the attack side.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ ECHO_STRIKE: {} }",
+    "example": "{ ECHO_STRIKE: {} }",
+    "params": [],
+    "targets": []
     },
   {
     "head": "EQUIP_SWAP",
@@ -1423,10 +1495,10 @@
     },
   {
     "head": "PARTICLE",
-    "doc": "Spawn particles at the activation location. No-op if there is no location.",
+    "doc": "Spawn particles at the activation location, or at each entity in `who` when given. `block` carries a block material as crack/dust data. No-op if there is no location.",
     "affinity": "REGION",
-    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1> } }",
-    "example": "{ PARTICLE: { particle: FLAME, count: 20 } }",
+    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material> } }",
+    "example": "{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: \"@Victim\" } }",
     "params": [
       {
         "name": "particle",
@@ -1451,9 +1523,26 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "block",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
         }
       ],
-    "targets": []
+    "targets": [
+      {
+        "name": "who",
+        "selector": "HERE"
+        }
+      ]
     },
   {
     "head": "PARTICLE_LINE",
@@ -1757,10 +1846,10 @@
     },
   {
     "head": "PROJECTILE",
-    "doc": "Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS via the ARROW type).",
+    "doc": "Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS via the ARROW type). For an explosive projectile, yield sets the blast (-1 = vanilla default) and incendiary lights fires.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ PROJECTILE: { type: <entity_type>, count: <int[1..]=1>, speed: <double[0..]=1.5> } }",
-    "example": "{ PROJECTILE: { type: ARROW, count: 3, speed: 1.5 } }",
+    "usage": "{ PROJECTILE: { type: <entity_type>, count: <int[1..]=1>, speed: <double[0..]=1.5>, yield: <double=-1>, incendiary: <bool=false> } }",
+    "example": "{ PROJECTILE: { type: FIREBALL, count: 1, speed: 1.5, yield: 2, incendiary: true } }",
     "params": [
       {
         "name": "type",
@@ -1797,9 +1886,72 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "yield",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "-1",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "incendiary",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
         }
       ],
     "targets": []
+    },
+  {
+    "head": "REFLECT",
+    "doc": "Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ REFLECT: { percent: <double[0..]>, duration: <ticks[0..]=80> } }",
+    "example": "{ REFLECT: { percent: 20, duration: 80, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "percent",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "80",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
     },
   {
     "head": "REMOVE_ARMOR",
@@ -2167,9 +2319,9 @@
     },
   {
     "head": "SUPPRESS",
-    "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE). Default target the combat victim.",
+    "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE}>, key: <string>, duration: <ticks[0..]=200> } }",
+    "usage": "{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }",
     "example": "{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: \"@Victim\" } }",
     "params": [
       {
@@ -2207,6 +2359,33 @@
         "required": false,
         "default": "200",
         "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{timed|next-hit}",
+        "required": false,
+        "default": "timed",
+        "min": null,
+        "max": null,
+        "enum": [
+          "timed",
+          "next-hit"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "charges",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
         "max": null,
         "enum": [],
         "handle": null,
@@ -2629,6 +2808,45 @@
         "selector": "SELF"
         }
       ]
+    },
+  {
+    "head": "WEAKEN",
+    "doc": "Debuff the target's outgoing damage by a percent for a duration in ticks (non-stacking). Player targets only; default target the combat victim.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ WEAKEN: { percent: <double[0..]>, duration: <ticks[0..]=100> } }",
+    "example": "{ WEAKEN: { percent: 15, duration: 100, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "percent",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
     }
   ],
 "selectors": [
@@ -2698,9 +2916,9 @@
     },
   {
     "head": "AOE",
-    "doc": "Living entities within r blocks of the target, except the activator; optionally filtered and capped.",
-    "usage": "{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0> } }",
-    "example": "@Aoe{r=6, filter=MONSTERS}",
+    "doc": "Living entities within r blocks of the target, except the activator; optionally filtered, capped, and with the combat victim excluded.",
+    "usage": "{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }",
+    "example": "@Aoe{r=6, filter=MONSTERS, exclude=victim}",
     "params": [
       {
         "name": "r",
@@ -2744,6 +2962,21 @@
         "enum": [],
         "handle": null,
         "doc": "max targets, nearest first (0 = unlimited)"
+        },
+      {
+        "name": "exclude",
+        "kind": "ENUM",
+        "label": "enum{none|victim}",
+        "required": false,
+        "default": "none",
+        "min": null,
+        "max": null,
+        "enum": [
+          "none",
+          "victim"
+          ],
+        "handle": null,
+        "doc": "remove the combat victim from the matches (Destruction hits everyone BUT the primary victim)"
         }
       ]
     },
@@ -3097,8 +3330,8 @@
   {
     "name": "ITEM_DAMAGE",
     "direction": "NEUTRAL",
-    "usesHeld": true,
-    "scansEquipment": false,
+    "usesHeld": false,
+    "scansEquipment": true,
     "needsTarget": false
     },
   {
@@ -3170,6 +3403,13 @@
     "usesHeld": true,
     "scansEquipment": false,
     "needsTarget": false
+    },
+  {
+    "name": "GUARDIAN_HURT",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
     }
   ],
 "conditions": {
@@ -3234,6 +3474,10 @@
   },
 "variables": [
   {
+    "name": "actor.behindvictim",
+    "type": "BOOL"
+    },
+  {
     "name": "actor.food",
     "type": "NUM"
     },
@@ -3278,6 +3522,10 @@
     "type": "STR"
     },
   {
+    "name": "attackerindex",
+    "type": "NUM"
+    },
+  {
     "name": "block.type",
     "type": "STR"
     },
@@ -3292,6 +3540,10 @@
   {
     "name": "damage",
     "type": "NUM"
+    },
+  {
+    "name": "damagecause",
+    "type": "STR"
     },
   {
     "name": "distance",
@@ -3310,6 +3562,10 @@
     "type": "BOOL"
     },
   {
+    "name": "itemdamage.armor",
+    "type": "BOOL"
+    },
+  {
     "name": "nearbyenemies",
     "type": "NUM"
     },
@@ -3320,6 +3576,10 @@
   {
     "name": "onground",
     "type": "BOOL"
+    },
+  {
+    "name": "recentattackers",
+    "type": "NUM"
     },
   {
     "name": "sneaking",

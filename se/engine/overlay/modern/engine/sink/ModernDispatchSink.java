@@ -279,13 +279,40 @@ public final class ModernDispatchSink extends DispatchSinkBase {
 
     @Override
     public void particle(Location at, int particleId, int count) {
-        regionOp(at, () -> {
-            Particle resolved = handles.particle(particleId);
-            World world = at.getWorld();
-            if (resolved != null && world != null) {
-                world.spawnParticle(resolved, at, count);
+        particle(at, particleId, count, -1);
+    }
+
+    @Override
+    public void particle(Location at, int particleId, int count, int blockMaterialId) {
+        Location pos = at.clone(); // own the point: a WAIT tier can defer this to a later tick
+        regionOp(pos, () -> spawnParticleAt(pos, particleId, count, blockMaterialId));
+    }
+
+    @Override
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId) {
+        // Entity-anchored (the PARTICLE who-slot): read the target's location AT DISPATCH on its own region thread.
+        entityOp(target, () -> spawnParticleAt(target.getLocation(), particleId, count, blockMaterialId));
+    }
+
+    /** Spawn a resolved particle at {@code at}, carrying BLOCK_CRACK/BLOCK_DUST block data when a material is given. */
+    private void spawnParticleAt(Location at, int particleId, int count, int blockMaterialId) {
+        Particle resolved = handles.particle(particleId);
+        World world = at.getWorld();
+        if (resolved == null || world == null) {
+            return;
+        }
+        if (blockMaterialId >= 0) {
+            Material block = material(blockMaterialId);
+            if (block != null && block.isBlock()) {
+                try {
+                    world.spawnParticle(resolved, at, count, block.createBlockData());
+                    return;
+                } catch (IllegalArgumentException notBlockData) {
+                    // the resolved particle takes no block data — fall through to a plain burst
+                }
             }
-        });
+        }
+        world.spawnParticle(resolved, at, count);
     }
 
     @Override

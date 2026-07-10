@@ -6,7 +6,12 @@ effect CANCEL
 effect CURE
   param category ENUM optional min=- max=- enum=ALL,BENEFICIAL,HARMFUL,NEUTRAL handle=- default=ALL
 effect DAMAGE
-  param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+  param amount DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param percent-of-max DOUBLE optional min=0 max=100 enum=- handle=- default=0
+effect DAMAGE_CAP
+  param factor DOUBLE optional min=0 max=- enum=- handle=- default=0.5
+  param reflect BOOL optional min=- max=- enum=- handle=- default=false
+  param duration TICKS optional min=0 max=- enum=- handle=- default=100
 effect DAMAGE_MOD
   param side ENUM required min=- max=- enum=attack,defense handle=- default=-
   param mode ENUM optional min=- max=- enum=add,flat handle=- default=add
@@ -24,6 +29,7 @@ effect DURABILITY
   param amount INT optional min=- max=- enum=- handle=- default=-1
   param target ENUM optional min=- max=- enum=all,armor,item handle=- default=item
   param mode ENUM optional min=- max=- enum=damage,restore handle=- default=restore
+effect ECHO_STRIKE
 effect EQUIP_SWAP
   param slot ENUM optional min=- max=- enum=boots,chestplate,helmet,leggings handle=- default=helmet
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
@@ -110,6 +116,7 @@ effect MOVEMENT_SPEED
 effect PARTICLE
   param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
   param count INT optional min=0 max=- enum=- handle=- default=1
+  param block HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
 effect PARTICLE_LINE
   param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
   param r INT optional min=0 max=255 enum=- handle=- default=255
@@ -138,6 +145,11 @@ effect PROJECTILE
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=1.5
+  param yield DOUBLE optional min=- max=- enum=- handle=- default=-1
+  param incendiary BOOL optional min=- max=- enum=- handle=- default=false
+effect REFLECT
+  param percent DOUBLE required min=0 max=- enum=- handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=80
 effect REMOVE_ARMOR
 effect REMOVE_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
@@ -171,6 +183,8 @@ effect SUPPRESS
   param scope ENUM required min=- max=- enum=ENCHANT,GROUP,TYPE handle=- default=-
   param key STRING required min=- max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=200
+  param mode ENUM optional min=- max=- enum=next-hit,timed handle=- default=timed
+  param charges INT optional min=1 max=- enum=- handle=- default=1
 effect SUPPRESS_IMMUNE
   param chance INT optional min=0 max=100 enum=- handle=- default=100
 effect TELEBLOCK
@@ -202,6 +216,9 @@ effect WALKER
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60
   param radius INT optional min=0 max=4 enum=- handle=- default=1
   param replace ENUM optional min=- max=- enum=AIR_ONLY,ANY,REPLACEABLE handle=- default=REPLACEABLE
+effect WEAKEN
+  param percent DOUBLE required min=0 max=- enum=- handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=100
 [selectors]
 selector ADD
   param x DOUBLE optional min=- max=- enum=- handle=- default=0
@@ -213,6 +230,7 @@ selector AOE
   param r DOUBLE optional min=0 max=- enum=- handle=- default=4
   param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
   param limit INT optional min=0 max=- enum=- handle=- default=0
+  param exclude ENUM optional min=- max=- enum=none,victim handle=- default=none
 selector ATTACKER
 selector BLOCK
   param distance DOUBLE optional min=0 max=- enum=- handle=- default=5
@@ -252,6 +270,7 @@ trigger EXP_GAIN
 trigger FALL
 trigger FIRE
 trigger FISHING
+trigger GUARDIAN_HURT
 trigger HELD
 trigger IMPACT
 trigger INTERACT
@@ -279,6 +298,7 @@ flow force
 flow stop
 flowmod chance
 [vars]
+var actor.behindvictim BOOL
 var actor.food NUM
 var actor.gamemode STR
 var actor.groundblock STR
@@ -290,17 +310,21 @@ var actor.maxhealth NUM
 var actor.totalexp NUM
 var actor.type STR
 var actor.world STR
+var attackerindex NUM
 var block.type STR
 var blocking BOOL
 var combo NUM
 var damage NUM
+var damagecause STR
 var distance NUM
 var flying BOOL
 var gliding BOOL
 var isblock BOOL
+var itemdamage.armor BOOL
 var nearbyenemies NUM
 var onfire BOOL
 var onground BOOL
+var recentattackers NUM
 var sneaking BOOL
 var sprinting BOOL
 var swimming BOOL
