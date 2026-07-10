@@ -16,12 +16,12 @@ levels:
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
+      - { PARTICLE: { particle: "CRIT", count: 8, who: "@Attacker" } }
       - { DAMAGE: { amount: 5, who: "@Attacker" } }
   2:
     chance: 20
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
+      - { PARTICLE: { particle: "CRIT", count: 8, who: "@Attacker" } }
       - { DAMAGE: { amount: 7, who: "@Attacker" } }

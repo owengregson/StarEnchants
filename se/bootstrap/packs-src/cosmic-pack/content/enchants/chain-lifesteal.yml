@@ -13,33 +13,33 @@ levels:
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6 } }
+      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
       - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
   2:
     chance: 5
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6 } }
+      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
       - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
   3:
     chance: 7.5
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6 } }
+      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
       - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
   4:
     chance: 9
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6 } }
+      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
       - { MODIFY_HEALTH: { amount: "3 + %nearbyenemies%", mode: "give", who: "@Self" } }
   5:
     chance: 12
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6 } }
+      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
       - { MODIFY_HEALTH: { amount: "3 + %nearbyenemies%", mode: "give", who: "@Self" } }
