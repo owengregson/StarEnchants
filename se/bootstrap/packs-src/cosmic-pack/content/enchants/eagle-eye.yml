@@ -9,35 +9,35 @@ group: "epic"
 tier: epic
 levels:
   1:
-    chance: 3.25
+    chance: 8
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 0.9, pitch: 1.4 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
   2:
-    chance: 5.25
+    chance: 11
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 0.9, pitch: 1.4 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
   3:
-    chance: 7.25
+    chance: 14
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 0.9, pitch: 1.4 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:2 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
   4:
-    chance: 9.25
+    chance: 17
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 0.9, pitch: 1.4 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:2 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
   5:
-    chance: 11.25
+    chance: 20
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 0.9, pitch: 1.4 } }

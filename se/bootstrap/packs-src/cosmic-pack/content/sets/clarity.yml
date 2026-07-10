@@ -36,7 +36,7 @@ weapon:
     - "&dA blade forged in the light of clarity, pure and unyielding, cutting through the darkness with ease."
     - ""
     - "&d&lCLARITY WEAPON BONUS"
-    - "&d* Deal 15% more damage to all enemies"
+    - "&d* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Clarity set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -49,7 +49,7 @@ bonuses:
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }
   # Bless — strip HARMFUL effects continuously while the full set is worn (~4x/sec), so the wearer can never
   # HOLD a debuff (their own or an enemy's). Positives are untouched. The "Bless Passive Ability" lore line.
   - on: armor

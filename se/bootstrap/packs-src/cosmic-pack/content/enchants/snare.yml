@@ -9,32 +9,32 @@ group: "rare"
 tier: rare
 levels:
   1:
-    chance: 4
-    cooldown: 80
+    chance: 12
+    cooldown: 100
     effects:
       - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
   2:
-    chance: 6
-    cooldown: 80
+    chance: 16
+    cooldown: 100
     effects:
       - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
   3:
-    chance: 8
-    cooldown: 80
+    chance: 20
+    cooldown: 100
     effects:
       - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
   4:
-    chance: 10
-    cooldown: 80
+    chance: 24
+    cooldown: 100
     effects:
       - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }

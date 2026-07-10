@@ -9,48 +9,48 @@ group: "legendary"
 tier: legendary
 levels:
   1:
-    chance: 5
-    cooldown: 40
+    chance: 25
+    cooldown: 60
     condition: "%attackerindex% > 7"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
   2:
-    chance: 6
-    cooldown: 40
+    chance: 30
+    cooldown: 60
     condition: "%attackerindex% > 6"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
   3:
-    chance: 7
-    cooldown: 40
+    chance: 35
+    cooldown: 60
     condition: "%attackerindex% > 5"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
   4:
-    chance: 8
-    cooldown: 40
+    chance: 40
+    cooldown: 60
     condition: "%attackerindex% > 4"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
   5:
-    chance: 9
-    cooldown: 40
+    chance: 45
+    cooldown: 60
     condition: "%attackerindex% > 3"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
   6:
-    chance: 10
-    cooldown: 40
+    chance: 50
+    cooldown: 60
     condition: "%attackerindex% > 2"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }

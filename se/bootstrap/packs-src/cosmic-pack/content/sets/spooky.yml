@@ -15,7 +15,7 @@ armor:
     - ""
     - "&6&lSPOOKY SET BONUS"
     - "&6* Deal 20% more damage to all enemies."
-    - "&6* Enemies deal 25% less damage to you."
+    - "&6* Enemies deal 12% less damage to you."
     - "&6* Scarecrow Ability"
     - ""
     - "&6&lSCARECROW"
@@ -36,7 +36,7 @@ weapon:
     - "&6Unearth the power of the dead with the Gravedigger, a weapon that delves into the shadows and stirs the restless spirits."
     - ""
     - "&6&lSPOOKY WEAPON BONUS"
-    - "&6* Deal 10% more damage to all enemies"
+    - "&6* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Spooky set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -44,7 +44,7 @@ bonuses:
     trigger: DEFENSE
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 12 } }
   # Scarecrow — 15% on hit (30s cd; mob and player targets cool down separately): pumpkin-head the victim for 3s.
   # Removing the helmet drops their set
   # below complete, so their helmet's set bonus deactivates for the window. Death/quit stay normal — the real
@@ -63,6 +63,6 @@ bonuses:
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
-      - { POTION: { effect: BLINDNESS, level: 2, duration: 100, who: "@Victim" } }
-      - { POTION: { effect: SLOWNESS, level: 1, duration: 100, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }
+      - { POTION: { effect: BLINDNESS, level: 1, duration: 40, who: "@Victim" } }
+      - { POTION: { effect: SLOWNESS, level: 1, duration: 40, who: "@Victim" } }

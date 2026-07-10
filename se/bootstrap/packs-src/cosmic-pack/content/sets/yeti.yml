@@ -45,11 +45,11 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
-  # Fortified — 25% on being hit (30s cd): negate the hit and freeze the ground under the attacker for 3s — a
+  # Fortified — 20% on being hit (30s cd): negate the hit and freeze the ground under the attacker for 3s — a
   # mixed frost-palette footprint that replaces only solid ground (never air), so it reads as a floor, not a wall.
   - on: armor
     trigger: DEFENSE
-    chance: 25
+    chance: 20
     cooldown: 600
     effects:
       - { SOUND: { sound: "ENTITY_BREEZE_HURT|ENTITY_POLAR_BEAR_HURT", volume: 1.0, pitch: 1.0 } }

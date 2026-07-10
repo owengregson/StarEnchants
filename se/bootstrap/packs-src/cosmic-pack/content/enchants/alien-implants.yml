@@ -6,7 +6,7 @@ description:
   - "&emore often."
   - "&c&l(!)&r &7Requires &eImplants"
 trigger: REPEATING
-repeat: 40
+repeat: 80
 applies-to: [HELMET]
 group: "mythic"
 tier: mythic
@@ -14,23 +14,20 @@ requires: ["enchants/implants"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 30
+    chance: 25
     effects:
-      - { SOUND: { sound: "BLOCK_BEACON_AMBIENT", volume: 0.5, pitch: 1.4 } }
       - { PARTICLE: { particle: "END_ROD", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
       - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
   2:
-    chance: 60
+    chance: 45
     effects:
-      - { SOUND: { sound: "BLOCK_BEACON_AMBIENT", volume: 0.5, pitch: 1.4 } }
       - { PARTICLE: { particle: "END_ROD", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
       - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
   3:
-    chance: 90
+    chance: 65
     effects:
-      - { SOUND: { sound: "BLOCK_BEACON_AMBIENT", volume: 0.5, pitch: 1.4 } }
       - { PARTICLE: { particle: "END_ROD", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
       - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD

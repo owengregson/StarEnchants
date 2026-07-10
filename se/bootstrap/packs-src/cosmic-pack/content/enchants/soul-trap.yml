@@ -13,16 +13,16 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 60, who: "@Victim" } }
   2:
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 160, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 90, who: "@Victim" } }
   3:
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 240, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 120, who: "@Victim" } }

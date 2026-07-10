@@ -25,9 +25,10 @@ success-max: 50
 # Gear unharmed on a failed roll (the upgrade is consumed either way). Set true to destroy the gear on fail.
 destroy-on-fail: false
 # Heroic stats granted on success (fractions): weapon +outgoing, armour −incoming, and the wear-cancel chance
-# (0.20 ≈ the piece takes 80% of normal durability damage).
+# (0.20 ≈ the piece takes 80% of normal durability damage). Reduction is per PIECE and armour stacks x4 per
+# player — 0.03 = 12% total on a full heroic set (ADR-0050); a weapon is a single copy.
 percent-damage: 0.10
-percent-reduction: 0.10
+percent-reduction: 0.03
 durability: 0.20
 # entity = PvP/entity damage only (default); all = every damage cause.
 reduction-scope: ENTITY

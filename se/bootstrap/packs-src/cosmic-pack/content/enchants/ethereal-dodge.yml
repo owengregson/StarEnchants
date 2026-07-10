@@ -13,42 +13,42 @@ requires: ["enchants/dodge"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 3.75
+    chance: 3
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
   2:
-    chance: 5.5
+    chance: 4.5
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
   3:
-    chance: 8.25
+    chance: 6
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
   4:
-    chance: 10
+    chance: 7.5
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
   5:
-    chance: 12
+    chance: 9
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }

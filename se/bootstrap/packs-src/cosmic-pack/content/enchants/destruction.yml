@@ -9,52 +9,52 @@ group: "legendary"
 tier: legendary
 levels:
   1:
-    chance: 1.75
-    cooldown: 60
+    chance: 12
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 1, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 6, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   2:
-    chance: 2.5
-    cooldown: 60
+    chance: 15
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 2, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 8, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   3:
-    chance: 3.75
-    cooldown: 60
+    chance: 18
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 3, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 10, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   4:
-    chance: 5
-    cooldown: 60
+    chance: 21
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 4, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 12, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   5:
-    chance: 5.75
-    cooldown: 60
+    chance: 24
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 5, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 15, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }

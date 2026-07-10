@@ -11,36 +11,43 @@ group: "epic"
 tier: epic
 levels:
   1:
+    chance: 25
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
       - { PARTICLE: { particle: "PORTAL", count: 10 } }
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
+      - { IMMUNE: { type: "potion", duration: 60, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self)
   2:
+    chance: 35
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
       - { PARTICLE: { particle: "PORTAL", count: 10 } }
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
+      - { IMMUNE: { type: "potion", duration: 60, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self)
   3:
-    # The heal only fires on a real hit (>= 1.5 dmg) and at most once per 2s, so a poke/0-dmg snowball spam
+    # The heal only fires on a real hit (>= 1.5 dmg) and at most once per 5s, so a poke/0-dmg snowball spam
     # can't heal-lock the wearer. The level-wide gate also gates the IMMUNE refresh (one ability per level).
+    chance: 50
     condition: "%damage% >= 1.5"
-    cooldown: 40
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
       - { PARTICLE: { particle: "PORTAL", count: 10 } }
       - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }
+      - { IMMUNE: { type: "potion", duration: 80, who: "@Self" } }
   4:
+    chance: 65
     condition: "%damage% >= 2.5"
-    cooldown: 40
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
       - { PARTICLE: { particle: "PORTAL", count: 10 } }
       - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }
+      - { IMMUNE: { type: "potion", duration: 80, who: "@Self" } }
   5:
+    chance: 80
     condition: "%damage% >= 3"
-    cooldown: 40
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
       - { PARTICLE: { particle: "PORTAL", count: 10 } }

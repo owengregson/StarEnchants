@@ -14,7 +14,7 @@ armor:
     - "&fAscend to divine heights with the Yijki set, radiant with celestial energy and holy light."
     - ""
     - "&f&lYIJKI SET BONUS"
-    - "&f* Enemies deal 30% less damage to you"
+    - "&f* Enemies deal 15% less damage to you"
     - "&f* Divine Shield Passive Ability"
     - ""
     - "&f&lDIVINE SHIELD"
@@ -43,15 +43,15 @@ bonuses:
     trigger: DEFENSE
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: defense, mode: add, amount: 30 } }
-      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
   - on: weapon
     trigger: ATTACK
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } }
-  # Divine Shield — 10% on being hit (30s cd): negate the hit (damage + wearer knockback), launch the attacker
-  # backward (~2 hits of knockback), and strike them with a cosmetic no-damage bolt.
+  # Divine Shield — 25% on being hit (30s cd): negate the hit (damage + wearer knockback), brace the wearer with
+  # Resistance I for 5s, launch the attacker backward (~2 hits of knockback), and strike them with a cosmetic
+  # no-damage bolt.
   - on: armor
     trigger: DEFENSE
     chance: 25
@@ -59,6 +59,7 @@ bonuses:
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_REPAIR", volume: 1.0, pitch: 1.0 } }
       - { CANCEL: {} }
+      - { POTION: { effect: DAMAGE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
       - { VELOCITY: { mode: away, strength: 1.0, who: "@Attacker" } }
       - { LIGHTNING: { damage: 0, who: "@Attacker" } }
       - { PARTICLE: { particle: END_ROD, count: 12, who: "@Attacker" } }

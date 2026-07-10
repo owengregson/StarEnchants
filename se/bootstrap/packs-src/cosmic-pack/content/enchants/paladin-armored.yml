@@ -13,13 +13,11 @@ requires: ["enchants/armored"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 10
-    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
@@ -31,13 +29,11 @@ levels:
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
   2:
-    chance: 20
-    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.5 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
@@ -49,13 +45,11 @@ levels:
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
   3:
-    chance: 30
-    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
@@ -66,13 +60,11 @@ levels:
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
   4:
-    chance: 40
-    cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.5 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)

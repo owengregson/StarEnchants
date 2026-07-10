@@ -9,23 +9,23 @@ group: "rare"
 tier: rare
 levels:
   1:
-    chance: 3
-    cooldown: 80
+    chance: 10
+    cooldown: 120
     effects:
       - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }
   2:
-    chance: 6
-    cooldown: 80
+    chance: 14
+    cooldown: 120
     effects:
       - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }
   3:
-    chance: 9
-    cooldown: 80
+    chance: 18
+    cooldown: 120
     effects:
       - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }

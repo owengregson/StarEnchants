@@ -35,7 +35,7 @@ weapon:
     - "&5Wield the Rift Blade, a sword that tears through dimensions, striking with unpredictable swiftness."
     - ""
     - "&5&lSTELLAR WEAPON BONUS"
-    - "&5* Deal 10% more damage to all enemies"
+    - "&5* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Stellar set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -43,14 +43,19 @@ bonuses:
     trigger: DEFENSE
     chance: 100
     effects:
-      - { POTION: { effect: ABSORPTION, level: 5, duration: 100, who: "@Self" } }
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
+  - on: armor
+    trigger: DEFENSE
+    chance: 20
+    cooldown: 200
+    effects:
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 100, who: "@Self" } }
   - on: weapon
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
-  # Dimensional Shift — 5% on being hit (30s cd): vanish + Speed IV for 5s and blink 1 block behind the
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }
+  # Dimensional Shift — 15% on being hit (30s cd): vanish + Speed IV for 5s and blink 1 block behind the
   # attacker (the VICTIM slot on DEFENSE is the attacker); on top of them if there's no safe spot.
   - on: armor
     trigger: DEFENSE

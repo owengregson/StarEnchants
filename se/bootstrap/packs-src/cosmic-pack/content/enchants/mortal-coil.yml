@@ -9,36 +9,41 @@ group: "godly"
 tier: godly
 levels:
   1:
-    chance: 1.5
+    chance: 6
     cooldown: 600
+    condition: "%victim.health% > 12"  # guard: set-to-12 must never heal a victim already below 12
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
   2:
-    chance: 3
+    chance: 9
     cooldown: 600
+    condition: "%victim.health% > 12"  # guard: set-to-12 must never heal a victim already below 12
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
   3:
-    chance: 4.5
+    chance: 12
     cooldown: 600
+    condition: "%victim.health% > 12"  # guard: set-to-12 must never heal a victim already below 12
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
   4:
-    chance: 6
+    chance: 15
     cooldown: 600
+    condition: "%victim.health% > 12"  # guard: set-to-12 must never heal a victim already below 12
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
   5:
-    chance: 7.5
+    chance: 18
     cooldown: 600
+    condition: "%victim.health% > 12"  # guard: set-to-12 must never heal a victim already below 12
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }

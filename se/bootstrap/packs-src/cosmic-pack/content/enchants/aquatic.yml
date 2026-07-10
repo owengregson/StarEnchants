@@ -10,6 +10,4 @@ tier: common
 levels:
   1:
     effects:
-      - { SOUND: { sound: "ENTITY_DOLPHIN_AMBIENT", volume: 0.5, pitch: 1.2 } }
-      - { PARTICLE: { particle: "WATER_BUBBLE", count: 10 } }
       - { POTION: { effect: "WATER_BREATHING", level: 1, duration: 200, who: "@Self" } }  # from POTION:WATER_BREATHING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

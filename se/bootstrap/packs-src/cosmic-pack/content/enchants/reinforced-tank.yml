@@ -16,22 +16,22 @@ levels:
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }  # from REDUCTION:2.25
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1 } }
   2:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 4.5 } }  # from REDUCTION:4.5
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.5 } }
   3:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 6.75 } }  # from REDUCTION:6.75
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }
   4:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 9.95 } }  # from REDUCTION:9.95
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.5 } }

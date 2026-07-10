@@ -13,37 +13,37 @@ requires: ["enchants/hex"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 3.5
-    cooldown: 100
+    chance: 20
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { REFLECT: { percent: 20, duration: 160, who: "@Victim" } }
+      - { REFLECT: { percent: 20, duration: 120, who: "@Victim" } }
   2:
-    chance: 4.5
-    cooldown: 100
+    chance: 24
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { REFLECT: { percent: 22, duration: 160, who: "@Victim" } }
+      - { REFLECT: { percent: 22, duration: 120, who: "@Victim" } }
   3:
-    chance: 5.5
-    cooldown: 100
+    chance: 28
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { REFLECT: { percent: 25, duration: 160, who: "@Victim" } }
+      - { REFLECT: { percent: 25, duration: 120, who: "@Victim" } }
   4:
-    chance: 6.5
-    cooldown: 100
+    chance: 32
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { REFLECT: { percent: 28, duration: 160, who: "@Victim" } }
+      - { REFLECT: { percent: 28, duration: 120, who: "@Victim" } }
   5:
-    chance: 7.5
-    cooldown: 100
+    chance: 36
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { REFLECT: { percent: 30, duration: 160, who: "@Victim" } }
+      - { REFLECT: { percent: 30, duration: 120, who: "@Victim" } }

@@ -16,28 +16,28 @@ levels:
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.7, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 12 } }  # from REDUCTION:12
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.5 } }
   2:
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.7, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 14 } }  # from REDUCTION:14
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }
   3:
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.7, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 16 } }  # from REDUCTION:16
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 3 } }
   4:
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.7, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 18 } }  # from REDUCTION:18
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 3.75 } }
   5:
     condition: "%victim.helditem% contains \"BOW\""
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.7, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 20 } }  # from REDUCTION:20
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 4.5 } }

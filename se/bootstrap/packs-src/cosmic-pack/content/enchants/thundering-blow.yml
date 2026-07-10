@@ -9,23 +9,23 @@ group: "common"
 tier: common
 levels:
   1:
-    chance: 1.25
+    chance: 8
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
-      - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
+      - { LIGHTNING: { damage: 2, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — real strike; damage kept low since bare LIGHTNING damage bypasses the fold
   2:
-    chance: 2.75
+    chance: 12
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
-      - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
+      - { LIGHTNING: { damage: 2, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — real strike; damage kept low since bare LIGHTNING damage bypasses the fold
   3:
-    chance: 4
+    chance: 16
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
-      - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
+      - { LIGHTNING: { damage: 2, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — real strike; damage kept low since bare LIGHTNING damage bypasses the fold

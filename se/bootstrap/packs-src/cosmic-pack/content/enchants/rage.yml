@@ -11,24 +11,24 @@ levels:
   1:
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 10" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 6" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   2:
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 15" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 8" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   3:
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 25" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 10" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   4:
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 30" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 12" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   5:
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 35" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 13" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   6:
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 40" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 15" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback

@@ -9,32 +9,28 @@ group: "legendary"
 tier: legendary
 levels:
   1:
-    chance: 4.25
-    cooldown: 100
+    cooldown: 60
     condition: "%recentattackers% > 5"
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
-      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 50, who: "@Aoe{r=8,filter=ENEMIES}" } }
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 20, who: "@Aoe{r=8,filter=ENEMIES}" } }
   2:
-    chance: 6.25
-    cooldown: 100
+    cooldown: 60
     condition: "%recentattackers% > 4"
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
-      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 50, who: "@Aoe{r=8,filter=ENEMIES}" } }
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 30, who: "@Aoe{r=8,filter=ENEMIES}" } }
   3:
-    chance: 8.25
-    cooldown: 100
+    cooldown: 60
     condition: "%recentattackers% > 3"
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
-      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 50, who: "@Aoe{r=8,filter=ENEMIES}" } }
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 40, who: "@Aoe{r=8,filter=ENEMIES}" } }
   4:
-    chance: 10
-    cooldown: 100
+    cooldown: 60
     condition: "%recentattackers% > 2"
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
