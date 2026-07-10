@@ -61,6 +61,13 @@ public final class SoulService implements SoulDebit, SoulSpender {
     // §D per-player TOTAL souls across all carried gems, refreshed on the holder thread each maintain() tick;
     // read by the PAPI feed (in-memory, thread-safe — never a cross-region inventory read).
     private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
+    // §D last MANUAL toggle (gem right-click / /se soulmode), monotonic nanos — rate-limits self-toggling so a
+    // spammed right-click can't strobe soul mode. The auto-disable on running out (maintain) never records here,
+    // so exhausting your souls exits instantly and re-enabling isn't blocked. Concurrent: keyed by UUID, hit
+    // from each player's own region thread (folia-scheduling).
+    private final ConcurrentHashMap<UUID, Long> lastToggleNanos = new ConcurrentHashMap<>();
+    /** Minimum gap between manual soul-mode toggles (0.5s). */
+    private static final long TOGGLE_MIN_INTERVAL_NANOS = 500_000_000L;
 
     /** Particles are the on-activate/deactivate spawns; {@code depositOnAnyKill} gates deposit-on-any-kill. */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
@@ -78,8 +85,9 @@ public final class SoulService implements SoulDebit, SoulSpender {
     }
 
     /** {@code NO_GEM}: not holding a gem. {@code NO_SOULS}: held a zero gem — toggle already played the
-     *  {@code soul.empty} feedback (F), so the caller adds nothing. {@code ENABLED}/{@code DISABLED}. */
-    public enum Toggle { NO_GEM, NO_SOULS, ENABLED, DISABLED }
+     *  {@code soul.empty} feedback (F), so the caller adds nothing. {@code TOO_FAST}: within the 0.5s
+     *  manual-toggle rate limit — nothing changed, silently ignored. {@code ENABLED}/{@code DISABLED}. */
+    public enum Toggle { NO_GEM, NO_SOULS, TOO_FAST, ENABLED, DISABLED }
 
     public record SplitResult(Status status, int moved, int remaining) {
         public enum Status { OK, NO_GEM, BAD_AMOUNT, TOO_MANY }
@@ -92,14 +100,24 @@ public final class SoulService implements SoulDebit, SoulSpender {
     /**
      * Toggle soul mode (§D). MUST run on the player's own thread (reads + mutates their inventory). Enabling
      * seeds the pool from the player's TOTAL souls; disabling flushes any pending spend then drops the pool.
+     * A manual toggle is rate-limited to once per {@value #TOGGLE_MIN_INTERVAL_NANOS} ns (0.5s) so a spammed
+     * right-click can't strobe the mode; a too-soon call returns {@link Toggle#TOO_FAST} and changes nothing.
+     * The rate limit binds only this self-toggle path — the {@code maintain()} auto-disable when souls run out
+     * never routes through here, so exhausting your souls still exits instantly.
      */
     public Toggle toggle(Player player) {
-        SoulGemConfig cfg = config.get();
         UUID id = player.getUniqueId();
+        long now = System.nanoTime();
+        Long last = lastToggleNanos.get(id);
+        if (last != null && now - last < TOGGLE_MIN_INTERVAL_NANOS) {
+            return Toggle.TOO_FAST; // still inside the 0.5s window since the last manual toggle — ignore the spam
+        }
+        SoulGemConfig cfg = config.get();
         if (modes.active(id).isPresent()) {
             flushPending(player); // settle owed drains to PDC before dropping the pool, else a spend refunds
             modes.deactivate(id);
             pool.disable(id);
+            lastToggleNanos.put(id, now);
             messages.sendLines(player, "soul.deactivate");
             playSounds(player, cfg.sounds().toggleOff());
             particles.spawn(player, cfg.particles().disable());
@@ -107,7 +125,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         }
         SoulData held = codec.read(hands.mainHand(player));
         if (held == null) {
-            return Toggle.NO_GEM; // not a gem in hand — the command reports soul.empty
+            return Toggle.NO_GEM; // not a gem in hand — the command reports soul.empty (not a real toggle: no cooldown)
         }
         // F: right-clicking a ZERO-soul gem never enables — fail out instantly with the soul.empty feedback.
         if (held.souls() <= 0) {
@@ -118,6 +136,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         }
         modes.activate(id, id); // the stored marker is just "on" (the player's own id); the pool holds the souls
         pool.enable(id, totalSouls(player));
+        lastToggleNanos.put(id, now);
         messages.sendLines(player, "soul.activate");
         playSounds(player, cfg.sounds().toggleOn());
         particles.spawn(player, cfg.particles().enable());
@@ -338,6 +357,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         }
         modes.clear(id);
         pool.disable(id);
+        lastToggleNanos.remove(id); // a relog is far slower than 0.5s, so dropping the debounce can't bypass it
     }
 
     /**
