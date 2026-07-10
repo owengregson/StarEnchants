@@ -83,14 +83,47 @@ public final class Aliases {
             Map.entry("ENDERDRAGON_GROWL", "ENTITY_ENDER_DRAGON_GROWL"),
             Map.entry("WITHER_SPAWN", "ENTITY_WITHER_SPAWN"));
 
+    /**
+     * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,
+     * derived by diffing the real 1.17.1 and 1.21.11 Particle enums (reference cache, javap). The resolver's
+     * reverse scan makes each entry bidirectional, so either era's spelling loads on either era. LIGHT and
+     * the LEGACY_* constants died without a successor and are deliberately absent.
+     */
     private static final Map<String, String> PARTICLE = Map.ofEntries(
             Map.entry("SPELL_WITCH", "WITCH"),
             Map.entry("VILLAGER_HAPPY", "HAPPY_VILLAGER"),
+            Map.entry("VILLAGER_ANGRY", "ANGRY_VILLAGER"),
             Map.entry("SMOKE_NORMAL", "SMOKE"),
             Map.entry("SMOKE_LARGE", "LARGE_SMOKE"),
             Map.entry("REDSTONE", "DUST"),
             Map.entry("BLOCK_CRACK", "BLOCK"),
-            Map.entry("BLOCK_DUST", "BLOCK"));
+            Map.entry("BLOCK_DUST", "BLOCK"),
+            Map.entry("BARRIER", "BLOCK_MARKER"),
+            Map.entry("CRIT_MAGIC", "ENCHANTED_HIT"),
+            Map.entry("DRIP_LAVA", "DRIPPING_LAVA"),
+            Map.entry("DRIP_WATER", "DRIPPING_WATER"),
+            Map.entry("ENCHANTMENT_TABLE", "ENCHANT"),
+            Map.entry("EXPLOSION_NORMAL", "POOF"),
+            Map.entry("EXPLOSION_LARGE", "EXPLOSION"),
+            Map.entry("EXPLOSION_HUGE", "EXPLOSION_EMITTER"),
+            Map.entry("FIREWORKS_SPARK", "FIREWORK"),
+            Map.entry("ITEM_CRACK", "ITEM"),
+            Map.entry("MOB_APPEARANCE", "ELDER_GUARDIAN"),
+            Map.entry("SLIME", "ITEM_SLIME"),
+            Map.entry("SNOWBALL", "ITEM_SNOWBALL"),
+            Map.entry("SNOW_SHOVEL", "ITEM_SNOWBALL"),
+            Map.entry("SPELL", "EFFECT"),
+            Map.entry("SPELL_INSTANT", "INSTANT_EFFECT"),
+            Map.entry("SPELL_MOB", "ENTITY_EFFECT"),
+            Map.entry("SPELL_MOB_AMBIENT", "ENTITY_EFFECT"),
+            Map.entry("SUSPENDED", "UNDERWATER"),
+            Map.entry("SUSPENDED_DEPTH", "UNDERWATER"),
+            Map.entry("TOTEM", "TOTEM_OF_UNDYING"),
+            Map.entry("TOWN_AURA", "MYCELIUM"),
+            Map.entry("WATER_BUBBLE", "BUBBLE"),
+            Map.entry("WATER_DROP", "RAIN"),
+            Map.entry("WATER_SPLASH", "SPLASH"),
+            Map.entry("WATER_WAKE", "FISHING"));
 
     /** The alias map for a category (empty if none registered). */
     public static Map<String, String> forCategory(HandleCategory category) {
