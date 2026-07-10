@@ -52,6 +52,7 @@ bonuses:
     chance: 100
     effects:
       - { FLY_MODE: { who: "@Self" } }
+      - { PARTICLE: { particle: END_ROD, count: 4 } }
   - on: weapon
     trigger: ATTACK
     chance: 100

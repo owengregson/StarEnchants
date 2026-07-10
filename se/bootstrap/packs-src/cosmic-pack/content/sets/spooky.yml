@@ -54,7 +54,9 @@ bonuses:
     chance: 15
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_DEATH", volume: 1.0, pitch: 1.4 } }
       - { EQUIP_SWAP: { slot: helmet, material: CARVED_PUMPKIN, duration: 60, who: "@Victim" } }
+      - { PARTICLE: { particle: SMOKE_LARGE, count: 12 } }
       - { MESSAGE: { channel: title, text: "&6&l** SCARECROW **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&6&l** SCARECROW &r&7[&f{VICTIM}&7] &r&6&l**" } }
   - on: weapon

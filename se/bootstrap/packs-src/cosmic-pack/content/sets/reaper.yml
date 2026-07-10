@@ -53,7 +53,9 @@ bonuses:
     chance: 15
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_DEATH", volume: 1.0, pitch: 1.4 } }
       - { MARK: { amount: 25, duration: 60, who: "@Victim" } }
+      - { PARTICLE: { particle: SOUL, count: 15 } }
       - { MESSAGE: { channel: title, text: "&4&l** MARK OF THE REAPER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&4&l** MARK OF THE REAPER &r&7[&f{VICTIM}&7] &r&4&l**" } }
   # The reaper's tether — a continuous dark-red dust beam redrawn every 0.5s from each still-marked victim to

@@ -57,6 +57,7 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }
+      - { PARTICLE: { particle: FIREWORKS_SPARK, count: 8 } }
   # Victorious crown aura (cosmetic, redrawn every 0.5s): a white redstone-dust ring just above the floor (≈feet
   # level) the size of the radius, plus a dust tether from each nearby player to the wearer at the same height.
   # REPEATING has no victim, so the AoE centres on the wearer.

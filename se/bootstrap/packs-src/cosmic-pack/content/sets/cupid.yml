@@ -61,7 +61,9 @@ bonuses:
     cooldown: 600
     condition: "%victim.maxhealth% > 20"
     effects:
+      - { SOUND: { sound: "ENTITY_ALLAY_DEATH|ENTITY_VEX_DEATH", volume: 1.0, pitch: 1.5 } }
       - { MAX_HEALTH_DRAIN: { fraction: 0.5, baseline: 20, amount: 0, duration: 60, who: "@Victim" } }
+      - { PARTICLE: { particle: HEART, count: 10 } }
       - { MESSAGE: { channel: title, text: "&d&l** LOVESTRUCK **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&d&l** LOVESTRUCK &r&7[&f{VICTIM}&7] &r&d&l**" } }
   - on: weapon

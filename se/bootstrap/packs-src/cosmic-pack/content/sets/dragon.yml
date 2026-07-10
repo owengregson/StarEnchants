@@ -52,6 +52,7 @@ bonuses:
     chance: 100
     effects:
       - { SUPPRESS_IMMUNE: { who: "@Self" } }
+      - { PARTICLE: { particle: DRAGON_BREATH, count: 4 } }
   - on: weapon
     trigger: ATTACK
     chance: 100

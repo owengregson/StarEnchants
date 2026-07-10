@@ -58,3 +58,4 @@ bonuses:
     chance: 100
     effects:
       - { CURE: { category: HARMFUL, who: "@Self" } }
+      - { PARTICLE: { particle: SPELL_INSTANT, count: 6 } }

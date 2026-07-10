@@ -57,10 +57,10 @@ bonuses:
     chance: 15
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_MIRROR_MOVE", volume: 1.0, pitch: 1.0 } }
       - { POTION: { effect: INVISIBILITY, level: 1, duration: 100, who: "@Self" } }
       - { POTION: { effect: SPEED, level: 4, duration: 100, who: "@Self" } }
       - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: "@Self" } }
-      - { SOUND: { sound: ENTITY_ENDERMAN_TELEPORT } }
       - { PARTICLE: { particle: PORTAL, count: 40 } }
       - { MESSAGE: { channel: title, text: "&5&l** DIMENSIONAL SHIFT **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&5&l** DIMENSIONAL SHIFT &r&7[&f{VICTIM}&7] &r&5&l**" } }
