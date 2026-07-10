@@ -1,6 +1,7 @@
 package bootstrap.wire;
 
 import feature.combat.FallingBlockListener;
+import feature.combat.GuardianHurtListener;
 import feature.trigger.CommandTriggerCommand;
 import feature.trigger.PlacedBlockTracker;
 import feature.trigger.TriggerListeners;
@@ -32,6 +33,8 @@ final class TriggersModule {
                 .events(core.bindings().itemDamageSource(core.triggerDispatch()))
                 // A landing FALLING_BLOCK fires the IMPACT trigger on whoever it hit (druid Terrablender grass rain).
                 .events(new FallingBlockListener(core.triggerDispatch()))
+                // A hit on a summoned guardian fires GUARDIAN_HURT on its owner (ADR-0049 Blood Link).
+                .events(new GuardianHurtListener(core.triggerDispatch()))
                 .command(new DynCommand(name,
                         () -> core.master().config().commandTrigger().enabled(),
                         () -> {

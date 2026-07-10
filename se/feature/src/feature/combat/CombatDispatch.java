@@ -12,11 +12,17 @@ import engine.sink.DamageMarks;
 import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
 import engine.stores.ComboStore;
+import engine.stores.DamageCapStore;
+import engine.stores.OutgoingDebuffStore;
+import engine.stores.RecentAttackersStore;
+import engine.stores.ReflectMarksStore;
+import engine.stores.SuppressionStore;
 import feature.soul.SoulBinding;
 import feature.trigger.TriggerRunner;
 import item.worn.WornStateStore;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import org.bukkit.Location;
@@ -46,6 +52,12 @@ public final class CombatDispatch {
     // writes it, but the composition root registers the aggregate with EngineStoreListener as the single
     // quit-cleanup authority (§5.4).
     private final ComboStore combo;
+    // ADR-0049 per-player combat windows, consulted here and written by the sink intents (shared via the env).
+    private final RecentAttackersStore recent;    // §2 gank window (Aegis / Anti Gank facts)
+    private final ReflectMarksStore reflectMarks;  // §3 Hex reflect
+    private final OutgoingDebuffStore outgoingDebuff; // §4 Weaken/Destruction
+    private final DamageCapStore damageCap;         // §5 Diminish
+    private final SuppressionStore suppression;      // §7 one-shot Neutralize consume
     private final LongSupplier nowTicks;
     private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
     private final java.util.function.DoubleSupplier maxBonusReduction; // §L config.yml combat.max-bonus-reduction (<0 = uncapped)
@@ -90,6 +102,11 @@ public final class CombatDispatch {
         this.projectiles = Objects.requireNonNull(projectiles, "projectiles");
         Objects.requireNonNull(caps, "caps");
         this.combo = env.stores().combo();
+        this.recent = env.stores().recentAttackers();
+        this.reflectMarks = env.stores().reflectMarks();
+        this.outgoingDebuff = env.stores().outgoingDebuff();
+        this.damageCap = env.stores().damageCap();
+        this.suppression = env.stores().suppression();
         this.nowTicks = env.nowTicks();
         this.maxBonusDamage = caps.maxBonusDamage();
         this.maxBonusReduction = caps.maxBonusReduction();
@@ -130,6 +147,9 @@ public final class CombatDispatch {
         Location at = victimEntity.getLocation();
         // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();
+        long now = nowTicks.getAsLong();
+        String causeName = event.getCause().name(); // %damagecause% (e.g. ENTITY_ATTACK, PROJECTILE)
+        UUID attackerId = damager.getUniqueId();     // the resolved source (a projectile's shooter, §2 gank id)
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         SinkReadback sink = sinkFactory.create(env);
@@ -143,6 +163,12 @@ public final class CombatDispatch {
             CombatTag.tag(vp.getUniqueId());
         }
 
+        // §2 gank window (ADR-0049): record THIS attacker against a player victim BEFORE the walks, so the
+        // victim's %recentattackers%/%attackerindex% facts already include this hit.
+        if (victimEntity instanceof Player recorded) {
+            recent.record(recorded.getUniqueId(), attackerId, now);
+        }
+
         // PvP/PvE context (config.yml combat.pvp/pve) is decided by the VICTIM's player-ness.
         boolean victimIsPlayer = victimEntity instanceof Player;
         // §N friendly-fire: skip ALL SE combat effects between two friendly players.
@@ -151,7 +177,7 @@ public final class CombatDispatch {
         // Attack side: self = attacker, target = victim.
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(projectiles, rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
-            int streak = combo.hit(attackerPlayer.getUniqueId(), victimEntity.getUniqueId(), nowTicks.getAsLong()); // %combo% fact, §3.4 — same-target only
+            int streak = combo.hit(attackerPlayer.getUniqueId(), victimEntity.getUniqueId(), now); // %combo% fact, §3.4 — same-target only
             // reaper's Mark of the Reaper: +N% from THIS attacker while the victim is marked by them. Consulted
             // BEFORE the attack abilities run, so a mark this hit sets (the 5% proc) applies only to LATER hits.
             if (victim != null) {
@@ -160,20 +186,57 @@ public final class CombatDispatch {
                     sink.fold().addOutgoing(markBonus);
                 }
             }
-            runner.run(abilities, snapshot.generation(), worldId, attackId, true,
-                    attackerPlayer,
-                    new ActivationContext(attackerPlayer, victim, null, at, incomingDamage, null, streak), sink,
+            // §4 WEAKEN (Destruction): the attacker's active non-stacking outgoing-damage debuff, folded once.
+            double weaken = outgoingDebuff.active(attackerPlayer.getUniqueId(), now);
+            if (weaken != 0.0) {
+                sink.fold().addOutgoing(-weaken / 100.0);
+            }
+            int attackerRecent = recent.distinctCount(attackerPlayer.getUniqueId(), now); // how many are ganking the attacker (Anti Gank)
+            ActivationContext attackCtx = new ActivationContext(attackerPlayer, victim, null, at, incomingDamage,
+                    null, streak, causeName, false, attackerRecent, 0);
+            runner.run(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer, attackCtx, sink,
                     snapshot.stableKeys());
+            // §8 ECHO_STRIKE (Double Strike): re-run the attacker walk EXACTLY once over the same event/sink/fold.
+            // Checked once → run once, so a second ECHO_STRIKE proc in the echo pass cannot request a third pass.
+            if (sink.echoRequested()) {
+                runner.run(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer, attackCtx, sink,
+                        snapshot.stableKeys());
+            }
         }
         // Defense side: self = victim, target = attacker.
         if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player) && !friendly) {
-            runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false,
-                    defenderPlayer, new ActivationContext(defenderPlayer, attacker, attacker, at, incomingDamage, null),
+            int defenderRecent = recent.distinctCount(defenderPlayer.getUniqueId(), now);   // distinct attackers on me (Aegis)
+            int attackerIndex = recent.indexOf(defenderPlayer.getUniqueId(), attackerId, now); // 1-based order of THIS attacker
+            ActivationContext defenseCtx = new ActivationContext(defenderPlayer, attacker, attacker, at,
+                    incomingDamage, null, 0, causeName, false, defenderRecent, attackerIndex);
+            runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false, defenderPlayer, defenseCtx,
                     sink, snapshot.stableKeys());
+            // §7 one-shot SUPPRESS consume (Neutralize): burn the victim's armed one-shots after their defense walk.
+            suppression.consumeEventScoped(defenderPlayer.getUniqueId());
         }
 
-        // Fold every damage contribution onto the event ONCE (§6.1); honour a cancel; flush deferred work.
-        event.setDamage(sink.fold().apply(event.getDamage()));
+        // Fold every damage contribution onto the event ONCE (§6.1). §5 cap first, then §3 hex-reflect off the
+        // committed value; both deal any retaliation via bare sink.damage (no damager → cannot re-enter this handler).
+        double folded = sink.fold().apply(event.getDamage());
+        double committed = folded;
+        if (victimEntity instanceof Player capped) {
+            DamageCapStore.Cap cap = damageCap.consumeArmed(capped.getUniqueId(), now); // one-shot: consumed even if unused
+            if (cap != null && folded > cap.value()) {
+                committed = cap.value();
+                if (cap.reflectOverflow() && attacker != null) {
+                    sink.damage(attacker, folded - committed); // §5 Vengeful Diminish: the excess back to the attacker
+                }
+            }
+            damageCap.recordLastTaken(capped.getUniqueId(), committed); // ALWAYS record the committed value (post-cap)
+        }
+        event.setDamage(committed);
+        // §3 REFLECT (Hex): a marked attacker takes a fraction of the committed damage back onto themselves.
+        if (damager instanceof Player reflectedAttacker && attacker != null) {
+            double reflectPercent = reflectMarks.active(reflectedAttacker.getUniqueId(), now);
+            if (reflectPercent > 0.0) {
+                sink.damage(attacker, committed * reflectPercent / 100.0);
+            }
+        }
         if (sink.armorIgnored()) {
             // IGNORE_ARMOR: zero armor + enchant-protection AFTER setDamage recomputes modifiers from base.
             // isApplicable is the cross-version probe, so no version gate is needed (§ combat-flags).

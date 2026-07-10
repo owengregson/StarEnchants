@@ -42,6 +42,16 @@ public final class LegacyGearPoll {
         boolean trySave(ItemStack item, short priorDamage);
     }
 
+    /**
+     * ITEM_DAMAGE feed (ADR-0049): a durability hit on {@code player}, where {@code armor} is whether it was a worn
+     * armor piece (vs the held item) and {@code delta} is the observed durability points lost. Legacy cannot CANCEL
+     * the loss (the poll observes AFTER the fact); a SUPPRESS/cancel on ITEM_DAMAGE simply won't apply on 1.8 — the
+     * heroic RESTORE is a separate subscriber and no restore shim is built here.
+     */
+    public interface ItemDamageFeed {
+        void fire(Player player, boolean armor, int delta);
+    }
+
     /** Slots scanned per player: index 0 = held, 1..4 = the four armour pieces. */
     private static final int SLOTS = 5;
 
@@ -55,7 +65,7 @@ public final class LegacyGearPoll {
     // also carries its combat-state blob (the 1.8 PDC-equivalent) as an identity, folded into both gates below.
     private final Function<ItemStack, String> identity;
 
-    private Consumer<Player> fireItemDamage; // subscriber 1
+    private ItemDamageFeed fireItemDamage;   // subscriber 1
     private HeroicSave heroicSave;           // subscriber 2
     private Consumer<Player> refreshEquip;   // subscriber 3
 
@@ -65,7 +75,7 @@ public final class LegacyGearPoll {
     }
 
     /** Subscriber 1: fire ITEM_DAMAGE for the player on each detected durability rise (before any restore). */
-    public void fireItemDamage(Consumer<Player> subscriber) {
+    public void fireItemDamage(ItemDamageFeed subscriber) {
         this.fireItemDamage = subscriber;
     }
 
@@ -118,7 +128,8 @@ public final class LegacyGearPoll {
             // durability. ids[i] is last tick's identity (read before the overwrite below), matching types[i]/dmg[i].
             if (type == types[i] && Objects.equals(ident, ids[i]) && max > 0 && dur > dmg[i]) {
                 if (fireItemDamage != null) {
-                    fireItemDamage.accept(player); // (1) ITEM_DAMAGE before any restore
+                    // (1) ITEM_DAMAGE before any restore; slot 0 = held (not armor), slots 1..4 = armor; delta = points lost.
+                    fireItemDamage.fire(player, i != 0, dur - dmg[i]);
                 }
                 if (heroicSave != null && heroicSave.trySave(item, dmg[i])) { // (2) heroic save → restore
                     dur = dmg[i]; // record the POST-restore value so next tick sees no phantom delta
