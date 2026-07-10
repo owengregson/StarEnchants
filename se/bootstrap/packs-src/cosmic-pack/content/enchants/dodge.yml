@@ -1,14 +1,8 @@
 # Imported from EliteEnchantments (id: dodge). Review before shipping.
 display: "Dodge"
 description:
-  - "&eWhen hit, has a chance to fully"
-  - "&enegate the attack."
-  - ""
-  - "&e&lI: &f🎲 2.75% &7| &f⌛ 4s"
-  - "&e&lII: &f🎲 4.5% &7| &f⌛ 4s"
-  - "&e&lIII: &f🎲 7.25% &7| &f⌛ 4s"
-  - "&e&lIV: &f🎲 9% &7| &f⌛ 4s"
-  - "&e&lV: &f🎲 11% &7| &f⌛ 4s"
+  - "&eA chance to fully negate an attack."
+  - "&eSneaking doubles it."
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "epic"
@@ -17,35 +11,40 @@ levels:
   1:
     chance: 2.75
     cooldown: 80
+    condition: "%sneaking% : +2.75 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   2:
     chance: 4.5
     cooldown: 80
+    condition: "%sneaking% : +4.5 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   3:
     chance: 7.25
     cooldown: 80
+    condition: "%sneaking% : +7.25 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   4:
     chance: 9
     cooldown: 80
+    condition: "%sneaking% : +9 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   5:
     chance: 11
     cooldown: 80
+    condition: "%sneaking% : +11 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }

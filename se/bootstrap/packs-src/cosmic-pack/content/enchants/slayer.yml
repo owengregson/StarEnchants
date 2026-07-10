@@ -1,17 +1,13 @@
 # Imported from EliteEnchantments (id: slayer). Review before shipping.
 display: "Slayer"
 description:
-  - "&eOn hit, has a chance to"
-  - "&einstantly kill the target."
-  - ""
-  - "&e&lI: &f🎲 9.25% &7| &f⌛ 5s"
-  - "&e&lII: &f🎲 12.5% &7| &f⌛ 5s"
-  - "&e&lIII: &f🎲 18.75% &7| &f⌛ 5s"
-  - "&e&lIV: &f🎲 22.5% &7| &f⌛ 5s"
+  - "&eA chance to instantly kill the"
+  - "&etarget. Mobs only, never players."
 trigger: ATTACK
 applies-to: [WEAPON]
 group: "epic"
 tier: epic
+condition: "%victim.type% != \"PLAYER\""
 levels:
   1:
     chance: 9.25
@@ -19,25 +15,25 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { KILL: { who: "@Victim" } }  # from KILL
+      - { KILL: { who: "@Victim" } }
   2:
     chance: 12.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { KILL: { who: "@Victim" } }  # from KILL
+      - { KILL: { who: "@Victim" } }
   3:
     chance: 18.75
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { KILL: { who: "@Victim" } }  # from KILL
+      - { KILL: { who: "@Victim" } }
   4:
     chance: 22.5
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { KILL: { who: "@Victim" } }  # from KILL
+      - { KILL: { who: "@Victim" } }
