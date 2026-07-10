@@ -9,30 +9,30 @@ group: "epic"
 tier: epic
 levels:
   1:
-    chance: 5
+    chance: 30
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 5 } }  # from REDUCTION:5
+      - { WEAKEN: { percent: 5, duration: 60, who: "@Victim" } }
   2:
-    chance: 7.5
+    chance: 35
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
+      - { WEAKEN: { percent: 8, duration: 60, who: "@Victim" } }
   3:
-    chance: 10
+    chance: 40
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
+      - { WEAKEN: { percent: 10, duration: 60, who: "@Victim" } }
   4:
-    chance: 12.5
+    chance: 45
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 20 } }  # from REDUCTION:20
+      - { WEAKEN: { percent: 12, duration: 60, who: "@Victim" } }

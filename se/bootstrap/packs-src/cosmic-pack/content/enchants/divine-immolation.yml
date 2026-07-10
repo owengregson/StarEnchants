@@ -11,6 +11,33 @@ tier: soul
 soul-cost: 20
 levels:
   1:
+    cooldown: 60
+    effects:
+      - { PARTICLE: { particle: "FLAME" } }
+      - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.8, pitch: 0.9 } }
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { IGNITE: { duration: 20, who: "@Victim" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
+      - { DAMAGE: { amount: "%damage% * 0.75", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
+  2:
+    cooldown: 50
+    effects:
+      - { PARTICLE: { particle: "FLAME" } }
+      - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.8, pitch: 0.9 } }
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { IGNITE: { duration: 20, who: "@Victim" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
+      - { DAMAGE: { amount: "%damage% * 0.75", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
+  3:
+    cooldown: 45
+    effects:
+      - { PARTICLE: { particle: "FLAME" } }
+      - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.8, pitch: 0.9 } }
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { IGNITE: { duration: 20, who: "@Victim" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
+      - { DAMAGE: { amount: "%damage% * 0.75", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
+  4:
     cooldown: 40
     effects:
       - { PARTICLE: { particle: "FLAME" } }
@@ -18,31 +45,4 @@ levels:
       - { LIGHTNING: { damage: 0, who: "@Victim" } }
       - { IGNITE: { duration: 20, who: "@Victim" } }
       - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: "%damage%", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
-  2:
-    cooldown: 35
-    effects:
-      - { PARTICLE: { particle: "FLAME" } }
-      - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.8, pitch: 0.9 } }
-      - { LIGHTNING: { damage: 0, who: "@Victim" } }
-      - { IGNITE: { duration: 20, who: "@Victim" } }
-      - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: "%damage%", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
-  3:
-    cooldown: 30
-    effects:
-      - { PARTICLE: { particle: "FLAME" } }
-      - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.8, pitch: 0.9 } }
-      - { LIGHTNING: { damage: 0, who: "@Victim" } }
-      - { IGNITE: { duration: 20, who: "@Victim" } }
-      - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: "%damage%", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
-  4:
-    cooldown: 25
-    effects:
-      - { PARTICLE: { particle: "FLAME" } }
-      - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.8, pitch: 0.9 } }
-      - { LIGHTNING: { damage: 0, who: "@Victim" } }
-      - { IGNITE: { duration: 20, who: "@Victim" } }
-      - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: "%damage%", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
+      - { DAMAGE: { amount: "%damage% * 0.75", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }

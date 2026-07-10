@@ -9,40 +9,40 @@ group: "legendary"
 tier: legendary
 levels:
   1:
-    chance: 2.5
-    cooldown: 60
+    chance: 10
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 60, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:3 — EE seconds → ticks (x20)
   2:
-    chance: 3.5
-    cooldown: 60
+    chance: 14
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 100, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:5 — EE seconds → ticks (x20)
   3:
-    chance: 4.5
-    cooldown: 60
+    chance: 18
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 100, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:5 — EE seconds → ticks (x20)
   4:
-    chance: 5.5
-    cooldown: 60
+    chance: 22
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
       - { POTION: { effect: "INVISIBILITY", level: 1, duration: 100, who: "@Self" } }  # from POTION:INVISIBILITY:1:PLAYER:5 — EE seconds → ticks (x20)
   5:
-    chance: 6.5
-    cooldown: 60
+    chance: 26
+    cooldown: 160
     condition: "%actor.health% <= 4"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }

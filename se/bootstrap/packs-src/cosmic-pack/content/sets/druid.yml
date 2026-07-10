@@ -14,7 +14,7 @@ armor:
     - "&2Embrace the power of nature with the Druid Set, crafted from the essence of the natural world, channeling life force and woodland grace."
     - ""
     - "&2&lDRUID SET BONUS"
-    - "&2* Deal 30% more damage to all enemies"
+    - "&2* Deal 23% more damage to all enemies"
     - "&2* Terrablender Ability"
     - ""
     - "&2&lTERRABLENDER"
@@ -53,16 +53,16 @@ bonuses:
       - { MESSAGE: { channel: title, text: "&2&l** TERRABLENDER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
       - { MESSAGE: { text: "&2&l** TERRABLENDER &r&7[&f{VICTIM}&7] &r&2&l**" } }
   # IMPACT — fired when a Terrablender grass block lands ON a player. The short cooldown dedups the grid's many
-  # landings (one impact per cast). Deal 1.5x the carried hit and lock their SPEED away for 5s (continuously
+  # landings (one impact per cast). Deal 0.75x the carried hit and lock their SPEED away for 5s (continuously
   # re-stripped, so they can't re-drink it back during the window).
   - on: armor
     trigger: IMPACT
     cooldown: 10
     effects:
-      - { DAMAGE: { amount: "1.5 * %damage%", who: "@Victim" } }
+      - { DAMAGE: { amount: "0.75 * %damage%", who: "@Victim" } }
       - { POTION_LOCK: { effect: SPEED, ticks: 100, who: "@Victim" } }
   - on: weapon
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 28 } }

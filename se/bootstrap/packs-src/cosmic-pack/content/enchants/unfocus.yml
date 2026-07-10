@@ -9,37 +9,37 @@ group: "epic"
 tier: epic
 levels:
   1:
-    chance: 5
+    chance: 12
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Victim" } }
   2:
-    chance: 6
+    chance: 15
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Victim" } }
   3:
-    chance: 7
+    chance: 18
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Victim" } }
   4:
-    chance: 8
+    chance: 21
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Victim" } }
   5:
-    chance: 9
+    chance: 24
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
+      - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Victim" } }

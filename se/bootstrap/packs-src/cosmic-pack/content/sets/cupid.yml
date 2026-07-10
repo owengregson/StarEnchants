@@ -14,9 +14,9 @@ armor:
     - "&dMove with the grace of a lover with the Cupid Set, infused with the power of passion."
     - ""
     - "&d&lCUPID SET BONUS"
-    - "&d* Deal 30% more damage to all enemies"
-    - "&d* Enemies deal 20% less damage to you"
-    - "&d* Bow attacks deal 75% less damage to you"
+    - "&d* Deal 20% more damage to all enemies"
+    - "&d* Enemies deal 12% less damage to you"
+    - "&d* Bow attacks deal 15% less damage to you"
     - "&d* Lovestruck Ability"
     - ""
     - "&d&lLOVESTRUCK"
@@ -46,14 +46,21 @@ bonuses:
     trigger: DEFENSE
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 12 } }
+  # Bow resistance — the "Bow attacks deal 15% less damage to you" lore line.
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    condition: '%victim.helditem% contains "BOW"'
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
   # Lovestruck (permanent) — Regeneration I while the full set is worn.
   - on: armor
     trigger: [PASSIVE]
     chance: 100
     effects:
       - { POTION: { effect: REGENERATION, level: 1, duration: 200, who: "@Self" } }
-  # Lovestruck — 5% on hit (30s cd): strip HALF the victim's overhealth (max health above 20) for 3s.
+  # Lovestruck — 15% on hit (30s cd): strip HALF the victim's overhealth (max health above 20) for 3s.
   # The condition gate runs before the cooldown arms, so a no-overhealth hit never burns the 30s.
   - on: armor
     trigger: ATTACK
@@ -70,4 +77,4 @@ bonuses:
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }

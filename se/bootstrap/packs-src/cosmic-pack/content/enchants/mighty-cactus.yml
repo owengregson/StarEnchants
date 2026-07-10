@@ -12,16 +12,16 @@ requires: ["enchants/cactus"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 15
+    chance: 18
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 8, who: "@Attacker" } }
-      - { DAMAGE: { amount: 5, who: "@Attacker" } }
+      - { DAMAGE: { amount: 2.5, who: "@Attacker" } }
   2:
-    chance: 20
+    chance: 24
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
       - { PARTICLE: { particle: "CRIT", count: 8, who: "@Attacker" } }
-      - { DAMAGE: { amount: 7, who: "@Attacker" } }
+      - { DAMAGE: { amount: 3, who: "@Attacker" } }

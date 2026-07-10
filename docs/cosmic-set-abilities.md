@@ -61,6 +61,9 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 
 ### cupid — **Lovestruck** ✅
 - **Permanent:** Regeneration I while worn (`POTION` passive, driver-maintained).
+- **Bow brace (set line):** bow attacks deal **15% less** damage to the wearer — a real
+  defense `DAMAGE_MOD` behind `condition: %victim.helditem% contains "BOW"`. (The imported
+  "75% less" lore line had no implementation; ADR-0050 implements it at 15% and fixes the claim.)
 - **On hit — 15%, 30s cooldown:** remove **half** of the victim's *overhealth* (max-health
   above 20) for **3s**, then it returns. Only fires (and only spends the cooldown) when the
   victim actually has overhealth (`condition: %victim.maxhealth% > 20`).
@@ -74,15 +77,15 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 ### devil — **Hells Kitchen** ✅ (confirmed)
 - **Permanent:** a self-reverting **netherrack trail** under the wearer's feet (`TEMP_BLOCK`
   FOOTPRINT, ledgered so the trail never becomes permanent).
-- **On hit — 15%, 30s cooldown:** lay a 7×7 netherrack floor under the victim + a wearer-owned
-  **hellfire zone** (`MARK_ZONE radius:4.5`, the same 5s as the floor) + flame/sound flair.
-- **While attacking an enemy standing in an active zone:** **+35% damage** — a separate
+- **On hit — 15%, 30s cooldown:** lay a 7×7 magma-and-netherrack floor under the victim + a
+  wearer-owned **hellfire zone** (`MARK_ZONE radius:4.5`, the same 5s as the floor) + flame/sound flair.
+- **While attacking an enemy standing in an active zone:** **+20% damage** — a separate
   `chance:100` ATTACK bonus gated on `%victim.inzone%`, folded additively with the weapon bonus.
 - **Globalized:** temp-block ledger, **owner-zone** (`MARK_ZONE` + `OwnerZones` + the
   `%victim.inzone%` fact).
 
 &4&lHELL'S KITCHEN
-&4* Chance to engulf your victim in Hell's Kitchen, causing them to take 35% more damage while in the area
+&4* Chance to engulf your victim in Hell's Kitchen, causing them to take 20% more damage while in the area
 
 ### dragon — **Dovahkiin** (passive) ✅
 - **Effect:** while worn, the wearer is **immune to enchant-cancelling** — any
@@ -94,7 +97,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 
 ### druid — **Terrablender** ✅
 - **On hit — 15%, 30s cooldown:** spawn a 3×3 grid of **falling grass blocks** 4 blocks above
-  the victim's head. On impact: deal **1.5× the triggering hit's damage** (once — shared
+  the victim's head. On impact: deal **0.75× the triggering hit's damage** (once — shared
   first-hit-wins flag, so the 3×3 can't multiply) and **lock Speed for 5s** (`POTION_LOCK
   ticks:100` — re-stripped every tick so it can't be re-drunk back). The blocks **vanish on
   landing** (no block is ever placed); misses evict on TTL.
@@ -113,18 +116,18 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 &2* Chance to trap your enemy in an unbreakable cobweb for 2 seconds
 
 ### koth — **Victorious** ✅
-- **On hit (weapon):** **+10% outgoing damage per nearby player** (friend *or* foe, not self)
-  within 7 blocks, capped at **+100%** (the Victorious contribution alone; combines additively
+- **On hit (weapon):** **+5% outgoing damage per nearby player** (friend *or* foe, not self)
+  within 7 blocks, capped at **+40%** (the Victorious contribution alone; combines additively
   with the set's other buffs).
-- **Permanent cosmetic (every 0.5s):** a **white-dust ring** at hip level at radius 7 + a
+- **Permanent cosmetic (every 0.5s):** a **white-dust ring** at feet level at radius 7 + a
   **tether line** from each nearby player to the wearer.
 - **Globalized:** `DAMAGE_SCALE` (actor-centred count), `PARTICLE_RING`/`PARTICLE_LINE`, color codec.
 
 &f&lVICTORIOUS
-&f* Deal 10% more damage for each player within 7 blocks, up to +100% damage
+&f* Deal 5% more damage for each player within 7 blocks, up to +40% damage
 
 ### phantom — **Ghostly Rush** (passive) ✅ ⚠️ *(replaces a burst bonus)*
-- **Permanent:** Haste I + Strength III + Speed IV (`POTION` passives).
+- **Permanent:** Haste I + Strength I + Speed II (`POTION` passives).
 - **Effect:** **soul-tier enchants do not function** while worn (`SUPPRESS { scope: TIER, key: soul }`,
   re-armed every 2s; lapses ~3s after removal).
 - **Globalized:** TIER suppression scope.
@@ -132,7 +135,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
   as permanent passives.
 
 &c&lGHOSTLY RUSH
-&c* Permanent Haste I, Strength III, Speed IV
+&c* Permanent Haste I, Strength I, Speed II
 &c* Cannot use Soul Enchantments
 
 ### reaper — **Mark of the Reaper** ✅
@@ -162,6 +165,9 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 - **On being hit — 15%, 30s cooldown:** grant **Invisibility + Speed IV for 5s** and **blink
   1 block behind the attacker** (safe-teleport: occlusion + LOS checked); if no safe spot,
   land **on top of** the attacker.
+- **Absorption brace (set line) — 20%, 10s cooldown on being hit:** **Absorption II for 5s**
+  (was an ungated Absorption V on every hit; ADR-0050 adds the chance/cooldown gates and drops
+  the amplifier).
 - **Globalized:** `TELEPORT_BEHIND`.
 
 &5&lDIMENSIONAL SHIFT
@@ -178,7 +184,7 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 
 ### thor — **Stormcaller** ✅
 - **On hit — 15%, 30s cooldown:** strike **every enemy within 7 blocks** (excludes the wearer,
-  allied players, and passive mobs) with **lightning dealing 0.5× the triggering hit's
+  allied players, and passive mobs) with **lightning dealing 0.4× the triggering hit's
   damage**.
 - **Globalized:** `@Aoe{filter=ENEMIES}`, cosmetic-aware `LIGHTNING`.
 - The pack's first multi-`on:armor` set. Labelled a **Passive Ability** (an auto-smite the wearer does not aim), per spec.
@@ -187,19 +193,21 @@ safety, potion categorisation) live behind the overlay split, never in engine-co
 &9* Chance to strike all nearby enemies with supercharged lightning that deals high damage
 
 ### yeti — **Fortified** (on defense) ✅
-- **On being hit — 25%, 30s cooldown:** **negate** the incoming hit (`CANCEL`) and freeze the
-  attacker: a **2-tall ice pillar** one block ahead of them + a **3×3 packed-ice footprint**
-  at their feet, for **3s**. Ice is placed **only where it replaces air** (safe); the ledger
-  prevents any permanence on overlap.
-- **Globalized:** temp-block ledger (COLUMN + FOOTPRINT shapes).
+- **On being hit — 20%, 30s cooldown:** **negate** the incoming hit (`CANCEL`) and freeze the
+  ground under the attacker: a **3×3 mixed frost-palette footprint** (ice / blue ice / packed
+  ice / snow) at their feet, for **3s**. Frost replaces **only solid ground** (never air, so
+  nothing floats); the ledger prevents any permanence on overlap.
+- **Globalized:** temp-block ledger (FOOTPRINT shape, mixed palette).
 
 &b&lFORTIFIED
 &b* Chance to nullify an incoming attack and spawn a defensive Ice Wall in front of your enemy
 
 ### yijki — **Divine Shield** (on defense) ✅
 - **On being hit — 25%, 30s cooldown:** **negate** the hit (`CANCEL`, removing damage +
-  wearer knockback), **launch the attacker backward** (~2 hits of knockback), and strike them
-  with a **cosmetic (no-damage) lightning bolt**.
+  wearer knockback), brace the wearer with **Resistance I for 5s** (ADR-0050 moved it here off
+  the always-on set line — the save now grants the brace window), **launch the attacker
+  backward** (~2 hits of knockback), and strike them with a **cosmetic (no-damage) lightning
+  bolt**.
 - **Globalized:** cosmetic-aware `LIGHTNING`, `VELOCITY{away}`.
 
 &f&lDIVINE SHIELD
@@ -226,6 +234,17 @@ the `(Requires all four …)` footer.
 **25%**. Fantasy's web (and its Speed lock) now lasts **2s** (was 1s); yeti's Fortified gained a
 **30s cooldown** (was cooldown-free).
 
+**PvP rebalance (ADR-0050).** The set-bonus percentage lines (always-on armour reduction / weapon
+attack) were retuned pack-wide — each set's YAML lore is the authority for its own numbers. Ability
+changes: devil's in-zone bonus is **+20%** (was 35%); koth Victorious counts **+5% per player,
+capped +40%** (was 10 / 100); thor's bolt deals **0.4×** (was 0.5×); druid's impact deals **0.75×**
+(was 1.5×); yeti's Fortified is **20%** (was 25%); stellar's every-hit Absorption V became the gated
+**20% / 10s-cooldown Absorption II (5s)**; phantom's passives soften to **Strength I / Speed II**;
+yijki's Resistance I now rides the Divine Shield save instead of every hit; cupid's bow line is
+implemented at **15%** (the old 75% lore was phantom text). The set weapons' on-hit debuff potions
+were shortened to 2s at level I: reaper **Weakness I + Wither I ×40t** (was 100t, Wither II) and
+spooky **Blindness I + Slowness I ×40t** (was 100t, Blindness II).
+
 **Proc announce.** Every one-shot-then-cooldown proc now also **titles its victim** (`** NAME ** /
 from {ATTACKER}`) and **chats the wearer** (`** NAME [{VICTIM}] **`) — the ability name in all caps —
 via the globalized `MESSAGE` head, which gained a `who` recipient target and `{ATTACKER}`/`{VICTIM}`
@@ -233,7 +252,7 @@ name tokens (the same naming convention as the message-on-activate feature), so 
 announce the same way.
 
 The four mechanics that had first shipped as pragmatic variants were **brought up to the exact
-spec**: devil's **+35% in the hellfire zone** (owner-zone + `%victim.inzone%`), druid's **5s** and
+spec**: devil's in-zone hellfire bonus (owner-zone + `%victim.inzone%`; **+20%** post-ADR-0050), druid's **5s** and
 fantasy's **2s in-web** Speed are now a continuous `POTION_LOCK` (not a one-shot strip), and reaper's
 tether is a **continuous 0.5s beam** to `@Marked` (not a one-shot line).
 
@@ -242,7 +261,7 @@ blocks a set):
 
 - **phantom soul lockout** — implemented as `SUPPRESS { scope: GROUP, key: soul }` (every soul-tier
   enchant already carries `group: soul`), so **no core `Ability` arity change** was needed.
-- **fantasy cobweb** — temporary + brief (1 s); the hard "unbreakable" guard is best-effort.
+- **fantasy cobweb** — temporary + brief (2 s); the hard "unbreakable" guard is best-effort.
 - **koth count** — `DAMAGE_SCALE who: @AllPlayers{r=7}` centres on the victim during an ATTACK
   (melee-adjacent to the wearer); a wearer-centred selector is a future nicety.
 - **`MAX_HEALTH_DRAIN`** — overlap-safe exact-delta restore; a victim who logs out mid-window keeps

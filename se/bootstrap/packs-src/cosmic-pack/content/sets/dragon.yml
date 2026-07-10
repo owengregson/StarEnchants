@@ -36,7 +36,7 @@ weapon:
     - "&eUnleash draconic fury with the Wyvern Claw, a talon forged from the essence of ancient dragons."
     - ""
     - "&e&lDRAGON WEAPON BONUS"
-    - "&e* Deal 15% more damage to all enemies"
+    - "&e* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Dragon set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -52,9 +52,8 @@ bonuses:
     chance: 100
     effects:
       - { SUPPRESS_IMMUNE: { who: "@Self" } }
-      - { PARTICLE: { particle: DRAGON_BREATH, count: 4 } }
   - on: weapon
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }

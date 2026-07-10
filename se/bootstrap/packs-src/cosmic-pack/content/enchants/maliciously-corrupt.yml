@@ -12,28 +12,28 @@ requires: ["enchants/corrupt"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 3.5
+    chance: 20
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
       - { PARTICLE: { particle: "SOUL", count: 14 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 2, who: "@Victim" } }
   2:
-    chance: 5
+    chance: 26
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
       - { PARTICLE: { particle: "SOUL", count: 14 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 2, who: "@Victim" } }
   3:
-    chance: 6.5
+    chance: 32
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
       - { PARTICLE: { particle: "SOUL", count: 14 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", mode: "next-hit", charges: 2, who: "@Victim" } }
   4:
-    chance: 8
+    chance: 38
     cooldown: 80
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }

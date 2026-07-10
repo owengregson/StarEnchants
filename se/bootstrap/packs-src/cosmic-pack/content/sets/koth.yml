@@ -14,12 +14,12 @@ armor:
     - "&fRise to supremacy with the &c&lK&6&l.&e&lO&2&l.&b&lT&5&l.&d&lH &fset, clad in victory and the spoils of war."
     - ""
     - "&c&lK&6&l.&e&lO&2&l.&b&lT&5&l.&d&lH &f&lSET BONUS"
-    - "&f* Deal 30% more damage to all enemies"
-    - "&f* Enemies deal 20% less damage to you"
+    - "&f* Deal 20% more damage to all enemies"
+    - "&f* Enemies deal 12% less damage to you"
     - "&f* Victorious Ability"
     - ""
     - "&f&lVICTORIOUS"
-    - "&f* Deal 10% more damage for each player within 7 blocks, up to +100% damage"
+    - "&f* Deal 5% more damage for each player within 7 blocks, up to +40% damage"
     - "&7&o(Requires all four K.O.T.H set items.)"
   pieces:
     helmet:     { material: DIAMOND_HELMET,     name: "&c&lK&6&l.&e&lO&2&l.&b&lT&5&l.&d&lH &f&lHelmet&r" }
@@ -44,19 +44,19 @@ bonuses:
     trigger: DEFENSE
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 12 } }
   - on: weapon
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } }
-  # Victorious — scale outgoing damage with the crowd: +10% per nearby player (friend OR foe) within 7 blocks,
-  # capped at +100% (the Victorious contribution alone; folds additively with the set's other buffs).
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }
+  # Victorious — scale outgoing damage with the crowd: +5% per nearby player (friend OR foe) within 7 blocks,
+  # capped at +40% (the Victorious contribution alone; folds additively with the set's other buffs).
   - on: weapon
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }
+      - { DAMAGE_SCALE: { side: attack, mode: add, per: 5, cap: 40, who: "@AllPlayers{r=7}" } }
       - { PARTICLE: { particle: FIREWORKS_SPARK, count: 8 } }
   # Victorious crown aura (cosmetic, redrawn every 0.5s): a white redstone-dust ring just above the floor (≈feet
   # level) the size of the radius, plus a dust tether from each nearby player to the wearer at the same height.

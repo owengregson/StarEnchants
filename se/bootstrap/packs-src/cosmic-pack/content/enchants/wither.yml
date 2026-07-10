@@ -9,36 +9,36 @@ group: "rare"
 tier: rare
 levels:
   1:
-    chance: 3
-    cooldown: 80
+    chance: 8
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   2:
-    chance: 5
-    cooldown: 80
+    chance: 11
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   3:
-    chance: 7
-    cooldown: 80
+    chance: 14
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   4:
-    chance: 9
-    cooldown: 80
+    chance: 17
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
       - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
   5:
-    chance: 11
-    cooldown: 80
+    chance: 20
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }

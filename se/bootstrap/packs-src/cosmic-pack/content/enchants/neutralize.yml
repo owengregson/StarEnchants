@@ -10,36 +10,36 @@ group: "godly"
 tier: godly
 levels:
   1:
-    chance: 1.25
-    cooldown: 1000
+    chance: 20
+    cooldown: 400
     effects:
       - { SOUND: { sound: "BLOCK_CONDUIT_DEACTIVATE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", mode: "next-hit", charges: 1, who: "@Victim" } }
   2:
-    chance: 2.95
-    cooldown: 1000
+    chance: 25
+    cooldown: 380
     effects:
       - { SOUND: { sound: "BLOCK_CONDUIT_DEACTIVATE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", mode: "next-hit", charges: 1, who: "@Victim" } }
   3:
-    chance: 4.25
-    cooldown: 900
+    chance: 30
+    cooldown: 360
     effects:
       - { SOUND: { sound: "BLOCK_CONDUIT_DEACTIVATE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", mode: "next-hit", charges: 1, who: "@Victim" } }
   4:
-    chance: 6
-    cooldown: 800
+    chance: 35
+    cooldown: 340
     effects:
       - { SOUND: { sound: "BLOCK_CONDUIT_DEACTIVATE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
       - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", mode: "next-hit", charges: 1, who: "@Victim" } }
   5:
-    chance: 7.5
-    cooldown: 700
+    chance: 40
+    cooldown: 320
     effects:
       - { SOUND: { sound: "BLOCK_CONDUIT_DEACTIVATE", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }

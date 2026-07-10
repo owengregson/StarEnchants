@@ -9,22 +9,22 @@ group: "rare"
 tier: rare
 levels:
   1:
-    chance: 5
-    cooldown: 60
+    chance: 12
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_SPIDER_AMBIENT", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "WARPED_SPORE", count: 12 } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)
   2:
-    chance: 8
-    cooldown: 60
+    chance: 16
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_SPIDER_AMBIENT", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "WARPED_SPORE", count: 12 } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)
   3:
-    chance: 12
-    cooldown: 60
+    chance: 20
+    cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_SPIDER_AMBIENT", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "WARPED_SPORE", count: 12 } }

@@ -13,43 +13,43 @@ requires: ["enchants/diminish"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 3.75
-    cooldown: 60
+    chance: 10
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
   2:
-    chance: 6
-    cooldown: 60
+    chance: 14
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
   3:
-    chance: 8.5
-    cooldown: 60
+    chance: 18
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
   4:
-    chance: 10
-    cooldown: 60
+    chance: 22
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
   5:
-    chance: 11.5
-    cooldown: 60
+    chance: 26
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
   6:
-    chance: 13
-    cooldown: 60
+    chance: 30
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }

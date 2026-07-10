@@ -9,42 +9,42 @@ group: "epic"
 tier: epic
 levels:
   1:
-    chance: 2.75
-    cooldown: 80
-    condition: "%sneaking% : +2.75 %chance%"
+    chance: 1
+    cooldown: 100
+    condition: "%sneaking% : +1 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
+      - { CANCEL: {} }
   2:
-    chance: 4.5
-    cooldown: 80
-    condition: "%sneaking% : +4.5 %chance%"
+    chance: 1.5
+    cooldown: 100
+    condition: "%sneaking% : +1.5 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
+      - { CANCEL: {} }
   3:
-    chance: 7.25
-    cooldown: 80
-    condition: "%sneaking% : +7.25 %chance%"
+    chance: 2
+    cooldown: 100
+    condition: "%sneaking% : +2 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
+      - { CANCEL: {} }
   4:
-    chance: 9
-    cooldown: 80
-    condition: "%sneaking% : +9 %chance%"
+    chance: 2.5
+    cooldown: 100
+    condition: "%sneaking% : +2.5 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
+      - { CANCEL: {} }
   5:
-    chance: 11
-    cooldown: 80
-    condition: "%sneaking% : +11 %chance%"
+    chance: 3
+    cooldown: 100
+    condition: "%sneaking% : +3 %chance%"
     effects:
       - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
+      - { CANCEL: {} }

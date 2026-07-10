@@ -9,6 +9,4 @@ tier: common
 levels:
   1:
     effects:
-      - { SOUND: { sound: "BLOCK_BEACON_AMBIENT", volume: 0.4, pitch: 1.6 } }
-      - { PARTICLE: { particle: "END_ROD", count: 8 } }
       - { POTION: { effect: "NIGHT_VISION", level: 1, duration: 200, who: "@Self" } }  # from POTION:NIGHT_VISION:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

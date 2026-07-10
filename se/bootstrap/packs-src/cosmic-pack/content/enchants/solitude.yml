@@ -10,8 +10,50 @@ group: "rare"
 tier: rare
 levels:
   1:
-    chance: 4
-    cooldown: 120
+    chance: 10
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 60, who: "@Victim" } }
+  2:
+    chance: 14
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 80, who: "@Victim" } }
+  3:
+    chance: 18
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 100, who: "@Victim" } }
+  4:
+    chance: 22
+    cooldown: 200
     effects:
       - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "END_ROD", count: 8 } }
@@ -23,45 +65,3 @@ levels:
       - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 120, who: "@Victim" } }
       - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 120, who: "@Victim" } }
       - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 120, who: "@Victim" } }
-  2:
-    chance: 6
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
-      - { PARTICLE: { particle: "END_ROD", count: 8 } }
-      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 180, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 180, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 180, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 180, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 180, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 180, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 180, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 180, who: "@Victim" } }
-  3:
-    chance: 9.25
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
-      - { PARTICLE: { particle: "END_ROD", count: 8 } }
-      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 240, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 240, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 240, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 240, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 240, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 240, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 240, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 240, who: "@Victim" } }
-  4:
-    chance: 11
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
-      - { PARTICLE: { particle: "END_ROD", count: 8 } }
-      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 300, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 300, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 300, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 300, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 300, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 300, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 300, who: "@Victim" } }
-      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 300, who: "@Victim" } }

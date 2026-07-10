@@ -12,23 +12,23 @@ requires: ["enchants/enlightened"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 7.5
+    chance: 10
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.4 } }
       - { PARTICLE: { particle: "END_ROD", count: 12 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self)
   2:
     chance: 15
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.4 } }
       - { PARTICLE: { particle: "END_ROD", count: 12 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self)
   3:
-    chance: 22.5
+    chance: 20
     cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.4 } }
       - { PARTICLE: { particle: "END_ROD", count: 12 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self)

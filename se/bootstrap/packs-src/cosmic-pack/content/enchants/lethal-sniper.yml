@@ -13,42 +13,42 @@ requires: ["enchants/sniper"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 5
-    cooldown: 60
+    chance: 20
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+      - { DAMAGE: { amount: 3, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
-    chance: 7.5
-    cooldown: 60
+    chance: 23
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+      - { DAMAGE: { amount: 3.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
-    chance: 10
-    cooldown: 60
+    chance: 26
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
-    chance: 12.5
-    cooldown: 60
+    chance: 29
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+      - { DAMAGE: { amount: 4.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
-    chance: 15
-    cooldown: 60
+    chance: 32
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 8, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+      - { DAMAGE: { amount: 5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

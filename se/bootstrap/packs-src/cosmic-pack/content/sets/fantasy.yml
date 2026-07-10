@@ -14,7 +14,7 @@ armor:
     - "&2Embark on epic adventures with the Fantasy set, armaments of mythical heroes and timeless tales."
     - ""
     - "&2&lFANTASY SET BONUS"
-    - "&2* Deal 25% more damage to all enemies"
+    - "&2* Deal 20% more damage to all enemies"
     - "&2* Fantasy Trap Ability"
     - ""
     - "&2&lFANTASY TRAP"
@@ -55,4 +55,4 @@ bonuses:
     trigger: ATTACK
     chance: 100
     effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }

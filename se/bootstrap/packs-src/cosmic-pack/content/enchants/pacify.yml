@@ -9,30 +9,30 @@ group: "epic"
 tier: epic
 levels:
   1:
-    chance: 5
-    cooldown: 60
+    chance: 20
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
   2:
-    chance: 7.5
-    cooldown: 60
+    chance: 26
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
   3:
-    chance: 10
-    cooldown: 60
+    chance: 32
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
   4:
-    chance: 12.5
-    cooldown: 60
+    chance: 38
+    cooldown: 100
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }

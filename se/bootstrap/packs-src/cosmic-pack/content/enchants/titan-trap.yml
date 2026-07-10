@@ -13,23 +13,23 @@ requires: ["enchants/trap"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    chance: 2.25
+    chance: 12
     cooldown: 140
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
-      - { POTION: { effect: "SLOW", level: 3, duration: 140, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:7 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW", level: 3, duration: 80, who: "@Victim" } }
   2:
-    chance: 4
+    chance: 16
     cooldown: 140
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
-      - { POTION: { effect: "SLOW", level: 3, duration: 140, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:7 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW", level: 3, duration: 80, who: "@Victim" } }
   3:
-    chance: 6
+    chance: 20
     cooldown: 140
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
-      - { POTION: { effect: "SLOW", level: 3, duration: 140, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:7 — EE seconds → ticks (x20)
+      - { POTION: { effect: "SLOW", level: 3, duration: 80, who: "@Victim" } }

@@ -14,16 +14,10 @@ removes-required: true  # the mythic upgrade supersedes its base counterpart (ne
 levels:
   1:
     effects:
-      - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.5, pitch: 1.2 } }
-      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 10 } }
-      - { POTION: { effect: "HEALTH_BOOST", level: 4, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:4:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 200, who: "@Self" } }
   2:
     effects:
-      - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.5, pitch: 1.2 } }
-      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 10 } }
-      - { POTION: { effect: "HEALTH_BOOST", level: 5, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:5:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 200, who: "@Self" } }
   3:
     effects:
-      - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.5, pitch: 1.2 } }
-      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 10 } }
-      - { POTION: { effect: "HEALTH_BOOST", level: 6, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:6:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "HEALTH_BOOST", level: 3, duration: 200, who: "@Self" } }
