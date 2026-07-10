@@ -16,16 +16,24 @@ levels:
   1:
     chance: 7.5
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
       - { MODIFY_EXP: { amount: 10, mode: "give" } }  # from EXP:10 — EXP → MODIFY_EXP
   2:
     chance: 15
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
       - { MODIFY_EXP: { amount: 15, mode: "give" } }  # from EXP:15 — EXP → MODIFY_EXP
   3:
     chance: 22.5
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
       - { MODIFY_EXP: { amount: 20, mode: "give" } }  # from EXP:20 — EXP → MODIFY_EXP
   4:
     chance: 30
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
       - { MODIFY_EXP: { amount: 25, mode: "give" } }  # from EXP:25 — EXP → MODIFY_EXP

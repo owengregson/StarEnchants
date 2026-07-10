@@ -23,6 +23,7 @@ levels:
     chance: 2.25
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } }  # from DAMAGE_INCREASE:3 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
@@ -30,6 +31,7 @@ levels:
     chance: 4
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
@@ -37,6 +39,7 @@ levels:
     chance: 5.5
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
@@ -44,6 +47,7 @@ levels:
     chance: 6.25
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
@@ -51,6 +55,7 @@ levels:
     chance: 7
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # from DAMAGE_INCREASE:12 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)
@@ -58,6 +63,7 @@ levels:
     chance: 8.25
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # from DAMAGE_INCREASE:15 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
       - { POTION: { effect: "SLOW", level: 3, duration: 100, who: "@Victim" } }  # from POTION:SLOW:3:TARGET:5 — EE seconds → ticks (x20)

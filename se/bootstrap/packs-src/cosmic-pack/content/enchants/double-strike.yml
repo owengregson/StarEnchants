@@ -16,14 +16,20 @@ levels:
     chance: 2.75
     cooldown: 160
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 4
     cooldown: 160
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 6
     cooldown: 160
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # from DAMAGE_INCREASE:100 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

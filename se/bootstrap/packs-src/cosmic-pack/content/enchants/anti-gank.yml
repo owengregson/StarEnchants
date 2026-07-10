@@ -17,19 +17,27 @@ levels:
     chance: 4.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%
   2:
     chance: 6.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%
   3:
     chance: 8.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%
   4:
     chance: 10
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%nearbyenemies% * 8" } }  # from GANK — EE GANK (scales with nearby enemies) → expression-valued DAMAGE_MOD over %nearbyenemies%

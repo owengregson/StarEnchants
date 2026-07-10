@@ -20,15 +20,21 @@ levels:
   1:
     chance: 30
     effects:
+      - { SOUND: { sound: "BLOCK_BEACON_AMBIENT", volume: 0.5, pitch: 1.4 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
       - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
       - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
   2:
     chance: 60
     effects:
+      - { SOUND: { sound: "BLOCK_BEACON_AMBIENT", volume: 0.5, pitch: 1.4 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
       - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
       - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
   3:
     chance: 90
     effects:
+      - { SOUND: { sound: "BLOCK_BEACON_AMBIENT", volume: 0.5, pitch: 1.4 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
       - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:2:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
       - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD

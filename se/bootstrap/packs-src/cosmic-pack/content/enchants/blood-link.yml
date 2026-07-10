@@ -18,24 +18,34 @@ levels:
     chance: 2
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   2:
     chance: 3.75
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   3:
     chance: 5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   4:
     chance: 6.5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
   5:
     chance: 7.5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:4 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max

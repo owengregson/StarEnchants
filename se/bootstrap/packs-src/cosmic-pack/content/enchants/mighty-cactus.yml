@@ -19,9 +19,13 @@ levels:
     chance: 6
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE: { amount: 6, who: "@Attacker" } }  # from DAMAGE:3:6:TARGET — legacy random range 3-6 collapsed to its max
   2:
     chance: 9
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:4:8:TARGET — legacy random range 4-8 collapsed to its max

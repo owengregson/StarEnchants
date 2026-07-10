@@ -16,16 +16,24 @@ levels:
   1:
     chance: 2.5
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   2:
     chance: 4.5
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   3:
     chance: 6.5
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   4:
     chance: 8
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

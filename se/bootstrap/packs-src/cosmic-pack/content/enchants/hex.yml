@@ -19,29 +19,39 @@ levels:
     chance: 2.25
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
       - { DAMAGE: { amount: 3, who: "@Victim" } }  # from DAMAGE:1:3:TARGET — legacy random range 1-3 collapsed to its max
   2:
     chance: 3.75
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
       - { DAMAGE: { amount: 3, who: "@Victim" } }  # from DAMAGE:1:3:TARGET — legacy random range 1-3 collapsed to its max
   3:
     chance: 5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
       - { DAMAGE: { amount: 3, who: "@Victim" } }  # from DAMAGE:1:3:TARGET — legacy random range 1-3 collapsed to its max
   4:
     chance: 6
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
       - { DAMAGE: { amount: 3, who: "@Victim" } }  # from DAMAGE:1:3:TARGET — legacy random range 1-3 collapsed to its max
   5:
     chance: 7.5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10 } }  # from REDUCTION:10
       - { DAMAGE: { amount: 3, who: "@Victim" } }  # from DAMAGE:1:3:TARGET — legacy random range 1-3 collapsed to its max

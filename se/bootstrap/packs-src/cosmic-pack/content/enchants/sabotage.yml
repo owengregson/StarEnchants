@@ -21,20 +21,30 @@ levels:
   1:
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   2:
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   3:
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   4:
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   5:
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

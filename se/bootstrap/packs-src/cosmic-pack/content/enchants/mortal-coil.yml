@@ -19,29 +19,39 @@ levels:
     chance: 1.5
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 3
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 4.5
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 6
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     chance: 7.5
     cooldown: 600
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # from DAMAGE_INCREASE:10 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

@@ -22,39 +22,59 @@ levels:
   1:
     chance: 8
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   2:
     chance: 16
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   3:
     chance: 24
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   4:
     chance: 32
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   5:
     chance: 40
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   6:
     chance: 48
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   7:
     chance: 56
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   8:
     chance: 74
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   9:
     chance: 82
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)
   10:
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 10, target: "item", mode: "restore" } }  # from ADD_DURABILITY_ITEM:10 — EE add-durability → DURABILITY (restore)

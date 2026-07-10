@@ -22,6 +22,8 @@ levels:
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
@@ -38,6 +40,8 @@ levels:
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
@@ -54,6 +58,8 @@ levels:
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
@@ -69,6 +75,8 @@ levels:
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
       - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)

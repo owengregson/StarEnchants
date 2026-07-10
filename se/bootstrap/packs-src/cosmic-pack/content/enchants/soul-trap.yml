@@ -15,6 +15,8 @@ levels:
   1:
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/divine-immolation", duration: 80, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:divine-immolation:4 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/natureswrath", duration: 80, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:natureswrath:4 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/phoenix", duration: 80, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:phoenix:4 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
@@ -22,6 +24,8 @@ levels:
   2:
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/divine-immolation", duration: 160, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:divine-immolation:8 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/natureswrath", duration: 160, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:natureswrath:8 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/phoenix", duration: 160, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:phoenix:8 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
@@ -29,6 +33,8 @@ levels:
   3:
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/divine-immolation", duration: 240, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:divine-immolation:12 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/natureswrath", duration: 240, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:natureswrath:12 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/phoenix", duration: 240, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:phoenix:12 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

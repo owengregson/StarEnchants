@@ -19,29 +19,41 @@ levels:
     chance: 5
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
   2:
     chance: 6
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
   3:
     chance: 7
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
   4:
     chance: 8
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
   5:
     chance: 9
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15
   6:
     chance: 10
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }  # from REDUCTION:15

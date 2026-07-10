@@ -19,29 +19,41 @@ levels:
     chance: 1.75
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   2:
     chance: 3
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   3:
     chance: 4.5
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   4:
     chance: 6
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   5:
     chance: 7.5
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
   6:
     chance: 10
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }  # from REDUCTION:50
