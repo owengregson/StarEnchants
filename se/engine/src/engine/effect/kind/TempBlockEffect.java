@@ -28,6 +28,10 @@ public final class TempBlockEffect implements EffectKind {
     static final EffectSpec SPEC = EffectSpec.of("TEMP_BLOCK")
             .param("shape", D.enumOf("POINT", "FOOTPRINT", "COLUMN").def("POINT"))
             .param("material", D.material())
+            .param("material2", D.material().optional())
+            .param("material3", D.material().optional())
+            .param("material4", D.material().optional())
+            .param("palette-scale", D.INT.range(1, 8).def(2))
             .param("ticks", D.TICKS.def(60))
             .param("radius", D.INT.range(0, 4).def(0))
             .param("height", D.INT.range(1, 8).def(1))
@@ -41,7 +45,9 @@ public final class TempBlockEffect implements EffectKind {
                     + "air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet "
                     + "(never air, so a trail can't scaffold); other shapes replace anything and restore on revert. "
                     + "A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, "
-                    + "4-connected footprint path even at sprint speed and on diagonals.")
+                    + "4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place "
+                    + "a mixed palette: each block picks a material from a deterministic per-cell hash, so materials "
+                    + "form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise).")
             .example("{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }")
             .build();
 
@@ -53,7 +59,8 @@ public final class TempBlockEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         String shape = ctx.str("shape").toUpperCase(Locale.ROOT);
-        int material = ctx.integer("material");
+        int[] palette = palette(ctx);
+        int scale = palette.length > 1 ? ctx.integer("palette-scale") : 1; // scale is only consulted for a mixed palette
         int ticks = ctx.integer("ticks");
         int radius = ctx.integer("radius");
         int height = ctx.integer("height");
@@ -85,13 +92,14 @@ public final class TempBlockEffect implements EffectKind {
                     if (radius == 0) {
                         // The snake: hand the walker's current cell to the sink, which joins it to the previous
                         // cell as a 4-connected trail (no gaps at sprint speed, clean L-steps on diagonals). The
-                        // effect stays stateless — the sink owns the path memory (the MARK_ZONE precedent).
+                        // effect stays stateless — the sink owns the path memory (the MARK_ZONE precedent). The
+                        // trail API is single-material, so a snake trail always uses palette[0] (the base material).
                         sink.tempBlockTrail(ctx.sourceDefId(), who.getUniqueId(),
-                                new Location(world, bx, by, bz), material, ticks);
+                                new Location(world, bx, by, bz), palette[0], ticks);
                     } else {
                         for (int dx = -radius; dx <= radius; dx++) {
                             for (int dz = -radius; dz <= radius; dz++) {
-                                place(sink, world, bx + dx, by, bz + dz, material, ticks, mode);
+                                place(sink, world, bx + dx, by, bz + dz, palette, scale, ticks, mode);
                             }
                         }
                     }
@@ -99,16 +107,56 @@ public final class TempBlockEffect implements EffectKind {
                 case "COLUMN" -> {
                     int[] forward = forwardOffset(base, ahead);
                     for (int h = 0; h < height; h++) {
-                        place(sink, world, bx + forward[0], by + h, bz + forward[1], material, ticks, mode);
+                        place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, scale, ticks, mode);
                     }
                 }
-                default -> place(sink, world, bx, by, bz, material, ticks, mode); // POINT
+                default -> place(sink, world, bx, by, bz, palette, scale, ticks, mode); // POINT
             }
         }
     }
 
-    private static void place(Sink sink, World world, int x, int y, int z, int material, int ticks, int mode) {
-        sink.tempBlock(new Location(world, x, y, z), material, ticks, mode, false);
+    /** The placement palette in authored order: [material, material2.., material3.., material4..], present ones only. */
+    private static int[] palette(EffectCtx ctx) {
+        int[] out = new int[4];
+        int n = 0;
+        out[n++] = ctx.integer("material");
+        if (ctx.args().has("material2")) {
+            out[n++] = ctx.integer("material2");
+        }
+        if (ctx.args().has("material3")) {
+            out[n++] = ctx.integer("material3");
+        }
+        if (ctx.args().has("material4")) {
+            out[n++] = ctx.integer("material4");
+        }
+        return n == out.length ? out : java.util.Arrays.copyOf(out, n);
+    }
+
+    private static void place(Sink sink, World world, int x, int y, int z, int[] palette, int scale, int ticks, int mode) {
+        sink.tempBlock(new Location(world, x, y, z), materialAt(palette, scale, x, z), ticks, mode, false);
+    }
+
+    /**
+     * The palette material for the block at {@code (x, z)}: a single-material palette is byte-identical to the
+     * plain material; a multi-material palette picks {@code palette[positiveHash(floor(x/scale), floor(z/scale)) %
+     * size]} so identical cells share a material — connected patches of ~{@code scale}×{@code scale} blocks. The
+     * cell hash is a pure integer mix (no {@code Random}), so reverts and trail fingerprints stay stable.
+     */
+    private static int materialAt(int[] palette, int scale, int x, int z) {
+        if (palette.length == 1) {
+            return palette[0];
+        }
+        int cell = cellHash(Math.floorDiv(x, scale), Math.floorDiv(z, scale));
+        return palette[Math.floorMod(cell, palette.length)];
+    }
+
+    /** A cheap deterministic spatial mix of a cell coordinate (the classic 73856093/19349663 hash, finalized). */
+    private static int cellHash(int cx, int cz) {
+        int h = cx * 73856093 ^ cz * 19349663;
+        h ^= h >>> 16;
+        h *= 0x7feb352d;
+        h ^= h >>> 15;
+        return h;
     }
 
     /** The horizontal block offset {@code ahead} blocks along the target's facing (forward by default). */
