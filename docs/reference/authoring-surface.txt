@@ -117,6 +117,8 @@ effect PARTICLE
   param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
   param count INT optional min=0 max=- enum=- handle=- default=1
   param block HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param spread DOUBLE optional min=0 max=4 enum=- handle=- default=0.4
+  param spread-y DOUBLE optional min=-1 max=4 enum=- handle=- default=-1
 effect PARTICLE_LINE
   param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
   param r INT optional min=0 max=255 enum=- handle=- default=255
@@ -199,6 +201,10 @@ effect TELEPORT_DROPS
 effect TEMP_BLOCK
   param shape ENUM optional min=- max=- enum=COLUMN,FOOTPRINT,POINT handle=- default=POINT
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param material2 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param material3 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param material4 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param palette-scale INT optional min=1 max=8 enum=- handle=- default=2
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60
   param radius INT optional min=0 max=4 enum=- handle=- default=0
   param height INT optional min=1 max=8 enum=- handle=- default=1
@@ -324,6 +330,7 @@ var itemdamage.armor BOOL
 var nearbyenemies NUM
 var onfire BOOL
 var onground BOOL
+var ragestacks NUM
 var recentattackers NUM
 var sneaking BOOL
 var sprinting BOOL
