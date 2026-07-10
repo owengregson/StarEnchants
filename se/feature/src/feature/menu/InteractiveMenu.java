@@ -17,4 +17,12 @@ public interface InteractiveMenu {
     /** On close, return any items left in the input slots so nothing is lost. */
     default void onClose(Player player, MenuHolder holder) {
     }
+
+    /**
+     * After an input slot's content changed (fired one tick after the placing/removing click applies, while
+     * the menu is still open) — a bench refreshes its live preview cells here. Previews live in LOCKED slots,
+     * so they are display-only and never returned by {@link #onClose}.
+     */
+    default void onInputChanged(Player player, MenuHolder holder) {
+    }
 }

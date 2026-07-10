@@ -8,6 +8,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import platform.sched.Scheduling;
 
 /**
  * The single shared router for every StarEnchants menu (docs/v3-directives.md §K): recognise our menus by
@@ -60,7 +61,17 @@ public final class MenuListener implements Listener {
         int topSize = event.getView().getTopInventory().getSize();
         boolean topClick = raw >= 0 && raw < topSize;
         if (topClick && form.inputSlots().contains(raw)) {
-            return; // an input slot — allow the normal pickup/place
+            // Allow the normal pickup/place, then let the bench refresh its preview cells. The click applies
+            // AFTER this handler returns, so the refresh hops one tick (the player's own thread — Folia-safe)
+            // and re-checks the menu is still the open one.
+            if (event.getWhoClicked() instanceof Player player) {
+                Scheduling.onEntityLater(player, 1, () -> {
+                    if (player.getOpenInventory().getTopInventory().getHolder() == holder) {
+                        form.onInputChanged(player, holder);
+                    }
+                });
+            }
+            return;
         }
         if (topClick) {
             event.setCancelled(true); // a locked top slot (button / filler)
