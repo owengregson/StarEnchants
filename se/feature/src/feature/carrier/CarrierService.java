@@ -48,6 +48,7 @@ public final class CarrierService {
     private final java.util.function.Consumer<ItemStack> reRender; // ADR-0040: recompose gear lore after mutating guard state
     private final ItemGroups groups; // §I applies-to gate — the white scroll only protects the configured item kinds
     private final platform.lang.Messages messages; // §I the applies reject reads common.wrong-applies (single source)
+    private final java.util.function.Supplier<compile.load.MasterConfig.ApplyCuesSection> applyCues; // universal book-apply feedback (config.yml apply-cues), live
 
     /**
      * Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes
@@ -66,7 +67,8 @@ public final class CarrierService {
                           java.util.function.IntSupplier maxBookSuccess,
                           item.codec.AppliedSlot slot,
                           java.util.function.Consumer<ItemStack> reRender,
-                          ItemGroups groups, platform.lang.Messages messages) {
+                          ItemGroups groups, platform.lang.Messages messages,
+                          java.util.function.Supplier<compile.load.MasterConfig.ApplyCuesSection> applyCues) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -80,6 +82,7 @@ public final class CarrierService {
         this.reRender = Objects.requireNonNull(reRender, "reRender");
         this.groups = Objects.requireNonNull(groups, "groups");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.applyCues = Objects.requireNonNull(applyCues, "applyCues");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -192,24 +195,28 @@ public final class CarrierService {
         int base = baseSuccessOf(data); // an unopened-book output / randomizer reroll overrides the default 100
         int successChance = effectiveSuccess(base, data.successBonus()); // dust-accumulated bonus (ADR-0019)
         boolean destroyOnFail = bookConfig.get().destroyOnFail(); // §I enchant-book likeness, read live
+        compile.load.MasterConfig.ApplyCuesSection cues = applyCues.get(); // universal apply feedback (config.yml apply-cues, live)
         consume(carrier); // a use is spent whether the roll succeeds or fails
         if (Rolls.passes(random, successChance)) {
             ApplyResult applied = crystal
                     ? enchanter.applyCrystal(target, grant)
                     : enchanter.applyEnchant(target, grant, data.grantLevel());
-            return GestureOutcome.committed(target, applied.message());
+            return GestureOutcome.committed(target,
+                    GestureOutcome.Cue.of(cues.successSound(), cues.successParticles()), applied.message());
         }
+        // Every failure branch (protected / shattered / unharmed) plays the one fail cue.
+        GestureOutcome.Cue failCue = GestureOutcome.Cue.of(cues.failSound(), cues.failParticles());
         if (codec.isGuarded(target)) {
             codec.setGuarded(target, false);
             slot.release(target, item.codec.AppliedSlot.WHITE_SCROLL); // §I the white scroll's guard is spent
             reRender.accept(target); // recompose: the PROTECTED line drops now the guard is gone (rendered from state)
-            return GestureOutcome.committed(target, messages.format("carrier.fail-protected"));
+            return GestureOutcome.committed(target, failCue, messages.format("carrier.fail-protected"));
         }
         if (destroyOnFail) {
             target.setAmount(0); // amount 0 → the base clears the clicked slot (the shattered gear)
-            return GestureOutcome.committed(target, messages.format("carrier.fail-shattered"));
+            return GestureOutcome.committed(target, failCue, messages.format("carrier.fail-shattered"));
         }
-        return GestureOutcome.committed(target, messages.format("carrier.fail-unharmed"));
+        return GestureOutcome.committed(target, failCue, messages.format("carrier.fail-unharmed"));
     }
 
     private int rolledDustBonus(compile.load.DustConfig cfg) {

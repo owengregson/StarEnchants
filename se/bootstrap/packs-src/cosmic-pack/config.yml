@@ -88,6 +88,20 @@ sets:
   equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
   unequip-particle: { particle: REDSTONE, count: 20, color: { r: 170, g: 170, b: 170 }, spread: 1.25, y-offset: 1.0 }
 
+# Universal enchant-book apply feedback. A SUCCESSFUL book-onto-gear apply plays the success cue; any FAILED one
+# (gear shattered, white-scroll protected, or unharmed) plays the fail cue. `sound` is our unified
+# { sound: NAME, volume: V, pitch: P } bracket form; `particles` is a list of tokens spawned at the applier.
+# Read live on /se reload.
+apply-cues:
+  success:
+    sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 0.7, pitch: 1.4 }
+    particles:
+      - HAPPY_VILLAGER
+  fail:
+    sound: { sound: ENTITY_ITEM_BREAK, volume: 1.0, pitch: 1.0 }
+    particles:
+      - SMOKE_NORMAL
+
 # Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
 # (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
 slots:
