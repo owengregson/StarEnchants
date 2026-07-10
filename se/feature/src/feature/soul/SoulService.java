@@ -8,6 +8,7 @@ import engine.sink.SoulDebit;
 import engine.stores.SoulModeStore;
 import feature.compat.Hands;
 import feature.compat.Sounds;
+import item.codec.AppliedSlot;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
 import item.mint.ItemFactory;
@@ -18,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -58,6 +60,12 @@ public final class SoulService implements SoulDebit, SoulSpender {
     private final feature.fx.ParticleFx particles; // on-activate/deactivate spawns; the aura is SoulParticleDriver
     private final Hands hands;   // main-hand gem read (§4 era seam)
     private final Sounds sounds; // toggle/use cue playback (§4 era seam)
+    // §I a soul gem CAN carry the holy keep-marker (drag a holy white scroll onto it); combine/split carry it and
+    // the re-render appends its protected line. Nullable: null = holy-marker carry off (the pre-holy test default).
+    private final AppliedSlot slot;
+    // The applied-scroll PROTECTED lines from an item's marker state — the SAME function the LoreRenderer is wired
+    // with (BootCore.protectionLinesFn), so a gem's holy line matches the gear path's. Default: no lines (tests).
+    private final Function<ItemStack, List<String>> protectionLines;
     // §D per-player TOTAL souls across all carried gems, refreshed on the holder thread each maintain() tick;
     // read by the PAPI feed (in-memory, thread-safe — never a cross-region inventory read).
     private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
@@ -69,10 +77,22 @@ public final class SoulService implements SoulDebit, SoulSpender {
     /** Minimum gap between manual soul-mode toggles (0.5s). */
     private static final long TOGGLE_MIN_INTERVAL_NANOS = 500_000_000L;
 
-    /** Particles are the on-activate/deactivate spawns; {@code depositOnAnyKill} gates deposit-on-any-kill. */
+    /** No holy-marker carry — the pre-§4 form kept so the unit/live suites that don't exercise the holy path compile. */
     public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
                        java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
                        feature.fx.ParticleFx particles, Hands hands, Sounds sounds) {
+        this(pool, modes, codec, config, depositOnAnyKill, messages, particles, hands, sounds, null, stack -> List.of());
+    }
+
+    /**
+     * Particles are the on-activate/deactivate spawns; {@code depositOnAnyKill} gates deposit-on-any-kill. {@code slot}
+     * carries the holy keep-marker across combine/split ({@code null} disables it) and {@code protectionLines} renders
+     * the gem's holy protected line — the SAME function the LoreRenderer is wired with (§I).
+     */
+    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+                       java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
+                       feature.fx.ParticleFx particles, Hands hands, Sounds sounds,
+                       AppliedSlot slot, Function<ItemStack, List<String>> protectionLines) {
         this.pool = Objects.requireNonNull(pool, "pool");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
@@ -82,6 +102,8 @@ public final class SoulService implements SoulDebit, SoulSpender {
         this.particles = Objects.requireNonNull(particles, "particles");
         this.hands = Objects.requireNonNull(hands, "hands");
         this.sounds = Objects.requireNonNull(sounds, "sounds");
+        this.slot = slot; // nullable: null disables holy-marker carry (the pre-holy default)
+        this.protectionLines = protectionLines == null ? stack -> List.of() : protectionLines;
     }
 
     /** {@code NO_GEM}: not holding a gem. {@code NO_SOULS}: held a zero gem — toggle already played the
@@ -263,8 +285,28 @@ public final class SoulService implements SoulDebit, SoulSpender {
         long sum = (long) da.souls() + db.souls();
         int total = (int) Math.min(Integer.MAX_VALUE, sum);
         ItemStack gem = mintGemStack(new SoulData(UUID.randomUUID(), total));
+        // Carry the holy keep-marker onto the minted merged gem if EITHER input carried it (§I), then re-render so
+        // its protected line lands — a merge must not silently drop a paid-for keep protection.
+        if (slot != null && (slot.holds(a, AppliedSlot.HOLY) || slot.holds(b, AppliedSlot.HOLY))) {
+            slot.occupy(gem, AppliedSlot.HOLY);
+            reRenderGem(gem, total);
+        }
         playSounds(player, config.get().sounds().combine());
         return gem;
+    }
+
+    /**
+     * Re-render {@code stack}'s name + lore from its state IF it is a soul gem, holy-aware — the holy-scroll re-render
+     * seam routes a gem here instead of the gear composer (which would strip the gem's count bracket and lose its soul
+     * lore). {@code true} when it was a gem (and re-rendered), {@code false} otherwise. Holder thread.
+     */
+    public boolean reRenderIfGem(ItemStack stack) {
+        SoulData data = codec.read(stack);
+        if (data == null) {
+            return false;
+        }
+        reRenderGem(stack, data.souls());
+        return true;
     }
 
     /**
@@ -522,14 +564,18 @@ public final class SoulService implements SoulDebit, SoulSpender {
             meta.setDisplayName(Colors.translate(name));
         }
         // Wrap exactly as the mint path does (ItemFactory.buildItem), else the gem lore visibly unwraps the first
-        // time the count changes (mint wraps; this re-render must too). A gem carries no applied-scroll/trak
-        // markers (no applier targets a gem), so the whole lore is derivable from the gem's own state (ADR-0040).
+        // time the count changes (mint wraps; this re-render must too). A gem CAN carry the holy keep-marker (a holy
+        // white scroll dragged onto it), so append its protected line — the rest is derivable from the gem's own
+        // state (ADR-0040). The count NAME bracket is left intact (the composer's transmog strip never runs here).
         List<String> body = ItemFactory.wrapLore(renderGemLore(cfg, souls));
         List<String> lore = new ArrayList<>();
         if (body != null) {
             for (String line : body) {
                 lore.add(Colors.translate(line));
             }
+        }
+        if (slot != null && slot.holds(gem, AppliedSlot.HOLY)) {
+            lore.addAll(protectionLines.apply(gem)); // already colour-translated (ProtectionLore.lines)
         }
         meta.setLore(lore.isEmpty() ? null : lore);
         gem.setItemMeta(meta);

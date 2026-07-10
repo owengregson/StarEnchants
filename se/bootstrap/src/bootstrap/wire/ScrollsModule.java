@@ -31,15 +31,23 @@ final class ScrollsModule {
     final GodlyTransmogMenu transmogMenu;
     final List<Mintable> mints;
 
-    ScrollsModule(BootCore core, CarriersModule carriers) {
+    ScrollsModule(BootCore core, CarriersModule carriers, SoulsModule souls) {
         this.core = core;
         ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert(), core.store());
         GodlyTransmogCodec godlyTransmogCodec = new GodlyTransmogCodec(ItemKeys.of().godlyTransmog(), core.store());
         this.scrolls = new ScrollService(scrollCodec, core.codec(), core.lore(), carriers.carriers, core.content(),
                 () -> core.items().config().scrollsOrDefault(), core.rolls(), core.messages(), godlyTransmogCodec,
                 core.itemGroups());
+        // §4 route a holy-scroll re-render of a SOUL GEM through the soul re-render (holy-aware, keeps the gem's
+        // count-bracket name + soul lore) instead of the gear composer (which would strip the bracket + soul lore).
+        feature.soul.SoulService soulService = souls.souls();
+        java.util.function.Consumer<org.bukkit.inventory.ItemStack> holyReRender = gear -> {
+            if (!soulService.reRenderIfGem(gear)) {
+                core.recompose().accept(gear);
+            }
+        };
         this.holyScrolls = new HolyScrollService(scrollCodec, core.appliedSlot(),
-                () -> core.items().config().scrollsOrDefault(), core.rolls(), core.messages(), core.recompose(),
+                () -> core.items().config().scrollsOrDefault(), core.rolls(), core.messages(), holyReRender,
                 core.itemGroups());
         this.keptItems = new KeptItemsStore(); // §I holy death→respawn stash
         this.nametags = new NametagService(scrollCodec, () -> core.items().config().scrollsOrDefault(),

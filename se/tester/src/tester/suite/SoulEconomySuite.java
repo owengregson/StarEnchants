@@ -1,13 +1,18 @@
 package tester.suite;
 
+import compile.load.ScrollsConfig;
 import compile.load.SoulGemConfig;
 import engine.interact.SoulPool;
 import engine.stores.SoulModeStore;
 import feature.soul.SoulService;
+import item.codec.AppliedSlot;
 import item.codec.ItemKeys;
 import item.codec.SoulCodec;
 import item.codec.SoulData;
+import item.render.ProtectionLore;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -31,7 +36,7 @@ public final class SoulEconomySuite implements Harness.Scenario {
     private static final String[] KEYS = {
         "soul.depositOnAnyKill", "soul.combineSumsAndRetires", "soul.splitCarvesAndKeeps",
         "soul.spendPersistsByIdentity", "soul.toggleOffFlushesSpend", "soul.multiGemDrainsLeastFirstAndCleansUp",
-        "soul.toggleDebounceRejectsSpam",
+        "soul.toggleDebounceRejectsSpam", "soul.holyScrollSurvivesMergeAndRerender",
     };
 
     private final Plugin plugin;
@@ -201,6 +206,42 @@ public final class SoulEconomySuite implements Harness.Scenario {
                         souls.clear(player); // reset for the guards below (also drops the debounce entry)
                     });
 
+                    // §4 a holy white scroll dragged onto a soul gem must SURVIVE a merge and a soul-count re-render:
+                    // the merged gem carries the HOLY marker, its name keeps its count bracket (the gear composer's
+                    // transmog strip never runs on a gem), and its lore shows the holy protected line. A dedicated
+                    // service wired with the AppliedSlot + protection-line seam (like the composition root) and a
+                    // bracketed name config so the name-strip regression is observable.
+                    h.guard("soul.holyScrollSurvivesMergeAndRerender", () -> {
+                        player.getInventory().clear();
+                        AppliedSlot slot = new AppliedSlot(keys.appliedSlot(), Stores.state());
+                        SoulGemConfig base = SoulGemConfig.defaults();
+                        SoulGemConfig bracketed = new SoulGemConfig(base.material(), "&aSoul Gem &7[{AMOUNT}]",
+                                base.lore(), base.soulsPerKill(), base.soulsPerMob(), base.colorTiers(),
+                                base.emptyColor(), base.sounds(), base.particles());
+                        String holyTemplate = ScrollsConfig.defaults().holy().protectedLine();
+                        Function<org.bukkit.inventory.ItemStack, List<String>> protectionLines = stack ->
+                                ProtectionLore.lines(false, slot.holds(stack, AppliedSlot.HOLY), "", holyTemplate);
+                        List<String> expectedHoly = ProtectionLore.lines(false, true, "", holyTemplate);
+                        SoulService holy = new SoulService(new SoulPool(), new SoulModeStore(), codec,
+                                () -> bracketed, () -> true, platform.lang.Messages.defaults(),
+                                feature.fx.ParticleFx.NONE, Stores.hands(), Stores.sounds(), slot, protectionLines);
+
+                        ItemStack a = gem(holy, codec, 5);
+                        ItemStack b = gem(holy, codec, 3);
+                        slot.occupy(a, AppliedSlot.HOLY); // holy-protect one of the inputs
+                        ItemStack merged = holy.combine(player, a, b);
+                        assertHolyGem(slot, merged, 8, expectedHoly, "after combine");
+
+                        // A soul-count re-render (split carves 1 off the merged gem, re-rendering the source in place)
+                        // must keep the marker, the bracket, and the holy line — the reRenderGem the deposit path uses.
+                        player.getInventory().setItemInMainHand(merged);
+                        SoulService.SplitResult r = holy.split(player, 1);
+                        if (!r.ok()) {
+                            throw new IllegalStateException("split to force a re-render failed: " + r);
+                        }
+                        assertHolyGem(slot, player.getInventory().getItemInMainHand(), 7, expectedHoly, "after re-render");
+                    });
+
                     // Deposit-on-any-kill: onKill DEFERS to the killer's thread, so assert after a few ticks.
                     player.getInventory().clear();
                     player.getInventory().setItem(20, souls.mintGem()); // a gem far from the main hand, 0 souls
@@ -221,6 +262,31 @@ public final class SoulEconomySuite implements Harness.Scenario {
                 });
             });
         });
+    }
+
+    /**
+     * Assert a merged/re-rendered soul gem kept its holy protection: the {@code HOLY} marker, a display name still
+     * ending with the {@code [souls]} count bracket (never eaten by the gear composer's transmog count-suffix strip),
+     * and the holy protected line in its lore. {@code where} labels the stage for the failure message.
+     */
+    @SuppressWarnings("deprecation") // getDisplayName/getLore: the floor-stable item-meta read (matches SoulService)
+    private static void assertHolyGem(AppliedSlot slot, ItemStack gem, int souls, List<String> expectedHoly,
+                                      String where) {
+        if (gem == null) {
+            throw new IllegalStateException("no gem " + where);
+        }
+        if (!slot.holds(gem, AppliedSlot.HOLY)) {
+            throw new IllegalStateException("the holy marker was dropped " + where);
+        }
+        String name = gem.hasItemMeta() ? gem.getItemMeta().getDisplayName() : null;
+        if (name == null || !name.endsWith("[" + souls + "]")) {
+            throw new IllegalStateException("the count bracket [" + souls + "] was stripped from the name " + where
+                    + ": " + name);
+        }
+        List<String> lore = gem.hasItemMeta() ? gem.getItemMeta().getLore() : null;
+        if (lore == null || !lore.containsAll(expectedHoly)) {
+            throw new IllegalStateException("the holy protected line is missing from the lore " + where + ": " + lore);
+        }
     }
 
     /** A gem ITEM carrying exactly {@code souls} (mint, then stamp the count onto its identity). */
