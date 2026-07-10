@@ -43,4 +43,15 @@ class ComboStoreTest {
         combo.clear(player);
         assertEquals(0, combo.current(player, 0L));
     }
+
+    @Test
+    void currentReadsTheLiveStreakWithoutRegisteringAHitAndLapsesWithTheWindow() {
+        ComboStore combo = new ComboStore(100L);
+        combo.hit(player, victimA, 0L);
+        combo.hit(player, victimA, 10L); // streak 2, last hit at tick 10
+        assertEquals(2, combo.current(player, 100L)); // gap 90 <= window → still live, and NOT advanced
+        assertEquals(2, combo.current(player, 100L)); // idempotent: a read never extends the streak
+        assertEquals(0, combo.current(player, 111L)); // gap 101 > window → lapsed
+        assertEquals(0, combo.current(UUID.randomUUID(), 0L)); // a player who never hit → 0
+    }
 }

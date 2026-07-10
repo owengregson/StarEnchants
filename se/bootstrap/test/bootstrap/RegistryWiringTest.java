@@ -58,7 +58,7 @@ class RegistryWiringTest {
     /** The golden global listener registration sequence, all toggles on (§2 with EngineStoreListener after Immune,
      *  heroic-durability right after Heroic). Fold Events + the materialized guard/sweep, in registry order. */
     private static final List<String> GOLDEN_LISTENERS = List.of(
-            "CombatListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
+            "CombatListener", "RageStacksListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
             "GuardianHurtListener",

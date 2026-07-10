@@ -63,6 +63,7 @@ public final class BuiltinVars {
                 .flag("actor.behindvictim")  // the actor is behind the victim's body facing (dot < 0); false with no victim
                 .string("damagecause")       // Bukkit DamageCause name of the triggering damage event; empty for non-damage
                 .flag("itemdamage.armor")    // ITEM_DAMAGE: the damaged item is a worn ARMOR piece (vs the held item)
+                .number("ragestacks")        // the actor's live Rage stacks (min(combo streak, rage level)), sourced from RageStackStore
                 .build();
     }
 }

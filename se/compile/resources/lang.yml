@@ -288,6 +288,10 @@ soul.empty:
   - "&7You have no soul gems left!"
   - " "
 soul.soul-use: "&7Souls remaining: &a{AMOUNT}"
+# Rage stacks (§3) — the Rage enchant's action bar + broken-combo title (the service owns rage audio/feedback now).
+# {STACKS} = the attacker's current rage stacks (min(combo streak, rage level)). Sent prefix-free to the action bar / title.
+rage.stacks-actionbar: "&f&k|&e&k| &r&6Rage Stacks: &r&f&n{STACKS}x&r &e&k|&f&k|&r"
+rage.stacks-broken-title: "&f&k|&e&k| &r&6Rage Stacks: &r&c&nBROKEN&r &e&k|&f&k|&r"
 crystal.apply-success: "&aApplied &f{CRYSTAL}&a to your item."
 crystal.no-slots: "&cThis item has no free crystal slots ({MAX} max)."
 crystal.merge: "&dMerged into a multi-crystal: &f{CRYSTAL}&d."

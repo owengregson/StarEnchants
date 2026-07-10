@@ -6,6 +6,7 @@ import compile.model.FactMask;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
+import engine.stores.RageStackStore;
 import engine.stores.VarStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +63,7 @@ public final class FactPopulator {
 
     private final ThreadLocal<FactBuffer> buffer;
     private final VarStore vars;
+    private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final UnaryOperator<String> papiDelegate;
     private final ActorProbe probe; // §3.3 era-specific entity/material reads (swim/glide/isAir/main-hand)
 
@@ -96,23 +98,32 @@ public final class FactPopulator {
     private final int damageCauseSlot;       // DamageCause name of the triggering event (from the context)
     private final int itemDamageArmorSlot;   // ITEM_DAMAGE: worn-armor vs held (from the context)
     private final int actorBehindVictimSlot; // actor behind the victim's facing (derived, Folia-guarded)
+    private final int rageStacksSlot;        // %ragestacks% (actor-scoped store read, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
 
     /** No dynamic-var store and no PAPI: unknown tokens resolve to null. */
     public FactPopulator(VarVocabulary vocabulary, ActorProbe probe) {
-        this(vocabulary, new VarStore(), t -> null, probe);
+        this(vocabulary, new VarStore(), t -> null, probe, new RageStackStore());
+    }
+
+    /** Backed by a shared {@link VarStore} but no rage-stack source ({@code %ragestacks%} reads 0) — the pre-§3 form. */
+    public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate, ActorProbe probe) {
+        this(vocabulary, vars, papiDelegate, probe, new RageStackStore());
     }
 
     /**
-     * Backed by a shared {@link VarStore} ({@code SET_VAR}/{@code INVERT_VAR} write target) and an optional
-     * PAPI delegate. Unknown {@code %name%} resolution order: built-in slot → player dynamic var →
-     * {@code papiDelegate} → null. {@code probe} is the era-specific entity/material read seam (§3.3).
+     * Backed by a shared {@link VarStore} ({@code SET_VAR}/{@code INVERT_VAR} write target), an optional PAPI
+     * delegate, and the {@link RageStackStore} that sources {@code %ragestacks%} (§3). Unknown {@code %name%}
+     * resolution order: built-in slot → player dynamic var → {@code papiDelegate} → null. {@code probe} is the
+     * era-specific entity/material read seam (§3.3).
      */
-    public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate, ActorProbe probe) {
+    public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate, ActorProbe probe,
+                         RageStackStore rageStacks) {
         Objects.requireNonNull(vocabulary, "vocabulary");
         this.vars = Objects.requireNonNull(vars, "vars");
+        this.rageStacks = Objects.requireNonNull(rageStacks, "rageStacks");
         this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
         this.probe = Objects.requireNonNull(probe, "probe");
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
@@ -170,6 +181,7 @@ public final class FactPopulator {
         this.damageCauseSlot = slot(vocabulary, "damagecause", VarKind.STR);
         this.itemDamageArmorSlot = slot(vocabulary, "itemdamage.armor", VarKind.BOOL);
         this.actorBehindVictimSlot = slot(vocabulary, "actor.behindvictim", VarKind.BOOL);
+        this.rageStacksSlot = slot(vocabulary, "ragestacks", VarKind.NUM);
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
@@ -180,6 +192,11 @@ public final class FactPopulator {
     /** A built-in populator backed by a shared {@link VarStore} so conditions can read {@code SET_VAR} dynamic vars. */
     public static FactPopulator builtin(VarStore vars, ActorProbe probe) {
         return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null, probe);
+    }
+
+    /** As {@link #builtin(VarStore, ActorProbe)} but also sourcing {@code %ragestacks%} from {@code rageStacks} (§3). */
+    public static FactPopulator builtin(VarStore vars, RageStackStore rageStacks, ActorProbe probe) {
+        return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null, probe, rageStacks);
     }
 
     public FactBuffer populate(ActivationContext context) {
@@ -211,6 +228,10 @@ public final class FactPopulator {
             Player actor = context.actor();
             if (actor != null) {
                 UUID id = actor.getUniqueId();
+                // %ragestacks%: an actor-scoped store read, mask-gated (no entity access, so no Folia guard needed).
+                if (id != null && rageStacksSlot >= 0 && mask.readsNum(rageStacksSlot)) {
+                    facts.setNumber(rageStacksSlot, rageStacks.current(id));
+                }
                 facts.papiResolver(token -> {
                     String value = vars.get(id, token, nowTicks);
                     return value != null ? value : papiDelegate.apply(token);
