@@ -1,5 +1,7 @@
-# Tinkerer bench GUI — salvage an enchant book for an XP-level refund (/se menu tinkerer, or a hub). A bench
-# fills its whole backdrop with the filler (frame is ignored). See menus/apply.yml for the full field list.
+# Tinkerer trade GUI — stage enchant books on the left ("You") half; each mirrors its XP-level refund range
+# on the right ("Tinkerer") half; the red ACCEPT panes salvage everything staged (/se menu tinkerer, or a
+# hub). The split title labels the two halves. A bench fills its whole backdrop with the filler (frame is
+# ignored). See menus/apply.yml for the full field list.
 
-title: "&6&lTinkerer &8• &7Salvage Books"
+title: "You                 Tinkerer"
 filler: "ORANGE_STAINED_GLASS_PANE"

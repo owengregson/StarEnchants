@@ -359,11 +359,19 @@ public final class CarrierService {
      * — worst case break-even at a cost-1 tier.
      */
     public java.util.Optional<Integer> salvageLevels(ItemStack book) {
+        return salvageCapLevels(book).map(cap -> salvageLevels(random, cap));
+    }
+
+    /**
+     * The Tinkerer refund CEILING for {@code book} — the {@code N} of the {@code [1, N]} salvage roll (the
+     * tier's live buy price), or empty when {@code book} is not an enchant book. Lets the bench preview an
+     * honest refund range without spending the roll.
+     */
+    public java.util.Optional<Integer> salvageCapLevels(ItemStack book) {
         return bookContents(book).map(c -> {
             String tierName = content.library().tierOf(c.enchantKey());
             compile.load.TierRegistry.Tier tier = content.library().tiers().tier(tierName);
-            int cap = tier == null ? 1 : tier.bookCostLevels();
-            return salvageLevels(random, cap);
+            return Math.max(1, tier == null ? 1 : tier.bookCostLevels());
         });
     }
 

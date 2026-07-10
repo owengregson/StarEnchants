@@ -29,4 +29,25 @@ public final class EnchanterOffers {
     public static int priceFor(TierRegistry.Tier tier) {
         return tier.bookCostLevels();
     }
+
+    /**
+     * The Enchanter's white/black scroll price in XP levels: the {@code legendary} tier's live book price
+     * (the Cosmic Enchants-style shop prices both scrolls level with a legendary book), or the priciest
+     * tier's book price for a pack without a {@code legendary} tier. §L placeholder like the book offers.
+     */
+    public static int scrollPriceLevels(TierRegistry tiers) {
+        return scrollPriceLevels(tiers.tier("legendary"), tiers.tiers());
+    }
+
+    /** The scroll-price rule on plain tiers (pure — unit-tested without a registry). */
+    public static int scrollPriceLevels(TierRegistry.Tier legendary, java.util.Collection<TierRegistry.Tier> all) {
+        if (legendary != null) {
+            return legendary.bookCostLevels();
+        }
+        int max = 1;
+        for (TierRegistry.Tier tier : all) {
+            max = Math.max(max, tier.bookCostLevels());
+        }
+        return max;
+    }
 }
