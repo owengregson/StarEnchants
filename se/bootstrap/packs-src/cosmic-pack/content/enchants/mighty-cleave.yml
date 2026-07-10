@@ -22,24 +22,34 @@ levels:
     chance: 3.25
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
       - { DAMAGE: { amount: 3.25, who: "@Aoe" } }  # from DAMAGE_ARC:3.25 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   2:
     chance: 4.75
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
       - { DAMAGE: { amount: 3.5, who: "@Aoe" } }  # from DAMAGE_ARC:3.5 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   3:
     chance: 6
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
       - { DAMAGE: { amount: 3.75, who: "@Aoe" } }  # from DAMAGE_ARC:3.75 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   4:
     chance: 7.5
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
       - { DAMAGE: { amount: 4, who: "@Aoe" } }  # from DAMAGE_ARC:4 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
   5:
     chance: 9
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
       - { DAMAGE: { amount: 4.25, who: "@Aoe" } }  # from DAMAGE_ARC:4.25 — EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)

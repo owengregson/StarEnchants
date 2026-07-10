@@ -18,22 +18,30 @@ levels:
     cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
+      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 3
     cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
+      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 5
     cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
+      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 7.5
     cooldown: 80
     condition: "%victim.helditem% contains \"AXE\""
     effects:
+      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
+      - { PARTICLE: { particle: "CRIT", count: 10 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

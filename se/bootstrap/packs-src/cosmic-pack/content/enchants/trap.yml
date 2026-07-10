@@ -16,14 +16,20 @@ levels:
     chance: 3
     cooldown: 80
     effects:
+      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)
   2:
     chance: 6
     cooldown: 80
     effects:
+      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)
   3:
     chance: 9
     cooldown: 80
     effects:
+      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Victim" } }  # from POTION:SLOW:2:TARGET:4 — EE seconds → ticks (x20)

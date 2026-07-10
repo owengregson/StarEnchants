@@ -22,46 +22,62 @@ levels:
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     chance: 2.75
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     chance: 4
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     chance: 5
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     chance: 6
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   6:
     chance: 7
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   7:
     chance: 8
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   8:
     chance: 9
     cooldown: 80
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # from DAMAGE_INCREASE:8 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

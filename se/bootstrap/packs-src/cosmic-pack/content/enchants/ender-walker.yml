@@ -18,9 +18,13 @@ tier: epic
 levels:
   1:
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
+      - { PARTICLE: { particle: "PORTAL", count: 10 } }
       - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
   2:
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
+      - { PARTICLE: { particle: "PORTAL", count: 10 } }
       - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self; seconds → ticks, default 100t)
   3:
     # The heal only fires on a real hit (>= 1.5 dmg) and at most once per 2s, so a poke/0-dmg snowball spam
@@ -28,17 +32,23 @@ levels:
     condition: "%damage% >= 1.5"
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
+      - { PARTICLE: { particle: "PORTAL", count: 10 } }
       - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
       - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }
   4:
     condition: "%damage% >= 2.5"
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
+      - { PARTICLE: { particle: "PORTAL", count: 10 } }
       - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
       - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }
   5:
     condition: "%damage% >= 3"
     cooldown: 40
     effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
+      - { PARTICLE: { particle: "PORTAL", count: 10 } }
       - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
       - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }

@@ -21,19 +21,27 @@ levels:
     chance: 4
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_FLAP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
   2:
     chance: 6
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_FLAP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
   3:
     chance: 8
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_FLAP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
   4:
     chance: 10
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_FLAP", volume: 0.8, pitch: 1.5 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)

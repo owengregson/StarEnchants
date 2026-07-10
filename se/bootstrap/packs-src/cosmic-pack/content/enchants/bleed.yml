@@ -19,6 +19,7 @@ levels:
     chance: 1.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.8, pitch: 1.0 } }
       - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
@@ -26,6 +27,7 @@ levels:
     chance: 2.5
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.8, pitch: 1.0 } }
       - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
@@ -33,6 +35,7 @@ levels:
     chance: 3.75
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.8, pitch: 1.0 } }
       - { DAMAGE: { amount: 2, who: "@Victim" } }  # from DAMAGE:1:2:TARGET — legacy random range 1-2 collapsed to its max
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
@@ -40,6 +43,7 @@ levels:
     chance: 5
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.8, pitch: 1.0 } }
       - { DAMAGE: { amount: 3, who: "@Victim" } }  # from DAMAGE:1:3:TARGET — legacy random range 1-3 collapsed to its max
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
@@ -47,6 +51,7 @@ levels:
     chance: 7.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.8, pitch: 1.0 } }
       - { DAMAGE: { amount: 3, who: "@Victim" } }  # from DAMAGE:1:3:TARGET — legacy random range 1-3 collapsed to its max
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped
@@ -54,6 +59,7 @@ levels:
     chance: 9
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.8, pitch: 1.0 } }
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:1:4:TARGET — legacy random range 1-4 collapsed to its max
       - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }  # from PARTICLE:BLEED:TARGET — EE vanity particle remapped to DAMAGE_INDICATOR (cosmetic); target dropped

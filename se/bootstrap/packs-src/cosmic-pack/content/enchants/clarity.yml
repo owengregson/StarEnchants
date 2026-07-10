@@ -15,11 +15,17 @@ levels:
   1:
     chance: 50
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.6 } }
+      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
   2:
     chance: 80
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.6 } }
+      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
   3:
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.6 } }
+      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10 } }
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)

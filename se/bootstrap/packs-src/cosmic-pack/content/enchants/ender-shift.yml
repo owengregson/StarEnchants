@@ -17,6 +17,7 @@ levels:
     cooldown: 200
     condition: "%actor.health% <= 3"
     effects:
+      - { PARTICLE: { particle: "PORTAL", count: 16 } }
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
       - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
       - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)
@@ -25,6 +26,7 @@ levels:
     cooldown: 200
     condition: "%actor.health% <= 3"
     effects:
+      - { PARTICLE: { particle: "PORTAL", count: 16 } }
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
       - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
       - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)
@@ -33,6 +35,7 @@ levels:
     cooldown: 200
     condition: "%actor.health% <= 3"
     effects:
+      - { PARTICLE: { particle: "PORTAL", count: 16 } }
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
       - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
       - { POTION: { effect: "ABSORPTION", level: 4, duration: 40, who: "@Self" } }  # from POTION:ABSORPTION:4:PLAYER:2 — EE seconds → ticks (x20)

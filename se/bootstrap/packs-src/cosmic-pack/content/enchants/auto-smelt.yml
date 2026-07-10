@@ -15,11 +15,17 @@ levels:
   1:
     chance: 34
     effects:
+      - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "FLAME", count: 8 } }
       - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
   2:
     chance: 75
     effects:
+      - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "FLAME", count: 8 } }
       - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
   3:
     effects:
+      - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "FLAME", count: 8 } }
       - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)

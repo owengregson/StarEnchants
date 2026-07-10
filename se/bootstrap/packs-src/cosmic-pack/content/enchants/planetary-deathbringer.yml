@@ -19,12 +19,18 @@ levels:
   1:
     cooldown: 400
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SOUL", count: 16 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     cooldown: 400
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SOUL", count: 16 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     cooldown: 400
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SOUL", count: 16 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # from DAMAGE_INCREASE:50 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

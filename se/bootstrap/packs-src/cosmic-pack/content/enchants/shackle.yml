@@ -15,11 +15,17 @@ levels:
   1:
     chance: 25
     effects:
+      - { SOUND: { sound: "BLOCK_CHAIN_BREAK", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
   2:
     chance: 50
     effects:
+      - { SOUND: { sound: "BLOCK_CHAIN_BREAK", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
   3:
     effects:
+      - { SOUND: { sound: "BLOCK_CHAIN_BREAK", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)

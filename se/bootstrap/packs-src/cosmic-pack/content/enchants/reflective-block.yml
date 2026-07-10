@@ -22,6 +22,8 @@ levels:
     cooldown: 100
     condition: "%blocking% == true"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 1.0, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 80 } }  # from REDUCTION:80
       - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:3:8:TARGET — legacy random range 3-8 collapsed to its max
   2:
@@ -29,6 +31,8 @@ levels:
     cooldown: 100
     condition: "%blocking% == true"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 1.0, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 90 } }  # from REDUCTION:90
       - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:3:8:TARGET — legacy random range 3-8 collapsed to its max
   3:
@@ -36,5 +40,7 @@ levels:
     cooldown: 100
     condition: "%blocking% == true"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 1.0, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from REDUCTION:100
       - { DAMAGE: { amount: 8, who: "@Attacker" } }  # from DAMAGE:3:8:TARGET — legacy random range 3-8 collapsed to its max

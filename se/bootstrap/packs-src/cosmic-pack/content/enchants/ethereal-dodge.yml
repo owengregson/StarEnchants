@@ -22,29 +22,39 @@ levels:
     chance: 2.75
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
   2:
     chance: 4.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
   3:
     chance: 6.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
   4:
     chance: 8.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)
   5:
     chance: 10
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }  # from DAMAGE_CANCEL — EE DAMAGE_CANCEL → 100% defensive reduction (≈ cancel the hit)
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }  # from POTION:SPEED:5:PLAYER:6 — EE seconds → ticks (x20)

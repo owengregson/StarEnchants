@@ -23,46 +23,62 @@ levels:
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
   2:
     chance: 1
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
   3:
     chance: 1.5
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
   4:
     chance: 2
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
   5:
     chance: 2.75
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
   6:
     chance: 3.5
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
   7:
     chance: 4.5
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
   8:
     chance: 5.25
     cooldown: 80
     condition: "%victim.health% <= 5"
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)

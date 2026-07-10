@@ -18,6 +18,8 @@ levels:
     chance: 3.5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
       - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
@@ -25,6 +27,8 @@ levels:
     chance: 5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
       - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
@@ -32,6 +36,8 @@ levels:
     chance: 7.5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
       - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
@@ -39,6 +45,8 @@ levels:
     chance: 9.75
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
       - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)
@@ -46,6 +54,8 @@ levels:
     chance: 11.5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Attacker" } }  # from DAMAGE:1:1:TARGET — legacy random range 1-1 collapsed to its max
       - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:POISON:1:TARGET:5 — EE seconds → ticks (x20)
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 100, who: "@Attacker" } }  # from POTION:WEAKNESS:1:TARGET:5 — EE seconds → ticks (x20)

@@ -17,6 +17,8 @@ levels:
     chance: 1
     cooldown: 400
     effects:
+      - { SOUND: { sound: "BLOCK_BEACON_DEACTIVATE", volume: 0.8, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:RARE:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -29,6 +31,8 @@ levels:
     chance: 2.5
     cooldown: 400
     effects:
+      - { SOUND: { sound: "BLOCK_BEACON_DEACTIVATE", volume: 0.8, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:RARE:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -41,6 +45,8 @@ levels:
     chance: 4
     cooldown: 400
     effects:
+      - { SOUND: { sound: "BLOCK_BEACON_DEACTIVATE", volume: 0.8, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:RARE:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
@@ -53,6 +59,8 @@ levels:
     chance: 6
     cooldown: 400
     effects:
+      - { SOUND: { sound: "BLOCK_BEACON_DEACTIVATE", volume: 0.8, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:COMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:UNCOMMON:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)
       - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT_GROUP:RARE:5 — EE disable-group → SUPPRESS:GROUP (matches the SE group: = EE rarity)

@@ -20,17 +20,23 @@ levels:
     chance: 5.25
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.6, pitch: 1.2 } }
+      - { PARTICLE: { particle: "SOUL", count: 10 } }
       - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/soul-trap", duration: 100, who: "@Attacker" } }  # from DISABLE_ENCHANTMENT:soul-trap:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   2:
     chance: 7.5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.6, pitch: 1.2 } }
+      - { PARTICLE: { particle: "SOUL", count: 10 } }
       - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/soul-trap", duration: 100, who: "@Attacker" } }  # from DISABLE_ENCHANTMENT:soul-trap:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
   3:
     chance: 10
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.6, pitch: 1.2 } }
+      - { PARTICLE: { particle: "SOUL", count: 10 } }
       - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/soul-trap", duration: 100, who: "@Attacker" } }  # from DISABLE_ENCHANTMENT:soul-trap:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

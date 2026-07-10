@@ -22,29 +22,41 @@ levels:
     chance: 4
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   2:
     chance: 5
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   3:
     chance: 6
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   4:
     chance: 7
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   5:
     chance: 8
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25
   6:
     chance: 9
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "END_ROD", count: 14 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }  # from REDUCTION:25

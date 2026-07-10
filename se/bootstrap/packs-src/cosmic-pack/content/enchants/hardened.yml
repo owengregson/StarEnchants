@@ -15,12 +15,18 @@ levels:
   1:
     chance: 6.25
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
   2:
     chance: 9
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)
   3:
     chance: 11
     effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { DURABILITY: { amount: 2, target: "item", mode: "restore" } }  # from ADD_DURABILITY:2 — EE add-durability → DURABILITY (restore)

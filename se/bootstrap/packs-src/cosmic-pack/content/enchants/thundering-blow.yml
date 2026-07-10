@@ -16,14 +16,20 @@ levels:
     chance: 1.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
       - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
   2:
     chance: 2.75
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
       - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage
   3:
     chance: 4
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
       - { LIGHTNING: { damage: 5, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — EE real lightning ≈ 5 damage

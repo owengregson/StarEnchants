@@ -17,20 +17,30 @@ levels:
   1:
     cooldown: 180
     effects:
+      - { SOUND: { sound: "ITEM_CROSSBOW_LOADING_END", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   2:
     cooldown: 160
     effects:
+      - { SOUND: { sound: "ITEM_CROSSBOW_LOADING_END", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   3:
     cooldown: 140
     effects:
+      - { SOUND: { sound: "ITEM_CROSSBOW_LOADING_END", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   4:
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ITEM_CROSSBOW_LOADING_END", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)
   5:
     cooldown: 60
     effects:
+      - { SOUND: { sound: "ITEM_CROSSBOW_LOADING_END", volume: 0.9, pitch: 1.2 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
       - { SEEK: {} }  # from AUTO_LOCK — EE AUTO_LOCK → SEEK (homing arrow on BOW_FIRE)

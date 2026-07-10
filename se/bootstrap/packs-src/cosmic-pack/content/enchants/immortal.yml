@@ -17,16 +17,24 @@ levels:
   1:
     chance: 12
     effects:
+      - { SOUND: { sound: "ITEM_TOTEM_USE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "TOTEM", count: 20 } }
       - { IGNORE_ARMOR: {} }  # from ARMOR_CANCEL — EE ARMOR_CANCEL → IGNORE_ARMOR (bypass the victim's armour)
   2:
     chance: 19
     effects:
+      - { SOUND: { sound: "ITEM_TOTEM_USE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "TOTEM", count: 20 } }
       - { IGNORE_ARMOR: {} }  # from ARMOR_CANCEL — EE ARMOR_CANCEL → IGNORE_ARMOR (bypass the victim's armour)
   3:
     chance: 25
     effects:
+      - { SOUND: { sound: "ITEM_TOTEM_USE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "TOTEM", count: 20 } }
       - { IGNORE_ARMOR: {} }  # from ARMOR_CANCEL — EE ARMOR_CANCEL → IGNORE_ARMOR (bypass the victim's armour)
   4:
     chance: 31
     effects:
+      - { SOUND: { sound: "ITEM_TOTEM_USE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "TOTEM", count: 20 } }
       - { IGNORE_ARMOR: {} }  # from ARMOR_CANCEL — EE ARMOR_CANCEL → IGNORE_ARMOR (bypass the victim's armour)

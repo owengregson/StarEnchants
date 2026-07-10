@@ -21,6 +21,8 @@ levels:
     chance: 1.75
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
+      - { PARTICLE: { particle: "SOUL", count: 14 } }
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
@@ -28,6 +30,8 @@ levels:
     chance: 3
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
+      - { PARTICLE: { particle: "SOUL", count: 14 } }
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
@@ -35,6 +39,8 @@ levels:
     chance: 4
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
+      - { PARTICLE: { particle: "SOUL", count: 14 } }
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
@@ -42,6 +48,8 @@ levels:
     chance: 5
     cooldown: 80
     effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.8, pitch: 0.7 } }
+      - { PARTICLE: { particle: "SOUL", count: 14 } }
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { DAMAGE: { amount: 4, who: "@Victim" } }  # from DAMAGE:2:4:TARGET — legacy random range 2-4 collapsed to its max
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/inversion", duration: 100, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:inversion:5 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

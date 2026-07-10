@@ -18,24 +18,34 @@ levels:
     chance: 5
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
   2:
     chance: 6
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
   3:
     chance: 7
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
   4:
     chance: 8
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)
   5:
     chance: 9
     cooldown: 200
     effects:
+      - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL", count: 8 } }
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 200, who: "@Victim" } }  # from POTION:WEAKNESS:1:TARGET:10 — EE seconds → ticks (x20)

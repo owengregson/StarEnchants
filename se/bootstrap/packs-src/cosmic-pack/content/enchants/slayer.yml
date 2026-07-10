@@ -17,19 +17,27 @@ levels:
     chance: 9.25
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { KILL: { who: "@Victim" } }  # from KILL
   2:
     chance: 12.5
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { KILL: { who: "@Victim" } }  # from KILL
   3:
     chance: 18.75
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { KILL: { who: "@Victim" } }  # from KILL
   4:
     chance: 22.5
     cooldown: 100
     effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
       - { KILL: { who: "@Victim" } }  # from KILL
