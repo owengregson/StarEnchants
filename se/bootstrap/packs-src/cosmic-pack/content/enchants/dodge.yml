@@ -13,7 +13,7 @@ levels:
     cooldown: 80
     condition: "%sneaking% : +2.75 %chance%"
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   2:
@@ -21,7 +21,7 @@ levels:
     cooldown: 80
     condition: "%sneaking% : +4.5 %chance%"
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   3:
@@ -29,7 +29,7 @@ levels:
     cooldown: 80
     condition: "%sneaking% : +7.25 %chance%"
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   4:
@@ -37,7 +37,7 @@ levels:
     cooldown: 80
     condition: "%sneaking% : +9 %chance%"
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }
   5:
@@ -45,6 +45,6 @@ levels:
     cooldown: 80
     condition: "%sneaking% : +11 %chance%"
     effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.7, pitch: 1.6 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 100 } }

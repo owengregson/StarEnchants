@@ -16,7 +16,7 @@ levels:
     chance: 3.75
     cooldown: 80
     effects:
-      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
@@ -24,7 +24,7 @@ levels:
     chance: 5.5
     cooldown: 80
     effects:
-      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
@@ -32,7 +32,7 @@ levels:
     chance: 8.25
     cooldown: 80
     effects:
-      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
@@ -40,7 +40,7 @@ levels:
     chance: 10
     cooldown: 80
     effects:
-      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
@@ -48,7 +48,7 @@ levels:
     chance: 12
     cooldown: 80
     effects:
-      - { SOUND: { sound: "ENTITY_PHANTOM_SWOOP", volume: 0.8, pitch: 1.2 } }
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CLOUD", count: 10 } }
       - { CANCEL: {} }
       - { POTION: { effect: "SPEED", level: 5, duration: 120, who: "@Self" } }
