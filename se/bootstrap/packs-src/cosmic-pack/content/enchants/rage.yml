@@ -1,4 +1,4 @@
-# Imported from EliteEnchantments (id: rage). Review before shipping.
+# Imported from Cosmic Enchants (id: rage). Review before shipping.
 display: "Rage"
 description:
   - "&eEach consecutive hit in a combo"
@@ -10,31 +10,25 @@ tier: legendary
 levels:
   1:
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.3 } }
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 10" } }  # from RAGE:0.1 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 10" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   2:
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.3 } }
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 15" } }  # from RAGE:0.15 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 15" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   3:
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.3 } }
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 25" } }  # from RAGE:0.25 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 25" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   4:
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.3 } }
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 30" } }  # from RAGE:0.3 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 30" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   5:
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.3 } }
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 35" } }  # from RAGE:0.35 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 35" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
   6:
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.3 } }
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%combo% * 40" } }  # from RAGE:0.4 — EE RAGE (stacking combo damage) → DAMAGE_MOD scaling with %combo%
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 40" } }  # stacking combo damage, capped at the level by %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback

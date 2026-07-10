@@ -1,5 +1,6 @@
 package feature.book;
 
+import feature.compat.Titles;
 import java.lang.reflect.Method;
 import java.util.Map;
 import org.bukkit.Color;
@@ -17,10 +18,10 @@ import platform.text.Colors;
  * region thread — the interact click already is (folia-scheduling), so no scheduler hop is needed.
  *
  * <p>Cross-version by REFLECTION, the same stance as {@code feature.compat.Sounds}: {@code Firework#detonate}
- * and the 5-arg {@code Player#sendTitle} exist across the whole modern floor (1.17.1+) but NOT on the 1.8.9
- * legacy lane, so a direct call would break the {@code -Pse.target=legacy} compile of one shared source. Looking
- * them up by name compiles on both lanes and lets 1.8 degrade gracefully — the firework bursts on its own
- * power-0 arc, and the subtitle falls back to the 2-arg {@code sendTitle} or is skipped.
+ * exists across the whole modern floor (1.17.1+) but NOT on the 1.8.9 legacy lane, so a direct call would break
+ * the {@code -Pse.target=legacy} compile of one shared source. The subtitle rides the shared {@link Titles}
+ * reflection helper (which degrades gracefully on 1.8); the firework bursts on its own power-0 arc when
+ * {@code detonate} is absent.
  */
 public final class BookRevealFx {
 
@@ -47,7 +48,7 @@ public final class BookRevealFx {
      */
     public void celebrate(Player player, String tierColorCode, String bookName) {
         firework(player, colorFor(tierColorCode));
-        subtitle(player, bookName == null ? "" : Colors.translate(bookName));
+        Titles.sendSubtitle(player, bookName == null ? "" : Colors.translate(bookName), FADE_IN, STAY, FADE_OUT);
     }
 
     /** Spawn a plain (cosmetic, never crossbow-loaded → non-damaging) firework and detonate it at once. */
@@ -72,24 +73,6 @@ public final class BookRevealFx {
             detonate.invoke(firework);
         } catch (ReflectiveOperationException | RuntimeException absent) {
             // no Firework#detonate on this version — graceful degrade (the burst still happens a tick later)
-        }
-    }
-
-    /** Show {@code subtitle} with an empty title; degrade to the 2-arg overload, then to nothing, on old lanes. */
-    private static void subtitle(Player player, String subtitle) {
-        try {
-            Method timed = player.getClass().getMethod("sendTitle",
-                    String.class, String.class, int.class, int.class, int.class);
-            timed.invoke(player, "", subtitle, FADE_IN, STAY, FADE_OUT);
-            return;
-        } catch (ReflectiveOperationException | RuntimeException absent) {
-            // no 5-arg sendTitle — try the older 2-arg form below
-        }
-        try {
-            Method basic = player.getClass().getMethod("sendTitle", String.class, String.class);
-            basic.invoke(player, "", subtitle);
-        } catch (ReflectiveOperationException | RuntimeException absent) {
-            // 1.8.9 without either overload → skip the subtitle (graceful degrade)
         }
     }
 
