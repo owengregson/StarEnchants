@@ -1,3 +1,4 @@
+import java.nio.file.Files
 import org.gradle.language.jvm.tasks.ProcessResources
 
 plugins {
@@ -56,6 +57,30 @@ tasks.named<ProcessResources>("processResources") {
     }
     from(rootProject.file("se/bootstrap/resources/content")) {
         into("content")
+    }
+    // Bundle the shipped cosmic pack's content the same way, with a generated index, so CatalogSuite
+    // validates ITS handle tokens on every matrix server too — the default catalog staying clean says
+    // nothing about the pack (the 1.20.5 particle rename wave shipped 79 dead cue lines this way).
+    val cosmicContent = rootProject.file("se/bootstrap/packs-src/cosmic-pack/content")
+    val indexDir = layout.buildDirectory.dir("generated/pack-cosmic-index")
+    inputs.dir(cosmicContent)
+    from(cosmicContent) {
+        into("pack-cosmic/content")
+    }
+    from(indexDir) {
+        into("pack-cosmic")
+    }
+    doFirst {
+        val root = cosmicContent.toPath()
+        val lines = Files.walk(root).use { walk ->
+            walk.filter { Files.isRegularFile(it) }
+                .map { root.relativize(it).toString().replace('\\', '/') }
+                .sorted()
+                .toList()
+        }
+        val out = indexDir.get().file("index.txt").asFile
+        out.parentFile.mkdirs()
+        out.writeText(lines.joinToString("\n") + "\n")
     }
 }
 

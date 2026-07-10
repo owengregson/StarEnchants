@@ -6,6 +6,20 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.6.1-beta] — 2026-07-10
+
+### Fixed
+
+- **The cosmic pack now loads clean on 1.20.5+ servers.** The activation-cue pass authored
+  floor-era particle names (ENCHANTMENT_TABLE, TOTEM, SPELL, VILLAGER_ANGRY, …) that the
+  1.20.5 enum flattening renamed — `/se pack apply` refused with 79 unknown-particle errors
+  on modern servers. The particle alias map now carries the complete rename wave (derived by
+  diffing the real 1.17.1 / 1.21.11 / 26.1.2 enums), so either era's spelling resolves on
+  either era. Two gates were hardened so this class of drift fails before shipping: the
+  offline build now compiles both shipped libraries against committed per-era sound/particle
+  constant lists, and the live matrix's CatalogSuite now compiles the bundled cosmic pack
+  (not just the default catalog) with real resolvers on every server version.
+
 ## [1.6.0-beta] — 2026-07-09
 
 ### Added
