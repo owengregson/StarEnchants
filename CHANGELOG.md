@@ -8,6 +8,32 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- **Cosmic enchant behavior alignment (ADR-0049).** ~40 enchants now do what their
+  descriptions claim: Bleed (and its appliers Deep Wounds / Bloody Deep Wounds / Deep
+  Bleed) is a 3-iteration damage-over-time that scales off the proc'ing hit; Hardened /
+  Reforged / Soul Hardened / Immortal guard durability instead of repairing (Soul
+  Hardened and Immortal pay in souls); Hex reflects the target's outgoing damage;
+  Diminish caps the next blow at half the last one (Vengeful returns the overflow);
+  Corrupt voids the target's next Inversion heal; Neutralize is a weapon enchant that
+  disarms defensive enchants for the next hit; Double Strike re-procs your enchants in
+  one folded swing; Blood Link heals off your guardians' pain; Rogue only backstabs;
+  Aegis / Holy Aegis / Anti Gank read the real gank (distinct recent attackers); Death
+  Pact scales both ways with missing health; Hellfire fires explosive fireballs;
+  Destruction lashes every nearby enemy and saps their damage (non-stacking); Divine
+  Immolation erupts across players near the target with lightning, fire and wither;
+  Natures Wrath tears 10% of each victim's max health; PermaFrost shields you while you
+  stand on its frost; Slayer never one-shots players; Dodge doubles while sneaking;
+  Ethereal Dodge also voids all fall damage; Planetary Deathbringer crits at 2.5x;
+  Soul Trap silences the whole soul tier. Engine grew the matching primitives (REFLECT,
+  WEAKEN, DAMAGE_CAP, ECHO_STRIKE, one-shot SUPPRESS charges, GUARDIAN_HURT trigger,
+  five new condition facts, and block-crack/percent-of-max/AoE-exclude/projectile-yield
+  parameter extensions).
+
+- **Every cosmic enchant description regenerated.** Per-level stat rows are gone, the
+  body copy is uniform yellow (&e), claims match the shipped behavior, and enchant
+  books carry the item-style "&eApplies to:" line. Every enchant also plays a curated
+  activation sound + particle cue.
+
 - **Merchant GUIs re-laid in the Cosmic Enchants likeness.** The Alchemist is now a
   three-row exchange window — two book slots up top, a live centre preview of the exact
   book the exchange forges, and a bottom-centre CLICK TO EXCHANGE pane. The Tinkerer is a
@@ -20,6 +46,19 @@ versioning: [Semantic Versioning](https://semver.org/).
   unchanged (free combine, `[1, N]` salvage roll, XP-level pricing).
 
 ### Added
+
+- **Soul Drinker** (soul tier): drinks 2 souls a second to hold your hunger at bay
+  while active.
+
+- **Unopened-book reveal fanfare.** Opening an unopened enchant book pops an instant
+  tier-colored firework at your feet and flashes the revealed book's name as a
+  subtitle.
+
+- **Universal apply cues.** A successful enchant-book apply and a failed one each play
+  a configurable sound + particles (`apply-cues` in config.yml, live-reloadable).
+
+- **Soul-mode toggle rate limit.** Manual soul-mode toggling is debounced to twice a
+  second so toggle-spam can't flicker the maintained state.
 
 - **Use-items `is-food` — eat to trigger.** A use-item with `is-food: true` must be
   EATEN (real eating animation) before its abilities fire, and is forced edible on any
