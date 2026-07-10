@@ -97,6 +97,22 @@ public final class UnopenedBookService {
         return rollDetailed(tier).map(Rolled::book);
     }
 
+    /**
+     * The reveal-fanfare inputs for a just-opened {@code producedBook}: its enchant's rarity-tier {@code &}-colour
+     * code (for the firework burst) and the styled book display name (the SAME likeness path {@code /se} book
+     * names use — {@link CarrierService#bookDisplayName}, not a re-derivation). Empty if {@code producedBook} is
+     * not an enchant book.
+     */
+    public java.util.Optional<Reveal> revealOf(ItemStack producedBook) {
+        return carriers.bookContents(producedBook).map(contents -> new Reveal(
+                content.library().tiers().colorOf(content.library().tierOf(contents.enchantKey())),
+                carriers.bookDisplayName(contents.enchantKey(), contents.level())));
+    }
+
+    /** Tier {@code &}-colour code + styled book display name for the §I reveal fanfare. */
+    public record Reveal(String tierColor, String name) {
+    }
+
     /** The shared tier&rarr;concrete-book roll behind both {@link #open} and {@link #roll}. */
     private java.util.Optional<Rolled> rollDetailed(String tier) {
         UnopenedBookConfig cfg = config.get();
