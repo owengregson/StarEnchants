@@ -31,13 +31,18 @@ public final class ItemKeys {
     private final String trakFish;
     private final String loreComposer;
     private final String useItem;
+    private final String pet;
+    private final String petLevel;
+    private final String petExp;
+    private final String petFood;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
                      String slotItem, String slotSuccess, String scroll, String scrollConvert,
                      String unopened, String godlyTransmog, String appliedSlot,
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
-                     String loreComposer, String useItem) {
+                     String loreComposer, String useItem,
+                     String pet, String petLevel, String petExp, String petFood) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -59,13 +64,17 @@ public final class ItemKeys {
         this.trakFish = trakFish;
         this.loreComposer = loreComposer;
         this.useItem = useItem;
+        this.pet = pet;
+        this.petLevel = petLevel;
+        this.petExp = petExp;
+        this.petFood = petFood;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
-                "lorecomposer", "useitem");
+                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petfood");
     }
 
     public String combat() {
@@ -168,5 +177,25 @@ public final class ItemKeys {
     /** A right-click use-item (§3): the PDC string under this key is the use-item's def key. */
     public String useItem() {
         return useItem;
+    }
+
+    /** A pet head (ADR-0052): the PDC string under this key is the pet's def key. */
+    public String pet() {
+        return pet;
+    }
+
+    /** The pet's stored level — its OWN integer key (the trak rule: counters never ride the combat blob). */
+    public String petLevel() {
+        return petLevel;
+    }
+
+    /** The pet's exp toward the next level — its own integer key, mutated on every credit. */
+    public String petExp() {
+        return petExp;
+    }
+
+    /** A Pet Food apply item (ADR-0052): the PDC integer under this key is its baked +levels amount. */
+    public String petFood() {
+        return petFood;
     }
 }

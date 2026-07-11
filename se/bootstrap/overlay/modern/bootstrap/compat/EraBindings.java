@@ -27,6 +27,8 @@ import feature.fx.ModernParticleFx;
 import feature.fx.ParticleFx;
 import feature.heroic.ModernVanillaStats;
 import feature.heroic.VanillaStats;
+import item.head.ModernTexturedHeads;
+import item.head.TexturedHeads;
 import feature.scroll.AnvilRename;
 import feature.scroll.ModernAnvilRename;
 import item.codec.ItemStateStore;
@@ -135,6 +137,12 @@ public final class EraBindings implements EraServices {
     @Override
     public VanillaStats vanillaStats() {
         return new ModernVanillaStats();
+    }
+
+    /** ADR-0052 pet heads: Paper profile + textures property (API surface, mapping-flip immune). */
+    @Override
+    public TexturedHeads texturedHeads() {
+        return new ModernTexturedHeads();
     }
 
     /** §I nametag rename (§4): modern opens a real anvil + colour preview. Into {@code NametagListener}. */

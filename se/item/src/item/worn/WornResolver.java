@@ -55,6 +55,8 @@ public final class WornResolver {
     // §ADR-0035 the base keys of crystals declared NON-stackable, read live so a reload re-tunes it. A crystal in
     // this set contributes its abilities at most once per wearer, even if it sits on several worn pieces.
     private final java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals;
+    // ADR-0052: the hotbar-pet contribution, decided wholly by the pets feature (bracket + armed gate + toggle).
+    private final PetSource petSource;
 
     /** Per-feature source toggles (config.yml {@code features:}) — which sources contribute to worn state. */
     public record Features(boolean enchants, boolean sets, boolean crystals, boolean heroic) {
@@ -69,17 +71,28 @@ public final class WornResolver {
     public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger,
                         java.util.function.Supplier<Features> features) {
-        this(equipSource, itemViews, triggerCount, attackTrigger, defenseTrigger, features, java.util.Set::of);
+        this(equipSource, itemViews, triggerCount, attackTrigger, defenseTrigger, features, java.util.Set::of,
+                PetSource.NONE);
     }
 
-    /**
-     * Canonical form: {@code features} and {@code nonStackableCrystals} are read live per resolve, so a
-     * {@code /se reload} re-tunes which sources contribute and which crystals dedup per wearer (§ADR-0035).
-     */
     public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
                         IntPredicate attackTrigger, IntPredicate defenseTrigger,
                         java.util.function.Supplier<Features> features,
                         java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals) {
+        this(equipSource, itemViews, triggerCount, attackTrigger, defenseTrigger, features, nonStackableCrystals,
+                PetSource.NONE);
+    }
+
+    /**
+     * Canonical form: {@code features} and {@code nonStackableCrystals} are read live per resolve, so a
+     * {@code /se reload} re-tunes which sources contribute and which crystals dedup per wearer (§ADR-0035);
+     * {@code petSource} supplies the hotbar-pet stable keys (ADR-0052 — the pets feature owns the decision).
+     */
+    public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
+                        IntPredicate attackTrigger, IntPredicate defenseTrigger,
+                        java.util.function.Supplier<Features> features,
+                        java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals,
+                        PetSource petSource) {
         this.equipSource = java.util.Objects.requireNonNull(equipSource, "equipSource");
         this.itemViews = itemViews;
         this.triggerCount = triggerCount;
@@ -87,6 +100,7 @@ public final class WornResolver {
         this.defenseTrigger = defenseTrigger;
         this.features = java.util.Objects.requireNonNull(features, "features");
         this.nonStackableCrystals = java.util.Objects.requireNonNull(nonStackableCrystals, "nonStackableCrystals");
+        this.petSource = java.util.Objects.requireNonNull(petSource, "petSource");
     }
 
     public WornState resolve(LivingEntity entity, Snapshot snapshot) {
@@ -117,7 +131,10 @@ public final class WornResolver {
         if (offhandFrom < 0) {
             offhandFrom = combats.size(); // no off-hand slot in the equipment array (1.8)
         }
-        return resolveFrom(combats, offhandFrom, snapshot.stableKeys(), snapshot.abilities(), snapshot.generation());
+        // ADR-0052: the hotbar-pet keys, decided wholly by the pets feature (bracket + armed gate + toggle).
+        List<String> petKeys = petSource.liveKeys(entity);
+        return resolveFrom(combats, offhandFrom, petKeys, snapshot.stableKeys(), snapshot.abilities(),
+                snapshot.generation());
     }
 
     /** Equipment-array index where the hand slots begin; indices below this are the four armour slots. */
@@ -148,16 +165,24 @@ public final class WornResolver {
 
     /** Pure resolution + flatten over already-decoded combat states (version-agnostic core); no off-hand region. */
     WornState resolveFrom(List<CombatState> combats, StableKeyIndex keys, Ability[] abilities, int generation) {
-        return resolveFrom(combats, combats.size(), keys, abilities, generation);
+        return resolveFrom(combats, combats.size(), List.of(), keys, abilities, generation);
+    }
+
+    /** The pre-ADR-0052 shape (tests): no pet keys. */
+    WornState resolveFrom(List<CombatState> combats, int offhandFrom, StableKeyIndex keys, Ability[] abilities,
+                          int generation) {
+        return resolveFrom(combats, offhandFrom, List.of(), keys, abilities, generation);
     }
 
     /**
      * Pure resolution + flatten over already-decoded combat states (version-agnostic core). States at index
      * {@code >= offhandFrom} come from the off-hand slot (G01): they never contribute attacker-direction procs,
      * heroic flat stats, set membership, or a held set-weapon bonus — an off-hand item never swings.
+     * {@code petKeys} are the ADR-0052 hotbar-pet stable keys: they fire on triggers like any main-hand source
+     * (a pet's armed ATTACK rider must swing) but never join sets/heroic/crystal accounting.
      */
-    WornState resolveFrom(List<CombatState> combats, int offhandFrom, StableKeyIndex keys, Ability[] abilities,
-                          int generation) {
+    WornState resolveFrom(List<CombatState> combats, int offhandFrom, List<String> petKeys, StableKeyIndex keys,
+                          Ability[] abilities, int generation) {
         List<Integer> mergedIds = new ArrayList<>();   // armour + main-hand sourced ids
         List<Integer> offhandIds = new ArrayList<>();  // off-hand sourced ids (attack-direction dropped by flatten)
         List<Integer> crystalIds = new ArrayList<>();
@@ -257,6 +282,14 @@ public final class WornResolver {
                     }
                     mergedIds.add(weaponAbilityId);
                 }
+            }
+        }
+        // ADR-0052 pets: resolve the feature-decided stable keys like any main-hand source. An unknown key
+        // (content no longer present, a stale bracket) resolves -1 and is skipped — never a crash.
+        for (String petKey : petKeys) {
+            int petAbilityId = keys.idOf(petKey);
+            if (petAbilityId >= 0) {
+                mergedIds.add(petAbilityId);
             }
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds), abilities,
