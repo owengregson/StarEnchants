@@ -133,6 +133,7 @@ final class PetDefReader {
         List<String> useKeys = new ArrayList<>();
         List<String> wornKeys = new ArrayList<>();
         List<String> conditionSources = new ArrayList<>();
+        int firstUseCooldown = -1; // {TIME_FORMATTED} renders a0's ACTUAL cooldown (the use-item rule)
         if (node.has("abilities")) {
             int index = 0;
             for (YamlNode block : node.items("abilities")) {
@@ -142,8 +143,12 @@ final class PetDefReader {
                     continue;
                 }
                 ContentParse.warnUnknownKeys(block, ABILITY_KEYS, diags);
-                readAbility(key, active, floor, index, block, cooldown, useKeys, wornKeys, conditionSources,
-                        out, nextDefId, diags);
+                AbilityDef ability = readAbility(key, active, floor, index, block, cooldown, useKeys, wornKeys,
+                        conditionSources, out, nextDefId, diags);
+                if (firstUseCooldown < 0 && useKeys.size() == 1 && ability.stableKey().equals(
+                        useKeys.get(0))) {
+                    firstUseCooldown = ability.cooldownTicks();
+                }
                 index++;
             }
             if (useKeys.isEmpty() && wornKeys.isEmpty()) {
@@ -152,17 +157,21 @@ final class PetDefReader {
                 return null;
             }
         } else {
-            readAbility(key, active, floor, 0, node, cooldown, useKeys, wornKeys, conditionSources,
-                    out, nextDefId, diags);
+            AbilityDef ability = readAbility(key, active, floor, 0, node, cooldown, useKeys, wornKeys,
+                    conditionSources, out, nextDefId, diags);
+            if (!useKeys.isEmpty()) {
+                firstUseCooldown = ability.cooldownTicks();
+            }
         }
-        return new PetBracket(floor, cooldown, duration, useKeys, wornKeys, conditionSources);
+        return new PetBracket(floor, firstUseCooldown >= 0 ? firstUseCooldown : cooldown, duration,
+                useKeys, wornKeys, conditionSources);
     }
 
-    /** Read one ability block, classify it USE vs worn by trigger, and append its {@link AbilityDef}. */
-    private static void readAbility(String key, boolean active, int floor, int index, YamlNode node,
-                                    int bracketCooldown, List<String> useKeys, List<String> wornKeys,
-                                    List<String> conditionSources, List<AbilityDef> out, IntSupplier nextDefId,
-                                    Diagnostics diags) {
+    /** Read one ability block, classify it USE vs worn by trigger, and append + return its {@link AbilityDef}. */
+    private static AbilityDef readAbility(String key, boolean active, int floor, int index, YamlNode node,
+                                          int bracketCooldown, List<String> useKeys, List<String> wornKeys,
+                                          List<String> conditionSources, List<AbilityDef> out,
+                                          IntSupplier nextDefId, Diagnostics diags) {
         String stableKey = index == 0 ? "pet:" + key + "/" + floor : "pet:" + key + "/" + floor + "/a" + index;
         String trigger = resolveTrigger(key, active, stableKey, node, diags);
         boolean use = "USE".equals(trigger);
@@ -189,10 +198,12 @@ final class PetDefReader {
         // The bracket's FIRST USE ability cools down under the pet-wide scope so a level-up that crosses a
         // bracket floor keeps the running cooldown; everything else scopes to its own stable key.
         String cdScope = use && useKeys.size() == 1 ? "pet:" + key : stableKey;
-        out.add(new AbilityDef(
+        AbilityDef ability = new AbilityDef(
                 SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance, cooldown, soulCost,
                 List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,
-                repeatTicks, node.source(), 0));
+                repeatTicks, node.source(), 0);
+        out.add(ability);
+        return ability;
     }
 
     /**

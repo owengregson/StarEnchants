@@ -16,6 +16,7 @@ import item.mint.VanillaEnchants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
@@ -263,7 +264,7 @@ public final class PetService {
         if (duration <= 0) {
             return; // instant effects only — no window, no ENDED message
         }
-        java.util.UUID id = player.getUniqueId();
+        UUID id = player.getUniqueId();
         long generation = armed.arm(id, def.key(), nowTicks.getAsLong() + duration);
         refresh.accept(player); // the armed abilities join WornState now
         Scheduling.onEntityLater(player, duration, () -> {
@@ -275,7 +276,7 @@ public final class PetService {
     }
 
     /** Death/quit teardown for one player's windows (buffs never survive either). */
-    public void dropWindows(java.util.UUID player) {
+    public void dropWindows(UUID player) {
         armed.clear(player);
     }
 }

@@ -1354,8 +1354,19 @@ public abstract class DispatchSinkBase implements SinkReadback {
             boolean alongX = Math.abs(ax) >= Math.abs(az);
             int sideX = alongX ? (ax >= 0 ? 1 : -1) : 0; // first keeps the side nearer where it stood
             int sideZ = alongX ? 0 : (az >= 0 ? 1 : -1);
-            teleport(first, cell(world, cx + sideX, baseY, cz + sideZ, yawToward(-sideX, -sideZ)));
-            teleport(second, cell(world, cx - sideX, baseY, cz - sideZ, yawToward(sideX, sideZ)));
+            // Hop each party to ITS OWN thread DIRECTLY (the transferExp rule): this body runs during (or
+            // after) the plan's region pass, so the plan-backed teleport()/entityOp would append to an
+            // already-dispatched batch and be silently dropped — never re-enter the flushed plan.
+            cageTeleport(first, cell(world, cx + sideX, baseY, cz + sideZ, yawToward(-sideX, -sideZ)));
+            cageTeleport(second, cell(world, cx - sideX, baseY, cz - sideZ, yawToward(sideX, sideZ)));
+        });
+    }
+
+    /** Direct entity-thread teleport for the cage (anti-cheat-exempted); bypasses the per-event plan. */
+    private void cageTeleport(LivingEntity target, Location dest) {
+        Scheduling.onEntity(target, () -> {
+            exemptMovement(target);
+            teleportTo(target, dest);
         });
     }
 
