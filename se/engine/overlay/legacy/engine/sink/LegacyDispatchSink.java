@@ -218,6 +218,24 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         return ((CraftLivingEntity) entity).getHandle().getAttributeInstance(GenericAttributes.maxHealth);
     }
 
+    @Override
+    protected void setWornMaxHealthModifier(Player player, double total) {
+        net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(player);
+        if (maxHealth == null) {
+            return;
+        }
+        // 1.8 NMS modifier surface (javap-verified against craftbukkit-1.8.8): a(UUID) = get by id,
+        // b(modifier) = apply, c(modifier) = remove. Same replace-by-identity semantics as the modern leaf.
+        net.minecraft.server.v1_8_R3.AttributeModifier existing = maxHealth.a(WORN_MAX_HEALTH_ID);
+        if (existing != null) {
+            maxHealth.c(existing);
+        }
+        if (total > 0.0) {
+            maxHealth.b(new net.minecraft.server.v1_8_R3.AttributeModifier(
+                    WORN_MAX_HEALTH_ID, WORN_MAX_HEALTH_NAME, total, 0)); // op 0 = additive
+        }
+    }
+
     /** The entity's maximum health (attribute on 1.8 lives behind the Damageable accessor). */
     @Override
     @SuppressWarnings("deprecation") // getMaxHealth: the 1.8 accessor.

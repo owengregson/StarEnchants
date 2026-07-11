@@ -274,6 +274,17 @@ public final class TriggerDispatch {
     }
 
     /**
+     * Reconcile the plugin-owned worn max-health modifier to {@code total} (the {@code HEALTH}-on-PASSIVE/HELD
+     * channel). The sum is owned by {@link MaxHealthDriver}; this only executes it — SET-not-add, so repeated
+     * refreshes are idempotent. Runs on the player's own thread.
+     */
+    public void applyWornMaxHealth(Player player, double total) {
+        SinkReadback sink = newSink();
+        sink.applyWornMaxHealth(player, total);
+        sink.flush();
+    }
+
+    /**
      * Fire the §B COMMAND trigger — the body of the configured {@code CommandTriggerCommand}. A normal triggered
      * activation: runs the full gate sequence (chance/cooldown/condition/souls) like any other trigger, only the
      * entry point differs. Neutral, so the heroic fold is inert.

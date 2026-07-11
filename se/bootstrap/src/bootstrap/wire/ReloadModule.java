@@ -62,6 +62,7 @@ final class ReloadModule {
                         equip.passives.arm(player, state);
                         equip.lifecycle.refresh(player, state);
                         equip.passiveEffects.refresh(player);
+                        equip.maxHealth.refresh(player);
                     });
                 }
             }

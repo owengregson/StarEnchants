@@ -16,6 +16,7 @@ import engine.stores.WardStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
@@ -89,6 +90,12 @@ import platform.text.Colors;
 public abstract class DispatchSinkBase implements SinkReadback {
 
     private static final System.Logger LOG = System.getLogger("StarEnchants.Sink");
+
+    /** The ONE plugin-owned worn max-health modifier's stable identity — text-derived, era-shared, so both
+     *  overlays and any future migration find the same modifier in old playerdata. */
+    protected static final UUID WORN_MAX_HEALTH_ID =
+            UUID.nameUUIDFromBytes("starenchants:worn_max_health".getBytes(StandardCharsets.UTF_8));
+    protected static final String WORN_MAX_HEALTH_NAME = "starenchants.worn_max_health";
 
     private final EconomyService economy;
     private final SoulDebit souls;
@@ -410,9 +417,23 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void addMaxHealth(LivingEntity target, double amount) {
         entityOp(target, () -> {
-            // Shifts the base value directly; unequip restoration of this delta lands with WornState (§5.5).
+            // Shifts the base value directly — permanent (no restore channel). Worn HEALTH bonuses never land
+            // here: the MaxHealthDriver reconciles them through applyWornMaxHealth's keyed modifier instead.
             if (hasMaxHealthAttribute(target)) {
                 setMaxHealthBase(target, Math.max(1.0, maxHealthBase(target) + amount));
+            }
+        });
+    }
+
+    @Override
+    public void applyWornMaxHealth(Player target, double total) {
+        entityOp(target, () -> {
+            if (!hasMaxHealthAttribute(target)) {
+                return;
+            }
+            setWornMaxHealthModifier(target, Math.max(0.0, total));
+            if (target.getHealth() > maxHealth(target)) {
+                target.setHealth(Math.max(0.0, maxHealth(target))); // clamp current down when the bonus shrank
             }
         });
     }
@@ -1880,6 +1901,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** Set the BASE max-health — modern {@code AttributeInstance.setBaseValue}; 1.8 NMS {@code setValue}. */
     protected abstract void setMaxHealthBase(LivingEntity entity, double value);
+
+    /**
+     * Set (or, at {@code total <= 0}, remove) the ONE plugin-owned worn max-health MODIFIER — identity
+     * {@link #WORN_MAX_HEALTH_ID}/{@link #WORN_MAX_HEALTH_NAME}, additive. A modifier (never a base shift) so
+     * stale playerdata after a crash is discoverable by identity and reconciled on the next refresh — a base
+     * shift would be indistinguishable from the player's legitimate base. Modern = Bukkit
+     * {@code AttributeModifier}; 1.8 = NMS {@code AttributeModifier} (javap-verified: {@code a(UUID)} get,
+     * {@code b(mod)} apply, {@code c(mod)} remove).
+     */
+    protected abstract void setWornMaxHealthModifier(Player player, double total);
 
     /** Set a freshly-spawned living entity's max + current health (SPAWN_ENTITY's {@code health} param). */
     protected abstract void applySpawnHealth(LivingEntity entity, double health);

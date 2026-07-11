@@ -219,6 +219,12 @@ public final class AbilityExecutor {
                     LOG.log(Level.WARNING, "no effect kind registered for head " + effect.head());
                     continue;
                 }
+                if ("HEALTH".equals(effect.head()) && "SELF".equals(effect.target().head())) {
+                    // Worn max-health is RECONCILED by the MaxHealthDriver's keyed modifier (the potion-driver
+                    // ownership split): a lifecycle run/stop here would ADD into a second channel and compound
+                    // on every relog. Non-SELF / event-trigger HEALTH keeps its direct permanent shift.
+                    continue;
+                }
                 if (kind.spec().needsActorOrigin() && origin == null) {
                     // ADR-0043: one firing-thread snapshot per activated ability, before any region hop.
                     origin = ActorOrigin.capture(context.actor());

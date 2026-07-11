@@ -1,5 +1,6 @@
 package engine.sink;
 
+import java.util.List;
 import java.util.Objects;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -12,6 +13,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
@@ -150,6 +152,26 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     private AttributeInstance maxHealthAttribute(LivingEntity entity) {
         Object attribute = handles.resolveByName(HandleCategory.ATTRIBUTE, "GENERIC_MAX_HEALTH");
         return attribute instanceof Attribute resolved ? entity.getAttribute(resolved) : null;
+    }
+
+    @Override
+    @SuppressWarnings({"deprecation", "removal"}) // the UUID AttributeModifier ctor: deprecated-not-removed across the range
+    protected void setWornMaxHealthModifier(Player player, double total) {
+        AttributeInstance maxHealth = maxHealthAttribute(player);
+        if (maxHealth == null) {
+            return;
+        }
+        // Replace-by-identity: drop OUR modifier (including a stale one a crash left in playerdata), then
+        // re-add at the new total. Never touches the base or any other plugin's modifiers.
+        for (AttributeModifier modifier : List.copyOf(maxHealth.getModifiers())) {
+            if (WORN_MAX_HEALTH_ID.equals(modifier.getUniqueId())) {
+                maxHealth.removeModifier(modifier);
+            }
+        }
+        if (total > 0.0) {
+            maxHealth.addModifier(new AttributeModifier(WORN_MAX_HEALTH_ID, WORN_MAX_HEALTH_NAME, total,
+                    AttributeModifier.Operation.ADD_NUMBER));
+        }
     }
 
     @Override

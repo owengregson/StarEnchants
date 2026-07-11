@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import compile.load.ContentHolder;
 import feature.trigger.LifecycleDriver;
+import feature.trigger.MaxHealthDriver;
 import feature.trigger.PassiveEffectDriver;
 import feature.trigger.RepeatingDriver;
 import feature.trigger.SetMessageDriver;
@@ -50,6 +51,7 @@ class EquipListenerTest {
     private RepeatingDriver repeating;
     private LifecycleDriver lifecycle;
     private PassiveEffectDriver passiveEffects;
+    private MaxHealthDriver maxHealth;
     private SetMessageDriver setMessages;
     private CombatCodec codec;
     private ScriptedEquipSource equip;
@@ -76,14 +78,15 @@ class EquipListenerTest {
         repeating = mock(RepeatingDriver.class);
         lifecycle = mock(LifecycleDriver.class);
         passiveEffects = mock(PassiveEffectDriver.class);
+        maxHealth = mock(MaxHealthDriver.class);
         setMessages = mock(SetMessageDriver.class);
         ContentHolder content = mock(ContentHolder.class);
         codec = mock(CombatCodec.class);
         ItemViewCache itemViews = new ItemViewCache(codec, 0);
         equip = new ScriptedEquipSource();
 
-        listener = new EquipListener(worn, content, repeating, lifecycle, passiveEffects, setMessages,
-                equip, itemViews);
+        listener = new EquipListener(worn, content, repeating, lifecycle, passiveEffects, maxHealth,
+                setMessages, equip, itemViews);
 
         uuid = UUID.randomUUID();
         player = mock(Player.class);

@@ -3,6 +3,7 @@ package bootstrap.wire;
 import engine.stores.RepeatStore;
 import feature.combat.EquipListener;
 import feature.trigger.LifecycleDriver;
+import feature.trigger.MaxHealthDriver;
 import feature.trigger.PassiveEffectDriver;
 import feature.trigger.RepeatingDriver;
 import feature.trigger.SetEquipEffects;
@@ -27,6 +28,7 @@ final class EquipModule {
     final RepeatingDriver passives;
     final LifecycleDriver lifecycle;
     final PassiveEffectDriver passiveEffects;
+    final MaxHealthDriver maxHealth;
     private final SetMessageDriver setMessages;
     private final EquipListener equipListener;
 
@@ -43,6 +45,11 @@ final class EquipModule {
         this.passiveEffects = new PassiveEffectDriver(triggerDispatch, core.content(), core.worn(),
                 core.stores().suppression(), core.tick()::get,
                 core.triggers().idOf("HELD").orElse(-1), core.triggers().idOf("PASSIVE").orElse(-1));
+        // Worn HEALTH bonuses: one reconciled plugin-owned max-health modifier (the potion driver's twin) —
+        // crash/relog-proof by identity, and immune to the HEALTH_BOOST amplifier clobber (1.8.0).
+        this.maxHealth = new MaxHealthDriver(triggerDispatch, core.content(), core.worn(),
+                core.stores().suppression(), core.tick()::get,
+                core.triggers().idOf("HELD").orElse(-1), core.triggers().idOf("PASSIVE").orElse(-1));
         // §6.6 set equip/remove: the authored per-set message on a completion transition PLUS the universal
         // equip/unequip sound+particle (one config for all sets; the dust takes the set's own colour).
         this.setMessages = new SetMessageDriver(core.content(),
@@ -56,7 +63,7 @@ final class EquipModule {
         // The shared worn-state refresher (join/held/respawn/quit + hand-mutation feeders); the era armour-/hand-change
         // feeders drive its refresh. The EquipSource + ItemViewCache back the F09 hand-signature reconcile.
         this.equipListener = new EquipListener(core.worn(), core.content(), passives, lifecycle, passiveEffects,
-                setMessages, core.bindings().equipSource(), core.itemViews());
+                maxHealth, setMessages, core.bindings().equipSource(), core.itemViews());
     }
 
     /** The one worn-state refresher, for features whose state feeds the resolve (ADR-0052 pets). */
@@ -79,9 +86,14 @@ final class EquipModule {
                         (playerId, durationTicks) -> {
                             Player target = core.plugin().getServer().getPlayer(playerId);
                             if (target != null) {
-                                Scheduling.onEntity(target, () -> passiveEffects.refresh(target));
-                                Scheduling.onEntityLater(target, durationTicks + 1L,
-                                        () -> passiveEffects.refresh(target));
+                                Scheduling.onEntity(target, () -> {
+                                    passiveEffects.refresh(target);
+                                    maxHealth.refresh(target); // a suppressed HEALTH bonus drops with its potions
+                                });
+                                Scheduling.onEntityLater(target, durationTicks + 1L, () -> {
+                                    passiveEffects.refresh(target);
+                                    maxHealth.refresh(target);
+                                });
                             }
                         }))
                 // Arm players already online (a plugin /reload with players on); a fresh boot has none.
@@ -92,6 +104,7 @@ final class EquipModule {
                             passives.arm(player, state);
                             lifecycle.refresh(player, state);
                             passiveEffects.refresh(player);
+                            maxHealth.refresh(player);
                         });
                     }
                 })
@@ -103,6 +116,7 @@ final class EquipModule {
                         Scheduling.onEntity(player, () -> {
                             if (!equipListener.reconcile(player)) {
                                 passiveEffects.refresh(player);
+                                maxHealth.refresh(player); // suppression windows lapse between refreshes too
                             }
                         });
                     }
