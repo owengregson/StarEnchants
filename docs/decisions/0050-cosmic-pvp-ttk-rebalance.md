@@ -178,3 +178,54 @@ players read stopped meaning anything, and the untouched set bonuses collapsed f
 Under 1.8 math at scale 5.0: ~11.5 hp per full-combo hit against light-defense armor,
 mirror-god TTK ≈ 6–7 hits on 26-heart Overload pools. The R1 "Revised targets" wording
 (modern-armor TTK, "1.8 ~35% slower") is superseded by this calibration.
+
+## Revision 3 (2026-07-10): the flat-forward economy — calibrated against the OBSERVED pipeline
+
+The first v1.7.1-beta playtest falsified Revision 2's model of where our fold sits in
+Mental's pipeline. Observed: base god-kit hits ~4 hp with occasional 8–14 hp spikes,
+2–3 rage stacks ~24 hp, 6 stacks ~80 hp. Those numbers fit exactly one model: **Mental
+applies its 1.8 armor reduction BEFORE our HIGH-priority fold reads the event**, so
+
+- the base our percent lines multiply is already crushed (E ≈ 1.0–1.3 hp) — "+25%"
+  content reads as ~+1.4 hp, which is why hits felt broken-low despite big advertised
+  percents; and
+- the **flat bucket lands raw on health** after all armor — Rage's flat rider
+  (0.5–1.0/stack × scale 5 = 15–30 raw hp) was the only meaningful flat line in the
+  pack, which is why rage alone dominated the whole economy.
+
+The ratified response inverts the buckets' roles instead of re-scaling either one:
+**flat is the workhorse, percent is seasoning.** Every attack-side contributor
+converts `mode: add` → `mode: flat` in raw-hp values (rule of thumb at scale 5:
+flat 0.1 ≈ +0.5 hp real; percent +10 ≈ +0.55 hp real):
+
+- Always-on sword workhorses (and the only ones on a god kit — every mythic upgrade is
+  `removes-required`, so Shadow Assassin REPLACES Assassin): Shadow Assassin
+  `0.65–0.85 − distance×0.10`, Assassin `0.35–0.55 − distance×0.06` (~2–3 hp at melee).
+- Rage: percent falls to 3–8/stack (seasoning) + rider 0.04–0.10/stack — full 6-stack
+  ≈ +5.6 hp, 2–3 stacks ≈ +2.5 hp. The combo rewards; it no longer one-shots.
+- Finishers/procs in the +1 to +3.5 hp band: Execute 0.2–0.5 (≤25% victim hp),
+  Deathbringer 0.4–0.6 @ cd 200, Planetary 0.5–0.7 @ cd 160 (sound → WITHER_SHOOT),
+  Rogue 0.2–0.4 (backstab), Enrage `(100−hp%)/250..160`, Furious `/160../120`,
+  Bloody Deep Wounds ch 25–35 cd 60 @ 0.1–0.2, Insanity/Extreme/Barbarian 0.05–0.38.
+- **Sets, crystals, heroic stay percent and UNTOUCHED**: at scale 5 the set weapon
+  line's 25% ≈ 1.4 hp ≈ 15–17% damage share — inside the owner's 10–20% band, and the
+  verbatim "Deal N% more damage" lore stays true.
+- `attack-scale` stays 5.0 (it multiplies both buckets; the mix change does the work).
+
+Projected on the observed pipeline: base ~6.2 hp (3.1 hearts) CONSISTENT, full-combo
+~11.8 hp, mid-fight worst-case alignment ~18 hp; the all-conditions corner (~24 hp)
+only exists inside Execute's ≤25% kill window and is accepted. The flat bucket is
+uncapped by `max-bonus-damage` (fold caps percent only) — the budget above is the cap.
+
+Also in this revision: Inversion's trigger was ATTACK, so its CANCEL negated the
+holder's OWN hit — it is DEFENSE now (held-sword defense precedent: Block, Reflective
+Block). The rage BROKEN cue moved from a title to the action bar (volume 0.5). The
+always-on-proc sound rule is enforced pack-wide: enchants whose cue could fire on
+effectively every hit lost their SOUND lines (armored/tank/reinforced-tank/
+paladin-armored armor-equips, insanity/extreme-insanity screams, assassin/
+shadow-assassin/rogue, heavy/plated-heavy anvils, death-pact/soul-hardened,
+piercing, barbarian/enrage/furious-enrage roars, shackle L3); Berserk's ravager roar
+became a wolf growl and Ender Shift's dragon growl an enderman teleport. New
+`/se damagedebug` prints the fold's actual buckets (base seen, Σ%, flat, scale,
+committed) per hit for a toggled player — the tool that verifies this model on a live
+server instead of inferring it from anecdotes.
