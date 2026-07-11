@@ -23,6 +23,7 @@ command.error.level-range: "&cLevel must be 1–{MAX} for &f{KEY}"
 command.error.no-such-enchant: "&cNo such enchant: &f{KEY}"
 command.error.no-such-crystal: "&cNo such crystal: &f{KEY}"
 command.error.no-such-useitem: "&cNo such use-item: &f{KEY}"
+command.error.no-such-pet: "&cNo such pet: &f{KEY}"
 command.error.no-such-tier: "&cNo such tier: &f{TIER}"
 command.reload.start: "&7StarEnchants: {MODE} content…"
 command.reload.loaded: "&aStarEnchants: {VERB} {COUNT} abilities (generation {GEN})."
@@ -49,6 +50,7 @@ command.removeenchant.usage: "&eUsage: /se removeenchant <enchant> &7— strips 
 command.crystal.usage: "&eUsage: /se crystal <key> &7— a crystal you drag onto gear to apply"
 command.unopened.usage: "&eUsage: /se unopened <tier> &7— right-click it to reveal a random book"
 command.useitem.usage: "&eUsage: /se give useitem <player> <key> [amount] &7— a right-click item you consume/hold"
+command.pet.usage: "&eUsage: /se give pet <player> <key> [level] &7— a leveling pet head (ADR-0052)"
 command.book.usage: "&eUsage: /se book <enchant> [level] &7— a book you drag onto gear to apply it"
 command.give.crystal: "&aMinted a crystal: &f{KEY}&a. &7Drag it onto gear to apply."
 command.give.extractor: "&aMinted a crystal extractor. &7Drag it onto crystal-bearing gear to extract."
@@ -74,6 +76,8 @@ command.give.whitescroll: "&fMinted a white scroll. &7Drag it onto gear to prote
 command.give.unopened: "&bMinted an unopened &f{TIER} &bbook. &7Right-click it to reveal a random enchant book."
 command.give.book: "&aMinted an enchant book for &f{KEY} &7(level {LEVEL})&a."
 command.give.useitem: "&aMinted the use-item &f{KEY}&a. &7Right-click while holding it to use."
+command.give.pet: "&aMinted the pet &f{KEY}&a. &7Hold it in your hotbar."
+command.give.petfood: "&aMinted Pet Food. &7Drag n' Drop it onto a pet."
 command.reference.header: "&e{CATEGORY} &7({COUNT}): &f{ITEMS}"
 command.reference.list: "&eReference: &f{CATEGORIES} &7— /se effects|selectors|triggers|conditions|variables"
 
@@ -334,6 +338,11 @@ book.unopened.empty-tier: "&cThere are no enchants in that tier to reveal."
 use-item.success: ""
 use-item.cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
 use-item.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
+
+# ── Pets (ADR-0052) — the Pet Food gesture feedback. The universal ability-activated / ended / on-cooldown
+# messages are CONFIG templates (config.yml pets:), not lang keys, because they carry the pack's likeness.
+pet.food-applied: "&aYour pet gained &f+{AMOUNT}&a levels!"
+pet.food-max: "&cThat pet is already at its maximum level."
 
 # ── Carrier apply outcomes (enchant books, success dust, white scroll — the drag-onto-gear economy) ──────
 # The carrier is a book/dust/white-scroll dragged onto gear. A failed roll spends the carrier; the enchant

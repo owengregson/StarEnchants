@@ -1,0 +1,42 @@
+# Shield Pet — an ACTIVE pet (ADR-0052). The filename stem (shield) is the def key a pet head stores; it
+# doubles as the authoring template for the family, so every field is commented. A pet's `levels:` map is
+# SPARSE: each key is a level FLOOR, and the highest floor at or below the head's stored level is the LIVE
+# bracket (1-24 → 1, 25-49 → 25, 50-99 → 50, 100 → 100). Ability blocks compile through the SAME pipeline as
+# enchants/crystals (source-erased, full gate sequence). On an ACTIVE pet an ability with no `trigger:` is the
+# implicit USE (fired by the right-click); any OTHER trigger (DEFENSE here) is an ARMED ability — live only
+# for `duration` ticks after a successful right-click, then the universal ENDED message fires.
+display: "Shield"          # {NAME} in the universal likeness + messages
+color: "&7"                # {COLOR} everywhere the likeness/messages use it
+type: ACTIVE               # ACTIVE = right-click | PASSIVE = always-on while in the hotbar
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTdhODgwMTEzN2JkMjc0YjFhNWU4YzZkYjRkYWJmMjcwN2EwYjlmMzUxYjdmYTFjYmU4Y2U3NDM2MjFjNTE0NiJ9fX0="
+description:
+  - "&7&l* Temporarily reduces all incoming damage"
+levels:
+  # -15% incoming for 3s (duration 60); the 1m30s cooldown is shared pet-wide (a level-up keeps it running).
+  1:
+    cooldown: 1800
+    duration: 60
+    abilities:
+      - { effects: [ { SOUND: { sound: "BLOCK_ANVIL_PLACE", volume: 0.6, pitch: 1.6 } } ] }
+      - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } } ] }
+  # -15% for 5s.
+  25:
+    cooldown: 1800
+    duration: 100
+    abilities:
+      - { effects: [ { SOUND: { sound: "BLOCK_ANVIL_PLACE", volume: 0.6, pitch: 1.6 } } ] }
+      - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } } ] }
+  # -25% for 3s.
+  50:
+    cooldown: 1800
+    duration: 60
+    abilities:
+      - { effects: [ { SOUND: { sound: "BLOCK_ANVIL_PLACE", volume: 0.6, pitch: 1.6 } } ] }
+      - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } } ] }
+  # -25% for 5s.
+  100:
+    cooldown: 1800
+    duration: 100
+    abilities:
+      - { effects: [ { SOUND: { sound: "BLOCK_ANVIL_PLACE", volume: 0.6, pitch: 1.6 } } ] }
+      - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } } ] }

@@ -1,0 +1,35 @@
+# Lion Pet — an ACTIVE pet (ADR-0052): right-click to hurl every nearby enemy away from you. Instant (no
+# armed window); the %nearbyenemies% condition fails the use BEFORE the cooldown arms when no one is around.
+# Only the cooldown scales with level.
+display: "Lion"
+color: "&6"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGNkOWJkYWRmZDM1ZTkwZDBkMmNhMzIxNWIyNjk2OGRkMTAzZTgzZWExM2IxNWQ2MGFhZDYzM2RhZTZmOTIwOCJ9fX0="
+description:
+  - "&6&l* Launches all enemies away from you"
+levels:
+  # 4m → 3m30s → 3m → 2m30s.
+  1:
+    cooldown: 4800
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "ENTITY_POLAR_BEAR_WARNING", volume: 1.0, pitch: 0.7 } }
+      - { VELOCITY: { mode: away, strength: 2.5, who: "@Aoe{r=8, filter=ENEMIES}" } }
+  25:
+    cooldown: 4200
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "ENTITY_POLAR_BEAR_WARNING", volume: 1.0, pitch: 0.7 } }
+      - { VELOCITY: { mode: away, strength: 2.5, who: "@Aoe{r=8, filter=ENEMIES}" } }
+  50:
+    cooldown: 3600
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "ENTITY_POLAR_BEAR_WARNING", volume: 1.0, pitch: 0.7 } }
+      - { VELOCITY: { mode: away, strength: 2.5, who: "@Aoe{r=8, filter=ENEMIES}" } }
+  100:
+    cooldown: 3000
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "ENTITY_POLAR_BEAR_WARNING", volume: 1.0, pitch: 0.7 } }
+      - { VELOCITY: { mode: away, strength: 2.5, who: "@Aoe{r=8, filter=ENEMIES}" } }

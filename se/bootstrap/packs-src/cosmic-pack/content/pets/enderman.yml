@@ -1,0 +1,35 @@
+# Enderman Pet — an ACTIVE pet (ADR-0052): right-click for a 10s window of heavily boosted damage against
+# MOBS (the armed ATTACK rider is gated on the victim not being a player). Both the bonus and the cooldown
+# scale with level.
+display: "Enderman"
+color: "&5"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTlkMjJhY2M1YWE4MGNkOTZiOTdiYTY4YjFkNjc2NDAzMGQ4NzAzNmU2MDVkMGIyMTUzOGVlNjIzOWYxZjQxNCJ9fX0="
+description:
+  - "&5&l* Temporarily deal much more damage to mobs"
+levels:
+  # +25% / 2m → +50% / 1m30s → +75% / 1m → +100% / 30s; the boost window is 10s (200 ticks) at every bracket.
+  1:
+    cooldown: 2400
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
+      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } } ] }
+  25:
+    cooldown: 1800
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
+      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 50 } } ] }
+  50:
+    cooldown: 1200
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
+      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 75 } } ] }
+  100:
+    cooldown: 600
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
+      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 100 } } ] }

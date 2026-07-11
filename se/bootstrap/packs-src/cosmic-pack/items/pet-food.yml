@@ -1,0 +1,18 @@
+# Pet Food (ADR-0052) — drag onto a pet head to RAISE its level by `levels`, clamped to the universal
+# pets.max-level (config.yml). The grant is BAKED onto each minted food (the dust rule), so an already-minted
+# food keeps its printed value across config re-tunes; {AMOUNT} in the name/lore renders it at mint. A pet
+# already at max rejects the drop before the food is consumed. Reload with /se reload.
+type: pet-food
+
+material: GOLDEN_CARROT
+shiny: true
+name: "&e&lPet Food [&r&a&n+{AMOUNT}&r&e&l]"
+lore:
+  - "&eBoosts the level of your pet by {AMOUNT} levels, increasing the strength of their abilities."
+  - "&7Drag n' Drop on an item to apply."
+# Levels granted per food (the cosmic economy: one food = ten levels).
+levels: 10
+# Feedback played on a successful feed: a sound (namespaced, range-stable) + particle tokens (alias-resolved).
+sound: "entity.player.levelup"
+particles:
+  - HAPPY_VILLAGER
