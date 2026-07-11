@@ -2,6 +2,7 @@ package feature.combat;
 
 import compile.load.ContentHolder;
 import compile.load.MasterConfig;
+import compile.load.PetDef;
 import compile.model.Ability;
 import compile.model.SourceKind;
 import engine.run.ActivationContext;
@@ -27,10 +28,13 @@ import platform.text.Tokens;
 public final class ActivationMessenger {
 
     private final Supplier<MasterConfig.MessageOnActivateSection> config;
+    private final Supplier<MasterConfig.PetsSection> pets;
     private final ContentHolder content;
 
-    public ActivationMessenger(Supplier<MasterConfig.MessageOnActivateSection> config, ContentHolder content) {
+    public ActivationMessenger(Supplier<MasterConfig.MessageOnActivateSection> config,
+                               Supplier<MasterConfig.PetsSection> pets, ContentHolder content) {
         this.config = Objects.requireNonNull(config, "config");
+        this.pets = Objects.requireNonNull(pets, "pets");
         this.content = Objects.requireNonNull(content, "content");
     }
 
@@ -50,6 +54,15 @@ public final class ActivationMessenger {
         LivingEntity other = context.victim(); // the BY-side target AND the ON-side recipient
         if (actor == null || other == null) {
             return; // a non-combat activation has no other party to name
+        }
+        if (ability != null && ability.sourceKind() == SourceKind.PET) {
+            // A pet's chance-gated on-hit rider (ADR-0052 Anubis): the enchant templates cannot name a pet
+            // (no display/tier for a pet stable key — the raw "PET:X/100/A1" line), so the holder gets the
+            // pets-owned effect template instead; the victim side stays quiet (the stripped scroll IS the tell).
+            if (cfg.byEnabled()) {
+                announcePetEffect(enchantKey, actor);
+            }
+            return;
         }
         String display = displayOf(enchantKey);
         if (cfg.uppercase()) {
@@ -89,6 +102,29 @@ public final class ActivationMessenger {
             return true;
         }
         return ability.baseChance() >= 100.0 && ability.cooldownTicks() == 0 && ability.repeatTicks() == 0;
+    }
+
+    /** The pets-owned on-hit-effect line ({@code {COLOR}}/{@code {NAME}}; the {@code &{COLOR}} spelling folds). */
+    private void announcePetEffect(String stableKey, Player actor) {
+        MasterConfig.PetsSection cfg = pets.get();
+        String template = cfg.messageOnEffect();
+        if (template == null || template.isEmpty()) {
+            return; // empty = silent (the pets message convention)
+        }
+        PetDef def = content.library().petDefOf(petKeyOf(stableKey));
+        if (def == null) {
+            return; // a stale key an old head still carries
+        }
+        String name = cfg.uppercase() ? def.display().toUpperCase(Locale.ROOT) : def.display();
+        actor.sendMessage(Colors.translate(Tokens.sub(template.replace("&{COLOR}", "{COLOR}"),
+                "COLOR", def.color(), "NAME", name)));
+    }
+
+    /** {@code pet:anubis/100/a1} → {@code anubis} (the codec-stored pet key). */
+    static String petKeyOf(String stableKey) {
+        String key = stableKey.startsWith("pet:") ? stableKey.substring(4) : stableKey;
+        int slash = key.indexOf('/');
+        return slash > 0 ? key.substring(0, slash) : key;
     }
 
     private String displayOf(String enchantKey) {

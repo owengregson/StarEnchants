@@ -137,6 +137,7 @@ public final class MasterConfigLoader {
                 // PetMessenger contract) — only an ABSENT key falls back to the default.
                 template(n, "message-on-activate", d.messageOnActivate()),
                 template(n, "message-on-end", d.messageOnEnd()),
+                template(n, "message-on-effect", d.messageOnEffect()),
                 template(n, "message-on-cooldown", d.messageOnCooldown()),
                 template(n, "message-on-fail", d.messageOnFail()),
                 parseBool(n.string("uppercase"), d.uppercase(), n, diags));

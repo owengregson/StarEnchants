@@ -408,7 +408,7 @@ public final class BootCore {
         EffectRegistry effects = effectRegistry.get();
         // §L global message-on-activate: the holder ("BY you") + the other party ("ON you") get a configured line.
         feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
-                () -> master.config().messageOnActivate(), content);
+                () -> master.config().messageOnActivate(), () -> master.config().pets(), content);
         this.executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
                 new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard,
                         ActivationPipeline.Guard.ALLOW, stores.why()), // ADR-0045: record every gate walk
