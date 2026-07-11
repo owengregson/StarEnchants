@@ -4,6 +4,32 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **Cosmic-pack rebalance pass 2 (ADR-0050 Revision 1).** Live god-kit fights landed
+  0.5–1 hp per hit — pass 1's anchor had priced in a Rage that was actually inert (see
+  Fixed). Attack-percent enchants scale up ~2.5–3× and Rage becomes the centerpiece:
+  each stack now folds +20–45% plus a flat rider that lands after vanilla armor's
+  multiplier, so a full six-stack combo cracks Prot IV instead of being eaten by it
+  (the outgoing cap rises to +600% for headroom; set weapon bonuses deliberately stay
+  at 20–30 — the enchants carry the damage). Vanilla Weakness potions aimed at
+  combatants (Voodoo, Unfocus, the Reaper blade) become non-stacking `WEAKEN` percents
+  inside the fold — modern Weakness I's flat −4 was an unbudgeted ~40% tax on every
+  hit — low-health conditions now compare `healthpercent` so finishers and desperation
+  procs fire on boosted HP pools, and the Overload family's Health Boost climbs to a
+  26-heart pool at Godly Overload III: the HP-pool meta the new scale assumes.
+
+### Fixed
+
+- **Rage never fired.** Content stable keys carry their source segment
+  (`enchants/rage/N`), but the worn-rage lookup matched a bare `rage/` prefix, so the
+  whole system shipped inert: no stacks, no actionbar, no pitch-ladder cue, and
+  `%ragestacks%` read 0 on every hit. The lookup now uses the source-prefixed key
+  (pinned by a unit test), and the per-hit particle is a FLAME burst on the struck
+  enemy instead of angry villagers on the attacker.
+
 ## [1.7.0-beta] — 2026-07-10
 
 ### Changed

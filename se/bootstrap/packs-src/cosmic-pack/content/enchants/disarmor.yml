@@ -12,7 +12,7 @@ levels:
   1:
     chance: 4
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
@@ -20,7 +20,7 @@ levels:
   2:
     chance: 6
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
@@ -28,7 +28,7 @@ levels:
   3:
     chance: 8
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
@@ -36,7 +36,7 @@ levels:
   4:
     chance: 10
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
@@ -44,7 +44,7 @@ levels:
   5:
     chance: 12
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
@@ -52,7 +52,7 @@ levels:
   6:
     chance: 14
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
@@ -60,7 +60,7 @@ levels:
   7:
     chance: 16
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
@@ -68,7 +68,7 @@ levels:
   8:
     chance: 18
     cooldown: 200
-    condition: "%victim.health% <= 5"
+    condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }

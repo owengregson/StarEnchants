@@ -13,20 +13,20 @@ requires: ["enchants/enrage"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
-    condition: "%actor.health% < 10"
+    condition: "%actor.healthpercent% < 50"
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.9, pitch: 1.5 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(20 - %actor.health%) * 2" } }  # from DAMAGE_INCREASE:playerHealth*2.5 — EE equation → flat bonus per missing HP
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.6" } }  # flat bonus per % of missing health (at 20% health: +48)
   2:
-    condition: "%actor.health% < 10"
+    condition: "%actor.healthpercent% < 50"
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.9, pitch: 1.5 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(20 - %actor.health%) * 2.5" } }  # from DAMAGE_INCREASE:playerHealth*2.5 — EE equation → flat bonus per missing HP
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.75" } }  # flat bonus per % of missing health (at 20% health: +60)
   3:
-    condition: "%actor.health% < 10"
+    condition: "%actor.healthpercent% < 50"
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.9, pitch: 1.5 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(20 - %actor.health%) * 3" } }  # from DAMAGE_INCREASE:playerHealth*3 — EE equation → flat bonus per missing HP
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.9" } }  # flat bonus per % of missing health (at 20% health: +72)

@@ -104,3 +104,49 @@ cooldown, so only chance-gated cooldown-0 contributions truly stack ×4).
   claims room inside the buckets, not on top of them.
 - `max-bonus-reduction` now binds: any future "immunity"-flavored content must be a
   `CANCEL`/`SUPPRESS` mechanic, not a ≥100% reduction contribution.
+
+## Revision 1 (2026-07-10)
+
+The record above stands as written; this revision documents what live evidence changed
+the same day. Mirror god-kit fights on a real server landed **0.5–1 hp per hit** — nowhere
+near the 8-hit band — and two findings invalidated the pass-1 anchor:
+
+1. **Rage was inert.** Content stable keys are `<source>/<stem>` (`enchants/rage/N`), but
+   the worn-rage lookup matched a bare `rage/` prefix — it never hit, `%ragestacks%` read 0
+   on every swing, and the entire system (stacks, actionbar, cue, damage) contributed
+   nothing. Pass 1 had priced Rage's sustained +60–90% into the attacker budget as if it
+   were real. The key bug is fixed (source-prefixed lookup, contract pinned by a unit
+   test), but even a working Rage on the pass-1 scale left fights far too slow.
+2. **Attacker-aimed vanilla Weakness was an unbudgeted ~40%.** Modern Weakness I is a
+   flat −4 per hit — roughly 40% of a god sword's base — and several enchants stacked it
+   onto attackers from outside the fold, silently eating most of the attack budget.
+
+### The revised budgets
+
+- **Attacker full-stack ≈ +330–400%** (was +170–200%). Attack-percent enchants scale
+  ~2.5–3×, with Rage as the centerpiece: each stack folds **+20–45%** (per level) **plus a
+  flat rider** (`%ragestacks% × 0.5–1.0`) that lands after the multiplier, so a full
+  six-stack combo cracks Prot-IV's diminishing curve instead of being eaten by it.
+- **`combat.max-bonus-damage: 6.0`** (from 3.5) — headroom for the new scale; still a
+  one-shot backstop: a capped +600% spike kills a 20 hp pool but not an Overload pool.
+- **Set weapon bonuses deliberately NOT raised.** The passive item stats stay 20–30; the
+  damage lives in the enchants, where stacks and conditions gate it — not in flat
+  always-on item lines.
+- **`WEAKEN` replaces attacker-aimed vanilla Weakness** (Voodoo, Unfocus, the Reaper
+  blade; Destruction's redundant AoE potion line is deleted — its real `WEAKEN` percents
+  stay). `WEAKEN` is a budgeted percent inside the fold and non-stacking
+  (strongest-wins), so weakening can no longer tax hits invisibly from outside the
+  buckets.
+- **Low-health conditions are `healthpercent`-based.** Absolute `health <= N` guards never
+  fire on a boosted pool; percent thresholds keep finishers and desperation procs working
+  at any max HP. (Mortal Coil's `> 12` stays absolute — its payload SETS health to 12.)
+- **Overload pools are the HP meta.** Health Boost rises to VIII at Godly Overload III —
+  a **26-heart** pool — making the Overload family the survivability axis that replaces
+  the dismantled reduction stack.
+
+### Revised targets
+
+~11–12 hp per full-stack hit against light-defense armor; **6–7 hit TTK between mirror
+god kits (modern)**. 1.8.9 runs ~35% slower (flat armor reduction, no diminishing curve
+for the rider to beat) — accepted: both eras stay inside a playable band from ONE value
+set.

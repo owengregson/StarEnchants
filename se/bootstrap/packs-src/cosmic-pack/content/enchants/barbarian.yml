@@ -13,22 +13,22 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 2 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 24 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

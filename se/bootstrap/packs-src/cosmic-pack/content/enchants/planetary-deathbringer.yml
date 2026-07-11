@@ -16,16 +16,16 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 60 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 120 } }
   2:
     cooldown: 500
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 75 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 150 } }
   3:
     cooldown: 500
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 90 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 180 } }

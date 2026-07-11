@@ -12,7 +12,7 @@ levels:
   1:
     chance: 30
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { PARTICLE: { particle: "FIREWORKS_SPARK", count: 12 } }
       - { VELOCITY: { mode: "add", x: 0, y: 5, z: 0, who: "@Self" } }  # from THROW:0:5:0:PLAYER — EE THROW → VELOCITY (add)
@@ -20,7 +20,7 @@ levels:
   2:
     chance: 60
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { PARTICLE: { particle: "FIREWORKS_SPARK", count: 12 } }
       - { VELOCITY: { mode: "add", x: 0, y: 5, z: 0, who: "@Self" } }  # from THROW:0:5:0:PLAYER — EE THROW → VELOCITY (add)
@@ -28,7 +28,7 @@ levels:
   3:
     chance: 80
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { PARTICLE: { particle: "FIREWORKS_SPARK", count: 12 } }
       - { VELOCITY: { mode: "add", x: 0, y: 5, z: 0, who: "@Self" } }  # from THROW:0:5:0:PLAYER — EE THROW → VELOCITY (add)

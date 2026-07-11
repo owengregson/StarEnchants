@@ -14,10 +14,10 @@ removes-required: true  # the mythic upgrade supersedes its base counterpart (ne
 levels:
   1:
     effects:
-      - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 200, who: "@Self" } }
+      - { POTION: { effect: "HEALTH_BOOST", level: 4, duration: 200, who: "@Self" } }
   2:
     effects:
-      - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 200, who: "@Self" } }
+      - { POTION: { effect: "HEALTH_BOOST", level: 6, duration: 200, who: "@Self" } }
   3:
     effects:
-      - { POTION: { effect: "HEALTH_BOOST", level: 3, duration: 200, who: "@Self" } }
+      - { POTION: { effect: "HEALTH_BOOST", level: 8, duration: 200, who: "@Self" } }

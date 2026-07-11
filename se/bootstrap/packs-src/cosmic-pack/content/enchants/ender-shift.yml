@@ -11,7 +11,7 @@ levels:
   1:
     chance: 20
     cooldown: 300
-    condition: "%actor.health% <= 3"
+    condition: "%actor.healthpercent% <= 15"
     effects:
       - { PARTICLE: { particle: "PORTAL", count: 16 } }
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
@@ -20,7 +20,7 @@ levels:
   2:
     chance: 30
     cooldown: 300
-    condition: "%actor.health% <= 3"
+    condition: "%actor.healthpercent% <= 15"
     effects:
       - { PARTICLE: { particle: "PORTAL", count: 16 } }
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
@@ -29,7 +29,7 @@ levels:
   3:
     chance: 40
     cooldown: 300
-    condition: "%actor.health% <= 3"
+    condition: "%actor.healthpercent% <= 15"
     effects:
       - { PARTICLE: { particle: "PORTAL", count: 16 } }
       - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
