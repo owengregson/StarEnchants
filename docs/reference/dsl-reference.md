@@ -255,7 +255,7 @@ Summon count guardian mobs of type at the activation location, each targeting th
 
 ### HEALTH
 
-Add to the target's maximum health (restored on unequip).
+Bonus maximum health. On PASSIVE/HELD @Self it is a maintained worn bonus (reconciled, additive across sources, removed on unequip); on event triggers it is a permanent base shift.
 
 - _affinity_: `TARGET_ENTITY`
 - _usage_: `{ HEALTH: { amount: <double[0..]> } }`
@@ -756,16 +756,15 @@ Send the block's drops straight to the breaker's inventory (this MINE activation
 
 ### TEMP_BLOCK
 
-Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise). A BOX is always single-material (palette[0]).
+Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block independently picks a material from a deterministic per-block hash of its coordinates — a noisy, random-looking scatter (re-placing the same block always picks the same material). A BOX is always single-material (palette[0]).
 
 - _affinity_: `REGION`
-- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
+- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
 - _param_ `shape` `enum{POINT|FOOTPRINT|COLUMN|BOX}`
 - _param_ `material` `material`
 - _param_ `material2` `material`
 - _param_ `material3` `material`
 - _param_ `material4` `material`
-- _param_ `palette-scale` `int[1..8]`
 - _param_ `ticks` `ticks[0..]`
 - _param_ `radius` `int[0..4]`
 - _param_ `width` `int[1..8]`

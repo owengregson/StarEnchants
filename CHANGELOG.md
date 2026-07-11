@@ -36,6 +36,27 @@ versioning: [Semantic Versioning](https://semver.org/).
   hunger-restoring enchant, present or future), and `IGNORE_HEROIC` (Midas
   negates the enemy's heroic armor share of the damage fold).
 
+### Changed
+
+- **Bonus max-health no longer rides the `HEALTH_BOOST` potion (except Overload).**
+  Two sources maintaining the same potion type clobber each other — a Nature
+  crystal's two hearts vanished under a Godly Overload because the higher
+  amplifier wins the pool. Every worn heart bonus except Overload/Godly Overload
+  (which keep the potion pool by design — Grim strips it via `POTION_LOCK`) now
+  rides ONE plugin-owned max-health attribute modifier, reconciled from live worn
+  state on every refresh: sources **add** instead of clobbering, suppression
+  windows drop exactly their source, nothing can milk it away, and a crash or
+  relog can neither stack nor strand hearts (the modifier is set by identity,
+  never added). Nature crystal and the Santa mask are migrated; authoring stays
+  one line: `{ HEALTH: { amount: 4 } }` on PASSIVE.
+- **Multi-material floors are per-block noise now.** Mixed-palette `TEMP_BLOCK`
+  floors (devil magma/netherrack et al.) picked materials in connected
+  `palette-scale` patches; they now pick per block from the palette (still
+  deterministic per coordinate, so re-assertions never flicker). The
+  `palette-scale` param is removed.
+- **Cat pet regeneration buffed** to Regeneration III / IV / V / VI across its
+  level brackets.
+
 ### Fixed
 
 - **Every shipped `SUPPRESS` op was silently dead on live servers.** The compiler
