@@ -53,6 +53,11 @@ public final class PetFoodListener extends ApplyGestureListener {
 
     @Override
     protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
+        if (target.getAmount() > 1) {
+            // Fresh identical heads stack; the codec would level EVERY head in the stack for one food (a
+            // pet-value dupe). Feeding is single-head only — reject before anything is consumed.
+            return GestureOutcome.noop(messages.format("pet.food-stacked"));
+        }
         if (service.atMaxLevel(target)) {
             return GestureOutcome.noop(messages.format("pet.food-max")); // reject BEFORE consuming
         }

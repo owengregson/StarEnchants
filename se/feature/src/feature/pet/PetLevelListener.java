@@ -80,8 +80,8 @@ public final class PetLevelListener implements Listener {
         boolean crossed = false;
         for (int slot = 0; slot < HOTBAR_SLOTS; slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (stack == null || !codec.isPet(stack)) {
-                continue;
+            if (stack == null || !codec.isPet(stack) || stack.getAmount() > 1) {
+                continue; // a STACK of identical heads shares one meta — crediting it would level every copy
             }
             PetService.Progress progress = service.gainExp(stack, amount);
             if (progress.changed()) {

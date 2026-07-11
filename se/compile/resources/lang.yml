@@ -345,6 +345,7 @@ use-item.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
 # messages are CONFIG templates (config.yml pets:), not lang keys, because they carry the pack's likeness.
 pet.food-applied: "&aYour pet gained &f+{AMOUNT}&a levels!"
 pet.food-max: "&cThat pet is already at its maximum level."
+pet.food-stacked: "&cUnstack that pet first — food feeds one pet at a time."
 
 # ── Carrier apply outcomes (enchant books, success dust, white scroll — the drag-onto-gear economy) ──────
 # The carrier is a book/dust/white-scroll dragged onto gear. A failed roll spends the carrier; the enchant

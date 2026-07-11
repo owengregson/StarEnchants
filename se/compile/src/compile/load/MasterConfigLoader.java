@@ -126,10 +126,6 @@ public final class MasterConfigLoader {
     /** The universal pet knobs + the three universal pet message templates (ADR-0052). */
     private static MasterConfig.PetsSection readPets(YamlNode n, Diagnostics diags) {
         MasterConfig.PetsSection d = MasterConfig.PetsSection.defaults();
-        String activate = ContentParse.blankToNull(n.string("message-on-activate"));
-        String end = ContentParse.blankToNull(n.string("message-on-end"));
-        String cooldown = ContentParse.blankToNull(n.string("message-on-cooldown"));
-        String fail = ContentParse.blankToNull(n.string("message-on-fail"));
         return new MasterConfig.PetsSection(
                 parseInt(n.string("max-level"), d.maxLevel(), n, diags),
                 parseInt(n.string("exp-per-level"), d.expPerLevel(), n, diags),
@@ -137,11 +133,21 @@ public final class MasterConfigLoader {
                 parseDouble(n.string("exp-per-xp-point"), d.expPerXpPoint(), n, diags),
                 parseInt(n.string("exp-passive-per-minute"), d.expPassivePerMinute(), n, diags),
                 parseDouble(n.string("max-percent-money-cap"), d.maxPercentMoneyCap(), n, diags),
-                activate == null ? d.messageOnActivate() : activate,
-                end == null ? d.messageOnEnd() : end,
-                cooldown == null ? d.messageOnCooldown() : cooldown,
-                fail == null ? d.messageOnFail() : fail,
+                // has() + raw value, NOT blankToNull: an explicitly BLANK template means "silent" (the
+                // PetMessenger contract) — only an ABSENT key falls back to the default.
+                template(n, "message-on-activate", d.messageOnActivate()),
+                template(n, "message-on-end", d.messageOnEnd()),
+                template(n, "message-on-cooldown", d.messageOnCooldown()),
+                template(n, "message-on-fail", d.messageOnFail()),
                 parseBool(n.string("uppercase"), d.uppercase(), n, diags));
+    }
+
+    private static String template(YamlNode n, String key, String fallback) {
+        if (!n.has(key)) {
+            return fallback;
+        }
+        String value = n.string(key);
+        return value == null ? "" : value;
     }
 
     private static MasterConfig.CombatSection readCombat(YamlNode n, Diagnostics diags) {
