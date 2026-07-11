@@ -13,7 +13,7 @@ levels:
     chance: 12
     cooldown: 200
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.4 } }
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
@@ -21,7 +21,7 @@ levels:
     chance: 16
     cooldown: 200
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.4 } }
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
@@ -29,7 +29,7 @@ levels:
     chance: 20
     cooldown: 200
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.4 } }
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
@@ -37,7 +37,7 @@ levels:
     chance: 24
     cooldown: 200
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.4 } }
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
@@ -45,7 +45,7 @@ levels:
     chance: 28
     cooldown: 200
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.4 } }
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
       - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 60, who: "@Self" } }  # from POTION:INCREASE_DAMAGE:1:PLAYER:3 — EE seconds → ticks (x20)
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)

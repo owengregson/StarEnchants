@@ -15,7 +15,6 @@ levels:
   1:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
@@ -31,7 +30,6 @@ levels:
   2:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.5 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
@@ -47,7 +45,6 @@ levels:
   3:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
@@ -62,7 +59,6 @@ levels:
   4:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_DIAMOND", volume: 0.8, pitch: 1.2 } }
       - { PARTICLE: { particle: "END_ROD", count: 10 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.5 } }
       - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)

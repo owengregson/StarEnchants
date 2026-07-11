@@ -14,7 +14,7 @@ levels:
     condition: "%actor.healthpercent% <= 15"
     effects:
       - { PARTICLE: { particle: "PORTAL", count: 16 } }
-      - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
       - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
       - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
   2:
@@ -23,7 +23,7 @@ levels:
     condition: "%actor.healthpercent% <= 15"
     effects:
       - { PARTICLE: { particle: "PORTAL", count: 16 } }
-      - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
       - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
       - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
   3:
@@ -32,6 +32,6 @@ levels:
     condition: "%actor.healthpercent% <= 15"
     effects:
       - { PARTICLE: { particle: "PORTAL", count: 16 } }
-      - { SOUND: { sound: "ENDERDRAGON_GROWL", volume: 1, pitch: 1 } }  # from SOUND:ENDERDRAGON_GROWL:1
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
       - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
       - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
