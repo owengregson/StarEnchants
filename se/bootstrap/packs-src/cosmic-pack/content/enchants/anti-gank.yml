@@ -14,25 +14,25 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
-      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 15, cap: 30, who: "@Aoe{r=8,filter=ENEMIES}" } }
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 75, cap: 150, who: "@Aoe{r=8,filter=ENEMIES}" } }
   2:
     cooldown: 60
     condition: "%recentattackers% > 4"
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
-      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 15, cap: 45, who: "@Aoe{r=8,filter=ENEMIES}" } }
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 75, cap: 225, who: "@Aoe{r=8,filter=ENEMIES}" } }
   3:
     cooldown: 60
     condition: "%recentattackers% > 3"
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
-      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 15, cap: 60, who: "@Aoe{r=8,filter=ENEMIES}" } }
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 75, cap: 300, who: "@Aoe{r=8,filter=ENEMIES}" } }
   4:
     cooldown: 60
     condition: "%recentattackers% > 2"
     effects:
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_ATTACK", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 10 } }
-      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 15, cap: 75, who: "@Aoe{r=8,filter=ENEMIES}" } }
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 75, cap: 375, who: "@Aoe{r=8,filter=ENEMIES}" } }
