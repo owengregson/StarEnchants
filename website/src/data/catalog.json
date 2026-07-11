@@ -955,16 +955,25 @@
     "targets": []
     },
   {
-    "head": "IMMUNE",
-    "doc": "Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for duration ticks.",
+    "head": "IGNORE_HEROIC",
+    "doc": "Make the triggering hit ignore the victim's heroic-upgrade damage reduction (percent and flat).",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ IMMUNE: { type: <enum{sword|axe|projectile|potion|all}>, duration: <ticks[0..]=100> } }",
+    "usage": "{ IGNORE_HEROIC: {} }",
+    "example": "{ IGNORE_HEROIC: {} }",
+    "params": [],
+    "targets": []
+    },
+  {
+    "head": "IMMUNE",
+    "doc": "Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for duration ticks; fishhook additionally kills the rod-bobber reel pull (ADR-0053).",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ IMMUNE: { type: <enum{sword|axe|projectile|potion|all|fishhook}>, duration: <ticks[0..]=100> } }",
     "example": "{ IMMUNE: { type: potion, duration: 100 } }",
     "params": [
       {
         "name": "type",
         "kind": "ENUM",
-        "label": "enum{sword|axe|projectile|potion|all}",
+        "label": "enum{sword|axe|projectile|potion|all|fishhook}",
         "required": true,
         "default": null,
         "min": null,
@@ -974,7 +983,8 @@
           "axe",
           "projectile",
           "potion",
-          "all"
+          "all",
+          "fishhook"
           ],
         "handle": null,
         "doc": ""
@@ -2587,15 +2597,15 @@
     },
   {
     "head": "SUPPRESS",
-    "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.",
+    "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }",
+    "usage": "{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }",
     "example": "{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: \"@Victim\" } }",
     "params": [
       {
         "name": "scope",
         "kind": "ENUM",
-        "label": "enum{ENCHANT|GROUP|TYPE}",
+        "label": "enum{ENCHANT|GROUP|TYPE|KIND}",
         "required": true,
         "default": null,
         "min": null,
@@ -2603,7 +2613,8 @@
         "enum": [
           "ENCHANT",
           "GROUP",
-          "TYPE"
+          "TYPE",
+          "KIND"
           ],
         "handle": null,
         "doc": ""
@@ -3139,6 +3150,62 @@
           "REPLACEABLE",
           "ANY"
           ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "WARD",
+    "doc": "Ward the target player(s) with a typed guard flag for duration ticks: mob-target (mobs don't aggro unless provoked), invsee (others can't open their inventory), near (hidden from the proximity listing), splash-heal (healing splash potions boosted by amount%).",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ WARD: { type: <enum{mob-target|invsee|near|splash-heal}>, duration: <ticks[0..]=100>, amount: <double=0> } }",
+    "example": "{ WARD: { type: splash-heal, duration: 100, amount: 50 } }",
+    "params": [
+      {
+        "name": "type",
+        "kind": "ENUM",
+        "label": "enum{mob-target|invsee|near|splash-heal}",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "mob-target",
+          "invsee",
+          "near",
+          "splash-heal"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
         "handle": null,
         "doc": ""
         }

@@ -281,13 +281,21 @@ Make the triggering hit ignore the victim's armor and enchant-protection reducti
 - _usage_: `{ IGNORE_ARMOR: {} }`
 - _example_: `{ IGNORE_ARMOR: {} }`
 
-### IMMUNE
+### IGNORE_HEROIC
 
-Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for duration ticks.
+Make the triggering hit ignore the victim's heroic-upgrade damage reduction (percent and flat).
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ IMMUNE: { type: <enum{sword|axe|projectile|potion|all}>, duration: <ticks[0..]=100> } }`
-- _param_ `type` `enum{sword|axe|projectile|potion|all}`
+- _usage_: `{ IGNORE_HEROIC: {} }`
+- _example_: `{ IGNORE_HEROIC: {} }`
+
+### IMMUNE
+
+Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for duration ticks; fishhook additionally kills the rod-bobber reel pull (ADR-0053).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ IMMUNE: { type: <enum{sword|axe|projectile|potion|all|fishhook}>, duration: <ticks[0..]=100> } }`
+- _param_ `type` `enum{sword|axe|projectile|potion|all|fishhook}`
 - _param_ `duration` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ IMMUNE: { type: potion, duration: 100 } }`
@@ -684,11 +692,11 @@ Remove one protection scroll marker from a random protected piece of the target'
 
 ### SUPPRESS
 
-Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.
+Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }`
-- _param_ `scope` `enum{ENCHANT|GROUP|TYPE}`
+- _usage_: `{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }`
+- _param_ `scope` `enum{ENCHANT|GROUP|TYPE|KIND}`
 - _param_ `key` `string`
 - _param_ `duration` `ticks[0..]`
 - _param_ `mode` `enum{timed|next-hit}`
@@ -795,6 +803,18 @@ Lay a temporary platform of a material under the target for a duration (then rev
 - _param_ `replace` `enum{AIR_ONLY|REPLACEABLE|ANY}`
 - _target_ `who`: selector `SELF`
 - _example_: `{ WALKER: { material: ICE, ticks: 80, radius: 1 } }`
+
+### WARD
+
+Ward the target player(s) with a typed guard flag for duration ticks: mob-target (mobs don't aggro unless provoked), invsee (others can't open their inventory), near (hidden from the proximity listing), splash-heal (healing splash potions boosted by amount%).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ WARD: { type: <enum{mob-target|invsee|near|splash-heal}>, duration: <ticks[0..]=100>, amount: <double=0> } }`
+- _param_ `type` `enum{mob-target|invsee|near|splash-heal}`
+- _param_ `duration` `ticks[0..]`
+- _param_ `amount` `double`
+- _target_ `who`: selector `SELF`
+- _example_: `{ WARD: { type: splash-heal, duration: 100, amount: 50 } }`
 
 ### WEAKEN
 
