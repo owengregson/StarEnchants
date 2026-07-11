@@ -8,18 +8,22 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- **Cosmic-pack rebalance pass 2 (ADR-0050 Revision 1).** Live god-kit fights landed
-  0.5–1 hp per hit — pass 1's anchor had priced in a Rage that was actually inert (see
-  Fixed). Attack-percent enchants scale up ~2.5–3× and Rage becomes the centerpiece:
-  each stack now folds +20–45% plus a flat rider that lands after vanilla armor's
-  multiplier, so a full six-stack combo cracks Prot IV instead of being eaten by it
-  (the outgoing cap rises to +600% for headroom; set weapon bonuses deliberately stay
-  at 20–30 — the enchants carry the damage). Vanilla Weakness potions aimed at
-  combatants (Voodoo, Unfocus, the Reaper blade) become non-stacking `WEAKEN` percents
-  inside the fold — modern Weakness I's flat −4 was an unbudgeted ~40% tax on every
-  hit — low-health conditions now compare `healthpercent` so finishers and desperation
-  procs fire on boosted HP pools, and the Overload family's Health Boost climbs to a
-  26-heart pool at Godly Overload III: the HP-pool meta the new scale assumes.
+- **Cosmic-pack rebalance for 1.8 combat (ADR-0050 R1+R2).** Live god-kit fights landed
+  0.5–1 hp per hit — the pass-1 anchor had priced in a Rage that was actually inert (see
+  Fixed), and the deployment target is Mental's full 1.8 preset, whose flat armor + Prot
+  IV pipeline passes only ~5% of a hit through. The percent economy is recalibrated for
+  that pipeline: Rage folds +110–250% per stack (+1500% sustained at a full six-stack
+  combo), Execute finishes for up to +275% below 25% health, the Insanity/Barbarian/
+  Assassin/Rogue/Enrage families scale to match, and Deathbringer spikes at +400–900%
+  on its long cooldown — landing ~10–12 hp per full-combo hit against light-defense
+  armor and a 6–8 hit TTK between mirror god kits. The outgoing cap rises to +2500% as
+  the one-shot backstop; set weapon bonuses deliberately stay at 20–30 (the enchants
+  carry the damage, not the items). Vanilla Weakness potions aimed at combatants
+  (Voodoo, Unfocus, the Reaper blade) become non-stacking `WEAKEN` percents inside the
+  fold, scaled to keep their relative weight; low-health conditions now compare
+  `healthpercent` so finishers and desperation procs fire on boosted HP pools; and the
+  Overload family's Health Boost climbs to a 26-heart pool at Godly Overload III — the
+  HP-pool meta the new scale assumes.
 
 ### Fixed
 
