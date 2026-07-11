@@ -162,16 +162,21 @@ public final class PetService {
     }
 
     /**
-     * The ten-slot exp meter toward the next level (ADR-0052): {@code &a▪} per filled tenth, {@code &7_}
+     * The ten-slot exp meter toward the next level (ADR-0052): {@code &a■} per filled tenth, {@code &7_}
      * per empty one, space-separated — the pack's exact styling; the template wraps it in {@code &f[ ... &f]}.
-     * A level-capped pet shows a full bar.
+     * A level-capped pet shows a full bar. The underscore group always starts with a space (an {@code _}
+     * renders flush against the {@code [} otherwise) while the square group never does — with any fill the
+     * last square's trailing space already provides it, so only the all-empty bar pads explicitly.
      */
     static String expBar(int level, int exp, MasterConfig.PetsSection cfg) {
         int filled = level >= cfg.maxLevel() ? 10
                 : (int) Math.min(10, Math.max(0, (10L * exp) / cfg.expPerLevel()));
         StringBuilder bar = new StringBuilder("&a");
-        bar.append("▪ ".repeat(filled));
+        bar.append("■ ".repeat(filled));
         bar.append("&7");
+        if (filled == 0) {
+            bar.append(' ');
+        }
         bar.append("_ ".repeat(10 - filled));
         return bar.toString();
     }

@@ -9,7 +9,7 @@
 #   {DESCRIPTION}    = the pet's ability description, one lore line per authored line
 #   {TIME_FORMATTED} = the LIVE bracket's right-click cooldown (h/m/s) — meaningful on the active template
 #   {LEVEL} / {MAX_LEVEL} / {EXP} / {EXP_NEXT} = the stored level + exp against the universal knobs
-#   {EXP_BAR}        = the ten-slot progress meter toward the next level (&a▪ filled / &7_ empty, one slot
+#   {EXP_BAR}        = the ten-slot progress meter toward the next level (&a■ filled / &7_ empty, one slot
 #                      per 10%); full at the level cap. The template wraps it in &f[ ... &f].
 type: pet
 
@@ -19,19 +19,21 @@ name: "{COLOR}&l{NAME} Pet"
 lore-active:
   - "{DESCRIPTOR}"
   - ""
+  - "{COLOR}&lACTIVE PET ABILITY"
+  - "{DESCRIPTION}"
+  - ""
   - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
   - "&eExperience: &r&f[{EXP_BAR}&f]"
-  - "&a&lACTIVE&r {COLOR}&lPET ABILITY"
-  - "{DESCRIPTION}"
   - ""
   - "&eCooldown: &r&f&n{TIME_FORMATTED}"
   - "&7Right Click while holding to apply."
 lore-passive:
   - "{DESCRIPTOR}"
   - ""
+  - "{COLOR}&lPASSIVE PET ABILITY"
+  - "{DESCRIPTION}"
+  - ""
   - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
   - "&eExperience: &r&f[{EXP_BAR}&f]"
-  - "&e&lPASSIVE&r {COLOR}&lPET ABILITY"
-  - "{DESCRIPTION}"
   - ""
   - "&7Hold in hotbar to apply."
