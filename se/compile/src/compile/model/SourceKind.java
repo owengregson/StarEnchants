@@ -21,5 +21,8 @@ public enum SourceKind {
     HEROIC,
 
     /** A right-click use-item's ability (its own content family, {@code content/use-items/}), fired by the USE trigger. */
-    USE_ITEM
+    USE_ITEM,
+
+    /** A pet bracket's ability ({@code content/pets/}, ADR-0052) — hotbar-resolved, level-bracket-selected. */
+    PET
 }

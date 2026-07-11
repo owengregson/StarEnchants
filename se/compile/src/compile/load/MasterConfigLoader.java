@@ -37,6 +37,7 @@ public final class MasterConfigLoader {
                     MasterConfig.MessagesSection.defaults(), MasterConfig.BooksSection.defaults(),
                     MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
                     MasterConfig.CrystalsSection.defaults(),
+                    MasterConfig.PetsSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
                     MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
@@ -58,6 +59,7 @@ public final class MasterConfigLoader {
                 readSlots(root.child("slots"), diags),
                 readSouls(root.child("souls"), diags),
                 readCrystals(root.child("crystals"), diags),
+                readPets(root.child("pets"), diags),
                 readLore(root.child("lore"), diags),
                 readIntegrations(root.child("integrations"), diags),
                 readReload(root.child("reload"), diags),
@@ -117,7 +119,29 @@ public final class MasterConfigLoader {
                 parseBool(n.string("slots"), d.slots(), n, diags),
                 parseBool(n.string("souls"), d.souls(), n, diags),
                 parseBool(n.string("scrolls"), d.scrolls(), n, diags),
-                parseBool(n.string("use-items"), d.useItems(), n, diags));
+                parseBool(n.string("use-items"), d.useItems(), n, diags),
+                parseBool(n.string("pets"), d.pets(), n, diags));
+    }
+
+    /** The universal pet knobs + the three universal pet message templates (ADR-0052). */
+    private static MasterConfig.PetsSection readPets(YamlNode n, Diagnostics diags) {
+        MasterConfig.PetsSection d = MasterConfig.PetsSection.defaults();
+        String activate = ContentParse.blankToNull(n.string("message-on-activate"));
+        String end = ContentParse.blankToNull(n.string("message-on-end"));
+        String cooldown = ContentParse.blankToNull(n.string("message-on-cooldown"));
+        String fail = ContentParse.blankToNull(n.string("message-on-fail"));
+        return new MasterConfig.PetsSection(
+                parseInt(n.string("max-level"), d.maxLevel(), n, diags),
+                parseInt(n.string("exp-per-level"), d.expPerLevel(), n, diags),
+                parseInt(n.string("exp-per-mob-kill"), d.expPerMobKill(), n, diags),
+                parseDouble(n.string("exp-per-xp-point"), d.expPerXpPoint(), n, diags),
+                parseInt(n.string("exp-passive-per-minute"), d.expPassivePerMinute(), n, diags),
+                parseDouble(n.string("max-percent-money-cap"), d.maxPercentMoneyCap(), n, diags),
+                activate == null ? d.messageOnActivate() : activate,
+                end == null ? d.messageOnEnd() : end,
+                cooldown == null ? d.messageOnCooldown() : cooldown,
+                fail == null ? d.messageOnFail() : fail,
+                parseBool(n.string("uppercase"), d.uppercase(), n, diags));
     }
 
     private static MasterConfig.CombatSection readCombat(YamlNode n, Diagnostics diags) {

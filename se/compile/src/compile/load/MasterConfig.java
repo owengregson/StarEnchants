@@ -16,6 +16,7 @@ import schema.spec.Ranges;
 public record MasterConfig(FeaturesSection features, CombatSection combat, MiningSection mining,
                            MessagesSection messages,
                            BooksSection books, SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
+                           PetsSection pets,
                            LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
                            MessageOnActivateSection messageOnActivate, SetsSection sets, EngineSection engine,
@@ -31,6 +32,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
         Objects.requireNonNull(slots, "slots");
         Objects.requireNonNull(souls, "souls");
         Objects.requireNonNull(crystals, "crystals");
+        Objects.requireNonNull(pets, "pets");
         Objects.requireNonNull(lore, "lore");
         Objects.requireNonNull(integrations, "integrations");
         Objects.requireNonNull(reload, "reload");
@@ -48,6 +50,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
         return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MiningSection.defaults(),
                 MessagesSection.defaults(),
                 BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
+                PetsSection.defaults(),
                 LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
                 SetsSection.defaults(), EngineSection.defaults(), StationsSection.defaults(),
@@ -121,6 +124,45 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * @param slots    crystal slots (entries) every item has (≥ 0)
      * @param maxMerge maximum crystals mergeable into one multi-crystal (≥ 1)
      */
+    /**
+     * The universal pet knobs (ADR-0052), all read live. Leveling: a pet gains {@code expPerMobKill} per mob
+     * kill, {@code expPerXpPoint × amount} per vanilla-XP point gained, and {@code expPassivePerMinute} per
+     * minute spent in the hotbar; every {@code expPerLevel} exp is one level, up to {@code maxLevel}. The
+     * three universal messages are templates ({@code {COLOR}}/{@code {NAME}}/{@code {TIME_FORMATTED}} tokens),
+     * rendered prefix-free like the use-item trio; an empty template is silent. {@code uppercase} renders
+     * {@code {NAME}} in capitals in the activate/end templates (the message-on-activate precedent).
+     *
+     * @param maxLevel             the level every pet caps at
+     * @param expPerLevel          pet exp required per level
+     * @param expPerMobKill        pet exp per mob kill (each hotbar pet is credited)
+     * @param expPerXpPoint        pet exp per vanilla XP point gained (post-multiplier amount)
+     * @param expPassivePerMinute  pet exp per minute a pet sits in the hotbar
+     * @param maxPercentMoneyCap   ceiling on one {@code interest_percent} money deposit; {@code <= 0} = uncapped
+     * @param messageOnActivate    template sent to the holder when a pet ability activates
+     * @param messageOnEnd         template sent when an armed pet ability window ends
+     * @param messageOnCooldown    template sent when a right-click finds the pet on cooldown
+     * @param messageOnFail        template sent when a right-click is blocked (condition/chance/permission)
+     * @param uppercase            render {@code {NAME}} uppercase in the activate/end templates
+     */
+    public record PetsSection(int maxLevel, int expPerLevel, int expPerMobKill, double expPerXpPoint,
+                              int expPassivePerMinute, double maxPercentMoneyCap,
+                              String messageOnActivate, String messageOnEnd, String messageOnCooldown,
+                              String messageOnFail, boolean uppercase) {
+        public PetsSection {
+            maxLevel = Math.max(1, maxLevel);
+            expPerLevel = Math.max(1, expPerLevel);
+        }
+
+        public static PetsSection defaults() {
+            return new PetsSection(100, 100, 5, 1.0, 2, 1_000_000,
+                    "{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r{COLOR}&l **",
+                    "{COLOR}&l** PET ABILITY: &c&l&nENDED&r {COLOR}&l**",
+                    "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!",
+                    "&c&l(!) You cannot use {NAME}&r&c&l right now!",
+                    true);
+        }
+    }
+
     public record CrystalsSection(int slots, int maxMerge) {
         public CrystalsSection {
             slots = Math.max(0, slots);
@@ -236,11 +278,13 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * @param souls    register the soul system (deposit, soul mode, gem inventory)
      * @param scrolls  register the scroll-family interactions (black/randomizer/transmog/holy/nametag/godly)
      * @param useItems the right-click use-item gesture is live (the listener claims a held use-item, §3.6)
+     * @param pets     pets contribute to worn state and the pet gestures (use/food/leveling) are live (ADR-0052)
      */
     public record FeaturesSection(boolean enchants, boolean sets, boolean crystals, boolean heroic,
-                                  boolean slots, boolean souls, boolean scrolls, boolean useItems) {
+                                  boolean slots, boolean souls, boolean scrolls, boolean useItems,
+                                  boolean pets) {
         public static FeaturesSection defaults() {
-            return new FeaturesSection(true, true, true, true, true, true, true, true);
+            return new FeaturesSection(true, true, true, true, true, true, true, true, true);
         }
     }
 
