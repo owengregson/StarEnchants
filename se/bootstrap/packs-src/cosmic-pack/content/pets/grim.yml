@@ -1,0 +1,37 @@
+# Grim Pet — an ACTIVE pet (ADR-0052): right-click to TRADE — your overhealth (max health above the vanilla
+# 20, the Overload pools) drains away for the window while every hit you land in it counts DOUBLE. The drain
+# and the damage rider share one duration, so the hearts return exactly as the power fades (MAX_HEALTH_DRAIN
+# restores what it took). Both the window and the cooldown scale with level.
+display: "Grim"
+color: "&f"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjUzOTBmNzJjN2YyMWQ5YTQ2ZTYxMDE4M2E2NTI1YzllNWU2MmE1YzI3ZDUyNTRmNjE2YzY0NzI2OTBjMzc4ZSJ9fX0="
+descriptor: "&eA reaper that trades borrowed life for borrowed power. The scythe cuts both ways."
+description:
+  - "&f* Removes your overhealth in exchange for double damage"
+levels:
+  # 3s / 4m → 4s / 3m30s → 5s / 3m → 6s / 3m.
+  1:
+    cooldown: 4800
+    duration: 60
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 60, who: "@Self" } } ] }
+      - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 100 } } ] }
+  25:
+    cooldown: 4200
+    duration: 80
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 80, who: "@Self" } } ] }
+      - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 100 } } ] }
+  50:
+    cooldown: 3600
+    duration: 100
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 100, who: "@Self" } } ] }
+      - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 100 } } ] }
+  100:
+    cooldown: 3600
+    duration: 120
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 120, who: "@Self" } } ] }
+      - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 100 } } ] }
