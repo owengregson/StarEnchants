@@ -12,12 +12,12 @@ levels:
   1:
     effects:
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.2 } }  # backstab bonus lands raw (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.35 } }  # backstab bonus lands raw (ADR-0050 R3 flat economy)
   2:
     effects:
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.3 } }  # backstab bonus lands raw (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.53 } }  # backstab bonus lands raw (ADR-0050 R3 flat economy)
   3:
     effects:
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.4 } }  # backstab bonus lands raw (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.70 } }  # backstab bonus lands raw (ADR-0050 R3 flat economy)

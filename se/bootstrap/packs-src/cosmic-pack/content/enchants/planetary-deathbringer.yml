@@ -16,16 +16,16 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.5 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.86 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
   2:
     cooldown: 160
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.6 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 1.03 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
   3:
     cooldown: 160
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.7 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 1.2 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)

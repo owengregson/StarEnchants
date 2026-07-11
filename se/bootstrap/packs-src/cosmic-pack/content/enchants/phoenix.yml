@@ -2,7 +2,7 @@
 display: "Phoenix"
 description:
   - "&eA blow that would kill you"
-  - "&einstead restores you to full"
+  - "&einstead restores a burst of"
   - "&ehealth."
 trigger: DEFENSE
 applies-to: [BOOTS]
@@ -15,18 +15,18 @@ levels:
     effects:
       - { SOUND: { sound: "ITEM_FIRECHARGE_USE", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "FLAME", count: 20 } }
-      - { MODIFY_HEALTH: { amount: 16, mode: "give", who: "@Self" } }  # 8 hearts: full only from the trigger's 20%-health floor, never beyond-full
+      - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }  # 5 hearts: a burst off the trigger's 20%-health floor, capped at max (never beyond-full)
   2:
     cooldown: 2400
     condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ITEM_FIRECHARGE_USE", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "FLAME", count: 20 } }
-      - { MODIFY_HEALTH: { amount: 16, mode: "give", who: "@Self" } }  # 8 hearts: full only from the trigger's 20%-health floor, never beyond-full
+      - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }  # 5 hearts: a burst off the trigger's 20%-health floor, capped at max (never beyond-full)
   3:
     cooldown: 2400
     condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ITEM_FIRECHARGE_USE", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "FLAME", count: 20 } }
-      - { MODIFY_HEALTH: { amount: 16, mode: "give", who: "@Self" } }  # 8 hearts: full only from the trigger's 20%-health floor, never beyond-full
+      - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }  # 5 hearts: a burst off the trigger's 20%-health floor, capped at max (never beyond-full)
