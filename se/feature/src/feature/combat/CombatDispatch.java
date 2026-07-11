@@ -171,6 +171,9 @@ public final class CombatDispatch {
         SinkReadback sink = sinkFactory.create(env);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
         sink.fold().attackScale(attackScale.getAsDouble()); // §L combat.attack-scale, live (post-cap, attack side only)
+        // ADR-0051: same-hit health writes to the victim land inline at flush — before this event's damage
+        // applies — so a defensive heal (Phoenix's death-save) joins the kill decision instead of racing it.
+        sink.eventEntity(victim);
 
         // Combat tag (supreme's out-of-combat fly): both parties count as fighting on any hit between them.
         if (damager instanceof Player ap) {
