@@ -87,7 +87,7 @@ public final class PackImporter {
         }
         if (def.hasWeapon()) {
             CombatState state = new CombatState(custom(library, def.weaponEnchants()), List.of(), null, def.key(),
-                    false, HeroicStat.NONE, 0);
+                    false, HeroicStat.NONE, 0, null);
             out.add(fixture("set-" + simpleKey + "-weapon", def.weapon(), def,
                     vanilla(library, def.weaponEnchants()), renderer, state));
         }

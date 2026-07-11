@@ -59,8 +59,8 @@ public final class WornResolver {
     private final PetSource petSource;
 
     /** Per-feature source toggles (config.yml {@code features:}) — which sources contribute to worn state. */
-    public record Features(boolean enchants, boolean sets, boolean crystals, boolean heroic) {
-        public static final Features ALL = new Features(true, true, true, true);
+    public record Features(boolean enchants, boolean sets, boolean crystals, boolean heroic, boolean masks) {
+        public static final Features ALL = new Features(true, true, true, true, true);
     }
 
     public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
@@ -236,6 +236,24 @@ public final class WornResolver {
                             firing.add(extra);
                             crystalIds.add(extra);
                         }
+                    }
+                }
+            }
+            // ADR-0053: a mask applied onto this HELMET fires while worn like any source, but joins `firing`
+            // ONLY — never crystalIds/set/heroic accounting (a mask is its own source kind). Helmets are armour,
+            // never off-hand, so `!offhand` always holds here; the guard keeps that intent explicit.
+            if (f.masks() && combat.maskKey() != null && !offhand) {
+                int id = keys.idOf(combat.maskKey());
+                if (id >= 0) {
+                    firing.add(id);
+                    // A multi-ability mask keys its further bonuses <key>/a1, /a2, … (dense, no gaps), exactly
+                    // like a crystal/set (ADR-0034/0035). Walk them so every bonus fires.
+                    for (int n = 1; ; n++) {
+                        int extra = keys.idOf(combat.maskKey() + "/a" + n);
+                        if (extra < 0) {
+                            break;
+                        }
+                        firing.add(extra);
                     }
                 }
             }

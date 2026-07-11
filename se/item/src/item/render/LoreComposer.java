@@ -91,6 +91,14 @@ public final class LoreComposer {
                 out.add(Colors.translate(style.crystalColor() + label));
             }
         }
+        // §mask line (ADR-0053): directly BELOW the crystal line(s) and still in the body, so on a masked helmet it
+        // sits above only the heroic + protection + trak lines compose() appends. {NAME} → the mask's styled display.
+        if (state.maskKey() != null) {
+            String maskTemplate = config.maskLine().get();
+            if (maskTemplate != null && !maskTemplate.isBlank()) {
+                out.add(Colors.translate(Tokens.sub(maskTemplate, "NAME", nameOr(state.maskKey(), style))));
+            }
+        }
         return out;
     }
 
