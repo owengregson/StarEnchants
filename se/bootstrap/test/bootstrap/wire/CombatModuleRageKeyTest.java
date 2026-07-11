@@ -41,4 +41,13 @@ final class CombatModuleRageKeyTest {
         assertEquals(0, CombatModule.rageLevel(new int[] {7}, aid -> null, aid -> 9));
         assertEquals(0, CombatModule.rageLevel(new int[0], aid -> "enchants/rage/6", aid -> 6));
     }
+
+    @Test
+    void rageAbilityIdReturnsTheHighestLevelAbilityOrMinusOne() {
+        Map<Integer, String> keys = Map.of(1, "enchants/rage/2", 2, "enchants/insanity/8", 3, "enchants/rage/4");
+        java.util.function.IntUnaryOperator levelOf =
+                aid -> Integer.parseInt(keys.get(aid).substring(keys.get(aid).lastIndexOf('/') + 1));
+        assertEquals(3, CombatModule.rageAbilityId(new int[] {1, 2, 3}, keys::get, levelOf)); // the id, not the level
+        assertEquals(-1, CombatModule.rageAbilityId(new int[] {2}, keys::get, levelOf));      // no rage worn
+    }
 }

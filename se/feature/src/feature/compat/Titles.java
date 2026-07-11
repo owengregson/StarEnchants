@@ -50,20 +50,25 @@ public final class Titles {
     /**
      * Show {@code message} on the action bar via the Spigot BungeeCord chat API (reflected, so it links on neither
      * the legacy lane nor a stripped server). Degrades to a plain chat line where that API is absent (1.8.9).
+     *
+     * <p>The {@code sendMessage} lookup MUST target the public {@code Player$Spigot} API type: the runtime
+     * instance is an anonymous package-private subclass ({@code CraftPlayer$1}, javap-verified 1.17.1→26.1.x),
+     * so a {@code getClass()}-based lookup resolves its inaccessible override and {@code invoke} throws
+     * {@code IllegalAccessException} — which the degrade path used to swallow into a chat line.
      */
     public static void sendActionBar(Player player, String message) {
         if (player == null || message == null) {
             return;
         }
         try {
-            Object spigot = player.getClass().getMethod("spigot").invoke(player);
+            Object spigot = Player.class.getMethod("spigot").invoke(player);
             Class<?> chatType = Class.forName("net.md_5.bungee.api.ChatMessageType");
             Object actionBar = chatType.getField("ACTION_BAR").get(null);
             Class<?> baseComponent = Class.forName("net.md_5.bungee.api.chat.BaseComponent");
             Class<?> textComponent = Class.forName("net.md_5.bungee.api.chat.TextComponent");
             Object components = textComponent.getMethod("fromLegacyText", String.class).invoke(null, message);
             Class<?> componentArray = Array.newInstance(baseComponent, 0).getClass();
-            Method send = spigot.getClass().getMethod("sendMessage", chatType, componentArray);
+            Method send = Class.forName("org.bukkit.entity.Player$Spigot").getMethod("sendMessage", chatType, componentArray);
             send.invoke(spigot, new Object[] {actionBar, components}); // wrap so the component[] is one arg, not spread
             return;
         } catch (ReflectiveOperationException | RuntimeException absent) {
