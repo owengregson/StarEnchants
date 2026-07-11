@@ -151,6 +151,8 @@ public final class BootCore {
     private final AppliedSlot appliedSlot;
     private final CarrierCodec carrierCodec;
     private final TrakCodec trakCodec;
+    private final item.codec.PetCodec petCodec;
+    private final feature.pet.PetArmedStore petArmedStore;
     private final LoreRenderer lore;
     private final ItemGroups itemGroups;
     private final Consumer<ItemStack> recompose;
@@ -263,6 +265,10 @@ public final class BootCore {
                 () -> master.config().stations().smithingGuard());
         this.itemViews = new ItemViewCache(codec, initial.snapshot().generation());
         this.triggers = BuiltinTriggers.registry();
+        // ADR-0052 pets: the identity/level/exp codec + the armed-window store, built here so the resolver's
+        // pet source and the PetsModule share the ONE pair.
+        this.petCodec = new item.codec.PetCodec(ItemKeys.of(), store);
+        this.petArmedStore = new feature.pet.PetArmedStore();
         this.wornResolver = new WornResolver(bindings.equipSource(), itemViews, triggers.count(),
                 triggers.attackTriggers(), triggers.defenseTriggers(),
                 () -> {                                            // §L per-feature master toggles (live)
@@ -277,7 +283,10 @@ public final class BootCore {
                         }
                     }
                     return keys;
-                });
+                },
+                // ADR-0052 the sixth source: hotbar pets, decided wholly by the pets feature (bracket + armed).
+                new feature.pet.PetWornSource(() -> master.config().features().pets(), petCodec,
+                        () -> content.library(), petArmedStore, tick::get));
         this.worn = new WornStateStore(wornResolver::resolve);
 
         // §I the applied-utility marker set, shared by white/holy scrolls and the trak gems (independent markers).
@@ -430,9 +439,35 @@ public final class BootCore {
         // §N anti-cheat movement exemption for engine-applied VELOCITY/TELEPORT — rides the SinkEnv (ADR-0047).
         Consumer<Player> movementExemption = bindings.antiCheatExemption(
                 plugin, master.config().integrations()::enabled, System.getLogger("StarEnchants.AntiCheat"));
+        // ADR-0052 STRIP_SCROLL's view of on-item protection: marker codecs + the ADR-0040 recompose, injected
+        // so the engine never names AppliedSlot/CarrierCodec. White clears BOTH its marker and the guard byte
+        // (they are written together); the recompose makes the PROTECTED line vanish before the write-back.
+        engine.sink.GearProtection gearProtection = new engine.sink.GearProtection() {
+            @Override
+            public boolean isProtected(ItemStack stack, boolean holy) {
+                return holy ? appliedSlot.holds(stack, AppliedSlot.HOLY) : carrierCodec.isGuarded(stack);
+            }
+
+            @Override
+            public boolean strip(ItemStack stack, boolean holy) {
+                if (!isProtected(stack, holy)) {
+                    return false;
+                }
+                if (holy) {
+                    appliedSlot.release(stack, AppliedSlot.HOLY);
+                } else {
+                    carrierCodec.setGuarded(stack, false);
+                    appliedSlot.release(stack, AppliedSlot.WHITE_SCROLL);
+                }
+                recompose.accept(stack);
+                return true;
+            }
+        };
         // The per-boot sink wiring: built ONCE and threaded to both dispatchers, so a sink write and its
-        // separate-event reader always see the SAME stores (no split-brain).
-        this.sinkEnv = SinkEnv.of(economy, soulService, stores, tick::get, movementExemption);
+        // separate-event reader always see the SAME stores (no split-brain). The interest cap (ADR-0052 Fish)
+        // reads the live pets section so /se reload re-tunes it.
+        this.sinkEnv = SinkEnv.of(economy, soulService, stores, tick::get, movementExemption,
+                () -> master.config().pets().maxPercentMoneyCap(), gearProtection);
         // mcMMO friendly-fire gate,
         CombatDispatch.friendlyFire(bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled));
         // %victim.mobtype% from MythicMobs' internal name,
@@ -530,6 +565,10 @@ public final class BootCore {
     public CarrierCodec carrierCodec() { return carrierCodec; }
 
     public TrakCodec trakCodec() { return trakCodec; }
+
+    public item.codec.PetCodec petCodec() { return petCodec; }
+
+    public feature.pet.PetArmedStore petArmedStore() { return petArmedStore; }
 
     public LoreRenderer lore() { return lore; }
 

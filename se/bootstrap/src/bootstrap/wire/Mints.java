@@ -494,6 +494,81 @@ final class Mints {
                 .build();
     }
 
+    /** {@code pet} — a pet head by key, optional starting level (ADR-0052); no self row. */
+    static Mintable pet(feature.pet.PetService pets, ContentHolder content) {
+        return Mint.type("pet").aliases("pets")
+                .give((sender, target, args, io) -> {
+                    if (args.length < 4) {
+                        sender.sendMessage(io.messages().format("command.pet.usage"));
+                        return;
+                    }
+                    String key = args[3]; // the codec stores the bare filename stem — no source-prefix normalise
+                    if (content.library().petDefOf(key) == null) {
+                        sender.sendMessage(io.messages().format("command.error.no-such-pet", "KEY", key));
+                        return;
+                    }
+                    int level = 1;
+                    if (args.length >= 5) {
+                        try {
+                            level = Math.max(1, Integer.parseInt(args[4]));
+                        } catch (NumberFormatException bad) {
+                            sender.sendMessage(io.messages().format("command.error.bad-number", "ARG", args[4]));
+                            return;
+                        }
+                    }
+                    int at = level;
+                    Scheduling.onEntity(target, () -> {
+                        ItemStack item = pets.mint(key, at);
+                        if (item != null) {
+                            Inventories.giveOrDrop(target, item);
+                        }
+                        target.sendMessage(io.messages().format("command.give.pet", "KEY", key));
+                    });
+                    if (Give.notSelf(sender, target)) {
+                        Give.tell(sender, io.messages().format("command.give.delivered",
+                                "ITEM", key, "PLAYER", target.getName()));
+                    }
+                })
+                .tiles(160, library -> {
+                    List<MintCatalog.Entry> out = new java.util.ArrayList<>();
+                    for (compile.load.PetDef def : library.pets()) {
+                        String defKey = def.key();
+                        out.add(new MintCatalog.Entry(defKey + " pet", () -> pets.mint(defKey, 1)));
+                    }
+                    return out;
+                })
+                .build();
+    }
+
+    /** {@code petfood} (alias {@code pet-food}) — the +levels apply item (ADR-0052); no self row. */
+    static Mintable petFood(feature.pet.PetService pets) {
+        return Mint.type("petfood").aliases("pet-food")
+                .give((sender, target, args, io) -> {
+                    int amount = 1;
+                    if (args.length >= 4) {
+                        try {
+                            amount = Math.max(1, Integer.parseInt(args[3]));
+                        } catch (NumberFormatException bad) {
+                            sender.sendMessage(io.messages().format("command.error.bad-number", "ARG", args[3]));
+                            return;
+                        }
+                    }
+                    int give = amount;
+                    Scheduling.onEntity(target, () -> {
+                        ItemStack item = pets.mintFood();
+                        item.setAmount(give);
+                        Inventories.giveOrDrop(target, item);
+                        target.sendMessage(io.messages().format("command.give.petfood"));
+                    });
+                    if (Give.notSelf(sender, target)) {
+                        Give.tell(sender, io.messages().format("command.give.delivered",
+                                "ITEM", "pet food", "PLAYER", target.getName()));
+                    }
+                })
+                .tiles(161, library -> List.of(new MintCatalog.Entry("pet food", pets::mintFood)))
+                .build();
+    }
+
     /** {@code useitem} (alias {@code use-item}) — a right-click use-item by key (§3.6); no self row. */
     static Mintable useItem(UseItemService useItems, ContentHolder content) {
         return Mint.type("useitem").aliases("use-item")
