@@ -123,9 +123,12 @@ public final class ActivationPipeline {
                     WhyRing.packScope(1, SuppressionStore.detailScopeKind(d), SuppressionStore.detailScopeId(d)),
                     byDefId);
         }
-        // 6. cooldown (three scopes) — atomically RESERVE here (check-and-arm fused) so two same-tick Folia hits
-        //    on one key can't both pass; a later gate failure rolls the reservation back, ACTIVATED commits it.
-        long cd = reserveCooldowns(ability, act); // 0 = all reserved/ready
+        // 6. cooldown (ENCHANT scope only) — atomically RESERVE here (check-and-arm fused) so two same-tick Folia
+        //    hits on one key can't both pass; a later gate failure rolls the reservation back, ACTIVATED commits
+        //    it. The group/type scope ids are gate-5 suppression match keys ONLY: arming them here made every
+        //    cooldown-carrying enchant lock out its whole group's cooldown-0 siblings (rage, armored) with
+        //    near-100% uptime on a god kit — the ADR-0050 R4 field regression.
+        long cd = reserveCooldowns(ability, act); // 0 = reserved/ready
         if (cd != 0) {
             return record(GateOutcome.ON_COOLDOWN, ability, act,
                     (int) cd,           // low 32: packScope(0, scopeKind, scopeId)
@@ -195,21 +198,14 @@ public final class ActivationPipeline {
     }
 
     /**
-     * The first blocked cooldown scope (enchant&rarr;group&rarr;type) packed as {@code (remaining << 32) |
-     * packScope(0, scopeKind, scopeId)}, or {@code 0} when every scope is ready. Same map gets + lazy eviction
-     * as the old boolean check ({@code remainingTicks} mirrors {@code ready}), so the gate decision is
-     * byte-identical — it only now also surfaces WHICH scope blocked and by how long.
+     * The ENCHANT-scope cooldown blocking {@code ability}, packed as {@code (remaining << 32) |
+     * packScope(0, scopeKind, scopeId)}, or {@code 0} when ready. Same map gets + lazy eviction as the gate.
+     * Group/type scope ids are deliberately NOT consulted: they exist so gate-5 {@code SUPPRESS:GROUP|TYPE}
+     * can match this ability, and letting them participate in cooldowns made every cooldown-carrying enchant
+     * arm its whole GROUP — locking out cooldown-0 same-group siblings (rage, armored) fight-long (ADR-0050 R4).
      */
     private long blockedCooldown(Ability ability, Activation act) {
-        long r = scopeRemaining(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, act);
-        if (r != 0) {
-            return r;
-        }
-        r = scopeRemaining(ability.cdScopeGroup(), ScopeKinds.GROUP, act);
-        if (r != 0) {
-            return r;
-        }
-        return scopeRemaining(ability.cdScopeType(), ScopeKinds.TYPE, act);
+        return scopeRemaining(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, act);
     }
 
     private long scopeRemaining(int scopeId, int scopeKind, Activation act) {
@@ -223,29 +219,15 @@ public final class ActivationPipeline {
     }
 
     /**
-     * Atomically reserve {@code ability}'s three scopes (enchant&rarr;group&rarr;type) at gate 6: each acquire
-     * both checks and arms, so two same-tick Folia hits on one key can't both pass (exactly one wins the CAS). On
-     * the first blocked scope, release the scopes already acquired and return {@code (remaining << 32) |
-     * packScope(0, scopeKind, scopeId)} — byte-identical to the old check-only payload — else {@code 0}. A later
-     * gate failure calls {@link #releaseCooldowns}; ACTIVATED commits the reservation implicitly.
+     * Atomically reserve {@code ability}'s ENCHANT-scope cooldown at gate 6: the acquire both checks and arms,
+     * so two same-tick Folia hits on one key can't both pass (exactly one wins the CAS). Returns
+     * {@code (remaining << 32) | packScope(0, scopeKind, scopeId)} when blocked, else {@code 0}. A later gate
+     * failure calls {@link #releaseCooldowns}; ACTIVATED commits the reservation implicitly. The enchant scope
+     * is the stable key base, so the four armor copies of one enchant (and its levels) share ONE cooldown —
+     * the ADR-0050 stacking rule — while group/type ids stay suppression-only (see {@link #blockedCooldown}).
      */
     private long reserveCooldowns(Ability ability, Activation act) {
-        long r = acquireScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
-        if (r != 0) {
-            return r;
-        }
-        r = acquireScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability, act);
-        if (r != 0) {
-            releaseScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
-            return r;
-        }
-        r = acquireScope(ability.cdScopeType(), ScopeKinds.TYPE, ability, act);
-        if (r != 0) {
-            releaseScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
-            releaseScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability, act);
-            return r;
-        }
-        return 0;
+        return acquireScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
     }
 
     private long acquireScope(int scopeId, int scopeKind, Ability ability, Activation act) {
@@ -258,11 +240,9 @@ public final class ActivationPipeline {
         return rem == 0 ? 0 : (rem << 32) | (WhyRing.packScope(0, scopeKind, scopeId) & 0xFFFF_FFFFL);
     }
 
-    /** Roll back every scope reservation gate 6 made for {@code ability} — restores readiness on a later fail. */
+    /** Roll back the ENCHANT-scope reservation gate 6 made for {@code ability} — restores readiness on a later fail. */
     private void releaseCooldowns(Ability ability, Activation act) {
         releaseScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
-        releaseScope(ability.cdScopeGroup(), ScopeKinds.GROUP, ability, act);
-        releaseScope(ability.cdScopeType(), ScopeKinds.TYPE, ability, act);
     }
 
     private void releaseScope(int scopeId, int scopeKind, Ability ability, Activation act) {

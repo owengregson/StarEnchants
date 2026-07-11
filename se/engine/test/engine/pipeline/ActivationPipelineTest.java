@@ -192,9 +192,9 @@ class ActivationPipelineTest {
         a.cdEnchant = 1;
         a.cdGroup = 2;
         a.cooldownTicks = 40;
-        pipeline.evaluate(a.build(), act().build()); // ACTIVATED → arms both scopes
+        pipeline.evaluate(a.build(), act().build()); // ACTIVATED → arms the ENCHANT scope only
         assertFalse(cooldowns.ready(ACTOR, CooldownStore.key(0, 1), 100L)); // enchant scope armed
-        assertFalse(cooldowns.ready(ACTOR, CooldownStore.key(1, 2), 100L)); // group scope armed
+        assertTrue(cooldowns.ready(ACTOR, CooldownStore.key(1, 2), 100L));  // group id is suppression-only: never armed
         assertTrue(cooldowns.ready(ACTOR, CooldownStore.key(0, 1), 140L));  // ready after expiry
     }
 
@@ -310,17 +310,23 @@ class ActivationPipelineTest {
     }
 
     @Test
-    void partialReservationRollsBackTheAcquiredScopeWhenALaterScopeIsBlocked() {
-        // enchant scope ready, group scope pre-armed: gate 6 acquires enchant, finds group blocked, and must
-        // roll the enchant reservation back so another ability sharing that enchant scope stays free.
-        Ab a = new Ab();
-        a.cdEnchant = 1;
-        a.cdGroup = 2;
-        a.cooldownTicks = 40;
-        cooldowns.arm(ACTOR, CooldownStore.key(1, 2, 0), 100L, 40); // group scope pre-armed by "another ability"
+    void groupIdNeverParticipatesInCooldownsSoASiblingCannotLockRageOut() {
+        // ADR-0050 R4 field regression: any cooldown-carrying enchant used to arm its whole GROUP scope, and a
+        // check-only cooldown-0 same-group sibling (rage, armored) was then refused fight-long. Group/type ids
+        // belong to gate-5 suppression matching only — they must neither arm nor block at gate 6.
+        Ab lifesteal = new Ab();
+        lifesteal.cdEnchant = 1;
+        lifesteal.cdGroup = 2;      // "legendary"
+        lifesteal.cooldownTicks = 100;
+        Ab rage = new Ab();
+        rage.cdEnchant = 3;
+        rage.cdGroup = 2;           // same group, cooldown 0
 
-        assertEquals(GateOutcome.ON_COOLDOWN, pipeline.evaluate(a.build(), act().build()));
-        assertTrue(cooldowns.ready(ACTOR, CooldownStore.key(0, 1, 0), 100L),
-                "the enchant scope's brief reservation must be rolled back");
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(lifesteal.build(), act().build()));
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(rage.build(), act().build())); // same tick, same walk
+
+        // Even a directly armed GROUP key cannot block: gate 6 no longer consults the group scope at all.
+        cooldowns.arm(ACTOR, CooldownStore.key(1, 2, 0), 100L, 40);
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(rage.build(), act().build()));
     }
 }
