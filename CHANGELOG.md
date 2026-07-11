@@ -4,6 +4,56 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Rage (and Armored) were locked out by their own group-mates.** Gate 6 armed an
+  activating enchant's cooldown on all three scopes, so any cooldown-carrying
+  legendary (Lifesteal, Silence, Double Strike…) armed the whole `legendary` GROUP
+  and every cooldown-0 same-group enchant — Rage's damage, Armored's reduction — was
+  refused for the sibling's entire cooldown, near-permanently on a god kit. Cooldowns
+  now arm and check the ENCHANT scope only; group/type ids remain suppression match
+  keys. This was the primary reason Rage folded zero damage all fight while its
+  stack readout climbed, and why the defense reduction flapped between 14% and 5%.
+- **Rage stacks no longer build on cancelled attacks.** The combo streak advanced at
+  HIGH before a defender's Dodge/Inversion CANCEL was known and was never rolled
+  back, so blocked swings still fed `%combo%` and the rage ladder. A cancelled hit
+  now reverts the streak advance (and its window refresh) entirely.
+- **The rage stack readout renders on the action bar again.** The reflective
+  action-bar send resolved `sendMessage` on the runtime `CraftPlayer$…` anonymous
+  class (package-private on every modern Paper), threw `IllegalAccessException`, and
+  silently degraded to chat. The lookup now targets the public `Player$Spigot` API
+  type. The readout also freezes while your Rage is suppressed by Silence-family
+  enchants — the display now always matches what the fold will pay.
+- **`/se damagedebug` prints the health actually lost.** Each line now ends with
+  `hits N` (`event.getFinalDamage()` after our commit — the post-armor truth) and a
+  `CANCELLED` marker on negated hits, closing the calibration loop between the
+  fold's commit and what players experience.
+
+### Changed
+
+- **The D-space combat economy (ADR-0050 R4).** The damage pipeline was read from
+  Mental's source instead of inferred: Mental mints the hit (8 + 6.25 era Sharp V =
+  14.25 raw), applies era armor at LOWEST (an untouched god hit lands 0.57 hp), and
+  our HIGH commit is redistributed by the frozen vanilla-modern armor curve —
+  quadratic in the committed value, deterministic, with bare second-call DAMAGE
+  effects (bleed ticks, AoE, thorns) reduced to ~4% in PvP against god armor.
+  Every combat value is re-budgeted against that measured curve, Monte-Carlo
+  verified: Fantasy-set mirror ≈ 5–7 landed hits, general god kits 7–9, budget kits
+  ~13, per-hit texture 5.6 → 11.7 hp with no one-shots. Highlights: attack flats
+  ×1.7 (Shadow Assassin → 1.45, Execute → 1.0), Rage → 1.5–3%/stack + 0.06–0.16
+  flat/stack, heroic weapon 10% → 20% / heroic armor 3% → 2% per piece, Silence and
+  Perfect Solitude become momentary windows (1.5–4 s) instead of near-permanent
+  kit shutdowns, Inversion/Ethereal Dodge negate ≤ ~10% of swings combined, Voodoo's
+  WEAKEN tops at 12%, Ender Walker/Phoenix sustain trimmed, `max-bonus-damage`
+  6.0 → 0.70 as a real one-shot backstop.
+- **Era-hostile and degenerate lines rewritten.** Drunk and Berserk trade vanilla
+  Strength (which Mental's 1.8 potion math would multiply into the minted base) for
+  additive fold bonuses; Mortal Coil's set-health-to-12 only fires as a finisher
+  (target ≤ 40% health, chance 8%, 60 s cooldown); Dominate's WEAKEN drops to a 25%
+  proc; Divine Immolation's every-2s wither/fire chip becomes a 30% proc.
+
 ## [1.7.2-beta] — 2026-07-10
 
 ### Changed
