@@ -64,6 +64,11 @@ final class EquipModule {
         return equipListener::refresh;
     }
 
+    /** Subscribe a hook to the END of every worn-state refresh (ADR-0053: the mask illusion re-derive). */
+    void onRefresh(java.util.function.Consumer<org.bukkit.entity.Player> hook) {
+        equipListener.onRefresh(hook);
+    }
+
     FeatureModule module() {
         return FeatureModule.named("equip")
                 .events(equipListener)
