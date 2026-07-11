@@ -16,6 +16,7 @@ import tester.suite.CarrierSuite;
 import tester.suite.CatalogSuite;
 import tester.suite.CombatFlagsSuite;
 import tester.suite.CombatSuite;
+import tester.suite.DeathRaceSuite;
 import tester.suite.ConditionSuite;
 import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
@@ -96,6 +97,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         // combat-path suites run floor-wide.
         harness.add(new FakePlayerSuite(this));
         harness.add(new CombatSuite(this));
+        harness.add(new DeathRaceSuite(this)); // ADR-0051: same-hit heal joins the kill decision; the dead stay dead
         harness.add(new CombatFlagsSuite(this)); // §C: KNOCKBACK_CONTROL version-split, GUARD spawn+target, KEEP_ON_DEATH
         harness.add(new ConditionSuite(this)); // %victim.health% condition gate fires/blocks (populated FactBuffer)
         harness.add(new ProtectionSuite(this));
