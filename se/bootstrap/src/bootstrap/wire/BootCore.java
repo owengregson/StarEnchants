@@ -153,6 +153,7 @@ public final class BootCore {
     private final TrakCodec trakCodec;
     private final item.codec.PetCodec petCodec;
     private final feature.pet.PetArmedStore petArmedStore;
+    private final item.codec.MaskCodec maskCodec;
     private final LoreRenderer lore;
     private final ItemGroups itemGroups;
     private final Consumer<ItemStack> recompose;
@@ -269,6 +270,9 @@ public final class BootCore {
         // pet source and the PetsModule share the ONE pair.
         this.petCodec = new item.codec.PetCodec(ItemKeys.of(), store);
         this.petArmedStore = new feature.pet.PetArmedStore();
+        // ADR-0053 masks: the ONE mask-item identity codec, next to petCodec — shared by the MasksModule's mint,
+        // apply/remove gestures, and the plugin-item guard. On-helmet mask state rides the combat blob, not here.
+        this.maskCodec = new item.codec.MaskCodec(ItemKeys.of(), store);
         this.wornResolver = new WornResolver(bindings.equipSource(), itemViews, triggers.count(),
                 triggers.attackTriggers(), triggers.defenseTriggers(),
                 () -> {                                            // §L per-feature master toggles (live)
@@ -319,7 +323,16 @@ public final class BootCore {
         // Cold apply path (ADR-0040): the composer's section wiring, as named Config fields. Lookups read the
         // CURRENT library, so a reload re-renders against new content.
         this.lore = new LoreRenderer(LoreRenderer.Config
-                .of(() -> loreStyle(master.config()), key -> content.library().displayNameOf(key))
+                .of(() -> loreStyle(master.config()), key -> {
+                    // ADR-0053: the on-helmet mask line's {NAME} wants the mask's colour-styled bold display; a
+                    // masks/<stem> key isn't in displayNameOf's enchant/crystal/set chain, so resolve it first —
+                    // null for any other unknown key stays the renderer's unknown-label path.
+                    compile.load.MaskDef mask = content.library().maskDefOf(key);
+                    if (mask != null) {
+                        return mask.color() + "&l" + mask.display();
+                    }
+                    return content.library().displayNameOf(key);
+                })
                 .withEnchantColorOf(key -> {        // per-enchant rarity-tier colour (ADR-0016 §2); null → universal
                     String tier = content.library().tierOf(key);
                     if (tier == null) {
@@ -347,7 +360,8 @@ public final class BootCore {
                 .withSlotsLine(() -> master.config().slots().loreLine()) // §H orb "Enchantment Slots" line template
                 .withHeroicLine(() -> items.config().heroicOrDefault().loreLine()) // §F HEROIC line template
                 .withCrystalLine(() -> items.config().crystalOrDefault().loreWhileOnItem())        // §E on-gear line
-                .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti()), // §E merged
+                .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti()) // §E merged
+                .withMaskLine(() -> items.config().maskOrDefault().loreWhileOnItem()), // ADR-0053 on-helmet mask line
                 store); // ADR-0044 the item-data store backs the renderer's composer-migration marker
         this.itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         // ADR-0040 the ONE recompose seam: a feature mutates PDC then asks the composer to re-render from state.
@@ -570,6 +584,8 @@ public final class BootCore {
     public item.codec.PetCodec petCodec() { return petCodec; }
 
     public feature.pet.PetArmedStore petArmedStore() { return petArmedStore; }
+
+    public item.codec.MaskCodec maskCodec() { return maskCodec; }
 
     public LoreRenderer lore() { return lore; }
 

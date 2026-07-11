@@ -70,6 +70,8 @@ class RegistryWiringTest {
             "HeroicListener", "HeroicDurabilitySave",
             "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
             "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener", "PetSummonListener",
+            "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
+            "NearGuard", "SplashHealGuard",
             "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener", "ShotWeapons",
             "MenuListener", "GodlyTransmogListener");
 
@@ -78,6 +80,7 @@ class RegistryWiringTest {
             "soul aura task",                                                 // souls
             "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
             "pet summon registry", "pet armed windows",                      // pets (ADR-0052)
+            "mask illusions", "mask provocations",                            // masks (ADR-0053)
             "bStats");                                                        // coreStops
 
     private static final List<String> GOLDEN_MENUS = List.of("hub", "console", "mint", "apply", "enchants", "sets",
@@ -86,7 +89,7 @@ class RegistryWiringTest {
     private static final Set<String> GOLDEN_GIVE_KEYS = Set.of("gem", "dust", "whitescroll", "book", "unopened",
             "useitem", "use-item", "crystal", "extractor", "heroic", "upgrade", "orb", "blackscroll", "randomizer",
             "transmog", "godlytransmog", "holy", "nametag", "blocktrak", "mobtrak", "soultrak", "fishtrak", "set",
-            "pet", "pets", "petfood", "pet-food");
+            "pet", "pets", "petfood", "pet-food", "mask", "masks");
 
     private static final Set<String> GOLDEN_SELF_MINTS = Set.of("gem", "crystal", "heroic", "orb", "book",
             "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "dust", "whitescroll",
@@ -110,6 +113,7 @@ class RegistryWiringTest {
         when(bindings.vanillaStats()).thenReturn(mock(feature.heroic.VanillaStats.class));
         when(bindings.anvilRename()).thenReturn(mock(feature.scroll.AnvilRename.class));
         when(bindings.texturedHeads()).thenReturn(item.head.TexturedHeads.NONE);
+        when(bindings.equipmentRepaint()).thenReturn(item.head.EquipmentRepaint.NONE); // ADR-0053 inert repaint
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
         when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
@@ -128,6 +132,7 @@ class RegistryWiringTest {
         when(library.tiers()).thenReturn(mock(compile.load.TierRegistry.class));
         when(library.tiers().tiers()).thenReturn(List.of()); // no rarity tiers → unopened contributes no tiles
         when(library.pets()).thenReturn(List.of()); // no pet defs → the per-pet tiles are empty
+        when(library.masks()).thenReturn(List.of()); // no mask defs → the per-mask tiles are empty (ADR-0053)
 
         bootstrap.wire.BootCore core = mock(bootstrap.wire.BootCore.class);
         when(core.plugin()).thenReturn(plugin);
@@ -158,6 +163,8 @@ class RegistryWiringTest {
         when(core.petCodec()).thenReturn(new item.codec.PetCodec(item.codec.ItemKeys.of(),
                 mock(item.codec.ItemStateStore.class)));
         when(core.petArmedStore()).thenReturn(new feature.pet.PetArmedStore());
+        when(core.maskCodec()).thenReturn(new item.codec.MaskCodec(item.codec.ItemKeys.of(),
+                mock(item.codec.ItemStateStore.class))); // ADR-0053 mask-item identity codec
         when(core.lore()).thenReturn(mock(item.render.LoreRenderer.class));
         when(core.itemGroups()).thenReturn(ItemGroups.standard());
         when(core.recompose()).thenReturn(stack -> { });
@@ -335,8 +342,8 @@ class RegistryWiringTest {
         for (FeatureModule module : modules.registry()) {
             declared.addAll(module.playerStores());
         }
-        // souls (soul-total cache) + pets (armed windows + sweep fingerprints, ADR-0052) + scrolls (kept items
-        // + nametag captures) = 5 module-owned stores swept on quit.
-        assertEquals(5, declared.size());
+        // souls (soul-total cache) + pets (armed windows + sweep fingerprints, ADR-0052) + masks (illusion cache
+        // + provocations, ADR-0053) + scrolls (kept items + nametag captures) = 7 module-owned stores swept on quit.
+        assertEquals(7, declared.size());
     }
 }

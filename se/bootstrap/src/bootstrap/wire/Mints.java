@@ -569,6 +569,44 @@ final class Mints {
                 .build();
     }
 
+    /** {@code mask} (alias {@code masks}) — a wearable mask head by key (ADR-0053); no self row. */
+    static Mintable mask(feature.mask.MaskService masks, ContentHolder content) {
+        return Mint.type("mask").aliases("masks")
+                .give((sender, target, args, io) -> {
+                    if (args.length < 4) {
+                        sender.sendMessage(io.messages().format("command.mask.usage"));
+                        return;
+                    }
+                    String key = Give.normalize(args[3], "masks/"); // a masked helmet stores the source-prefixed key
+                    if (content.library().maskDefOf(key) == null) {
+                        sender.sendMessage(io.messages().format("command.error.no-such-mask", "KEY", key));
+                        return;
+                    }
+                    Scheduling.onEntity(target, () -> {
+                        ItemStack item = masks.mint(key);
+                        if (item != null) {
+                            Inventories.giveOrDrop(target, item);
+                        }
+                        target.sendMessage(io.messages().format("command.give.mask", "KEY", key));
+                    });
+                    if (Give.notSelf(sender, target)) {
+                        Give.tell(sender, io.messages().format("command.give.delivered",
+                                "ITEM", key, "PLAYER", target.getName()));
+                    }
+                })
+                .tiles(162, library -> {
+                    List<MintCatalog.Entry> out = new java.util.ArrayList<>();
+                    for (compile.load.MaskDef def : library.masks()) {
+                        String defKey = def.key();
+                        // MaskDef keys carry the masks/ source prefix; tiles read like the pets' bare stems.
+                        String stem = defKey.substring(defKey.indexOf('/') + 1);
+                        out.add(new MintCatalog.Entry(stem + " mask", () -> masks.mint(defKey)));
+                    }
+                    return out;
+                })
+                .build();
+    }
+
     /** {@code useitem} (alias {@code use-item}) — a right-click use-item by key (§3.6); no self row. */
     static Mintable useItem(UseItemService useItems, ContentHolder content) {
         return Mint.type("useitem").aliases("use-item")
