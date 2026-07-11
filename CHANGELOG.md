@@ -4,6 +4,47 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.8.0-beta] — 2026-07-11
+
+### Added
+
+- **Pets (ADR-0052).** A leveling textured-head content family — the sixth effect
+  source. PASSIVE pets work from anywhere in the hotbar; ACTIVE pets fire on
+  right-click (full gate sequence, pet-wide cooldown scope) and may open a timed
+  armed window whose combat riders join the worn state. Pets level from mob kills,
+  vanilla XP, time held, and a drag-applied Pet Food item; ability strength scales
+  in sparse authored level brackets. Ships 16 cosmic pets, the pets browser +
+  admin level-drill menus, mint-console tiles, and `/se give pet` / `petfood`.
+  New engine surface: `CAGE`, `STRIP_SCROLL`, `TEMP_BLOCK` shape `BOX`,
+  `MODIFY_MONEY` mode `interest_percent`, `SPAWN_ENTITY` summon flags, the
+  `%actor.belowvictim%` fact, and the `TexturedHeads` era seam (1.8-safe heads).
+- **Masks (ADR-0053).** A helmet-only applicable head-likeness family. A mask
+  drag-applies onto a HELMET exclusively (one per helmet), grants its abilities
+  while worn, and **overrides the helmet's WORN appearance** with the mask's
+  player head for the wearer and every observer — the inventory item is never
+  touched; right-click the masked helmet to pop the mask back off intact. The
+  repaint is a client-only equipment override behind a new era seam (modern
+  `sendEquipmentChange`, 1.8.9 equipment packet; on Paper 1.17.1 exactly the
+  visual override is inert — abilities still work). Ships 14 cosmic masks
+  (Agent, Shaman, Chef, Wither, Fisherman, Ghost, Hacker, Medic, Angel, Midas,
+  Santa, Monopoly, Knight, Blaze), the "Mask Equipped" gear line below the
+  crystal line, and `/se give mask` + mint tiles. New engine surface: `WARD`
+  guard flags (mob-target calm, /invsee shield, the owned `/near` interception —
+  configurable and opt-out via `masks.near-commands: []` — and the splash-heal
+  boost), `IMMUNE` type `fishhook` (rods no longer knock warded players back),
+  `SUPPRESS scope: KIND` (disable abilities by effect kind — Chef turns off ANY
+  hunger-restoring enchant, present or future), and `IGNORE_HEROIC` (Midas
+  negates the enemy's heroic armor share of the damage fold).
+
+### Fixed
+
+- **Every shipped `SUPPRESS` op was silently dead on live servers.** The compiler
+  erased the op's `mode` as a string while the runtime reads an int, so each
+  activation threw inside the executor's per-effect guard and no-oped — Sabotage,
+  Soul Trap, Phantom and Corrupt never actually suppressed anything (unit tables
+  masked it by feeding already-typed args). `mode` now lowers to its wire ordinal
+  at compile, pinned by an erase-stage test and the fuzz bridge.
+
 ## [1.7.4-beta] — 2026-07-11
 
 ### Fixed
