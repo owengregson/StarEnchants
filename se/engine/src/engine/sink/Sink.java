@@ -43,9 +43,17 @@ public interface Sink {
      */
     void damagePercentOfMax(LivingEntity target, double percentOfMax);
 
+    /**
+     * Raise the target's current health by {@code amount} (clamped to max). A write that lands after its
+     * target died is dropped — the dead stay dead; only a zero-WAIT write to the firing event's own entity
+     * precedes the kill decision (ADR-0051).
+     */
     void heal(LivingEntity target, double amount);
 
-    /** Set the target's current health to {@code health} (clamped to [0, max]) — MODIFY_HEALTH's {@code set} mode. */
+    /**
+     * Set the target's current health to {@code health} (clamped to [0, max]) — MODIFY_HEALTH's {@code set}
+     * mode. Dropped on a target that died before it landed (ADR-0051), like {@link #heal}.
+     */
     void setHealth(LivingEntity target, double health);
 
     void kill(LivingEntity target);

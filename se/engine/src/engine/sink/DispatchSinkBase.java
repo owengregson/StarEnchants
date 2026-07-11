@@ -11,6 +11,7 @@ import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -65,6 +66,14 @@ import platform.text.Colors;
  *       skip the hop.</li>
  * </ul>
  *
+ * <p><strong>Current-health writes are the one carve-out (ADR-0051).</strong> A zero-WAIT {@link #heal}/
+ * {@link #setHealth} targeting the declared {@linkplain #eventEntity(LivingEntity) event entity} runs inline at
+ * {@link #flush()} — the firing thread owns that entity by definition, and the event's own damage has not been
+ * applied yet, so the write participates in the vanilla kill decision instead of racing it (a "blow that would
+ * kill you instead heals" save must land pre-death or it resurrects a corpse). Every other current-health write
+ * stays deferred but gains an execution-time liveness gate: a target that died before the write lands drops it —
+ * the dead stay dead, nothing revives by side effect.
+ *
  * <p>Version-volatile referents arrive as interned ids and are resolved through the era leaves
  * ({@link #material(int)}, {@link #sound(int)}, {@link #potionEffect(int)}, {@link #entityType(int)}) on the
  * correct thread (§9). An id that does not resolve yields {@code null} and that one intent is silently skipped
@@ -74,6 +83,8 @@ import platform.text.Colors;
  * scheduled batches run later on their own threads over immutable captured primitives.
  */
 public abstract class DispatchSinkBase implements SinkReadback {
+
+    private static final System.Logger LOG = System.getLogger("StarEnchants.Sink");
 
     private final EconomyService economy;
     private final SoulDebit souls;
@@ -103,6 +114,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final TrailWalker trails;
     /** The ONE per-boot timed-revert registry (via {@link SinkEnv}), so the quit drain can restore a logout-stranded buff. */
     private final TimedRevert timedReverts;
+
+    /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
+    private LivingEntity eventEntity;
+    private UUID eventEntityId;
+    /** Lazily-allocated same-event health credits, run at flush BEFORE the deferred plan (ADR-0051). */
+    private List<Runnable> healthCredits;
 
     private boolean cancelled;
     private boolean armorIgnored;
@@ -193,13 +210,33 @@ public abstract class DispatchSinkBase implements SinkReadback {
         return echoRequested;
     }
 
-    /** Schedule every deferred intent on its owning thread; call once after the gate walk. Idempotent. */
+    /** Declare the event's own entity: its zero-WAIT health writes run inline at flush (ADR-0051). */
+    @Override
+    public void eventEntity(LivingEntity entity) {
+        this.eventEntity = entity;
+        this.eventEntityId = entity == null ? null : entity.getUniqueId();
+    }
+
+    /**
+     * Schedule every deferred intent on its owning thread; call once after the gate walk. Same-event health
+     * credits run first, inline — still inside the firing event, so they precede the event's own outcome
+     * (ADR-0051) — with the plan's warn-and-skip isolation (§9). Idempotent.
+     */
     @Override
     public void flush() {
         if (flushed) {
             return;
         }
         flushed = true;
+        if (healthCredits != null) {
+            for (Runnable credit : healthCredits) {
+                try {
+                    credit.run();
+                } catch (RuntimeException failed) {
+                    LOG.log(System.Logger.Level.WARNING, "same-event health credit failed at flush", failed);
+                }
+            }
+        }
         plan.flush();
     }
 
@@ -224,6 +261,48 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (target != null) {
             plan.onEntity(target, op, delayTicks);
         }
+    }
+
+    /**
+     * Route a current-health write (ADR-0051): inline at flush when it targets the event entity with no WAIT
+     * (the firing thread owns it, and the event's damage has not applied — the write joins the kill decision);
+     * deferred behind the liveness gate otherwise, so a target that died first drops the write.
+     */
+    private void healthWrite(LivingEntity target, Runnable write) {
+        if (target == null) {
+            return;
+        }
+        if (delayTicks <= 0 && isEventEntity(target)) {
+            if (healthCredits == null) {
+                healthCredits = new ArrayList<>(2);
+            }
+            // Gated too: a double-fired damage event on an already-dying entity must not revive it.
+            healthCredits.add(() -> {
+                if (alive(target)) {
+                    write.run();
+                }
+            });
+            return;
+        }
+        entityOp(target, () -> {
+            if (alive(target)) {
+                write.run();
+            }
+        });
+    }
+
+    /** Identity by UUID, not instance — a re-wrapped handle for the same entity still counts. */
+    private boolean isEventEntity(LivingEntity target) {
+        return target == eventEntity || (eventEntityId != null && eventEntityId.equals(target.getUniqueId()));
+    }
+
+    /**
+     * The dead stay dead (ADR-0051): checked on the owning thread at execution time, never at emit time.
+     * {@code getHealth() > 0} carries the check on 1.8, where a 0-hp player's {@code isDead()} can lag the
+     * {@code dead} flag; {@code isValid()} drops writes to removed entities.
+     */
+    private static boolean alive(LivingEntity target) {
+        return target.isValid() && !target.isDead() && target.getHealth() > 0.0;
     }
 
     /** Route an intent to the location's region thread — never inline. */
@@ -298,12 +377,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void heal(LivingEntity target, double amount) {
-        entityOp(target, () -> target.setHealth(Math.min(target.getHealth() + amount, maxHealth(target))));
+        healthWrite(target, () -> target.setHealth(Math.min(target.getHealth() + amount, maxHealth(target))));
     }
 
     @Override
     public void setHealth(LivingEntity target, double health) {
-        entityOp(target, () -> target.setHealth(Math.max(0.0, Math.min(health, maxHealth(target)))));
+        healthWrite(target, () -> target.setHealth(Math.max(0.0, Math.min(health, maxHealth(target)))));
     }
 
     @Override

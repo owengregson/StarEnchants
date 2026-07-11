@@ -1,6 +1,7 @@
 package engine.sink;
 
 import engine.interact.DamageFold;
+import org.bukkit.entity.LivingEntity;
 
 /**
  * The complete concrete-readback + dispatch-control surface of the {@link Sink} impl, promoted to an
@@ -40,6 +41,16 @@ public interface SinkReadback extends Sink {
 
     /** Whether an effect requested an extra attacker-side echo pass (ECHO_STRIKE). Read by the combat dispatcher. */
     boolean echoRequested();
+
+    /**
+     * Declare the entity whose pending damage the firing event itself will still apply (the combat victim):
+     * zero-WAIT health writes to it run inline at {@link #flush()} — before the event's outcome — so a
+     * same-hit heal participates in the vanilla kill decision instead of racing it (ADR-0051). Dispatchers
+     * whose event carries no such entity simply never call this; the default is a no-op so non-combat
+     * sinks and test doubles are unaffected.
+     */
+    default void eventEntity(LivingEntity entity) {
+    }
 
     /** Schedule every deferred intent on its owning thread; call once after the gate walk. Idempotent. */
     void flush();
