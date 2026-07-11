@@ -10,8 +10,10 @@ import item.view.ItemViewCache;
 import item.worn.EquipSource;
 import item.worn.WornState;
 import item.worn.WornStateStore;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -59,6 +61,10 @@ public final class EquipListener implements Listener {
     // catch event-less hand mutations. MUST be value-hashed over CombatState (never ItemStack.hashCode) — a
     // durability tick must not read as a change, or every fighter's REPEATING abilities would restart every sweep.
     private final ConcurrentHashMap<UUID, Integer> handSignatures = new ConcurrentHashMap<>();
+    // ADR-0053: a post-refresh seam so a feature whose worn-derived state rides this same re-resolution (the mask
+    // illusion) re-derives on the SAME player-thread {@link #refresh} — its exact contract. Instance-composed, so
+    // no static state (G2-c); no-op until a module subscribes during enable, when no event has yet fired.
+    private volatile Consumer<Player> postRefresh = player -> { };
 
     /** Equipment-array index where the hand slots begin; indices below it are the four armour slots. */
     private static final int HAND_SLOTS_FROM = 4;
@@ -74,6 +80,15 @@ public final class EquipListener implements Listener {
         this.setMessages = setMessages;
         this.equipSource = equipSource;
         this.itemViews = itemViews;
+    }
+
+    /**
+     * Register a hook run at the END of every {@link #refresh}, on the player's own region thread (ADR-0053).
+     * Composes, so several features can ride one refresh; subscribed once during enable (before any event fires).
+     */
+    public void onRefresh(Consumer<Player> hook) {
+        Objects.requireNonNull(hook, "hook");
+        this.postRefresh = this.postRefresh.andThen(hook);
     }
 
     @EventHandler
@@ -139,6 +154,7 @@ public final class EquipListener implements Listener {
         setMessages.refresh(player, state); // §6.6 announce a set becoming complete / dropping below threshold
         passiveEffects.refresh(player);     // reconcile maintained passive potion buffs LAST — it is the authority
         handSignatures.put(player.getUniqueId(), handSignature(player)); // stamp the F09 catchall baseline
+        postRefresh.accept(player); // ADR-0053: e.g. the mask illusion re-derive, on this player's own thread
     }
 
     /**

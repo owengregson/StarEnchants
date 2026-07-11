@@ -3,6 +3,7 @@ package feature.apply;
 import compile.load.ContentHolder;
 import compile.load.CrystalDef;
 import compile.load.EnchantDef;
+import compile.load.MaskDef;
 import compile.model.Snapshot;
 import engine.interact.SlotLedger;
 import item.codec.CombatCodec;
@@ -20,7 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Applies enchants and crystals to an item (docs/architecture.md §4.2) — the one cold mutation path.
+ * Applies enchants, crystals, and masks to an item (docs/architecture.md §4.2) — the one cold mutation path.
  * Validation ({@code check*}) is split from mutation ({@code apply*}) so eligibility is unit-testable with
  * no server. Reads the live library through {@link ContentHolder} per call, so it validates/renders against
  * post-reload content.
@@ -39,6 +40,9 @@ public final class ItemEnchanter {
     /** Set-config enchant refs with this prefix are CUSTOM plugin enchants (stamped into combat state); any
      *  other key is a vanilla enchant NAME applied cross-version at mint (§6.6). */
     private static final String CUSTOM_PREFIX = "enchants/";
+
+    /** Masks are helmets-only by construction (ADR-0053 §1) — a fixed target group, never an authored applies-to. */
+    private static final List<String> HELMET_ONLY = List.of("HELMET");
 
     private final CombatCodec codec;
     private final LoreRenderer lore;
@@ -271,7 +275,7 @@ public final class ItemEnchanter {
             // §6.6 configured weapon enchants: custom ones stamp into the combat state (so the engine runs
             // them while held), vanilla names apply cross-version at mint.
             CombatState next = new CombatState(customEnchants(def.weaponEnchants()), List.of(), null, setKey,
-                    false, item.codec.HeroicStat.NONE, 0); // weaponMember(setKey) + carried custom enchants
+                    false, item.codec.HeroicStat.NONE, 0, null); // weaponMember(setKey) + carried custom enchants
             codec.write(stack, next);
             lore.apply(stack, next);
             vanilla.apply(stack, vanillaEnchants(def.weaponEnchants()));
@@ -423,11 +427,79 @@ public final class ItemEnchanter {
         return ApplyResult.ok(messages.format("crystal.applied", "LABEL", label));
     }
 
+    /**
+     * Validate (without mutating) that mask {@code maskKey} may sit on {@code gear} (ADR-0053 §3): a single
+     * HELMET carrying no mask yet — one mask per helmet, a boolean occupancy, never the crystal slot ledger.
+     * Drag-apply pre-checks this BEFORE consuming the mask, so a violation never wastes it.
+     */
+    public ApplyResult checkMask(ItemStack gear, String maskKey) {
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ApplyResult.fail(messages.format("mask.on-item"));
+        }
+        if (gear.getAmount() > 1) {
+            return ApplyResult.fail(messages.format("mask.single-item"));
+        }
+        MaskDef def = mask(maskKey);
+        if (def == null) {
+            return ApplyResult.fail(messages.format("mask.no-such", "KEY", maskKey));
+        }
+        if (content.snapshot().byStableKey(maskKey) == null) {
+            return ApplyResult.fail(messages.format("mask.no-compile", "KEY", maskKey));
+        }
+        if (!groups.matches(gear.getType(), HELMET_ONLY)) {
+            return ApplyResult.fail(messages.format("apply.not-applicable", "DISPLAY", def.display()));
+        }
+        if (codec.read(gear).maskKey() != null) {
+            return ApplyResult.fail(messages.format("mask.already"));
+        }
+        return ApplyResult.ok(messages.format("apply.ok", "DISPLAY", def.display()));
+    }
+
+    /** Stamp mask {@code maskKey} onto {@code gear} in place (re-validating first); re-renders lore (ADR-0040). */
+    public ApplyResult applyMask(ItemStack gear, String maskKey) {
+        ApplyResult check = checkMask(gear, maskKey);
+        if (!check.ok()) {
+            return check;
+        }
+        CombatState current = codec.read(gear);
+        CombatState next = current.withMask(maskKey); // preserves every other field (the setWeaponKey trap)
+        codec.write(gear, next);
+        lore.apply(gear, next);
+        return check;
+    }
+
+    /**
+     * Pop the mask off {@code gear} (the right-click remove gesture, ADR-0053 §3); re-renders lore. Returns
+     * the popped key for the caller to mint back as a mask item. No-op fail when the helmet carries no mask.
+     */
+    public ExtractResult removeMask(ItemStack gear) {
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ExtractResult.fail(messages.format("apply.hold-item"));
+        }
+        if (gear.getAmount() > 1) {
+            // Symmetric with checkMask: one blob write on a stack would strip N masks but pop back one.
+            return ExtractResult.fail(messages.format("mask.single-item"));
+        }
+        CombatState current = codec.read(gear);
+        String popped = current.maskKey();
+        if (popped == null) {
+            return ExtractResult.fail(messages.format("mask.none"));
+        }
+        CombatState next = current.withMask(null);
+        codec.write(gear, next);
+        lore.apply(gear, next);
+        return ExtractResult.ok(popped);
+    }
+
     private EnchantDef enchant(String baseKey) {
         return content.library().enchantDefOf(baseKey);
     }
 
     private CrystalDef crystal(String baseKey) {
         return content.library().crystalDefOf(baseKey);
+    }
+
+    private MaskDef mask(String key) {
+        return content.library().maskDefOf(key);
     }
 }

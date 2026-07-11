@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import schema.diag.DiagCode;
@@ -128,9 +129,11 @@ public final class MasterConfigLoader {
     /** The mask cross-cutting knobs (ADR-0053 §8): the owned {@code /near} interception's command list + radius. */
     private static MasterConfig.MasksSection readMasks(YamlNode n, Diagnostics diags) {
         MasterConfig.MasksSection d = MasterConfig.MasksSection.defaults();
+        // present-but-empty (near-commands: []) is honoured to DISABLE the interception, not defaulted.
+        List<String> commands = n.has("near-commands") ? n.stringList("near-commands") : d.nearCommands();
         return new MasterConfig.MasksSection(
-                // present-but-empty (near-commands: []) is honoured to DISABLE the interception, not defaulted.
-                n.has("near-commands") ? n.stringList("near-commands") : d.nearCommands(),
+                // lower-cased here so the guard's typed-command match is an exact compare (case folds at load).
+                commands.stream().map(c -> c.toLowerCase(Locale.ROOT)).toList(),
                 parseInt(n.string("near-radius"), d.nearRadius(), n, diags));
     }
 
