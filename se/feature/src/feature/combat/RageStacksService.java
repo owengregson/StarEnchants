@@ -17,8 +17,8 @@ import platform.text.Colors;
  * Rage stacks (§3): the combat feedback the Rage enchant owns now that its content no longer plays its own sound.
  * On every qualifying melee hit the attacker's stacks become {@code min(combo streak, rage level)} — so a level-N
  * rage tops out at N — and drive a rising {@link Titles#sendActionBar action bar} + a {@code BLAZE_HURT} cue whose
- * pitch climbs with the stack. A combo that breaks (a victim switch, or the window elapsing) flashes a brief
- * {@code BROKEN} title + a {@code BLAZE_DEATH} cue. The stacks live in the shared {@link RageStackStore}, which also
+ * pitch climbs with the stack. A combo that breaks (a victim switch, or the window elapsing) flashes a
+ * {@code BROKEN} action bar + a {@code BLAZE_DEATH} cue. The stacks live in the shared {@link RageStackStore}, which also
  * sources the {@code %ragestacks%} fact the rage DAMAGE_MOD reads (so the audio ladder and the damage scale share
  * one number).
  *
@@ -34,7 +34,7 @@ public final class RageStacksService {
     private static final String STACK_SOUND = "ENTITY_BLAZE_HURT";
     private static final String BREAK_SOUND = "ENTITY_BLAZE_DEATH";
     private static final float STACK_VOLUME = 1.0f;
-    private static final float BREAK_VOLUME = 1.0f;
+    private static final float BREAK_VOLUME = 0.5f;
     private static final float BREAK_PITCH = 2.0f;
 
     private final Function<Player, Integer> rageLevelOf; // the attacker's active rage level from the worn/held resolution
@@ -84,10 +84,10 @@ public final class RageStacksService {
         Titles.sendActionBar(player, Colors.translate(messages.fragment("rage.stacks-actionbar", "STACKS", stacks)));
     }
 
-    /** The combo-broken cue + brief title, then zero the stored stacks. Attacker's region thread. */
+    /** The combo-broken cue + action bar, then zero the stored stacks. Attacker's region thread. */
     private void breakFx(Player player) {
         sounds.play(player, player.getLocation(), BREAK_SOUND, BREAK_VOLUME, BREAK_PITCH);
-        Titles.sendTitle(player, Colors.translate(messages.fragment("rage.stacks-broken-title")), "", 0, 30, 10);
+        Titles.sendActionBar(player, Colors.translate(messages.fragment("rage.stacks-broken-actionbar")));
         store.set(player.getUniqueId(), 0, nowTicks.getAsLong());
     }
 
