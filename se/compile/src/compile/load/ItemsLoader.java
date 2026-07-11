@@ -37,6 +37,8 @@ public final class ItemsLoader {
         Optional<EnchantBookConfig> enchantBook = Optional.empty();
         Optional<DustConfig> dust = Optional.empty();
         Optional<WhiteScrollConfig> whiteScroll = Optional.empty();
+        Optional<PetItemConfig> pet = Optional.empty();
+        Optional<PetFoodConfig> petFood = Optional.empty();
         // Scroll family: each member is its own file, assembled into one ScrollsConfig below (§I).
         Optional<ScrollsConfig.Black> black = Optional.empty();
         Optional<ScrollsConfig.Randomizer> randomizer = Optional.empty();
@@ -217,6 +219,22 @@ public final class ItemsLoader {
                         trakFish = Optional.of(readTrak(root, TraksConfig.defaults().fish(), diags));
                     }
                 }
+                case "pet" -> {
+                    if (pet.isPresent()) {
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one pet config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        pet = Optional.of(readPet(root));
+                    }
+                }
+                case "pet-food", "petfood", "pet_food" -> {
+                    if (petFood.isPresent()) {
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one pet-food config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        petFood = Optional.of(readPetFood(root, diags));
+                    }
+                }
                 default -> diags.warning(DiagCode.W_ITEM_TYPE, "unknown item type '" + type + "' in " + name, root.source());
             }
         }
@@ -243,7 +261,30 @@ public final class ItemsLoader {
             traks = Optional.empty();
         }
         return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, enchantBook,
-                dust, whiteScroll, traks, diags.all());
+                dust, whiteScroll, traks, pet, petFood, diags.all());
+    }
+
+    /** items/pet.yml — the universal pet likeness (ADR-0052): per-type lore templates + the level line. */
+    private static PetItemConfig readPet(YamlNode root) {
+        PetItemConfig d = PetItemConfig.defaults();
+        return new PetItemConfig(
+                orDefault(root.string("name"), d.name()),
+                root.has("lore-active") ? root.stringList("lore-active") : d.loreActive(),
+                root.has("lore-passive") ? root.stringList("lore-passive") : d.lorePassive(),
+                root.has("level-line") ? orDefault(root.string("level-line"), "") : d.levelLine());
+    }
+
+    /** items/pet-food.yml — the +levels apply item (ADR-0052); the grant bakes onto each mint. */
+    private static PetFoodConfig readPetFood(YamlNode root, Diagnostics diags) {
+        PetFoodConfig d = PetFoodConfig.defaults();
+        return new PetFoodConfig(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("levels"), d.levels(), root, diags),
+                parseBool(root.string("shiny"), d.shiny(), root, diags),
+                SoundCue.fromField(root, "sound", d.sound(), diags),
+                root.has("particles") ? root.stringList("particles") : d.particles());
     }
 
     private static TraksConfig.Trak readTrak(YamlNode root, TraksConfig.Trak d, Diagnostics diags) {
@@ -532,6 +573,10 @@ public final class ItemsLoader {
 
     private static int parseInt(String raw, int fallback, YamlNode root, Diagnostics diags) {
         return ContentParse.intOr(raw, fallback, null, Severity.WARNING, DiagCode.W_ITEM_NUM, root.source(), diags);
+    }
+
+    private static boolean parseBool(String raw, boolean fallback, YamlNode root, Diagnostics diags) {
+        return ContentParse.boolOr(raw, fallback, null, DiagCode.W_ITEM_NUM, root.source(), diags);
     }
 
     private static String orDefault(String value, String fallback) {
