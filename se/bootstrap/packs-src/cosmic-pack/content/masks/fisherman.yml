@@ -1,0 +1,10 @@
+# Fisherman Mask (ADR-0053 §7) — the IMMUNE fishhook flag re-armed on REPEATING; ImmuneListener additionally
+# cancels the fish-hook damager event and the CAUGHT_ENTITY reel pull for a flagged player, so a rod can no
+# longer knock the wearer back. Re-arming every 40t keeps the 100t flag alive only while the helmet is worn.
+display: "Fisherman"
+color: "&3"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWVkOWVjYTM2Y2JiZjAzNDA2NjhhYmUyM2ZhNzFiNGJjZWU4YzNiZWMwNmYwMmM2MjFjYTRmYmIyOWU5MmZhMyJ9fX0="
+description:
+  - "&3&l* Fishing rods no longer knock you back"
+abilities:
+  - { trigger: REPEATING, repeat: 40, effects: [ { IMMUNE: { type: fishhook, duration: 100 } } ] }

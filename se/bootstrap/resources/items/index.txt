@@ -9,6 +9,7 @@ fishtrak.yml
 godly-transmog.yml
 heroic.yml
 holy-white-scroll.yml
+mask.yml
 mobtrak.yml
 nametag.yml
 pet-food.yml

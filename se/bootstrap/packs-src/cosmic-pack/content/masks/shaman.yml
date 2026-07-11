@@ -1,0 +1,10 @@
+# Shaman Mask (ADR-0053 §7) — the WARD mob-target flag re-armed on REPEATING; MobTargetGuard cancels a mob's
+# targeting of the wearer unless the wearer provoked it. Re-arming every 40t (the Wither-TELEBLOCK idiom) keeps
+# the 100t flag alive while worn and lets it lapse the moment the helmet comes off.
+display: "Shaman"
+color: "&2"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWMyNDM0ZDM5OTNiYjhiYzMwZDJkMjRkOGQxNzA3Yjc0N2QyZDM2YTM2M2JmMzQ5MTk2ZmJhNjMxNWQ4Njk1MCJ9fX0="
+description:
+  - "&2&l* Mobs no longer target you unless attacked"
+abilities:
+  - { trigger: REPEATING, repeat: 40, effects: [ { WARD: { type: mob-target, duration: 100 } } ] }

@@ -1,0 +1,36 @@
+# Mask (ADR-0053) — the GENERAL likeness of EVERY mask head. There is no per-mask item file: a specific mask
+# (from /se give mask, the mint console, or an operator mint) is minted from this ONE likeness with the mask's
+# display/colour/description filled in, onto its content-configured player-head texture (content/masks/<key>.yml).
+# A mask drag-applies onto a HELMET (exclusively) and, while that helmet is worn, grants the mask's abilities AND
+# repaints the helmet's WORN appearance with this head for every observer — never touching the inventory item.
+# One mask per helmet; right-click the masked helmet with an empty cursor to pop the mask back off intact.
+# Everything below is configurable; reload with /se reload. Placeholders (usable in name + every lore line):
+#   {COLOR}       = the mask's colour codes (content/masks/<key>.yml `color`, e.g. "&8") — carries its own &
+#   {NAME}        = the mask's display name (bare, no colour codes)
+#   {DESCRIPTION} = the mask's description block, one lore line per authored line (line-expanding)
+#   {APPLIES}     = the item kinds a mask applies to — always the HELMET group label (masks are helmets-only)
+type: mask
+
+# The minted mask item's display name. {COLOR} already carries the mask's own &, so the template supplies only
+# the &l bold and the trailing " Mask" (e.g. "&8&lAgent Mask").
+name: "{COLOR}&l{NAME} Mask"
+lore:
+  - "&eOverrides the visual appearance of a helmet and imbues it with magic mask abilities."
+  - ""
+  - "{COLOR}&l{NAME} MASK BONUS"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eApplies to: &f&n{APPLIES}&r"
+  - "&7Drag n' Drop on an item to apply."
+  - "&7Right Click while on an item to remove."
+# The single line shown on a mask-bearing HELMET, rendered directly BELOW the crystal line(s) (its own
+# LoreComposer section). {NAME} expands here to the mask's colour-styled display, so a masked helmet always shows
+# which mask it carries.
+lore-while-on-item: "&6&lMask Equipped ({NAME}&r&6&l)"
+# Apply / remove gesture sounds (namespaced keys, valid across the version range) — the SAME amethyst cues the
+# crystal likeness carries, since masks share the crystal drag-apply gesture family. apply plays on a successful
+# drag-onto-helmet; remove plays when a right-click pops the mask back off.
+sounds:
+  enabled: true
+  apply: "block.amethyst_block.chime"
+  remove: "block.amethyst_cluster.break"

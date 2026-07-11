@@ -1,0 +1,11 @@
+# Chef Mask (ADR-0053 §7) — SUPPRESS scope:KIND keyed on MODIFY_FOOD, so it disables ANY hunger-restoring
+# ability (present or future) without enumerating enchants. Two riders cover both sides of a fight: on ATTACK it
+# suppresses the victim; on DEFENSE it suppresses the attacker (the KIND window is matched at gate 5).
+display: "Chef"
+color: "&6"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDM0NmJkNWI3Y2IwN2EyNGYyNzE2YWE5MGJiZWQ2ZDg4YjE5YTg4ZDYzNjRkMDliMzljNzg1MDYxOTYzNWIwNCJ9fX0="
+description:
+  - "&6&l* Disables any enemy hunger restoring enchantments"
+abilities:
+  - { trigger: ATTACK, effects: [ { SUPPRESS: { scope: KIND, key: MODIFY_FOOD, duration: 200, who: "@Victim" } } ] }
+  - { trigger: DEFENSE, effects: [ { SUPPRESS: { scope: KIND, key: MODIFY_FOOD, duration: 200, who: "@Attacker" } } ] }

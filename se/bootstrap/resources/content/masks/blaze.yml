@@ -1,0 +1,10 @@
+# Blaze Mask (ADR-0053 §9) — CANCEL on the FIRE trigger: the FIRE trigger fires on fire / lava damage, and the
+# CANCEL primitive nulls that Bukkit event outright, so the wearer takes no fire or lava damage. A full negate
+# (CANCEL, not a fold reduction), which the reduction cap cannot touch.
+display: "Blaze"
+color: "&6"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjc4ZWYyZTRjZjJjNDFhMmQxNGJmZGU5Y2FmZjEwMjE5ZjViMWJmNWIzNWE0OWViNTFjNjQ2Nzg4MmNiNWYwIn19fQ=="
+description:
+  - "&6&l* Immune to fire and lava damage"
+abilities:
+  - { trigger: FIRE, effects: [ { CANCEL: {} } ] }
