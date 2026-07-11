@@ -10,27 +10,29 @@ description:
   - "&e* Temporarily deal more damage while below your opponent"
 levels:
   # +20% → +25% → +30% → +35%, each in a 10s window.
+  # CALIBRATION: amounts are EFFECTIVE under combat.attack-scale 5.0 (4/5/6/7 land as +20/25/30/35%
+  # final, ADR-0050 R2); retune if you change the knob.
   1:
     cooldown: 3000
     duration: 200
     abilities:
       - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
-      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 4 } } ] }
   25:
     cooldown: 3000
     duration: 200
     abilities:
       - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
-      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } } ] }
   50:
     cooldown: 3000
     duration: 200
     abilities:
       - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
-      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 6 } } ] }
   100:
     cooldown: 3000
     duration: 200
     abilities:
       - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
-      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 7 } } ] }
