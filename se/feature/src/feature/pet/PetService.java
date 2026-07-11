@@ -93,7 +93,10 @@ public final class PetService {
         }
         ItemStack stack = heads.head(def.head());
         if (stack == null) {
-            stack = ItemFactory.buildItem(def.material(), Material.PLAYER_HEAD, null, null);
+            // No texture (blank head / unsupported server): resolve the def's material token by NAME. The
+            // fallback constant must exist on BOTH eras (the Material.CLOCK trap) — PAPER, not PLAYER_HEAD,
+            // which is absent on 1.8 (there the era seam above already built a SKULL_ITEM head).
+            stack = ItemFactory.buildItem(def.material(), Material.PAPER, null, null);
         }
         int clamped = Math.min(Math.max(1, level), pets.get().maxLevel());
         codec.stamp(stack, key, clamped);

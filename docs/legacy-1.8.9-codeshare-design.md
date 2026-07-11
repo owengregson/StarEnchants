@@ -523,7 +523,13 @@ platform errors fail at compile. It does **not** win on the headline percentage.
 
 **Stays impossible / degrades:** off-hand enchants (1.8 has no slot); the equip-event
 refresh becomes a poller fork with different timing; pre-1.9 combat mechanics (attack
-cooldown, sweep) differ and the feature fork must re-implement them.
+cooldown, sweep) differ and the feature fork must re-implement them. Pets (ADR-0052):
+the Fish pet's income is inert on 1.8 (no economy bridge — `:integrate` is excluded);
+the Nightmare summon spawns a HORSE with the skeleton variant (no SKELETON_HORSE type);
+the Creeper pet's detonation uses the scheduled-fuse fallback (no `Creeper#setIgnited`,
+so no swell animation); pet heads mint through the `LegacyTexturedHeads` SKULL_ITEM:3 +
+authlib reflection path and degrade to the untextured fallback if the CraftMetaSkull
+field ever moves.
 
 ### Per-module dual-compile gate coverage (the gate list)
 
