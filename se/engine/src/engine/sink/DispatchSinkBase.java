@@ -391,12 +391,32 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void damage(LivingEntity target, double amount) {
+        if (target == null) {
+            return;
+        }
+        if (delayTicks <= 0 && isEventEntity(target)) {
+            // Same-hit rider (ADR-0054): a zero-WAIT DAMAGE aimed at the event's own entity joins the
+            // damage fold instead of issuing a second hurt(). A bare second hurt re-arms the victim's
+            // vanilla immunity window (noDamageTicks/lastHurt), so the NEXT melee with a smaller amount
+            // is window-rejected with NO event at all — silently eating other plugins' per-hit handling
+            // (hit cosmetics, knockback delivery). Folding rides the one event: one hurt, one immunity
+            // window, one knockback. The fold is committed by the combat dispatcher after the walks, so
+            // a rider on a dodged/cancelled hit dies with its hit — same-hit means same fate.
+            fold.addFlatDamage(amount);
+            return;
+        }
         entityOp(target, () -> target.damage(amount));
     }
 
     @Override
     public void damagePercentOfMax(LivingEntity target, double percentOfMax) {
-        if (percentOfMax <= 0) {
+        if (target == null || percentOfMax <= 0) {
+            return;
+        }
+        if (delayTicks <= 0 && isEventEntity(target)) {
+            // Same-hit rider (ADR-0054, as damage above). The firing thread owns the event entity by
+            // definition (the ADR-0051 argument), so the max-health read is region-correct inline.
+            fold.addFlatDamage(maxHealth(target) * percentOfMax / 100.0);
             return;
         }
         // The max-health read and the damage both run on the target's own thread (entityOp) — never a cross-region

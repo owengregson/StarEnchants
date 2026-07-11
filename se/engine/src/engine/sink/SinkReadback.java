@@ -45,9 +45,11 @@ public interface SinkReadback extends Sink {
     /**
      * Declare the entity whose pending damage the firing event itself will still apply (the combat victim):
      * zero-WAIT health writes to it run inline at {@link #flush()} — before the event's outcome — so a
-     * same-hit heal participates in the vanilla kill decision instead of racing it (ADR-0051). Dispatchers
-     * whose event carries no such entity simply never call this; the default is a no-op so non-combat
-     * sinks and test doubles are unaffected.
+     * same-hit heal participates in the vanilla kill decision instead of racing it (ADR-0051), and
+     * zero-WAIT {@code damage} intents to it join the damage fold — one hurt, one immunity window — so a
+     * same-hit DAMAGE rider never window-rejects the next melee (ADR-0054). Dispatchers whose event
+     * carries no such entity simply never call this; the default is a no-op so non-combat sinks and test
+     * doubles are unaffected.
      */
     default void eventEntity(LivingEntity entity) {
     }
