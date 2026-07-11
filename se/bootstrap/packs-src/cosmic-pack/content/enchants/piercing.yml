@@ -9,26 +9,21 @@ tier: epic
 levels:
   1:
     effects:
-      - { SOUND: { sound: "ENTITY_ARROW_HIT_PLAYER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     effects:
-      - { SOUND: { sound: "ENTITY_ARROW_HIT_PLAYER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     effects:
-      - { SOUND: { sound: "ENTITY_ARROW_HIT_PLAYER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     effects:
-      - { SOUND: { sound: "ENTITY_ARROW_HIT_PLAYER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 13 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     effects:
-      - { SOUND: { sound: "ENTITY_ARROW_HIT_PLAYER", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

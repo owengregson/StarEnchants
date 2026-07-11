@@ -11,24 +11,20 @@ levels:
   1:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 0.75 } }
   2:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.25 } }
   3:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.75 } }
   4:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ITEM_ARMOR_EQUIP_IRON", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 8 } }
       - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }

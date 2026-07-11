@@ -16,20 +16,17 @@ levels:
     chance: 100
     soul-cost: 3
     effects:
-      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.6, pitch: 1.2 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
       - { CANCEL: {} }
   2:
     chance: 100
     soul-cost: 2
     effects:
-      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.6, pitch: 1.2 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
       - { CANCEL: {} }
   3:
     chance: 100
     soul-cost: 1
     effects:
-      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.6, pitch: 1.2 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
       - { CANCEL: {} }
