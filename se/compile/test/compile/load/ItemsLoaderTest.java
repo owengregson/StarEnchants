@@ -179,6 +179,41 @@ class ItemsLoaderTest {
     }
 
     @Test
+    void parsesAMaskConfigIncludingSoundsAndTheDefaultFallback(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("mask.yml"), """
+                type: mask
+                name: "{COLOR}&l{NAME} Face"
+                lore:
+                  - "&7A masked helmet."
+                  - "{DESCRIPTION}"
+                lore-while-on-item: "&6&lMasked ({NAME}&r&6&l)"
+                sounds:
+                  apply: { sound: block.beacon.activate, volume: 0.5, pitch: 1.5 }
+                """);
+
+        MaskItemConfig mask = ItemsLoader.load(dir).mask().orElseThrow();
+        assertEquals("{COLOR}&l{NAME} Face", mask.name());
+        assertEquals(List.of("&7A masked helmet.", "{DESCRIPTION}"), mask.lore());
+        assertEquals("&6&lMasked ({NAME}&r&6&l)", mask.loreWhileOnItem());
+        assertTrue(mask.sounds());
+        assertEquals(new SoundCue("block.beacon.activate", 0.5f, 1.5f), mask.soundApply());
+        // an omitted remove sound falls back to the built-in default cue
+        assertEquals(MaskItemConfig.defaults().soundRemove(), mask.soundRemove());
+    }
+
+    @Test
+    void maskOmittedFieldsFallBackToDefaults(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("mask.yml"), "type: mask\n");
+
+        MaskItemConfig mask = ItemsLoader.load(dir).mask().orElseThrow();
+        assertEquals(MaskItemConfig.defaults().name(), mask.name());
+        assertEquals(MaskItemConfig.defaults().lore(), mask.lore());
+        assertEquals(MaskItemConfig.defaults().loreWhileOnItem(), mask.loreWhileOnItem());
+        assertTrue(mask.sounds());
+        assertEquals(MaskItemConfig.defaults().soundApply(), mask.soundApply());
+    }
+
+    @Test
     void crystalApplySoundAcceptsTheBracketMap(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("crystal.yml"), """
                 type: crystal

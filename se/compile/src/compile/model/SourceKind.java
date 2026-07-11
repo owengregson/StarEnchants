@@ -24,5 +24,8 @@ public enum SourceKind {
     USE_ITEM,
 
     /** A pet bracket's ability ({@code content/pets/}, ADR-0052) — hotbar-resolved, level-bracket-selected. */
-    PET
+    PET,
+
+    /** A mask ability ({@code content/masks/}, ADR-0053) — resolved from a masked helmet's stored key, helmets-only. */
+    MASK
 }

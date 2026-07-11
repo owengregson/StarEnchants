@@ -37,7 +37,7 @@ public final class MasterConfigLoader {
                     MasterConfig.MessagesSection.defaults(), MasterConfig.BooksSection.defaults(),
                     MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
                     MasterConfig.CrystalsSection.defaults(),
-                    MasterConfig.PetsSection.defaults(),
+                    MasterConfig.PetsSection.defaults(), MasterConfig.MasksSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
                     MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
@@ -60,6 +60,7 @@ public final class MasterConfigLoader {
                 readSouls(root.child("souls"), diags),
                 readCrystals(root.child("crystals"), diags),
                 readPets(root.child("pets"), diags),
+                readMasks(root.child("masks"), diags),
                 readLore(root.child("lore"), diags),
                 readIntegrations(root.child("integrations"), diags),
                 readReload(root.child("reload"), diags),
@@ -120,7 +121,17 @@ public final class MasterConfigLoader {
                 parseBool(n.string("souls"), d.souls(), n, diags),
                 parseBool(n.string("scrolls"), d.scrolls(), n, diags),
                 parseBool(n.string("use-items"), d.useItems(), n, diags),
-                parseBool(n.string("pets"), d.pets(), n, diags));
+                parseBool(n.string("pets"), d.pets(), n, diags),
+                parseBool(n.string("masks"), d.masks(), n, diags));
+    }
+
+    /** The mask cross-cutting knobs (ADR-0053 §8): the owned {@code /near} interception's command list + radius. */
+    private static MasterConfig.MasksSection readMasks(YamlNode n, Diagnostics diags) {
+        MasterConfig.MasksSection d = MasterConfig.MasksSection.defaults();
+        return new MasterConfig.MasksSection(
+                // present-but-empty (near-commands: []) is honoured to DISABLE the interception, not defaulted.
+                n.has("near-commands") ? n.stringList("near-commands") : d.nearCommands(),
+                parseInt(n.string("near-radius"), d.nearRadius(), n, diags));
     }
 
     /** The universal pet knobs + the three universal pet message templates (ADR-0052). */

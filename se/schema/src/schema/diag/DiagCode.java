@@ -95,6 +95,7 @@ public enum DiagCode {
     W_LOAD_USE_TRIGGER,    // a use-item declares an explicit trigger — the USE trigger is implicit, so it is forced and the authored value ignored
     E_LOAD_PET,            // a pet file is not a YAML mapping, is missing its display/type, or has an empty/malformed levels map
     W_LOAD_PET_TRIGGER,    // a pet ability's trigger is inconsistent with its type (ACTIVE default USE; a PASSIVE pet may not author USE) — forced/ignored
+    E_LOAD_MASK,           // a mask file is not a YAML mapping, is missing its display, or declares no ability (crystal dual form; no trigger)
     E_LOAD_SET,            // a set file is not a YAML mapping
     E_LOAD_SET_ARMOR,      // a set is missing its armor: block or declares no pieces
     E_LOAD_SET_MEMBER,     // an armour piece declares no material

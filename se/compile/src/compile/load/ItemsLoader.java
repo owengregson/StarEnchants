@@ -39,6 +39,7 @@ public final class ItemsLoader {
         Optional<WhiteScrollConfig> whiteScroll = Optional.empty();
         Optional<PetItemConfig> pet = Optional.empty();
         Optional<PetFoodConfig> petFood = Optional.empty();
+        Optional<MaskItemConfig> mask = Optional.empty();
         // Scroll family: each member is its own file, assembled into one ScrollsConfig below (§I).
         Optional<ScrollsConfig.Black> black = Optional.empty();
         Optional<ScrollsConfig.Randomizer> randomizer = Optional.empty();
@@ -235,6 +236,14 @@ public final class ItemsLoader {
                         petFood = Optional.of(readPetFood(root, diags));
                     }
                 }
+                case "mask", "masks" -> {
+                    if (mask.isPresent()) {
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one mask config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        mask = Optional.of(readMask(root, diags));
+                    }
+                }
                 default -> diags.warning(DiagCode.W_ITEM_TYPE, "unknown item type '" + type + "' in " + name, root.source());
             }
         }
@@ -261,7 +270,21 @@ public final class ItemsLoader {
             traks = Optional.empty();
         }
         return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, enchantBook,
-                dust, whiteScroll, traks, pet, petFood, diags.all());
+                dust, whiteScroll, traks, pet, petFood, mask, diags.all());
+    }
+
+    /** items/mask.yml — the universal mask likeness (ADR-0053): name/lore templates + the on-helmet line + cues. */
+    private static MaskItemConfig readMask(YamlNode root, Diagnostics diags) {
+        MaskItemConfig d = MaskItemConfig.defaults();
+        YamlNode sounds = root.child("sounds");
+        return new MaskItemConfig(
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                orDefault(root.string("lore-while-on-item"), d.loreWhileOnItem()),
+                root.has("sounds") && sounds.has("enabled")
+                        ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
+                SoundCue.fromField(sounds, "apply", d.soundApply(), diags),
+                SoundCue.fromField(sounds, "remove", d.soundRemove(), diags));
     }
 
     /** items/pet.yml — the universal pet likeness (ADR-0052): the name + per-type lore templates. */
