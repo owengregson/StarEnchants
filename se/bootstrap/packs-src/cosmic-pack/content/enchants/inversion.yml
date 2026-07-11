@@ -3,7 +3,9 @@ display: "Inversion"
 description:
   - "&eNegates an incoming hit and"
   - "&erestores health instead."
-trigger: ATTACK
+# DEFENSE, not ATTACK: CANCEL negates the event the walk is running on — on the attack walk that
+# was the holder's OWN hit. Held-sword defense enchants are established (block, reflective-block).
+trigger: DEFENSE
 applies-to: [SWORD]
 group: "legendary"
 tier: legendary
