@@ -390,7 +390,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     // ── Entity intents ───────────────────────────────────────────────────────────────────────────
 
     @Override
-    public void damage(LivingEntity target, double amount) {
+    public void damage(LivingEntity target, double amount, LivingEntity attacker) {
         if (target == null) {
             return;
         }
@@ -405,11 +405,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
             fold.addFlatDamage(amount);
             return;
         }
-        entityOp(target, () -> target.damage(amount));
+        entityOp(target, () -> hurt(target, amount, attacker));
     }
 
     @Override
-    public void damagePercentOfMax(LivingEntity target, double percentOfMax) {
+    public void damagePercentOfMax(LivingEntity target, double percentOfMax, LivingEntity attacker) {
         if (target == null || percentOfMax <= 0) {
             return;
         }
@@ -421,7 +421,28 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         // The max-health read and the damage both run on the target's own thread (entityOp) — never a cross-region
         // max-health read. Uses the era-adaptive maxHealth() leaf, so it is version-stable.
-        entityOp(target, () -> target.damage(maxHealth(target) * percentOfMax / 100.0));
+        entityOp(target, () -> hurt(target, maxHealth(target) * percentOfMax / 100.0, attacker));
+    }
+
+    /**
+     * The one place StarEnchants itself hurts an entity (ADR-0054). Attributed to {@code attacker} when
+     * one is in scope, so downstream plugins (era combat, logging, regions) see a real
+     * {@code EntityDamageByEntityEvent} with the responsible party instead of an ownerless CUSTOM hurt;
+     * bare only when no attacker exists or the attacker IS the target (self-attribution reads as a
+     * self-hit and is dropped by combat dispatchers anyway). Runs on the target's owning thread (the
+     * plan routed it there), and the attacker handle is only handed to vanilla as the damage source —
+     * never dereferenced here — so a cross-region attacker is safe on Folia. The {@link EngineDamage}
+     * frame preserves the old bare-damage re-entrancy mechanism: SE's own combat pipeline stands down
+     * for the events this call fires.
+     */
+    private static void hurt(LivingEntity target, double amount, LivingEntity attacker) {
+        EngineDamage.frame(() -> {
+            if (attacker != null && !attacker.equals(target)) {
+                target.damage(amount, attacker);
+            } else {
+                target.damage(amount);
+            }
+        });
     }
 
     @Override
@@ -924,7 +945,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void lightningAndDamage(LivingEntity target, double amount) {
+    public void lightningAndDamage(LivingEntity target, double amount, LivingEntity attacker) {
         entityOp(target, () -> {
             World world = target.getWorld();
             if (world != null) {
@@ -936,7 +957,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 }
             }
             if (amount > 0) {
-                target.damage(amount);
+                // A bolt is its own proc, never a same-hit rider (ADR-0054): always a separate,
+                // attributed application.
+                hurt(target, amount, attacker);
             }
         });
     }

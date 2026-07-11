@@ -80,10 +80,11 @@ class FanOutEffectTest {
     List<DynamicTest> livingTargetIntents() {
         return List.of(
                 entity("DAMAGE → damage (flat amount only, percent-of-max 0)", new DamageEffect(),
-                        c -> c.with("amount", 6.0).with("percent-of-max", 0.0), (s, t) -> verify(s).damage(t, 6.0)),
+                        c -> c.with("amount", 6.0).with("percent-of-max", 0.0),
+                        (s, t) -> verify(s).damage(t, 6.0, null)),
                 entity("DAMAGE → damagePercentOfMax (percent-of-max only, amount 0)", new DamageEffect(),
                         c -> c.with("amount", 0.0).with("percent-of-max", 10.0),
-                        (s, t) -> verify(s).damagePercentOfMax(t, 10.0)),
+                        (s, t) -> verify(s).damagePercentOfMax(t, 10.0, null)),
                 entity("CURE (default ALL) → cureByCategory(0)", new CureEffect(),
                         c -> c.with("category", "ALL"), (s, t) -> verify(s).cureByCategory(t, 0)),
                 entity("CURE category HARMFUL → cureByCategory(1)", new CureEffect(),
@@ -103,7 +104,7 @@ class FanOutEffectTest {
                 entity("INVINCIBLE → invincible(ticks)", new InvincibleEffect(),
                         c -> c.with("ticks", 100), (s, t) -> verify(s).invincible(t, 100)),
                 entity("LIGHTNING → lightningAndDamage(damage)", new LightningEffect(),
-                        c -> c.with("damage", 6.0), (s, t) -> verify(s).lightningAndDamage(t, 6.0)),
+                        c -> c.with("damage", 6.0), (s, t) -> verify(s).lightningAndDamage(t, 6.0, null)),
                 entity("HEALTH → addMaxHealth(amount)", new HealthEffect(),
                         c -> c.with("amount", 4.0), (s, t) -> verify(s).addMaxHealth(t, 4.0)),
                 entity("KNOCKBACK_CONTROL → controlKnockback(multiplier, duration)", new KnockbackControlEffect(),
@@ -116,7 +117,28 @@ class FanOutEffectTest {
                 // §C: the authored 1-based level reaches the Sink as the 0-based Bukkit amplifier (level − 1).
                 entity("POTION → potion(effect, level−1, duration)", new PotionEffect(),
                         c -> c.with("effect", 7).with("level", 2).with("duration", 100),
-                        (s, t) -> verify(s).potion(t, 7, 1, 100)));
+                        (s, t) -> verify(s).potion(t, 7, 1, 100)),
+                // ADR-0054: DAMAGE/LIGHTNING attribute the activating player, so a deferred application
+                // (a WAIT DoT tick, a bystander target) fires an attributed event downstream.
+                dynamicTest("DAMAGE/LIGHTNING carry the activator as the attribution attacker", () -> {
+                    Player actor = mock(Player.class);
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("amount", 6.0).with("percent-of-max", 10.0).targets("who", a, b);
+                    Sink sink = mock(Sink.class);
+                    new DamageEffect().run(ctx, sink);
+                    verify(sink).damage(a, 6.0, actor);
+                    verify(sink).damagePercentOfMax(a, 10.0, actor);
+                    verify(sink).damage(b, 6.0, actor);
+                    verify(sink).damagePercentOfMax(b, 10.0, actor);
+                    verifyNoMoreInteractions(sink);
+                    FakeEffectCtx bolt = FakeEffectCtx.create().actor(actor).with("damage", 5.0).targets("who", a);
+                    Sink boltSink = mock(Sink.class);
+                    new LightningEffect().run(bolt, boltSink);
+                    verify(boltSink).lightningAndDamage(a, 5.0, actor);
+                    verifyNoMoreInteractions(boltSink);
+                }));
     }
 
     @TestFactory
