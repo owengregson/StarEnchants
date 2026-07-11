@@ -23,6 +23,7 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Horse;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
@@ -140,6 +141,47 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     @Override
     protected void applyInvulnerable(LivingEntity target, boolean invulnerable) {
         setNmsInvulnerable(target, invulnerable);
+    }
+
+    @Override
+    protected void applyNoAi(LivingEntity entity) {
+        // 1.8 has no LivingEntity#setAI (1.9+): EntityInsentient.k(boolean) writes datawatcher index 15 —
+        // the 1.8 NoAI flag (verified by javap -c against craftbukkit-1.8.8).
+        if (entity instanceof CraftLivingEntity) {
+            net.minecraft.server.v1_8_R3.EntityLiving handle = ((CraftLivingEntity) entity).getHandle();
+            if (handle instanceof net.minecraft.server.v1_8_R3.EntityInsentient) {
+                ((net.minecraft.server.v1_8_R3.EntityInsentient) handle).k(true);
+            }
+        }
+    }
+
+    @Override
+    @SuppressWarnings("deprecation") // setPassenger: the 1.8 single-passenger API.
+    protected void mountEntity(Entity vehicle, Entity passenger) {
+        vehicle.setPassenger(passenger);
+    }
+
+    @Override
+    protected void applySaddle(LivingEntity entity) {
+        if (entity instanceof Horse) {
+            Horse horse = (Horse) entity;
+            horse.setTamed(true); // an untamed horse ignores rider steering even when saddled
+            horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
+        }
+    }
+
+    /** 1.8 has no SKELETON_HORSE entity type — spawn a HORSE and flip its variant (the §6 degrade). */
+    @Override
+    protected Entity spawnTyped(World world, Location at, int entityTypeId) {
+        String name = resolvers.nameOf(HandleCategory.ENTITY_TYPE, entityTypeId);
+        if ("SKELETON_HORSE".equals(name)) {
+            Entity spawned = world.spawnEntity(at, EntityType.HORSE);
+            if (spawned instanceof Horse) {
+                ((Horse) spawned).setVariant(Horse.Variant.SKELETON_HORSE);
+            }
+            return spawned;
+        }
+        return super.spawnTyped(world, at, entityTypeId);
     }
 
     @Override

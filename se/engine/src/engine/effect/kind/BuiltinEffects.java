@@ -99,6 +99,9 @@ public final class BuiltinEffects {
                 .register(new WeakenEffect())     // Destruction: non-stacking outgoing-damage debuff on the target
                 .register(new DamageCapEffect())  // Diminish: cap the wearer's next hit at a fraction of the last taken
                 .register(new EchoStrikeEffect()) // Double Strike: re-run the attacker walk once over the same hit
+                // ADR-0052 pet primitives (appended last; a kind's head is its identity).
+                .register(new CageEffect())        // Cage pet: temp sealed cage + both parties teleported inside
+                .register(new StripScrollEffect()) // Anubis pet: strip a White/Holy-White marker off victim gear
                 .build();
     }
 }

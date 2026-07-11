@@ -28,6 +28,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
@@ -42,6 +43,7 @@ import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import platform.caps.Regions;
 import platform.economy.EconomyService;
 import platform.item.Inventories;
 import platform.sched.Scheduling;
@@ -114,6 +116,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final TrailWalker trails;
     /** The ONE per-boot timed-revert registry (via {@link SinkEnv}), so the quit drain can restore a logout-stranded buff. */
     private final TimedRevert timedReverts;
+    /** LIVE ceiling on one {@code interest_percent} deposit ({@code <= 0} = uncapped) — ADR-0052 Fish. */
+    private final java.util.function.DoubleSupplier moneyInterestCap;
+    /** The scroll-marker seam {@code STRIP_SCROLL} mutates victim gear through (ADR-0052 Anubis). */
+    private final GearProtection gearProtection;
 
     /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
     private LivingEntity eventEntity;
@@ -157,6 +163,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.tempBlocks = env.tempBlocks();
         this.trails = env.trails();
         this.timedReverts = env.timedReverts();
+        this.moneyInterestCap = env.moneyInterestCap();
+        this.gearProtection = env.gearProtection();
         this.fold = new DamageFold();
     }
 
@@ -767,6 +775,42 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void stripScroll(LivingEntity target, boolean holy, boolean includeHand) {
+        // Runs on the target's own thread (entityOp): reading + writing its equipment is region-correct, and
+        // the strip (marker release + lore recompose) mutates the stack BEFORE the write-back — worn arrays
+        // may be copies, so a strip without setArmorContents/setMainHand would be silently lost.
+        entityOp(target, () -> {
+            EntityEquipment equipment = target.getEquipment();
+            if (equipment == null) {
+                return;
+            }
+            ItemStack[] worn = equipment.getArmorContents();
+            ItemStack held = includeHand ? mainHand(equipment) : null;
+            int[] slots = new int[worn.length + 1];
+            int n = 0;
+            for (int i = 0; i < worn.length; i++) {
+                if (worn[i] != null && gearProtection.isProtected(worn[i], holy)) {
+                    slots[n++] = i;
+                }
+            }
+            if (held != null && gearProtection.isProtected(held, holy)) {
+                slots[n++] = worn.length; // sentinel: the held item
+            }
+            if (n == 0) {
+                return;
+            }
+            int pick = slots[ThreadLocalRandom.current().nextInt(n)];
+            if (pick == worn.length) {
+                if (gearProtection.strip(held, holy)) {
+                    setMainHand(equipment, held);
+                }
+            } else if (gearProtection.strip(worn[pick], holy)) {
+                equipment.setArmorContents(worn);
+            }
+        });
+    }
+
+    @Override
     public void swapEquipment(Player target, int slotIndex, int materialId, int durationTicks) {
         entityOp(target, () -> {
             Material placeholder = material(materialId);
@@ -882,13 +926,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
     public void spawnEntity(Location at, int entityTypeId, int count, int ttlTicks, double health, UUID ownerId) {
         Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
-            EntityType type = entityType(entityTypeId);
             World world = origin.getWorld();
-            if (type == null || world == null || count <= 0) {
+            if (world == null || count <= 0) {
                 return;
             }
             for (int i = 0; i < count; i++) {
-                Entity spawned = world.spawnEntity(origin, type);
+                Entity spawned = spawnTyped(world, origin, entityTypeId);
+                if (spawned == null) {
+                    return; // unresolvable type on this version — the §9 compile warn already fired
+                }
                 if (health > 0 && spawned instanceof LivingEntity living) {
                     applySpawnHealth(living, health);
                 }
@@ -906,6 +952,71 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 bindTtlForget(spawned, ttlTicks);
             }
         });
+    }
+
+    @Override
+    public void spawnSummon(Location at, int entityTypeId, int count, int ttlTicks, double health, UUID ownerId,
+                            Player activator, SummonFlags flags) {
+        if (flags == null || flags.none()) {
+            spawnEntity(at, entityTypeId, count, ttlTicks, health, ownerId); // byte-stable plain path
+            return;
+        }
+        Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
+        regionOp(origin, () -> {
+            World world = origin.getWorld();
+            if (world == null || count <= 0) {
+                return;
+            }
+            for (int i = 0; i < count; i++) {
+                Entity spawned = spawnTyped(world, origin, entityTypeId);
+                if (spawned == null) {
+                    continue; // unresolvable type on this version — the §9 compile warn already fired
+                }
+                if (health > 0 && spawned instanceof LivingEntity living) {
+                    applySpawnHealth(living, health);
+                }
+                if (flags.powered() && spawned instanceof Creeper creeper) {
+                    creeper.setPowered(true); // stable Bukkit API across the whole range incl. 1.8
+                }
+                if (flags.noAi() && spawned instanceof LivingEntity living) {
+                    applyNoAi(living);
+                }
+                if (flags.saddled() && spawned instanceof LivingEntity living) {
+                    applySaddle(living);
+                }
+                if (ownerId != null) {
+                    GuardianCasts.bind(spawned.getUniqueId(), ownerId);
+                    if (spawned instanceof Tameable tame) {
+                        tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
+                        tame.setTamed(true);
+                    }
+                }
+                if (flags.tracked()) {
+                    // The summon-guard listener enforces no-target + hit-gated detonation from this registry.
+                    PetSummons.bind(spawned.getUniqueId(), flags);
+                }
+                if (flags.mountActivator() && activator != null) {
+                    try {
+                        mountEntity(spawned, activator); // spawn is at the activator, so co-region in practice
+                    } catch (RuntimeException unreadable) {
+                        Regions.swallowed("DispatchSinkBase.spawnSummon.mount", unreadable);
+                    }
+                }
+                bindSummonTtl(spawned, ttlTicks);
+            }
+        });
+    }
+
+    /** Auto-remove a flagged summon after {@code ttlTicks}, forgetting BOTH registries first. */
+    private static void bindSummonTtl(Entity spawned, int ttlTicks) {
+        if (ttlTicks > 0) {
+            UUID spawnedId = spawned.getUniqueId();
+            Scheduling.onEntityLater(spawned, ttlTicks, () -> {
+                GuardianCasts.forget(spawnedId);
+                PetSummons.forget(spawnedId);
+                spawned.remove();
+            });
+        }
     }
 
     @Override
@@ -1116,6 +1227,155 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
+                        int replaceMode) {
+        Location origin = center.clone(); // own the centre: a WAIT tier can defer this to a later tick
+        regionOp(origin, () -> {
+            Material material = material(materialId);
+            World world = origin.getWorld();
+            if (material == null || !material.isBlock() || world == null || durationTicks <= 0) {
+                return; // a permanent untracked box is never wanted — a trap must always revert
+            }
+            int baseY = origin.getBlockY();
+            int cx = origin.getBlockX();
+            int cz = origin.getBlockZ();
+            int hx = (width - 1) / 2;
+            int hz = (depth - 1) / 2;
+            int typeId = material.ordinal();
+            long now = nowTicks.getAsLong();
+            UUID worldId = world.getUID();
+            for (int dx = -hx; dx < width - hx; dx++) {
+                for (int dz = -hz; dz < depth - hz; dz++) {
+                    for (int dy = 0; dy < height; dy++) {
+                        int bx = cx + dx;
+                        int by = baseY + dy;
+                        int bz = cz + dz;
+                        Location tileAt = new Location(world, bx, by, bz);
+                        // Re-key EACH tile to its OWN region (the tempPlatform rule): a 3-wide box may straddle
+                        // a Folia region boundary, and the read, set, ledger mutation and revert must all run
+                        // on the tile's owning thread.
+                        Scheduling.onRegion(tileAt, () -> {
+                            Block block = world.getBlockAt(bx, by, bz);
+                            if (!canReplace(block, replaceMode)) {
+                                return;
+                            }
+                            TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, by, bz);
+                            TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                            Scheduling.onRegionLater(tileAt, pending.delayTicks(),
+                                    () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void cage(Location base, LivingEntity first, LivingEntity second, int floorMaterialId,
+                     int wallMaterialId, int roofMaterialId, int width, int height, int depth, int durationTicks) {
+        Location origin = base.clone(); // own the base: a WAIT tier can defer this to a later tick
+        regionOp(origin, () -> {
+            Material floor = material(floorMaterialId);
+            Material wall = material(wallMaterialId);
+            Material roof = material(roofMaterialId);
+            World world = origin.getWorld();
+            if (floor == null || wall == null || roof == null || world == null || durationTicks <= 0) {
+                return;
+            }
+            int cx = origin.getBlockX();
+            int baseY = origin.getBlockY(); // interior floor level; the floor PLATE sits at baseY - 1
+            int cz = origin.getBlockZ();
+            int hx = (width - 1) / 2;
+            int hz = (depth - 1) / 2;
+            // Safety first: EVERY cell of the full structure volume (plates + ring + interior) must currently
+            // be air, or nothing is placed and no one teleports. The volume read runs on the base's region; a
+            // straddling read that faults on Folia aborts the cage rather than half-building it.
+            try {
+                for (int dx = -hx - 1; dx < width - hx + 1; dx++) {
+                    for (int dz = -hz - 1; dz < depth - hz + 1; dz++) {
+                        for (int dy = -1; dy <= height; dy++) {
+                            if (!canReplace(world.getBlockAt(cx + dx, baseY + dy, cz + dz), 0)) {
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("DispatchSinkBase.cage.safetyCheck", unreadable);
+                return;
+            }
+            long now = nowTicks.getAsLong();
+            UUID worldId = world.getUID();
+            for (int dx = -hx - 1; dx < width - hx + 1; dx++) {
+                for (int dz = -hz - 1; dz < depth - hz + 1; dz++) {
+                    boolean ring = dx < -hx || dx >= width - hx || dz < -hz || dz >= depth - hz;
+                    for (int dy = -1; dy <= height; dy++) {
+                        Material material;
+                        if (dy == -1) {
+                            material = floor; // full plate under interior AND ring, so the cage is sealed
+                        } else if (dy == height) {
+                            material = roof;
+                        } else if (ring) {
+                            material = wall;
+                        } else {
+                            continue; // the interior stays air
+                        }
+                        int bx = cx + dx;
+                        int by = baseY + dy;
+                        int bz = cz + dz;
+                        int typeId = material.ordinal();
+                        Location tileAt = new Location(world, bx, by, bz);
+                        // Per-tile region re-key (the tempPlatform rule) — a 5-wide structure can straddle.
+                        Scheduling.onRegion(tileAt, () -> {
+                            Block block = world.getBlockAt(bx, by, bz);
+                            if (!canReplace(block, 2)) { // checked-air raced into something: capture + restore it
+                                return;
+                            }
+                            TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, by, bz);
+                            TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                            Scheduling.onRegionLater(tileAt, pending.delayTicks(),
+                                    () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
+                        });
+                    }
+                }
+            }
+            // Opposite interior cells on the axis the two parties already stand along, facing each other.
+            // Yaw: +X faces west (90), -X faces east (-90), +Z faces north (180), -Z faces south (0).
+            double ax = 0;
+            double az = 0;
+            try {
+                Location f = first.getLocation();
+                Location s = second.getLocation();
+                ax = f.getX() - s.getX();
+                az = f.getZ() - s.getZ();
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("DispatchSinkBase.cage.axis", unreadable); // fall back to the X axis
+            }
+            boolean alongX = Math.abs(ax) >= Math.abs(az);
+            int sideX = alongX ? (ax >= 0 ? 1 : -1) : 0; // first keeps the side nearer where it stood
+            int sideZ = alongX ? 0 : (az >= 0 ? 1 : -1);
+            teleport(first, cell(world, cx + sideX, baseY, cz + sideZ, yawToward(-sideX, -sideZ)));
+            teleport(second, cell(world, cx - sideX, baseY, cz - sideZ, yawToward(sideX, sideZ)));
+        });
+    }
+
+    /** The centre of an interior cage cell, with a facing yaw and level pitch. */
+    private static Location cell(World world, int x, int y, int z, float yaw) {
+        return new Location(world, x + 0.5, y, z + 0.5, yaw, 0f);
+    }
+
+    /** The yaw that looks along {@code (dx, dz)} — Bukkit yaw: 0 = +Z (south), 90 = -X (west). */
+    private static float yawToward(int dx, int dz) {
+        if (dx > 0) {
+            return -90f; // east
+        }
+        if (dx < 0) {
+            return 90f;  // west
+        }
+        return dz > 0 ? 0f : 180f; // south / north
+    }
+
+    @Override
     public void tempBlockTrail(int trailKeyDefId, UUID walker, Location currentCell, int materialId, int durationTicks) {
         Location pos = currentCell.clone(); // own the cell: a WAIT tier can defer this to a later tick
         // The walk (memory read/write + staircase) runs on the WALKER's own region — regionOp targets the
@@ -1315,6 +1575,27 @@ public abstract class DispatchSinkBase implements SinkReadback {
             double amount = economy.balance(fromId) * frac;
             if (amount > 0 && economy.withdraw(fromId, amount)) {
                 economy.deposit(toId, amount);
+            }
+        });
+    }
+
+    @Override
+    public void interestMoneyPercent(Player target, double fraction) {
+        if (target == null || fraction <= 0) {
+            return;
+        }
+        UUID targetId = target.getUniqueId();
+        double frac = Math.min(1.0, fraction);
+        // Read-balance + deposit in ONE global-thread task so no other money op interleaves. Income, not a
+        // transfer: the deposit MINTS money. The live cap is read per use so /se reload re-tunes it.
+        globalOp(() -> {
+            double amount = economy.balance(targetId) * frac;
+            double cap = moneyInterestCap.getAsDouble();
+            if (cap > 0) {
+                amount = Math.min(amount, cap);
+            }
+            if (amount > 0) {
+                economy.deposit(targetId, amount);
             }
         });
     }
@@ -1581,6 +1862,25 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * 1.8 (no {@code Mob}) via {@code Creature#setTarget}. Only stores the reference — no cross-region read.
      */
     protected abstract void setGuardTarget(Entity spawned, LivingEntity target);
+
+    /**
+     * Spawn one entity of an interned type at {@code at}, or {@code null} when the type does not resolve on
+     * this version. The legacy leaf overrides it for types 1.8 spawns under a different shape (ADR-0052:
+     * SKELETON_HORSE = a HORSE with the skeleton variant); the default is the plain resolved spawn.
+     */
+    protected Entity spawnTyped(World world, Location at, int entityTypeId) {
+        EntityType type = entityType(entityTypeId);
+        return type == null ? null : world.spawnEntity(at, type);
+    }
+
+    /** Disable a summon's AI (ADR-0052): modern {@code setAI(false)}; 1.8 via the NMS NoAI tag leaf. */
+    protected abstract void applyNoAi(LivingEntity entity);
+
+    /** Seat {@code passenger} on {@code vehicle} (ADR-0052): modern {@code addPassenger}; 1.8 {@code setPassenger}. */
+    protected abstract void mountEntity(Entity vehicle, Entity passenger);
+
+    /** Saddle a horse-type summon so it is steerable (ADR-0052); a no-op on a non-horse. */
+    protected abstract void applySaddle(LivingEntity entity);
 
     /** Spawn a cosmetic falling block of {@code material} at {@code loc} (block-data on modern; data byte on 1.8). */
     protected abstract FallingBlock spawnFallingBlock(World world, Location loc, Material material);

@@ -4,6 +4,7 @@ import compile.model.Affinity;
 import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
 import engine.sink.Sink;
+import engine.sink.SummonFlags;
 import engine.spec.EffectSpec;
 import engine.spec.T;
 import org.bukkit.Location;
@@ -25,12 +26,22 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("ttl", D.TICKS.def(0))
             .param("health", D.DOUBLE.min(0).def(0))
             .param("owner", D.enumOf("none", "activator").def("none"))
+            .param("powered", D.BOOL.def(false))
+            .param("ai", D.BOOL.def(true))
+            .param("targeting", D.BOOL.def(true))
+            .param("saddled", D.BOOL.def(false))
+            .param("mount", D.enumOf("none", "activator").def("none"))
+            .param("detonate", D.enumOf("NONE", "PLAYER_HIT").def("NONE"))
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
             .actorOrigin()
             .doc("Spawn count entities of type at the target's (or activation) location; ttl ticks until "
                     + "removal (0 = permanent), optional starting health, and owner=activator to tame an owned "
-                    + "summon to the activator. Replaces SPAWN/TNT.")
+                    + "summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false "
+                    + "disables mob AI; targeting=false stops the summon acquiring targets; saddled + "
+                    + "mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT "
+                    + "makes a creeper explode ONLY when a player hits it (it never self-detonates). "
+                    + "Replaces SPAWN/TNT.")
             .example("{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }")
             .build();
 
@@ -48,6 +59,13 @@ public final class SpawnEntityEffect implements EffectKind {
         Player actor = ctx.actor();
         java.util.UUID owner = "activator".equalsIgnoreCase(ctx.str("owner")) && actor != null
                 ? actor.getUniqueId() : null;
+        SummonFlags flags = new SummonFlags(
+                ctx.bool("powered"),
+                !ctx.bool("ai"),
+                !ctx.bool("targeting"),
+                ctx.bool("saddled"),
+                "activator".equalsIgnoreCase(ctx.str("mount")),
+                "PLAYER_HIT".equalsIgnoreCase(ctx.str("detonate")));
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {
@@ -65,11 +83,11 @@ public final class SpawnEntityEffect implements EffectKind {
             if (base == null) {
                 continue;
             }
-            sink.spawnEntity(base, type, count, ttl, health, owner);
+            sink.spawnSummon(base, type, count, ttl, health, owner, actor, flags);
             any = true;
         }
         if (!any && ctx.location() != null) {
-            sink.spawnEntity(ctx.location(), type, count, ttl, health, owner);
+            sink.spawnSummon(ctx.location(), type, count, ttl, health, owner, actor, flags);
         }
     }
 }

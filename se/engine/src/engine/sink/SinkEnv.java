@@ -3,6 +3,7 @@ package engine.sink;
 import engine.stores.EngineStores;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.LongSupplier;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
@@ -28,7 +29,8 @@ import platform.economy.EconomyService;
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
-                      TrailWalker trails, TimedRevert timedReverts) {
+                      TrailWalker trails, TimedRevert timedReverts,
+                      DoubleSupplier moneyInterestCap, GearProtection gearProtection) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -39,6 +41,8 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(tempBlocks, "tempBlocks");
         Objects.requireNonNull(trails, "trails");
         Objects.requireNonNull(timedReverts, "timedReverts");
+        Objects.requireNonNull(moneyInterestCap, "moneyInterestCap");
+        Objects.requireNonNull(gearProtection, "gearProtection");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -49,7 +53,18 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
     /** The composition-root shape: an anti-cheat exemption plus a fresh per-boot temp-block ledger and trail memory. */
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                              Consumer<Player> movementExemption) {
+        return of(economy, souls, stores, nowTicks, movementExemption, () -> 0, GearProtection.NONE);
+    }
+
+    /**
+     * The full composition-root shape (ADR-0052): {@code moneyInterestCap} is the LIVE ceiling on one
+     * {@code interest_percent} deposit ({@code <= 0} = uncapped, read per use so {@code /se reload} re-tunes
+     * it); {@code gearProtection} is the scroll-marker seam {@code STRIP_SCROLL} mutates victim gear through.
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
-                new TrailWalker(), new TimedRevert());
+                new TrailWalker(), new TimedRevert(), moneyInterestCap, gearProtection);
     }
 }

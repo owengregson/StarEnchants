@@ -98,6 +98,7 @@ public final class FactPopulator {
     private final int damageCauseSlot;       // DamageCause name of the triggering event (from the context)
     private final int itemDamageArmorSlot;   // ITEM_DAMAGE: worn-armor vs held (from the context)
     private final int actorBehindVictimSlot; // actor behind the victim's facing (derived, Folia-guarded)
+    private final int actorBelowVictimSlot;  // actor's feet below the victim's (derived, Folia-guarded, ADR-0052)
     private final int rageStacksSlot;        // %ragestacks% (actor-scoped store read, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
@@ -181,6 +182,7 @@ public final class FactPopulator {
         this.damageCauseSlot = slot(vocabulary, "damagecause", VarKind.STR);
         this.itemDamageArmorSlot = slot(vocabulary, "itemdamage.armor", VarKind.BOOL);
         this.actorBehindVictimSlot = slot(vocabulary, "actor.behindvictim", VarKind.BOOL);
+        this.actorBelowVictimSlot = slot(vocabulary, "actor.belowvictim", VarKind.NUM);
         this.rageStacksSlot = slot(vocabulary, "ragestacks", VarKind.NUM);
     }
 
@@ -367,7 +369,8 @@ public final class FactPopulator {
         boolean wantsInZone = victimInZoneSlot >= 0 && mask.readsFlag(victimInZoneSlot);
         boolean wantsNearby = nearbyEnemiesSlot >= 0 && mask.readsNum(nearbyEnemiesSlot);
         boolean wantsBehind = actorBehindVictimSlot >= 0 && mask.readsFlag(actorBehindVictimSlot);
-        if (!wantsDistance && !wantsInZone && !wantsNearby && !wantsBehind) {
+        boolean wantsBelow = actorBelowVictimSlot >= 0 && mask.readsNum(actorBelowVictimSlot);
+        if (!wantsDistance && !wantsInZone && !wantsNearby && !wantsBehind && !wantsBelow) {
             return;
         }
         org.bukkit.entity.Player actor = context.actor();
@@ -402,6 +405,15 @@ public final class FactPopulator {
                 LivingEntity victim = context.victim();
                 if (victim != null && victim.getWorld() == actor.getWorld()) {
                     facts.setFlag(actorBehindVictimSlot, behindVictim(actor, victim));
+                }
+            }
+            if (wantsBelow) {
+                LivingEntity victim = context.victim();
+                if (victim != null && victim.getWorld() == actor.getWorld()) {
+                    // How far the actor's feet sit BELOW the victim's (ADR-0052 Eagle) — the threshold is
+                    // authored on the condition (e.g. %actor.belowvictim% > 1.5), never hardcoded here.
+                    facts.setNumber(actorBelowVictimSlot,
+                            victim.getLocation().getY() - actor.getLocation().getY());
                 }
             }
         } catch (RuntimeException unreadable) {

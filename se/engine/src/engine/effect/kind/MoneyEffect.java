@@ -19,12 +19,14 @@ public final class MoneyEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("MODIFY_MONEY")
             .param("amount", D.DOUBLE.min(0))
-            .param("mode", D.enumOf("give", "take", "transfer", "steal_percent").def("give"))
+            .param("mode", D.enumOf("give", "take", "transfer", "steal_percent", "interest_percent").def("give"))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Modify a player target's balance: give to them, take from them, transfer (move at most the "
-                    + "target's balance to the activator — never more than they hold), or steal_percent (give the "
-                    + "activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces "
+                    + "target's balance to the activator — never more than they hold), steal_percent (give the "
+                    + "activator that PERCENT of the target's balance — amount is a 0..100 percentage), or "
+                    + "interest_percent (deposit the TARGET that percent of their OWN balance — minted income, "
+                    + "ADR-0052 Fish; one deposit is ceilinged by the live pets.max-percent-money-cap). Replaces "
                     + "GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].")
             .example("{ MODIFY_MONEY: { amount: 100, mode: give, who: \"@Self\" } }")
             .build();
@@ -38,6 +40,15 @@ public final class MoneyEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         double amount = ctx.dbl("amount");
         String mode = ctx.str("mode");
+        if ("interest_percent".equalsIgnoreCase(mode)) {
+            // amount is a percentage of the TARGET's own balance, deposited back to them (minted income).
+            for (LivingEntity target : ctx.targets("who")) {
+                if (target instanceof Player p) {
+                    sink.interestMoneyPercent(p, amount / 100.0);
+                }
+            }
+            return;
+        }
         if ("steal_percent".equalsIgnoreCase(mode)) {
             // amount is a percentage; the Sink reads each target's live balance and transfers that fraction.
             if (ctx.actor() != null) {
