@@ -41,7 +41,7 @@ maps), and **folia-scheduling** (the cross-region victim read).
 | ~~Migrate legacy NBT lazily in place~~ — **DESCOPED** | migration is config-only, not item-NBT; there is no lazy in-place item rewrite. See ADR-0005 (updated) | — |
 
 `byTrigger` / `combatAttack` / `combatDefense` are the pre-flattened **union over
-all active sources** (enchants + set + weapon + crystals + heroic), ordered — the
+all active sources** (enchants + set + weapon + crystals + heroic + hotbar pets, ADR-0052), ordered — the
 hit walks one array and never knows there were five sources (§5.5).
 
 ## The shape
