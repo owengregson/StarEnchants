@@ -14,8 +14,12 @@ import org.bukkit.entity.Player;
  */
 final class CombatModule {
 
-    /** The Rage enchant's base stable key; its per-level abilities are keyed {@code rage/1}…{@code rage/N}. */
-    private static final String RAGE_KEY = "rage";
+    /**
+     * The Rage enchant's stable key base. Content keys are {@code <source>/<stem>} (LibraryLoader.keyTierOf), so
+     * the per-level abilities are {@code enchants/rage/1}…{@code /N} — the prefix MUST carry the source segment
+     * or {@link #rageLevel} silently resolves 0 and the whole stack system (fx, fact, damage) goes inert.
+     */
+    static final String RAGE_KEY = "enchants/rage";
 
     private final BootCore core;
     private final RageStacksService rageStacks;
@@ -43,11 +47,17 @@ final class CombatModule {
         if (ws == null) {
             return 0;
         }
+        return rageLevel(ws.combatAttack(), aid -> snap.stableKeys().keyOf(aid), aid -> snap.abilities()[aid].level());
+    }
+
+    /** Key/level-function core of {@link #rageLevel(WornState, Snapshot)}, split out so the key-format contract is unit-testable. */
+    static int rageLevel(int[] attackIds, java.util.function.IntFunction<String> keyOf,
+                         java.util.function.IntUnaryOperator levelOf) {
         int best = 0;
-        for (int aid : ws.combatAttack()) {
-            String key = snap.stableKeys().keyOf(aid);
+        for (int aid : attackIds) {
+            String key = keyOf.apply(aid);
             if (key != null && key.startsWith(RAGE_KEY + "/")) {
-                best = Math.max(best, snap.abilities()[aid].level());
+                best = Math.max(best, levelOf.applyAsInt(aid));
             }
         }
         return best;
