@@ -186,6 +186,49 @@ class MasterConfigLoaderTest {
     }
 
     @Test
+    void parsesTheMasksSectionAndFeatureFlag(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                features:
+                  masks: false
+                masks:
+                  near-commands:
+                    - near
+                    - whereis
+                  near-radius: 500
+                """);
+
+        MasterConfig config = MasterConfigLoader.load(file);
+
+        assertFalse(config.hasErrors());
+        assertFalse(config.features().masks());
+        assertTrue(config.features().pets()); // an omitted feature stays on
+        assertEquals(java.util.List.of("near", "whereis"), config.masks().nearCommands());
+        assertEquals(500, config.masks().nearRadius());
+    }
+
+    @Test
+    void masksNearCommandsEmptyListDisablesTheInterceptionButAbsentDefaults(@TempDir Path dir) throws Exception {
+        // present-but-empty near-commands is honoured (disables the /near interception), not defaulted to [near]
+        Path empty = dir.resolve("empty.yml");
+        Files.writeString(empty, """
+                masks:
+                  near-commands: []
+                """);
+        assertTrue(MasterConfigLoader.load(empty).masks().nearCommands().isEmpty());
+
+        // an absent masks section defaults near-commands to [near] and the radius to 200
+        Path absent = dir.resolve("absent.yml");
+        Files.writeString(absent, """
+                combat:
+                  pvp: false
+                """);
+        MasterConfig.MasksSection d = MasterConfigLoader.load(absent).masks();
+        assertEquals(java.util.List.of("near"), d.nearCommands());
+        assertEquals(200, d.nearRadius());
+    }
+
+    @Test
     void miningGuardDefaultsOnAndParsesExplicitFalse(@TempDir Path dir) throws Exception {
         assertTrue(MasterConfig.MiningSection.defaults().placedBlockGuard(), "guard is on by default");
 

@@ -16,7 +16,7 @@ import schema.spec.Ranges;
 public record MasterConfig(FeaturesSection features, CombatSection combat, MiningSection mining,
                            MessagesSection messages,
                            BooksSection books, SlotsSection slots, SoulsSection souls, CrystalsSection crystals,
-                           PetsSection pets,
+                           PetsSection pets, MasksSection masks,
                            LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
                            MessageOnActivateSection messageOnActivate, SetsSection sets, EngineSection engine,
@@ -33,6 +33,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
         Objects.requireNonNull(souls, "souls");
         Objects.requireNonNull(crystals, "crystals");
         Objects.requireNonNull(pets, "pets");
+        Objects.requireNonNull(masks, "masks");
         Objects.requireNonNull(lore, "lore");
         Objects.requireNonNull(integrations, "integrations");
         Objects.requireNonNull(reload, "reload");
@@ -50,7 +51,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
         return new MasterConfig(FeaturesSection.defaults(), CombatSection.defaults(), MiningSection.defaults(),
                 MessagesSection.defaults(),
                 BooksSection.defaults(), SlotsSection.defaults(), SoulsSection.defaults(), CrystalsSection.defaults(),
-                PetsSection.defaults(),
+                PetsSection.defaults(), MasksSection.defaults(),
                 LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
                 SetsSection.defaults(), EngineSection.defaults(), StationsSection.defaults(),
@@ -179,6 +180,26 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
     }
 
     /**
+     * The mask cross-cutting knobs (ADR-0053 §8), read live. The {@code /near} immunity is an OWNED
+     * interception: no plugin can filter another's proximity scan, so {@code NearGuard} intercepts each command
+     * in {@link #nearCommands} and answers with its own listing (within {@link #nearRadius}) that omits
+     * {@code near}-warded players. Setting {@code near-commands: []} disables the interception entirely (the
+     * modernize-freely-but-opt-in divergence knob) — an empty list is honoured, not defaulted.
+     *
+     * @param nearCommands the command names {@code NearGuard} intercepts (no leading slash); {@code []} disables it
+     * @param nearRadius   the radius (blocks) the owned {@code /near} listing scans
+     */
+    public record MasksSection(List<String> nearCommands, int nearRadius) {
+        public MasksSection {
+            nearCommands = List.copyOf(nearCommands);
+        }
+
+        public static MasksSection defaults() {
+            return new MasksSection(List.of("near"), 200);
+        }
+    }
+
+    /**
      * Lore render style (§L). Mirrors {@code item.render.LoreStyle} field-for-field; bridged at the
      * composition root since {@code compile} does not depend on {@code item}.
      *
@@ -283,12 +304,13 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * @param scrolls  register the scroll-family interactions (black/randomizer/transmog/holy/nametag/godly)
      * @param useItems the right-click use-item gesture is live (the listener claims a held use-item, §3.6)
      * @param pets     pets contribute to worn state and the pet gestures (use/food/leveling) are live (ADR-0052)
+     * @param masks    masks contribute to worn state and the mask gestures (apply/remove) + illusion are live (ADR-0053)
      */
     public record FeaturesSection(boolean enchants, boolean sets, boolean crystals, boolean heroic,
                                   boolean slots, boolean souls, boolean scrolls, boolean useItems,
-                                  boolean pets) {
+                                  boolean pets, boolean masks) {
         public static FeaturesSection defaults() {
-            return new FeaturesSection(true, true, true, true, true, true, true, true, true);
+            return new FeaturesSection(true, true, true, true, true, true, true, true, true, true);
         }
     }
 

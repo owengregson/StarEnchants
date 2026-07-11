@@ -54,6 +54,7 @@ public final class LibraryLoader {
         List<SetDef> sets = new ArrayList<>();
         List<UseItemDef> useItems = new ArrayList<>();
         List<PetDef> pets = new ArrayList<>();
+        List<MaskDef> masks = new ArrayList<>();
         List<AbilityDef> defs = new ArrayList<>();
         int[] nextDefId = {0};
         Set<String> seenKeys = new HashSet<>();
@@ -142,10 +143,27 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
+        for (Path file : sourceFiles(contentRoot, "masks", diags)) {
+            KeyTier kt = keyTierOf(contentRoot, "masks", file, tiers);
+            if (!claim(kt.key(), contentRoot, file, seenKeys, diags)) {
+                continue;
+            }
+            YamlNode root = composeOf(contentRoot, file, diags);
+            if (root == null) {
+                continue;
+            }
+            // A mask's stored key is the source-prefixed masks/<stem> (like a crystal, no tier folder in the key);
+            // its ability stable keys namespace it directly (masks/<stem>, then /a1, …).
+            MaskDefReader.Parsed parsed = MaskDefReader.read(kt.key(), root, () -> nextDefId[0]++, diags);
+            if (parsed.def() != null) {
+                masks.add(parsed.def());
+            }
+            defs.addAll(parsed.abilities());
+        }
         validateRelationships(catalog, diags); // §G: requires/blacklist must name existing enchants
         validateSetEnchants(sets, catalog, diags); // §6.6: a set's custom enchant refs must exist (in range)
         Snapshot snapshot = compiler.compile(defs, generation, diags);
-        return new Library(snapshot, catalog, crystals, sets, useItems, pets, tiers, diags.all());
+        return new Library(snapshot, catalog, crystals, sets, useItems, pets, masks, tiers, diags.all());
     }
 
     /**
