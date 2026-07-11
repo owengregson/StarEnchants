@@ -74,8 +74,9 @@ effect HEALTH
 effect IGNITE
   param duration TICKS required min=0 max=- enum=- handle=- default=-
 effect IGNORE_ARMOR
+effect IGNORE_HEROIC
 effect IMMUNE
-  param type ENUM required min=- max=- enum=all,axe,potion,projectile,sword handle=- default=-
+  param type ENUM required min=- max=- enum=all,axe,fishhook,potion,projectile,sword handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
 effect INVERT_VAR
   param name STRING required min=- max=- enum=- handle=- default=-
@@ -201,7 +202,7 @@ effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true
 effect SUPPRESS
-  param scope ENUM required min=- max=- enum=ENCHANT,GROUP,TYPE handle=- default=-
+  param scope ENUM required min=- max=- enum=ENCHANT,GROUP,KIND,TYPE handle=- default=-
   param key STRING required min=- max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=200
   param mode ENUM optional min=- max=- enum=next-hit,timed handle=- default=timed
@@ -243,6 +244,10 @@ effect WALKER
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60
   param radius INT optional min=0 max=4 enum=- handle=- default=1
   param replace ENUM optional min=- max=- enum=AIR_ONLY,ANY,REPLACEABLE handle=- default=REPLACEABLE
+effect WARD
+  param type ENUM required min=- max=- enum=invsee,mob-target,near,splash-heal handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=100
+  param amount DOUBLE optional min=- max=- enum=- handle=- default=0
 effect WEAKEN
   param percent DOUBLE required min=0 max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=100

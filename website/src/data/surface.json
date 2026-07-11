@@ -60,6 +60,7 @@
     { "key": "godly-transmog", "type": "godly-transmog", "material": "NETHER_STAR", "name": "&5Godly Transmog" },
     { "key": "heroic", "type": "heroic", "material": "NETHERITE_SCRAP", "name": "&6&lHeroic Upgrade" },
     { "key": "holy-white-scroll", "type": "holy-white-scroll", "material": "TOTEM_OF_UNDYING", "name": "&fHoly White Scroll" },
+    { "key": "mask", "type": "mask", "material": null, "name": "{COLOR}&l{NAME} Mask" },
     { "key": "mobtrak", "type": "mobtrak", "material": "MAGMA_CREAM", "name": "&e&lMobTrak Gem" },
     { "key": "nametag", "type": "nametag", "material": "NAME_TAG", "name": "&bItem Nametag" },
     { "key": "pet-food", "type": "pet-food", "material": "GOLDEN_CARROT", "name": "&e&lPet Food [&r&a&n+{AMOUNT}&r&e&l]" },
