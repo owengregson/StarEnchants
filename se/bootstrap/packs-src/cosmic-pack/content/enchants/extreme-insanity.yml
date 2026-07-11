@@ -17,46 +17,46 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 40 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   2:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 60 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   3:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 80 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 16 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   4:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   5:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 120 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 24 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   6:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 140 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 28 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   7:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 160 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 32 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
   8:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.9, pitch: 0.8 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 180 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 36 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add

@@ -16,7 +16,7 @@ levels:
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 30, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 6, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   2:
     chance: 15
     cooldown: 120
@@ -25,7 +25,7 @@ levels:
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 40, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 8, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   3:
     chance: 18
     cooldown: 120
@@ -34,7 +34,7 @@ levels:
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 50, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 10, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   4:
     chance: 21
     cooldown: 120
@@ -43,7 +43,7 @@ levels:
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 60, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 12, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
   5:
     chance: 24
     cooldown: 120
@@ -52,4 +52,4 @@ levels:
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
       - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 75, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 15, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
