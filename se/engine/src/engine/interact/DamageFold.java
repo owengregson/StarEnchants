@@ -35,6 +35,10 @@ public final class DamageFold {
     // Combat caps (config.yml combat.*): ceilings on the summed additive fractions; +inf = uncapped.
     private double maxBonusOutgoing = Double.POSITIVE_INFINITY;
     private double maxBonusReduction = Double.POSITIVE_INFINITY;
+    // Attack-side throughput compensation (config.yml combat.attack-scale): content stays on a
+    // normalized human scale; ONE multiplier adapts it to the server's armor pipeline (a 1.8-era
+    // flat armor+Prot stack passes only ~5% of a hit, so the cosmic pack ships 5.0 there).
+    private double attackScale = 1.0;
 
     /**
      * Additive combat caps for this event (config.yml {@code combat.max-bonus-damage} /
@@ -44,6 +48,16 @@ public final class DamageFold {
     public void caps(double maxBonusOutgoing, double maxBonusReduction) {
         this.maxBonusOutgoing = maxBonusOutgoing < 0 ? Double.POSITIVE_INFINITY : maxBonusOutgoing;
         this.maxBonusReduction = maxBonusReduction < 0 ? Double.POSITIVE_INFINITY : maxBonusReduction;
+    }
+
+    /**
+     * Attack-side scale for this event (config.yml {@code combat.attack-scale}): multiplies the
+     * CAPPED summed outgoing% and the flat-damage bucket in {@link #apply} — the custom attack
+     * economy only, never the base hit and never the defense side, so vanilla-vs-vanilla combat
+     * and every reduction stay untouched. Non-positive values fall back to the neutral 1.0.
+     */
+    public void attackScale(double scale) {
+        this.attackScale = scale <= 0 ? 1.0 : scale;
     }
 
     /** Contribute an outgoing-damage bonus, e.g. {@code 0.25} for +25% (may be negative). */
@@ -70,7 +84,7 @@ public final class DamageFold {
     public double apply(double base) {
         double cappedOutgoing = Math.min(outgoingPercent, maxBonusOutgoing);
         double cappedReduction = Math.min(reductionPercent, maxBonusReduction);
-        double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing) + flatDamage;
+        double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing * attackScale) + flatDamage * attackScale;
         double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatReduction;
         return Math.max(0.0, mitigated);
     }
@@ -81,6 +95,7 @@ public final class DamageFold {
         flatReduction = 0.0;
         outgoingPercent = 0.0;
         reductionPercent = 0.0;
+        attackScale = 1.0;
     }
 
     // Summed-bucket accessors for diagnostics / display.

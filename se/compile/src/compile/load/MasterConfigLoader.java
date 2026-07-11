@@ -125,6 +125,7 @@ public final class MasterConfigLoader {
         return new MasterConfig.CombatSection(
                 parseDouble(n.string("max-bonus-damage"), d.maxBonusDamage(), n, diags),
                 parseDouble(n.string("max-bonus-reduction"), d.maxBonusReduction(), n, diags),
+                parseDouble(n.string("attack-scale"), d.attackScale(), n, diags),
                 parseBool(n.string("pvp"), d.pvp(), n, diags),
                 parseBool(n.string("pve"), d.pve(), n, diags));
     }

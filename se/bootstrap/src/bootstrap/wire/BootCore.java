@@ -449,6 +449,7 @@ public final class BootCore {
                 soulService::bindingFor, sinkEnv, new CombatDispatch.Caps(
                         () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
                         () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
+                        () -> master.config().combat().attackScale(),             // §L combat.attack-scale (live, ADR-0050 R2)
                         () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
                         () -> master.config().combat().pve()), projectiles);      // §L combat.pve gate (live)
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.

@@ -22,14 +22,21 @@ features:
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
 # reduction%; these ceil those sums (a negative value = no cap). The +600% outgoing cap leaves headroom for
-# the pass-2 enchant scale (Rage 45%/stack + conditionals) while staying a one-shot backstop: a capped spike
+# the enchant scale (Rage 45%/stack + conditionals) while staying a one-shot backstop: a capped spike
 # kills a 20 hp pool but not an Overload pool (the HP-pool meta ADR-0050 R1 assumes). The 60% reduction cap is
 # the ADR-0050 combination-proofing backstop: no legal stack of heroic + set + crystals + enchants can exceed
-# it (the designed steady-state sits near 30%); full negates are CANCEL, which this cap cannot touch. pvp/pve
-# gate whether StarEnchants combat effects apply at all in that context. All read live on /se reload.
+# it (the designed steady-state sits near 30%); full negates are CANCEL, which this cap cannot touch.
+#
+# attack-scale (ADR-0050 R2): content is authored on a NORMALIZED scale (the numbers players read), and this
+# ONE knob adapts the whole custom attack side (percent + flat, applied AFTER the outgoing cap) to the
+# server's armor pipeline. This pack ships calibrated for Mental-1.8 combat, whose flat armor + Prot IV
+# stack passes only ~5% of a hit through — hence 5.0. A modern-vanilla-armor server sets 1.0. Defense
+# percents and vanilla-vs-vanilla combat are never scaled. pvp/pve gate whether StarEnchants combat effects
+# apply at all in that context. All read live on /se reload.
 combat:
   max-bonus-damage: 6.0       # ceiling on summed outgoing-damage fraction (6.0 = at most +600%); <0 = uncapped
   max-bonus-reduction: 0.60   # ceiling on summed damage-reduction fraction (0.60 = at most 60%); <0 = uncapped
+  attack-scale: 5.0           # post-cap multiplier on the custom attack side; 1.0 = neutral (modern vanilla armor)
   pvp: true                   # apply combat effects in player-vs-player hits
   pve: true                   # apply combat effects in player-vs-environment hits
 
