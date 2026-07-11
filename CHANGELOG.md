@@ -4,6 +4,32 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.7.4-beta] — 2026-07-11
+
+### Fixed
+
+- **"Half-death" — players no longer get healed into a ghost state on the tick they
+  die (ADR-0051).** All enchantment heals were scheduled and landed *after* the hit's
+  damage applied — so on a lethal hit the death event fired first and the heal then
+  set health on the corpse, leaving a dead player holding health (death screen over a
+  live health bar; client and server desynced until relog). Two kernel rules now make
+  heal/death ordering coherent:
+  - **Same-hit heals join the kill decision.** A defensive self-heal proc'd by the hit
+    (Phoenix, Death God, Ender Walker) now lands *inside* the damage event, before the
+    server decides life or death — so "a blow that would kill you instead restores
+    health" genuinely saves you, and a blow that beats the heal kills you cleanly. The
+    net outcome (damage minus healing) is what determines death, computed in
+    health-space so era-combat damage rewrites can't distort the heal's value.
+  - **The dead stay dead.** Any heal that would land after its target already died —
+    a delayed (`WAIT`) heal, lifesteal onto an attacker who was killed in the
+    meantime — is dropped at execution time instead of resurrecting the corpse.
+
+### Added
+
+- **Live death-race suite.** The Paper+Folia matrix now stages both orders against a
+  real vanilla kill decision (a lethal hit with a same-hit save → survives with no
+  death event; a heal arriving after a real death → exactly one death, no revival).
+
 ## [1.7.3-beta] — 2026-07-10
 
 ### Fixed
