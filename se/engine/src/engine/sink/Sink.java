@@ -114,8 +114,19 @@ public interface Sink {
     /** Make the target invulnerable for {@code durationTicks}, then restore (INVINCIBLE). */
     void invincible(LivingEntity target, int durationTicks);
 
-    /** Add to the target's maximum health (tracked + restored on unequip by the dispatcher). */
+    /** Add to the target's maximum health — a PERMANENT base shift (event-trigger HEALTH); worn HEALTH bonuses
+     *  ride {@link #applyWornMaxHealth} instead. */
     void addMaxHealth(LivingEntity target, double amount);
+
+    /**
+     * Reconcile the ONE plugin-owned worn max-health modifier to {@code total} ({@code <= 0} removes it) —
+     * the {@code HEALTH}-on-PASSIVE/HELD channel (ADR-0053 follow-up). SET-not-add, keyed by a fixed modifier
+     * identity, so a crash/relog can never stack or strand a bonus: the next refresh reconciles whatever the
+     * playerdata carried. Never touches the attribute BASE (drain and vanilla own that space); never collides
+     * with the Overload potion pool (a different mechanism by design). Clamps current health down when the
+     * total shrinks.
+     */
+    void applyWornMaxHealth(Player target, double total);
 
     /**
      * Temporarily lower {@code target}'s max health by {@code fraction} of its "overhealth" (the amount above

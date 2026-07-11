@@ -2,6 +2,7 @@ package feature.combat;
 
 import compile.load.ContentHolder;
 import feature.trigger.LifecycleDriver;
+import feature.trigger.MaxHealthDriver;
 import feature.trigger.PassiveEffectDriver;
 import feature.trigger.RepeatingDriver;
 import feature.trigger.SetMessageDriver;
@@ -54,6 +55,7 @@ public final class EquipListener implements Listener {
     private final RepeatingDriver repeating;
     private final LifecycleDriver lifecycle;
     private final PassiveEffectDriver passiveEffects;
+    private final MaxHealthDriver maxHealth;
     private final SetMessageDriver setMessages;
     private final EquipSource equipSource;
     private final ItemViewCache itemViews;
@@ -70,13 +72,14 @@ public final class EquipListener implements Listener {
     private static final int HAND_SLOTS_FROM = 4;
 
     public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
-                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, SetMessageDriver setMessages,
-                         EquipSource equipSource, ItemViewCache itemViews) {
+                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, MaxHealthDriver maxHealth,
+                         SetMessageDriver setMessages, EquipSource equipSource, ItemViewCache itemViews) {
         this.worn = worn;
         this.content = content;
         this.repeating = repeating;
         this.lifecycle = lifecycle;
         this.passiveEffects = passiveEffects;
+        this.maxHealth = maxHealth;
         this.setMessages = setMessages;
         this.equipSource = equipSource;
         this.itemViews = itemViews;
@@ -153,6 +156,7 @@ public final class EquipListener implements Listener {
         lifecycle.refresh(player, state);   // START/STOP newly-(un)worn HELD/PASSIVE buffs (§B)
         setMessages.refresh(player, state); // §6.6 announce a set becoming complete / dropping below threshold
         passiveEffects.refresh(player);     // reconcile maintained passive potion buffs LAST — it is the authority
+        maxHealth.refresh(player);          // reconcile the worn max-health modifier (its own channel — same rule)
         handSignatures.put(player.getUniqueId(), handSignature(player)); // stamp the F09 catchall baseline
         postRefresh.accept(player); // ADR-0053: e.g. the mask illusion re-derive, on this player's own thread
     }
