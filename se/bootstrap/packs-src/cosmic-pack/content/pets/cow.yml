@@ -10,7 +10,7 @@ description:
   - "&6* Cleanses all active enchantment debuffs"
 levels:
   # 2m30s → 2m → 1m30s → 1m.
-  1:   { cooldown: 3000, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
-  25:  { cooldown: 2400, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
-  50:  { cooldown: 1800, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
-  100: { cooldown: 1200, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
+  1:   { cooldown: 3000, effects: [ { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
+  25:  { cooldown: 2400, effects: [ { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
+  50:  { cooldown: 1800, effects: [ { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
+  100: { cooldown: 1200, effects: [ { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }

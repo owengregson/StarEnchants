@@ -154,6 +154,9 @@ pets:
   max-percent-money-cap: 1000000
   message-on-activate: "&{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r &{COLOR}&l**"
   message-on-end: "&{COLOR}&l** PET ABILITY: &r&c&l&nENDED&r &{COLOR}&l**"
+  # Sent to the holder when an armed CHANCE-gated pet effect lands on a hit (the Anubis scroll strip) —
+  # it replaces the enchant proc line there, which cannot name a pet. Empty = silent.
+  message-on-effect: "&{COLOR}&l** {NAME} PET EFFECT **"
   message-on-cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
   message-on-fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
   uppercase: true

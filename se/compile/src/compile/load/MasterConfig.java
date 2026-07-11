@@ -140,14 +140,17 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * @param maxPercentMoneyCap   ceiling on one {@code interest_percent} money deposit; {@code <= 0} = uncapped
      * @param messageOnActivate    template sent to the holder when a pet ability activates
      * @param messageOnEnd         template sent when an armed pet ability window ends
+     * @param messageOnEffect      template sent to the holder when an armed CHANCE-gated pet effect lands on
+     *                             a hit (the Anubis strip) — replaces the enchant proc line, which cannot
+     *                             name a pet
      * @param messageOnCooldown    template sent when a right-click finds the pet on cooldown
      * @param messageOnFail        template sent when a right-click is blocked (condition/chance/permission)
-     * @param uppercase            render {@code {NAME}} uppercase in the activate/end templates
+     * @param uppercase            render {@code {NAME}} uppercase in the activate/end/effect templates
      */
     public record PetsSection(int maxLevel, int expPerLevel, int expPerMobKill, double expPerXpPoint,
                               int expPassivePerMinute, double maxPercentMoneyCap,
-                              String messageOnActivate, String messageOnEnd, String messageOnCooldown,
-                              String messageOnFail, boolean uppercase) {
+                              String messageOnActivate, String messageOnEnd, String messageOnEffect,
+                              String messageOnCooldown, String messageOnFail, boolean uppercase) {
         public PetsSection {
             maxLevel = Math.max(1, maxLevel);
             expPerLevel = Math.max(1, expPerLevel);
@@ -157,6 +160,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
             return new PetsSection(100, 100, 5, 1.0, 2, 1_000_000,
                     "&{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r &{COLOR}&l**",
                     "&{COLOR}&l** PET ABILITY: &r&c&l&nENDED&r &{COLOR}&l**",
+                    "&{COLOR}&l** {NAME} PET EFFECT **",
                     "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!",
                     "&c&l(!) You cannot use {NAME}&r&c&l right now!",
                     true);
