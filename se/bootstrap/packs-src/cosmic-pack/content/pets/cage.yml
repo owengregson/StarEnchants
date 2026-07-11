@@ -1,0 +1,38 @@
+# Cage Pet — an ACTIVE pet (ADR-0052): right-click to trap your nearest enemy (and yourself) in a temporary
+# iron-bars cage — stone-brick roof/floor, a 3×4×3 air interior, built 2 blocks above the midpoint between
+# you, both parties teleported to opposite interior cells facing each other, gone after 7.5s (150 ticks).
+# The CAGE effect safety-checks the FULL structure volume (every cell must be air) before placing anything.
+# The %nearbyenemies% condition fails the use BEFORE the cooldown arms when no one is around; only the
+# cooldown scales with level.
+display: "Cage"
+color: "&4"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDhlNjUyNTM4NWY3NDgzMjJlZWNjNDE2ODliNjkwYWExZWJiYjIxNzJlYzJjNGEyZWFjMTRmMjJkOTRlZTNiYSJ9fX0="
+description:
+  - "&4&l* Temporarily traps your enemy in a cage"
+levels:
+  # 5m → 4m → 3m → 2m30s.
+  1:
+    cooldown: 6000
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }
+      - { CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }
+  25:
+    cooldown: 4800
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }
+      - { CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }
+  50:
+    cooldown: 3600
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }
+      - { CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }
+  100:
+    cooldown: 3000
+    condition: "%nearbyenemies% >= 1"
+    effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }
+      - { CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }

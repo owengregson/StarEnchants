@@ -1,0 +1,35 @@
+# Eagle Pet — an ACTIVE pet (ADR-0052): right-click for a 10s window of bonus damage while you fight from
+# BELOW — the armed ATTACK rider is gated on %actor.belowvictim% (how many blocks your feet sit below the
+# victim's) exceeding 1.5. Only the bonus scales with level; the cooldown holds at 2m30s.
+display: "Eagle"
+color: "&e"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGMyN2UzY2I1MmE2NDk2OGU2MGM4NjFlZjFhYjg0ZTBhMGNiNWYwN2JlMTAzYWM3OGRhNjc3NjE3MzFmMDBjOCJ9fX0="
+description:
+  - "&e&l* Temporarily deal more damage while below your opponent"
+levels:
+  # +20% → +25% → +30% → +35%, each in a 10s window.
+  1:
+    cooldown: 3000
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
+  25:
+    cooldown: 3000
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } } ] }
+  50:
+    cooldown: 3000
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } } ] }
+  100:
+    cooldown: 3000
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDER_DRAGON_FLAP", volume: 1.0, pitch: 1.4 } } ] }
+      - { trigger: ATTACK, condition: "%actor.belowvictim% > 1.5", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 35 } } ] }

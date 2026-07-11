@@ -1,0 +1,14 @@
+# Silverfish Pet — a PASSIVE pet (ADR-0052): permanent Haste while the head sits anywhere in the hotbar.
+# A PASSIVE pet's abilities default to the PASSIVE trigger; the maintained-potion driver keeps the buff
+# truly permanent (the authored duration is just the conventional stub it renews over).
+display: "Silverfish"
+color: "&7"
+type: PASSIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTI4ZTEwNjA5Yzc0NDlmYzdhYmM4MzJiMzBjYWE0YTBjZDlkZTZmMjU4NjA5N2M5NmMxYzhjNmU1Yzk1MDhmNyJ9fX0="
+description:
+  - "&7&l* Grants permanent Haste"
+levels:
+  1:   { effects: [ { POTION: { effect: "FAST_DIGGING", level: 1, duration: 300, who: "@Self" } } ] }
+  25:  { effects: [ { POTION: { effect: "FAST_DIGGING", level: 2, duration: 300, who: "@Self" } } ] }
+  50:  { effects: [ { POTION: { effect: "FAST_DIGGING", level: 3, duration: 300, who: "@Self" } } ] }
+  100: { effects: [ { POTION: { effect: "FAST_DIGGING", level: 4, duration: 300, who: "@Self" } } ] }

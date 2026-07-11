@@ -68,6 +68,8 @@ enchants/vengeance.yml
 enchants/venom.yml
 enchants/warcry.yml
 enchants/wither-touch.yml
+pets/shield.yml
+pets/silverfish.yml
 sets/berserker.yml
 sets/inferno.yml
 sets/juggernaut.yml

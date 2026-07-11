@@ -1,0 +1,15 @@
+# Cow Pet — an ACTIVE pet (ADR-0052): right-click to cleanse every active debuff (CURE HARMFUL strips the
+# harmful potion category — the enchant-inflicted poisons/slows/blinds and their vanilla kin). Instant
+# (no duration = no armed window, no ENDED message); only the cooldown scales with level.
+display: "Cow"
+color: "&6"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGRjNDhiMGE2NTRiMGJlNGYyMmM3Yjk4NTlkZjE3NDRkOGFmMjJhN2E4MDYzN2ZkN2JkODJiZWMyMzJjNzkyZSJ9fX0="
+description:
+  - "&6&l* Cleanses all active enchantment debuffs"
+levels:
+  # 2m30s → 2m → 1m30s → 1m.
+  1:   { cooldown: 3000, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
+  25:  { cooldown: 2400, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
+  50:  { cooldown: 1800, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }
+  100: { cooldown: 1200, effects: [ { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 1.0, pitch: 1.0 } }, { CURE: { category: HARMFUL, who: "@Self" } } ] }

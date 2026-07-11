@@ -19,6 +19,7 @@ features:
   souls: true      # the soul gem system (deposit on kill, soul mode, gem inventory)
   scrolls: true    # scroll-family interactions (black/randomizer/transmog/holy/nametag/godly transmog)
   use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
+  pets: true       # pets contribute to worn state and the pet gestures are live (ADR-0052); false = inert heads
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
 # reduction%; these ceil those sums (a negative value = no cap). The 0.70 outgoing cap is a PRE-SCALE ceiling on
@@ -136,6 +137,26 @@ crystals:
   # The "global max multi-crystal count": how many crystals may merge into ONE multi-crystal (and thus into one
   # gear entry). 2 = a crystal may hold at most two combined effects.
   max-merge: 2
+
+# Pets (ADR-0052). The universal knobs for every pet: leveling economy, the income ceiling, and the three
+# universal messages. A pet gains exp-per-mob-kill per mob kill, exp-per-xp-point × the XP gained on every
+# vanilla XP pickup, and exp-passive-per-minute for each minute it sits in the hotbar; every exp-per-level
+# exp is one level, capped at max-level. Pet Food's +levels lives on ITS likeness (items/pet-food.yml).
+# max-percent-money-cap ceilings ONE Fish-pet interest deposit (<= 0 = uncapped). The message templates
+# carry {COLOR} (the pet's own colour), {NAME} (uppercased in activate/end when uppercase is on) and
+# {TIME_FORMATTED}; an empty template is silent. All read live on /se reload.
+pets:
+  max-level: 100
+  exp-per-level: 100
+  exp-per-mob-kill: 5
+  exp-per-xp-point: 1.0
+  exp-passive-per-minute: 2
+  max-percent-money-cap: 1000000
+  message-on-activate: "{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r{COLOR}&l **"
+  message-on-end: "{COLOR}&l** PET ABILITY: &c&l&nENDED&r {COLOR}&l**"
+  message-on-cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
+  message-on-fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
+  uppercase: true
 
 # Heroic (§F / ADR-0037). The granted percents, success range and material-upgrade map are the upgrade's
 # likeness in items/heroic.yml. A heroic piece's percents feed the SAME additive damage fold every enchant
