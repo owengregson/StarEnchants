@@ -12,19 +12,19 @@ levels:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.08 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.14 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   2:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.14 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.24 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   3:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.20 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.35 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   4:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.26 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.45 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)

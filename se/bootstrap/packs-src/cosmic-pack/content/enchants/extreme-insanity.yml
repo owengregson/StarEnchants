@@ -16,39 +16,39 @@ levels:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.10 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.17 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   2:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.14 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.24 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   3:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.18 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.31 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   4:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.22 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.38 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   5:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.26 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.44 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   6:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.30 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.51 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   7:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.34 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.58 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   8:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
       - { PARTICLE: { particle: "SPELL_WITCH", count: 14 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.38 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.65 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)

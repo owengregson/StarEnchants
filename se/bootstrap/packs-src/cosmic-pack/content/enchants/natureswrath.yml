@@ -30,7 +30,7 @@ levels:
       - { DAMAGE: { amount: 3, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { POTION: { effect: "SLOWNESS", level: 3, duration: 100, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { POTION: { effect: "BLINDNESS", level: 1, duration: 80, who: "@Aoe{r=5}" } }  # from WRATH:5:2:3:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
-      - { DAMAGE: { percent-of-max: 5, who: "@Aoe{r=5,filter=ENEMIES}" } }
+      - { DAMAGE: { percent-of-max: 4, who: "@Aoe{r=5,filter=ENEMIES}" } }
   3:
     chance: 16
     cooldown: 300
@@ -41,7 +41,7 @@ levels:
       - { DAMAGE: { amount: 4, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { POTION: { effect: "SLOWNESS", level: 3, duration: 100, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { POTION: { effect: "BLINDNESS", level: 1, duration: 80, who: "@Aoe{r=7}" } }  # from WRATH:7:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
-      - { DAMAGE: { percent-of-max: 6, who: "@Aoe{r=7,filter=ENEMIES}" } }
+      - { DAMAGE: { percent-of-max: 5, who: "@Aoe{r=7,filter=ENEMIES}" } }
   4:
     chance: 20
     cooldown: 300
@@ -52,4 +52,4 @@ levels:
       - { DAMAGE: { amount: 4, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { POTION: { effect: "SLOWNESS", level: 3, duration: 100, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
       - { POTION: { effect: "BLINDNESS", level: 1, duration: 80, who: "@Aoe{r=10}" } }  # from WRATH:10:2:4:&c&l*** Natures Wrath *** — EE WRATH → lightning storm: LIGHTNING + DAMAGE + SLOWNESS III + BLINDNESS I over @Aoe
-      - { DAMAGE: { percent-of-max: 6, who: "@Aoe{r=10,filter=ENEMIES}" } }
+      - { DAMAGE: { percent-of-max: 5, who: "@Aoe{r=10,filter=ENEMIES}" } }

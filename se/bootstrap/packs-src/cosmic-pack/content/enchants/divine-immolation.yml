@@ -11,6 +11,7 @@ tier: soul
 soul-cost: 20
 levels:
   1:
+    chance: 30
     cooldown: 60
     effects:
       - { PARTICLE: { particle: "FLAME" } }
@@ -20,6 +21,7 @@ levels:
       - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
       - { DAMAGE: { amount: "%damage% * 0.75", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
   2:
+    chance: 30
     cooldown: 50
     effects:
       - { PARTICLE: { particle: "FLAME" } }
@@ -29,6 +31,7 @@ levels:
       - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
       - { DAMAGE: { amount: "%damage% * 0.75", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
   3:
+    chance: 30
     cooldown: 45
     effects:
       - { PARTICLE: { particle: "FLAME" } }
@@ -38,6 +41,7 @@ levels:
       - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Victim" } }
       - { DAMAGE: { amount: "%damage% * 0.75", who: "@Aoe{r=2,filter=PLAYERS,exclude=victim}" } }
   4:
+    chance: 30
     cooldown: 40
     effects:
       - { PARTICLE: { particle: "FLAME" } }

@@ -16,14 +16,14 @@ levels:
     condition: "%actor.healthpercent% < 50"
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 160" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 90" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
   2:
     condition: "%actor.healthpercent% < 50"
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 140" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 80" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
   3:
     condition: "%actor.healthpercent% < 50"
     effects:
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 120" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 70" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
