@@ -192,8 +192,12 @@ public final class CombatDispatch {
         boolean friendly = damager instanceof Player a && victimEntity instanceof Player v && friendlyFire.test(a, v);
 
         // Attack side: self = attacker, target = victim.
+        UUID comboActor = null;      // set iff combo.hit ran — a cancelled event rolls the streak back below
+        Object comboMark = null;
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(projectiles, rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
+            comboActor = attackerPlayer.getUniqueId();
+            comboMark = combo.mark(comboActor);
             int streak = combo.hit(attackerPlayer.getUniqueId(), victimEntity.getUniqueId(), now); // %combo% fact, §3.4 — same-target only
             // reaper's Mark of the Reaper: +N% from THIS attacker while the victim is marked by them. Consulted
             // BEFORE the attack abilities run, so a mark this hit sets (the 5% proc) applies only to LATER hits.
@@ -248,9 +252,12 @@ public final class CombatDispatch {
         }
         event.setDamage(committed);
         // /se damagedebug: report the fold's actual buckets to toggled parties (both belong to this event's region).
+        // getFinalDamage() reads the post-setDamage modifier chain — the health the victim actually loses — so the
+        // readout exposes the server's whole post-fold pipeline (armor plugins included), not just our commit.
         damageDebug.report(damager instanceof Player ap ? ap : null,
                 victimEntity instanceof Player vp ? vp : null,
-                incomingDamage, sink.fold(), attackScale.getAsDouble(), folded, committed);
+                incomingDamage, sink.fold(), attackScale.getAsDouble(), folded, committed,
+                event.getFinalDamage(), sink.cancelled());
         // §3 REFLECT (Hex): a marked attacker takes a fraction of the committed damage back onto themselves.
         if (damager instanceof Player reflectedAttacker && attacker != null) {
             double reflectPercent = reflectMarks.active(reflectedAttacker.getUniqueId(), now);
@@ -266,6 +273,11 @@ public final class CombatDispatch {
         }
         if (sink.cancelled()) {
             event.setCancelled(true);
+            // A cancelled hit never landed: undo this event's combo advance so rage/%combo% cannot build
+            // off dodged or inverted swings (the walk above still saw the advanced streak, by design).
+            if (comboActor != null) {
+                combo.rollback(comboActor, comboMark);
+            }
         }
         sink.flush();
     }

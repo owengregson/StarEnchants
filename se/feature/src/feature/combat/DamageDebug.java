@@ -36,18 +36,22 @@ public final class DamageDebug {
 
     /** One committed hit: send the fold line to whichever toggled parties are players. Firing thread. */
     void report(Player attacker, Player victim, double base, DamageFold fold, double scale,
-                double folded, double committed) {
+                double folded, double committed, double finalDamage, boolean cancelled) {
         boolean toAttacker = attacker != null && enabled.contains(attacker.getUniqueId());
         boolean toVictim = victim != null && enabled.contains(victim.getUniqueId());
         if (!toAttacker && !toVictim) {
             return;
         }
+        // "hits N" = event.getFinalDamage() post-commit: the health the victim actually loses after every
+        // modifier still on the event (vanilla armor, a combat plugin's era rewrite) — the number that closes
+        // the calibration loop between the fold's commit and what players see (ADR-0050 R4).
         String line = Colors.translate(String.format(Locale.ROOT,
                 "&8[&6dmg&8] &7base &f%.2f &8| &7+dmg &f%.0f%%&7, flat &f%.2f &8(x&f%.1f&8) &8| "
-                        + "&7red &f%.0f%%&7, flatred &f%.2f &8| &6-> %.2f%s",
+                        + "&7red &f%.0f%%&7, flatred &f%.2f &8| &6-> %.2f%s &7hits &c%.2f%s",
                 base, fold.outgoingPercent() * 100.0, fold.flatDamage(), scale,
                 fold.reductionPercent() * 100.0, fold.flatReduction(), committed,
-                committed != folded ? " &8(capped)" : ""));
+                committed != folded ? " &8(capped)" : "", finalDamage,
+                cancelled ? " &8(&7CANCELLED&8)" : ""));
         if (toAttacker) {
             attacker.sendMessage(line);
         }

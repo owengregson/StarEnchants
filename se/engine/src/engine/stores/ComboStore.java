@@ -41,6 +41,25 @@ public final class ComboStore implements PlayerScoped {
         return updated.count();
     }
 
+    /**
+     * The opaque pre-hit state for {@link #rollback} — capture BEFORE {@link #hit}. A hit whose event is
+     * ultimately cancelled (a dodge/inversion CANCEL) must not advance or refresh the streak, but the walk
+     * still needs the advanced count DURING the event ({@code %combo%}), so the dispatch hits first and
+     * rolls back on a cancelled outcome.
+     */
+    public Object mark(UUID player) {
+        return byPlayer.get(player);
+    }
+
+    /** Restore the state captured by {@link #mark} — same firing thread as the {@link #hit} it undoes. */
+    public void rollback(UUID player, Object marked) {
+        if (marked == null) {
+            byPlayer.remove(player);
+        } else {
+            byPlayer.put(player, (Streak) marked);
+        }
+    }
+
     /** The current streak for {@code player} without registering a hit — 0 if none or the window lapsed. */
     public int current(UUID player, long nowTicks) {
         Streak s = byPlayer.get(player);
