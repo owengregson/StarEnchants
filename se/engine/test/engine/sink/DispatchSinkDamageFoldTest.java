@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -159,5 +161,108 @@ class DispatchSinkDamageFoldTest {
         sink.flush();
         verify(target).damage(3.0);
         Mockito.verify(target, never()).damage(anyDouble(), any(Entity.class));
+    }
+
+    // ── ADR-0053 attribution: deferred applications carry the attacker, so downstream plugins see who dealt it ──
+
+    @Test
+    void aDeferredDamageWithAnAttackerInScopeFiresAttributed() {
+        LivingEntity victim = aliveEntity();
+        LivingEntity bystander = aliveEntity();
+        LivingEntity attacker = aliveEntity();
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.eventEntity(victim);
+        sink.damage(bystander, 7.5, attacker);
+        sink.flush();
+
+        verify(bystander).damage(7.5, attacker); // an attributed EntityDamageByEntityEvent downstream
+        verify(bystander, never()).damage(anyDouble());
+    }
+
+    @Test
+    void aWaitedEventEntityDamageCarriesTheAttribution() {
+        // The bleed shape with its owner: the DoT tick is a separate hit, but it is the ATTACKER's hit.
+        LivingEntity victim = aliveEntity();
+        LivingEntity attacker = aliveEntity();
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.eventEntity(victim);
+        sink.delay(20);
+        sink.damage(victim, 2.0, attacker);
+        sink.flush();
+
+        assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        backend.runDelayed();
+        verify(victim).damage(2.0, attacker);
+    }
+
+    @Test
+    void percentOfMaxToABystanderCarriesTheAttribution() {
+        LivingEntity victim = aliveEntity();
+        LivingEntity bystander = aliveEntity();
+        LivingEntity attacker = aliveEntity();
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.eventEntity(victim);
+        sink.damagePercentOfMax(bystander, 25.0, attacker);
+        sink.flush();
+
+        verify(bystander).damage(5.0, attacker); // 25% of max 20, attributed
+    }
+
+    @Test
+    void selfAttributionFallsBackToTheBareHurt() {
+        // A self-damaging effect attributing itself would read as a self-hit (combat dispatchers drop
+        // damager == victim anyway) — keep it the ownerless application it always was.
+        LivingEntity target = aliveEntity();
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.damage(target, 3.0, target);
+        sink.flush();
+
+        verify(target).damage(3.0);
+        verify(target, never()).damage(anyDouble(), any(Entity.class));
+    }
+
+    @Test
+    void lightningNeverFoldsAndCarriesTheAttribution() {
+        // A bolt is its own proc, never a same-hit rider — even aimed at the event entity it stays a
+        // separate, attributed application.
+        LivingEntity victim = aliveEntity();
+        LivingEntity attacker = aliveEntity();
+        World world = mock(World.class);
+        Location at = mock(Location.class);
+        when(victim.getWorld()).thenReturn(world);
+        when(victim.getLocation()).thenReturn(at);
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.eventEntity(victim);
+        sink.lightningAndDamage(victim, 6.0, attacker);
+
+        assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        sink.flush();
+        verify(world).strikeLightning(at);
+        verify(victim).damage(6.0, attacker);
+    }
+
+    @Test
+    void engineIssuedDamageRunsInsideTheEngineFrame() {
+        // The re-entrancy contract the old bare hurt() enforced structurally: while OUR damage applies,
+        // EngineDamage.active() is true, so SE's own combat listeners stand down for the events it fires.
+        LivingEntity bystander = aliveEntity();
+        LivingEntity attacker = aliveEntity();
+        boolean[] activeInside = {false};
+        Mockito.doAnswer(inv -> {
+            activeInside[0] = EngineDamage.active();
+            return null;
+        }).when(bystander).damage(5.0, attacker);
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.damage(bystander, 5.0, attacker);
+        sink.flush();
+
+        assertTrue(activeInside[0], "the attributed application must run inside the engine-damage frame");
+        assertTrue(!EngineDamage.active(), "the frame always unwinds after the application");
     }
 }

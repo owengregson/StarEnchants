@@ -36,11 +36,13 @@ public final class DamageEffect implements EffectKind {
         double amount = ctx.dbl("amount");
         double percentOfMax = ctx.dbl("percent-of-max");
         for (LivingEntity target : ctx.targets("who")) {
+            // The activator attributes any deferred application (ADR-0054) — a WAIT tier (the bleed DoT)
+            // or a non-victim target fires an attributed event; a same-hit victim rider folds instead.
             if (amount > 0) {
-                sink.damage(target, amount);
+                sink.damage(target, amount, ctx.actor());
             }
             if (percentOfMax > 0) {
-                sink.damagePercentOfMax(target, percentOfMax);
+                sink.damagePercentOfMax(target, percentOfMax, ctx.actor());
             }
         }
     }

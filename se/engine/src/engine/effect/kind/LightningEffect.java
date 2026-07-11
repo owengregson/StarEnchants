@@ -29,7 +29,7 @@ public final class LightningEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         double damage = ctx.dbl("damage");
         for (LivingEntity target : ctx.targets("who")) {
-            sink.lightningAndDamage(target, damage);
+            sink.lightningAndDamage(target, damage, ctx.actor()); // bolt damage is attributed (ADR-0054)
         }
     }
 }

@@ -40,14 +40,36 @@ public interface Sink {
 
     // ── Entity intents (interned handle ids for version-volatile referents) ──
 
-    void damage(LivingEntity target, double amount);
+    /**
+     * Deal {@code amount} damage to {@code target}, attributed to {@code attacker} when one is in scope
+     * (ADR-0054). Routing: a zero-WAIT intent aimed at the declared {@linkplain SinkReadback#eventEntity
+     * event entity} joins the damage fold — a same-hit rider: one hurt, one immunity window, so it can
+     * never window-reject the attacker's next melee. Everything else defers to the target's own thread
+     * as a real application; with a non-null attacker it fires an attributed
+     * {@code EntityDamageByEntityEvent} (downstream plugins see who dealt it, and vanilla applies its
+     * usual source-aware handling, knockback included), with none it stays the bare ownerless hurt. SE's
+     * own combat pipeline never procs off either form (the {@link EngineDamage} frame).
+     */
+    void damage(LivingEntity target, double amount, LivingEntity attacker);
+
+    /** {@link #damage(LivingEntity, double, LivingEntity)} with no attacker — the add-on SPI form. */
+    default void damage(LivingEntity target, double amount) {
+        damage(target, amount, null);
+    }
 
     /**
      * Deal {@code percentOfMax}% of the TARGET's own maximum health as damage (DAMAGE {@code percent-of-max} —
-     * ADR-0049 Natures Wrath). The max-health read + the damage both run on the target's own region thread, so
-     * a cross-region victim is never read off-thread. A non-positive percent is a no-op.
+     * ADR-0049 Natures Wrath), with {@link #damage(LivingEntity, double, LivingEntity)}'s same-hit-rider
+     * routing and attribution. On the deferred path the max-health read + the damage both run on the
+     * target's own region thread, so a cross-region victim is never read off-thread; on the fold path the
+     * firing thread owns the event entity by definition (ADR-0051). A non-positive percent is a no-op.
      */
-    void damagePercentOfMax(LivingEntity target, double percentOfMax);
+    void damagePercentOfMax(LivingEntity target, double percentOfMax, LivingEntity attacker);
+
+    /** {@link #damagePercentOfMax(LivingEntity, double, LivingEntity)} with no attacker. */
+    default void damagePercentOfMax(LivingEntity target, double percentOfMax) {
+        damagePercentOfMax(target, percentOfMax, null);
+    }
 
     /**
      * Raise the target's current health by {@code amount} (clamped to max). A write that lands after its
@@ -181,7 +203,17 @@ public interface Sink {
 
     void ignite(Entity target, int durationTicks);
 
-    void lightningAndDamage(LivingEntity target, double amount);
+    /**
+     * Strike the target with lightning and deal {@code amount} extra damage ({@code <= 0} = cosmetic bolt
+     * only), the damage attributed to {@code attacker} when one is in scope (ADR-0054). Always a genuinely
+     * separate application — a bolt is its own proc, never a same-hit rider, so it never joins the fold.
+     */
+    void lightningAndDamage(LivingEntity target, double amount, LivingEntity attacker);
+
+    /** {@link #lightningAndDamage(LivingEntity, double, LivingEntity)} with no attacker — the add-on SPI form. */
+    default void lightningAndDamage(LivingEntity target, double amount) {
+        lightningAndDamage(target, amount, null);
+    }
 
     /** Add to the target's velocity. */
     void launch(Entity target, double x, double y, double z);

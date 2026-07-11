@@ -47,7 +47,7 @@ public final class HealthModEffect implements EffectKind {
         int hit = 0;
         for (LivingEntity target : ctx.targets("who")) {
             if (take) {
-                sink.damage(target, amount);
+                sink.damage(target, amount, ctx.actor()); // attributed / same-hit-folded like DAMAGE (ADR-0054)
                 hit++;
             } else {
                 sink.heal(target, amount);

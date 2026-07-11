@@ -74,8 +74,8 @@ class ModeDispatchEffectTest {
         return List.of(
                 living("HEALTH_MOD give → heal", new HealthModEffect(),
                         c -> c.with("amount", 4.0).with("mode", "give"), (s, t) -> verify(s).heal(t, 4.0)),
-                living("HEALTH_MOD take → damage", new HealthModEffect(),
-                        c -> c.with("amount", 6.0).with("mode", "take"), (s, t) -> verify(s).damage(t, 6.0)),
+                living("HEALTH_MOD take → damage (no actor → unattributed)", new HealthModEffect(),
+                        c -> c.with("amount", 6.0).with("mode", "take"), (s, t) -> verify(s).damage(t, 6.0, null)),
                 living("HEALTH_MOD set → setHealth (forces current health to the amount)", new HealthModEffect(),
                         c -> c.with("amount", 10.0).with("mode", "set"), (s, t) -> verify(s).setHealth(t, 10.0)),
                 dynamicTest("HEALTH_MOD transfer → damage victim + heal actor (lifesteal)", () -> {
@@ -85,7 +85,7 @@ class ModeDispatchEffectTest {
                             .with("amount", 5.0).with("mode", "transfer").targets("who", victim).actor(actor);
                     Sink sink = mock(Sink.class);
                     new HealthModEffect().run(ctx, sink);
-                    verify(sink).damage(victim, 5.0);
+                    verify(sink).damage(victim, 5.0, actor); // the drain is the actor's hit (ADR-0054)
                     verify(sink).heal(actor, 5.0); // actor gains exactly what was drained
                     verifyNoMoreInteractions(sink);
                 }),
@@ -97,8 +97,8 @@ class ModeDispatchEffectTest {
                             .with("amount", 5.0).with("mode", "transfer").targets("who", v1, v2).actor(actor);
                     Sink sink = mock(Sink.class);
                     new HealthModEffect().run(ctx, sink);
-                    verify(sink).damage(v1, 5.0);
-                    verify(sink).damage(v2, 5.0);
+                    verify(sink).damage(v1, 5.0, actor);
+                    verify(sink).damage(v2, 5.0, actor);
                     verify(sink).heal(actor, 10.0); // one heal of the total drained, not one per victim
                     verifyNoMoreInteractions(sink);
                 }));

@@ -1,5 +1,6 @@
 package feature.combat;
 
+import engine.sink.EngineDamage;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -24,6 +25,9 @@ public final class RageStacksListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
+        if (EngineDamage.active()) {
+            return; // engine-issued damage (DoT ticks, reflects — ADR-0054): rage is for real melee swings only
+        }
         Entity victim = event.getEntity();
         if (!(victim instanceof LivingEntity)) {
             return;

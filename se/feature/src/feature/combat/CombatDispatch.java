@@ -9,6 +9,7 @@ import engine.run.ActorProbe;
 import engine.run.FactPopulator;
 import engine.sink.CombatTag;
 import engine.sink.DamageMarks;
+import engine.sink.EngineDamage;
 import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
 import engine.stores.ComboStore;
@@ -140,6 +141,13 @@ public final class CombatDispatch {
     /** Dispatch one entity-on-entity hit: run attacker + defender abilities and fold the result. */
     @SuppressWarnings("deprecation") // EntityDamageEvent.DamageModifier.ARMOR/MAGIC: deprecated-not-removed across the whole range (the IGNORE_ARMOR primitive).
     public void onDamage(EntityDamageByEntityEvent event) {
+        if (EngineDamage.active()) {
+            // SE-issued damage (reflects, DoT ticks, lightning bolts — ADR-0054): attributed events are
+            // for DOWNSTREAM plugins; our own walks never proc off our own damage. This is the same
+            // re-entrancy contract the old bare hurt() enforced structurally (no damager → no dispatch);
+            // without it an attributed reflect could proc a reflect, ping-ponging forever.
+            return;
+        }
         Snapshot snapshot = content.snapshot();
         Ability[] abilities = snapshot.abilities();
         Entity rawDamager = event.getDamager();
@@ -240,7 +248,8 @@ public final class CombatDispatch {
         }
 
         // Fold every damage contribution onto the event ONCE (§6.1). §5 cap first, then §3 hex-reflect off the
-        // committed value; both deal any retaliation via bare sink.damage (no damager → cannot re-enter this handler).
+        // committed value; both deal retaliation via VICTIM-attributed sink.damage (ADR-0054: downstream
+        // plugins see who dealt it); the EngineDamage frame keeps it from re-entering this handler.
         double folded = sink.fold().apply(event.getDamage());
         double committed = folded;
         if (victimEntity instanceof Player capped) {
@@ -248,7 +257,7 @@ public final class CombatDispatch {
             if (cap != null && folded > cap.value()) {
                 committed = cap.value();
                 if (cap.reflectOverflow() && attacker != null) {
-                    sink.damage(attacker, folded - committed); // §5 Vengeful Diminish: the excess back to the attacker
+                    sink.damage(attacker, folded - committed, capped); // §5 Vengeful Diminish: the excess back to the attacker
                 }
             }
             damageCap.recordLastTaken(capped.getUniqueId(), committed); // ALWAYS record the committed value (post-cap)
@@ -265,7 +274,7 @@ public final class CombatDispatch {
         if (damager instanceof Player reflectedAttacker && attacker != null) {
             double reflectPercent = reflectMarks.active(reflectedAttacker.getUniqueId(), now);
             if (reflectPercent > 0.0) {
-                sink.damage(attacker, committed * reflectPercent / 100.0);
+                sink.damage(attacker, committed * reflectPercent / 100.0, victim);
             }
         }
         if (sink.armorIgnored()) {

@@ -1,5 +1,6 @@
 package feature.combat;
 
+import engine.sink.EngineDamage;
 import engine.stores.ImmuneStore;
 import feature.compat.Hands;
 import java.util.Objects;
@@ -39,6 +40,16 @@ public final class ImmuneListener implements Listener {
             return;
         }
         long now = nowTicks.getAsLong();
+        if (EngineDamage.active()) {
+            // Engine-issued damage (ADR-0054): before attribution these arrived as plain CUSTOM hurts,
+            // cancellable only by a blanket ALL immunity — preserve exactly that. The damager's held item
+            // is proc bookkeeping, not a swung weapon, so the SWORD/AXE typing must not apply here (and an
+            // engine hurt is never a bobber, so this precedes the fish-hook arm harmlessly).
+            if (store.isImmune(victim.getUniqueId(), ImmuneStore.Type.ALL, now)) {
+                event.setCancelled(true);
+            }
+            return;
+        }
         // Fish-hook first: the bobber IS a Projectile, so the generic projectile arm below would otherwise
         // claim it under the wrong immunity type (ADR-0053 Fisherman).
         if (isFishHookTypeName(event.getDamager().getType().name())) {
