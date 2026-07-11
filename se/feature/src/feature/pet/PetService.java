@@ -145,14 +145,35 @@ public final class PetService {
                 "MAX_LEVEL", Integer.toString(section.maxLevel()),
                 "EXP", Integer.toString(exp),
                 "EXP_NEXT", Integer.toString(section.expPerLevel()),
+                "EXP_BAR", expBar(level, exp, section),
         };
-        List<String> template = def.active() ? cfg.loreActive() : cfg.lorePassive();
-        List<String> lore = new ArrayList<>(
-                Tokens.expandLines(template, "DESCRIPTION", def.description(), tokens));
-        if (!cfg.levelLine().isBlank()) {
-            lore.add(Tokens.sub(cfg.levelLine(), tokens));
+        List<String> template = PetTokens.colorTolerant(def.active() ? cfg.loreActive() : cfg.lorePassive());
+        // Two line-expanding tokens, nested: {DESCRIPTOR} (the flavour header) then {DESCRIPTION} (the
+        // ability lines). An un-authored descriptor drops its line; strip what's left of its slot so the
+        // lore never opens on a stray blank.
+        List<String> lore = new ArrayList<>(Tokens.expandLines(
+                Tokens.expandLines(template, "DESCRIPTOR", def.descriptor(), tokens),
+                "DESCRIPTION", def.description(), tokens));
+        while (!lore.isEmpty() && lore.get(0).isBlank()) {
+            lore.remove(0);
         }
-        ItemFactory.decorated(stack, Tokens.sub(cfg.name(), tokens), ItemFactory.wrapLore(lore));
+        ItemFactory.decorated(stack, Tokens.sub(PetTokens.colorTolerant(cfg.name()), tokens),
+                ItemFactory.wrapLore(lore));
+    }
+
+    /**
+     * The ten-slot exp meter toward the next level (ADR-0052): {@code &a▪} per filled tenth, {@code &7_}
+     * per empty one, space-separated — the pack's exact styling; the template wraps it in {@code &f[ ... &f]}.
+     * A level-capped pet shows a full bar.
+     */
+    static String expBar(int level, int exp, MasterConfig.PetsSection cfg) {
+        int filled = level >= cfg.maxLevel() ? 10
+                : (int) Math.min(10, Math.max(0, (10L * exp) / cfg.expPerLevel()));
+        StringBuilder bar = new StringBuilder("&a");
+        bar.append("▪ ".repeat(filled));
+        bar.append("&7");
+        bar.append("_ ".repeat(10 - filled));
+        return bar.toString();
     }
 
     /** What one exp credit did to a pet (the caller re-renders slots / refreshes on a bracket change). */

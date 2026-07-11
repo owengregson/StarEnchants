@@ -8,30 +8,35 @@ display: "Cage"
 color: "&4"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDhlNjUyNTM4NWY3NDgzMjJlZWNjNDE2ODliNjkwYWExZWJiYjIxNzJlYzJjNGEyZWFjMTRmMjJkOTRlZTNiYSJ9fX0="
+descriptor: "&eA warden that carries its own prison. One click and the walls close in."
 description:
-  - "&4&l* Temporarily traps your enemy in a cage"
+  - "&4* Temporarily traps your enemy in a cage"
 levels:
   # 5m → 4m → 3m → 2m30s.
   1:
     cooldown: 6000
+    duration: 150
     condition: "%nearbyenemies% >= 1"
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }
       - { CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }
   25:
     cooldown: 4800
+    duration: 150
     condition: "%nearbyenemies% >= 1"
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }
       - { CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }
   50:
     cooldown: 3600
+    duration: 150
     condition: "%nearbyenemies% >= 1"
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }
       - { CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }
   100:
     cooldown: 3000
+    duration: 150
     condition: "%nearbyenemies% >= 1"
     effects:
       - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 1.0, pitch: 0.8 } }

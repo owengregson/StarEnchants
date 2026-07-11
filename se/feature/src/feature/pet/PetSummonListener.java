@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import platform.sched.Scheduling;
 
@@ -20,9 +21,9 @@ import platform.sched.Scheduling;
  * acquires a target (the Creeper pet's creeper is passive — it cannot swell at players on its own).
  * DETONATE-ON-PLAYER-HIT: a hit from a player (or a player's projectile) starts a one-shot scheduled fuse —
  * NEVER {@code Creeper#setIgnited}, whose real vanilla explosion griefs terrain wherever mobGriefing is on;
- * the explosion here is entity-damage-only on both eras. Damage stays UNCANCELLED throughout, so knockback
- * and the spawn-time 1024-health "infinite pool" behave like a normal mob. Both handlers run on the summon's
- * own region thread (its events).
+ * the explosion here is entity-damage-only on both eras. INVINCIBLE: damage events are ZEROED, never
+ * cancelled, so the summon keeps hit animations and knockback like a normal mob while no burst — however
+ * large in one tick — can kill it. All handlers run on the summon's own region thread (its events).
  */
 public final class PetSummonListener implements Listener {
 
@@ -42,6 +43,17 @@ public final class PetSummonListener implements Listener {
         SummonFlags flags = PetSummons.flags(event.getEntity().getUniqueId());
         if (flags != null && flags.noTarget()) {
             event.setCancelled(true);
+        }
+    }
+
+    // HIGHEST so the zeroing lands after every damage-modifying plugin: an INVINCIBLE summon takes the hit
+    // (animation + knockback intact — cancelling would eat both) but the final amount is 0, so no one-tick
+    // burst can out-damage it. Its own removal happens by TTL or the detonation fuse, never by damage.
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDamage(EntityDamageEvent event) {
+        SummonFlags flags = PetSummons.flags(event.getEntity().getUniqueId());
+        if (flags != null && flags.invincible()) {
+            event.setDamage(0);
         }
     }
 

@@ -53,7 +53,7 @@ public final class PetMessenger {
             return; // empty = silent (the use-item.success convention)
         }
         String name = uppercase ? def.display().toUpperCase(Locale.ROOT) : def.display();
-        String line = Tokens.sub(template,
+        String line = Tokens.sub(PetTokens.colorTolerant(template),
                 "COLOR", def.color(),
                 "NAME", name,
                 "TIME_FORMATTED", TimeFormat.hmsFromTicks(remainingTicks));

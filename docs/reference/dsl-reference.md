@@ -652,10 +652,10 @@ Play a sound at the activation location. No-op if the activation has no location
 
 ### SPAWN_ENTITY
 
-Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates). Replaces SPAWN/TNT.
+Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates); invincible=true zeroes all damage to the summon (it cannot die but still takes hits and knockback). Replaces SPAWN/TNT.
 
 - _affinity_: `REGION`
-- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE> } }`
+- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
@@ -667,6 +667,7 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 - _param_ `saddled` `bool`
 - _param_ `mount` `enum{none|activator}`
 - _param_ `detonate` `enum{NONE|PLAYER_HIT}`
+- _param_ `invincible` `bool`
 - _target_ `who`: selector `SELF`
 - _example_: `{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }`
 

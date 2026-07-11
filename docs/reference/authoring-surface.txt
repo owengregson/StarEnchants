@@ -196,6 +196,7 @@ effect SPAWN_ENTITY
   param saddled BOOL optional min=- max=- enum=- handle=- default=false
   param mount ENUM optional min=- max=- enum=activator,none handle=- default=none
   param detonate ENUM optional min=- max=- enum=NONE,PLAYER_HIT handle=- default=NONE
+  param invincible BOOL optional min=- max=- enum=- handle=- default=false
 effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true

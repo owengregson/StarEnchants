@@ -186,7 +186,7 @@ class LocationEffectTest {
                     when(who.getLocation()).thenReturn(loc);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 5).with("count", 3).with("ttl", 0).with("health", 20.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").targets("who", who);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).targets("who", who);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 5, 3, 0, 20.0, null);
@@ -201,7 +201,7 @@ class LocationEffectTest {
                     when(actor.getUniqueId()).thenReturn(actorId);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 9).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "activator").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").actor(actor).targets("who", who);
+                            .with("owner", "activator").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).actor(actor).targets("who", who);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 9, 1, 0, 0.0, actorId);
@@ -211,7 +211,7 @@ class LocationEffectTest {
                     Location loc = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 7).with("count", 1).with("ttl", 200).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").location(loc); // no "who" targets resolved
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).location(loc); // no "who" targets resolved
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 7, 1, 200, 0.0, null);
@@ -222,7 +222,7 @@ class LocationEffectTest {
                     Location loc = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 5).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").actor(self).actorOrigin(loc).targets("who", self);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).actor(self).actorOrigin(loc).targets("who", self);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 5, 1, 0, 0.0, null);
@@ -234,7 +234,7 @@ class LocationEffectTest {
                     Location fallback = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 7).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").actor(self).targets("who", self).location(fallback);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).actor(self).targets("who", self).location(fallback);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink); // actor target skipped (no origin) → any=false → fallback
                     verify(sink).spawnEntity(fallback, 7, 1, 0, 0.0, null);

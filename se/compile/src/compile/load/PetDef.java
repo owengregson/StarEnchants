@@ -20,7 +20,9 @@ import java.util.List;
  * @param active      {@code true} for {@code type: ACTIVE} (right-click), {@code false} for {@code PASSIVE}
  * @param head        base64 texture value for the player-head skin; {@code ""} = untextured (material fallback)
  * @param material    material token minted when head textures are unsupported; defaults to {@code PLAYER_HEAD}
- * @param description authored description lines, verbatim (filled as {@code {DESCRIPTION}})
+ * @param descriptor  authored flavour line(s) shown at the TOP of the lore (filled as {@code {DESCRIPTOR}});
+ *                    empty = the template's descriptor line renders nothing
+ * @param description authored ability description lines, verbatim (filled as {@code {DESCRIPTION}})
  * @param permission  Bukkit permission gating use, checked at use time; {@code ""} = everyone
  * @param brackets    the authored level brackets, sorted ascending by {@link PetBracket#floor()}
  */
@@ -31,11 +33,13 @@ public record PetDef(
         boolean active,
         String head,
         String material,
+        List<String> descriptor,
         List<String> description,
         String permission,
         List<PetBracket> brackets) {
 
     public PetDef {
+        descriptor = List.copyOf(descriptor);
         description = List.copyOf(description);
         brackets = List.copyOf(brackets);
     }

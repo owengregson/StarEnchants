@@ -30,7 +30,7 @@ import schema.grammar.EffectLine;
 final class PetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "display", "color", "type", "head", "material", "description", "permission", "levels");
+            "display", "color", "type", "head", "material", "descriptor", "description", "permission", "levels");
     private static final Set<String> ABILITY_KEYS = Set.of(
             "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
     private static final Set<String> BRACKET_KEYS = Set.of(
@@ -73,6 +73,7 @@ final class PetDefReader {
         String color = orDefault(ContentParse.blankToNull(root.string("color")), "&f");
         String head = orEmpty(ContentParse.blankToNull(root.string("head")));
         String material = orDefault(ContentParse.blankToNull(root.string("material")), "PLAYER_HEAD");
+        List<String> descriptor = linesOf(root, "descriptor");
         List<String> description = root.stringList("description");
         String permission = orEmpty(ContentParse.blankToNull(root.string("permission")));
 
@@ -114,8 +115,19 @@ final class PetDefReader {
             return new Parsed(null, List.of());
         }
 
-        PetDef def = new PetDef(key, display, color, active, head, material, description, permission, brackets);
+        PetDef def = new PetDef(key, display, color, active, head, material, descriptor, description, permission,
+                brackets);
         return new Parsed(def, abilities);
+    }
+
+    /** A field that may be ONE string or a list of lines (the descriptor is usually a single wrapped line). */
+    private static List<String> linesOf(YamlNode root, String key) {
+        List<String> lines = root.stringList(key);
+        if (!lines.isEmpty()) {
+            return lines;
+        }
+        String single = ContentParse.blankToNull(root.string(key));
+        return single == null ? List.of() : List.of(single);
     }
 
     /** Read one bracket (dual form) and append its {@link AbilityDef}s; {@code null} for a malformed block. */

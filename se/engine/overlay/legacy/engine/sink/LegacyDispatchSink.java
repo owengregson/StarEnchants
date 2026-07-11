@@ -156,6 +156,13 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void applyBarShape(World world, int x, int y, int z,
+                                 boolean north, boolean south, boolean east, boolean west) {
+        // 1.8 fence-likes have no stored connection state — the client renders connections from live
+        // neighbours, so a placed IRON_FENCE ring is already solid. Nothing to do.
+    }
+
+    @Override
     @SuppressWarnings("deprecation") // setPassenger: the 1.8 single-passenger API.
     protected void mountEntity(Entity vehicle, Entity passenger) {
         vehicle.setPassenger(passenger);

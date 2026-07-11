@@ -1,28 +1,37 @@
 # Pet (ADR-0052) — the GENERAL likeness of EVERY pet head. There is no per-pet item file: a specific pet
 # (from /se give pet, the pets menu, or the mint console) is minted from this one likeness with the pet's
-# display/colour/description filled in, onto its content-configured player-head texture. Reload with /se reload.
-# Placeholders (usable in name + both lore templates + level-line):
-#   {COLOR}          = the pet's colour codes (content/pets/<key>.yml `color`)
+# colour/name/descriptor/description filled in, onto its content-configured player-head texture. Reload with
+# /se reload.
+# Placeholders (usable in name + both lore templates):
+#   {COLOR}          = the pet's colour codes (content/pets/<key>.yml `color`); `&{COLOR}` is accepted too
 #   {NAME}           = the pet's display name
-#   {DESCRIPTION}    = the pet's description, one lore line per authored line
+#   {DESCRIPTOR}     = the pet's flavour line(s), one lore line per authored line (dropped when un-authored)
+#   {DESCRIPTION}    = the pet's ability description, one lore line per authored line
 #   {TIME_FORMATTED} = the LIVE bracket's right-click cooldown (h/m/s) — meaningful on the active template
 #   {LEVEL} / {MAX_LEVEL} / {EXP} / {EXP_NEXT} = the stored level + exp against the universal knobs
+#   {EXP_BAR}        = the ten-slot progress meter toward the next level (&a▪ filled / &7_ empty, one slot
+#                      per 10%); full at the level cap. The template wraps it in &f[ ... &f].
 type: pet
 
 name: "{COLOR}&l{NAME} Pet"
 # ACTIVE pets carry the cooldown block + the right-click hint; PASSIVE pets the hotbar hint — each type owns
 # a whole template rather than splicing conditionals into one.
 lore-active:
-  - "&lACTIVE&r {COLOR}&lABILITY"
+  - "{DESCRIPTOR}"
+  - ""
+  - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
+  - "&eExperience: &r&f[{EXP_BAR}&f]"
+  - "&a&lACTIVE&r {COLOR}&lPET ABILITY"
   - "{DESCRIPTION}"
   - ""
   - "&eCooldown: &r&f&n{TIME_FORMATTED}"
   - "&7Right Click while holding to apply."
 lore-passive:
-  - "&e&lPASSIVE&r {COLOR}&lABILITY"
+  - "{DESCRIPTOR}"
+  - ""
+  - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
+  - "&eExperience: &r&f[{EXP_BAR}&f]"
+  - "&e&lPASSIVE&r {COLOR}&lPET ABILITY"
   - "{DESCRIPTION}"
   - ""
   - "&7Hold in hotbar to apply."
-# Rendered once below the lore (the trak count-line precedent) so the carried level is always visible;
-# set to "" for no level line.
-level-line: "&eLevel: &a&n{LEVEL}&r&e/&a{MAX_LEVEL}"

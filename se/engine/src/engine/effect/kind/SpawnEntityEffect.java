@@ -32,6 +32,7 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("saddled", D.BOOL.def(false))
             .param("mount", D.enumOf("none", "activator").def("none"))
             .param("detonate", D.enumOf("NONE", "PLAYER_HIT").def("NONE"))
+            .param("invincible", D.BOOL.def(false))
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
             .actorOrigin()
@@ -40,8 +41,9 @@ public final class SpawnEntityEffect implements EffectKind {
                     + "summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false "
                     + "disables mob AI; targeting=false stops the summon acquiring targets; saddled + "
                     + "mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT "
-                    + "makes a creeper explode ONLY when a player hits it (it never self-detonates). "
-                    + "Replaces SPAWN/TNT.")
+                    + "makes a creeper explode ONLY when a player hits it (it never self-detonates); "
+                    + "invincible=true zeroes all damage to the summon (it cannot die but still takes hits "
+                    + "and knockback). Replaces SPAWN/TNT.")
             .example("{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }")
             .build();
 
@@ -65,7 +67,8 @@ public final class SpawnEntityEffect implements EffectKind {
                 !ctx.bool("targeting"),
                 ctx.bool("saddled"),
                 "activator".equalsIgnoreCase(ctx.str("mount")),
-                "PLAYER_HIT".equalsIgnoreCase(ctx.str("detonate")));
+                "PLAYER_HIT".equalsIgnoreCase(ctx.str("detonate")),
+                ctx.bool("invincible"));
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {
