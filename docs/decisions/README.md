@@ -57,6 +57,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0047](0047-feature-module-wiring-erasure.md) | Feature-module wiring erasure — one FeatureModule record + ordered Modules registry + ModuleFold; onEnable is a ~15-line fold, onDisable is fold.stop(); derived mint/guard/sweep/disable + `/se modules`; two static installers become instance wiring; ModuleTreeGate + RegistryWiring gates ratchet it | Accepted |
 | [0048](0048-use-items.md) | Use-items — right-click content family (`content/use-items/*.yml`), implicit USE trigger, commands lower to RUN_COMMAND, universal `use-item.*` feedback | Accepted |
 | [0049](0049-cosmic-behavior-alignment.md) | Cosmic behavior alignment — ratified per-enchant resolution matrix from the description audit (Bleed DoT root, durability guards, amplifiers, gank logic, one-shot suppression, Soul Drinker) + whole-pack description regeneration (&e body, no stat lines, item-style applies line) | Accepted |
+| [0054](0054-same-hit-damage-fold-and-attribution.md) | Same-hit DAMAGE joins the fold (one hurt, one immunity window); separate procs (DoT/lightning/reflect) carry attribution behind the EngineDamage re-entrancy frame | Accepted |
 
 ## Process
 

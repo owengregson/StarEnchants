@@ -4,6 +4,30 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Same-hit bonus damage no longer eats the attacker's next melee (ADR-0054).** A
+  zero-delay `DAMAGE`/`MODIFY_HEALTH take` aimed at the current hit's victim used to
+  land as a bare second hurt, re-arming vanilla's immunity window
+  (`noDamageTicks`/`lastHurt`) — the very next melee inside that window was silently
+  window-rejected with no event at all, so other plugins' hit handling (custom hit
+  sounds, damage indicators, knockback delivery) skipped a hit that visibly
+  connected. Such riders now join the damage fold and ride the one event: one hurt,
+  one immunity window, one knockback — and a rider on a dodged hit dies with its hit.
+
+### Changed
+
+- **Separate damage procs are attributed (ADR-0054).** Bleed-style delayed DoT
+  ticks, `LIGHTNING` bolt damage, Hex reflects and Vengeful Diminish overflow now
+  apply as `damage(amount, attacker)` — a real attributed
+  `EntityDamageByEntityEvent` — so kill credit resolves and downstream combat
+  plugins can see whose damage it is. SE's own procs still never chain off SE's own
+  damage (the new `EngineDamage` frame preserves the old structural guard), rage
+  never builds off DoT ticks, and a blanket `IMMUNE all` still blocks engine damage
+  exactly as before.
+
 ## [1.8.1-beta] — 2026-07-11
 
 ### Fixed
