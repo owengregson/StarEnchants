@@ -150,3 +150,31 @@ near the 8-hit band — and two findings invalidated the pass-1 anchor:
 god kits (modern)**. 1.8.9 runs ~35% slower (flat armor reduction, no diminishing curve
 for the rider to beat) — accepted: both eras stay inside a playable band from ONE value
 set.
+
+## Revision 2 (2026-07-10): 1.8-combat calibration via `combat.attack-scale`
+
+Revision 1 calibrated against MODERN armor math; the owner then confirmed the deployment
+target is Mental's full 1.8 preset — era-correct 1.8 combat, whose FLAT armor pipeline
+(full diamond ×0.20, 1.8 Prot IV's random EPF ≈ ×0.25, combined ≈ ×0.05 pass-through, no
+damage-diminishing curve) leaves R1's values landing ~3.5–4 hp and gives the flat rider
+nothing to exploit.
+
+An inline fix (multiplying every attack percent ×5 into the content) was applied and then
+REVERTED pre-release at the owner's direction: it destroyed the normalized scale — numbers
+players read stopped meaning anything, and the untouched set bonuses collapsed from a
+10–20% damage share to ~1.5%. The ratified mechanism instead separates the two concerns:
+
+- **Content stays normalized** (Revision 1's values: Rage +20–45%/stack + the flat rider,
+  Execute 20–50, sets 20–30 — every number on the human scale, in the ratified
+  proportions; the set weapon bonus holds a ~13–18% share of mid-fight damage).
+- **`combat.attack-scale` (engine, ADR-0012 fold) adapts that economy to the server's
+  armor pipeline**: ONE multiplier on the custom attack side (summed percent AFTER the
+  outgoing cap, plus the flat bucket), never the base hit and never the defense side —
+  vanilla-vs-vanilla combat and all reductions are untouched. `<= 0` falls back to the
+  neutral 1.0. Read live on `/se reload`.
+- **This pack ships `attack-scale: 5.0`** for the Mental-1.8 network. A
+  modern-vanilla-armor server runs the same content at `1.0`.
+
+Under 1.8 math at scale 5.0: ~11.5 hp per full-combo hit against light-defense armor,
+mirror-god TTK ≈ 6–7 hits on 26-heart Overload pools. The R1 "Revised targets" wording
+(modern-armor TTK, "1.8 ~35% slower") is superseded by this calibration.

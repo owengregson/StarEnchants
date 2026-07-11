@@ -160,6 +160,7 @@ class MasterConfigLoaderTest {
                 combat:
                   max-bonus-damage: 5.0
                   max-bonus-reduction: 0.8
+                  attack-scale: 5.0
                   pvp: false
                   pve: true
                 messages:
@@ -177,6 +178,7 @@ class MasterConfigLoaderTest {
         assertTrue(config.features().heroic());
         assertEquals(5.0, config.combat().maxBonusDamage());
         assertEquals(0.8, config.combat().maxBonusReduction());
+        assertEquals(5.0, config.combat().attackScale());
         assertFalse(config.combat().pvp());
         assertTrue(config.combat().pve());
         assertEquals("&8[&dSE&8] ", config.messages().prefix());

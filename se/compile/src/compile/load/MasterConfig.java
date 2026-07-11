@@ -250,14 +250,19 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      *
      * @param maxBonusDamage    ceiling on the summed outgoing-damage fraction (e.g. {@code 5.0} = +500% max); {@code < 0} = uncapped
      * @param maxBonusReduction ceiling on the summed damage-reduction fraction (e.g. {@code 0.8} = 80% max); {@code < 0} = uncapped
+     * @param attackScale       post-cap multiplier on the custom attack side (percent + flat buckets): content stays on a
+     *                          normalized scale and this ONE knob adapts it to the server's armor pipeline (ADR-0050 R2 —
+     *                          a 1.8-era flat armor+Prot stack passes ~5% of a hit, so a Mental-1.8 network runs ~5.0);
+     *                          {@code <= 0} = neutral 1.0
      * @param pvp               combat effects apply in player-vs-player hits
      * @param pve               combat effects apply in player-vs-environment hits
      */
-    public record CombatSection(double maxBonusDamage, double maxBonusReduction, boolean pvp, boolean pve) {
+    public record CombatSection(double maxBonusDamage, double maxBonusReduction, double attackScale, boolean pvp, boolean pve) {
         public static CombatSection defaults() {
             // A finite outgoing cap (+500% summed) so a pre-charged combo/stack streak cannot compound into a
-            // one-shot; reduction stays uncapped. Operators wanting the old behaviour set max-bonus-damage: -1.
-            return new CombatSection(5.0, -1.0, true, true);
+            // one-shot; reduction stays uncapped; the attack side ships unit-scaled. Operators wanting the old
+            // behaviour set max-bonus-damage: -1.
+            return new CombatSection(5.0, -1.0, 1.0, true, true);
         }
     }
 

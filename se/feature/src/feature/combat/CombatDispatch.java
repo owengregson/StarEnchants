@@ -61,6 +61,7 @@ public final class CombatDispatch {
     private final LongSupplier nowTicks;
     private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
     private final java.util.function.DoubleSupplier maxBonusReduction; // §L config.yml combat.max-bonus-reduction (<0 = uncapped)
+    private final java.util.function.DoubleSupplier attackScale;       // §L config.yml combat.attack-scale (<=0 = neutral 1.0)
     private final java.util.function.BooleanSupplier pvpEnabled;       // §L config.yml combat.pvp
     private final java.util.function.BooleanSupplier pveEnabled;       // §L config.yml combat.pve
     private final int attackTriggerId;
@@ -77,12 +78,17 @@ public final class CombatDispatch {
         friendlyFire = predicate == null ? (attacker, victim) -> false : predicate;
     }
 
-    /** §L combat.* live caps/gates (max-bonus-damage / max-bonus-reduction, {@code <0} = uncapped; pvp/pve keyed on the victim's player-ness). */
+    /**
+     * §L combat.* live caps/gates (max-bonus-damage / max-bonus-reduction, {@code <0} = uncapped;
+     * attack-scale = the post-cap attack-side throughput multiplier, {@code <=0} → neutral 1.0;
+     * pvp/pve keyed on the victim's player-ness).
+     */
     public record Caps(java.util.function.DoubleSupplier maxBonusDamage, java.util.function.DoubleSupplier maxBonusReduction,
+                       java.util.function.DoubleSupplier attackScale,
                        java.util.function.BooleanSupplier pvp, java.util.function.BooleanSupplier pve) {
-        /** Uncapped + PvP/PvE on — the uncapped wiring the tester suites use (the config defaults a finite outgoing cap). */
+        /** Uncapped, unit-scaled, PvP/PvE on — the wiring the tester suites use (the config defaults a finite outgoing cap). */
         public static Caps unlimited() {
-            return new Caps(() -> -1.0, () -> -1.0, () -> true, () -> true);
+            return new Caps(() -> -1.0, () -> -1.0, () -> 1.0, () -> true, () -> true);
         }
     }
 
@@ -110,6 +116,7 @@ public final class CombatDispatch {
         this.nowTicks = env.nowTicks();
         this.maxBonusDamage = caps.maxBonusDamage();
         this.maxBonusReduction = caps.maxBonusReduction();
+        this.attackScale = caps.attackScale();
         this.pvpEnabled = caps.pvp();
         this.pveEnabled = caps.pve();
         // Shared VarStore: a condition's %name% reads what an earlier SET_VAR wrote (write side: the per-event sink).
@@ -155,6 +162,7 @@ public final class CombatDispatch {
 
         SinkReadback sink = sinkFactory.create(env);
         sink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble()); // §L combat caps, live
+        sink.fold().attackScale(attackScale.getAsDouble()); // §L combat.attack-scale, live (post-cap, attack side only)
 
         // Combat tag (supreme's out-of-combat fly): both parties count as fighting on any hit between them.
         if (damager instanceof Player ap) {

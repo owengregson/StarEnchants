@@ -8,18 +8,24 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- **Cosmic-pack rebalance pass 2 (ADR-0050 Revision 1).** Live god-kit fights landed
-  0.5–1 hp per hit — pass 1's anchor had priced in a Rage that was actually inert (see
-  Fixed). Attack-percent enchants scale up ~2.5–3× and Rage becomes the centerpiece:
-  each stack now folds +20–45% plus a flat rider that lands after vanilla armor's
-  multiplier, so a full six-stack combo cracks Prot IV instead of being eaten by it
-  (the outgoing cap rises to +600% for headroom; set weapon bonuses deliberately stay
-  at 20–30 — the enchants carry the damage). Vanilla Weakness potions aimed at
-  combatants (Voodoo, Unfocus, the Reaper blade) become non-stacking `WEAKEN` percents
-  inside the fold — modern Weakness I's flat −4 was an unbudgeted ~40% tax on every
-  hit — low-health conditions now compare `healthpercent` so finishers and desperation
-  procs fire on boosted HP pools, and the Overload family's Health Boost climbs to a
-  26-heart pool at Godly Overload III: the HP-pool meta the new scale assumes.
+- **Cosmic-pack rebalance for 1.8 combat (ADR-0050 R1+R2).** Live god-kit fights landed
+  0.5–1 hp per hit — the old anchor had priced in a Rage that was actually inert (see
+  Fixed), and the deployment target is Mental's full 1.8 preset, whose flat armor +
+  Prot IV pipeline passes only ~5% of a hit through. The economy is rebuilt in two
+  layers. Content stays on a normalized human scale: Rage becomes the centerpiece at
+  +20–45% per stack plus a flat rider, Execute finishes for up to +50% below 25%
+  health, the Insanity/Barbarian/Assassin/Rogue/Enrage families scale ~2.5–3×, the
+  outgoing cap rises to +600%, and set weapon bonuses deliberately stay at 20–30 (a
+  ~13–18% share of mid-fight damage — the enchants carry the rest). The new engine
+  knob `combat.attack-scale` then adapts that whole custom attack side to the server's
+  armor pipeline in one place (post-cap, percent + flat, never the base hit or the
+  defense side); the pack ships `5.0` for Mental-1.8 armor, landing ~11.5 hp per
+  full-combo hit against light-defense armor and a 6–7 hit mirror-god TTK. Vanilla
+  Weakness potions aimed at combatants (Voodoo, Unfocus, the Reaper blade) become
+  non-stacking `WEAKEN` percents inside the fold; low-health conditions now compare
+  `healthpercent` so finishers and desperation procs fire on boosted HP pools; and the
+  Overload family's Health Boost climbs to a 26-heart pool at Godly Overload III — the
+  HP-pool meta the new scale assumes.
 
 ### Fixed
 

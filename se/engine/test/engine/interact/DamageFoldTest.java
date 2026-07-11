@@ -175,6 +175,50 @@ class DamageFoldTest {
     }
 
     @Test
+    void attackScaleMultipliesOnlyTheCustomAttackSide() {
+        // ADR-0050 R2: scale ×5 on Σout (+50% → +250%) and flat (+2 → +10); the base 10 and the
+        // 20% reduction are untouched: (10 × 3.5 + 10) × 0.8 = 36.
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.addOutgoing(0.50);
+        f.addFlatDamage(2.0);
+        f.addReduction(0.20);
+        assertEquals(36.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void attackScaleAppliesAfterTheOutgoingCap() {
+        // Σout +200% ceils at the +100% cap FIRST, then scales ×5 → ×6 → 60 (a scaled economy keeps
+        // its normalized cap semantics).
+        DamageFold f = new DamageFold();
+        f.caps(1.0, -1.0);
+        f.attackScale(5.0);
+        f.addOutgoing(2.0);
+        assertEquals(60.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void attackScaleLeavesVanillaAndDefenseAlone() {
+        // No custom contributions → a scaled fold is still the identity on the base hit; a
+        // non-positive scale falls back to neutral.
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        assertEquals(10.0, f.apply(10.0), EPS);
+        f.attackScale(0.0);
+        f.addOutgoing(1.0);
+        assertEquals(20.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void resetRestoresTheNeutralScale() {
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.reset();
+        f.addOutgoing(1.0);
+        assertEquals(20.0, f.apply(10.0), EPS);
+    }
+
+    @Test
     void resetClearsEveryBucket() {
         DamageFold f = new DamageFold();
         f.addFlatDamage(5.0);
