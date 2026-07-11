@@ -19,12 +19,12 @@ import schema.spec.D;
 public final class ImmuneEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("IMMUNE")
-            .param("type", D.enumOf("sword", "axe", "projectile", "potion", "all"))
+            .param("type", D.enumOf("sword", "axe", "projectile", "potion", "all", "fishhook"))
             .param("duration", D.TICKS.def(100))
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/all) for "
-                    + "duration ticks.")
+                    + "duration ticks; fishhook additionally kills the rod-bobber reel pull (ADR-0053).")
             .example("{ IMMUNE: { type: potion, duration: 100 } }")
             .build();
 
@@ -51,6 +51,7 @@ public final class ImmuneEffect implements EffectKind {
             case "projectile" -> 2;
             case "potion" -> 3;
             case "all" -> 4;
+            case "fishhook" -> 5;
             default -> 0; // sword
         };
     }

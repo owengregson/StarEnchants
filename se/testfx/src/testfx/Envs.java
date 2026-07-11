@@ -16,6 +16,7 @@ import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
+import engine.stores.WardStore;
 import engine.stores.WhyStore;
 import java.util.function.LongSupplier;
 import platform.economy.EconomyService;
@@ -53,6 +54,7 @@ public final class Envs {
         private OutgoingDebuffStore outgoingDebuff = new OutgoingDebuffStore();
         private DamageCapStore damageCap = new DamageCapStore();
         private RageStackStore rageStacks = new RageStackStore();
+        private WardStore ward = new WardStore();
         private EngineStores storesOverride = null;
 
         public SinkEnvBuilder economy(EconomyService economy) {
@@ -140,6 +142,11 @@ public final class Envs {
             return this;
         }
 
+        public SinkEnvBuilder ward(WardStore ward) {
+            this.ward = ward;
+            return this;
+        }
+
         /** Fully override the aggregate; the per-store slots are then ignored. */
         public SinkEnvBuilder stores(EngineStores stores) {
             this.storesOverride = stores;
@@ -149,7 +156,7 @@ public final class Envs {
         public SinkEnv build() {
             EngineStores stores = storesOverride != null ? storesOverride
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
-                            combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks);
+                            combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward);
             return SinkEnv.of(economy, souls, stores, nowTicks);
         }
     }

@@ -32,6 +32,12 @@ public interface Sink {
     /** Add a flat damage reduction to the defense side (§6.1), subtracted last so it absorbs exactly this amount regardless of percent context. */
     void addFlatReduction(double amount);
 
+    /** Add the victim's heroic percent reduction to its heroic-tagged bucket — behaves as {@link #addDamageReduction} unless the hit set {@link #ignoreHeroic()} (ADR-0053). */
+    void addHeroicReduction(double percent);
+
+    /** Add the victim's heroic flat reduction to its heroic-tagged bucket — behaves as {@link #addFlatReduction} unless the hit set {@link #ignoreHeroic()} (ADR-0053). */
+    void addHeroicFlatReduction(double amount);
+
     // ── Entity intents (interned handle ids for version-volatile referents) ──
 
     void damage(LivingEntity target, double amount);
@@ -527,6 +533,13 @@ public interface Sink {
     void ignoreArmor();
 
     /**
+     * Ask the triggering hit to drop the victim's HEROIC reduction contributions from the damage fold
+     * (IGNORE_HEROIC — Midas, ADR-0053). An inline read-back like {@link #ignoreArmor()}, honoured at the
+     * fold commit; attacker-side heroic weapon damage is untouched. Inert on a non-combat trigger.
+     */
+    void ignoreHeroic();
+
+    /**
      * Scale {@code victim}'s incoming knockback for {@code ttlTicks} (KNOCKBACK_CONTROL, § combat-flags):
      * {@code multiplier <= 0} cancels it, {@code 0.5} halves it, {@code 2} doubles it. Unlike
      * {@link #ignoreArmor()}, the knockback is a SEPARATE Bukkit event fired the same tick as the hit, so
@@ -552,11 +565,20 @@ public interface Sink {
 
     /**
      * Make {@code target} immune to a damage cause for {@code durationTicks} (IMMUNE, § combat-flags):
-     * {@code damageType} is 0=sword, 1=axe, 2=projectile, 3=potion(magic/poison/wither), 4=all. Like
+     * {@code damageType} is 0=sword, 1=axe, 2=projectile, 3=potion(magic/poison/wither), 4=all,
+     * 5=fishhook (rod-bobber knockback, ADR-0053). Like
      * {@link #controlKnockback}, the future damage is a SEPARATE Bukkit event, so this writes a per-player
      * timed flag a damage listener reads back and cancels matching hits. A non-positive duration is a no-op.
      */
     void immune(Player target, int damageType, int durationTicks);
+
+    /**
+     * Ward {@code target} with typed flag {@code wardType} for {@code durationTicks}, carrying {@code amount}
+     * (WARD, ADR-0053): {@code wardType} is 0=mob-target, 1=invsee, 2=near, 3=splash-heal. Like
+     * {@link #teleblock}, the guarded action is a SEPARATE Bukkit event, so this writes a per-player timed
+     * flag a feature guard reads back. A non-positive duration is a no-op.
+     */
+    void ward(Player target, int wardType, int durationTicks, double amount);
 
     /**
      * Ask the triggering block-break (MINE) to auto-smelt the broken block (SMELT): an inline read-back like

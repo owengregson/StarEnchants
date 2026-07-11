@@ -362,7 +362,28 @@ class ModeDispatchEffectTest {
                 player("IMMUNE potion → 3", new ImmuneEffect(),
                         c -> c.with("type", "potion").with("duration", 100), (s, p) -> verify(s).immune(p, 3, 100)),
                 player("IMMUNE all → 4", new ImmuneEffect(),
-                        c -> c.with("type", "all").with("duration", 100), (s, p) -> verify(s).immune(p, 4, 100)));
+                        c -> c.with("type", "all").with("duration", 100), (s, p) -> verify(s).immune(p, 4, 100)),
+                player("IMMUNE fishhook → 5 (ADR-0053 rod-bobber immunity)", new ImmuneEffect(),
+                        c -> c.with("type", "fishhook").with("duration", 100), (s, p) -> verify(s).immune(p, 5, 100)));
+    }
+
+    @TestFactory
+    List<DynamicTest> ward() {
+        // every type token maps to the WardStore ordinal the Sink expects (mob-target=0..splash-heal=3);
+        // player-only, amount rides the intent (ADR-0053).
+        return List.of(
+                player("WARD mob-target → 0", new WardEffect(),
+                        c -> c.with("type", "mob-target").with("duration", 100).with("amount", 0.0),
+                        (s, p) -> verify(s).ward(p, 0, 100, 0.0)),
+                player("WARD invsee → 1", new WardEffect(),
+                        c -> c.with("type", "invsee").with("duration", 100).with("amount", 0.0),
+                        (s, p) -> verify(s).ward(p, 1, 100, 0.0)),
+                player("WARD near → 2", new WardEffect(),
+                        c -> c.with("type", "near").with("duration", 100).with("amount", 0.0),
+                        (s, p) -> verify(s).ward(p, 2, 100, 0.0)),
+                player("WARD splash-heal → 3 carries its amount", new WardEffect(),
+                        c -> c.with("type", "splash-heal").with("duration", 60).with("amount", 50.0),
+                        (s, p) -> verify(s).ward(p, 3, 60, 50.0)));
     }
 
     @TestFactory

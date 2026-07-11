@@ -32,6 +32,12 @@ public final class DamageFold {
     private double flatReduction;
     private double outgoingPercent;
     private double reductionPercent;
+    // Victim heroic reduction rides its own pair of buckets (ADR-0053 IGNORE_HEROIC): the commit adds them
+    // back into the shared reduction terms unless the per-hit ignore flag is set, so unflagged behavior is
+    // identical to when heroic fed the plain buckets directly. Attacker-side heroic stays on the plain adders.
+    private double heroicReductionPercent;
+    private double heroicFlatReduction;
+    private boolean heroicIgnored;
     // Combat caps (config.yml combat.*): ceilings on the summed additive fractions; +inf = uncapped.
     private double maxBonusOutgoing = Double.POSITIVE_INFINITY;
     private double maxBonusReduction = Double.POSITIVE_INFINITY;
@@ -80,12 +86,33 @@ public final class DamageFold {
         flatReduction += amount;
     }
 
+    /** Contribute the victim's heroic percent reduction — folded with {@link #addReduction}'s bucket at
+     *  commit unless {@link #ignoreHeroic()} was set this hit (ADR-0053). */
+    public void addHeroicReduction(double percent) {
+        heroicReductionPercent += percent;
+    }
+
+    /** Contribute the victim's heroic flat reduction — folded with {@link #addFlatReduction}'s bucket at
+     *  commit unless {@link #ignoreHeroic()} was set this hit (ADR-0053). */
+    public void addHeroicFlatReduction(double amount) {
+        heroicFlatReduction += amount;
+    }
+
+    /** Drop the victim's heroic buckets from this event's commit (IGNORE_HEROIC — Midas, ADR-0053). */
+    public void ignoreHeroic() {
+        heroicIgnored = true;
+    }
+
     /** Fold {@code base} with every contribution into the final damage, never negative (§6.1). */
     public double apply(double base) {
+        // Heroic joins the reduction sums BEFORE the cap (its old seat inside the plain buckets), so the
+        // max-bonus-reduction ceiling and clamps see the identical totals when unflagged.
+        double reduction = heroicIgnored ? reductionPercent : heroicReductionPercent + reductionPercent;
+        double flatRed = heroicIgnored ? flatReduction : heroicFlatReduction + flatReduction;
         double cappedOutgoing = Math.min(outgoingPercent, maxBonusOutgoing);
-        double cappedReduction = Math.min(reductionPercent, maxBonusReduction);
+        double cappedReduction = Math.min(reduction, maxBonusReduction);
         double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing * attackScale) + flatDamage * attackScale;
-        double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatReduction;
+        double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatRed;
         return Math.max(0.0, mitigated);
     }
 
@@ -95,6 +122,9 @@ public final class DamageFold {
         flatReduction = 0.0;
         outgoingPercent = 0.0;
         reductionPercent = 0.0;
+        heroicReductionPercent = 0.0;
+        heroicFlatReduction = 0.0;
+        heroicIgnored = false;
         attackScale = 1.0;
     }
 
@@ -114,5 +144,17 @@ public final class DamageFold {
 
     public double flatReduction() {
         return flatReduction;
+    }
+
+    public double heroicReductionPercent() {
+        return heroicReductionPercent;
+    }
+
+    public double heroicFlatReduction() {
+        return heroicFlatReduction;
+    }
+
+    public boolean heroicIgnored() {
+        return heroicIgnored;
     }
 }

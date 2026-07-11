@@ -77,9 +77,11 @@ public final class BuiltinEffects {
                 .register(new MarkEffect()) // per-(victim, marker) damage mark (reaper Mark of the Reaper)
                 .register(new InvertVarEffect()) // §A INVERT_VAR: numeric flip of a per-player named var
                 .register(new IgnoreArmorEffect()) // § combat-flags IGNORE_ARMOR: hit bypasses armor/protection
+                .register(new IgnoreHeroicEffect()) // ADR-0053 IGNORE_HEROIC: hit drops the victim's heroic reduction
                 .register(new KnockbackControlEffect()) // § combat-flags KNOCKBACK_CONTROL: cancel/scale incoming knockback
                 .register(new KeepOnDeathEffect()) // § combat-flags KEEP_ON_DEATH: keep items+levels on a death
                 .register(new TeleblockEffect()) // § combat-flags TELEBLOCK: block a target from teleporting
+                .register(new WardEffect()) // ADR-0053 WARD: typed timed guard flag (mob-target/invsee/near/splash-heal)
                 .register(new ImmuneEffect()) // § combat-flags IMMUNE: timed immunity to a damage cause
                 .register(new SuppressEffect()) // §C SUPPRESS: disable a target's enchant/group/type (DISABLE_*)
                 .register(new SuppressImmuneEffect()) // maintained PASSIVE immunity to all suppression (dragon Dovahkiin)

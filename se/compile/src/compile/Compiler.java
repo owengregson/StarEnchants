@@ -84,8 +84,13 @@ public final class Compiler {
                               SpecRegistry selectors, Function<String, String> defaultSelectorOf,
                               VarResolver vars, List<String> canonicalTriggers,
                               PlatformResolvers resolvers) {
-        return of(registry, affinityOf, selectors, defaultSelectorOf, vars, canonicalTriggers, resolvers,
-                head -> -1, head -> -1);
+        // No dense-id stamping — the erase stage also gets NO effect registry (a SUPPRESS scope KIND key then
+        // erases to -1 silently rather than mis-diagnosing every head as unknown, matching the kindId -1 path).
+        return new Compiler(
+                new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars),
+                new DefaultResolveStage(registry, resolvers),
+                new DefaultEraseStage(canonicalTriggers),
+                new DefaultSnapshotStage());
     }
 
     /**
@@ -102,7 +107,8 @@ public final class Compiler {
                 new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars,
                         effectIdOf, selectorIdOf),
                 new DefaultResolveStage(registry, resolvers),
-                new DefaultEraseStage(canonicalTriggers),
+                // effectIdOf threaded to erase too: SUPPRESS scope KIND keys resolve to dense kindIds (ADR-0053).
+                new DefaultEraseStage(canonicalTriggers, effectIdOf),
                 new DefaultSnapshotStage());
     }
 

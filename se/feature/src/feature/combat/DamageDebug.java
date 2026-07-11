@@ -45,11 +45,15 @@ public final class DamageDebug {
         // "hits N" = event.getFinalDamage() post-commit: the health the victim actually loses after every
         // modifier still on the event (vanilla armor, a combat plugin's era rewrite) — the number that closes
         // the calibration loop between the fold's commit and what players see (ADR-0050 R4).
+        // Effective reduction terms: the victim's heroic buckets fold in unless IGNORE_HEROIC dropped them
+        // (ADR-0053) — the readout must show what the commit actually used.
+        double red = fold.reductionPercent() + (fold.heroicIgnored() ? 0.0 : fold.heroicReductionPercent());
+        double flatRed = fold.flatReduction() + (fold.heroicIgnored() ? 0.0 : fold.heroicFlatReduction());
         String line = Colors.translate(String.format(Locale.ROOT,
                 "&8[&6dmg&8] &7base &f%.2f &8| &7+dmg &f%.0f%%&7, flat &f%.2f &8(x&f%.1f&8) &8| "
                         + "&7red &f%.0f%%&7, flatred &f%.2f &8| &6-> %.2f%s &7hits &c%.2f%s",
                 base, fold.outgoingPercent() * 100.0, fold.flatDamage(), scale,
-                fold.reductionPercent() * 100.0, fold.flatReduction(), committed,
+                red * 100.0, flatRed, committed,
                 committed != folded ? " &8(capped)" : "", finalDamage,
                 cancelled ? " &8(&7CANCELLED&8)" : ""));
         if (toAttacker) {

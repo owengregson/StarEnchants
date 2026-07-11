@@ -12,6 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 
 /**
  * The {@code IMMUNE} applier (§ combat-flags): cancels matching hits while a player holds a damage-type
@@ -38,6 +39,14 @@ public final class ImmuneListener implements Listener {
             return;
         }
         long now = nowTicks.getAsLong();
+        // Fish-hook first: the bobber IS a Projectile, so the generic projectile arm below would otherwise
+        // claim it under the wrong immunity type (ADR-0053 Fisherman).
+        if (isFishHookTypeName(event.getDamager().getType().name())) {
+            if (store.isImmune(victim.getUniqueId(), ImmuneStore.Type.FISHHOOK, now)) {
+                event.setCancelled(true);
+            }
+            return;
+        }
         if (event.getDamager() instanceof Projectile) {
             if (store.isImmune(victim.getUniqueId(), ImmuneStore.Type.PROJECTILE, now)) {
                 event.setCancelled(true);
@@ -79,5 +88,27 @@ public final class ImmuneListener implements Listener {
                 }
             }
         }
+    }
+
+    /** The reel: a FISHHOOK-immune player caught on a rod is never pulled (ADR-0053 Fisherman). */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onFish(PlayerFishEvent event) {
+        // getCaught() only — event.getHook()'s RETURN TYPE changed across the range (Fish → FishHook), so
+        // calling it anywhere is a binary break on part of 1.8→26.x.
+        if (event.getState() == PlayerFishEvent.State.CAUGHT_ENTITY
+                && event.getCaught() instanceof Player caught
+                && store.isImmune(caught.getUniqueId(), ImmuneStore.Type.FISHHOOK, nowTicks.getAsLong())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Whether an {@code EntityType} name is the rod bobber — by NAME, never {@code instanceof FishHook} or an
+     * {@code EntityType} constant: the class and constant were renamed across 1.8&rarr;26.x
+     * (FISHING_HOOK &rarr; FISHING_BOBBER; legacy also reports FISH_HOOK), see cross-version-item-api.
+     */
+    static boolean isFishHookTypeName(String typeName) {
+        return "FISHING_BOBBER".equals(typeName) || "FISHING_HOOK".equals(typeName)
+                || "FISH_HOOK".equals(typeName);
     }
 }

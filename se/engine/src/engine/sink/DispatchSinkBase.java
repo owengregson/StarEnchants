@@ -1,5 +1,6 @@
 package engine.sink;
 
+import compile.model.ScopeKinds;
 import engine.interact.DamageFold;
 import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
@@ -11,6 +12,7 @@ import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
+import engine.stores.WardStore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -107,6 +109,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     private final TeleblockStore teleblock;
     private final ImmuneStore immune;
+    private final WardStore ward; // ADR-0053 mask ward flags
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
@@ -155,6 +158,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.keepOnDeath = env.stores().keepOnDeath();
         this.teleblock = env.stores().teleblock();
         this.immune = env.stores().immune();
+        this.ward = env.stores().ward();
         this.reflectMarks = env.stores().reflectMarks();
         this.outgoingDebuff = env.stores().outgoingDebuff();
         this.damageCap = env.stores().damageCap();
@@ -364,6 +368,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void addFlatReduction(double amount) {
         fold.addFlatReduction(amount);
+    }
+
+    @Override
+    public void addHeroicReduction(double percent) {
+        fold.addHeroicReduction(percent);
+    }
+
+    @Override
+    public void addHeroicFlatReduction(double amount) {
+        fold.addHeroicFlatReduction(amount);
     }
 
     // ── Entity intents ───────────────────────────────────────────────────────────────────────────
@@ -1683,15 +1697,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId) {
-        if (target == null || scopeId < 0) {
-            return;
-        }
-        // Per-player in-memory state keyed by the (scopeKind, scopeId) cooldown-scope packing — the same
-        // key gate 5 reads for the suppressed abilities. The store is concurrent, so writing it on the
-        // firing thread is Folia-safe (only the target's UUID is captured; no cross-region entity read).
-        // byDefId attributes the window to the emitting DISABLE_* ability (ADR-0045: /se why names it).
-        suppression.suppress(target.getUniqueId(), CooldownStore.key(scopeKind, scopeId),
-                nowTicks.getAsLong(), durationTicks, byDefId);
+        suppress(target, scopeKind, scopeId, durationTicks, byDefId, false, 1);
     }
 
     @Override
@@ -1700,6 +1706,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (target == null || scopeId < 0) {
             return;
         }
+        // Per-player in-memory state, so writing it on the firing thread is Folia-safe (only the target's
+        // UUID is captured; no cross-region entity read). byDefId attributes the window to the emitting
+        // DISABLE_* ability (ADR-0045: /se why names it).
+        if (scopeKind == ScopeKinds.KIND) {
+            // ADR-0053: scopeId is a dense effect kindId, matched at gate 5 against the ability's compiled
+            // effect kind ids — its own store maps, never packed into the cooldown-scope namespace.
+            if (nextHit) {
+                suppression.armOneShotKind(target.getUniqueId(), scopeId, charges, byDefId);
+            } else {
+                suppression.suppressKind(target.getUniqueId(), scopeId, nowTicks.getAsLong(), durationTicks, byDefId);
+            }
+            return;
+        }
+        // (scopeKind, scopeId) cooldown-scope packing — the same key gate 5 reads for the suppressed abilities.
         long key = CooldownStore.key(scopeKind, scopeId);
         if (nextHit) {
             // ADR-0049 Neutralize: an event-scoped one-shot the combat dispatcher burns after each hit, not by time.
@@ -1735,6 +1755,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void ignoreArmor() {
         armorIgnored = true;
+    }
+
+    @Override
+    public void ignoreHeroic() {
+        fold.ignoreHeroic(); // per-hit fold scratch: the commit drops the victim's heroic buckets (ADR-0053)
     }
 
     @Override
@@ -1777,6 +1802,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // Per-player timed flag read later by the damage listener (a separate Bukkit event from the hit that
         // armed it). Concurrent store, UUID captured here → Folia-safe on the firing thread.
         immune.immune(target.getUniqueId(), ImmuneStore.Type.of(damageType), nowTicks.getAsLong(), durationTicks);
+    }
+
+    @Override
+    public void ward(Player target, int wardType, int durationTicks, double amount) {
+        if (target == null) {
+            return;
+        }
+        // Per-player timed flag read later by a feature guard (a separate Bukkit event from the arming
+        // activation). Concurrent store, UUID captured here → Folia-safe on the firing thread (ADR-0053).
+        ward.arm(target.getUniqueId(), WardStore.Type.of(wardType), nowTicks.getAsLong(), durationTicks, amount);
     }
 
     @Override
