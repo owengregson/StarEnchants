@@ -4,7 +4,7 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.7.0-beta] — 2026-07-10
 
 ### Changed
 
