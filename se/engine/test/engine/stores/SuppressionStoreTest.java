@@ -7,9 +7,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import compile.model.Ability;
+import compile.model.Affinity;
+import compile.model.CompiledEffect;
+import compile.model.CompiledSelector;
 import compile.model.ScopeKinds;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import schema.spec.Args;
+import testfx.Abilities;
 
 class SuppressionStoreTest {
 
@@ -23,6 +28,16 @@ class SuppressionStoreTest {
         when(ability.cdScopeGroup()).thenReturn(group);
         when(ability.cdScopeType()).thenReturn(type);
         return ability;
+    }
+
+    /** An ability carrying one stamped effect per given dense kindId (no cooldown scopes) — the KIND match input. */
+    private static Ability withKinds(int... kindIds) {
+        CompiledEffect[] effects = new CompiledEffect[kindIds.length];
+        for (int i = 0; i < kindIds.length; i++) {
+            effects[i] = new CompiledEffect("K" + kindIds[i], Args.empty(), CompiledSelector.SELF, 0,
+                    Affinity.CONTEXT_LOCAL, kindIds[i]);
+        }
+        return Abilities.ability().effects(effects).build();
     }
 
     @Test
@@ -287,5 +302,117 @@ class SuppressionStoreTest {
         store.evictElapsed(100L);
         assertFalse(store.isSuppressed(p, 1, 100L));
         assertTrue(store.isSuppressed(q, 1, 100L));
+    }
+
+    // ── ADR-0053 KIND scope: suppression by effect kindId, matched against the ability's compiled effects ──
+
+    @Test
+    void kindWindowSuppressesAbilitiesCarryingThatEffectKindUntilExpiry() {
+        store.suppressKind(p, 7, 100L, 40, -1);
+        assertTrue(store.suppressesAny(withKinds(7), p, 100L));
+        assertTrue(store.suppressesAny(withKinds(3, 7), p, 139L), "any one matching effect kind suffices");
+        assertFalse(store.suppressesAny(withKinds(7), p, 140L), "half-open: the expiry tick is free");
+        assertFalse(store.suppressesAny(withKinds(8), p, 100L), "a different effect kind is not suppressed");
+    }
+
+    @Test
+    void kindSuppressionIsPerPlayer() {
+        UUID q = UUID.randomUUID();
+        store.suppressKind(p, 7, 0L, 100, -1);
+        assertTrue(store.suppressesAny(withKinds(7), p, 0L));
+        assertFalse(store.suppressesAny(withKinds(7), q, 0L));
+    }
+
+    @Test
+    void kindFastPathNeverWalksEffectsWhileNoKindWindowExists() {
+        // Fast-path contract: with no KIND state anywhere, an ability whose effects would NPE is never
+        // walked — scoped() mocks return null effects(), so a missing fast-path fails this test loudly.
+        assertFalse(store.suppressesAny(scoped(-1, -1, -1), p, 0L));
+        store.suppress(p, CooldownStore.key(ScopeKinds.ENCHANT, 7), 0L, 200); // non-KIND state must not open the walk
+        assertFalse(store.suppressesAny(scoped(8, -1, -1), p, 50L));
+    }
+
+    @Test
+    void unstampedEffectsNeverMatchAKindWindow() {
+        store.suppressKind(p, 7, 0L, 100, -1);
+        assertFalse(store.suppressesAny(withKinds(-1), p, 0L), "kindId -1 (head-fallback path) never matches");
+        assertFalse(store.suppressesAny(withKinds(), p, 0L), "no effects, nothing to match");
+    }
+
+    @Test
+    void isKindSuppressedReadsOneKindAndEvictsLazily() {
+        store.suppressKind(p, 5, 0L, 40, -1);
+        assertTrue(store.isKindSuppressed(p, 5, 0L));
+        assertFalse(store.isKindSuppressed(p, 5, 40L)); // elapsed read evicts the entry
+        store.suppressKind(p, 5, 40L, 10, -1);          // a fresh arm after eviction still lands
+        assertTrue(store.isKindSuppressed(p, 5, 40L));
+    }
+
+    @Test
+    void kindReArmExtendsButNeverShortens() {
+        store.suppressKind(p, 7, 0L, 100, -1);
+        store.suppressKind(p, 7, 10L, 20, -1); // would expire at 30 — must not shorten
+        assertTrue(store.suppressesAny(withKinds(7), p, 50L));
+        assertFalse(store.suppressesAny(withKinds(7), p, 100L));
+    }
+
+    @Test
+    void kindOneShotBlocksAtGateFiveAndBurnsPerEvent() {
+        store.armOneShotKind(p, 7, 1, 42);
+        assertTrue(store.suppressesAny(withKinds(7), p, 0L), "an armed KIND one-shot blocks at gate 5");
+        assertTrue(store.suppressesAny(withKinds(7), p, 1_000_000L), "event-scoped, never timed");
+        store.consumeEventScoped(p);
+        assertFalse(store.suppressesAny(withKinds(7), p, 0L), "one event consumes the single charge");
+    }
+
+    @Test
+    void blockedDetailReportsTheKindScopeAndSuppressor() {
+        store.suppressKind(p, 9, 0L, 200, 42);
+        long d = store.blockedDetail(withKinds(3, 9), p, 50L);
+        assertEquals(ScopeKinds.KIND, SuppressionStore.detailScopeKind(d));
+        assertEquals(9, SuppressionStore.detailScopeId(d));
+        assertEquals(42, SuppressionStore.detailByDefId(d));
+    }
+
+    @Test
+    void absoluteImmunityVetoesKindSuppressionAndClearsExistingWindows() {
+        store.suppressKind(p, 7, 0L, 100, -1);
+        assertTrue(store.suppressesAny(withKinds(7), p, 0L));
+        store.setImmune(p, 100);
+        assertFalse(store.suppressesAny(withKinds(7), p, 0L), "arming immunity drops the existing KIND window");
+        store.suppressKind(p, 7, 0L, 100, -1);
+        assertFalse(store.suppressesAny(withKinds(7), p, 0L), "and a fresh KIND suppress is vetoed at the write");
+    }
+
+    @Test
+    void clearAndClearAllDropKindState() {
+        UUID q = UUID.randomUUID();
+        store.suppressKind(p, 7, 0L, 100, -1);
+        store.armOneShotKind(q, 8, 1, -1);
+        store.clear(p);
+        assertFalse(store.suppressesAny(withKinds(7), p, 0L));
+        assertTrue(store.suppressesAny(withKinds(8), q, 0L));
+        store.clearAll();
+        assertFalse(store.suppressesAny(withKinds(8), q, 0L));
+    }
+
+    @Test
+    void evictElapsedSweepsElapsedKindWindowsButKeepsLive() {
+        store.suppressKind(p, 1, 0L, 40, -1);  // expires at 40
+        store.suppressKind(p, 2, 0L, 200, -1); // expires at 200
+        store.evictElapsed(p, 100L);
+        assertFalse(store.isKindSuppressed(p, 1, 100L));
+        assertTrue(store.isKindSuppressed(p, 2, 100L));
+    }
+
+    @Test
+    void kindSuppressNotifiesTheMaintainedBuffListener() {
+        // The PassiveEffectDriver mirror relies on onSuppress to drop a KIND-suppressed maintained POTION
+        // immediately (ADR-0053) — a silent KIND write would leave the buff up until the next sweep.
+        int[] notified = {0};
+        store.onSuppress((player, durationTicks) -> notified[0]++);
+        store.suppressKind(p, 7, 0L, 100, -1);
+        store.armOneShotKind(p, 8, 1, -1);
+        assertEquals(2, notified[0]);
     }
 }

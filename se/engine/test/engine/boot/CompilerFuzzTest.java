@@ -234,7 +234,8 @@ class CompilerFuzzTest {
         }
     }
 
-    /** The erase SUPPRESS bridge: scope/key rewritten into gate 5's shared cooldown-scope namespace. */
+    /** The erase SUPPRESS bridge: scope/key rewritten into gate 5's shared cooldown-scope namespace
+     *  (scope KIND: the key is a dense effect kindId instead, ADR-0053); mode lowered to its wire ordinal. */
     private static void assertSuppressBridge(CompiledEffect e, int scopeSize) {
         Args args = e.args();
         if (!e.head().equals("SUPPRESS") || !args.has("scope") || !args.has("key")) {
@@ -244,9 +245,20 @@ class CompilerFuzzTest {
         Object key = args.opt("key").orElseThrow();
         assertTrue(scope instanceof Long, () -> "SUPPRESS scope not erased to long: " + scope);
         long sk = (Long) scope;
-        assertTrue(sk == ScopeKinds.ENCHANT || sk == ScopeKinds.GROUP || sk == ScopeKinds.TYPE);
+        assertTrue(sk == ScopeKinds.ENCHANT || sk == ScopeKinds.GROUP || sk == ScopeKinds.TYPE
+                || sk == ScopeKinds.KIND);
         assertTrue(key instanceof Long, () -> "SUPPRESS key not erased to long: " + key);
-        assertTrue((Long) key < scopeSize);
+        if (sk == ScopeKinds.KIND) {
+            assertTrue((Long) key >= 0 && (Long) key < EFFECTS.kinds().size(),
+                    () -> "SUPPRESS KIND key is not a dense effect kindId: " + key);
+        } else {
+            assertTrue((Long) key < scopeSize);
+        }
+        if (args.has("mode")) {
+            Object mode = args.opt("mode").orElseThrow();
+            assertTrue(mode instanceof Long m && (m == 0L || m == 1L),
+                    () -> "SUPPRESS mode not erased to its wire ordinal: " + mode);
+        }
     }
 
     private static void assertScope(int id, int size) {
@@ -323,7 +335,7 @@ class CompilerFuzzTest {
         boolean suppress = e.head().equals("SUPPRESS");
         for (Param p : spec.params()) {
             String name = p.name();
-            if (suppress && (name.equals("scope") || name.equals("key"))) {
+            if (suppress && (name.equals("scope") || name.equals("key") || name.equals("mode"))) {
                 continue; // erase-rewritten to longs (asserted by the SUPPRESS bridge)
             }
             ContentFuzz.Authored auth = line.named().get(name);

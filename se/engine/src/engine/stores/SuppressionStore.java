@@ -1,6 +1,7 @@
 package engine.stores;
 
 import compile.model.Ability;
+import compile.model.CompiledEffect;
 import compile.model.ScopeKinds;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -51,6 +52,14 @@ public final class SuppressionStore implements RetainedStore {
      * suppressions. Absent = not immune. A {@code SUPPRESS_IMMUNE} with no chance stores {@code 100}.
      */
     private final Map<UUID, Integer> immuneChance = new ConcurrentHashMap<>();
+    /**
+     * KIND-scoped windows (ADR-0053): dense effect kindId &rarr; {@link Window}, SEPARATE from the packed
+     * cooldown-scope maps so gate 5's per-activation check can fast-path on map emptiness — when no KIND
+     * window exists anywhere, the ability's effects are never walked.
+     */
+    private final Map<UUID, Map<Integer, Window>> kindExpiryByPlayer = new ConcurrentHashMap<>();
+    /** KIND-scoped one-shots ({@code SUPPRESS scope: KIND, mode: next-hit}), burned by {@link #consumeEventScoped}. */
+    private final Map<UUID, Map<Integer, Charge>> kindArmedByPlayer = new ConcurrentHashMap<>();
     private volatile SuppressListener onSuppress = (player, durationTicks) -> { };
 
     /**
@@ -67,6 +76,7 @@ public final class SuppressionStore implements RetainedStore {
         immuneChance.put(player, clamped);
         if (clamped >= 100) {
             expiryByPlayer.remove(player); // absolute immunity drops any DISABLE that landed before it armed
+            kindExpiryByPlayer.remove(player); // KIND windows are DISABLE windows too (ADR-0053)
         }
     }
 
@@ -95,14 +105,7 @@ public final class SuppressionStore implements RetainedStore {
      * armed it, {@code -1} = unattributed), so {@code /se why} can name the suppressor (ADR-0045).
      */
     public void suppress(UUID player, long id, long nowTicks, int durationTicks, int byDefId) {
-        if (durationTicks <= 0) {
-            return;
-        }
-        int immunity = immuneChance.getOrDefault(player, 0);
-        // Roll the per-player immunity: >=100 is absolute (Dovahkiin), a lower chance ignores that fraction of
-        // suppressions (crystals/chaos "4% chance to ignore Silence", ADR-0034). ThreadLocalRandom — no RNG is
-        // threaded to this store, and it runs on the firing region thread.
-        if (immunity >= 100 || (immunity > 0 && ThreadLocalRandom.current().nextInt(100) < immunity)) {
+        if (durationTicks <= 0 || vetoedByImmunity(player)) {
             return;
         }
         long expiry = nowTicks + durationTicks;
@@ -110,6 +113,30 @@ public final class SuppressionStore implements RetainedStore {
         expiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
                 .merge(id, new Window(expiry, byDefId), (a, b) -> a.expiry() >= b.expiry() ? a : b);
         onSuppress.onSuppress(player, durationTicks); // instant drop + scheduled restore of maintained buffs
+    }
+
+    /**
+     * Suppress every ability carrying effect kind {@code kindId} for {@code player} for {@code durationTicks}
+     * ({@code SUPPRESS scope: KIND}, ADR-0053 — e.g. Chef silencing any {@code MODIFY_FOOD}). Same immunity
+     * roll, extend-never-shorten merge, and maintained-buff notification as {@link #suppress}, but keyed by the
+     * dense effect kindId in its own map so gate 5's fast-path stays an emptiness test.
+     */
+    public void suppressKind(UUID player, int kindId, long nowTicks, int durationTicks, int byDefId) {
+        if (kindId < 0 || durationTicks <= 0 || vetoedByImmunity(player)) {
+            return;
+        }
+        long expiry = nowTicks + durationTicks;
+        kindExpiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
+                .merge(kindId, new Window(expiry, byDefId), (a, b) -> a.expiry() >= b.expiry() ? a : b);
+        onSuppress.onSuppress(player, durationTicks); // a KIND-suppressed maintained POTION must drop too
+    }
+
+    /** Roll the per-player immunity: >=100 is absolute (Dovahkiin), a lower chance ignores that fraction of
+     *  suppressions (crystals/chaos "4% chance to ignore Silence", ADR-0034). ThreadLocalRandom — no RNG is
+     *  threaded to this store, and it runs on the firing region thread. */
+    private boolean vetoedByImmunity(UUID player) {
+        int immunity = immuneChance.getOrDefault(player, 0);
+        return immunity >= 100 || (immunity > 0 && ThreadLocalRandom.current().nextInt(100) < immunity);
     }
 
     /**
@@ -123,16 +150,31 @@ public final class SuppressionStore implements RetainedStore {
         if (charges <= 0) {
             return;
         }
-        Map<Long, Charge> armed = armedByPlayer.computeIfAbsent(player, k -> new LinkedHashMap<>());
+        arm(armedByPlayer, player, id, charges, byDefId);
+        onSuppress.onSuppress(player, 0); // instant drop of maintained buffs; the restore is event-scoped, not timed
+    }
+
+    /** As {@link #armOneShot} but KIND-scoped (ADR-0053): {@code kindId} is the dense effect kindId, kept in its
+     *  own map so gate 5's KIND fast-path stays an emptiness test. Burned by the same {@link #consumeEventScoped}. */
+    public void armOneShotKind(UUID player, int kindId, int charges, int byDefId) {
+        if (kindId < 0 || charges <= 0) {
+            return;
+        }
+        arm(kindArmedByPlayer, player, kindId, charges, byDefId);
+        onSuppress.onSuppress(player, 0);
+    }
+
+    /** The shared arm: extend-to-larger-charges merge + the {@value #MAX_ARMED} oldest-out cap. */
+    private static <K> void arm(Map<UUID, Map<K, Charge>> byPlayer, UUID player, K key, int charges, int byDefId) {
+        Map<K, Charge> armed = byPlayer.computeIfAbsent(player, k -> new LinkedHashMap<>());
         synchronized (armed) {
-            armed.merge(id, new Charge(charges, byDefId), (a, b) -> new Charge(Math.max(a.charges(), b.charges()), b.byDefId()));
+            armed.merge(key, new Charge(charges, byDefId), (a, b) -> new Charge(Math.max(a.charges(), b.charges()), b.byDefId()));
             if (armed.size() > MAX_ARMED) {
-                Iterator<Long> it = armed.keySet().iterator();
+                Iterator<K> it = armed.keySet().iterator();
                 it.next(); // the eldest (LinkedHashMap insertion order)
                 it.remove();
             }
         }
-        onSuppress.onSuppress(player, 0); // instant drop of maintained buffs; the restore is event-scoped, not timed
     }
 
     /**
@@ -140,14 +182,19 @@ public final class SuppressionStore implements RetainedStore {
      * end of a hit against them (event-scoped, ADR-0049). A no-op when nothing is armed.
      */
     public void consumeEventScoped(UUID player) {
-        Map<Long, Charge> armed = armedByPlayer.get(player);
+        burn(armedByPlayer, player);
+        burn(kindArmedByPlayer, player); // KIND one-shots are event-scoped too (ADR-0053)
+    }
+
+    private static <K> void burn(Map<UUID, Map<K, Charge>> byPlayer, UUID player) {
+        Map<K, Charge> armed = byPlayer.get(player);
         if (armed == null) {
             return;
         }
         synchronized (armed) {
-            Iterator<Map.Entry<Long, Charge>> it = armed.entrySet().iterator();
+            Iterator<Map.Entry<K, Charge>> it = armed.entrySet().iterator();
             while (it.hasNext()) {
-                Map.Entry<Long, Charge> e = it.next();
+                Map.Entry<K, Charge> e = it.next();
                 Charge c = e.getValue();
                 if (c.charges() <= 1) {
                     it.remove();
@@ -156,19 +203,23 @@ public final class SuppressionStore implements RetainedStore {
                 }
             }
             if (armed.isEmpty()) {
-                armedByPlayer.remove(player, armed);
+                byPlayer.remove(player, armed);
             }
         }
     }
 
     /** The armed one-shot charge for {@code id}, or {@code null} — the read both the gate mirror and detail share. */
     private Charge armed(UUID player, long id) {
-        Map<Long, Charge> armed = armedByPlayer.get(player);
+        return armed(armedByPlayer, player, id);
+    }
+
+    private static <K> Charge armed(Map<UUID, Map<K, Charge>> byPlayer, UUID player, K key) {
+        Map<K, Charge> armed = byPlayer.get(player);
         if (armed == null) {
             return null;
         }
         synchronized (armed) {
-            return armed.get(id);
+            return armed.get(key);
         }
     }
 
@@ -198,12 +249,65 @@ public final class SuppressionStore implements RetainedStore {
         return w;
     }
 
-    /** Whether ANY of {@code ability}'s three cooldown scopes is under an active timed {@code DISABLE_*} — the
-     *  one three-scope check gate 5 and the passive-potion driver share, so the gate-5 mirror cannot drift. */
+    /** Whether ANY of {@code ability}'s three cooldown scopes — or any of its compiled effect kind ids
+     *  (ADR-0053 {@code scope: KIND}) — is under an active {@code DISABLE_*}: the ONE check gate 5 and the
+     *  passive-potion driver share, so the gate-5 mirror cannot drift. */
     public boolean suppressesAny(Ability ability, UUID player, long nowTicks) {
         return scopeSuppressed(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)
                 || scopeSuppressed(ability.cdScopeGroup(), ScopeKinds.GROUP, player, nowTicks)
-                || scopeSuppressed(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks);
+                || scopeSuppressed(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks)
+                || kindSuppressed(ability, player, nowTicks);
+    }
+
+    /**
+     * Whether any of {@code ability}'s compiled effect kind ids is KIND-suppressed for {@code player}
+     * (ADR-0053). Hot-path rule: the two map-emptiness tests short-circuit before the effects walk, so an
+     * activation costs ~nothing while no KIND window exists anywhere. Unstamped effects (kindId −1, the
+     * head-fallback test path) never match.
+     */
+    private boolean kindSuppressed(Ability ability, UUID player, long nowTicks) {
+        if (kindExpiryByPlayer.isEmpty() && kindArmedByPlayer.isEmpty()) {
+            return false; // fast path: no KIND suppression on the whole server
+        }
+        Map<Integer, Window> windows = kindExpiryByPlayer.get(player);
+        boolean anyArmed = kindArmedByPlayer.containsKey(player);
+        if (windows == null && !anyArmed) {
+            return false;
+        }
+        for (CompiledEffect effect : ability.effects()) {
+            int kid = effect.kindId();
+            if (kid < 0) {
+                continue;
+            }
+            if (windows != null && kindWindow(windows, kid, nowTicks) != null) {
+                return true;
+            }
+            if (anyArmed && armed(kindArmedByPlayer, player, kid) != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether effect kind {@code kindId} is KIND-suppressed for {@code player} (window or one-shot) — the
+     *  single-kind read for tests and detail rendering. */
+    public boolean isKindSuppressed(UUID player, int kindId, long nowTicks) {
+        Map<Integer, Window> windows = kindExpiryByPlayer.get(player);
+        return (windows != null && kindWindow(windows, kindId, nowTicks) != null)
+                || armed(kindArmedByPlayer, player, kindId) != null;
+    }
+
+    /** The live KIND window for {@code kindId} in {@code windows}, or {@code null} (same lazy eviction as {@link #window}). */
+    private static Window kindWindow(Map<Integer, Window> windows, int kindId, long nowTicks) {
+        Window w = windows.get(kindId);
+        if (w == null) {
+            return null;
+        }
+        if (nowTicks >= w.expiry()) {
+            windows.remove(kindId, w);
+            return null;
+        }
+        return w;
     }
 
     private boolean scopeSuppressed(int scopeId, int scopeKind, UUID player, long nowTicks) {
@@ -233,6 +337,25 @@ public final class SuppressionStore implements RetainedStore {
         }
         if ((d = scopeByDefId(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks)) != NONE) {
             return detail(d, ScopeKinds.TYPE, ability.cdScopeType());
+        }
+        // KIND arm last, mirroring suppressesAny's order: the first blocked effect kindId names the suppressor.
+        Map<Integer, Window> windows = kindExpiryByPlayer.get(player);
+        boolean anyArmed = kindArmedByPlayer.containsKey(player);
+        if (windows != null || anyArmed) {
+            for (CompiledEffect effect : ability.effects()) {
+                int kid = effect.kindId();
+                if (kid < 0) {
+                    continue;
+                }
+                Window w = windows != null ? kindWindow(windows, kid, nowTicks) : null;
+                if (w != null) {
+                    return detail(w.byDefId(), ScopeKinds.KIND, kid);
+                }
+                Charge c = anyArmed ? armed(kindArmedByPlayer, player, kid) : null;
+                if (c != null) {
+                    return detail(c.byDefId(), ScopeKinds.KIND, kid);
+                }
+            }
         }
         return 0;
     }
@@ -271,10 +394,12 @@ public final class SuppressionStore implements RetainedStore {
         return (int) (d >> 32);
     }
 
-    /** Forget every suppression (timed, one-shot, and immunity) for one player (a full clear — NOT the quit sweep). */
+    /** Forget every suppression (timed, one-shot, KIND, and immunity) for one player (a full clear — NOT the quit sweep). */
     public void clear(UUID player) {
         expiryByPlayer.remove(player);
         armedByPlayer.remove(player);
+        kindExpiryByPlayer.remove(player);
+        kindArmedByPlayer.remove(player);
         immuneChance.remove(player);
     }
 
@@ -296,6 +421,10 @@ public final class SuppressionStore implements RetainedStore {
             ids.values().removeIf(w -> nowTicks >= w.expiry());
             return ids.isEmpty() ? null : ids;
         });
+        kindExpiryByPlayer.computeIfPresent(player, (id, ids) -> {
+            ids.values().removeIf(w -> nowTicks >= w.expiry());
+            return ids.isEmpty() ? null : ids;
+        });
     }
 
     /** Drop every player's elapsed suppression windows at {@code nowTicks} (the periodic offline-state sweep). */
@@ -304,12 +433,17 @@ public final class SuppressionStore implements RetainedStore {
         for (UUID player : expiryByPlayer.keySet()) {
             evictElapsed(player, nowTicks);
         }
+        for (UUID player : kindExpiryByPlayer.keySet()) {
+            evictElapsed(player, nowTicks);
+        }
     }
 
-    /** Forget every suppression (timed, one-shot, and all immunity) for every player (call on disable). */
+    /** Forget every suppression (timed, one-shot, KIND, and all immunity) for every player (call on disable). */
     public void clearAll() {
         expiryByPlayer.clear();
         armedByPlayer.clear();
+        kindExpiryByPlayer.clear();
+        kindArmedByPlayer.clear();
         immuneChance.clear();
     }
 }

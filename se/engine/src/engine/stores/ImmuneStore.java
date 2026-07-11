@@ -15,13 +15,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ImmuneStore implements PlayerScoped {
 
-    /** The damage causes an immunity can cover; the ordinal is the wire code passed through the {@code Sink}. */
+    /** The damage causes an immunity can cover; the ordinal is the wire code passed through the {@code Sink}.
+     *  Append-only — the codes are compiled into snapshots. {@code FISHHOOK} (ADR-0053) sits after {@code ALL},
+     *  which still blankets it like every other cause. */
     public enum Type {
-        SWORD, AXE, PROJECTILE, POTION, ALL;
+        SWORD, AXE, PROJECTILE, POTION, ALL, FISHHOOK;
 
         private static final Type[] VALUES = values();
 
-        /** The type for a wire code (0..4), or {@code null} if out of range. */
+        /** The type for a wire code (0..5), or {@code null} if out of range. */
         public static Type of(int code) {
             return code >= 0 && code < VALUES.length ? VALUES[code] : null;
         }

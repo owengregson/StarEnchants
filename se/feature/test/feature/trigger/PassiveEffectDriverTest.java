@@ -87,6 +87,27 @@ class PassiveEffectDriverTest {
     }
 
     @Test
+    void aKindSuppressedAbilityIsDroppedByTheSameMirror() {
+        // ADR-0053 SUPPRESS scope KIND (Chef silencing MODIFY_FOOD-likes): the driver shares gate 5's
+        // suppressesAny seam, so a KIND window must also stop a maintained passive of that effect kind.
+        Ability speed = potionAbility(SPEED, 2, 7);
+        when(speed.effects()[0].kindId()).thenReturn(31); // the dense id stamped on this POTION effect
+        Snapshot snapshot = snapshot(speed);
+        SuppressionStore suppression = new SuppressionStore();
+        UUID player = UUID.randomUUID();
+        suppression.suppressKind(player, 31, 0L, 200, -1);
+
+        PassiveEffectDriver.Desired during = PassiveEffectDriver.computeDesired(
+                worn(passive(0)), snapshot, suppression, player, 50L, HELD, PASSIVE);
+        assertTrue(during.apply().isEmpty(), "a KIND-suppressed passive grants nothing");
+        assertEquals(Set.of(SPEED), during.suppressed(), "and its type is force-cleared mid-window");
+
+        PassiveEffectDriver.Desired after = PassiveEffectDriver.computeDesired(
+                worn(passive(0)), snapshot, suppression, player, 250L, HELD, PASSIVE);
+        assertEquals(Map.of(SPEED, 1), after.apply(), "the window's end restores the buff");
+    }
+
+    @Test
     void anUnrelatedSuppressionDoesNotDropOtherPassives() {
         Ability speed = potionAbility(SPEED, 1, 5); // scope 5 — NOT the one suppressed
         Snapshot snapshot = snapshot(speed);

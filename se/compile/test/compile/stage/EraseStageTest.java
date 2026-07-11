@@ -159,6 +159,81 @@ class EraseStageTest {
         assertEquals(erased.interners().cooldownScopes().idOf("lifesteal"), victimAbility.cdScopeGroup());
     }
 
+    // ── ADR-0053 SUPPRESS scope KIND: the key names an effect head, resolved to its dense kindId ──
+
+    /** A SUPPRESS effect line with the given scope/key (mode optional). */
+    private static CompiledEffect suppress(Args args) {
+        return new CompiledEffect("SUPPRESS", args, CompiledSelector.SELF, 0, Affinity.CONTEXT_LOCAL);
+    }
+
+    @Test
+    void suppressKindKeyResolvesToTheDenseEffectKindId() {
+        // The registry stand-in: head → dense kindId. The erase must resolve case-insensitively.
+        EraseStage stage = new DefaultEraseStage(List.of(), head -> "MODIFY_FOOD".equals(head) ? 7 : -1);
+        CompiledEffect line = suppress(Args.empty()
+                .with("scope", "KIND").with("key", "modify_food").with("duration", 100L));
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = stage.erase(
+                List.of(Defs.lowered().stableKey("chef").effects(line).build()), d);
+
+        assertFalse(d.hasErrors());
+        CompiledEffect out = erased.abilities()[0].effects()[0];
+        assertEquals(3L, out.args().lng("scope")); // KIND → kind 3
+        assertEquals(7L, out.args().lng("key"));   // the dense effect kindId, NOT a cooldown-scope id
+    }
+
+    @Test
+    void unknownKindKeyIsDiagnosedAndTheOpDroppedButTheAbilityKept() {
+        EraseStage stage = new DefaultEraseStage(List.of(), head -> -1); // registry knows no heads
+        CompiledEffect bad = suppress(Args.empty()
+                .with("scope", "KIND").with("key", "NOT_A_KIND").with("duration", 100L));
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = stage.erase(
+                List.of(Defs.lowered().stableKey("chef").effects(effect(), bad).build()), d);
+
+        assertTrue(d.all().stream().anyMatch(diag -> diag.is(DiagCode.E_UNKNOWN_KIND)));
+        // warn-and-skip THIS op (the E_UNKNOWN_HANDLE policy): the sibling effect and the ability survive.
+        assertEquals(1, erased.abilities().length);
+        assertEquals(1, erased.abilities()[0].effects().length);
+        assertEquals("X", erased.abilities()[0].effects()[0].head());
+    }
+
+    @Test
+    void kindKeyWithoutARegistryErasesToMinusOneSilently() {
+        // Lower-level wirings pass no effect registry: the key erases to -1 (inert at the sink, which drops
+        // scopeId < 0) with NO diagnostic — mirroring the un-stamped kindId path.
+        CompiledEffect line = suppress(Args.empty()
+                .with("scope", "KIND").with("key", "MODIFY_FOOD").with("duration", 100L));
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = STAGE.erase(
+                List.of(Defs.lowered().stableKey("chef").effects(line).build()), d);
+
+        assertFalse(d.hasErrors());
+        assertEquals(-1L, erased.abilities()[0].effects()[0].args().lng("key"));
+    }
+
+    @Test
+    void suppressModeErasesToItsOrdinal() {
+        // run() reads mode as an int (0=timed, 1=next-hit); leaving the canonical enum STRING in the args made
+        // every content-compiled SUPPRESS throw (and be swallowed) at runtime — the erase now lowers it.
+        CompiledEffect nextHit = suppress(Args.empty()
+                .with("scope", "GROUP").with("key", "soul").with("duration", 100L).with("mode", "next-hit"));
+        CompiledEffect timed = suppress(Args.empty()
+                .with("scope", "GROUP").with("key", "soul").with("duration", 100L).with("mode", "timed"));
+        CompiledEffect absent = suppress(Args.empty()
+                .with("scope", "GROUP").with("key", "soul").with("duration", 100L));
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = STAGE.erase(List.of(
+                Defs.lowered().stableKey("a").effects(nextHit).build(),
+                Defs.lowered().stableKey("b").effects(timed).build(),
+                Defs.lowered().stableKey("c").effects(absent).build()), d);
+
+        assertFalse(d.hasErrors());
+        assertEquals(1L, erased.abilities()[0].effects()[0].args().lng("mode"));
+        assertEquals(0L, erased.abilities()[1].effects()[0].args().lng("mode"));
+        assertEquals(0L, erased.abilities()[2].effects()[0].args().lng("mode"));
+    }
+
     @Test
     void duplicateStableKeyIsReportedAndDropped() {
         Diagnostics d = new Diagnostics();

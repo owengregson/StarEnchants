@@ -381,7 +381,22 @@ final class ContentFuzz {
             }
             named.put(param.name(), authored(type, rnd, unicode));
         }
+        teachKindKey(named, rnd, vocab);
         return named;
+    }
+
+    /**
+     * The ADR-0053 cross-rule (spec-shape-driven, no head literal): a spec pairing a {@code scope} ENUM that
+     * admits KIND with a {@code key} must — when KIND is drawn — key a REGISTERED effect head, because the
+     * erase stage drops anything else with {@code E_UNKNOWN_KIND} (which would fail the valid-content case).
+     */
+    private static void teachKindKey(Map<String, Authored> named, Random rnd, Vocab vocab) {
+        Authored scope = named.get("scope");
+        if (scope != null && scope.kind() == ValueKind.ENUM && "KIND".equalsIgnoreCase(scope.raw())
+                && named.containsKey("key")) {
+            String head = vocab.effectKinds().get(rnd.nextInt(vocab.effectKinds().size())).spec().head();
+            named.put("key", new Authored(head, ValueKind.STRING));
+        }
     }
 
     /** A valid value token for one param, via an exhaustive switch — a new {@link ParamType.Kind} breaks the build. */
@@ -490,16 +505,25 @@ final class ContentFuzz {
     }
 
     private static String yamlEffectItem(EffectKind kind, Random rnd) {
-        StringBuilder body = new StringBuilder();
+        Map<String, String> values = new LinkedHashMap<>();
         boolean unicode = rnd.nextInt(5) == 0;
         for (Param param : kind.spec().paramSpec().params()) {
             if (!(param.required() || rnd.nextBoolean())) {
                 continue;
             }
+            values.put(param.name(), authored(param.type(), rnd, unicode).raw());
+        }
+        // The ADR-0053 cross-rule, as in teachKindKey: a drawn scope KIND must key a registered effect
+        // head or the loader's valid family trips the erase's E_UNKNOWN_KIND. The host's own head suffices.
+        if ("KIND".equalsIgnoreCase(values.getOrDefault("scope", "")) && values.containsKey("key")) {
+            values.put("key", kind.head());
+        }
+        StringBuilder body = new StringBuilder();
+        for (Map.Entry<String, String> entry : values.entrySet()) {
             if (body.length() > 0) {
                 body.append(", ");
             }
-            body.append(param.name()).append(": ").append(q(authored(param.type(), rnd, unicode).raw()));
+            body.append(entry.getKey()).append(": ").append(q(entry.getValue()));
         }
         if (rnd.nextBoolean()) {
             if (body.length() > 0) {

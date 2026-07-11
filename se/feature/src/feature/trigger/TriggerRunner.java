@@ -79,8 +79,9 @@ public final class TriggerRunner {
     public void contributeHeroicReduction(int generation, Player actor, SinkReadback sink) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState != null && wornState.gen() == generation) {
-            sink.addDamageReduction(wornState.heroic().percentReduction()); // §F additive fold (ADR-0037)
-            sink.addFlatReduction(wornState.heroic().flatReduction()); // §F diamond armour delta, under reduction-scope ALL
+            // Heroic-tagged adders (ADR-0053): folded identically unless the hit set ignoreHeroic (§F, ADR-0037).
+            sink.addHeroicReduction(wornState.heroic().percentReduction());
+            sink.addHeroicFlatReduction(wornState.heroic().flatReduction()); // §F diamond armour delta, under reduction-scope ALL
         }
     }
 
@@ -125,11 +126,15 @@ public final class TriggerRunner {
                              WornState wornState, int[] candidates, boolean applyHeroic) {
         if (applyHeroic) {
             if (attackSide) {
+                // Attacker-side heroic weapon damage stays on the PLAIN adders — IGNORE_HEROIC negates only
+                // the victim's heroic armor (ADR-0053).
                 sink.addOutgoingDamage(wornState.heroic().percentDamage()); // §F additive fold (ADR-0037)
                 sink.addFlatDamage(wornState.heroic().flatDamage());        // §F diamond base-attack delta (gold→diamond)
             } else {
-                sink.addDamageReduction(wornState.heroic().percentReduction()); // §F additive fold (ADR-0037)
-                sink.addFlatReduction(wornState.heroic().flatReduction());  // §F diamond armour delta
+                // Victim-side heroic reduction rides the heroic-tagged buckets (ADR-0053): folded identically
+                // unless the hit set ignoreHeroic (§F additive fold, ADR-0037).
+                sink.addHeroicReduction(wornState.heroic().percentReduction());
+                sink.addHeroicFlatReduction(wornState.heroic().flatReduction()); // §F diamond armour delta
             }
         }
         if (candidates.length == 0) {

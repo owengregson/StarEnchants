@@ -232,4 +232,95 @@ class DamageFoldTest {
         assertEquals(0.0, f.outgoingPercent(), EPS);
         assertEquals(0.0, f.reductionPercent(), EPS);
     }
+
+    // ── ADR-0053 heroic-tagged reduction buckets (IGNORE_HEROIC) ──────────────────────────────────
+
+    @Test
+    void heroicAddersFoldIdenticallyToPlainAddersWhenUnflagged() {
+        // Parity contract: routing the victim's heroic through the tagged buckets must not change the
+        // commit — same corpus as flatsStillApplyInAdrOrderWhenHeroicPercentsAreFolded, heroic re-routed.
+        DamageFold plain = new DamageFold();
+        plain.addOutgoing(0.50);
+        plain.addFlatDamage(5.0);
+        plain.addReduction(0.40); // heroic armour, on the plain adder (the pre-change routing)
+        plain.addFlatReduction(1.0); // heroic flat, on the plain adder
+
+        DamageFold tagged = new DamageFold();
+        tagged.addOutgoing(0.50);
+        tagged.addFlatDamage(5.0);
+        tagged.addHeroicReduction(0.40);
+        tagged.addHeroicFlatReduction(1.0);
+
+        assertEquals(plain.apply(10.0), tagged.apply(10.0), EPS);
+    }
+
+    @Test
+    void heroicAndPlainReductionsSumWhenUnflagged() {
+        // (10) × (1 − (0.20 + 0.30)) − (1 + 2) = 5 − 3 = 2
+        DamageFold f = new DamageFold();
+        f.addHeroicReduction(0.20);
+        f.addReduction(0.30);
+        f.addHeroicFlatReduction(1.0);
+        f.addFlatReduction(2.0);
+        assertEquals(2.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void ignoreHeroicDropsExactlyTheHeroicBuckets() {
+        // Flagged: only the plain −30% and flat −2 survive: 10 × 0.7 − 2 = 5; the heroic −20%/−1 vanish.
+        DamageFold f = new DamageFold();
+        f.addHeroicReduction(0.20);
+        f.addReduction(0.30);
+        f.addHeroicFlatReduction(1.0);
+        f.addFlatReduction(2.0);
+        f.ignoreHeroic();
+        assertEquals(5.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void ignoreHeroicWithOnlyHeroicReductionRestoresTheBareHit() {
+        DamageFold f = new DamageFold();
+        f.addHeroicReduction(0.40);
+        f.addHeroicFlatReduction(3.0);
+        f.ignoreHeroic();
+        assertEquals(10.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void ignoreHeroicNeverTouchesAttackSideBuckets() {
+        // Heroic WEAPON damage rides the plain attack adders; the flag must not perturb them.
+        DamageFold f = new DamageFold();
+        f.addOutgoing(0.50); // heroic weapon percent (plain adder by design)
+        f.addFlatDamage(5.0); // heroic diamond base-attack delta (plain adder by design)
+        f.ignoreHeroic();
+        assertEquals(20.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void maxBonusReductionCapSeesTheCombinedHeroicPlusPlainSum() {
+        // heroic 0.60 + plain 0.60 = 1.20 ceils at the 0.8 cap → ×0.2 → 2.0 (identical to the one-bucket world).
+        DamageFold f = new DamageFold();
+        f.caps(-1.0, 0.8);
+        f.addHeroicReduction(0.60);
+        f.addReduction(0.60);
+        assertEquals(2.0, f.apply(10.0), EPS);
+
+        // Flagged, only the plain 0.60 remains — under the cap now: ×0.4 → 4.0.
+        f.ignoreHeroic();
+        assertEquals(4.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void resetClearsTheHeroicBucketsAndTheFlag() {
+        DamageFold f = new DamageFold();
+        f.addHeroicReduction(0.50);
+        f.addHeroicFlatReduction(2.0);
+        f.ignoreHeroic();
+        f.reset();
+        assertEquals(0.0, f.heroicReductionPercent(), EPS);
+        assertEquals(0.0, f.heroicFlatReduction(), EPS);
+        assertEquals(false, f.heroicIgnored());
+        f.addHeroicReduction(0.30);
+        assertEquals(7.0, f.apply(10.0), EPS); // heroic folds again after reset (the flag did not leak)
+    }
 }

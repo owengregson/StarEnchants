@@ -11,6 +11,7 @@ import compile.model.SourceMap;
 import compile.model.StableKeyIndex;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
+import schema.diag.Source;
 import schema.spec.Args;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToIntFunction;
 
 /**
  * The default {@link EraseStage} (docs/architecture.md §4.1). A kept ability's dense id is its
@@ -39,6 +41,10 @@ public final class DefaultEraseStage implements EraseStage {
     private static final int WORLD_BITS = 64;
 
     private final List<String> canonicalTriggers;
+    /** Effect head &rarr; dense kindId for {@code SUPPRESS scope: KIND} key resolution (ADR-0053); {@code null}
+     *  = no registry wired (lower-level tests) — a KIND key then erases to {@code -1} silently, mirroring the
+     *  un-stamped {@code kindId} path. */
+    private final ToIntFunction<String> effectIdOf;
 
     /** Ad-hoc mode: trigger names are interned as encountered, with no vocabulary check. */
     public DefaultEraseStage() {
@@ -47,7 +53,13 @@ public final class DefaultEraseStage implements EraseStage {
 
     /** Canonical mode: trigger names match this vocabulary case-insensitively, interned to its id order. */
     public DefaultEraseStage(List<String> canonicalTriggers) {
+        this(canonicalTriggers, null);
+    }
+
+    /** Canonical mode with {@code SUPPRESS scope: KIND} key resolution against the effect registry (ADR-0053). */
+    public DefaultEraseStage(List<String> canonicalTriggers, ToIntFunction<String> effectIdOf) {
         this.canonicalTriggers = List.copyOf(canonicalTriggers);
+        this.effectIdOf = effectIdOf;
     }
 
     @Override
@@ -124,7 +136,7 @@ public final class DefaultEraseStage implements EraseStage {
             int cdScopeGroup = la.cdScopeGroup() == null ? -1 : cooldownScopes.intern(la.cdScopeGroup());
             int cdScopeType = la.cdScopeType() == null ? -1 : cooldownScopes.intern(la.cdScopeType());
 
-            CompiledEffect[] effects = eraseSuppressArgs(la.effects(), cooldownScopes);
+            CompiledEffect[] effects = eraseSuppressArgs(la.effects(), cooldownScopes, la.source(), diags);
             Ability ability = new Ability(
                     id,
                     la.defId(),
@@ -159,24 +171,55 @@ public final class DefaultEraseStage implements EraseStage {
     }
 
     /**
-     * Interns each {@code SUPPRESS} effect's {@code key} into the SAME {@code cooldownScopes} interner the
-     * abilities' {@code cdScope*} use, so a {@code SUPPRESS} write shares one namespace with gate 5's reads
-     * (the bridge invariant). A malformed SUPPRESS is left as-is.
+     * Lowers each {@code SUPPRESS} effect's args to ints so {@code run} does zero string work: scope
+     * ENCHANT/GROUP/TYPE interns {@code key} into the SAME {@code cooldownScopes} interner the abilities'
+     * {@code cdScope*} use (the gate-5 bridge invariant); scope KIND (ADR-0053) resolves {@code key} as an
+     * effect head to its dense kindId — an unknown head is an {@code E_UNKNOWN_KIND} and the op is dropped
+     * (the {@code E_UNKNOWN_HANDLE} warn-and-skip policy). {@code mode} erases to its ordinal
+     * (0=timed, 1=next-hit). A malformed SUPPRESS is left as-is.
      */
-    private static CompiledEffect[] eraseSuppressArgs(List<CompiledEffect> effects, Interner cooldownScopes) {
-        CompiledEffect[] out = new CompiledEffect[effects.size()];
-        for (int i = 0; i < effects.size(); i++) {
-            CompiledEffect effect = effects.get(i);
+    private CompiledEffect[] eraseSuppressArgs(List<CompiledEffect> effects, Interner cooldownScopes,
+                                               Source source, Diagnostics diags) {
+        List<CompiledEffect> out = new ArrayList<>(effects.size());
+        for (CompiledEffect effect : effects) {
             Args args = effect.args();
-            if ("SUPPRESS".equals(effect.head()) && args.has("scope") && args.has("key")) {
-                Args rewritten = args
-                        .with("scope", (long) ScopeKinds.of(args.str("scope")))
-                        .with("key", (long) cooldownScopes.intern(args.str("key")));
-                out[i] = effect.withArgs(rewritten); // keep the stamped kindId (ADR-0039)
-            } else {
-                out[i] = effect;
+            if (!"SUPPRESS".equals(effect.head()) || !args.has("scope") || !args.has("key")) {
+                out.add(effect);
+                continue;
             }
+            int scopeKind = ScopeKinds.of(args.str("scope"));
+            long keyId;
+            if (scopeKind == ScopeKinds.KIND) {
+                String head = args.str("key");
+                keyId = effectIdOf == null ? -1 : effectIdOf.applyAsInt(head.toUpperCase(Locale.ROOT));
+                if (effectIdOf != null && keyId < 0) {
+                    diags.error(DiagCode.E_UNKNOWN_KIND,
+                            "unknown effect '" + head + "' for SUPPRESS scope KIND — this effect is skipped",
+                            source,
+                            "use a registered effect head, e.g. MODIFY_FOOD (run /se docs to list kinds)");
+                    continue; // warn-and-skip this one op (the E_UNKNOWN_HANDLE policy)
+                }
+            } else {
+                keyId = cooldownScopes.intern(args.str("key"));
+            }
+            Args rewritten = args
+                    .with("scope", (long) scopeKind)
+                    .with("key", keyId)
+                    .with("mode", modeOrdinal(args)); // run() reads ints only (the SuppressEffect contract)
+            out.add(effect.withArgs(rewritten)); // keep the stamped kindId (ADR-0039)
         }
-        return out;
+        return out.toArray(new CompiledEffect[0]);
+    }
+
+    /** {@code mode} lowered to its wire ordinal: 1 = next-hit, 0 = timed (also the absent/unknown default). */
+    private static long modeOrdinal(Args args) {
+        if (!args.has("mode")) {
+            return 0L;
+        }
+        Object raw = args.opt("mode").orElse(null);
+        if (raw instanceof Number n) {
+            return n.longValue(); // already lowered (a re-erase or a hand-built test)
+        }
+        return "next-hit".equalsIgnoreCase(String.valueOf(raw)) ? 1L : 0L;
     }
 }

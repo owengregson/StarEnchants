@@ -45,6 +45,8 @@ class FlagAndSoulEffectTest {
         return List.of(
                 flag("CANCEL → cancelEvent", new CancelEffect(), c -> { }, s -> verify(s).cancelEvent()),
                 flag("IGNORE_ARMOR → ignoreArmor", new IgnoreArmorEffect(), c -> { }, s -> verify(s).ignoreArmor()),
+                flag("IGNORE_HEROIC → ignoreHeroic (ADR-0053)", new IgnoreHeroicEffect(), c -> { },
+                        s -> verify(s).ignoreHeroic()),
                 flag("SMELT → smelt", new SmeltEffect(), c -> { }, s -> verify(s).smelt()),
                 flag("TELEPORT_DROPS → teleportDrops", new TeleportDropsEffect(), c -> { },
                         s -> verify(s).teleportDrops()),
