@@ -163,7 +163,7 @@ class DispatchSinkDamageFoldTest {
         Mockito.verify(target, never()).damage(anyDouble(), any(Entity.class));
     }
 
-    // ── ADR-0053 attribution: deferred applications carry the attacker, so downstream plugins see who dealt it ──
+    // ── ADR-0054 attribution: deferred applications carry the attacker, so downstream plugins see who dealt it ──
 
     @Test
     void aDeferredDamageWithAnAttackerInScopeFiresAttributed() {
