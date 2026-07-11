@@ -14,32 +14,32 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { WEAKEN: { percent: 50, duration: 100, who: "@Victim" } }
+      - { WEAKEN: { percent: 10, duration: 100, who: "@Victim" } }
   2:
     chance: 15
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { WEAKEN: { percent: 60, duration: 100, who: "@Victim" } }
+      - { WEAKEN: { percent: 12, duration: 100, who: "@Victim" } }
   3:
     chance: 18
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { WEAKEN: { percent: 75, duration: 100, who: "@Victim" } }
+      - { WEAKEN: { percent: 15, duration: 100, who: "@Victim" } }
   4:
     chance: 21
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { WEAKEN: { percent: 90, duration: 100, who: "@Victim" } }
+      - { WEAKEN: { percent: 18, duration: 100, who: "@Victim" } }
   5:
     chance: 24
     cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL", count: 8 } }
-      - { WEAKEN: { percent: 100, duration: 100, who: "@Victim" } }
+      - { WEAKEN: { percent: 20, duration: 100, who: "@Victim" } }

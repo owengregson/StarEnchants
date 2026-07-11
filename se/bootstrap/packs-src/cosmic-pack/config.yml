@@ -21,15 +21,14 @@ features:
   use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
-# reduction%; these ceil those sums (a negative value = no cap). The pack is calibrated for 1.8-era combat
-# (ADR-0050 R2): flat armor+Prot IV pass only ~5% of a hit through, so the enchant percents run to +1500%
-# sustained (Rage at full combo) and the +2500% outgoing cap is the one-shot backstop above that — a capped
-# spike kills a 20 hp pool but not an Overload pool (the HP-pool meta). The 60% reduction cap is the
-# ADR-0050 combination-proofing backstop: no legal stack of heroic + set + crystals + enchants can exceed
+# reduction%; these ceil those sums (a negative value = no cap). The +600% outgoing cap leaves headroom for
+# the pass-2 enchant scale (Rage 45%/stack + conditionals) while staying a one-shot backstop: a capped spike
+# kills a 20 hp pool but not an Overload pool (the HP-pool meta ADR-0050 R1 assumes). The 60% reduction cap is
+# the ADR-0050 combination-proofing backstop: no legal stack of heroic + set + crystals + enchants can exceed
 # it (the designed steady-state sits near 30%); full negates are CANCEL, which this cap cannot touch. pvp/pve
 # gate whether StarEnchants combat effects apply at all in that context. All read live on /se reload.
 combat:
-  max-bonus-damage: 25.0       # ceiling on summed outgoing-damage fraction (25.0 = at most +2500%); <0 = uncapped
+  max-bonus-damage: 6.0       # ceiling on summed outgoing-damage fraction (6.0 = at most +600%); <0 = uncapped
   max-bonus-reduction: 0.60   # ceiling on summed damage-reduction fraction (0.60 = at most 60%); <0 = uncapped
   pvp: true                   # apply combat effects in player-vs-player hits
   pve: true                   # apply combat effects in player-vs-environment hits

@@ -14,25 +14,25 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { WEAKEN: { percent: 25, duration: 60, who: "@Victim" } }
+      - { WEAKEN: { percent: 5, duration: 60, who: "@Victim" } }
   2:
     chance: 35
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { WEAKEN: { percent: 40, duration: 60, who: "@Victim" } }
+      - { WEAKEN: { percent: 8, duration: 60, who: "@Victim" } }
   3:
     chance: 40
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { WEAKEN: { percent: 50, duration: 60, who: "@Victim" } }
+      - { WEAKEN: { percent: 10, duration: 60, who: "@Victim" } }
   4:
     chance: 45
     cooldown: 120
     effects:
       - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.9, pitch: 1.0 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12, who: "@Self" } }
-      - { WEAKEN: { percent: 60, duration: 60, who: "@Victim" } }
+      - { WEAKEN: { percent: 12, duration: 60, who: "@Victim" } }

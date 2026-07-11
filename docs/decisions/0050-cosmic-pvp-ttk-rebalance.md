@@ -150,31 +150,3 @@ near the 8-hit band — and two findings invalidated the pass-1 anchor:
 god kits (modern)**. 1.8.9 runs ~35% slower (flat armor reduction, no diminishing curve
 for the rider to beat) — accepted: both eras stay inside a playable band from ONE value
 set.
-
-## Revision 2 (2026-07-10): 1.8-combat calibration
-
-Revision 1 calibrated against MODERN armor math. The owner then confirmed the deployment
-target: every server runs Mental's full 1.8 preset, i.e. era-correct 1.8 combat. That
-changes the arithmetic completely — 1.8 armor is FLAT (full diamond ×0.20, Prot IV's
-random EPF ≈ ×0.25, combined ≈ **×0.05 throughput**) with no damage-diminishing curve, so
-a vanilla god-kit swing lands ≈ 0.67 hp and the flat rider has nothing to exploit.
-
-- **The percent economy scales ×5** (Rage `%ragestacks% × 110–250` → +1500% sustained at
-  a full six-stack combo; Execute to 275, Insanity to 120, Deathbringer to 400–600,
-  Planetary to 900; Assassin/Rogue/Enrage expressions ×5). Landed damage under 1.8 math:
-  ~10–12 hp per full-combo hit against light-defense armor (~15 on crits), mirror-god
-  TTK ≈ 6–8 hits on 26-heart pools.
-- **The Rage flat rider is removed** — under flat armor it landed 0.3 hp; one percent
-  line per level again.
-- **`WEAKEN` percents scale ×5 too** (Voodoo to 40–100, Dominate 25–60, Unfocus 50–100,
-  Destruction 30–75, Reaper blade 50) so debuffs keep their ratified relative weight
-  against the bigger attack buckets.
-- **`combat.max-bonus-damage: 25.0`** — the one-shot backstop above the +1500% sustained
-  ceiling (a capped spike kills a 20 hp pool, not an Overload pool).
-- **Set weapon bonuses, crystals and heroic percents are intentionally untouched** (the
-  owner's standing call: items must not carry the damage). Under the ×5 economy they are
-  now minor contributors (~0.2 hp each) — flagged as a follow-up question, not silently
-  rescaled.
-- **Known non-goal:** a modern-vanilla-armor server running this pack would land ~×4–5
-  over target. The pack is calibrated for the Mental-1.8 network it ships to; `/se
-  reload` retunes values live if a different combat pipeline is ever targeted.

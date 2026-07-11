@@ -11,24 +11,30 @@ levels:
   1:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 110" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 20" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.5" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
   2:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 140" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 25" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.6" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
   3:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 165" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 30" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.7" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
   4:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 195" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 35" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.8" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
   5:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 220" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 40" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.9" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
   6:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 250" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 45" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 1.0" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve

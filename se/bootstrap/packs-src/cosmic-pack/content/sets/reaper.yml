@@ -71,5 +71,5 @@ bonuses:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }
-      - { WEAKEN: { percent: 50, duration: 40, who: "@Victim" } }
+      - { WEAKEN: { percent: 10, duration: 40, who: "@Victim" } }
       - { POTION: { effect: WITHER, level: 1, duration: 40, who: "@Victim" } }
