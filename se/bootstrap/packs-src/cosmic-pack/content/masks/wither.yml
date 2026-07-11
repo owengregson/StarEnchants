@@ -1,0 +1,10 @@
+# Wither Mask (ADR-0053 §9) — the TELEBLOCK primitive fanned out over an @Aoe of nearby enemies on REPEATING:
+# every 20t it re-blocks ender-pearl / chorus teleports on every enemy within 8 blocks (a 40t flag the
+# TeleblockStore reads at launch), so no one can pearl away while standing near the wearer.
+display: "Wither"
+color: "&0"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWU0ZDIwNGViYzI0MmVjYTIxNDhmNTg1M2UzYWYwMGY4NGYwZDY3NDA5OWRjMzk0ZjZkMjkyNGIyNDBjYTJlMyJ9fX0="
+description:
+  - "&0&l* Enemies cannot use enderpearls while near you"
+abilities:
+  - { trigger: REPEATING, repeat: 20, effects: [ { TELEBLOCK: { duration: 40, who: "@Aoe{r=8, filter=ENEMIES}" } } ] }

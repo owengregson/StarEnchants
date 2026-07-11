@@ -1,0 +1,11 @@
+# Hacker Mask (ADR-0053 §7/§8) — the WARD near flag re-armed on REPEATING; NearGuard owns the /near
+# interception (config masks.near-commands) and omits near-warded players from its own proximity listing. Because
+# no plugin can filter another's scan, hiding requires this owned interception; re-arming every 40t keeps the
+# 100t flag alive while worn.
+display: "Hacker"
+color: "&1"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjgyZWJjMDg4M2RlYjI5MzFiMTBlYWQ1MmQwZTQzZDIxODdkMDc1NmE2MGQ5NWQxN2NlMDE5NzIzNmM0MTk2OSJ9fX0="
+description:
+  - "&1&l* Immune to /near"
+abilities:
+  - { trigger: REPEATING, repeat: 40, effects: [ { WARD: { type: near, duration: 100 } } ] }

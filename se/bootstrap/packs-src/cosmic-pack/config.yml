@@ -20,6 +20,7 @@ features:
   scrolls: true    # scroll-family interactions (black/randomizer/transmog/holy/nametag/godly transmog)
   use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
   pets: true       # pets contribute to worn state and the pet gestures are live (ADR-0052); false = inert heads
+  masks: true      # masks contribute to worn state, the mask gestures (apply/remove) + worn repaint are live (ADR-0053); false = inert
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
 # reduction%; these ceil those sums (a negative value = no cap). The 0.70 outgoing cap is a PRE-SCALE ceiling on
@@ -160,6 +161,18 @@ pets:
   message-on-cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
   message-on-fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
   uppercase: true
+
+# Masks (ADR-0053 §8). The /near immunity (the Hacker mask) is an OWNED interception: no plugin can filter
+# another plugin's proximity scan, so NearGuard listens for these command names, cancels them, and answers with
+# its OWN proximity listing (scanning near-radius blocks) that omits near-warded players. near-commands lists the
+# command names it intercepts (no leading slash) — while ANY name is configured, this owned listing REPLACES the
+# external plugin's /near output format (a documented, opt-out divergence). Set near-commands: [] to disable the
+# interception entirely and restore the external plugin's own /near (the Hacker hiding then no longer works).
+# On Folia, a cross-region player's location is a region-guarded read: unreadable = omitted from the listing.
+# /invsee needs no such knob — its InventoryOpenEvent cancel is plugin-agnostic. All read live on /se reload.
+masks:
+  near-commands: ["near"]   # command names NearGuard intercepts (no leading slash); [] disables the interception
+  near-radius: 200          # radius in blocks the owned /near listing scans
 
 # Heroic (§F / ADR-0037). The granted percents, success range and material-upgrade map are the upgrade's
 # likeness in items/heroic.yml. A heroic piece's percents feed the SAME additive damage fold every enchant

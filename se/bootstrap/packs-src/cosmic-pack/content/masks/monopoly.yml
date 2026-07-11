@@ -1,0 +1,10 @@
+# Monopoly Mask (ADR-0053 §9) — a percent DAMAGE_MOD on ATTACK: +5% into the additive outgoing fold (ADR-0012).
+# Armor-side content stays percent (ADR-0050 R3), so this rides the summed outgoing% bucket rather than the flat
+# lane. Applies to every enemy the wearer hits.
+display: "Monopoly"
+color: "&f"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjk4OGMzNzY5MWFkYjc0NTNmODczNmFjZGNmNzJkMDQzZmE3ZmQwZWZiNGM1ZDg3OGFhOTM3MzM2MzQxZTQifX19"
+description:
+  - "&f&l* Deal 5% more damage to all enemies"
+abilities:
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } } ] }

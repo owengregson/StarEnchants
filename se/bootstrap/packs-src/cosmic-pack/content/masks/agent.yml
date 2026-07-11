@@ -1,0 +1,10 @@
+# Agent Mask (ADR-0053 §9) — a maintained POTION on PASSIVE (the Agent/Angel/Santa idiom): while the masked
+# helmet is worn the invisibility buff is re-applied, and the §B lifecycle tears it down when the mask leaves
+# the helmet. No combat trigger — the buff simply persists with the worn source.
+display: "Agent"
+color: "&8"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGY2NzBjZTI0YTEwMGY5MWJkODg4MDFhMDk5NmZkNjQ1NDEyM2RiY2ViMGQ5MjFhZGQ2OTUyMGFhZDQwNTUzMyJ9fX0="
+description:
+  - "&8&l* Grants permanent Invisibility"
+abilities:
+  - { trigger: PASSIVE, effects: [ { POTION: { effect: INVISIBILITY, level: 1, duration: 200, who: "@Self" } } ] }
