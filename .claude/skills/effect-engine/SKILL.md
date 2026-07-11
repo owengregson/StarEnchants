@@ -35,7 +35,7 @@ interact, sink, stores). NOT for compiling YAML→`Ability` (that's the compiler
 ## The gate sequence (§3.3) — never reorder
 
 world-blacklist → protection → trigger-match + slot → level →
-**SUPPRESSION** (O(1) interned-id set, §6.2) → cooldown (3 scopes) → condition +
+**SUPPRESSION** (O(1) interned-id set, §6.2) → cooldown (ENCHANT scope only — group/type ids are suppression match keys, never cooldown scopes, ADR-0050 R4) → condition +
 chanceΔ (AST, no alloc) → chance roll (injected supplier `< base+Δ`; a condition
 `FORCE`/`ALLOW` flow skips the roll) → `PreActivate` (injected `Guard`, cancellable)
 → soul cost (gate 10 = `SoulSpender` debiting the cross-gem pool, only when a gem

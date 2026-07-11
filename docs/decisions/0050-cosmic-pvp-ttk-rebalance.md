@@ -229,3 +229,102 @@ became a wolf growl and Ender Shift's dragon growl an enderman teleport. New
 `/se damagedebug` prints the fold's actual buckets (base seen, Σ%, flat, scale,
 committed) per hit for a toggled player — the tool that verifies this model on a live
 server instead of inferring it from anecdotes.
+
+## Revision 4 (2026-07-10): calibrated against Mental's MEASURED pipeline — the D-space economy
+
+The first `/se damagedebug` field capture (a Fantasy-set mirror duel) falsified
+Revision 3's pipeline model, and this time the pipeline was **read from Mental's
+source** (the companion repo) instead of inferred — every prior revision calibrated
+against a guessed pipeline, and every one guessed wrong. The measured truth:
+
+### The pipeline (ground truth, from the Mental source + its 1.21.11 decompile)
+
+- **Mental's fast path cancels the vanilla attack packet and mints the damage event
+  itself**: `BASE` = era weapon table (god sword = 8) + era Sharpness (1.25/lvl →
+  V = 6.25) = **14.25 raw** (a crit multiplies the 8 by 1.5 first). Vanilla
+  `Player#attack` never runs; the `+7` attribute matters only via Mental's fallback.
+- At **LOWEST**, Mental rewrites the event's *defensive modifiers* to era math
+  (armor **attribute** 20 pts → ×0.20, era Prot IV EPF 20 → ×0.20, deterministic —
+  Mental deliberately skips the 1.8 EPF roll). An untouched god-kit hit lands
+  **0.57 hp**; the fold carries essentially the whole fight.
+- Our HIGH `setDamage(D)` is redistributed by Bukkit using the **vanilla-modern
+  modifier functions frozen at event construction** (Mental never re-runs its era
+  pass): `healthLost(D) = 0.04·B + V(D) − V(B)` with `V(x) = 0.36·(x/5 + x²/100)`
+  for this kit — **quadratic in D** (D 27.6 → 3.5 hp, D 43.8 → 8.9 hp; marginal
+  pass-through ≈ 0.40 at D ≈ 46). R3's "flat lands raw post-armor" was wrong: flat
+  and percent both just move D.
+- **Bare `DAMAGE`-kind effects are second `victim.damage()` calls** → they eat
+  Mental's full era cascade (~4 % pass vs god armor): bleeds, AoE bursts, thorns and
+  reflects are **PvP-inert by pipeline** (full value in unarmored PvE). Their
+  numbers are left PvE-tuned and excluded from the PvP budget.
+- Era potion terms: with `old-potion-values` on, vanilla Strength on an attacker
+  multiplies Mental's minted base at 1.8 rates and is then re-amplified by our
+  percent bucket — **vanilla Strength is banned from pack content** (Drunk and
+  Berserk convert to fold `DAMAGE_MOD` lines).
+
+### What the field capture actually showed (all fixed in this revision)
+
+1. **Rage folded zero all fight while its stack readout climbed.** Two stacked
+   causes. PRIMARY (engine, empirically proven against the compiled pack): gate 6
+   armed the ability's cooldown on ALL THREE scopes, so any cooldown-carrying
+   legendary that activated (Lifesteal cd 100, Silence cd 400, Double Strike
+   cd 200 — all on the god sword) armed `(GROUP, legendary)` and every cooldown-0
+   legendary — Rage, Armored — was check-only refused with near-100 % uptime.
+   Gate 6 now arms/checks the ENCHANT scope only; group/type ids remain solely
+   gate-5 suppression match keys (this is also what made the defense red % flap
+   14 % ↔ 5 %: Armored is a cooldown-0 legendary too). SECONDARY: Silence IV /
+   Perfect Solitude IV are full-kit GROUP suppressions aimed at the victim — at IV,
+   Solitude held a 14 s all-groups shutdown on a 15 s cooldown at 24 %: in a mirror
+   the enemy's counter-procs kept the attacker's sword enchants gate-5-suppressed
+   for long stretches. The suppression family is re-scoped to momentary windows
+   (Silence 1.5–2 s, Solitude 2.5–4 s, cd 400), and the rage feedback service now
+   applies the SAME suppression gate as the ability (feedback = effect). The
+   remaining one-hit lag (stacks are written at MONITOR, read at the next hit's
+   fold) is RATIFIED semantics: the readout is "your next hit's bonus" — the
+   opener is never rage-boosted.
+2. **Rage stacks built on cancelled hits.** `combo.hit()` advances at HIGH before
+   the defense walk can CANCEL; nothing rolled it back, so dodged/inverted swings
+   still fed `%combo%`/rage. `ComboStore.mark()`/`rollback()` now revert a cancelled
+   event's advance (the walk still sees the advanced streak during the event, by
+   design; a cancelled swing neither builds nor refreshes the window).
+3. **The rage action bar rendered in chat.** `Titles.sendActionBar` looked
+   `sendMessage` up on `spigot.getClass()` — the runtime instance is an anonymous
+   package-private `Player.Spigot` subclass (javap-verified), so `invoke` threw
+   `IllegalAccessException` into the silent chat degrade. The lookup now targets the
+   public `Player$Spigot` API type.
+4. **The set bonus dominated**: `+25 %` at scale 5 on an uncrushed 14.25 base is
+   ×2.25 alone, suppression-immune (set-source abilities carry no group), echoed to
+   +50 % by Double Strike.
+5. `/se damagedebug` now also prints `event.getFinalDamage()` (the health actually
+   lost) and a CANCELLED marker — closing the loop this revision was calibrated on.
+
+### The D-space budgets (sim-verified: 3000-fight Monte-Carlo per kit)
+
+`attack-scale` stays 5.0. Rule of thumb at the D ≈ 45 operating point:
+percent +1 ≈ +0.29 hp; flat +0.1 ≈ +0.20 hp; defense red 1 % ≈ −0.18 hp.
+
+| Kit (52 hp Overload-III pools) | landed-hit TTK (median, p25–p90) |
+| --- | --- |
+| Fantasy-set mirror (set +25 %, red 9 %) | **6** (5–7), ~6 s |
+| General god kit (heroic +20 %, red 9+8 %) | **8** (7–9) |
+| Budget kit (no bonus) | ~13 |
+
+Per-hit texture (set kit): 5.6 hp floor → 8.4 hp @ 3 stacks → 11.7 hp @ 6 stacks —
+no one-shots (`max-bonus-damage` 6.0 → **0.70**, now a real pre-scale backstop).
+
+Value changes (full table in the PR): attack flats ×1.7 of the R3 ladder
+(Shadow Assassin → 1.45 − 0.10·d, Execute → 1.0, Deathbringer → 1.0, Planetary →
+1.2, Enrage /95, Furious /70, Bloody Deep Wounds flat 0.45); Rage becomes
+1.5–3 %/stack + 0.06–0.16 flat/stack; heroic `percent-damage` 0.10 → **0.20**
+(the general kit's set-bonus analogue — this is what holds the 5–6 vs 7–8 split),
+`percent-reduction` 0.03 → **0.02**; cancel family (Inversion 12 % @ cd 160,
+Ethereal Dodge 6 % @ cd 160) ≤ ~10 % of swings combined; WEAKEN family Voodoo
+≤ 12 % @ cd 160/dur 60, Dominate chance 45 → 25; sustain trimmed (Ender Walker
+heal 1/2/2 @ 40/45/50 %, Phoenix 16 → 10); outliers gated (Mortal Coil ≤ 40 %
+victim-health condition + chance 8 + cd 1200; Slayer verified/gated PvE-only;
+Divine Immolation chance 30). BOW-family values are deferred until Mental's arrow
+pipeline is traced.
+
+**Standing rule:** every future combat value is budgeted in D-space against the
+measured `healthLost(D)` curve, and verified with `/se damagedebug`'s
+committed-vs-final readout — never against an assumed pipeline.

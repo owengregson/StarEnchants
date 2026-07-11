@@ -310,7 +310,7 @@ is a compiled check, not a string op:
 3. trigger-match + slot    (ability.triggerMask & bit) != 0 && slot-applies       // re-check target!
 4. level bounds
 5. SUPPRESSION             SuppressionSet.contains(enchantId|groupId|typeId)       // §6.2, O(1)
-6. cooldown (3 scopes)     CooldownStore.ready(packedKey)                          // primitive long map
+6. cooldown (ENCHANT scope) CooldownStore.tryAcquire(packedKey)                     // primitive long map; group/type ids are gate-5 suppression keys ONLY (ADR-0050 R4)
 7. condition + chanceΔ     CompiledCondition.eval(FactBuffer) → {flow, chanceΔ}    // AST walk, no alloc
 8. chance roll             tlrCurrent() < (baseChance + chanceΔ)   (FORCE ⇒ 100)  // [ax] TLR-per-use fix
 9. PreActivate event       cancellable; fired ONLY if a listener is registered    // [hf] alloc fix
