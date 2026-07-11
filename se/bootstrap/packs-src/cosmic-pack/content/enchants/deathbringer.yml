@@ -10,20 +10,20 @@ group: "legendary"
 tier: legendary
 levels:
   1:
-    cooldown: 600
+    cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 80 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.4 } }  # guaranteed crunch in raw hp on a 10s enchant cooldown (ADR-0050 R3 flat economy)
   2:
-    cooldown: 600
+    cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.5 } }  # guaranteed crunch in raw hp on a 10s enchant cooldown (ADR-0050 R3 flat economy)
   3:
-    cooldown: 600
+    cooldown: 200
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 120 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.6 } }  # guaranteed crunch in raw hp on a 10s enchant cooldown (ADR-0050 R3 flat economy)

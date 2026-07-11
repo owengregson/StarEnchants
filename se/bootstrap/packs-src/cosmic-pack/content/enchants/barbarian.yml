@@ -11,24 +11,20 @@ levels:
   1:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.08 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   2:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.14 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   3:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.20 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   4:
     condition: "%victim.helditem% contains \"AXE\""
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.7, pitch: 1.1 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 24 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.26 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)

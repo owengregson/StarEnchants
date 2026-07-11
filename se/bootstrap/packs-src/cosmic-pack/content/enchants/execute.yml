@@ -13,40 +13,40 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.2 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
   2:
     condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.25 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
   3:
     condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 30 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.3 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
   4:
     condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 35 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.35 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
   5:
     condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 40 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.4 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
   6:
     condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 45 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.45 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
   7:
     condition: "%victim.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.5 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)

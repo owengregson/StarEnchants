@@ -15,18 +15,15 @@ levels:
   1:
     condition: "%actor.healthpercent% < 50"
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.9, pitch: 1.5 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.6" } }  # flat bonus per % of missing health (at 20% health: +48)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 160" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
   2:
     condition: "%actor.healthpercent% < 50"
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.9, pitch: 1.5 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.75" } }  # flat bonus per % of missing health (at 20% health: +60)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 140" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
   3:
     condition: "%actor.healthpercent% < 50"
     effects:
-      - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.9, pitch: 1.5 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 12, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.9" } }  # flat bonus per % of missing health (at 20% health: +72)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 120" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
