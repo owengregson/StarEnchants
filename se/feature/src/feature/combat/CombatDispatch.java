@@ -129,6 +129,14 @@ public final class CombatDispatch {
         this.tridentTriggerId = tridentTriggerId;
     }
 
+    // /se damagedebug (ADR-0050 R3): owned here so the readout sees the same fold/caps this dispatch commits.
+    private final DamageDebug damageDebug = new DamageDebug();
+
+    /** The per-hit fold readout's toggle surface ({@code /se damagedebug}). */
+    public DamageDebug damageDebug() {
+        return damageDebug;
+    }
+
     /** Dispatch one entity-on-entity hit: run attacker + defender abilities and fold the result. */
     @SuppressWarnings("deprecation") // EntityDamageEvent.DamageModifier.ARMOR/MAGIC: deprecated-not-removed across the whole range (the IGNORE_ARMOR primitive).
     public void onDamage(EntityDamageByEntityEvent event) {
@@ -239,6 +247,10 @@ public final class CombatDispatch {
             damageCap.recordLastTaken(capped.getUniqueId(), committed); // ALWAYS record the committed value (post-cap)
         }
         event.setDamage(committed);
+        // /se damagedebug: report the fold's actual buckets to toggled parties (both belong to this event's region).
+        damageDebug.report(damager instanceof Player ap ? ap : null,
+                victimEntity instanceof Player vp ? vp : null,
+                incomingDamage, sink.fold(), attackScale.getAsDouble(), folded, committed);
         // §3 REFLECT (Hex): a marked attacker takes a fraction of the committed damage back onto themselves.
         if (damager instanceof Player reflectedAttacker && attacker != null) {
             double reflectPercent = reflectMarks.active(reflectedAttacker.getUniqueId(), now);

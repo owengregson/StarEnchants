@@ -38,7 +38,8 @@ final class CommandsModule {
                 heroic.heroics, slots.slots, scrolls.scrolls, books.unopenedBooks, scrolls.holyScrolls,
                 scrolls.nametags, traks.traks, packs, core.codec(), core.carrierCodec(),
                 () -> core.master().config().slots().base(), core.messages(), core.contentRoot(), core.store(),
-                core.hands(), packGate, core.stores().why(), core.executor()::quarantinedKeys, core.worn(),
+                core.hands(), packGate, core.stores().why(), core.dispatch().damageDebug(),
+                core.executor()::quarantinedKeys, core.worn(),
                 core.tick()::get, mintables, Give.io(core.messages()),
                 foldReport); // ADR-0047 derived mint dispatch + /se modules report
     }
