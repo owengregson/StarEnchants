@@ -224,7 +224,6 @@ effect TEMP_BLOCK
   param material2 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param material3 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param material4 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
-  param palette-scale INT optional min=1 max=8 enum=- handle=- default=2
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60
   param radius INT optional min=0 max=4 enum=- handle=- default=0
   param width INT optional min=1 max=8 enum=- handle=- default=3

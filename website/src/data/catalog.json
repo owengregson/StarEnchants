@@ -893,7 +893,7 @@
     },
   {
     "head": "HEALTH",
-    "doc": "Add to the target's maximum health (restored on unequip).",
+    "doc": "Bonus maximum health. On PASSIVE/HELD @Self it is a maintained worn bonus (reconciled, additive across sources, removed on unequip); on event triggers it is a permanent base shift.",
     "affinity": "TARGET_ENTITY",
     "usage": "{ HEALTH: { amount: <double[0..]> } }",
     "example": "{ HEALTH: { amount: 4 } }",
@@ -2830,9 +2830,9 @@
     },
   {
     "head": "TEMP_BLOCK",
-    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise). A BOX is always single-material (palette[0]).",
+    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block independently picks a material from a deterministic per-block hash of its coordinates — a noisy, random-looking scatter (re-placing the same block always picks the same material). A BOX is always single-material (palette[0]).",
     "affinity": "REGION",
-    "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
+    "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
     "example": "{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }",
     "params": [
       {
@@ -2898,18 +2898,6 @@
         "max": null,
         "enum": [],
         "handle": "MATERIAL",
-        "doc": ""
-        },
-      {
-        "name": "palette-scale",
-        "kind": "INT",
-        "label": "int[1..8]",
-        "required": false,
-        "default": "2",
-        "min": 1,
-        "max": 8,
-        "enum": [],
-        "handle": null,
         "doc": ""
         },
       {
