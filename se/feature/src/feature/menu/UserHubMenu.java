@@ -61,6 +61,10 @@ public final class UserHubMenu extends HubMenu {
         tile(holder, 33, MenuIcons.tile(vanilla,"AMETHYST_SHARD", Material.QUARTZ, "&3&lCrystals",
                 List.of("&7Browse every socketable crystal", "&7and what it grants your gear."),
                 "&eClick to browse."), open("crystals"));
+        // Row 2 centre — the pets catalogue (ADR-0052).
+        tile(holder, 22, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
+                List.of("&7Browse every pet — hold one in", "&7your hotbar and level it up."),
+                "&eClick to browse."), open("pets"));
     }
 
     /** A tile action that drills into the sibling menu registered under {@code name}. */

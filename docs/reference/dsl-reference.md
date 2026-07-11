@@ -16,6 +16,23 @@ Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Tr
 - _target_ `at`: selector `HERE`
 - _example_: `{ BREAK_BLOCK: { drops: true } }`
 
+### CAGE
+
+Trap the target AND the activator in a temporary cage: floor/roof plates, a walls ring, an air width × height × depth interior, base-centred rise blocks above the midpoint between the two, reverting after ticks. The full volume is safety-checked (every cell must be air) before anything is placed; both parties teleport to opposite interior cells facing each other. Gate the ability on a target existing (e.g. %nearbyenemies% >= 1) so a no-target use fails BEFORE the cooldown arms.
+
+- _affinity_: `REGION`
+- _usage_: `{ CAGE: { floor: <material>, walls: <material>, roof: <material>, width: <int[1..8]=3>, height: <int[2..8]=4>, depth: <int[1..8]=3>, rise: <int[0..8]=2>, ticks: <ticks[0..]=150> } }`
+- _param_ `floor` `material`
+- _param_ `walls` `material`
+- _param_ `roof` `material`
+- _param_ `width` `int[1..8]`
+- _param_ `height` `int[2..8]`
+- _param_ `depth` `int[1..8]`
+- _param_ `rise` `int[0..8]`
+- _param_ `ticks` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: "@NearestPlayer{r=10}" } }`
+
 ### CANCEL
 
 Cancel the Bukkit event that triggered this activation.
@@ -420,12 +437,12 @@ Modify a target's health: give heals them, take deals direct health damage, tran
 
 ### MODIFY_MONEY
 
-Modify a player target's balance: give to them, take from them, transfer (move at most the target's balance to the activator — never more than they hold), or steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].
+Modify a player target's balance: give to them, take from them, transfer (move at most the target's balance to the activator — never more than they hold), steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage), or interest_percent (deposit the TARGET that percent of their OWN balance — minted income, ADR-0052 Fish; one deposit is ceilinged by the live pets.max-percent-money-cap). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ MODIFY_MONEY: { amount: <double[0..]>, mode: <enum{give|take|transfer|steal_percent}=give> } }`
+- _usage_: `{ MODIFY_MONEY: { amount: <double[0..]>, mode: <enum{give|take|transfer|steal_percent|interest_percent}=give> } }`
 - _param_ `amount` `double[0..]`
-- _param_ `mode` `enum{give|take|transfer|steal_percent}`
+- _param_ `mode` `enum{give|take|transfer|steal_percent|interest_percent}`
 - _target_ `who`: selector `SELF`
 - _example_: `{ MODIFY_MONEY: { amount: 100, mode: give, who: "@Self" } }`
 
@@ -635,17 +652,34 @@ Play a sound at the activation location. No-op if the activation has no location
 
 ### SPAWN_ENTITY
 
-Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. Replaces SPAWN/TNT.
+Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates). Replaces SPAWN/TNT.
 
 - _affinity_: `REGION`
-- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none> } }`
+- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
 - _param_ `health` `double[0..]`
 - _param_ `owner` `enum{none|activator}`
+- _param_ `powered` `bool`
+- _param_ `ai` `bool`
+- _param_ `targeting` `bool`
+- _param_ `saddled` `bool`
+- _param_ `mount` `enum{none|activator}`
+- _param_ `detonate` `enum{NONE|PLAYER_HIT}`
 - _target_ `who`: selector `SELF`
 - _example_: `{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }`
+
+### STRIP_SCROLL
+
+Remove one protection scroll marker from a random protected piece of the target's worn armour (+ held item unless hand: false): scroll HOLY strips a Holy White Scroll, WHITE a White Scroll (its guard flag included). A target with no protected piece is a no-op. Rate-limit with the ability's chance gate (the Anubis per-hit percent).
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ STRIP_SCROLL: { scroll: <enum{HOLY|WHITE}=HOLY>, hand: <bool=true> } }`
+- _param_ `scroll` `enum{HOLY|WHITE}`
+- _param_ `hand` `bool`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ STRIP_SCROLL: { scroll: HOLY, who: "@Victim" } }`
 
 ### SUPPRESS
 
@@ -713,11 +747,11 @@ Send the block's drops straight to the breaker's inventory (this MINE activation
 
 ### TEMP_BLOCK
 
-Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise).
+Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise). A BOX is always single-material (palette[0]).
 
 - _affinity_: `REGION`
-- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
-- _param_ `shape` `enum{POINT|FOOTPRINT|COLUMN}`
+- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
+- _param_ `shape` `enum{POINT|FOOTPRINT|COLUMN|BOX}`
 - _param_ `material` `material`
 - _param_ `material2` `material`
 - _param_ `material3` `material`
@@ -725,7 +759,9 @@ Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRIN
 - _param_ `palette-scale` `int[1..8]`
 - _param_ `ticks` `ticks[0..]`
 - _param_ `radius` `int[0..4]`
+- _param_ `width` `int[1..8]`
 - _param_ `height` `int[1..8]`
+- _param_ `depth` `int[1..8]`
 - _param_ `ahead` `int[0..8]`
 - _param_ `dy` `int[-4..4]`
 - _param_ `airOnly` `bool`
@@ -992,6 +1028,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | Variable | Type |
 | --- | --- |
 | `%actor.behindvictim%` | BOOL |
+| `%actor.belowvictim%` | NUM |
 | `%actor.food%` | NUM |
 | `%actor.gamemode%` | STR |
 | `%actor.groundblock%` | STR |

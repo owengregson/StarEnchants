@@ -29,6 +29,117 @@
       ]
     },
   {
+    "head": "CAGE",
+    "doc": "Trap the target AND the activator in a temporary cage: floor/roof plates, a walls ring, an air width × height × depth interior, base-centred rise blocks above the midpoint between the two, reverting after ticks. The full volume is safety-checked (every cell must be air) before anything is placed; both parties teleport to opposite interior cells facing each other. Gate the ability on a target existing (e.g. %nearbyenemies% >= 1) so a no-target use fails BEFORE the cooldown arms.",
+    "affinity": "REGION",
+    "usage": "{ CAGE: { floor: <material>, walls: <material>, roof: <material>, width: <int[1..8]=3>, height: <int[2..8]=4>, depth: <int[1..8]=3>, rise: <int[0..8]=2>, ticks: <ticks[0..]=150> } }",
+    "example": "{ CAGE: { floor: STONE_BRICKS, walls: IRON_BARS, roof: STONE_BRICKS, ticks: 150, who: \"@NearestPlayer{r=10}\" } }",
+    "params": [
+      {
+        "name": "floor",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "walls",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "roof",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "width",
+        "kind": "INT",
+        "label": "int[1..8]",
+        "required": false,
+        "default": "3",
+        "min": 1,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "height",
+        "kind": "INT",
+        "label": "int[2..8]",
+        "required": false,
+        "default": "4",
+        "min": 2,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "depth",
+        "kind": "INT",
+        "label": "int[1..8]",
+        "required": false,
+        "default": "3",
+        "min": 1,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "rise",
+        "kind": "INT",
+        "label": "int[0..8]",
+        "required": false,
+        "default": "2",
+        "min": 0,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ticks",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "150",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "CANCEL",
     "doc": "Cancel the Bukkit event that triggered this activation.",
     "affinity": "CONTEXT_LOCAL",
@@ -1412,9 +1523,9 @@
     },
   {
     "head": "MODIFY_MONEY",
-    "doc": "Modify a player target's balance: give to them, take from them, transfer (move at most the target's balance to the activator — never more than they hold), or steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].",
+    "doc": "Modify a player target's balance: give to them, take from them, transfer (move at most the target's balance to the activator — never more than they hold), steal_percent (give the activator that PERCENT of the target's balance — amount is a 0..100 percentage), or interest_percent (deposit the TARGET that percent of their OWN balance — minted income, ADR-0052 Fish; one deposit is ceilinged by the live pets.max-percent-money-cap). Replaces GIVE_MONEY/TAKE_MONEY/STEAL_MONEY[_PERCENT].",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ MODIFY_MONEY: { amount: <double[0..]>, mode: <enum{give|take|transfer|steal_percent}=give> } }",
+    "usage": "{ MODIFY_MONEY: { amount: <double[0..]>, mode: <enum{give|take|transfer|steal_percent|interest_percent}=give> } }",
     "example": "{ MODIFY_MONEY: { amount: 100, mode: give, who: \"@Self\" } }",
     "params": [
       {
@@ -1432,7 +1543,7 @@
       {
         "name": "mode",
         "kind": "ENUM",
-        "label": "enum{give|take|transfer|steal_percent}",
+        "label": "enum{give|take|transfer|steal_percent|interest_percent}",
         "required": false,
         "default": "give",
         "min": null,
@@ -1441,7 +1552,8 @@
           "give",
           "take",
           "transfer",
-          "steal_percent"
+          "steal_percent",
+          "interest_percent"
           ],
         "handle": null,
         "doc": ""
@@ -2265,9 +2377,9 @@
     },
   {
     "head": "SPAWN_ENTITY",
-    "doc": "Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. Replaces SPAWN/TNT.",
+    "doc": "Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates). Replaces SPAWN/TNT.",
     "affinity": "REGION",
-    "usage": "{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none> } }",
+    "usage": "{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE> } }",
     "example": "{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }",
     "params": [
       {
@@ -2332,12 +2444,132 @@
           ],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "powered",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ai",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "targeting",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "saddled",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mount",
+        "kind": "ENUM",
+        "label": "enum{none|activator}",
+        "required": false,
+        "default": "none",
+        "min": null,
+        "max": null,
+        "enum": [
+          "none",
+          "activator"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "detonate",
+        "kind": "ENUM",
+        "label": "enum{NONE|PLAYER_HIT}",
+        "required": false,
+        "default": "NONE",
+        "min": null,
+        "max": null,
+        "enum": [
+          "NONE",
+          "PLAYER_HIT"
+          ],
+        "handle": null,
+        "doc": ""
         }
       ],
     "targets": [
       {
         "name": "who",
         "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "STRIP_SCROLL",
+    "doc": "Remove one protection scroll marker from a random protected piece of the target's worn armour (+ held item unless hand: false): scroll HOLY strips a Holy White Scroll, WHITE a White Scroll (its guard flag included). A target with no protected piece is a no-op. Rate-limit with the ability's chance gate (the Anubis per-hit percent).",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ STRIP_SCROLL: { scroll: <enum{HOLY|WHITE}=HOLY>, hand: <bool=true> } }",
+    "example": "{ STRIP_SCROLL: { scroll: HOLY, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "scroll",
+        "kind": "ENUM",
+        "label": "enum{HOLY|WHITE}",
+        "required": false,
+        "default": "HOLY",
+        "min": null,
+        "max": null,
+        "enum": [
+          "HOLY",
+          "WHITE"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "hand",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
         }
       ]
     },
@@ -2575,15 +2807,15 @@
     },
   {
     "head": "TEMP_BLOCK",
-    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise).",
+    "doc": "Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block picks a material from a deterministic per-cell hash, so materials form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise). A BOX is always single-material (palette[0]).",
     "affinity": "REGION",
-    "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, height: <int[1..8]=1>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
+    "usage": "{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, palette-scale: <int[1..8]=2>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }",
     "example": "{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }",
     "params": [
       {
         "name": "shape",
         "kind": "ENUM",
-        "label": "enum{POINT|FOOTPRINT|COLUMN}",
+        "label": "enum{POINT|FOOTPRINT|COLUMN|BOX}",
         "required": false,
         "default": "POINT",
         "min": null,
@@ -2591,7 +2823,8 @@
         "enum": [
           "POINT",
           "FOOTPRINT",
-          "COLUMN"
+          "COLUMN",
+          "BOX"
           ],
         "handle": null,
         "doc": ""
@@ -2681,11 +2914,35 @@
         "doc": ""
         },
       {
+        "name": "width",
+        "kind": "INT",
+        "label": "int[1..8]",
+        "required": false,
+        "default": "3",
+        "min": 1,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
         "name": "height",
         "kind": "INT",
         "label": "int[1..8]",
         "required": false,
         "default": "1",
+        "min": 1,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "depth",
+        "kind": "INT",
+        "label": "int[1..8]",
+        "required": false,
+        "default": "3",
         "min": 1,
         "max": 8,
         "enum": [],
@@ -3548,6 +3805,10 @@
   {
     "name": "actor.behindvictim",
     "type": "BOOL"
+    },
+  {
+    "name": "actor.belowvictim",
+    "type": "NUM"
     },
   {
     "name": "actor.food",

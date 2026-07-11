@@ -1,0 +1,6 @@
+# Pets GUI — browse every pet as its real textured head; operators drill into a level picker to mint.
+# Tiles come from the content library. See menus/apply.yml for the full field list.
+
+title: "&6&l✦ Pets ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"
