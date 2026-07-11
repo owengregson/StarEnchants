@@ -28,6 +28,7 @@ public final class Modules {
     final SlotsModule slots;
     final BooksModule books;
     final UseItemsModule useItems;
+    final PetsModule pets;
     final ScrollsModule scrolls;
     final TraksModule traks;
     final EnchantsModule enchants;
@@ -55,6 +56,7 @@ public final class Modules {
         this.books = new BooksModule(core, carriers, scrolls); // layers on the carrier economy; the Enchanter's
                                                                 // scroll tiles take the white/black scroll mints
         this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
+        this.pets = new PetsModule(core, equip);           // ADR-0052 leveling head items (needs the refresher)
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);
         this.sets = new SetsModule(core);
@@ -69,6 +71,7 @@ public final class Modules {
         allMintables.addAll(slots.mints);
         allMintables.addAll(books.mints);
         allMintables.addAll(useItems.mints);
+        allMintables.addAll(pets.mints);
         allMintables.addAll(scrolls.mints);
         allMintables.addAll(traks.mints);
         allMintables.addAll(sets.mints);
@@ -83,9 +86,9 @@ public final class Modules {
 
         this.registry = List.of(combat.module(), equip.module(), souls.module(), triggers.module(),
                 controls.module(), stores.module(), guard.module(), carriers.module(), crystals.module(),
-                heroic.module(), slots.module(), books.module(), useItems.module(), scrolls.module(),
-                traks.module(), enchants.module(), sets.module(), menus.module(), reload.module(),
-                commands.module());
+                heroic.module(), slots.module(), books.module(), useItems.module(), pets.module(),
+                scrolls.module(), traks.module(), enchants.module(), sets.module(), menus.module(),
+                reload.module(), commands.module());
     }
 
     /** The ordered fold registry (the composition root folds this). */

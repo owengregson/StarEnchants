@@ -59,6 +59,11 @@ final class EquipModule {
                 setMessages, core.bindings().equipSource(), core.itemViews());
     }
 
+    /** The one worn-state refresher, for features whose state feeds the resolve (ADR-0052 pets). */
+    java.util.function.Consumer<org.bukkit.entity.Player> refresher() {
+        return equipListener::refresh;
+    }
+
     FeatureModule module() {
         return FeatureModule.named("equip")
                 .events(equipListener)
