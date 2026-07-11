@@ -172,6 +172,15 @@ public final class ItemFactory {
         return decorate(base, name, lore);
     }
 
+    /**
+     * Re-decorate an EXISTING stack's display name + lore (colour-translated) in place — the mint-time
+     * {@link #build} tail exposed for items whose stack identity must survive (a textured pet head being
+     * re-rendered at a level-up, ADR-0052). Blank name / empty lore leave that half untouched.
+     */
+    public static ItemStack decorated(ItemStack stack, String name, List<String> lore) {
+        return decorate(stack, name, lore);
+    }
+
     @SuppressWarnings("deprecation") // setDisplayName/setLore(String/List): the floor-stable item-meta path
     private static ItemStack decorate(ItemStack stack, String name, List<String> lore) {
         ItemMeta meta = stack.getItemMeta();

@@ -22,6 +22,8 @@ import feature.fx.LegacyParticleFx;
 import feature.fx.ParticleFx;
 import feature.heroic.LegacyHeroicSave;
 import feature.heroic.VanillaStats;
+import item.head.LegacyTexturedHeads;
+import item.head.TexturedHeads;
 import feature.scroll.AnvilRename;
 import feature.trigger.LegacyGearPoll;
 import feature.trigger.TriggerDispatch;
@@ -134,6 +136,12 @@ public final class EraBindings implements EraServices {
     @Override
     public VanillaStats vanillaStats() {
         return VanillaStats.NONE;
+    }
+
+    /** ADR-0052 pet heads: 1.8 SKULL_ITEM:3 + an authlib GameProfile textures property. */
+    @Override
+    public TexturedHeads texturedHeads() {
+        return new LegacyTexturedHeads();
     }
 
     /** §I nametag rename (§4): 1.8 has no live anvil-rename field — chat capture. Into {@code NametagListener}. */

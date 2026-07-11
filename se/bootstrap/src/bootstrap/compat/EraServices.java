@@ -15,6 +15,7 @@ import feature.scroll.AnvilRename;
 import feature.trigger.TriggerDispatch;
 import item.codec.CombatCodec;
 import item.codec.ItemStateStore;
+import item.head.TexturedHeads;
 import item.worn.EquipSource;
 import java.util.List;
 import java.util.Random;
@@ -72,6 +73,9 @@ public interface EraServices {
     Sounds sounds();
 
     VanillaStats vanillaStats();
+
+    /** Base64-textured player-head minting (ADR-0052 pets): modern Paper profiles / 1.8 SKULL_ITEM+authlib. */
+    TexturedHeads texturedHeads();
 
     AnvilRename anvilRename();
 

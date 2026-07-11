@@ -58,7 +58,11 @@ public final class Aliases {
             Map.entry("SULPHUR", "GUNPOWDER"),
             Map.entry("GRASS", "SHORT_GRASS"),
             Map.entry("WOOL", "WHITE_WOOL"),
-            Map.entry("BOOK_AND_QUILL", "WRITABLE_BOOK")); // 1.13 rename; the resolver interns it both ways
+            Map.entry("BOOK_AND_QUILL", "WRITABLE_BOOK"), // 1.13 rename; the resolver interns it both ways
+            // ADR-0052 pet structures — the 1.8-era spellings of the cage/web materials.
+            Map.entry("IRON_FENCE", "IRON_BARS"),
+            Map.entry("WEB", "COBWEB"),
+            Map.entry("SMOOTH_BRICK", "STONE_BRICKS"));
 
     // 1.21.x dropped the GENERIC_ / HORSE_ / ZOMBIE_ prefixes on attribute keys.
     private static final Map<String, String> ATTRIBUTE = Map.ofEntries(
