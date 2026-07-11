@@ -196,6 +196,16 @@ public interface Sink {
     }
 
     /**
+     * {@link #spawnEntity(Location, int, int, int, double, java.util.UUID)} plus per-summon behaviour
+     * {@code flags} (ADR-0052): charge/no-AI/saddle happen inside the spawn op (spawns are fire-and-forget —
+     * this is the only place the entity is reachable); {@code mountActivator} seats {@code activator};
+     * tracked flags (no-target, hit-gated detonation) register in {@link PetSummons} for the summon-guard
+     * listener. {@link SummonFlags#none()} flags route to the plain {@link #spawnEntity} path unchanged.
+     */
+    void spawnSummon(Location at, int entityTypeId, int count, int ttlTicks, double health, UUID ownerId,
+                     Player activator, SummonFlags flags);
+
+    /**
      * Spawn ONE falling block of an interned material at {@code at} that never drops an item or hurts entities
      * and is removed after {@code ttlTicks} — FALLING_BLOCK. When {@code owner} is non-null the block is bound
      * to an IMPACT cast carrying {@code carriedDamage}, so the landing listener fires {@code owner}'s
@@ -254,6 +264,25 @@ public interface Sink {
      * temp block can no longer be mined for a free drop or displaced off its key regardless of this flag (F25/F26).
      */
     void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable);
+
+    /**
+     * Fill a temporary {@code width × height × depth} box of an interned material, horizontally centred on
+     * {@code center} with its base at the centre's block Y, reverting after {@code durationTicks}
+     * ({@code TEMP_BLOCK} shape {@code BOX} — the Spider webs, ADR-0052). Same ledger/replace semantics as
+     * {@link #tempBlock}; each tile re-keys to its own region (a box may straddle a Folia boundary).
+     */
+    void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
+                 int replaceMode);
+
+    /**
+     * Build the temporary pet CAGE (ADR-0052): a {@code width × height × depth} AIR interior wrapped by an
+     * iron-bars-style ring with a floor and roof plate, base-centred at {@code base}, reverting after
+     * {@code durationTicks}; then teleport {@code first} and {@code second} to opposite interior cells,
+     * facing each other. The FULL structure volume is safety-checked (every cell replaceable as air) on the
+     * base's region before any tile is placed — an unsafe volume places nothing and teleports no one.
+     */
+    void cage(Location base, LivingEntity first, LivingEntity second, int floorMaterialId, int wallMaterialId,
+              int roofMaterialId, int width, int height, int depth, int durationTicks);
 
     /**
      * Stamp the next cell of a walker's footprint SNAKE — the radius-0 {@code FOOTPRINT} trail (devil's
@@ -350,6 +379,24 @@ public interface Sink {
      * without an economy provider, with a null party, or a non-positive fraction.
      */
     void stealMoneyPercent(Player from, Player to, double fraction);
+
+    /**
+     * Deposit {@code fraction} (0..1, clamped) of the target's CURRENT balance back to the SAME target
+     * (MODIFY_MONEY {@code interest_percent} — the Fish pet's income, ADR-0052). Mints new money (never a
+     * transfer); one deposit is ceilinged by the live env {@code moneyInterestCap} ({@code <= 0} = uncapped).
+     * The balance-read and deposit happen atomically on the global thread. A no-op without an economy
+     * provider or a non-positive fraction.
+     */
+    void interestMoneyPercent(Player target, double fraction);
+
+    /**
+     * Remove one White/Holy-White protection marker from a random protected piece of the target's worn
+     * armour (+ held item when {@code includeHand}) — {@code STRIP_SCROLL} (ADR-0052 Anubis). Runs on the
+     * TARGET's own region thread; the strip goes through the env's {@link GearProtection} seam (marker
+     * release + lore recompose) and the mutated stack is written back to the equipment slot. A target with
+     * no protected piece is a no-op.
+     */
+    void stripScroll(LivingEntity target, boolean holy, boolean includeHand);
 
     // ── Soul intents (actor-only; debited from the activator's active gem, no-op without a soul system) ──
 

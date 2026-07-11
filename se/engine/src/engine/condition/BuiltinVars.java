@@ -64,6 +64,9 @@ public final class BuiltinVars {
                 .string("damagecause")       // Bukkit DamageCause name of the triggering damage event; empty for non-damage
                 .flag("itemdamage.armor")    // ITEM_DAMAGE: the damaged item is a worn ARMOR piece (vs the held item)
                 .number("ragestacks")        // the actor's live Rage stacks (min(combo streak, rage level)), sourced from RageStackStore
+                // ADR-0052 pet posture fact — appended (slots are append-only per §3.4).
+                .number("actor.belowvictim") // blocks the actor's feet sit BELOW the victim's (negative = above;
+                                             // 0 with no victim) — Eagle authors its threshold: %actor.belowvictim% > 1.5
                 .build();
     }
 }

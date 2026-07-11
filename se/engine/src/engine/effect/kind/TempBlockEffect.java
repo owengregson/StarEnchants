@@ -26,7 +26,7 @@ import schema.spec.D;
 public final class TempBlockEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("TEMP_BLOCK")
-            .param("shape", D.enumOf("POINT", "FOOTPRINT", "COLUMN").def("POINT"))
+            .param("shape", D.enumOf("POINT", "FOOTPRINT", "COLUMN", "BOX").def("POINT"))
             .param("material", D.material())
             .param("material2", D.material().optional())
             .param("material3", D.material().optional())
@@ -34,20 +34,24 @@ public final class TempBlockEffect implements EffectKind {
             .param("palette-scale", D.INT.range(1, 8).def(2))
             .param("ticks", D.TICKS.def(60))
             .param("radius", D.INT.range(0, 4).def(0))
+            .param("width", D.INT.range(1, 8).def(3))
             .param("height", D.INT.range(1, 8).def(1))
+            .param("depth", D.INT.range(1, 8).def(3))
             .param("ahead", D.INT.range(0, 8).def(0))
             .param("dy", D.INT.range(-4, 4).def(0))
             .param("airOnly", D.BOOL.def(true))
             .target("who", T.VICTIM)
             .affinity(Affinity.REGION)
             .doc("Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / "
-                    + "COLUMN (height, ahead in the target's facing), at feet level + dy. airOnly only replaces "
-                    + "air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet "
-                    + "(never air, so a trail can't scaffold); other shapes replace anything and restore on revert. "
-                    + "A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, "
-                    + "4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place "
-                    + "a mixed palette: each block picks a material from a deterministic per-cell hash, so materials "
-                    + "form connected patches of roughly palette-scale × palette-scale blocks (never per-block noise).")
+                    + "COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume "
+                    + "horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly "
+                    + "only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground "
+                    + "under the feet (never air, so a trail can't scaffold); other shapes replace anything and "
+                    + "restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a "
+                    + "gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 "
+                    + "to place a mixed palette: each block picks a material from a deterministic per-cell hash, so "
+                    + "materials form connected patches of roughly palette-scale × palette-scale blocks (never "
+                    + "per-block noise). A BOX is always single-material (palette[0]).")
             .example("{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }")
             .build();
 
@@ -110,6 +114,10 @@ public final class TempBlockEffect implements EffectKind {
                         place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, scale, ticks, mode);
                     }
                 }
+                case "BOX" ->
+                    // One 3D intent: the sink owns per-tile region re-keying (a box may straddle a boundary).
+                    sink.tempBox(new Location(world, bx, by, bz), palette[0],
+                            ctx.integer("width"), height, ctx.integer("depth"), ticks, mode);
                 default -> place(sink, world, bx, by, bz, palette, scale, ticks, mode); // POINT
             }
         }

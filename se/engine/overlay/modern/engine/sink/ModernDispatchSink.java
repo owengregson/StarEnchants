@@ -13,6 +13,7 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
@@ -91,6 +92,24 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     @Override
     protected void applyInvulnerable(LivingEntity target, boolean invulnerable) {
         target.setInvulnerable(invulnerable);
+    }
+
+    @Override
+    protected void applyNoAi(LivingEntity entity) {
+        entity.setAI(false); // Bukkit 1.9+, present across the whole modern floor
+    }
+
+    @Override
+    protected void mountEntity(Entity vehicle, Entity passenger) {
+        vehicle.addPassenger(passenger);
+    }
+
+    @Override
+    protected void applySaddle(LivingEntity entity) {
+        if (entity instanceof AbstractHorse horse) {
+            horse.setTamed(true); // an untamed horse ignores rider steering even when saddled
+            horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
+        }
     }
 
     @Override
