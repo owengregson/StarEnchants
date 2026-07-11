@@ -155,8 +155,8 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
 
         public static PetsSection defaults() {
             return new PetsSection(100, 100, 5, 1.0, 2, 1_000_000,
-                    "{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r{COLOR}&l **",
-                    "{COLOR}&l** PET ABILITY: &c&l&nENDED&r {COLOR}&l**",
+                    "&{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r &{COLOR}&l**",
+                    "&{COLOR}&l** PET ABILITY: &r&c&l&nENDED&r &{COLOR}&l**",
                     "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!",
                     "&c&l(!) You cannot use {NAME}&r&c&l right now!",
                     true);

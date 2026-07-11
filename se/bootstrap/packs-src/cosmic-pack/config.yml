@@ -152,8 +152,8 @@ pets:
   exp-per-xp-point: 1.0
   exp-passive-per-minute: 2
   max-percent-money-cap: 1000000
-  message-on-activate: "{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r{COLOR}&l **"
-  message-on-end: "{COLOR}&l** PET ABILITY: &c&l&nENDED&r {COLOR}&l**"
+  message-on-activate: "&{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r &{COLOR}&l**"
+  message-on-end: "&{COLOR}&l** PET ABILITY: &r&c&l&nENDED&r &{COLOR}&l**"
   message-on-cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
   message-on-fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
   uppercase: true

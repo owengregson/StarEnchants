@@ -264,14 +264,13 @@ public final class ItemsLoader {
                 dust, whiteScroll, traks, pet, petFood, diags.all());
     }
 
-    /** items/pet.yml — the universal pet likeness (ADR-0052): per-type lore templates + the level line. */
+    /** items/pet.yml — the universal pet likeness (ADR-0052): the name + per-type lore templates. */
     private static PetItemConfig readPet(YamlNode root) {
         PetItemConfig d = PetItemConfig.defaults();
         return new PetItemConfig(
                 orDefault(root.string("name"), d.name()),
                 root.has("lore-active") ? root.stringList("lore-active") : d.loreActive(),
-                root.has("lore-passive") ? root.stringList("lore-passive") : d.lorePassive(),
-                root.has("level-line") ? orDefault(root.string("level-line"), "") : d.levelLine());
+                root.has("lore-passive") ? root.stringList("lore-passive") : d.lorePassive());
     }
 
     /** items/pet-food.yml — the +levels apply item (ADR-0052); the grant bakes onto each mint. */

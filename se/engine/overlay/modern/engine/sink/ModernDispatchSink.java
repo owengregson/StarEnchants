@@ -13,6 +13,8 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -97,6 +99,19 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     @Override
     protected void applyNoAi(LivingEntity entity) {
         entity.setAI(false); // Bukkit 1.9+, present across the whole modern floor
+    }
+
+    @Override
+    protected void applyBarShape(World world, int x, int y, int z,
+                                 boolean north, boolean south, boolean east, boolean west) {
+        Block block = world.getBlockAt(x, y, z);
+        if (block.getBlockData() instanceof MultipleFacing bars) {
+            bars.setFace(BlockFace.NORTH, north);
+            bars.setFace(BlockFace.SOUTH, south);
+            bars.setFace(BlockFace.EAST, east);
+            bars.setFace(BlockFace.WEST, west);
+            block.setBlockData(bars, false); // no physics — the temp ledger owns this tile's lifecycle
+        }
     }
 
     @Override

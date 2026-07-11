@@ -5,8 +5,9 @@ display: "Enderman"
 color: "&5"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTlkMjJhY2M1YWE4MGNkOTZiOTdiYTY4YjFkNjc2NDAzMGQ4NzAzNmU2MDVkMGIyMTUzOGVlNjIzOWYxZjQxNCJ9fX0="
+descriptor: "&eA warper of space with a grudge against monsters. Best not to make eye contact."
 description:
-  - "&5&l* Temporarily deal much more damage to mobs"
+  - "&5* Temporarily deal much more damage to mobs"
 levels:
   # +25% / 2m → +50% / 1m30s → +75% / 1m → +100% / 30s; the boost window is 10s (200 ticks) at every bracket.
   1:

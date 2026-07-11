@@ -1308,15 +1308,23 @@ public abstract class DispatchSinkBase implements SinkReadback {
             UUID worldId = world.getUID();
             for (int dx = -hx - 1; dx < width - hx + 1; dx++) {
                 for (int dz = -hz - 1; dz < depth - hz + 1; dz++) {
-                    boolean ring = dx < -hx || dx >= width - hx || dz < -hz || dz >= depth - hz;
+                    boolean ring = ringCell(dx, dz, hx, hz, width, depth);
+                    // Wall connections come from GEOMETRY (the ring shape is known), never neighbour reads,
+                    // so tile placement order / region boundaries cannot leave a bar unconnected.
+                    boolean barNorth = ring && ringCell(dx, dz - 1, hx, hz, width, depth);
+                    boolean barSouth = ring && ringCell(dx, dz + 1, hx, hz, width, depth);
+                    boolean barEast = ring && ringCell(dx + 1, dz, hx, hz, width, depth);
+                    boolean barWest = ring && ringCell(dx - 1, dz, hx, hz, width, depth);
                     for (int dy = -1; dy <= height; dy++) {
                         Material material;
+                        boolean isWall = false;
                         if (dy == -1) {
                             material = floor; // full plate under interior AND ring, so the cage is sealed
                         } else if (dy == height) {
                             material = roof;
                         } else if (ring) {
                             material = wall;
+                            isWall = true;
                         } else {
                             continue; // the interior stays air
                         }
@@ -1324,6 +1332,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                         int by = baseY + dy;
                         int bz = cz + dz;
                         int typeId = material.ordinal();
+                        boolean connect = isWall;
                         Location tileAt = new Location(world, bx, by, bz);
                         // Per-tile region re-key (the tempPlatform rule) — a 5-wide structure can straddle.
                         Scheduling.onRegion(tileAt, () -> {
@@ -1333,6 +1342,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
                             }
                             TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, by, bz);
                             TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                            if (connect) {
+                                // A no-physics place leaves a modern fence-like block unconnected (walk-through
+                                // "beams"); flag its along-the-ring faces so the wall is solid.
+                                applyBarShape(world, bx, by, bz, barNorth, barSouth, barEast, barWest);
+                            }
                             Scheduling.onRegionLater(tileAt, pending.delayTicks(),
                                     () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
                         });
@@ -1368,6 +1382,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
             exemptMovement(target);
             teleportTo(target, dest);
         });
+    }
+
+    /** Whether {@code (dx, dz)} is a cage WALL-RING cell: inside the structure span, outside the interior. */
+    private static boolean ringCell(int dx, int dz, int hx, int hz, int width, int depth) {
+        boolean inSpan = dx >= -hx - 1 && dx <= width - hx && dz >= -hz - 1 && dz <= depth - hz;
+        return inSpan && (dx < -hx || dx >= width - hx || dz < -hz || dz >= depth - hz);
     }
 
     /** The centre of an interior cage cell, with a facing yaw and level pitch. */
@@ -1886,6 +1906,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** Disable a summon's AI (ADR-0052): modern {@code setAI(false)}; 1.8 via the NMS NoAI tag leaf. */
     protected abstract void applyNoAi(LivingEntity entity);
+
+    /**
+     * Give a just-placed fence-like block (the cage's iron bars, ADR-0052) its wall connections toward the
+     * flagged faces. Modern stores connections in the block data and a no-physics place leaves them all
+     * false — free-standing "beams" a player walks through; 1.8 computes connections client-side, so its
+     * leaf is a no-op. Faces come from GEOMETRY (the ring shape is known), never neighbour reads, so tile
+     * placement order and region boundaries cannot race it.
+     */
+    protected abstract void applyBarShape(World world, int x, int y, int z,
+                                          boolean north, boolean south, boolean east, boolean west);
 
     /** Seat {@code passenger} on {@code vehicle} (ADR-0052): modern {@code addPassenger}; 1.8 {@code setPassenger}. */
     protected abstract void mountEntity(Entity vehicle, Entity passenger);

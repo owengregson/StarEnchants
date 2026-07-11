@@ -5,8 +5,9 @@ display: "Iron Golem"
 color: "&f"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGE2ZTA0MjljY2FhYmI2ZjVmMGM1ZDUxM2M3OTViZWQ2ZDgwZmNlNzJmNTdmNGJjM2E2MTZhZWUyM2UxMjU3MiJ9fX0="
+descriptor: "&eA hulking protector with a heart of iron. Lends you its hide when the blows rain down."
 description:
-  - "&f&l* Grants temporary absorption health"
+  - "&f* Grants temporary absorption health"
 levels:
   # +4 hearts / 10s → +6 / 15s → +8 / 20s → +10 / 25s; the cooldown holds at 2m.
   1:

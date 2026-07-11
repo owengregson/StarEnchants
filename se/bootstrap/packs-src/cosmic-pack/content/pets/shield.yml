@@ -9,8 +9,9 @@ display: "Shield"          # {NAME} in the universal likeness + messages
 color: "&7"                # {COLOR} everywhere the likeness/messages use it
 type: ACTIVE               # ACTIVE = right-click | PASSIVE = always-on while in the hotbar
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTdhODgwMTEzN2JkMjc0YjFhNWU4YzZkYjRkYWJmMjcwN2EwYjlmMzUxYjdmYTFjYmU4Y2U3NDM2MjFjNTE0NiJ9fX0="
+descriptor: "&eA stalwart guardian forged for those who refuse to fall. Braces you when it matters most."
 description:
-  - "&7&l* Temporarily reduces all incoming damage"
+  - "&7* Temporarily reduces all incoming damage"
 levels:
   # -15% incoming for 3s (duration 60); the 1m30s cooldown is shared pet-wide (a level-up keeps it running).
   1:

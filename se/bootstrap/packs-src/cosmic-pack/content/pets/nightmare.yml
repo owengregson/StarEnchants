@@ -1,16 +1,17 @@
 # Nightmare Pet — an ACTIVE pet (ADR-0052): right-click to summon a rideable skeleton horse and mount it.
-# The horse never moves on its own (no AI — you steer it), shrugs off damage on a huge health pool while
-# still taking knockback, and despawns when its time runs out. On the 1.8 lane it spawns as a HORSE with the
+# The horse never moves on its own (no AI — you steer it), is INVINCIBLE (hits land + knock it back,
+# damage is zeroed), and despawns when its time runs out. On the 1.8 lane it spawns as a HORSE with the
 # skeleton variant (the §6 degrade). Both the cooldown and the ride time scale with level.
 display: "Nightmare"
 color: "&c"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzc3OWJkZDk2MzRiYWNmMTNiOTYxMWFjOTIwODc2Y2JjMGU3YjNjNTBkZmYzZDg0MWE0ZjBmZWRmYzA4OTI4YyJ9fX0="
+descriptor: "&eA spectral steed from somewhere best left unvisited. Rides like the wind, fades like a dream."
 description:
-  - "&c&l* Summons a temporary rideable skeleton horse"
+  - "&c* Summons a temporary rideable skeleton horse"
 levels:
   # 8m / 5s → 7m / 7s → 6m / 8s → 5m / 9s.
-  1:   { cooldown: 9600, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 100, health: 1024, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
-  25:  { cooldown: 8400, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 140, health: 1024, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
-  50:  { cooldown: 7200, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 160, health: 1024, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
-  100: { cooldown: 6000, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 180, health: 1024, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
+  1:   { cooldown: 9600, duration: 100, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 100, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
+  25:  { cooldown: 8400, duration: 140, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 140, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
+  50:  { cooldown: 7200, duration: 160, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 160, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
+  100: { cooldown: 6000, duration: 180, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 180, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }

@@ -1,15 +1,16 @@
 # Creeper Pet — an ACTIVE pet (ADR-0052): right-click to plant a charged creeper sentry. It targets no one
-# (its AI never acquires), soaks hits on a huge health pool while taking normal knockback, despawns after
+# (its AI never acquires), is INVINCIBLE (hits land + knock it back, damage is zeroed), despawns after
 # 30s (ttl 600), and detonates ONLY when a player hits it (the one-shot fuse). Only the cooldown scales.
 display: "Creeper"
 color: "&a"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzlkZDgwM2QxZDg0MDRhOWEyNzZlNWU5OGEwY2UzY2RmMzAzZjgyNjU4MTI5YzljODAzZTcyNTYzODk1MmE0MyJ9fX0="
+descriptor: "&eA highly explosive pet ready to cause destruction. Avoid leaving unattended indoors."
 description:
-  - "&a&l* Summons a charged creeper"
+  - "&a* Summons a charged creeper"
 levels:
   # 10m → 9m → 8m → 7m.
-  1:   { cooldown: 12000, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, health: 1024, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
-  25:  { cooldown: 10800, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, health: 1024, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
-  50:  { cooldown: 9600, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, health: 1024, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
-  100: { cooldown: 8400, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, health: 1024, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
+  1:   { cooldown: 12000, duration: 600, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
+  25:  { cooldown: 10800, duration: 600, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
+  50:  { cooldown: 9600, duration: 600, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
+  100: { cooldown: 8400, duration: 600, effects: [ { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } } ] }
