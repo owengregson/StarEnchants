@@ -10,20 +10,20 @@ group: "epic"
 tier: epic
 levels:
   1:
-    condition: "%actor.health% < 10"
+    condition: "%actor.healthpercent% < 50"
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "20 - %actor.health%" } }  # from DAMAGE_INCREASE:playerHealth*2 — EE equation → flat bonus per missing HP
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.4" } }  # flat bonus per % of missing health (at 20% health: +32)
   2:
-    condition: "%actor.health% < 10"
+    condition: "%actor.healthpercent% < 50"
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(20 - %actor.health%) * 1.5" } }  # from DAMAGE_INCREASE:playerHealth*2 — EE equation → flat bonus per missing HP
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.5" } }  # flat bonus per % of missing health (at 20% health: +40)
   3:
-    condition: "%actor.health% < 10"
+    condition: "%actor.healthpercent% < 50"
     effects:
       - { SOUND: { sound: "ENTITY_RAVAGER_ROAR", volume: 0.8, pitch: 1.0 } }
       - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(20 - %actor.health%) * 2" } }  # from DAMAGE_INCREASE:playerHealth*2.5 — EE equation → flat bonus per missing HP
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "(100 - %actor.healthpercent%) * 0.6" } }  # flat bonus per % of missing health (at 20% health: +48)

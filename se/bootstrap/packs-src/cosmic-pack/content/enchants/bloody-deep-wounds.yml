@@ -19,7 +19,7 @@ levels:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
       # Before the DoT so it folds into the proc'ing hit (the DoT block's cumulative wait would otherwise delay it).
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }
       # Bleed DoT: 3 iterations 1s apart. Inline wait is cumulative, so the ticks land at 20/40/60t,
       # each dealing 1/6 of the proc'ing hit plus Slowness II.
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
@@ -37,7 +37,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 30 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
       - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
       - { POTION: { effect: "SLOW", level: 2, duration: 20, who: "@Victim" } }
@@ -53,7 +53,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 38 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
       - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
       - { POTION: { effect: "SLOW", level: 2, duration: 20, who: "@Victim" } }

@@ -11,7 +11,7 @@ levels:
   1:
     chance: 15
     cooldown: 200
-    condition: "%actor.health% <= 5"
+    condition: "%actor.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
@@ -19,7 +19,7 @@ levels:
   2:
     chance: 25
     cooldown: 200
-    condition: "%actor.health% <= 5"
+    condition: "%actor.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }
@@ -27,7 +27,7 @@ levels:
   3:
     chance: 35
     cooldown: 200
-    condition: "%actor.health% <= 5"
+    condition: "%actor.healthpercent% <= 25"
     effects:
       - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
       - { PARTICLE: { particle: "SOUL", count: 16 } }

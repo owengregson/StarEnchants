@@ -13,14 +13,14 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 1.6 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }
   2:
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 1.6 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 14 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 35 } }
   3:
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 1.6 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 45 } }

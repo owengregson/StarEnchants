@@ -242,8 +242,9 @@ capped +40%** (was 10 / 100); thor's bolt deals **0.4×** (was 0.5×); druid's i
 **20% / 10s-cooldown Absorption II (5s)**; phantom's passives soften to **Strength I / Speed II**;
 yijki's Resistance I now rides the Divine Shield save instead of every hit; cupid's bow line is
 implemented at **15%** (the old 75% lore was phantom text). The set weapons' on-hit debuff potions
-were shortened to 2s at level I: reaper **Weakness I + Wither I ×40t** (was 100t, Wither II) and
-spooky **Blindness I + Slowness I ×40t** (was 100t, Blindness II).
+were shortened to 2s at level I: reaper **10% `WEAKEN` + Wither I ×40t** (was 100t, Weakness I +
+Wither II; ADR-0050 R1 converted the Weakness potion into the fold-budgeted, non-stacking `WEAKEN`)
+and spooky **Blindness I + Slowness I ×40t** (was 100t, Blindness II).
 
 **Proc announce.** Every one-shot-then-cooldown proc now also **titles its victim** (`** NAME ** /
 from {ATTACKER}`) and **chats the wearer** (`** NAME [{VICTIM}] **`) — the ability name in all caps —

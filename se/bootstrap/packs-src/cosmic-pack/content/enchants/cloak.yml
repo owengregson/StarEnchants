@@ -11,7 +11,7 @@ levels:
   1:
     chance: 10
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
@@ -19,7 +19,7 @@ levels:
   2:
     chance: 14
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
@@ -27,7 +27,7 @@ levels:
   3:
     chance: 18
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
@@ -35,7 +35,7 @@ levels:
   4:
     chance: 22
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }
@@ -43,7 +43,7 @@ levels:
   5:
     chance: 26
     cooldown: 160
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.4 } }
       - { PARTICLE: { particle: "SMOKE_NORMAL", count: 12 } }

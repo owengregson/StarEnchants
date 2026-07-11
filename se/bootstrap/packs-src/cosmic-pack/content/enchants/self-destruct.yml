@@ -11,7 +11,7 @@ levels:
   1:
     chance: 13
     cooldown: 400
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_HUGE", count: 1 } }
@@ -19,7 +19,7 @@ levels:
   2:
     chance: 17
     cooldown: 400
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_HUGE", count: 1 } }
@@ -27,7 +27,7 @@ levels:
   3:
     chance: 22
     cooldown: 400
-    condition: "%actor.health% <= 4"
+    condition: "%actor.healthpercent% <= 20"
     effects:
       - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "EXPLOSION_HUGE", count: 1 } }
