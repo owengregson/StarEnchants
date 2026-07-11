@@ -31,7 +31,6 @@ public final class TempBlockEffect implements EffectKind {
             .param("material2", D.material().optional())
             .param("material3", D.material().optional())
             .param("material4", D.material().optional())
-            .param("palette-scale", D.INT.range(1, 8).def(2))
             .param("ticks", D.TICKS.def(60))
             .param("radius", D.INT.range(0, 4).def(0))
             .param("width", D.INT.range(1, 8).def(3))
@@ -49,9 +48,9 @@ public final class TempBlockEffect implements EffectKind {
                     + "under the feet (never air, so a trail can't scaffold); other shapes replace anything and "
                     + "restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a "
                     + "gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 "
-                    + "to place a mixed palette: each block picks a material from a deterministic per-cell hash, so "
-                    + "materials form connected patches of roughly palette-scale × palette-scale blocks (never "
-                    + "per-block noise). A BOX is always single-material (palette[0]).")
+                    + "to place a mixed palette: each block independently picks a material from a deterministic "
+                    + "per-block hash of its coordinates — a noisy, random-looking scatter (re-placing the same block "
+                    + "always picks the same material). A BOX is always single-material (palette[0]).")
             .example("{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }")
             .build();
 
@@ -64,7 +63,6 @@ public final class TempBlockEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         String shape = ctx.str("shape").toUpperCase(Locale.ROOT);
         int[] palette = palette(ctx);
-        int scale = palette.length > 1 ? ctx.integer("palette-scale") : 1; // scale is only consulted for a mixed palette
         int ticks = ctx.integer("ticks");
         int radius = ctx.integer("radius");
         int height = ctx.integer("height");
@@ -103,7 +101,7 @@ public final class TempBlockEffect implements EffectKind {
                     } else {
                         for (int dx = -radius; dx <= radius; dx++) {
                             for (int dz = -radius; dz <= radius; dz++) {
-                                place(sink, world, bx + dx, by, bz + dz, palette, scale, ticks, mode);
+                                place(sink, world, bx + dx, by, bz + dz, palette, ticks, mode);
                             }
                         }
                     }
@@ -111,14 +109,14 @@ public final class TempBlockEffect implements EffectKind {
                 case "COLUMN" -> {
                     int[] forward = forwardOffset(base, ahead);
                     for (int h = 0; h < height; h++) {
-                        place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, scale, ticks, mode);
+                        place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, ticks, mode);
                     }
                 }
                 case "BOX" ->
                     // One 3D intent: the sink owns per-tile region re-keying (a box may straddle a boundary).
                     sink.tempBox(new Location(world, bx, by, bz), palette[0],
                             ctx.integer("width"), height, ctx.integer("depth"), ticks, mode);
-                default -> place(sink, world, bx, by, bz, palette, scale, ticks, mode); // POINT
+                default -> place(sink, world, bx, by, bz, palette, ticks, mode); // POINT
             }
         }
     }
@@ -140,27 +138,26 @@ public final class TempBlockEffect implements EffectKind {
         return n == out.length ? out : java.util.Arrays.copyOf(out, n);
     }
 
-    private static void place(Sink sink, World world, int x, int y, int z, int[] palette, int scale, int ticks, int mode) {
-        sink.tempBlock(new Location(world, x, y, z), materialAt(palette, scale, x, z), ticks, mode, false);
+    private static void place(Sink sink, World world, int x, int y, int z, int[] palette, int ticks, int mode) {
+        sink.tempBlock(new Location(world, x, y, z), materialAt(palette, x, z), ticks, mode, false);
     }
 
     /**
      * The palette material for the block at {@code (x, z)}: a single-material palette is byte-identical to the
-     * plain material; a multi-material palette picks {@code palette[positiveHash(floor(x/scale), floor(z/scale)) %
-     * size]} so identical cells share a material — connected patches of ~{@code scale}×{@code scale} blocks. The
-     * cell hash is a pure integer mix (no {@code Random}), so reverts and trail fingerprints stay stable.
+     * plain material; a multi-material palette picks {@code palette[positiveHash(x, z) % size]} — an independent
+     * per-block draw, so adjacent blocks scatter (noisy, not patched). The hash is a pure integer mix (no
+     * {@code Random}), so the same coordinate always yields the same material and reverts/trail fingerprints stay stable.
      */
-    private static int materialAt(int[] palette, int scale, int x, int z) {
+    private static int materialAt(int[] palette, int x, int z) {
         if (palette.length == 1) {
             return palette[0];
         }
-        int cell = cellHash(Math.floorDiv(x, scale), Math.floorDiv(z, scale));
-        return palette[Math.floorMod(cell, palette.length)];
+        return palette[Math.floorMod(blockHash(x, z), palette.length)];
     }
 
-    /** A cheap deterministic spatial mix of a cell coordinate (the classic 73856093/19349663 hash, finalized). */
-    private static int cellHash(int cx, int cz) {
-        int h = cx * 73856093 ^ cz * 19349663;
+    /** A cheap deterministic spatial mix of a block coordinate (the classic 73856093/19349663 hash, finalized). */
+    private static int blockHash(int x, int z) {
+        int h = x * 73856093 ^ z * 19349663;
         h ^= h >>> 16;
         h *= 0x7feb352d;
         h ^= h >>> 15;

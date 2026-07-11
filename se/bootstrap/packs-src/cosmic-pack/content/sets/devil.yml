@@ -63,7 +63,7 @@ bonuses:
     cooldown: 600
     effects:
       - { SOUND: { sound: "ENTITY_ILLUSIONER_PREPARE_MIRROR", volume: 1.0, pitch: 0.75 } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "MAGMA_BLOCK", material2: "NETHERRACK", material3: "GLOWSTONE", material4: "NETHER_QUARTZ_ORE", palette-scale: 2, radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "MAGMA_BLOCK", material2: "NETHERRACK", material3: "GLOWSTONE", material4: "NETHER_QUARTZ_ORE", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
       - { MARK_ZONE: { radius: 4.5, duration: 100, who: "@Victim" } }
       - { PARTICLE: { particle: FLAME, count: 40 } }
       - { MESSAGE: { channel: title, text: "&4&l** HELL'S KITCHEN **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
