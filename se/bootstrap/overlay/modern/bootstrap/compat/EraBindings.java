@@ -27,6 +27,8 @@ import feature.fx.ModernParticleFx;
 import feature.fx.ParticleFx;
 import feature.heroic.ModernVanillaStats;
 import feature.heroic.VanillaStats;
+import item.head.EquipmentRepaint;
+import item.head.ModernEquipmentRepaint;
 import item.head.ModernTexturedHeads;
 import item.head.TexturedHeads;
 import feature.scroll.AnvilRename;
@@ -143,6 +145,12 @@ public final class EraBindings implements EraServices {
     @Override
     public TexturedHeads texturedHeads() {
         return new ModernTexturedHeads();
+    }
+
+    /** ADR-0053 mask repaint: {@code sendEquipmentChange} by name (1.18.2+; 1.17.1 degrades inert in the impl). */
+    @Override
+    public EquipmentRepaint equipmentRepaint() {
+        return new ModernEquipmentRepaint();
     }
 
     /** §I nametag rename (§4): modern opens a real anvil + colour preview. Into {@code NametagListener}. */

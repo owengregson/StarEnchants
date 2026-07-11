@@ -1,6 +1,7 @@
 package item.codec;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -130,6 +131,26 @@ class CombatCodecTest {
 
         // Zero added slots emit no 'a' section (back-compat: an old item decodes to added 0).
         assertEquals(0, CombatCodec.decodeBlob(CombatCodec.encodeBlob(state(Map.of("x", 1), List.of()))).added());
+    }
+
+    @Test
+    void roundTripsAppliedMaskKey() {
+        // ADR-0053: an applied mask key (label 'm') survives the codec, distinct from set/weapon keys.
+        CombatState masked = new CombatState(Map.of("guard", 1), List.of()).withMask("masks/agent");
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(masked));
+        assertEquals("masks/agent", back.maskKey());
+        assertEquals(Map.of("guard", 1), back.enchants());
+
+        // A mask-only item (no enchants/crystals/set/heroic/slots) is NOT empty — it must persist.
+        CombatState maskOnly = CombatState.EMPTY.withMask("masks/agent");
+        assertTrue(!maskOnly.isEmpty());
+        assertEquals("masks/agent", CombatCodec.decodeBlob(CombatCodec.encodeBlob(maskOnly)).maskKey());
+
+        // An OLD blob (no 'm' section) decodes to a null maskKey (forward-compatible).
+        assertNull(CombatCodec.decodeBlob("v1efire:2c").maskKey());
+
+        // An empty 'm' payload is tolerated → null (mirrors 's'/'w').
+        assertNull(CombatCodec.decodeBlob("v1m").maskKey());
     }
 
     @Test

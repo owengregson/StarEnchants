@@ -23,7 +23,8 @@ class LoreComposerTest {
     private static final Function<String, String> NAMES = Map.of(
             "enchants/venom", "Venom",
             "crystals/a", "Aaa",
-            "crystals/b", "Bbb")::get;
+            "crystals/b", "Bbb",
+            "masks/agent", "Agent")::get;
     private static final String HEROIC = "&6&lHEROIC {TYPE} (&e{+/-}{AMOUNT}% DMG&7)";
 
     private static LoreComposer composer() {
@@ -32,6 +33,7 @@ class LoreComposerTest {
                 .withSlotsLine(() -> "&a&l{TOTAL} Slots +{ADDED}")
                 .withCrystalLine(() -> "&8S {CRYSTAL}")
                 .withCrystalLineMulti(() -> "&8M {CRYSTAL}")
+                .withMaskLine(() -> "&8Mask: {NAME}")
                 .withHeroicLine(() -> HEROIC));
     }
 
@@ -58,6 +60,26 @@ class LoreComposerTest {
         CombatState state = new CombatState(Map.of("enchants/venom", 1), List.of());
 
         assertEquals(composer.body(state), composer.compose(state, "SWORD", List.of(), List.of()));
+    }
+
+    @Test
+    void maskLineLandsDirectlyBelowTheCrystalLineInTheBody() {
+        // ADR-0053: a masked helmet's mask line is the LAST body line, immediately after the crystal line(s).
+        LoreComposer composer = composer();
+        CombatState state = new CombatState(Map.of(), List.of("crystals/a")).withMask("masks/agent");
+        List<String> body = composer.body(state);
+        assertEquals("§8S Aaa", body.get(body.size() - 2), "the crystal line sits directly above the mask line");
+        assertEquals("§8Mask: Agent", body.get(body.size() - 1), "the mask line is the last body line, {NAME}→display");
+    }
+
+    @Test
+    void blankMaskTemplateEmitsNoMaskLine() {
+        // A null/blank mask template → no line even for a masked helmet (mirrors the crystal/orb/heroic sections).
+        LoreComposer noMaskLine = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withCrystalLine(() -> "&8S {CRYSTAL}")); // maskLine defaults to null
+        CombatState state = new CombatState(Map.of(), List.of("crystals/a")).withMask("masks/agent");
+        List<String> body = noMaskLine.body(state);
+        assertEquals(List.of("§8S Aaa"), body, "no mask template → only the crystal line, no mask line");
     }
 
     @Test

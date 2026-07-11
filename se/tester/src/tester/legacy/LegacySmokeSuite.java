@@ -164,7 +164,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
                 // Always-save heroic durability (chance 1.0): nextDouble() ∈ [0,1) is always < 1.0.
                 codec.write(sword, new CombatState(Map.of(), List.of(), null, null, false,
-                        new HeroicStat(0.0, 0.0, 1.0), 0));
+                        new HeroicStat(0.0, 0.0, 1.0), 0, null));
                 setHand(p, sword); // durability 0 — the poll records this as the prior over the next few ticks
                 Scheduling.onEntityLater(p, 4L, () -> {
                     ItemStack held = handItem(p);
@@ -331,7 +331,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                     ItemStack heroic = new ItemStack(Material.DIAMOND_SWORD);
                     // Always-save heroic durability (chance 1.0), pre-damaged to 500.
                     codecB.write(heroic, new CombatState(Map.of(), List.of(), null, null, false,
-                            new HeroicStat(0.0, 0.0, 1.0), 0));
+                            new HeroicStat(0.0, 0.0, 1.0), 0, null));
                     heroic.setDurability((short) 500);
                     setHand(p, heroic);
                     Scheduling.onEntityLater(p, 6L, () -> {

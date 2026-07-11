@@ -49,6 +49,7 @@ public final class LoreRenderer {
      * @param heroicLine       §F heroic line template ({@code {TYPE}}/{@code {+/-}}/{@code {AMOUNT}}); blank → plain marker
      * @param crystalLine      §E on-gear crystal line template ({@code {CRYSTAL}}); {@code null}/blank → style fallback
      * @param crystalLineMulti §E on-gear line for a MERGED crystal (ADR-0035); defaults to {@code crystalLine}
+     * @param maskLine         ADR-0053 on-gear mask line template ({@code {NAME}}); {@code null}/blank → no line
      */
     public record Config(
             Supplier<LoreStyle> style,
@@ -63,7 +64,8 @@ public final class LoreRenderer {
             Supplier<String> slotsLine,
             Supplier<String> heroicLine,
             Supplier<String> crystalLine,
-            Supplier<String> crystalLineMulti) {
+            Supplier<String> crystalLineMulti,
+            Supplier<String> maskLine) {
 
         public Config {
             Objects.requireNonNull(style, "style");
@@ -79,6 +81,7 @@ public final class LoreRenderer {
             Objects.requireNonNull(heroicLine, "heroicLine");
             Objects.requireNonNull(crystalLine, "crystalLine");
             Objects.requireNonNull(crystalLineMulti, "crystalLineMulti");
+            Objects.requireNonNull(maskLine, "maskLine");
         }
 
         /** A minimal config: a fixed style + a name lookup, every optional section defaulted off. */
@@ -90,54 +93,55 @@ public final class LoreRenderer {
         /** A minimal config: a live style supplier + a name lookup, every optional section defaulted off. */
         public static Config of(Supplier<LoreStyle> style, Function<String, String> displayNameOf) {
             return new Config(style, displayNameOf, key -> null, SetLore.NONE, stack -> List.of(),
-                    stack -> List.of(), line -> false, () -> null, () -> 0, () -> null, () -> null, () -> null, () -> null);
+                    stack -> List.of(), line -> false, () -> null, () -> 0, () -> null, () -> null, () -> null, () -> null,
+                    () -> null);
         }
 
         public Config withEnchantColorOf(Function<String, String> enchantColorOf) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         public Config withSetLore(SetLore setLore) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         public Config withProtectionLines(Function<ItemStack, List<String>> protectionLines) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         /** The applied-trak count lines rendered from marker + counter state (§I); replaces the old preserve-by-text seam. */
         public Config withTrakLines(Function<ItemStack, List<String>> trakLines) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         /** MIGRATION-ONLY (ADR-0040): the recogniser the one-time legacy shim uses on unmarked items. */
         public Config withLegacyLoreLine(Predicate<String> legacyLoreLine) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         public Config withCountSuffix(Supplier<String> countSuffix) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         public Config withBaseSlots(IntSupplier baseSlots) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         public Config withSlotsLine(Supplier<String> slotsLine) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         public Config withHeroicLine(Supplier<String> heroicLine) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
 
         /**
@@ -147,12 +151,18 @@ public final class LoreRenderer {
          */
         public Config withCrystalLine(Supplier<String> crystalLine) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLine);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLine, maskLine);
         }
 
         public Config withCrystalLineMulti(Supplier<String> crystalLineMulti) {
             return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
-                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti);
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
+        }
+
+        /** Set the ADR-0053 on-gear mask line template ({@code {NAME}} → the mask's styled display). */
+        public Config withMaskLine(Supplier<String> maskLine) {
+            return new Config(style, displayNameOf, enchantColorOf, setLore, protectionLines, trakLines, legacyLoreLine,
+                    countSuffix, baseSlots, slotsLine, heroicLine, crystalLine, crystalLineMulti, maskLine);
         }
     }
 

@@ -22,6 +22,8 @@ import feature.fx.LegacyParticleFx;
 import feature.fx.ParticleFx;
 import feature.heroic.LegacyHeroicSave;
 import feature.heroic.VanillaStats;
+import item.head.EquipmentRepaint;
+import item.head.LegacyEquipmentRepaint;
 import item.head.LegacyTexturedHeads;
 import item.head.TexturedHeads;
 import feature.scroll.AnvilRename;
@@ -142,6 +144,12 @@ public final class EraBindings implements EraServices {
     @Override
     public TexturedHeads texturedHeads() {
         return new LegacyTexturedHeads();
+    }
+
+    /** ADR-0053 mask repaint: the direct-NMS 1.8 equipment packet on the recipient's connection. */
+    @Override
+    public EquipmentRepaint equipmentRepaint() {
+        return new LegacyEquipmentRepaint();
     }
 
     /** §I nametag rename (§4): 1.8 has no live anvil-rename field — chat capture. Into {@code NametagListener}. */

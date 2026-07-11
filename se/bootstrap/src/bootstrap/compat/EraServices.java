@@ -15,6 +15,7 @@ import feature.scroll.AnvilRename;
 import feature.trigger.TriggerDispatch;
 import item.codec.CombatCodec;
 import item.codec.ItemStateStore;
+import item.head.EquipmentRepaint;
 import item.head.TexturedHeads;
 import item.worn.EquipSource;
 import java.util.List;
@@ -76,6 +77,9 @@ public interface EraServices {
 
     /** Base64-textured player-head minting (ADR-0052 pets): modern Paper profiles / 1.8 SKULL_ITEM+authlib. */
     TexturedHeads texturedHeads();
+
+    /** Client-only worn-helmet repaint (ADR-0053 masks): modern {@code sendEquipmentChange} / 1.8 equipment packet. */
+    EquipmentRepaint equipmentRepaint();
 
     AnvilRename anvilRename();
 

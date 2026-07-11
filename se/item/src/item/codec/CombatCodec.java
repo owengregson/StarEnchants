@@ -22,9 +22,10 @@ import org.bukkit.inventory.ItemStack;
  * {@code e} = enchants ({@code key:level} per entry), {@code c} = crystals ({@code key}),
  * {@code s} = armour-set key, {@code w} = weapon-set key (this item is that set's weapon, §6.6),
  * {@code o} = omni flag ({@code 1}), {@code h} = heroic flat stats ({@code damage:reduction:durability}),
- * {@code a} = purchased slot count (§H). Unknown labels are ignored so a newer field never breaks an
- * older reader (and an older blob lacking {@code s}/{@code w}/{@code o}/{@code h}/{@code a} decodes to no
- * set / no weapon-set / not-omni / no heroic / no added slots).
+ * {@code a} = purchased slot count (§H), {@code m} = applied mask key (helmet-only, ADR-0053). Unknown labels
+ * are ignored so a newer field never breaks an older reader (and an older blob lacking
+ * {@code s}/{@code w}/{@code o}/{@code h}/{@code a}/{@code m} decodes to no set / no weapon-set / not-omni /
+ * no heroic / no added slots / no mask).
  */
 public final class CombatCodec {
 
@@ -109,6 +110,10 @@ public final class CombatCodec {
         if (state.added() > 0) {
             sb.append(US).append('a').append(US).append(state.added());
         }
+        // ADR-0053: the applied mask key, single-per-helmet — emitted after 'w' like the other single-string labels.
+        if (state.maskKey() != null) {
+            sb.append(US).append('m').append(US).append(state.maskKey());
+        }
         return sb.toString();
     }
 
@@ -127,6 +132,7 @@ public final class CombatCodec {
         boolean omni = false;
         HeroicStat heroic = HeroicStat.NONE;
         int added = 0;
+        String maskKey = null;
         // Sections come in (label, payload) pairs after the version token.
         for (int i = 1; i + 1 < tokens.length; i += 2) {
             String label = tokens[i];
@@ -145,10 +151,12 @@ public final class CombatCodec {
                 heroic = parseHeroic(payload);
             } else if ("a".equals(label)) {
                 added = parseAdded(payload);
+            } else if ("m".equals(label)) {
+                maskKey = payload.isEmpty() ? null : payload; // tolerant of an empty payload (mirrors 's'/'w')
             }
             // any other label is a newer field this reader does not know — ignore it
         }
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added);
+        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey);
     }
 
     /** Malformed/negative → {@code 0}, never throws. */

@@ -35,6 +35,7 @@ public final class ItemKeys {
     private final String petLevel;
     private final String petExp;
     private final String petFood;
+    private final String maskItem;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
@@ -42,7 +43,7 @@ public final class ItemKeys {
                      String unopened, String godlyTransmog, String appliedSlot,
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
                      String loreComposer, String useItem,
-                     String pet, String petLevel, String petExp, String petFood) {
+                     String pet, String petLevel, String petExp, String petFood, String maskItem) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -68,13 +69,14 @@ public final class ItemKeys {
         this.petLevel = petLevel;
         this.petExp = petExp;
         this.petFood = petFood;
+        this.maskItem = maskItem;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
-                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petfood");
+                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petfood", "maskitem");
     }
 
     public String combat() {
@@ -197,5 +199,10 @@ public final class ItemKeys {
     /** A Pet Food apply item (ADR-0052): the PDC integer under this key is its baked +levels amount. */
     public String petFood() {
         return petFood;
+    }
+
+    /** A mask head item (ADR-0053): the PDC string under this key is the mask's def key (its identity, pre-apply). */
+    public String maskItem() {
+        return maskItem;
     }
 }

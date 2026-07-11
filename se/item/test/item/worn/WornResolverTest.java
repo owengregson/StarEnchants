@@ -296,19 +296,19 @@ class WornResolverTest {
         CombatState combat = new CombatState(Map.of("enchants/lifesteal", 3), List.of("crystals/zap"));
 
         // enchants off: only the crystal survives (id 1).
-        WornState noEnchants = resolver(new WornResolver.Features(false, true, true, true))
+        WornState noEnchants = resolver(new WornResolver.Features(false, true, true, true, true))
                 .resolveFrom(List.of(combat), KEYS, ABILITIES, 1);
         assertArrayEquals(new int[] {1}, sorted(noEnchants.byTrigger(0)), "enchant dropped, crystal kept");
 
         // crystals off: only the enchant survives (id 0) and no crystal is tracked.
-        WornState noCrystals = resolver(new WornResolver.Features(true, true, false, true))
+        WornState noCrystals = resolver(new WornResolver.Features(true, true, false, true, true))
                 .resolveFrom(List.of(combat), KEYS, ABILITIES, 1);
         assertArrayEquals(new int[] {0}, sorted(noCrystals.byTrigger(0)), "crystal dropped, enchant kept");
         assertEquals(0, noCrystals.activeCrystalAbilityIds().length);
 
         // sets off: a worn set never completes.
         CombatState piece = new CombatState(Map.of(), List.of(), "sets/yeti", false);
-        WornState noSets = resolver(new WornResolver.Features(true, false, true, true))
+        WornState noSets = resolver(new WornResolver.Features(true, false, true, true, true))
                 .resolveFrom(List.of(piece, piece, piece), SET_KEYS, SET_ABILITIES, 1);
         assertEquals(false, noSets.isSetActive(0), "sets off → no completion");
         assertEquals(0, noSets.byTrigger(1).length);
@@ -316,9 +316,34 @@ class WornResolverTest {
         // heroic off: worn heroic stats do not accumulate.
         CombatState heroicPiece =
                 new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.5, 0.5, 0.5));
-        WornState noHeroic = resolver(new WornResolver.Features(true, true, true, false))
+        WornState noHeroic = resolver(new WornResolver.Features(true, true, true, false, true))
                 .resolveFrom(List.of(heroicPiece), KEYS, ABILITIES, 1);
         assertEquals(0.0, noHeroic.heroic().percentDamage(), 1e-9, "heroic off → no flat stat");
+    }
+
+    // ── ADR-0053 masks: a helmet's applied mask fires while worn like any source; masks=false skips it ──
+    // id 0 = masks/agent (its primary), id 1 = masks/agent/a1 (a second ability) — both fire on attack trigger 0.
+    private static final StableKeyIndex MASK_KEYS =
+            new StableKeyIndex(List.of("masks/agent", "masks/agent/a1"));
+    private static final Ability[] MASK_ABILITIES = {ability(0, 1 << 0), ability(1, 1 << 0)};
+
+    @Test
+    void maskContributesItsDenseIdAndTheAChain() {
+        // A masked helmet: the mask key resolves to its dense id AND walks the /a1 multi-ability chain (§ADR-0053).
+        CombatState helmet = new CombatState(Map.of(), List.of()).withMask("masks/agent");
+        WornState worn = resolver().resolveFrom(List.of(helmet), MASK_KEYS, MASK_ABILITIES, 1);
+        assertArrayEquals(new int[] {0, 1}, sorted(worn.byTrigger(0)), "mask primary + /a1 both fire");
+        // A mask is not a crystal/set — it joins neither accounting view.
+        assertEquals(0, worn.activeCrystalAbilityIds().length, "a mask is never tracked as a crystal");
+    }
+
+    @Test
+    void masksFeatureOffDropsTheMask() {
+        // §L features.masks off: the applied mask contributes nothing.
+        CombatState helmet = new CombatState(Map.of(), List.of()).withMask("masks/agent");
+        WornState worn = resolver(new WornResolver.Features(true, true, true, true, false))
+                .resolveFrom(List.of(helmet), MASK_KEYS, MASK_ABILITIES, 1);
+        assertEquals(0, worn.byTrigger(0).length, "masks off → the mask fires nothing");
     }
 
     @Test
