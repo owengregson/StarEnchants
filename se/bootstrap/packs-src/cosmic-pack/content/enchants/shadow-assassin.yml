@@ -14,26 +14,21 @@ removes-required: true  # the mythic upgrade supersedes its base counterpart (ne
 levels:
   1:
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.3 } }
       - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "30 - %distance% * 9" } }  # EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (strongest point-blank, fades with reach)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.65 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
   2:
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.3 } }
       - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "35 - %distance% * 10" } }  # EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (strongest point-blank, fades with reach)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.7 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
   3:
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.3 } }
       - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "40 - %distance% * 10" } }  # EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (strongest point-blank, fades with reach)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.75 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
   4:
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.3 } }
       - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "45 - %distance% * 11" } }  # EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (strongest point-blank, fades with reach)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.8 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
   5:
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.3 } }
       - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "50 - %distance% * 12" } }  # EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (strongest point-blank, fades with reach)
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.85 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)

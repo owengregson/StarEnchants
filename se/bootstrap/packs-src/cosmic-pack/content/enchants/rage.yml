@@ -11,30 +11,30 @@ levels:
   1:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 20" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.5" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 3" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.04" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
   2:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 25" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.6" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 4" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.05" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
   3:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 30" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.7" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 5" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.06" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
   4:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 35" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.8" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 6" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.07" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
   5:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 40" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.9" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 7" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.08" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
   6:
     effects:
       - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 45" } }  # stacking combo percent scaling the fold; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 1.0" } }  # flat rider lands after the multiplier so a full combo cracks Prot-IV's diminishing curve
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 8" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.10" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)

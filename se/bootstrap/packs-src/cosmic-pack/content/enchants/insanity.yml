@@ -11,48 +11,40 @@ levels:
   1:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.05 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   2:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.08 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   3:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 9 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.11 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   4:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.14 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   5:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.17 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   6:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.20 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   7:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 21 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.23 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
   8:
     condition: "%victim.helditem% contains \"SWORD\""
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.8, pitch: 0.9 } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 24 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.26 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
