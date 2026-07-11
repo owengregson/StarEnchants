@@ -71,6 +71,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("problems", "", "Show the errors and warnings from the last content load."),
             CommandInfo.of("why", "<player> [key]",
                     "Explain a player's recent activation attempts — which gate stopped each one and why."),
+            CommandInfo.of("damagedebug", "",
+                    "Toggle a per-hit damage-fold readout (base, percents, flats, scale, result) for yourself."),
             CommandInfo.of("modules", "",
                     "Show every feature module — toggle state and depth, wired listeners, commands, mint types, stores."),
             CommandInfo.of("give", "<type> <player> [args]", "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player."),
@@ -147,6 +149,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final feature.compat.Hands hands;               // main-hand read/write for /se enchant|unenchant|item (§4 era seam)
     private final PackGate packGate;                        // /se pack apply pre-flight (ADR-0046); the live fingerprint supplier rides inside it
     private final engine.stores.WhyStore why;               // /se why — the per-player activation flight recorder (ADR-0045)
+    private final feature.combat.DamageDebug damageDebug;   // /se damagedebug — the per-hit fold readout (ADR-0050 R3)
     private final java.util.function.Supplier<java.util.List<String>> quarantined; // /se why — live quarantined stable keys (§10)
     private final item.worn.WornStateStore worn;            // /se why — the target's resolved worn gear (not-worn diagnosis)
     private final java.util.function.LongSupplier nowTicks; // /se why — the current game tick, for "N s ago"
@@ -166,6 +169,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.trak.TrakService traks, PackStore packs, CombatCodec codec, CarrierCodec carrierCodec,
               java.util.function.IntSupplier baseSlots, Messages messages, Path contentRoot, ItemStateStore store,
               feature.compat.Hands hands, PackGate packGate, engine.stores.WhyStore why,
+              feature.combat.DamageDebug damageDebug,
               java.util.function.Supplier<java.util.List<String>> quarantined, item.worn.WornStateStore worn,
               java.util.function.LongSupplier nowTicks, List<Mintable> mintables, MintIo io,
               Supplier<ModuleFold.Report> modulesReport) {
@@ -195,6 +199,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.hands = hands;
         this.packGate = packGate;
         this.why = why;
+        this.damageDebug = damageDebug;
         this.quarantined = quarantined;
         this.worn = worn;
         this.nowTicks = nowTicks;
@@ -233,6 +238,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "reload" -> reload(sender, args);
             case "problems" -> problems(sender);
             case "why" -> why(sender, args);
+            case "damagedebug" -> toggleDamageDebug(sender);
             case "modules" -> modules(sender);
             case "give" -> give(sender, args);
             case "item" -> itemDump(sender, args);
@@ -472,6 +478,18 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 messages.lines("soul.empty").forEach(player::sendMessage);
             }
         });
+    }
+
+    /** Toggle the per-hit damage-fold readout for the sender: {@code /se damagedebug} (ADR-0050 R3). */
+    private void toggleDamageDebug(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(messages.format("command.not-a-player"));
+            return;
+        }
+        boolean on = damageDebug.toggle(player.getUniqueId());
+        sender.sendMessage(platform.text.Colors.translate(on
+                ? "&8[&6dmg&8] &7Per-hit damage readout &aENABLED&7 — every hit you land or take prints its fold."
+                : "&8[&6dmg&8] &7Per-hit damage readout &cDISABLED&7."));
     }
 
     /** Split souls off the held gem into a new gem: {@code /se split <amount>} (never auto-split, §D). */
