@@ -4,6 +4,46 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.7.2-beta] — 2026-07-10
+
+### Changed
+
+- **Flat-forward attack economy (ADR-0050 R3).** The v1.7.1 playtest showed Mental
+  reduces damage before our fold reads the event: percent bonuses multiplied an
+  already-crushed ~1 hp base (hits stuck at ~2 hearts) while flat damage landed raw
+  (Rage's rider alone scaled to 40 hearts). Every attack-side enchant contribution now
+  ships as raw-hp `flat` values with percents demoted to seasoning: Shadow
+  Assassin/Assassin become the always-on workhorses (~2–3 hp at melee range), Rage
+  compresses to +3–8% and +0.04–0.10 hp per stack (full combo ≈ +5.6 hp instead of an
+  instant kill), and the finisher/proc family (Execute, Deathbringer, Planetary
+  Deathbringer, Rogue, Enrage, Furious Enrage, Bloody Deep Wounds, the Insanity
+  family, Barbarian) lands in a +1 to +3.5 hp band with the deathbringers on 8–10 s
+  rhythms instead of 25–30 s one-shots. Sets, crystals, and heroic stay percent and
+  untouched — the set weapon line holds its 15–17% damage share and its lore stays
+  true. Projected: ~3-heart base hits, consistently; ~12 hp at a full 6-stack combo;
+  6–8 hit god-kit TTK.
+- **Combat noise sweep.** Enchants whose cue could fire on effectively every hit lost
+  their sounds (the armor-equip family, the Insanity screams, Assassin/Shadow
+  Assassin/Rogue, Heavy/Plated Heavy anvils, Death Pact, Soul Hardened, Piercing,
+  Shackle III, and the always-on roars on Barbarian/Enrage/Furious Enrage); Berserk's
+  ravager roar is now a wolf growl and Ender Shift's dragon growl an enderman
+  teleport. The rage break cue plays at half volume.
+
+### Added
+
+- **`/se damagedebug`** — toggle a per-hit damage-fold readout (the base the fold saw,
+  summed percents and flats, the attack scale, the committed result) for every hit you
+  land or take. Built to verify the combat pipeline on a live server empirically.
+
+### Fixed
+
+- **Inversion cancelled the holder's own attack.** It was authored on the ATTACK
+  trigger, so its CANCEL negated the hit the sword holder dealt. It now rides the
+  DEFENSE trigger like the other held-sword defensive enchants and negates the
+  incoming hit (healing the holder), as described.
+- **Rage's BROKEN flash was a title.** Both rage messages — the stack counter and the
+  break flash — now render on the action bar.
+
 ## [1.7.1-beta] — 2026-07-10
 
 ### Changed
