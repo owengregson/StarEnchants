@@ -31,6 +31,7 @@ interact, sink, stores). NOT for compiling YAML→`Ability` (that's the compiler
 | `Affinity` declared per `EffectKind`, folded MAX to ability level; `CONTEXT_LOCAL` runs INLINE (zero hop) | §3.6 |
 | Victim/defense facts come from the immutable `WornState` snapshot or event payload — never a live cross-region victim read | §3.4, §5.5 |
 | Actor positional state in `run()` is the demand-captured origin snapshot — declare `.actorOrigin()` on the spec, read `ctx.actorOrigin()`/`actorOriginEye()`; never `actor().getLocation()` in an effect body; leftover per-target live reads are `Regions`-guarded (ADR-0043) | §3.4–3.5 |
+| Current-health writes (`heal`/`setHealth`): zero-WAIT to the sink's declared event entity → INLINE at flush (joins the vanilla kill decision — Phoenix's save); all deferred ones liveness-gated at execution (the dead stay dead, ADR-0051) | §3.6 |
 
 ## The gate sequence (§3.3) — never reorder
 

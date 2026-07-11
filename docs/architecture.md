@@ -402,10 +402,14 @@ enum Affinity { CONTEXT_LOCAL, TARGET_ENTITY, REGION, AOE, GLOBAL, ASYNC }
 - **WAIT = deferred-intent batches** flushed on the region/entity timer (`[do]`), **not** a continuation
   over a pooled Frame (`[cp]`, rejected by both critiques). Cumulative WAIT (fixing a Cosmic Enchants-style overwrite bug)
   is computed at compile time into `waitTicks`.
-- **Honest about the DEFENSE side**: defense effects that mutate the victim (heal-on-hit, dodge-cancel,
+- **Honest about the DEFENSE side**: defense effects that mutate the victim (dodge-cancel,
   warp-behind-attacker) are `TARGET_ENTITY` and **do** cost one hop on Folia (we do not oversell "zero
   hops"). Damage *modification* itself is applied via the single fold on the firing thread (the event
   belongs to the firing region) — always correct (`[crit:perf]` correction to `[hf]`'s headline).
+  **Exception (ADR-0051): zero-WAIT current-health writes to the event's own entity** (heal-on-hit,
+  Phoenix's save) run **inline at flush** — the firing thread owns that entity, and landing before the
+  event's damage applies is what lets a save join the vanilla kill decision instead of racing death.
+  Every *deferred* health write is liveness-gated at execution time: the dead stay dead.
 
 ### 3.7 Triggers: bitmask routing, pluggable kinds
 
