@@ -75,6 +75,10 @@ public final class OperatorConsoleMenu extends HubMenu {
                 List.of("&7Rebuild and hot-swap the content", "&7library off-thread.", "",
                         "&8Right-click to validate only (dry run)."),
                 "&eClick to reload."), reload());
+        // Row 2 centre — the pet level-drill mint (ADR-0052).
+        tile(holder, 22, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
+                List.of("&7Drill into any pet and mint it", "&7at the level you pick."),
+                "&eClick to open."), open("pets"));
     }
 
     private ClickAction open(String name) {

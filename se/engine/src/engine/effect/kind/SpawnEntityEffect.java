@@ -83,11 +83,21 @@ public final class SpawnEntityEffect implements EffectKind {
             if (base == null) {
                 continue;
             }
-            sink.spawnSummon(base, type, count, ttl, health, owner, actor, flags);
+            spawn(sink, base, type, count, ttl, health, owner, actor, flags);
             any = true;
         }
         if (!any && ctx.location() != null) {
-            sink.spawnSummon(ctx.location(), type, count, ttl, health, owner, actor, flags);
+            spawn(sink, ctx.location(), type, count, ttl, health, owner, actor, flags);
+        }
+    }
+
+    /** Default flags keep the plain spawn intent (byte-stable pre-ADR-0052); any flag routes to the summon. */
+    private static void spawn(Sink sink, Location at, int type, int count, int ttl, double health,
+                              java.util.UUID owner, Player actor, SummonFlags flags) {
+        if (flags.none()) {
+            sink.spawnEntity(at, type, count, ttl, health, owner);
+        } else {
+            sink.spawnSummon(at, type, count, ttl, health, owner, actor, flags);
         }
     }
 }

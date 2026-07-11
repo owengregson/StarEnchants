@@ -23,7 +23,7 @@ class ActorOriginDeclarationTest {
         });
         assertEquals(
                 new TreeSet<>(Set.of("PARTICLE_RING", "PARTICLE_LINE", "WALKER", "SPAWN_ENTITY",
-                        "TELEPORT_BEHIND", "TELEPORT", "VELOCITY")),
+                        "TELEPORT_BEHIND", "TELEPORT", "VELOCITY", "CAGE")),
                 flagged);
     }
 }

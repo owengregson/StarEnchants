@@ -2,6 +2,15 @@ starenchants authoring surface v1
 [effects]
 effect BREAK_BLOCK
   param drops BOOL optional min=- max=- enum=- handle=- default=true
+effect CAGE
+  param floor HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param walls HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param roof HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param width INT optional min=1 max=8 enum=- handle=- default=3
+  param height INT optional min=2 max=8 enum=- handle=- default=4
+  param depth INT optional min=1 max=8 enum=- handle=- default=3
+  param rise INT optional min=0 max=8 enum=- handle=- default=2
+  param ticks TICKS optional min=0 max=- enum=- handle=- default=150
 effect CANCEL
 effect CURE
   param category ENUM optional min=- max=- enum=ALL,BENEFICIAL,HARMFUL,NEUTRAL handle=- default=ALL
@@ -109,7 +118,7 @@ effect MODIFY_HEALTH
   param mode ENUM optional min=- max=- enum=give,set,take,transfer handle=- default=give
 effect MODIFY_MONEY
   param amount DOUBLE required min=0 max=- enum=- handle=- default=-
-  param mode ENUM optional min=- max=- enum=give,steal_percent,take,transfer handle=- default=give
+  param mode ENUM optional min=- max=- enum=give,interest_percent,steal_percent,take,transfer handle=- default=give
 effect MOVEMENT_SPEED
   param speed DOUBLE required min=-1 max=1 enum=- handle=- default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=200
@@ -181,6 +190,15 @@ effect SPAWN_ENTITY
   param ttl TICKS optional min=0 max=- enum=- handle=- default=0
   param health DOUBLE optional min=0 max=- enum=- handle=- default=0
   param owner ENUM optional min=- max=- enum=activator,none handle=- default=none
+  param powered BOOL optional min=- max=- enum=- handle=- default=false
+  param ai BOOL optional min=- max=- enum=- handle=- default=true
+  param targeting BOOL optional min=- max=- enum=- handle=- default=true
+  param saddled BOOL optional min=- max=- enum=- handle=- default=false
+  param mount ENUM optional min=- max=- enum=activator,none handle=- default=none
+  param detonate ENUM optional min=- max=- enum=NONE,PLAYER_HIT handle=- default=NONE
+effect STRIP_SCROLL
+  param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
+  param hand BOOL optional min=- max=- enum=- handle=- default=true
 effect SUPPRESS
   param scope ENUM required min=- max=- enum=ENCHANT,GROUP,TYPE handle=- default=-
   param key STRING required min=- max=- enum=- handle=- default=-
@@ -199,7 +217,7 @@ effect TELEPORT_BEHIND
   param onFail ENUM optional min=- max=- enum=NONE,ONTOP handle=- default=ONTOP
 effect TELEPORT_DROPS
 effect TEMP_BLOCK
-  param shape ENUM optional min=- max=- enum=COLUMN,FOOTPRINT,POINT handle=- default=POINT
+  param shape ENUM optional min=- max=- enum=BOX,COLUMN,FOOTPRINT,POINT handle=- default=POINT
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param material2 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param material3 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
@@ -207,7 +225,9 @@ effect TEMP_BLOCK
   param palette-scale INT optional min=1 max=8 enum=- handle=- default=2
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60
   param radius INT optional min=0 max=4 enum=- handle=- default=0
+  param width INT optional min=1 max=8 enum=- handle=- default=3
   param height INT optional min=1 max=8 enum=- handle=- default=1
+  param depth INT optional min=1 max=8 enum=- handle=- default=3
   param ahead INT optional min=0 max=8 enum=- handle=- default=0
   param dy INT optional min=-4 max=4 enum=- handle=- default=0
   param airOnly BOOL optional min=- max=- enum=- handle=- default=true
@@ -305,6 +325,7 @@ flow stop
 flowmod chance
 [vars]
 var actor.behindvictim BOOL
+var actor.belowvictim NUM
 var actor.food NUM
 var actor.gamemode STR
 var actor.groundblock STR

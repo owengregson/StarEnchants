@@ -66,6 +66,9 @@ final class PetsModule {
                         core.sounds(), equip.refresher(), enabled))
                 .events(new PetHotbarListener(core.petCodec(), equip.refresher(), enabled))
                 .events(new PetSummonListener(enabled))
+                .menu(75, new feature.menu.PetsBrowserMenu(core.content(), pets,
+                        () -> core.master().config().pets(), core.caps(), core.messages(),
+                        core.menusHolder()::config, core.vanillaEnchants()))
                 .mints(mints)
                 .store(core.petArmedStore())
                 .store(sweep)
