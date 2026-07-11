@@ -53,6 +53,7 @@ public final class LibraryLoader {
         List<CrystalDef> crystals = new ArrayList<>();
         List<SetDef> sets = new ArrayList<>();
         List<UseItemDef> useItems = new ArrayList<>();
+        List<PetDef> pets = new ArrayList<>();
         List<AbilityDef> defs = new ArrayList<>();
         int[] nextDefId = {0};
         Set<String> seenKeys = new HashSet<>();
@@ -123,10 +124,28 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
+        for (Path file : sourceFiles(contentRoot, "pets", diags)) {
+            KeyTier kt = keyTierOf(contentRoot, "pets", file, tiers);
+            if (!claim(kt.key(), contentRoot, file, seenKeys, diags)) {
+                continue;
+            }
+            YamlNode root = composeOf(contentRoot, file, diags);
+            if (root == null) {
+                continue;
+            }
+            // A pet's stored key is the bare filename stem (like a use-item); the bracket ability stable keys
+            // namespace it as pet:<stem>/<floor>. The source-prefixed kt.key() is claimed only for file dedup.
+            String stem = stripExtension(file.getFileName().toString());
+            PetDefReader.Parsed parsed = PetDefReader.read(stem, root, () -> nextDefId[0]++, diags);
+            if (parsed.def() != null) {
+                pets.add(parsed.def());
+            }
+            defs.addAll(parsed.abilities());
+        }
         validateRelationships(catalog, diags); // §G: requires/blacklist must name existing enchants
         validateSetEnchants(sets, catalog, diags); // §6.6: a set's custom enchant refs must exist (in range)
         Snapshot snapshot = compiler.compile(defs, generation, diags);
-        return new Library(snapshot, catalog, crystals, sets, useItems, tiers, diags.all());
+        return new Library(snapshot, catalog, crystals, sets, useItems, pets, tiers, diags.all());
     }
 
     /**

@@ -12,7 +12,7 @@ import schema.diag.Diagnostic;
  * content and have no catalog here; they are minted from {@code items/*.yml}.
  */
 public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalDef> crystals,
-                      List<SetDef> sets, List<UseItemDef> useItems, TierRegistry tiers,
+                      List<SetDef> sets, List<UseItemDef> useItems, List<PetDef> pets, TierRegistry tiers,
                       List<Diagnostic> diagnostics) {
 
     public Library {
@@ -20,6 +20,7 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         crystals = List.copyOf(crystals);
         sets = List.copyOf(sets);
         useItems = List.copyOf(useItems);
+        pets = List.copyOf(pets);
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -83,9 +84,20 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         return null;
     }
 
+    /** The parsed {@link PetDef} for a pet key (as an item stores it), or {@code null} if none defines it. */
+    public PetDef petDefOf(String key) {
+        for (PetDef def : pets) {
+            if (def.key().equals(key)) {
+                return def;
+            }
+        }
+        return null;
+    }
+
     /** An empty library around an already-compiled (empty) snapshot — the boot-failure fallback. */
     public static Library empty(Snapshot snapshot, List<Diagnostic> diagnostics) {
-        return new Library(snapshot, List.of(), List.of(), List.of(), List.of(), TierRegistry.BUILTIN, diagnostics);
+        return new Library(snapshot, List.of(), List.of(), List.of(), List.of(), List.of(), TierRegistry.BUILTIN,
+                diagnostics);
     }
 
     public boolean hasErrors() {
