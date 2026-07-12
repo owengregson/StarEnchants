@@ -4,6 +4,39 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Masks, pets and every SE custom item can no longer be placed as a block — cleanly, with
+  no "placed then refunded" flicker (ADR-0056).** The placement was already cancelled outright
+  for every plugin-item family (the 1.8.1 guard), but on the older-protocol lanes (notably 1.8.9)
+  the client's predicted held-count was never resynced on the cancel, so the item visibly
+  decremented and then reappeared. The guard now resyncs the held slot the moment it cancels, so
+  the item simply "is not a placeable block" — no ghost that sticks, no refund cycle. Fires only
+  on the cancelled place of a plugin item; a harmless no-op on the modern ack-driven lanes.
+- **Masks and pets can no longer be worn in the helmet slot — and on 1.21.2+ the client refuses
+  the slot itself (ADR-0056).** A mask activates only APPLIED ONTO a helmet (its drag gesture),
+  a pet from the HOTBAR, so a raw head in the helmet slot grants nothing and bypasses the pet
+  contract. A new always-on server guard cancels every inventory route the head could reach the
+  slot by — direct place, shift-click auto-equip, hotbar number-key swap, and (modern-only)
+  dispenser-equip; right-click auto-equip was already suppressed as a plugin-item vanilla use.
+  On 1.21.2+ the head's `equippable` data component is overridden to a non-head slot at mint, so
+  vanilla's own armour-slot check refuses the helmet client-side, no server round-trip. Below
+  that era the server guard carries it alone. An UNEQUIP is left alone, so a head slotted before
+  this shipped can still come off.
+- **The pet EXP bar's trailing pad is restored at max level.** The level-capped bar dropped the
+  one trailing space between its last filled square and the closing bracket, so max-level pets
+  read tighter than every other level. The full bar now carries the same right-hand pad the
+  partial and empty bars show (`&a■ ■ … ■ &7`), so the meter's shape is uniform across all levels.
+
+### Docs
+
+- **ADR-0056** records the decision that SE cosmetic head items do only their intended action —
+  the placement resync, the server-side helmet-equip guard + dispenser seam, and the 1.21.2+
+  client-side `equippable`-component strip (with the era bounds and the wholesale-override
+  rationale over component removal).
+
 ## [1.8.3-beta] — 2026-07-12
 
 ### Fixed

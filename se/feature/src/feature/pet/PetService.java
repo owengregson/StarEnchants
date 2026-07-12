@@ -15,6 +15,7 @@ import engine.sink.CageGeometry;
 import feature.menu.MenuIcons;
 import feature.trigger.TriggerDispatch;
 import item.codec.PetCodec;
+import item.head.HeadEquip;
 import item.head.TexturedHeads;
 import item.mint.ItemFactory;
 import item.mint.VanillaEnchants;
@@ -57,6 +58,7 @@ public final class PetService {
     private final PetCodec codec;
     private final TriggerDispatch dispatch;
     private final TexturedHeads heads;
+    private final HeadEquip headEquip; // strips client-side helmet wearability at mint (ADR-0052 pets, 1.8.4)
     private final VanillaEnchants vanilla; // glint lives at the feature layer (the use-item precedent)
     private final PetMessenger messenger;
     private final PetArmedStore armed;
@@ -68,7 +70,7 @@ public final class PetService {
     private final Predicate<Material> isAir; // era-correct block-air test (ActorProbe seam) for the cage pre-check
 
     public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
-                      VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
+                      HeadEquip headEquip, VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
                       Supplier<MasterConfig.PetsSection> pets, Supplier<PetItemConfig> likeness,
                       Supplier<PetFoodConfig> food, Consumer<Player> refresh, LongSupplier nowTicks,
                       Predicate<Material> isAir) {
@@ -76,6 +78,7 @@ public final class PetService {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
         this.heads = Objects.requireNonNull(heads, "heads");
+        this.headEquip = Objects.requireNonNull(headEquip, "headEquip");
         this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
         this.messenger = Objects.requireNonNull(messenger, "messenger");
         this.armed = Objects.requireNonNull(armed, "armed");
@@ -113,6 +116,7 @@ public final class PetService {
             // which is absent on 1.8 (there the era seam above already built a SKULL_ITEM head).
             stack = ItemFactory.buildItem(def.material(), Material.PAPER, null, null);
         }
+        headEquip.unwearable(stack); // a pet activates from the HOTBAR, never the helmet slot — deny client-side (1.8.4)
         int clamped = Math.min(Math.max(1, level), pets.get().maxLevel());
         codec.stamp(stack, key, clamped);
         render(stack, def);
@@ -178,20 +182,16 @@ public final class PetService {
     /**
      * The ten-slot exp meter toward the next level (ADR-0052): {@code &a■} per filled tenth, {@code &7_} per
      * empty one, space-separated — the pack's exact styling; the template wraps it in {@code &f[ ... &f]}.
-     * A level-capped pet shows a FULL bar: the last square sits flush against the closing {@code ]} with no
-     * trailing pad (owner polish). A partial bar keeps its right-hand underscore group; only the all-empty
-     * bar pads a leading space so its first {@code _} does not hug the {@code [}.
+     * Every filled square carries its own trailing space, so a level-capped FULL bar ends
+     * {@code …■ &7} — the same right-hand pad every partial/empty bar shows before the closing {@code ]}
+     * (max-level formatting matches the padded shape of the other levels). The all-empty bar additionally
+     * pads a leading space so its first {@code _} does not hug the {@code [}.
      */
     static String expBar(int level, int exp, MasterConfig.PetsSection cfg) {
         int filled = level >= cfg.maxLevel() ? 10
                 : (int) Math.min(10, Math.max(0, (10L * exp) / cfg.expPerLevel()));
         StringBuilder bar = new StringBuilder("&a");
-        if (filled == 10) {
-            // Full bar: no empty slots follow, so the last square must NOT carry its trailing space — it
-            // would render a stray pad against the template's closing bracket.
-            return bar.append("■ ".repeat(9)).append("■&7").toString();
-        }
-        bar.append("■ ".repeat(filled));
+        bar.append("■ ".repeat(filled)); // each square keeps its trailing space — the last one is the right-hand pad
         bar.append("&7");
         if (filled == 0) {
             bar.append(' ');

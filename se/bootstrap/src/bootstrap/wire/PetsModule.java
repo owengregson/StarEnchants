@@ -39,7 +39,8 @@ final class PetsModule {
         PetMessenger messenger = new PetMessenger(core.messages(), () -> core.master().config().pets());
         // The cold-path run reuses the shared TriggerDispatch (its runner/sink wiring), so no second engine spine.
         this.pets = new PetService(core.content(), core.petCodec(), core.triggerDispatch(),
-                core.bindings().texturedHeads(), core.vanillaEnchants(), messenger, core.petArmedStore(),
+                core.bindings().texturedHeads(), core.bindings().headEquip(), core.vanillaEnchants(),
+                messenger, core.petArmedStore(),
                 () -> core.master().config().pets(),
                 () -> core.items().config().petOrDefault(),
                 () -> core.items().config().petFoodOrDefault(),

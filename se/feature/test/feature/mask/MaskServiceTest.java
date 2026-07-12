@@ -132,7 +132,7 @@ class MaskServiceTest {
         ItemEnchanter enchanter = new ItemEnchanter(combatCodec, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                 () -> ItemEnchanter.DEFAULT_MAX_MERGE, messages, item.mint.VanillaEnchants.NONE);
-        return new MaskService(maskCodec, enchanter, holder, () -> cfg, heads, messages);
+        return new MaskService(maskCodec, enchanter, holder, () -> cfg, heads, item.head.HeadEquip.NONE, messages);
     }
 
     /** A mocked stack with a mocked meta, so the decorate path (setDisplayName/setLore) is capturable. */

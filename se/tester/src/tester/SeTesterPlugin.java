@@ -28,6 +28,7 @@ import tester.suite.EconomySuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.GuiSuite;
 import tester.suite.HeadDressSuite;
+import tester.suite.HeadEquipSuite;
 import tester.suite.HeroicApplySuite;
 import tester.suite.HeroicVanillaStatsSuite;
 import tester.suite.HeroicSuite;
@@ -96,6 +97,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new CarrierSuite(this))
                 .add(new EconomyItemsSuite(this)) // §I slot/black/randomizer/unopened/transmog over real ItemStacks
                 .add(new HeadDressSuite()) // mask illusion durability mirror over this version's real ItemFactory
+                .add(new HeadEquipSuite()) // client-side helmet-wearability strip (1.21.2+ equippable component)
                 .add(new WornResolverSuite(this));
 
         // The fake-player harness spans the whole range via FakePlayers' two paths (ADR 0018), so the

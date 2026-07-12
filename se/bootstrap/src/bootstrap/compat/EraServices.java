@@ -81,6 +81,10 @@ public interface EraServices {
     /** Client-only worn-helmet repaint (ADR-0053 masks): modern {@code sendEquipmentChange} / 1.8 equipment packet. */
     EquipmentRepaint equipmentRepaint();
 
+    /** Client-side helmet-wearability strip for mask/pet heads (1.8.4): modern overrides the {@code equippable}
+     *  component (1.21.2+) so the client refuses the slot itself; {@code NONE} below that era and on 1.8. */
+    item.head.HeadEquip headEquip();
+
     /** Worn-tooltip attribute copier for the mask illusion's shown head (1.8.1) — {@code NONE} on 1.8. */
     item.head.HeadAttributes headAttributes();
 
@@ -103,6 +107,10 @@ public interface EraServices {
     /** Vanilla-station guard (G04/G05/G06): modern smithing/grindstone/anvil prepare-event guard; 1.8 the
      *  anvil-click twin (the only station that exists there). */
     Listener stationGuard(feature.guard.StationGuardRules rules);
+
+    /** Dispenser head-equip guard (1.8.4): modern cancels {@code BlockDispenseArmorEvent} for a mask/pet head; 1.8
+     *  an inert listener — the event does not exist on that floor for a dispenser to fire. */
+    Listener dispenseArmorGuard(Predicate<ItemStack> isHeadItem);
 
     /** §C KNOCKBACK_CONTROL: register the applier this server fires knockback through; returns the chosen path. */
     KnockbackListener.Path registerKnockback(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks);

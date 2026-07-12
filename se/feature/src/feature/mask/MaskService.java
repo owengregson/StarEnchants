@@ -9,6 +9,7 @@ import feature.apply.ExtractResult;
 import feature.apply.GestureOutcome;
 import feature.apply.ItemEnchanter;
 import item.codec.MaskCodec;
+import item.head.HeadEquip;
 import item.head.TexturedHeads;
 import item.mint.ItemFactory;
 import java.util.List;
@@ -41,15 +42,17 @@ public final class MaskService {
     private final ContentHolder content;
     private final Supplier<MaskItemConfig> config;
     private final TexturedHeads heads;
+    private final HeadEquip headEquip; // strips client-side helmet wearability at mint (ADR-0053 masks, 1.8.4)
     private final Messages messages; // §L lang.yml
 
     public MaskService(MaskCodec codec, ItemEnchanter enchanter, ContentHolder content,
-                       Supplier<MaskItemConfig> config, TexturedHeads heads, Messages messages) {
+                       Supplier<MaskItemConfig> config, TexturedHeads heads, HeadEquip headEquip, Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
         this.config = Objects.requireNonNull(config, "config");
         this.heads = Objects.requireNonNull(heads, "heads");
+        this.headEquip = Objects.requireNonNull(headEquip, "headEquip");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
@@ -73,6 +76,10 @@ public final class MaskService {
             // which is absent on 1.8 (there the era seam above already built a SKULL_ITEM head).
             stack = ItemFactory.buildItem(def.material(), Material.PAPER, null, null);
         }
+        // A mask activates APPLIED ONTO a helmet (its drag gesture), never worn as the raw head — deny client-side
+        // helmet wearability so the client itself refuses the slot (1.8.4). The apply gesture reads the mask codec,
+        // not the equippable component, so this never blocks applying the mask onto a helmet.
+        headEquip.unwearable(stack);
         codec.stamp(stack, key);
         render(stack, def);
         return stack;

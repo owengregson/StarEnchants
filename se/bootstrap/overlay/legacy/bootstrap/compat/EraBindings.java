@@ -153,6 +153,11 @@ public final class EraBindings implements EraServices {
     }
 
     @Override
+    public item.head.HeadEquip headEquip() {
+        return item.head.HeadEquip.NONE; // 1.8 has no data components — the server-side HeadEquipGuard carries it
+    }
+
+    @Override
     public item.head.HeadAttributes headAttributes() {
         return item.head.HeadAttributes.NONE; // 1.8 renders no attribute tooltips — nothing to copy
     }
@@ -211,6 +216,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Listener stationGuard(feature.guard.StationGuardRules rules) {
         return new feature.guard.LegacyAnvilGuard(rules);
+    }
+
+    /** 1.8.4 dispenser head-equip guard: {@code BlockDispenseArmorEvent} does not exist on 1.8, so inert. */
+    @Override
+    public Listener dispenseArmorGuard(Predicate<ItemStack> isHeadItem) {
+        return NoopListener.INSTANCE;
     }
 
     /** §6.6 set-piece base enchants: the pre-1.13 name mapping lives in {@link LegacyEnchantResolver}. */

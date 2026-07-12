@@ -55,6 +55,8 @@ class RegistryWiringTest {
 
     static final class StationGuard implements Listener { }
 
+    static final class DispenseArmorGuard implements Listener { }
+
     /** The golden global listener registration sequence, all toggles on (§2 with EngineStoreListener after Immune,
      *  heroic-durability right after Heroic). Fold Events + the materialized guard/sweep, in registry order. */
     private static final List<String> GOLDEN_LISTENERS = List.of(
@@ -65,7 +67,7 @@ class RegistryWiringTest {
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
             "TeleblockListener", "ImmuneListener",
-            "EngineStoreListener", "VanillaGuardListener", "StationGuard",
+            "EngineStoreListener", "VanillaGuardListener", "HeadEquipGuard", "DispenseArmorGuard", "StationGuard",
             "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",
             "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
@@ -114,6 +116,7 @@ class RegistryWiringTest {
         when(bindings.anvilRename()).thenReturn(mock(feature.scroll.AnvilRename.class));
         when(bindings.texturedHeads()).thenReturn(item.head.TexturedHeads.NONE);
         when(bindings.equipmentRepaint()).thenReturn(item.head.EquipmentRepaint.NONE); // ADR-0053 inert repaint
+        when(bindings.headEquip()).thenReturn(item.head.HeadEquip.NONE); // 1.8.4 inert client helmet-wearability strip
         when(bindings.headAttributes()).thenReturn(item.head.HeadAttributes.NONE); // 1.8.1 worn-slot dressing
         when(bindings.actorProbe()).thenReturn(mock(engine.run.ActorProbe.class)); // 1.8.1 cage pre-check isAir
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
@@ -121,6 +124,7 @@ class RegistryWiringTest {
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
         when(bindings.heroicDurabilitySave(any(), any())).thenReturn(new HeroicDurabilitySave());
         when(bindings.stationGuard(any())).thenReturn(new StationGuard());
+        when(bindings.dispenseArmorGuard(any())).thenReturn(new DispenseArmorGuard()); // 1.8.4 dispenser head-equip guard
 
         org.bukkit.plugin.java.JavaPlugin plugin = mock(org.bukkit.plugin.java.JavaPlugin.class);
         org.bukkit.Server server = mock(org.bukkit.Server.class);
