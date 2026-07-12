@@ -59,6 +59,7 @@ the **consequences** — so the *why* survives long after the choice is made.
 | [0049](0049-cosmic-behavior-alignment.md) | Cosmic behavior alignment — ratified per-enchant resolution matrix from the description audit (Bleed DoT root, durability guards, amplifiers, gank logic, one-shot suppression, Soul Drinker) + whole-pack description regeneration (&e body, no stat lines, item-style applies line) | Accepted |
 | [0054](0054-same-hit-damage-fold-and-attribution.md) | Same-hit DAMAGE joins the fold (one hurt, one immunity window); separate procs (DoT/lightning/reflect) carry attribution behind the EngineDamage re-entrancy frame | Accepted (partly superseded by 0055) |
 | [0055](0055-rider-effective-units-and-scaling-classes.md) | Same-hit riders land in EFFECTIVE units (authored = delivered pre-armor, never attack-scaled — the ×5 regression restored); the three scaling classes (percent economy / effective riders / separate attributed instances) + the 1.8.3 category audit | Accepted |
+| [0056](0056-head-items-unplaceable-unequippable.md) | SE cosmetic head items (masks/pets) do only their intended action — placement resync completes the outright cancel, a server-side `HeadEquipGuard` + dispenser seam deny every helmet-equip route, and a 1.21.2+ `equippable`-component strip makes the client refuse the slot itself | Accepted |
 
 ## Process
 
