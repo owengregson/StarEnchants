@@ -5,6 +5,6 @@ display: "Medic"
 color: "&c"
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmY5OGZjYjY2YzllZDFhMmFkZmNhNWJhYWE3YTU2ZTBjNmZmYzg5ODMzM2EzODI3NjA1ZGM2MTBiZjUzY2E5OCJ9fX0="
 description:
-  - "&c&l* Receive 50% more healing from splash potions"
+  - "&c* Receive 50% more healing from splash potions"
 abilities:
   - { trigger: REPEATING, repeat: 40, effects: [ { WARD: { type: splash-heal, amount: 50, duration: 100 } } ] }

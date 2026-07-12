@@ -12,6 +12,7 @@ import item.codec.MaskCodec;
 import item.head.TexturedHeads;
 import item.mint.ItemFactory;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Supplier;
 import org.bukkit.Material;
@@ -26,9 +27,9 @@ import platform.text.Tokens;
  * crystal shape minus merge/multi/slots: a mask is a single identity on a helmet, so apply is a boolean
  * occupancy and remove pops the one key. Gear mutation + eligibility delegate to {@link ItemEnchanter};
  * the minted head comes from the {@link TexturedHeads} era seam with the def's material as the untexturable
- * fallback. The likeness tokens ({@code {COLOR}}/{@code {NAME}}/line-expanding {@code {DESCRIPTION}}/
- * {@code {APPLIES}}) follow the pet likeness, not the crystal's {@code CrystalNames} join — a mask has no
- * components to join.
+ * fallback. The likeness tokens ({@code {COLOR}}/{@code {NAME}}/{@code {NAME_UPPER}}/line-expanding
+ * {@code {DESCRIPTION}}/{@code {APPLIES}}) follow the pet likeness, not the crystal's {@code CrystalNames} join —
+ * a mask has no components to join.
  */
 public final class MaskService {
 
@@ -83,6 +84,7 @@ public final class MaskService {
         Object[] tokens = {
                 "COLOR", def.color(),
                 "NAME", def.display(),
+                "NAME_UPPER", def.display().toUpperCase(Locale.ROOT), // the SET-BONUS/pets header convention
                 "APPLIES", APPLIES,
         };
         List<String> lore = Tokens.expandLines(cfg.lore(), "DESCRIPTION", def.description(), tokens);

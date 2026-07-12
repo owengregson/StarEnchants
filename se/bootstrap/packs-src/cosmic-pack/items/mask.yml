@@ -7,6 +7,7 @@
 # Everything below is configurable; reload with /se reload. Placeholders (usable in name + every lore line):
 #   {COLOR}       = the mask's colour codes (content/masks/<key>.yml `color`, e.g. "&8") — carries its own &
 #   {NAME}        = the mask's display name (bare, no colour codes)
+#   {NAME_UPPER}  = the display name upper-cased — the SET-BONUS/pets header convention
 #   {DESCRIPTION} = the mask's description block, one lore line per authored line (line-expanding)
 #   {APPLIES}     = the item kinds a mask applies to — always the HELMET group label (masks are helmets-only)
 type: mask
@@ -17,7 +18,7 @@ name: "{COLOR}&l{NAME} Mask"
 lore:
   - "&eOverrides the visual appearance of a helmet and imbues it with magic mask abilities."
   - ""
-  - "{COLOR}&l{NAME} MASK BONUS"
+  - "{COLOR}&l{NAME_UPPER} MASK BONUS"
   - "{DESCRIPTION}"
   - ""
   - "&eApplies to: &f&n{APPLIES}&r"

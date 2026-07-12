@@ -6,6 +6,6 @@ display: "Hacker"
 color: "&1"
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjgyZWJjMDg4M2RlYjI5MzFiMTBlYWQ1MmQwZTQzZDIxODdkMDc1NmE2MGQ5NWQxN2NlMDE5NzIzNmM0MTk2OSJ9fX0="
 description:
-  - "&1&l* Immune to /near"
+  - "&1* Immune to /near"
 abilities:
   - { trigger: REPEATING, repeat: 40, effects: [ { WARD: { type: near, duration: 100 } } ] }
