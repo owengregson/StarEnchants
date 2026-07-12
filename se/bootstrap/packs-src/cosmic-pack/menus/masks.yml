@@ -1,0 +1,6 @@
+# Masks GUI — browse every mask as its real textured head; operators click to mint one.
+# Tiles come from the content library. See menus/apply.yml for the full field list.
+
+title: "&8&l✦ Masks ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

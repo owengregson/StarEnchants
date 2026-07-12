@@ -246,6 +246,8 @@ menu.crystals.minted: "&aMinted a &f{CRYSTAL} &acrystal to your inventory."
 menu.crystals.preview-only: "&7Preview only — only operators can mint crystals."
 menu.pets.minted: "&aMinted the &f{PET} &apet at level &f{LEVEL}&a."
 menu.pets.preview-only: "&7Preview only — only operators can mint pets."
+menu.masks.minted: "&aMinted the &f{MASK} &amask to your inventory."
+menu.masks.preview-only: "&7Preview only — only operators can mint masks."
 # Operator console reload button (left-click reloads, right-click validates).
 menu.console.reload-start: "&7{MODE} content…"
 menu.console.reload-ok: "&a{VERB} &f{COUNT} &aabilities &7(generation {GEN})."
