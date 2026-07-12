@@ -156,7 +156,9 @@ public final class MaskIllusionService {
      * the repaint packet, so a bare head there hovers as a nameless, lore-less skull. Copy the helmet's
      * display name (or its friendly material name — an unnamed helmet must not hover as "Player Head"), lore,
      * enchants (tooltip lines + glint) and flags — all floor+1.8-safe meta — then the worn-attribute block
-     * ("When on Head: …", heroic included) through the {@link HeadAttributes} era seam.
+     * ("When on Head: …", heroic included) and the durability mirror through the {@link HeadAttributes} era
+     * seam. Durability stays live: Paper's armour-change event fires on any component diff (damage included),
+     * so every durability tick re-derives this dress through the equip-refresh seam.
      */
     @SuppressWarnings("deprecation") // get/set DisplayName/Lore: the floor-stable item-meta path (the LoreRenderer rule)
     private ItemStack dress(ItemStack shown, ItemStack helmet) {
