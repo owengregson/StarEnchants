@@ -22,6 +22,7 @@ import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
 import tester.suite.CrossRegionTeleportSuite;
 import tester.suite.CrystalSuite;
+import tester.suite.MaxHealthSuite;
 import tester.suite.EconomyItemsSuite;
 import tester.suite.EconomySuite;
 import tester.suite.FakePlayerSuite;
@@ -106,6 +107,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new GuiSuite(this)); // §K benches: input-slot lock, combine, salvage, close-return
         harness.add(new ApplyGestureSuite(this)); // ADR-0041: shared gesture base commits/ignores real clicks
         harness.add(new CrystalSuite(this));
+        harness.add(new MaxHealthSuite(this));
         harness.add(new SetSuite(this));
         harness.add(new HeroicSuite(this));
         harness.add(new HeroicApplySuite(this)); // §F: success/fail/consume + armour-weapon guard

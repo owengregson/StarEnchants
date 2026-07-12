@@ -46,6 +46,13 @@ final class Stores {
         return new ModernDropControl();
     }
 
+    /** The entity's REAL effective max health (attribute value incl. modifiers) — the worn-bonus oracle. */
+    static double maxHealthOf(org.bukkit.entity.LivingEntity entity) {
+        org.bukkit.attribute.AttributeInstance attribute =
+                entity.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+        return attribute != null ? attribute.getValue() : entity.getMaxHealth();
+    }
+
     static Projectiles projectiles() {
         return new ModernProjectiles();
     }

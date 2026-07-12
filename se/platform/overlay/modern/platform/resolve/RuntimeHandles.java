@@ -35,10 +35,34 @@ public final class RuntimeHandles {
     /**
      * The live object a canonical {@code name} denotes, or {@code null}. Name-keyed companion to
      * {@link #resolve(HandleCategory, int)} for referents the dispatcher needs by well-known name (e.g.
-     * the implicit max-health attribute behind {@code addMaxHealth}). Not cached: cold path only.
+     * the implicit max-health attribute behind {@code addMaxHealth}). Walks the SAME {@link Aliases} chain
+     * the compile resolve does, both directions — a well-known name written for one era must keep resolving
+     * after a registry rename (1.21.3+ dropped the GENERIC_ attribute prefixes: the 1.8.1 nature-crystal
+     * regression, caught live by MaxHealthSuite). Not cached: cold path only.
      */
     public Object resolveByName(HandleCategory category, String name) {
-        return lookup.lookup(category, name);
+        Object direct = lookup.lookup(category, name);
+        if (direct != null) {
+            return direct;
+        }
+        Map<String, String> aliases = Aliases.forCategory(category);
+        String canonical = Aliases.normalize(name);
+        String forward = aliases.get(canonical);                 // legacy spelling → modern name
+        if (forward != null) {
+            Object object = lookup.lookup(category, forward);
+            if (object != null) {
+                return object;
+            }
+        }
+        for (Map.Entry<String, String> alias : aliases.entrySet()) {   // modern spelling → legacy name
+            if (alias.getValue().equals(canonical)) {
+                Object object = lookup.lookup(category, alias.getKey());
+                if (object != null) {
+                    return object;
+                }
+            }
+        }
+        return null;
     }
 
     /** The live object for an interned handle id, or {@code null} if unresolved. */
