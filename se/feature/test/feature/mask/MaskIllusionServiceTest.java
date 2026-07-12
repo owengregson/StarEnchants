@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class MaskIllusionServiceTest {
 
     private static MaskIllusionService service(TexturedHeads heads) {
-        return new MaskIllusionService(EquipmentRepaint.NONE, heads, () -> null, mock(ItemViewCache.class),
+        return new MaskIllusionService(EquipmentRepaint.NONE, heads, item.head.HeadAttributes.NONE, () -> null, mock(ItemViewCache.class),
                 () -> true, new MaskIllusionStore());
     }
 
@@ -48,5 +48,14 @@ class MaskIllusionServiceTest {
         assertNull(service.template("dGV4dHVyZQ=="));
         assertNull(service.template("dGV4dHVyZQ=="));
         assertEquals(2, builds.get()); // the miss was not cached — each call re-probes the seam
+    }
+
+    @org.junit.jupiter.api.Test
+    void friendlyNameTitleCasesTheMaterial() {
+        // The unnamed-helmet hover fallback (1.8.1 dress): never "Player Head", always the helmet's own name.
+        org.junit.jupiter.api.Assertions.assertEquals("Diamond Helmet",
+                MaskIllusionService.friendlyName(org.bukkit.Material.DIAMOND_HELMET));
+        org.junit.jupiter.api.Assertions.assertEquals("Turtle Helmet",
+                MaskIllusionService.friendlyName(org.bukkit.Material.TURTLE_HELMET));
     }
 }

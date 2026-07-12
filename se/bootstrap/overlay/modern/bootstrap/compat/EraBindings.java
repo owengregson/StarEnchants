@@ -153,6 +153,11 @@ public final class EraBindings implements EraServices {
         return new ModernEquipmentRepaint();
     }
 
+    @Override
+    public item.head.HeadAttributes headAttributes() {
+        return new item.head.ModernHeadAttributes();
+    }
+
     /** §I nametag rename (§4): modern opens a real anvil + colour preview. Into {@code NametagListener}. */
     @Override
     public AnvilRename anvilRename() {
