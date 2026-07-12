@@ -27,6 +27,7 @@ import tester.suite.EconomyItemsSuite;
 import tester.suite.EconomySuite;
 import tester.suite.FakePlayerSuite;
 import tester.suite.GuiSuite;
+import tester.suite.HeadDressSuite;
 import tester.suite.HeroicApplySuite;
 import tester.suite.HeroicVanillaStatsSuite;
 import tester.suite.HeroicSuite;
@@ -35,6 +36,7 @@ import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
 import tester.suite.LifecycleSuite;
 import tester.suite.MenuSuite;
+import tester.suite.ParticleSuite;
 import tester.suite.ProtectionSuite;
 import tester.suite.RenderSuite;
 import tester.suite.ResolverSuite;
@@ -87,11 +89,13 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
                 .add(new ResolverSuite())
                 .add(new RuntimeHandlesSuite())
                 .add(new SinkSuite(this))
+                .add(new ParticleSuite(this)) // this version's required particle data must default (no flush throw)
                 .add(new ContentLoaderSuite(this))
                 .add(new ImportSuite(this)) // ADR-0029: SE1 decode → validate → write → live reload
                 .add(new ContentFormatSuite(this))
                 .add(new CarrierSuite(this))
                 .add(new EconomyItemsSuite(this)) // §I slot/black/randomizer/unopened/transmog over real ItemStacks
+                .add(new HeadDressSuite()) // mask illusion durability mirror over this version's real ItemFactory
                 .add(new WornResolverSuite(this));
 
         // The fake-player harness spans the whole range via FakePlayers' two paths (ADR 0018), so the
