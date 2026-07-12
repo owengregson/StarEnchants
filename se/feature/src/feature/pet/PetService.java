@@ -6,7 +6,12 @@ import compile.load.PetBracket;
 import compile.load.PetDef;
 import compile.load.PetFoodConfig;
 import compile.load.PetItemConfig;
+import compile.model.Ability;
+import compile.model.CompiledEffect;
+import compile.model.Snapshot;
+import engine.effect.kind.CageEffect;
 import engine.run.UseAttempt;
+import engine.sink.CageGeometry;
 import feature.menu.MenuIcons;
 import feature.trigger.TriggerDispatch;
 import item.codec.PetCodec;
@@ -19,10 +24,16 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import platform.caps.Regions;
 import platform.sched.Scheduling;
 import platform.text.TimeFormat;
 import platform.text.Tokens;
@@ -54,11 +65,13 @@ public final class PetService {
     private final Supplier<PetFoodConfig> food;
     private final Consumer<Player> refresh; // the EquipListener.refresh seam — worn state + drivers re-derive
     private final LongSupplier nowTicks;
+    private final Predicate<Material> isAir; // era-correct block-air test (ActorProbe seam) for the cage pre-check
 
     public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
                       VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
                       Supplier<MasterConfig.PetsSection> pets, Supplier<PetItemConfig> likeness,
-                      Supplier<PetFoodConfig> food, Consumer<Player> refresh, LongSupplier nowTicks) {
+                      Supplier<PetFoodConfig> food, Consumer<Player> refresh, LongSupplier nowTicks,
+                      Predicate<Material> isAir) {
         this.content = Objects.requireNonNull(content, "content");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
@@ -71,6 +84,7 @@ public final class PetService {
         this.food = Objects.requireNonNull(food, "food");
         this.refresh = Objects.requireNonNull(refresh, "refresh");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
+        this.isAir = Objects.requireNonNull(isAir, "isAir");
     }
 
     public boolean isPet(ItemStack stack) {
@@ -162,16 +176,21 @@ public final class PetService {
     }
 
     /**
-     * The ten-slot exp meter toward the next level (ADR-0052): {@code &a■} per filled tenth, {@code &7_}
-     * per empty one, space-separated — the pack's exact styling; the template wraps it in {@code &f[ ... &f]}.
-     * A level-capped pet shows a full bar. The underscore group always starts with a space (an {@code _}
-     * renders flush against the {@code [} otherwise) while the square group never does — with any fill the
-     * last square's trailing space already provides it, so only the all-empty bar pads explicitly.
+     * The ten-slot exp meter toward the next level (ADR-0052): {@code &a■} per filled tenth, {@code &7_} per
+     * empty one, space-separated — the pack's exact styling; the template wraps it in {@code &f[ ... &f]}.
+     * A level-capped pet shows a FULL bar: the last square sits flush against the closing {@code ]} with no
+     * trailing pad (owner polish). A partial bar keeps its right-hand underscore group; only the all-empty
+     * bar pads a leading space so its first {@code _} does not hug the {@code [}.
      */
     static String expBar(int level, int exp, MasterConfig.PetsSection cfg) {
         int filled = level >= cfg.maxLevel() ? 10
                 : (int) Math.min(10, Math.max(0, (10L * exp) / cfg.expPerLevel()));
         StringBuilder bar = new StringBuilder("&a");
+        if (filled == 10) {
+            // Full bar: no empty slots follow, so the last square must NOT carry its trailing space — it
+            // would render a stray pad against the template's closing bracket.
+            return bar.append("■ ".repeat(9)).append("■&7").toString();
+        }
         bar.append("■ ".repeat(filled));
         bar.append("&7");
         if (filled == 0) {
@@ -269,6 +288,10 @@ public final class PetService {
             messenger.failed(player, def);
             return;
         }
+        if (cageWouldFail(player, bracket)) {
+            messenger.failed(player, def); // provably-unsafe cage volume — fail BEFORE the cooldown arms
+            return;
+        }
         UseAttempt attempt = dispatch.fireUse(player, bracket.useStableKeys());
         if (attempt.activated()) {
             messenger.activated(player, def);
@@ -283,6 +306,71 @@ public final class PetService {
             return; // the roll just did not land — silent (the use-item convention)
         }
         messenger.failed(player, def); // condition failed / blocked
+    }
+
+    /**
+     * True when this bracket's right-click would build a {@code CAGE} into a volume that is provably NOT clear
+     * — the cooldown-saving pre-check (ADR-0052): resolve the CAGE selector's would-be victim on the actor's
+     * own region thread and evaluate the SHARED {@link CageGeometry} verdict before {@link TriggerDispatch#fireUse}
+     * arms the cooldown. No victim in range is NOT a pre-block (the authored {@code %nearbyenemies%} condition
+     * rejects that pre-cooldown at gate 7); an unreadable cross-region volume falls through to the normal fire
+     * (a documented Folia degrade — the sink's own safety check still aborts the build, only then the cooldown
+     * is spent, the pre-refactor behavior).
+     */
+    private boolean cageWouldFail(Player player, PetBracket bracket) {
+        Snapshot snapshot = content.snapshot();
+        for (String key : bracket.useStableKeys()) {
+            Ability ability = snapshot.byStableKey(key);
+            if (ability == null) {
+                continue;
+            }
+            for (CompiledEffect effect : ability.effects()) {
+                if (CageEffect.HEAD.equals(effect.head()) && cageVolumeBlocked(player, effect)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Whether {@code effect}'s would-be cage volume is provably obstructed; an absent radius / unreadable region → not blocked. */
+    private boolean cageVolumeBlocked(Player player, CompiledEffect effect) {
+        if (!effect.target().args().has("r")) {
+            return false; // a non-radius selector: cannot resolve the victim here — let the normal gate walk run
+        }
+        return Regions.read("PetService.cagePreCheck", () -> {
+            Player victim = nearestOtherPlayer(player, effect.target().args().dbl("r"));
+            if (victim == null) {
+                return false; // no target → the %nearbyenemies% condition rejects it pre-cooldown
+            }
+            Location actorLoc = player.getLocation();
+            Location victimLoc = victim.getLocation();
+            World world = victimLoc.getWorld();
+            if (world == null || world != actorLoc.getWorld()) {
+                return false;
+            }
+            Location origin = CageGeometry.origin(actorLoc, victimLoc, effect.args().integer("rise"));
+            return !CageGeometry.volumeClear(world, origin, effect.args().integer("width"),
+                    effect.args().integer("height"), effect.args().integer("depth"), b -> isAir.test(b.getType()));
+        }, false); // unreadable region → fall through (fire normally)
+    }
+
+    /** The nearest OTHER player within a cube of half-extent {@code radius} of {@code player} — the {@code @NearestPlayer} scan. */
+    private static Player nearestOtherPlayer(Player player, double radius) {
+        Location center = player.getLocation();
+        Player nearest = null;
+        double best = Double.MAX_VALUE;
+        for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
+            if (!(entity instanceof Player other) || other.equals(player)) {
+                continue;
+            }
+            double d = other.getLocation().distanceSquared(center);
+            if (d < best) {
+                best = d;
+                nearest = other;
+            }
+        }
+        return nearest;
     }
 
     private void openWindow(Player player, PetDef def, PetBracket bracket) {
