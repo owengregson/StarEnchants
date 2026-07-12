@@ -49,10 +49,12 @@ public final class DamageDebug {
         // (ADR-0053) — the readout must show what the commit actually used.
         double red = fold.reductionPercent() + (fold.heroicIgnored() ? 0.0 : fold.heroicReductionPercent());
         double flatRed = fold.flatReduction() + (fold.heroicIgnored() ? 0.0 : fold.heroicFlatReduction());
+        // "eff" = the same-hit rider bucket (ADR-0055): effective units, outside the scale and the
+        // defense terms — shown separately so a calibration read can't mistake it for scaled flat.
         String line = Colors.translate(String.format(Locale.ROOT,
-                "&8[&6dmg&8] &7base &f%.2f &8| &7+dmg &f%.0f%%&7, flat &f%.2f &8(x&f%.1f&8) &8| "
+                "&8[&6dmg&8] &7base &f%.2f &8| &7+dmg &f%.0f%%&7, flat &f%.2f &8(x&f%.1f&8)&7, eff &f%.2f &8| "
                         + "&7red &f%.0f%%&7, flatred &f%.2f &8| &6-> %.2f%s &7hits &c%.2f%s",
-                base, fold.outgoingPercent() * 100.0, fold.flatDamage(), scale,
+                base, fold.outgoingPercent() * 100.0, fold.flatDamage(), scale, fold.effectiveDamage(),
                 red * 100.0, flatRed, committed,
                 committed != folded ? " &8(capped)" : "", finalDamage,
                 cancelled ? " &8(&7CANCELLED&8)" : ""));

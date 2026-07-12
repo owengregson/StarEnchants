@@ -402,7 +402,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // (hit cosmetics, knockback delivery). Folding rides the one event: one hurt, one immunity
             // window, one knockback. The fold is committed by the combat dispatcher after the walks, so
             // a rider on a dodged/cancelled hit dies with its hit — same-hit means same fate.
-            fold.addFlatDamage(amount);
+            // EFFECTIVE units (ADR-0055): the authored amount is what the old bare hurt delivered
+            // pre-armor — never the scaled flat bucket, whose attack-scale ride made riders land ~5x.
+            fold.addEffectiveDamage(amount);
             return;
         }
         entityOp(target, () -> hurt(target, amount, attacker));
@@ -414,9 +416,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
             return;
         }
         if (delayTicks <= 0 && isEventEntity(target)) {
-            // Same-hit rider (ADR-0054, as damage above). The firing thread owns the event entity by
-            // definition (the ADR-0051 argument), so the max-health read is region-correct inline.
-            fold.addFlatDamage(maxHealth(target) * percentOfMax / 100.0);
+            // Same-hit rider (ADR-0054, as damage above; EFFECTIVE units per ADR-0055). The firing thread
+            // owns the event entity by definition (the ADR-0051 argument), so the max-health read is
+            // region-correct inline.
+            fold.addEffectiveDamage(maxHealth(target) * percentOfMax / 100.0);
             return;
         }
         // The max-health read and the damage both run on the target's own thread (entityOp) — never a cross-region

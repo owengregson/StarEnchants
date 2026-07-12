@@ -619,13 +619,17 @@ Damage-mutating effects **never call `event.setDamage`**. They contribute deltas
 accumulator (one additive outgoing bucket; a parallel additive defense/reduction bucket — **no
 multiplicative buckets**). After the gate walk over attacker `combatAttack[]` + victim `combatDefense[]`,
 **one fold** computes the final damage with the approved **fully-additive** policy (ADR-0012):
-`final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)` — all
+`final = max(0, max(0, (base × (1 + Σ outgoing% × scale) + Σ flatDamage × scale) × (1 − Σ reduction%) − Σ flatReduction) + Σ effective)` — all
 same-side percentages summed, **no multiplicative stacking across sources** — and writes the event
 **once**. Order-independent by construction; heroic percents + flats (ADR-0037) + set DAMAGE/REDUCTION +
 crystal + weapon all feed the same additive accumulator — no special-casing (fixes the catalog's worst combat bug:
 registration-order multiplicative compounding). Flat **damage** is added after the outgoing multiplier
 (not inflated by the attacker's own buffs) but is still reduced by the defender; flat **reduction** is
-subtracted last, absorbing its advertised amount — so flat stats stay predictable (ADR-0012). `DAMAGE_INCREASE` is
+subtracted last, absorbing its advertised amount — so flat stats stay predictable (ADR-0012). `scale` is
+`combat.attack-scale` (ADR-0050 R2) — the ONE armor-pipeline adapter on the custom attack economy, never
+the base hit and never the defense side. `Σ effective` is the same-hit **rider** bucket (ADR-0055): a
+zero-WAIT victim-aimed `DAMAGE`/`MODIFY_HEALTH take` joins in EFFECTIVE units — authored = delivered
+pre-armor, outside the scale and outside the defense terms, exactly what its pre-fold bare hurt delivered. `DAMAGE_INCREASE` is
 equation-capable, so the accumulator stores **compiled expression closures**, not constants — the "one
 pass" holds but evaluates per-hit expressions (`[ax]`/`[crit:correct]` caught this; many proposals glossed
 it).
