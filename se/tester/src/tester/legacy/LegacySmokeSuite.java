@@ -134,6 +134,106 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         guiCheck(h);
         degradeChecks(h);
         gearPollChecks(h);
+        maxHealthCheck(h);
+    }
+
+    // ── worn max-health bonus (1.8.1): the reconciled attribute modifier must move the REAL 1.8 max health ──
+
+    private void maxHealthCheck(Harness h) {
+        h.expect("legacy.health.wornBonus");
+
+        RegistryResolvers resolvers = new RegistryResolvers();
+        Library library;
+        try {
+            Path root = Files.createTempDirectory("se-legacy-maxhealth");
+            write(root, "crystals/naturetest.yml", """
+                display: "&2NatureTest"
+                description: [ "&2* test" ]
+                applies-to: [ARMOR]
+                abilities:
+                  - { trigger: PASSIVE, effects: [ { HEALTH: { amount: 4 } } ] }
+                """);
+            library = LibraryLoader.load(root, ContentCompiler.production(resolvers), 0);
+            if (library.hasErrors()) {
+                h.fail("legacy.health.wornBonus", "crystal failed to compile on 1.8: " + library.diagnostics());
+                return;
+            }
+        } catch (IOException e) {
+            h.fail("legacy.health.wornBonus", e);
+            return;
+        }
+
+        ContentHolder holder = new ContentHolder(library);
+        CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
+        ItemViewCache itemViews = new ItemViewCache(codec, library.snapshot().generation());
+        TriggerRegistry triggers = BuiltinTriggers.registry();
+        WornStateStore worn = new WornStateStore(
+                new WornResolver(new item.worn.LegacyEquipSource(), itemViews, triggers.count(),
+                        triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
+        AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
+        AtomicLong tick = new AtomicLong();
+        engine.sink.SinkEnv env = engine.sink.SinkEnv.of(platform.economy.EconomyService.NONE,
+                engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), tick::incrementAndGet);
+        feature.trigger.TriggerDispatch dispatch = new feature.trigger.TriggerDispatch(executor,
+                dsEnv -> new engine.sink.LegacyDispatchSink(resolvers, dsEnv), new engine.run.LegacyActorProbe(),
+                holder, worn, triggers, actor -> java.util.Optional.empty(), env,
+                new feature.compat.LegacyHands(), new feature.compat.LegacyDropControl());
+        feature.trigger.MaxHealthDriver maxHealth = new feature.trigger.MaxHealthDriver(dispatch, holder, worn,
+                env.stores().suppression(), tick::incrementAndGet,
+                triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1));
+
+        ItemStack helmet = new ItemStack(Material.IRON_HELMET);
+        codec.write(helmet, new CombatState(Map.of(), List.of("crystals/naturetest")));
+
+        World world = plugin.getServer().getWorlds().get(0);
+        Location at = world.getSpawnLocation();
+        Scheduling.onRegion(at, () -> {
+            Player p;
+            try {
+                p = FakePlayers.spawn(world, "se_lc_hp");
+            } catch (Throwable t) {
+                h.fail("legacy.health.wornBonus", "spawn on 1.8: " + t);
+                return;
+            }
+            Scheduling.onEntity(p, () -> {
+                double base = nmsMaxHealth(p);
+                p.getInventory().setHelmet(helmet);
+                worn.refresh(p, library.snapshot());
+                maxHealth.refresh(p);
+                Scheduling.onEntityLater(p, 10L, () -> {
+                    h.guard("legacy.health.wornBonus", () -> {
+                        double nms = nmsMaxHealth(p);
+                        double bukkit = p.getMaxHealth();
+                        // Both surfaces must move: NMS is the game truth; Bukkit is what plugins/UI read.
+                        if (Math.abs(nms - (base + 4.0)) > 1e-6 || Math.abs(bukkit - (base + 4.0)) > 1e-6) {
+                            throw new IllegalStateException("expected max " + (base + 4.0)
+                                    + ", got nms=" + nms + " bukkit=" + bukkit);
+                        }
+                    });
+                    FakePlayers.despawn(p);
+                });
+            });
+        });
+    }
+
+    /**
+     * The game-truth max health on 1.8: the NMS attribute VALUE (base + modifiers), read reflectively —
+     * this file lives in the shared tester tree, which compiles NMS-free (the {@code Legacy*} overlay leaves
+     * own the direct {@code v1_8_R3} imports).
+     */
+    private static double nmsMaxHealth(Player p) {
+        try {
+            Object handle = p.getClass().getMethod("getHandle").invoke(p);
+            Class<?> generics = Class.forName("net.minecraft.server.v1_8_R3.GenericAttributes");
+            Object maxHealth = generics.getField("maxHealth").get(null);
+            Class<?> iAttribute = Class.forName("net.minecraft.server.v1_8_R3.IAttribute");
+            Object instance = handle.getClass().getMethod("getAttributeInstance", iAttribute)
+                    .invoke(handle, maxHealth);
+            return (double) instance.getClass().getMethod("getValue").invoke(instance);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("NMS max-health read failed on 1.8", e);
+        }
     }
 
     // ── §6 degrades (Item 3): the heroic-durability poll restores; the NMS knockback-resistance hook reduces ──
