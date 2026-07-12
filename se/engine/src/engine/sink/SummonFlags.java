@@ -15,11 +15,15 @@ package engine.sink;
  * @param invincible          the summon cannot die but still takes hits/knockback: every damage event is
  *                            ZEROED (never cancelled — a cancel would eat the knockback too), so a burst
  *                            that would out-damage any health pool in one tick still kills nothing
+ * @param speedMultiplier     scale the summon's vanilla movement-speed attribute BASE by this factor (0 =
+ *                            untouched); modern writes the GENERIC_MOVEMENT_SPEED base, 1.8 the NMS
+ *                            {@code GenericAttributes.MOVEMENT_SPEED} instance
  */
 public record SummonFlags(boolean powered, boolean noAi, boolean noTarget, boolean saddled,
-                          boolean mountActivator, boolean detonateOnPlayerHit, boolean invincible) {
+                          boolean mountActivator, boolean detonateOnPlayerHit, boolean invincible,
+                          double speedMultiplier) {
 
-    public static final SummonFlags NONE = new SummonFlags(false, false, false, false, false, false, false);
+    public static final SummonFlags NONE = new SummonFlags(false, false, false, false, false, false, false, 0.0);
 
     /** Whether any flag needs the {@link PetSummons} registry + the summon-guard listener. */
     public boolean tracked() {

@@ -130,6 +130,17 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void applySpawnSpeed(LivingEntity entity, double multiplier) {
+        Object attribute = handles.resolveByName(HandleCategory.ATTRIBUTE, "GENERIC_MOVEMENT_SPEED");
+        if (attribute instanceof Attribute resolved) {
+            AttributeInstance speed = entity.getAttribute(resolved);
+            if (speed != null) {
+                speed.setBaseValue(speed.getBaseValue() * multiplier);
+            }
+        }
+    }
+
+    @Override
     protected boolean hasMaxHealthAttribute(LivingEntity entity) {
         return maxHealthAttribute(entity) != null;
     }
