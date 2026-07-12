@@ -1019,6 +1019,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 if (flags.saddled() && spawned instanceof LivingEntity living) {
                     applySaddle(living);
                 }
+                if (flags.speedMultiplier() > 0 && spawned instanceof LivingEntity living) {
+                    applySpawnSpeed(living, flags.speedMultiplier());
+                }
                 if (ownerId != null) {
                     GuardianCasts.bind(spawned.getUniqueId(), ownerId);
                     if (spawned instanceof Tameable tame) {
@@ -1323,17 +1326,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
             int hx = (width - 1) / 2;
             int hz = (depth - 1) / 2;
             // Safety first: EVERY cell of the full structure volume (plates + ring + interior) must currently
-            // be air, or nothing is placed and no one teleports. The volume read runs on the base's region; a
-            // straddling read that faults on Folia aborts the cage rather than half-building it.
+            // be air, or nothing is placed and no one teleports. Shared CageGeometry verdict — kept identical
+            // to the pets pre-check so the two never disagree on which cells must be clear. The read runs on
+            // the base's region; a straddling read that faults on Folia aborts the cage.
             try {
-                for (int dx = -hx - 1; dx < width - hx + 1; dx++) {
-                    for (int dz = -hz - 1; dz < depth - hz + 1; dz++) {
-                        for (int dy = -1; dy <= height; dy++) {
-                            if (!canReplace(world.getBlockAt(cx + dx, baseY + dy, cz + dz), 0)) {
-                                return;
-                            }
-                        }
-                    }
+                if (!CageGeometry.volumeClear(world, origin, width, height, depth, b -> canReplace(b, 0))) {
+                    return;
                 }
             } catch (RuntimeException unreadable) {
                 Regions.swallowed("DispatchSinkBase.cage.safetyCheck", unreadable);
@@ -1988,6 +1986,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** Saddle a horse-type summon so it is steerable (ADR-0052); a no-op on a non-horse. */
     protected abstract void applySaddle(LivingEntity entity);
+
+    /**
+     * Scale a summon's movement-speed attribute base by {@code multiplier} (ADR-0052): modern writes the
+     * {@code GENERIC_MOVEMENT_SPEED} instance's base; 1.8 the NMS {@code GenericAttributes.MOVEMENT_SPEED}
+     * instance. Only called for {@code multiplier > 0}, so a 1.0 is an explicit no-change, not a reset.
+     */
+    protected abstract void applySpawnSpeed(LivingEntity entity, double multiplier);
 
     /** Spawn a cosmetic falling block of {@code material} at {@code loc} (block-data on modern; data byte on 1.8). */
     protected abstract FallingBlock spawnFallingBlock(World world, Location loc, Material material);

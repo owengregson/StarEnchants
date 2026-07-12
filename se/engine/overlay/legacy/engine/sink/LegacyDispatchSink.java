@@ -177,6 +177,25 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         }
     }
 
+    @Override
+    protected void applySpawnSpeed(LivingEntity entity, double multiplier) {
+        // 1.8 has no Bukkit attribute package: GenericAttributes.MOVEMENT_SPEED (javap-verified against
+        // craftbukkit-1.8.8 — a public static final IAttribute) keys the NMS instance; value == base (no
+        // modifiers layer), mirroring maxHealthInstance.
+        net.minecraft.server.v1_8_R3.AttributeInstance speed = movementSpeedInstance(entity);
+        if (speed != null) {
+            speed.setValue(speed.getValue() * multiplier);
+        }
+    }
+
+    /** The NMS movement-speed attribute instance for {@code entity}, or {@code null}. */
+    private static net.minecraft.server.v1_8_R3.AttributeInstance movementSpeedInstance(LivingEntity entity) {
+        if (!(entity instanceof CraftLivingEntity)) {
+            return null;
+        }
+        return ((CraftLivingEntity) entity).getHandle().getAttributeInstance(GenericAttributes.MOVEMENT_SPEED);
+    }
+
     /** 1.8 has no SKELETON_HORSE entity type — spawn a HORSE and flip its variant (the §6 degrade). */
     @Override
     protected Entity spawnTyped(World world, Location at, int entityTypeId) {

@@ -11,7 +11,8 @@ description:
   - "&c* Summons a temporary rideable skeleton horse"
 levels:
   # 8m / 5s → 7m / 7s → 6m / 8s → 5m / 9s.
-  1:   { cooldown: 9600, duration: 100, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 100, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
-  25:  { cooldown: 8400, duration: 140, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 140, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
-  50:  { cooldown: 7200, duration: 160, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 160, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
-  100: { cooldown: 6000, duration: 180, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 180, invincible: true, ai: false, saddled: true, mount: activator, who: "@Self" } } ] }
+  # speed: 2.0 = 2x vanilla base — the owner's nightmare gallop.
+  1:   { cooldown: 9600, duration: 100, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 100, invincible: true, ai: false, saddled: true, speed: 2.0, mount: activator, who: "@Self" } } ] }
+  25:  { cooldown: 8400, duration: 140, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 140, invincible: true, ai: false, saddled: true, speed: 2.0, mount: activator, who: "@Self" } } ] }
+  50:  { cooldown: 7200, duration: 160, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 160, invincible: true, ai: false, saddled: true, speed: 2.0, mount: activator, who: "@Self" } } ] }
+  100: { cooldown: 6000, duration: 180, effects: [ { SOUND: { sound: "ENTITY_SKELETON_HORSE_AMBIENT", volume: 1.0, pitch: 0.8 } }, { SPAWN_ENTITY: { type: SKELETON_HORSE, ttl: 180, invincible: true, ai: false, saddled: true, speed: 2.0, mount: activator, who: "@Self" } } ] }

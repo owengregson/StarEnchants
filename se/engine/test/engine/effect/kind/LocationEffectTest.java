@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import engine.effect.EffectKind;
 import engine.sink.Sink;
+import engine.sink.SummonFlags;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -186,7 +187,7 @@ class LocationEffectTest {
                     when(who.getLocation()).thenReturn(loc);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 5).with("count", 3).with("ttl", 0).with("health", 20.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).targets("who", who);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 0.0).targets("who", who);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 5, 3, 0, 20.0, null);
@@ -201,7 +202,7 @@ class LocationEffectTest {
                     when(actor.getUniqueId()).thenReturn(actorId);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 9).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "activator").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).actor(actor).targets("who", who);
+                            .with("owner", "activator").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 0.0).actor(actor).targets("who", who);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 9, 1, 0, 0.0, actorId);
@@ -211,7 +212,7 @@ class LocationEffectTest {
                     Location loc = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 7).with("count", 1).with("ttl", 200).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).location(loc); // no "who" targets resolved
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 0.0).location(loc); // no "who" targets resolved
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 7, 1, 200, 0.0, null);
@@ -222,7 +223,7 @@ class LocationEffectTest {
                     Location loc = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 5).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).actor(self).actorOrigin(loc).targets("who", self);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 0.0).actor(self).actorOrigin(loc).targets("who", self);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     verify(sink).spawnEntity(loc, 5, 1, 0, 0.0, null);
@@ -234,10 +235,24 @@ class LocationEffectTest {
                     Location fallback = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 7).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).actor(self).targets("who", self).location(fallback);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 0.0).actor(self).targets("who", self).location(fallback);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink); // actor target skipped (no origin) → any=false → fallback
                     verify(sink).spawnEntity(fallback, 7, 1, 0, 0.0, null);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_ENTITY speed>0 → spawnSummon carries the movement-speed multiplier", () -> {
+                    LivingEntity who = mock(LivingEntity.class);
+                    Location loc = mock(Location.class);
+                    when(who.getLocation()).thenReturn(loc);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 5).with("count", 1).with("ttl", 0).with("health", 0.0)
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 2.0).targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new SpawnEntityEffect().run(ctx, sink);
+                    // a set speed routes off the byte-stable plain path to the summon path, carrying the multiplier
+                    verify(sink).spawnSummon(loc, 5, 1, 0, 0.0, null, null,
+                            new SummonFlags(false, false, false, false, false, false, false, 2.0));
                     verifyNoMoreInteractions(sink);
                 }));
     }
