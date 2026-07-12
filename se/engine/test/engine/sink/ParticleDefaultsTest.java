@@ -9,6 +9,7 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,6 +47,15 @@ class ParticleDefaultsTest {
     void itemDefaultsToStone() {
         ItemStack item = (ItemStack) ParticleDefaults.build("ITEM", ItemStack.class).orElseThrow();
         assertEquals(Material.STONE, item.getType());
+    }
+
+    /** The 1.17.1 floor's LEGACY_* particles demand pre-1.13 block data. */
+    @Test
+    @SuppressWarnings("deprecation")
+    void legacyMaterialDataDefaultsToStone() {
+        MaterialData data = (MaterialData) ParticleDefaults
+                .build("LEGACY_BLOCK_CRACK", MaterialData.class).orElseThrow();
+        assertEquals(Material.STONE, data.getItemType());
     }
 
     /** The {@code Particle.Spell} shape: a data class the floor API can't name, with a (Color, float) ctor. */
