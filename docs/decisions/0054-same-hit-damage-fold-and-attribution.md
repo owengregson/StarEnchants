@@ -1,6 +1,9 @@
 # ADR-0054: Same-hit DAMAGE joins the fold; separate procs carry attribution
 
-- **Status:** accepted
+- **Status:** accepted — **superseded in part by [ADR-0055](0055-rider-effective-units-and-scaling-classes.md)**:
+  folded riders land in EFFECTIVE units (authored = delivered pre-armor, never attack-scaled), not in
+  the scaled flat bucket; decision §1's "post-multiplier" unit reading is retired. All other
+  decisions stand.
 - **Date:** 2026-07-11
 - **Relates to:** ADR-0012 (fully-additive damage fold), ADR-0026 (Mental knockback coordination),
   ADR-0036 (era-neutral sink core), ADR-0051 (event-entity carve-out, liveness gate)

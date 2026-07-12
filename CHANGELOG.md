@@ -8,6 +8,17 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Same-hit rider damage is restored to the pre-1.8.2 meta (ADR-0055).** 1.8.2's fold
+  routing sent zero-delay victim-aimed `DAMAGE` riders through the flat bucket, which
+  `combat.attack-scale` multiplies (5.0 in the cosmic pack) — riders landed **~5×
+  harder** than the numbers they were balanced at (shipped content affected: Sniper
+  and Lethal Sniper's bow procs). Riders now land in a dedicated EFFECTIVE bucket:
+  the authored amount is exactly what the victim's health pool sees pre-armor — never
+  attack-scaled, never priced by the defense terms — precisely what the pre-1.8.2
+  bare hurt delivered. Everything 1.8.2 fixed stays fixed (one hurt, one immunity
+  window, attribution, the re-entrancy frame); the percent/flat economy, the caps and
+  `attack-scale` itself are untouched. `/se damagedebug` now prints the rider bucket
+  separately (`eff`).
 - **The "missing required data class" dispatch-flush console spam is gone.**
   Which particles REQUIRE data moves between versions (`DUST` always did;
   `ENTITY_EFFECT` gained a required `Color` at 1.20.5; the 1.21.9 line made
@@ -32,6 +43,16 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 - **Wither mask recolored** from black (`&0`) to dark gray (`&8`) — name and
   description bullet both.
+
+### Docs
+
+
+- **ADR-0055** records the owner's clarified tuning ground truth (the pre-1.8.2
+  numbers are the balanced meta; authored rider numbers are effective units), the
+  combat economy's three scaling classes (percent economy / effective riders /
+  separate attributed instances), and the full category-by-category 1.8.3 balance
+  audit (enchants, masks, pets, sets, crystals, heroic) — every damage path
+  classified and diffed against the 1.8.1-beta baseline.
 
 ## [1.8.2-beta] — 2026-07-12
 
