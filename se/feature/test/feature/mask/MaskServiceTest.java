@@ -63,7 +63,7 @@ class MaskServiceTest {
     /** Test-owned likeness — distinctive shapes so a template/token mix-up cannot pass. */
     private static final MaskItemConfig LIKENESS = new MaskItemConfig(
             "{COLOR}[{NAME}]",
-            List.of("{DESCRIPTION}", "applies {APPLIES}"),
+            List.of("{DESCRIPTION}", "applies {APPLIES}", "bonus {NAME_UPPER}"),
             "on {NAME}",
             true,
             new SoundCue("cue.apply", 1.0f, 1.0f),
@@ -168,12 +168,14 @@ class MaskServiceTest {
         assertSame(head, minted, "a textured server mints the era-seam head itself");
         assertEquals("aGVhZA==", heads.askedBase64, "the def's authored base64 feeds the seam");
         assertEquals(MASK, maskCodec.keyOf(minted), "identity stamped");
-        // {COLOR}[{NAME}] over the authored def; {DESCRIPTION} line-expands; {APPLIES} is the HELMET kinds label.
+        // {COLOR}[{NAME}] over the authored def; {DESCRIPTION} line-expands; {APPLIES} is the HELMET kinds label;
+        // {NAME_UPPER} upper-cases the bare display ("Midas" → "MIDAS", the SET-BONUS/pets header convention).
         verify(meta).setDisplayName(Colors.translate("&6[Midas]"));
         verify(meta).setLore(List.of(
                 Colors.translate("&6&lMIDAS MASK"),
                 Colors.translate("&6* Negates enemy heroic armor."),
-                "applies " + ItemGroups.kindsLabel(List.of("HELMET"))));
+                "applies " + ItemGroups.kindsLabel(List.of("HELMET")),
+                "bonus MIDAS"));
     }
 
     @Test
