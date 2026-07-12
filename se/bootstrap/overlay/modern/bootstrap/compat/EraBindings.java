@@ -153,6 +153,12 @@ public final class EraBindings implements EraServices {
         return new ModernEquipmentRepaint();
     }
 
+    /** 1.8.4 helmet-wearability strip: overrides the {@code equippable} component by name (1.21.2+; below it inert). */
+    @Override
+    public item.head.HeadEquip headEquip() {
+        return new item.head.ModernHeadEquip();
+    }
+
     @Override
     public item.head.HeadAttributes headAttributes() {
         return new item.head.ModernHeadAttributes();
@@ -201,6 +207,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Listener stationGuard(feature.guard.StationGuardRules rules) {
         return new feature.guard.ModernStationGuard(rules);
+    }
+
+    /** 1.8.4 dispenser head-equip guard: modern cancels {@code BlockDispenseArmorEvent} for a mask/pet head. */
+    @Override
+    public Listener dispenseArmorGuard(Predicate<ItemStack> isHeadItem) {
+        return new feature.guard.DispenseArmorGuard(isHeadItem);
     }
 
     /**

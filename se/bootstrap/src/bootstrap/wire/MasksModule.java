@@ -52,7 +52,8 @@ final class MasksModule {
         BooleanSupplier enabled = enabled();
         // The mask item economy: mint / apply-onto-helmet / pop-off, over the ONE shared codec + textured-head seam.
         this.masks = new MaskService(core.maskCodec(), core.enchanter(), core.content(),
-                () -> core.items().config().maskOrDefault(), core.bindings().texturedHeads(), core.messages());
+                () -> core.items().config().maskOrDefault(), core.bindings().texturedHeads(),
+                core.bindings().headEquip(), core.messages());
         this.applyListener = new MaskListener(masks, core.messages(), core.sounds());
         this.removeListener = new MaskRemoveListener(masks, core.codec(), core.messages(), core.sounds(), enabled);
 
