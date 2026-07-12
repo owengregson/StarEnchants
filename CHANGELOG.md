@@ -4,6 +4,53 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.8.1-beta] — 2026-07-11
+
+### Fixed
+
+- **The 1.8.0 worn heart bonus was silently dead on 1.21.3+/26.x** (a Nature
+  crystal alone changed nothing). The sink resolves its implicit max-health
+  attribute by NAME, and the runtime name-lookup skipped the alias chain the
+  compiler uses — the 1.21.3 registry rename (`GENERIC_MAX_HEALTH` →
+  `max_health`) made it resolve null and the modifier write no-op. The runtime
+  lookup now walks the same alias map both directions (this also revives
+  `MAX_HEALTH_DRAIN` — Grim/Cupid — on those versions). Live-pinned by a new
+  Paper suite (reproduced the failure on 1.21.11/26.1.2, green after the fix)
+  and a 1.8.8 smoke check, so a silent attribute-rename break can't ship again.
+- **Cage-style pets no longer burn their cooldown on an unsafe volume.** The
+  right-click now pre-checks the cage's would-be volume (the same shared
+  geometry the build uses) and answers with the normal "You cannot use …"
+  fail message instead of consuming the cooldown; on Folia an unreadable
+  cross-region volume falls back to the old behavior.
+- **Plugin head items (pets, masks) can no longer be placed as blocks** — the
+  vanilla-mechanic guard now cancels the placement outright (the old
+  interact-deny didn't cover placeable materials).
+
+### Added
+
+- **Masks browser menu** — the pets-style GUI (`/enchants` hub + operator
+  console tiles): every mask rendered as its real minted head; operators mint
+  from it, everyone else browses.
+- **The worn armor slot now hovers like the real helmet.** The client-side
+  repaint head carries the helmet's name (or its friendly material name), lore,
+  enchant lines + glint, and the vanilla "When on Head" attribute block —
+  heroic stats included (1.17.1 shows explicit stats only; 1.8 has no attribute
+  tooltips).
+
+### Changed
+
+- **Mask likeness polish:** descriptor bullets are no longer bold; the bonus
+  header upper-cases the mask name (`AGENT MASK BONUS` — the set-bonus
+  convention).
+- **Monopoly calibrated for the pack's attack economy:** authored `amount: 1`
+  now lands as the advertised +5% under `combat.attack-scale 5.0` (it was
+  landing as +25%). Knight's defense-side 5% was already true (reduction is
+  not fold-scaled).
+- **Pet exp bar:** a full bar renders flush against its closing bracket (no
+  stray pad at level 100).
+- **Nightmare pet:** the summoned horse gallops at 2× vanilla base speed (new
+  `SPAWN_ENTITY` `speed` multiplier, era-complete).
+
 ## [1.8.0-beta] — 2026-07-11
 
 ### Added
