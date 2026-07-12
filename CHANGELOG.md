@@ -4,6 +4,35 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **The "missing required data class" dispatch-flush console spam is gone.**
+  Which particles REQUIRE data moves between versions (`DUST` always did;
+  `ENTITY_EFFECT` gained a required `Color` at 1.20.5; the 1.21.9 line made
+  `EFFECT`/`INSTANT_EFFECT` take `Particle.Spell` and `DRAGON_BREATH` a power
+  float). Content authors only the particle NAME, so the sink and the fx path
+  now supply each version's demanded data with a neutral default (white
+  dust/spell, stone block, …) instead of throwing into the flush; a data type
+  with no sensible default (a `Vibration` needs a destination) skips its burst
+  with a once-per-type warning. A new live suite sweeps the running version's
+  whole particle registry so future data-requirement drift fails the matrix,
+  not a production console.
+- **The mask illusion head now mirrors the real helmet's durability, live.**
+  The shown head carries the helmet's `max_damage` + `damage` components
+  (explicit heroic max-durability wins over the material default), so the
+  wearer's helmet slot — and client-side durability-display mods — read the
+  real bar; every durability tick re-derives the dress through the existing
+  armour-change refresh, so it tracks in realtime. 1.20.5+ (older versions
+  cannot put a durability bar on a head and degrade to the bare dress; 1.8
+  skulls never render one).
+
+### Changed
+
+- **Wither mask recolored** from black (`&0`) to dark gray (`&8`) — name and
+  description bullet both.
+
 ## [1.8.2-beta] — 2026-07-12
 
 ### Fixed
