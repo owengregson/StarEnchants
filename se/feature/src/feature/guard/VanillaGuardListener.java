@@ -77,11 +77,20 @@ public final class VanillaGuardListener implements Listener {
     // A plugin item built on a placeable material is NEVER placed as a block. setUseItemInHand(DENY) on the interact
     // above is the clean no-server-place path, but a placeable material still reaches BlockPlaceEvent on some versions
     // (the soul-gem guard carries the same belt-and-braces cancel), so this is the definitive backstop: the placement
-    // is denied outright — the client reverts its own prediction and the stack is never consumed, so no refund path.
+    // is denied outright — the item "is not a placeable block", no ghost that sticks, no place-then-refund cycle.
+    //
+    // The cancel keeps the stack server-side, but the client already PREDICTED the placement (ghost block +
+    // held-count decrement); on the older-protocol lanes (notably 1.8.9) the server does not re-send the held slot
+    // on a bare cancel, so the count reads one short until the next inventory sync — which is exactly the
+    // "placed then refunded" flicker. A single updateInventory() resyncs the held item immediately, so the cancel
+    // never half-consumes or desyncs. Fires only on the (rare) cancelled place of a plugin item, so it is not a
+    // hot path; on the modern ack-driven lanes it is a harmless no-op the client has already reconciled.
     @EventHandler(priority = EventPriority.LOW)
+    @SuppressWarnings("deprecation") // updateInventory: the floor-stable held-slot resync (the MaskRemoveListener path)
     public void onPlace(BlockPlaceEvent event) {
         if (isPluginItem.test(event.getItemInHand())) {
             event.setCancelled(true);
+            event.getPlayer().updateInventory(); // resync the predicted held-count decrement — no refund cycle
         }
     }
 }
