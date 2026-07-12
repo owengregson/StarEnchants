@@ -114,6 +114,8 @@ class RegistryWiringTest {
         when(bindings.anvilRename()).thenReturn(mock(feature.scroll.AnvilRename.class));
         when(bindings.texturedHeads()).thenReturn(item.head.TexturedHeads.NONE);
         when(bindings.equipmentRepaint()).thenReturn(item.head.EquipmentRepaint.NONE); // ADR-0053 inert repaint
+        when(bindings.headAttributes()).thenReturn(item.head.HeadAttributes.NONE); // 1.8.1 worn-slot dressing
+        when(bindings.actorProbe()).thenReturn(mock(engine.run.ActorProbe.class)); // 1.8.1 cage pre-check isAir
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
         when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
