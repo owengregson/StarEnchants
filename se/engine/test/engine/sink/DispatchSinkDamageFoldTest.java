@@ -62,13 +62,30 @@ class DispatchSinkDamageFoldTest {
         sink.eventEntity(victim);
         sink.damage(victim, 6.0);
 
-        // The rider rides the ONE event: it lands as a flat fold contribution the dispatcher commits...
-        assertEquals(6.0, sink.fold().flatDamage(), 1e-9);
+        // The rider rides the ONE event: it lands in the EFFECTIVE bucket the dispatcher commits (ADR-0055,
+        // never the attack-scaled flat bucket the 1.8.2 routing used)...
+        assertEquals(6.0, sink.fold().effectiveDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
         assertEquals(16.0, sink.fold().apply(10.0), 1e-9);
         // ...and no second hurt ever fires, so the victim's immunity window is re-armed exactly once.
         sink.flush();
         verify(victim, never()).damage(anyDouble());
         verify(victim, never()).damage(anyDouble(), any(Entity.class));
+    }
+
+    @Test
+    void aRiderDeliversItsAuthoredAmountUnderTheAttackScale() {
+        // The pre-1.8.2 meta restoration (ADR-0055): with the cosmic pack's combat.attack-scale 5.0 staged
+        // on the fold, a rider authored 6 still moves the committed result by exactly 6 pre-armor — the
+        // 1.8.2 flat-bucket routing delivered 30 here (the ~5x regression this pins shut).
+        LivingEntity victim = aliveEntity();
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        sink.fold().attackScale(5.0);
+        sink.eventEntity(victim);
+        sink.damage(victim, 6.0);
+
+        assertEquals(16.0, sink.fold().apply(10.0), 1e-9);
     }
 
     @Test
@@ -82,7 +99,7 @@ class DispatchSinkDamageFoldTest {
         sink.eventEntity(victim);
         sink.damage(rewrapped, 4.0);
 
-        assertEquals(4.0, sink.fold().flatDamage(), 1e-9); // still the rider: same entity, different handle
+        assertEquals(4.0, sink.fold().effectiveDamage(), 1e-9); // still the rider: same entity, different handle
         sink.flush();
         verify(rewrapped, never()).damage(anyDouble());
     }
@@ -96,7 +113,8 @@ class DispatchSinkDamageFoldTest {
         sink.eventEntity(victim);
         sink.damage(bystander, 7.5);
 
-        assertEquals(0.0, sink.fold().flatDamage(), 1e-9); // an AoE bystander is not this event's victim
+        assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().effectiveDamage(), 1e-9); // an AoE bystander is not this event's victim
         sink.flush();
         verify(bystander).damage(7.5);
     }
@@ -114,6 +132,7 @@ class DispatchSinkDamageFoldTest {
         sink.flush();
 
         assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().effectiveDamage(), 1e-9);
         assertEquals(1, backend.delayed.size(), "a WAIT damage is never a fold contribution");
         backend.runDelayed();
         verify(victim).damage(2.0);
@@ -122,14 +141,15 @@ class DispatchSinkDamageFoldTest {
     @Test
     void percentOfMaxToTheEventEntityFoldsOffItsLiveMaxHealth() {
         // The firing thread owns the event entity by definition (the ADR-0051 argument), so the
-        // max-health read is region-correct inline: 10% of 20 folds as a flat 2.0.
+        // max-health read is region-correct inline: 10% of 20 folds as an effective 2.0 (ADR-0055).
         LivingEntity victim = aliveEntity();
 
         ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
         sink.eventEntity(victim);
         sink.damagePercentOfMax(victim, 10.0);
 
-        assertEquals(2.0, sink.fold().flatDamage(), 1e-9);
+        assertEquals(2.0, sink.fold().effectiveDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
         sink.flush();
         verify(victim, never()).damage(anyDouble());
     }
@@ -144,6 +164,7 @@ class DispatchSinkDamageFoldTest {
         sink.damagePercentOfMax(bystander, 25.0);
 
         assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().effectiveDamage(), 1e-9);
         sink.flush();
         verify(bystander).damage(5.0); // 25% of max 20, computed on the target's own thread
     }
@@ -158,6 +179,7 @@ class DispatchSinkDamageFoldTest {
         sink.damage(target, 3.0);
 
         assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().effectiveDamage(), 1e-9);
         sink.flush();
         verify(target).damage(3.0);
         Mockito.verify(target, never()).damage(anyDouble(), any(Entity.class));
@@ -193,6 +215,7 @@ class DispatchSinkDamageFoldTest {
         sink.flush();
 
         assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().effectiveDamage(), 1e-9);
         backend.runDelayed();
         verify(victim).damage(2.0, attacker);
     }
@@ -241,6 +264,7 @@ class DispatchSinkDamageFoldTest {
         sink.lightningAndDamage(victim, 6.0, attacker);
 
         assertEquals(0.0, sink.fold().flatDamage(), 1e-9);
+        assertEquals(0.0, sink.fold().effectiveDamage(), 1e-9);
         sink.flush();
         verify(world).strikeLightning(at);
         verify(victim).damage(6.0, attacker);

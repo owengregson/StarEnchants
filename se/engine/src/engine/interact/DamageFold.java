@@ -12,12 +12,18 @@ package engine.interact;
  * compounding (the catalog's worst combat bug) cannot occur. Heroic percents feed the same
  * additive buckets as any enchant contribution — there is no separate multiplicative stage.
  *
- * <pre>final = max(0, (base × (1 + Σ outgoing%) + Σ flatDamage) × (1 − Σ reduction%) − Σ flatReduction)</pre>
+ * <pre>final = max(0, max(0, (base × (1 + Σ outgoing% × scale) + Σ flatDamage × scale)
+ *                          × (1 − Σ reduction%) − Σ flatReduction) + Σ effectiveDamage)</pre>
  *
  * <p>Flat-term placement gives predictable, percent-independent stats: flat damage adds
  * after the outgoing multiplier (so the attacker's own buffs don't inflate it) but still
  * faces the defender's reduction; flat reduction subtracts last (so it absorbs exactly its
  * advertised amount).
+ *
+ * <p><strong>Effective damage is the same-hit rider bucket</strong> (ADR-0055): authored = delivered,
+ * pre-armor. It joins after the whole scaled-and-mitigated economy — never multiplied by
+ * {@code attack-scale} and never priced by the defense terms — because the pre-1.8.2 bare hurt it
+ * restores was a separate event that neither the attack economy nor the defense walk ever saw.
  *
  * <p>Percentages are fractions ({@code 0.25} = +25%). Each factor and the final result are
  * clamped at zero, so an over-100% reduction or sub-−100% debuff contributes nothing rather
@@ -29,6 +35,7 @@ package engine.interact;
 public final class DamageFold {
 
     private double flatDamage;
+    private double effectiveDamage;
     private double flatReduction;
     private double outgoingPercent;
     private double reductionPercent;
@@ -81,6 +88,18 @@ public final class DamageFold {
         flatDamage += amount;
     }
 
+    /**
+     * Contribute a same-hit rider in EFFECTIVE units (ADR-0055): the authored amount is what the victim's
+     * health pool sees pre-armor, exactly as the pre-1.8.2 bare {@code target.damage(amount)} delivered it.
+     * Added after the scaled-and-mitigated custom economy in {@link #apply} — never multiplied by
+     * {@code attack-scale} (that adapter belongs to the percent/flat economy alone) and never priced by the
+     * defense terms (the old separate hurt was invisible to the defense walk, so a reduction or flat-red
+     * stack must not learn to absorb riders it never could).
+     */
+    public void addEffectiveDamage(double amount) {
+        effectiveDamage += amount;
+    }
+
     /** Contribute a flat reduction, subtracted last from incoming damage (§6.1). */
     public void addFlatReduction(double amount) {
         flatReduction += amount;
@@ -113,12 +132,15 @@ public final class DamageFold {
         double cappedReduction = Math.min(reduction, maxBonusReduction);
         double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing * attackScale) + flatDamage * attackScale;
         double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatRed;
-        return Math.max(0.0, mitigated);
+        // The rider bucket joins AFTER the inner clamp: flat reduction may zero the scaled economy but can
+        // never reach into the riders (pre-1.8.2 they were separate events it could not absorb, ADR-0055).
+        return Math.max(0.0, Math.max(0.0, mitigated) + effectiveDamage);
     }
 
     /** Reset every bucket for reuse on the next event. */
     public void reset() {
         flatDamage = 0.0;
+        effectiveDamage = 0.0;
         flatReduction = 0.0;
         outgoingPercent = 0.0;
         reductionPercent = 0.0;
@@ -140,6 +162,10 @@ public final class DamageFold {
 
     public double flatDamage() {
         return flatDamage;
+    }
+
+    public double effectiveDamage() {
+        return effectiveDamage;
     }
 
     public double flatReduction() {

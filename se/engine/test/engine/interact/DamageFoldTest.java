@@ -7,8 +7,9 @@ import org.junit.jupiter.api.Test;
 /**
  * Hand-computed damage-fold corpus (§6.8) proving the additive, order-independent policy
  * (ADR-0012, restored to full scope by ADR-0037): final =
- * max(0, (base × (1 + Σout%) + ΣflatDmg) × (1 − Σred%) − ΣflatRed). Heroic percents feed the
- * same buckets as any enchant contribution — no separate multiplicative stage.
+ * max(0, max(0, (base × (1 + Σout%×scale) + ΣflatDmg×scale) × (1 − Σred%) − ΣflatRed) + Σeff).
+ * Heroic percents feed the same buckets as any enchant contribution — no separate multiplicative
+ * stage; Σeff is the ADR-0055 same-hit rider bucket (effective units: unscaled, unmitigated).
  */
 class DamageFoldTest {
 
@@ -231,6 +232,79 @@ class DamageFoldTest {
         assertEquals(0.0, f.flatReduction(), EPS);
         assertEquals(0.0, f.outgoingPercent(), EPS);
         assertEquals(0.0, f.reductionPercent(), EPS);
+    }
+
+    // ── ADR-0055 effective rider bucket: authored = delivered, unscaled, unmitigated ─────────────
+
+    @Test
+    void aRiderContributesExactlyItsAuthoredAmountUnderAttackScale() {
+        // THE restoration pin (ADR-0055): under the cosmic pack's attack-scale 5.0, a rider authored 6
+        // moves the fold result by exactly 6 pre-armor — the pre-1.8.2 bare hurt's delivery — where the
+        // 1.8.2 flat-bucket routing landed it as 6 × 5 = 30 (the ~5x regression this bucket removes).
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.addEffectiveDamage(6.0);
+        assertEquals(16.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void theScaledFlatBucketKeepsItsSemanticsBesideARider() {
+        // The pre-1.8.2 flat economy (DAMAGE_MOD mode:flat, heroic delta — ADR-0050 R3/R4) still rides
+        // the scale; the rider still does not: (10 + 2×5) + 6 = 26, never (10 + (2+6)×5) = 50.
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.addFlatDamage(2.0);
+        f.addEffectiveDamage(6.0);
+        assertEquals(26.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void percentEconomyIsUnchangedByARider() {
+        // Adding a rider must not perturb the scaled percent economy: (10 × (1 + 0.5×5)) + 6 = 41.
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.addOutgoing(0.50);
+        f.addEffectiveDamage(6.0);
+        assertEquals(41.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void ridersAreNotPricedByTheDefenseTerms() {
+        // Pre-1.8.2 the rider was a separate event the defense walk never saw — a 50% reduction halves
+        // the melee but never the rider: 10 × 0.5 + 6 = 11, not (10 + 6) × 0.5 = 8.
+        DamageFold f = new DamageFold();
+        f.addReduction(0.50);
+        f.addEffectiveDamage(6.0);
+        assertEquals(11.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void flatReductionCannotAbsorbARider() {
+        // Flat reduction zeroes the whole scaled economy, but the rider bucket joins after the inner
+        // clamp: max(0, 10 − 100) + 6 = 6 — a stacked flat-red wall never learns to eat riders.
+        DamageFold f = new DamageFold();
+        f.addFlatReduction(100.0);
+        f.addEffectiveDamage(6.0);
+        assertEquals(6.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void ridersSumAcrossSourcesLikeSeparateHurtsDid() {
+        // Two same-hit riders (two procs on one swing) each deliver their authored amount: 10 + 4 + 6 = 20.
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.addEffectiveDamage(4.0);
+        f.addEffectiveDamage(6.0);
+        assertEquals(20.0, f.apply(10.0), EPS);
+    }
+
+    @Test
+    void resetClearsTheRiderBucket() {
+        DamageFold f = new DamageFold();
+        f.addEffectiveDamage(6.0);
+        f.reset();
+        assertEquals(0.0, f.effectiveDamage(), EPS);
+        assertEquals(10.0, f.apply(10.0), EPS);
     }
 
     // ── ADR-0053 heroic-tagged reduction buckets (IGNORE_HEROIC) ──────────────────────────────────
