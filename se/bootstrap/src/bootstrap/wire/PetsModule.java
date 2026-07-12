@@ -43,7 +43,7 @@ final class PetsModule {
                 () -> core.master().config().pets(),
                 () -> core.items().config().petOrDefault(),
                 () -> core.items().config().petFoodOrDefault(),
-                equip.refresher(), core.tick()::get);
+                equip.refresher(), core.tick()::get, core.bindings().actorProbe()::isAir);
         this.leveler = new PetLevelListener(pets, core.petCodec(), () -> core.master().config().pets(),
                 equip.refresher(), enabled());
         this.sweep = new PetSweep(core.petCodec(), leveler, () -> core.master().config().pets(),

@@ -3,6 +3,7 @@ package engine.effect.kind;
 import compile.model.Affinity;
 import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
+import engine.sink.CageGeometry;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
@@ -22,7 +23,10 @@ import schema.spec.D;
  */
 public final class CageEffect implements EffectKind {
 
-    static final EffectSpec SPEC = EffectSpec.of("CAGE")
+    /** The effect-kind head — the one place the {@code CAGE} token lives (the pets pre-check matches against it). */
+    public static final String HEAD = "CAGE";
+
+    static final EffectSpec SPEC = EffectSpec.of(HEAD)
             .param("floor", D.material())
             .param("walls", D.material())
             .param("roof", D.material())
@@ -78,10 +82,7 @@ public final class CageEffect implements EffectKind {
             if (at.getWorld() == null || at.getWorld() != origin.getWorld()) {
                 continue;
             }
-            Location base = new Location(at.getWorld(),
-                    Math.floor((origin.getX() + at.getX()) / 2.0),
-                    Math.floor(Math.min(origin.getY(), at.getY())) + rise,
-                    Math.floor((origin.getZ() + at.getZ()) / 2.0));
+            Location base = CageGeometry.origin(origin, at, rise); // shared with the pets pre-check (never drift)
             sink.cage(base, actor, who, floor, walls, roof, width, height, depth, ticks);
         }
     }
