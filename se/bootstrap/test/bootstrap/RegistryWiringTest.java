@@ -84,7 +84,7 @@ class RegistryWiringTest {
             "bStats");                                                        // coreStops
 
     private static final List<String> GOLDEN_MENUS = List.of("hub", "console", "mint", "apply", "enchants", "sets",
-            "crystals", "pets", "reference", "transmog", "enchanter", "alchemist", "tinkerer", "admin");
+            "crystals", "pets", "masks", "reference", "transmog", "enchanter", "alchemist", "tinkerer", "admin");
 
     private static final Set<String> GOLDEN_GIVE_KEYS = Set.of("gem", "dust", "whitescroll", "book", "unopened",
             "useitem", "use-item", "crystal", "extractor", "heroic", "upgrade", "orb", "blackscroll", "randomizer",

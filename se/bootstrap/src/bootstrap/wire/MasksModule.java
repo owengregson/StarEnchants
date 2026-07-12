@@ -61,7 +61,8 @@ final class MasksModule {
         // MaskIllusionService.refresh's contract — so the equip-refresh seam feeds it directly (no extra listener).
         this.illusionStore = new MaskIllusionStore();
         this.illusion = new MaskIllusionService(core.bindings().equipmentRepaint(), core.bindings().texturedHeads(),
-                () -> core.content().library(), core.itemViews(), enabled, illusionStore);
+                core.bindings().headAttributes(), () -> core.content().library(), core.itemViews(), enabled,
+                illusionStore);
         equip.onRefresh(illusion::refresh);
         this.illusionListener = new MaskIllusionListener(illusion, enabled);
 
@@ -92,6 +93,8 @@ final class MasksModule {
                 .events(invseeGuard)
                 .events(nearGuard)
                 .events(splashHealGuard)
+                .menu(76, new feature.menu.MasksBrowserMenu(core.content(), masks, core.caps(), core.messages(),
+                        core.menusHolder()::config, core.vanillaEnchants()))
                 .mints(mints)
                 .store(illusionStore)  // per-player shown-head cache (WardStore is EngineStores-owned, not here)
                 .store(provocation)    // per-wearer mob provocations
