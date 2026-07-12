@@ -389,7 +389,20 @@ public final class ModernDispatchSink extends DispatchSinkBase {
                 }
             }
         }
-        world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ);
+        spawnPlain(world, resolved, at, count, offsetX, offsetY, offsetZ);
+    }
+
+    /** The "plain burst" a content particle NAME means, whatever data this version's registry demands for it
+     *  (DUST wants DustOptions everywhere; ENTITY_EFFECT wants Color since 1.20.5; EFFECT wants Spell since the
+     *  1.21.9 line). An undefaultable requirement skips the burst — never an exception into the flush. */
+    private static void spawnPlain(World world, Particle resolved, Location at, int count,
+                                   double offsetX, double offsetY, double offsetZ) {
+        Object data = ParticleDefaults.dataFor(resolved);
+        if (data != null) {
+            world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ, data);
+        } else if (resolved.getDataType() == Void.class) {
+            world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ);
+        }
     }
 
     @Override
@@ -406,7 +419,8 @@ public final class ModernDispatchSink extends DispatchSinkBase {
             try {
                 world.spawnParticle(resolved, at, n, 0.0, 0.0, 0.0, 0.0, new Particle.DustOptions(color, scale));
             } catch (IllegalArgumentException notDust) {
-                world.spawnParticle(resolved, at, n); // the resolved particle takes no colour data — plain burst
+                // the resolved particle takes no dust colour — a plain burst, with ITS required data defaulted
+                spawnPlain(world, resolved, at, n, 0.0, 0.0, 0.0);
             }
         });
     }

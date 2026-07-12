@@ -1,6 +1,7 @@
 package feature.fx;
 
 import compile.load.ParticleSpec;
+import engine.sink.ParticleDefaults;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -12,6 +13,8 @@ import org.bukkit.entity.Player;
 /**
  * Modern impl of {@link ParticleFx} — the era-exclusive {@code overlay/modern} particle feedback (ADR-0044; §4).
  * Spawns via the injected cross-version resolver (token → live {@code Particle}); an unresolved token is skipped.
+ * Particles whose data is REQUIRED on the running version spawn with {@link ParticleDefaults}' neutral data —
+ * the same no-throw rule as the sink's bursts.
  */
 public final class ModernParticleFx implements ParticleFx {
 
@@ -32,7 +35,8 @@ public final class ModernParticleFx implements ParticleFx {
             }
             Particle particle = resolver.apply(token);
             if (particle != null) {
-                player.getWorld().spawnParticle(particle, player.getLocation(), Math.max(1, count));
+                // extra 1.0 = what the old 3-arg overload delegated to; keeps dataless tokens wire-identical
+                spawnPlain(player, player.getLocation(), particle, Math.max(1, count), 0.0, 1.0);
             }
         }
     }
@@ -58,7 +62,18 @@ public final class ModernParticleFx implements ParticleFx {
                     Color.fromRGB(spec.colorR(), spec.colorG(), spec.colorB()), 1.0f);
             player.getWorld().spawnParticle(particle, at, spec.amount(), s, s, s, 0.0, dust);
         } else {
-            player.getWorld().spawnParticle(particle, at, spec.amount(), s, s, s, 0.0);
+            spawnPlain(player, at, particle, spec.amount(), s, 0.0);
+        }
+    }
+
+    /** A plain burst with the version's required data defaulted; an undefaultable requirement skips, never throws. */
+    private static void spawnPlain(Player player, Location at, Particle particle, int count, double spread,
+                                   double extra) {
+        Object data = ParticleDefaults.dataFor(particle);
+        if (data != null) {
+            player.getWorld().spawnParticle(particle, at, count, spread, spread, spread, extra, data);
+        } else if (particle.getDataType() == Void.class) {
+            player.getWorld().spawnParticle(particle, at, count, spread, spread, spread, extra);
         }
     }
 }

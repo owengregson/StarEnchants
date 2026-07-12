@@ -30,12 +30,17 @@ class ParticleFxTest {
 
         fx.spawn(player, List.of("FLAME", "NONSENSE_TOKEN", "SOUL"), 3);
 
-        verify(world).spawnParticle(Particle.FLAME, loc, 3);
-        verify(world).spawnParticle(Particle.SOUL, loc, 3);
+        // Dataless tokens spawn through the explicit overload the old 3-arg call delegated to: spread 0, extra 1.
+        verify(world).spawnParticle(Particle.FLAME, loc, 3, 0.0, 0.0, 0.0, 1.0);
+        verify(world).spawnParticle(Particle.SOUL, loc, 3, 0.0, 0.0, 0.0, 1.0);
         verify(world, never()).spawnParticle(org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.anyInt());
+                org.mockito.ArgumentMatchers.anyInt(), org.mockito.ArgumentMatchers.anyDouble(),
+                org.mockito.ArgumentMatchers.anyDouble(), org.mockito.ArgumentMatchers.anyDouble(),
+                org.mockito.ArgumentMatchers.anyDouble());
         verify(world, times(2)).spawnParticle(org.mockito.ArgumentMatchers.any(Particle.class),
-                org.mockito.ArgumentMatchers.eq(loc), org.mockito.ArgumentMatchers.eq(3));
+                org.mockito.ArgumentMatchers.eq(loc), org.mockito.ArgumentMatchers.eq(3),
+                org.mockito.ArgumentMatchers.anyDouble(), org.mockito.ArgumentMatchers.anyDouble(),
+                org.mockito.ArgumentMatchers.anyDouble(), org.mockito.ArgumentMatchers.anyDouble());
     }
 
     @Test
