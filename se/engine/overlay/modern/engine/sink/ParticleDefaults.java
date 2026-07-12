@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 
 /**
  * Default data for particles whose {@link Particle#getDataType()} is REQUIRED — a moving target across the
@@ -49,6 +50,7 @@ public final class ParticleDefaults {
     }
 
     /** Cache-free default construction — the unit-testable core ({@code context} names the particle in the warn). */
+    @SuppressWarnings("deprecation") // MaterialData: the floor's LEGACY_* particles demand the pre-1.13 block data
     static Optional<Object> build(String context, Class<?> dataType) {
         try {
             if (dataType == Particle.DustOptions.class) {
@@ -68,6 +70,10 @@ public final class ParticleDefaults {
             }
             if (dataType == BlockData.class) {
                 return Optional.of(Material.STONE.createBlockData());
+            }
+            if (dataType == MaterialData.class) {
+                // The 1.17.1 floor's LEGACY_BLOCK_CRACK/_DUST/_FALLING_DUST trio.
+                return Optional.of(new MaterialData(Material.STONE));
             }
             if (dataType == ItemStack.class) {
                 return Optional.of(new ItemStack(Material.STONE));
