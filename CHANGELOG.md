@@ -4,7 +4,7 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.8.3-beta] — 2026-07-12
 
 ### Fixed
 
@@ -45,7 +45,6 @@ versioning: [Semantic Versioning](https://semver.org/).
   description bullet both.
 
 ### Docs
-
 
 - **ADR-0055** records the owner's clarified tuning ground truth (the pre-1.8.2
   numbers are the balanced meta; authored rider numbers are effective units), the
