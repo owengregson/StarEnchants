@@ -152,6 +152,11 @@ public final class EraBindings implements EraServices {
         return new LegacyEquipmentRepaint();
     }
 
+    @Override
+    public item.head.HeadAttributes headAttributes() {
+        return item.head.HeadAttributes.NONE; // 1.8 renders no attribute tooltips — nothing to copy
+    }
+
     /** §I nametag rename (§4): 1.8 has no live anvil-rename field — chat capture. Into {@code NametagListener}. */
     @Override
     public AnvilRename anvilRename() {

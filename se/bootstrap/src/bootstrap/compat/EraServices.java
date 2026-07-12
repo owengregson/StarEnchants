@@ -81,6 +81,9 @@ public interface EraServices {
     /** Client-only worn-helmet repaint (ADR-0053 masks): modern {@code sendEquipmentChange} / 1.8 equipment packet. */
     EquipmentRepaint equipmentRepaint();
 
+    /** Worn-tooltip attribute copier for the mask illusion's shown head (1.8.1) — {@code NONE} on 1.8. */
+    item.head.HeadAttributes headAttributes();
+
     AnvilRename anvilRename();
 
     // ── era listeners / registration ──

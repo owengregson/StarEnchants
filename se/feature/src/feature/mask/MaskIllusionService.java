@@ -3,18 +3,25 @@ package feature.mask;
 import compile.load.Library;
 import compile.load.MaskDef;
 import item.head.EquipmentRepaint;
+import item.head.HeadAttributes;
 import item.head.TexturedHeads;
 import item.view.ItemViewCache;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import platform.caps.Regions;
 import platform.sched.Scheduling;
 
@@ -30,6 +37,7 @@ public final class MaskIllusionService {
 
     private final EquipmentRepaint repaint;
     private final TexturedHeads heads;
+    private final HeadAttributes headAttributes;
     private final Supplier<Library> library;
     private final ItemViewCache itemViews;
     private final BooleanSupplier enabled;
@@ -37,10 +45,12 @@ public final class MaskIllusionService {
     // Built heads keyed by base64 (texture-derived, so reload-stable); cloned per wearer refresh.
     private final ConcurrentHashMap<String, ItemStack> templates = new ConcurrentHashMap<>();
 
-    public MaskIllusionService(EquipmentRepaint repaint, TexturedHeads heads, Supplier<Library> library,
-                               ItemViewCache itemViews, BooleanSupplier enabled, MaskIllusionStore store) {
+    public MaskIllusionService(EquipmentRepaint repaint, TexturedHeads heads, HeadAttributes headAttributes,
+                               Supplier<Library> library, ItemViewCache itemViews, BooleanSupplier enabled,
+                               MaskIllusionStore store) {
         this.repaint = Objects.requireNonNull(repaint, "repaint");
         this.heads = Objects.requireNonNull(heads, "heads");
+        this.headAttributes = Objects.requireNonNull(headAttributes, "headAttributes");
         this.library = Objects.requireNonNull(library, "library");
         this.itemViews = Objects.requireNonNull(itemViews, "itemViews");
         this.enabled = Objects.requireNonNull(enabled, "enabled");
@@ -138,7 +148,52 @@ public final class MaskIllusionService {
             return null; // key stale after a reload, or an untextured mask — no illusion (ADR-0053 §4)
         }
         ItemStack template = template(def.head());
-        return template == null ? null : template.clone();
+        return template == null ? null : dress(template.clone(), helmet);
+    }
+
+    /**
+     * Dress the shown head as the helmet it visually replaces (1.8.1): the client renders the ARMOR SLOT from
+     * the repaint packet, so a bare head there hovers as a nameless, lore-less skull. Copy the helmet's
+     * display name (or its friendly material name — an unnamed helmet must not hover as "Player Head"), lore,
+     * enchants (tooltip lines + glint) and flags — all floor+1.8-safe meta — then the worn-attribute block
+     * ("When on Head: …", heroic included) through the {@link HeadAttributes} era seam.
+     */
+    @SuppressWarnings("deprecation") // get/set DisplayName/Lore: the floor-stable item-meta path (the LoreRenderer rule)
+    private ItemStack dress(ItemStack shown, ItemStack helmet) {
+        ItemMeta shownMeta = shown.getItemMeta();
+        ItemMeta helmetMeta = helmet.getItemMeta();
+        if (shownMeta != null) {
+            if (helmetMeta != null && helmetMeta.hasDisplayName()) {
+                shownMeta.setDisplayName(helmetMeta.getDisplayName());
+            } else {
+                shownMeta.setDisplayName(ChatColor.WHITE + friendlyName(helmet.getType()));
+            }
+            if (helmetMeta != null) {
+                if (helmetMeta.hasLore()) {
+                    shownMeta.setLore(helmetMeta.getLore());
+                }
+                for (Map.Entry<Enchantment, Integer> enchant : helmetMeta.getEnchants().entrySet()) {
+                    shownMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
+                }
+                shownMeta.addItemFlags(helmetMeta.getItemFlags().toArray(new ItemFlag[0]));
+            }
+            shown.setItemMeta(shownMeta);
+        }
+        headAttributes.copyWorn(shown, helmet);
+        return shown;
+    }
+
+    /** "DIAMOND_HELMET" → "Diamond Helmet" — the unnamed-helmet hover fallback (no server-side localization). */
+    static String friendlyName(Material material) {
+        String[] words = material.name().toLowerCase(Locale.ROOT).split("_");
+        StringBuilder out = new StringBuilder();
+        for (String word : words) {
+            if (out.length() > 0) {
+                out.append(' ');
+            }
+            out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return out.toString();
     }
 
     /** The TRUE helmet for the restore broadcast — AIR when bare ({@code sendEquipmentChange} rejects null;
