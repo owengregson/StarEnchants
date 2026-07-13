@@ -39,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -57,6 +58,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import platform.caps.Capabilities;
@@ -135,6 +137,139 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         degradeChecks(h);
         gearPollChecks(h);
         maxHealthCheck(h);
+        overhealthChecks(h);
+    }
+
+    // ── overhealth drain + potion lock (ADR-0057): the 1.8 NMS modifier path + the re-strip-only lock backstop ──
+
+    /**
+     * The 1.8.9 counterpart to the modern {@code OverhealthDrainSuite}: the same two just-changed {@code Sink}
+     * methods over the {@code v1_8_R3} NMS path, where the modern seams are absent.
+     *
+     * <ul>
+     *   <li><strong>drain over HEALTH_BOOST</strong> — a real HEALTH_BOOST potion raises the NMS max-health
+     *       attribute VALUE (a modifier, not a base shift); {@code drainMaxHealth(1.0)} must take that overhealth
+     *       to the base for the window via {@code LegacyDispatchSink.addMaxHealthModifier} (NMS {@code b()}/{@code c()}
+     *       — the negative counter-modifier), then restore the boosted max after it. Reads the NMS attribute value
+     *       directly ({@link #nmsMaxHealth}) — the 1.8 game truth.</li>
+     *   <li><strong>potion-lock denial</strong> — with no {@code EntityPotionEffectEvent} on 1.8, the Sink's per-tick
+     *       re-strip is the SOLE enforcer: a re-application during the window must be stripped away (denied), and a
+     *       fresh one after the window must stick (the counter-proof).</li>
+     * </ul>
+     */
+    @SuppressWarnings("deprecation") // PotionEffectType.getByName / hasPotionEffect(PotionEffectType): the 1.8-present API
+    private void overhealthChecks(Harness h) {
+        h.expect("legacy.overhealth.drainDuring");
+        h.expect("legacy.overhealth.drainRestored");
+        h.expect("legacy.overhealth.lockDenied");
+        h.expect("legacy.overhealth.lockReallowed");
+
+        // The legacy sink resolves an interned potion id back through the SAME RegistryResolvers used to intern it
+        // (LegacyDispatchSink.potionEffect(int) → resolvers.nameOf → PotionEffectType.getByName), so pair them.
+        RegistryResolvers resolvers = new RegistryResolvers();
+        PotionEffectType healthBoost = PotionEffectType.getByName("HEALTH_BOOST");
+        OptionalInt healthBoostId = resolvers.potionEffect("HEALTH_BOOST");
+        if (healthBoost == null || healthBoostId.isEmpty()) {
+            h.fail("legacy.overhealth.drainDuring", "HEALTH_BOOST did not resolve on 1.8");
+            h.fail("legacy.overhealth.drainRestored", "HEALTH_BOOST did not resolve on 1.8");
+            h.fail("legacy.overhealth.lockDenied", "HEALTH_BOOST did not resolve on 1.8");
+            h.fail("legacy.overhealth.lockReallowed", "HEALTH_BOOST did not resolve on 1.8");
+            return;
+        }
+
+        World world = plugin.getServer().getWorlds().get(0);
+        Location at = world.getSpawnLocation();
+        // No setChunkForceLoaded (1.13+): the spawn chunk is kept loaded anyway (as combatCheck relies on).
+
+        // (1) drain takes HEALTH_BOOST overhealth to the base for the window (the NMS b()/c() counter-modifier), then restores it.
+        Scheduling.onRegion(at, () -> {
+            Player p;
+            try {
+                p = FakePlayers.spawn(world, "se_lc_ovhd");
+            } catch (Throwable t) {
+                h.fail("legacy.overhealth.drainDuring", "spawn on 1.8: " + t);
+                h.fail("legacy.overhealth.drainRestored", "spawn on 1.8: " + t);
+                return;
+            }
+            engine.sink.SinkEnv env = engine.sink.SinkEnv.of(platform.economy.EconomyService.NONE,
+                    engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), () -> 0L);
+            engine.sink.LegacyDispatchSink sink = new engine.sink.LegacyDispatchSink(resolvers, env);
+            Scheduling.onEntity(p, () -> {
+                double base = nmsMaxHealth(p);
+                p.addPotionEffect(new PotionEffect(healthBoost, 100_000, 4)); // +20 max via the NMS HEALTH_BOOST modifier
+                Scheduling.onEntityLater(p, 6L, () -> {
+                    double boosted = nmsMaxHealth(p);
+                    if (boosted <= base + 1.0e-6) {
+                        h.fail("legacy.overhealth.drainDuring", "HEALTH_BOOST did not raise 1.8 max above base " + base);
+                        h.fail("legacy.overhealth.drainRestored", "HEALTH_BOOST did not raise 1.8 max above base " + base);
+                        FakePlayers.despawn(p);
+                        return;
+                    }
+                    sink.drainMaxHealth(p, 1.0, base, 0.0, 40);
+                    sink.flush();
+                    Scheduling.onEntityLater(p, 8L, () -> h.guard("legacy.overhealth.drainDuring", () -> {
+                        double now = nmsMaxHealth(p);
+                        if (Math.abs(now - base) > 1.0e-3) {
+                            throw new IllegalStateException("1.8 drain did not remove HEALTH_BOOST overhealth to base "
+                                    + base + "; nms=" + now + " (boosted was " + boosted + ")");
+                        }
+                    }));
+                    Scheduling.onEntityLater(p, 60L, () -> {
+                        h.guard("legacy.overhealth.drainRestored", () -> {
+                            double now = nmsMaxHealth(p);
+                            if (Math.abs(now - boosted) > 1.0e-3) {
+                                throw new IllegalStateException("1.8 drain window did not restore the boosted max "
+                                        + boosted + "; nms=" + now);
+                            }
+                        });
+                        FakePlayers.despawn(p);
+                    });
+                });
+            });
+        });
+
+        // (2) potion-lock re-strip denies a re-application during the window; a fresh one sticks after (the 1.8 backstop).
+        int lockedId = healthBoostId.getAsInt();
+        Scheduling.onRegion(at, () -> {
+            Player p;
+            try {
+                p = FakePlayers.spawn(world, "se_lc_ovhl");
+            } catch (Throwable t) {
+                h.fail("legacy.overhealth.lockDenied", "spawn on 1.8: " + t);
+                h.fail("legacy.overhealth.lockReallowed", "spawn on 1.8: " + t);
+                return;
+            }
+            engine.sink.SinkEnv env = engine.sink.SinkEnv.of(platform.economy.EconomyService.NONE,
+                    engine.sink.SoulDebit.NONE, engine.stores.EngineStores.fresh(), () -> 0L);
+            engine.sink.LegacyDispatchSink sink = new engine.sink.LegacyDispatchSink(resolvers, env);
+            Scheduling.onEntity(p, () -> {
+                sink.potionLock(p, lockedId, 40);
+                sink.flush();
+                Scheduling.onEntityLater(p, 6L, () -> { // inside the lock window
+                    p.addPotionEffect(new PotionEffect(healthBoost, 200, 0));
+                    Scheduling.onEntityLater(p, 4L, () -> { // let the per-tick re-strip act
+                        h.guard("legacy.overhealth.lockDenied", () -> {
+                            if (p.hasPotionEffect(healthBoost)) {
+                                throw new IllegalStateException(
+                                        "1.8 potion-lock re-strip did not deny the re-application during the window");
+                            }
+                        });
+                        Scheduling.onEntityLater(p, 40L, () -> { // past the window: the re-strip has self-cancelled
+                            p.addPotionEffect(new PotionEffect(healthBoost, 200, 0));
+                            Scheduling.onEntityLater(p, 4L, () -> {
+                                h.guard("legacy.overhealth.lockReallowed", () -> {
+                                    if (!p.hasPotionEffect(healthBoost)) {
+                                        throw new IllegalStateException(
+                                                "HEALTH_BOOST did not stick after the 1.8 lock window elapsed");
+                                    }
+                                });
+                                FakePlayers.despawn(p);
+                            });
+                        });
+                    });
+                });
+            });
+        });
     }
 
     // ── worn max-health bonus (1.8.1): the reconciled attribute modifier must move the REAL 1.8 max health ──

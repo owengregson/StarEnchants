@@ -37,6 +37,7 @@ import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
 import tester.suite.LifecycleSuite;
 import tester.suite.MenuSuite;
+import tester.suite.OverhealthDrainSuite;
 import tester.suite.ParticleSuite;
 import tester.suite.ProtectionSuite;
 import tester.suite.RenderSuite;
@@ -114,6 +115,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new ApplyGestureSuite(this)); // ADR-0041: shared gesture base commits/ignores real clicks
         harness.add(new CrystalSuite(this));
         harness.add(new MaxHealthSuite(this));
+        harness.add(new OverhealthDrainSuite(this)); // ADR-0057: drainMaxHealth takes modifier overhealth; potionLock denies re-apply
         harness.add(new SetSuite(this));
         harness.add(new HeroicSuite(this));
         harness.add(new HeroicApplySuite(this)); // §F: success/fail/consume + armour-weapon guard
