@@ -4,6 +4,27 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.8.5-beta] — 2026-07-12
+
+### Fixed
+
+- **Overhealth-removal abilities now remove overhealth from EVERY source — not just base hearts (ADR-0057).**
+  The Grim pet's trade and Cupid's Lovestruck ("remove your/your victim's overhealth") measured the extra
+  hearts from the max-health attribute's BASE value, but every real source of overhealth in the pack lives in
+  a MODIFIER: a `HEALTH_BOOST` potion (Overload / Godly Overload, the Nature Crystal) and the worn "+hearts"
+  channel are attribute modifiers, invisible to a base read. So the ability played its sound and burned its
+  cooldown while the hearts stayed. The drain now measures the EFFECTIVE max (base + modifiers) and removes the
+  overhealth with a temporary negative max-health modifier, so it takes hearts from a HEALTH_BOOST potion, a
+  worn +hearts modifier, or a base shift alike — and it can no longer be capped short by a large boost. The
+  reduction is restored when the window ends and, if you log out mid-window, given back before your data saves
+  (never made permanent, never left stranded on disk).
+- **Potion lock now truly PREVENTS the effect instead of chasing it (ADR-0057).** A locked potion (Grim's
+  Overload lock, druid's and fantasy's Speed lock, clarity's Blindness) was stripped and re-stripped every
+  tick — but a worn passive re-applies its buff on its own cadence, so the effect flashed back in on the tick
+  it was re-applied and out on the next strip ("the overhealth comes back glitching in then goes away"). The
+  lock now cancels the re-application outright, so the buff can never re-establish during the window. (On
+  1.8.9, which lacks the needed event, the per-tick re-strip still enforces it.)
+
 ## [1.8.4-beta] — 2026-07-12
 
 ### Fixed

@@ -23,16 +23,18 @@ public final class PotionLockListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPotion(EntityPotionEffectEvent event) {
-        switch (event.getAction()) {
-            case ADDED, CHANGED, REFRESH -> {
-                PotionEffectType type = event.getModifiedType();
-                if (type != null && LockedPotions.isLocked(event.getEntity().getUniqueId(), type.getName())) {
-                    event.setCancelled(true); // deny the (re)application for the lock window
-                }
-            }
-            default -> {
-                // CLEARED / REMOVED / EXPIRED and any future removal action — never fought.
-            }
+        EntityPotionEffectEvent.Action action = event.getAction();
+        // Only an effect BECOMING/STAYING present is denied — ADDED (the Sink strips first, so a re-application is
+        // always an add) and CHANGED (a level change while present). CLEARED / REMOVED pass through so the Sink's
+        // own strip and a natural expiry are never fought. (ADDED / CHANGED are the constants on the 1.17.1 floor;
+        // a newer runtime's REFRESH is caught by the Sink's per-tick re-strip backstop.)
+        if (action != EntityPotionEffectEvent.Action.ADDED
+                && action != EntityPotionEffectEvent.Action.CHANGED) {
+            return;
+        }
+        PotionEffectType type = event.getModifiedType();
+        if (type != null && LockedPotions.isLocked(event.getEntity().getUniqueId(), type.getName())) {
+            event.setCancelled(true); // deny the (re)application for the lock window
         }
     }
 }

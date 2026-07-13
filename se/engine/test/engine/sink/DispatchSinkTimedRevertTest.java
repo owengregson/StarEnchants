@@ -2,7 +2,7 @@ package engine.sink;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -10,11 +10,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.GameMode;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,52 +155,61 @@ class DispatchSinkTimedRevertTest {
 
     // ── F07: max-health drain ────────────────────────────────────────────────────────────────────────
 
-    /** A stateful max-health attribute whose {@code baseValue} tracks writes, so exact-delta restore is testable. */
-    private static AttributeInstance statefulMaxHealth(double initialBase) {
+    /**
+     * A stateful max-health attribute: a FIXED base plus a live modifier list, so {@code getValue()} tracks the
+     * drain's negative modifier and its exact removal — the drain no longer writes the base at all (§ADR-0057).
+     */
+    private static AttributeInstance statefulMaxHealth(double base) {
         AttributeInstance ai = mock(AttributeInstance.class);
-        AtomicReference<Double> base = new AtomicReference<>(initialBase);
-        when(ai.getBaseValue()).thenAnswer(inv -> base.get());
-        when(ai.getValue()).thenAnswer(inv -> base.get());
+        List<AttributeModifier> mods = new ArrayList<>();
+        when(ai.getBaseValue()).thenReturn(base);
+        when(ai.getValue()).thenAnswer(inv -> base + mods.stream().mapToDouble(AttributeModifier::getAmount).sum());
         doAnswer(inv -> {
-            base.set(inv.getArgument(0));
+            mods.add(inv.getArgument(0));
             return null;
-        }).when(ai).setBaseValue(anyDouble());
+        }).when(ai).addModifier(any(AttributeModifier.class));
+        doAnswer(inv -> {
+            mods.remove(inv.getArgument(0));
+            return null;
+        }).when(ai).removeModifier(any(AttributeModifier.class));
+        when(ai.getModifiers()).thenAnswer(inv -> new ArrayList<>(mods)); // a copy (like CraftBukkit) — safe to iterate + remove
         return ai;
     }
 
     @Test
-    void maxHealthDrainRestoresTheExactDeltaOnQuitAndTheLateTimerNoOps() {
+    void maxHealthDrainRemovesTheOverhealthViaAModifierAndRestoresItOnQuit() {
         AttributeInstance ai = statefulMaxHealth(30.0);
         Player player = player();
         when(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).thenReturn(ai);
         when(player.getHealth()).thenReturn(20.0);
 
-        sink.drainMaxHealth(player, 0.5, 20.0, 0.0, 60); // overhealth 10 → drain 5 → base 25, removed 5
+        sink.drainMaxHealth(player, 0.5, 20.0, 0.0, 60); // effective 30, overhealth 10 → -5 modifier → effective 25
         sink.flush();
-        assertEquals(25.0, ai.getBaseValue(), 1e-9, "drain applied inline");
+        assertEquals(25.0, ai.getValue(), 1e-9, "a negative modifier drops the EFFECTIVE cap");
+        assertEquals(30.0, ai.getBaseValue(), 1e-9, "the base is never written — drain lives in a modifier");
         assertEquals(1, backend.delayed.size());
         assertEquals(60L, backend.delayed.get(0).delayTicks());
 
         env.timedReverts().revertAll(uuid); // logout gives the victim their hearts back before the save
-        assertEquals(30.0, ai.getBaseValue(), 1e-9, "exact removed delta restored");
+        assertEquals(30.0, ai.getValue(), 1e-9, "the drain modifier is removed exactly");
 
-        backend.runDelayed(); // the stranded timer must not add the delta a second time
-        assertEquals(30.0, ai.getBaseValue(), 1e-9);
+        backend.runDelayed(); // the stranded timer must not double-remove
+        assertEquals(30.0, ai.getValue(), 1e-9);
     }
 
     @Test
-    void maxHealthDrainExactDeltaSurvivesTheFloorClamp() {
+    void maxHealthDrainClampsTheModifierSoEffectiveNeverFallsBelowOne() {
         AttributeInstance ai = statefulMaxHealth(4.0);
         Player player = player();
         when(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).thenReturn(ai);
         when(player.getHealth()).thenReturn(1.0);
 
-        sink.drainMaxHealth(player, 0.0, 20.0, 100.0, 60); // flat 100 → newBase clamps to 1, removed = 3
+        sink.drainMaxHealth(player, 0.0, 20.0, 100.0, 60); // flat 100 clamps to effective-1=3 → effective floors at 1
         sink.flush();
-        assertEquals(1.0, ai.getBaseValue(), 1e-9, "base clamps at the 1.0 floor");
+        assertEquals(1.0, ai.getValue(), 1e-9, "the modifier magnitude clamps so effective floors at 1");
 
         env.timedReverts().revertAll(uuid);
-        assertEquals(4.0, ai.getBaseValue(), 1e-9, "the clamped removed delta restores the true original");
+        assertEquals(4.0, ai.getValue(), 1e-9, "removing the modifier restores the true original");
     }
 
     @Test
@@ -211,7 +222,7 @@ class DispatchSinkTimedRevertTest {
         sink.drainMaxHealth(player, 0.5, 20.0, 0.0, 60); // no overhealth over baseline → early return
         sink.flush();
 
-        verify(ai, never()).setBaseValue(anyDouble());
+        verify(ai, never()).addModifier(any(AttributeModifier.class));
         assertTrue(backend.delayed.isEmpty(), "no revert scheduled for a zero drain");
         assertTrue(env.timedReverts().isEmpty(), "the registry never accumulates an empty grant");
     }
@@ -225,10 +236,10 @@ class DispatchSinkTimedRevertTest {
 
         sink.drainMaxHealth(mob, 0.5, 20.0, 0.0, 60);
         sink.flush();
-        assertEquals(25.0, ai.getBaseValue(), 1e-9);
+        assertEquals(25.0, ai.getValue(), 1e-9);
         assertTrue(env.timedReverts().isEmpty(), "a mob is never registered in the quit registry");
 
         backend.runDelayed(); // the direct scheduled restore still fires
-        assertEquals(30.0, ai.getBaseValue(), 1e-9);
+        assertEquals(30.0, ai.getValue(), 1e-9);
     }
 }

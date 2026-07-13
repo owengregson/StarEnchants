@@ -526,7 +526,7 @@ Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = th
 
 ### POTION_LOCK
 
-Strip a potion effect from the target(s) and continuously deny it for `ticks` (a re-strip each tick), so it cannot be re-applied during the window. Default target self.
+Strip a potion effect from the target(s) and continuously deny it for `ticks` — any re-application during the window is refused, so it cannot be maintained by a passive buff. Default target self.
 
 - _affinity_: `TARGET_ENTITY`
 - _usage_: `{ POTION_LOCK: { effect: <potion_effect>, ticks: <ticks[0..]=100> } }`
