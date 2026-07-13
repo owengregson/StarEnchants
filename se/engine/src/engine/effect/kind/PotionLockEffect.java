@@ -12,8 +12,9 @@ import schema.spec.D;
 /**
  * {@code POTION_LOCK} — strip a potion effect from the target(s) and continuously deny it for {@code ticks}
  * (druid's 5s Speed lock on impact, fantasy's Speed lock while webbed). Unlike {@code REMOVE_POTION}, a
- * re-application during the window is removed again — the Sink re-strips every tick until it elapses.
- * {@code effect} is interned at compile (§9).
+ * re-application during the window is PREVENTED: the modern Sink registers the type and cancels the
+ * {@code EntityPotionEffectEvent} outright, so a passive driver re-asserting the buff cannot make it flash in
+ * (a per-tick re-strip backstops it, and is the sole enforcer on 1.8.9). {@code effect} is interned at compile (§9).
  */
 public final class PotionLockEffect implements EffectKind {
 
@@ -22,8 +23,8 @@ public final class PotionLockEffect implements EffectKind {
             .param("ticks", D.TICKS.def(100))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
-            .doc("Strip a potion effect from the target(s) and continuously deny it for `ticks` (a re-strip each "
-                    + "tick), so it cannot be re-applied during the window. Default target self.")
+            .doc("Strip a potion effect from the target(s) and continuously deny it for `ticks` — any re-application "
+                    + "during the window is refused, so it cannot be maintained by a passive buff. Default target self.")
             .example("{ POTION_LOCK: { effect: SPEED, ticks: 100, who: \"@Victim\" } }")
             .build();
 

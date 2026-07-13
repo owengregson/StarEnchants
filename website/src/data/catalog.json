@@ -1953,7 +1953,7 @@
     },
   {
     "head": "POTION_LOCK",
-    "doc": "Strip a potion effect from the target(s) and continuously deny it for `ticks` (a re-strip each tick), so it cannot be re-applied during the window. Default target self.",
+    "doc": "Strip a potion effect from the target(s) and continuously deny it for `ticks` — any re-application during the window is refused, so it cannot be maintained by a passive buff. Default target self.",
     "affinity": "TARGET_ENTITY",
     "usage": "{ POTION_LOCK: { effect: <potion_effect>, ticks: <ticks[0..]=100> } }",
     "example": "{ POTION_LOCK: { effect: SPEED, ticks: 100, who: \"@Victim\" } }",
