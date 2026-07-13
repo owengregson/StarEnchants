@@ -144,17 +144,21 @@ public interface Sink {
      * Reconcile the ONE plugin-owned worn max-health modifier to {@code total} ({@code <= 0} removes it) —
      * the {@code HEALTH}-on-PASSIVE/HELD channel (ADR-0053 follow-up). SET-not-add, keyed by a fixed modifier
      * identity, so a crash/relog can never stack or strand a bonus: the next refresh reconciles whatever the
-     * playerdata carried. Never touches the attribute BASE (drain and vanilla own that space); never collides
-     * with the Overload potion pool (a different mechanism by design). Clamps current health down when the
-     * total shrinks.
+     * playerdata carried. Never touches the attribute BASE; never collides with the Overload potion pool or the
+     * drain's own modifier (all distinct identities by design). Clamps current health down when the total shrinks.
      */
     void applyWornMaxHealth(Player target, double total);
 
     /**
-     * Temporarily lower {@code target}'s max health by {@code fraction} of its "overhealth" (the amount above
-     * {@code baseline}, e.g. 20) plus a flat {@code flat}, restoring exactly that delta after
-     * {@code durationTicks} (MAX_HEALTH_DRAIN — cupid's Lovestruck). Overlap-safe (each drain restores its own
-     * delta). A victim who logs out mid-window keeps the reduction until rejoin + next drain (no ledger).
+     * Temporarily lower {@code target}'s max health by {@code fraction} of its "overhealth" (its EFFECTIVE max
+     * above {@code baseline}, e.g. 20) plus a flat {@code flat}, restoring it after {@code durationTicks}
+     * (MAX_HEALTH_DRAIN — cupid's Lovestruck, grim's overhealth window). Overhealth is measured on the effective
+     * max, so it takes hearts from ANY source — a HEALTH_BOOST potion (overload / nature crystal) or a named
+     * "+hearts" attribute modifier (the worn HEALTH channel of {@link #applyWornMaxHealth}, santa-hat-style), not
+     * just base shifts — via a temporary NEGATIVE max-health modifier (a distinct identity from the worn one, so
+     * the two never collide and the reconciler never fights it; never a base write). Overlap-safe (a unique
+     * modifier per drain, each removed on its own timer). Restored on quit too (F07): a logout mid-window drops
+     * the modifier before the playerdata save, so it can neither be made permanent by logging out nor leak.
      */
     void drainMaxHealth(LivingEntity target, double fraction, double baseline, double flat, int durationTicks);
 
@@ -170,10 +174,14 @@ public interface Sink {
 
     /**
      * Strip an interned potion effect from {@code target} now and <em>continuously deny</em> it for
-     * {@code durationTicks} — a re-strip every tick until the window elapses (POTION_LOCK — druid's 5s Speed
-     * lock on impact, fantasy's Speed lock while webbed). Unlike {@link #removePotion}, a re-application during
-     * the window (drinking a potion, a beacon) is removed again next tick. The re-strip task self-cancels at the
-     * window's end and stops early if the target leaves the world; a non-positive duration is a one-shot strip.
+     * {@code durationTicks} (POTION_LOCK — druid's 5s Speed lock, fantasy's Speed-while-webbed, grim's overhealth
+     * window). Unlike {@link #removePotion}, a re-application during the window (a passive driver re-asserting the
+     * buff each tick, drinking a potion, a beacon) is DENIED: on modern the type is registered in
+     * {@link LockedPotions} and {@code PotionLockListener} cancels the {@code EntityPotionEffectEvent} outright, so
+     * the effect can never even flash in (the fix for "the buff comes back glitching then goes away" — a bare
+     * re-strip always lost a tick to the driver). A per-tick re-strip backstops the guard and is the sole enforcer
+     * on 1.8.9 (no such event). The tasks self-cancel at the window's end and stop early if the target leaves the
+     * world; a non-positive duration is a one-shot strip with no lock window.
      */
     void potionLock(LivingEntity target, int potionEffectId, int durationTicks);
 

@@ -64,6 +64,9 @@ final class ControlsModule {
                 // Cosmic Enchants exotic-effect ports: TELEBLOCK cancels teleport, IMMUNE cancels damage while flagged.
                 .events(new TeleblockListener(core.stores().teleblock(), core.tick()::get))
                 .events(new ImmuneListener(core.stores().immune(), core.tick()::get, core.hands()))
+                // POTION_LOCK guard: modern cancels EntityPotionEffectEvent for a locked type (genuine denial, so a
+                // passive re-applier cannot make the buff flash back); 1.8 binding is inert (the Sink re-strip enforces).
+                .events(core.bindings().potionLockGuard())
                 // §C KNOCKBACK_CONTROL: capability-probed onto modern-bukkit or legacy destroystokyo; inert on neither.
                 .install("KNOCKBACK_CONTROL applier", () -> {
                     var path = core.bindings().registerKnockback(core.plugin(), core.stores().knockback(),

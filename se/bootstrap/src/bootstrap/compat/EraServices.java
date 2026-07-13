@@ -98,6 +98,10 @@ public interface EraServices {
      *  (modern only; 1.8 has no off-hand, so an inert listener — G02/F09). */
     Listener handChangeFeeder(EquipListener equip);
 
+    /** POTION_LOCK guard: modern {@code EntityPotionEffectEvent} cancel of a locked type (genuine prevention); 1.8
+     *  has no such event, so an inert listener — the Sink's per-tick re-strip is the sole enforcer there. */
+    Listener potionLockGuard();
+
     /** ITEM_DAMAGE source (modern {@code PlayerItemDamageEvent}; 1.8 an inert listener — the poll fires it). */
     Listener itemDamageSource(TriggerDispatch dispatch);
 

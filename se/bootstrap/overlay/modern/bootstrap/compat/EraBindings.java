@@ -10,6 +10,7 @@ import feature.combat.KnockbackListener;
 import feature.combat.LegacyKnockbackListener;
 import feature.combat.ModernArmourChangeListener;
 import feature.combat.ModernHandChangeListener;
+import feature.combat.PotionLockListener;
 import feature.heroic.HeroicDurabilityListener;
 import feature.trigger.DurabilityTriggerListener;
 import feature.trigger.TriggerDispatch;
@@ -189,6 +190,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Listener handChangeFeeder(EquipListener equip) {
         return new ModernHandChangeListener(equip);
+    }
+
+    /** POTION_LOCK guard (§B): modern {@code EntityPotionEffectEvent} cancel of a locked type — genuine prevention. */
+    @Override
+    public Listener potionLockGuard() {
+        return new PotionLockListener();
     }
 
     /** ITEM_DAMAGE source (§4): modern {@code PlayerItemDamageEvent} listener (1.8 fires it from the gear poll). */

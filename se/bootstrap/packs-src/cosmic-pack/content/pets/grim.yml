@@ -1,8 +1,9 @@
 # Grim Pet — an ACTIVE pet (ADR-0052): right-click to TRADE — your overhealth vanishes for the window while
-# every hit you land in it counts DOUBLE. Overhealth in this pack is two-layered, so both are taken:
-# POTION_LOCK strips the maintained Overload HEALTH_BOOST pool and keeps re-stripping through the window
-# (the passive driver cannot re-assert it), and MAX_HEALTH_DRAIN takes any attribute-base overhealth above
-# the vanilla 20; both restore on their own as the window closes. Both the window and the cooldown scale.
+# every hit you land in it counts DOUBLE. ONE MAX_HEALTH_DRAIN (fraction 1.0) takes ALL of it: it measures the
+# EFFECTIVE max above 20, so it removes overhealth from EVERY source at once — HEALTH_BOOST potions (Overload,
+# Nature Crystal), named +hearts modifiers (santa-hat-style), and base shifts — via one negative max-health
+# modifier, restored as the window closes (ADR-0057). No POTION_LOCK is needed here (it would double-count the
+# HEALTH_BOOST the drain already offsets). Both the window and the cooldown scale.
 #
 # CALIBRATION: the damage rider is an EFFECTIVE value under this pack's combat.attack-scale 5.0 — the fold
 # multiplies the summed attack fraction by the scale (ADR-0050 R2), so add: 20 lands as ×2.0 final (true
@@ -21,23 +22,23 @@ levels:
     cooldown: 4800
     duration: 40
     abilities:
-      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { POTION_LOCK: { effect: "HEALTH_BOOST", ticks: 40, who: "@Self" } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 40, who: "@Self" } } ] }
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 40, who: "@Self" } } ] }
       - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
   25:
     cooldown: 4200
     duration: 60
     abilities:
-      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { POTION_LOCK: { effect: "HEALTH_BOOST", ticks: 60, who: "@Self" } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 60, who: "@Self" } } ] }
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 60, who: "@Self" } } ] }
       - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
   50:
     cooldown: 3600
     duration: 60
     abilities:
-      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { POTION_LOCK: { effect: "HEALTH_BOOST", ticks: 60, who: "@Self" } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 60, who: "@Self" } } ] }
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 60, who: "@Self" } } ] }
       - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
   100:
     cooldown: 3600
     duration: 80
     abilities:
-      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { POTION_LOCK: { effect: "HEALTH_BOOST", ticks: 80, who: "@Self" } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 80, who: "@Self" } } ] }
+      - { effects: [ { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 0.7, pitch: 0.6 } }, { MAX_HEALTH_DRAIN: { fraction: 1.0, baseline: 20, duration: 80, who: "@Self" } } ] }
       - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
