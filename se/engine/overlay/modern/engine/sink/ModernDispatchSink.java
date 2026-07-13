@@ -2,6 +2,7 @@ package engine.sink;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Color;
@@ -156,6 +157,35 @@ public final class ModernDispatchSink extends DispatchSinkBase {
         AttributeInstance maxHealth = maxHealthAttribute(entity);
         if (maxHealth != null) {
             maxHealth.setBaseValue(value);
+        }
+    }
+
+    @Override
+    protected void addMaxHealthModifier(LivingEntity entity, UUID id, String name, double delta) {
+        AttributeInstance maxHealth = maxHealthAttribute(entity);
+        if (maxHealth == null) {
+            return;
+        }
+        removeMaxHealthModifier(entity, id); // idempotent: addModifier throws if the id is already applied
+        // The (UUID, name, amount, Operation) ctor is undeprecated on the 1.17.1 floor this compiles against and is
+        // still present at the ceiling (26.1.2) — binds and runs across the whole range (as ModernVanillaStats does).
+        maxHealth.addModifier(new AttributeModifier(id, name, delta, AttributeModifier.Operation.ADD_NUMBER));
+    }
+
+    @Override
+    protected void removeMaxHealthModifier(LivingEntity entity, UUID id) {
+        AttributeInstance maxHealth = maxHealthAttribute(entity);
+        if (maxHealth == null) {
+            return;
+        }
+        // The 1.17.1 floor has no removeModifier(UUID); match getUniqueId() (both floor- and ceiling-present, and at
+        // the ceiling the modifier's key is derived from the UUID, so remove-by-object still matches). Return after
+        // the first hit — ids are unique per drain, and it dodges any CME on a live-view getModifiers().
+        for (AttributeModifier mod : maxHealth.getModifiers()) {
+            if (mod.getUniqueId().equals(id)) {
+                maxHealth.removeModifier(mod);
+                return;
+            }
         }
     }
 

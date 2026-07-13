@@ -4,6 +4,7 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.lang.reflect.Field;
 import java.util.Objects;
+import java.util.UUID;
 import net.minecraft.server.v1_8_R3.ChatComponentText;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.EnumParticle;
@@ -226,6 +227,33 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(entity);
         if (maxHealth != null) {
             maxHealth.setValue(value);
+        }
+    }
+
+    @Override
+    protected void addMaxHealthModifier(LivingEntity entity, UUID id, String name, double delta) {
+        net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(entity);
+        if (maxHealth == null) {
+            return;
+        }
+        // NMS b(mod) throws if the UUID is already applied — remove first for idempotency (mirrors modern). a(UUID)
+        // is getModifier, c(mod) is removeModifier, and the 4th ctor arg 0 is ADD_NUMBER (javap-verified v1_8_R3).
+        net.minecraft.server.v1_8_R3.AttributeModifier existing = maxHealth.a(id);
+        if (existing != null) {
+            maxHealth.c(existing);
+        }
+        maxHealth.b(new net.minecraft.server.v1_8_R3.AttributeModifier(id, name, delta, 0));
+    }
+
+    @Override
+    protected void removeMaxHealthModifier(LivingEntity entity, UUID id) {
+        net.minecraft.server.v1_8_R3.AttributeInstance maxHealth = maxHealthInstance(entity);
+        if (maxHealth == null) {
+            return;
+        }
+        net.minecraft.server.v1_8_R3.AttributeModifier existing = maxHealth.a(id); // getModifier(UUID)
+        if (existing != null) {
+            maxHealth.c(existing); // removeModifier — b()/c() recompute the value themselves
         }
     }
 

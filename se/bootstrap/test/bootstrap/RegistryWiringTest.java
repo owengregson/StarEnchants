@@ -49,6 +49,8 @@ class RegistryWiringTest {
 
     static final class HandChangeFeeder implements Listener { }
 
+    static final class PotionLockGuard implements Listener { }
+
     static final class ItemDamageSource implements Listener { }
 
     static final class HeroicDurabilitySave implements Listener { }
@@ -66,7 +68,7 @@ class RegistryWiringTest {
             "GuardianHurtListener",
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
-            "TeleblockListener", "ImmuneListener",
+            "TeleblockListener", "ImmuneListener", "PotionLockGuard",
             "EngineStoreListener", "VanillaGuardListener", "HeadEquipGuard", "DispenseArmorGuard", "StationGuard",
             "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",
@@ -121,6 +123,7 @@ class RegistryWiringTest {
         when(bindings.actorProbe()).thenReturn(mock(engine.run.ActorProbe.class)); // 1.8.1 cage pre-check isAir
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
         when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
+        when(bindings.potionLockGuard()).thenReturn(new PotionLockGuard());
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
         when(bindings.heroicDurabilitySave(any(), any())).thenReturn(new HeroicDurabilitySave());
         when(bindings.stationGuard(any())).thenReturn(new StationGuard());

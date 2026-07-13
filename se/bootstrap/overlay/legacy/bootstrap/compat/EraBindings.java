@@ -192,6 +192,13 @@ public final class EraBindings implements EraServices {
         return NoopListener.INSTANCE;
     }
 
+    /** POTION_LOCK guard (§B): 1.8 has no {@code EntityPotionEffectEvent}, so inert — the Sink's per-tick re-strip
+     *  enforces the lock on the legacy lane. */
+    @Override
+    public Listener potionLockGuard() {
+        return NoopListener.INSTANCE;
+    }
+
     /**
      * ITEM_DAMAGE source (§4/§6): the gear-poll durability-rise subscriber fires it; no Bukkit event on 1.8.
      * ADR-0049: carries the durability points as {@code %damage%} and armor-vs-held as {@code %itemdamage.armor%}.

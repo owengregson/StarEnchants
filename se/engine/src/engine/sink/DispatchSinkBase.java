@@ -488,26 +488,31 @@ public abstract class DispatchSinkBase implements SinkReadback {
             if (!hasMaxHealthAttribute(target)) {
                 return;
             }
-            double base = maxHealthBase(target);
-            double overhealth = base - baseline;
+            // Overhealth is measured on the EFFECTIVE max (base + modifiers), so overhealth that lives in a
+            // MODIFIER — a HEALTH_BOOST potion (overload / nature crystal), a named "+hearts" modifier
+            // (santa-hat-style) — is seen and taken, not just base shifts (the old base-only read left every
+            // modifier-sourced heart untouched: grim/cupid "removed overhealth" but the hearts stayed). The removal
+            // is a temporary NEGATIVE max-health modifier, never a base write: a base reduction floors at 1 so it
+            // cannot fully offset a large HEALTH_BOOST, and it would fight the WornState base restore; a
+            // counter-modifier lowers the effective cap by exactly `drain` whatever the source, and its removal is an
+            // exact, idempotent give-back.
+            double effective = maxHealth(target);
+            double overhealth = effective - baseline;
             double drain = overhealth * fraction + flat;
+            drain = Math.min(drain, effective - 1.0); // keep at least half a heart of max — never drain to death
             if (drain <= 0) {
                 return; // no overhealth to take
             }
-            double newBase = Math.max(1.0, base - drain);
-            double removed = base - newBase; // exact delta (also when the clamp bit)
-            setMaxHealthBase(target, newBase);
+            UUID id = UUID.randomUUID(); // unique per drain → overlapping drains (two Lovestruck hits) each revert alone
+            addMaxHealthModifier(target, id, "starenchants:maxhealth_drain", -drain);
             if (target.getHealth() > maxHealth(target)) {
                 target.setHealth(Math.max(0.0, maxHealth(target))); // clamp current down to the new cap
             }
             if (durationTicks > 0) {
-                // Restore-on-quit too (F07): a victim who combat-logs mid-drain gets the exact removed delta back
-                // BEFORE the playerdata save, so the reduction can never be made permanent by pressuring a log-out.
-                revertLater(target, durationTicks, () -> {
-                    if (hasMaxHealthAttribute(target)) {
-                        setMaxHealthBase(target, maxHealthBase(target) + removed); // add back exactly what was drained
-                    }
-                });
+                // Restore-on-quit too (F07): a victim who combat-logs mid-drain gets the modifier removed BEFORE the
+                // playerdata save, so the reduction can never be made permanent by pressuring a log-out — and no
+                // permanent max-health modifier ever leaks onto disk. removeMaxHealthModifier is idempotent + exact.
+                revertLater(target, durationTicks, () -> removeMaxHealthModifier(target, id));
             }
         });
     }
@@ -709,10 +714,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
             if (durationTicks <= 0) {
                 return; // a one-shot strip, no lock window
             }
-            // Continuously deny: re-strip every tick until the window elapses (the locked set is tiny;
-            // removePotionEffect on an absent effect is a cheap no-op). The handle is captured so both the
-            // window backstop and an early world-exit cancel it — the Paper timer is not entity-tied (it would
-            // otherwise re-strip a logged-out player), while on Folia the entity task stops on its own.
+            // Register the DENIAL window: the modern EntityPotionEffectEvent guard (PotionLockListener) reads this
+            // and CANCELS every re-application for the window, so a passive driver re-asserting the buff each tick
+            // can never make it stick — the fix for the "flashes in and out" glitch (a same-tick re-strip always
+            // lost one tick to the driver). Keyed by the version-stable type name; self-evicts at the deadline.
+            LockedPotions.lock(target.getUniqueId(), type.getName(), durationTicks * 50L); // ticks → ms
+            // Backstop the guard with the original per-tick re-strip: on 1.8.9 (no EntityPotionEffectEvent) it is the
+            // SOLE enforcer, and on modern it belts any application the guard's ADDED/CHANGED/REFRESH cancel misses.
+            // The locked set is tiny; removePotionEffect on an absent effect is a cheap no-op. The handle is captured
+            // so both the window backstop and an early world-exit cancel it — the Paper timer is not entity-tied (it
+            // would otherwise re-strip a logged-out player), while on Folia the entity task stops on its own.
             TaskHandle[] handle = new TaskHandle[1];
             handle[0] = Scheduling.repeatingEntity(target, 1L, 1L, () -> {
                 if (!target.isValid()) {
@@ -1955,6 +1966,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * {@code b(mod)} apply, {@code c(mod)} remove).
      */
     protected abstract void setWornMaxHealthModifier(Player player, double total);
+
+    /** Add a max-health MODIFIER of {@code delta} (ADD_NUMBER) keyed by {@code id} — modern
+     *  {@code AttributeInstance.addModifier}; 1.8 NMS {@code AttributeInstance.b(AttributeModifier)}. Idempotent on
+     *  {@code id} (removes any prior with the same id first). Lets the drain take overhealth held in OTHER modifiers
+     *  (HEALTH_BOOST, the reconciled worn +hearts modifier), which a base write cannot reach. */
+    protected abstract void addMaxHealthModifier(LivingEntity entity, UUID id, String name, double delta);
+
+    /** Remove the max-health modifier {@code id} if present — modern {@code getModifiers}+{@code removeModifier};
+     *  1.8 NMS {@code a(UUID)}+{@code c(AttributeModifier)}. A no-op when absent (idempotent give-back). */
+    protected abstract void removeMaxHealthModifier(LivingEntity entity, UUID id);
 
     /** Set a freshly-spawned living entity's max + current health (SPAWN_ENTITY's {@code health} param). */
     protected abstract void applySpawnHealth(LivingEntity entity, double health);
