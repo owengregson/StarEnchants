@@ -15,12 +15,18 @@ import platform.text.Colors;
 
 /**
  * Rage stacks (§3): the combat feedback the Rage enchant owns now that its content no longer plays its own sound.
- * On every qualifying melee hit the attacker's stacks become {@code min(combo streak, rage level)} — so a level-N
- * rage tops out at N — and drive a rising {@link Titles#sendActionBar action bar} + a {@code BLAZE_HURT} cue whose
- * pitch climbs with the stack. A combo that breaks (a victim switch, or the window elapsing) flashes a
- * {@code BROKEN} action bar + a {@code BLAZE_DEATH} cue. The stacks live in the shared {@link RageStackStore}, which also
- * sources the {@code %ragestacks%} fact the rage DAMAGE_MOD reads (so the audio ladder and the damage scale share
- * one number).
+ * A stack counts ONE hit dealt WITH a rage weapon in the current combo: only a rage-carrying hit advances the
+ * count (capped at the rage level, so a level-N rage tops out at N), a hit with a non-rage weapon leaves it
+ * untouched, and a new combo reseeds it. Stacks drive a rising {@link Titles#sendActionBar action bar} + a
+ * {@code BLAZE_HURT} cue whose pitch climbs with the stack. A combo that breaks (a victim switch, or the window
+ * elapsing) flashes a {@code BROKEN} action bar + a {@code BLAZE_DEATH} cue. The stacks live in the shared
+ * {@link RageStackStore}, which also sources the {@code %ragestacks%} fact the rage DAMAGE_MOD reads (so the audio
+ * ladder and the damage scale share one number).
+ *
+ * <p>The count is rage-specific by design — it does NOT reuse the shared {@code %combo%} streak, which counts
+ * every melee swing regardless of the weapon. Reusing it let stacks jump to the full combo length the instant a
+ * rage weapon was drawn mid-combo (hits landed with a plain weapon counted). The shared streak is still read, but
+ * only as the combo-lifecycle signal (a value of {@code 1} means this hit opened a new combo → reseed).
  *
  * <p>Threading: the listener calls {@link #onHit} on the firing region thread (the attacker's own region for a
  * melee hit), so the attacker-directed cue/title/action-bar are in-region — no hop. Only the delayed expiry probe
@@ -55,26 +61,38 @@ public final class RageStacksService {
     }
 
     /**
-     * Register one qualifying melee hit by {@code attacker}. No-op unless the attacker carries rage. The combo
-     * streak (already advanced by the combat dispatch at HIGH priority) is clamped to the rage level; a streak
-     * that has reset to 1 while stacks were built (a victim switch) breaks the run first, then the fresh stack fx
-     * plays. Called on the attacker's region thread.
+     * Register one direct melee hit by {@code attacker} — called for EVERY such hit, rage weapon or not, so a
+     * non-rage hit that opens a new combo can clear a stale count before it leaks into the new run. A rage-carrying
+     * hit advances the count ({@code +1}, capped at the level); a non-rage hit leaves it (mid-combo) or clears it
+     * (a new combo). The shared combo streak (advanced by the combat dispatch at HIGH priority) is read only to
+     * tell whether this hit opened a new combo. Called on the attacker's region thread.
      */
     public void onHit(Player attacker) {
         int level = rageLevelOf.apply(attacker);
-        if (level <= 0) {
+        UUID id = attacker.getUniqueId();
+        int prev = store.current(id);
+        if (level <= 0 && prev <= 0) {
+            return; // no rage weapon and no live stacks — the common melee hit has nothing to track
+        }
+        long now = nowTicks.getAsLong();
+        boolean comboStart = combo.current(id, now) <= 1; // dispatch ran combo.hit() at HIGH; 1 (or 0) = a fresh combo
+        boolean hitWithRage = level > 0;
+        int next = nextStacks(comboStart, hitWithRage, prev, level);
+
+        if (!hitWithRage) {
+            // A non-rage hit plays no cue. It only ever clears stale stacks as it opens a new combo (so the
+            // previous run's count cannot carry into this one); mid-combo it changes nothing (and must NOT
+            // re-stamp the store, or it would keep an idle stack alive past its window).
+            if (next != prev) {
+                store.set(id, next, now);
+            }
             return;
         }
-        UUID id = attacker.getUniqueId();
-        long now = nowTicks.getAsLong();
-        int streak = combo.current(id, now); // the combat dispatch ran combo.hit() at HIGH, so this is this hit's streak
-        int stacks = clamp(streak, level);
-        int prev = store.current(id);
-        if (streak <= 1 && prev > 1) {
-            breakFx(attacker); // the combo reset (a new victim) while a stack was live — flash BROKEN before the new run
+        if (comboStart && prev > 1) {
+            breakFx(attacker); // the previous run ends as this rage hit opens a new combo — flash BROKEN first
         }
-        store.set(id, stacks, now);
-        stackFx(attacker, stacks);
+        store.set(id, next, now);
+        stackFx(attacker, next);
         armExpiryProbe(attacker, now);
     }
 
@@ -108,6 +126,22 @@ public final class RageStacksService {
     /** Stacks = {@code min(streak, level)} — this is what caps the ladder at the rage level. Pure. */
     static int clamp(int streak, int level) {
         return Math.min(streak, level);
+    }
+
+    /**
+     * The rage stacks after one hit — the fix for the shared-combo-reuse bug. Only a rage-carrying hit advances
+     * the count; a non-rage hit mid-combo leaves it as-is; either weapon opening a NEW combo reseeds it (to
+     * {@code 1} if this opening hit carried rage, else {@code 0}). Rage-carrying advance is capped at the level.
+     * Pure — the single source of the stack-count contract, unit-tested in isolation from the fx/threading.
+     */
+    static int nextStacks(boolean comboStart, boolean hitWithRage, int prevStacks, int level) {
+        if (comboStart) {
+            return hitWithRage ? 1 : 0;
+        }
+        if (!hitWithRage) {
+            return prevStacks;
+        }
+        return clamp(prevStacks + 1, level);
     }
 
     /**
