@@ -1,6 +1,10 @@
 package feature.guard;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -8,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Set;
 import java.util.function.Predicate;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
@@ -26,7 +31,8 @@ import org.junit.jupiter.api.Test;
  */
 class HeadEquipGuardTest {
 
-    private final ItemStack headItem = mock(ItemStack.class);
+    // A real stack (not a mock) so the shift-click redirect can clone/move it; identity still drives the predicate.
+    private final ItemStack headItem = new ItemStack(Material.PLAYER_HEAD);
     private final ItemStack normalItem = mock(ItemStack.class);
     private final Predicate<ItemStack> isHeadItem = stack -> stack == headItem;
     private final HeadEquipGuard guard = new HeadEquipGuard(isHeadItem);
@@ -67,19 +73,50 @@ class HeadEquipGuardTest {
     }
 
     @Test
-    void shiftClickAutoEquipInTheOwnScreenIsCancelled() {
+    void shiftClickOfAHeadRedirectsToTheOtherSectionInsteadOfEquipping() {
         InventoryClickEvent event = click();
         InventoryView view = mock(InventoryView.class);
-        when(event.getSlotType()).thenReturn(InventoryType.SlotType.CONTAINER); // shift-clicked from the inventory grid
+        when(event.getSlotType()).thenReturn(InventoryType.SlotType.CONTAINER); // shift-clicked from a storage cell
+        when(event.getSlot()).thenReturn(9); // player-inventory index 9 = the first storage cell
         when(event.getAction()).thenReturn(InventoryAction.MOVE_TO_OTHER_INVENTORY);
         when(event.getView()).thenReturn(view);
         when(view.getType()).thenReturn(InventoryType.CRAFTING); // the player's own inventory screen
         when(event.getCurrentItem()).thenReturn(headItem);
         when(inventory.getHelmet()).thenReturn(null); // helmet free → vanilla would auto-equip
+        // inventory.getItem(..) defaults to null (every hotbar cell empty), so the head lands in the first, slot 0.
 
         guard.onClick(event);
 
-        verify(event).setCancelled(true);
+        verify(event).setCancelled(true);                          // the vanilla helmet auto-equip is suppressed …
+        verify(inventory).setItem(eq(0), any(ItemStack.class));    // … and the head is redirected into the hotbar …
+        verify(inventory).setItem(9, null);                        // … cleared from its storage source …
+        verify(inventory, never()).setHelmet(any(ItemStack.class)); // … and never placed in the helmet.
+    }
+
+    @Test
+    void shiftClickOfAHeadFromTheCraftingGridIsLeftToVanilla() {
+        InventoryClickEvent event = click();
+        InventoryView view = mock(InventoryView.class);
+        when(event.getSlotType()).thenReturn(InventoryType.SlotType.CRAFTING); // a grid cell moves safely to the inv …
+        when(event.getAction()).thenReturn(InventoryAction.MOVE_TO_OTHER_INVENTORY);
+        when(event.getView()).thenReturn(view);
+        when(view.getType()).thenReturn(InventoryType.CRAFTING);
+        when(event.getCurrentItem()).thenReturn(headItem);
+        when(inventory.getHelmet()).thenReturn(null);
+
+        guard.onClick(event);
+
+        verify(event, never()).setCancelled(anyBoolean()); // … vanilla never equips a head to the helmet from the grid
+    }
+
+    @Test
+    void targetRangeRoutesHotbarToStorageAndStorageToHotbar() {
+        assertArrayEquals(new int[] {9, 36}, HeadEquipGuard.targetRange(0));  // a hotbar cell → storage
+        assertArrayEquals(new int[] {9, 36}, HeadEquipGuard.targetRange(8));
+        assertArrayEquals(new int[] {0, 9}, HeadEquipGuard.targetRange(9));   // a storage cell → the hotbar
+        assertArrayEquals(new int[] {0, 9}, HeadEquipGuard.targetRange(35));
+        assertNull(HeadEquipGuard.targetRange(-1));
+        assertNull(HeadEquipGuard.targetRange(36)); // armour / offhand / out of range — no redirect
     }
 
     @Test

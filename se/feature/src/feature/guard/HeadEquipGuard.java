@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 /**
  * Denies equipping an SE cosmetic HEAD item (a mask or a pet — ADR-0052/0053, both {@code PLAYER_HEAD}s) into
@@ -39,6 +40,11 @@ public final class HeadEquipGuard implements Listener {
      *  result, 1-4=craft grid, 5=helmet, 6-8=other armour, 9+=inventory). */
     private static final int HELMET_RAW_SLOT = 5;
 
+    /** {@code PlayerInventory} index bounds (vanilla-stable 1.8.9 → 26.x): hotbar is 0-8, storage is 9-35 — the two
+     *  sections a shift-click moves a head between. */
+    private static final int HOTBAR_SIZE = 9;
+    private static final int STORAGE_END = 36;
+
     private final Predicate<ItemStack> isHeadItem; // null/AIR-safe (wrapped at the composition root)
 
     public HeadEquipGuard(Predicate<ItemStack> isHeadItem) {
@@ -63,16 +69,90 @@ public final class HeadEquipGuard implements Listener {
                 return;
             }
         }
-        // (2) Shift-click auto-equip: ONLY in the player's own inventory screen (a container open routes shift-click
-        // to the container instead), ONLY when the clicked head is NOT the armour slot's own content (that is an
-        // UNEQUIP — keep it allowed) and the helmet slot is free (else vanilla could not equip it anyway).
+        // (2) Shift-click of a head in the player's own inventory. Vanilla would auto-equip it to an empty helmet
+        // FIRST, and only THEN fall through to a hotbar<->storage move — so a blanket cancel to stop the equip also
+        // kills the legitimate move (the reported bug: a head could not be shift-clicked into the hotbar). Instead,
+        // suppress vanilla and REDIRECT the head into its other storage/hotbar section, never the helmet.
+        //
+        // Vanilla only tries the helmet from a source it treats as loose inventory — storage, hotbar, or off-hand;
+        // a CRAFTING-grid / RESULT shift-click already moves the head to the inventory (never the helmet) and an
+        // ARMOR-slot one is an UNEQUIP, so both are left to vanilla. The redirect then runs only when the source is
+        // a real storage/hotbar cell ({@link #targetRange} non-null — this also disambiguates a hotbar index 0-8
+        // from a crafting-grid index of the same number, which the excluded CRAFTING type already screens out);
+        // an off-hand head is still blocked from the helmet but not moved (a niche source). Gated to the player's
+        // OWN inventory screen (a container open routes shift-click to the container) and a free helmet (a full one
+        // means vanilla already skips the helmet and moves the head correctly, so leave it untouched).
+        InventoryType.SlotType from = event.getSlotType();
+        boolean vanillaMightEquip = from != InventoryType.SlotType.ARMOR
+                && from != InventoryType.SlotType.CRAFTING
+                && from != InventoryType.SlotType.RESULT;
         if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                && event.getSlotType() != InventoryType.SlotType.ARMOR
+                && vanillaMightEquip
                 && event.getView().getType() == InventoryType.CRAFTING
                 && isHeadItem.test(event.getCurrentItem())
                 && isEmpty(player.getInventory().getHelmet())) {
-            event.setCancelled(true);
+            event.setCancelled(true); // block the vanilla helmet auto-equip …
+            redirectToOtherSection(player, event.getSlot(), event.getCurrentItem()); // … then move it where it belongs
         }
+    }
+
+    // Reproduce vanilla's shift-click destination MINUS the helmet: a head in the hotbar (player-inventory index
+    // 0-8) moves into storage (9-35) and one in storage moves into the hotbar — merging into compatible partial
+    // stacks first, then filling empties, exactly as vanilla's own quick-move does. A head only ever fits the
+    // helmet among the armour cells, so skipping the helmet is the whole of the fix; every other slot vanilla
+    // would have chosen is a storage/hotbar cell, which this reproduces. {@code getItem}/{@code setItem} on the
+    // player-inventory index and {@code updateInventory} are floor-stable (1.8.9 → 26.x). Called on the clicking
+    // player's region thread (the event thread), editing only that player's own inventory — Folia-safe.
+    @SuppressWarnings("deprecation") // updateInventory: resync the client after the manual, event-cancelled move
+    private void redirectToOtherSection(Player player, int fromSlot, ItemStack head) {
+        int[] target = targetRange(fromSlot);
+        if (target == null) {
+            return; // not a storage/hotbar cell (e.g. the off-hand): the equip is already cancelled — leave it put
+        }
+        int targetStart = target[0];
+        int targetEnd = target[1]; // half-open [start, end)
+        PlayerInventory inv = player.getInventory();
+        ItemStack moving = head.clone();
+        for (int i = targetStart; i < targetEnd && moving.getAmount() > 0; i++) { // merge into partial stacks
+            ItemStack slot = inv.getItem(i);
+            if (slot == null || slot.getType() == Material.AIR || !slot.isSimilar(moving)) {
+                continue;
+            }
+            int room = slot.getMaxStackSize() - slot.getAmount();
+            if (room <= 0) {
+                continue;
+            }
+            int transfer = Math.min(room, moving.getAmount());
+            slot.setAmount(slot.getAmount() + transfer);
+            inv.setItem(i, slot);
+            moving.setAmount(moving.getAmount() - transfer);
+        }
+        for (int i = targetStart; i < targetEnd && moving.getAmount() > 0; i++) { // then fill empty cells
+            if (isEmpty(inv.getItem(i))) {
+                inv.setItem(i, moving.clone());
+                moving.setAmount(0);
+            }
+        }
+        if (moving.getAmount() == head.getAmount()) {
+            return; // the target section was full — nothing moved; the cancelled event leaves the head in place
+        }
+        inv.setItem(fromSlot, moving.getAmount() > 0 ? moving : null); // write back only what did not fit
+        player.updateInventory();
+    }
+
+    /**
+     * The other-section destination for a shift-click of a {@code PlayerInventory}-indexed source cell: a hotbar
+     * cell (0-8) targets storage {@code [9,36)}, a storage cell (9-35) targets the hotbar {@code [0,9)}. Returns
+     * {@code null} for any other index. Pure — the routing that makes a head shift-click land in the hotbar.
+     */
+    static int[] targetRange(int fromSlot) {
+        if (fromSlot >= 0 && fromSlot < HOTBAR_SIZE) {
+            return new int[] {HOTBAR_SIZE, STORAGE_END}; // hotbar → storage
+        }
+        if (fromSlot >= HOTBAR_SIZE && fromSlot < STORAGE_END) {
+            return new int[] {0, HOTBAR_SIZE}; // storage → hotbar
+        }
+        return null;
     }
 
     // A drag that paints a head onto the helmet cell. The player's armour slots are only reachable in their OWN
