@@ -4,6 +4,39 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.8.7-beta] — 2026-07-14
+
+### Fixed
+
+- **Taking a hit now breaks your rage combo (ADR-0058).** Rage is a combo you keep by NOT being hit, but the run
+  was only ever broken by your own actions (switching target or letting the combo window lapse) — taking a hit
+  did nothing, so you could ride a high rage combo straight through the blows you were trading. Any hit you take
+  now — from a player, a mob, or a projectile — resets your rage stacks to zero, and you rebuild from there.
+  (Environmental damage like fall/fire and engine-issued damage-over-time ticks do not count; only a real hit
+  from something does.)
+
+### Added
+
+- **A direct command for every player menu.** So players don't need the admin-gated `/se menu …`: `/enchants`
+  and `/enchanter` open the enchanter, `/pets`, `/masks`, `/tinkerer`, `/alchemist`, `/sets`, `/crystals`, and
+  `/catalogue` (the Enchant Catalogue) open their menus. All are permission-free (`starenchants.use`, default
+  true), like `/enchants` already was. These replace the old `/enchants`→hub launcher, so every bench and
+  browser the hub reached keeps a direct command; the hub itself remains at `/se menu hub`.
+
+## [1.8.6-beta] — 2026-07-14
+
+### Fixed
+
+- **Rage stacks now count only hits dealt WITH a rage weapon in the combo.** The stack count reused the shared
+  `%combo%` streak (every melee swing, any weapon), so drawing a rage weapon mid-combo instantly inherited the
+  stacks earned by plain-weapon hits. It now advances only on a rage-carrying hit, using the combo streak solely
+  as the new-combo signal.
+- **A mask/pet head can be shift-clicked into the hotbar again.** The helmet-slot guard cancelled the shift-click
+  outright to stop the auto-equip, but that also killed the legitimate hotbar↔storage move (the head could not
+  be shift-clicked into the hotbar at all). It now REDIRECTS the head into the other inventory section instead of
+  the helmet, so shift-click works everywhere except onto the head slot; the crafting grid, result, and off-hand
+  are left to vanilla.
+
 ## [1.8.5-beta] — 2026-07-12
 
 ### Fixed
