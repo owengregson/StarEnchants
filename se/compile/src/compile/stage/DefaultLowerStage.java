@@ -141,7 +141,8 @@ public final class DefaultLowerStage implements LowerStage {
                 def.repeatTicks(),
                 ability,
                 def.source(),
-                def.setPieces());
+                def.setPieces(),
+                def.suppressImmune());
     }
 
     /**

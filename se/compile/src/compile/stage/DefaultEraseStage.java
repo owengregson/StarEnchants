@@ -156,6 +156,7 @@ public final class DefaultEraseStage implements EraseStage {
                     cdScopeType,
                     suppressKey,
                     la.setPieces(),
+                    la.suppressImmune(),
                     FactMasks.of(la.condition(), effects)); // ADR-0039: only these slots get populated per hit
 
             abilities.add(ability);

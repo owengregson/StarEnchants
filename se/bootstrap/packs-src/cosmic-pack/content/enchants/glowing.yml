@@ -6,6 +6,7 @@ trigger: PASSIVE
 applies-to: [HELMET]
 group: "common"
 tier: common
+suppress-immune: true  # permanent worn buff — unsilenceable (Silence/Solitude/Perfect-Solitude can't disable THIS enchant; other enchants still get silenced)
 levels:
   1:
     effects:

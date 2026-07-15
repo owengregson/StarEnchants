@@ -23,6 +23,7 @@ package compile.model;
  * @param cdScopeType    interned cooldown-scope id (type scope), or {@code -1}
  * @param suppressKey    interned key (enchant id | group id | type) by which a {@code DISABLE_*} cancels this ability (§6.2), or {@code -1}
  * @param setPieces      for a {@link SourceKind#SET} bonus, the worn-piece count that completes the set (§6.6); {@code 0} for every non-set source
+ * @param suppressImmune when {@code true} this ability can never be suppressed (DISABLE_ENCHANT/GROUP/TYPE/KIND no-op against it), so a permanent buff survives Silence &amp; its derivatives while the wearer's OTHER enchants are still silenced (per-enchant {@code suppress-immune: true})
  * @param factMask       the {@code FactBuffer} slots this ability reads (ADR-0039), unioned per trigger in the {@code WornState} so the populator computes only referenced facts; {@link FactMask#ALL} for hand-built abilities (populate everything)
  */
 public record Ability(
@@ -44,6 +45,7 @@ public record Ability(
         int cdScopeType,
         int suppressKey,
         int setPieces,
+        boolean suppressImmune,
         FactMask factMask) {
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
@@ -53,7 +55,7 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, FactMask.ALL);
+                suppressKey, setPieces, false, FactMask.ALL);
     }
 
     public boolean firesOn(int triggerId) {

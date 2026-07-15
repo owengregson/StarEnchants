@@ -109,7 +109,7 @@ public final class ActivationPipeline {
         // 5. suppression — the per-activation set (legacy/role scratch) OR a per-player timed DISABLE_* across
         //    the three scopes (enchant/group/type), keyed identically to cooldowns. Split so the recorder knows
         //    which arm matched (transient vs timed), and the timed arm can name the suppressor.
-        if (act.suppression().contains(ability.suppressKey())) {
+        if (!ability.suppressImmune() && act.suppression().contains(ability.suppressKey())) {
             return record(GateOutcome.SUPPRESSED, ability, act,
                     WhyRing.packScope(0, 0, ability.suppressKey()), -1); // transient; id = suppress interner
         }

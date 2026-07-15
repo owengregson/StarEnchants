@@ -41,11 +41,23 @@ public record LoweredAbility(
         int repeatTicks,
         Affinity affinity,
         Source source,
-        int setPieces) {
+        int setPieces,
+        boolean suppressImmune) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+    }
+
+    /** Back-compat construction defaulting {@code suppressImmune=false} — most callers never set it. */
+    public LoweredAbility(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                          int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                          CompiledCondition condition, List<CompiledEffect> effects, String suppressKey,
+                          String cdScopeEnchant, String cdScopeGroup, String cdScopeType, int repeatTicks,
+                          Affinity affinity, Source source, int setPieces) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
+                source, setPieces, false);
     }
 }

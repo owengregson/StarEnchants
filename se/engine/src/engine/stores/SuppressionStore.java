@@ -253,6 +253,10 @@ public final class SuppressionStore implements RetainedStore {
      *  (ADR-0053 {@code scope: KIND}) — is under an active {@code DISABLE_*}: the ONE check gate 5 and the
      *  passive-potion driver share, so the gate-5 mirror cannot drift. */
     public boolean suppressesAny(Ability ability, UUID player, long nowTicks) {
+        if (ability.suppressImmune()) {
+            return false; // per-enchant immunity (suppress-immune: true) — Silence & derivatives no-op against it,
+                          // so a permanent buff survives while the wearer's OTHER enchants are still silenced.
+        }
         return scopeSuppressed(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)
                 || scopeSuppressed(ability.cdScopeGroup(), ScopeKinds.GROUP, player, nowTicks)
                 || scopeSuppressed(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks)
