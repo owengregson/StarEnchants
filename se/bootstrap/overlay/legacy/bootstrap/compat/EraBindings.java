@@ -219,6 +219,13 @@ public final class EraBindings implements EraServices {
         return NoopListener.INSTANCE;
     }
 
+    /** Masked-helmet break (ADR-0053): inert on 1.8 for now — the gear poll observes durability post-hoc, so a
+     *  break-salvage there is a follow-up (the modern lane carries the fix). */
+    @Override
+    public Listener maskBreakSource(CombatCodec codec, feature.mask.MaskBreakSalvage salvage) {
+        return NoopListener.INSTANCE;
+    }
+
     /** Vanilla-station guard (G06): the anvil is the only guarded station on 1.8 (no grindstone/smithing table). */
     @Override
     public Listener stationGuard(feature.guard.StationGuardRules rules) {

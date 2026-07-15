@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import engine.stores.WardStore;
 import feature.mask.InvseeGuard;
+import feature.mask.MaskBreakSalvage;
 import feature.mask.MaskIllusionListener;
 import feature.mask.MaskIllusionService;
 import feature.mask.MaskIllusionStore;
@@ -9,6 +10,7 @@ import feature.mask.MaskListener;
 import feature.mask.MaskProvocationStore;
 import feature.mask.MaskRemoveListener;
 import feature.mask.MaskService;
+import org.bukkit.event.Listener;
 import feature.mask.MobTargetGuard;
 import feature.mask.NearGuard;
 import feature.mask.SplashHealGuard;
@@ -41,6 +43,7 @@ final class MasksModule {
     private final MaskIllusionService illusion;
     private final MaskListener applyListener;
     private final MaskRemoveListener removeListener;
+    private final Listener breakListener; // era seam: modern PlayerItemDamageEvent break-salvage, inert on 1.8
     private final MaskIllusionListener illusionListener;
     private final MobTargetGuard mobTargetGuard;
     private final InvseeGuard invseeGuard;
@@ -56,6 +59,11 @@ final class MasksModule {
                 core.bindings().headEquip(), core.messages());
         this.applyListener = new MaskListener(masks, core.messages(), core.sounds());
         this.removeListener = new MaskRemoveListener(masks, core.codec(), core.messages(), core.sounds(), enabled);
+        // A spent masked helmet breaks whole (like vanilla) and pops the mask back off intact, into the wearer's
+        // inventory or dropped — never destroyed with the helmet (ADR-0053 follow-up). The break is era-detected:
+        // modern PlayerItemDamageEvent, 1.8 inert for now. The listener is always-on like the guard family: a
+        // lingering masked helmet still yields its mask on break even with masks toggled off.
+        this.breakListener = core.bindings().maskBreakSource(core.codec(), new MaskBreakSalvage(core.codec(), masks::mint));
 
         // The worn illusion (ADR-0053 §5): snapshot-out, recipient-thread-in. It re-derives on the SAME player-thread
         // refresh that re-resolves worn state — refresh() runs on the player's own region thread, exactly
@@ -87,6 +95,7 @@ final class MasksModule {
         BooleanSupplier enabled = enabled();
         return FeatureModule.named("masks")
                 .toggle(Toggle.live("features.masks", enabled))
+                .events(breakListener)
                 .events(applyListener)
                 .events(removeListener)
                 .events(illusionListener)

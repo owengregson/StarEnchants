@@ -17,6 +17,7 @@ import tester.suite.CatalogSuite;
 import tester.suite.CombatFlagsSuite;
 import tester.suite.CombatSuite;
 import tester.suite.DeathRaceSuite;
+import tester.suite.MaskBreakSuite;
 import tester.suite.ConditionSuite;
 import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
@@ -32,6 +33,7 @@ import tester.suite.HeadEquipSuite;
 import tester.suite.HeroicApplySuite;
 import tester.suite.HeroicVanillaStatsSuite;
 import tester.suite.HeroicSuite;
+import tester.suite.ReHitOnceSuite;
 import tester.suite.ImportSuite;
 import tester.suite.ItemCodecSuite;
 import tester.suite.ItemViewSuite;
@@ -114,10 +116,12 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new GuiSuite(this)); // §K benches: input-slot lock, combine, salvage, close-return
         harness.add(new ApplyGestureSuite(this)); // ADR-0041: shared gesture base commits/ignores real clicks
         harness.add(new CrystalSuite(this));
+        harness.add(new MaskBreakSuite(this)); // ADR-0053: a worn masked helmet breaks at zero durability, popping the mask off
         harness.add(new MaxHealthSuite(this));
         harness.add(new OverhealthDrainSuite(this)); // ADR-0057: drainMaxHealth takes modifier overhealth; potionLock denies re-apply
         harness.add(new SetSuite(this));
         harness.add(new HeroicSuite(this));
+        harness.add(new ReHitOnceSuite(this)); // §3.7 SE combat procs once per hit — an i-frame re-hit is not re-processed
         harness.add(new HeroicApplySuite(this)); // §F: success/fail/consume + armour-weapon guard
         harness.add(new HeroicVanillaStatsSuite()); // §F/ADR-0031/0032: real vanilla armour+weapon attrs, marker, visible tooltip
         harness.add(new SoulSuite(this));

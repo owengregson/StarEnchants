@@ -210,6 +210,13 @@ public final class EraBindings implements EraServices {
         return new HeroicDurabilityListener(codec, rolls);
     }
 
+    /** Masked-helmet break (ADR-0053): modern {@code PlayerItemDamageEvent} listener that breaks a spent masked
+     *  helmet at zero durability and pops the mask off (1.8 an inert listener — a gear-poll follow-up). */
+    @Override
+    public Listener maskBreakSource(CombatCodec codec, feature.mask.MaskBreakSalvage salvage) {
+        return new feature.mask.MaskDurabilityBreakListener(codec, salvage);
+    }
+
     /** Vanilla-station guard (G04/G05/G06): modern smithing/grindstone/anvil prepare-event guard on set gear. */
     @Override
     public Listener stationGuard(feature.guard.StationGuardRules rules) {

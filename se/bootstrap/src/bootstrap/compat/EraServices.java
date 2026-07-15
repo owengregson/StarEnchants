@@ -11,6 +11,7 @@ import feature.compat.Projectiles;
 import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import feature.heroic.VanillaStats;
+import feature.mask.MaskBreakSalvage;
 import feature.scroll.AnvilRename;
 import feature.trigger.TriggerDispatch;
 import item.codec.CombatCodec;
@@ -107,6 +108,10 @@ public interface EraServices {
 
     /** §F heroic durability save (modern per-event cancel; 1.8 an inert listener — the poll restores post-hoc). */
     Listener heroicDurabilitySave(CombatCodec codec, Random rolls);
+
+    /** Masked-helmet break (ADR-0053): modern {@code PlayerItemDamageEvent} listener that breaks a spent masked
+     *  helmet and pops the mask off; 1.8 an inert listener (a follow-up for the gear poll). */
+    Listener maskBreakSource(CombatCodec codec, MaskBreakSalvage salvage);
 
     /** Vanilla-station guard (G04/G05/G06): modern smithing/grindstone/anvil prepare-event guard; 1.8 the
      *  anvil-click twin (the only station that exists there). */
