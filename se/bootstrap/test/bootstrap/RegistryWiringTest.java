@@ -55,6 +55,8 @@ class RegistryWiringTest {
 
     static final class HeroicDurabilitySave implements Listener { }
 
+    static final class MaskBreakSource implements Listener { }
+
     static final class StationGuard implements Listener { }
 
     static final class DispenseArmorGuard implements Listener { }
@@ -74,7 +76,7 @@ class RegistryWiringTest {
             "HeroicListener", "HeroicDurabilitySave",
             "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
             "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener", "PetSummonListener",
-            "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
+            "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
             "NearGuard", "SplashHealGuard",
             "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener", "ShotWeapons",
             "MenuListener", "GodlyTransmogListener");
@@ -126,6 +128,7 @@ class RegistryWiringTest {
         when(bindings.potionLockGuard()).thenReturn(new PotionLockGuard());
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
         when(bindings.heroicDurabilitySave(any(), any())).thenReturn(new HeroicDurabilitySave());
+        when(bindings.maskBreakSource(any(), any())).thenReturn(new MaskBreakSource());
         when(bindings.stationGuard(any())).thenReturn(new StationGuard());
         when(bindings.dispenseArmorGuard(any())).thenReturn(new DispenseArmorGuard()); // 1.8.4 dispenser head-equip guard
 
