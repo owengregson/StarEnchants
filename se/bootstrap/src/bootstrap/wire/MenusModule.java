@@ -51,14 +51,33 @@ final class MenusModule {
             b.events(new GodlyTransmogListener(scrolls.scrolls, scrolls.transmogMenu, core.codec(),
                     core.messages(), core.sounds()));
         }
-        return b.command(DynCommand.always("enchants",
-                        () -> new UserMenuCommand("enchants", registry, core.messages()),
-                        "could not register /enchants (use /se menu hub instead)"))
-                .menu(10, userHub)
+        // Player-facing menu shortcuts (ADR-0030): each opens one bench/browser directly, since /se is admin-gated
+        // and a normal player otherwise has no way in. /enchants and /enchanter both open the enchanter bench;
+        // /catalogue opens the read-only "enchants" Enchant Catalogue (its natural name is taken by the bench); the
+        // rest share their menu name. Retiring the /enchants→hub launcher, /crystals + /catalogue keep the hub's
+        // Crystals browser + Catalogue reachable. Registered dynamically like /splitsouls; the target resolves at
+        // execute time, so a shortcut whose family is disabled reports gracefully rather than failing to register.
+        b.command(menuCommand("enchants", "enchanter"))
+                .command(menuCommand("enchanter", "enchanter"))
+                .command(menuCommand("pets", "pets"))
+                .command(menuCommand("masks", "masks"))
+                .command(menuCommand("tinkerer", "tinkerer"))
+                .command(menuCommand("alchemist", "alchemist"))
+                .command(menuCommand("sets", "sets"))
+                .command(menuCommand("crystals", "crystals"))
+                .command(menuCommand("catalogue", "enchants"));
+        return b.menu(10, userHub)
                 .menu(20, operatorConsole)
                 .menu(30, mintMenu)
                 .menu(80, referenceBrowser)
                 .lang("command")
                 .build();
+    }
+
+    /** A {@code /label} shortcut that opens the registry menu {@code menuName} for a {@code starenchants.use} player. */
+    private DynCommand menuCommand(String label, String menuName) {
+        return DynCommand.always(label,
+                () -> new UserMenuCommand(label, menuName, registry, core.messages()),
+                "could not register /" + label + " (use /se menu " + menuName + " instead)");
     }
 }
