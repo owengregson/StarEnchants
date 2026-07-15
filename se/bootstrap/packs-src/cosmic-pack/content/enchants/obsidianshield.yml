@@ -7,6 +7,7 @@ trigger: PASSIVE
 applies-to: [ARMOR]
 group: "epic"
 tier: epic
+suppress-immune: true  # permanent worn buff — unsilenceable (Silence/Solitude/Perfect-Solitude can't disable THIS enchant; other enchants still get silenced)
 levels:
   1:
     effects:

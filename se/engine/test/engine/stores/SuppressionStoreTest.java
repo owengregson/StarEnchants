@@ -174,6 +174,17 @@ class SuppressionStoreTest {
     }
 
     @Test
+    void aSuppressImmuneAbilityIsNeverSuppressed() {
+        // suppress-immune: true (permanent buffs vs Silence & derivatives): the flagged enchant survives a DISABLE
+        // window that silences a same-group NORMAL enchant — the buff lives while OTHER enchants are still silenced.
+        store.suppress(p, CooldownStore.key(ScopeKinds.GROUP, 3), 0L, 200); // a Silence-style GROUP disable
+        assertTrue(store.suppressesAny(scoped(-1, 3, -1), p, 50L), "a normal group-3 enchant is silenced");
+        Ability immune = scoped(-1, 3, -1);
+        when(immune.suppressImmune()).thenReturn(true);
+        assertFalse(store.suppressesAny(immune, p, 50L), "but a suppress-immune group-3 enchant survives the same window");
+    }
+
+    @Test
     void blockedDetailReportsTheArmedScopeAndSuppressorDefId() {
         store.suppress(p, CooldownStore.key(ScopeKinds.GROUP, 3), 0L, 200, 42);
         long d = store.blockedDetail(scoped(-1, 3, -1), p, 50L);

@@ -24,7 +24,7 @@ final class EnchantDefReader {
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
             "repeat", "levels", "chance", "cooldown", "soul-cost", "condition",
-            "requires", "blacklist", "removes-required");
+            "requires", "blacklist", "removes-required", "suppress-immune");
     private static final Set<String> LEVEL_KEYS = Set.of(
             "chance", "cooldown", "soul-cost", "condition", "effects");
 
@@ -72,6 +72,9 @@ final class EnchantDefReader {
                     root.sourceOf("removes-required"));
         }
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
+        // Per-enchant suppression immunity (Silence & derivatives): when true, THIS enchant's abilities can never
+        // be disabled, so a permanent buff survives while the wearer's other enchants are still silenced.
+        boolean suppressImmune = "true".equalsIgnoreCase(root.string("suppress-immune"));
 
         Map<Integer, YamlNode> levelNodes = new LinkedHashMap<>();
         for (YamlNode.Entry entry : root.entries("levels")) {
@@ -126,7 +129,8 @@ final class EnchantDefReader {
                     null,
                     repeatTicks,
                     lvl != null ? lvl.source() : fileSource,
-                    0));
+                    0,
+                    suppressImmune));
         }
 
         EnchantDef def = new EnchantDef(baseKey, display, description == null ? "" : description,

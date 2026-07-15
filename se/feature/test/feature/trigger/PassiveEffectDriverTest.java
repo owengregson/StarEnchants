@@ -87,6 +87,24 @@ class PassiveEffectDriverTest {
     }
 
     @Test
+    void aSuppressImmunePassiveSurvivesSuppression() {
+        // suppress-immune: true (Overload/Godly-Overload etc. vs Silence & derivatives): the flagged buff's potion
+        // is maintained even under an active DISABLE window on its own scope. The wearer's OTHER enchants are still
+        // silenced — that is the contrast pinned by aSuppressedAbilityContributesNothingButIsForceCleared above.
+        Ability immune = potionAbility(SPEED, 2, 7); // enchant scope 7
+        when(immune.suppressImmune()).thenReturn(true);
+        Snapshot snapshot = snapshot(immune);
+        SuppressionStore suppression = new SuppressionStore();
+        UUID player = UUID.randomUUID();
+        suppression.suppress(player, CooldownStore.key(SCOPE_ENCHANT, 7), 0L, 200); // Silence disables scope 7
+
+        PassiveEffectDriver.Desired during = PassiveEffectDriver.computeDesired(
+                worn(passive(0)), snapshot, suppression, player, 50L, HELD, PASSIVE);
+        assertEquals(Map.of(SPEED, 1), during.apply(), "a suppress-immune passive survives Silence"); // level 2 → amp 1
+        assertTrue(during.suppressed().isEmpty(), "and is never force-cleared");
+    }
+
+    @Test
     void aKindSuppressedAbilityIsDroppedByTheSameMirror() {
         // ADR-0053 SUPPRESS scope KIND (Chef silencing MODIFY_FOOD-likes): the driver shares gate 5's
         // suppressesAny seam, so a KIND window must also stop a maintained passive of that effect kind.

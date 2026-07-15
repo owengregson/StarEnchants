@@ -43,11 +43,22 @@ public record AbilityDef(
         String cdScopeType,
         int repeatTicks,
         Source source,
-        int setPieces) {
+        int setPieces,
+        boolean suppressImmune) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+    }
+
+    /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
+    public AbilityDef(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                      int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                      String conditionExpr, List<EffectLine> effects, String suppressKey, String cdScopeEnchant,
+                      String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
+                source, setPieces, false);
     }
 }

@@ -44,6 +44,7 @@ public final class Abilities {
         private int cdScopeType = -1;
         private int suppressKey = -1;
         private int setPieces = 0;
+        private boolean suppressImmune = false;
         private FactMask factMask = FactMask.ALL;
 
         public Builder id(int id) {
@@ -134,6 +135,11 @@ public final class Abilities {
             return this;
         }
 
+        public Builder suppressImmune(boolean suppressImmune) {
+            this.suppressImmune = suppressImmune;
+            return this;
+        }
+
         public Builder factMask(FactMask factMask) {
             this.factMask = factMask;
             return this;
@@ -142,7 +148,7 @@ public final class Abilities {
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, suppressKey, setPieces, factMask);
+                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask);
         }
     }
 }
