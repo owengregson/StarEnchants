@@ -11,9 +11,11 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 /**
  * Feeds each direct melee hit to {@link RageStacksService} (§3). {@code MONITOR} + {@code ignoreCancelled} so it
- * runs AFTER {@link CombatDispatch} has advanced the combo streak (HIGH) and only for a hit that landed. Only a
- * DIRECT player damager is handled: rage is a melee ATTACK enchant, so the attacker is co-located with the victim
- * and the attacker-directed fx are in-region on the firing thread (Folia) — a projectile hit carries no rage.
+ * runs AFTER {@link CombatDispatch} has advanced the combo streak (HIGH) and only for a hit that landed. Two sides
+ * of one event: a DIRECT player damager BUILDS that attacker's run ({@link RageStacksService#onHit} — the
+ * attacker is co-located with the victim, so the attacker-directed fx are in-region); a player VICTIM BREAKS its
+ * own run ({@link RageStacksService#onHitTaken} — from any damager, since rage is a combo kept by not being hit,
+ * ADR-0058). A projectile hit carries no rage on the attack side but still breaks the victim's run.
  */
 public final class RageStacksListener implements Listener {
 
@@ -32,9 +34,12 @@ public final class RageStacksListener implements Listener {
         if (!(victim instanceof LivingEntity)) {
             return;
         }
-        if (!(event.getDamager() instanceof Player attacker) || attacker == victim) {
-            return; // not a direct player melee (or self-inflicted) — no rage stacks
+        boolean selfInflicted = event.getDamager() == victim;
+        if (event.getDamager() instanceof Player attacker && !selfInflicted) {
+            service.onHit(attacker); // attack side: build/advance the attacker's run
         }
-        service.onHit(attacker);
+        if (victim instanceof Player defender && !selfInflicted) {
+            service.onHitTaken(defender); // defense side: taking a hit breaks the victim's own run
+        }
     }
 }
