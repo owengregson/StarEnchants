@@ -18,19 +18,20 @@ import platform.text.Colors;
  * A stack counts ONE hit dealt WITH a rage weapon in the current combo: only a rage-carrying hit advances the
  * count (capped at the rage level, so a level-N rage tops out at N), a hit with a non-rage weapon leaves it
  * untouched, and a new combo reseeds it. Stacks drive a rising {@link Titles#sendActionBar action bar} + a
- * {@code BLAZE_HURT} cue whose pitch climbs with the stack. A combo that breaks (a victim switch, or the window
- * elapsing) flashes a {@code BROKEN} action bar + a {@code BLAZE_DEATH} cue. The stacks live in the shared
- * {@link RageStackStore}, which also sources the {@code %ragestacks%} fact the rage DAMAGE_MOD reads (so the audio
- * ladder and the damage scale share one number).
+ * {@code BLAZE_HURT} cue whose pitch climbs with the stack. Rage is a combo you keep by NOT being hit: the run
+ * breaks — flashing a {@code BROKEN} action bar + a {@code BLAZE_DEATH} cue, stacks to zero — on a victim switch,
+ * the window elapsing, OR the holder TAKING a hit from anyone ({@link #onHitTaken}, ADR-0058). The stacks live in
+ * the shared {@link RageStackStore}, which also sources the {@code %ragestacks%} fact the rage DAMAGE_MOD reads
+ * (so the audio ladder and the damage scale share one number).
  *
  * <p>The count is rage-specific by design — it does NOT reuse the shared {@code %combo%} streak, which counts
  * every melee swing regardless of the weapon. Reusing it let stacks jump to the full combo length the instant a
  * rage weapon was drawn mid-combo (hits landed with a plain weapon counted). The shared streak is still read, but
  * only as the combo-lifecycle signal (a value of {@code 1} means this hit opened a new combo → reseed).
  *
- * <p>Threading: the listener calls {@link #onHit} on the firing region thread (the attacker's own region for a
- * melee hit), so the attacker-directed cue/title/action-bar are in-region — no hop. Only the delayed expiry probe
- * hops, via {@link Scheduling#onEntityLater} on the attacker.
+ * <p>Threading: the listener calls {@link #onHit}/{@link #onHitTaken} on the firing region thread (the parties are
+ * co-located for a melee/projectile hit), so the holder-directed cue/title/action-bar are in-region — no hop. Only
+ * the delayed expiry probe hops, via {@link Scheduling#onEntityLater} on the holder.
  */
 public final class RageStacksService {
 
@@ -96,13 +97,31 @@ public final class RageStacksService {
         armExpiryProbe(attacker, now);
     }
 
+    /**
+     * Register that {@code holder} TOOK a hit (from anyone — melee or projectile, player or mob). Rage is a combo
+     * kept by NOT being hit, so any hit taken BREAKS the run: the stacks reset to zero (ADR-0058). A meaningful run
+     * (more than one stack) flashes the BROKEN cue; a lone stack drops silently. A no-op unless the holder has a
+     * live run. Called on the holder's region thread (they are the damaged entity for this event).
+     */
+    public void onHitTaken(Player holder) {
+        int prev = store.current(holder.getUniqueId());
+        if (prev <= 0) {
+            return; // no live run — the common "took a hit" case has nothing to break
+        }
+        if (prev > 1) {
+            breakFx(holder); // a real combo dropped → BROKEN cue + zero
+        } else {
+            store.set(holder.getUniqueId(), 0, nowTicks.getAsLong()); // a lone stack drops without the cue
+        }
+    }
+
     /** The rising stack cue + action bar (played every qualifying hit). Attacker's region thread. */
     private void stackFx(Player player, int stacks) {
         sounds.play(player, player.getLocation(), STACK_SOUND, STACK_VOLUME, pitch(stacks));
         Titles.sendActionBar(player, Colors.translate(messages.fragment("rage.stacks-actionbar", "STACKS", stacks)));
     }
 
-    /** The combo-broken cue + action bar, then zero the stored stacks. Attacker's region thread. */
+    /** The combo-broken cue + action bar, then zero the stored stacks. The holder's region thread. */
     private void breakFx(Player player) {
         sounds.play(player, player.getLocation(), BREAK_SOUND, BREAK_VOLUME, BREAK_PITCH);
         Titles.sendActionBar(player, Colors.translate(messages.fragment("rage.stacks-broken-actionbar")));
