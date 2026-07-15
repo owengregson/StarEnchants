@@ -168,6 +168,15 @@ public final class CombatDispatch {
                         && dp.getUniqueId().equals(vp.getUniqueId()))) {
             return;
         }
+        // §3.7 Proc SE combat EXACTLY ONCE per hit. When a stronger blow lands inside the victim's
+        // invulnerability window — vanilla's "damage the difference" (a crit upgrading the same swing, a faster
+        // weapon, a second attacker) — Bukkit fires a SECOND EntityDamageByEntityEvent for the SAME hit; without
+        // this guard the enchant walk, its sounds, and the damage fold would all run again (the double-sound the
+        // owner reported). The fresh hit that opened the window (i-frames <= half the max) does the SE work; a
+        // re-hit while still inside it (i-frames > half) is that same hit continuing, so leave it to vanilla.
+        if (victim != null && victim.getNoDamageTicks() > victim.getMaximumNoDamageTicks() / 2) {
+            return;
+        }
         Location at = victimEntity.getLocation();
         // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();
