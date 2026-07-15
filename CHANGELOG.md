@@ -4,6 +4,27 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.8.8-beta] — 2026-07-15
+
+### Fixed
+
+- **Masks break with the helmet, and the mask pops off.** A mask worn on a helmet used to leave the spent helmet
+  stuck at zero durability with the mask on it. Now a masked helmet breaks like any helmet when its durability
+  runs out, and the mask pops back off intact into your inventory — or drops at your feet if it's full. Heroic
+  helmets keep their durability protection; both normal and Heroic helmets break at zero. (Modern servers; the
+  1.8.9 lane is a follow-up.)
+
+- **Enchant sounds no longer double-play on crits.** When a hit is "upgraded" inside the target's invulnerability
+  window — a critical hit on the same swing, or a faster weapon landing again — the game fires a second damage
+  event for that same hit, and enchants (and their sounds) were proccing twice. Enchants and sounds now fire
+  exactly once per hit.
+
+- **Silence no longer disables permanent potion buffs.** Silence and its derivatives (Solitude, Perfect
+  Solitude) disable a target's enchants briefly, but this also stripped their permanent while-worn buffs — e.g.
+  Overload's max-health could drop mid-fight and kill them. The permanent-buff enchants (Overload, Godly
+  Overload, Springs, Aquatic, Glowing, Obsidian Shield, Gears) are now immune to being silenced via a per-enchant
+  `suppress-immune` flag; the target's OTHER enchants are still silenced normally.
+
 ## [1.8.7-beta] — 2026-07-14
 
 ### Fixed
