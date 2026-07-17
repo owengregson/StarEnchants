@@ -85,7 +85,7 @@ class RegistryWiringTest {
             "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives",   // equip
             "soul aura task",                                                 // souls
             "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
-            "pet summon registry", "bat swarms", "pet armed windows",       // pets (ADR-0052, ADR-0060)
+            "pet summon registry", "bat swarms", "pet armed windows", "pet home windows", // pets (0052/0059/0060/0061)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
             "bStats");                                                        // coreStops
 
@@ -354,8 +354,9 @@ class RegistryWiringTest {
         for (FeatureModule module : modules.registry()) {
             declared.addAll(module.playerStores());
         }
-        // souls (soul-total cache) + pets (armed windows + sweep fingerprints, ADR-0052) + masks (illusion cache
-        // + provocations, ADR-0053) + scrolls (kept items + nametag captures) = 7 module-owned stores swept on quit.
-        assertEquals(7, declared.size());
+        // souls (soul-total cache) + pets (armed windows + dig homes + sweep fingerprints, ADR-0052/0061) + masks
+        // (illusion cache + provocations, ADR-0053) + scrolls (kept items + nametag captures) = 8 module-owned
+        // stores swept on quit.
+        assertEquals(8, declared.size());
     }
 }
