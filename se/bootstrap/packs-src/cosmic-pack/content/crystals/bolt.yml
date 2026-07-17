@@ -1,0 +1,14 @@
+# Bolt — a cosmic Armor Crystal (ADR-0063). A worn PASSIVE LIGHTNING_MOD channel: while worn, the wearer's
+# LIGHTNING procs (thundering blow, thor's storm — any authored bolt payload) deal +10% authored damage,
+# read suppression-aware at bolt emit, so Silence mutes it live. Cosmetic damage:0 bolts stay cosmetic and
+# the vanilla strike splash is untouched. Stackable: worn/merged copies sum (+10% each).
+display: "{#5eb3f6}&lBolt"
+description:
+  - "{#5eb3f6}&lBOLT CRYSTAL BONUS"
+  - "{#5eb3f6}* Outgoing lightning strikes deal 10% more damage to all enemies"
+  - "{#5eb3f6}* Bolt Crystal is stackable"
+tier: rare
+applies-to: [ARMOR]
+stackable: true
+abilities:
+  - { trigger: PASSIVE, effects: [ { LIGHTNING_MOD: { amount: 10 } } ] }

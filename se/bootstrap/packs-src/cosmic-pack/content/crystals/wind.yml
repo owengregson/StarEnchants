@@ -1,0 +1,13 @@
+# Wind — a cosmic Armor Crystal (ADR-0063). On ATTACK it adds +1% to the additive outgoing-damage fold
+# (ADR-0012); crystals stay percent under the flat-forward economy (ADR-0050 R3 — flat is enchant content).
+# Stackable: each worn/merged copy is its own +1% walk entry, so N copies sum to +N%.
+display: "{#e9ecec}&lWind"
+description:
+  - "{#e9ecec}&lWIND CRYSTAL BONUS"
+  - "{#e9ecec}* Deal 1% more damage to all enemies"
+  - "{#e9ecec}* Wind Crystal is stackable"
+tier: rare
+applies-to: [ARMOR]
+stackable: true
+abilities:
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 1 } } ] }
