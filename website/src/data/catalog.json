@@ -2566,6 +2566,88 @@
       ]
     },
   {
+    "head": "SPAWN_SWARM",
+    "doc": "Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute).",
+    "affinity": "REGION",
+    "usage": "{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1> } }",
+    "example": "{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }",
+    "params": [
+      {
+        "name": "type",
+        "kind": "HANDLE",
+        "label": "entity_type",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "ENTITY_TYPE",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "radius",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "rise",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1.2",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "300",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[0..1]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": 1,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "STRIP_SCROLL",
     "doc": "Remove one protection scroll marker from a random protected piece of the target's worn armour (+ held item unless hand: false): scroll HOLY strips a Holy White Scroll, WHITE a White Scroll (its guard flag included). A target with no protected piece is a no-op. Rate-limit with the ability's chance gate (the Anubis per-hit percent).",
     "affinity": "TARGET_ENTITY",
@@ -3216,6 +3298,28 @@
         "selector": "SELF"
         }
       ]
+    },
+  {
+    "head": "WATER_SPEED",
+    "doc": "Underwater movement boost while worn (PASSIVE/HELD): efficiency feeds the vanilla water_movement_efficiency attribute through one reconciled plugin-owned modifier (1.21+ only; older servers and 1.8.9 keep everything else and skip the boost). 0.09 ~ +10%, 0.14 ~ +15%, 0.20 ~ +20%, 0.26 ~ +25% swim speed.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ WATER_SPEED: { efficiency: <double[0..1]> } }",
+    "example": "{ WATER_SPEED: { efficiency: 0.09 } }",
+    "params": [
+      {
+        "name": "efficiency",
+        "kind": "DOUBLE",
+        "label": "double[0..1]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": 1,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
     },
   {
     "head": "WEAKEN",

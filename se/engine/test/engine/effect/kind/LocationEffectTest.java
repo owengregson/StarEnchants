@@ -256,4 +256,39 @@ class LocationEffectTest {
                     verifyNoMoreInteractions(sink);
                 }));
     }
+
+    @TestFactory
+    List<DynamicTest> spawnSwarm() {
+        return List.of(
+                dynamicTest("SPAWN_SWARM → one ring intent at the actor-origin snapshot", () -> {
+                    Player self = mock(Player.class);
+                    Location origin = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 5).with("count", 12).with("radius", 0.5).with("rise", 1.2)
+                            .with("ttl", 300).with("speed", 0.5).actor(self).actorOrigin(origin);
+                    Sink sink = mock(Sink.class);
+                    new SpawnSwarmEffect().run(ctx, sink);
+                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5);
+                    verify(self, never()).getLocation(); // the snapshot is the sole actor read (ADR-0043)
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_SWARM with no origin → activation-location fallback", () -> {
+                    Location fallback = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 7).with("count", 3).with("radius", 1.0).with("rise", 1.2)
+                            .with("ttl", 60).with("speed", 1.0).location(fallback);
+                    Sink sink = mock(Sink.class);
+                    new SpawnSwarmEffect().run(ctx, sink);
+                    verify(sink).spawnSwarm(fallback, 7, 3, 1.0, 1.2, 60, 1.0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_SWARM with no origin and no location → no intent", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 7).with("count", 3).with("radius", 1.0).with("rise", 1.2)
+                            .with("ttl", 60).with("speed", 1.0);
+                    Sink sink = mock(Sink.class);
+                    new SpawnSwarmEffect().run(ctx, sink);
+                    verifyNoMoreInteractions(sink);
+                }));
+    }
 }

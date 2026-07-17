@@ -74,7 +74,8 @@ public final class Aliases {
             Map.entry("GENERIC_ARMOR_TOUGHNESS", "ARMOR_TOUGHNESS"),
             Map.entry("GENERIC_KNOCKBACK_RESISTANCE", "KNOCKBACK_RESISTANCE"),
             Map.entry("GENERIC_LUCK", "LUCK"),
-            Map.entry("HORSE_JUMP_STRENGTH", "JUMP_STRENGTH"));
+            Map.entry("HORSE_JUMP_STRENGTH", "JUMP_STRENGTH"),
+            Map.entry("GENERIC_WATER_MOVEMENT_EFFICIENCY", "WATER_MOVEMENT_EFFICIENCY"));
 
     // The 1.13 "sound flattening" renamed nearly every constant; these are the ones the shipped content
     // names. Key = the 1.8-era enum constant, value = the modern flattened name — so HandleResolver interns

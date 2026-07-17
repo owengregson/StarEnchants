@@ -680,6 +680,20 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 - _target_ `who`: selector `SELF`
 - _example_: `{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }`
 
+### SPAWN_SWARM
+
+Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute).
+
+- _affinity_: `REGION`
+- _usage_: `{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1> } }`
+- _param_ `type` `entity_type`
+- _param_ `count` `int[1..]`
+- _param_ `radius` `double[0..]`
+- _param_ `rise` `double[0..]`
+- _param_ `ttl` `ticks[0..]`
+- _param_ `speed` `double[0..1]`
+- _example_: `{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }`
+
 ### STRIP_SCROLL
 
 Remove one protection scroll marker from a random protected piece of the target's worn armour (+ held item unless hand: false): scroll HOLY strips a Holy White Scroll, WHITE a White Scroll (its guard flag included). A target with no protected piece is a no-op. Rate-limit with the ability's chance gate (the Anubis per-hit percent).
@@ -815,6 +829,15 @@ Ward the target player(s) with a typed guard flag for duration ticks: mob-target
 - _param_ `amount` `double`
 - _target_ `who`: selector `SELF`
 - _example_: `{ WARD: { type: splash-heal, duration: 100, amount: 50 } }`
+
+### WATER_SPEED
+
+Underwater movement boost while worn (PASSIVE/HELD): efficiency feeds the vanilla water_movement_efficiency attribute through one reconciled plugin-owned modifier (1.21+ only; older servers and 1.8.9 keep everything else and skip the boost). 0.09 ~ +10%, 0.14 ~ +15%, 0.20 ~ +20%, 0.26 ~ +25% swim speed.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ WATER_SPEED: { efficiency: <double[0..1]> } }`
+- _param_ `efficiency` `double[0..1]`
+- _example_: `{ WATER_SPEED: { efficiency: 0.09 } }`
 
 ### WEAKEN
 

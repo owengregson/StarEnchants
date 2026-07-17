@@ -283,6 +283,12 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         }
     }
 
+    @Override
+    protected void setWornWaterSpeedModifier(Player player, double total) {
+        // 1.8 has no water-movement-efficiency attribute (swim accel is the flat 0.02F in
+        // EntityLiving.moveEntityWithHeading) — the ADR-0060 recorded degrade: no underwater speed boost.
+    }
+
     /** The entity's maximum health (attribute on 1.8 lives behind the Damageable accessor). */
     @Override
     @SuppressWarnings("deprecation") // getMaxHealth: the 1.8 accessor.
