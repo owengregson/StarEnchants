@@ -4,7 +4,7 @@ description:
   - "&eNegates an incoming hit and"
   - "&erestores health instead."
 # DEFENSE, not ATTACK: CANCEL negates the event the walk is running on — on the attack walk that
-# was the holder's OWN hit. Held-sword defense enchants are established (block, reflective-block).
+# was the holder's OWN hit. Held-sword defense enchants are established (block).
 trigger: DEFENSE
 applies-to: [SWORD]
 group: "legendary"
