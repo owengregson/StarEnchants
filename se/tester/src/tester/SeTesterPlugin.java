@@ -55,6 +55,8 @@ import tester.suite.RuntimeHandlesSuite;
 import tester.suite.SchedulingSuite;
 import tester.suite.ScrollPlayerSuite;
 import tester.suite.SinkSuite;
+import tester.suite.PetAbilitySuite;
+import tester.suite.PetHomeSuite;
 import tester.suite.WornResolverSuite;
 
 /**
@@ -130,6 +132,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new TriggerSuite(this));
         harness.add(new UseItemSuite(this)); // §3.6/ADR-0048: right-click use-item → shared pipeline (potions, consume, cooldown, commands)
         harness.add(new PetAbilitySuite(this)); // ADR-0060: pet FALL fold/cancel, kraken worn channels, SPAWN_SWARM ring+TTL
+        harness.add(new PetHomeSuite(this)); // ADR-0061: mole dig window → recall teleport / out-of-range / teleblock / expiry
         harness.add(new WhySuite(this)); // ADR-0045: record → decode under real region threading
         harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
         harness.add(new TeleportSuite(this));
