@@ -18,6 +18,7 @@ import tester.suite.CombatFlagsSuite;
 import tester.suite.CombatSuite;
 import tester.suite.DeathRaceSuite;
 import tester.suite.MaskBreakSuite;
+import tester.suite.MaskCanonSuite;
 import tester.suite.ConditionSuite;
 import tester.suite.ContentFormatSuite;
 import tester.suite.ContentLoaderSuite;
@@ -119,6 +120,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new ApplyGestureSuite(this)); // ADR-0041: shared gesture base commits/ignores real clicks
         harness.add(new CrystalSuite(this));
         harness.add(new MaskBreakSuite(this)); // ADR-0053: a worn masked helmet breaks at zero durability, popping the mask off
+        harness.add(new MaskCanonSuite(this)); // ADR-0064: illusion write-back denied; leaked heads undress to the real helmet
         harness.add(new MaxHealthSuite(this));
         harness.add(new OverhealthDrainSuite(this)); // ADR-0057: drainMaxHealth takes modifier overhealth; potionLock denies re-apply
         harness.add(new SetSuite(this));
