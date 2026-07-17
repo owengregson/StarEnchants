@@ -1,7 +1,9 @@
 package feature.guard;
 
+import item.codec.CombatState;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -68,5 +70,23 @@ public final class StationGuardRules {
         }
         boolean rightPresent = right != null && right.getType() != Material.AIR;
         return (isSetGear.test(left) && rightPresent) || isSetGear.test(right);
+    }
+
+    /**
+     * The composition-root gear predicate, broadened past set gear (the masked-helmet audit, ADR-0064): a
+     * piece carrying stacked plugin value — set membership, a mask, or crystals — must not be sacrificed or
+     * laundered through a vanilla station either. Plain custom-enchanted gear stays vanilla-flexible (the
+     * ratified G04-06 scope). Single-sourced here so the wiring and the live suite share one definition.
+     */
+    public static Predicate<ItemStack> pluginValueGear(Function<ItemStack, CombatState> combat) {
+        Objects.requireNonNull(combat, "combat");
+        return stack -> {
+            if (stack == null || stack.getType() == Material.AIR) {
+                return false;
+            }
+            CombatState state = combat.apply(stack);
+            return state.setKey() != null || state.setWeaponKey() != null
+                    || state.maskKey() != null || !state.crystals().isEmpty();
+        };
     }
 }

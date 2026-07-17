@@ -102,4 +102,28 @@ class StationGuardRulesTest {
         assertFalse(allOn().blockAnvil(PLAIN, BOOK));      // plain gear + book is off-limits to us
         assertFalse(rules(false, true, true).blockAnvil(SET_GEAR, BOOK));
     }
+
+    // ── pluginValueGear (ADR-0064): the composition-root predicate, single-sourced ────────────────
+
+    @Test
+    void pluginValueGearGuardsMaskCrystalsAndSetsButNotPlainEnchantedGear() {
+        java.util.Map<ItemStack, item.codec.CombatState> state = new java.util.IdentityHashMap<>();
+        ItemStack masked = item(Material.IRON_HELMET);
+        ItemStack crystalled = item(Material.IRON_CHESTPLATE);
+        ItemStack setPiece = item(Material.IRON_LEGGINGS);
+        ItemStack enchantedOnly = item(Material.IRON_BOOTS);
+        state.put(masked, new item.codec.CombatState(java.util.Map.of(), java.util.List.of(), null, null,
+                false, item.codec.HeroicStat.NONE, 0, "masks/blaze"));
+        state.put(crystalled, new item.codec.CombatState(java.util.Map.of(), java.util.List.of("crystals/dark")));
+        state.put(setPiece, new item.codec.CombatState(java.util.Map.of(), java.util.List.of(), "sets/x", false));
+        state.put(enchantedOnly, new item.codec.CombatState(java.util.Map.of("enchants/haste", 1), java.util.List.of()));
+        Predicate<ItemStack> gear =
+                StationGuardRules.pluginValueGear(s -> state.getOrDefault(s, item.codec.CombatState.EMPTY));
+
+        assertTrue(gear.test(masked));
+        assertTrue(gear.test(crystalled));
+        assertTrue(gear.test(setPiece));
+        assertFalse(gear.test(enchantedOnly)); // plain custom-enchant gear stays vanilla-flexible
+        assertFalse(gear.test(null));
+    }
 }

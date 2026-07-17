@@ -244,6 +244,10 @@ public final class ItemEnchanter {
         if (gear == null || gear.getType() == Material.AIR) {
             return ExtractResult.fail(messages.format("apply.hold-item"));
         }
+        if (gear.getAmount() > 1) {
+            // Symmetric with removeMask: one blob write on a stack would strip N crystals but mint back one.
+            return ExtractResult.fail(messages.format("crystal.single-item"));
+        }
         CombatState current = codec.read(gear);
         if (current.crystals().isEmpty()) {
             return ExtractResult.fail(messages.format("crystal.none"));
