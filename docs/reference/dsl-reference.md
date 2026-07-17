@@ -98,6 +98,16 @@ Contribute per resolved target in 'who' to the damage fold: total = per * count,
 - _target_ `who`: selector `AOE`
 - _example_: `{ DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }`
 
+### DIG_HOME
+
+Mark the activator's location as a temporary home for `window` ticks: the next right-click of the same pet within `range` blocks teleports the activator back and consumes the window. Pets only — the pets service owns the recall; this effect emits no intent of its own.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ DIG_HOME: { window: <ticks[0..]=600>, range: <double[0..]=50> } }`
+- _param_ `window` `ticks[0..]`
+- _param_ `range` `double[0..]`
+- _example_: `{ DIG_HOME: { window: 600, range: 50 } }`
+
 ### DISARM
 
 Make the target(s) drop their held (main-hand) item.

@@ -106,6 +106,7 @@ public final class BuiltinEffects {
                 // ADR-0052 pet primitives (appended last; a kind's head is its identity).
                 .register(new CageEffect())        // Cage pet: temp sealed cage + both parties teleported inside
                 .register(new StripScrollEffect()) // Anubis pet: strip a White/Holy-White marker off victim gear
+                .register(new DigHomeEffect())     // ADR-0061 Mole pet: service-owned dig/recall-home marker
                 .build();
     }
 }

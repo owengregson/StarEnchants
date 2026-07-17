@@ -30,6 +30,9 @@ effect DAMAGE_SCALE
   param mode ENUM optional min=- max=- enum=add,flat handle=- default=add
   param per DOUBLE required min=- max=- enum=- handle=- default=-
   param cap DOUBLE optional min=0 max=- enum=- handle=- default=0
+effect DIG_HOME
+  param window TICKS optional min=0 max=- enum=- handle=- default=600
+  param range DOUBLE optional min=0 max=- enum=- handle=- default=50
 effect DISARM
 effect DROP_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-

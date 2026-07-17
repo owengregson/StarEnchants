@@ -56,7 +56,12 @@ class FlagAndSoulEffectTest {
                 // 'as' is a compiler-defaulted param (console); FakeEffectCtx synthesizes no defaults, so feed it.
                 flag("RUN_COMMAND → consoleCommand(command)", new RunCommandEffect(),
                         c -> c.with("command", "say hi").with("as", "console"),
-                        s -> verify(s).consoleCommand("say hi")));
+                        s -> verify(s).consoleCommand("say hi")),
+                // ADR-0061: DIG_HOME is a service-owned marker — the run MUST emit nothing (PetService arms
+                // the home window from the compiled args; an engine intent here would double-arm it).
+                flag("DIG_HOME → no intent (service-owned marker)", new DigHomeEffect(),
+                        c -> c.with("window", 600).with("range", 50.0),
+                        s -> { }));
     }
 
     @TestFactory

@@ -392,6 +392,40 @@
       ]
     },
   {
+    "head": "DIG_HOME",
+    "doc": "Mark the activator's location as a temporary home for `window` ticks: the next right-click of the same pet within `range` blocks teleports the activator back and consumes the window. Pets only — the pets service owns the recall; this effect emits no intent of its own.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ DIG_HOME: { window: <ticks[0..]=600>, range: <double[0..]=50> } }",
+    "example": "{ DIG_HOME: { window: 600, range: 50 } }",
+    "params": [
+      {
+        "name": "window",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "600",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "range",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "50",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "DISARM",
     "doc": "Make the target(s) drop their held (main-hand) item.",
     "affinity": "TARGET_ENTITY",
