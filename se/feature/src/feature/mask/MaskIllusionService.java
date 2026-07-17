@@ -92,6 +92,11 @@ public final class MaskIllusionService {
         wearer.getInventory().setHelmet(mark.undress(helmet));
     }
 
+    /** Whether {@code wearer} currently shows a stored illusion — the cheap gate for resync re-asserts. */
+    public boolean masked(UUID wearer) {
+        return store.get(wearer) != null;
+    }
+
     /** Re-assert every stored illusion to one just-joined {@code recipient}; each send hops to its thread. */
     public void pushTo(Player recipient) {
         if (!enabled.getAsBoolean()) {

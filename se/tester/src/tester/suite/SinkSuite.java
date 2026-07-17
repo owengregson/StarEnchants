@@ -42,6 +42,7 @@ public final class SinkSuite implements Harness.Scenario {
         h.expect("sink.trail.snake.restored");
         h.expect("sink.tempBlock.guard.mineReclaim");
         h.expect("sink.tempBlock.guard.pistonCancel");
+        h.expect("sink.summon.invincible.healthSpace");
 
         World world = plugin.getServer().getWorlds().get(0);
         Location at = world.getSpawnLocation();
@@ -61,6 +62,15 @@ public final class SinkSuite implements Harness.Scenario {
                     return;
                 }
                 equipment.setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
+
+                // ADR-0052 INVINCIBLE, health-space: spawned here (region thread — a GLOBAL spawn is illegal
+                // on Folia), exercised from the GLOBAL block below. Held still so only health writes act on it.
+                org.bukkit.entity.LivingEntity sentry = (org.bukkit.entity.LivingEntity)
+                        world.spawnEntity(at.clone().add(8, 3, 0), EntityType.CREEPER);
+                sentry.setAI(false);
+                sentry.setGravity(false);
+                engine.sink.PetSummons.bind(sentry.getUniqueId(), new engine.sink.SummonFlags(
+                        false, false, false, false, false, false, true, 0.0));
 
                 // Emit + flush from GLOBAL — a different thread than the victim's region on Folia.
                 Scheduling.onGlobal(() -> {
@@ -302,6 +312,26 @@ public final class SinkSuite implements Harness.Scenario {
                             }
                         }
                     }));
+
+                    // ADR-0052 INVINCIBLE covers health-space: the summon-guard listener zeroes damage EVENTS,
+                    // but KILL / MODIFY_HEALTH:set land as direct health writes — the sink must refuse to lower
+                    // an invincible summon (the creeper-pet sentry died to a slayer KILL through this hole).
+                    ModernDispatchSink sentrySink = new ModernDispatchSink(handles, engine.sink.SinkEnv.of(
+                            platform.economy.EconomyService.NONE, engine.sink.SoulDebit.NONE,
+                            engine.stores.EngineStores.fresh(), () -> 0L));
+                    sentrySink.kill(sentry);
+                    sentrySink.setHealth(sentry, 0.0);
+                    sentrySink.flush();
+                    Scheduling.onEntityLater(sentry, 6L, () -> {
+                        h.guard("sink.summon.invincible.healthSpace", () -> {
+                            if (sentry.isDead() || sentry.getHealth() <= 0.0) {
+                                throw new IllegalStateException(
+                                        "health-space kill/set(0) ended an INVINCIBLE summon");
+                            }
+                        });
+                        engine.sink.PetSummons.forget(sentry.getUniqueId());
+                        sentry.remove();
+                    });
 
                     // The F25/F26 guard end-to-end: place a MAGMA temp tile over a GOLD_BLOCK, then fire a
                     // synthetic BlockBreakEvent and a synthetic BlockPistonExtendEvent at that tile through a real

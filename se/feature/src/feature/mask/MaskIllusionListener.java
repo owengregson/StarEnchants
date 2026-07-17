@@ -3,10 +3,13 @@ package feature.mask;
 import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -61,6 +64,21 @@ public final class MaskIllusionListener implements Listener {
     @EventHandler
     public void onGameModeChange(PlayerGameModeChangeEvent event) {
         deferRefresh(event.getPlayer());
+    }
+
+    // A DENY-ed use-item interact (a pet head / use-item claiming the right-click) makes the server resync
+    // the client's whole container, and the resync carries the REAL helmet over a masked wearer's dressed
+    // self-view until the next sweep. Re-assert one tick later — after the resync packet has gone out. The
+    // masked() gate keeps the hot interact path to one map lookup for everyone else.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onInteract(PlayerInteractEvent event) {
+        if (event.useItemInHand() != Event.Result.DENY) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (illusions.masked(player.getUniqueId())) {
+            deferRefresh(player);
+        }
     }
 
     private void deferRefresh(Player player) {
