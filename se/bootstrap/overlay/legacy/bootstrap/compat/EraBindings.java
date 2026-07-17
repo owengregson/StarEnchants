@@ -219,8 +219,9 @@ public final class EraBindings implements EraServices {
         return NoopListener.INSTANCE;
     }
 
-    /** Masked-helmet break (ADR-0053): inert on 1.8 for now — the gear poll observes durability post-hoc, so a
-     *  break-salvage there is a follow-up (the modern lane carries the fix). */
+    /** Masked-helmet break (ADR-0053): DEFERRED on 1.8 (recorded in the 1.8.8-beta changelog). The poll only
+     *  sees the helmet slot go empty post-hoc — indistinguishable from an unequip without new machinery, and a
+     *  mis-read mints a free mask (a dupe) — so this stays inert until a real poll-side design lands. */
     @Override
     public Listener maskBreakSource(CombatCodec codec, feature.mask.MaskBreakSalvage salvage) {
         return NoopListener.INSTANCE;
