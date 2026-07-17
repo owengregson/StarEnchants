@@ -19,6 +19,7 @@ public final class PetCodec {
     private final String petKey;
     private final String levelKey;
     private final String expKey;
+    private final String expFracKey;
     private final String foodKey;
     private final ItemStateStore store;
 
@@ -26,6 +27,7 @@ public final class PetCodec {
         this.petKey = keys.pet();
         this.levelKey = keys.petLevel();
         this.expKey = keys.petExp();
+        this.expFracKey = keys.petExpFrac();
         this.foodKey = keys.petFood();
         this.store = store;
     }
@@ -50,11 +52,21 @@ public final class PetCodec {
         return Math.max(0, store.readInt(stack, expKey, 0));
     }
 
-    /** Stamp a fresh pet identity at {@code level} with zero exp (mint / admin give). */
+    /** The passive-accrual carry in 1/60000-exp units (ADR-0059); absent/corrupt reads 0. */
+    public int expFrac(ItemStack stack) {
+        return Math.max(0, store.readInt(stack, expFracKey, 0));
+    }
+
+    public void writeExpFrac(ItemStack stack, int frac) {
+        store.writeInt(stack, expFracKey, Math.max(0, frac));
+    }
+
+    /** Stamp a fresh pet identity at {@code level} with zero exp and no carry (mint / admin give). */
     public void stamp(ItemStack stack, String defKey, int level) {
         store.write(stack, petKey, defKey);
         store.writeInt(stack, levelKey, Math.max(1, level));
         store.writeInt(stack, expKey, 0);
+        store.writeInt(stack, expFracKey, 0);
     }
 
     /** Write the (already-clamped) level + exp pair the service computed. */

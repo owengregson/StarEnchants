@@ -126,39 +126,56 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * @param maxMerge maximum crystals mergeable into one multi-crystal (≥ 1)
      */
     /**
-     * The universal pet knobs (ADR-0052), all read live. Leveling: a pet gains {@code expPerMobKill} per mob
-     * kill, {@code expPerXpPoint × amount} per vanilla-XP point gained, and {@code expPassivePerMinute} per
-     * minute spent in the hotbar; every {@code expPerLevel} exp is one level, up to {@code maxLevel}. The
-     * three universal messages are templates ({@code {COLOR}}/{@code {NAME}}/{@code {TIME_FORMATTED}} tokens),
-     * rendered prefix-free like the use-item trio; an empty template is silent. {@code uppercase} renders
-     * {@code {NAME}} in capitals in the activate/end templates (the message-on-activate precedent).
+     * The universal pet knobs (ADR-0052, leveling reworked by ADR-0059), all read live. Leveling: a pet gains
+     * {@code expPerMobKill} per mob kill and {@code expPerXpPoint × amount} per vanilla-XP point gained
+     * (hotbar pets); an ACTIVE pet gains a random {@code [expPerLevel/8, expPerLevel/5]} (min 1) per
+     * successful right-click; any pet in the player's main inventory passively earns
+     * {@code passiveLevelsPerHour} of ONLINE time — a PASSIVE-type pet in the HOTBAR earns
+     * {@code passiveHotbarLevelsPerHour} instead — with fractions carried exactly on the item. Every
+     * {@code expPerLevel} exp is one level, up to {@code maxLevel} (accrual parks there). The level-up cue
+     * ({@code levelUpSound}/{@code levelUpParticle}, our unified bracket forms) plays for the holder once per
+     * gain event from ANY source; a blank sound / empty particle is silent. The universal messages are
+     * templates ({@code {COLOR}}/{@code {NAME}}/{@code {TIME_FORMATTED}} tokens), rendered prefix-free like
+     * the use-item trio; an empty template is silent. {@code uppercase} renders {@code {NAME}} in capitals in
+     * the activate/end templates (the message-on-activate precedent).
      *
-     * @param maxLevel             the level every pet caps at
-     * @param expPerLevel          pet exp required per level
-     * @param expPerMobKill        pet exp per mob kill (each hotbar pet is credited)
-     * @param expPerXpPoint        pet exp per vanilla XP point gained (post-multiplier amount)
-     * @param expPassivePerMinute  pet exp per minute a pet sits in the hotbar
-     * @param maxPercentMoneyCap   ceiling on one {@code interest_percent} money deposit; {@code <= 0} = uncapped
-     * @param messageOnActivate    template sent to the holder when a pet ability activates
-     * @param messageOnEnd         template sent when an armed pet ability window ends
-     * @param messageOnEffect      template sent to the holder when an armed CHANCE-gated pet effect lands on
-     *                             a hit (the Anubis strip) — replaces the enchant proc line, which cannot
-     *                             name a pet
-     * @param messageOnCooldown    template sent when a right-click finds the pet on cooldown
-     * @param messageOnFail        template sent when a right-click is blocked (condition/chance/permission)
-     * @param uppercase            render {@code {NAME}} uppercase in the activate/end/effect templates
+     * @param maxLevel                   the level every pet caps at
+     * @param expPerLevel                pet exp required per level
+     * @param expPerMobKill              pet exp per mob kill (each hotbar pet is credited)
+     * @param expPerXpPoint              pet exp per vanilla XP point gained (post-multiplier amount)
+     * @param passiveLevelsPerHour       levels per ONLINE hour for any pet in the main inventory (0 disables)
+     * @param passiveHotbarLevelsPerHour levels per ONLINE hour for a PASSIVE-type pet in the hotbar (0 disables)
+     * @param maxPercentMoneyCap         ceiling on one {@code interest_percent} money deposit; {@code <= 0} = uncapped
+     * @param levelUpSound               sound played to the holder on a pet level-up; blank name = silent
+     * @param levelUpParticle            particle spawned at the holder on a pet level-up; empty = none
+     * @param messageOnActivate          template sent to the holder when a pet ability activates
+     * @param messageOnEnd               template sent when an armed pet ability window ends
+     * @param messageOnEffect            template sent to the holder when an armed CHANCE-gated pet effect lands on
+     *                                   a hit (the Anubis strip) — replaces the enchant proc line, which cannot
+     *                                   name a pet
+     * @param messageOnCooldown          template sent when a right-click finds the pet on cooldown
+     * @param messageOnFail              template sent when a right-click is blocked (condition/chance/permission)
+     * @param uppercase                  render {@code {NAME}} uppercase in the activate/end/effect templates
      */
     public record PetsSection(int maxLevel, int expPerLevel, int expPerMobKill, double expPerXpPoint,
-                              int expPassivePerMinute, double maxPercentMoneyCap,
+                              double passiveLevelsPerHour, double passiveHotbarLevelsPerHour,
+                              double maxPercentMoneyCap,
+                              SoundCue levelUpSound, ParticleSpec levelUpParticle,
                               String messageOnActivate, String messageOnEnd, String messageOnEffect,
                               String messageOnCooldown, String messageOnFail, boolean uppercase) {
         public PetsSection {
             maxLevel = Math.max(1, maxLevel);
             expPerLevel = Math.max(1, expPerLevel);
+            passiveLevelsPerHour = Math.max(0.0, passiveLevelsPerHour);
+            passiveHotbarLevelsPerHour = Math.max(0.0, passiveHotbarLevelsPerHour);
+            levelUpSound = levelUpSound == null ? new SoundCue("", 1.0f, 1.0f) : levelUpSound;
+            levelUpParticle = levelUpParticle == null ? ParticleSpec.none() : levelUpParticle;
         }
 
         public static PetsSection defaults() {
-            return new PetsSection(100, 100, 5, 1.0, 2, 1_000_000,
+            return new PetsSection(100, 100, 5, 1.0, 0.5, 1.0, 1_000_000,
+                    new SoundCue("entity.player.levelup", 0.8f, 1.5f),
+                    new ParticleSpec("HAPPY_VILLAGER", 0, 0, 0, 12, 0.4, 1.0),
                     "&{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r &{COLOR}&l**",
                     "&{COLOR}&l** PET ABILITY: &r&c&l&nENDED&r &{COLOR}&l**",
                     "&{COLOR}&l** {NAME} PET EFFECT **",

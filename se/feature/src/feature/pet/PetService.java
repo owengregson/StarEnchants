@@ -12,6 +12,7 @@ import compile.model.Snapshot;
 import engine.effect.kind.CageEffect;
 import engine.run.UseAttempt;
 import engine.sink.CageGeometry;
+import feature.apply.Rolls;
 import feature.menu.MenuIcons;
 import feature.trigger.TriggerDispatch;
 import item.codec.PetCodec;
@@ -22,6 +23,7 @@ import item.mint.VanillaEnchants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
@@ -34,15 +36,17 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import platform.caps.Regions;
 import platform.sched.Scheduling;
 import platform.text.TimeFormat;
 import platform.text.Tokens;
 
 /**
- * The pets cold path (ADR-0052): mints pet heads and Pet Food from the universal likeness, renders a pet's
- * name/lore from its stored state (never parsed back), owns the level economy (exp from kills / vanilla XP /
- * held time, +levels from food, both clamped to the universal max), and runs an ACTIVE pet's right-click
+ * The pets cold path (ADR-0052, leveling per ADR-0059): mints pet heads and Pet Food from the universal
+ * likeness, renders a pet's name/lore from its stored state (never parsed back), owns the level economy (exp
+ * from kills / vanilla XP / successful use / passive inventory time, +levels from food, all clamped to the
+ * universal max, level-up cue on every gain), and runs an ACTIVE pet's right-click
  * through the SAME pipeline every source uses ({@link TriggerDispatch#fireUse} over the live bracket's USE
  * keys — full gate sequence, gate-6 cooldown on the pet-wide scope). Activation may open an ARMED window
  * ({@link PetArmedStore}): the bracket's non-USE abilities join {@code WornState} until the scheduled expiry
@@ -68,12 +72,14 @@ public final class PetService {
     private final Consumer<Player> refresh; // the EquipListener.refresh seam — worn state + drivers re-derive
     private final LongSupplier nowTicks;
     private final Predicate<Material> isAir; // era-correct block-air test (ActorProbe seam) for the cage pre-check
+    private final PetLevelCue cue;
+    private final Random rolls; // injected (never ThreadLocalRandom) so suites can stub the use-XP roll
 
     public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
                       HeadEquip headEquip, VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
                       Supplier<MasterConfig.PetsSection> pets, Supplier<PetItemConfig> likeness,
                       Supplier<PetFoodConfig> food, Consumer<Player> refresh, LongSupplier nowTicks,
-                      Predicate<Material> isAir) {
+                      Predicate<Material> isAir, PetLevelCue cue, Random rolls) {
         this.content = Objects.requireNonNull(content, "content");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
@@ -88,6 +94,8 @@ public final class PetService {
         this.refresh = Objects.requireNonNull(refresh, "refresh");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         this.isAir = Objects.requireNonNull(isAir, "isAir");
+        this.cue = Objects.requireNonNull(cue, "cue");
+        this.rolls = Objects.requireNonNull(rolls, "rolls");
     }
 
     public boolean isPet(ItemStack stack) {
@@ -205,12 +213,54 @@ public final class PetService {
         static final Progress NONE = new Progress(false, false);
     }
 
+    /** One exp credit's level roll — pure, so the carry/cap math is unit-tested by hand (ADR-0059). */
+    record LevelRoll(int level, int exp) {
+    }
+
+    /** Fixed-point units per whole exp for the passive carry: 1000 milli-levels/hour × 60 sweeps/hour. */
+    static final long FRAC_UNITS_PER_EXP = 60_000L;
+
+    static LevelRoll rollExp(int level, int exp, int amount, int maxLevel, int expPerLevel) {
+        int newLevel = level;
+        int newExp = exp + amount;
+        while (newExp >= expPerLevel && newLevel < maxLevel) {
+            newExp -= expPerLevel;
+            newLevel++;
+        }
+        if (newLevel >= maxLevel) {
+            newExp = 0; // the cap is a clean landmark, not a part-filled bar
+        }
+        return new LevelRoll(newLevel, newExp);
+    }
+
+    /** The ACTIVE use-XP roll: uniform in {@code [expPerLevel/8, expPerLevel/5]}, floor division, min 1. */
+    static int useExpRoll(Random random, int expPerLevel) {
+        int lo = Math.max(1, expPerLevel / 8);
+        int hi = Math.max(lo, expPerLevel / 5);
+        return Rolls.between(random, lo, hi);
+    }
+
+    /**
+     * One ONLINE minute of passive accrual in {@link #FRAC_UNITS_PER_EXP} units — exact integer math; the only
+     * quantization is the rate rounding once to milli-levels/hour. MUST stay paired with the module's
+     * one-minute sweep cadence.
+     */
+    static long accrueUnitsPerMinute(double levelsPerHour, int expPerLevel) {
+        return Math.round(levelsPerHour * 1000.0) * (long) expPerLevel;
+    }
+
+    /** Whether a progress write moved a DISPLAYED number — the level or a bar tenth — else render is skipped. */
+    static boolean displayedChanged(int oldLevel, int newLevel, int oldExp, int newExp, int expPerLevel) {
+        return newLevel != oldLevel || (10L * oldExp) / expPerLevel != (10L * newExp) / expPerLevel;
+    }
+
     /**
      * Credit {@code amount} pet exp to {@code stack}, rolling levels at the universal exp-per-level up to the
-     * max (exp parks at the cap). Mutates PDC in place and re-renders on any change — the caller writes the
-     * stack back to its slot and requests a worn refresh when the bracket crossed.
+     * max (exp parks at the cap). Mutates PDC in place; re-renders name+lore only when a displayed number
+     * changed; plays the level-up cue at {@code owner} on a level gain. The caller writes the stack back to
+     * its slot and requests a worn refresh when the bracket crossed.
      */
-    public Progress gainExp(ItemStack stack, int amount) {
+    public Progress gainExp(Player owner, ItemStack stack, int amount) {
         if (amount <= 0) {
             return Progress.NONE;
         }
@@ -224,20 +274,12 @@ public final class PetService {
         if (level >= cfg.maxLevel()) {
             return Progress.NONE; // capped: exp no longer accrues
         }
-        int newLevel = level;
-        int newExp = exp + amount;
-        while (newExp >= cfg.expPerLevel() && newLevel < cfg.maxLevel()) {
-            newExp -= cfg.expPerLevel();
-            newLevel++;
-        }
-        if (newLevel >= cfg.maxLevel()) {
-            newExp = 0; // the cap is a clean landmark, not a part-filled bar
-        }
-        return commitProgress(stack, def, level, newLevel, newExp);
+        LevelRoll roll = rollExp(level, exp, amount, cfg.maxLevel(), cfg.expPerLevel());
+        return commitProgress(owner, stack, def, level, exp, roll.level(), roll.exp());
     }
 
     /** Add {@code levels} whole levels (Pet Food), clamped to the max; exp is preserved below the cap. */
-    public Progress addLevels(ItemStack stack, int levels) {
+    public Progress addLevels(Player owner, ItemStack stack, int levels) {
         if (levels <= 0) {
             return Progress.NONE;
         }
@@ -247,18 +289,58 @@ public final class PetService {
         }
         MasterConfig.PetsSection cfg = pets.get();
         int level = codec.level(stack);
+        int exp = codec.exp(stack);
         int newLevel = Math.min(cfg.maxLevel(), level + levels);
-        int newExp = newLevel >= cfg.maxLevel() ? 0 : codec.exp(stack);
-        return commitProgress(stack, def, level, newLevel, newExp);
+        int newExp = newLevel >= cfg.maxLevel() ? 0 : exp;
+        return commitProgress(owner, stack, def, level, exp, newLevel, newExp);
     }
 
-    private Progress commitProgress(ItemStack stack, PetDef def, int oldLevel, int newLevel, int newExp) {
-        boolean changed = newLevel != oldLevel || newExp != codec.exp(stack);
-        if (!changed) {
+    /**
+     * One ONLINE minute of passive inventory accrual (ADR-0059) — called by the sweep for every pet in the
+     * main inventory: the base rate anywhere, the hotbar rate for a PASSIVE-type pet when {@code hotbar}. The
+     * fractional carry rides the item ({@code petexpfrac}) so accrual survives moves; a capped pet is parked
+     * (no accrual, no PDC churn). {@code Progress.changed} also covers a carry-only write — the caller still
+     * owns the slot write-back.
+     */
+    public Progress accruePassive(Player owner, ItemStack stack, boolean hotbar) {
+        PetDef def = defOf(codec.keyOf(stack));
+        if (def == null) {
+            return Progress.NONE;
+        }
+        MasterConfig.PetsSection cfg = pets.get();
+        if (codec.level(stack) >= cfg.maxLevel()) {
+            return Progress.NONE; // parked at the cap
+        }
+        double rate = !def.active() && hotbar ? cfg.passiveHotbarLevelsPerHour() : cfg.passiveLevelsPerHour();
+        int before = codec.expFrac(stack);
+        long units = before + accrueUnitsPerMinute(rate, cfg.expPerLevel());
+        int whole = (int) Math.min(Integer.MAX_VALUE, units / FRAC_UNITS_PER_EXP);
+        int frac = (int) (units % FRAC_UNITS_PER_EXP);
+        if (frac != before) {
+            codec.writeExpFrac(stack, frac);
+        }
+        Progress leveled = whole > 0 ? gainExp(owner, stack, whole) : Progress.NONE;
+        if (leveled.changed() && atMaxLevel(stack)) {
+            codec.writeExpFrac(stack, 0); // park clean — matches the exp zeroing at the cap
+        }
+        if (leveled.changed()) {
+            return leveled;
+        }
+        return frac != before ? new Progress(true, false) : Progress.NONE;
+    }
+
+    private Progress commitProgress(Player owner, ItemStack stack, PetDef def, int oldLevel, int oldExp,
+                                    int newLevel, int newExp) {
+        if (newLevel == oldLevel && newExp == oldExp) {
             return Progress.NONE;
         }
         codec.writeProgress(stack, newLevel, newExp);
-        render(stack, def);
+        if (displayedChanged(oldLevel, newLevel, oldExp, newExp, pets.get().expPerLevel())) {
+            render(stack, def); // the name carries {LEVEL}, the lore the bar — silent tenths skip the recompose
+        }
+        if (newLevel > oldLevel) {
+            cue.play(owner); // once per gain event, however many levels it rolled (ADR-0059)
+        }
         boolean crossed = def.bracketFor(oldLevel) != def.bracketFor(newLevel);
         return new Progress(true, crossed);
     }
@@ -295,6 +377,7 @@ public final class PetService {
         UseAttempt attempt = dispatch.fireUse(player, bracket.useStableKeys());
         if (attempt.activated()) {
             messenger.activated(player, def);
+            creditUseExp(player, stack);
             openWindow(player, def, bracket);
             return;
         }
@@ -306,6 +389,25 @@ public final class PetService {
             return; // the roll just did not land — silent (the use-item convention)
         }
         messenger.failed(player, def); // condition failed / blocked
+    }
+
+    /**
+     * Success-side use-XP (ADR-0059): fires only after {@code fireUse} activated — the full gate sequence
+     * (incl. the gate-6 cooldown) passed and effects ran. A stacked head is skipped (crediting would level
+     * every copy); the held slot is written back here because the listener handed us a copy (A20).
+     */
+    private void creditUseExp(Player player, ItemStack stack) {
+        if (stack.getAmount() > 1) {
+            return;
+        }
+        Progress progress = gainExp(player, stack, useExpRoll(rolls, pets.get().expPerLevel()));
+        if (progress.changed()) {
+            PlayerInventory inventory = player.getInventory();
+            inventory.setItem(inventory.getHeldItemSlot(), stack);
+            if (progress.bracketCrossed()) {
+                refresh.accept(player);
+            }
+        }
     }
 
     /**

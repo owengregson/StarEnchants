@@ -145,8 +145,17 @@ public final class MasterConfigLoader {
                 parseInt(n.string("exp-per-level"), d.expPerLevel(), n, diags),
                 parseInt(n.string("exp-per-mob-kill"), d.expPerMobKill(), n, diags),
                 parseDouble(n.string("exp-per-xp-point"), d.expPerXpPoint(), n, diags),
-                parseInt(n.string("exp-passive-per-minute"), d.expPassivePerMinute(), n, diags),
+                parseDouble(n.string("passive-levels-per-hour"), d.passiveLevelsPerHour(), n, diags),
+                parseDouble(n.string("passive-hotbar-levels-per-hour"), d.passiveHotbarLevelsPerHour(), n, diags),
                 parseDouble(n.string("max-percent-money-cap"), d.maxPercentMoneyCap(), n, diags),
+                // the template convention below, applied to the cue: ABSENT key = default cue; a present but
+                // blank sound / empty particle = deliberately silent.
+                n.has("level-up-sound")
+                        ? SoundCue.fromField(n, "level-up-sound", new SoundCue("", 1.0f, 1.0f), diags)
+                        : d.levelUpSound(),
+                n.has("level-up-particle")
+                        ? ParticleSpec.from(n.child("level-up-particle"), diags)
+                        : d.levelUpParticle(),
                 // has() + raw value, NOT blankToNull: an explicitly BLANK template means "silent" (the
                 // PetMessenger contract) — only an ABSENT key falls back to the default.
                 template(n, "message-on-activate", d.messageOnActivate()),

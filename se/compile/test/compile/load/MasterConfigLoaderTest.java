@@ -30,6 +30,8 @@ class MasterConfigLoaderTest {
         assertEquals(defaults.slots(), config.slots());
         assertEquals(defaults.souls(), config.souls());
         assertEquals(defaults.crystals(), config.crystals());
+        assertEquals(defaults.pets(), config.pets());
+        assertEquals(defaults.masks(), config.masks());
         assertEquals(defaults.lore(), config.lore());
         assertEquals(defaults.integrations(), config.integrations());
         assertEquals(defaults.reload(), config.reload());
@@ -100,6 +102,42 @@ class MasterConfigLoaderTest {
         assertEquals(12, sets.equipParticle().colorR());
         assertEquals(20, sets.equipParticle().amount());
         assertTrue(sets.unequipParticle().isEmpty()); // omitted → nothing spawned
+    }
+
+    @Test
+    void parsesPetsLevelingRatesAndLevelUpCue(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                pets:
+                  passive-levels-per-hour: 0.25
+                  passive-hotbar-levels-per-hour: 2.5
+                  level-up-sound: { sound: BLOCK_NOTE_BLOCK_CHIME, volume: 0.4, pitch: 1.9 }
+                  level-up-particle: { particle: CRIT, count: 7, spread: 0.3, y-offset: 1.2 }
+                """);
+        MasterConfig.PetsSection pets = MasterConfigLoader.load(file).pets();
+        assertEquals(0.25, pets.passiveLevelsPerHour());
+        assertEquals(2.5, pets.passiveHotbarLevelsPerHour());
+        assertEquals("BLOCK_NOTE_BLOCK_CHIME", pets.levelUpSound().name());
+        assertEquals(1.9f, pets.levelUpSound().pitch());
+        assertEquals("CRIT", pets.levelUpParticle().type());
+        assertEquals(7, pets.levelUpParticle().amount());
+        assertEquals(1.2, pets.levelUpParticle().yOffset());
+        // omitted knobs in a present section keep the defaults (the per-field fallback)
+        assertEquals(MasterConfig.PetsSection.defaults().maxLevel(), pets.maxLevel());
+
+        // an explicitly BLANK sound / empty particle silences the cue (the pet template convention);
+        // a negative rate clamps to 0 (disabled) rather than draining exp
+        Path silent = dir.resolve("silent.yml");
+        Files.writeString(silent, """
+                pets:
+                  passive-levels-per-hour: -3
+                  level-up-sound: ""
+                  level-up-particle: { }
+                """);
+        MasterConfig.PetsSection off = MasterConfigLoader.load(silent).pets();
+        assertEquals(0.0, off.passiveLevelsPerHour());
+        assertTrue(off.levelUpSound().name().isBlank());
+        assertTrue(off.levelUpParticle().isEmpty());
     }
 
     @Test

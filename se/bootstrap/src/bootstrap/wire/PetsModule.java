@@ -3,6 +3,7 @@ package bootstrap.wire;
 import feature.menu.Mintable;
 import feature.pet.PetFoodListener;
 import feature.pet.PetHotbarListener;
+import feature.pet.PetLevelCue;
 import feature.pet.PetLevelListener;
 import feature.pet.PetMessenger;
 import feature.pet.PetService;
@@ -38,6 +39,7 @@ final class PetsModule {
         this.core = core;
         this.equip = equip;
         PetMessenger messenger = new PetMessenger(core.messages(), () -> core.master().config().pets());
+        PetLevelCue cue = new PetLevelCue(() -> core.master().config().pets(), core.particleFx(), core.sounds());
         // The cold-path run reuses the shared TriggerDispatch (its runner/sink wiring), so no second engine spine.
         this.pets = new PetService(core.content(), core.petCodec(), core.triggerDispatch(),
                 core.bindings().texturedHeads(), core.bindings().headEquip(), core.vanillaEnchants(),
@@ -45,11 +47,11 @@ final class PetsModule {
                 () -> core.master().config().pets(),
                 () -> core.items().config().petOrDefault(),
                 () -> core.items().config().petFoodOrDefault(),
-                equip.refresher(), core.tick()::get, core.bindings().actorProbe()::isAir);
+                equip.refresher(), core.tick()::get, core.bindings().actorProbe()::isAir,
+                cue, core.rolls());
         this.leveler = new PetLevelListener(pets, core.petCodec(), () -> core.master().config().pets(),
                 equip.refresher(), enabled());
-        this.sweep = new PetSweep(core.petCodec(), leveler, () -> core.master().config().pets(),
-                equip.refresher(), enabled());
+        this.sweep = new PetSweep(core.petCodec(), leveler, equip.refresher(), enabled());
         // The WATER_SPEED worn channel (ADR-0060): the MaxHealthDriver twin, refreshed by the end-of-refresh
         // hook below (a suppression window applied mid-refresh lands on the next full refresh — accepted).
         this.waterSpeed = new feature.trigger.WaterSpeedDriver(core.triggerDispatch(), core.content(),
