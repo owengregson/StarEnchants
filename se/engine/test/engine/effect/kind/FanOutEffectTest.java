@@ -114,6 +114,12 @@ class FanOutEffectTest {
                         c -> c.with("effect", 5), (s, t) -> verify(s).removePotion(t, 5)),
                 entity("POTION_LOCK → potionLock(effect, ticks)", new PotionLockEffect(),
                         c -> c.with("effect", 5).with("ticks", 100), (s, t) -> verify(s).potionLock(t, 5, 100)),
+                // ADR-0065: distinct non-default args pin the param→intent wiring (a transposition fails).
+                entity("FREEZE → freeze(duration, dot, dot-period, slow, neutralize, attribution)",
+                        new FreezeEffect(),
+                        c -> c.with("duration", 80).with("dot", 3.0).with("dot-period", 30)
+                                .with("slow", 7.0).with("neutralize-frost-slow", false),
+                        (s, t) -> verify(s).freeze(t, 80, 3.0, 30, 7.0, false, null)),
                 // §C: the authored 1-based level reaches the Sink as the 0-based Bukkit amplifier (level − 1).
                 entity("POTION → potion(effect, level−1, duration)", new PotionEffect(),
                         c -> c.with("effect", 7).with("level", 2).with("duration", 100),
@@ -138,6 +144,20 @@ class FanOutEffectTest {
                     new LightningEffect().run(bolt, boltSink);
                     verify(boltSink).lightningAndDamage(a, 5.0, actor);
                     verifyNoMoreInteractions(boltSink);
+                }),
+                // ADR-0065: FREEZE attributes the activator to every DoT tick — two targets catch a broken fan-out.
+                dynamicTest("FREEZE carries the activator as the DoT attribution attacker", () -> {
+                    Player actor = mock(Player.class);
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("duration", 80).with("dot", 3.0).with("dot-period", 30)
+                            .with("slow", 7.0).with("neutralize-frost-slow", false).targets("who", a, b);
+                    Sink sink = mock(Sink.class);
+                    new FreezeEffect().run(ctx, sink);
+                    verify(sink).freeze(a, 80, 3.0, 30, 7.0, false, actor);
+                    verify(sink).freeze(b, 80, 3.0, 30, 7.0, false, actor);
+                    verifyNoMoreInteractions(sink);
                 }));
     }
 
