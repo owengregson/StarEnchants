@@ -76,7 +76,7 @@ class RegistryWiringTest {
             "HeroicListener", "HeroicDurabilitySave",
             "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
             "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener", "PetSummonListener",
-            "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
+            "IllusionCanonGuard", "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
             "NearGuard", "SplashHealGuard",
             "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener", "ShotWeapons",
             "MenuListener", "GodlyTransmogListener");
@@ -122,6 +122,7 @@ class RegistryWiringTest {
         when(bindings.equipmentRepaint()).thenReturn(item.head.EquipmentRepaint.NONE); // ADR-0053 inert repaint
         when(bindings.headEquip()).thenReturn(item.head.HeadEquip.NONE); // 1.8.4 inert client helmet-wearability strip
         when(bindings.headAttributes()).thenReturn(item.head.HeadAttributes.NONE); // 1.8.1 worn-slot dressing
+        when(bindings.itemBytes()).thenReturn(item.head.ItemBytes.NONE); // ADR-0064 illusion payload codec
         when(bindings.actorProbe()).thenReturn(mock(engine.run.ActorProbe.class)); // 1.8.1 cage pre-check isAir
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
         when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
