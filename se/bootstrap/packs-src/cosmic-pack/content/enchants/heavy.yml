@@ -5,8 +5,8 @@ description:
   - "&eenemies holding a bow."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "epic"
-tier: epic
+group: "rare"
+tier: rare
 levels:
   1:
     condition: "%victim.helditem% contains \"BOW\""

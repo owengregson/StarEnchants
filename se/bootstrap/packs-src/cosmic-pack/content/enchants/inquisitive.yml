@@ -5,8 +5,8 @@ description:
   - "&eexperience."
 trigger: KILL
 applies-to: [SWORD]
-group: "legendary"
-tier: legendary
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 7.5

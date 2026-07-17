@@ -5,8 +5,8 @@ description:
   - "&eyou Speed and Absorption."
 trigger: DEFENSE
 applies-to: [BOOTS]
-group: "uncommon"
-tier: uncommon
+group: "rare"
+tier: rare
 levels:
   1:
     chance: 20

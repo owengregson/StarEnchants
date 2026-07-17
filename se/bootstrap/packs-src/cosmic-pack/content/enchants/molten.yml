@@ -5,8 +5,8 @@ description:
   - "&efire."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "uncommon"
-tier: uncommon
+group: "common"
+tier: common
 levels:
   1:
     chance: 10

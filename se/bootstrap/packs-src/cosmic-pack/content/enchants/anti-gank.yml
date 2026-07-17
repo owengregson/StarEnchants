@@ -5,8 +5,8 @@ description:
   - "&edamage the more enemies surround you."
 trigger: ATTACK
 applies-to: [AXE]
-group: "legendary"
-tier: legendary
+group: "epic"
+tier: epic
 levels:
   1:
     cooldown: 60

@@ -5,8 +5,8 @@ description:
   - "&edamage, you recover health."
 trigger: GUARDIAN_HURT
 applies-to: [ARMOR]
-group: "legendary"
-tier: legendary
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 20

@@ -5,8 +5,8 @@ description:
   - "&etarget. Mobs only, never players."
 trigger: ATTACK
 applies-to: [WEAPON]
-group: "epic"
-tier: epic
+group: "rare"
+tier: rare
 condition: "%victim.type% != \"PLAYER\""
 levels:
   1:

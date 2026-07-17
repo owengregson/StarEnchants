@@ -5,8 +5,8 @@ description:
   - "&eyourself."
 trigger: DEFENSE
 applies-to: [BOOTS]
-group: "epic"
-tier: epic
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 25

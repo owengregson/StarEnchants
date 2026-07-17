@@ -6,8 +6,8 @@ description:
   - "&eand slows over several seconds."
 trigger: ATTACK
 applies-to: [WEAPON]
-group: "uncommon"
-tier: uncommon
+group: "rare"
+tier: rare
 levels:
   1:
     chance: 5

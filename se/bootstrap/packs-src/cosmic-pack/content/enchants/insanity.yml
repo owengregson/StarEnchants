@@ -5,8 +5,8 @@ description:
   - "&eholding a sword."
 trigger: ATTACK
 applies-to: [AXE]
-group: "legendary"
-tier: legendary
+group: "epic"
+tier: epic
 levels:
   1:
     condition: "%victim.helditem% contains \"SWORD\""

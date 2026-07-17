@@ -6,8 +6,8 @@ description:
   - "&efor longer. A weaker Silence."
 trigger: ATTACK
 applies-to: [WEAPON]
-group: "rare"
-tier: rare
+group: "epic"
+tier: epic
 levels:
   1:
     chance: 10

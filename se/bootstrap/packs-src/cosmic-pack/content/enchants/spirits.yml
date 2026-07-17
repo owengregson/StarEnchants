@@ -6,8 +6,8 @@ description:
   - "&eRegeneration."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "epic"
-tier: epic
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 0.25

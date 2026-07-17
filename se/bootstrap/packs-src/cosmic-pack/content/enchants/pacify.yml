@@ -5,8 +5,8 @@ description:
   - "&edisabling their Rage."
 trigger: BOW
 applies-to: [BOW]
-group: "epic"
-tier: epic
+group: "rare"
+tier: rare
 levels:
   1:
     chance: 20

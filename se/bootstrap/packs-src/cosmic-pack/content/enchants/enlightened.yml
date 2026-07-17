@@ -5,8 +5,8 @@ description:
   - "&ehealth."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "legendary"
-tier: legendary
+group: "epic"
+tier: epic
 levels:
   1:
     chance: 8

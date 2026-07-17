@@ -5,8 +5,8 @@ description:
   - "&eenemies holding a sword."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "legendary"
-tier: legendary
+group: "epic"
+tier: epic
 levels:
   1:
     condition: "%victim.helditem% contains \"SWORD\""

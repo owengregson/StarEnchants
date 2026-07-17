@@ -5,8 +5,8 @@ description:
   - "&eattacker."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "rare"
-tier: rare
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 8

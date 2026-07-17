@@ -6,8 +6,8 @@ description:
 trigger: REPEATING
 repeat: 100
 applies-to: [HELMET]
-group: "epic"
-tier: epic
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 15
