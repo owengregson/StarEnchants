@@ -14,7 +14,7 @@ import schema.spec.D;
  * fire-coexistent via Paper's freeze-tick lock, ADR-0065), with an attacker-attributed {@code dot} every
  * {@code dot-period} ticks (raw pre-armor half-hearts, the ADR-0054 deferred path — bleed's) and a
  * {@code slow}% movement slow through the plugin-owned MOVEMENT_SPEED channel. A re-proc on a frozen
- * victim refreshes the window; it never stacks a second DoT. 1.17.1 floor and mobs degrade the visual
+ * victim refreshes the window; it never stacks a second DoT. The 1.17.1 floor degrades the visual
  * while burning; 1.8.9 keeps DoT + slow only (the recorded era degrade).
  */
 public final class FreezeEffect implements EffectKind {

@@ -196,7 +196,7 @@ public interface Sink {
     /**
      * Freeze {@code target} for {@code durationTicks} (FREEZE — Ice Aspect, ADR-0065): freeze ticks pinned
      * at max (the vanilla powder-snow visual; Paper's freeze-tick lock where available, a per-tick re-pin on
-     * the 1.17.1 floor and for mobs; a recorded no-op on 1.8.9), an attacker-attributed DoT of
+     * the 1.17.1 floor; a recorded no-op on 1.8.9), an attacker-attributed DoT of
      * {@code dotPerTick} every {@code dotPeriodTicks} (raw pre-armor half-hearts on the ADR-0054 deferred
      * path — never the fold, never attack-scaled), and a {@code slowPercent}% movement slow through the
      * plugin-owned MOVEMENT_SPEED modifier channel ({@code neutralizeFrostSlow} additionally cancels

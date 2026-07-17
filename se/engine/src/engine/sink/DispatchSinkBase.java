@@ -774,17 +774,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
         int period = Math.max(1, dotPeriodTicks);
         entityOp(target, () -> {
             UUID victim = target.getUniqueId();
+            // Wall-clock EXPECTATION of the window, read only by the pin task + damage guard (isFrozen);
+            // the DoT cadence and the teardown run in TICK space (the chain below claims a tick budget),
+            // so wall/tick drift — catch-up bursts, sustained lag — never adds or drops a DoT tick.
             long deadlineMs = System.currentTimeMillis() + durationTicks * 50L;
             UUID attackerId = attacker != null ? attacker.getUniqueId() : null;
-            if (FrozenTargets.refresh(victim, deadlineMs, attackerId, attacker)) {
-                return; // refresh-not-stack (owner rule): the live window's tasks read the moved deadline
+            if (FrozenTargets.refresh(victim, durationTicks, deadlineMs, attackerId, attacker)) {
+                return; // refresh-not-stack (owner rule): the live chain reads the extended tick budget
             }
-            long gen = FrozenTargets.arm(victim, deadlineMs, attackerId, attacker);
-            // Players ride Paper's freeze-tick LOCK where it exists (guards vanilla's decay AND the
-            // burning-entity clear, §1.1/§1.2 — fire coexistence with zero per-tick work). Mobs never
-            // lock: freezeLocked persists to NBT (§1.6), so a mid-window chunk unload would strand a
-            // locked mob frozen forever, while an unlocked pin self-heals by the 2/tick decay.
-            boolean needsPin = !(target instanceof Player) || freezeVisualStart(target);
+            long gen = FrozenTargets.arm(victim, durationTicks, deadlineMs, attackerId, attacker);
+            // EVERY victim rides Paper's freeze-tick LOCK where it exists (guards vanilla's decay AND
+            // the burning-entity clear, §1.1/§1.2 — fire coexistence with zero per-tick work); an
+            // unlocked re-pin can never hold under fire, because it runs before the entity ticks and
+            // the unguarded clear re-zeroes it (+ the 1009 hiss) every tick. freezeLocked persists to
+            // NBT (§1.6): a victim unloaded mid-window is un-stranded at entity load by the modern
+            // guard listener's reconcile, not by refusing mobs the lock.
+            boolean needsPin = freezeVisualStart(target);
             applyFrozenSlow(target, slowPercent, neutralizeFrostSlow);
             TaskHandle[] tasks = new TaskHandle[2];
             Runnable teardown = () -> {
@@ -809,9 +814,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
             }
             long claimed = token;
             if (needsPin) {
-                // Unlocked pin (mobs; the 1.17.1 floor): +SLACK outruns the −2/tick decay so the synced
-                // value is exactly max (§1.1). Skipped while burning — baseTick would zero it and replay
-                // the 1009 extinguish hiss every tick (§1.2); the visual honestly drops until the fire ends.
+                // Unlocked pin (the lock-less 1.17.1 floor): +SLACK outruns the −2/tick decay so the
+                // synced value is exactly max (§1.1). Skipped while burning — baseTick would zero it and
+                // replay the 1009 extinguish hiss every tick (§1.2); the visual drops until the fire ends.
                 tasks[1] = Scheduling.repeatingEntity(target, 1L, 1L, () -> {
                     if (target.isValid() && FrozenTargets.isFrozen(victim, System.currentTimeMillis())) {
                         freezePin(target);
@@ -819,14 +824,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 });
             }
             tasks[0] = Scheduling.repeatingEntity(target, period, period, () -> {
-                boolean live = target.isValid() && !target.isDead();
-                if (live && FrozenTargets.isFrozen(victim, System.currentTimeMillis())) {
-                    FrozenTargets.Window w = FrozenTargets.get(victim);
-                    // ADR-0054 deferred attributed hurt (the bleed path): EngineDamage-framed, so the
-                    // combat dispatch stands down (no proc walks, no ReHitGuard stamp, no rage advance)
-                    // and downstream sees a real killer-typed event (kill credit; Phoenix runs inline).
-                    hurt(target, dotPerTick, w != null ? w.attacker() : null);
-                    return;
+                // Claim this period slot against the window's TICK budget (boundary-inclusive): the final
+                // in-budget slot lands its hurt and tears the window down in the SAME run, so the boundary
+                // tick always lands and teardown never races it — identical on every version and on Folia.
+                FrozenTargets.Window w = FrozenTargets.chainTick(victim, gen, period);
+                if (w != null && target.isValid() && !target.isDead()) {
+                    if (dotPerTick > 0) {
+                        // ADR-0054 deferred attributed hurt (the bleed path): EngineDamage-framed, so the
+                        // combat dispatch stands down (no proc walks, no ReHitGuard stamp, no rage advance)
+                        // and downstream sees a real killer-typed event (kill credit; Phoenix runs inline).
+                        hurt(target, dotPerTick, w.attacker());
+                    }
+                    if (w.hasNextSlot(period)) {
+                        return;
+                    }
                 }
                 if (claimed >= 0) {
                     timedReverts.runOnce(victim, claimed); // claim-or-noop: the quit drain may have run it
@@ -2156,7 +2167,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * Begin the frozen VISUAL (FREEZE, ADR-0065) and report whether a per-tick re-pin is still needed:
      * modern locks + pins when Paper's freeze-tick lock exists (1.18.2+ → {@code false}) and otherwise
      * asks for the pin ({@code true}, the 1.17.1 floor); 1.8.9 is a recorded no-op ({@code false} —
-     * nothing to pin). Only ever called for players (mobs always take the unlocked pin, §1.6).
+     * nothing to pin). Called for EVERY victim — the lock is the only mechanism that holds the pin
+     * under fire, and its NBT persistence is reconciled at entity load (the modern guard listener).
      */
     protected abstract boolean freezeVisualStart(LivingEntity target);
 

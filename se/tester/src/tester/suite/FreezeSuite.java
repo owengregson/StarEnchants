@@ -40,10 +40,12 @@ import tester.harness.Harness;
  *       lock path (1.18.2+, all Folia) a burning cow stays pinned at max freeze ticks; on the 1.17.1 floor the
  *       visual honestly drops to 0 while burning (pin skipped). Both the vanilla fire tick and the attributed
  *       engine DoT land.</li>
- *   <li><strong>2 — DoT cadence + attribution.</strong> Exactly 3 attributed hits at t+20/40/60, each raw 2.0.</li>
+ *   <li><strong>2 — DoT cadence + attribution.</strong> Exactly 3 attributed hits at t+20/40/60 — the chain runs in
+ *       tick space (ADR-0065), so the t+duration boundary slot lands and wall/tick drift never adds a straggler.</li>
  *   <li><strong>3 — the slow's lifecycle.</strong> Both MOVEMENT_SPEED modifiers present during the window, gone
  *       after it, with the freeze thawed + unlocked.</li>
- *   <li><strong>4 — a re-proc REFRESHES, never stacks.</strong> One DoT chain across the extended window.</li>
+ *   <li><strong>4 — a re-proc REFRESHES, never stacks.</strong> One DoT chain across the extended window: a mid-period
+ *       re-proc extends the tick budget from the last completed slot, so exactly 4 hits land (t+80 included).</li>
  *   <li><strong>5 — vanilla freeze self-damage is cancelled</strong> inside a window by the guard, but not on a
  *       non-frozen victim.</li>
  * </ul>
@@ -198,20 +200,25 @@ public final class FreezeSuite implements Harness.Scenario {
                 toughen(handles, cow);
                 cow.setNoDamageTicks(0);
                 ModernDispatchSink sink = newSink(handles);
-                sink.freeze(cow, 70, 2.0, 20, 0.0, true, attacker);
+                // Duration 60 is a period-lattice multiple: the t+duration boundary slot is INCLUSIVE
+                // (ADR-0065 tick-space cadence), so the hits land at exactly t+20/40/60 — no more, no less.
+                sink.freeze(cow, 60, 2.0, 20, 0.0, true, attacker);
                 sink.flush();
-                Scheduling.onEntityLater(cow, 80L, () -> {
-                    h.guard(key, () -> {
-                        if (count.get() != 3) {
-                            throw new IllegalStateException("expected exactly 3 attributed DoT ticks (t+20/40/60),"
-                                    + " got " + count.get());
-                        }
-                        if (offCadence.get() != 0) {
-                            throw new IllegalStateException(offCadence.get() + " DoT tick(s) were not raw 2.0 at LOWEST");
-                        }
-                    });
-                    rig.teardown();
-                });
+                // Tick-anchored: await the expected count, then hold one-period-plus so a straggler slot
+                // (the old wall-clock-drift bug landed one exactly a period late) would still be caught.
+                awaitUntil(cow, () -> count.get() >= 3, 0, 120, reached ->
+                        Scheduling.onEntityLater(cow, 25L, () -> {
+                            h.guard(key, () -> {
+                                if (count.get() != 3) {
+                                    throw new IllegalStateException("expected exactly 3 attributed DoT ticks"
+                                            + " (t+20/40/60 — the t+duration boundary slot lands), got " + count.get());
+                                }
+                                if (offCadence.get() != 0) {
+                                    throw new IllegalStateException(offCadence.get() + " DoT tick(s) were not raw 2.0 at LOWEST");
+                                }
+                            });
+                            rig.teardown();
+                        }));
             });
         });
     }
@@ -239,7 +246,8 @@ public final class FreezeSuite implements Harness.Scenario {
                 Scheduling.onEntityLater(p, 10L, () -> {
                     boolean slowNow = hasModifierNamed(handles, p, "starenchants.frozen_slow");
                     boolean offsetNow = hasModifierNamed(handles, p, "starenchants.frozen_frost_offset");
-                    // Past expiry the removal is wall-clock (deadline in ms), so poll rather than a fixed tick.
+                    // Teardown lands at the window's final lattice slot (t+40); poll tick-by-tick so the
+                    // wait stays anchored to the chain itself rather than a parallel fixed delay.
                     awaitUntil(p, () -> !hasModifierNamed(handles, p, "starenchants.frozen_slow")
                                     && !hasModifierNamed(handles, p, "starenchants.frozen_frost_offset"),
                             0, 120, removed -> {
@@ -268,7 +276,7 @@ public final class FreezeSuite implements Harness.Scenario {
         });
     }
 
-    // ── 4: a re-proc at t+20 refreshes the live window (one DoT chain), never a second ────────────
+    // ── 4: a mid-period re-proc (t+30) refreshes the live window (one DoT chain), never a second ──
 
     private void checkRefreshNotStack(Harness h, RuntimeHandles handles, World world, Location at) {
         final String key = "freeze.reproc.refreshNotStack";
@@ -303,20 +311,28 @@ public final class FreezeSuite implements Harness.Scenario {
                 ModernDispatchSink sink1 = newSink(handles);
                 sink1.freeze(cow, 40, 2.0, 20, 0.0, true, attacker);
                 sink1.flush();
-                Scheduling.onEntityLater(cow, 20L, () -> {
+                // Re-proc MID-PERIOD (t+30): the refresh anchors at the chain's last completed slot (t+20),
+                // extending the tick budget to exactly t+80. A re-proc ON a lattice tick would race the
+                // chain's same-tick run (either order is a legal window), so mid-period is the
+                // deterministic staging point.
+                Scheduling.onEntityLater(cow, 30L, () -> {
                     ModernDispatchSink sink2 = newSink(handles);
                     sink2.freeze(cow, 60, 2.0, 20, 0.0, true, attacker); // extends the window; must not stack a chain
                     sink2.flush();
-                    Scheduling.onEntityLater(cow, 90L, () -> {
-                        h.guard(key, () -> {
-                            if (count.get() != 4) {
-                                throw new IllegalStateException("refresh-not-stack: expected 4 DoT ticks on ONE chain"
-                                        + " (t+20/40/60/80), got " + count.get()
-                                        + " (a stacked second chain would double a period)");
-                            }
-                        });
-                        rig.teardown();
-                    });
+                    // Tick-anchored: await the expected count, then hold one-period-plus — a stacked second
+                    // chain or a wall-drift straggler lands within one period of the last legitimate slot.
+                    awaitUntil(cow, () -> count.get() >= 4, 0, 120, reached ->
+                            Scheduling.onEntityLater(cow, 25L, () -> {
+                                h.guard(key, () -> {
+                                    if (count.get() != 4) {
+                                        throw new IllegalStateException("refresh-not-stack: expected 4 DoT ticks on"
+                                                + " ONE chain (t+20/40/60/80 — the t+30 re-proc extends the budget"
+                                                + " to t+80), got " + count.get()
+                                                + " (a stacked second chain would double a period)");
+                                    }
+                                });
+                                rig.teardown();
+                            }));
                 });
             });
         });
