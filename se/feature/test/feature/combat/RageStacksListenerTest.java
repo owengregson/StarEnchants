@@ -71,4 +71,21 @@ class RageStacksListenerTest {
 
         verifyNoInteractions(service);
     }
+
+    @Test
+    void aDispatchSkippedDuplicateAdvancesNoRunButStillBreaksTheVictim() {
+        Player attacker = mock(Player.class);
+        Player victim = mock(Player.class);
+        EntityDamageByEntityEvent event = hit(attacker, victim);
+
+        ReHitGuard.markSkipped(event); // the dispatch judged this a same-swing re-hit (§3.7)
+        try {
+            listener.onDamage(event);
+        } finally {
+            ReHitGuard.clearSkipped();
+        }
+
+        verify(service, never()).onHit(any()); // one swing = one advance (the crit-upgrade double-rage bug)
+        verify(service).onHitTaken(victim);    // the break is idempotent and stays unguarded
+    }
 }

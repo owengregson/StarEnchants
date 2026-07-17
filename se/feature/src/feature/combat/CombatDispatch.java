@@ -70,6 +70,9 @@ public final class CombatDispatch {
     private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
     private final int tridentTriggerId; // −1 ⇒ no distinct trident trigger; trident hits fall back to ATTACK
     private final Projectiles projectiles; // trident/arrow-like typing for the attacker trigger (§4 era seam)
+    // §3.7 hit identity: the last landed (victim ← attacker) stamp, discriminating a same-swing re-hit from a
+    // distinct hit inside the victim's SHARED i-frame window (which fire/DoT/other attackers also arm).
+    private final ReHitGuard reHits = new ReHitGuard();
 
     /** §N friendly-fire gate (ADR-0027): two friendly players get NO SE combat effects. No-op by default. */
     private static volatile java.util.function.BiPredicate<Player, Player> friendlyFire = (attacker, victim) -> false;
@@ -138,6 +141,11 @@ public final class CombatDispatch {
         return damageDebug;
     }
 
+    /** The §3.7 hit-identity guard — package-private test seam. */
+    ReHitGuard reHits() {
+        return reHits;
+    }
+
     /** Dispatch one entity-on-entity hit: run attacker + defender abilities and fold the result. */
     @SuppressWarnings("deprecation") // EntityDamageEvent.DamageModifier.ARMOR/MAGIC: deprecated-not-removed across the whole range (the IGNORE_ARMOR primitive).
     public void onDamage(EntityDamageByEntityEvent event) {
@@ -168,21 +176,27 @@ public final class CombatDispatch {
                         && dp.getUniqueId().equals(vp.getUniqueId()))) {
             return;
         }
-        // §3.7 Proc SE combat EXACTLY ONCE per hit. When a stronger blow lands inside the victim's
-        // invulnerability window — vanilla's "damage the difference" (a crit upgrading the same swing, a faster
-        // weapon, a second attacker) — Bukkit fires a SECOND EntityDamageByEntityEvent for the SAME hit; without
-        // this guard the enchant walk, its sounds, and the damage fold would all run again (the double-sound the
-        // owner reported). The fresh hit that opened the window (i-frames <= half the max) does the SE work; a
-        // re-hit while still inside it (i-frames > half) is that same hit continuing, so leave it to vanilla.
+        long now = nowTicks.getAsLong();
+        UUID attackerId = damager.getUniqueId();     // the resolved source (a projectile's shooter, §2 gank id)
+        // §3.7 Proc SE combat EXACTLY ONCE per hit. A stronger blow inside the victim's i-frame window fires a
+        // SECOND EntityDamageByEntityEvent for the SAME swing (vanilla's "damage the difference": a crit
+        // upgrade, a faster weapon) — but that window is SHARED: fire/poison ticks, engine DoT (ADR-0054) and
+        // OTHER attackers arm it too, so in-window alone is not hit identity. Skip only when THIS attacker's
+        // own landed hit opened (or last continued) the window; any other in-window hit is a real, distinct
+        // hit and runs the full attack+defense walk. A processed in-window hit folds onto the event's damage
+        // AS REPORTED — vanilla's difference chunk — leaving the vanilla difference economy untouched. The
+        // skip is relayed per-event so MONITOR consumers (rage) stay single-advance with the walk.
         if (victim != null && victim.getNoDamageTicks() > victim.getMaximumNoDamageTicks() / 2) {
-            return;
+            if (reHits.sameHit(victimEntity.getUniqueId(), attackerId, now, victim.getMaximumNoDamageTicks() / 2)) {
+                ReHitGuard.markSkipped(event);
+                return;
+            }
         }
+        ReHitGuard.clearSkipped();
         Location at = victimEntity.getLocation();
         // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();
-        long now = nowTicks.getAsLong();
         String causeName = event.getCause().name(); // %damagecause% (e.g. ENTITY_ATTACK, PROJECTILE)
-        UUID attackerId = damager.getUniqueId();     // the resolved source (a projectile's shooter, §2 gank id)
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         SinkReadback sink = sinkFactory.create(env);
@@ -299,6 +313,11 @@ public final class CombatDispatch {
             if (comboActor != null) {
                 combo.rollback(comboActor, comboMark);
             }
+        } else if (victim != null) {
+            // This landed hit is the victim's window opener/continuer for the re-hit skip above. Never stamped
+            // on a cancel: a dodged hit arms no vanilla window, so its stamp could only mis-skip a later real
+            // hit inside a window some OTHER source (fire, a DoT) opened.
+            reHits.stamp(victimEntity.getUniqueId(), attackerId, now);
         }
         sink.flush();
     }
