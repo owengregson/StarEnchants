@@ -1,42 +1,42 @@
 # Thor — diamond storm set; thunderous damage, reduction, and Mjolnir.
-display: "&9&lThor"
-description: "&9Wield the thunderous might of Thor with the Thor set, forged in the heart of storms and imbued with the power of lightning."
+display: "{#4482f4}&lThor"
+description: "{#4482f4}Wield the thunderous might of Thor with the Thor set, forged in the heart of storms and imbued with the power of lightning."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&9&l** Thor SET EQUIPPED &9&l**\n"
+equip-message: "\n{#4482f4}&l** Thor SET EQUIPPED {#4482f4}&l**\n"
 remove-message: "\n&7&l** Thor SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&9Wield the thunderous might of Thor with the Thor set, forged in the heart of storms and imbued with the power of lightning."
+    - "{#4482f4}Wield the thunderous might of Thor with the Thor set, forged in the heart of storms and imbued with the power of lightning."
     - ""
-    - "&9&lTHOR SET BONUS"
-    - "&9* Deal 20% more damage to all enemies"
-    - "&9* Enemies deal 10% less damage to you"
-    - "&9* Stormcaller Passive Ability"
+    - "{#4482f4}&lTHOR SET BONUS"
+    - "{#4482f4}* Deal 20% more damage to all enemies"
+    - "{#4482f4}* Enemies deal 10% less damage to you"
+    - "{#4482f4}* Stormcaller Passive Ability"
     - ""
-    - "&9&lSTORMCALLER"
-    - "&9* Chance to strike all nearby enemies with supercharged lightning that deals high damage"
+    - "{#4482f4}&lSTORMCALLER"
+    - "{#4482f4}* Chance to strike all nearby enemies with supercharged lightning that deals high damage"
     - "&7&o(Requires all four Thor set items.)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&9&lElectric Helmet&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&9&lShocking Plate&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&9&lProtective Garments&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&9&lCharged Sandals&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#4482f4}&lElectric Helmet&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#4482f4}&lShocking Plate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#4482f4}&lProtective Garments&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#4482f4}&lCharged Sandals&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_AXE
-  name: "&9&lMjolnir&r"
+  name: "{#4482f4}&lMjolnir&r"
   lore:
-    - "&9Wield the legendary Mjolnir, the hammer of Thor, imbued with the thunderous power of storms and lightning."
+    - "{#4482f4}Wield the legendary Mjolnir, the hammer of Thor, imbued with the thunderous power of storms and lightning."
     - ""
-    - "&9&lTHOR WEAPON BONUS"
-    - "&9* Deal 5% more damage to all enemies"
+    - "{#4482f4}&lTHOR WEAPON BONUS"
+    - "{#4482f4}* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Thor set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -59,5 +59,5 @@ bonuses:
     effects:
       - { LIGHTNING: { damage: "%damage% * 0.4", who: "@Aoe{r=7, filter=ENEMIES}" } }
       - { PARTICLE: { particle: ELECTRIC_SPARK, count: 20, who: "@Aoe{r=7,filter=ENEMIES}" } }
-      - { MESSAGE: { channel: title, text: "&9&l** STORMCALLER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
-      - { MESSAGE: { text: "&9&l** STORMCALLER &r&7[&f{VICTIM}&7] &r&9&l**" } }
+      - { MESSAGE: { channel: title, text: "{#4482f4}&l** STORMCALLER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "{#4482f4}&l** STORMCALLER &r&7[&f{VICTIM}&7] &r{#4482f4}&l**" } }

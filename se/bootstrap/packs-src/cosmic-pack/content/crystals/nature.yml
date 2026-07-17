@@ -1,11 +1,11 @@
 # Nature — a cosmic Armor Crystal (ADR-0034/0035). On DEFENSE it adds +3% to the additive damage-REDUCTION fold
 # (enemies deal 3% less to you); a PASSIVE HEALTH bonus keeps two extra hearts while worn — the reconciled attribute modifier, so it stacks with (never clobbers, and is never clobbered by) Overload's HEALTH_BOOST potion pool (1.8.0). Not stackable (§0035).
-display: "&2&lNature"
+display: "{#34be2e}&lNature"
 description:
-  - "&2&lNATURE CRYSTAL BONUS"
-  - "&2* Enemies deal 3% less damage to you"
-  - "&2* Gain 2 extra hearts"
-  - "&2* Nature Crystal is not stackable"
+  - "{#34be2e}&lNATURE CRYSTAL BONUS"
+  - "{#34be2e}* Enemies deal 3% less damage to you"
+  - "{#34be2e}* Gain 2 extra hearts"
+  - "{#34be2e}* Nature Crystal is not stackable"
 tier: epic
 applies-to: [ARMOR]
 stackable: false

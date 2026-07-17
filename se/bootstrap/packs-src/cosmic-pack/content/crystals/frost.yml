@@ -1,12 +1,12 @@
 # Frost — a cosmic Armor Crystal (ADR-0034/0035). On ATTACK it always adds +1% to the outgoing-damage fold, and a
 # further +4% while the wearer stands ON ICE — gated on %actor.groundblock% (the block beneath the feet) being any
 # ICE variant (ICE / PACKED_ICE / BLUE_ICE / FROSTED_ICE). Not stackable (§0035).
-display: "&b&lFrost"
+display: "{#99def3}&lFrost"
 description:
-  - "&b&lFROST CRYSTAL BONUS"
-  - "&b* Deal 1% more damage to all enemies"
-  - "&b* Deal 4% more damage while on ice"
-  - "&b* Frost Crystal is not stackable"
+  - "{#99def3}&lFROST CRYSTAL BONUS"
+  - "{#99def3}* Deal 1% more damage to all enemies"
+  - "{#99def3}* Deal 4% more damage while on ice"
+  - "{#99def3}* Frost Crystal is not stackable"
 tier: rare
 applies-to: [ARMOR]
 stackable: false

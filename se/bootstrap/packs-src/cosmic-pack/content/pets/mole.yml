@@ -7,12 +7,12 @@
 # RECALL, not the dig. The 30s window and 50-block range are bracket-invariant (owner-pinned); only the
 # cooldown scales with level.
 display: "Mole"
-color: "&6"
+color: "{#7d6654}"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWUwYjVkYzU3OWM4NDRiMTAyZDk2YWNkZGI0Y2Y4YjMyNjZjNGM3OWEwZjRhOWYxMzUzNjQwYWY4MDY5Y2I4ZSJ9fX0="
 descriptor: "&eA burrower that never forgets the way back. Dig deep, wander far — one call brings you home."
 description:
-  - "&6* Sneak to dig a temporary home that lasts up to thirty seconds: activate again to instantly return home"
+  - "{#7d6654}* Sneak to dig a temporary home that lasts up to thirty seconds: activate again to instantly return home"
 levels:
   # 15m → 14m → 13m → 12m.
   1:   { cooldown: 18000, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }

@@ -1,42 +1,42 @@
 # Reaper — death-themed diamond set: reduce incoming damage, deal extra damage, debuff foes on hit.
-display: "&4&lReaper"
-description: "&4Embrace the dark power of the Reaper set, wielding the essence of death and fate."
+display: "{#af2f39}&lReaper"
+description: "{#af2f39}Embrace the dark power of the Reaper set, wielding the essence of death and fate."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&4&l** Reaper SET EQUIPPED &4&l**\n"
+equip-message: "\n{#af2f39}&l** Reaper SET EQUIPPED {#af2f39}&l**\n"
 remove-message: "\n&7&l** Reaper SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&4Embrace the dark power of the Reaper set, wielding the essence of death and fate."
+    - "{#af2f39}Embrace the dark power of the Reaper set, wielding the essence of death and fate."
     - ""
-    - "&4&lREAPER SET BONUS"
-    - "&4* Deal 20% more damage to all enemies"
-    - "&4* Enemies deal 10% less damage to you"
-    - "&4* Mark of the Reaper Ability"
+    - "{#af2f39}&lREAPER SET BONUS"
+    - "{#af2f39}* Deal 20% more damage to all enemies"
+    - "{#af2f39}* Enemies deal 10% less damage to you"
+    - "{#af2f39}* Mark of the Reaper Ability"
     - ""
-    - "&4&lMARK OF THE REAPER"
-    - "&4* Chance to mark your enemy with the Mark of the Reaper for 3 seconds, causing them to take 25% more damage"
+    - "{#af2f39}&lMARK OF THE REAPER"
+    - "{#af2f39}* Chance to mark your enemy with the Mark of the Reaper for 3 seconds, causing them to take 25% more damage"
     - "&7&o(Requires all four Reaper set items.)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&4&lGrim Hood&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&4&lDeathly Shroud&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&4&lMortal Leggings&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&4&lGravewalker Boots&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#af2f39}&lGrim Hood&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#af2f39}&lDeathly Shroud&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#af2f39}&lMortal Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#af2f39}&lGravewalker Boots&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_SWORD
-  name: "&4&lDeathbringer&r"
+  name: "{#af2f39}&lDeathbringer&r"
   lore:
-    - "&4Bring doom to your foes with the Deathbringer, a blade that embodies the essence of mortality and fate."
+    - "{#af2f39}Bring doom to your foes with the Deathbringer, a blade that embodies the essence of mortality and fate."
     - ""
-    - "&4&lREAPER WEAPON BONUS"
-    - "&4* Deal 5% more damage to all enemies"
+    - "{#af2f39}&lREAPER WEAPON BONUS"
+    - "{#af2f39}* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Reaper set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -56,8 +56,8 @@ bonuses:
       - { SOUND: { sound: "ENTITY_WITHER_DEATH", volume: 1.0, pitch: 1.4 } }
       - { MARK: { amount: 25, duration: 60, who: "@Victim" } }
       - { PARTICLE: { particle: SOUL, count: 15 } }
-      - { MESSAGE: { channel: title, text: "&4&l** MARK OF THE REAPER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
-      - { MESSAGE: { text: "&4&l** MARK OF THE REAPER &r&7[&f{VICTIM}&7] &r&4&l**" } }
+      - { MESSAGE: { channel: title, text: "{#af2f39}&l** MARK OF THE REAPER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "{#af2f39}&l** MARK OF THE REAPER &r&7[&f{VICTIM}&7] &r{#af2f39}&l**" } }
   # The reaper's tether — a continuous dark-red dust beam redrawn every 0.5s from each still-marked victim to
   # the reaper (@Marked is empty when nothing is marked, so this is silent until a mark lands; like KOTH's aura).
   - on: armor

@@ -1,42 +1,42 @@
 # Clarity — radiant diamond set: damage up, reduction, and a Bless passive.
-display: "&d&lClarity"
-description: "&dShine with the pure light of the Clarity set, crystal clear and serene, a beacon of prosperity and truth."
+display: "{#ffa8f8}&lClarity"
+description: "{#ffa8f8}Shine with the pure light of the Clarity set, crystal clear and serene, a beacon of prosperity and truth."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&d&l** Clarity SET EQUIPPED &d&l**\n"
+equip-message: "\n{#ffa8f8}&l** Clarity SET EQUIPPED {#ffa8f8}&l**\n"
 remove-message: "\n&7&l** Clarity SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&dShine with the pure light of the Clarity set, crystal clear and serene, a beacon of prosperity and truth."
+    - "{#ffa8f8}Shine with the pure light of the Clarity set, crystal clear and serene, a beacon of prosperity and truth."
     - ""
-    - "&d&lCLARITY SET BONUS"
-    - "&d* Deal 15% more damage to all enemies"
-    - "&d* Enemies deal 5% less damage to you"
-    - "&d* Bless Passive Ability"
+    - "{#ffa8f8}&lCLARITY SET BONUS"
+    - "{#ffa8f8}* Deal 15% more damage to all enemies"
+    - "{#ffa8f8}* Enemies deal 5% less damage to you"
+    - "{#ffa8f8}* Bless Passive Ability"
     - ""
-    - "&d&lBLESS"
-    - "&d* You are immune to negative potion effects."
+    - "{#ffa8f8}&lBLESS"
+    - "{#ffa8f8}* You are immune to negative potion effects."
     - "&7&o(Requires all four Clarity set items.)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&d&lShimmering Helm&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&d&lGlistening Armor&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&d&lRadiant Leggings&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&d&lLuminous Boots&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#ffa8f8}&lShimmering Helm&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#ffa8f8}&lGlistening Armor&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#ffa8f8}&lRadiant Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#ffa8f8}&lLuminous Boots&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_SWORD
-  name: "&d&lRadiant Blade&r"
+  name: "{#ffa8f8}&lRadiant Blade&r"
   lore:
-    - "&dA blade forged in the light of clarity, pure and unyielding, cutting through the darkness with ease."
+    - "{#ffa8f8}A blade forged in the light of clarity, pure and unyielding, cutting through the darkness with ease."
     - ""
-    - "&d&lCLARITY WEAPON BONUS"
-    - "&d* Deal 10% more damage to all enemies"
+    - "{#ffa8f8}&lCLARITY WEAPON BONUS"
+    - "{#ffa8f8}* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Clarity set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:

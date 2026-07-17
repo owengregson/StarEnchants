@@ -4,12 +4,12 @@
 # exactly; the max-level bracket uses CANCEL (the ethereal-dodge negate) so level 100 is full immunity,
 # not a 100% reduction that still triggers hurt effects. No SOUND: this procs on effectively every fall.
 display: "Sheep"
-color: "&f"
+color: "{#ececec}"
 type: PASSIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzBmNTAzOTRjNmQ3ZGJjMDNlYTU5ZmRmNTA0MDIwZGM1ZDY1NDhmOWQzYmM5ZGNhYzg5NmJiNWNhMDg1ODdhIn19fQ=="
 descriptor: "&eA cloud-soft companion that cushions every landing. Gravity holds no grudge against you."
 description:
-  - "&f* Reduces fall damage that scales to full immunity at max level"
+  - "{#ececec}* Reduces fall damage that scales to full immunity at max level"
 levels:
   # -25% → -50% → -75% → immune.
   1:   { trigger: FALL, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } } ] }

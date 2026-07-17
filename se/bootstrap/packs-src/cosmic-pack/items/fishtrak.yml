@@ -5,7 +5,7 @@
 type: fishtrak
 
 material: CLAY_BALL
-name: "&3&lFishTrak Gem"
+name: "{#b0b9d5}&lFishTrak Gem"
 # {KINDS} = the applies-to label; {COUNT} = the live count. Lore auto-wraps at config lore.item-wrap.
 lore:
   - "&eDisplays the amount of fish caught with the rod since it was forged."

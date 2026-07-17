@@ -6,7 +6,7 @@
 type: randomizer-scroll
 
 material: REDSTONE
-name: "&c&lRandomizer Dust"
+name: "{#c11101}&lRandomizer Dust"
 lore:
   - "&eRandomizes the success and failure chances of an enchantment book."
   - "&7Drag n' Drop on an item to apply."

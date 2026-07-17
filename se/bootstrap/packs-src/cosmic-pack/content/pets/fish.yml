@@ -4,12 +4,12 @@
 # Inert without an economy provider (and on the 1.8 lane, a recorded §6 degrade). The REPEATING timer rides
 # the hotbar presence: pocketing the pet stops the clock.
 display: "Fish"
-color: "&9"
+color: "{#3b66c6}"
 type: PASSIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTYyZWNiMWMzZmFmYjc2NmIyMzQ1OTFhZDU5NWJhMTk2YTU3ODc4Nzg0NGQyN2FlNmE0YzEyYmMxOTA3MzI5NyJ9fX0="
 descriptor: "&eA slippery investor that never stops working. Money really does grow underwater."
 description:
-  - "&9* Generates passive income for you"
+  - "{#3b66c6}* Generates passive income for you"
 levels:
   # 0.7% → 0.8% → 0.9% → 1.0% of your balance, every hour (72000 ticks).
   1:   { trigger: REPEATING, repeat: 72000, effects: [ { MODIFY_MONEY: { mode: interest_percent, amount: 0.7, who: "@Self" } } ] }

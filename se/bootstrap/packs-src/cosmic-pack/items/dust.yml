@@ -8,7 +8,7 @@ material: GLOWSTONE_DUST
 # Tokens (substituted at mint): {MIN}/{MAX} = the random dust's [min-bonus, max-bonus] range (equal on a
 # fixed dust from /se dust <percent>); {BONUS} = the same range rendered "10-25" (or the exact value on a
 # fixed dust); {MAXSUCCESS} = the global success ceiling. Lore lines auto-wrap at config lore.item-wrap.
-name: "&6&lMagic Dust [&r&a&n+{MIN}-{MAX}%&r&6&l]&r"
+name: "{#ffbd5d}&lMagic Dust [&r&a&n+{MIN}-{MAX}%&r{#ffbd5d}&l]&r"
 lore:
   - "&eIncreases the success rate of an enchantment book by {MIN}-{MAX}%, up to a maximum of {MAX}%."
   - "&7Drag n' Drop on an item to apply."

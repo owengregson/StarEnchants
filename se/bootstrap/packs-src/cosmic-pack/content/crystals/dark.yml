@@ -1,12 +1,12 @@
 # Dark — a cosmic Armor Crystal (ADR-0035). A double-edged bonus: on ATTACK it adds +5% to the outgoing-damage
 # fold, and on DEFENSE a NEGATIVE reduction (-5%) makes enemies deal 5% MORE damage to the wearer (ADR-0012).
 # Not stackable (§0035).
-display: "&8&lDark"
+display: "{#535d5a}&lDark"
 description:
-  - "&8&lDARK CRYSTAL BONUS"
-  - "&8* Deal 5% more damage to all enemies"
-  - "&8* Enemies deal 5% more damage to you"
-  - "&8* Dark Crystal is not stackable"
+  - "{#535d5a}&lDARK CRYSTAL BONUS"
+  - "{#535d5a}* Deal 5% more damage to all enemies"
+  - "{#535d5a}* Enemies deal 5% more damage to you"
+  - "{#535d5a}* Dark Crystal is not stackable"
 tier: legendary
 applies-to: [ARMOR]
 stackable: false

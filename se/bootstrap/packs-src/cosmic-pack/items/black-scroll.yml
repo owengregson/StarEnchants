@@ -5,8 +5,9 @@
 # the mechanic is global. reload with /se reload.
 type: black-scroll
 
-material: INK_SAC
-name: "&8&lBlack Scroll"
+# DRIED_KELP is 1.13+; the 1.8.9 lane degrades it to the ink sac (INK_SACK) via ItemFactory.LEGACY_FALLBACK.
+material: DRIED_KELP
+name: "{#473f31}&lBlack Scroll"
 # {SUCCESS} = the drawn book's rolled success rate. Lines auto-wrap at config lore.item-wrap.
 lore:
   - ""

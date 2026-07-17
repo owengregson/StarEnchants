@@ -2,12 +2,12 @@
 # radial shove + an upward pop). Instant (no armed window); the %nearbyenemies% condition fails the use
 # BEFORE the cooldown arms when no one is around. Only the cooldown scales with level.
 display: "Lion"
-color: "&6"
+color: "{#c68439}"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGNkOWJkYWRmZDM1ZTkwZDBkMmNhMzIxNWIyNjk2OGRkMTAzZTgzZWExM2IxNWQ2MGFhZDYzM2RhZTZmOTIwOCJ9fX0="
 descriptor: "&eThe king of the savanna travels in your pocket. One roar and the crowd scatters."
 description:
-  - "&6* Launches all enemies away from you"
+  - "{#c68439}* Launches all enemies away from you"
 levels:
   # 4m → 3m30s → 3m → 2m30s.
   1:

@@ -1,42 +1,42 @@
 # Dragon — draconic diamond set: damage reduction + extra bite, plus exotic disable-enchant lore.
-display: "&e&lDragon"
-description: "&eUnleash the power of ancient dragons with the Dragon set, forged in the fires of legend."
+display: "{#f8c33a}&lDragon"
+description: "{#f8c33a}Unleash the power of ancient dragons with the Dragon set, forged in the fires of legend."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&e&l** Dragon SET EQUIPPED &e&l**\n"
+equip-message: "\n{#f8c33a}&l** Dragon SET EQUIPPED {#f8c33a}&l**\n"
 remove-message: "\n&7&l** Dragon SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&eUnleash the power of ancient dragons with the Dragon set, forged in the fires of legend."
+    - "{#f8c33a}Unleash the power of ancient dragons with the Dragon set, forged in the fires of legend."
     - ""
-    - "&e&lDRAGON SET BONUS"
-    - "&e* Deal 15% more damage to all enemies."
-    - "&e* Enemies deal 10% less damage to you."
-    - "&e* Dovahkiin Passive Ability"
+    - "{#f8c33a}&lDRAGON SET BONUS"
+    - "{#f8c33a}* Deal 15% more damage to all enemies."
+    - "{#f8c33a}* Enemies deal 10% less damage to you."
+    - "{#f8c33a}* Dovahkiin Passive Ability"
     - ""
-    - "&e&lDOVAHKIIN"
-    - "&e* Your enchantments can no longer be suppressed by enemy enchantments"
+    - "{#f8c33a}&lDOVAHKIIN"
+    - "{#f8c33a}* Your enchantments can no longer be suppressed by enemy enchantments"
     - "&7&o(Requires all four Dragon set items.)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&e&lHorned Helmet&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&e&lWinged Chestplate&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&e&lScaled Trousers&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&e&lDraconic Greaves&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#f8c33a}&lHorned Helmet&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#f8c33a}&lWinged Chestplate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#f8c33a}&lScaled Trousers&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#f8c33a}&lDraconic Greaves&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_SWORD
-  name: "&e&lWyvern Claw&r"
+  name: "{#f8c33a}&lWyvern Claw&r"
   lore:
-    - "&eUnleash draconic fury with the Wyvern Claw, a talon forged from the essence of ancient dragons."
+    - "{#f8c33a}Unleash draconic fury with the Wyvern Claw, a talon forged from the essence of ancient dragons."
     - ""
-    - "&e&lDRAGON WEAPON BONUS"
-    - "&e* Deal 10% more damage to all enemies"
+    - "{#f8c33a}&lDRAGON WEAPON BONUS"
+    - "{#f8c33a}* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Dragon set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:

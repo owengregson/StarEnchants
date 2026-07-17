@@ -1,10 +1,10 @@
 # Water — a cosmic Armor Crystal (ADR-0035). On ATTACK it adds +2% to the outgoing-damage fold while the wearer
 # is in water (gated on %swimming%). Stackable, so two Water crystals stack their bonus.
-display: "&3&lWater"
+display: "{#49e1c0}&lWater"
 description:
-  - "&3&lWATER CRYSTAL BONUS"
-  - "&3* Deal 2% more damage while in water"
-  - "&3* Water Crystal is stackable"
+  - "{#49e1c0}&lWATER CRYSTAL BONUS"
+  - "{#49e1c0}* Deal 2% more damage while in water"
+  - "{#49e1c0}* Water Crystal is stackable"
 tier: rare
 applies-to: [ARMOR]
 stackable: true

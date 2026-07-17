@@ -5,12 +5,12 @@
 type: slot-orb
 
 orb-material: ENDER_EYE
-orb-name: "&6&lEnchantment Orb [&r&a&n+{AMOUNT}&6&l]"
+orb-name: "{#8ac35c}&lEnchantment Orb [&r&a&n+{AMOUNT}{#8ac35c}&l]"
 orb-lore:
   - "&a{SUCCESS}% Success Rate"
   - "&c{FAILURE}% Failure Rate"
   - ""
-  - "&6+{AMOUNT} Enchantment Slot(s)"
+  - "&e* &6+{AMOUNT} Enchantment Slot(s)"
   - ""
   - "&eIncreases the number of enchantment slots on an item by {AMOUNT}, up to a maximum of {MAX}."
   - ""

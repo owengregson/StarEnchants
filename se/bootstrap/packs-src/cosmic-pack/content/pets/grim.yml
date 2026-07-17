@@ -10,12 +10,12 @@
 # double); authoring 100 here would land as the capped 0.70 × 5 = ×4.5. Retune the riders if you change
 # the attack-scale knob.
 display: "Grim"
-color: "&f"
+color: "{#e0e6e8}"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjUzOTBmNzJjN2YyMWQ5YTQ2ZTYxMDE4M2E2NTI1YzllNWU2MmE1YzI3ZDUyNTRmNjE2YzY0NzI2OTBjMzc4ZSJ9fX0="
 descriptor: "&eA reaper that trades borrowed life for borrowed power. The scythe cuts both ways."
 description:
-  - "&f* Removes your overhealth in exchange for double damage"
+  - "{#e0e6e8}* Removes your overhealth in exchange for double damage"
 levels:
   # 2s / 4m → 3s / 3m30s → 3s / 3m → 4s / 3m.
   1:

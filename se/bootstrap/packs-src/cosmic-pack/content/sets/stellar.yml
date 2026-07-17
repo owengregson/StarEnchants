@@ -1,41 +1,41 @@
 # Stellar — cosmic diamond set; absorption shield on defense, Rift Blade weapon.
-display: "&5&lStellar"
-description: "&5Harness the power of the cosmos with the Stellar Set, transcending space and time to outmaneuver any foe."
+display: "{#c94dd8}&lStellar"
+description: "{#c94dd8}Harness the power of the cosmos with the Stellar Set, transcending space and time to outmaneuver any foe."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&5&l** Stellar SET EQUIPPED &5&l**\n"
+equip-message: "\n{#c94dd8}&l** Stellar SET EQUIPPED {#c94dd8}&l**\n"
 remove-message: "\n&7&l** Stellar SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&5Harness the power of the cosmos with the Stellar Set, transcending space and time to outmaneuver any foe."
+    - "{#c94dd8}Harness the power of the cosmos with the Stellar Set, transcending space and time to outmaneuver any foe."
     - ""
-    - "&5&lSTELLAR SET BONUS"
-    - "&5* Deal 20% more damage to all enemies"
-    - "&5* Dimensional Shift Passive Ability"
+    - "{#c94dd8}&lSTELLAR SET BONUS"
+    - "{#c94dd8}* Deal 20% more damage to all enemies"
+    - "{#c94dd8}* Dimensional Shift Passive Ability"
     - ""
-    - "&5&lDIMENSIONAL SHIFT"
-    - "&5* Chance to teleport behind your enemy and gain Invisibility & Speed IV for 5 seconds"
+    - "{#c94dd8}&lDIMENSIONAL SHIFT"
+    - "{#c94dd8}* Chance to teleport behind your enemy and gain Invisibility & Speed IV for 5 seconds"
     - "&7&o(Requires all four Stellar set items.)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&5&lQuantum Hood&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&5&lPhase Plate&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&5&lWarp Leggings&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&5&lBlink Boots&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#c94dd8}&lQuantum Hood&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#c94dd8}&lPhase Plate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#c94dd8}&lWarp Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#c94dd8}&lBlink Boots&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_SWORD
-  name: "&5&lRift Blade&r"
+  name: "{#c94dd8}&lRift Blade&r"
   lore:
-    - "&5Wield the Rift Blade, a sword that tears through dimensions, striking with unpredictable swiftness."
+    - "{#c94dd8}Wield the Rift Blade, a sword that tears through dimensions, striking with unpredictable swiftness."
     - ""
-    - "&5&lSTELLAR WEAPON BONUS"
-    - "&5* Deal 5% more damage to all enemies"
+    - "{#c94dd8}&lSTELLAR WEAPON BONUS"
+    - "{#c94dd8}* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Stellar set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -67,5 +67,5 @@ bonuses:
       - { POTION: { effect: SPEED, level: 4, duration: 100, who: "@Self" } }
       - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: "@Self" } }
       - { PARTICLE: { particle: PORTAL, count: 40 } }
-      - { MESSAGE: { channel: title, text: "&5&l** DIMENSIONAL SHIFT **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
-      - { MESSAGE: { text: "&5&l** DIMENSIONAL SHIFT &r&7[&f{VICTIM}&7] &r&5&l**" } }
+      - { MESSAGE: { channel: title, text: "{#c94dd8}&l** DIMENSIONAL SHIFT **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "{#c94dd8}&l** DIMENSIONAL SHIFT &r&7[&f{VICTIM}&7] &r{#c94dd8}&l**" } }
