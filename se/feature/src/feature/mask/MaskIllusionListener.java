@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -52,6 +53,13 @@ public final class MaskIllusionListener implements Listener {
 
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
+        deferRefresh(event.getPlayer());
+    }
+
+    // ADR-0064: entering CREATIVE flips the wearer's self-view to reality (a creative client would write the
+    // illusion back); leaving it re-asserts the mask. The 1-tick defer reads the NEW gamemode.
+    @EventHandler
+    public void onGameModeChange(PlayerGameModeChangeEvent event) {
         deferRefresh(event.getPlayer());
     }
 

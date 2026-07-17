@@ -15,8 +15,20 @@ import org.junit.jupiter.api.Test;
 class MaskIllusionServiceTest {
 
     private static MaskIllusionService service(TexturedHeads heads) {
-        return new MaskIllusionService(EquipmentRepaint.NONE, heads, item.head.HeadAttributes.NONE, () -> null, mock(ItemViewCache.class),
-                () -> true, new MaskIllusionStore());
+        return new MaskIllusionService(EquipmentRepaint.NONE, heads, item.head.HeadAttributes.NONE,
+                new item.head.IllusionMark(item.codec.ItemKeys.of(), new InertStore(), item.head.ItemBytes.NONE),
+                () -> null, mock(ItemViewCache.class), () -> true, new MaskIllusionStore());
+    }
+
+    /** Store-less fixture: these rows never touch the marker — reads are null, writes are dropped. */
+    private static final class InertStore implements item.codec.ItemStateStore {
+        @Override public String read(ItemStack stack, String key) { return null; }
+        @Override public void write(ItemStack stack, String key, String blob) { }
+        @Override public boolean hasByte(ItemStack stack, String key) { return false; }
+        @Override public void setByte(ItemStack stack, String key, boolean set) { }
+        @Override public boolean hasInt(ItemStack stack, String key) { return false; }
+        @Override public int readInt(ItemStack stack, String key, int dflt) { return dflt; }
+        @Override public void writeInt(ItemStack stack, String key, int value) { }
     }
 
     @Test
