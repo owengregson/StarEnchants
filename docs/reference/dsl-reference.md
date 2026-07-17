@@ -370,6 +370,15 @@ Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmet
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ LIGHTNING: { damage: 6 } }`
 
+### LIGHTNING_MOD
+
+While worn (PASSIVE): the wearer's LIGHTNING effects deal amount% more authored damage (summed across worn sources, suppression-aware, read when the bolt fires). Negative values reduce, floored at a cosmetic bolt; the vanilla splash is untouched.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ LIGHTNING_MOD: { amount: <double[-100..]> } }`
+- _param_ `amount` `double[-100..]`
+- _example_: `{ LIGHTNING_MOD: { amount: 10 } }`
+
 ### MARK
 
 Mark the target(s) so the actor deals an extra `amount`% damage to them for `duration` ticks. Applied by the damage fold on the actor's later hits; default target the combat victim.

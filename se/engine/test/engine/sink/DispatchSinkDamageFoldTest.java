@@ -271,6 +271,48 @@ class DispatchSinkDamageFoldTest {
     }
 
     @Test
+    void wornLightningBoostScalesTheAuthoredPayloadOnly() {
+        // Bolt crystal (ADR-0063): the channel scales the AUTHORED payload; still never a fold
+        // contribution, still attributed. 8.0 × (1 + 0.25) = 10.0 — binary-exact for the verify.
+        LivingEntity victim = aliveEntity();
+        LivingEntity attacker = aliveEntity();
+        World world = mock(World.class);
+        Location at = mock(Location.class);
+        when(victim.getWorld()).thenReturn(world);
+        when(victim.getLocation()).thenReturn(at);
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles,
+                Envs.sink().lightningBoost(id -> 0.25).build());
+        sink.eventEntity(victim);
+        sink.lightningAndDamage(victim, 8.0, attacker);
+
+        assertEquals(0.0, sink.fold().effectiveDamage(), 1e-9);
+        sink.flush();
+        verify(world).strikeLightning(at);
+        verify(victim).damage(10.0, attacker);
+    }
+
+    @Test
+    void aCosmeticBoltStaysCosmeticUnderABoost() {
+        // 10% of nothing is nothing: a damage:0 flair bolt gains no damage from the worn channel.
+        LivingEntity victim = aliveEntity();
+        LivingEntity attacker = aliveEntity();
+        World world = mock(World.class);
+        Location at = mock(Location.class);
+        when(victim.getWorld()).thenReturn(world);
+        when(victim.getLocation()).thenReturn(at);
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles,
+                Envs.sink().lightningBoost(id -> 0.25).build());
+        sink.lightningAndDamage(victim, 0.0, attacker);
+        sink.flush();
+
+        verify(world).strikeLightningEffect(at);
+        verify(victim, never()).damage(anyDouble(), any(Entity.class));
+        verify(victim, never()).damage(anyDouble());
+    }
+
+    @Test
     void engineIssuedDamageRunsInsideTheEngineFrame() {
         // The re-entrancy contract the old bare hurt() enforced structurally: while OUR damage applies,
         // EngineDamage.active() is true, so SE's own combat listeners stand down for the events it fires.

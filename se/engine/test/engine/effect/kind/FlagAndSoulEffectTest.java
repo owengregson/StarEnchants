@@ -61,6 +61,11 @@ class FlagAndSoulEffectTest {
                 // the home window from the compiled args; an engine intent here would double-arm it).
                 flag("DIG_HOME → no intent (service-owned marker)", new DigHomeEffect(),
                         c -> c.with("window", 600).with("range", 50.0),
+                        s -> { }),
+                // ADR-0063: LIGHTNING_MOD is a worn channel — LightningBoost reads it at bolt emit; an
+                // engine intent here would double-apply the boost.
+                flag("LIGHTNING_MOD → no intent (worn channel)", new LightningModEffect(),
+                        c -> c.with("amount", 10.0),
                         s -> { }));
     }
 

@@ -1,5 +1,6 @@
 package testfx;
 
+import engine.sink.GearProtection;
 import engine.sink.SinkEnv;
 import engine.sink.SoulDebit;
 import engine.stores.ComboStore;
@@ -18,7 +19,9 @@ import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
 import engine.stores.WardStore;
 import engine.stores.WhyStore;
+import java.util.UUID;
 import java.util.function.LongSupplier;
+import java.util.function.ToDoubleFunction;
 import platform.economy.EconomyService;
 
 /**
@@ -55,6 +58,7 @@ public final class Envs {
         private DamageCapStore damageCap = new DamageCapStore();
         private RageStackStore rageStacks = new RageStackStore();
         private WardStore ward = new WardStore();
+        private ToDoubleFunction<UUID> lightningBoost = id -> 0.0;
         private EngineStores storesOverride = null;
 
         public SinkEnvBuilder economy(EconomyService economy) {
@@ -147,6 +151,12 @@ public final class Envs {
             return this;
         }
 
+        /** The worn LIGHTNING_MOD channel read at bolt emit (ADR-0063); default no boost. */
+        public SinkEnvBuilder lightningBoost(ToDoubleFunction<UUID> lightningBoost) {
+            this.lightningBoost = lightningBoost;
+            return this;
+        }
+
         /** Fully override the aggregate; the per-store slots are then ignored. */
         public SinkEnvBuilder stores(EngineStores stores) {
             this.storesOverride = stores;
@@ -157,7 +167,8 @@ public final class Envs {
             EngineStores stores = storesOverride != null ? storesOverride
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
                             combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward);
-            return SinkEnv.of(economy, souls, stores, nowTicks);
+            return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
+                    GearProtection.NONE, lightningBoost);
         }
     }
 }

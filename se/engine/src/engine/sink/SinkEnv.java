@@ -2,9 +2,11 @@ package engine.sink;
 
 import engine.stores.EngineStores;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.LongSupplier;
+import java.util.function.ToDoubleFunction;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import platform.economy.EconomyService;
@@ -30,7 +32,8 @@ import platform.economy.EconomyService;
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
                       TrailWalker trails, TimedRevert timedReverts,
-                      DoubleSupplier moneyInterestCap, GearProtection gearProtection) {
+                      DoubleSupplier moneyInterestCap, GearProtection gearProtection,
+                      ToDoubleFunction<UUID> lightningBoost) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -43,6 +46,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(timedReverts, "timedReverts");
         Objects.requireNonNull(moneyInterestCap, "moneyInterestCap");
         Objects.requireNonNull(gearProtection, "gearProtection");
+        Objects.requireNonNull(lightningBoost, "lightningBoost");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -64,7 +68,18 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                              Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
                              GearProtection gearProtection) {
+        return of(economy, souls, stores, nowTicks, movementExemption, moneyInterestCap, gearProtection,
+                id -> 0.0);
+    }
+
+    /**
+     * The ADR-0063 shape: {@code lightningBoost} is the worn LIGHTNING_MOD channel — actor UUID → summed
+     * boost fraction, read per bolt emit (live WornState + suppression; {@code id -> 0.0} = no channel).
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
-                new TrailWalker(), new TimedRevert(), moneyInterestCap, gearProtection);
+                new TrailWalker(), new TimedRevert(), moneyInterestCap, gearProtection, lightningBoost);
     }
 }
