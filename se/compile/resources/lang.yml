@@ -361,6 +361,11 @@ use-item.success: ""
 use-item.cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
 use-item.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
 
+# ── Universal action feedback (ADR-0061) — plugin-wide one-liners ANY feature can reuse, sent WITHOUT the
+# message prefix (the use-item send shape). out-of-range: the actor is too far from an action's anchor
+# (first consumer: the Mole pet's recall — beyond the recall radius or in another world).
+feedback.out-of-range: "&c&l(!) You are too far away!"
+
 # ── Pets (ADR-0052) — the Pet Food gesture feedback. The universal ability-activated / ended / on-cooldown
 # messages are CONFIG templates (config.yml pets:), not lang keys, because they carry the pack's likeness.
 pet.food-applied: "&aYour pet gained &f+{AMOUNT}&a levels!"
