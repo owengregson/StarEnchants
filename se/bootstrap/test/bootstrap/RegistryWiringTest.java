@@ -85,7 +85,7 @@ class RegistryWiringTest {
             "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives",   // equip
             "soul aura task",                                                 // souls
             "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
-            "pet summon registry", "pet armed windows",                      // pets (ADR-0052)
+            "pet summon registry", "bat swarms", "pet armed windows",       // pets (ADR-0052, ADR-0060)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
             "bStats");                                                        // coreStops
 
