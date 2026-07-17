@@ -1,0 +1,18 @@
+# Sheep Pet — a PASSIVE pet (ADR-0060): reduced fall damage while the head sits in the hotbar, scaling to
+# TRUE immunity at max level. FALL is environmental damage — the defense fold there is uncapped and never
+# attack-scaled (only entity-vs-entity combat installs the ADR-0050 caps), so the authored percents land
+# exactly; the max-level bracket uses CANCEL (the ethereal-dodge negate) so level 100 is full immunity,
+# not a 100% reduction that still triggers hurt effects. No SOUND: this procs on effectively every fall.
+display: "Sheep"
+color: "&f"
+type: PASSIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzBmNTAzOTRjNmQ3ZGJjMDNlYTU5ZmRmNTA0MDIwZGM1ZDY1NDhmOWQzYmM5ZGNhYzg5NmJiNWNhMDg1ODdhIn19fQ=="
+descriptor: "&eA cloud-soft companion that cushions every landing. Gravity holds no grudge against you."
+description:
+  - "&f* Reduces fall damage that scales to full immunity at max level"
+levels:
+  # -25% → -50% → -75% → immune.
+  1:   { trigger: FALL, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } } ] }
+  25:  { trigger: FALL, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 50 } } ] }
+  50:  { trigger: FALL, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 75 } } ] }
+  100: { trigger: FALL, effects: [ { CANCEL: {} } ] }
