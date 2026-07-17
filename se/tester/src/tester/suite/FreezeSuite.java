@@ -35,6 +35,16 @@ import tester.harness.Harness;
  * every wait to GAME TICKS. Each check runs on its own {@link CombatRig} (isolated listeners + teardown); event
  * captors filter by the exact victim UUID so concurrently-launched checks never contaminate one another.
  *
+ * <p>Every mob-victim check registers the production {@code FreezeDamageGuardListener} on its rig and pins the
+ * victim with {@code setAI(false)} — the two production conditions the DoT assertions depend on. Without the
+ * guard, the pinned victim's vanilla fully-frozen self-hurt (1.0/40t, NOT behind the freeze lock) arms real
+ * i-frames, and on ≤1.20.6 the next DoT then fires as a partial whose event base is the REDUCED
+ * {@code amount − lastHurt} (raw 1.0, not 2.0). Without the pin, a panicking cow wanders off the force-loaded
+ * (entity-ticking) arena chunk into a border chunk where Folia still runs entity-scheduler tasks but
+ * {@code invulnerableTime} (baseTick-only decay) freezes &gt;10 — an equal 2.0 DoT hurt is then dropped with
+ * no event at all (both javap-verified on Folia 1.20.6; production victims sit next to a real, chunk-ticking
+ * attacker and always have the guard).
+ *
  * <ul>
  *   <li><strong>1 — the pin holds while the victim burns.</strong> The owner-mandated coexistence check: on the
  *       lock path (1.18.2+, all Folia) a burning cow stays pinned at max freeze ticks; on the 1.17.1 floor the
@@ -82,6 +92,7 @@ public final class FreezeSuite implements Harness.Scenario {
         final String key = "freeze.pin.holdsWhileBurning";
         h.expect(key);
         CombatRig rig = new CombatRig(plugin);
+        rig.listen(new feature.combat.FreezeDamageGuardListener()); // production parity: vanilla freeze self-hurts stay cancelled
         rig.onArena(at, () -> {
             Player attacker;
             LivingEntity cow;
@@ -119,6 +130,7 @@ public final class FreezeSuite implements Harness.Scenario {
             });
             Scheduling.onEntity(cow, () -> {
                 toughen(handles, cow); // survive the whole observation window so no DoT is lost to death
+                cow.setAI(false); // a panicking wander off the entity-ticking arena chunk freezes its i-frames (class doc)
                 cow.setNoDamageTicks(0);
                 cow.setFireTicks(200);
                 ModernDispatchSink sink = newSink(handles);
@@ -169,6 +181,9 @@ public final class FreezeSuite implements Harness.Scenario {
         final String key = "freeze.dot.cadenceAndAttribution";
         h.expect(key);
         CombatRig rig = new CombatRig(plugin);
+        // Production parity: unguarded, the pinned cow's vanilla self-hurt (1.0 at tickCount%40) arms i-frames
+        // 1-9t before a slot on Folia (+1-tick hops), and ≤1.20.6 fires that slot's event at raw 2.0−1.0.
+        rig.listen(new feature.combat.FreezeDamageGuardListener());
         rig.onArena(at, () -> {
             Player attacker;
             LivingEntity cow;
@@ -198,6 +213,7 @@ public final class FreezeSuite implements Harness.Scenario {
             });
             Scheduling.onEntity(cow, () -> {
                 toughen(handles, cow);
+                cow.setAI(false); // a panicking wander off the entity-ticking arena chunk freezes its i-frames (class doc)
                 cow.setNoDamageTicks(0);
                 ModernDispatchSink sink = newSink(handles);
                 // Duration 60 is a period-lattice multiple: the t+duration boundary slot is INCLUSIVE
@@ -282,6 +298,7 @@ public final class FreezeSuite implements Harness.Scenario {
         final String key = "freeze.reproc.refreshNotStack";
         h.expect(key);
         CombatRig rig = new CombatRig(plugin);
+        rig.listen(new feature.combat.FreezeDamageGuardListener()); // production parity: vanilla freeze self-hurts stay cancelled
         rig.onArena(at, () -> {
             Player attacker;
             LivingEntity cow;
@@ -307,6 +324,7 @@ public final class FreezeSuite implements Harness.Scenario {
             });
             Scheduling.onEntity(cow, () -> {
                 toughen(handles, cow);
+                cow.setAI(false); // a panicking wander off the entity-ticking arena chunk freezes its i-frames (class doc)
                 cow.setNoDamageTicks(0);
                 ModernDispatchSink sink1 = newSink(handles);
                 sink1.freeze(cow, 40, 2.0, 20, 0.0, true, attacker);
