@@ -4,6 +4,75 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.9.0-beta] — 2026-07-17
+
+### Added
+
+- **Five new pets.** Sheep (passive: fall damage reduced 25/50/75%, full immunity at level 100), Kraken
+  (passive: drowning immunity at every level, plus 10–25% faster swimming on 1.21+ servers), Bat (active:
+  a ring of 10–40 vanilla bats bursts from your chest as a 15-second concealment swarm), Owl (active:
+  sweeps a 10–20 block radius, revealing nearby players and locking their Invisibility out for 8–15s),
+  and Mole (active: sneak-click digs a temporary home — marked by a pulsing ring and a tracer line in the
+  pet's colour — then click again within 50 blocks and 30 seconds to instantly return; Teleblock counters it).
+- **Pet leveling.** Every pet's name now carries a live `[Lvl. N]` suffix; leveling up plays a sound and
+  particle cue. Active pets earn XP on each successful use; every pet slowly levels while carried in your
+  inventory (passive pets earn double in the hotbar). One hour carried ≈ half a level.
+- **Ice Aspect** (epic, swords, 3 levels): a 50/75/100% chance on hit to freeze the victim solid for 3/4/5
+  seconds — blue hearts and the powder-snow chill, working even while they burn — dealing fire-tick-cadence
+  damage at double strength and slowing them 5%. 10-second cooldown.
+- **Wind and Bolt crystals** (both stackable): Wind adds +1% outgoing damage per copy; Bolt makes your
+  enchants' lightning strikes hit 10% harder per copy.
+- **Hex colours everywhere.** Every name, lore line, and colour field across the pack now accepts
+  `{#RRGGBB}` tokens (1.8.9 clients get the nearest classic colour automatically).
+
+### Changed
+
+- **A fresh coat of paint.** New hex colour palettes for all 14 masks, the pet roster, 13 armor sets, and
+  all 7 crystals, plus recoloured likenesses for a dozen items (slot orb, heroic ingot, crystal extractor,
+  black scroll, randomizer dust, transmogs, nametag, magic dust, and the four trak gems). The Iron Golem
+  pet is now **Golem**; the Supreme set is now **Legacy**. The black scroll is dried kelp and the transmog
+  scroll a book.
+- **Durability enchants consolidated to four pillars**: Demonforged (attack armor), Reforged (your tool),
+  Hardened (your armor), and Soul Hardened — retiered from mythic to soul as the soul-fueled pillar.
+- **Enchant tiers rebalanced.** The tiers below mythic now hold an even ~16 enchants each (they ranged
+  from 6 to 27); five enchants moved up in tier, thirty-eight settled down.
+- **Permafrost** cools five times slower (4m cooldown) and its frost floor thaws in 5 seconds; the name
+  reads "Permafrost".
+- **Ethereal Dodge** no longer negates fall damage — the attack dodge and Speed burst are unchanged.
+
+### Removed
+
+- Eleven enchants leave the pack: Reflective Block, Titan Trap, Bloody Deep Wounds, Perfect Solitude,
+  Unstoppable Momentum, Extreme Insanity, Mighty Cactus, Eagle Eye, Immortal, Blacksmith, and Master
+  Blacksmith. Items already carrying them keep working; the dead line renders as "Unknown Enchant" and
+  stale books still salvage at the Tinkerer.
+
+### Fixed
+
+- **The enchant-activate sound no longer double-plays on a hit.** The doubling never needed a second damage
+  event: one swing could legitimately emit the same cue twice — sibling enchants sharing an identical
+  authored sound (Lifesteal + Chain Lifesteal both proc'ing one hit is the same witch-drink twice, and the
+  Deathbringer and Rot And Decay families pair up the same way), a Double Strike echo re-firing a
+  cooldown-free enchant like Execute in both passes, and Thundering Blow authoring the very thunder its real
+  lightning bolt already plays. The engine now plays each sound at most once per hit (a different sound on
+  the same hit, and the same sound on the next hit, still play), and Thundering Blow's redundant thunder
+  line is gone (ADR-0066).
+- **Enchants now fire for every real hit.** The 1.8.8 once-per-hit guard keyed on the victim's
+  invulnerability window, so a second attacker's blows — or any hit landing while the victim burned, bled,
+  or stood in poison — silently skipped ALL enchant processing on both sides, and rage stacks
+  double-advanced on crits. Hits are now deduplicated by identity: same swing skips, everything else procs.
+- **Masked helmets can no longer be bricked.** Removing a crystal (or any modification) while wearing a
+  masked helmet in creative could overwrite the real helmet with its cosmetic disguise — permanently. The
+  disguise now carries the real helmet inside it, write-backs are denied and repaired, and creative
+  players always see the true item. Grindstones and anvils also now refuse masked/crystal gear instead of
+  silently destroying the components.
+- The mole pet's dig sound was silent on 1.8.9.
+
+### Changed (audio)
+
+- **Rage's combo-break cue** is now a layered pair — a bone-block crack under a high item snap — replacing
+  the blaze death screech.
+
 ## [1.8.8-beta] — 2026-07-15
 
 ### Fixed
