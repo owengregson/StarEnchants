@@ -19,8 +19,9 @@ import platform.text.Colors;
  * count (capped at the rage level, so a level-N rage tops out at N), a hit with a non-rage weapon leaves it
  * untouched, and a new combo reseeds it. Stacks drive a rising {@link Titles#sendActionBar action bar} + a
  * {@code BLAZE_HURT} cue whose pitch climbs with the stack. Rage is a combo you keep by NOT being hit: the run
- * breaks — flashing a {@code BROKEN} action bar + a {@code BLAZE_DEATH} cue, stacks to zero — on a victim switch,
- * the window elapsing, OR the holder TAKING a hit from anyone ({@link #onHitTaken}, ADR-0058). The stacks live in
+ * breaks — flashing a {@code BROKEN} action bar + a layered bone-block/item-break cue, stacks to zero — on a
+ * victim switch, the window elapsing, OR the holder TAKING a hit from anyone ({@link #onHitTaken}, ADR-0058).
+ * The stacks live in
  * the shared {@link RageStackStore}, which also sources the {@code %ragestacks%} fact the rage DAMAGE_MOD reads
  * (so the audio ladder and the damage scale share one number).
  *
@@ -39,10 +40,18 @@ public final class RageStacksService {
     static final long WINDOW_TICKS = ComboStore.DEFAULT_WINDOW_TICKS;
 
     private static final String STACK_SOUND = "ENTITY_BLAZE_HURT";
-    private static final String BREAK_SOUND = "ENTITY_BLAZE_DEATH";
     private static final float STACK_VOLUME = 1.0f;
-    private static final float BREAK_VOLUME = 0.5f;
-    private static final float BREAK_PITCH = 2.0f;
+
+    // The combo-BREAK cue is a layered pair played together (owner spec): a bone-block break under a short,
+    // quiet item-break snap. Modern (1.13-flattened) constant names — the alias-free Sounds.play skips a name
+    // absent on the running version, so on the 1.8.9 fork the bone-block layer (block added 1.10) is silent, an
+    // accepted degrade; ENTITY_ITEM_BREAK's 1.8 spelling is carried in the SOUND alias table for the config path.
+    private static final String BREAK_BONE_SOUND = "BLOCK_BONE_BLOCK_BREAK";
+    private static final float BREAK_BONE_VOLUME = 0.75f;
+    private static final float BREAK_BONE_PITCH = 0.95f;
+    private static final String BREAK_ITEM_SOUND = "ENTITY_ITEM_BREAK";
+    private static final float BREAK_ITEM_VOLUME = 0.15f;
+    private static final float BREAK_ITEM_PITCH = 1.67f;
 
     private final Function<Player, Integer> rageLevelOf; // the attacker's active rage level from the worn/held resolution
     private final ComboStore combo;
@@ -121,9 +130,10 @@ public final class RageStacksService {
         Titles.sendActionBar(player, Colors.translate(messages.fragment("rage.stacks-actionbar", "STACKS", stacks)));
     }
 
-    /** The combo-broken cue + action bar, then zero the stored stacks. The holder's region thread. */
+    /** The combo-broken cue (a layered pair) + action bar, then zero the stored stacks. The holder's region thread. */
     private void breakFx(Player player) {
-        sounds.play(player, player.getLocation(), BREAK_SOUND, BREAK_VOLUME, BREAK_PITCH);
+        sounds.play(player, player.getLocation(), BREAK_BONE_SOUND, BREAK_BONE_VOLUME, BREAK_BONE_PITCH);
+        sounds.play(player, player.getLocation(), BREAK_ITEM_SOUND, BREAK_ITEM_VOLUME, BREAK_ITEM_PITCH);
         Titles.sendActionBar(player, Colors.translate(messages.fragment("rage.stacks-broken-actionbar")));
         store.set(player.getUniqueId(), 0, nowTicks.getAsLong());
     }
