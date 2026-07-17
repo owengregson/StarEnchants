@@ -96,6 +96,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     protected static final UUID WORN_MAX_HEALTH_ID =
             UUID.nameUUIDFromBytes("starenchants:worn_max_health".getBytes(StandardCharsets.UTF_8));
     protected static final String WORN_MAX_HEALTH_NAME = "starenchants.worn_max_health";
+    /** The worn water-speed modifier's stable identity (ADR-0060) — the WORN_MAX_HEALTH twin. */
+    protected static final UUID WORN_WATER_SPEED_ID =
+            UUID.nameUUIDFromBytes("starenchants:worn_water_speed".getBytes(StandardCharsets.UTF_8));
+    protected static final String WORN_WATER_SPEED_NAME = "starenchants.worn_water_speed";
 
     private final EconomyService economy;
     private final SoulDebit souls;
@@ -480,6 +484,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 target.setHealth(Math.max(0.0, maxHealth(target))); // clamp current down when the bonus shrank
             }
         });
+    }
+
+    @Override
+    public void applyWornWaterSpeed(Player target, double total) {
+        entityOp(target, () -> setWornWaterSpeedModifier(target, Math.max(0.0, Math.min(1.0, total))));
     }
 
     @Override
@@ -1112,6 +1121,71 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 spawned.remove();
             });
         }
+    }
+
+    /** SPAWN_SWARM's initial outward nudge (blocks/tick) — cosmetic: the ring visibly bursts outward. */
+    private static final double SWARM_BURST = 0.2;
+
+    @Override
+    public void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
+                           int ttlTicks, double speedFraction) {
+        Location center = origin.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
+        regionOp(center, () -> {
+            World world = center.getWorld();
+            if (world == null || count <= 0) {
+                return;
+            }
+            double damping = SwarmRing.dampingFactor(speedFraction);
+            for (int i = 0; i < count; i++) {
+                float yaw = SwarmRing.yawDegrees(i, count);
+                Location at = center.clone().add(
+                        SwarmRing.offsetX(yaw, radius), rise, SwarmRing.offsetZ(yaw, radius));
+                at.setYaw(yaw); // spawn applies the location's yaw → each summon faces outward
+                at.setPitch(0.0f);
+                Entity spawned = spawnTyped(world, at, entityTypeId);
+                if (spawned == null) {
+                    return; // unresolvable type on this version — the §9 compile warn already fired
+                }
+                spawned.setVelocity(new Vector(
+                        SwarmRing.offsetX(yaw, SWARM_BURST), 0.0, SwarmRing.offsetZ(yaw, SWARM_BURST)));
+                SwarmSpawns.bind(spawned);
+                if (damping < 1.0) {
+                    armSwarmDamping(spawned, damping);
+                }
+                bindSwarmTtl(spawned, ttlTicks);
+            }
+        });
+    }
+
+    /** Auto-remove a swarm summon after {@code ttlTicks}, forgetting its registry entry first. */
+    private static void bindSwarmTtl(Entity spawned, int ttlTicks) {
+        if (ttlTicks > 0) {
+            UUID spawnedId = spawned.getUniqueId();
+            Scheduling.onEntityLater(spawned, ttlTicks, () -> {
+                SwarmSpawns.forget(spawnedId);
+                spawned.remove();
+            });
+        }
+    }
+
+    /**
+     * The per-tick AI-speed damp (ADR-0060): Bat-style AI writes velocity directly and never reads the
+     * movement-speed attribute, so the only honest slow-down is scaling the velocity each tick on the
+     * summon's own entity scheduler. Self-cancels when the entity dies/despawns (on Paper the fallback
+     * scheduler does not stop on entity removal; on Folia it does — the guard covers both).
+     */
+    private static void armSwarmDamping(Entity spawned, double damping) {
+        TaskHandle[] handle = new TaskHandle[1];
+        handle[0] = Scheduling.repeatingEntity(spawned, 1L, 1L, () -> {
+            if (!spawned.isValid()) {
+                SwarmSpawns.forget(spawned.getUniqueId());
+                if (handle[0] != null) {
+                    handle[0].cancel();
+                }
+                return;
+            }
+            spawned.setVelocity(spawned.getVelocity().multiply(damping));
+        });
     }
 
     @Override
@@ -1966,6 +2040,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * {@code b(mod)} apply, {@code c(mod)} remove).
      */
     protected abstract void setWornMaxHealthModifier(Player player, double total);
+
+    /**
+     * Set (or, at {@code total <= 0}, remove) the ONE plugin-owned worn water-movement-efficiency MODIFIER
+     * — identity {@link #WORN_WATER_SPEED_ID}/{@link #WORN_WATER_SPEED_NAME}, additive, the
+     * {@link #setWornMaxHealthModifier} contract (ADR-0060). Modern resolves the attribute by NAME
+     * ({@code GENERIC_WATER_MOVEMENT_EFFICIENCY}; the alias chain covers the 1.21.3+ rename) and no-ops
+     * when it does not exist (pre-1.21); the 1.8 leaf is a recorded no-op (no such attribute).
+     */
+    protected abstract void setWornWaterSpeedModifier(Player player, double total);
 
     /** Add a max-health MODIFIER of {@code delta} (ADD_NUMBER) keyed by {@code id} — modern
      *  {@code AttributeInstance.addModifier}; 1.8 NMS {@code AttributeInstance.b(AttributeModifier)}. Idempotent on

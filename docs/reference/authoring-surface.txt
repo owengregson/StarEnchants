@@ -199,6 +199,13 @@ effect SPAWN_ENTITY
   param detonate ENUM optional min=- max=- enum=NONE,PLAYER_HIT handle=- default=NONE
   param invincible BOOL optional min=- max=- enum=- handle=- default=false
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+effect SPAWN_SWARM
+  param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
+  param count INT optional min=1 max=- enum=- handle=- default=1
+  param radius DOUBLE optional min=0 max=- enum=- handle=- default=0.5
+  param rise DOUBLE optional min=0 max=- enum=- handle=- default=1.2
+  param ttl TICKS optional min=0 max=- enum=- handle=- default=300
+  param speed DOUBLE optional min=0 max=1 enum=- handle=- default=1
 effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true
@@ -248,6 +255,8 @@ effect WARD
   param type ENUM required min=- max=- enum=invsee,mob-target,near,splash-heal handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
   param amount DOUBLE optional min=- max=- enum=- handle=- default=0
+effect WATER_SPEED
+  param efficiency DOUBLE required min=0 max=1 enum=- handle=- default=-
 effect WEAKEN
   param percent DOUBLE required min=0 max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=100

@@ -150,6 +150,14 @@ public interface Sink {
     void applyWornMaxHealth(Player target, double total);
 
     /**
+     * Reconcile the ONE plugin-owned worn water-movement modifier to {@code total} ({@code <= 0} removes
+     * it) — the {@code WATER_SPEED}-on-PASSIVE/HELD channel (ADR-0060), the exact
+     * {@link #applyWornMaxHealth} contract on the {@code water_movement_efficiency} attribute. Clamped to
+     * the attribute's [0,1] domain. A no-op where the attribute does not exist (pre-1.21 modern, 1.8.9).
+     */
+    void applyWornWaterSpeed(Player target, double total);
+
+    /**
      * Temporarily lower {@code target}'s max health by {@code fraction} of its "overhealth" (its EFFECTIVE max
      * above {@code baseline}, e.g. 20) plus a flat {@code flat}, restoring it after {@code durationTicks}
      * (MAX_HEALTH_DRAIN — cupid's Lovestruck, grim's overhealth window). Overhealth is measured on the effective
@@ -261,6 +269,17 @@ public interface Sink {
      */
     void spawnSummon(Location at, int entityTypeId, int count, int ttlTicks, double health, UUID ownerId,
                      Player activator, SummonFlags flags);
+
+    /**
+     * Summon {@code count} entities of an interned type evenly spaced on a {@code radius}-block ring
+     * around {@code origin} raised {@code rise} blocks (the summoner's chest), each facing directly
+     * outward, keeping VANILLA AI, auto-removed after {@code ttlTicks} (SPAWN_SWARM, ADR-0060).
+     * {@code speedFraction < 1} slows each summon to that fraction of its vanilla steady-state AI speed
+     * via a per-tick velocity damp on its own entity scheduler. Tracked in {@link SwarmSpawns} for the
+     * disable sweep.
+     */
+    void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
+                    int ttlTicks, double speedFraction);
 
     /**
      * Spawn ONE falling block of an interned material at {@code at} that never drops an item or hurts entities

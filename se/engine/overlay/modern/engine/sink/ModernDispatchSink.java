@@ -216,6 +216,28 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     }
 
     @Override
+    @SuppressWarnings({"deprecation", "removal"}) // the UUID AttributeModifier ctor: deprecated-not-removed across the range
+    protected void setWornWaterSpeedModifier(Player player, double total) {
+        Object attribute = handles.resolveByName(HandleCategory.ATTRIBUTE, "GENERIC_WATER_MOVEMENT_EFFICIENCY");
+        if (!(attribute instanceof Attribute resolved)) {
+            return; // pre-1.21 server: no water-movement attribute — the ADR-0060 recorded degrade
+        }
+        AttributeInstance instance = player.getAttribute(resolved);
+        if (instance == null) {
+            return;
+        }
+        for (AttributeModifier modifier : List.copyOf(instance.getModifiers())) {
+            if (WORN_WATER_SPEED_ID.equals(modifier.getUniqueId())) {
+                instance.removeModifier(modifier);
+            }
+        }
+        if (total > 0.0) {
+            instance.addModifier(new AttributeModifier(WORN_WATER_SPEED_ID, WORN_WATER_SPEED_NAME, total,
+                    AttributeModifier.Operation.ADD_NUMBER));
+        }
+    }
+
+    @Override
     @SuppressWarnings("deprecation") // getMaxHealth: deprecated-not-removed across the whole range.
     protected double maxHealth(LivingEntity entity) {
         AttributeInstance maxHealth = maxHealthAttribute(entity);
