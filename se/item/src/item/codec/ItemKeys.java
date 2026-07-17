@@ -37,6 +37,7 @@ public final class ItemKeys {
     private final String petExpFrac;
     private final String petFood;
     private final String maskItem;
+    private final String illusion;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
@@ -45,7 +46,7 @@ public final class ItemKeys {
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
                      String loreComposer, String useItem,
                      String pet, String petLevel, String petExp, String petExpFrac, String petFood,
-                     String maskItem) {
+                     String maskItem, String illusion) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -73,13 +74,15 @@ public final class ItemKeys {
         this.petExpFrac = petExpFrac;
         this.petFood = petFood;
         this.maskItem = maskItem;
+        this.illusion = illusion;
     }
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
-                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "maskitem");
+                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "maskitem",
+                "illusion");
     }
 
     public String combat() {
@@ -212,5 +215,10 @@ public final class ItemKeys {
     /** A mask head item (ADR-0053): the PDC string under this key is the mask's def key (its identity, pre-apply). */
     public String maskItem() {
         return maskItem;
+    }
+
+    /** A mask-illusion shown head (ADR-0064): payload = Base64 of the real helmet it dresses, {@code "-"} = none. */
+    public String illusion() {
+        return illusion;
     }
 }
