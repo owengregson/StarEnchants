@@ -2,17 +2,19 @@ package item.render;
 
 import java.util.ArrayList;
 import java.util.List;
+import platform.text.Colors;
 
 /**
  * Word-wraps legacy {@code '&'}-coded text to a visible width (§4.2) — colour codes ({@code &a}, {@code &l},
- * {@code §a}, …) do NOT count toward the width, and the active colour/format carries onto each continuation
- * line so a wrapped line keeps its colour. Embedded {@code '\n'} are honoured as hard breaks (and preserved
+ * {@code §a}, …) and hex colours ({@code {#RRGGBB}} tokens and {@code §x}/{@code &x} escape runs, ADR-0062)
+ * do NOT count toward the width, and the active colour/format carries onto each continuation line so a
+ * wrapped line keeps its colour. Embedded {@code '\n'} are honoured as hard breaks (and preserved
  * as blank lines). A whole-word longer than the width is never split (standard word-wrap). Pure: no Bukkit,
  * so it is unit-testable without a server.
  */
 public final class TextWrap {
 
-    /** Legacy code chars (colour 0-9 a-f, format k-o, reset r); hex {@code &x} is not specially handled. */
+    /** Legacy code chars (colour 0-9 a-f, format k-o, reset r); hex constructs skip via {@link Colors#hexSpan}. */
     private static final String CODES = "0123456789abcdefklmnorABCDEFKLMNOR";
 
     private TextWrap() {
@@ -83,10 +85,15 @@ public final class TextWrap {
         out.add(line.toString());
     }
 
-    /** The number of visible characters in {@code s} (colour codes excluded). */
+    /** The number of visible characters in {@code s} (colour codes and hex colour constructs excluded). */
     public static int visibleLength(String s) {
         int length = 0;
         for (int i = 0; i < s.length(); i++) {
+            int hex = Colors.hexSpan(s, i);
+            if (hex > 0) {
+                i += hex - 1; // a whole hex colour construct is invisible
+                continue;
+            }
             char c = s.charAt(i);
             if ((c == '&' || c == '§') && i + 1 < s.length() && CODES.indexOf(s.charAt(i + 1)) >= 0) {
                 i++; // skip the code char — it is invisible
@@ -100,25 +107,37 @@ public final class TextWrap {
     /**
      * The trailing active colour/format of {@code input}, in {@code '&'} form, to re-emit at the start of a
      * continuation line — Bukkit {@code getLastColors} semantics: a colour or reset clears prior formatting,
-     * format codes (k-o) accumulate.
+     * format codes (k-o) accumulate. A hex colour (any {@link Colors#hexSpan} spelling) is a colour: it
+     * clears formats and carries verbatim, so the later translate re-expands it per era.
      */
     static String lastColors(String input) {
-        StringBuilder result = new StringBuilder();
-        for (int index = input.length() - 2; index >= 0; index--) {
-            char marker = input.charAt(index);
-            if (marker != '&' && marker != '§') {
+        String color = "";
+        StringBuilder formats = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            int hex = Colors.hexSpan(input, i);
+            if (hex > 0) {
+                color = input.substring(i, i + hex);
+                formats.setLength(0);
+                i += hex - 1;
                 continue;
             }
-            char code = Character.toLowerCase(input.charAt(index + 1));
+            char marker = input.charAt(i);
+            if ((marker != '&' && marker != '§') || i + 1 >= input.length()) {
+                continue;
+            }
+            char code = Character.toLowerCase(input.charAt(i + 1));
             if (CODES.indexOf(code) < 0) {
                 continue;
             }
-            result.insert(0, "&" + code);
             boolean colourOrReset = (code >= '0' && code <= '9') || (code >= 'a' && code <= 'f') || code == 'r';
             if (colourOrReset) {
-                break; // a colour/reset resets everything before it — nothing earlier carries
+                color = "&" + code;
+                formats.setLength(0);
+            } else {
+                formats.append('&').append(code);
             }
+            i++;
         }
-        return result.toString();
+        return color + formats;
     }
 }

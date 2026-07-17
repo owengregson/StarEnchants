@@ -84,4 +84,31 @@ class TextWrapTest {
         assertEquals(5, TextWrap.visibleLength("&l&ahello"));
         assertTrue(TextWrap.visibleLength("&a&b&c") == 0);
     }
+
+    @Test
+    void hexColourConstructsAreZeroWidth() {
+        assertEquals(3, TextWrap.visibleLength("{#FF0000}abc"));         // the ADR-0062 token
+        assertEquals(3, TextWrap.visibleLength("&{#FF0000}abc"));        // the &{COLOR} spelling
+        assertEquals(3, TextWrap.visibleLength("&#FF0000abc"));          // the ChatColorRgb spelling
+        assertEquals(3, TextWrap.visibleLength("&x&f&f&0&0&0&0abc"));    // authored escape run
+        assertEquals(3, TextWrap.visibleLength("§x§f§f§0§0§0§0abc"));    // translated escape run
+    }
+
+    @Test
+    void malformedHexCountsAsVisibleText() {
+        assertEquals(9, TextWrap.visibleLength("{#GGGGGG}")); // non-hex → literal, all 9 chars visible
+        assertEquals(2, TextWrap.visibleLength("&x"));        // a bare &x (no pairs) stays two visible chars
+    }
+
+    @Test
+    void hexColourCarriesToContinuationLines() {
+        List<String> out = TextWrap.wrap("{#FF0000}one two three", 5);
+        assertEquals(List.of("{#FF0000}one", "{#FF0000}two", "{#FF0000}three"), out);
+    }
+
+    @Test
+    void hexColourThenFormatBothCarry() {
+        List<String> out = TextWrap.wrap("{#FF0000}&lalpha bravo", 5);
+        assertEquals(List.of("{#FF0000}&lalpha", "{#FF0000}&lbravo"), out);
+    }
 }

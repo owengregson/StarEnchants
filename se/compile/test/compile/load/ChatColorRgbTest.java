@@ -1,6 +1,7 @@
 package compile.load;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,5 +46,27 @@ class ChatColorRgbTest {
         assertFalse(ChatColorRgb.isMultiColor("&a&lHoly &aLight"));   // same colour twice → not multi
         assertFalse(ChatColorRgb.isMultiColor("&l&nPlain"));          // only format codes
         assertFalse(ChatColorRgb.isMultiColor(null));
+    }
+
+    @Test
+    void parsesABraceHexToken() {
+        assertArrayEquals(new int[] {91, 245, 83}, ChatColorRgb.of("{#5BF553}Glow")); // ADR-0062 spelling
+        assertNull(ChatColorRgb.of("{#5BF5}Short"));    // wrong length → not a colour
+        assertNull(ChatColorRgb.of("{#GGGGGG}Bad"));    // non-hex → not a colour
+    }
+
+    @Test
+    void braceTokensCountTowardMultiColour() {
+        assertTrue(ChatColorRgb.isMultiColor("{#5BF553}Glow&aLeaf"));                 // hex + legacy, distinct
+        assertFalse(ChatColorRgb.isMultiColor("{#5BF553}One&#5bf553Same"));           // same colour, two spellings
+    }
+
+    @Test
+    void nearestCodeIsEuclideanOverTheSixteenWithFirstCodeTieBreak() {
+        assertEquals('c', ChatColorRgb.nearestCode(255, 85, 85));      // exact palette hit → red
+        assertEquals('0', ChatColorRgb.nearestCode(0, 0, 0));          // exact → black
+        assertEquals('6', ChatColorRgb.nearestCode(255, 170, 0));      // exact → gold
+        assertEquals('8', ChatColorRgb.nearestCode(0x12, 0x34, 0x56)); // off-palette → dark gray (d²=5579 beats '0'/'1' 10424)
+        assertEquals('0', ChatColorRgb.nearestCode(85, 0, 0));         // equidistant to '0' and '4' (7225) → first code wins
     }
 }

@@ -5,6 +5,10 @@
 # run /se reload — the master config, items/, menus/, lang.yml and content/ all reload together in one
 # transaction. Most values below are re-read live on the next use, so a reload re-tunes them without a restart
 # (the exceptions — integration discovery and the auto-reload interval — are armed once at boot and noted).
+#
+# Colours: every coloured string here and in items/, menus/, lang.yml and content/ accepts legacy &-codes AND
+# {#RRGGBB} hex tokens ("{#FF5733}&lBold" composes as usual). Hex renders true on every modern server; the
+# 1.8.9 build degrades each hex to the nearest classic colour. A malformed token stays literal text.
 
 # Per-feature master switches. Each turns a whole subsystem on/off. enchants/sets/crystals/heroic drop that
 # source when a player's worn state is resolved (their combat + trigger effects go inert; re-read live, so a

@@ -3,8 +3,8 @@ package compile.load;
 /**
  * Maps a {@code &}/{@code §}-coded display string to the RGB of its FIRST colour code — used to tint the
  * set-equip dust cloud to a set's colour (e.g. {@code &4Supreme} → dark red). Recognises the 16 legacy codes
- * and a {@code &#RRGGBB} hex code; returns {@code null} when no colour code is present (the caller then keeps
- * the particle's configured colour). Pure (no Bukkit).
+ * and the {@code &#RRGGBB} / {@code {#RRGGBB}} hex spellings (ADR-0062); returns {@code null} when no colour
+ * code is present (the caller then keeps the particle's configured colour). Pure (no Bukkit).
  */
 public final class ChatColorRgb {
 
@@ -18,6 +18,13 @@ public final class ChatColorRgb {
         }
         for (int i = 0; i + 1 < text.length(); i++) {
             char marker = text.charAt(i);
+            if (marker == '{' && i + 8 < text.length() && text.charAt(i + 1) == '#' && text.charAt(i + 8) == '}') {
+                int[] hex = parseHex(text.substring(i + 2, i + 8));
+                if (hex != null) {
+                    return hex;
+                }
+                continue;
+            }
             if (marker != '&' && marker != '§') {
                 continue;
             }
@@ -49,12 +56,20 @@ public final class ChatColorRgb {
         java.util.Set<String> colors = new java.util.HashSet<>();
         for (int i = 0; i + 1 < text.length(); i++) {
             char marker = text.charAt(i);
+            if (marker == '{' && i + 8 < text.length() && text.charAt(i + 1) == '#' && text.charAt(i + 8) == '}'
+                    && parseHex(text.substring(i + 2, i + 8)) != null) {
+                colors.add(text.substring(i + 2, i + 8).toLowerCase(java.util.Locale.ROOT));
+                if (colors.size() >= 2) {
+                    return true;
+                }
+                continue;
+            }
             if (marker != '&' && marker != '§') {
                 continue;
             }
             char code = Character.toLowerCase(text.charAt(i + 1));
             if (code == '#' && i + 7 < text.length() && parseHex(text.substring(i + 2, i + 8)) != null) {
-                colors.add(text.substring(i + 2, i + 8));
+                colors.add(text.substring(i + 2, i + 8).toLowerCase(java.util.Locale.ROOT));
             } else if (legacy(code) != null) {
                 colors.add(String.valueOf(code));
             }
@@ -63,6 +78,27 @@ public final class ChatColorRgb {
             }
         }
         return false;
+    }
+
+    /**
+     * The legacy colour code ({@code 0-9}, {@code a-f}) nearest {@code (r, g, b)} by squared Euclidean RGB
+     * distance — the true-1.8 hex degrade (ADR-0062). A tie keeps the first (lowest) code.
+     */
+    public static char nearestCode(int r, int g, int b) {
+        char best = 'f';
+        int bestDistance = Integer.MAX_VALUE;
+        for (char code : "0123456789abcdef".toCharArray()) {
+            int[] rgb = legacy(code);
+            int dr = rgb[0] - r;
+            int dg = rgb[1] - g;
+            int db = rgb[2] - b;
+            int distance = dr * dr + dg * dg + db * db;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = code;
+            }
+        }
+        return best;
     }
 
     private static int[] parseHex(String rrggbb) {

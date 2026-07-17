@@ -101,15 +101,18 @@ class ModuleTreeGateTest {
     // ── G2-c static-installer ratchet ───────────────────────────────────────────────────────────
 
     /**
-     * The frozen set of {@code private static volatile} fields (ADR-0047 §4): the four ratcheted boot-time
+     * The frozen set of {@code private static volatile} fields (ADR-0047 §4): the ratcheted boot-time
      * installers plus the three pre-existing non-installer statics. The two dissolved installers
      * (DispatchSinkBase.movementExemption → SinkEnv, ItemFactory.enchantResolver → VanillaEnchants) are ABSENT.
+     * Colors#hexMode is adjudicated (ADR-0062): the era-selected {#RRGGBB} translation mode, installed once in
+     * the BootCore ctor — the ItemFactory#itemWrapWidth idiom, a render-prep knob with no per-event state.
      */
     private static final Set<String> FROZEN_STATICS = Set.of(
             "CombatDispatch#friendlyFire",
             "FactPopulator#entityTypeResolver",
             "ItemFactory#customItemResolver",
             "ItemFactory#itemWrapWidth",
+            "Colors#hexMode",
             "Allies#hook",
             "Regions#folia",
             "Scheduling#backend");

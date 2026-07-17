@@ -57,6 +57,7 @@ import org.bukkit.plugin.Plugin;
 import platform.economy.EconomyProvider;
 import platform.protect.ProtectionProvider;
 import platform.resolve.RegistryResolvers;
+import platform.text.Colors;
 
 /**
  * Legacy (1.8.9) era bindings (ADR-0044): the one same-FQN {@code bootstrap} twin, implementing
@@ -132,6 +133,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Sounds sounds() {
         return new Sounds(KeySoundFallback.NONE);
+    }
+
+    /** {@code {#RRGGBB}} form (ADR-0062): 1.8 clients have no hex — degrade to the nearest legacy colour. */
+    @Override
+    public Colors.HexMode hexMode() {
+        return Colors.HexMode.NEAREST_LEGACY;
     }
 
     /** §F heroic vanilla stats (§4): 1.8 has no attribute API — keep the plugin-maths fold. Into {@code HeroicService}. */

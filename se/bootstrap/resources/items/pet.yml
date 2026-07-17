@@ -3,7 +3,7 @@
 # colour/name/descriptor/description filled in, onto its content-configured player-head texture. Reload with
 # /se reload.
 # Placeholders (usable in name + both lore templates):
-#   {COLOR}          = the pet's colour codes (content/pets/<key>.yml `color`); `&{COLOR}` is accepted too
+#   {COLOR}          = the pet's colour codes (content/pets/<key>.yml `color` — &-codes or {#RRGGBB}); `&{COLOR}` is accepted too
 #   {NAME}           = the pet's display name
 #   {DESCRIPTOR}     = the pet's flavour line(s), one lore line per authored line (dropped when un-authored)
 #   {DESCRIPTION}    = the pet's ability description, one lore line per authored line

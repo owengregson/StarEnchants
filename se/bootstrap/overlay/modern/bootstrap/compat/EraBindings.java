@@ -60,6 +60,7 @@ import platform.economy.EconomyProvider;
 import platform.protect.ProtectionProvider;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
+import platform.text.Colors;
 import schema.spec.HandleCategory;
 
 /**
@@ -134,6 +135,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Sounds sounds() {
         return new Sounds((player, at, key, volume, pitch) -> player.playSound(at, key, volume, pitch));
+    }
+
+    /** {@code {#RRGGBB}} form (ADR-0062): the whole modern range accepts the 1.16+ {@code §x} legacy-hex escape. */
+    @Override
+    public Colors.HexMode hexMode() {
+        return Colors.HexMode.MODERN;
     }
 
     /** §F heroic vanilla stats (§4): modern writes real diamond attributes. Injected into {@code HeroicService}. */

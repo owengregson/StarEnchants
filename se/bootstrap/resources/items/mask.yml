@@ -5,7 +5,7 @@
 # repaints the helmet's WORN appearance with this head for every observer — never touching the inventory item.
 # One mask per helmet; right-click the masked helmet with an empty cursor to pop the mask back off intact.
 # Everything below is configurable; reload with /se reload. Placeholders (usable in name + every lore line):
-#   {COLOR}       = the mask's colour codes (content/masks/<key>.yml `color`, e.g. "&8") — carries its own &
+#   {COLOR}       = the mask's colour codes (content/masks/<key>.yml `color`, e.g. "&8" or "{#8B4513}") — carries its own &
 #   {NAME}        = the mask's display name (bare, no colour codes)
 #   {NAME_UPPER}  = the display name upper-cased — the SET-BONUS/pets header convention
 #   {DESCRIPTION} = the mask's description block, one lore line per authored line (line-expanding)

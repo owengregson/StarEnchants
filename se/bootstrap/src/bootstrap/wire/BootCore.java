@@ -217,6 +217,8 @@ public final class BootCore {
         Compiler compiler = ContentCompiler.production(resolvers, effectRegistry.get());
         // The era bindings (ADR-0044): the one seam carrying every version-specific service.
         this.bindings = new bootstrap.compat.EraBindings(resolvers);
+        // {#RRGGBB} runtime form (ADR-0062): era-installed before anything translates/renders on this boot.
+        platform.text.Colors.hexMode(bindings.hexMode());
         this.particleFx = bindings.particleFx();
         // The physical item-data layer (§4.2, ADR-0044): era store injected into every codec + the lore renderer.
         this.store = bindings.itemStateStore();
@@ -482,7 +484,10 @@ public final class BootCore {
         // separate-event reader always see the SAME stores (no split-brain). The interest cap (ADR-0052 Fish)
         // reads the live pets section so /se reload re-tunes it.
         this.sinkEnv = SinkEnv.of(economy, soulService, stores, tick::get, movementExemption,
-                () -> master.config().pets().maxPercentMoneyCap(), gearProtection);
+                () -> master.config().pets().maxPercentMoneyCap(), gearProtection,
+                // ADR-0063: the worn LIGHTNING_MOD channel — live WornState + suppression, read per bolt emit.
+                feature.trigger.LightningBoost.fn(content, worn, stores.suppression(), tick::get,
+                        triggers.idOf("PASSIVE").orElse(-1)));
         // mcMMO friendly-fire gate,
         CombatDispatch.friendlyFire(bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled));
         // %victim.mobtype% from MythicMobs' internal name,

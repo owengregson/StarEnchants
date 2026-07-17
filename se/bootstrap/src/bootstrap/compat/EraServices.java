@@ -39,6 +39,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import platform.economy.EconomyProvider;
 import platform.protect.ProtectionProvider;
+import platform.text.Colors;
 
 /**
  * The era-services surface (ADR-0044): every version-specific service the composition root needs, so the whole
@@ -73,6 +74,10 @@ public interface EraServices {
     Projectiles projectiles();
 
     Sounds sounds();
+
+    /** The {@code {#RRGGBB}} runtime form (ADR-0062): modern emits the 1.16+ {@code §x} escape; 1.8 degrades to
+     *  the nearest legacy colour. Installed into {@code platform.text.Colors} once at boot (BootCore). */
+    Colors.HexMode hexMode();
 
     VanillaStats vanillaStats();
 
