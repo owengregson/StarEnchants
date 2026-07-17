@@ -19,7 +19,9 @@ import org.bukkit.inventory.meta.Damageable;
  * <p>Runs at {@code HIGHEST} after the {@code HIGH} heroic save with {@code ignoreCancelled}: a heroic helmet's
  * wear is cancelled (saved) upstream, so this fires only on a wear heroic lets through — a heroic piece keeps its
  * effective-higher durability and both tiers break at zero durability points alike. 1.8.9 has no
- * {@code PlayerItemDamageEvent}; the gear poll carries the break-salvage there (docs/legacy-1.8.9-codeshare-design.md §6).
+ * {@code PlayerItemDamageEvent} and its lane is deliberately INERT (deferred in the 1.8.8-beta changelog): the
+ * legacy {@code EraBindings.maskBreakSource} returns the no-op — the gear poll sees durability only post-hoc and
+ * cannot yet tell a break from an unequip, and a mis-read would dupe the mask.
  * Folia-correct: the event fires on the wearer's own region thread.
  */
 public final class MaskDurabilityBreakListener implements Listener {
