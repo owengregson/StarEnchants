@@ -111,6 +111,10 @@ public interface EraServices {
      *  has no such event, so an inert listener — the Sink's per-tick re-strip is the sole enforcer there. */
     Listener potionLockGuard();
 
+    /** FREEZE guard (ADR-0065): modern cancel of vanilla freeze self-damage inside a frozen window + the
+     *  join-time stranded-lock reconcile; 1.8 has no freeze concept, so an inert listener. */
+    Listener freezeDamageGuard();
+
     /** ITEM_DAMAGE source (modern {@code PlayerItemDamageEvent}; 1.8 an inert listener — the poll fires it). */
     Listener itemDamageSource(TriggerDispatch dispatch);
 
