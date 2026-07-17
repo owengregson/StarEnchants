@@ -62,7 +62,7 @@ public final class PetFoodListener extends ApplyGestureListener {
             return GestureOutcome.noop(messages.format("pet.food-max")); // reject BEFORE consuming
         }
         int levels = codec.foodLevels(cursor);
-        PetService.Progress progress = service.addLevels(target, levels);
+        PetService.Progress progress = service.addLevels(player, target, levels);
         if (!progress.changed()) {
             return GestureOutcome.noop(messages.format("pet.food-max")); // stale key / already clamped
         }

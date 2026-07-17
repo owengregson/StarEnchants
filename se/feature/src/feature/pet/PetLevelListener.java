@@ -17,7 +17,7 @@ import org.bukkit.inventory.PlayerInventory;
 import platform.sched.Scheduling;
 
 /**
- * Pet exp from play (ADR-0052): every hotbar pet is credited on a mob kill (the souls deposit-on-any-kill
+ * Pet exp from play (ADR-0052, passive accrual per ADR-0059): every hotbar pet is credited on a mob kill (the souls deposit-on-any-kill
  * attribution — plain {@code getKiller()}, MONITOR so a cancelled death awards nothing) and on vanilla XP
  * gain (a DEDICATED {@code PlayerExpChangeEvent} hook at MONITOR, reading the post-{@code EXP_MULTIPLY}
  * amount — the engine's {@code fireExp} only scales in place and exposes nothing). Kill credits hop to the
@@ -27,8 +27,10 @@ import platform.sched.Scheduling;
  */
 public final class PetLevelListener implements Listener {
 
-    /** Hotbar slots 0-8 — where a pet levels (matches {@link PetWornSource}). */
+    /** Hotbar slots 0-8 — where kill/XP credits land (matches {@link PetWornSource}). */
     private static final int HOTBAR_SLOTS = 9;
+    /** Main-inventory slots 0-35 — the passive-accrual zone on BOTH eras (armour/off-hand excluded). */
+    private static final int STORAGE_SLOTS = 36;
 
     private final PetService service;
     private final PetCodec codec;
@@ -83,7 +85,7 @@ public final class PetLevelListener implements Listener {
             if (stack == null || !codec.isPet(stack) || stack.getAmount() > 1) {
                 continue; // a STACK of identical heads shares one meta — crediting it would level every copy
             }
-            PetService.Progress progress = service.gainExp(stack, amount);
+            PetService.Progress progress = service.gainExp(player, stack, amount);
             if (progress.changed()) {
                 inventory.setItem(slot, stack); // persist — the codec mutated only the in-memory copy
                 crossed |= progress.bracketCrossed();
@@ -91,6 +93,30 @@ public final class PetLevelListener implements Listener {
         }
         if (crossed) {
             refresh.accept(player); // a new bracket = new ability set; re-resolve once for all slots
+        }
+    }
+
+    /**
+     * One ONLINE minute of passive accrual (ADR-0059) for every pet in the main inventory — hotbar slots flag
+     * the PASSIVE-pet double rate. Called by the sweep on the player's own region thread; container/ender
+     * inventories are never scanned (this reads only {@code PlayerInventory} slots 0-35).
+     */
+    void creditPassiveMinute(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        boolean crossed = false;
+        for (int slot = 0; slot < STORAGE_SLOTS; slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack == null || !codec.isPet(stack) || stack.getAmount() > 1) {
+                continue; // a STACK of identical heads shares one meta — crediting it would level every copy
+            }
+            PetService.Progress progress = service.accruePassive(player, stack, slot < HOTBAR_SLOTS);
+            if (progress.changed()) {
+                inventory.setItem(slot, stack); // persist — the codec mutated only the in-memory copy
+                crossed |= progress.bracketCrossed();
+            }
+        }
+        if (crossed) {
+            refresh.accept(player);
         }
     }
 }

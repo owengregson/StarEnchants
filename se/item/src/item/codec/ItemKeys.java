@@ -34,6 +34,7 @@ public final class ItemKeys {
     private final String pet;
     private final String petLevel;
     private final String petExp;
+    private final String petExpFrac;
     private final String petFood;
     private final String maskItem;
 
@@ -43,7 +44,8 @@ public final class ItemKeys {
                      String unopened, String godlyTransmog, String appliedSlot,
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
                      String loreComposer, String useItem,
-                     String pet, String petLevel, String petExp, String petFood, String maskItem) {
+                     String pet, String petLevel, String petExp, String petExpFrac, String petFood,
+                     String maskItem) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -68,6 +70,7 @@ public final class ItemKeys {
         this.pet = pet;
         this.petLevel = petLevel;
         this.petExp = petExp;
+        this.petExpFrac = petExpFrac;
         this.petFood = petFood;
         this.maskItem = maskItem;
     }
@@ -76,7 +79,7 @@ public final class ItemKeys {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
-                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petfood", "maskitem");
+                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "maskitem");
     }
 
     public String combat() {
@@ -194,6 +197,11 @@ public final class ItemKeys {
     /** The pet's exp toward the next level — its own integer key, mutated on every credit. */
     public String petExp() {
         return petExp;
+    }
+
+    /** The passive-accrual carry in 1/60000-exp units (ADR-0059) — rides the item so it survives moves. */
+    public String petExpFrac() {
+        return petExpFrac;
     }
 
     /** A Pet Food apply item (ADR-0052): the PDC integer under this key is its baked +levels amount. */

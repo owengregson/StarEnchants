@@ -139,10 +139,16 @@ crystals:
   # gear entry). 2 = a crystal may hold at most two combined effects.
   max-merge: 2
 
-# Pets (ADR-0052). The universal knobs for every pet: leveling economy, the income ceiling, and the three
-# universal messages. A pet gains exp-per-mob-kill per mob kill, exp-per-xp-point × the XP gained on every
-# vanilla XP pickup, and exp-passive-per-minute for each minute it sits in the hotbar; every exp-per-level
-# exp is one level, capped at max-level. Pet Food's +levels lives on ITS likeness (items/pet-food.yml).
+# Pets (ADR-0052 / ADR-0059). The universal knobs for every pet: leveling economy, the level-up cue, the
+# income ceiling, and the universal messages. A hotbar pet gains exp-per-mob-kill per mob kill and
+# exp-per-xp-point × the XP gained on every vanilla XP pickup; an ACTIVE pet also gains a random
+# [exp-per-level/8, exp-per-level/5] exp (min 1) on each successful right-click. Any pet sitting in the
+# player's main inventory passively earns passive-levels-per-hour of ONLINE time (fractions carried exactly
+# on the item, so moving a pet never loses progress); a PASSIVE-type pet held in the HOTBAR earns
+# passive-hotbar-levels-per-hour instead. Every exp-per-level exp is one level, capped at max-level (accrual
+# parks there). Pet Food's +levels lives on ITS likeness (items/pet-food.yml). level-up-sound /
+# level-up-particle play for the holder whenever a pet gains a level from ANY source — once per gain event,
+# so a +10 food plays one cue; blank the sound ("") / empty the particle ({ }) to silence it.
 # max-percent-money-cap ceilings ONE Fish-pet interest deposit (<= 0 = uncapped). The message templates
 # carry {COLOR} (the pet's own colour), {NAME} (uppercased in activate/end when uppercase is on) and
 # {TIME_FORMATTED}; an empty template is silent. All read live on /se reload.
@@ -151,7 +157,10 @@ pets:
   exp-per-level: 100
   exp-per-mob-kill: 5
   exp-per-xp-point: 1.0
-  exp-passive-per-minute: 2
+  passive-levels-per-hour: 0.5          # every pet in the main inventory, per hour of ONLINE time
+  passive-hotbar-levels-per-hour: 1.0   # a PASSIVE-type pet held in the hotbar earns this instead
+  level-up-sound: { sound: entity.player.levelup, volume: 0.8, pitch: 1.5 }
+  level-up-particle: { particle: HAPPY_VILLAGER, count: 12, spread: 0.4, y-offset: 1.0 }
   max-percent-money-cap: 1000000
   message-on-activate: "&{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r &{COLOR}&l**"
   message-on-end: "&{COLOR}&l** PET ABILITY: &r&c&l&nENDED&r &{COLOR}&l**"

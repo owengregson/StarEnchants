@@ -11,9 +11,11 @@
 #   {LEVEL} / {MAX_LEVEL} / {EXP} / {EXP_NEXT} = the stored level + exp against the universal knobs
 #   {EXP_BAR}        = the ten-slot progress meter toward the next level (&a■ filled / &7_ empty, one slot
 #                      per 10%); full at the level cap. The template wraps it in &f[ ... &f].
+# The head re-renders when the LEVEL or a bar tenth changes (ADR-0059), so a raw {EXP} line may lag a few
+# points between renders; {LEVEL} in the name below is what keeps the level suffix live on every level-up.
 type: pet
 
-name: "{COLOR}&l{NAME} Pet"
+name: "{COLOR}&l{NAME} Pet &7[Lvl. &f&n{LEVEL}&r&7]&r"
 # ACTIVE pets carry the cooldown block + the right-click hint; PASSIVE pets the hotbar hint — each type owns
 # a whole template rather than splicing conditionals into one.
 lore-active:

@@ -42,6 +42,23 @@ class PetCodecTest {
     }
 
     @Test
+    void expFracRoundTripsClampsAndResetsOnStamp() {
+        ItemStack stack = mock(ItemStack.class);
+        assertEquals(0, codec.expFrac(stack)); // absent reads 0
+
+        codec.stamp(stack, "cow", 3);
+        codec.writeExpFrac(stack, 59_999);     // the largest legal carry (1/60000-exp units)
+        assertEquals(59_999, codec.expFrac(stack));
+
+        codec.writeExpFrac(stack, -4);         // corrupt writes clamp like the other counters
+        assertEquals(0, codec.expFrac(stack));
+
+        codec.writeExpFrac(stack, 123);
+        codec.stamp(stack, "cow", 3);          // a re-stamp is a FRESH pet — no inherited carry
+        assertEquals(0, codec.expFrac(stack));
+    }
+
+    @Test
     void petFoodBakesItsGrantAndAVanillaCarrotIsNotFood() {
         ItemStack food = mock(ItemStack.class);
         assertFalse(codec.isPetFood(food));

@@ -1,6 +1,5 @@
 package feature.pet;
 
-import compile.load.MasterConfig;
 import engine.stores.PlayerScoped;
 import item.codec.PetCodec;
 import java.util.Map;
@@ -9,14 +8,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 /**
- * The per-minute pets sweep (ADR-0052), run for each online player on their own region thread: credits the
- * passive held-time exp to every hotbar pet, and reconciles hotbar DRIFT the event listeners cannot see —
+ * The per-minute pets sweep (ADR-0052/0059), run for each online player on their own region thread: credits
+ * one ONLINE minute of passive accrual to every main-inventory pet, and reconciles hotbar DRIFT the event listeners cannot see —
  * item pickup has no era-stable event (1.8 lacks {@code EntityPickupItemEvent}), and effects/commands can
  * move stacks silently — by fingerprinting the hotbar's (pet key, level) pairs and requesting the standard
  * worn refresh when it changed (the F09 hand-signature shape). The fingerprint map is per-player transient
@@ -29,29 +27,23 @@ public final class PetSweep implements PlayerScoped {
 
     private final PetCodec codec;
     private final PetLevelListener leveler;
-    private final Supplier<MasterConfig.PetsSection> pets;
     private final Consumer<Player> refresh;
     private final BooleanSupplier enabled;
     private final Map<UUID, Integer> fingerprints = new ConcurrentHashMap<>();
 
-    public PetSweep(PetCodec codec, PetLevelListener leveler, Supplier<MasterConfig.PetsSection> pets,
-                    Consumer<Player> refresh, BooleanSupplier enabled) {
+    public PetSweep(PetCodec codec, PetLevelListener leveler, Consumer<Player> refresh, BooleanSupplier enabled) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.leveler = Objects.requireNonNull(leveler, "leveler");
-        this.pets = Objects.requireNonNull(pets, "pets");
         this.refresh = Objects.requireNonNull(refresh, "refresh");
         this.enabled = Objects.requireNonNull(enabled, "enabled");
     }
 
-    /** One player's minute tick — must run on their own region thread. */
+    /** One player's minute tick — must run on their own region thread (the accrual math assumes ONE minute). */
     public void run(Player player) {
         if (!enabled.getAsBoolean()) {
             return;
         }
-        int amount = pets.get().expPassivePerMinute();
-        if (amount > 0) {
-            leveler.creditHotbar(player, amount); // refreshes itself on a bracket cross
-        }
+        leveler.creditPassiveMinute(player); // refreshes itself on a bracket cross
         int fingerprint = fingerprint(player);
         Integer last = fingerprints.put(player.getUniqueId(), fingerprint);
         if (last != null && last != fingerprint) {

@@ -27,7 +27,7 @@ public record PetItemConfig(String name, List<String> loreActive, List<String> l
 
     public static PetItemConfig defaults() {
         return new PetItemConfig(
-                "{COLOR}&l{NAME} Pet",
+                "{COLOR}&l{NAME} Pet &7[Lvl. &f&n{LEVEL}&r&7]&r",
                 List.of("{DESCRIPTOR}",
                         "",
                         "{COLOR}&lACTIVE PET ABILITY",
